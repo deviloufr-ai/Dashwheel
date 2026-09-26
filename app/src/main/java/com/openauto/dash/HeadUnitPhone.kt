@@ -7,7 +7,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.ServiceConnection
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.os.Parcel
 import android.os.SystemClock
 import android.provider.Settings
@@ -39,6 +41,9 @@ object HeadUnitPhone {
     const val BT_PACKAGE = "com.qf.bluetooth"
 
     private const val ACTION_CALL_STATE = "com.qf.action.bt.call.state"
+    /** Sent by the Bluetooth app's call screen as it opens and closes. */
+    private const val ACTION_CALL_START = "com.qf.action.PHONE_CALL_START"
+    private const val ACTION_CALL_END = "com.qf.action.PHONE_CALL_END"
     private const val STATE_INCOMING = 1
     private const val STATE_OUTGOING = 2
     private const val STATE_ACTIVE = 3
@@ -51,6 +56,12 @@ object HeadUnitPhone {
     private const val TX_HANG_UP = 3
 
     private const val ACTION_ZLINK = "com.zjinnova.zlink"
+    /** The signal again this long after each call event: the call screen may not have been listening yet. */
+    private val RESEND_MS = longArrayOf(400, 1_500, 4_000)
+    /** At most this many signals per call, so nothing can make it loop. */
+    private const val MAX_SIGNALS_PER_CALL = 8
+    /** A call-screen "start" this soon after our own signal is its echo, not news. */
+    private const val ECHO_MS = 1_500L
     private const val PREFS = "head_unit_phone"
     /** Set while the ROM's pop-up is told to step aside, so a crash mid-call can't leave the seek keys as phone keys. */
     private const val KEY_ROM_ASIDE = "rom_aside"
@@ -73,7 +84,12 @@ object HeadUnitPhone {
         started = true
         // Left aside by a run that ended mid-call: give the ROM its keys back.
         if (romAside(app) && systemProperty("sys.qf.call_state") != "true") bringRomBack(app)
-        ContextCompat.registerReceiver(app, receiver, IntentFilter(ACTION_CALL_STATE), ContextCompat.RECEIVER_EXPORTED)
+        val filter = IntentFilter().apply {
+            addAction(ACTION_CALL_STATE)
+            addAction(ACTION_CALL_START)
+            addAction(ACTION_CALL_END)
+        }
+        ContextCompat.registerReceiver(app, receiver, filter, ContextCompat.RECEIVER_EXPORTED)
         bind(app)
     }
 
@@ -88,6 +104,18 @@ object HeadUnitPhone {
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
+            val app = context.applicationContext
+            when (intent.action) {
+                ACTION_CALL_STATE -> onCallState(app, intent)
+                // Its window is opening right now: the moment to set it aside.
+                ACTION_CALL_START -> if (SystemClock.elapsedRealtime() - lastSignalAt > ECHO_MS) setAside(app)
+                ACTION_CALL_END -> callOver(app)
+            }
+        }
+    }
+
+    private fun onCallState(context: Context, intent: Intent) {
+        run {
             val state = intent.getIntExtra("callState", -1)
             val number = intent.getStringExtra("callNumber")?.takeIf { it.isNotBlank() }
             val name = intent.getStringExtra("callName")?.takeIf { it.isNotBlank() && it != number }
@@ -106,14 +134,44 @@ object HeadUnitPhone {
                 else -> return
             }
             Log.d(TAG, "call state $state")
-            if (_call.value != null) {
-                if (RomPopups.Kind.CALL in RomPopups.replaced.value && Settings.canDrawOverlays(context) && !romAside(context)) {
-                    setRomAside(context, true)
-                }
-            } else if (romAside(context)) {
-                bringRomBack(context)
-            }
+            if (_call.value != null) setAside(context) else callOver(context)
         }
+    }
+
+    // The set-aside signal, per call (main thread: broadcasts and the handler).
+    private val main = Handler(Looper.getMainLooper())
+    private var inCall = false
+    private var signals = 0
+    private var lastSignalAt = 0L
+
+    /**
+     * Sets the ROM's call screen aside for this call: now, and again a
+     * moment later. The signal removes its window if it's up (and then no
+     * longer holds, but the screen isn't shown twice in one call) or keeps it
+     * from coming up; repeating it covers a signal sent before the Bluetooth
+     * app's call screen existed to hear it, or before the overlay permission
+     * came through. Every call event sets it again, up to [MAX_SIGNALS_PER_CALL].
+     */
+    private fun setAside(context: Context) {
+        inCall = true
+        signalAside(context)
+        RESEND_MS.forEach { delay -> main.postDelayed({ if (inCall) signalAside(context) }, delay) }
+    }
+
+    private fun signalAside(context: Context) {
+        // Only while Dashwheel's own card can show over other apps: never no call screen at all.
+        if (RomPopups.Kind.CALL !in RomPopups.replaced.value || !Settings.canDrawOverlays(context)) return
+        if (signals >= MAX_SIGNALS_PER_CALL) return
+        signals++
+        lastSignalAt = SystemClock.elapsedRealtime()
+        setRomAside(context, true)
+    }
+
+    private fun callOver(context: Context) {
+        inCall = false
+        signals = 0
+        main.removeCallbacksAndMessages(null)
+        if (romAside(context)) bringRomBack(context)
     }
 
     private fun bringRomBack(context: Context) = setRomAside(context, false)
@@ -121,6 +179,7 @@ object HeadUnitPhone {
     /** Tells the Bluetooth app a phone-link app has the call ([ACTION_ZLINK]), or no longer. */
     private fun setRomAside(context: Context, aside: Boolean) {
         context.sendBroadcast(Intent(ACTION_ZLINK).putExtra("status", if (aside) "PHONE_CALL_ON" else "PHONE_CALL_OFF"))
+        // Kept only to give the ROM its keys back after a run that ended mid-call ([start]).
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_ROM_ASIDE, aside).apply()
         Log.i(TAG, if (aside) "ROM call screen set aside" else "ROM call screen back")
     }
