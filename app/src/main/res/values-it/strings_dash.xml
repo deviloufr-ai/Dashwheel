@@ -125,6 +125,8 @@
     <string name="dash_layout_maps_left_desc">Google Maps agganciato a sinistra, pagine scorrevoli a destra</string>
     <string name="dash_layout_maps_right">Mappa a destra</string>
     <string name="dash_layout_maps_right_desc">Google Maps agganciato a destra, pagine scorrevoli a sinistra</string>
+    <string name="dash_layout_maps_top">Mappa in alto</string>
+    <string name="dash_layout_maps_bottom">Mappa in basso</string>
 
     <!-- The pages' places in the cross, and an empty page -->
     <string name="dash_page_home">Home</string>

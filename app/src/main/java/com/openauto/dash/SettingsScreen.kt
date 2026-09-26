@@ -39,8 +39,11 @@ import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.SensorDoor
 import androidx.compose.material.icons.filled.Sensors
+import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.SettingsRemote
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.StayCurrentLandscape
+import androidx.compose.material.icons.filled.StayCurrentPortrait
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.TireRepair
 import androidx.compose.material.icons.filled.Tune
@@ -260,12 +263,49 @@ private fun RomPopupToggle(kind: RomPopups.Kind) {
 
 @Composable
 private fun LookPane(theme: ThemeState) {
+    ScreenOrientationSetting()
+    Spacer(Modifier.height(20.dp))
     ThemePane(theme)
     Spacer(Modifier.height(20.dp))
     AlertStyleRows()
     Spacer(Modifier.height(20.dp))
     SettingsSection(stringResource(R.string.language_title))
     LanguageChoices()
+}
+
+/**
+ * Which way the dashboard stands ([ScreenShape]). Auto reads it from the
+ * screen and says what it found; the others turn the launcher, which rebuilds
+ * the dashboard for that shape with its own layout.
+ */
+@Composable
+private fun ScreenOrientationSetting() {
+    val context = LocalContext.current
+    val chosen by ScreenShape.choice.collectAsState()
+    SettingsSection(stringResource(R.string.settings_screen_title))
+    SegmentedSwitch(
+        options = ScreenOrientation.entries,
+        chosen = chosen,
+        icon = { option ->
+            when (option) {
+                ScreenOrientation.AUTO -> Icons.Filled.ScreenRotation
+                ScreenOrientation.HORIZONTAL -> Icons.Filled.StayCurrentLandscape
+                ScreenOrientation.VERTICAL -> Icons.Filled.StayCurrentPortrait
+            }
+        },
+        title = { stringResource(it.titleRes) },
+        onChoose = { option -> context.findActivity()?.let { ScreenShape.save(it, option) } }
+    )
+    SwitchHint(
+        stringResource(
+            when (chosen) {
+                ScreenOrientation.AUTO ->
+                    if (ScreenShape.vertical) R.string.settings_screen_auto_hint_tall else R.string.settings_screen_auto_hint_wide
+                ScreenOrientation.HORIZONTAL -> R.string.settings_screen_horizontal_hint
+                ScreenOrientation.VERTICAL -> R.string.settings_screen_vertical_hint
+            }
+        )
+    )
 }
 
 @Composable

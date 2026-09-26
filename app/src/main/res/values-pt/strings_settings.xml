@@ -90,4 +90,12 @@
     <string name="alert_kind_belt">Cinto de segurança</string>
     <string name="alert_kind_belt_title">Alerta do cinto</string>
     <string name="alert_speak_belt_detail">Pede para apertar o cinto</string>
+    <string name="settings_screen_title">Ecrã</string>
+    <string name="settings_screen_auto">Auto</string>
+    <string name="settings_screen_horizontal">Horizontal</string>
+    <string name="settings_screen_vertical">Vertical</string>
+    <string name="settings_screen_auto_hint_wide">Segue o ecrã: este é horizontal</string>
+    <string name="settings_screen_auto_hint_tall">Segue o ecrã: este é vertical</string>
+    <string name="settings_screen_horizontal_hint">Põe o painel na horizontal, se a unidade o permitir</string>
+    <string name="settings_screen_vertical_hint">Põe o painel na vertical com uma disposição própria, se a unidade o permitir</string>
 </resources>

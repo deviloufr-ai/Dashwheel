@@ -125,6 +125,8 @@
     <string name="dash_layout_maps_left_desc">Google Maps vast op de linkerhelft, pagina\'s vegen rechts</string>
     <string name="dash_layout_maps_right">Kaart rechts</string>
     <string name="dash_layout_maps_right_desc">Google Maps vast op de rechterhelft, pagina\'s vegen links</string>
+    <string name="dash_layout_maps_top">Kaart boven</string>
+    <string name="dash_layout_maps_bottom">Kaart onder</string>
 
     <!-- The pages' places in the cross, and an empty page -->
     <string name="dash_page_home">Start</string>

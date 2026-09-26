@@ -155,6 +155,8 @@
     <string name="dash_layout_maps_left_desc">Google Maps docked on the left half, pages swipe on the right</string>
     <string name="dash_layout_maps_right">Map on the right</string>
     <string name="dash_layout_maps_right_desc">Google Maps docked on the right half, pages swipe on the left</string>
+    <string name="dash_layout_maps_top">Map on top</string>
+    <string name="dash_layout_maps_bottom">Map at the bottom</string>
 
     <!-- The pages' places in the cross, and an empty page -->
     <string name="dash_page_home">Home</string>

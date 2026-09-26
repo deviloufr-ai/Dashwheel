@@ -90,4 +90,12 @@
     <string name="alert_kind_belt">Pasy</string>
     <string name="alert_kind_belt_title">Alert pasów</string>
     <string name="alert_speak_belt_detail">Prosi o zapięcie pasów</string>
+    <string name="settings_screen_title">Ekran</string>
+    <string name="settings_screen_auto">Auto</string>
+    <string name="settings_screen_horizontal">Poziomo</string>
+    <string name="settings_screen_vertical">Pionowo</string>
+    <string name="settings_screen_auto_hint_wide">Według ekranu: ten jest poziomy</string>
+    <string name="settings_screen_auto_hint_tall">Według ekranu: ten jest pionowy</string>
+    <string name="settings_screen_horizontal_hint">Obraca pulpit poziomo, jeśli radio na to pozwala</string>
+    <string name="settings_screen_vertical_hint">Obraca pulpit pionowo, z osobnym układem, jeśli radio na to pozwala</string>
 </resources>

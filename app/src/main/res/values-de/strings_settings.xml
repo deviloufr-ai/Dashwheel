@@ -90,4 +90,12 @@
     <string name="alert_kind_belt">Sicherheitsgurt</string>
     <string name="alert_kind_belt_title">Gurtwarnung</string>
     <string name="alert_speak_belt_detail">Bittet Sie, sich anzuschnallen</string>
+    <string name="settings_screen_title">Bildschirm</string>
+    <string name="settings_screen_auto">Auto</string>
+    <string name="settings_screen_horizontal">Quer</string>
+    <string name="settings_screen_vertical">Hochkant</string>
+    <string name="settings_screen_auto_hint_wide">Folgt dem Bildschirm: dieser ist quer</string>
+    <string name="settings_screen_auto_hint_tall">Folgt dem Bildschirm: dieser ist hochkant</string>
+    <string name="settings_screen_horizontal_hint">Dreht das Dashboard ins Querformat, wenn das Gerät es erlaubt</string>
+    <string name="settings_screen_vertical_hint">Dreht das Dashboard hochkant, mit eigenem Layout, wenn das Gerät es erlaubt</string>
 </resources>

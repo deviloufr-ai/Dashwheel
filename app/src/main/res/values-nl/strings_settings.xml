@@ -90,4 +90,12 @@
     <string name="alert_kind_belt">Gordel</string>
     <string name="alert_kind_belt_title">Gordelmelding</string>
     <string name="alert_speak_belt_detail">Vraagt u de gordel om te doen</string>
+    <string name="settings_screen_title">Scherm</string>
+    <string name="settings_screen_auto">Auto</string>
+    <string name="settings_screen_horizontal">Liggend</string>
+    <string name="settings_screen_vertical">Staand</string>
+    <string name="settings_screen_auto_hint_wide">Volgt het scherm: dit is liggend</string>
+    <string name="settings_screen_auto_hint_tall">Volgt het scherm: dit is staand</string>
+    <string name="settings_screen_horizontal_hint">Zet het dashboard liggend, als het toestel dat toelaat</string>
+    <string name="settings_screen_vertical_hint">Zet het dashboard staand met een eigen indeling, als het toestel dat toelaat</string>
 </resources>

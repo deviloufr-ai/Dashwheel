@@ -125,6 +125,8 @@
     <string name="dash_layout_maps_left_desc">Google Maps ancré sur la moitié gauche, pages à balayer à droite</string>
     <string name="dash_layout_maps_right">Carte à droite</string>
     <string name="dash_layout_maps_right_desc">Google Maps ancré sur la moitié droite, pages à balayer à gauche</string>
+    <string name="dash_layout_maps_top">Carte en haut</string>
+    <string name="dash_layout_maps_bottom">Carte en bas</string>
 
     <!-- The pages' places in the cross, and an empty page -->
     <string name="dash_page_home">Accueil</string>

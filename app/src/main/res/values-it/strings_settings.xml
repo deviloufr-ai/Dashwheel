@@ -90,4 +90,12 @@
     <string name="alert_kind_belt">Cintura</string>
     <string name="alert_kind_belt_title">Avviso cintura</string>
     <string name="alert_speak_belt_detail">Chiede di allacciare la cintura</string>
+    <string name="settings_screen_title">Schermo</string>
+    <string name="settings_screen_auto">Auto</string>
+    <string name="settings_screen_horizontal">Orizzontale</string>
+    <string name="settings_screen_vertical">Verticale</string>
+    <string name="settings_screen_auto_hint_wide">Segue lo schermo: questo è orizzontale</string>
+    <string name="settings_screen_auto_hint_tall">Segue lo schermo: questo è verticale</string>
+    <string name="settings_screen_horizontal_hint">Mette il cruscotto in orizzontale, se l\'unità lo consente</string>
+    <string name="settings_screen_vertical_hint">Mette il cruscotto in verticale con una disposizione propria, se l\'unità lo consente</string>
 </resources>

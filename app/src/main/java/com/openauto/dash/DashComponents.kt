@@ -25,7 +25,9 @@ import android.view.View
 import androidx.compose.foundation.background
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -352,30 +354,35 @@ internal val isEmulator: Boolean by lazy {
 }
 
 /**
- * Vertical grab bar between the Maps dock and the dashboard pages. Horizontal
- * drags report pixel deltas; the caller converts them into a width share.
+ * Grab bar between the Maps dock and the dashboard pages. Drags report pixel
+ * deltas along the split; the caller converts them into the dock's share.
  */
 @Composable
-internal fun DockDivider(onDrag: (Float) -> Unit, onDragEnd: () -> Unit) {
+internal fun DockDivider(onDrag: (Float) -> Unit, onDragEnd: () -> Unit, vertical: Boolean = false) {
     Box(
         modifier = Modifier
-            .fillMaxHeight()
-            .width(24.dp)
-            .pointerInput(Unit) {
-                detectHorizontalDragGestures(
-                    onDragEnd = { onDragEnd() },
-                    onDragCancel = { onDragEnd() }
-                ) { change, dx ->
-                    change.consume()
-                    onDrag(dx)
+            // Upright, the dock is above or below the pages: the divider lies across and drags up/down.
+            .then(if (vertical) Modifier.fillMaxWidth().height(24.dp) else Modifier.fillMaxHeight().width(24.dp))
+            .pointerInput(vertical) {
+                val done = { onDragEnd() }
+                if (vertical) {
+                    detectVerticalDragGestures(onDragEnd = done, onDragCancel = done) { change, dy ->
+                        change.consume()
+                        onDrag(dy)
+                    }
+                } else {
+                    detectHorizontalDragGestures(onDragEnd = done, onDragCancel = done) { change, dx ->
+                        change.consume()
+                        onDrag(dx)
+                    }
                 }
             },
         contentAlignment = Alignment.Center
     ) {
         Box(
             modifier = Modifier
-                .width(5.dp)
-                .height(56.dp)
+                .width(if (vertical) 56.dp else 5.dp)
+                .height(if (vertical) 5.dp else 56.dp)
                 .clip(RoundedCornerShape(3.dp))
                 .background(DashColors.TextSecondary.copy(alpha = 0.55f))
         )

@@ -91,4 +91,12 @@
     <string name="alert_kind_belt">Seat belt</string>
     <string name="alert_kind_belt_title">Seat belt alert</string>
     <string name="alert_speak_belt_detail">Asks you to fasten your seat belt</string>
+    <string name="settings_screen_title">Screen</string>
+    <string name="settings_screen_auto">Auto</string>
+    <string name="settings_screen_horizontal">Horizontal</string>
+    <string name="settings_screen_vertical">Vertical</string>
+    <string name="settings_screen_auto_hint_wide">Follows the screen: this one is wide</string>
+    <string name="settings_screen_auto_hint_tall">Follows the screen: this one is upright</string>
+    <string name="settings_screen_horizontal_hint">Turns the dashboard sideways, if the unit allows it</string>
+    <string name="settings_screen_vertical_hint">Turns the dashboard upright with a layout of its own, if the unit allows it</string>
 </resources>

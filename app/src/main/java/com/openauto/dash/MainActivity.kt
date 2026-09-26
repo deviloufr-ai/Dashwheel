@@ -20,6 +20,9 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.core.view.WindowCompat
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.WindowInsetsCompat
@@ -75,6 +78,9 @@ class MainActivity : ComponentActivity() {
         )
 
         inMultiWindow.value = isInMultiWindowMode
+        // Upright or wide, as chosen in Settings (Auto leaves the unit's own way).
+        ScreenShape.load(this)
+        ScreenShape.apply(this)
         enableImmersiveFullscreen()
         FeedbackStore.load(this)
         AlertStyleStore.load(this)
@@ -122,8 +128,18 @@ class MainActivity : ComponentActivity() {
                 statusBarForced = windowOpen
                 enableImmersiveFullscreen()
             }
+            // The screen's shape as it stands (the display's, not the window's:
+            // split-screen halves are tall). The grid and the saved layout
+            // depend on it, so the dashboard is rebuilt when it turns.
+            val config = LocalConfiguration.current
+            val vertical = remember(config.orientation, config.screenWidthDp, config.screenHeightDp) {
+                ScreenShape.displayIsVertical(this)
+            }
+            ScreenShape.vertical = vertical
             OpenAutoDashTheme {
-                AutomotiveDashboard(inSplitMode = inMultiWindow.value)
+                key(vertical) {
+                    AutomotiveDashboard(inSplitMode = inMultiWindow.value)
+                }
             }
         }
     }

@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -50,7 +48,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.movableContentWithReceiverOf
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
@@ -133,11 +132,14 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     // Kept as a State and read only by the two panes it sizes: dragging the
     // divider writes it every frame, and a read here would recompose everything.
     val dockFraction = remember { mutableFloatStateOf(DashLayoutStore.loadDockFraction(context)) }
-    // The half-width dashboard beside a Maps dock keeps its own arrangement.
-    fun variantOf(l: DashLayout) = if (l == DashLayout.GRID) "" else "_half"
+    // The half-width dashboard beside a Maps dock keeps its own arrangement,
+    // and so does each screen shape (ScreenShape.layoutPrefix).
+    fun variantOf(l: DashLayout) = ScreenShape.layoutPrefix + if (l == DashLayout.GRID) "" else "_half"
     // Read when called, never captured: gesture handlers outlive a composition,
     // and a stale arrangement would save one layout's tiles over the other's.
     fun variant() = variantOf(layout)
+    /** The arrangement of the other layout (full width / beside the Maps dock) on this screen shape. */
+    fun otherVariant() = variantOf(if (layout == DashLayout.GRID) DashLayout.MAPS_LEFT else DashLayout.GRID)
     var showTemplates by remember { mutableStateOf(false) }
     // The Settings screen, on the tab it was opened to; null while closed.
     var settingsTab by remember { mutableStateOf<SettingsTab?>(null) }
@@ -387,7 +389,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
      */
     fun windowAppsEverywhere(): Set<String> {
         val other = otherLayoutWindows ?: run {
-            val variant = if (variant() == "") "_half" else ""
+            val variant = otherVariant()
             (if (DashboardStore.exists(context, variant)) tileWindowApps(DashboardStore.load(context, variant).flatten()) else emptySet())
                 .also { otherLayoutWindows = it }
         }
@@ -558,9 +560,11 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     val screenConfig = LocalConfiguration.current
     /** The car and screen a template is placed for, in the full-width ([half] false) or docked arrangement. */
     fun templateScreen(half: Boolean): TemplateScreen = TemplateScreen.of(
-        pageWidthDp = screenConfig.screenWidthDp * if (half) 1f - dockFraction.floatValue else 1f,
+        // Upright, the Maps dock sits above or below the pages and takes height, not width.
+        pageWidthDp = screenConfig.screenWidthDp * if (half && !ScreenShape.vertical) 1f - dockFraction.floatValue else 1f,
         // Roughly what the bars leave the grid.
-        pageHeightDp = screenConfig.screenHeightDp * 0.8f,
+        pageHeightDp = screenConfig.screenHeightDp * (if (ScreenShape.vertical) 0.9f else 0.8f) *
+            if (half && ScreenShape.vertical) 1f - dockFraction.floatValue else 1f,
         obdPaired = ObdBluetoothManager.savedDeviceAddress() != null || obdConnection == ObdConnectionState.CONNECTED,
         driverOnRight = CarProfileStore.current.driverOnRight,
         mapsDocked = half,
@@ -574,15 +578,15 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
      * too if the user has never set that one up.
      */
     fun applyTemplate(template: DashTemplate, replaceAll: Boolean) {
-        val built = TemplatePlacer.pages(template, templateScreen(variant() != ""))
+        val built = TemplatePlacer.pages(template, templateScreen(layout != DashLayout.GRID))
         if (replaceAll) {
             pages.flatten().filterIsInstance<DashboardItem.SystemWidget>()
                 .forEach { WidgetHostHolder.delete(context, it.appWidgetId) }
         }
         mutateAll(pages.mapIndexed { p, old -> if (replaceAll || old.isEmpty()) built[p] else old })
-        val other = if (variant() == "") "_half" else ""
+        val other = otherVariant()
         if (!DashboardStore.exists(context, other)) {
-            DashboardStore.save(context, TemplatePlacer.pages(template, templateScreen(other != "")), other)
+            DashboardStore.save(context, TemplatePlacer.pages(template, templateScreen(layout == DashLayout.GRID)), other)
             otherLayoutWindows = null
         }
         releaseMapsAnchorIfGone()
@@ -889,46 +893,11 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                 DashLayout.MAPS_RIGHT -> Alignment.End
                 DashLayout.GRID -> null
             }
-            // movableContent: switching Maps left <-> right moves the same dock
-            // instead of disposing and rebuilding it (which closed the window).
-            // The side is a parameter, not a capture: the lambda is remembered
-            // once, so a captured side would stay the first one composed.
-            val mapsDock = remember {
-                movableContentWithReceiverOf<RowScope, Alignment.Horizontal?> { side ->
-                // Android treats the 30 dp around a freeform window as its
-                // resize handle and takes any drag that starts there for the
-                // system, so the divider must sit further away than that from
-                // the Maps window's edge or dragging it does nothing.
-                Box(
-                    modifier = Modifier
-                        .weight(dockFraction.floatValue)
-                        .fillMaxHeight()
-                        .padding(
-                            start = if (side == Alignment.Start) 8.dp else DOCK_RESIZE_CLEARANCE,
-                            end = if (side == Alignment.End) 8.dp else DOCK_RESIZE_CLEARANCE,
-                            top = 8.dp, bottom = 8.dp
-                        )
-                ) {
-                    PipAnchorCard(modifier = Modifier.fillMaxSize(), isDock = true)
-                }
-                }
-            }
-            // Drag the divider to trade width between the dock and the pages; the
+            // Upright, the dock sits above the pages (MAPS_LEFT) or below them (MAPS_RIGHT).
+            val vertical = ScreenShape.vertical
+            // Drag the divider to trade room between the dock and the pages; the
             // dock re-measures itself, so the Maps window follows once released.
-            var rowWidthPx by remember { mutableIntStateOf(1) }
-            val divider: @Composable RowScope.() -> Unit = {
-                DockDivider(
-                    onDrag = { dx ->
-                        val delta = dx / rowWidthPx.coerceAtLeast(1)
-                        val signed = if (dockSide == Alignment.Start) delta else -delta
-                        dockFraction.floatValue = (dockFraction.floatValue + signed)
-                            .coerceIn(DashLayoutStore.MIN_DOCK_FRACTION, DashLayoutStore.MAX_DOCK_FRACTION)
-                    },
-                    onDragEnd = { DashLayoutStore.saveDockFraction(context, dockFraction.floatValue) }
-                )
-            }
-            Row(modifier = Modifier.fillMaxSize().onSizeChanged { rowWidthPx = it.width }) {
-            if (dockSide == Alignment.Start) { mapsDock(dockSide); divider() }
+            var splitLengthPx by remember { mutableIntStateOf(1) }
             /** One dashboard, by its index into pages. */
             val dashboardPage: @Composable (Int) -> Unit = { page ->
                 // The pagers keep the pages beside this one composed; their
@@ -966,9 +935,9 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                 }
             }
             // The pages' pane reads the dock fraction and the pagers' scroll
-            // state itself (WeightedPane), so a divider drag or a swipe starting
-            // and ending re-measures or recomposes this pane, not the dashboard.
-            WeightedPane(weight = { if (dockSide == null) 1f else 1f - dockFraction.floatValue }) {
+            // The pages' pane reads the pagers' scroll state itself, so a swipe
+            // starting and ending recomposes this pane, not the dashboard.
+            val pagesPane: @Composable () -> Unit = {
             // Sideways swipes only from the middle row: the pages above and
             // below the centre one have nothing beside them.
             val onHomeRow = columnState.currentPage == DashboardStore.COLUMN_HOME && !columnState.isScrollInProgress
@@ -1006,8 +975,44 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                 }
             }
             }
-            if (dockSide == Alignment.End) { divider(); mapsDock(dockSide) }
-            }
+            DockSplit(
+                vertical = vertical,
+                docked = dockSide != null,
+                dockFirst = dockSide == Alignment.Start,
+                dockFraction = { dockFraction.floatValue },
+                modifier = Modifier.fillMaxSize().onSizeChanged { splitLengthPx = if (vertical) it.height else it.width },
+                dock = {
+                    // Android treats the 30 dp around a freeform window as its
+                    // resize handle and takes any drag that starts there for the
+                    // system, so the divider must sit further away than that from
+                    // the Maps window's edge or dragging it does nothing.
+                    val first = dockSide == Alignment.Start
+                    val near = DOCK_RESIZE_CLEARANCE
+                    Box(
+                        modifier = Modifier.fillMaxSize().padding(
+                            start = if (vertical || first) 8.dp else near,
+                            end = if (vertical || !first) 8.dp else near,
+                            top = if (!vertical || first) 8.dp else near,
+                            bottom = if (!vertical || !first) 8.dp else near
+                        )
+                    ) {
+                        PipAnchorCard(modifier = Modifier.fillMaxSize(), isDock = true)
+                    }
+                },
+                divider = {
+                    DockDivider(
+                        vertical = vertical,
+                        onDrag = { d ->
+                            val delta = d / splitLengthPx.coerceAtLeast(1)
+                            val signed = if (dockSide == Alignment.Start) delta else -delta
+                            dockFraction.floatValue = (dockFraction.floatValue + signed)
+                                .coerceIn(DashLayoutStore.MIN_DOCK_FRACTION, DashLayoutStore.MAX_DOCK_FRACTION)
+                        },
+                        onDragEnd = { DashLayoutStore.saveDockFraction(context, dockFraction.floatValue) }
+                    )
+                },
+                pane = pagesPane
+            )
 
             // Floating swap button (bottom-centre), shown whenever the launcher
             // shares the screen — regardless of how the split was started (our
@@ -1338,7 +1343,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
 
     if (showTemplates) {
         DashTemplateDialog(
-            screen = templateScreen(variant() != ""),
+            screen = templateScreen(layout != DashLayout.GRID),
             onApply = { template, replaceAll ->
                 showTemplates = false
                 if (replaceAll) {
@@ -1514,13 +1519,59 @@ private fun FadingPageIndicator(shown: Boolean, page: Int, modifier: Modifier = 
 }
 
 /**
- * A [Row] pane whose share of the width is read here, not by the caller, so
- * dragging the dock divider re-measures this pane without recomposing the
- * dashboard; [content] is only recomposed when it changes itself.
+ * The Maps dock, its divider and the pages side by side, or above one another
+ * on an upright screen ([vertical]); without [docked], the pages alone. The
+ * dock's share is read while measuring, so dragging the divider re-measures
+ * the panes without recomposing the dashboard. The three keep their places in
+ * composition whichever side the dock is on ([dockFirst]): moving it never
+ * rebuilds the dock, which would close the Maps window.
  */
 @Composable
-private fun RowScope.WeightedPane(weight: () -> Float, content: @Composable () -> Unit) {
-    Box(modifier = Modifier.weight(weight()).fillMaxHeight()) { content() }
+private fun DockSplit(
+    vertical: Boolean,
+    docked: Boolean,
+    dockFirst: Boolean,
+    dockFraction: () -> Float,
+    modifier: Modifier,
+    dock: @Composable () -> Unit,
+    divider: @Composable () -> Unit,
+    pane: @Composable () -> Unit
+) {
+    Layout(
+        content = {
+            if (docked) {
+                Box { dock() }
+                Box { divider() }
+            }
+            Box { pane() }
+        },
+        modifier = modifier
+    ) { measurables, constraints ->
+        val w = constraints.maxWidth
+        val h = constraints.maxHeight
+        val length = if (vertical) h else w
+        fun exact(main: Int) = if (vertical) Constraints.fixed(w, main) else Constraints.fixed(main, h)
+        if (measurables.size < 3) {
+            val alone = measurables.last().measure(exact(length))
+            return@Layout layout(w, h) { alone.place(0, 0) }
+        }
+        val (dockM, dividerM, paneM) = measurables
+        val bar = dividerM.measure(
+            if (vertical) Constraints(minWidth = w, maxWidth = w, maxHeight = length)
+            else Constraints(maxWidth = length, minHeight = h, maxHeight = h)
+        )
+        val rest = (length - if (vertical) bar.height else bar.width).coerceAtLeast(0)
+        val dockLength = (rest * dockFraction()).roundToInt().coerceIn(0, rest)
+        val dockP = dockM.measure(exact(dockLength))
+        val paneP = paneM.measure(exact(rest - dockLength))
+        layout(w, h) {
+            var at = 0
+            for (part in if (dockFirst) listOf(dockP, bar, paneP) else listOf(paneP, bar, dockP)) {
+                if (vertical) part.place(0, at) else part.place(at, 0)
+                at += if (vertical) part.height else part.width
+            }
+        }
+    }
 }
 
 /** A two-button question before something a tap could regret; Undo still exists, and the body says so. */

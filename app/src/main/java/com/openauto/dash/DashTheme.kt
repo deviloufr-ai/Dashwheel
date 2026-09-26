@@ -328,15 +328,20 @@ private val ZenithDarkPalette = DashPalette(
 )
 
 /** How the screen is divided: pages only, or a permanent Google Maps dock beside them. */
-enum class DashLayout(@StringRes val titleRes: Int, @StringRes val descriptionRes: Int) {
-    GRID(R.string.dash_layout_grid, R.string.dash_layout_grid_desc),
-    MAPS_LEFT(R.string.dash_layout_maps_left, R.string.dash_layout_maps_left_desc),
-    MAPS_RIGHT(R.string.dash_layout_maps_right, R.string.dash_layout_maps_right_desc)
+enum class DashLayout(
+    @StringRes val titleRes: Int,
+    @StringRes val descriptionRes: Int,
+    /** The name on an upright screen, where the left dock sits on top and the right one below. */
+    @StringRes val verticalTitleRes: Int
+) {
+    GRID(R.string.dash_layout_grid, R.string.dash_layout_grid_desc, R.string.dash_layout_grid),
+    MAPS_LEFT(R.string.dash_layout_maps_left, R.string.dash_layout_maps_left_desc, R.string.dash_layout_maps_top),
+    MAPS_RIGHT(R.string.dash_layout_maps_right, R.string.dash_layout_maps_right_desc, R.string.dash_layout_maps_bottom)
 }
 
 /** The layout's display name in the current language (the enum name is what gets saved). */
 internal val DashLayout.title: String
-    @Composable get() = stringResource(titleRes)
+    @Composable get() = stringResource(if (ScreenShape.vertical) verticalTitleRes else titleRes)
 
 object DashLayoutStore {
     private const val PREFS = "dashboard_layout"

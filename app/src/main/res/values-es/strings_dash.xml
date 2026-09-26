@@ -125,6 +125,8 @@
     <string name="dash_layout_maps_left_desc">Google Maps fijo en la mitad izquierda, páginas deslizables a la derecha</string>
     <string name="dash_layout_maps_right">Mapa a la derecha</string>
     <string name="dash_layout_maps_right_desc">Google Maps fijo en la mitad derecha, páginas deslizables a la izquierda</string>
+    <string name="dash_layout_maps_top">Mapa arriba</string>
+    <string name="dash_layout_maps_bottom">Mapa abajo</string>
 
     <!-- The pages' places in the cross, and an empty page -->
     <string name="dash_page_home">Inicio</string>

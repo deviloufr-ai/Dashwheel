@@ -90,4 +90,12 @@
     <string name="alert_kind_belt">Ceinture</string>
     <string name="alert_kind_belt_title">Alerte ceinture</string>
     <string name="alert_speak_belt_detail">Vous demande d\'attacher votre ceinture</string>
+    <string name="settings_screen_title">Écran</string>
+    <string name="settings_screen_auto">Auto</string>
+    <string name="settings_screen_horizontal">Horizontal</string>
+    <string name="settings_screen_vertical">Vertical</string>
+    <string name="settings_screen_auto_hint_wide">Suit l\'écran : celui-ci est horizontal</string>
+    <string name="settings_screen_auto_hint_tall">Suit l\'écran : celui-ci est vertical</string>
+    <string name="settings_screen_horizontal_hint">Met le tableau de bord à l\'horizontale, si l\'appareil le permet</string>
+    <string name="settings_screen_vertical_hint">Met le tableau de bord à la verticale avec sa propre disposition, si l\'appareil le permet</string>
 </resources>

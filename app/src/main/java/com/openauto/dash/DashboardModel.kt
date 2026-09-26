@@ -137,9 +137,9 @@ sealed interface DashboardItem {
     ) : DashboardItem
 }
 
-/** The dashboard grid: 12 cells across, 7 down. */
-const val GRID_COLS = 12
-const val GRID_ROWS = 7
+/** The dashboard grid: 12 cells across, 7 down; the other way round on an upright screen ([ScreenShape]). */
+val GRID_COLS: Int get() = if (ScreenShape.vertical) 7 else 12
+val GRID_ROWS: Int get() = if (ScreenShape.vertical) 12 else 7
 
 /** Compact icon tiles (shortcuts / split pairs) vs. larger widget cards. */
 fun DashboardItem.isCompactTile(): Boolean =
@@ -286,8 +286,9 @@ object DashboardStore {
     private fun defaultPages(half: Boolean = false): List<List<DashboardItem>> = TemplatePlacer.pages(
         DashTemplate.DAILY,
         TemplateScreen.of(
-            pageWidthDp = if (half) 640f else 1280f,
-            pageHeightDp = 576f,
+            // Upright (720x1280), the Maps dock takes the top or bottom half instead.
+            pageWidthDp = if (ScreenShape.vertical) 720f else if (half) 640f else 1280f,
+            pageHeightDp = if (ScreenShape.vertical) (if (half) 560f else 1120f) else 576f,
             obdPaired = true,
             driverOnRight = CarProfileStore.current.driverOnRight,
             mapsDocked = half,
@@ -299,7 +300,8 @@ object DashboardStore {
     /**
      * Layout variants keep separate arrangements: the full-width dashboard and
      * the half-width one beside a Maps dock cannot share tile positions. The
-     * default variant is "", the docked layouts share "_half".
+     * default variant is "", the docked layouts share "_half"; an upright
+     * screen's are "_v" and "_v_half" ([ScreenShape.layoutPrefix]).
      */
     /** Preference keys for a layout variant; pure so the naming is testable. */
     internal fun pagesKey(variant: String) = KEY_PAGES + variant
@@ -310,7 +312,7 @@ object DashboardStore {
 
     fun load(context: Context, variant: String = ""): List<List<DashboardItem>> {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val raw = prefs.getString(pagesKey(variant), null) ?: run { retained(variant).clear(); return defaultPages(variant.isNotEmpty()) }
+        val raw = prefs.getString(pagesKey(variant), null) ?: run { retained(variant).clear(); return defaultPages(variant.endsWith("_half")) }
 
         // A corrupt primary value falls back to the last good layout rather
         // than to the defaults; only when both are unreadable does the user
@@ -324,7 +326,7 @@ object DashboardStore {
                 Log.e(TAG, "Saved layout and its backup are both unreadable; using defaults")
                 retained(variant).clear()
                 lastGoodDoc.remove(variant)
-                return defaultPages(variant.isNotEmpty())
+                return defaultPages(variant.endsWith("_half"))
             }
 
         // Always return exactly PAGE_COUNT pages. Tiles that predate grid

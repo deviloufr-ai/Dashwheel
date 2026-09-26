@@ -125,6 +125,8 @@
     <string name="dash_layout_maps_left_desc">Google Maps zadokowane po lewej, strony przesuwane po prawej</string>
     <string name="dash_layout_maps_right">Mapa po prawej</string>
     <string name="dash_layout_maps_right_desc">Google Maps zadokowane po prawej, strony przesuwane po lewej</string>
+    <string name="dash_layout_maps_top">Mapa u góry</string>
+    <string name="dash_layout_maps_bottom">Mapa na dole</string>
 
     <!-- The pages' places in the cross, and an empty page -->
     <string name="dash_page_home">Ekran główny</string>

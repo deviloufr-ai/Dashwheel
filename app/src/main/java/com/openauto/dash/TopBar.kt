@@ -50,6 +50,7 @@ import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material.icons.filled.VerticalSplit
+import androidx.compose.material.icons.filled.HorizontalSplit
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -363,12 +364,24 @@ internal fun LayoutPicker(m: TopBarModel, anchor: @Composable (open: () -> Unit)
 /** Icon for a layout: a dashboard, or a split whose solid pane (the map) sits on the docked side. */
 @Composable
 internal fun LayoutIcon(layout: DashLayout, contentDescription: String?, tint: Color, modifier: Modifier = Modifier) {
+    val vertical = ScreenShape.vertical
     Icon(
-        imageVector = if (layout == DashLayout.GRID) Icons.Filled.SpaceDashboard else Icons.Filled.VerticalSplit,
+        imageVector = when {
+            layout == DashLayout.GRID -> Icons.Filled.SpaceDashboard
+            vertical -> Icons.Filled.HorizontalSplit
+            else -> Icons.Filled.VerticalSplit
+        },
         contentDescription = contentDescription,
         tint = tint,
-        // VerticalSplit draws its solid pane (the map) on the right; mirror it for the left dock.
-        modifier = modifier.then(if (layout == DashLayout.MAPS_LEFT) Modifier.scale(scaleX = -1f, scaleY = 1f) else Modifier)
+        // VerticalSplit draws its solid pane (the map) on the right, HorizontalSplit at the
+        // bottom; mirror them for the left dock (on top, upright).
+        modifier = modifier.then(
+            when {
+                layout != DashLayout.MAPS_LEFT -> Modifier
+                vertical -> Modifier.scale(scaleX = 1f, scaleY = -1f)
+                else -> Modifier.scale(scaleX = -1f, scaleY = 1f)
+            }
+        )
     )
 }
 

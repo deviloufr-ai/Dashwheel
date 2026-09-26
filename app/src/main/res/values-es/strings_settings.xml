@@ -90,4 +90,12 @@
     <string name="alert_kind_belt">Cinturón</string>
     <string name="alert_kind_belt_title">Aviso de cinturón</string>
     <string name="alert_speak_belt_detail">Le pide que se abroche el cinturón</string>
+    <string name="settings_screen_title">Pantalla</string>
+    <string name="settings_screen_auto">Auto</string>
+    <string name="settings_screen_horizontal">Horizontal</string>
+    <string name="settings_screen_vertical">Vertical</string>
+    <string name="settings_screen_auto_hint_wide">Sigue la pantalla: esta es horizontal</string>
+    <string name="settings_screen_auto_hint_tall">Sigue la pantalla: esta es vertical</string>
+    <string name="settings_screen_horizontal_hint">Pone el panel en horizontal, si la unidad lo permite</string>
+    <string name="settings_screen_vertical_hint">Pone el panel en vertical con su propia disposición, si la unidad lo permite</string>
 </resources>
