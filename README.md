@@ -271,7 +271,7 @@ Each build job: checkout → set up JDK 21 → set up Android SDK (explicit pack
 ### Get the APK
 - **Latest release** (what the app auto-updates from): https://github.com/deviloufr-ai/ACP/releases/latest
 - **Per-run artifact**: Actions tab → a successful run → `openauto-dash-apk`.
-- Install on a device: `adb install app-release.apk`
+- Install on a device: `adb install Dashwheel-<version>.apk`
 
 ## Troubleshooting
 
