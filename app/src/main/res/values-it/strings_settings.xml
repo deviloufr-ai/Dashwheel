@@ -29,7 +29,7 @@
     <string name="volume_way_auto">Automatico</string>
     <string name="volume_way_android">Android</string>
     <string name="volume_way_keys">Tasti volume</string>
-    <string name="volume_way_auto_hint">Il volume di Android, o i tasti volume dove l\'autoradio lo ignora (sempre i tasti sulle autoradio ROCO K706)</string>
+    <string name="volume_way_auto_hint">Il volume di Android, o il volume proprio dell\'autoradio o i suoi tasti volume dove lo ignora</string>
     <string name="volume_way_android_hint">Il volume multimediale di Android, come su un telefono</string>
     <string name="volume_way_keys_hint">Preme i tasti volume come i comandi al volante e la manopola. Richiede root o l\'ADB dell\'autoradio</string>
     <string name="settings_rom_call">Sostituisci la schermata di chiamata dell\'autoradio</string>

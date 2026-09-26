@@ -29,7 +29,7 @@
     <string name="volume_way_auto">Automatisch</string>
     <string name="volume_way_android">Android</string>
     <string name="volume_way_keys">Lautstärketasten</string>
-    <string name="volume_way_auto_hint">Die Android-Lautstärke, oder die Lautstärketasten, wo das Radio sie ignoriert (bei ROCO-K706-Radios immer die Tasten)</string>
+    <string name="volume_way_auto_hint">Die Android-Lautstärke, oder die eigene Lautstärke des Radios bzw. seine Lautstärketasten, wo es sie ignoriert</string>
     <string name="volume_way_android_hint">Die Medienlautstärke von Android, wie auf einem Telefon</string>
     <string name="volume_way_keys_hint">Drückt die Lautstärketasten wie die Lenkradtasten und der Drehknopf. Braucht Root oder das ADB des Radios</string>
     <string name="settings_rom_call">Anrufbildschirm des Radios ersetzen</string>

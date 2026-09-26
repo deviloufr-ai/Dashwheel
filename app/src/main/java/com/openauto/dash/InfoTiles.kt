@@ -636,14 +636,15 @@ internal fun NotificationsCard(hasAccess: Boolean, modifier: Modifier = Modifier
 /**
  * Media volume with mute, − and +, plus shortcuts to the sound and Bluetooth
  * settings. Where the head unit ignores Android's media volume (see
- * [MediaVolume]) the slider gives way to the buttons, which then press the
- * volume keys like the knob.
+ * [MediaVolume]) the slider moves the unit's own volume, or gives way to the
+ * buttons, which then press the volume keys like the knob.
  */
 @Composable
 internal fun AudioCard(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val audio = remember { MediaVolume.audio(context) }
-    val max = remember { MediaVolume.max(audio) }
+    val onUnit by MediaVolume.onUnit.collectAsState()
+    val max = remember(onUnit) { MediaVolume.max(audio) }
     var dragging by remember { mutableStateOf(false) }
     // Follow the hardware knob / other apps while nobody is dragging the slider.
     var volume by rememberMusicVolume(audio, hold = { dragging })
@@ -720,7 +721,8 @@ internal fun AudioCard(modifier: Modifier = Modifier) {
 
 /**
  * The media volume, following the hardware knob and other apps: the system
- * broadcasts VOLUME_CHANGED_ACTION on every change, and a slow poll remains as
+ * broadcasts VOLUME_CHANGED_ACTION on every change (QF firmware its own
+ * com.qf.action.VOLUME_CHANGED, see [MediaVolume]), and a slow poll remains as
  * a fallback for ROMs that don't send it. Outside changes are ignored while
  * [hold] is true (the slider is being dragged). Shared by the audio tile and
  * its designed face.
@@ -728,22 +730,25 @@ internal fun AudioCard(modifier: Modifier = Modifier) {
 @Composable
 internal fun rememberMusicVolume(audio: AudioManager, hold: () -> Boolean = { false }): MutableIntState {
     val context = LocalContext.current
-    val volume = remember { mutableIntStateOf(audio.getStreamVolume(AudioManager.STREAM_MUSIC)) }
+    val volume = remember { mutableIntStateOf(MediaVolume.level(audio)) }
     val held by rememberUpdatedState(hold)
     DisposableEffect(Unit) {
         val receiver = object : android.content.BroadcastReceiver() {
             override fun onReceive(c: Context, i: Intent) {
-                if (!held()) volume.intValue = audio.getStreamVolume(AudioManager.STREAM_MUSIC)
+                if (!held()) volume.intValue = MediaVolume.level(audio)
             }
         }
-        val filter = android.content.IntentFilter("android.media.VOLUME_CHANGED_ACTION")
-        runCatching { ContextCompat.registerReceiver(context, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED) }
+        val filter = android.content.IntentFilter("android.media.VOLUME_CHANGED_ACTION").apply {
+            addAction("com.qf.action.VOLUME_CHANGED")
+        }
+        // Exported: the QF framework is another app. The broadcast only makes the tile read the level again.
+        runCatching { ContextCompat.registerReceiver(context, receiver, filter, ContextCompat.RECEIVER_EXPORTED) }
         onDispose { runCatching { context.unregisterReceiver(receiver) } }
     }
     LaunchedEffect(Unit) {
         while (true) {
             delay(5000)
-            if (!held()) volume.intValue = audio.getStreamVolume(AudioManager.STREAM_MUSIC)
+            if (!held()) volume.intValue = MediaVolume.level(audio)
         }
     }
     return volume

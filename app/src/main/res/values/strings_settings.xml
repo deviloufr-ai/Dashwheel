@@ -30,7 +30,7 @@
     <string name="volume_way_auto">Automatic</string>
     <string name="volume_way_android">Android</string>
     <string name="volume_way_keys">Volume keys</string>
-    <string name="volume_way_auto_hint">Android\'s volume, or the volume keys where the head unit ignores it (always the keys on ROCO K706 units)</string>
+    <string name="volume_way_auto_hint">Android\'s volume, or the head unit\'s own volume or volume keys where it ignores Android\'s</string>
     <string name="volume_way_android_hint">Android\'s media volume, as on a phone</string>
     <string name="volume_way_keys_hint">Presses the volume keys like the wheel buttons and the knob. Needs root or the head unit\'s ADB</string>
     <string name="settings_rom_call">Replace the unit\'s call screen</string>

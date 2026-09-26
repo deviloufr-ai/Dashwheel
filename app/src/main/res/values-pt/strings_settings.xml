@@ -29,7 +29,7 @@
     <string name="volume_way_auto">Automático</string>
     <string name="volume_way_android">Android</string>
     <string name="volume_way_keys">Teclas de volume</string>
-    <string name="volume_way_auto_hint">O volume do Android, ou as teclas de volume onde o rádio o ignora (sempre as teclas nos rádios ROCO K706)</string>
+    <string name="volume_way_auto_hint">O volume do Android, ou o volume próprio do rádio ou as suas teclas de volume onde o ignora</string>
     <string name="volume_way_android_hint">O volume multimédia do Android, como num telemóvel</string>
     <string name="volume_way_keys_hint">Carrega nas teclas de volume como os comandos do volante e o botão rotativo. Precisa de root ou do ADB do rádio</string>
     <string name="settings_rom_call">Substituir o ecrã de chamada do rádio</string>

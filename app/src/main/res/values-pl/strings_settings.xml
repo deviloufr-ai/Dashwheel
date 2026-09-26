@@ -29,7 +29,7 @@
     <string name="volume_way_auto">Automatycznie</string>
     <string name="volume_way_android">Android</string>
     <string name="volume_way_keys">Klawisze głośności</string>
-    <string name="volume_way_auto_hint">Głośność Androida albo klawisze głośności tam, gdzie radio ją ignoruje (w radiach ROCO K706 zawsze klawisze)</string>
+    <string name="volume_way_auto_hint">Głośność Androida albo własna głośność radia lub jego klawisze głośności tam, gdzie ją ignoruje</string>
     <string name="volume_way_android_hint">Głośność multimediów Androida, jak w telefonie</string>
     <string name="volume_way_keys_hint">Naciska klawisze głośności jak przyciski na kierownicy i pokrętło. Wymaga roota lub ADB radia</string>
     <string name="settings_rom_call">Zastąp ekran połączenia radia</string>

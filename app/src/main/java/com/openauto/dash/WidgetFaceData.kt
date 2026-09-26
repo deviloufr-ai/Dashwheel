@@ -575,7 +575,8 @@ private fun mediaFace(env: SkinTileEnv): WidgetFace {
 private fun audioFace(): WidgetFace {
     val context = LocalContext.current
     val audio = remember { MediaVolume.audio(context) }
-    val max = remember { MediaVolume.max(audio) }
+    val onUnit by MediaVolume.onUnit.collectAsState()
+    val max = remember(onUnit) { MediaVolume.max(audio) }
     // Follows the hardware knob and other apps, like the standard audio tile.
     var volume by rememberMusicVolume(audio)
     val byKeys by MediaVolume.byKeys.collectAsState()

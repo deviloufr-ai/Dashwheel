@@ -29,7 +29,7 @@
     <string name="volume_way_auto">Automatisch</string>
     <string name="volume_way_android">Android</string>
     <string name="volume_way_keys">Volumetoetsen</string>
-    <string name="volume_way_auto_hint">Het Android-volume, of de volumetoetsen waar de radio het negeert (altijd de toetsen op ROCO K706-radio\'s)</string>
+    <string name="volume_way_auto_hint">Het Android-volume, of het eigen volume van de radio of de volumetoetsen waar die het negeert</string>
     <string name="volume_way_android_hint">Het mediavolume van Android, zoals op een telefoon</string>
     <string name="volume_way_keys_hint">Drukt de volumetoetsen in zoals de stuurknoppen en de draaiknop. Vereist root of de ADB van de radio</string>
     <string name="settings_rom_call">Belscherm van de radio vervangen</string>
