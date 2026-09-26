@@ -298,7 +298,10 @@ object PipAnchor {
         // Picture-in-picture is SystemUI's own window, moved between displays by
         // nobody; it is parked small in the corner as before.
         val hidden = if (win.mode == "freeform") HiddenDisplay.acquire(context) else null
-        if (hidden != null && moveOntoHiddenDisplay(context, win, hidden, reason)) return
+        if (hidden != null && moveOntoHiddenDisplay(context, win, hidden, reason)) {
+            FreeformBar.offScreen(context, win.packageName)
+            return
+        }
         parkInCorner(context, win, reason)
     }
 
@@ -342,6 +345,7 @@ object PipAnchor {
         val left = dm.widthPixels - ASIDE_SLIVER_PX
         val top = dm.heightPixels - ASIDE_SLIVER_PX
         if (b.left < left || b.top < top) {
+            if (win.mode == "freeform") FreeformBar.onScreen(context, win.packageName, top)
             runGuarded { DockShell.resize(context, win, ScreenRect(left, top, left + (b.right - b.left), top + (b.bottom - b.top))) }
                 .onFailure { Log.w(TAG, "park aside failed", it) }
             Log.i(TAG, "${win.packageName} parked in the corner ($reason)")
@@ -479,6 +483,7 @@ object PipAnchor {
                         val bounds = android.graphics.Rect(rect.left, rect.top, rect.right, rect.bottom)
                         Log.i(TAG, "opening $packageName at $rect (attempt ${step.attempt})")
                         openedByTile(packageName)
+                        FreeformBar.onScreen(context, packageName, rect.top)
                         SplitLauncher.launchFreeform(context, packageName, bounds)
                     }
                     else -> Unit
@@ -498,6 +503,7 @@ object PipAnchor {
                     noteFreeform(packageName, win.mode == "freeform")
                     val result = if (step is DockPolicy.Step.Unhide) {
                         Log.i(TAG, "bringing $packageName back from the hidden display (attempt ${step.attempt})")
+                        FreeformBar.onScreen(context, packageName, rect.top)
                         runGuarded { DockShell.moveToDisplay(context, win, WindowListing.DEFAULT_DISPLAY) }
                     } else {
                         // It will not come back: the display goes, every window parked
@@ -522,6 +528,8 @@ object PipAnchor {
                 val keep = step as DockPolicy.Step.Keep
                 if (keep.docked) fullscreenReturns.remove(packageName)
                 if (win.mode == "freeform") {
+                    // Before the window counts as docked, and before it is moved.
+                    (keep.place ?: win.bounds)?.let { FreeformBar.onScreen(context, packageName, it.top) }
                     noteFreeform(packageName, true)
                     setDashboardFocusable(context, false)
                 } else {

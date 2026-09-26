@@ -46,7 +46,8 @@ class MainActivity : ComponentActivity() {
         val openAppsRequested = MutableStateFlow(0L)
 
         /**
-         * True while an app window exists, docked on its tile or parked aside:
+         * True while an app window exists, docked on its tile or parked aside,
+         * on a unit that cannot keep the bar off over it ([FreeformBar]):
          * Android then shows the status bar whatever the dashboard asks. Asking
          * to hide it anyway (as the dashboard did whenever it had the focus, i.e.
          * with the window parked aside) made the head unit draw its own flat white
@@ -110,9 +111,10 @@ class MainActivity : ComponentActivity() {
                 // The tyres from the TPMS sensors, and their warnings.
                 Tyres.start(this)
                 TyreAlertOverlay.start(this)
-                // The seat belt reminder, and no navigation bar over docked app windows.
+                // The seat belt reminder, and no system bars over docked app windows.
                 BeltAlertOverlay.start(this)
                 DockedNavBar.start(this)
+                FreeformBar.start(this)
                 CarBox.start(this)
                 RadarOverlay.start(this)
                 ClimateOverlay.start(this)
@@ -122,10 +124,12 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            // An app window (docked or parked aside) forces the status bar on.
-            val windowOpen = PipAnchor.dockedPackages.collectAsState().value.isNotEmpty()
-            LaunchedEffect(windowOpen) {
-                statusBarForced = windowOpen
+            // An app window (docked or parked aside) forces the status bar on,
+            // unless the head unit can keep it off.
+            val barForced = FreeformBar.forced.collectAsState().value
+            val barHeldOff = FreeformBar.holding.collectAsState().value
+            LaunchedEffect(barForced, barHeldOff) {
+                statusBarForced = barForced
                 enableImmersiveFullscreen()
             }
             // The screen's shape as it stands (the display's, not the window's:
@@ -183,6 +187,12 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         inMultiWindow.value = isInMultiWindowMode
+        FreeformBar.dashboardInFront = true
+    }
+
+    override fun onPause() {
+        FreeformBar.dashboardInFront = false
+        super.onPause()
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -203,6 +213,10 @@ class MainActivity : ComponentActivity() {
 
     internal fun enableImmersiveFullscreen() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        // With a docked window in focus the hide request below is not read; the
+        // window's own flag is. Only meanwhile: it keeps the keyboard from resizing the window.
+        if (FreeformBar.holding.value) window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
+        else window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
         WindowInsetsControllerCompat(window, window.decorView).apply {
             if (statusBarForced) {
                 show(WindowInsetsCompat.Type.statusBars())

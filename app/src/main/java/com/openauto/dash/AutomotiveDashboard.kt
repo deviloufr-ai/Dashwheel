@@ -751,14 +751,14 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     }
 
     // Android forces the status bar on whenever a floating (freeform) window is
-    // on screen, i.e. while a Maps window is docked. The head unit's bar paints
+    // on screen, i.e. while a Maps window is docked, unless the head unit can
+    // keep it off (FreeformBar). The head unit's bar paints
     // over its strip and takes every tap there, so the dashboard lays out below
     // it; the bar already shows the time, so the launcher bar swaps its clock
     // for the page dots. Not via WindowInsets.statusBars: on Android 10 that
     // stays at the bar's height even while the bar is hidden, which pushed the
     // whole dashboard down permanently.
-    val dockedApps by PipAnchor.dockedPackages.collectAsState()
-    val barForced = dockedApps.isNotEmpty()
+    val barForced by FreeformBar.forced.collectAsState()
     val density = LocalDensity.current
     val rootView = LocalView.current
     val statusBarPx = WindowInsets.statusBarsIgnoringVisibility.getTop(density)
