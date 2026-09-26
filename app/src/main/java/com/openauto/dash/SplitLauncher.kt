@@ -136,14 +136,15 @@ object SplitLauncher {
         }.onFailure { Log.e(TAG, "open accessibility settings failed", it) }
     }
 
-    /** Launch [packageName] into the other split pane via the public flag. */
+    /**
+     * Launch [packageName] into the other split pane via the public flag. The
+     * other pane is the dashboard, never the same app, so an app already
+     * running is moved into the pane rather than started a second time (see
+     * [launchFreeform]).
+     */
     private fun launchIntoAdjacent(context: Context, packageName: String): Boolean {
         val intent = context.packageManager.getLaunchIntentForPackage(packageName)?.apply {
-            addFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK or
-                    Intent.FLAG_ACTIVITY_MULTIPLE_TASK or
-                    Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT
-            )
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT)
         } ?: return false
 
         return runCatching {
@@ -152,10 +153,19 @@ object SplitLauncher {
         }.onFailure { Log.e(TAG, "adjacent launch failed", it) }.getOrDefault(false)
     }
 
-    /** Fallback: launch [packageName] as a freeform floating window. */
+    /**
+     * Fallback: launch [packageName] as a freeform floating window.
+     *
+     * An app already running (Waze started by the head unit at power-up, or
+     * still running from before the engine was switched off) is brought into
+     * the window, never started a second time: with
+     * [Intent.FLAG_ACTIVITY_MULTIPLE_TASK] every tap on the tile's "Open … here",
+     * and every reopen by a window tile, started one more copy of the app next
+     * to the one already running, and each copy spoke every voice prompt.
+     */
     fun launchFreeform(context: Context, packageName: String, launchBounds: Rect? = null): Boolean {
         val intent = context.packageManager.getLaunchIntentForPackage(packageName)?.apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         } ?: return false
 
         val m = context.resources.displayMetrics

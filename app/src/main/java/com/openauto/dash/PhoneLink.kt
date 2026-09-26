@@ -383,7 +383,7 @@ object PhoneLink {
         if (state.phase == CallState.Phase.IDLE) return null
         // The same app on this head unit (a WhatsApp linked to the phone's) rings here
         // by itself, with its own screen: no card over it.
-        if (state.packageName != null && isInstalled(context, state.packageName)) return null
+        if (state.packageName?.let { isInstalled(context, it) } == true) return null
         val before = _call.value
         val sameCaller = before != null && before.number == state.number && before.name == state.name && before.app == state.app
         val photo = if (before != null && state.photoPng != null && sameCaller) before.photo
