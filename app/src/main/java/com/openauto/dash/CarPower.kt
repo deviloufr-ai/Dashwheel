@@ -25,7 +25,8 @@ import kotlinx.coroutines.launch
  *  - on: the adapter reconnects at once, and the startup briefing speaks
  *    right then (only after a real stop, see [briefOnIgnition]);
  *  - off: the car's spot is kept as where it's parked (the Parking tile, the
- *    companion's "where's my car"), and the OBD link is closed cleanly.
+ *    companion's "where's my car"), and the OBD link is closed cleanly and
+ *    left closed until the key turns again ([VehicleMonitor]).
  * Other units have no such broadcast; the briefing's heartbeat stands in there.
  */
 object CarPower {
@@ -33,12 +34,15 @@ object CarPower {
     private const val ACTION_ACC_ON = "com.qf.action.ACC_ON"
     private const val ACTION_ACC_OFF = "com.qf.action.ACC_OFF"
     private const val ACTION_SLEEP_SOON = "com.qf.action.READY_GO_SLEEP_PRE"
+    /** "true" / "false", written by the firmware at every turn of the key, before its broadcast. */
+    private const val PROP_ACC = "sys.qf.is.acc.on"
 
     private const val PREFS = "car_power"
     private const val KEY_OFF_AT = "off_at"
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var started = false
+    private var appContext: Context? = null
 
     private val _ignition = MutableStateFlow<Boolean?>(null)
     /** Ignition on / off as the unit last said it; null where the unit says nothing. */
@@ -47,10 +51,11 @@ object CarPower {
     fun start(context: Context) {
         if (started) return
         val app = context.applicationContext
-        val acc = systemProperty("sys.qf.is.acc.on")
+        val acc = systemProperty(PROP_ACC)
         // Only on the QF firmware: it sets this property from the MCU at boot.
         if (acc.isNullOrBlank()) return
         started = true
+        appContext = app
         _ignition.value = acc == "true"
         val filter = IntentFilter().apply {
             addAction(ACTION_ACC_ON)
@@ -68,6 +73,22 @@ object CarPower {
                 ACTION_ACC_OFF, ACTION_SLEEP_SOON -> if (_ignition.value != false) switchedOff(context.applicationContext)
             }
         }
+    }
+
+    /**
+     * Asks the unit itself, in case a broadcast was missed (the app asleep
+     * with the unit): the adapter is not dialled while the ignition reads off,
+     * so an "on" that never came would leave it undialled for the whole drive.
+     */
+    fun refresh() {
+        val context = appContext ?: return
+        val on = when (systemProperty(PROP_ACC)) {
+            "true" -> true
+            "false" -> false
+            else -> return
+        }
+        if (on == _ignition.value) return
+        if (on) switchedOn(context) else switchedOff(context)
     }
 
     private fun switchedOn(context: Context) {

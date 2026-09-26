@@ -44,6 +44,21 @@ data class ObdData(
 /** The readings once the engine computer has gone quiet (engine off): nothing turns, nothing moves. */
 internal fun ObdData.engineStopped(): ObdData = copy(speedKmh = 0, rpm = 0, throttlePct = 0, engineLoadPct = 0)
 
+/**
+ * The order to try [count] ways of reaching the adapter in: the one that
+ * worked [last] time, then the others as they come.
+ */
+internal fun channelOrder(last: Int, count: Int): List<Int> {
+    val first = last.takeIf { it in 0 until count } ?: 0
+    return listOf(first) + (0 until count).filter { it != first }
+}
+
+/** Whether [listed] (addresses without colons, separated by commas) has the adapter at [address]. */
+internal fun unitListsAdapter(listed: String?, address: String): Boolean {
+    val bare = address.replace(":", "")
+    return bare.isNotEmpty() && listed?.contains(bare, ignoreCase = true) == true
+}
+
 /** The engine warning lamp as the engine computer reports it (PID 0101). */
 data class EngineLamp(val on: Boolean, val storedCodes: Int)
 
@@ -78,6 +93,9 @@ object ObdBluetoothManager {
 
     private const val PREFS = "obd_prefs"
     private const val KEY_MAC = "obd_device_mac"
+    /** Which of [socketFactories] reached the adapter last time. */
+    private const val KEY_CHANNEL = "obd_channel"
+    private const val CHANNEL_PAUSE_MS = 500L
 
     // Serializes all adapter I/O: the 500ms poll loop and Scan/Clear must not
     // hit the single RFCOMM socket at the same time (garbled replies / errors).
@@ -215,13 +233,14 @@ object ObdBluetoothManager {
         val context = appContext ?: return false
         val manager = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
         val adapter = manager?.adapter ?: return fail(R.string.vehicle_err_bt_off)
-        if (!adapter.isEnabled) {
+        if (!adapter.isEnabled && !comingOn(adapter)) {
             Log.w(TAG, "Bluetooth is off")
             if (!byDriver) return fail(R.string.vehicle_err_bt_off)
             // Tapped by the driver: switch it on rather than send them looking for the setting.
             if (!switchBluetoothOn(adapter)) return fail(R.string.vehicle_err_bt_still_off)
         }
         closeQuietly()
+        silentCommands = 0
         // Another adapter, or the same one in another car: learn it afresh.
         supported = null
         supportedAskedAt = 0
@@ -250,19 +269,35 @@ object ObdBluetoothManager {
             }
             if (!paired) return fail(R.string.vehicle_err_pairing_failed, label)
         }
-        runCatching { adapter.cancelDiscovery() }
         // A channel can accept the link without reaching the adapter's serial
-        // port, so one that stays silent gives way to the next.
+        // port, so one that stays silent gives way to the next. The one that
+        // worked last time goes first, so a redial doesn't start with the
+        // seconds the others take to fail.
+        val factories = socketFactories(device)
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val last = prefs.getInt(KEY_CHANNEL, 0)
         var accepted = false
-        for ((i, create) in socketFactories(device).withIndex()) {
-            val newSocket = tryConnect(runCatching(create).getOrNull()) ?: continue
+        for ((tried, i) in channelOrder(last, factories.size).withIndex()) {
+            // Let the radio settle after a failed try, or the next one fails on it.
+            if (tried > 0) delay(CHANNEL_PAUSE_MS)
+            // A search for devices (the head unit's Bluetooth screen) makes a connection fail.
+            runCatching { adapter.cancelDiscovery() }
+            val newSocket = tryConnect(runCatching(factories[i]).getOrNull()) ?: continue
             accepted = true
             socket = newSocket
             inputStream = newSocket.inputStream
             outputStream = newSocket.outputStream
-            if (initializeAdapter()) return true
+            if (initializeAdapter()) {
+                silentCommands = 0
+                if (i != last) prefs.edit().putInt(KEY_CHANNEL, i).apply()
+                return true
+            }
             Log.w(TAG, "$deviceAddress: link #$i connected but the adapter never answered")
             closeQuietly()
+        }
+        // Only a lead for the log: the list also holds adapters that radio merely saw.
+        if (unitListsAdapter(systemProperty(PROP_UNIT_OBD), deviceAddress)) {
+            Log.w(TAG, "$deviceAddress is known to the head unit's own Bluetooth app, which may hold it")
         }
         if (!accepted) {
             Log.w(TAG, "no RFCOMM channel to $deviceAddress accepted the connection")
@@ -271,6 +306,32 @@ object ObdBluetoothManager {
         // A socket nothing answers on is no adapter: fail, so it is tried again.
         return fail(R.string.vehicle_err_silent, label)
     }
+
+    /**
+     * Bluetooth on its way on: the unit switches it off to sleep and back on
+     * as it wakes, right when the ignition has the adapter dialled. Waited
+     * for rather than given up on; true once it is on.
+     */
+    private suspend fun comingOn(adapter: BluetoothAdapter): Boolean {
+        if (adapter.state != BluetoothAdapter.STATE_TURNING_ON) return false
+        if (!waitUntil(BT_ON_TIMEOUT_MS) { adapter.isEnabled }) return false
+        // The paired devices and the profiles load just after it says it's on.
+        delay(BT_SETTLE_MS)
+        return true
+    }
+
+    /**
+     * Written by the Bluetooth app of QF head units (ROCO K706), whose phone
+     * Bluetooth is a second radio with an OBD link of its own: the adapters
+     * it found or connected. Connected there, the adapter's one connection
+     * is taken.
+     */
+    private const val PROP_UNIT_OBD = "persist.sys.qf.bt.obd.devices"
+
+    @SuppressLint("PrivateApi")
+    private fun systemProperty(name: String): String? = runCatching {
+        Class.forName("android.os.SystemProperties").getMethod("get", String::class.java).invoke(null, name) as String
+    }.getOrNull()
 
     @SuppressLint("MissingPermission")
     private fun isBonded(adapter: BluetoothAdapter, address: String): Boolean =
@@ -458,8 +519,12 @@ object ObdBluetoothManager {
         appContext?.getSharedPreferences(PREFS, Context.MODE_PRIVATE)?.getString(KEY_MAC, null)
 
     fun saveDeviceAddress(address: String) {
-        appContext?.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            ?.edit()?.putString(KEY_MAC, address)?.apply()
+        val prefs = appContext?.getSharedPreferences(PREFS, Context.MODE_PRIVATE) ?: return
+        val other = !address.equals(prefs.getString(KEY_MAC, null), ignoreCase = true)
+        val edit = prefs.edit().putString(KEY_MAC, address)
+        // Another adapter may answer on another channel.
+        if (other) edit.remove(KEY_CHANNEL)
+        edit.apply()
     }
 
     /** Polls speed, RPM and coolant temperature once, updating [data]. */
@@ -743,6 +808,7 @@ object ObdBluetoothManager {
                     Thread.sleep(5)
                 }
             }
+            if (response.isEmpty()) unanswered(command) else silentCommands = 0
             response.toString().replace(">", "").trim().ifEmpty { null }
         } catch (e: IOException) {
             // The link is gone: drop it so the retry opens a fresh one.
@@ -752,6 +818,25 @@ object ObdBluetoothManager {
             null
         }
     }
+
+    /**
+     * The adapter sent nothing back to [command], not even its prompt. With
+     * the engine off it still says "NO DATA", so [MAX_SILENT_COMMANDS] in a
+     * row is a link that is up in name only (lost on a crowded 2.4 GHz band
+     * without the socket closing): it would stay "connected" with no readings
+     * for good, so it is dropped and dialled again.
+     */
+    private fun unanswered(command: String) {
+        if (++silentCommands < MAX_SILENT_COMMANDS || _connectionState.value != ObdConnectionState.CONNECTED) return
+        Log.w(TAG, "$command: nothing from the adapter for $silentCommands commands, link dropped")
+        silentCommands = 0
+        closeQuietly()
+        _connectionState.value = ObdConnectionState.ERROR
+    }
+
+    /** Commands in a row without a single byte back (only touched under commandMutex). */
+    private var silentCommands = 0
+    private const val MAX_SILENT_COMMANDS = 8
 
     /** [DemoMode]'s readings, shown as if an adapter were connected. */
     internal fun demoWrite(data: ObdData, lamp: EngineLamp?, pending: Set<String>) {
