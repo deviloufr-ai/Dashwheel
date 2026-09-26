@@ -401,6 +401,7 @@ internal fun TapeDeckTopBar(m: TopBarModel) {
             ObdLed(m.obdConnection, m.onConnectObd)
             OutsideTemp()
             VehicleAlerts(m.obdConnection, m.obd)
+            PhonePill()
             MorePicker(m) { open ->
                 NeonPill(null, stringResource(R.string.tape_cd_more), open) {
                     Icon(Icons.Filled.MoreVert, contentDescription = null, tint = legend, modifier = Modifier.size(20.dp))

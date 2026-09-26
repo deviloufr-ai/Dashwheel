@@ -97,6 +97,16 @@ class MainActivity : ComponentActivity() {
                 // The ignition as the unit announces it, and the car's own data from the CAN box
                 // with the radar / climate alerts built on it.
                 CarPower.start(this)
+                // The unit's own keys (wheel and panel), straight from its key service, and
+                // what else it tells: headlights, the phone, CarPlay / Android Auto.
+                HeadUnitKeys.start(this)
+                UnitSignals.start(this)
+                // The tyres from the TPMS sensors, and their warnings.
+                Tyres.start(this)
+                TyreAlertOverlay.start(this)
+                // The seat belt reminder, and no navigation bar over docked app windows.
+                BeltAlertOverlay.start(this)
+                DockedNavBar.start(this)
                 CarBox.start(this)
                 RadarOverlay.start(this)
                 ClimateOverlay.start(this)

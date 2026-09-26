@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Adjust
+import androidx.compose.material.icons.filled.AirlineSeatReclineNormal
 import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Build
@@ -41,6 +42,7 @@ import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.SettingsRemote
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.SystemUpdate
+import androidx.compose.material.icons.filled.TireRepair
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.VolumeDown
 import androidx.compose.material.icons.filled.VolumeMute
@@ -219,6 +221,8 @@ private fun CarPane(m: TopBarModel, onCar: () -> Unit, onAi: () -> Unit, onUpkee
     RomPopupToggle(RomPopups.Kind.DOORS)
     RomPopupToggle(RomPopups.Kind.RADAR)
     RomPopupToggle(RomPopups.Kind.AC)
+    RomPopupToggle(RomPopups.Kind.TYRES)
+    RomPopupToggle(RomPopups.Kind.BELT)
 }
 
 /**
@@ -240,6 +244,8 @@ private fun RomPopupToggle(kind: RomPopups.Kind) {
         RomPopups.Kind.DOORS -> Triple(Icons.Filled.SensorDoor, stringResource(R.string.settings_rom_doors), stringResource(R.string.settings_rom_doors_detail))
         RomPopups.Kind.RADAR -> Triple(Icons.Filled.Sensors, stringResource(R.string.settings_rom_radar), stringResource(R.string.settings_rom_radar_detail))
         RomPopups.Kind.AC -> Triple(Icons.Filled.AcUnit, stringResource(R.string.settings_rom_ac), stringResource(R.string.settings_rom_ac_detail))
+        RomPopups.Kind.TYRES -> Triple(Icons.Filled.TireRepair, stringResource(R.string.settings_rom_tyres), stringResource(R.string.settings_rom_tyres_detail))
+        RomPopups.Kind.BELT -> Triple(Icons.Filled.AirlineSeatReclineNormal, stringResource(R.string.settings_rom_belt), stringResource(R.string.settings_rom_belt_detail))
     }
     val a11y by SplitAccessibilityService.connected.collectAsState()
     val shown = when {
@@ -283,6 +289,7 @@ private fun DrivingPane(m: TopBarModel, onWheelButtons: () -> Unit) {
     )
     VolumeWaySetting()
     SpeedVolumeSetting()
+    KeyTargetRows()
 }
 
 /**

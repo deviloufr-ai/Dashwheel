@@ -74,4 +74,20 @@
     <string name="alert_radar_front">Davanti</string>
     <string name="alert_radar_rear">Dietro</string>
     <string name="alert_ac_off">Clima spento</string>
+    <string name="keys_section">Tasti dell\'autoradio</string>
+    <string name="keys_navi">Tasto NAVI</string>
+    <string name="keys_voice">Tasto vocale</string>
+    <string name="keys_custom">Tasto personalizzato</string>
+    <string name="keys_unit_choice">La scelta dell\'autoradio</string>
+    <string name="settings_rom_tyres">Avvisi pneumatici</string>
+    <string name="settings_rom_tyres_detail">Avvisi pneumatici nello stile di Dashwheel. Per avere solo questi, disattiva la finestra dell\'app TPMS nelle sue impostazioni</string>
+    <string name="alert_kind_tyres">Pneumatici</string>
+    <string name="alert_kind_tyres_title">Avviso pneumatici</string>
+    <string name="alert_speak_tyres_detail">Dice quale pneumatico e cosa non va</string>
+    <string name="alert_say_tyre">Pneumatico %1$s: %2$s</string>
+    <string name="settings_rom_belt">Promemoria cintura</string>
+    <string name="settings_rom_belt_detail">Ricorda di allacciare la cintura appena l\'auto si muove</string>
+    <string name="alert_kind_belt">Cintura</string>
+    <string name="alert_kind_belt_title">Avviso cintura</string>
+    <string name="alert_speak_belt_detail">Chiede di allacciare la cintura</string>
 </resources>

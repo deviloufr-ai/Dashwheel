@@ -107,9 +107,11 @@ object HeadUnitPhone {
             val app = context.applicationContext
             when (intent.action) {
                 ACTION_CALL_STATE -> onCallState(app, intent)
-                // Its window is opening right now: the moment to set it aside.
-                ACTION_CALL_START -> if (SystemClock.elapsedRealtime() - lastSignalAt > ECHO_MS) setAside(app)
-                ACTION_CALL_END -> callOver(app)
+                // Its window is opening right now: the moment to set it aside. Not while
+                // CarPlay / Android Auto is connected: those calls are theirs, and the
+                // Bluetooth app would answer the signal with another "call start".
+                ACTION_CALL_START -> if (!UnitSignals.projection.value && SystemClock.elapsedRealtime() - lastSignalAt > ECHO_MS) setAside(app)
+                ACTION_CALL_END -> if (!UnitSignals.projection.value) callOver(app)
             }
         }
     }

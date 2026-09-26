@@ -193,4 +193,18 @@
     <string name="car_status_on">Aan</string>
     <string name="car_status_off">Los</string>
     <string name="car_status_km">km</string>
+    <string name="car_kind_tyres">Banden</string>
+    <string name="car_kind_tyres_blurb">Druk en temperatuur van elke band, van de bandensensoren</string>
+    <string name="car_tyres_title">BANDEN</string>
+    <string name="car_tyres_waiting">Wachten op de bandensensoren</string>
+    <string name="car_tyres_spare">Reservewiel</string>
+    <string name="car_tyres_leak">Lek</string>
+    <string name="car_tyres_low">Druk te laag</string>
+    <string name="car_tyres_high">Druk te hoog</string>
+    <string name="car_tyres_hot">Te heet</string>
+    <string name="car_tyres_no_signal">Geen signaal</string>
+    <string name="car_tyres_sensor_battery">Sensorbatterij bijna leeg</string>
+    <string name="car_tyres_alert">Bandenmelding</string>
+    <string name="car_tyres_ok">Alle banden goed</string>
+    <string name="car_belt_fasten">Doe uw gordel om</string>
 </resources>

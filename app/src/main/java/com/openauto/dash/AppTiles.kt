@@ -394,7 +394,9 @@ internal fun AppPickerDialog(
     apps: List<AppEntry>,
     onPick: (AppEntry) -> Unit,
     onDismiss: () -> Unit,
-    title: String = stringResource(R.string.apps_choose_app)
+    title: String = stringResource(R.string.apps_choose_app),
+    /** An extra choice beside Cancel ("the unit's own choice"...). */
+    neutral: (@Composable () -> Unit)? = null
 ) {
     AlertDialog(
         modifier = Modifier.keepClearOfWindows(),
@@ -416,7 +418,7 @@ internal fun AppPickerDialog(
                 }
             }
         },
-        confirmButton = {},
+        confirmButton = { neutral?.invoke() },
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text(stringResource(R.string.apps_cancel), color = DashColors.Muted)

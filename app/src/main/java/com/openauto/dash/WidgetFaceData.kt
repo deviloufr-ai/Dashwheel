@@ -37,6 +37,7 @@ import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Timeline
+import androidx.compose.material.icons.filled.TireRepair
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.TurnRight
 import androidx.compose.material.icons.filled.VolumeOff
@@ -107,6 +108,7 @@ internal fun rememberWidgetFace(kind: BuiltinKind, env: SkinTileEnv): WidgetFace
     BuiltinKind.SERVICE -> serviceFace()
     BuiltinKind.FUEL_PRICES -> fuelPricesFace()
     BuiltinKind.CAR_STATUS -> carStatusFace()
+    BuiltinKind.TYRES -> tyresFace()
     // Live views and the spec sheet: they keep their content and get the design's frame (DesignFrame).
     BuiltinKind.NAVMAP, BuiltinKind.PIP_ANCHOR, BuiltinKind.MY_CAR -> null
 }
@@ -1075,5 +1077,34 @@ private fun carStatusFace(): WidgetFace {
         alert = CarLight.HAZARD in lights,
         severity = if (CarLight.HAZARD in lights) 1 else 0,
         rows = rows.map { (label, value) -> FaceRow(label, value) }
+    )
+}
+
+@Composable
+private fun tyresFace(): WidgetFace {
+    val tyres by Tyres.tyres.collectAsState()
+    val unit by Tyres.unit.collectAsState()
+    if (tyres.isEmpty()) return idleFace(Icons.Filled.TireRepair, BuiltinKind.TYRES.label, stringResource(R.string.car_tyres_waiting))
+    val order = listOf(TyrePos.FRONT_LEFT, TyrePos.FRONT_RIGHT, TyrePos.REAR_LEFT, TyrePos.REAR_RIGHT)
+    val problems = tyres.mapNotNull { (pos, t) -> tyreProblem(t)?.let { pos to it } }
+    val lowest = tyres.filterKeys { it in order }.values.minByOrNull { it.kPa }
+    val rows = order.mapNotNull { pos ->
+        tyres[pos]?.let { t ->
+            val problem = tyreProblem(t)
+            val value = listOfNotNull(problem?.let { stringResource(it.labelRes) }, formatPressure(t.kPa, unit)).joinToString(" · ")
+            FaceRow(stringResource(pos.labelRes), value, alert = problem != null)
+        }
+    }
+    val shown = lowest?.let { formatPressure(it.kPa, unit) }
+    return WidgetFace(
+        icon = Icons.Filled.TireRepair,
+        title = BuiltinKind.TYRES.label,
+        value = shown?.substringBefore(' ') ?: "--",
+        unit = shown?.substringAfter(' ').orEmpty(),
+        caption = problems.firstOrNull()?.let { (pos, p) -> "${stringResource(pos.labelRes)}: ${stringResource(p.labelRes)}" }
+            ?: stringResource(R.string.car_tyres_ok),
+        alert = problems.isNotEmpty(),
+        severity = if (problems.isNotEmpty()) 2 else 0,
+        rows = rows
     )
 }

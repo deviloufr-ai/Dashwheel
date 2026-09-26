@@ -74,4 +74,20 @@
     <string name="alert_radar_front">Avant</string>
     <string name="alert_radar_rear">Arrière</string>
     <string name="alert_ac_off">Clim éteinte</string>
+    <string name="keys_section">Touches de l\'autoradio</string>
+    <string name="keys_navi">Touche NAVI</string>
+    <string name="keys_voice">Touche vocale</string>
+    <string name="keys_custom">Touche personnalisée</string>
+    <string name="keys_unit_choice">Le choix de l\'autoradio</string>
+    <string name="settings_rom_tyres">Alertes pneus</string>
+    <string name="settings_rom_tyres_detail">Alertes pneus dans le style Dashwheel. Pour n\'avoir que celles-ci, désactivez la fenêtre de l\'appli TPMS dans ses réglages</string>
+    <string name="alert_kind_tyres">Pneus</string>
+    <string name="alert_kind_tyres_title">Alerte pneus</string>
+    <string name="alert_speak_tyres_detail">Dit quel pneu et ce qui ne va pas</string>
+    <string name="alert_say_tyre">Pneu %1$s : %2$s</string>
+    <string name="settings_rom_belt">Rappel de ceinture</string>
+    <string name="settings_rom_belt_detail">Vous rappelle de boucler votre ceinture dès que la voiture roule</string>
+    <string name="alert_kind_belt">Ceinture</string>
+    <string name="alert_kind_belt_title">Alerte ceinture</string>
+    <string name="alert_speak_belt_detail">Vous demande d\'attacher votre ceinture</string>
 </resources>

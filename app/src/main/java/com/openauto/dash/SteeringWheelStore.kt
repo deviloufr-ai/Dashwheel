@@ -40,6 +40,8 @@ internal data class WheelKey(
         get() {
             if (canKey != null) return "CAN $canKey: $canHex"
             if (keyCode == KeyEvent.KEYCODE_UNKNOWN) return "Button #$scanCode"
+            // The head unit's own keys ([HeadUnitKeys]) have no Android name: the dialog words them.
+            if (keyCode >= HeadUnitKeys.FIRST_VENDOR_KEY) return "Key $keyCode"
             val raw = runCatching { KeyEvent.keyCodeToString(keyCode) }.getOrDefault("KEYCODE_$keyCode")
             return raw.removePrefix("KEYCODE_")
                 .split("_")
@@ -240,6 +242,25 @@ internal object SteeringWheelStore {
         val mapping = _mappings.value.firstOrNull { it.key.id == key.id } ?: return false
         if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) perform(context, mapping.assignment)
         return true
+    }
+
+    /**
+     * A key from the head unit's own key service ([HeadUnitKeys]): the
+     * firmware's keys (NAVI, MODE, PHONE…), which never come as Android keys.
+     * Captured while learning; otherwise runs what it's bound to, once per
+     * press. The unit does its own thing with the key as well.
+     */
+    fun onUnitKey(context: Context, keyCode: Int, event: KeyEvent?) {
+        // One press: its down (the event is left out by some senders: count that as the press).
+        if (event != null && (event.action != KeyEvent.ACTION_DOWN || event.repeatCount != 0)) return
+        val key = WheelKey(keyCode, 0)
+        if (listening.value) {
+            WheelMonitor.add(WheelMonitor.Source.KEY, "${key.label} ($keyCode)", key)
+            capture(key)
+            return
+        }
+        val mapping = _mappings.value.firstOrNull { it.key.id == key.id } ?: return
+        perform(context, mapping.assignment)
     }
 
     private fun onCanChange(change: McuReader.Change) {

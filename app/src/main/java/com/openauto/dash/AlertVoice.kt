@@ -81,6 +81,8 @@ object AlertVoice {
     /** "Call from Alex": the name when the phone knows it. */
     fun sayCall(context: Context, call: PhoneCall, force: Boolean = false) {
         if (AlertKind.CALL !in AlertStyleStore.spoken.value) return
+        // CarPlay / Android Auto announces its own calls.
+        if (!force && UnitSignals.projectionOnScreen.value) return
         val res = AppLanguage.wrap(context.applicationContext).resources
         val text = call.name?.let { res.getString(R.string.alert_say_call, it) } ?: res.getString(R.string.phone_call_incoming)
         say(context, text, force)
@@ -103,6 +105,19 @@ object AlertVoice {
             )
         }
         say(context, res.getString(R.string.alert_say_doors, names.joinToString(", ")), force)
+    }
+
+    /** "Fasten your seat belt". */
+    fun sayBelt(context: Context, force: Boolean = false) {
+        if (AlertKind.BELT !in AlertStyleStore.spoken.value) return
+        say(context, AppLanguage.wrap(context.applicationContext).resources.getString(R.string.car_belt_fasten), force)
+    }
+
+    /** "Front left tyre: low pressure". */
+    fun sayTyre(context: Context, pos: TyrePos, problem: TyreProblem, force: Boolean = false) {
+        if (AlertKind.TYRES !in AlertStyleStore.spoken.value) return
+        val res = AppLanguage.wrap(context.applicationContext).resources
+        say(context, res.getString(R.string.alert_say_tyre, res.getString(pos.labelRes), res.getString(problem.labelRes)), force)
     }
 
     /** [force]: said even if it was just said ("Try it" pressed again). */

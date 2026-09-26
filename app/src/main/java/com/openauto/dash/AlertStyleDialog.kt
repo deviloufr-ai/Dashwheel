@@ -17,10 +17,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AcUnit
+import androidx.compose.material.icons.filled.AirlineSeatReclineNormal
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.SensorDoor
 import androidx.compose.material.icons.filled.Sensors
+import androidx.compose.material.icons.filled.TireRepair
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -71,6 +73,8 @@ internal fun AlertStyleRows() {
             AlertKind.DOORS -> carApp && RomPopups.canWork(RomPopups.Kind.DOORS, access)
             AlertKind.RADAR -> carApp && RomPopups.canWork(RomPopups.Kind.RADAR, access)
             AlertKind.AC -> carApp
+            AlertKind.TYRES -> Tyres.available
+            AlertKind.BELT -> carApp && RomPopups.canWork(RomPopups.Kind.BELT, access)
         }
     }.forEach { kind ->
         val style = stringResource(styles.of(kind).title)
@@ -86,6 +90,8 @@ private val AlertKind.icon: ImageVector
         AlertKind.DOORS -> Icons.Filled.SensorDoor
         AlertKind.RADAR -> Icons.Filled.Sensors
         AlertKind.AC -> Icons.Filled.AcUnit
+        AlertKind.TYRES -> Icons.Filled.TireRepair
+        AlertKind.BELT -> Icons.Filled.AirlineSeatReclineNormal
     }
 
 private val AlertKind.label: Int
@@ -94,6 +100,8 @@ private val AlertKind.label: Int
         AlertKind.DOORS -> R.string.alert_kind_doors
         AlertKind.RADAR -> R.string.alert_kind_radar
         AlertKind.AC -> R.string.alert_kind_ac
+        AlertKind.TYRES -> R.string.alert_kind_tyres
+        AlertKind.BELT -> R.string.alert_kind_belt
     }
 
 private val AlertKind.dialogTitle: Int
@@ -102,12 +110,15 @@ private val AlertKind.dialogTitle: Int
         AlertKind.DOORS -> R.string.alert_kind_doors_title
         AlertKind.RADAR -> R.string.alert_kind_radar_title
         AlertKind.AC -> R.string.alert_kind_ac_title
+        AlertKind.TYRES -> R.string.alert_kind_tyres_title
+        AlertKind.BELT -> R.string.alert_kind_belt_title
     }
 
 /** The alert's colour in the picker's small screens. */
 @Composable
 private fun AlertKind.tint(): Color = when (this) {
     AlertKind.DOORS, AlertKind.RADAR -> DashColors.Warning
+    AlertKind.TYRES, AlertKind.BELT -> DashColors.Critical
     else -> DashColors.Accent
 }
 
@@ -148,7 +159,14 @@ private fun AlertStyleDialog(kind: AlertKind, onDismiss: () -> Unit) {
                 if (kind.speakable) {
                     SettingsToggle(
                         Icons.Filled.RecordVoiceOver, stringResource(R.string.alert_speak),
-                        stringResource(if (kind == AlertKind.CALL) R.string.alert_speak_call_detail else R.string.alert_speak_doors_detail),
+                        stringResource(
+                            when (kind) {
+                                AlertKind.CALL -> R.string.alert_speak_call_detail
+                                AlertKind.TYRES -> R.string.alert_speak_tyres_detail
+                                AlertKind.BELT -> R.string.alert_speak_belt_detail
+                                else -> R.string.alert_speak_doors_detail
+                            }
+                        ),
                         kind in spoken
                     ) { AlertStyleStore.setSpoken(context, kind, it) }
                 }

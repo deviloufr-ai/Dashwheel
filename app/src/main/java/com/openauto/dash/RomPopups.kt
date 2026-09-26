@@ -40,7 +40,7 @@ object RomPopups {
     private const val PREFS = "rom_popups"
     const val VEHICLE_PACKAGE = "com.qf.vehicle"
 
-    enum class Kind(val key: String) { CALL("call"), DOORS("doors"), RADAR("radar"), AC("ac") }
+    enum class Kind(val key: String) { CALL("call"), DOORS("doors"), RADAR("radar"), AC("ac"), TYRES("tyres"), BELT("belt") }
 
     private val _replaced = MutableStateFlow<Set<Kind>>(emptySet())
     /** The kinds whose ROM pop-up Dashwheel replaces (the Settings switches). */
@@ -57,13 +57,16 @@ object RomPopups {
     fun available(context: Context, kind: Kind): Boolean = when (kind) {
         Kind.CALL -> HeadUnitPhone.available(context)
         Kind.DOORS, Kind.RADAR, Kind.AC -> isPackageInstalled(context, VEHICLE_PACKAGE)
+        Kind.TYRES -> isPackageInstalled(context, Tyres.TPMS_PACKAGE)
+        Kind.BELT -> isPackageInstalled(context, VEHICLE_PACKAGE)
     }
 
     /** Whether [kind] can work with this shell access: see [PrivilegedShell]. */
     fun canWork(kind: Kind, access: PrivilegedShell.Access): Boolean = when (kind) {
         Kind.DOORS -> access.root
-        Kind.RADAR -> access.shell
-        Kind.CALL, Kind.AC -> true
+        // The belt comes with the car box's shared data, registered through the shell.
+        Kind.RADAR, Kind.BELT -> access.shell
+        Kind.CALL, Kind.AC, Kind.TYRES -> true
     }
 
     fun start(context: Context) {
@@ -104,6 +107,10 @@ object RomPopups {
                 val reversing = if (hide && SplitAccessibilityService.isConnected) 1 else 0
                 record(kind, hide, writeGlobals(context, mapOf("${me}keyIfHideRadarView" to reversing, "KeyIfHideRunningRadar" to flag)))
             }
+            // The TPMS app's own window has no outside switch: its settings do it ("show UI").
+            Kind.TYRES -> Unit
+            // Dashwheel's own reminder; the car's chime is its own business.
+            Kind.BELT -> Unit
             // The car app's own switch for it; no root needed.
             Kind.AC -> context.sendBroadcast(
                 Intent("com.qf.vehicle.action.popup_enable")

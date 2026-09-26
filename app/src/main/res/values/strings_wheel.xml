@@ -54,4 +54,23 @@
     <string name="wheel_action_answer">Answer call</string>
     <string name="wheel_action_decline">Decline call</string>
     <string name="wheel_action_hang_up">Hang up call</string>
+    <string name="wheel_unit_power">Power</string>
+    <string name="wheel_unit_mute">Mute</string>
+    <string name="wheel_unit_mode">Mode</string>
+    <string name="wheel_unit_volume_up">Volume up</string>
+    <string name="wheel_unit_volume_down">Volume down</string>
+    <string name="wheel_unit_navi">Navi</string>
+    <string name="wheel_unit_previous">Previous</string>
+    <string name="wheel_unit_next">Next</string>
+    <string name="wheel_unit_phone">Phone</string>
+    <string name="wheel_unit_hang_up">Hang up</string>
+    <string name="wheel_unit_radio">Radio</string>
+    <string name="wheel_unit_voice">Voice</string>
+    <string name="wheel_unit_play_pause">Play/pause</string>
+    <string name="wheel_unit_backlight">Screen</string>
+    <string name="wheel_unit_settings">Settings</string>
+    <string name="wheel_unit_apps">Apps</string>
+    <string name="wheel_unit_knob">Volume knob</string>
+    <string name="wheel_unit_key_n">Key %1$d</string>
+    <string name="wheel_unit_key_code">Unit key %1$d</string>
 </resources>

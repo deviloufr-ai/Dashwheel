@@ -85,7 +85,10 @@ enum class AlertKind(val key: String, val styles: List<AlertStyle>, val speakabl
     CALL("call", AlertStyle.entries, speakable = true, cardAt = CardAt.TOP),
     DOORS("doors", AlertStyle.entries, speakable = true, cardAt = CardAt.TOP_END),
     RADAR("radar", listOf(AlertStyle.PILL, AlertStyle.CARD, AlertStyle.PANEL), speakable = false, cardAt = CardAt.END),
-    AC("ac", listOf(AlertStyle.PILL, AlertStyle.CARD, AlertStyle.BANNER, AlertStyle.PANEL), speakable = false, cardAt = CardAt.BOTTOM)
+    AC("ac", listOf(AlertStyle.PILL, AlertStyle.CARD, AlertStyle.BANNER, AlertStyle.PANEL), speakable = false, cardAt = CardAt.BOTTOM),
+    TYRES("tyres", AlertStyle.entries, speakable = true, cardAt = CardAt.TOP_END),
+    // Shown while driving: never anything that covers the screen.
+    BELT("belt", listOf(AlertStyle.PILL, AlertStyle.CARD, AlertStyle.BANNER), speakable = true, cardAt = CardAt.TOP)
 }
 
 /**
@@ -106,7 +109,7 @@ object AlertStyleStore {
     private val _styles = MutableStateFlow<Map<AlertKind, AlertStyle>>(emptyMap())
     val styles: StateFlow<Map<AlertKind, AlertStyle>> = _styles
 
-    private val _spoken = MutableStateFlow(setOf(AlertKind.DOORS))
+    private val _spoken = MutableStateFlow(setOf(AlertKind.DOORS, AlertKind.TYRES, AlertKind.BELT))
     /** The alerts also said out loud ([AlertVoice]); the doors until the driver says otherwise. */
     val spoken: StateFlow<Set<AlertKind>> = _spoken
 
@@ -115,7 +118,7 @@ object AlertStyleStore {
         _styles.value = AlertKind.entries.mapNotNull { kind ->
             p.getString(kind.key, null)?.let { name -> AlertStyle.entries.firstOrNull { it.name == name } }?.let { kind to it }
         }.toMap()
-        _spoken.value = AlertKind.entries.filter { p.getBoolean("speak_${it.key}", it == AlertKind.DOORS) }.toSet()
+        _spoken.value = AlertKind.entries.filter { p.getBoolean("speak_${it.key}", it == AlertKind.DOORS || it == AlertKind.TYRES || it == AlertKind.BELT) }.toSet()
     }
 
     fun set(context: Context, kind: AlertKind, style: AlertStyle) {
@@ -145,6 +148,8 @@ object AlertPreview {
     val doors = MutableStateFlow<McuReader.DoorState?>(null)
     val radar = MutableStateFlow<Radar?>(null)
     val climate = MutableStateFlow<Climate?>(null)
+    val tyres = MutableStateFlow<Map<TyrePos, Tyre>?>(null)
+    val belt = MutableStateFlow(false)
 
     private const val SHOW_MS = 8_000L
 
@@ -164,6 +169,14 @@ object AlertPreview {
             }
             AlertKind.RADAR -> radar.value = CarBox.sampleRadar()
             AlertKind.AC -> climate.value = CarBox.sampleClimate()
+            AlertKind.TYRES -> Tyres.sample().let {
+                tyres.value = it
+                AlertVoice.sayTyre(context, TyrePos.FRONT_LEFT, TyreProblem.LOW, force = true)
+            }
+            AlertKind.BELT -> {
+                belt.value = true
+                AlertVoice.sayBelt(context, force = true)
+            }
         }
         job = scope.launch {
             delay(SHOW_MS)
@@ -182,6 +195,8 @@ object AlertPreview {
         doors.value = null
         radar.value = null
         climate.value = null
+        tyres.value = null
+        belt.value = false
     }
 }
 

@@ -75,4 +75,20 @@
     <string name="alert_radar_front">Front</string>
     <string name="alert_radar_rear">Rear</string>
     <string name="alert_ac_off">Climate off</string>
+    <string name="keys_section">Head unit keys</string>
+    <string name="keys_navi">NAVI key</string>
+    <string name="keys_voice">Voice key</string>
+    <string name="keys_custom">Custom key</string>
+    <string name="keys_unit_choice">The unit\'s own choice</string>
+    <string name="settings_rom_tyres">Tyre alerts</string>
+    <string name="settings_rom_tyres_detail">Tyre warnings in Dashwheel\'s design. For only these, turn off the TPMS app\'s own window in its settings</string>
+    <string name="alert_kind_tyres">Tyres</string>
+    <string name="alert_kind_tyres_title">Tyre alert</string>
+    <string name="alert_speak_tyres_detail">Says which tyre and what\'s wrong</string>
+    <string name="alert_say_tyre">%1$s tyre: %2$s</string>
+    <string name="settings_rom_belt">Seat belt reminder</string>
+    <string name="settings_rom_belt_detail">Reminds you to buckle up once the car moves</string>
+    <string name="alert_kind_belt">Seat belt</string>
+    <string name="alert_kind_belt_title">Seat belt alert</string>
+    <string name="alert_speak_belt_detail">Asks you to fasten your seat belt</string>
 </resources>

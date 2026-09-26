@@ -380,7 +380,9 @@ internal fun OrbitTopBar(m: TopBarModel) {
                 pill()
                 Spacer(Modifier.width(10.dp))
                 VehicleAlerts(m.obdConnection, m.obd)
+                PhonePill()
             } else {
+                PhonePill()
                 VehicleAlerts(m.obdConnection, m.obd)
                 Spacer(Modifier.width(10.dp))
                 pill()

@@ -195,4 +195,18 @@
     <string name="car_status_on">Puesto</string>
     <string name="car_status_off">Quitado</string>
     <string name="car_status_km">km</string>
+    <string name="car_kind_tyres">Neumáticos</string>
+    <string name="car_kind_tyres_blurb">Presión y temperatura de cada neumático, de los sensores</string>
+    <string name="car_tyres_title">NEUMÁTICOS</string>
+    <string name="car_tyres_waiting">Esperando los sensores de neumáticos</string>
+    <string name="car_tyres_spare">Rueda de repuesto</string>
+    <string name="car_tyres_leak">Fuga</string>
+    <string name="car_tyres_low">Presión baja</string>
+    <string name="car_tyres_high">Presión alta</string>
+    <string name="car_tyres_hot">Demasiado caliente</string>
+    <string name="car_tyres_no_signal">Sin señal</string>
+    <string name="car_tyres_sensor_battery">Pila del sensor baja</string>
+    <string name="car_tyres_alert">Aviso de neumáticos</string>
+    <string name="car_tyres_ok">Neumáticos bien</string>
+    <string name="car_belt_fasten">Abróchese el cinturón</string>
 </resources>

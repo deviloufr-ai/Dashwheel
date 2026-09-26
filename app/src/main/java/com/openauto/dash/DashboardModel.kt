@@ -63,7 +63,9 @@ enum class BuiltinKind(
     SERVICE(R.string.upkeep_kind, WidgetCategory.VEHICLE, R.string.upkeep_kind_blurb, 4, 3),
     FUEL_PRICES(R.string.fuel_kind, WidgetCategory.NAVIGATION, R.string.fuel_kind_blurb, 4, 3),
     // The car's own data from its CAN box, on the QF firmware (CarBox.kt).
-    CAR_STATUS(R.string.car_kind_status, WidgetCategory.VEHICLE, R.string.car_kind_status_blurb, 4, 3)
+    CAR_STATUS(R.string.car_kind_status, WidgetCategory.VEHICLE, R.string.car_kind_status_blurb, 4, 3),
+    // The TPMS sensors, through the head unit's TPMS app (Tyres.kt).
+    TYRES(R.string.car_kind_tyres, WidgetCategory.VEHICLE, R.string.car_kind_tyres_blurb, 4, 3)
 }
 
 /**

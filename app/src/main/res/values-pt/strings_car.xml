@@ -195,4 +195,18 @@
     <string name="car_status_on">Puxado</string>
     <string name="car_status_off">Solto</string>
     <string name="car_status_km">km</string>
+    <string name="car_kind_tyres">Pneus</string>
+    <string name="car_kind_tyres_blurb">Pressão e temperatura de cada pneu, dos sensores</string>
+    <string name="car_tyres_title">PNEUS</string>
+    <string name="car_tyres_waiting">À espera dos sensores dos pneus</string>
+    <string name="car_tyres_spare">Pneu sobresselente</string>
+    <string name="car_tyres_leak">Fuga</string>
+    <string name="car_tyres_low">Pressão baixa</string>
+    <string name="car_tyres_high">Pressão alta</string>
+    <string name="car_tyres_hot">Demasiado quente</string>
+    <string name="car_tyres_no_signal">Sem sinal</string>
+    <string name="car_tyres_sensor_battery">Bateria do sensor fraca</string>
+    <string name="car_tyres_alert">Alerta de pneus</string>
+    <string name="car_tyres_ok">Pneus em ordem</string>
+    <string name="car_belt_fasten">Aperte o cinto de segurança</string>
 </resources>

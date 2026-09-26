@@ -54,4 +54,23 @@
     <string name="wheel_action_answer">Atender chamada</string>
     <string name="wheel_action_decline">Recusar chamada</string>
     <string name="wheel_action_hang_up">Desligar</string>
+    <string name="wheel_unit_power">Ligar</string>
+    <string name="wheel_unit_mute">Silêncio</string>
+    <string name="wheel_unit_mode">Modo</string>
+    <string name="wheel_unit_volume_up">Aumentar volume</string>
+    <string name="wheel_unit_volume_down">Baixar volume</string>
+    <string name="wheel_unit_navi">Navi</string>
+    <string name="wheel_unit_previous">Anterior</string>
+    <string name="wheel_unit_next">Seguinte</string>
+    <string name="wheel_unit_phone">Telefone</string>
+    <string name="wheel_unit_hang_up">Desligar</string>
+    <string name="wheel_unit_radio">Rádio</string>
+    <string name="wheel_unit_voice">Voz</string>
+    <string name="wheel_unit_play_pause">Reproduzir/pausa</string>
+    <string name="wheel_unit_backlight">Ecrã</string>
+    <string name="wheel_unit_settings">Definições</string>
+    <string name="wheel_unit_apps">Apps</string>
+    <string name="wheel_unit_knob">Botão de volume</string>
+    <string name="wheel_unit_key_n">Tecla %1$d</string>
+    <string name="wheel_unit_key_code">Tecla do rádio %1$d</string>
 </resources>

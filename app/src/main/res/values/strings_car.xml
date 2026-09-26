@@ -193,4 +193,18 @@
     <string name="car_status_on">On</string>
     <string name="car_status_off">Off</string>
     <string name="car_status_km">km</string>
+    <string name="car_kind_tyres">Tyres</string>
+    <string name="car_kind_tyres_blurb">Pressure and temperature of each tyre, from the tyre sensors</string>
+    <string name="car_tyres_title">TYRES</string>
+    <string name="car_tyres_waiting">Waiting for the tyre sensors</string>
+    <string name="car_tyres_spare">Spare</string>
+    <string name="car_tyres_leak">Leak</string>
+    <string name="car_tyres_low">Low pressure</string>
+    <string name="car_tyres_high">High pressure</string>
+    <string name="car_tyres_hot">Too hot</string>
+    <string name="car_tyres_no_signal">No signal</string>
+    <string name="car_tyres_sensor_battery">Sensor battery low</string>
+    <string name="car_tyres_alert">Tyre warning</string>
+    <string name="car_tyres_ok">All tyres fine</string>
+    <string name="car_belt_fasten">Fasten your seat belt</string>
 </resources>

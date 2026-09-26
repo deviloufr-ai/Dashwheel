@@ -92,9 +92,11 @@ object PhoneCallOverlay {
      * ([RomPopups]). The head unit answers when the companion may not.
      */
     val call: StateFlow<PhoneCall?> =
-        combine(PhoneLink.call, HeadUnitPhone.call, RomPopups.replaced, AlertPreview.call) { link, unit, replaced, preview ->
+        combine(PhoneLink.call, HeadUnitPhone.call, RomPopups.replaced, AlertPreview.call, UnitSignals.projectionOnScreen) { link, unit, replaced, preview, projected ->
             val own = unit?.takeIf { RomPopups.Kind.CALL in replaced }
             preview ?: when {
+                // CarPlay / Android Auto on screen shows the call itself: no second card over it.
+                projected -> null
                 link == null -> own
                 !link.canControl && own != null -> link.copy(canControl = true, viaHeadUnit = true)
                 else -> link

@@ -726,6 +726,7 @@ internal fun HorizonTopBar(m: TopBarModel) {
             }
         }
         VehicleAlerts(m.obdConnection, m.obd)
+        PhonePill()
         IconButton(onClick = m.onApps) {
             Icon(Icons.Filled.Apps, contentDescription = stringResource(R.string.horizon_cd_all_apps), tint = ink)
         }

@@ -26,7 +26,7 @@ class CarBoxDataTest {
         val d = bytes(
             79, 0 to 0x2E, 1 to SHARE_BODY,
             2 to 0b1000_0110, // high beam, left turn, hazard
-            5 to 0b0000_1000, // driver belt
+            5 to 0b0000_1000, // driver belt unfastened
             6 to 0b1001_0000, // ignition, handbrake
             7 to 0x00, 8 to 0x5A, // 90 km/h
             9 to 0x0B, 10 to 0xB8, // 3000 rpm
@@ -44,8 +44,8 @@ class CarBoxDataTest {
         assertTrue(body.turnLeft)
         assertTrue(body.hazard)
         assertFalse(body.turnRight)
-        assertTrue(body.driverBelt)
-        assertFalse(body.passengerBelt)
+        assertTrue(body.driverBeltUnfastened)
+        assertFalse(body.passengerBeltUnfastened)
         assertTrue(body.ignition)
         assertTrue(body.handbrake)
         assertFalse(body.gearFlag)

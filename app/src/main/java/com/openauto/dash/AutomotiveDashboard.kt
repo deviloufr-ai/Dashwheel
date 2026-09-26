@@ -1491,6 +1491,8 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     DoorAlertHost()
     RadarHost()
     ClimateHost()
+    TyreAlertHost()
+    BeltAlertHost()
 }
 
 /**

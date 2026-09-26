@@ -195,4 +195,18 @@
     <string name="car_status_on">Serré</string>
     <string name="car_status_off">Desserré</string>
     <string name="car_status_km">km</string>
+    <string name="car_kind_tyres">Pneus</string>
+    <string name="car_kind_tyres_blurb">Pression et température de chaque pneu, par les capteurs</string>
+    <string name="car_tyres_title">PNEUS</string>
+    <string name="car_tyres_waiting">En attente des capteurs de pneus</string>
+    <string name="car_tyres_spare">Roue de secours</string>
+    <string name="car_tyres_leak">Fuite</string>
+    <string name="car_tyres_low">Pression basse</string>
+    <string name="car_tyres_high">Pression haute</string>
+    <string name="car_tyres_hot">Trop chaud</string>
+    <string name="car_tyres_no_signal">Pas de signal</string>
+    <string name="car_tyres_sensor_battery">Pile du capteur faible</string>
+    <string name="car_tyres_alert">Alerte pneus</string>
+    <string name="car_tyres_ok">Pneus OK</string>
+    <string name="car_belt_fasten">Attachez votre ceinture</string>
 </resources>

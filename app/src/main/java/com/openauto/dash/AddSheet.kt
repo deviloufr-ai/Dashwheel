@@ -196,6 +196,8 @@ private fun WidgetsTab(
         access.allows(kind) &&
             // Only the QF firmware's car app shares the car's data.
             (kind != BuiltinKind.CAR_STATUS || CarBox.available) &&
+            // Only with the head unit's TPMS app.
+            (kind != BuiltinKind.TYRES || Tyres.available) &&
             (category == null || kind.category == category) &&
             (query.isEmpty() || context.getString(kind.labelRes).contains(query, true) || context.getString(kind.blurbRes).contains(query, true))
     }

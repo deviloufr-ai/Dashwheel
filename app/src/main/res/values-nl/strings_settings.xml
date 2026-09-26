@@ -74,4 +74,20 @@
     <string name="alert_radar_front">Voor</string>
     <string name="alert_radar_rear">Achter</string>
     <string name="alert_ac_off">Klimaat uit</string>
+    <string name="keys_section">Toetsen van de radio</string>
+    <string name="keys_navi">NAVI-toets</string>
+    <string name="keys_voice">Spraaktoets</string>
+    <string name="keys_custom">Eigen toets</string>
+    <string name="keys_unit_choice">De keuze van de radio</string>
+    <string name="settings_rom_tyres">Bandenmeldingen</string>
+    <string name="settings_rom_tyres_detail">Bandenmeldingen in de stijl van Dashwheel. Voor alleen deze, zet het venster van de TPMS-app uit in de instellingen ervan</string>
+    <string name="alert_kind_tyres">Banden</string>
+    <string name="alert_kind_tyres_title">Bandenmelding</string>
+    <string name="alert_speak_tyres_detail">Zegt welke band en wat er mis is</string>
+    <string name="alert_say_tyre">Band %1$s: %2$s</string>
+    <string name="settings_rom_belt">Gordelherinnering</string>
+    <string name="settings_rom_belt_detail">Herinnert u eraan de gordel om te doen zodra de auto rijdt</string>
+    <string name="alert_kind_belt">Gordel</string>
+    <string name="alert_kind_belt_title">Gordelmelding</string>
+    <string name="alert_speak_belt_detail">Vraagt u de gordel om te doen</string>
 </resources>

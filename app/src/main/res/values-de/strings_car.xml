@@ -193,4 +193,18 @@
     <string name="car_status_on">Angezogen</string>
     <string name="car_status_off">Gelöst</string>
     <string name="car_status_km">km</string>
+    <string name="car_kind_tyres">Reifen</string>
+    <string name="car_kind_tyres_blurb">Druck und Temperatur jedes Reifens, von den Reifensensoren</string>
+    <string name="car_tyres_title">REIFEN</string>
+    <string name="car_tyres_waiting">Warte auf die Reifensensoren</string>
+    <string name="car_tyres_spare">Reserverad</string>
+    <string name="car_tyres_leak">Leck</string>
+    <string name="car_tyres_low">Druck zu niedrig</string>
+    <string name="car_tyres_high">Druck zu hoch</string>
+    <string name="car_tyres_hot">Zu heiß</string>
+    <string name="car_tyres_no_signal">Kein Signal</string>
+    <string name="car_tyres_sensor_battery">Sensorbatterie schwach</string>
+    <string name="car_tyres_alert">Reifenwarnung</string>
+    <string name="car_tyres_ok">Alle Reifen in Ordnung</string>
+    <string name="car_belt_fasten">Bitte anschnallen</string>
 </resources>

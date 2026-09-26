@@ -34,8 +34,9 @@ data class CarBody(
     val turnLeft: Boolean,
     val hazard: Boolean,
     val sidelights: Boolean,
-    val driverBelt: Boolean,
-    val passengerBelt: Boolean,
+    /** The belt is NOT buckled (the car app shows "unfastened" for this bit). */
+    val driverBeltUnfastened: Boolean,
+    val passengerBeltUnfastened: Boolean,
     val ignition: Boolean,
     /** The gear flag; one bit, most likely "in reverse" (unconfirmed on the car). */
     val gearFlag: Boolean,
@@ -134,8 +135,8 @@ internal fun parseCarBody(d: ByteArray): CarBody? {
         turnLeft = d.bit(2, 2),
         hazard = d.bit(2, 1),
         sidelights = d.bit(3, 7),
-        driverBelt = d.bit(5, 3),
-        passengerBelt = d.bit(5, 2),
+        driverBeltUnfastened = d.bit(5, 3),
+        passengerBeltUnfastened = d.bit(5, 2),
         ignition = d.bit(6, 7),
         gearFlag = d.bit(6, 5),
         handbrake = d.bit(6, 4),

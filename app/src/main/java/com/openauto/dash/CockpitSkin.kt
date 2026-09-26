@@ -436,6 +436,7 @@ internal fun CockpitTopBar(m: TopBarModel) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             VehicleAlerts(m.obdConnection, m.obd)
+            PhonePill()
             OutsideTempLcd()
             Spacer(Modifier.width(8.dp))
             ObdLamp(m.obdConnection, m.onConnectObd)

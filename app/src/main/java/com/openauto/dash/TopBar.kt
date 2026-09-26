@@ -20,28 +20,34 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.Battery1Bar
+import androidx.compose.material.icons.filled.Battery3Bar
+import androidx.compose.material.icons.filled.Battery4Bar
+import androidx.compose.material.icons.filled.Battery5Bar
+import androidx.compose.material.icons.filled.BatteryAlert
+import androidx.compose.material.icons.filled.BatteryFull
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.FormatSize
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.PhoneAndroid
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SpaceDashboard
 import androidx.compose.material.icons.filled.Splitscreen
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.SystemUpdate
-import androidx.compose.material.icons.filled.FormatSize
-import androidx.compose.material.icons.filled.Remove
-import androidx.compose.ui.text.style.TextAlign
-import kotlin.math.roundToInt
 import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material.icons.filled.VerticalSplit
 import androidx.compose.material3.Button
@@ -57,12 +63,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -72,11 +78,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -86,10 +92,12 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import kotlin.math.roundToInt
 
 /*
  * Top bar, edit toolbar, page dots and the update banner.
@@ -217,6 +225,7 @@ internal fun StandardTopBar(m: TopBarModel) {
                 // Takes what is left and no more; its pills shorten first.
                 Row(modifier = Modifier.weight(1f, fill = false), verticalAlignment = Alignment.CenterVertically) {
                     VehicleAlerts(m.obdConnection, m.obd)
+                    PhonePill()
                 }
                 if (m.setupPending) {
                     SetupPill(onClick = { m.onSetup(false) })
@@ -447,6 +456,51 @@ internal fun ObdPill(state: ObdConnectionState, onConnect: () -> Unit, modifier:
                 Text("!", color = color, fontWeight = FontWeight.Black, style = MaterialTheme.typography.labelMedium)
             }
         }
+    }
+}
+
+/**
+ * The phone on the head unit's Bluetooth ([UnitSignals]): its battery as five
+ * bars and its name, beside the car's alerts in every skin's bar. Nothing
+ * while no phone is connected, or on a unit that doesn't say.
+ */
+@Composable
+internal fun PhonePill(modifier: Modifier = Modifier) {
+    val phone by UnitSignals.phone.collectAsState()
+    val p = phone ?: return
+    val shape = DashShape.Pill
+    Row(
+        modifier = modifier
+            .height(36.dp)
+            .clip(shape)
+            .border(1.dp, DashColors.Line, shape)
+            .semantics(mergeDescendants = true) {}
+            .padding(start = 10.dp, end = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(Icons.Filled.PhoneAndroid, contentDescription = null, tint = DashColors.TextSecondary, modifier = Modifier.size(18.dp))
+        p.battery?.let { level ->
+            Spacer(Modifier.width(4.dp))
+            // A battery that fills with the phone's level (0..5); red when nearly empty.
+            Icon(
+                when (level) {
+                    0 -> Icons.Filled.BatteryAlert
+                    1 -> Icons.Filled.Battery1Bar
+                    2 -> Icons.Filled.Battery3Bar
+                    3 -> Icons.Filled.Battery4Bar
+                    4 -> Icons.Filled.Battery5Bar
+                    else -> Icons.Filled.BatteryFull
+                },
+                contentDescription = null,
+                tint = if (level <= 1) DashColors.Critical else DashColors.TextSecondary,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+        Spacer(Modifier.width(8.dp))
+        Text(
+            p.name, color = DashColors.TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis,
+            style = MaterialTheme.typography.labelMedium, modifier = Modifier.widthIn(max = 120.dp)
+        )
     }
 }
 

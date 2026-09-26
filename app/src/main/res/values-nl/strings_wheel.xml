@@ -54,4 +54,23 @@
     <string name="wheel_action_answer">Oproep beantwoorden</string>
     <string name="wheel_action_decline">Oproep weigeren</string>
     <string name="wheel_action_hang_up">Ophangen</string>
+    <string name="wheel_unit_power">Aan/uit</string>
+    <string name="wheel_unit_mute">Dempen</string>
+    <string name="wheel_unit_mode">Modus</string>
+    <string name="wheel_unit_volume_up">Volume omhoog</string>
+    <string name="wheel_unit_volume_down">Volume omlaag</string>
+    <string name="wheel_unit_navi">Navi</string>
+    <string name="wheel_unit_previous">Vorige</string>
+    <string name="wheel_unit_next">Volgende</string>
+    <string name="wheel_unit_phone">Telefoon</string>
+    <string name="wheel_unit_hang_up">Ophangen</string>
+    <string name="wheel_unit_radio">Radio</string>
+    <string name="wheel_unit_voice">Spraak</string>
+    <string name="wheel_unit_play_pause">Afspelen/pauze</string>
+    <string name="wheel_unit_backlight">Scherm</string>
+    <string name="wheel_unit_settings">Instellingen</string>
+    <string name="wheel_unit_apps">Apps</string>
+    <string name="wheel_unit_knob">Volumeknop</string>
+    <string name="wheel_unit_key_n">Toets %1$d</string>
+    <string name="wheel_unit_key_code">Radiotoets %1$d</string>
 </resources>

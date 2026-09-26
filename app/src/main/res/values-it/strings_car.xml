@@ -195,4 +195,18 @@
     <string name="car_status_on">Inserito</string>
     <string name="car_status_off">Disinserito</string>
     <string name="car_status_km">km</string>
+    <string name="car_kind_tyres">Pneumatici</string>
+    <string name="car_kind_tyres_blurb">Pressione e temperatura di ogni pneumatico, dai sensori</string>
+    <string name="car_tyres_title">PNEUMATICI</string>
+    <string name="car_tyres_waiting">In attesa dei sensori pneumatici</string>
+    <string name="car_tyres_spare">Ruota di scorta</string>
+    <string name="car_tyres_leak">Perdita</string>
+    <string name="car_tyres_low">Pressione bassa</string>
+    <string name="car_tyres_high">Pressione alta</string>
+    <string name="car_tyres_hot">Troppo caldo</string>
+    <string name="car_tyres_no_signal">Nessun segnale</string>
+    <string name="car_tyres_sensor_battery">Batteria sensore scarica</string>
+    <string name="car_tyres_alert">Avviso pneumatici</string>
+    <string name="car_tyres_ok">Pneumatici a posto</string>
+    <string name="car_belt_fasten">Allaccia la cintura</string>
 </resources>

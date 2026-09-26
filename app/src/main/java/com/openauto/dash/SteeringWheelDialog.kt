@@ -250,6 +250,10 @@ private fun WheelMappingRow(mapping: WheelMapping, onClick: () -> Unit, onRemove
 private fun wheelKeyLabel(key: WheelKey): String = when {
     key.canKey != null -> stringResource(R.string.wheel_can_button, key.canHex.orEmpty())
     key.keyCode == KeyEvent.KEYCODE_UNKNOWN -> stringResource(R.string.wheel_raw_button, key.scanCode)
+    // The head unit's own keys (HeadUnitKeys): by the name on the button.
+    key.keyCode >= HeadUnitKeys.FIRST_VENDOR_KEY -> HeadUnitKeys.nameRes[key.keyCode]?.let { stringResource(it) }
+        ?: HeadUnitKeys.customNumber(key.keyCode)?.let { stringResource(R.string.wheel_unit_key_n, it) }
+        ?: stringResource(R.string.wheel_unit_key_code, key.keyCode)
     else -> key.label
 }
 

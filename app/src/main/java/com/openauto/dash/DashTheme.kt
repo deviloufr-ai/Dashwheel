@@ -7,6 +7,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -14,9 +15,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.res.stringResource
 
 /**
  * The dashboard design. Every theme comes in a dark and a light version; which
@@ -456,13 +457,14 @@ internal fun paletteFor(mode: DashThemeMode, light: Boolean): DashPalette = when
 /**
  * True when [this] appearance shows the light version right now. Auto is day
  * only while the system is in day mode (the head unit's headlight signal on
- * most units) and the sun is up where the car is (DayNight.kt): a unit whose
- * night mode never fires still goes dark at dusk, and headlights in a tunnel
- * or rain still win by day.
+ * most units), the headlights are off (the QF firmware says so directly,
+ * [UnitSignals]) and the sun is up where the car is (DayNight.kt): a unit
+ * whose night mode never fires still goes dark at dusk, and headlights in a
+ * tunnel or rain still win by day.
  */
 @Composable
 internal fun DashAppearance.isLight(): Boolean = when (this) {
-    DashAppearance.AUTO -> !isSystemInDarkTheme() && rememberSunUp()
+    DashAppearance.AUTO -> !isSystemInDarkTheme() && !UnitSignals.headlightsOn.collectAsState().value && rememberSunUp()
     DashAppearance.DARK -> false
     DashAppearance.LIGHT -> true
 }

@@ -74,4 +74,20 @@
     <string name="alert_radar_front">Przód</string>
     <string name="alert_radar_rear">Tył</string>
     <string name="alert_ac_off">Klimatyzacja wyłączona</string>
+    <string name="keys_section">Klawisze radia</string>
+    <string name="keys_navi">Klawisz NAVI</string>
+    <string name="keys_voice">Klawisz głosowy</string>
+    <string name="keys_custom">Własny klawisz</string>
+    <string name="keys_unit_choice">Wybór radia</string>
+    <string name="settings_rom_tyres">Alerty opon</string>
+    <string name="settings_rom_tyres_detail">Alerty opon w stylu Dashwheel. Aby widzieć tylko je, wyłącz okno aplikacji TPMS w jej ustawieniach</string>
+    <string name="alert_kind_tyres">Opony</string>
+    <string name="alert_kind_tyres_title">Alert opon</string>
+    <string name="alert_speak_tyres_detail">Mówi, która opona i co jest nie tak</string>
+    <string name="alert_say_tyre">Opona %1$s: %2$s</string>
+    <string name="settings_rom_belt">Przypomnienie o pasach</string>
+    <string name="settings_rom_belt_detail">Przypomina o zapięciu pasów, gdy auto rusza</string>
+    <string name="alert_kind_belt">Pasy</string>
+    <string name="alert_kind_belt_title">Alert pasów</string>
+    <string name="alert_speak_belt_detail">Prosi o zapięcie pasów</string>
 </resources>

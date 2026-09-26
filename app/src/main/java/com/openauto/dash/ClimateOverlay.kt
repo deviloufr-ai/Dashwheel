@@ -74,7 +74,10 @@ object ClimateOverlay {
             .stateIn(scope, SharingStarted.Eagerly, null)
 
     val style: StateFlow<AlertStyle?> =
-        combine(alert, AlertStyleStore.styles) { climate, styles -> climate?.let { styles.of(AlertKind.AC) } }
+        combine(alert, AlertStyleStore.styles, UnitSignals.projectionOnScreen) { climate, styles, projected ->
+            // Over CarPlay / Android Auto: the pill, so the projection stays usable.
+            climate?.let { if (projected) AlertStyle.PILL else styles.of(AlertKind.AC) }
+        }
             .stateIn(scope, SharingStarted.Eagerly, null)
 
     fun start(context: Context) {

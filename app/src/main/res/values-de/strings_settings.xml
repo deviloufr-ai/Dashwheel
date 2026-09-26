@@ -74,4 +74,20 @@
     <string name="alert_radar_front">Vorne</string>
     <string name="alert_radar_rear">Hinten</string>
     <string name="alert_ac_off">Klima aus</string>
+    <string name="keys_section">Tasten des Radios</string>
+    <string name="keys_navi">NAVI-Taste</string>
+    <string name="keys_voice">Sprachtaste</string>
+    <string name="keys_custom">Eigene Taste</string>
+    <string name="keys_unit_choice">Wahl des Radios</string>
+    <string name="settings_rom_tyres">Reifenwarnungen</string>
+    <string name="settings_rom_tyres_detail">Reifenwarnungen im Dashwheel-Design. Für nur diese das Fenster der TPMS-App in ihren Einstellungen ausschalten</string>
+    <string name="alert_kind_tyres">Reifen</string>
+    <string name="alert_kind_tyres_title">Reifenwarnung</string>
+    <string name="alert_speak_tyres_detail">Sagt welcher Reifen und was los ist</string>
+    <string name="alert_say_tyre">Reifen %1$s: %2$s</string>
+    <string name="settings_rom_belt">Gurterinnerung</string>
+    <string name="settings_rom_belt_detail">Erinnert ans Anschnallen, sobald das Auto fährt</string>
+    <string name="alert_kind_belt">Sicherheitsgurt</string>
+    <string name="alert_kind_belt_title">Gurtwarnung</string>
+    <string name="alert_speak_belt_detail">Bittet Sie, sich anzuschnallen</string>
 </resources>

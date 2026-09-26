@@ -74,4 +74,20 @@
     <string name="alert_radar_front">Frente</string>
     <string name="alert_radar_rear">Trás</string>
     <string name="alert_ac_off">Climatização desligada</string>
+    <string name="keys_section">Teclas do rádio</string>
+    <string name="keys_navi">Tecla NAVI</string>
+    <string name="keys_voice">Tecla de voz</string>
+    <string name="keys_custom">Tecla personalizada</string>
+    <string name="keys_unit_choice">A escolha do rádio</string>
+    <string name="settings_rom_tyres">Alertas de pneus</string>
+    <string name="settings_rom_tyres_detail">Alertas de pneus no estilo do Dashwheel. Para ver só estes, desative a janela da app TPMS nas definições dela</string>
+    <string name="alert_kind_tyres">Pneus</string>
+    <string name="alert_kind_tyres_title">Alerta de pneus</string>
+    <string name="alert_speak_tyres_detail">Diz que pneu e o que se passa</string>
+    <string name="alert_say_tyre">Pneu %1$s: %2$s</string>
+    <string name="settings_rom_belt">Lembrete do cinto</string>
+    <string name="settings_rom_belt_detail">Lembra de apertar o cinto assim que o carro anda</string>
+    <string name="alert_kind_belt">Cinto de segurança</string>
+    <string name="alert_kind_belt_title">Alerta do cinto</string>
+    <string name="alert_speak_belt_detail">Pede para apertar o cinto</string>
 </resources>

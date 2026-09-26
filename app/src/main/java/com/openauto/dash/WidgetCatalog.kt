@@ -43,6 +43,7 @@ import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Thermostat
 import androidx.compose.material.icons.filled.Timeline
+import androidx.compose.material.icons.filled.TireRepair
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.WbSunny
@@ -102,6 +103,7 @@ internal fun kindIcon(kind: BuiltinKind): ImageVector = when (kind) {
     BuiltinKind.BATTERY -> Icons.Filled.BatteryChargingFull
     BuiltinKind.MY_CAR -> Icons.Filled.CarRepair
     BuiltinKind.CAR_STATUS -> Icons.Filled.DirectionsCarFilled
+    BuiltinKind.TYRES -> Icons.Filled.TireRepair
     BuiltinKind.ECO_DRIVE -> Icons.Filled.Eco
     BuiltinKind.BREAK_TIMER -> Icons.Filled.Coffee
     BuiltinKind.FUEL_TO_DEST -> Icons.Filled.EvStation

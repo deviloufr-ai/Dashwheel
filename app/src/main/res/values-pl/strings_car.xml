@@ -198,4 +198,18 @@
     <string name="car_status_on">Zaciągnięty</string>
     <string name="car_status_off">Zwolniony</string>
     <string name="car_status_km">km</string>
+    <string name="car_kind_tyres">Opony</string>
+    <string name="car_kind_tyres_blurb">Ciśnienie i temperatura każdej opony z czujników</string>
+    <string name="car_tyres_title">OPONY</string>
+    <string name="car_tyres_waiting">Czekam na czujniki opon</string>
+    <string name="car_tyres_spare">Koło zapasowe</string>
+    <string name="car_tyres_leak">Wyciek</string>
+    <string name="car_tyres_low">Niskie ciśnienie</string>
+    <string name="car_tyres_high">Wysokie ciśnienie</string>
+    <string name="car_tyres_hot">Za gorąca</string>
+    <string name="car_tyres_no_signal">Brak sygnału</string>
+    <string name="car_tyres_sensor_battery">Słaba bateria czujnika</string>
+    <string name="car_tyres_alert">Alert opon</string>
+    <string name="car_tyres_ok">Opony w porządku</string>
+    <string name="car_belt_fasten">Zapnij pasy</string>
 </resources>

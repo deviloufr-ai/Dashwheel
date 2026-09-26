@@ -92,7 +92,10 @@ object DoorAlertOverlay {
 
     /** The design the alert shows in now: null when there's none. */
     val style: StateFlow<AlertStyle?> =
-        combine(alert, AlertStyleStore.styles) { doors, styles -> doors?.let { styles.of(AlertKind.DOORS) } }
+        combine(alert, AlertStyleStore.styles, UnitSignals.projectionOnScreen) { doors, styles, projected ->
+            // Over CarPlay / Android Auto: the pill, so the projection stays usable.
+            doors?.let { if (projected) AlertStyle.PILL else styles.of(AlertKind.DOORS) }
+        }
             .stateIn(scope, SharingStarted.Eagerly, null)
 
     private val _showing = MutableStateFlow(false)

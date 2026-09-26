@@ -56,4 +56,23 @@
     <string name="wheel_action_answer">Odbierz połączenie</string>
     <string name="wheel_action_decline">Odrzuć połączenie</string>
     <string name="wheel_action_hang_up">Rozłącz</string>
+    <string name="wheel_unit_power">Zasilanie</string>
+    <string name="wheel_unit_mute">Wycisz</string>
+    <string name="wheel_unit_mode">Tryb</string>
+    <string name="wheel_unit_volume_up">Głośniej</string>
+    <string name="wheel_unit_volume_down">Ciszej</string>
+    <string name="wheel_unit_navi">Navi</string>
+    <string name="wheel_unit_previous">Poprzedni</string>
+    <string name="wheel_unit_next">Następny</string>
+    <string name="wheel_unit_phone">Telefon</string>
+    <string name="wheel_unit_hang_up">Rozłącz</string>
+    <string name="wheel_unit_radio">Radio</string>
+    <string name="wheel_unit_voice">Głos</string>
+    <string name="wheel_unit_play_pause">Odtwarzaj/pauza</string>
+    <string name="wheel_unit_backlight">Ekran</string>
+    <string name="wheel_unit_settings">Ustawienia</string>
+    <string name="wheel_unit_apps">Aplikacje</string>
+    <string name="wheel_unit_knob">Pokrętło głośności</string>
+    <string name="wheel_unit_key_n">Klawisz %1$d</string>
+    <string name="wheel_unit_key_code">Klawisz radia %1$d</string>
 </resources>
