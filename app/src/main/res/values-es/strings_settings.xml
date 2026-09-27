@@ -110,4 +110,7 @@
     <string name="settings_system_perms">Permisos del sistema</string>
     <string name="settings_system_perms_on">Concedidos. Google Maps puede funcionar dentro de una tarjeta.</string>
     <string name="settings_system_perms_off">No concedidos. Con PMPatch3 en Magisk llegan con la próxima actualización.</string>
+    <string name="settings_unit_bar_title">Barra superior de la radio</string>
+    <string name="settings_unit_bar_hide">Ocultarla con ventanas de apps</string>
+    <string name="settings_unit_bar_hide_detail">En algunas radios, las ventanas quedan entonces más abajo que su mosaico.</string>
 </resources>

@@ -110,4 +110,7 @@
     <string name="settings_system_perms">Systemberechtigungen</string>
     <string name="settings_system_perms_on">Erteilt. Google Maps kann in einer Kachel laufen.</string>
     <string name="settings_system_perms_off">Nicht erteilt. Mit PMPatch3 in Magisk kommen sie mit dem nächsten Update.</string>
+    <string name="settings_unit_bar_title">Obere Leiste des Radios</string>
+    <string name="settings_unit_bar_hide">Bei App-Fenstern ausblenden</string>
+    <string name="settings_unit_bar_hide_detail">Auf manchen Radios sitzen die Fenster dann tiefer als ihre Kachel.</string>
 </resources>

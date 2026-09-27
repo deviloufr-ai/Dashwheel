@@ -747,6 +747,7 @@ internal object EmbeddedApp {
                 vd.release()
             }
             held = held - packageName
+            scope.launch { FreeformBar.insideFloats(context, packageName, false) }
             display = null
             _status.value = Status.STARTING
         }
@@ -865,6 +866,7 @@ internal object EmbeddedApp {
                 if (found.all { it.displayId == id } && floating.isEmpty()) {
                     _status.value = Status.SHOWN
                     Log.i(TAG, "$packageName is on the tile")
+                    FreeformBar.insideFloats(context, packageName, found.any { floating(it) })
                     return
                 }
                 val closing = !fresh && floating.isNotEmpty()
@@ -879,6 +881,8 @@ internal object EmbeddedApp {
                     }
                     if (stack in floating) {
                         // Even started afresh it floats (this ROM's choice): stretched to fill the tile.
+                        // Floating, the firmware's switch for the status bar would draw it lower down.
+                        FreeformBar.insideFloats(context, packageName, true)
                         shell("am stack resize ${stack.stackId} 0 0 $shownWidth $shownHeight", "$packageName ${stack.mode} stack ${stack.stackId} fills the tile")
                         filled += stack.stackId
                     }

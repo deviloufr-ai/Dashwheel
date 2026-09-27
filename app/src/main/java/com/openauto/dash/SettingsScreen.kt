@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.VerticalAlignTop
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.Add
@@ -365,8 +366,30 @@ private fun DisplayPane(theme: ThemeState, onLanguage: () -> Unit) {
     Spacer(Modifier.height(20.dp))
     BarAutoHideSetting(theme)
     Spacer(Modifier.height(20.dp))
+    if (FreeformBar.supported) {
+        UnitBarSetting()
+        Spacer(Modifier.height(20.dp))
+    }
     SettingsSection(stringResource(R.string.language_title))
     SettingsRow(Icons.Filled.Language, stringResource(R.string.language_title), languageName(AppLanguage.current(context)), onLanguage)
+}
+
+/**
+ * Whether the head unit's own top bar goes while an app window sits on the
+ * dashboard ([FreeformBar]). Kept by default: the firmware's switch that hides
+ * it draws the windows lower than their tiles on some units.
+ */
+@Composable
+private fun UnitBarSetting() {
+    val context = LocalContext.current
+    val keep by FreeformBar.keepsBar.collectAsState()
+    SettingsSection(stringResource(R.string.settings_unit_bar_title))
+    SettingsToggle(
+        Icons.Filled.VerticalAlignTop,
+        stringResource(R.string.settings_unit_bar_hide),
+        stringResource(R.string.settings_unit_bar_hide_detail),
+        !keep
+    ) { FreeformBar.keepBar(context, !it) }
 }
 
 /** A language by its own name; the system's says which one that is. */

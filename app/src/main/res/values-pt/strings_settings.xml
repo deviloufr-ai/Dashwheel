@@ -110,4 +110,7 @@
     <string name="settings_system_perms">Permissões do sistema</string>
     <string name="settings_system_perms_on">Concedidas. O Google Maps pode funcionar dentro de um bloco.</string>
     <string name="settings_system_perms_off">Não concedidas. Com o PMPatch3 no Magisk, chegam na próxima atualização.</string>
+    <string name="settings_unit_bar_title">Barra superior do rádio</string>
+    <string name="settings_unit_bar_hide">Escondê-la com janelas de apps</string>
+    <string name="settings_unit_bar_hide_detail">Em alguns rádios, as janelas ficam então mais abaixo do que o seu bloco.</string>
 </resources>

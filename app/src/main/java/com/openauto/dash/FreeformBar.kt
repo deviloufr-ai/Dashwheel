@@ -31,10 +31,18 @@ import kotlinx.coroutines.sync.withLock
  * Written through the privileged shell the windows are docked with. System
  * properties last until the unit restarts, and the switch is put back to 0
  * once no window is left.
+ *
+ * The firmware moves every floating window that way, on any display: an app
+ * inside a tile (EmbeddedApp) that the ROM left floating would slide down its
+ * tile by locky. The switch stays off while one does. It is only used at all
+ * when the user asks for it (Settings → Display): on some units the windows
+ * then show lower than their tiles.
  */
 object FreeformBar {
     private const val TAG = "FreeformBar"
     private const val SWITCH = "sys.freeform.fullscreen"
+    private const val PREFS = "freeform_bar"
+    private const val KEY_HIDE = "hide_unit_bar"
 
     /**
      * The bar is looked at every [CHECK_PAUSE_MS] once the switch is on, at
@@ -58,14 +66,21 @@ object FreeformBar {
         val on: Boolean = false,
         val lockedTop: Int? = null,
         /** The unit showed the bar with the switch on, or would not take it: left alone from then on. */
-        val refused: Boolean = false
-    )
+        val refused: Boolean = false,
+        /** The user keeps the unit's bar on screen, as by default (Settings → Display). */
+        val keep: Boolean = true,
+        /** Apps floating inside their tile, which the switch would push down. */
+        val insideFloating: Set<String> = emptySet()
+    ) {
+        /** The switch must stay off, whatever the windows on screen. */
+        val held: Boolean get() = keep || insideFloating.isNotEmpty()
+    }
 
     private val state = MutableStateFlow(State())
 
     /** True while docked windows bring the status bar up: the dashboard then lays out below it. */
     val forced: StateFlow<Boolean> = combine(PipAnchor.dockedPackages, state) { docked, s ->
-        barForced(windows = docked.isNotEmpty(), hasSwitch = supported && !s.refused, tops = s.tops.values, switchOn = s.on)
+        barForced(windows = docked.isNotEmpty(), hasSwitch = supported && !s.refused && !s.held, tops = s.tops.values, switchOn = s.on)
     }.stateIn(scope, SharingStarted.Eagerly, false)
 
     /**
@@ -77,6 +92,11 @@ object FreeformBar {
     val holding: StateFlow<Boolean> = combine(PipAnchor.dockedPackages, state) { docked, s -> s.on && s.tops.keys.any { it in docked } }
         .stateIn(scope, SharingStarted.Eagerly, false)
 
+    private val _keepsBar = MutableStateFlow(true)
+
+    /** Whether the user keeps the unit's top bar over app windows (Settings → Display). */
+    val keepsBar: StateFlow<Boolean> = _keepsBar
+
     /** Set by the dashboard: only then does a bar on screen tell anything about the switch. */
     @Volatile
     var dashboardInFront = false
@@ -85,6 +105,10 @@ object FreeformBar {
         if (started || !supported) return
         started = true
         val app = context.applicationContext
+        val keep = !app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_HIDE, false)
+        _keepsBar.value = keep
+        state.value = state.value.copy(keep = keep)
+        if (keep) scope.launch { lock.withLock { apply(app, state.value) } }
         scope.launch {
             // A window closed, by the tile or by the user, is no longer on screen.
             var hadWindows = false
@@ -123,11 +147,48 @@ object FreeformBar {
         }
     }
 
+    /** The user keeps the unit's top bar over app windows ([keep]), or lets it go. */
+    fun keepBar(context: Context, keep: Boolean) {
+        val app = context.applicationContext
+        _keepsBar.value = keep
+        app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_HIDE, !keep).apply()
+        if (!supported) return
+        scope.launch {
+            lock.withLock {
+                Log.i(TAG, if (keep) "the user keeps the status bar" else "the user lets the status bar go")
+                apply(app, state.value.copy(keep = keep))
+            }
+        }
+    }
+
+    /**
+     * [packageName], inside its tile, sits in a floating window ([floats]),
+     * or no longer does: the switch would draw it lower in its tile.
+     */
+    suspend fun insideFloats(context: Context, packageName: String, floats: Boolean) {
+        if (!supported) return
+        lock.withLock {
+            val s = state.value
+            if ((packageName in s.insideFloating) == floats) return
+            if (floats) Log.i(TAG, "$packageName floats inside its tile: the switch stays off")
+            val inside = if (floats) s.insideFloating + packageName else s.insideFloating - packageName
+            apply(context.applicationContext, s.copy(insideFloating = inside))
+        }
+    }
+
     /** Only from inside [lock]. Brings the switch in line with [wanted] and publishes it. */
     private suspend fun apply(context: Context, wanted: State, lastWindowGone: Boolean = false) {
         val top = sharedTopEdge(wanted.tops.values)
         state.value = try {
             when {
+                // Off, even when the stock launcher turned it on as it started.
+                wanted.held -> {
+                    if (wanted.on || systemProperty(SWITCH) == "1") {
+                        DockShell.shell(context, "setprop $SWITCH 0")
+                        Log.i(TAG, "status bar left to Android: " + if (wanted.keep) "kept by the user" else "an app floats inside its tile")
+                    }
+                    wanted.copy(on = false, lockedTop = null)
+                }
                 wanted.refused -> wanted
                 // One top edge for every window on screen: the bar can go.
                 top != null -> if (wanted.on && wanted.lockedTop == top) wanted else {

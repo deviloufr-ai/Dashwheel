@@ -110,4 +110,7 @@
     <string name="settings_system_perms">Autorisations système</string>
     <string name="settings_system_perms_on">Accordées. Google Maps peut tourner dans une tuile.</string>
     <string name="settings_system_perms_off">Non accordées. Avec PMPatch3 dans Magisk, elles arrivent à la prochaine mise à jour.</string>
+    <string name="settings_unit_bar_title">Barre du haut de l\'autoradio</string>
+    <string name="settings_unit_bar_hide">La cacher avec les fenêtres d\'apps</string>
+    <string name="settings_unit_bar_hide_detail">Sur certains autoradios, les fenêtres s\'affichent alors plus bas que leur tuile.</string>
 </resources>

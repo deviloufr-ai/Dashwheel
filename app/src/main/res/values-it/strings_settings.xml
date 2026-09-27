@@ -110,4 +110,7 @@
     <string name="settings_system_perms">Permessi di sistema</string>
     <string name="settings_system_perms_on">Concessi. Google Maps può funzionare in un riquadro.</string>
     <string name="settings_system_perms_off">Non concessi. Con PMPatch3 in Magisk arrivano al prossimo aggiornamento.</string>
+    <string name="settings_unit_bar_title">Barra superiore dell\'autoradio</string>
+    <string name="settings_unit_bar_hide">Nasconderla con le finestre delle app</string>
+    <string name="settings_unit_bar_hide_detail">Su alcune autoradio le finestre appaiono allora più in basso del riquadro.</string>
 </resources>

@@ -112,4 +112,7 @@
     <string name="settings_system_perms">System permissions</string>
     <string name="settings_system_perms_on">Granted. Google Maps can run inside a tile.</string>
     <string name="settings_system_perms_off">Not granted. With PMPatch3 in Magisk, they come with the next update.</string>
+    <string name="settings_unit_bar_title">The head unit\'s top bar</string>
+    <string name="settings_unit_bar_hide">Hide it over app windows</string>
+    <string name="settings_unit_bar_hide_detail">On some units the windows then show lower than their tiles.</string>
 </resources>

@@ -110,4 +110,7 @@
     <string name="settings_system_perms">Uprawnienia systemowe</string>
     <string name="settings_system_perms_on">Przyznane. Google Maps może działać w kafelku.</string>
     <string name="settings_system_perms_off">Nieprzyznane. Z PMPatch3 w Magisku pojawią się przy następnej aktualizacji.</string>
+    <string name="settings_unit_bar_title">Górny pasek radia</string>
+    <string name="settings_unit_bar_hide">Ukryj przy oknach aplikacji</string>
+    <string name="settings_unit_bar_hide_detail">Na niektórych radiach okna są wtedy niżej niż ich kafelek.</string>
 </resources>

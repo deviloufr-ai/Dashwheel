@@ -110,4 +110,7 @@
     <string name="settings_system_perms">Systeemrechten</string>
     <string name="settings_system_perms_on">Verleend. Google Maps kan in een tegel draaien.</string>
     <string name="settings_system_perms_off">Niet verleend. Met PMPatch3 in Magisk komen ze bij de volgende update.</string>
+    <string name="settings_unit_bar_title">Bovenbalk van de radio</string>
+    <string name="settings_unit_bar_hide">Verbergen bij app-vensters</string>
+    <string name="settings_unit_bar_hide_detail">Op sommige radio\'s staan de vensters dan lager dan hun tegel.</string>
 </resources>
