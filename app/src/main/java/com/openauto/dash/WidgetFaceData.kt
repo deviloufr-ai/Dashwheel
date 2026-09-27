@@ -223,7 +223,8 @@ private fun rangeFace(env: SkinTileEnv): WidgetFace {
         icon = Icons.Filled.LocalGasStation,
         title = BuiltinKind.RANGE.label,
         value = fuel.rangeKm.toString(), unit = "km",
-        caption = fmt("%d %% · %.1f L", fuel.percent, fuel.liters),
+        // Worked back from the car's range when it sends no level: said to be approximate.
+        caption = (if (fuel.percentEstimated) "≈ " else "") + fmt("%d %% · %.1f L", fuel.percent, fuel.liters),
         fraction = fuel.percent / 100f,
         alert = fuel.percent <= 10,
         severity = if (fuel.percent <= 10) 2 else if (fuel.percent <= 20) 1 else 0,

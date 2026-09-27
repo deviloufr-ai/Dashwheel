@@ -41,8 +41,11 @@ internal fun fuelInfo(
     tankL: Double = TANK_LITERS,
     typicalUse: Double = AVG_L_PER_100KM
 ): FuelInfo? {
-    val measured = canFuel ?: obdFuel.takeIf { it > 0 }
-    val source = if (canFuel != null || measured == null) "CANbox" else "OBD"
+    // An empty tank while the car still counts on driving on: the car sends no
+    // level at all (its car app reads 0 L on some models), so it's left out.
+    val can = canFuel?.takeUnless { it == 0 && canRange != null && canRange > 0 }
+    val measured = can ?: obdFuel.takeIf { it > 0 }
+    val source = if (can != null || measured == null) "CANbox" else "OBD"
     if (canRange == null) {
         val pct = measured ?: return null
         val liters = pct / 100.0 * tankL
