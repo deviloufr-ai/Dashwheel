@@ -117,7 +117,8 @@ class DashboardStoreTest {
                 DashboardItem.SplitPair("com.example.a", "com.example.b", 7, 0, 2, 2),
                 DashboardItem.LaunchBar(listOf("com.example.a", "com.example.b"), 0, 3, 8, 1),
                 DashboardItem.SystemWidget(42, 0, 4, 5, 3),
-                DashboardItem.AppWindow("com.google.android.apps.youtube.music", 5, 3, 5, 3)
+                DashboardItem.AppWindow("com.google.android.apps.youtube.music", 5, 3, 5, 3),
+                DashboardItem.AppWindow("com.waze", 10, 3, 2, 3, inside = true)
             ),
             emptyList(),
             listOf(widget(BuiltinKind.CLOCK, 0, 0, 3, 2))
@@ -268,7 +269,20 @@ class DashboardStoreTest {
         // The usual size is not written, so older builds see the same JSON.
         assertFalse(DashboardStore.serializePages(listOf(listOf(widget(BuiltinKind.CLOCK, 0, 0, 3, 2)), emptyList(), emptyList())).contains("\"z\""))
         assertFalse(DashboardItem.AppWindow("maps").canZoom())
+        // Inside its tile an app is drawn at the tile's density, so zooming it works.
+        assertTrue(DashboardItem.AppWindow("maps", inside = true).canZoom())
         assertTrue(zoomed.canZoom())
+    }
+
+    @Test
+    fun appInsideItsTileIsSavedAsSuch() {
+        val inside = DashboardItem.AppWindow("com.google.android.apps.youtube.music", 0, 0, 5, 3, inside = true)
+        val json = DashboardStore.serializePages(listOf(listOf(inside), emptyList(), emptyList()))
+        assertTrue(json.contains("\"in\":true"))
+        assertEquals(inside, DashboardStore.parsePages(json)!!.first().first())
+        // A window tile saved before this option stays a window.
+        val old = """[[{"t":"appwin","pkg":"com.waze","gx":0,"gy":0,"gw":5,"gh":3}],[],[]]"""
+        assertEquals(false, (DashboardStore.parsePages(old)!!.first().first() as DashboardItem.AppWindow).inside)
     }
 
     @Test

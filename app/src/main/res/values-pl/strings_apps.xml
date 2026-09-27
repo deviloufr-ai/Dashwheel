@@ -114,12 +114,14 @@
     <string name="apps_window_mode_single">W oknie</string>
     <string name="apps_window_mode_pair">Obok siebie</string>
     <string name="apps_window_hint">Aplikacja pozostaje otwarta we własnym oknie na tej stronie.</string>
+    <string name="apps_window_mode_inside">W kafelku</string>
+    <string name="apps_window_inside_hint">Aplikacja działa w kafelku i obsługuje się ją tam.</string>
+    <string name="apps_embed_app_starting">Otwieranie %1$s</string>
+    <string name="apps_embed_app_missing">%1$s nie jest zainstalowana</string>
+    <string name="apps_embed_app_blocked">Android nie pozwolił otworzyć tu %1$s</string>
     <string name="apps_pair_pick_first">Wybierz aplikację na lewą stronę.</string>
     <string name="apps_pair_pick_second">%1$s po lewej. Teraz wybierz aplikację na prawą stronę.</string>
     <string name="apps_pair_change">Zmień</string>
     <string name="apps_kind_maps_inside">Google Maps w kafelku</string>
     <string name="apps_kind_maps_inside_blurb">Prawdziwa aplikacja Google Maps w tym kafelku</string>
-    <string name="apps_embed_starting">Otwieranie Google Maps</string>
-    <string name="apps_embed_missing">Google Maps nie jest zainstalowane</string>
-    <string name="apps_embed_blocked">Android nie pozwolił otworzyć tu Google Maps</string>
 </resources>

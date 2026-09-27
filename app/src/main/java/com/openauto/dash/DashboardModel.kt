@@ -80,7 +80,8 @@ enum class BuiltinKind(
  *  - [LaunchBar]     an editable row of app icons (a dock),
  *  - [BuiltinWidget] one of our own cards (map / media / OBD / directions),
  *  - [SystemWidget]  a real Android app-widget, hosted via [WidgetHostHolder],
- *  - [AppWindow]     any installed app running in a window the size of the tile.
+ *  - [AppWindow]     any installed app running in a window the size of the tile,
+ *                    or inside the tile itself on units that allow it ([AppWindow.inside]).
  *
  * [zoom] scales what the tile draws (text, icons, spacing) inside its cells,
  * like the system's display size but for this tile alone; 1 is as designed.
@@ -130,12 +131,17 @@ sealed interface DashboardItem {
         override val zoom: Float = 1f
     ) : DashboardItem
 
-    /** An app (YouTube Music, Waze, ...) docked as a floating window over this tile, like the Maps window. */
+    /**
+     * An app (YouTube Music, Waze, ...) docked as a floating window over this
+     * tile, like the Maps window, or with [inside] running inside the tile
+     * itself, like Google Maps inside (EmbeddedApp).
+     */
     data class AppWindow(
         val packageName: String,
         override val x: Int = 0, override val y: Int = 0,
         override val w: Int = 5, override val h: Int = 3,
-        override val zoom: Float = 1f
+        override val zoom: Float = 1f,
+        val inside: Boolean = false
     ) : DashboardItem
 }
 
@@ -166,8 +172,12 @@ fun zoomStep(zoom: Float, steps: Int): Float {
     return (tenths / 10f).coerceIn(ZOOM_MIN, ZOOM_MAX)
 }
 
-/** Whether zooming changes anything: another app's window or a system widget draws itself. */
-fun DashboardItem.canZoom(): Boolean = this !is DashboardItem.AppWindow && this !is DashboardItem.SystemWidget
+/**
+ * Whether zooming changes anything: another app's window or a system widget
+ * draws itself. An app inside its tile is drawn at the tile's density, so it does.
+ */
+fun DashboardItem.canZoom(): Boolean =
+    !(this is DashboardItem.AppWindow && !inside) && this !is DashboardItem.SystemWidget
 
 /** Returns a copy whose content is drawn at [zoom] (clamped to [ZOOM_MIN]..[ZOOM_MAX]). */
 fun DashboardItem.withZoom(zoom: Float): DashboardItem {
@@ -589,6 +599,7 @@ object DashboardStore {
                 .apply { if (design != WidgetDesign.STANDARD) put("d", design.name) }
             is DashboardItem.SystemWidget -> JSONObject().put("t", "widget").put("id", appWidgetId)
             is DashboardItem.AppWindow -> JSONObject().put("t", "appwin").put("pkg", packageName)
+                .apply { if (inside) put("in", true) }
         }
         if (zoom != 1f) o.put("z", zoom.toDouble())
         return o.put("gx", x).put("gy", y).put("gw", w).put("gh", h)
@@ -643,7 +654,7 @@ object DashboardStore {
             "widget" -> optInt("id", -1).takeIf { it != -1 }
                 ?.let { place(DashboardItem.SystemWidget(it)) }
             "appwin" -> optString("pkg").takeIf { it.isNotBlank() }
-                ?.let { place(DashboardItem.AppWindow(it)) }
+                ?.let { place(DashboardItem.AppWindow(it, inside = optBoolean("in"))) }
             else -> null
         }
     }

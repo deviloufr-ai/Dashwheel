@@ -294,10 +294,15 @@ internal object EmbeddedApp {
 
 /** Google Maps itself inside the tile, see [EmbeddedApp]. */
 @Composable
-internal fun EmbeddedMapsCard(modifier: Modifier = Modifier, onTouch: (Boolean) -> Unit = {}) {
+internal fun EmbeddedMapsCard(modifier: Modifier = Modifier, onTouch: (Boolean) -> Unit = {}) =
+    EmbeddedAppCard(EmbeddedApp.MAPS_PACKAGE, "Google Maps", modifier, onTouch)
+
+/** Any app ([packageName], called [label]) running inside the tile, see [EmbeddedApp]. */
+@Composable
+internal fun EmbeddedAppCard(packageName: String, label: String, modifier: Modifier = Modifier, onTouch: (Boolean) -> Unit = {}) {
     val onTouching by rememberUpdatedState(onTouch)
     val context = LocalContext.current
-    val host = EmbeddedApp.host(context, EmbeddedApp.MAPS_PACKAGE)
+    val host = EmbeddedApp.host(context, packageName)
     val status by host.status.collectAsState()
     // The tile's own zoom (TileZoom) sizes the app's text and buttons too.
     val dpi = (LocalDensity.current.density * 160).toInt()
@@ -348,14 +353,14 @@ internal fun EmbeddedMapsCard(modifier: Modifier = Modifier, onTouch: (Boolean) 
         )
         // Over the picture, only while there is none to show.
         val message = when (status) {
-            EmbeddedApp.Status.STARTING -> R.string.apps_embed_starting
-            EmbeddedApp.Status.MISSING -> R.string.apps_embed_missing
-            EmbeddedApp.Status.BLOCKED -> R.string.apps_embed_blocked
+            EmbeddedApp.Status.STARTING -> R.string.apps_embed_app_starting
+            EmbeddedApp.Status.MISSING -> R.string.apps_embed_app_missing
+            EmbeddedApp.Status.BLOCKED -> R.string.apps_embed_app_blocked
             EmbeddedApp.Status.SHOWN -> null
         }
         if (message != null) {
             Text(
-                stringResource(message),
+                stringResource(message, label),
                 color = DashColors.TextSecondary,
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodyMedium,

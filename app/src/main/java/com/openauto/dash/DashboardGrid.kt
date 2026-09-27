@@ -544,9 +544,15 @@ internal fun TileContent(
 
         is DashboardItem.AppWindow -> {
             val label = appsByPackage[item.packageName]?.label ?: item.packageName.substringAfterLast('.')
-            // While arranging, the window would cover its own tile's handles.
-            if (editing) EditPlaceholder(icon = Icons.Filled.OpenInNew, label = stringResource(R.string.dash_app_window, label))
-            else PipAnchorCard(modifier = Modifier.fillMaxSize(), packageName = item.packageName, appLabel = label, onWindowBiggerThanTile = onFitToWindow)
+            when {
+                // While arranging, the window would cover its own tile's handles.
+                editing -> EditPlaceholder(
+                    icon = Icons.Filled.OpenInNew,
+                    label = stringResource(if (item.inside) R.string.dash_app_inside else R.string.dash_app_window, label)
+                )
+                item.inside -> EmbeddedAppCard(item.packageName, label, modifier = Modifier.fillMaxSize(), onTouch = onModelTouch)
+                else -> PipAnchorCard(modifier = Modifier.fillMaxSize(), packageName = item.packageName, appLabel = label, onWindowBiggerThanTile = onFitToWindow)
+            }
         }
 
         is DashboardItem.SplitPair -> Box(
@@ -687,7 +693,8 @@ internal fun DashboardItem.describe(): String = when (this) {
     is DashboardItem.SplitPair -> stringResource(R.string.dash_describe_split_pair)
     is DashboardItem.LaunchBar -> stringResource(R.string.dash_describe_launch_bar)
     is DashboardItem.SystemWidget -> stringResource(R.string.dash_describe_widget)
-    is DashboardItem.AppWindow -> stringResource(R.string.dash_app_window, packageName.substringAfterLast('.'))
+    is DashboardItem.AppWindow ->
+        stringResource(if (inside) R.string.dash_app_inside else R.string.dash_app_window, packageName.substringAfterLast('.'))
 }
 
 /**
@@ -714,7 +721,7 @@ internal fun tileKeys(items: List<DashboardItem>): List<String> {
         is DashboardItem.LaunchBar -> "bar"
         is DashboardItem.BuiltinWidget -> "builtin:${item.kind.name}"
         is DashboardItem.SystemWidget -> "widget:${item.appWidgetId}"
-        is DashboardItem.AppWindow -> "appwin:${item.packageName}"
+        is DashboardItem.AppWindow -> (if (item.inside) "appin:" else "appwin:") + item.packageName
     }
     val seen = HashMap<String, Int>()
     return items.map { item ->

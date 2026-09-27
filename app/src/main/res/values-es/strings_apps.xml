@@ -113,12 +113,14 @@
     <string name="apps_window_mode_single">En una ventana</string>
     <string name="apps_window_mode_pair">Lado a lado</string>
     <string name="apps_window_hint">La app queda abierta en su propia ventana en esta página.</string>
+    <string name="apps_window_mode_inside">En el mosaico</string>
+    <string name="apps_window_inside_hint">La app funciona dentro del mosaico y se toca ahí.</string>
+    <string name="apps_embed_app_starting">Abriendo %1$s</string>
+    <string name="apps_embed_app_missing">%1$s no está instalada</string>
+    <string name="apps_embed_app_blocked">Android no dejó abrir %1$s aquí</string>
     <string name="apps_pair_pick_first">Toca la app para el lado izquierdo.</string>
     <string name="apps_pair_pick_second">%1$s a la izquierda. Ahora toca la app para el lado derecho.</string>
     <string name="apps_pair_change">Cambiar</string>
     <string name="apps_kind_maps_inside">Google Maps integrado</string>
     <string name="apps_kind_maps_inside_blurb">La app real de Google Maps, en esta tarjeta</string>
-    <string name="apps_embed_starting">Abriendo Google Maps</string>
-    <string name="apps_embed_missing">Google Maps no está instalado</string>
-    <string name="apps_embed_blocked">Android no dejó abrir Google Maps aquí</string>
 </resources>

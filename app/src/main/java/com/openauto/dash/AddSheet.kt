@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CropFree
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Splitscreen
@@ -68,6 +69,13 @@ import androidx.compose.ui.unit.sp
  * window, or two side by side.
  */
 
+/** How the windows tab shows the app picked: in a window, inside the tile, or beside another app. */
+private enum class WindowMode(@StringRes val titleRes: Int, val icon: ImageVector) {
+    SINGLE(R.string.apps_window_mode_single, Icons.Filled.OpenInNew),
+    INSIDE(R.string.apps_window_mode_inside, Icons.Filled.CropFree),
+    PAIR(R.string.apps_window_mode_pair, Icons.Filled.Splitscreen)
+}
+
 private enum class AddTab(@StringRes val titleRes: Int, val icon: ImageVector) {
     WIDGETS(R.string.apps_tab_widgets, Icons.Filled.Widgets),
     APPS(R.string.apps_tab_apps, Icons.Filled.Apps),
@@ -84,7 +92,8 @@ internal fun AddSheet(
     onPickLaunchBar: () -> Unit,
     onPickSystemWidget: () -> Unit,
     onPickApp: (AppEntry) -> Unit,
-    onPickWindow: (AppEntry) -> Unit,
+    /** The app, and whether it runs inside the tile rather than in a window over it. */
+    onPickWindow: (AppEntry, Boolean) -> Unit,
     onPickPair: (String, String) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier
@@ -367,26 +376,34 @@ private fun AppGrid(apps: List<AppEntry>, onPick: (AppEntry) -> Unit, header: (@
 }
 
 /**
- * An app in its own window on the page, or two apps opened side by side. A
- * window of its own is placed through the privileged shell ([DockShell]), so
- * without one ([PrivilegedShell]) only the pair, which the accessibility
- * service opens, is offered.
+ * An app in its own window on the page, inside the tile itself, or two apps
+ * opened side by side. A window of its own is placed through the privileged
+ * shell ([DockShell]), so without one ([PrivilegedShell]) only the pair,
+ * which the accessibility service opens, is offered. Inside the tile needs
+ * the firmware's system permissions too ([EmbeddedApp.allowed]).
  */
 @Composable
-private fun WindowsTab(apps: List<AppEntry>, onPickWindow: (AppEntry) -> Unit, onPickPair: (String, String) -> Unit) {
+private fun WindowsTab(apps: List<AppEntry>, onPickWindow: (AppEntry, Boolean) -> Unit, onPickPair: (String, String) -> Unit) {
     val shell = shellAccess().shell
-    var pairChosen by rememberSaveable { mutableStateOf(false) }
-    val pair = pairChosen || !shell
+    val canInside = shell && EmbeddedApp.allowed(LocalContext.current)
+    val modes = buildList {
+        if (shell) add(WindowMode.SINGLE)
+        if (canInside) add(WindowMode.INSIDE)
+        add(WindowMode.PAIR)
+    }
+    var chosen by rememberSaveable { mutableStateOf(if (shell) WindowMode.SINGLE else WindowMode.PAIR) }
+    val mode = chosen.takeIf { it in modes } ?: WindowMode.PAIR
+    val pair = mode == WindowMode.PAIR
     var first by rememberSaveable { mutableStateOf<String?>(null) }
     val firstApp = first?.let { pkg -> apps.firstOrNull { it.packageName == pkg } }
-    if (shell) {
-        Box(Modifier.width(420.dp)) {
+    if (modes.size > 1) {
+        Box(Modifier.width(if (modes.size > 2) 560.dp else 420.dp)) {
             SegmentedSwitch(
-                options = listOf(false, true),
-                chosen = pair,
-                icon = { if (it) Icons.Filled.Splitscreen else Icons.Filled.OpenInNew },
-                title = { stringResource(if (it) R.string.apps_window_mode_pair else R.string.apps_window_mode_single) },
-                onChoose = { pairChosen = it; first = null }
+                options = modes,
+                chosen = mode,
+                icon = { it.icon },
+                title = { stringResource(it.titleRes) },
+                onChoose = { chosen = it; first = null }
             )
         }
         Spacer(Modifier.height(8.dp))
@@ -395,7 +412,7 @@ private fun WindowsTab(apps: List<AppEntry>, onPickWindow: (AppEntry) -> Unit, o
         apps = apps,
         onPick = { app ->
             when {
-                !pair -> onPickWindow(app)
+                !pair -> onPickWindow(app, mode == WindowMode.INSIDE)
                 first == null -> first = app.packageName
                 else -> onPickPair(first!!, app.packageName)
             }
@@ -404,6 +421,7 @@ private fun WindowsTab(apps: List<AppEntry>, onPickWindow: (AppEntry) -> Unit, o
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 4.dp)) {
                 Text(
                     when {
+                        mode == WindowMode.INSIDE -> stringResource(R.string.apps_window_inside_hint)
                         !pair -> stringResource(R.string.apps_window_hint)
                         firstApp == null -> stringResource(R.string.apps_pair_pick_first)
                         else -> stringResource(R.string.apps_pair_pick_second, firstApp.label)

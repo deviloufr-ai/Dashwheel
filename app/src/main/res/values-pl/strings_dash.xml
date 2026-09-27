@@ -44,6 +44,7 @@
     <string name="dash_remove_tile">Usuń: %1$s</string>
     <string name="dash_resize_tile">Zmień rozmiar: %1$s</string>
     <string name="dash_app_window">Okno %1$s</string>
+    <string name="dash_app_inside">%1$s wbudowane</string>
     <string name="dash_describe_split_pair">para aplikacji</string>
     <string name="dash_describe_launch_bar">pasek skrótów</string>
     <string name="dash_describe_widget">widżet</string>

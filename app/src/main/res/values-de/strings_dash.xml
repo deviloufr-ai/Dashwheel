@@ -44,6 +44,7 @@
     <string name="dash_remove_tile">%1$s entfernen</string>
     <string name="dash_resize_tile">Größe ändern: %1$s</string>
     <string name="dash_app_window">%1$s-Fenster</string>
+    <string name="dash_app_inside">%1$s eingebettet</string>
     <string name="dash_describe_split_pair">App-Paar</string>
     <string name="dash_describe_launch_bar">Startleiste</string>
     <string name="dash_describe_widget">Widget</string>

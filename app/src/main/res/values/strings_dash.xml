@@ -44,6 +44,7 @@
     <string name="dash_remove_tile">Remove %1$s</string>
     <string name="dash_resize_tile">Resize %1$s</string>
     <string name="dash_app_window">%1$s window</string>
+    <string name="dash_app_inside">%1$s inside</string>
     <string name="dash_describe_split_pair">split pair</string>
     <string name="dash_describe_launch_bar">launch bar</string>
     <string name="dash_describe_widget">widget</string>

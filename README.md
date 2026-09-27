@@ -40,7 +40,7 @@ More in [`docs/screenshots/`](docs/screenshots/) (one slide per skin). The scree
 - **8 languages**: English, French, German, Spanish, Italian, Portuguese, Dutch, Polish
 - **Drive lock**: arranging tiles, settings and pickers wait until the car has stopped
 - **Updates from GitHub Releases**: shows the release notes, downloads on Wi-Fi, one tap to install
-- **Root is optional**: features that need `su` or the unit's internal ADB (system-app install, boot logo, docked app windows, CANbox tiles, volume keys) only appear when such a shell is found
+- **Root is optional**: features that need `su` or the unit's internal ADB (system-app install, boot logo, docked app windows, CANbox tiles, volume keys) only appear when such a shell is found; apps running inside a tile also need the PMPatch3 Magisk module (see [Other Apps on the Dashboard](#7-other-apps-on-the-dashboard))
 
 ### Project Structure
 
@@ -172,10 +172,46 @@ While the launcher shares the screen with another app (system split-screen), pag
 ### 6. System Split-Screen + Pane Swap
 This head unit's ROM ignores AOSP windowing APIs but honors SystemUI's manual recents-drag split path, so `SplitLauncher.kt` drives it via an `AccessibilityService` (`SplitAccessibilityService.kt`, enabled once under Settings → Accessibility): it triggers the same global action a manual split gesture would, then launches the target app (or a saved pair) adjacent to the dashboard. A floating overlay button (or a FAB in the dashboard) lets you swap which app occupies which side, since this ROM has no working divider double-tap swap gesture.
 
-### 7. Optional Priv-App Install
-`SystemInstaller.kt`/`AdbInstaller.kt` can self-install the APK into `/system/priv-app`, either via `su`/Magisk (preferring a systemless Magisk module) or by talking to the head unit's internal root ADB socket. This is opt-in only (Settings → Advanced → System app), mainly useful for the `BIND_APPWIDGET` priv-app permission and the split-swap overlay window — it does **not** enable embedding Google Maps.
+### 7. Other Apps on the Dashboard
+Besides app icons (a tap opens the app full screen), another app can live on a page in three ways, all under **Add → Windows**. Only the ones this head unit allows are offered.
 
-### 8. Phone Link (Dashwheel Companion)
+| | **In a window** | **Inside the tile** | **Side by side** |
+|---|---|---|---|
+| **What you get** | The app in a floating window laid over the tile (`PipAnchor.kt`, `AppWindowTile.kt`) | The app drawn inside the tile itself, like a widget, and touched there (`EmbeddedApp.kt`) | Two apps opened together in system split screen (section 6) |
+| **Swiping to another page** | The window moves to a hidden display and keeps running | The app keeps running out of sight: music or guidance carries on | – |
+| **Removing the tile** | The window closes once no tile of that app is left | The app closes with its last tile | – |
+| **Tile zoom** | No | Yes, it scales the app's text and buttons | Yes |
+
+**What each one needs**
+
+| Requirement | **In a window** | **Inside the tile** | **Side by side** |
+|---|---|---|---|
+| **Root shell** (Magisk `su`, or the unit's internal root ADB on port 9876) | Required: every window is placed and moved through it | Required on the K706: the app always opens full screen first and is moved into the tile with `am display move-stack` | Not needed |
+| **PMPatch3 Magisk module** (Zygisk on) | Not needed | Required: it makes Android grant Dashwheel the firmware's system permissions | Not needed |
+| **`INTERNAL_SYSTEM_WINDOW`** (open an app on Dashwheel's own display) | Not needed | Required: the option is hidden without it | Not needed |
+| **`INJECT_EVENTS`** (pass touches to the app) | Not needed | Needed for touch; without it the app shows but can't be touched | Not needed |
+| **One reinstall or update of Dashwheel** after PMPatch3 is active | – | Required: system permissions are only granted at install time | – |
+| **Accessibility service** (Settings → Accessibility → Dashwheel) | Not needed | Not needed | Required: it opens the two apps together |
+| **Firmware support** | Floating (freeform) windows | Apps on additional displays (`activities_on_secondary_displays`) | Android split screen |
+| **The app itself** | Must accept being resized into a window | Must be openable from the launcher; apps that block screen capture (streaming video, banking) show black | Must accept split screen |
+| **How to check** | Add → Windows shows *In a window* | Settings → Advanced → *System permissions* says *Granted*, and Add → Windows shows *Inside the tile* | Always offered |
+
+**With or without root**
+
+| Mode | **With root** | **Without root** |
+|---|---|---|
+| **In a window** | Works | Not offered: Android gives apps no other way to place another app's window |
+| **Inside the tile** | Works with PMPatch3 installed | Not possible: PMPatch3 needs Magisk, and the firmware's own key isn't available to sign Dashwheel with |
+| **Side by side** | Works | Works the same way |
+
+The K706's built-in root ADB is enough for *In a window* without Magisk; only Magisk unlocks all three. With neither, the Windows tab offers *Side by side* only.
+
+A few rules hold for all of them. Android runs one copy of each app, so an app can't be in a window and inside a tile at the same time: the tile wins and the window tile stays empty. Opening the app from the app drawer takes it out of its tile until you come back to that page. *Google Maps inside* in the widget catalogue is the same mechanism with Google Maps built in, and the *Maps window* widget and the Maps dock layouts are *In a window* for Maps.
+
+### 8. Optional Priv-App Install
+`SystemInstaller.kt`/`AdbInstaller.kt` can self-install the APK into `/system/priv-app`, either via `su`/Magisk (preferring a systemless Magisk module) or by talking to the head unit's internal root ADB socket. This is opt-in only (Settings → Advanced → System app), mainly useful for the `BIND_APPWIDGET` priv-app permission and the split-swap overlay window — it does **not** enable embedding Google Maps; that needs the PMPatch3 route in section 7.
+
+### 9. Phone Link (Dashwheel Companion)
 The driver's phone shares its connection with the head unit over Wi-Fi. **Dashwheel Companion** (`companion/`, shipped as `dashwheel-companion.apk` in every release) runs on the phone:
 - A `NotificationListenerService` reads the phone's notifications, including messaging conversations (`MessagingStyle`), and answers them through each app's own reply / mark-as-read actions (`RemoteInput`), the same ones Android Auto and smartwatches use.
 - A foreground service listens on TCP port 47810. The launcher's `PhoneLink` finds the phone at the Wi-Fi network's default gateway (Android 11+ randomises the hotspot subnet), dials it, and redials whenever the network changes.
@@ -188,7 +224,7 @@ The driver's phone shares its connection with the head unit over Wi-Fi. **Dashwh
 
 On Android 13+, a sideloaded app's Notification access is a "restricted setting": on the phone, open App info → ⋮ → *Allow restricted settings* first. The companion app shows this step.
 
-### 9. In-App Auto-Update
+### 10. In-App Auto-Update
 `UpdateManager` keeps the app current from GitHub Releases:
 - On launch it queries `https://api.github.com/repos/deviloufr-ai/ACP/releases/latest`.
 - **Version tracking**: the installed `versionCode` is set by CI to the Actions **run number**; the latest build number is parsed from the release tag (`v1.0.42` → `42`). A higher number means an update is available.
@@ -217,7 +253,7 @@ On Android 13+, a sideloaded app's Notification access is a "restricted setting"
 
 When these secrets are present, CI signs every release APK with that key; when they are absent, it falls back to the debug key (installs fine, but cross-version updates won't).
 
-### 10. Theming
+### 11. Theming
 `DashTheme.kt` provides 14 selectable themes, each in a dark and a light version (Auto follows the car's day/night mode), switchable live from Settings → Look: **Auto** (follows system day/night), **Original** (the first launcher look — flat cards, twin-needle gauges, rendered by `OriginalTiles.kt`), **Aurora Glass** (glass panels, glowing gauges, cyan/violet gradient), **Neon Dark**, **Clean Light**, **Dark Glass**, **Sporty** (black + red), **Floating** (no tile backgrounds), **Mistral** (the C4 Picasso's central cluster: cold-white numerals on smoked graphite, amber alerts) and **Zénith** (pearl grey, white panels, one deep blue accent).
 
 Four more are whole-design **skins** (`DashSkin`): **Orbit** (everything round: a spinning record, ring gauges, bubbles), **Cockpit** (chrome-ringed analog dials and toggle switches on stitched leather), **Horizon** (no widgets, just an evening scene with the road ahead and typography on it) and **Tape Deck** (80s synthwave head unit: cassette, neon grid, seven-segment digits). A skin draws its own page background, top bar and the main widgets (speed, telemetry, music, directions, clock, weather, fuel, app shortcuts, launch bar); `Skins.kt` routes those tiles to the skin's file and every other tile keeps its standard renderer on the skin's palette. When Google Maps is docked, the skin also shapes and decorates it (a round porthole, a chrome bezel, a CRT bezel, a soft fade) from an overlay window above it (`WindowFrameOverlay.kt`); touches pass straight through to Maps.

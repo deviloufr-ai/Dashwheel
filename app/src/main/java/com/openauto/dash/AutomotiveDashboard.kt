@@ -384,7 +384,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     fun tileWindowApps(items: List<DashboardItem>): Set<String> = items.mapNotNullTo(HashSet()) {
         when {
             it is DashboardItem.BuiltinWidget && it.kind == BuiltinKind.PIP_ANCHOR -> PipAnchor.MAPS_PACKAGE
-            it is DashboardItem.AppWindow -> it.packageName
+            it is DashboardItem.AppWindow && !it.inside -> it.packageName
             else -> null
         }
     }
@@ -415,15 +415,21 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         PipAnchor.placedPackages.value = windowAppsEverywhere()
         PipAnchor.stashAllExcept(context, windowApps(pages.getOrNull(currentPage).orEmpty()))
     }
-    // Google Maps inside a tile runs until the last such tile goes, in either
-    // arrangement; then its display is closed and Maps with it (EmbeddedApp).
+    // An app inside a tile runs until the last tile showing it goes, in either
+    // arrangement; then its display is closed and the app with it (EmbeddedApp).
     LaunchedEffect(pages, layout) {
         val other = withContext(Dispatchers.IO) {
             val variant = otherVariant()
             if (DashboardStore.exists(context, variant)) DashboardStore.load(context, variant).flatten() else emptyList()
         }
-        val shown = (pages.flatten() + other).any { it is DashboardItem.BuiltinWidget && it.kind == BuiltinKind.MAPS_INSIDE }
-        EmbeddedApp.releaseUnless(if (shown) setOf(EmbeddedApp.MAPS_PACKAGE) else emptySet())
+        val inside = (pages.flatten() + other).mapNotNullTo(HashSet()) {
+            when {
+                it is DashboardItem.BuiltinWidget && it.kind == BuiltinKind.MAPS_INSIDE -> EmbeddedApp.MAPS_PACKAGE
+                it is DashboardItem.AppWindow && it.inside -> it.packageName
+                else -> null
+            }
+        }
+        EmbeddedApp.releaseUnless(inside)
     }
     var rootChecked by remember { mutableStateOf(false) }
     var rootAvailable by remember { mutableStateOf(false) }
@@ -1167,9 +1173,9 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                         showAddSheet = false
                         if (addTargetPage >= 0) addItem(addTargetPage, DashboardItem.AppShortcut(app.packageName))
                     },
-                    onPickWindow = { app ->
+                    onPickWindow = { app, inside ->
                         showAddSheet = false
-                        if (addTargetPage >= 0) addItem(addTargetPage, DashboardItem.AppWindow(app.packageName))
+                        if (addTargetPage >= 0) addItem(addTargetPage, DashboardItem.AppWindow(app.packageName, inside = inside))
                     },
                     onPickPair = { first, second ->
                         showAddSheet = false

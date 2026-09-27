@@ -113,12 +113,14 @@
     <string name="apps_window_mode_single">Dans une fenêtre</string>
     <string name="apps_window_mode_pair">Côte à côte</string>
     <string name="apps_window_hint">L\'appli reste ouverte dans sa propre fenêtre sur cette page.</string>
+    <string name="apps_window_mode_inside">Dans la tuile</string>
+    <string name="apps_window_inside_hint">L\'appli tourne dans la tuile et se touche là.</string>
+    <string name="apps_embed_app_starting">Ouverture de %1$s</string>
+    <string name="apps_embed_app_missing">%1$s n\'est pas installé</string>
+    <string name="apps_embed_app_blocked">Android n\'a pas laissé %1$s s\'ouvrir ici</string>
     <string name="apps_pair_pick_first">Touchez l\'appli pour le côté gauche.</string>
     <string name="apps_pair_pick_second">%1$s à gauche. Touchez maintenant l\'appli pour le côté droit.</string>
     <string name="apps_pair_change">Changer</string>
     <string name="apps_kind_maps_inside">Google Maps intégré</string>
     <string name="apps_kind_maps_inside_blurb">La vraie appli Google Maps, dans cette tuile</string>
-    <string name="apps_embed_starting">Ouverture de Google Maps</string>
-    <string name="apps_embed_missing">Google Maps n\'est pas installé</string>
-    <string name="apps_embed_blocked">Android n\'a pas laissé Google Maps s\'ouvrir ici</string>
 </resources>

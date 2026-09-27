@@ -112,12 +112,14 @@
     <string name="apps_window_mode_single">In een venster</string>
     <string name="apps_window_mode_pair">Naast elkaar</string>
     <string name="apps_window_hint">De app blijft open in een eigen venster op deze pagina.</string>
+    <string name="apps_window_mode_inside">In de tegel</string>
+    <string name="apps_window_inside_hint">De app draait in de tegel en je bedient hem daar.</string>
+    <string name="apps_embed_app_starting">%1$s wordt geopend</string>
+    <string name="apps_embed_app_missing">%1$s is niet geïnstalleerd</string>
+    <string name="apps_embed_app_blocked">Android liet %1$s hier niet openen</string>
     <string name="apps_pair_pick_first">Tik op de app voor de linkerkant.</string>
     <string name="apps_pair_pick_second">%1$s links. Tik nu op de app voor de rechterkant.</string>
     <string name="apps_pair_change">Wijzigen</string>
     <string name="apps_kind_maps_inside">Google Maps ingebouwd</string>
     <string name="apps_kind_maps_inside_blurb">De echte Google Maps-app, in deze tegel</string>
-    <string name="apps_embed_starting">Google Maps wordt geopend</string>
-    <string name="apps_embed_missing">Google Maps is niet geïnstalleerd</string>
-    <string name="apps_embed_blocked">Android liet Google Maps hier niet openen</string>
 </resources>

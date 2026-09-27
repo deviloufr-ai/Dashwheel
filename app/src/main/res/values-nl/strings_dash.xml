@@ -44,6 +44,7 @@
     <string name="dash_remove_tile">%1$s verwijderen</string>
     <string name="dash_resize_tile">Formaat wijzigen: %1$s</string>
     <string name="dash_app_window">%1$s-venster</string>
+    <string name="dash_app_inside">%1$s ingebouwd</string>
     <string name="dash_describe_split_pair">app-paar</string>
     <string name="dash_describe_launch_bar">startbalk</string>
     <string name="dash_describe_widget">widget</string>

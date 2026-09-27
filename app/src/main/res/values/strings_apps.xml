@@ -112,12 +112,14 @@
     <string name="apps_window_mode_single">In a window</string>
     <string name="apps_window_mode_pair">Side by side</string>
     <string name="apps_window_hint">The app stays open in its own window on this page.</string>
+    <string name="apps_window_mode_inside">Inside the tile</string>
+    <string name="apps_window_inside_hint">The app runs inside the tile, and you touch it there.</string>
+    <string name="apps_embed_app_starting">Opening %1$s</string>
+    <string name="apps_embed_app_missing">%1$s is not installed</string>
+    <string name="apps_embed_app_blocked">Android did not let %1$s open here</string>
     <string name="apps_pair_pick_first">Tap the app for the left side.</string>
     <string name="apps_pair_pick_second">%1$s on the left. Now tap the app for the right side.</string>
     <string name="apps_pair_change">Change</string>
     <string name="apps_kind_maps_inside">Google Maps inside</string>
     <string name="apps_kind_maps_inside_blurb">The real Google Maps app, running in this tile</string>
-    <string name="apps_embed_starting">Opening Google Maps</string>
-    <string name="apps_embed_missing">Google Maps is not installed</string>
-    <string name="apps_embed_blocked">Android did not let Google Maps open here</string>
 </resources>
