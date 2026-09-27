@@ -107,4 +107,7 @@
     <string name="settings_screen_keep_detail">Powrót za %1$d s</string>
     <string name="settings_screen_keep">Zachowaj</string>
     <string name="settings_screen_revert">Wróć</string>
+    <string name="settings_system_perms">Uprawnienia systemowe</string>
+    <string name="settings_system_perms_on">Przyznane. Google Maps może działać w kafelku.</string>
+    <string name="settings_system_perms_off">Nieprzyznane. Z PMPatch3 w Magisku pojawią się przy następnej aktualizacji.</string>
 </resources>

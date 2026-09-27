@@ -107,4 +107,7 @@
     <string name="settings_screen_keep_detail">Vuelve atrás en %1$d s</string>
     <string name="settings_screen_keep">Mantener</string>
     <string name="settings_screen_revert">Volver</string>
+    <string name="settings_system_perms">Permisos del sistema</string>
+    <string name="settings_system_perms_on">Concedidos. Google Maps puede funcionar dentro de una tarjeta.</string>
+    <string name="settings_system_perms_off">No concedidos. Con PMPatch3 en Magisk llegan con la próxima actualización.</string>
 </resources>

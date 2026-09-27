@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Adjust
@@ -621,6 +622,10 @@ private fun AdvancedPane(m: TopBarModel, onBootLogo: () -> Unit, onPickObd: () -
     if (shell) {
         SettingsRow(Icons.Filled.Build, stringResource(R.string.dash_system_app_title), stringResource(R.string.settings_system_detail), m.onSystem)
     }
+    // Google Maps inside a tile needs permissions only the firmware's apps get
+    // (EmbeddedApp): whether Android granted them, where they could be.
+    val embed = EmbeddedApp.allowed(LocalContext.current)
+    if (shell || embed) SystemPermissionsRow(embed)
     Spacer(Modifier.height(20.dp))
     // What is allowed and what is not, without running the setup again.
     SettingsSection(stringResource(R.string.setup_access_title))
@@ -669,6 +674,34 @@ internal fun SettingsSection(title: String) {
         style = MaterialTheme.typography.labelSmall,
         modifier = Modifier.padding(start = 12.dp, top = 4.dp, bottom = 8.dp)
     )
+}
+
+/** Whether Android granted Dashwheel the system permissions: a state to read, nothing to tap. */
+@Composable
+private fun SystemPermissionsRow(granted: Boolean) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = DashSize.Bar)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            Icons.Filled.VerifiedUser, contentDescription = null,
+            tint = if (granted) DashColors.Good else DashColors.TextSecondary,
+            modifier = Modifier.size(24.dp)
+        )
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
+            Text(stringResource(R.string.settings_system_perms), color = DashColors.TextPrimary, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                stringResource(if (granted) R.string.settings_system_perms_on else R.string.settings_system_perms_off),
+                color = if (granted) DashColors.Good else DashColors.TextSecondary,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+    }
+    HorizontalDivider(color = DashColors.Line, modifier = Modifier.padding(horizontal = 12.dp))
 }
 
 /** One setting: icon, name, what it is right now or what it does, and a chevron. */

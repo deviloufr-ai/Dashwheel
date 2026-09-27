@@ -33,6 +33,8 @@ enum class BuiltinKind(
     NAVMAP(R.string.apps_kind_navmap, WidgetCategory.NAVIGATION, R.string.apps_kind_navmap_blurb),
     NAVIGATION(R.string.apps_kind_navigation, WidgetCategory.NAVIGATION, R.string.apps_kind_navigation_blurb, 4, 3),
     PIP_ANCHOR(R.string.apps_kind_pip_anchor, WidgetCategory.NAVIGATION, R.string.apps_kind_pip_anchor_blurb, 4, 3),
+    // Google Maps itself inside the tile, where the firmware grants system permissions (EmbeddedApp.kt).
+    MAPS_INSIDE(R.string.apps_kind_maps_inside, WidgetCategory.NAVIGATION, R.string.apps_kind_maps_inside_blurb),
     MEDIA(R.string.apps_kind_media, WidgetCategory.APPS, R.string.apps_kind_media_blurb),
     TELEMETRY(R.string.apps_kind_telemetry, WidgetCategory.VEHICLE, R.string.apps_kind_telemetry_blurb),
     OBD_DTC(R.string.apps_kind_obd_dtc, WidgetCategory.VEHICLE, R.string.apps_kind_obd_dtc_blurb, 3, 2),

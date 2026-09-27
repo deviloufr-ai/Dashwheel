@@ -107,4 +107,7 @@
     <string name="settings_screen_keep_detail">Volta atrás em %1$d s</string>
     <string name="settings_screen_keep">Manter</string>
     <string name="settings_screen_revert">Voltar</string>
+    <string name="settings_system_perms">Permissões do sistema</string>
+    <string name="settings_system_perms_on">Concedidas. O Google Maps pode funcionar dentro de um bloco.</string>
+    <string name="settings_system_perms_off">Não concedidas. Com o PMPatch3 no Magisk, chegam na próxima atualização.</string>
 </resources>

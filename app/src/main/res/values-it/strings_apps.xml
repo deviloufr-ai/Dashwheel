@@ -116,4 +116,9 @@
     <string name="apps_pair_pick_first">Tocca l\'app per il lato sinistro.</string>
     <string name="apps_pair_pick_second">%1$s a sinistra. Ora tocca l\'app per il lato destro.</string>
     <string name="apps_pair_change">Cambia</string>
+    <string name="apps_kind_maps_inside">Google Maps integrato</string>
+    <string name="apps_kind_maps_inside_blurb">La vera app Google Maps, in questo riquadro</string>
+    <string name="apps_embed_starting">Apertura di Google Maps</string>
+    <string name="apps_embed_missing">Google Maps non è installato</string>
+    <string name="apps_embed_blocked">Android non ha lasciato aprire Google Maps qui</string>
 </resources>

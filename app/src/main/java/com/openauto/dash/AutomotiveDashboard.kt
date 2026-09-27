@@ -415,6 +415,16 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         PipAnchor.placedPackages.value = windowAppsEverywhere()
         PipAnchor.stashAllExcept(context, windowApps(pages.getOrNull(currentPage).orEmpty()))
     }
+    // Google Maps inside a tile runs until the last such tile goes, in either
+    // arrangement; then its display is closed and Maps with it (EmbeddedApp).
+    LaunchedEffect(pages, layout) {
+        val other = withContext(Dispatchers.IO) {
+            val variant = otherVariant()
+            if (DashboardStore.exists(context, variant)) DashboardStore.load(context, variant).flatten() else emptyList()
+        }
+        val shown = (pages.flatten() + other).any { it is DashboardItem.BuiltinWidget && it.kind == BuiltinKind.MAPS_INSIDE }
+        EmbeddedApp.releaseUnless(if (shown) setOf(EmbeddedApp.MAPS_PACKAGE) else emptySet())
+    }
     var rootChecked by remember { mutableStateOf(false) }
     var rootAvailable by remember { mutableStateOf(false) }
     var systemBusy by remember { mutableStateOf(false) }

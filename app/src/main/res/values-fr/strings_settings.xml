@@ -107,4 +107,7 @@
     <string name="settings_screen_keep_detail">Retour en arrière dans %1$d s</string>
     <string name="settings_screen_keep">Garder</string>
     <string name="settings_screen_revert">Revenir</string>
+    <string name="settings_system_perms">Autorisations système</string>
+    <string name="settings_system_perms_on">Accordées. Google Maps peut tourner dans une tuile.</string>
+    <string name="settings_system_perms_off">Non accordées. Avec PMPatch3 dans Magisk, elles arrivent à la prochaine mise à jour.</string>
 </resources>

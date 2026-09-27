@@ -41,6 +41,12 @@
          overlay which some ROMs render as pass-through only. -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
+    <!-- Google Maps inside a tile (EmbeddedApp.kt): open it on our own display
+         and pass it the tile's touches. Kept for the firmware's apps, so only
+         granted where PMPatch in Magisk makes every signature check pass. -->
+    <uses-permission android:name="android.permission.INTERNAL_SYSTEM_WINDOW" tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.INJECT_EVENTS" tools:ignore="ProtectedPermissions" />
+
     <!-- Hardware Requirements -->
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />

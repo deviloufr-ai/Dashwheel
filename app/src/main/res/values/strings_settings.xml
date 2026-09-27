@@ -109,4 +109,7 @@
     <string name="settings_screen_keep_detail">Goes back in %1$d s</string>
     <string name="settings_screen_keep">Keep</string>
     <string name="settings_screen_revert">Go back</string>
+    <string name="settings_system_perms">System permissions</string>
+    <string name="settings_system_perms_on">Granted. Google Maps can run inside a tile.</string>
+    <string name="settings_system_perms_off">Not granted. With PMPatch3 in Magisk, they come with the next update.</string>
 </resources>

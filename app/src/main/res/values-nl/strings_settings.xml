@@ -107,4 +107,7 @@
     <string name="settings_screen_keep_detail">Gaat terug over %1$d s</string>
     <string name="settings_screen_keep">Behouden</string>
     <string name="settings_screen_revert">Terug</string>
+    <string name="settings_system_perms">Systeemrechten</string>
+    <string name="settings_system_perms_on">Verleend. Google Maps kan in een tegel draaien.</string>
+    <string name="settings_system_perms_off">Niet verleend. Met PMPatch3 in Magisk komen ze bij de volgende update.</string>
 </resources>

@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.FilterAlt
 import androidx.compose.material.icons.filled.LocalGasStation
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.LocalParking
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Navigation
@@ -80,6 +81,7 @@ internal fun kindIcon(kind: BuiltinKind): ImageVector = when (kind) {
     BuiltinKind.NAVMAP -> Icons.Filled.Navigation
     BuiltinKind.NAVIGATION -> Icons.Filled.Directions
     BuiltinKind.PIP_ANCHOR -> Icons.Filled.PictureInPicture
+    BuiltinKind.MAPS_INSIDE -> Icons.Filled.Map
     BuiltinKind.MEDIA -> Icons.Filled.MusicNote
     BuiltinKind.TELEMETRY -> Icons.Filled.Speed
     BuiltinKind.OBD_DTC -> Icons.Filled.Warning

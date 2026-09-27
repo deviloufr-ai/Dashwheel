@@ -110,14 +110,14 @@ internal fun rememberWidgetFace(kind: BuiltinKind, env: SkinTileEnv): WidgetFace
     BuiltinKind.CAR_STATUS -> carStatusFace()
     BuiltinKind.TYRES -> tyresFace()
     // Live views and the spec sheet: they keep their content and get the design's frame (DesignFrame).
-    BuiltinKind.NAVMAP, BuiltinKind.PIP_ANCHOR, BuiltinKind.MY_CAR -> null
+    BuiltinKind.NAVMAP, BuiltinKind.PIP_ANCHOR, BuiltinKind.MAPS_INSIDE, BuiltinKind.MY_CAR -> null
 }
 
 /**
  * Widgets framed rather than redrawn: live views (map, docked window) and
  * the car's spec sheet, whose tap opens the car settings.
  */
-internal val FRAMED_KINDS = setOf(BuiltinKind.NAVMAP, BuiltinKind.PIP_ANCHOR, BuiltinKind.MY_CAR)
+internal val FRAMED_KINDS = setOf(BuiltinKind.NAVMAP, BuiltinKind.PIP_ANCHOR, BuiltinKind.MAPS_INSIDE, BuiltinKind.MY_CAR)
 
 private fun fmt(pattern: String, vararg args: Any): String = String.format(Locale.getDefault(), pattern, *args)
 

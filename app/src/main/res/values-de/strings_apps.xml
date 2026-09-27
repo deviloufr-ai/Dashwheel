@@ -115,4 +115,9 @@
     <string name="apps_pair_pick_first">Tippen Sie auf die App für die linke Seite.</string>
     <string name="apps_pair_pick_second">%1$s links. Jetzt die App für die rechte Seite antippen.</string>
     <string name="apps_pair_change">Ändern</string>
+    <string name="apps_kind_maps_inside">Google Maps eingebettet</string>
+    <string name="apps_kind_maps_inside_blurb">Die echte Google-Maps-App in dieser Kachel</string>
+    <string name="apps_embed_starting">Google Maps wird geöffnet</string>
+    <string name="apps_embed_missing">Google Maps ist nicht installiert</string>
+    <string name="apps_embed_blocked">Android lässt Google Maps hier nicht öffnen</string>
 </resources>

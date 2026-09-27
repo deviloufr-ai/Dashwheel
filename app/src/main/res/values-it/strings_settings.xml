@@ -107,4 +107,7 @@
     <string name="settings_screen_keep_detail">Torna indietro tra %1$d s</string>
     <string name="settings_screen_keep">Mantieni</string>
     <string name="settings_screen_revert">Indietro</string>
+    <string name="settings_system_perms">Permessi di sistema</string>
+    <string name="settings_system_perms_on">Concessi. Google Maps può funzionare in un riquadro.</string>
+    <string name="settings_system_perms_off">Non concessi. Con PMPatch3 in Magisk arrivano al prossimo aggiornamento.</string>
 </resources>
