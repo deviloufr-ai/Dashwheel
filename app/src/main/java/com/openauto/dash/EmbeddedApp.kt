@@ -204,6 +204,10 @@ internal object EmbeddedApp {
         dashboard = activity?.let { WeakReference(it) }
         // Something else came in front of the dashboard, on the main screen: it has the keys.
         if (activity == null) keysAway = false
+        // Back on the dashboard: an app opened full screen meanwhile (YouTube Music
+        // from the app list...) was taken off its tile's display, leaving the tile
+        // black. Each tile's app is put back.
+        else hosts.values.forEach { it.bringBack() }
     }
 
     /**
@@ -518,6 +522,13 @@ internal object EmbeddedApp {
             held = held + packageName
             Log.i(TAG, "display ${made.display.displayId} for $packageName, ${width}x$height at $dpi dpi")
             launch(made)
+        }
+
+        /** Puts the app back on the tile if it was taken elsewhere meanwhile; nothing when it is still there. */
+        fun bringBack() {
+            val vd = display ?: return
+            if (shownOn == null || _status.value == Status.BLOCKED) return
+            launch(vd)
         }
 
         fun release() {
