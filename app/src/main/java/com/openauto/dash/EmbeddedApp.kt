@@ -12,6 +12,9 @@ import android.graphics.SurfaceTexture
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
 import android.hardware.input.InputManager
+import android.os.Handler
+import android.os.HandlerThread
+import android.os.Process
 import android.util.Log
 import android.view.InputEvent
 import android.view.KeyEvent
@@ -54,6 +57,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 import java.lang.ref.WeakReference
+import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.Method
 
 /**
  * Another app, Google Maps, running inside a dashboard tile: it is launched
@@ -146,6 +151,25 @@ internal object EmbeddedApp {
 
     /** True while [packageName] runs inside a tile, on its own display. */
     fun holds(packageName: String): Boolean = packageName in held
+
+    // --- Touches ------------------------------------------------------------
+
+    /** Where the tiles' touches are sent to their apps from, one after another. */
+    private val touchHandler: Handler by lazy {
+        Handler(HandlerThread("embedded-touch", Process.THREAD_PRIORITY_DISPLAY).apply { start() }.looper)
+    }
+
+    // Both @hide, looked up once: looking them up on every touch took long
+    // enough to make taps late and drags stutter.
+    private val setDisplayId: Method? by lazy {
+        runCatching { HiddenApiBypass.getDeclaredMethod(InputEvent::class.java, "setDisplayId", Int::class.javaPrimitiveType) }
+            .onFailure { Log.w(TAG, "no InputEvent.setDisplayId", it) }.getOrNull()
+    }
+
+    private val injectInputEvent: Method? by lazy {
+        runCatching { HiddenApiBypass.getDeclaredMethod(InputManager::class.java, "injectInputEvent", InputEvent::class.java, Int::class.javaPrimitiveType) }
+            .onFailure { Log.w(TAG, "no InputManager.injectInputEvent", it) }.getOrNull()
+    }
 
     // --- The unit's keys ---------------------------------------------------
 
@@ -324,6 +348,7 @@ internal object EmbeddedApp {
 
         @Volatile
         private var display: VirtualDisplay? = null
+        @Volatile
         private var touchRefused = false
         private var settling: Job? = null
 
@@ -552,23 +577,41 @@ internal object EmbeddedApp {
                 .getOrNull()
         }
 
-        /** Sends a touch on the tile to the same spot on the app's display. */
+        /**
+         * Sends a touch on the tile to the same spot on the app's display, from
+         * [touchHandler]: in order, and never holding up the dashboard's own
+         * thread (a drag sends dozens a second).
+         */
         fun touch(event: MotionEvent) {
             val id = display?.display?.displayId ?: return
             if (touchRefused) return
             val copy = MotionEvent.obtain(event)
-            try {
-                // Both @hide: InputEvent.setDisplayId and InputManager.injectInputEvent.
-                HiddenApiBypass.invoke(InputEvent::class.java, copy, "setDisplayId", id)
-                val im = context.getSystemService(InputManager::class.java)
-                HiddenApiBypass.invoke(InputManager::class.java, im, "injectInputEvent", copy, INJECT_ASYNC)
-            } catch (t: Throwable) {
-                // Without INJECT_EVENTS every touch would throw: say it once, then leave the map as a picture.
-                touchRefused = true
-                Log.w(TAG, "touches can't reach $packageName", t)
-            } finally {
-                copy.recycle()
+            touchHandler.post {
+                try {
+                    val setId = setDisplayId
+                    val inject = injectInputEvent
+                    if (setId == null || inject == null) {
+                        refuseTouches(null)
+                        return@post
+                    }
+                    setId.invoke(copy, id)
+                    inject.invoke(context.getSystemService(InputManager::class.java), copy, INJECT_ASYNC)
+                } catch (t: InvocationTargetException) {
+                    // Without INJECT_EVENTS every touch is refused: say it once, then leave the app as a picture.
+                    // Anything else (the display resized meanwhile...) only loses this one touch.
+                    if (t.targetException is SecurityException) refuseTouches(t.targetException)
+                    else Log.w(TAG, "a touch missed $packageName", t.targetException)
+                } catch (t: Exception) {
+                    Log.w(TAG, "a touch missed $packageName", t)
+                } finally {
+                    copy.recycle()
+                }
             }
+        }
+
+        private fun refuseTouches(why: Throwable?) {
+            touchRefused = true
+            Log.w(TAG, "touches can't reach $packageName", why)
         }
     }
 }
