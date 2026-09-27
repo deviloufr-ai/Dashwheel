@@ -32,7 +32,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.lsposed.hiddenapibypass.HiddenApiBypass
@@ -74,6 +81,9 @@ internal object EmbeddedApp {
     // WindowConfiguration.WINDOWING_MODE_FULLSCREEN (@hide).
     private const val WINDOWING_MODE_FULLSCREEN = 1
 
+    /** How long the window manager gets to act on a launch or a move before we look. */
+    private const val SETTLE_DELAY_MS = 700L
+
     enum class Status {
         /** The display is being made or the app launched. */
         STARTING,
@@ -95,6 +105,8 @@ internal object EmbeddedApp {
         ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
 
     private val hosts = HashMap<String, Host>()
+
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     fun host(context: Context, packageName: String): Host =
         hosts.getOrPut(packageName) { Host(context.applicationContext, packageName) }
@@ -118,8 +130,10 @@ internal object EmbeddedApp {
         private val _status = MutableStateFlow(Status.STARTING)
         val status: StateFlow<Status> = _status.asStateFlow()
 
+        @Volatile
         private var display: VirtualDisplay? = null
         private var touchRefused = false
+        private var settling: Job? = null
 
         /** The tile shows [surface], [width] x [height] pixels at [dpi]. */
         @SuppressLint("WrongConstant") // DESTROY_CONTENT_ON_REMOVAL is a real flag, only @hide.
@@ -161,6 +175,7 @@ internal object EmbeddedApp {
         }
 
         fun release() {
+            settling?.cancel()
             display?.let { vd ->
                 WindowListing.embeddedDisplays = WindowListing.embeddedDisplays - vd.display.displayId
                 vd.release()
@@ -171,6 +186,15 @@ internal object EmbeddedApp {
         }
 
         private fun launch(vd: VirtualDisplay) {
+            start(vd)
+            if (_status.value != Status.SHOWN) return
+            // Android may accept the launch yet leave an instance that was already
+            // open (a floating Maps window) where it was, in front of the
+            // dashboard: it is then brought onto the tile by hand.
+            if (settling?.isActive != true) settling = scope.launch { settle(vd.display.displayId) }
+        }
+
+        private fun start(vd: VirtualDisplay) {
             val intent = context.packageManager.getLaunchIntentForPackage(packageName)
             if (intent == null) {
                 _status.value = Status.MISSING
@@ -189,6 +213,50 @@ internal object EmbeddedApp {
                 .onFailure { Log.w(TAG, "$packageName refused on display ${vd.display.displayId}", it) }
                 .fold({ Status.SHOWN }, { Status.BLOCKED })
         }
+
+        /**
+         * Makes sure the app ended up on the tile's display [id], full size, and
+         * nowhere else. A stack left on another display is moved over
+         * (`am display move-stack`, which keeps the app as it was); if it is
+         * still elsewhere, or only in a floating window on the tile, it is closed
+         * and the app opened afresh on the tile.
+         */
+        private suspend fun settle(id: Int) {
+            delay(SETTLE_DELAY_MS)
+            val stacks = listStacks() ?: return
+            val away = stacks.filter { it.displayId != id }
+            if (away.isEmpty() && stacks.all { fullSize(it) }) return
+            for (stack in away) {
+                val out = runCatching { DockShell.shell(context, "am display move-stack ${stack.stackId} $id") }.getOrElse { "failed: ${it.message}" }
+                Log.i(TAG, "$packageName stack ${stack.stackId} (${stack.mode}) from display ${stack.displayId} to $id: ${out.trim()}")
+            }
+            delay(SETTLE_DELAY_MS)
+            val moved = listStacks() ?: return
+            if (moved.isNotEmpty() && moved.all { it.displayId == id && fullSize(it) }) {
+                Log.i(TAG, "$packageName is on the tile")
+                return
+            }
+            // Still outside the tile, or in a floating window on it: a fresh start.
+            for (stack in moved) {
+                val out = runCatching { DockShell.shell(context, "am stack remove ${stack.stackId}") }.getOrElse { "failed: ${it.message}" }
+                Log.i(TAG, "$packageName stack ${stack.stackId} (${stack.mode}) on display ${stack.displayId} closed: ${out.trim()}")
+            }
+            delay(SETTLE_DELAY_MS)
+            withContext(Dispatchers.Main) { display?.takeIf { it.display.displayId == id }?.let { start(it) } }
+            delay(SETTLE_DELAY_MS)
+            val after = listStacks() ?: return
+            Log.i(TAG, "$packageName now: " + after.joinToString { "stack ${it.stackId} ${it.mode} on display ${it.displayId}" })
+        }
+
+        /** The app's stacks right now, or null (logged) when the shell cannot list them. */
+        private suspend fun listStacks(): List<WindowListing.AppStack>? {
+            DockShell.forgetListing()
+            return runCatching { WindowListing.appStacks(DockShell.listStacks(context), packageName) }
+                .onFailure { Log.w(TAG, "can't see where $packageName is", it) }
+                .getOrNull()
+        }
+
+        private fun fullSize(stack: WindowListing.AppStack) = stack.mode != "freeform" && stack.mode != "pinned"
 
         /** Sends a touch on the tile to the same spot on the app's display. */
         fun touch(event: MotionEvent) {

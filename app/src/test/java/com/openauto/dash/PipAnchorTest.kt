@@ -115,6 +115,32 @@ class PipAnchorTest {
     }
 
     @Test
+    fun appStacksFindMapsOnEveryDisplay() {
+        val listing = """
+            Stack id=0 bounds=[0,0][1280,720] displayId=0 userId=0
+             configuration={... mWindowingMode=fullscreen mActivityType=home ...}
+              taskId=2: com.openauto.dash/com.openauto.dash.MainActivity bounds=[0,0][1280,720] userId=0 visible=true
+            Stack id=7 bounds=[0,0][1280,720] displayId=0 userId=0
+             configuration={ winConfig={ mWindowingMode=freeform mActivityType=standard} }
+              taskId=63: com.google.android.apps.maps/com.google.android.maps.MapsActivity bounds=[20,80][640,760] userId=0 visible=true
+            Stack id=12 bounds=[0,0][522,362] displayId=7 userId=0
+             configuration={ winConfig={ mWindowingMode=fullscreen mActivityType=standard} }
+              taskId=80: com.google.android.apps.maps/com.google.android.maps.MapsActivity bounds=[0,0][522,362] userId=0 visible=true
+        """.trimIndent()
+        try {
+            // Seen even while display 7 is a tile's, which the window listings leave out.
+            WindowListing.embeddedDisplays = setOf(7)
+            assertEquals(
+                listOf(WindowListing.AppStack(7, 0, "freeform"), WindowListing.AppStack(12, 7, "fullscreen")),
+                WindowListing.appStacks(listing, "com.google.android.apps.maps")
+            )
+            assertTrue(WindowListing.appStacks(listing, "com.waze").isEmpty())
+        } finally {
+            WindowListing.embeddedDisplays = emptySet()
+        }
+    }
+
+    @Test
     fun noFullscreenStackForAppsMeansNowhereToMoveTo() {
         val homeOnly = """
             Stack id=0 bounds=[0,0][1280,720] displayId=0 userId=0
