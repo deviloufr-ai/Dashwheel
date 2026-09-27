@@ -94,13 +94,14 @@ jobs:
       - name: Write release notes
         if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
         run: |
-          prev=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || true)
+          # Only main's own tags: a branch pre-release tag is not a release.
+          prev=$(git describe --tags --abbrev=0 --match 'v1.0.*' HEAD^ 2>/dev/null || true)
           range=${prev:+$prev..HEAD}
           {
             echo "## What's new in v1.0.${{ github.run_number }}"
             echo
             git log $range --no-merges -n 30 --format='### %s%n%n%b' \
-              | sed -e '/^Co-Authored-By:/d' -e '/^Signed-off-by:/d'
+              | sed -e '/^Co-Authored-By:/d' -e '/^Signed-off-by:/d' -e '/^Claude-Session:/Id'
             if [ -n "$prev" ]; then
               echo
               echo "_Changes since ${prev}._"
