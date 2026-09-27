@@ -54,8 +54,6 @@
     <string name="design_car_outline">Car outline</string>
     <string name="design_car_outline_desc">The car in profile with its readings beside it.</string>
     <string name="design_change">Change the design of %1$s</string>
-    <string name="design_picker_title">Design: %1$s</string>
-    <string name="design_picker_hint">Tap a design to use it on this tile. Each tile keeps its own design.</string>
     <string name="design_codes_unit">codes</string>
     <string name="design_engine_lamp">Engine lamp</string>
     <string name="design_on">On</string>
@@ -164,13 +162,10 @@
     <string name="design_leaf">Leaf</string>
     <string name="design_leaf_desc">The leaf fills green as the score rises.</string>
     <string name="design_section_generic">For every widget</string>
-    <string name="design_made_for_it">Made for it</string>
     <!-- Design families in the picker -->
     <string name="design_family_theme">In the theme\'s colours</string>
     <string name="design_family_materials">Materials</string>
     <string name="design_family_copper">Copper</string>
     <string name="design_family_cabins">Cabins</string>
     <string name="design_label_value">%1$s: %2$s</string>
-    <string name="design_show_more">%1$d more</string>
-    <string name="design_show_fewer">Fewer</string>
 </resources>

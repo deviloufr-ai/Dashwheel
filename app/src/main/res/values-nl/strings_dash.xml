@@ -41,7 +41,6 @@
     <string name="dash_update">Bijwerken</string>
 
     <!-- Tiles while arranging -->
-    <string name="dash_remove_tile">%1$s verwijderen</string>
     <string name="dash_resize_tile">Formaat wijzigen: %1$s</string>
     <string name="dash_app_window">%1$s-venster</string>
     <string name="dash_app_inside">%1$s ingebouwd</string>
@@ -185,7 +184,6 @@
     <string name="dash_clear">Leegmaken</string>
     <string name="dash_theme_show_all">Alle %1$d thema\'s tonen</string>
     <string name="dash_theme_show_fewer">Minder tonen</string>
-    <string name="dash_tile_design">Ontwerp</string>
     <string name="dash_tile_move">Naar een andere pagina</string>
     <string name="dash_tile_remove">Verwijderen</string>
     <string name="dash_apps">Apps</string>

@@ -54,8 +54,6 @@
     <string name="design_car_outline">Silhouet</string>
     <string name="design_car_outline_desc">De auto in profiel, met de metingen ernaast.</string>
     <string name="design_change">Ontwerp van %1$s wijzigen</string>
-    <string name="design_picker_title">Ontwerp: %1$s</string>
-    <string name="design_picker_hint">Tik op een ontwerp om het voor deze tegel te gebruiken. Elke tegel houdt zijn eigen ontwerp.</string>
     <string name="design_codes_unit">codes</string>
     <string name="design_engine_lamp">Motorlampje</string>
     <string name="design_on">Aan</string>
@@ -164,13 +162,10 @@
     <string name="design_leaf">Blad</string>
     <string name="design_leaf_desc">Het blad kleurt groen als de score stijgt.</string>
     <string name="design_section_generic">Voor elke widget</string>
-    <string name="design_made_for_it">Op maat</string>
     <!-- Design families in the picker -->
     <string name="design_family_theme">In de kleuren van het thema</string>
     <string name="design_family_materials">Materialen</string>
     <string name="design_family_copper">Koper</string>
     <string name="design_family_cabins">Interieurs</string>
     <string name="design_label_value">%1$s: %2$s</string>
-    <string name="design_show_more">Nog %1$d</string>
-    <string name="design_show_fewer">Minder</string>
 </resources>

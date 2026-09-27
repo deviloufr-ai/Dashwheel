@@ -191,9 +191,9 @@ private fun WidgetsTab(
         modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Chip(allLabel, category == null) { category = null }
+        CategoryChip(allLabel, category == null) { category = null }
         WidgetCategory.entries.forEach { c ->
-            Chip(stringResource(c.titleRes), category == c) { category = c }
+            CategoryChip(stringResource(c.titleRes), category == c) { category = c }
         }
     }
     Spacer(Modifier.height(10.dp))
@@ -282,8 +282,9 @@ private val PREVIEW_CARD_MIN_WIDTH = 300.dp
 /** A tile's proportions on the page: grid cells on the head unit are a little wider than tall. */
 private fun tileAspect(w: Int, h: Int): Float = (w * 1.1f / h).coerceIn(0.8f, 3f)
 
+/** A filter chip: the add sheet's categories, the design shelf's families. */
 @Composable
-private fun Chip(label: String, selected: Boolean, onClick: () -> Unit) {
+internal fun CategoryChip(label: String, selected: Boolean, onClick: () -> Unit) {
     val tap = rememberTapFeedback()
     val shape = DashShape.Pill
     Text(

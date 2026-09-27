@@ -41,7 +41,6 @@
     <string name="dash_update">Update</string>
 
     <!-- Tiles while arranging -->
-    <string name="dash_remove_tile">Remove %1$s</string>
     <string name="dash_resize_tile">Resize %1$s</string>
     <string name="dash_app_window">%1$s window</string>
     <string name="dash_app_inside">%1$s inside</string>
@@ -190,7 +189,6 @@
     <string name="dash_clear">Clear</string>
     <string name="dash_theme_show_all">Show all %1$d themes</string>
     <string name="dash_theme_show_fewer">Show fewer</string>
-    <string name="dash_tile_design">Design</string>
     <string name="dash_tile_move">Move to another page</string>
     <string name="dash_tile_remove">Remove</string>
     <!-- The bar's Apps button, labelled -->

@@ -54,8 +54,6 @@
     <string name="design_car_outline">Sylwetka</string>
     <string name="design_car_outline_desc">Auto z profilu, odczyty obok.</string>
     <string name="design_change">Zmień wygląd: %1$s</string>
-    <string name="design_picker_title">Wygląd: %1$s</string>
-    <string name="design_picker_hint">Dotknij wyglądu, aby użyć go na tym kafelku. Każdy kafelek ma własny.</string>
     <string name="design_codes_unit">kody</string>
     <string name="design_engine_lamp">Kontrolka silnika</string>
     <string name="design_on">Wł.</string>
@@ -164,13 +162,10 @@
     <string name="design_leaf">Liść</string>
     <string name="design_leaf_desc">Liść zielenieje, gdy wynik rośnie.</string>
     <string name="design_section_generic">Dla każdego widżetu</string>
-    <string name="design_made_for_it">Na miarę</string>
     <!-- Design families in the picker -->
     <string name="design_family_theme">W kolorach motywu</string>
     <string name="design_family_materials">Materiały</string>
     <string name="design_family_copper">Miedź</string>
     <string name="design_family_cabins">Wnętrza</string>
     <string name="design_label_value">%1$s: %2$s</string>
-    <string name="design_show_more">Jeszcze %1$d</string>
-    <string name="design_show_fewer">Mniej</string>
 </resources>

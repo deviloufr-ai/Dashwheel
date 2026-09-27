@@ -54,8 +54,6 @@
     <string name="design_car_outline">Fahrzeugumriss</string>
     <string name="design_car_outline_desc">Das Auto im Profil, seine Werte daneben.</string>
     <string name="design_change">Design von %1$s ändern</string>
-    <string name="design_picker_title">Design: %1$s</string>
-    <string name="design_picker_hint">Tippe auf ein Design, um es für diese Kachel zu verwenden. Jede Kachel behält ihr eigenes.</string>
     <string name="design_codes_unit">Codes</string>
     <string name="design_engine_lamp">Motorleuchte</string>
     <string name="design_on">An</string>
@@ -164,13 +162,10 @@
     <string name="design_leaf">Blatt</string>
     <string name="design_leaf_desc">Das Blatt wird grün, wenn der Wert steigt.</string>
     <string name="design_section_generic">Für jedes Widget</string>
-    <string name="design_made_for_it">Maßgeschneidert</string>
     <!-- Design families in the picker -->
     <string name="design_family_theme">In den Farben des Designs</string>
     <string name="design_family_materials">Materialien</string>
     <string name="design_family_copper">Kupfer</string>
     <string name="design_family_cabins">Innenräume</string>
     <string name="design_label_value">%1$s: %2$s</string>
-    <string name="design_show_more">%1$d weitere</string>
-    <string name="design_show_fewer">Weniger</string>
 </resources>

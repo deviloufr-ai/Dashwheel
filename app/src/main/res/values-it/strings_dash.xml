@@ -41,7 +41,6 @@
     <string name="dash_update">Aggiorna</string>
 
     <!-- Tiles while arranging -->
-    <string name="dash_remove_tile">Rimuovi %1$s</string>
     <string name="dash_resize_tile">Ridimensiona %1$s</string>
     <string name="dash_app_window">Finestra %1$s</string>
     <string name="dash_app_inside">%1$s integrato</string>
@@ -189,7 +188,6 @@
     <string name="dash_clear">Svuota</string>
     <string name="dash_theme_show_all">Mostra tutti i %1$d temi</string>
     <string name="dash_theme_show_fewer">Mostra meno</string>
-    <string name="dash_tile_design">Design</string>
     <string name="dash_tile_move">Sposta in un\'altra pagina</string>
     <string name="dash_tile_remove">Rimuovi</string>
     <string name="dash_apps">App</string>

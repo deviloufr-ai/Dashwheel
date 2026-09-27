@@ -54,8 +54,6 @@
     <string name="design_car_outline">Sagoma</string>
     <string name="design_car_outline_desc">L\'auto di profilo, con le letture accanto.</string>
     <string name="design_change">Cambia lo stile di %1$s</string>
-    <string name="design_picker_title">Stile: %1$s</string>
-    <string name="design_picker_hint">Tocca uno stile per usarlo su questo riquadro. Ogni riquadro mantiene il suo.</string>
     <string name="design_codes_unit">codici</string>
     <string name="design_engine_lamp">Spia motore</string>
     <string name="design_on">Accesa</string>
@@ -164,13 +162,10 @@
     <string name="design_leaf">Foglia</string>
     <string name="design_leaf_desc">La foglia diventa verde quando il punteggio sale.</string>
     <string name="design_section_generic">Per ogni widget</string>
-    <string name="design_made_for_it">Su misura</string>
     <!-- Design families in the picker -->
     <string name="design_family_theme">Nei colori del tema</string>
     <string name="design_family_materials">Materiali</string>
     <string name="design_family_copper">Rame</string>
     <string name="design_family_cabins">Abitacoli</string>
     <string name="design_label_value">%1$s: %2$s</string>
-    <string name="design_show_more">Altri %1$d</string>
-    <string name="design_show_fewer">Meno</string>
 </resources>

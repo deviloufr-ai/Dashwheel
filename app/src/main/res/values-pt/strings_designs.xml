@@ -54,8 +54,6 @@
     <string name="design_car_outline">Silhueta</string>
     <string name="design_car_outline_desc">O carro de perfil, com as leituras ao lado.</string>
     <string name="design_change">Mudar o design de %1$s</string>
-    <string name="design_picker_title">Design: %1$s</string>
-    <string name="design_picker_hint">Toque num design para o usar neste mosaico. Cada mosaico mantém o seu.</string>
     <string name="design_codes_unit">códigos</string>
     <string name="design_engine_lamp">Luz do motor</string>
     <string name="design_on">Ligada</string>
@@ -164,13 +162,10 @@
     <string name="design_leaf">Folha</string>
     <string name="design_leaf_desc">A folha fica verde à medida que a pontuação sobe.</string>
     <string name="design_section_generic">Para todos os widgets</string>
-    <string name="design_made_for_it">À medida</string>
     <!-- Design families in the picker -->
     <string name="design_family_theme">Nas cores do tema</string>
     <string name="design_family_materials">Materiais</string>
     <string name="design_family_copper">Cobre</string>
     <string name="design_family_cabins">Habitáculos</string>
     <string name="design_label_value">%1$s: %2$s</string>
-    <string name="design_show_more">Mais %1$d</string>
-    <string name="design_show_fewer">Menos</string>
 </resources>

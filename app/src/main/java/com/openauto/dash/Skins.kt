@@ -141,20 +141,14 @@ internal fun StandardSkinnedTile(item: DashboardItem, env: SkinTileEnv) {
 }
 
 /**
- * The skin's chrome: what the shared pieces (dialogs, menus, the buttons on a
- * tile being arranged) borrow from it, so a skin does not end at its tiles.
- * [shapes] goes into MaterialTheme, so every stock dialog and menu takes the
- * skin's corners; the edit colours are the skin's own reds and accents.
+ * The skin's chrome: what the shared pieces (dialogs, menus, the tiles being
+ * arranged) borrow from it, so a skin does not end at its tiles. [shapes]
+ * goes into MaterialTheme, so every stock dialog and menu takes the skin's
+ * corners, and a tile's resize bracket follows its corner.
  */
 @androidx.compose.runtime.Immutable
 internal class SkinChrome(
-    val shapes: androidx.compose.material3.Shapes,
-    /** The remove button on a tile being arranged. */
-    val editRemove: androidx.compose.ui.graphics.Color,
-    /** The resize handle on a tile being arranged. */
-    val editHandle: androidx.compose.ui.graphics.Color,
-    /** Ink on both. */
-    val onEdit: androidx.compose.ui.graphics.Color
+    val shapes: androidx.compose.material3.Shapes
 )
 
 private fun shapes(large: Int, medium: Int, small: Int) = androidx.compose.material3.Shapes(
@@ -173,9 +167,9 @@ private val TapeDeckShapes = shapes(4, 4, 2)
 
 /** The active skin's chrome, in the palette on screen now. */
 internal fun skinChrome(): SkinChrome = when (DashColors.Skin) {
-    DashSkin.ORBIT -> SkinChrome(OrbitShapes, DashColors.Critical, DashColors.Accent2, DashColors.OnAccent)
-    DashSkin.COCKPIT -> SkinChrome(CockpitShapes, androidx.compose.ui.graphics.Color(0xFFB0342A), androidx.compose.ui.graphics.Color(0xFFC9CCD1), androidx.compose.ui.graphics.Color(0xFF15120E))
-    DashSkin.HORIZON -> SkinChrome(HorizonShapes, DashColors.Critical, DashColors.TextPrimary, DashColors.Background)
-    DashSkin.TAPE_DECK -> SkinChrome(TapeDeckShapes, androidx.compose.ui.graphics.Color(0xFFFF2D95), androidx.compose.ui.graphics.Color(0xFF19E6FF), androidx.compose.ui.graphics.Color(0xFF120D18))
-    DashSkin.STANDARD -> SkinChrome(StandardShapes, DashColors.Critical, DashColors.Accent, DashColors.OnAccent)
+    DashSkin.ORBIT -> SkinChrome(OrbitShapes)
+    DashSkin.COCKPIT -> SkinChrome(CockpitShapes)
+    DashSkin.HORIZON -> SkinChrome(HorizonShapes)
+    DashSkin.TAPE_DECK -> SkinChrome(TapeDeckShapes)
+    DashSkin.STANDARD -> SkinChrome(StandardShapes)
 }

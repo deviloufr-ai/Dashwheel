@@ -61,6 +61,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import kotlin.math.abs
+import androidx.compose.runtime.key
+import androidx.compose.foundation.layout.width
+import kotlin.math.min
+import androidx.compose.ui.AbsoluteAlignment
+import androidx.compose.ui.geometry.Rect
 import kotlin.math.roundToInt
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.boundsInRoot
@@ -215,8 +220,6 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     }
     // (page, index) of the launch bar whose apps are being edited.
     var launchBarEditor by remember { mutableStateOf<Pair<Int, Int>?>(null) }
-    // (page, tile index) whose design picker is open.
-    var designPicker by remember { mutableStateOf<Pair<Int, Int>?>(null) }
     // Pages 0-2 swipe sideways; the middle one also swipes up/down (see DashboardStore.COLUMN).
     // Home is the centre of the cross, so that is where the launcher starts.
     val pagerState = rememberPagerState(initialPage = DashboardStore.CENTER, pageCount = { DashboardStore.ROW.size })
@@ -289,8 +292,11 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     var addTargetPage by remember { mutableIntStateOf(-1) }
     var showAddSheet by remember { mutableStateOf(false) }
     var layoutNotice by remember { mutableStateOf<String?>(null) }
-    // (page, tile index) whose options sheet is open (TileOptions.kt).
+    // (page, tile index) whose panel is open while arranging (TileOptions.kt),
+    // where that tile is and where the pages are, in root coordinates.
     var tileOptions by remember { mutableStateOf<Pair<Int, Int>?>(null) }
+    var selectedTileBounds by remember { mutableStateOf<Pair<Pair<Int, Int>, Rect>?>(null) }
+    var pagesArea by remember { mutableStateOf(Rect.Zero) }
     // Asked before a page is cleared, and before a template replaces every page.
     var confirmReset by remember { mutableStateOf(false) }
     var confirmTemplate by remember { mutableStateOf<DashTemplate?>(null) }
@@ -307,7 +313,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     // closes what is open, top-most first, then heads back to Home. Dialogs
     // are windows of their own and take Back themselves before this runs.
     val offHome = currentPage != DashboardStore.CENTER
-    BackHandler(enabled = setupStep != null || showAllApps || settingsTab != null || showAddSheet || editing || offHome) {
+    BackHandler(enabled = setupStep != null || showAllApps || settingsTab != null || showAddSheet || tileOptions != null || editing || offHome) {
         when {
             setupStep != null -> {
                 SetupStore.markDone(context); setupDone = true
@@ -316,6 +322,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             showAddSheet -> showAddSheet = false
             showAllApps -> showAllApps = false
             settingsTab != null -> closeSettings()
+            tileOptions != null -> tileOptions = null
             editing -> editing = false
             else -> showPage(DashboardStore.CENTER)
         }
@@ -358,8 +365,11 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             showSplitEnable = false
             showDevicePicker = false
             launchBarEditor = null
-            designPicker = null
         }
+    }
+    // The panel belongs to a tile of the page on screen, while arranging.
+    LaunchedEffect(editing, currentPage) {
+        if (tileOptions?.first != currentPage || !editing) tileOptions = null
     }
 
     // Docked app windows sit above dialogs and menus on this head unit. Those
@@ -948,6 +958,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                 // unless it floats over the pages and they step aside for it).
                 .onGloballyPositioned { coords ->
                     val b = coords.boundsInRoot()
+                    pagesArea = b
                     val origin = IntArray(2).also { rootView.getLocationOnScreen(it) }
                     PipAnchor.allowedArea.value = ScreenRect(
                         (b.left + origin[0]).roundToInt(), (b.top + origin[1]).roundToInt(),
@@ -990,7 +1001,6 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                     onLaunchApp = onLaunchApp,
                     onLaunchSplitPair = onLaunchSplitPair,
                     onEditLaunchBar = { index -> whenParked { launchBarEditor = page to index } },
-                    onRemove = { index -> removeAt(page, index) },
                     onMoveCell = { index, x, y -> moveCell(page, index, x, y) },
                     onResizeCell = { index, w, h -> resizeCell(page, index, w, h) },
                     canPlace = { index, x, y, w, h ->
@@ -1001,7 +1011,10 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                     },
                     onAdd = { onAdd(page) },
                     onTemplates = { whenParked { showTemplates = true } },
-                    onTileOptions = { index -> tileOptions = page to index }
+                    onTileOptions = { index -> tileOptions = page to index },
+                    selectedIndex = tileOptions?.takeIf { it.first == page }?.second ?: -1,
+                    onSelectedBounds = { bounds -> tileOptions?.let { selectedTileBounds = it to bounds } },
+                    onTapEmpty = { tileOptions = null }
                 )
                 }
             }
@@ -1106,6 +1119,83 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                 modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp)
             )
             if (barAutoHide && !arranging) BarHandle(barState, Modifier.align(Alignment.BottomCenter))
+
+            // The tapped tile's panel, over the side of the pages that leaves
+            // the tile in sight (TileOptions.kt).
+            val selected = tileOptions
+            if (arranging && selected != null) {
+                val (page, index) = selected
+                val tile = pages.getOrNull(page)?.getOrNull(index)
+                if (tile == null) {
+                    // The tile went away (undo, template): close, but not mid-composition.
+                    LaunchedEffect(Unit) { tileOptions = null }
+                } else key(page, index) {
+                    val panelPx = if (vertical) min(pagesArea.height * 0.45f, with(density) { PANEL_SHEET_MAX.toPx() })
+                        else with(density) { PANEL_WIDTH.toPx() }
+                    val driverOnRight = CarProfileStore.current.driverOnRight
+                    // Where the tile is, once it has said so (the frame after it was tapped).
+                    val bounds = selectedTileBounds?.takeIf { it.first == selected }?.second
+                    val side = bounds?.let { b -> panelSide(b, pagesArea, panelPx, vertical, driverOnRight) }
+                        ?: if (vertical) PanelSide.BOTTOM else if (driverOnRight) PanelSide.RIGHT else PanelSide.LEFT
+                    val widget = tile as? DashboardItem.BuiltinWidget
+                    val placing = when (side) {
+                        PanelSide.LEFT -> Modifier.align(AbsoluteAlignment.TopLeft).width(PANEL_WIDTH)
+                        PanelSide.RIGHT -> Modifier.align(AbsoluteAlignment.TopRight).width(PANEL_WIDTH)
+                        PanelSide.TOP -> Modifier.align(Alignment.TopCenter).fillMaxWidth()
+                        PanelSide.BOTTOM -> Modifier.align(Alignment.BottomCenter).fillMaxWidth()
+                    }.then(
+                        when {
+                            widget == null -> Modifier
+                            vertical -> Modifier.height(with(density) { panelPx.toDp() })
+                            else -> Modifier.fillMaxHeight()
+                        }
+                    ).padding(8.dp)
+                    TilePanel(
+                        item = tile,
+                        title = when (tile) {
+                            is DashboardItem.AppShortcut -> appsByPackage[tile.packageName]?.label
+                            is DashboardItem.AppWindow -> appsByPackage[tile.packageName]?.label?.let {
+                                stringResource(if (tile.inside) R.string.dash_app_inside else R.string.dash_app_window, it)
+                            }
+                            else -> null
+                        } ?: tile.describe(),
+                        page = page,
+                        side = side,
+                        designs = widget?.let {
+                            { shelfModifier ->
+                                DesignShelf(
+                                    kind = widget.kind,
+                                    current = widget.design,
+                                    // Grid cells on the head unit are a little wider than tall.
+                                    aspect = (widget.w * 1.1f) / widget.h,
+                                    env = SkinTileEnv(
+                                        editing = false, appsByPackage = appsByPackage, media = media, mediaController = mediaController,
+                                        hasMediaAccess = mediaAccess, context = context, obd = obd, obdConnection = obdConnection,
+                                        onConnectObd = onConnectObd, onPickDevice = onPickDevice, onLaunchApp = onLaunchApp, onEditLaunchBar = {}
+                                    ),
+                                    standardPreview = {
+                                        // Arranging mode: view-hosting tiles show their placeholder, not a second live map.
+                                        TileContent(
+                                            item = widget.copy(design = WidgetDesign.STANDARD), editing = true, appsByPackage = appsByPackage,
+                                            media = media, mediaController = mediaController, hasMediaAccess = mediaAccess,
+                                            context = context, obd = obd, obdConnection = obdConnection, onConnectObd = onConnectObd,
+                                            onPickDevice = onPickDevice, onLaunchApp = onLaunchApp, onLaunchSplitPair = onLaunchSplitPair,
+                                            onEditLaunchBar = {}, onModelTouch = {}
+                                        )
+                                    },
+                                    onPick = { design -> if (design != widget.design) updateItem(page, index, widget.copy(design = design)) },
+                                    modifier = shelfModifier
+                                )
+                            }
+                        },
+                        onZoom = { zoomTile(page, index, it) },
+                        onMoveTo = { target -> tileOptions = null; moveToPage(page, index, target) },
+                        onRemove = { tileOptions = null; removeAt(page, index) },
+                        onClose = { tileOptions = null },
+                        modifier = placing
+                    )
+                }
+            }
 
             // needs the accessibility service; if it isn't on, tapping prompts to
             // enable it instead of silently doing nothing.
@@ -1263,42 +1353,6 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     }
     }
 
-    designPicker?.let { (page, index) ->
-        val tile = pages.getOrNull(page)?.getOrNull(index) as? DashboardItem.BuiltinWidget
-        if (tile == null) {
-            // The tile went away (undo, template): close, but not mid-composition.
-            LaunchedEffect(Unit) { designPicker = null }
-        } else {
-            val env = SkinTileEnv(
-                editing = false, appsByPackage = appsByPackage, media = media, mediaController = mediaController,
-                hasMediaAccess = mediaAccess, context = context, obd = obd, obdConnection = obdConnection,
-                onConnectObd = onConnectObd, onPickDevice = onPickDevice, onLaunchApp = onLaunchApp, onEditLaunchBar = {}
-            )
-            WidgetDesignPickerDialog(
-                kind = tile.kind,
-                current = tile.design,
-                // Grid cells on the head unit are a little wider than tall.
-                aspect = (tile.w * 1.1f) / tile.h,
-                env = env,
-                standardPreview = {
-                    // Arranging mode: view-hosting tiles show their placeholder, not a second live map.
-                    TileContent(
-                        item = tile.copy(design = WidgetDesign.STANDARD), editing = true, appsByPackage = appsByPackage,
-                        media = media, mediaController = mediaController, hasMediaAccess = mediaAccess,
-                        context = context, obd = obd, obdConnection = obdConnection, onConnectObd = onConnectObd,
-                        onPickDevice = onPickDevice, onLaunchApp = onLaunchApp, onLaunchSplitPair = onLaunchSplitPair,
-                        onEditLaunchBar = {}, onModelTouch = {}
-                    )
-                },
-                onPick = { design ->
-                    updateItem(page, index, tile.copy(design = design))
-                    designPicker = null
-                },
-                onDismiss = { designPicker = null }
-            )
-        }
-    }
-
     launchBarEditor?.let { (page, index) ->
         val bar = pages.getOrNull(page)?.getOrNull(index) as? DashboardItem.LaunchBar
         if (bar == null) {
@@ -1313,25 +1367,6 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                     launchBarEditor = null
                 },
                 onDismiss = { launchBarEditor = null }
-            )
-        }
-    }
-
-    tileOptions?.let { (page, index) ->
-        val tile = pages.getOrNull(page)?.getOrNull(index)
-        if (tile == null) {
-            LaunchedEffect(Unit) { tileOptions = null }
-        } else {
-            TileOptionsDialog(
-                item = tile,
-                page = page,
-                onZoom = { zoomTile(page, index, it) },
-                onDesign = if (tile is DashboardItem.BuiltinWidget) {
-                    { tileOptions = null; designPicker = page to index }
-                } else null,
-                onMoveTo = { target -> tileOptions = null; moveToPage(page, index, target) },
-                onRemove = { tileOptions = null; removeAt(page, index) },
-                onDismiss = { tileOptions = null }
             )
         }
     }

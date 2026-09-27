@@ -6,11 +6,9 @@ import android.content.Context
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.BorderStroke
@@ -30,12 +28,9 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Map
-import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.unit.Density
@@ -69,6 +64,15 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import kotlin.math.roundToInt
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.key
@@ -91,7 +95,9 @@ internal data class GridPreview(
     val y: Int,
     val w: Int,
     val h: Int,
-    val isValid: Boolean
+    val isValid: Boolean,
+    /** A span being dragged out by the corner, which the ghost labels with its size. */
+    val resizing: Boolean = false
 )
 
 /** True on the one tile of a page that carries the OBD connect button (the rest only show the state). */
@@ -118,14 +124,19 @@ internal fun DashboardPage(
     onLaunchApp: (String) -> Unit,
     onLaunchSplitPair: (String, String) -> Unit,
     onEditLaunchBar: (Int) -> Unit,
-    onRemove: (Int) -> Unit,
     onMoveCell: (Int, Int, Int) -> Unit,
     onResizeCell: (Int, Int, Int) -> Unit,
     canPlace: (Int, Int, Int, Int, Int) -> Boolean,
     canMove: (Int, Int, Int) -> Boolean,
     onAdd: () -> Unit,
-    /** Opens the options sheet (text size, design, move, remove) for the tile at this index: a tap while arranging. */
+    /** Opens the tile's panel (design, text size, move, remove) for the tile at this index: a tap while arranging. */
     onTileOptions: (Int) -> Unit = {},
+    /** The tile whose panel is open, outlined while arranging; -1 for none. */
+    selectedIndex: Int = -1,
+    /** Where that tile is, in root coordinates, so its panel can stand clear of it. */
+    onSelectedBounds: (Rect) -> Unit = {},
+    /** A tap on the page between tiles while arranging: closes the panel. */
+    onTapEmpty: () -> Unit = {},
     /** Opens the template chooser (offered by an empty page). */
     onTemplates: () -> Unit = {}
 ) {
@@ -211,8 +222,9 @@ internal fun DashboardPage(
         LaunchedEffect(pageItems, editing) { preview = null }
 
         if (editing) {
-            // Grid guide-lines while arranging.
-            Canvas(modifier = Modifier.fillMaxSize()) {
+            // Grid guide-lines while arranging. Under the tiles, so a tap here
+            // is one between them.
+            Canvas(modifier = Modifier.fillMaxSize().pointerInput(Unit) { detectTapGestures { onTapEmpty() } }) {
                 val line = DashColors.TextSecondary.copy(alpha = 0.28f)
                 for (c in 0..GRID_COLS) {
                     val x = (cellWpx * c).coerceAtMost(size.width - 0.5f)
@@ -236,7 +248,23 @@ internal fun DashboardPage(
                         .clip(DashShape.Medium)
                         .background(previewColor.copy(alpha = 0.22f))
                         .border(2.dp, previewColor, DashShape.Medium)
-                )
+                ) {
+                    if (p.resizing) {
+                        // The span the corner will leave, in cells.
+                        Text(
+                            "${p.w}×${p.h}",
+                            color = DashColors.OnAccent.takeIf { p.isValid } ?: Color.White,
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.labelLarge,
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(10.dp)
+                                .clip(DashShape.Pill)
+                                .background(previewColor)
+                                .padding(horizontal = 12.dp, vertical = 4.dp)
+                        )
+                    }
+                }
             }
         }
 
@@ -259,9 +287,10 @@ internal fun DashboardPage(
                     onResizeCell = onResizeCell,
                     canPlace = canPlace,
                     canMove = canMove,
-                    onRemove = onRemove,
+                    selected = editing && index == selectedIndex,
+                    onSelectedBounds = onSelectedBounds,
                     onTileOptions = onTileOptions,
-                    onPreview = { x, y, w, h, isValid -> preview = GridPreview(x, y, w, h, isValid) },
+                    onPreview = { x, y, w, h, isValid, resizing -> preview = GridPreview(x, y, w, h, isValid, resizing) },
                     onPreviewClear = { preview = null },
                     content = {
                         val cellWpxF = with(density) { cellW.toPx() }
@@ -292,7 +321,7 @@ internal fun DashboardPage(
 /**
  * One tile placed on the dashboard grid. Fixed at its cell rectangle normally;
  * in edit mode it can be long-press-dragged to another cell (snapping on drop),
- * resized by the bottom-right handle, or removed.
+ * resized by the bracket on its bottom-right corner, or tapped for its panel.
  */
 @Composable
 internal fun GridTile(
@@ -308,9 +337,11 @@ internal fun GridTile(
     onResizeCell: (Int, Int, Int) -> Unit,
     canPlace: (Int, Int, Int, Int, Int) -> Boolean,
     canMove: (Int, Int, Int) -> Boolean,
-    onRemove: (Int) -> Unit,
+    /** Its panel is open: outlined, and its bracket in the accent. */
+    selected: Boolean,
+    onSelectedBounds: (Rect) -> Unit,
     onTileOptions: (Int) -> Unit,
-    onPreview: (Int, Int, Int, Int, Boolean) -> Unit,
+    onPreview: (Int, Int, Int, Int, Boolean, Boolean) -> Unit,
     onPreviewClear: () -> Unit,
     content: @Composable () -> Unit
 ) {
@@ -324,6 +355,7 @@ internal fun GridTile(
     val onPreview by rememberUpdatedState(onPreview)
     val onPreviewClear by rememberUpdatedState(onPreviewClear)
     val onModelTouch by rememberUpdatedState(onModelTouch)
+    val onSelectedBounds by rememberUpdatedState(onSelectedBounds)
     var dragOffset by remember { mutableStateOf(Offset.Zero) }
     var resizeExtra by remember { mutableStateOf(Offset.Zero) }
     var active by remember { mutableStateOf(false) }
@@ -364,11 +396,17 @@ internal fun GridTile(
                 .fillMaxSize()
                 // Bare themes draw no card, so outline each tile while arranging.
                 .then(
-                    if (editing && DashColors.Bare) Modifier.border(1.dp, DashColors.TextSecondary.copy(alpha = 0.35f), DashShape.Large)
-                    else Modifier
+                    when {
+                        selected -> Modifier
+                            .onGloballyPositioned { onSelectedBounds(it.boundsInRoot()) }
+                            .border(2.dp, DashColors.Accent, skinChrome().shapes.large)
+                        editing && DashColors.Bare -> Modifier.border(1.dp, DashColors.TextSecondary.copy(alpha = 0.35f), DashShape.Large)
+                        else -> Modifier
+                    }
                 )
-                // Dimmed while arranging: the tile is the thing being moved, not read.
-                .graphicsLayer { alpha = if (editing) 0.7f else 1f }
+                // Dimmed while arranging: the tile is the thing being moved, not
+                // read. Not the one whose panel is open: its new design shows as is.
+                .graphicsLayer { alpha = if (editing && !selected) 0.7f else 1f }
         ) { content() }
 
         if (editing) {
@@ -391,7 +429,7 @@ internal fun GridTile(
                             val sx = snapX(); val sy = snapY()
                             if (sx == shownX && sy == shownY) return
                             shownX = sx; shownY = sy
-                            onPreview(sx, sy, item.w, item.h, canMove(index, sx, sy))
+                            onPreview(sx, sy, item.w, item.h, canMove(index, sx, sy), false)
                         }
                         detectDragGesturesAfterLongPress(
                             onDragStart = {
@@ -415,34 +453,21 @@ internal fun GridTile(
                     }
             )
 
-            // Two controls only, hugging the corners so the tile's header stays
-            // readable: remove at the top right, the resize handle at the bottom
-            // right. Each is a 48 dp target around a 36 dp button, in the skin's
-            // own colours (SkinChrome). Everything else is a tap away, in the
-            // tile's options.
-            val chrome = skinChrome()
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .offset(x = 4.dp, y = (-4).dp)
-                    .size(DashSize.Touch)
-                    .clickable(role = Role.Button, onClickLabel = stringResource(R.string.dash_remove_tile, item.describe())) { onRemove(index) },
-                contentAlignment = Alignment.Center
-            ) {
-                Box(
-                    modifier = Modifier.size(36.dp).clip(CircleShape).background(chrome.editRemove),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Filled.Close, contentDescription = null, tint = chrome.onEdit, modifier = Modifier.size(20.dp))
-                }
-            }
-
-            // Bottom-right resize handle: drag to change the cell span.
+            // The bracket on the bottom-right corner: drag it to change the
+            // cell span. It follows the tile's own corner, so it reads as part
+            // of the frame and hides nothing of the tile; the target around it
+            // reaches past the corner. Grey on every tile, the accent (as its
+            // outline) on the one being worked on. Nothing else sits on a tile:
+            // a tap opens its panel (TileOptions.kt), which has the rest.
+            val corner = skinChrome().shapes.large
+            val bracket = if (selected || active) DashColors.Accent else DashColors.TextSecondary.copy(alpha = 0.75f)
+            val resizeLabel = stringResource(R.string.dash_resize_tile, item.describe())
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .offset(x = 4.dp, y = 4.dp)
-                    .size(DashSize.Touch)
+                    .offset(x = HANDLE_REACH, y = HANDLE_REACH)
+                    .size(DashSize.TouchPrimary)
+                    .semantics { contentDescription = resizeLabel }
                     .pointerInput(index, item.x, item.y, item.w, item.h, cellWpx, cellHpx) {
                         var shownW = -1
                         var shownH = -1
@@ -450,7 +475,7 @@ internal fun GridTile(
                             val sw = snapW(); val sh = snapH()
                             if (sw == shownW && sh == shownH) return
                             shownW = sw; shownH = sh
-                            onPreview(item.x, item.y, sw, sh, canPlace(index, item.x, item.y, sw, sh))
+                            onPreview(item.x, item.y, sw, sh, canPlace(index, item.x, item.y, sw, sh), true)
                         }
                         detectDragGestures(
                             onDragStart = {
@@ -471,24 +496,32 @@ internal fun GridTile(
                                 resizeExtra = Offset.Zero; active = false; onModelTouch(false); onPreviewClear()
                             }
                         )
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Box(
-                    modifier = Modifier.size(36.dp).clip(CircleShape).background(chrome.editHandle),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.OpenInFull,
-                        contentDescription = stringResource(R.string.dash_resize_tile, item.describe()),
-                        tint = chrome.onEdit,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
+                    }
+                    .drawBehind {
+                        val stroke = HANDLE_STROKE.toPx()
+                        // The tile's corner, inset half a stroke so the line lies on its edge.
+                        val cx = size.width - HANDLE_REACH.toPx() - stroke / 2
+                        val cy = size.height - HANDLE_REACH.toPx() - stroke / 2
+                        val r = (corner.bottomEnd.toPx(size, this) - stroke / 2).coerceIn(0f, HANDLE_ARM.toPx() - stroke)
+                        val arm = HANDLE_ARM.toPx()
+                        val path = Path().apply {
+                            moveTo(cx, cy - arm)
+                            lineTo(cx, cy - r)
+                            arcTo(Rect(cx - 2 * r, cy - 2 * r, cx, cy), 0f, 90f, false)
+                            lineTo(cx - arm, cy)
+                        }
+                        drawPath(path, bracket, style = Stroke(width = stroke, cap = StrokeCap.Round))
+                    }
+            )
         }
     }
 }
+
+/** How far the resize target reaches past the tile's corner. */
+private val HANDLE_REACH = 12.dp
+/** The bracket's arms, from the corner, and its line. */
+private val HANDLE_ARM = 30.dp
+private val HANDLE_STROKE = 5.dp
 
 /**
  * Renders the inner content of one dashboard tile (widget card, app shortcut,
