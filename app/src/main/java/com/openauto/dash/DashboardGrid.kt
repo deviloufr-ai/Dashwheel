@@ -608,7 +608,7 @@ internal fun TileContent(
             } else PipAnchorCard(modifier = Modifier.fillMaxSize(), onWindowBiggerThanTile = onFitToWindow)
             BuiltinKind.MAPS_INSIDE -> if (editing) {
                 EditPlaceholder(icon = Icons.Filled.Map, label = BuiltinKind.MAPS_INSIDE.label)
-            } else EmbeddedMapsCard(modifier = Modifier.fillMaxSize())
+            } else EmbeddedMapsCard(modifier = Modifier.fillMaxSize(), onTouch = onModelTouch)
             BuiltinKind.TRIP -> TripCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.GFORCE -> GForceCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.PARKING -> ParkingCard(modifier = Modifier.fillMaxSize())
