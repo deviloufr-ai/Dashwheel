@@ -1,0 +1,46 @@
+diff --git a/app/src/main/java/com/openauto/dash/DashboardGrid.kt b/app/src/main/java/com/openauto/dash/DashboardGrid.kt
+index d2d5743..f7c6beb 100644
+--- a/app/src/main/java/com/openauto/dash/DashboardGrid.kt
++++ b/app/src/main/java/com/openauto/dash/DashboardGrid.kt
+@@ -568,7 +568,16 @@ internal fun TileContent(
+                 EditPlaceholder(icon = Icons.Filled.Navigation, label = BuiltinKind.NAVMAP.label)
+             } else if (isEmulator) {
+                 // MapLibre's native renderer segfaults on the emulator's software GL.
+-                EditPlaceholder(icon = Icons.Filled.Navigation, label = stringResource(R.string.dash_map_needs_gpu), hint = stringResource(R.string.dash_not_on_emulator))
++                Box(modifier = Modifier.fillMaxSize().background(DashColors.Card)) {
++                    androidx.compose.foundation.Image(
++                        painter = androidx.compose.ui.res.painterResource(if (DashColors.Light) R.drawable.mkt_map_light else R.drawable.mkt_map_dark),
++                        contentDescription = null,
++                        contentScale = androidx.compose.ui.layout.ContentScale.Crop,
++                        modifier = Modifier.fillMaxSize()
++                    )
++                    val nav by NavDirections.state.collectAsState()
++                    if (nav.active) DirectionsBanner(nav = nav, modifier = Modifier.align(Alignment.TopCenter).padding(horizontal = 10.dp, vertical = 10.dp))
++                }
+             } else Box(
+                 modifier = Modifier.fillMaxSize().background(DashColors.Card)
+             ) {
+diff --git a/app/src/main/java/com/openauto/dash/MainActivity.kt b/app/src/main/java/com/openauto/dash/MainActivity.kt
+index f08d08e..dfe9343 100644
+--- a/app/src/main/java/com/openauto/dash/MainActivity.kt
++++ b/app/src/main/java/com/openauto/dash/MainActivity.kt
+@@ -84,6 +84,7 @@ class MainActivity : ComponentActivity() {
+         ScreenShape.apply(this)
+         enableImmersiveFullscreen()
+         FeedbackStore.load(this)
++        if (intent?.getBooleanExtra("mkt_demo", false) == true && !DemoMode.isOn) DemoMode.start(this)
+         AlertStyleStore.load(this)
+         // Rebuilt after a language change: the fault codes' advice follows it.
+         AiMechanic.followLanguage(this)
+diff --git a/app/src/main/java/com/openauto/dash/TopBar.kt b/app/src/main/java/com/openauto/dash/TopBar.kt
+index faea09b..2ffba99 100644
+--- a/app/src/main/java/com/openauto/dash/TopBar.kt
++++ b/app/src/main/java/com/openauto/dash/TopBar.kt
+@@ -848,6 +848,7 @@ private fun AlertChip(alert: VehicleAlert, onAcknowledge: (() -> Unit)?) {
+  */
+ @Composable
+ internal fun DemoBadge(onStop: () -> Unit, modifier: Modifier = Modifier, compact: Boolean = false) {
++    if (true) return
+     val shape = DashShape.Pill
+     val tap = rememberTapFeedback()
+     Row(

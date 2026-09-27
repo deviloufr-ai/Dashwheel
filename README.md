@@ -1,26 +1,46 @@
-# Dashwheel - Android Car Launcher Project
+# Dashwheel
 
-## Project Overview
+**The car launcher for Android head units.** Map, music and live car data on one calm screen: seven dashboards you arrange yourself, 30+ widgets, four whole-design skins, an AI mechanic that explains warning lights, and your phone's calls and messages on the big screen. Built with Jetpack Compose, free and open source (GPL v3).
 
-Dashwheel is a free-placement, widget-grid car launcher for Android — usable both as a Head Unit's Home launcher and as a standalone smartphone driving app. Built entirely with Jetpack Compose.
+![Dashwheel: map, speed, weather and music on one screen](docs/screenshots/01_hero.jpg)
 
-The dashboard is **three swipeable pages** of a 12×7 cell grid. Each cell can hold an app shortcut, a pair of apps launched side-by-side (split-screen), an editable app launch bar, a real Android AppWidget, or one of 21 built-in cards (navigation, OBD/vehicle telemetry, driving instruments, media, info & comms). Tiles are placed, dragged and resized freely, with collision-aware move/swap/nudge and full undo.
+**[Download the latest APK](https://github.com/deviloufr-ai/ACP/releases/latest)** · Android 10+ · made for 1280x720 head units (ROCO K706 / FYT / QF units), also works on upright screens and phones.
 
-### Key Features
-- **Free-placement widget dashboard**: 3 pages × 12×7 grid, drag-to-move / handle-to-resize tiles, 30-step undo, layout persisted as JSON
-- **21 built-in widgets**: navigation map, Google/Waze directions, full OBD + CANbox telemetry (incl. DTC scan/clear), driving instruments (speed/compass/trip/g-force/parking), weather, calendar, quick-dial, notifications, audio, clock, and more — grouped by category in the widget catalogue, where each one is previewed live as it will look on the page
-- **In-app navigation**: a free MapLibre GL map (CARTO basemap, Nominatim geocoding, Valhalla routing, 3D buildings) that hands off turn-by-turn to Google Maps/Waze; a Directions tile parses the live turn-by-turn notification from either app
-- **OBD-II + CANbox telemetry**: ELM327 Bluetooth adapter for speed/RPM/coolant/intake/throttle/load/fuel/voltage plus DTC read & clear; an optional rooted CANbox (MCU) reader for door state and a learned fuel-level mapping, tuned for a Citroën C4 Picasso
-- **System split-screen**: docks the dashboard and launches another app (or a saved pair) beside it via an Accessibility Service, with a swap button/overlay to flip which app is on which side
-- **System AppWidget hosting**: embed real Android widgets (including ones like Google Maps' that Android normally hides from non-launcher pickers) inside dashboard tiles
-- **12 visual themes**: Auto, Original, Aurora Glass, Neon Dark, Clean Light, Dark Glass, Sporty, Floating, plus four whole-design skins (Orbit, Cockpit, Horizon, Tape Deck) with their own backgrounds, top bars and widgets — switchable live from the theme picker
-- **Phone link (Dashwheel Companion)**: with the phone sharing its connection over Wi-Fi, a small companion app on the phone sends its notifications and messages to the Notifications widget; read them aloud and answer with a quick reply or by voice (WhatsApp, Messages, Signal… through each app's own reply action, like Android Auto); incoming calls with caller name and photo, answer / decline / hang up from the screen; the phone also keeps where the car was left and a log of every drive (trip computer figures + eco-driving score). Paired once by scanning a QR code, end-to-end encrypted
-- **Media Integration**: reads the active system media session (title, artist, artwork, playback) and exposes transport controls
-- **Volume control + volume follows speed**: Settings → Driving → Volume control picks Automatic / Android / Volume keys (units whose MCU ignores Android's volume, like the ROCO K706, use the keys the wheel buttons send, via root or the internal ADB); Settings → Driving → Off / Low / Medium / High turns the music up from 40 km/h (OBD speed, GPS otherwise) and back down as the car slows, adding and removing only its own notches so the driver's volume changes are kept (`SpeedVolume.kt`)
-- **In-App Auto-Update**: checks GitHub Releases on launch, tracks the installed version, and downloads/installs newer APKs
-- **Optional priv-app install**: self-installs to `/system/priv-app` (via `su`/Magisk or the head unit's internal root ADB) to pick up `BIND_APPWIDGET` privileges and the split-swap overlay — opt-in only, not required
-- **Root-only features stay out of the way**: everything that runs through `su` or the unit's internal ADB (system-app install, boot logo, app windows and the Maps window, volume keys, CANbox tiles and finders) is only offered once a privileged shell is found (`PrivilegedShell.kt`); on a phone or an unrooted unit those settings, catalogue entries and template tiles are hidden
-- **Safety First**: dark themes by default, large touch targets, screen kept on while driving
+## Screenshots
+
+| | |
+|---|---|
+| ![Live car data](docs/screenshots/02_live_car_data.jpg) | ![AI mechanic](docs/screenshots/03_ai_mechanic.jpg) |
+| **Live car data** from a Bluetooth OBD adapter and the head unit's CANbox | **AI mechanic**: fault codes explained in plain words |
+| ![Road trip](docs/screenshots/04_road_trip.jpg) | ![Widget designs](docs/screenshots/05_widget_designs.jpg) |
+| **Road trip**: next turn, break reminder, eco score, fuel prices nearby | **60+ widget designs**, one per tile |
+| ![Skins](docs/screenshots/06_skins.jpg) | ![Arranged your way](docs/screenshots/07_customise.jpg) |
+| **Four skins**: Orbit, Cockpit, Horizon, Tape Deck | **Seven dashboards**, live widget previews, templates |
+| ![Calls](docs/screenshots/13_calls.jpg) | ![Upright screens](docs/screenshots/14_upright.jpg) |
+| **Calls** from the paired phone, answered from the screen | **Upright screens** get their own layout |
+| ![Day and night](docs/screenshots/08_day_night.jpg) | ![Tape Deck skin](docs/screenshots/12_skin_tape_deck.jpg) |
+| **Day and night**: every theme in light and dark | **Tape Deck**, one of the four skins |
+
+More in [`docs/screenshots/`](docs/screenshots/) (one slide per skin). The screenshots use **demo mode** (Settings → Advanced → Demo mode), a made-up drive through Paris. The emulator they were taken on cannot draw the map tile, so it shows a still render in the in-app map's style. [`tools/marketing/`](tools/marketing/) regenerates them.
+
+## Key Features
+- **Seven dashboards in a cross**: three side by side, plus two above and two below the middle one. Each is a free 12x7 grid (7x12 on an upright screen): hold a tile to move it, drag its corner to resize, 30-step undo, layout saved as JSON
+- **Templates**: *Daily*, *Road trip* and *Car health* fill all seven dashboards at once, laid out for the screen with the main tiles on the driver's side; a first-run setup walks through the permissions
+- **30+ built-in widgets** in five categories, each previewed live in the widget picker as it will look on the page, plus real Android AppWidgets, app shortcuts, launch bars and docked app windows
+- **60+ widget designs**: flip clock, twin dials, shift lights, LCD, neon, fuel tank, car top view, radar, road sign... chosen per tile
+- **14 themes, 4 of them whole-design skins** (Orbit, Cockpit, Horizon, Tape Deck), each with a light and a dark version that follow the car's day/night mode
+- **Live car data**: ELM327 Bluetooth OBD (speed, revs, temperatures, load, fuel, voltage, fault codes read & clear) that reconnects by itself, and the head unit's own car data (doors, fuel level, lights, mileage, reversing, ignition, seat belt, tyre pressures) where the unit exposes it
+- **AI mechanic** (Google Gemini, free API key): scans fault codes automatically, explains them in plain words with what to check first, and speaks the important ones; fetches your car's specs (oil, tyres, service plan) into **My car**
+- **Car care**: particle filter health, engine warm-up, battery, servicing planner with spoken reminders, fuel to destination, fuel prices around the car (France)
+- **In-app navigation**: a free MapLibre map (CARTO basemap, 3D buildings, Nominatim search, Valhalla routes) that hands turn-by-turn to Google Maps or Waze; the Directions tile reads their next turn
+- **Phone link (Dashwheel Companion)**: the phone's notifications and messages (read aloud, quick or voice replies), phone and WhatsApp-style calls answered from the screen, where the car is parked, and a log of every drive with its eco-driving score; paired by QR code, end-to-end encrypted
+- **Your own alerts instead of the head unit's pop-ups**: calls, doors, parking radar, climate, tyres and seat belt, each as a pill, card, banner, side panel or full screen, optionally spoken
+- **Hands-free**: steering wheel buttons learned from the car and mapped to Dashwheel actions; volume keys and volume that follows speed
+- **Upright screens**: Tesla-style portrait units get their own grid and layouts, in every theme
+- **8 languages**: English, French, German, Spanish, Italian, Portuguese, Dutch, Polish
+- **Drive lock**: arranging tiles, settings and pickers wait until the car has stopped
+- **Updates from GitHub Releases**: shows the release notes, downloads on Wi-Fi, one tap to install
+- **Root is optional**: features that need `su` or the unit's internal ADB (system-app install, boot logo, docked app windows, CANbox tiles, volume keys) only appear when such a shell is found
 
 ### Project Structure
 
@@ -123,18 +143,18 @@ On Windows PowerShell use `.\gradlew.bat assembleDebug`. The output APK is at `a
 
 ## Features Overview
 
-### 1. Dashboard Grid — 3 Pages, Free Placement
-`AutomotiveDashboard` owns three swipeable "virtual desktop" pages, each a 12×7 cell grid (`DashboardModel.kt`). Tiles are placed, long-press-dragged to move, or resized via a corner handle (`DashboardGrid.kt`), with live snap-preview and collision-aware move/swap/nudge (`DashboardStore.moveResolving`). Layouts persist as JSON in SharedPreferences and survive app restarts; up to 30 steps of undo are kept in memory. Tapping the **"+"** tile opens the add flow: an app shortcut, a split-screen app pair, an editable launch bar, a widget from the catalogue, or a hosted system AppWidget.
+### 1. Dashboard Grid — 7 Dashboards, Free Placement
+`AutomotiveDashboard` owns seven swipeable dashboards laid out as a cross (three side by side; the middle one also swipes up to two more and down to two more), each a 12×7 cell grid, 7×12 on an upright screen (`DashboardModel.kt`, `ScreenShape.kt`). Tiles are placed, long-press-dragged to move, or resized via a corner handle (`DashboardGrid.kt`), with live snap-preview and collision-aware move/swap/nudge (`DashboardStore.moveResolving`). Layouts persist as JSON in SharedPreferences and survive app restarts; up to 30 steps of undo are kept in memory. ⋮ → *Edit dashboards* → **Add** opens the add sheet (`AddSheet.kt`): widgets from the catalogue (each previewed live), apps, and app windows; ⋮ → *Templates* fills every dashboard from a template (`DashTemplates.kt`).
 
 While the launcher shares the screen with another app (system split-screen), pages automatically switch to a stacked vertical-scroll layout instead of the free grid.
 
-### 2. Widget Catalogue (21 built-in cards)
-`WidgetCatalog.kt` groups every built-in widget by category:
-- **Driving**: speed HUD, compass, trip computer, g-force meter, parking-spot finder
-- **Navigation**: in-app MapLibre map, Google/Waze directions tile, Maps window dock (pins the floating Maps PiP onto a tile via the head unit's ADB socket)
-- **Vehicle**: OBD telemetry, OBD DTC scan/clear, all-OBD-values, fuel/range, door state, CAN signal monitor
-- **Info & Comms**: clock, weather, calendar, quick-dial, notifications, audio
-- **Media & Apps**: media player, app launch bar
+### 2. Widget Catalogue (32 built-in cards)
+`WidgetCatalog.kt` groups every built-in widget by category; each can wear any of 60+ designs (`WidgetDesigns.kt`):
+- **Driving**: speed, compass, trip computer, g-force, eco driving, break reminder
+- **Navigation**: in-app MapLibre map, Google/Waze directions, Maps window dock (pins the floating Maps window onto a tile via the head unit's ADB socket), parking spot, fuel to destination, fuel prices
+- **Vehicle**: telemetry, fault codes, all OBD data, fuel & range, doors, CAN monitor, particle filter, engine warm-up, battery, my car, servicing, car status, tyres
+- **Info & Comms**: clock, weather, agenda, quick dial, notifications, audio
+- **Media & Apps**: music player, app launch bar
 
 ### 3. In-App Navigation & Directions
 `MapLibrePanel.kt` is a free, no-API-key in-app navigator: MapLibre GL rendering over the CARTO dark-matter basemap, Nominatim geocoding, Valhalla routing, and 3D building extrusion, with a GPS-tracking camera. Tapping **Start** hands off turn-by-turn guidance to Google Maps via the free `google.navigation:` intent (falling back to a generic `geo:` intent) — full embedded Google Maps was attempted but abandoned since embedding requires platform signing.
@@ -153,7 +173,7 @@ While the launcher shares the screen with another app (system split-screen), pag
 This head unit's ROM ignores AOSP windowing APIs but honors SystemUI's manual recents-drag split path, so `SplitLauncher.kt` drives it via an `AccessibilityService` (`SplitAccessibilityService.kt`, enabled once under Settings → Accessibility): it triggers the same global action a manual split gesture would, then launches the target app (or a saved pair) adjacent to the dashboard. A floating overlay button (or a FAB in the dashboard) lets you swap which app occupies which side, since this ROM has no working divider double-tap swap gesture.
 
 ### 7. Optional Priv-App Install
-`SystemInstaller.kt`/`AdbInstaller.kt` can self-install the APK into `/system/priv-app`, either via `su`/Magisk (preferring a systemless Magisk module) or by talking to the head unit's internal root ADB socket. This is opt-in only (from ⋮ → System app in the top bar), mainly useful for the `BIND_APPWIDGET` priv-app permission and the split-swap overlay window — it does **not** enable embedding Google Maps.
+`SystemInstaller.kt`/`AdbInstaller.kt` can self-install the APK into `/system/priv-app`, either via `su`/Magisk (preferring a systemless Magisk module) or by talking to the head unit's internal root ADB socket. This is opt-in only (Settings → Advanced → System app), mainly useful for the `BIND_APPWIDGET` priv-app permission and the split-swap overlay window — it does **not** enable embedding Google Maps.
 
 ### 8. Phone Link (Dashwheel Companion)
 The driver's phone shares its connection with the head unit over Wi-Fi. **Dashwheel Companion** (`companion/`, shipped as `dashwheel-companion.apk` in every release) runs on the phone:
@@ -172,8 +192,7 @@ On Android 13+, a sideloaded app's Notification access is a "restricted setting"
 `UpdateManager` keeps the app current from GitHub Releases:
 - On launch it queries `https://api.github.com/repos/deviloufr-ai/ACP/releases/latest`.
 - **Version tracking**: the installed `versionCode` is set by CI to the Actions **run number**; the latest build number is parsed from the release tag (`v1.0.42` → `42`). A higher number means an update is available.
-- If newer, a banner offers **Update** → it downloads the release's launcher APK (never `dashwheel-companion.apk`) via `DownloadManager` and launches the system installer (Android always shows its own install confirmation).
-- The current version is shown in the top status bar.
+- If newer, a dot on the ⋮ menu and a Settings row offer the update (downloaded ahead on an unmetered network); tapping it shows the release notes, then **Update now** → it downloads the release's launcher APK (never `dashwheel-companion.apk`) via `DownloadManager` and launches the system installer (Android always shows its own install confirmation).
 
 > Android cannot install silently without device-owner privileges, so "auto-update" means auto-check + auto-download + a one-tap, OS-confirmed install. The first time, the user must allow "install unknown apps" for Dashwheel (the app opens that settings screen for them).
 
@@ -199,7 +218,7 @@ On Android 13+, a sideloaded app's Notification access is a "restricted setting"
 When these secrets are present, CI signs every release APK with that key; when they are absent, it falls back to the debug key (installs fine, but cross-version updates won't).
 
 ### 10. Theming
-`DashTheme.kt` provides 12 selectable themes, switchable live from the theme picker (`DashThemePickerDialog.kt`): **Auto** (follows system day/night), **Original** (the first launcher look — flat cards, twin-needle gauges, rendered by `OriginalTiles.kt`), **Aurora Glass** (glass panels, glowing gauges, cyan/violet gradient), **Neon Dark**, **Clean Light**, **Dark Glass**, **Sporty** (black + red) and **Floating** (no tile backgrounds).
+`DashTheme.kt` provides 14 selectable themes, each in a dark and a light version (Auto follows the car's day/night mode), switchable live from Settings → Look: **Auto** (follows system day/night), **Original** (the first launcher look — flat cards, twin-needle gauges, rendered by `OriginalTiles.kt`), **Aurora Glass** (glass panels, glowing gauges, cyan/violet gradient), **Neon Dark**, **Clean Light**, **Dark Glass**, **Sporty** (black + red), **Floating** (no tile backgrounds), **Mistral** (the C4 Picasso's central cluster: cold-white numerals on smoked graphite, amber alerts) and **Zénith** (pearl grey, white panels, one deep blue accent).
 
 Four more are whole-design **skins** (`DashSkin`): **Orbit** (everything round: a spinning record, ring gauges, bubbles), **Cockpit** (chrome-ringed analog dials and toggle switches on stitched leather), **Horizon** (no widgets, just an evening scene with the road ahead and typography on it) and **Tape Deck** (80s synthwave head unit: cassette, neon grid, seven-segment digits). A skin draws its own page background, top bar and the main widgets (speed, telemetry, music, directions, clock, weather, fuel, app shortcuts, launch bar); `Skins.kt` routes those tiles to the skin's file and every other tile keeps its standard renderer on the skin's palette. When Google Maps is docked, the skin also shapes and decorates it (a round porthole, a chrome bezel, a CRT bezel, a soft fade) from an overlay window above it (`WindowFrameOverlay.kt`); touches pass straight through to Maps.
 
@@ -208,10 +227,10 @@ Four more are whole-design **skins** (`DashSkin`): **Orbit** (everything round: 
 ```mermaid
 graph TB
     A[MainActivity] --> B[AutomotiveDashboard]
-    B --> C[DashboardGrid: 3 pages, 12x7 grid]
+    B --> C[DashboardGrid: 7 dashboards, 12x7 grid]
     C --> D[DashboardStore: move/resize/undo]
 
-    B --> E[WidgetCatalog: 21 builtin widgets]
+    B --> E[WidgetCatalog: 32 builtin widgets]
     E --> F[Navigation: MapLibrePanel + DirectionsTile]
     E --> G[Vehicle: OBD + CANbox telemetry]
     E --> H[Driving: speed/compass/trip/g-force/parking]
@@ -309,4 +328,4 @@ Dashwheel (the launcher and the Companion app) is free software: you can redistr
 
 **Project Status**: Compiles to a debug/release APK via Gradle/CI; actively evolving, in on-device integration testing on a real head unit.
 
-**Last Updated**: 2026-09-22
+**Last Updated**: 2026-09-27
