@@ -43,7 +43,9 @@ object CarBox {
 
     private val _body = MutableStateFlow<CarBody?>(null)
     val body: StateFlow<CarBody?> = _body
-    private var bodyAt = 0L
+    /** When [body] was heard ([SystemClock.elapsedRealtime]). */
+    internal var bodyAt = 0L
+        private set
 
     private val _climate = MutableStateFlow<Climate?>(null)
     /** The climate control; a new value each time it changes. */
@@ -84,6 +86,12 @@ object CarBox {
     /** The body data while it's current, else null. */
     fun freshBody(): CarBody? = _body.value?.takeIf { SystemClock.elapsedRealtime() - bodyAt <= FRESH_MS }
 
+    /** [DemoMode]'s body, heard [at]; and the real one put back when it ends. */
+    internal fun demoWrite(body: CarBody?, at: Long = SystemClock.elapsedRealtime()) {
+        _body.value = body
+        bodyAt = at
+    }
+
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
@@ -102,9 +110,12 @@ object CarBox {
     private fun onShare(data: ByteArray?) {
         when (shareType(data)) {
             SHARE_BODY -> parseCarBody(data!!)?.let {
+                // McuReader keeps the real fuel and range through the demo by itself.
+                McuReader.carBoxWrite(fuelPercentOf(it), it.range?.takeIf { r -> r in 1f..MAX_RANGE_KM }?.roundToInt())
+                // The demo shows its own body; the car's next message brings the real one back.
+                if (DemoMode.isOn) return
                 _body.value = it
                 bodyAt = SystemClock.elapsedRealtime()
-                McuReader.carBoxWrite(fuelPercentOf(it), it.range?.takeIf { r -> r in 1f..MAX_RANGE_KM }?.roundToInt())
                 it.odometer?.let { km -> Maintenance.carOdometer(km.toInt()) }
             }
             SHARE_AC -> parseClimate(data!!)?.let { _climate.value = it }

@@ -71,9 +71,16 @@ object Tyres {
                 noSignal = intent.getBooleanExtra("nosignal", false),
                 at = SystemClock.elapsedRealtime()
             )
-            _tyres.update { it + (pos to tyre) }
             pressureUnit(intent.getStringExtra("presunit"))?.let { _unit.value = it }
+            // The demo shows its own tyres; the sensors fill them in again once it's over.
+            if (DemoMode.isOn) return
+            _tyres.update { it + (pos to tyre) }
         }
+    }
+
+    /** [DemoMode]'s tyres, and the real ones put back when it ends. */
+    internal fun demoWrite(tyres: Map<TyrePos, Tyre>) {
+        _tyres.value = tyres
     }
 
     /** For [AlertPreview]: made-up tyres, one of them low. */

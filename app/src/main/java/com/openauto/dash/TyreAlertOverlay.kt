@@ -89,6 +89,8 @@ object TyreAlertOverlay {
             var said: Map<TyrePos, TyreProblem> = emptyMap()
             problems.collect { now ->
                 if (now.isEmpty()) dismissed.value = emptyMap()
+                // The demo's tyres show but aren't said, nor counted as said once it's over.
+                if (DemoMode.isOn) return@collect
                 if (RomPopups.Kind.TYRES in RomPopups.replaced.value) {
                     (now - said.filter { (pos, p) -> now[pos] == p }.keys).forEach { (pos, p) -> AlertVoice.sayTyre(app, pos, p) }
                 }
