@@ -5,6 +5,7 @@ import android.app.ActivityOptions
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.SurfaceTexture
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
 import android.hardware.input.InputManager
@@ -12,8 +13,7 @@ import android.util.Log
 import android.view.InputEvent
 import android.view.MotionEvent
 import android.view.Surface
-import android.view.SurfaceHolder
-import android.view.SurfaceView
+import android.view.TextureView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -47,7 +47,7 @@ import org.lsposed.hiddenapibypass.HiddenApiBypass
 /**
  * Another app, Google Maps, running inside a dashboard tile: it is launched
  * onto a virtual display of the tile's size, whose picture is the tile's
- * [SurfaceView], and the tile's touches are sent on to it. The same way
+ * [TextureView], and the tile's touches are sent on to it. The same way
  * Android Auto shows Maps on a car's screen.
  *
  * Android lets an app do this only with two permissions it keeps for the
@@ -305,16 +305,35 @@ internal fun EmbeddedMapsCard(modifier: Modifier = Modifier, onTouch: (Boolean) 
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = { ctx ->
-                SurfaceView(ctx).apply {
-                    holder.addCallback(object : SurfaceHolder.Callback {
-                        override fun surfaceCreated(holder: SurfaceHolder) {}
-
-                        override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
-                            if (width > 0 && height > 0) host.attach(holder.surface, width, height, dpi)
+                // A TextureView, not a SurfaceView: a SurfaceView punches a hole
+                // through the dashboard's window to show its picture, and on the
+                // head unit that hole took the page's background and the other
+                // tiles with it. A TextureView is drawn like any other view.
+                TextureView(ctx).apply {
+                    var surface: Surface? = null
+                    surfaceTextureListener = object : TextureView.SurfaceTextureListener {
+                        override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
+                            texture.setDefaultBufferSize(width, height)
+                            val s = Surface(texture).also { surface = it }
+                            if (width > 0 && height > 0) host.attach(s, width, height, dpi)
                         }
 
-                        override fun surfaceDestroyed(holder: SurfaceHolder) = host.detach()
-                    })
+                        override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) {
+                            texture.setDefaultBufferSize(width, height)
+                            val s = surface ?: return
+                            if (width > 0 && height > 0) host.attach(s, width, height, dpi)
+                        }
+
+                        override fun onSurfaceTextureDestroyed(texture: SurfaceTexture): Boolean {
+                            // The display lets go of the picture before it is freed.
+                            host.detach()
+                            surface?.release()
+                            surface = null
+                            return true
+                        }
+
+                        override fun onSurfaceTextureUpdated(texture: SurfaceTexture) {}
+                    }
                     setOnTouchListener { v, event ->
                         // A drag on the map pans the map: the dashboard's pages must not take it.
                         when (event.actionMasked) {
