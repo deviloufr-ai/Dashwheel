@@ -180,6 +180,7 @@ Besides app icons (a tap opens the app full screen), another app can live on a p
 | **What you get** | The app in a floating window laid over the tile (`PipAnchor.kt`, `AppWindowTile.kt`) | The app drawn inside the tile itself, like a widget, and touched there (`EmbeddedApp.kt`) | Two apps opened together in system split screen (section 6) |
 | **Swiping to another page** | The window moves to a hidden display and keeps running | The app keeps running out of sight: music or guidance carries on | – |
 | **Removing the tile** | The window closes once no tile of that app is left | The app closes with its last tile | – |
+| **The same app on several pages** | – | Yes: the app runs once and shows on the tile of the page on screen (Maps and YouTube Music on two dashboards, say) | – |
 | **Tile zoom** | No | Yes, it scales the app's text and buttons | Yes |
 
 **What each one needs**

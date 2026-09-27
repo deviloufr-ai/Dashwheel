@@ -21,11 +21,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -60,6 +64,9 @@ import org.lsposed.hiddenapibypass.HiddenApiBypass
  * only takes the picture away, so a navigation goes on and comes back as it
  * was. The display is closed, and the app with it, once no tile is left
  * ([releaseUnless]).
+ *
+ * An app runs only once, so several tiles of it (Maps on two pages) share its
+ * one display: the picture goes to the tile on screen ([pickTile]).
  */
 internal object EmbeddedApp {
 
@@ -124,13 +131,30 @@ internal object EmbeddedApp {
     /** True while [packageName] runs inside a tile, on its own display. */
     fun holds(packageName: String): Boolean = packageName in held
 
+    /**
+     * Which of an app's tiles gets the picture: [current] while it is still on
+     * screen, so a swipe halfway never flips it back and forth; else a tile on
+     * screen; else, none showing (the pages beside, arranging), [current] as
+     * long as it has a picture to draw on; else the latest tile with one.
+     * [ready] are the tiles with a picture to draw on, oldest first.
+     */
+    fun <T> pickTile(current: T?, ready: List<T>, onScreen: Set<T>): T? =
+        current?.takeIf { it in ready && it in onScreen }
+            ?: ready.lastOrNull { it in onScreen }
+            ?: current?.takeIf { it in ready }
+            ?: ready.lastOrNull()
+
     /** Closes the displays of the apps not in [keep]; each app closes with its display. */
     fun releaseUnless(keep: Set<String>) {
         val gone = hosts.keys - keep
         gone.forEach { hosts.remove(it)?.release() }
     }
 
-    /** One app's display: made on the first picture, then only given a new one. */
+    /**
+     * One app's display: made on the first picture, then only given a new one,
+     * from whichever of the app's tiles is on screen. The tiles, and the calls
+     * below, all live on the main thread.
+     */
     class Host(private val context: Context, val packageName: String) {
 
         private val _status = MutableStateFlow(Status.STARTING)
@@ -141,9 +165,84 @@ internal object EmbeddedApp {
         private var touchRefused = false
         private var settling: Job? = null
 
-        /** The tile shows [surface], [width] x [height] pixels at [dpi]. */
+        /** One tile of the app: its picture, once it has one, and whether it is on screen. */
+        private class Tile {
+            var surface: Surface? = null
+            var width = 0
+            var height = 0
+            var dpi = 0
+            var onScreen = false
+        }
+
+        private val tiles = LinkedHashMap<Any, Tile>()
+
+        /** The tile the display draws on, and the picture and size it was given. */
+        private var shownOn: Any? = null
+        private var shownSurface: Surface? = null
+        private var shownWidth = 0
+        private var shownHeight = 0
+        private var shownDpi = 0
+
+        /** [tile] shows [surface], [width] x [height] pixels at [dpi]. */
+        fun attach(tile: Any, surface: Surface, width: Int, height: Int, dpi: Int) {
+            val t = tiles.getOrPut(tile) { Tile() }
+            t.surface = surface
+            t.width = width
+            t.height = height
+            t.dpi = dpi
+            route()
+        }
+
+        /** [tile] came on screen, or went off it (a page swipe). */
+        fun onScreen(tile: Any, on: Boolean) {
+            val t = tiles.getOrPut(tile) { Tile() }
+            if (t.onScreen == on) return
+            t.onScreen = on
+            route()
+        }
+
+        /**
+         * [tile] lost its picture (a page no longer kept, arranging): the
+         * display moves to another tile of the app if there is one, else stays
+         * without a picture, so the app keeps running.
+         */
+        fun detach(tile: Any) {
+            tiles[tile]?.surface = null
+            route()
+        }
+
+        /** [tile] is gone for good. */
+        fun forget(tile: Any) {
+            tiles.remove(tile)
+            route()
+        }
+
+        /** Gives the display to the tile [pickTile] chooses, when it is not already there. */
+        private fun route() {
+            val ready = tiles.filterValues { it.surface != null }.keys.toList()
+            val onScreen = tiles.filterValues { it.onScreen }.keys
+            val next = pickTile(shownOn, ready, onScreen)
+            val t = next?.let { tiles[it] }
+            val surface = t?.surface
+            if (t == null || surface == null) {
+                shownOn = null
+                shownSurface = null
+                display?.surface = null
+                return
+            }
+            if (next == shownOn && surface === shownSurface &&
+                t.width == shownWidth && t.height == shownHeight && t.dpi == shownDpi
+            ) return
+            shownOn = next
+            shownSurface = surface
+            shownWidth = t.width
+            shownHeight = t.height
+            shownDpi = t.dpi
+            show(surface, t.width, t.height, t.dpi)
+        }
+
         @SuppressLint("WrongConstant") // DESTROY_CONTENT_ON_REMOVAL is a real flag, only @hide.
-        fun attach(surface: Surface, width: Int, height: Int, dpi: Int) {
+        private fun show(surface: Surface, width: Int, height: Int, dpi: Int) {
             val vd = display
             if (vd != null) {
                 vd.resize(width, height, dpi)
@@ -172,16 +271,11 @@ internal object EmbeddedApp {
             launch(made)
         }
 
-        /**
-         * The tile went (a page swipe, arranging): the display stays, without a
-         * picture, so the app keeps running.
-         */
-        fun detach() {
-            display?.surface = null
-        }
-
         fun release() {
             settling?.cancel()
+            tiles.clear()
+            shownOn = null
+            shownSurface = null
             display?.let { vd ->
                 WindowListing.embeddedDisplays = WindowListing.embeddedDisplays - vd.display.displayId
                 vd.release()
@@ -304,9 +398,24 @@ internal fun EmbeddedAppCard(packageName: String, label: String, modifier: Modif
     val context = LocalContext.current
     val host = EmbeddedApp.host(context, packageName)
     val status by host.status.collectAsState()
+    // This tile, among the app's others (Maps on another page too).
+    val tile = remember { Any() }
+    DisposableEffect(host, tile) {
+        onDispose { host.forget(tile) }
+    }
     // The tile's own zoom (TileZoom) sizes the app's text and buttons too.
     val dpi = (LocalDensity.current.density * 160).toInt()
-    Box(modifier = modifier.background(DashColors.Card)) {
+    Box(
+        modifier = modifier
+            .background(DashColors.Card)
+            // On screen once half of it shows: the pages beside the current one
+            // are kept, off screen, and the app's picture belongs on the one seen.
+            .onGloballyPositioned { coords ->
+                val full = coords.size.width.toFloat() * coords.size.height
+                val seen = coords.boundsInWindow()
+                host.onScreen(tile, full > 0f && seen.width * seen.height * 2 >= full)
+            }
+    ) {
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = { ctx ->
@@ -320,18 +429,18 @@ internal fun EmbeddedAppCard(packageName: String, label: String, modifier: Modif
                         override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
                             texture.setDefaultBufferSize(width, height)
                             val s = Surface(texture).also { surface = it }
-                            if (width > 0 && height > 0) host.attach(s, width, height, dpi)
+                            if (width > 0 && height > 0) host.attach(tile, s, width, height, dpi)
                         }
 
                         override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) {
                             texture.setDefaultBufferSize(width, height)
                             val s = surface ?: return
-                            if (width > 0 && height > 0) host.attach(s, width, height, dpi)
+                            if (width > 0 && height > 0) host.attach(tile, s, width, height, dpi)
                         }
 
                         override fun onSurfaceTextureDestroyed(texture: SurfaceTexture): Boolean {
                             // The display lets go of the picture before it is freed.
-                            host.detach()
+                            host.detach(tile)
                             surface?.release()
                             surface = null
                             return true
