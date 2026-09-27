@@ -1,6 +1,9 @@
 package com.openauto.dash
 
+import android.accessibilityservice.AccessibilityService
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.app.ActivityManager
 import android.app.ActivityOptions
 import android.content.Context
 import android.content.Intent
@@ -11,9 +14,11 @@ import android.hardware.display.VirtualDisplay
 import android.hardware.input.InputManager
 import android.util.Log
 import android.view.InputEvent
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.Surface
 import android.view.TextureView
+import android.view.inputmethod.InputMethodManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -42,11 +47,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.lsposed.hiddenapibypass.HiddenApiBypass
+import java.lang.ref.WeakReference
 
 /**
  * Another app, Google Maps, running inside a dashboard tile: it is launched
@@ -67,6 +74,12 @@ import org.lsposed.hiddenapibypass.HiddenApiBypass
  *
  * An app runs only once, so several tiles of it (Maps on two pages) share its
  * one display: the picture goes to the tile on screen ([pickTile]).
+ *
+ * Opening an app on a display puts that display in front, and Android sends
+ * the unit's keys (the touch keys beside the screen: Home, Back...) to the
+ * display in front: Home then looks for a home screen on the tile's display,
+ * finds none and does nothing. So the keys are handed back to the main screen
+ * after each launch there, and after each touch ([giveKeysBack]).
  */
 internal object EmbeddedApp {
 
@@ -133,6 +146,152 @@ internal object EmbeddedApp {
 
     /** True while [packageName] runs inside a tile, on its own display. */
     fun holds(packageName: String): Boolean = packageName in held
+
+    // --- The unit's keys ---------------------------------------------------
+
+    /** How often a tap in a tile checks whether the keys can come back (not while typing there). */
+    private const val GIVE_BACK_MS = 1_500L
+
+    /** How long a tap in a tile keeps checking before letting the keys be. */
+    private const val GIVE_BACK_TRIES = 80
+
+    /** A key's second chance, once the main screen is back in front. */
+    private const val KEY_AGAIN_MS = 150L
+
+    private val mainScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+
+    /** The dashboard while it is on screen: its task is what brings the main screen back in front. */
+    @Volatile
+    private var dashboard: WeakReference<Activity>? = null
+
+    /** A tile's display may be in front, with the keys: set on a launch or a tap there. */
+    @Volatile
+    private var keysAway = false
+
+    private var tileTouched = false
+    private var givingBack: Job? = null
+
+    private var raising: Job? = null
+
+    /** Home or Back held back by [keyWhileAway], until let go. */
+    private var heldKey = 0
+
+    /** [activity] shows (onStart), or null once it no longer does (onStop). */
+    fun dashboardShown(activity: Activity?) {
+        dashboard = activity?.let { WeakReference(it) }
+        // Something else came in front of the dashboard, on the main screen: it has the keys.
+        if (activity == null) keysAway = false
+    }
+
+    /**
+     * Puts the main screen back in front, and the keys with it, by raising the
+     * task already in front there (the dashboard's, or a window floating over
+     * it), so nothing moves on screen. Only while the dashboard shows. Main
+     * thread; null when there was nothing to do.
+     */
+    fun giveKeysBack(): Job? {
+        if (!keysAway) return null
+        val activity = dashboard?.get() ?: return null
+        keysAway = false
+        givingBack?.cancel()
+        // A newer look wins: the older one may have seen the app still on the screen, before its move.
+        raising?.cancel()
+        return mainScope.launch {
+            val front = runCatching {
+                DockShell.forgetListing()
+                WindowListing.frontTask(DockShell.listStacks(activity))
+            }.getOrNull()
+            ensureActive()
+            val taskId = front ?: activity.taskId
+            runCatching {
+                activity.getSystemService(ActivityManager::class.java)
+                    .moveTaskToFront(taskId, ActivityManager.MOVE_TASK_NO_USER_ACTION)
+            }.onSuccess { Log.i(TAG, "keys back to the main screen (task $taskId raised)") }
+                .onFailure { Log.w(TAG, "can't give the keys back to the main screen", it) }
+            DockShell.forgetListing()
+        }.also { raising = it }
+    }
+
+    /** A touch on the dashboard begins ([MainActivity.dispatchTouchEvent]). */
+    fun touchStarts() {
+        tileTouched = false
+        givingBack?.cancel()
+    }
+
+    /** That touch landed on an app inside a tile. */
+    fun tileTouched() {
+        tileTouched = true
+    }
+
+    /**
+     * The touch is over. Elsewhere on the dashboard: the keys come back now.
+     * In a tile: the tap may have opened a screen of the app there, taking the
+     * keys with it; they come back shortly, once no keyboard is up for it.
+     */
+    fun touchEnds() {
+        if (!tileTouched) {
+            giveKeysBack()
+            return
+        }
+        if (held.isEmpty()) return
+        keysAway = true
+        givingBack?.cancel()
+        givingBack = mainScope.launch {
+            repeat(GIVE_BACK_TRIES) {
+                delay(GIVE_BACK_MS)
+                val activity = dashboard?.get() ?: return@launch
+                if (!keyboardUp(activity)) {
+                    giveKeysBack()
+                    return@launch
+                }
+            }
+        }
+    }
+
+    /** Whether the on-screen keyboard shows (for an app inside a tile, typing a search). */
+    private fun keyboardUp(context: Context): Boolean = runCatching {
+        // @hide, public on Android 10 and 11.
+        val imm = context.getSystemService(InputMethodManager::class.java)
+        (HiddenApiBypass.invoke(InputMethodManager::class.java, imm, "getInputMethodWindowVisibleHeight") as Int) > 0
+    }.getOrDefault(false)
+
+    /**
+     * A key seen by the accessibility service before anyone else, while a
+     * tile's display may still have the keys: Home and Back are held back, the
+     * main screen brought in front, and the key done again there. True when
+     * taken.
+     */
+    fun keyWhileAway(service: AccessibilityService, event: KeyEvent): Boolean {
+        // A key held back when pressed is done again when let go, whatever happened meanwhile.
+        val held = event.action == KeyEvent.ACTION_UP && event.keyCode == heldKey
+        if (!held && (!keysAway || dashboard?.get() == null)) return false
+        val action = when (event.keyCode) {
+            KeyEvent.KEYCODE_HOME -> AccessibilityService.GLOBAL_ACTION_HOME
+            KeyEvent.KEYCODE_BACK -> AccessibilityService.GLOBAL_ACTION_BACK
+            else -> {
+                // Volume and the rest go through as they are; the next ones reach the main screen.
+                mainScope.launch { giveKeysBack() }
+                return false
+            }
+        }
+        if (event.action == KeyEvent.ACTION_DOWN) heldKey = event.keyCode
+        if (event.action == KeyEvent.ACTION_UP) {
+            heldKey = 0
+            mainScope.launch {
+                giveKeysBack()?.join()
+                delay(KEY_AGAIN_MS)
+                service.performGlobalAction(action)
+            }
+        }
+        return true
+    }
+
+    /** A launch or a move just put a tile's display in front: the keys come back at once. */
+    private fun launchedOnTile() {
+        if (held.isEmpty()) return
+        keysAway = true
+        mainScope.launch { giveKeysBack() }
+    }
 
     /**
      * Which of an app's tiles gets the picture: [current] while it is still on
@@ -337,6 +496,7 @@ internal object EmbeddedApp {
                     }
                     if (stack.displayId != id) {
                         shell("am display move-stack ${stack.stackId} $id", "$packageName stack ${stack.stackId} (${stack.mode}) from display ${stack.displayId} to $id")
+                        launchedOnTile()
                     }
                     if (stack in floating) {
                         // Even started afresh it floats (this ROM's choice): stretched to fill the tile.
@@ -371,6 +531,7 @@ internal object EmbeddedApp {
             _status.value = runCatching { context.startActivity(intent, options.toBundle()) }
                 .onFailure { Log.w(TAG, "$packageName refused on display ${vd.display.displayId}", it) }
                 .fold({ Status.SHOWN }, { Status.BLOCKED })
+            if (_status.value == Status.SHOWN) launchedOnTile()
         }
 
         /** The app's stacks once it has shown up somewhere, looking every [POLL_MS] for a few seconds. */
@@ -477,7 +638,11 @@ internal fun EmbeddedAppCard(packageName: String, label: String, modifier: Modif
                     setOnTouchListener { v, event ->
                         // A drag on the map pans the map: the dashboard's pages must not take it.
                         when (event.actionMasked) {
-                            MotionEvent.ACTION_DOWN -> { v.parent?.requestDisallowInterceptTouchEvent(true); onTouching(true) }
+                            MotionEvent.ACTION_DOWN -> {
+                                v.parent?.requestDisallowInterceptTouchEvent(true)
+                                onTouching(true)
+                                EmbeddedApp.tileTouched()
+                            }
                             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> onTouching(false)
                         }
                         host.touch(event)

@@ -137,6 +137,18 @@ object WindowListing {
     }
 
     /**
+     * The task in front on display [displayId] (the screen): raising it puts
+     * that display back in front without changing what shows on it. The
+     * pinned stack is left out, it is always on top anyway. Null when the
+     * listing shows none.
+     */
+    internal fun frontTask(output: String, displayId: Int = DEFAULT_DISPLAY): Int? =
+        stackBlocks(output).firstNotNullOfOrNull { block ->
+            if ((displayId(block) ?: DEFAULT_DISPLAY) != displayId || windowingMode(block) == "pinned") return@firstNotNullOfOrNull null
+            TASK.find(block)?.groupValues?.get(1)?.toIntOrNull()
+        }
+
+    /**
      * [packageName]'s task when it is the front-most fullscreen one on the
      * dashboard's display, i.e. the app covers the whole screen, dashboard
      * included; null otherwise. Floating windows above it do not count: they

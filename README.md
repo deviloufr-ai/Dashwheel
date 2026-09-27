@@ -181,6 +181,7 @@ Besides app icons (a tap opens the app full screen), another app can live on a p
 | **Swiping to another page** | The window moves to a hidden display and keeps running | The app keeps running out of sight: music or guidance carries on | – |
 | **Removing the tile** | The window closes once no tile of that app is left | The app closes with its last tile | – |
 | **The same app on several pages** | – | Yes: the app runs once and shows on the tile of the page on screen (Maps and YouTube Music on two dashboards, say) | – |
+| **The unit's keys (Home, Back...)** | Work as usual | Work as usual: opening the app on its tile would send them there, so they are handed back to the main screen after each launch and touch, and Home / Back pressed meanwhile are redone there (through the accessibility service) | – |
 | **Tile zoom** | No | Yes, it scales the app's text and buttons | Yes |
 
 **What each one needs**

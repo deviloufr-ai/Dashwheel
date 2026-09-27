@@ -395,4 +395,21 @@ class PipAnchorTest {
         assertEquals(true, WindowListing.overlaps(ScreenRect(548, 300, 800, 400), tile, margin = 12))
         assertEquals(false, WindowListing.overlaps(ScreenRect(548, 300, 800, 400), tile))
     }
+
+    @Test
+    fun frontTaskIsTheTopOneOnTheScreenBesidesPictureInPicture() {
+        // Dashwheel's stack is listed first on display 0; the pinned one never counts.
+        assertEquals(41, WindowListing.frontTask(android10))
+        val tileInFront = """
+            Stack id=9 bounds=[0,0][800,400] displayId=7 userId=0
+             configuration={... mWindowingMode=fullscreen mActivityType=standard ...}
+              taskId=70: com.google.android.apps.youtube.music/.MainActivity bounds=[0,0][800,400] userId=0 visible=true
+            Stack id=4 bounds=[600,100][1200,500] displayId=0 userId=0
+             configuration={... mWindowingMode=freeform mActivityType=standard ...}
+              taskId=66: com.waze/.FreeMapAppActivity bounds=[600,100][1200,500] userId=0 visible=true
+        """.trimIndent() + "\n" + android10
+        // A window floating over the dashboard is the one raised, so it stays over it.
+        assertEquals(66, WindowListing.frontTask(tileInFront))
+        assertEquals(70, WindowListing.frontTask(tileInFront, displayId = 7))
+    }
 }

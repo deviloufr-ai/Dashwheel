@@ -87,8 +87,10 @@ class SplitAccessibilityService : AccessibilityService() {
     override fun onInterrupt() {}
 
     // Every hardware key, before any app: a learned steering wheel button runs
-    // (or is captured while learning) whatever is in front.
-    override fun onKeyEvent(event: KeyEvent): Boolean = SteeringWheelStore.onKeyEvent(this, event)
+    // (or is captured while learning) whatever is in front. Home and Back are
+    // brought back to the main screen when an app inside a tile took them (EmbeddedApp).
+    override fun onKeyEvent(event: KeyEvent): Boolean =
+        SteeringWheelStore.onKeyEvent(this, event) || EmbeddedApp.keyWhileAway(this, event)
 
     /**
      * The on-screen bounds of the two split panes, ordered left-to-right, or null
