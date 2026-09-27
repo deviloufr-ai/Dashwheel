@@ -162,6 +162,14 @@
     <string name="dash_theme_mistral_desc">Il quadro centrale della C4 Picasso: cifre bianco freddo su grafite fumé, avvisi ambra</string>
     <string name="dash_theme_zenith">Zénith</string>
     <string name="dash_theme_zenith_desc">L\'abitacolo lounge: grigio perla, pannelli bianchi, un solo accento blu profondo</string>
+    <string name="dash_theme_luxury">Lusso classico</string>
+    <string name="dash_theme_luxury_desc">Vetro blu notte, filetti oro champagne, cifre sottili</string>
+    <string name="dash_theme_eco_leaf">Eco foglia</string>
+    <string name="dash_theme_eco_leaf_desc">Verde salvia satinato, letture menta, calmo e luminoso</string>
+    <string name="dash_theme_cyber">Cyber sport</string>
+    <string name="dash_theme_cyber_desc">Nero carbonio, dal rosso al magenta, un quadro da corsa nella barra</string>
+    <string name="dash_theme_nordic">Nordico minimal</string>
+    <string name="dash_theme_nordic_desc">Grafite e blu ghiaccio, linee sottili, niente di chiassoso</string>
     <string name="dash_theme_group_recommended">Consigliati</string>
     <string name="dash_theme_group_colours">Temi</string>
     <string name="dash_theme_group_skins">Skin</string>

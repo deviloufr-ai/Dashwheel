@@ -163,6 +163,14 @@
     <string name="dash_theme_mistral_desc">O painel central do C4 Picasso: dígitos branco frio sobre grafite fumado, avisos âmbar</string>
     <string name="dash_theme_zenith">Zénith</string>
     <string name="dash_theme_zenith_desc">O habitáculo lounge: cinzento pérola, painéis brancos, um único acento azul profundo</string>
+    <string name="dash_theme_luxury">Luxo clássico</string>
+    <string name="dash_theme_luxury_desc">Vidro azul-noite, filetes dourado champanhe, algarismos finos</string>
+    <string name="dash_theme_eco_leaf">Eco folha</string>
+    <string name="dash_theme_eco_leaf_desc">Verde-salva fosco, leituras menta, calmo e leve</string>
+    <string name="dash_theme_cyber">Cyber sport</string>
+    <string name="dash_theme_cyber_desc">Preto carbono, do vermelho ao magenta, um quadrante de corrida na barra</string>
+    <string name="dash_theme_nordic">Nórdico minimal</string>
+    <string name="dash_theme_nordic_desc">Grafite e azul-gelo, linhas finas, nada que grite</string>
     <!-- Updates without a strip (⋮ dot, Settings row, ready prompt); edit-mode confirms; tile options; theme gallery -->
     <string name="dash_update_to">Atualizar para %1$s</string>
     <string name="dash_update_available_detail">Mais recente que a v%1$s. Instalar reinicia o Dashwheel.</string>

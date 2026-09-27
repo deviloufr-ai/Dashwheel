@@ -41,6 +41,18 @@
     <string name="design_copper_blade_desc">Schuine cijfers boven een taps toelopende koperen kling, afgesneden hoeken op petrolblauw.</string>
     <string name="design_light_bar">Lichtbalk</string>
     <string name="design_light_bar_desc">Een doorlopende lichtstrip die vanuit het midden oplicht, op zwart.</string>
+    <string name="design_lane">Rijstrook</string>
+    <string name="design_lane_desc">Een snelheidsboog boven de rijstrook, goud op nachtblauw.</string>
+    <string name="design_trend">Verloop</string>
+    <string name="design_trend_desc">De meting van de laatste minuten als lijn, op saliegroen.</string>
+    <string name="design_pulse">Puls</string>
+    <string name="design_pulse_desc">Een golfvorm die oplicht met de meting, rood op carbon.</string>
+    <string name="design_contour">Contour</string>
+    <string name="design_contour_desc">Eén groot, dun getal boven een zachte heuvel, grafiet en ijs.</string>
+    <string name="design_tyre_map">Bandenkaart</string>
+    <string name="design_tyre_map_desc">De auto van boven, de druk van elke band naast zijn wiel.</string>
+    <string name="design_car_outline">Silhouet</string>
+    <string name="design_car_outline_desc">De auto in profiel, met de metingen ernaast.</string>
     <string name="design_change">Ontwerp van %1$s wijzigen</string>
     <string name="design_picker_title">Ontwerp: %1$s</string>
     <string name="design_picker_hint">Tik op een ontwerp om het voor deze tegel te gebruiken. Elke tegel houdt zijn eigen ontwerp.</string>
@@ -157,6 +169,8 @@
     <string name="design_family_theme">In de kleuren van het thema</string>
     <string name="design_family_materials">Materialen</string>
     <string name="design_family_copper">Koper</string>
+    <string name="design_family_cabins">Interieurs</string>
+    <string name="design_label_value">%1$s: %2$s</string>
     <string name="design_show_more">Nog %1$d</string>
     <string name="design_show_fewer">Minder</string>
 </resources>

@@ -163,6 +163,14 @@
     <string name="dash_theme_mistral_desc">Het centrale display van de C4 Picasso: koudwitte cijfers op rookgrafiet, amberkleurige waarschuwingen</string>
     <string name="dash_theme_zenith">Zénith</string>
     <string name="dash_theme_zenith_desc">De lounge-cabine: parelgrijs, witte panelen, één diepblauw accent</string>
+    <string name="dash_theme_luxury">Luxe klassiek</string>
+    <string name="dash_theme_luxury_desc">Nachtblauw glas, champagnegouden lijntjes, dunne cijfers</string>
+    <string name="dash_theme_eco_leaf">Eco blad</string>
+    <string name="dash_theme_eco_leaf_desc">Mat saliegroen, mintkleurige metingen, rustig en licht</string>
+    <string name="dash_theme_cyber">Cyber sport</string>
+    <string name="dash_theme_cyber_desc">Carbonzwart, van rood naar magenta, een racedisplay in de balk</string>
+    <string name="dash_theme_nordic">Noords minimaal</string>
+    <string name="dash_theme_nordic_desc">Grafiet en ijsblauw, dunne lijnen, niets schreeuwerigs</string>
     <!-- Updates without a strip (⋮ dot, Settings row, ready prompt); edit-mode confirms; tile options; theme gallery -->
     <string name="dash_update_to">Bijwerken naar %1$s</string>
     <string name="dash_update_available_detail">Nieuwer dan v%1$s. Installeren herstart Dashwheel.</string>

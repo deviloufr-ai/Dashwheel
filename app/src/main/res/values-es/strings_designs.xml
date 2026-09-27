@@ -41,6 +41,18 @@
     <string name="design_copper_blade_desc">Cifras oblicuas sobre una hoja de cobre afilada, esquinas cortadas sobre azul petróleo.</string>
     <string name="design_light_bar">Barra de luz</string>
     <string name="design_light_bar_desc">Una tira de luz de lado a lado que brilla desde el centro, sobre negro.</string>
+    <string name="design_lane">Vista de carril</string>
+    <string name="design_lane_desc">Un arco de velocidad sobre el carril, oro sobre azul noche.</string>
+    <string name="design_trend">Tendencia</string>
+    <string name="design_trend_desc">La lectura trazada en los últimos minutos, sobre verde salvia.</string>
+    <string name="design_pulse">Pulso</string>
+    <string name="design_pulse_desc">Una forma de onda que se ilumina con la lectura, rojo sobre carbono.</string>
+    <string name="design_contour">Contorno</string>
+    <string name="design_contour_desc">Un número grande y fino sobre una colina suave, grafito y hielo.</string>
+    <string name="design_tyre_map">Mapa de ruedas</string>
+    <string name="design_tyre_map_desc">El coche visto desde arriba, la presión de cada neumático junto a su rueda.</string>
+    <string name="design_car_outline">Silueta</string>
+    <string name="design_car_outline_desc">El coche de perfil, con sus lecturas al lado.</string>
     <string name="design_change">Cambiar el diseño de %1$s</string>
     <string name="design_picker_title">Diseño: %1$s</string>
     <string name="design_picker_hint">Toca un diseño para usarlo en este mosaico. Cada mosaico conserva el suyo.</string>
@@ -157,6 +169,8 @@
     <string name="design_family_theme">En los colores del tema</string>
     <string name="design_family_materials">Materiales</string>
     <string name="design_family_copper">Cobre</string>
+    <string name="design_family_cabins">Habitáculos</string>
+    <string name="design_label_value">%1$s: %2$s</string>
     <string name="design_show_more">%1$d más</string>
     <string name="design_show_fewer">Menos</string>
 </resources>

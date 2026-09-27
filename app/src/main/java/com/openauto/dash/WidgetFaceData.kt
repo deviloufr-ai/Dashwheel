@@ -1089,13 +1089,14 @@ private fun tyresFace(): WidgetFace {
     val order = listOf(TyrePos.FRONT_LEFT, TyrePos.FRONT_RIGHT, TyrePos.REAR_LEFT, TyrePos.REAR_RIGHT)
     val problems = tyres.mapNotNull { (pos, t) -> tyreProblem(t)?.let { pos to it } }
     val lowest = tyres.filterKeys { it in order }.values.minByOrNull { it.kPa }
-    val rows = order.mapNotNull { pos ->
+    val wheels = order.map { pos ->
         tyres[pos]?.let { t ->
             val problem = tyreProblem(t)
             val value = listOfNotNull(problem?.let { stringResource(it.labelRes) }, formatPressure(t.kPa, unit)).joinToString(" · ")
             FaceRow(stringResource(pos.labelRes), value, alert = problem != null)
         }
     }
+    val rows = wheels.filterNotNull()
     val shown = lowest?.let { formatPressure(it.kPa, unit) }
     return WidgetFace(
         icon = Icons.Filled.TireRepair,
@@ -1106,6 +1107,7 @@ private fun tyresFace(): WidgetFace {
             ?: stringResource(R.string.car_tyres_ok),
         alert = problems.isNotEmpty(),
         severity = if (problems.isNotEmpty()) 2 else 0,
-        rows = rows
+        rows = rows,
+        wheels = wheels
     )
 }

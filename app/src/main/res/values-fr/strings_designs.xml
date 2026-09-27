@@ -41,6 +41,18 @@
     <string name="design_copper_blade_desc">Chiffres obliques sur une lame cuivrée effilée, coins coupés sur bleu pétrole.</string>
     <string name="design_light_bar">Bandeau lumineux</string>
     <string name="design_light_bar_desc">Un bandeau de feux d\'un bord à l\'autre qui s\'allume depuis le centre, sur fond noir.</string>
+    <string name="design_lane">Vue de voie</string>
+    <string name="design_lane_desc">Un arc de vitesse au-dessus de la voie, or sur bleu nuit.</string>
+    <string name="design_trend">Tendance</string>
+    <string name="design_trend_desc">La mesure tracée sur les dernières minutes, sur vert sauge.</string>
+    <string name="design_pulse">Pulsation</string>
+    <string name="design_pulse_desc">Une forme d\'onde qui s\'allume avec la mesure, rouge sur carbone.</string>
+    <string name="design_contour">Contour</string>
+    <string name="design_contour_desc">Un grand chiffre fin sur une douce colline, graphite et glace.</string>
+    <string name="design_tyre_map">Carte des pneus</string>
+    <string name="design_tyre_map_desc">La voiture vue de dessus, la pression de chaque pneu près de sa roue.</string>
+    <string name="design_car_outline">Silhouette</string>
+    <string name="design_car_outline_desc">La voiture de profil, ses mesures à côté.</string>
     <string name="design_change">Changer le style de %1$s</string>
     <string name="design_picker_title">Style : %1$s</string>
     <string name="design_picker_hint">Touchez un style pour l\'appliquer à cette tuile. Chaque tuile garde le sien.</string>
@@ -157,6 +169,8 @@
     <string name="design_family_theme">Aux couleurs du thème</string>
     <string name="design_family_materials">Matières</string>
     <string name="design_family_copper">Cuivre</string>
+    <string name="design_family_cabins">Habitacles</string>
+    <string name="design_label_value">%1$s : %2$s</string>
     <string name="design_show_more">%1$d de plus</string>
     <string name="design_show_fewer">Moins</string>
 </resources>

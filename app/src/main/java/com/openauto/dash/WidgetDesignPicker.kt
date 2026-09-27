@@ -242,13 +242,17 @@ private fun FramedPlaceholder(kind: BuiltinKind) {
 internal enum class DesignFamily(@StringRes val titleRes: Int) {
     THEME(R.string.design_family_theme),
     MATERIALS(R.string.design_family_materials),
-    COPPER(R.string.design_family_copper);
+    COPPER(R.string.design_family_copper),
+    CABINS(R.string.design_family_cabins);
 
     companion object {
+        private val CABIN_LOOKS = setOf(FaceLookKind.NAVY_GOLD, FaceLookKind.SAGE, FaceLookKind.CRIMSON, FaceLookKind.GRAPHITE)
+
         /** The family of a generic design; null for Standard and the widget-specific ones. */
         fun of(design: WidgetDesign): DesignFamily? = when {
             design == WidgetDesign.STANDARD || design.isSignature -> null
             design.look == FaceLookKind.COPPER || design.look == FaceLookKind.PETROL -> COPPER
+            design.look in CABIN_LOOKS -> CABINS
             design.look == FaceLookKind.THEME -> THEME
             else -> MATERIALS
         }

@@ -147,6 +147,14 @@
     <string name="dash_theme_mistral_desc">The C4 Picasso\'s central cluster: cold-white numerals on smoked graphite, amber alerts</string>
     <string name="dash_theme_zenith">Zénith</string>
     <string name="dash_theme_zenith_desc">The lounge cabin: pearl grey, white panels, one deep blue accent</string>
+    <string name="dash_theme_luxury">Luxury Classic</string>
+    <string name="dash_theme_luxury_desc">Midnight navy glass, champagne gold hairlines, thin numerals</string>
+    <string name="dash_theme_eco_leaf">Eco Leaf</string>
+    <string name="dash_theme_eco_leaf_desc">Frosted sage green, mint readings, calm and light</string>
+    <string name="dash_theme_cyber">Cyber Sport</string>
+    <string name="dash_theme_cyber_desc">Carbon black, crimson into magenta, a race cluster in the bar</string>
+    <string name="dash_theme_nordic">Nordic Minimal</string>
+    <string name="dash_theme_nordic_desc">Graphite and ice blue, thin lines, nothing that shouts</string>
 
     <!-- Screen layouts (the enum names are what gets saved) -->
     <string name="dash_layout_grid">Dashboards only</string>

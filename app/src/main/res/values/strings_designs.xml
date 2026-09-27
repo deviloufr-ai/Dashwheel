@@ -41,6 +41,18 @@
     <string name="design_copper_blade_desc">Oblique numerals over a tapering copper blade, cut corners on petrol blue.</string>
     <string name="design_light_bar">Light bar</string>
     <string name="design_light_bar_desc">A coast-to-coast light strip glowing out from the centre, over black.</string>
+    <string name="design_lane">Lane view</string>
+    <string name="design_lane_desc">A speed arc over the lane ahead, gold on midnight navy.</string>
+    <string name="design_trend">Trend</string>
+    <string name="design_trend_desc">The reading drawn over the last minutes, on sage green.</string>
+    <string name="design_pulse">Pulse</string>
+    <string name="design_pulse_desc">A waveform that lights up with the reading, red on carbon.</string>
+    <string name="design_contour">Contour</string>
+    <string name="design_contour_desc">One thin number over a soft hill, graphite and ice.</string>
+    <string name="design_tyre_map">Tyre map</string>
+    <string name="design_tyre_map_desc">The car from above, each tyre\'s pressure by its wheel.</string>
+    <string name="design_car_outline">Car outline</string>
+    <string name="design_car_outline_desc">The car in profile with its readings beside it.</string>
     <string name="design_change">Change the design of %1$s</string>
     <string name="design_picker_title">Design: %1$s</string>
     <string name="design_picker_hint">Tap a design to use it on this tile. Each tile keeps its own design.</string>
@@ -157,6 +169,8 @@
     <string name="design_family_theme">In the theme\'s colours</string>
     <string name="design_family_materials">Materials</string>
     <string name="design_family_copper">Copper</string>
+    <string name="design_family_cabins">Cabins</string>
+    <string name="design_label_value">%1$s: %2$s</string>
     <string name="design_show_more">%1$d more</string>
     <string name="design_show_fewer">Fewer</string>
 </resources>

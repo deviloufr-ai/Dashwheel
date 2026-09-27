@@ -22,10 +22,10 @@ import androidx.compose.ui.unit.dp
  */
 
 /** How a design arranges a widget's reading. */
-internal enum class FaceLayout { HERO, ARC, RING, BARS, STATS, TERMINAL, DIAL, FLAP, ORB, LIQUID, DOTS, POSTER, DUO, ISLAND, COCKPIT, TRIANGLES, BLADE, LIGHT_BAR }
+internal enum class FaceLayout { HERO, ARC, RING, BARS, STATS, TERMINAL, DIAL, FLAP, ORB, LIQUID, DOTS, POSTER, DUO, ISLAND, COCKPIT, TRIANGLES, BLADE, LIGHT_BAR, LANE, TREND, PULSE, CONTOUR }
 
 /** The material a design is drawn in. THEME follows the dashboard theme; the rest bring their own colours. */
-internal enum class FaceLookKind { THEME, LCD, AMBER, NEON, PAPER, GLASS, CARBON, CHROME, FLAP, DOTS, COPPER, PETROL }
+internal enum class FaceLookKind { THEME, LCD, AMBER, NEON, PAPER, GLASS, CARBON, CHROME, FLAP, DOTS, COPPER, PETROL, NAVY_GOLD, SAGE, CRIMSON, GRAPHITE }
 
 /**
  * A tile's design. Names are persisted with the tile, so never rename an
@@ -62,6 +62,11 @@ enum class WidgetDesign(
     TRI_LED(R.string.design_tri_led, R.string.design_tri_led_desc, FaceLayout.TRIANGLES, FaceLookKind.PETROL),
     COPPER_BLADE(R.string.design_copper_blade, R.string.design_copper_blade_desc, FaceLayout.BLADE, FaceLookKind.PETROL),
     LIGHT_BAR(R.string.design_light_bar, R.string.design_light_bar_desc, FaceLayout.LIGHT_BAR, FaceLookKind.COPPER),
+    // The four cabins: luxury, eco, sport and Nordic interiors (WidgetFacesCabins.kt).
+    LANE_VIEW(R.string.design_lane, R.string.design_lane_desc, FaceLayout.LANE, FaceLookKind.NAVY_GOLD),
+    TREND(R.string.design_trend, R.string.design_trend_desc, FaceLayout.TREND, FaceLookKind.SAGE),
+    PULSE(R.string.design_pulse, R.string.design_pulse_desc, FaceLayout.PULSE, FaceLookKind.CRIMSON),
+    CONTOUR(R.string.design_contour, R.string.design_contour_desc, FaceLayout.CONTOUR, FaceLookKind.GRAPHITE),
 
     // Made for particular widgets: the shape comes from what the widget shows.
     THERMOMETER(R.string.design_thermometer, R.string.design_thermometer_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.WARMUP, BuiltinKind.WEATHER)),
@@ -104,7 +109,9 @@ enum class WidgetDesign(
     LEVEL_METER(R.string.design_level_meter, R.string.design_level_meter_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.AUDIO)),
     FILTER_CELLS(R.string.design_filter_cells, R.string.design_filter_cells_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.FILTER_CARE)),
     HOURGLASS(R.string.design_hourglass, R.string.design_hourglass_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.BREAK_TIMER)),
-    LEAF(R.string.design_leaf, R.string.design_leaf_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.ECO_DRIVE));
+    LEAF(R.string.design_leaf, R.string.design_leaf_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.ECO_DRIVE)),
+    TYRE_MAP(R.string.design_tyre_map, R.string.design_tyre_map_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.TYRES)),
+    CAR_OUTLINE(R.string.design_car_outline, R.string.design_car_outline_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.CAR_STATUS, BuiltinKind.OBD_ALL, BuiltinKind.TELEMETRY, BuiltinKind.DOORS));
 
     /** Drawn by its own renderer for the widgets in [kinds] (see WidgetSignatures.kt). */
     internal val isSignature: Boolean get() = kinds != null
@@ -234,7 +241,9 @@ internal data class WidgetFace(
     /** Label at the far end of a road or scale (range, distance so far). */
     val reach: String? = null,
     /** Label on the marker along a road (the destination). */
-    val marker: String? = null
+    val marker: String? = null,
+    /** Front left, front right, rear left, rear right: each wheel's row, null where it has no sensor (tyre map). */
+    val wheels: List<FaceRow?>? = null
 ) {
     /** [severity], or 2 / 0 from [alert]. */
     val level: Int get() = severity ?: if (alert) 2 else 0
@@ -243,7 +252,7 @@ internal data class WidgetFace(
 // --- Materials ----------------------------------------------------------------
 
 /** Extra drawing a material adds on top of its colours. */
-internal enum class LookDecoration { NONE, SCANLINES, CARBON, CHROME, NEON, GLASS, DOTS, TRIANGLES }
+internal enum class LookDecoration { NONE, SCANLINES, CARBON, CHROME, NEON, GLASS, DOTS, TRIANGLES, PINSTRIPE, LEAF, EDGE_LIGHT }
 
 /**
  * Colours, type and shape of one material. [background] null means the
@@ -374,5 +383,38 @@ internal fun faceLook(kind: FaceLookKind): FaceLook = when (kind) {
         warn = Color(0xFFFF5C4D), track = Color(0x1FEFF6F5), fill = Color(0x14EFF6F5), onAccent = Color(0xFF061114),
         border = Color(0x33D08A58), radius = 18.dp, font = Sans, numFont = CondensedFamily, numWeight = FontWeight.Bold,
         labelWeight = FontWeight.SemiBold, decoration = LookDecoration.TRIANGLES, squareControls = true, angular = true
+    )
+    // Luxury classic: midnight navy, champagne gold hairlines, thin numerals.
+    FaceLookKind.NAVY_GOLD -> FaceLook(
+        kind, background = Brush.linearGradient(listOf(Color(0xFF1A2A50), Color(0xFF0F1B36), Color(0xFF0A1226))),
+        ink = Color(0xFFF7F2E7), dim = Color(0xFFAFB6C9), accent = Color(0xFFE3B96C), accent2 = Color(0xFFF7DEAA),
+        warn = Color(0xFFFF6B5E), track = Color(0x24F7F2E7), fill = Color(0x1AE3B96C), onAccent = Color(0xFF0F1B36),
+        border = Color(0x99E3B96C), radius = 20.dp, font = Sans, numFont = Sans, numWeight = FontWeight.Light,
+        labelWeight = FontWeight.Medium, glow = Color(0x40E3B96C), decoration = LookDecoration.PINSTRIPE
+    )
+    // Eco leaf: frosted sage green, mint readings, a pale leaf in the corner.
+    FaceLookKind.SAGE -> FaceLook(
+        kind, background = Brush.linearGradient(listOf(Color(0xFF557462), Color(0xFF3E5A4A), Color(0xFF30473A))),
+        ink = Color(0xFFF4FAF5), dim = Color(0xFFCCDDD1), accent = Color(0xFFB4EDC8), accent2 = Color(0xFFE4F7C4),
+        warn = Color(0xFFFFB199), track = Color(0x33F4FAF5), fill = Color(0x1FFFFFFF), onAccent = Color(0xFF1F3629),
+        border = Color(0x4DE4F7C4), radius = 22.dp, font = Sans, numFont = Sans, numWeight = FontWeight.Normal,
+        labelWeight = FontWeight.Medium, decoration = LookDecoration.LEAF
+    )
+    // Cyber sport: carbon weave, a crimson-to-magenta edge light, italic condensed numerals.
+    FaceLookKind.CRIMSON -> FaceLook(
+        kind, background = Brush.verticalGradient(listOf(Color(0xFF170A10), Color(0xFF0A0609))),
+        ink = Color(0xFFFFF4F7), dim = Color(0xFFB9A5AD), accent = Color(0xFFFF2D55), accent2 = Color(0xFFFF4FD8),
+        warn = Color(0xFFFFC23F), track = Color(0x1FFFFFFF), fill = Color(0x1AFF2D55), onAccent = Color.White,
+        border = Color(0xCCFF2D55), borderWidth = 1.5.dp, radius = 14.dp, font = CondensedFamily, numFont = CondensedFamily,
+        numWeight = FontWeight.Bold, numItalic = true, glow = Color(0xAAFF2D55), decoration = LookDecoration.EDGE_LIGHT,
+        squareControls = true
+    )
+    // Nordic minimal: graphite and ice, hairlines, nothing that shouts.
+    FaceLookKind.GRAPHITE -> FaceLook(
+        kind, background = Brush.verticalGradient(listOf(Color(0xFF2F3237), Color(0xFF25282C))),
+        ink = Color(0xFFF1F3F5), dim = Color(0xFF9EA4AC), accent = Color(0xFFC6D6E4), accent2 = Color(0xFF8EA6BC),
+        warn = Color(0xFFFF7A6B), track = Color(0x1FFFFFFF), fill = Color(0x12FFFFFF), onAccent = Color(0xFF25282C),
+        border = Color(0x1FFFFFFF), radius = 18.dp, font = Sans, numFont = Sans, numWeight = FontWeight.ExtraLight,
+        labelWeight = FontWeight.Medium
     )
 }

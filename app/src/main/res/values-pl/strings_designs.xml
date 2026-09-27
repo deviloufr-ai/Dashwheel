@@ -41,6 +41,18 @@
     <string name="design_copper_blade_desc">Pochylone cyfry nad zwężającym się miedzianym ostrzem, ścięte rogi na naftowym błękicie.</string>
     <string name="design_light_bar">Pas świetlny</string>
     <string name="design_light_bar_desc">Pas światła od krawędzi do krawędzi, rozświetlany od środka, na czerni.</string>
+    <string name="design_lane">Widok pasa</string>
+    <string name="design_lane_desc">Łuk prędkości nad pasem ruchu, złoto na granacie.</string>
+    <string name="design_trend">Trend</string>
+    <string name="design_trend_desc">Odczyt z ostatnich minut jako wykres, na szałwiowej zieleni.</string>
+    <string name="design_pulse">Puls</string>
+    <string name="design_pulse_desc">Fala, która świeci wraz z odczytem, czerwień na karbonie.</string>
+    <string name="design_contour">Kontur</string>
+    <string name="design_contour_desc">Jedna duża, cienka liczba nad łagodnym wzgórzem, grafit i lód.</string>
+    <string name="design_tyre_map">Mapa opon</string>
+    <string name="design_tyre_map_desc">Auto z góry, ciśnienie każdej opony przy jej kole.</string>
+    <string name="design_car_outline">Sylwetka</string>
+    <string name="design_car_outline_desc">Auto z profilu, odczyty obok.</string>
     <string name="design_change">Zmień wygląd: %1$s</string>
     <string name="design_picker_title">Wygląd: %1$s</string>
     <string name="design_picker_hint">Dotknij wyglądu, aby użyć go na tym kafelku. Każdy kafelek ma własny.</string>
@@ -157,6 +169,8 @@
     <string name="design_family_theme">W kolorach motywu</string>
     <string name="design_family_materials">Materiały</string>
     <string name="design_family_copper">Miedź</string>
+    <string name="design_family_cabins">Wnętrza</string>
+    <string name="design_label_value">%1$s: %2$s</string>
     <string name="design_show_more">Jeszcze %1$d</string>
     <string name="design_show_fewer">Mniej</string>
 </resources>

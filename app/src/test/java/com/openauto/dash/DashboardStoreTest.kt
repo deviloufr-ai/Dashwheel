@@ -1,5 +1,7 @@
 package com.openauto.dash
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Speed
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -290,6 +292,30 @@ class DashboardStoreTest {
         // Two materials, each worn by two different layouts.
         assertEquals(setOf(FaceLookKind.COPPER, FaceLookKind.PETROL), copper.map { it.look }.toSet())
         assertEquals(copper.size, copper.map { it.layout }.toSet().size)
+    }
+
+    @Test
+    fun cabinSetReachesEveryWidget() {
+        val cabins = listOf(WidgetDesign.LANE_VIEW, WidgetDesign.TREND, WidgetDesign.PULSE, WidgetDesign.CONTOUR)
+        assertTrue(cabins.none { it.isSignature })
+        BuiltinKind.entries.forEach { kind -> assertTrue("$kind", WidgetDesign.offeredFor(kind, framed = false).containsAll(cabins)) }
+        cabins.forEach { assertEquals(it, WidgetDesign.fromName(it.name)) }
+        // One cabin per material and per layout, all in their own picker family.
+        assertEquals(cabins.size, cabins.map { it.look }.toSet().size)
+        assertEquals(cabins.size, cabins.map { it.layout }.toSet().size)
+        assertTrue(cabins.all { DesignFamily.of(it) == DesignFamily.CABINS })
+        // The tyre map is only offered on the tyres.
+        assertTrue(WidgetDesign.TYRE_MAP.appliesTo(BuiltinKind.TYRES))
+        assertFalse(WidgetDesign.TYRE_MAP.appliesTo(BuiltinKind.MEDIA))
+    }
+
+    @Test
+    fun faceNumberReadsTheHeadline() {
+        val face = WidgetFace(Icons.Filled.Speed, "t", "24,5", "km")
+        assertEquals(24.5f, faceNumber(face)!!, 0.001f)
+        assertEquals(80f, faceNumber(face.copy(value = "--", fraction = 0.8f))!!, 0.001f)
+        assertEquals(42f, faceNumber(face.copy(number = 42f))!!, 0.001f)
+        assertNull(faceNumber(face.copy(value = "Song", textValue = true)))
     }
 
     @Test

@@ -129,6 +129,10 @@ internal fun DesignedFace(face: WidgetFace, design: WidgetDesign, modifier: Modi
                 FaceLayout.TRIANGLES -> TriLedLayout(face, look, m)
                 FaceLayout.BLADE -> BladeLayout(face, look, m)
                 FaceLayout.LIGHT_BAR -> LightBarLayout(face, look, m)
+                FaceLayout.LANE -> LaneLayout(face, look, m)
+                FaceLayout.TREND -> TrendLayout(face, look, m)
+                FaceLayout.PULSE -> PulseLayout(face, look, m)
+                FaceLayout.CONTOUR -> ContourLayout(face, look, m)
             }
         }
     }
@@ -195,7 +199,8 @@ internal fun FaceSurface(look: FaceLook, modifier: Modifier, content: @Composabl
 }
 
 /** Decorations drawn behind the content (scanlines go over it). */
-private val BACKDROP_DECORATIONS = setOf(LookDecoration.CARBON, LookDecoration.DOTS, LookDecoration.GLASS, LookDecoration.NEON, LookDecoration.TRIANGLES)
+private val BACKDROP_DECORATIONS = setOf(LookDecoration.CARBON, LookDecoration.DOTS, LookDecoration.GLASS, LookDecoration.NEON, LookDecoration.TRIANGLES,
+    LookDecoration.PINSTRIPE, LookDecoration.LEAF, LookDecoration.EDGE_LIGHT)
 
 /** A material's card outline: rounded, or for the angular ones two opposite corners cut on the diagonal. */
 internal fun surfaceShape(look: FaceLook, r: Dp = look.radius): Shape =
@@ -269,7 +274,7 @@ private fun DrawScope.drawDecoration(look: FaceLook) {
             Brush.radialGradient(listOf(look.accent.copy(alpha = 0.10f), Color.Transparent), Offset(w * 0.8f, 0f), max(w, h)),
             cornerRadius = CornerRadius(look.radius.toPx())
         )
-        else -> Unit
+        else -> drawCabinDecoration(look)
     }
 }
 

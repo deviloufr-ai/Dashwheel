@@ -41,6 +41,18 @@
     <string name="design_copper_blade_desc">Algarismos oblíquos sobre uma lâmina de cobre afilada, cantos cortados sobre azul petróleo.</string>
     <string name="design_light_bar">Barra de luz</string>
     <string name="design_light_bar_desc">Uma faixa de luz de lado a lado que acende a partir do centro, sobre preto.</string>
+    <string name="design_lane">Vista de faixa</string>
+    <string name="design_lane_desc">Um arco de velocidade sobre a faixa, dourado sobre azul-noite.</string>
+    <string name="design_trend">Tendência</string>
+    <string name="design_trend_desc">A leitura traçada nos últimos minutos, sobre verde-salva.</string>
+    <string name="design_pulse">Pulso</string>
+    <string name="design_pulse_desc">Uma forma de onda que acende com a leitura, vermelho sobre carbono.</string>
+    <string name="design_contour">Contorno</string>
+    <string name="design_contour_desc">Um número grande e fino sobre uma colina suave, grafite e gelo.</string>
+    <string name="design_tyre_map">Mapa dos pneus</string>
+    <string name="design_tyre_map_desc">O carro visto de cima, a pressão de cada pneu junto à roda.</string>
+    <string name="design_car_outline">Silhueta</string>
+    <string name="design_car_outline_desc">O carro de perfil, com as leituras ao lado.</string>
     <string name="design_change">Mudar o design de %1$s</string>
     <string name="design_picker_title">Design: %1$s</string>
     <string name="design_picker_hint">Toque num design para o usar neste mosaico. Cada mosaico mantém o seu.</string>
@@ -157,6 +169,8 @@
     <string name="design_family_theme">Nas cores do tema</string>
     <string name="design_family_materials">Materiais</string>
     <string name="design_family_copper">Cobre</string>
+    <string name="design_family_cabins">Habitáculos</string>
+    <string name="design_label_value">%1$s: %2$s</string>
     <string name="design_show_more">Mais %1$d</string>
     <string name="design_show_fewer">Menos</string>
 </resources>

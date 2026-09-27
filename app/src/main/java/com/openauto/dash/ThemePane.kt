@@ -124,7 +124,7 @@ internal fun EffectsSetting(theme: ThemeState) {
     SwitchHint(stringResource(theme.effects.hintRes))
 }
 
-/** The themes: three up front (the one in use first), the other eleven behind one tap. */
+/** The themes: three up front (the one in use first), the rest behind one tap. */
 @Composable
 internal fun ThemeGallery(theme: ThemeState) {
     val lead = (listOf(theme.mode) + StarterThemes).distinct().take(3)
@@ -232,7 +232,7 @@ private fun ThemeGroup(title: String, modes: List<DashThemeMode>, theme: ThemeSt
  * One theme: a stamp of its dashboard in the version (day or night) on
  * screen now, its name and its one-line description. The stamp is drawn
  * by hand per skin (Orbit's ring, Cockpit's dial, Horizon's sky, Tape Deck's
- * cassette), so the fourteen cards can be told apart at arm's length.
+ * cassette), so the cards can be told apart at arm's length.
  */
 @Composable
 internal fun ThemeCard(mode: DashThemeMode, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {

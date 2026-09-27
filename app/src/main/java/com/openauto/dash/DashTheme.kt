@@ -38,7 +38,11 @@ enum class DashThemeMode(@StringRes val titleRes: Int, @StringRes val descriptio
     HORIZON(R.string.dash_theme_horizon, R.string.dash_theme_horizon_desc),
     TAPE_DECK(R.string.dash_theme_tape_deck, R.string.dash_theme_tape_deck_desc),
     MISTRAL(R.string.dash_theme_mistral, R.string.dash_theme_mistral_desc),
-    ZENITH(R.string.dash_theme_zenith, R.string.dash_theme_zenith_desc)
+    ZENITH(R.string.dash_theme_zenith, R.string.dash_theme_zenith_desc),
+    LUXURY(R.string.dash_theme_luxury, R.string.dash_theme_luxury_desc),
+    ECO_LEAF(R.string.dash_theme_eco_leaf, R.string.dash_theme_eco_leaf_desc),
+    CYBER_SPORT(R.string.dash_theme_cyber, R.string.dash_theme_cyber_desc),
+    NORDIC(R.string.dash_theme_nordic, R.string.dash_theme_nordic_desc)
 }
 
 /** Dark or light version of the theme; [AUTO] follows the car's day/night mode. */
@@ -327,6 +331,78 @@ private val ZenithDarkPalette = DashPalette(
     HeroWeight = FontWeight.Medium
 )
 
+// The four cabins (their tile designs are in WidgetFacesCabins.kt).
+// Luxury classic: midnight navy glass with champagne gold hairlines and thin
+// numerals. By day, ivory panels, navy ink and a deeper, readable gold.
+private val LuxuryPalette = DashPalette(
+    Background = Color(0xFF0B1426), Bar = Color(0xCC0F1A30), Card = Color(0xE6122038), CardHi = Color(0x1FF7DEAA),
+    Accent = Color(0xFFE3B96C), Secondary = Color(0xFF9FB8E0), Critical = Color(0xFFFF5A5F),
+    Good = Color(0xFF6FD3A0), Muted = Color(0xFF8792AA), TextPrimary = Color(0xFFF7F2E7), TextSecondary = Color(0xFFBFC4D2),
+    Accent2 = Color(0xFFF7DEAA), Line = Color(0x40E3B96C), Glass = true, Glow = 0.35f,
+    BackgroundStops = listOf(Color(0xFF16254A), Color(0xFF0B1426), Color(0xFF0A1020)),
+    HeroWeight = FontWeight.Light
+)
+private val LuxuryLightPalette = DashPalette(
+    Background = Color(0xFFF6F2EA), Bar = Color(0xCCFFFFFF), Card = Color(0xF2FFFFFF), CardHi = Color(0x141B2A4A),
+    Accent = Color(0xFF946415), Secondary = Color(0xFF1F3A68), Critical = Color(0xFFC62828),
+    Good = Color(0xFF1E7F4F), Muted = Color(0xFF6E6A62), TextPrimary = Color(0xFF14203A), TextSecondary = Color(0xFF4A5268),
+    Accent2 = Color(0xFFC4923E), Line = Color(0x40946415), Glass = true, Glow = 0.15f,
+    BackgroundStops = listOf(Color(0xFFFBF8F2), Color(0xFFF3EEE4), Color(0xFFEDE6D8)), Light = true,
+    HeroWeight = FontWeight.Light
+)
+// Eco leaf: frosted sage glass over a deep green page, mint and pale lime
+// for anything live. By day, a morning-garden white with forest ink.
+private val EcoLeafPalette = DashPalette(
+    Background = Color(0xFF1B2A22), Bar = Color(0xCC22342A), Card = Color(0xCC34503F), CardHi = Color(0x24FFFFFF),
+    Accent = Color(0xFF9FE3B8), Secondary = Color(0xFF7FC8D8), Critical = Color(0xFFFF6B5E),
+    Good = Color(0xFF9FE3B8), Muted = Color(0xFF94AA9C), TextPrimary = Color(0xFFF1F7F2), TextSecondary = Color(0xFFBFD0C4),
+    Accent2 = Color(0xFFD7F2C4), Line = Color(0x33D7F2C4), Glass = true, Glow = 0.3f,
+    BackgroundStops = listOf(Color(0xFF2A3F33), Color(0xFF1B2A22), Color(0xFF15221B))
+)
+private val EcoLeafLightPalette = DashPalette(
+    Background = Color(0xFFEEF3EC), Bar = Color(0xCCFFFFFF), Card = Color(0xF2FFFFFF), CardHi = Color(0x1416261C),
+    Accent = Color(0xFF2E7D4F), Secondary = Color(0xFF2C7A8C), Critical = Color(0xFFC62828),
+    Good = Color(0xFF2E7D4F), Muted = Color(0xFF66786B), TextPrimary = Color(0xFF16261C), TextSecondary = Color(0xFF46584B),
+    Accent2 = Color(0xFF6BAF5A), Line = Color(0x1A16261C), Glass = true, Glow = 0.15f,
+    BackgroundStops = listOf(Color(0xFFF4F8F1), Color(0xFFEAF1E7), Color(0xFFE2ECDF)), Light = true
+)
+// Cyber sport: carbon black, crimson running into magenta, condensed
+// numerals and the cluster in the bar. By day, bright paddock white.
+private val CyberSportPalette = DashPalette(
+    Background = Color(0xFF08070A), Bar = Color(0xFF0E0B10), Card = Color(0xFF141117), CardHi = Color(0xFF221B24),
+    Accent = Color(0xFFFF2D55), Secondary = Color(0xFFFF7A45), Critical = Color(0xFFFF3B3B),
+    Good = Color(0xFF3DDC84), Muted = Color(0xFF8E8791), TextPrimary = Color(0xFFF7F3F6), TextSecondary = Color(0xFFBDB3BC),
+    Accent2 = Color(0xFFFF4FD8), Line = Color(0x40FF2D55), Glow = 0.9f,
+    BackgroundStops = listOf(Color(0xFF16080F), Color(0xFF08070A), Color(0xFF12060E)),
+    Font = DashFont.CONDENSED, HeroWeight = FontWeight.Bold, BarStyle = DashBarStyle.CLUSTER
+)
+private val CyberSportLightPalette = DashPalette(
+    Background = Color(0xFFF6F3F5), Bar = Color.White, Card = Color.White, CardHi = Color(0xFFECE5EA),
+    Accent = Color(0xFFD1123F), Secondary = Color(0xFFD9591A), Critical = Color(0xFFC8102E),
+    Good = Color(0xFF178A48), Muted = Color(0xFF6F6670), TextPrimary = Color(0xFF140E13), TextSecondary = Color(0xFF4F4650),
+    Accent2 = Color(0xFFC21E9C), Line = Color.Black.copy(alpha = 0.08f), Glow = 0.2f,
+    BackgroundStops = listOf(Color.White, Color(0xFFEDE8EC)), Light = true,
+    Font = DashFont.CONDENSED, HeroWeight = FontWeight.Bold, BarStyle = DashBarStyle.CLUSTER
+)
+// Nordic minimal: graphite and ice blue, thin numerals and hairlines, no glow.
+// By day, the same calm in pale grey and slate ink.
+private val NordicPalette = DashPalette(
+    Background = Color(0xFF1E2024), Bar = Color(0xFF232529), Card = Color(0xFF2A2D32), CardHi = Color(0xFF34383E),
+    Accent = Color(0xFFB8CCDD), Secondary = Color(0xFF9FB7A8), Critical = Color(0xFFFF5C5C),
+    Good = Color(0xFF8FCFA6), Muted = Color(0xFF8B9097), TextPrimary = Color(0xFFF0F2F4), TextSecondary = Color(0xFFAEB3BA),
+    Accent2 = Color(0xFFDDE6EE), Line = Color.White.copy(alpha = 0.08f),
+    BackgroundStops = listOf(Color(0xFF24272C), Color(0xFF1C1E22)),
+    HeroWeight = FontWeight.Light
+)
+private val NordicLightPalette = DashPalette(
+    Background = Color(0xFFF3F4F5), Bar = Color.White, Card = Color.White, CardHi = Color(0xFFE6E8EB),
+    Accent = Color(0xFF3E5F7A), Secondary = Color(0xFF4F7A62), Critical = Color(0xFFC62828),
+    Good = Color(0xFF2F7A4F), Muted = Color(0xFF6C7178), TextPrimary = Color(0xFF1B1D20), TextSecondary = Color(0xFF50555C),
+    Accent2 = Color(0xFF7B97AE), Line = Color.Black.copy(alpha = 0.08f),
+    BackgroundStops = listOf(Color(0xFFF8F9FA), Color(0xFFEDEFF1)), Light = true,
+    HeroWeight = FontWeight.Light
+)
+
 /** How the screen is divided: pages only, or a permanent Google Maps dock beside them. */
 enum class DashLayout(
     @StringRes val titleRes: Int,
@@ -457,6 +533,10 @@ internal fun paletteFor(mode: DashThemeMode, light: Boolean): DashPalette = when
     DashThemeMode.TAPE_DECK -> if (light) TapeDeckLightPalette else TapeDeckPalette
     DashThemeMode.MISTRAL -> if (light) MistralLightPalette else MistralPalette
     DashThemeMode.ZENITH -> if (light) ZenithLightPalette else ZenithDarkPalette
+    DashThemeMode.LUXURY -> if (light) LuxuryLightPalette else LuxuryPalette
+    DashThemeMode.ECO_LEAF -> if (light) EcoLeafLightPalette else EcoLeafPalette
+    DashThemeMode.CYBER_SPORT -> if (light) CyberSportLightPalette else CyberSportPalette
+    DashThemeMode.NORDIC -> if (light) NordicLightPalette else NordicPalette
 }
 
 /**

@@ -41,6 +41,18 @@
     <string name="design_copper_blade_desc">Cifre oblique su una lama color rame affusolata, angoli tagliati su blu petrolio.</string>
     <string name="design_light_bar">Barra luminosa</string>
     <string name="design_light_bar_desc">Una striscia di luce da lato a lato che si accende dal centro, su nero.</string>
+    <string name="design_lane">Vista corsia</string>
+    <string name="design_lane_desc">Un arco della velocità sopra la corsia, oro su blu notte.</string>
+    <string name="design_trend">Andamento</string>
+    <string name="design_trend_desc">La lettura tracciata negli ultimi minuti, su verde salvia.</string>
+    <string name="design_pulse">Impulso</string>
+    <string name="design_pulse_desc">Una forma d\'onda che si accende con la lettura, rosso su carbonio.</string>
+    <string name="design_contour">Contorno</string>
+    <string name="design_contour_desc">Un numero grande e sottile su una dolce collina, grafite e ghiaccio.</string>
+    <string name="design_tyre_map">Mappa gomme</string>
+    <string name="design_tyre_map_desc">L\'auto vista dall\'alto, la pressione di ogni gomma accanto alla ruota.</string>
+    <string name="design_car_outline">Sagoma</string>
+    <string name="design_car_outline_desc">L\'auto di profilo, con le letture accanto.</string>
     <string name="design_change">Cambia lo stile di %1$s</string>
     <string name="design_picker_title">Stile: %1$s</string>
     <string name="design_picker_hint">Tocca uno stile per usarlo su questo riquadro. Ogni riquadro mantiene il suo.</string>
@@ -157,6 +169,8 @@
     <string name="design_family_theme">Nei colori del tema</string>
     <string name="design_family_materials">Materiali</string>
     <string name="design_family_copper">Rame</string>
+    <string name="design_family_cabins">Abitacoli</string>
+    <string name="design_label_value">%1$s: %2$s</string>
     <string name="design_show_more">Altri %1$d</string>
     <string name="design_show_fewer">Meno</string>
 </resources>
