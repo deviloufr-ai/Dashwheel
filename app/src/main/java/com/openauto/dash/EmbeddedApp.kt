@@ -15,6 +15,7 @@ import android.hardware.input.InputManager
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Process
+import android.os.SystemClock
 import android.util.Log
 import android.view.InputEvent
 import android.view.KeyEvent
@@ -44,6 +45,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -52,6 +54,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.lsposed.hiddenapibypass.HiddenApiBypass
@@ -116,6 +119,9 @@ internal object EmbeddedApp {
 
     /** How long a closed window gets to go before the app is opened afresh. */
     private const val CLOSE_WAIT_MS = 500L
+
+    /** The shortest time between two closings of an app found running twice. */
+    private const val RESTART_COOLDOWN_MS = 5 * 60_000L
 
     enum class Status {
         /** The display is being made or the app launched. */
@@ -202,12 +208,125 @@ internal object EmbeddedApp {
     /** [activity] shows (onStart), or null once it no longer does (onStop). */
     fun dashboardShown(activity: Activity?) {
         dashboard = activity?.let { WeakReference(it) }
-        // Something else came in front of the dashboard, on the main screen: it has the keys.
-        if (activity == null) keysAway = false
-        // Back on the dashboard: an app opened full screen meanwhile (YouTube Music
-        // from the app list...) was taken off its tile's display, leaving the tile
-        // black. Each tile's app is put back.
-        else hosts.values.forEach { it.bringBack() }
+        if (activity == null) {
+            // Something else came in front of the dashboard, on the main screen: it has the keys.
+            keysAway = false
+            // Not the user's doing: maybe the unit opening a tile's app full screen by itself.
+            if (SystemClock.elapsedRealtime() - userActedAt > USER_OPENS_MS) watchFront(COVERED_WATCH_MS)
+            return
+        }
+        watching?.cancel()
+        dashboardBack()
+    }
+
+    /**
+     * The dashboard is in front again: started, resumed (Home pressed while a
+     * window over it never stopped it) or given the focus back. An app opened
+     * full screen meanwhile (YouTube Music from the app list...) was taken off
+     * its tile's display, leaving the tile black. Each tile's app is put back;
+     * one still there is left alone.
+     */
+    fun dashboardBack() {
+        if (dashboard?.get() == null) return
+        hosts.values.forEach { it.bringBack() }
+    }
+
+    // --- Apps opened full screen by the unit itself ------------------------------
+    //
+    // The QF firmware reopens the navigation app full screen at power-up when
+    // it was in front at switch-off (Waze inside its tile): it keeps that app
+    // in Settings.System [NAVI_TO_RESTORE] at ACC off and starts it a few
+    // seconds after ACC on. Coming on top of the one inside the tile, it made
+    // two copies of the app: one covering the dashboard, where menus did
+    // nothing, the map no longer turned with the car and Home could not get
+    // rid of it, and one inside the tile. So that record is wiped when it names
+    // an app inside a tile (the tile brings it back itself); and, should the
+    // unit open it anyway, for a while after the ignition comes on, and after
+    // the dashboard gets covered without a touch or a key, a tile's app found
+    // full screen in front is put back into its tile. What the user opens full
+    // screen themselves is left there.
+
+    /** Where the firmware keeps the navigation app to reopen at power-up ("package/class"). */
+    private const val NAVI_TO_RESTORE = "navi_activity_before_sleep"
+
+    /** The value by which it reopens none. */
+    private const val NO_NAVI = "not_restore_navi"
+
+    /** How long the firmware is given to save its record at switch-off before it is looked at. */
+    private const val NAVI_SAVED_MS = 2_000L
+
+    /** How long after a touch on the dashboard, or a key, what opens full screen is the user's doing. */
+    private const val USER_OPENS_MS = 3_000L
+
+    /** How long the unit's own opening of an app is watched for, after the ignition comes on. */
+    private const val POWER_UP_WATCH_MS = 60_000L
+
+    /** How long it is watched for once the dashboard got covered without the user. */
+    private const val COVERED_WATCH_MS = 10_000L
+
+    /** How often, meanwhile. */
+    private const val WATCH_EVERY_MS = 1_000L
+
+    /** When the user last touched the dashboard or pressed a key of the unit (elapsedRealtime). */
+    @Volatile
+    private var userActedAt = 0L
+
+    private var watching: Job? = null
+
+    /** The user touched the dashboard or pressed a key: what opens next is theirs. */
+    fun userActed() {
+        userActedAt = SystemClock.elapsedRealtime()
+    }
+
+    /** The ignition went off: the unit is not to reopen a tile's app full screen at the next start. */
+    fun carStopped(context: Context) {
+        scope.launch {
+            delay(NAVI_SAVED_MS)
+            forgetNaviToRestore(context)
+        }
+    }
+
+    /**
+     * The ignition came on: the unit reads its record a few seconds from now,
+     * so it is wiped again first, then watched in case it opens the app anyway.
+     */
+    fun carStarted(context: Context) {
+        scope.launch { forgetNaviToRestore(context) }
+        mainScope.launch { watchFront(POWER_UP_WATCH_MS) }
+    }
+
+    /** Wipes the firmware's app to reopen at power-up when it is one inside a tile. */
+    private suspend fun forgetNaviToRestore(context: Context) {
+        if (held.isEmpty()) return
+        try {
+            val saved = DockShell.shell(context, "settings get system $NAVI_TO_RESTORE").trim()
+            if (saved.substringBefore('/') !in held) return
+            DockShell.shell(context, "settings put system $NAVI_TO_RESTORE $NO_NAVI")
+            Log.i(TAG, "the unit won't reopen $saved full screen at power-up: it lives inside a tile")
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.w(TAG, "can't stop the unit reopening the navigation app at power-up", e)
+        }
+    }
+
+    /**
+     * For [forMs], puts back into its tile every tile's app found full screen
+     * in front of the main screen; stops once the user touches or presses a key.
+     * Main thread.
+     */
+    private fun watchFront(forMs: Long) {
+        if (hosts.isEmpty()) return
+        watching?.cancel()
+        val since = userActedAt
+        val until = SystemClock.elapsedRealtime() + forMs
+        watching = mainScope.launch {
+            while (SystemClock.elapsedRealtime() < until) {
+                delay(WATCH_EVERY_MS)
+                if (userActedAt != since) return@launch
+                hosts.values.toList().forEach { it.bringBackFromFront() }
+            }
+        }
     }
 
     /**
@@ -241,6 +360,7 @@ internal object EmbeddedApp {
 
     /** A touch on the dashboard begins ([MainActivity.dispatchTouchEvent]). */
     fun touchStarts() {
+        userActed()
         tileTouched = false
         downOn = null
         givingBack?.cancel()
@@ -350,6 +470,7 @@ internal object EmbeddedApp {
      * taken.
      */
     fun keyWhileAway(service: AccessibilityService, event: KeyEvent): Boolean {
+        if (event.action == KeyEvent.ACTION_DOWN) userActed()
         // A key held back when pressed is done again when let go, whatever happened meanwhile.
         val held = event.action == KeyEvent.ACTION_UP && event.keyCode == heldKey
         if (!held && (!keysAway || dashboard?.get() == null)) return false
@@ -381,6 +502,61 @@ internal object EmbeddedApp {
         mainScope.launch { giveKeysBack() }
     }
 
+    // --- A tile left black ----------------------------------------------------
+    //
+    // Putting the app back where the listing says it is not was not enough on
+    // the head unit: back from the app opened full screen, the tile stayed
+    // black. So the tile is looked at again a while after each placing: where
+    // the app is, and whether the tile's picture is still one flat black. What
+    // is tried then grows ([remedy]): placed again, the picture handed to the
+    // display again, and last the app closed and opened afresh on the tile,
+    // the way it gets there when the dashboard starts.
+
+    /** How long after a placing, then after each look, the tile is looked at: 1.5, 3, 6 and 10 seconds in. */
+    private val LOOK_AFTER_MS = longArrayOf(1_500L, 1_500L, 3_000L, 4_000L)
+
+    /** An app started that recently is not closed to be opened afresh: it may still be loading. */
+    private const val FRESH_MS = 30_000L
+
+    /** The shortest time between two closings of an app whose tile stays black. */
+    private const val REOPEN_EVERY_MS = 60_000L
+
+    /** What a look at the tile calls for. */
+    enum class Remedy {
+        /** The app shows on its tile. */
+        DONE,
+        /** Nothing yet: the app may still be drawing its first picture. */
+        WAIT,
+        /** Put on the tile again. */
+        PLACE,
+        /** The tile's picture handed to the display again. */
+        REFRESH,
+        /** Closed, and opened afresh on the tile. */
+        REOPEN,
+        /** Nothing left to try. */
+        GIVE_UP
+    }
+
+    /**
+     * What to do at look number [look] (from 0): the app is [onTile] or not by
+     * the listing, the tile's picture is [black] or not. An app elsewhere is
+     * placed again twice before it is closed; one on its tile with a black
+     * picture gets time, then its picture again, and is closed last, after
+     * ten seconds of black. Closing only when [mayReopen].
+     */
+    fun remedy(look: Int, onTile: Boolean, black: Boolean, mayReopen: Boolean): Remedy = when {
+        onTile && !black -> Remedy.DONE
+        !onTile && look < 2 -> Remedy.PLACE
+        onTile && look == 1 -> Remedy.REFRESH
+        onTile && look < 3 -> Remedy.WAIT
+        mayReopen -> Remedy.REOPEN
+        else -> Remedy.GIVE_UP
+    }
+
+    /** True when a picture's [pixels] are one flat black, or nothing at all: no app is drawn there. */
+    fun allBlack(pixels: IntArray): Boolean =
+        pixels.isNotEmpty() && pixels.all { it == 0 || it == 0xFF000000.toInt() }
+
     /**
      * Which of an app's tiles gets the picture: [current] while it is still on
      * screen, so a swipe halfway never flips it back and forth; else a tile on
@@ -393,6 +569,16 @@ internal object EmbeddedApp {
             ?: ready.lastOrNull { it in onScreen }
             ?: current?.takeIf { it in ready }
             ?: ready.lastOrNull()
+
+    /**
+     * True when an app's [stacks] show it running twice, as the unit makes it
+     * at power-up: once on its tile's display [tileDisplay] and once more full
+     * screen elsewhere. A floating window elsewhere does not count, it is closed
+     * the usual way.
+     */
+    fun runsTwice(stacks: List<WindowListing.AppStack>, tileDisplay: Int): Boolean =
+        stacks.any { it.displayId == tileDisplay } &&
+            stacks.any { it.displayId != tileDisplay && it.mode != "freeform" && it.mode != "pinned" }
 
     /** Closes the displays of the apps not in [keep]; each app closes with its display. */
     fun releaseUnless(keep: Set<String>) {
@@ -423,6 +609,8 @@ internal object EmbeddedApp {
             var height = 0
             var dpi = 0
             var onScreen = false
+            /** Whether the tile's picture is all black right now. */
+            var black: () -> Boolean = { false }
         }
 
         private val tiles = LinkedHashMap<Any, Tile>()
@@ -436,9 +624,10 @@ internal object EmbeddedApp {
         private var shownHeight = 0
         private var shownDpi = 0
 
-        /** [tile] shows [surface], [width] x [height] pixels at [dpi]. */
-        fun attach(tile: Any, surface: Surface, width: Int, height: Int, dpi: Int) {
+        /** [tile] shows [surface], [width] x [height] pixels at [dpi]; [black] tells whether its picture is all black. */
+        fun attach(tile: Any, surface: Surface, width: Int, height: Int, dpi: Int, black: () -> Boolean = { false }) {
             val t = tiles.getOrPut(tile) { Tile() }
+            t.black = black
             t.surface = surface
             t.width = width
             t.height = height
@@ -531,6 +720,23 @@ internal object EmbeddedApp {
             launch(vd)
         }
 
+        /** Full screen in front of the main screen: put back on the tile. Main thread. */
+        suspend fun bringBackFromFront() {
+            val vd = display ?: return
+            if (shownOn == null || _status.value == Status.BLOCKED || settling?.isActive == true) return
+            DockShell.forgetListing()
+            val listing = try {
+                DockShell.listStacks(context)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                return
+            }
+            val front = WindowListing.fullscreenInFront(listing, packageName, context.packageName) ?: return
+            Log.i(TAG, "$packageName came full screen by itself (task ${front.taskId}): back onto its tile")
+            launch(vd)
+        }
+
         fun release() {
             settling?.cancel()
             tiles.clear()
@@ -555,7 +761,75 @@ internal object EmbeddedApp {
          */
         private fun launch(vd: VirtualDisplay) {
             if (settling?.isActive == true) return
-            settling = scope.launch { place(vd) }
+            settling = scope.launch {
+                place(vd)
+                watch(vd)
+            }
+        }
+
+        /** When the app was last started, and last closed for a tile left black (elapsedRealtime, 0 if never). */
+        @Volatile
+        private var startedAt = 0L
+        private var reopenedAt = 0L
+
+        /**
+         * Looks at the tile again after a placing, and acts while the app does
+         * not show there, see [remedy]. Only while the dashboard is in front
+         * with this tile's picture on the display: an app the user opens full
+         * screen meanwhile is left there.
+         */
+        private suspend fun watch(vd: VirtualDisplay) {
+            val id = vd.display.displayId
+            for ((look, wait) in LOOK_AFTER_MS.withIndex()) {
+                delay(wait)
+                if (_status.value != Status.SHOWN || display !== vd || dashboard?.get() == null) return
+                val black = withContext(Dispatchers.Main) { if (shownSurface == null) null else pictureBlack() } ?: return
+                val found = listStacks() ?: return
+                val onTile = found.isNotEmpty() && found.all { it.displayId == id && it.visible }
+                val now = SystemClock.elapsedRealtime()
+                val mayReopen = now - startedAt > FRESH_MS && (reopenedAt == 0L || now - reopenedAt > REOPEN_EVERY_MS)
+                val remedy = remedy(look, onTile, black, mayReopen)
+                if (remedy == Remedy.DONE) {
+                    if (look > 0) Log.i(TAG, "$packageName shows on its tile")
+                    return
+                }
+                val where = if (found.isEmpty()) "not running" else found.joinToString {
+                    "stack ${it.stackId} ${it.mode} on display ${it.displayId}" + if (it.visible) "" else " hidden"
+                }
+                Log.w(TAG, "$packageName does not show on its tile (display $id), look ${look + 1}: $where" +
+                    (if (black) ", black picture" else "") + ": $remedy")
+                when (remedy) {
+                    Remedy.PLACE -> place(vd)
+                    Remedy.REFRESH -> withContext(Dispatchers.Main) { refresh(vd) }
+                    Remedy.REOPEN -> reopen(vd)
+                    Remedy.GIVE_UP -> return
+                    else -> Unit
+                }
+            }
+        }
+
+        /** Whether the tile on screen shows one flat black. Main thread. */
+        private fun pictureBlack(): Boolean {
+            val tile = shownOn?.let { tiles[it] } ?: return false
+            return tile.onScreen && tile.black()
+        }
+
+        /** Hands the tile's picture to the display again, as when the tile comes on screen. Main thread. */
+        private fun refresh(vd: VirtualDisplay) {
+            val surface = shownSurface ?: return
+            if (display !== vd) return
+            vd.surface = null
+            vd.resize(shownWidth, shownHeight, shownDpi)
+            vd.surface = surface
+        }
+
+        /** Closes the app and opens it afresh on the tile, the way it gets there when the dashboard starts. */
+        private suspend fun reopen(vd: VirtualDisplay) {
+            reopenedAt = SystemClock.elapsedRealtime()
+            _status.value = Status.STARTING
+            shell("am force-stop $packageName", "$packageName closed, to open it afresh on its tile")
+            delay(CLOSE_WAIT_MS)
+            place(vd)
         }
 
         private suspend fun place(vd: VirtualDisplay) {
@@ -564,6 +838,15 @@ internal object EmbeddedApp {
                 // No shell to look with: the launch alone, which lands on the tile on most ROMs.
                 start(vd)
                 return
+            }
+            if (runningTwice(found, id)) {
+                // Moved onto the tile beside the first, the second copy would only hide
+                // it, both still broken: the app is closed, then opened once, on the tile.
+                restartedAt = SystemClock.elapsedRealtime()
+                shell("am force-stop $packageName", "$packageName runs twice, on its tile and on display " +
+                    found.first { it.displayId != id }.displayId + ": closed, to open it once")
+                delay(CLOSE_WAIT_MS)
+                found = listStacks() ?: return
             }
             var fresh = false
             val filled = HashSet<Int>()
@@ -608,6 +891,16 @@ internal object EmbeddedApp {
 
         private fun floating(stack: WindowListing.AppStack) = stack.mode == "freeform" || stack.mode == "pinned"
 
+        /** When the app was last closed for running twice (elapsedRealtime), 0 if never. */
+        private var restartedAt = 0L
+
+        /**
+         * [runsTwice], once in [RESTART_COOLDOWN_MS] at most, so an app that
+         * opens a second screen of its own on purpose is not closed over and over.
+         */
+        private fun runningTwice(found: List<WindowListing.AppStack>, id: Int): Boolean =
+            runsTwice(found, id) && (restartedAt == 0L || SystemClock.elapsedRealtime() - restartedAt > RESTART_COOLDOWN_MS)
+
         private suspend fun shell(cmd: String, what: String) {
             val out = runCatching { DockShell.shell(context, cmd) }.getOrElse { "failed: ${it.message}" }
             Log.i(TAG, "$what: ${out.trim()}")
@@ -627,7 +920,10 @@ internal object EmbeddedApp {
             _status.value = runCatching { context.startActivity(intent, options.toBundle()) }
                 .onFailure { Log.w(TAG, "$packageName refused on display ${vd.display.displayId}", it) }
                 .fold({ Status.SHOWN }, { Status.BLOCKED })
-            if (_status.value == Status.SHOWN) launchedOnTile()
+            if (_status.value == Status.SHOWN) {
+                startedAt = SystemClock.elapsedRealtime()
+                launchedOnTile()
+            }
         }
 
         /** The app's stacks once it has shown up somewhere, looking every [POLL_MS] for a few seconds. */
@@ -729,13 +1025,13 @@ internal fun EmbeddedAppCard(packageName: String, label: String, modifier: Modif
                         override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
                             texture.setDefaultBufferSize(width, height)
                             val s = Surface(texture).also { surface = it }
-                            if (width > 0 && height > 0) host.attach(tile, s, width, height, dpi)
+                            if (width > 0 && height > 0) host.attach(tile, s, width, height, dpi) { pictureBlack(this@apply) }
                         }
 
                         override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) {
                             texture.setDefaultBufferSize(width, height)
                             val s = surface ?: return
-                            if (width > 0 && height > 0) host.attach(tile, s, width, height, dpi)
+                            if (width > 0 && height > 0) host.attach(tile, s, width, height, dpi) { pictureBlack(this@apply) }
                         }
 
                         override fun onSurfaceTextureDestroyed(texture: SurfaceTexture): Boolean {
@@ -784,4 +1080,14 @@ internal fun EmbeddedAppCard(packageName: String, label: String, modifier: Modif
             )
         }
     }
+}
+
+/** True when [view] shows one flat black, or nothing: no app is drawn on it. Main thread. */
+private fun pictureBlack(view: TextureView): Boolean {
+    if (!view.isAvailable || view.width <= 0 || view.height <= 0) return false
+    val copy = runCatching { view.bitmap }.getOrNull() ?: return false
+    val pixels = IntArray(copy.width * copy.height)
+    copy.getPixels(pixels, 0, copy.width, 0, 0, copy.width, copy.height)
+    copy.recycle()
+    return EmbeddedApp.allBlack(pixels)
 }

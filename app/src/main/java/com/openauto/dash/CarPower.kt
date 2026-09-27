@@ -96,6 +96,7 @@ object CarPower {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val offAt = prefs.getLong(KEY_OFF_AT, 0L).takeIf { it > 0 }
         Log.i(TAG, "ignition on")
+        EmbeddedApp.carStarted(context)
         VehicleMonitor.connectSaved()
         if (briefOnIgnition(offAt, System.currentTimeMillis())) StartupBriefing.carStarted(context)
     }
@@ -105,6 +106,7 @@ object CarPower {
         val now = System.currentTimeMillis()
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putLong(KEY_OFF_AT, now).apply()
         Log.i(TAG, "ignition off")
+        EmbeddedApp.carStopped(context)
         if (!DemoMode.isOn) parkingFix(context)?.takeIf { parkFixUsable(it.time, now) }?.let { ParkingStore.save(context, it) }
         scope.launch { runCatching { ObdBluetoothManager.disconnect() } }
     }

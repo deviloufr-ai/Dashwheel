@@ -205,6 +205,8 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         inMultiWindow.value = isInMultiWindowMode
         FreeformBar.dashboardInFront = true
+        // Home pressed over an app that never stopped the dashboard (a window): no onStart then.
+        EmbeddedApp.dashboardBack()
     }
 
     override fun onPause() {
@@ -236,6 +238,7 @@ class MainActivity : ComponentActivity() {
         enableImmersiveFullscreen()
         // Focus changes accompany entering/leaving split on some ROMs.
         inMultiWindow.value = isInMultiWindowMode
+        if (hasFocus) EmbeddedApp.dashboardBack()
     }
 
     internal fun enableImmersiveFullscreen() {
