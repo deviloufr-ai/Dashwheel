@@ -626,7 +626,6 @@ private fun AdvancedPane(m: TopBarModel, onBootLogo: () -> Unit, onPickObd: () -
     // (EmbeddedApp): whether Android granted them, where they could be.
     val embed = EmbeddedApp.allowed(LocalContext.current)
     if (shell || embed) SystemPermissionsRow(embed)
-    if (embed) EmbeddedDiagnosticsRow()
     Spacer(Modifier.height(20.dp))
     // What is allowed and what is not, without running the setup again.
     SettingsSection(stringResource(R.string.setup_access_title))
@@ -675,22 +674,6 @@ internal fun SettingsSection(title: String) {
         style = MaterialTheme.typography.labelSmall,
         modifier = Modifier.padding(start = 12.dp, top = 4.dp, bottom = 8.dp)
     )
-}
-
-/**
- * What became of the touches sent to apps inside tiles, and whether the unit's
- * key service is listened to: facts to read out when those misbehave. A tap
- * starts the count again.
- */
-@Composable
-private fun EmbeddedDiagnosticsRow() {
-    val stats by EmbeddedApp.touchStats.collectAsState()
-    val detail = stringResource(
-        R.string.settings_embed_diag_detail,
-        stats.sent, stats.refused, stats.failed, stats.slowestMs,
-        if (HeadUnitKeys.listening) "on" else "off"
-    ) + (stats.lastError?.let { "\n$it" } ?: "")
-    SettingsRow(Icons.Filled.Build, stringResource(R.string.settings_embed_diag_title), detail) { EmbeddedApp.clearTouchStats() }
 }
 
 /** Whether Android granted Dashwheel the system permissions: a state to read, nothing to tap. */
