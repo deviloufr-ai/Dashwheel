@@ -17,9 +17,14 @@ import android.view.KeyEvent
  * app any other way. Worked out from the firmware and spoken at the binder
  * level ("util_service", android.qf.util.IUtilEventManager): the listener is
  * a plain Binder reading the key off the parcel, so Dashwheel never touches a
- * vendor class. The unit still does its own thing with each key: listening
- * only watches. Learned buttons ([SteeringWheelStore]) come through here
+ * vendor class. Learned buttons ([SteeringWheelStore]) come through here
  * without root and without reading the CAN stream.
+ *
+ * Listened to only while it is needed ([want]): the learning screen, or a
+ * unit key bound to something. On a K706, all the touch keys beside the
+ * screen (power, home, back, volume) stopped working, everywhere, while
+ * Dashwheel listened from every start: the service seems to hand the keys to
+ * one listener, and Dashwheel's took the firmware's place until a restart.
  */
 object HeadUnitKeys {
     private const val TAG = "HeadUnitKeys"
@@ -61,15 +66,28 @@ object HeadUnitKeys {
         }
     }
 
+    /** Whether something needs the unit's keys right now ([want]). */
+    @Volatile
+    private var wanted = false
+
     private val died = IBinder.DeathRecipient {
         service = null
-        main.postDelayed({ register() }, RETRY_MS)
+        main.postDelayed({ if (wanted) register() }, RETRY_MS)
     }
 
     fun start(context: Context) {
         if (appContext != null) return
         appContext = context.applicationContext
-        register()
+    }
+
+    /**
+     * Listens to the key service while [on]: the learning screen is open, or a
+     * unit key is bound. Once listening, it lasts until Dashwheel restarts:
+     * there is no known way to stop.
+     */
+    fun want(on: Boolean) {
+        wanted = on
+        if (on && service == null) main.post { if (wanted && service == null) register() }
     }
 
     /** Whether the unit's key service is being listened to. */

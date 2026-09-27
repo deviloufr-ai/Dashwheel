@@ -217,6 +217,8 @@ internal object SteeringWheelStore {
 
     /** The CAN stream is read (root logcat) only while it can be needed. */
     private fun updateReader() {
+        // The unit's key service only for its own keys: listening to it can cost the touch keys beside the screen (HeadUnitKeys).
+        HeadUnitKeys.want(listening.value || _mappings.value.any { it.key.canKey == null && it.key.keyCode >= HeadUnitKeys.FIRST_VENDOR_KEY })
         val wanted = listening.value || _mappings.value.any { it.key.canKey != null }
         if (wanted == holdsReader) return
         holdsReader = wanted

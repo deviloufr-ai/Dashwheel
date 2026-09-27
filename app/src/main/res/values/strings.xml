@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">Dashwheel</string>
+    <!-- Diagnostics for apps inside tiles, read out when reporting a problem: kept in English. -->
+    <string name="settings_embed_diag_title" translatable="false">Diagnostics: apps inside tiles</string>
+    <string name="settings_embed_diag_detail" translatable="false">Touches sent %1$d · refused %2$d · failed %3$d · slowest %4$d ms · unit key service %5$s</string>
     <string name="split_a11y_description">Lets Dashwheel open apps in split-screen next to the dashboard, using the same system split the recents screen uses. No screen content is read. It also receives the hardware buttons, so learned steering wheel buttons work over any app; other buttons pass through untouched.</string>
 
     <!-- Language picker; each language is listed under its own name. -->

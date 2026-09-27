@@ -15,6 +15,7 @@ import android.hardware.input.InputManager
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Process
+import android.os.SystemClock
 import android.util.Log
 import android.view.InputEvent
 import android.view.KeyEvent
@@ -169,6 +170,34 @@ internal object EmbeddedApp {
     private val injectInputEvent: Method? by lazy {
         runCatching { HiddenApiBypass.getDeclaredMethod(InputManager::class.java, "injectInputEvent", InputEvent::class.java, Int::class.javaPrimitiveType) }
             .onFailure { Log.w(TAG, "no InputManager.injectInputEvent", it) }.getOrNull()
+    }
+
+    /** What became of the tiles' touches, for the diagnostics line in Settings. */
+    data class TouchStats(
+        val sent: Int = 0,
+        /** Android said no (injectInputEvent returned false). */
+        val refused: Int = 0,
+        /** Threw on the way. */
+        val failed: Int = 0,
+        /** The longest a touch took from the finger to the app's display, queue included. */
+        val slowestMs: Long = 0,
+        val lastError: String? = null
+    )
+
+    private val _touchStats = MutableStateFlow(TouchStats())
+    val touchStats: StateFlow<TouchStats> = _touchStats.asStateFlow()
+
+    fun clearTouchStats() {
+        _touchStats.value = TouchStats()
+    }
+
+    private fun countTouch(ok: Boolean, tookMs: Long, error: Throwable? = null) {
+        val s = _touchStats.value
+        _touchStats.value = when {
+            error != null -> s.copy(failed = s.failed + 1, lastError = error.toString().take(120))
+            ok -> s.copy(sent = s.sent + 1, slowestMs = maxOf(s.slowestMs, tookMs))
+            else -> s.copy(refused = s.refused + 1)
+        }
     }
 
     // --- The unit's keys ---------------------------------------------------
@@ -586,6 +615,7 @@ internal object EmbeddedApp {
             val id = display?.display?.displayId ?: return
             if (touchRefused) return
             val copy = MotionEvent.obtain(event)
+            val queued = SystemClock.uptimeMillis()
             touchHandler.post {
                 try {
                     val setId = setDisplayId
@@ -595,13 +625,17 @@ internal object EmbeddedApp {
                         return@post
                     }
                     setId.invoke(copy, id)
-                    inject.invoke(context.getSystemService(InputManager::class.java), copy, INJECT_ASYNC)
+                    val ok = inject.invoke(context.getSystemService(InputManager::class.java), copy, INJECT_ASYNC) as? Boolean ?: true
+                    // From the finger (the event's own time) to the app's display.
+                    countTouch(ok, SystemClock.uptimeMillis() - minOf(copy.eventTime, queued))
                 } catch (t: InvocationTargetException) {
                     // Without INJECT_EVENTS every touch is refused: say it once, then leave the app as a picture.
                     // Anything else (the display resized meanwhile...) only loses this one touch.
+                    countTouch(false, 0, t.targetException)
                     if (t.targetException is SecurityException) refuseTouches(t.targetException)
                     else Log.w(TAG, "a touch missed $packageName", t.targetException)
                 } catch (t: Exception) {
+                    countTouch(false, 0, t)
                     Log.w(TAG, "a touch missed $packageName", t)
                 } finally {
                     copy.recycle()
