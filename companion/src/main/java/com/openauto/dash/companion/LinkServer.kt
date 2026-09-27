@@ -21,6 +21,7 @@ import com.openauto.dash.link.Ping
 import com.openauto.dash.link.Pong
 import com.openauto.dash.link.Reply
 import com.openauto.dash.link.SecureChannel
+import com.openauto.dash.link.TypeResult
 import com.openauto.dash.link.UnknownPairingException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -207,6 +208,7 @@ object LinkServer {
             is CarLocation -> CarSpot.update(context, message)
             is DriveSync -> DriveJournal.sync(context, message.drives)
             is DriveReport -> DriveJournal.update(context, message.drive)
+            is TypeResult -> CarKeyboard.answered(message)
             else -> Unit
         }
     }

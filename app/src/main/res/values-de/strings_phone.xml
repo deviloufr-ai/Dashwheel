@@ -45,4 +45,5 @@
     <string name="phone_call_no_control">Um hier anzunehmen, erlaube Anrufe in Dashwheel Begleiter.</string>
     <string name="phone_overlay">Anrufe über anderen Apps zeigen</string>
     <string name="phone_overlay_detail">Ein Anruf erscheint dann auch, wenn eine andere App den ganzen Bildschirm füllt.</string>
+    <string name="phone_text_copied">Text vom Handy kopiert: Textfeld gedrückt halten zum Einfügen</string>
 </resources>

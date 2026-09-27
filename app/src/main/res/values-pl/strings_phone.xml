@@ -45,4 +45,5 @@
     <string name="phone_call_no_control">Aby odbierać tutaj, zezwól na Połączenia w Dashwheel Companion.</string>
     <string name="phone_overlay">Pokazuj połączenia nad innymi aplikacjami</string>
     <string name="phone_overlay_detail">Połączenie pojawi się wtedy nawet, gdy inna aplikacja zajmuje cały ekran.</string>
+    <string name="phone_text_copied">Skopiowano tekst z telefonu: przytrzymaj pole tekstowe, aby wkleić</string>
 </resources>

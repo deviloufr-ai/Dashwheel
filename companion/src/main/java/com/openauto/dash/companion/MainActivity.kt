@@ -2,6 +2,7 @@ package com.openauto.dash.companion
 
 import android.Manifest
 import android.content.ActivityNotFoundException
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -26,15 +27,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardReturn
 import androidx.compose.material.icons.filled.BatteryFull
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.DirectionsWalk
+import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.LocalParking
 import androidx.compose.material.icons.filled.Notifications
@@ -50,6 +56,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -72,6 +79,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -79,6 +89,7 @@ import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import com.openauto.dash.link.DriveSummary
 import com.openauto.dash.link.PairingOffer
+import com.openauto.dash.link.TypeText
 import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
@@ -186,6 +197,7 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
                     }
                 )
             }
+            if (state is LinkState.Connected) item { KeyboardCard() }
             if (units.isNotEmpty()) item { CarSpotCard() }
             if (units.isNotEmpty()) {
                 item { SectionTitle(stringResource(R.string.drives_title)) }
@@ -296,6 +308,87 @@ private fun StatusCard(text: String, connected: Boolean, enabled: Boolean, canTo
                 }
             }
             Switch(checked = enabled && canToggle, onCheckedChange = onToggle, enabled = canToggle)
+        }
+    }
+}
+
+/**
+ * The phone as the car's keyboard ([CarKeyboard]): the text field selected on
+ * the car's screen follows this one as it is typed, and Enter runs it there.
+ */
+@Composable
+private fun KeyboardCard() {
+    val context = LocalContext.current
+    var field by remember { mutableStateOf(TextFieldValue("")) }
+    // Only the answers to what was sent from here: not a share from earlier.
+    var sentHere by remember { mutableStateOf(false) }
+    val answer by CarKeyboard.answer.collectAsState()
+
+    fun change(value: TextFieldValue) {
+        val changed = value.text != field.text
+        field = value
+        if (changed) {
+            sentHere = true
+            CarKeyboard.send(value.text, TypeText.Mode.REPLACE)
+        }
+    }
+
+    fun enter() {
+        sentHere = true
+        CarKeyboard.send(field.text, TypeText.Mode.REPLACE, enter = true)
+    }
+
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Filled.Keyboard, contentDescription = null)
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.keyboard_title), fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.keyboard_detail), style = MaterialTheme.typography.bodySmall)
+                }
+            }
+            OutlinedTextField(
+                value = field,
+                onValueChange = ::change,
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                placeholder = { Text(stringResource(R.string.keyboard_hint)) },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
+                keyboardActions = KeyboardActions(onGo = { enter() }),
+                maxLines = 4
+            )
+            answer?.takeIf { sentHere }?.let { a ->
+                Text(
+                    stringResource(CarKeyboard.message(a.status)),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (a.status == CarKeyboard.Status.TYPED) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+            Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = {
+                    // The phone's clipboard, at the cursor: the car's field follows.
+                    val clip = context.getSystemService(ClipboardManager::class.java)?.primaryClip
+                    val text = clip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(context)?.toString()
+                    if (!text.isNullOrEmpty()) {
+                        val from = minOf(field.selection.start, field.selection.end)
+                        val to = maxOf(field.selection.start, field.selection.end)
+                        val joined = field.text.substring(0, from) + text + field.text.substring(to)
+                        change(TextFieldValue(joined, TextRange(from + text.length)))
+                    }
+                }) {
+                    Icon(Icons.Filled.ContentPaste, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.keyboard_paste))
+                }
+                OutlinedButton(onClick = { change(TextFieldValue("")) }) { Text(stringResource(R.string.keyboard_clear)) }
+                Spacer(Modifier.weight(1f))
+                Button(onClick = ::enter) {
+                    Icon(Icons.AutoMirrored.Filled.KeyboardReturn, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.keyboard_enter))
+                }
+            }
         }
     }
 }

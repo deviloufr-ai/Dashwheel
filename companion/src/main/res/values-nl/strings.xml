@@ -62,4 +62,17 @@
     <string name="drive_fuel">Brandstof ≈ %1$s L · %2$s %3$s</string>
     <string name="drive_duration_hm">%1$d u %2$02d</string>
     <string name="drive_duration_m">%1$d min</string>
+    <string name="keyboard_title">Typen in de auto</string>
+    <string name="keyboard_detail">Kies een tekstveld op het autoscherm en typ hier: het volgt terwijl je typt.</string>
+    <string name="keyboard_hint">Tekst voor het autoscherm</string>
+    <string name="keyboard_paste">Plakken</string>
+    <string name="keyboard_clear">Wissen</string>
+    <string name="keyboard_enter">Enter</string>
+    <string name="keyboard_typed">Op het autoscherm</string>
+    <string name="keyboard_copied">Geen veld gekozen op het autoscherm: de tekst staat op het klembord daar.</string>
+    <string name="keyboard_failed">Het autoscherm nam de tekst niet aan.</string>
+    <string name="keyboard_no_answer">Geen antwoord: werk Dashwheel in de auto bij.</string>
+    <string name="keyboard_not_connected">De auto is niet verbonden.</string>
+    <string name="send_to_car">Naar auto sturen</string>
+    <string name="sent_to_car">Naar het autoscherm gestuurd</string>
 </resources>

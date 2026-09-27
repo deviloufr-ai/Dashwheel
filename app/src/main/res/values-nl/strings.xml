@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="split_a11y_description">Laat Dashwheel apps in gesplitst scherm naast het dashboard openen, met dezelfde systeemsplitsing als het scherm met recente apps. Er wordt geen scherminhoud gelezen. Het ontvangt ook de fysieke knoppen, zodat aangeleerde stuurknoppen boven elke app werken; andere knoppen gaan ongewijzigd door.</string>
+    <string name="split_a11y_description">Laat Dashwheel apps in gesplitst scherm naast het dashboard openen, met dezelfde systeemsplitsing als het scherm met recente apps. Van de scherminhoud wordt alleen het geselecteerde tekstveld gebruikt, om tekst van je telefoon in te typen. Het ontvangt ook de fysieke knoppen, zodat aangeleerde stuurknoppen boven elke app werken; andere knoppen gaan ongewijzigd door.</string>
 
     <!-- Language picker; each language is listed under its own name. -->
     <string name="language_menu">Taal</string>

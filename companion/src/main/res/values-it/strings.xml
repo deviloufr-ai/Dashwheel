@@ -62,4 +62,17 @@
     <string name="drive_fuel">Carburante ≈ %1$s L · %2$s %3$s</string>
     <string name="drive_duration_hm">%1$d h %2$02d</string>
     <string name="drive_duration_m">%1$d min</string>
+    <string name="keyboard_title">Scrivi sull\'auto</string>
+    <string name="keyboard_detail">Seleziona un campo di testo sullo schermo dell\'auto, poi scrivi qui: segue mentre scrivi.</string>
+    <string name="keyboard_hint">Testo per lo schermo dell\'auto</string>
+    <string name="keyboard_paste">Incolla</string>
+    <string name="keyboard_clear">Cancella</string>
+    <string name="keyboard_enter">Invio</string>
+    <string name="keyboard_typed">Sullo schermo dell\'auto</string>
+    <string name="keyboard_copied">Nessun campo selezionato sullo schermo dell\'auto: il testo è nei suoi appunti.</string>
+    <string name="keyboard_failed">Lo schermo dell\'auto non ha preso il testo.</string>
+    <string name="keyboard_no_answer">Nessuna risposta: aggiorna Dashwheel sull\'auto.</string>
+    <string name="keyboard_not_connected">L\'auto non è connessa.</string>
+    <string name="send_to_car">Invia all\'auto</string>
+    <string name="sent_to_car">Inviato allo schermo dell\'auto</string>
 </resources>

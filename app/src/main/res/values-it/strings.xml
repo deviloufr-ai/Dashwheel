@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="split_a11y_description">Consente a Dashwheel di aprire le app a schermo diviso accanto al cruscotto, con la stessa divisione di sistema usata dalla schermata delle app recenti. Nessun contenuto dello schermo viene letto. Riceve anche i tasti fisici, così i tasti del volante imparati funzionano sopra qualsiasi app; gli altri passano invariati.</string>
+    <string name="split_a11y_description">Consente a Dashwheel di aprire le app a schermo diviso accanto al cruscotto, con la stessa divisione di sistema usata dalla schermata delle app recenti. Del contenuto dello schermo usa solo il campo di testo selezionato, per scrivere il testo inviato dal telefono. Riceve anche i tasti fisici, così i tasti del volante imparati funzionano sopra qualsiasi app; gli altri passano invariati.</string>
 
     <!-- Language picker; each language is listed under its own name. -->
     <string name="language_menu">Lingua</string>

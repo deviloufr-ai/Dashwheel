@@ -398,6 +398,14 @@ class SplitAccessibilityService : AccessibilityService() {
          */
         fun overlayHost(): Context? = instance
 
+        /**
+         * The view that has the keyboard focus, in whatever window: where text
+         * from the phone is typed ([PhoneKeyboard]). Null when nothing has it
+         * or the service is not bound; the caller recycles it.
+         */
+        fun inputFocus(): AccessibilityNodeInfo? =
+            instance?.let { runCatching { it.findFocus(AccessibilityNodeInfo.FOCUS_INPUT) }.getOrNull() }
+
         /** Any `GLOBAL_ACTION_*` (back, recents, notifications...); false when the service is not bound. */
         fun globalAction(action: Int): Boolean =
             instance?.let { runCatching { it.performGlobalAction(action) }.getOrDefault(false) } ?: false

@@ -57,6 +57,26 @@
             </intent-filter>
         </activity>
 
+        <!-- "Send to car": shared text, or text selected in any app, typed on
+             the car's screen. Only reaches a car paired and linked right now. -->
+        <activity
+            android:name=".SendToCarActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:label="@string/send_to_car"
+            android:theme="@style/Theme.Companion.Invisible">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.PROCESS_TEXT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+
         <!-- The QR scanner follows the phone's orientation instead of forcing landscape. -->
         <activity
             android:name="com.journeyapps.barcodescanner.CaptureActivity"

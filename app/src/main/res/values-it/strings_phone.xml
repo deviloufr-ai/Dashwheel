@@ -45,4 +45,5 @@
     <string name="phone_call_no_control">Per rispondere da qui, consenti Chiamate in Dashwheel Companion.</string>
     <string name="phone_overlay">Mostra le chiamate sopra le altre app</string>
     <string name="phone_overlay_detail">Così una chiamata compare anche con un\'altra app a tutto schermo.</string>
+    <string name="phone_text_copied">Testo del telefono copiato: tieni premuto un campo per incollarlo</string>
 </resources>

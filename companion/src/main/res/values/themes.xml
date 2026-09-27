@@ -5,4 +5,9 @@
         <item name="android:windowBackground">@android:color/black</item>
         <item name="android:colorAccent">#5B8DEF</item>
     </style>
+
+    <!-- "Send to car" shows no window: only its toast. -->
+    <style name="Theme.Companion.Invisible" parent="android:Theme.Translucent.NoTitleBar">
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
 </resources>

@@ -6,7 +6,9 @@
   from the two app windows' bounds, and — when the user taps the floating swap
   button — to read only those two windows' package names so it can recreate the
   split with the apps reversed (this ROM has no working swap gesture). It reads
-  window types, bounds and owning package names only; never any window content.
+  window types, bounds and owning package names; of the window content, only the
+  view with the keyboard focus, when text comes from the phone, to type it there
+  (PhoneKeyboard).
   notificationTimeout batches the events: a split settles in several window
   changes, and only the swap button's show / hide follows them, so a fraction
   of a second later costs nothing and saves a window-list fetch per change.

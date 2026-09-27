@@ -62,4 +62,18 @@
     <string name="drive_fuel">Fuel ≈ %1$s L · %2$s %3$s</string>
     <string name="drive_duration_hm">%1$d h %2$02d</string>
     <string name="drive_duration_m">%1$d min</string>
+    <!-- The phone as the car's keyboard (CarKeyboard, SendToCarActivity). -->
+    <string name="keyboard_title">Type on the car</string>
+    <string name="keyboard_detail">Select a text field on the car screen, then type here: it follows as you type.</string>
+    <string name="keyboard_hint">Text for the car screen</string>
+    <string name="keyboard_paste">Paste</string>
+    <string name="keyboard_clear">Clear</string>
+    <string name="keyboard_enter">Enter</string>
+    <string name="keyboard_typed">On the car screen</string>
+    <string name="keyboard_copied">No field selected on the car screen: the text is on its clipboard.</string>
+    <string name="keyboard_failed">The car screen did not take the text.</string>
+    <string name="keyboard_no_answer">No answer: update Dashwheel on the car.</string>
+    <string name="keyboard_not_connected">The car is not connected.</string>
+    <string name="send_to_car">Send to car</string>
+    <string name="sent_to_car">Sent to the car screen</string>
 </resources>

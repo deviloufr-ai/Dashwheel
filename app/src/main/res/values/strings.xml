@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">Dashwheel</string>
-    <string name="split_a11y_description">Lets Dashwheel open apps in split-screen next to the dashboard, using the same system split the recents screen uses. No screen content is read. It also receives the hardware buttons, so learned steering wheel buttons work over any app; other buttons pass through untouched.</string>
+    <string name="split_a11y_description">Lets Dashwheel open apps in split-screen next to the dashboard, using the same system split the recents screen uses. The only screen content it uses is the selected text field, to type text sent from your phone. It also receives the hardware buttons, so learned steering wheel buttons work over any app; other buttons pass through untouched.</string>
 
     <!-- Language picker; each language is listed under its own name. -->
     <string name="language_menu">Language</string>

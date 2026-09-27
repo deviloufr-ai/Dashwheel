@@ -45,4 +45,5 @@
     <string name="phone_call_no_control">Para atender daqui, permita Chamadas no Dashwheel Companheiro.</string>
     <string name="phone_overlay">Mostrar chamadas sobre outras apps</string>
     <string name="phone_overlay_detail">Assim uma chamada aparece mesmo com outra app em ecrã inteiro.</string>
+    <string name="phone_text_copied">Texto do telemóvel copiado: mantenha premido um campo para colar</string>
 </resources>

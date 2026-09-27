@@ -45,4 +45,5 @@
     <string name="phone_call_no_control">Sta Oproepen toe in Dashwheel Companion om hier op te nemen.</string>
     <string name="phone_overlay">Oproepen over andere apps tonen</string>
     <string name="phone_overlay_detail">Een oproep verschijnt dan ook als een andere app het hele scherm vult.</string>
+    <string name="phone_text_copied">Tekst van je telefoon gekopieerd: houd een tekstveld ingedrukt om te plakken</string>
 </resources>

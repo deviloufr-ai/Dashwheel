@@ -29,6 +29,7 @@ import com.openauto.dash.link.Pong
 import com.openauto.dash.link.Reply
 import com.openauto.dash.link.SecureChannel
 import com.openauto.dash.link.StoredPairing
+import com.openauto.dash.link.TypeText
 import com.openauto.dash.link.UnknownPairingException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -59,8 +60,9 @@ import java.util.concurrent.atomic.AtomicReference
  * over Wi-Fi; the Dashwheel Companion app on it listens on the hotspot's
  * gateway address. This side finds that gateway, dials it, proves it holds
  * the secret from the pairing QR code, then shows the phone's notifications
- * in the Notifications card, sends back replies, and shows its calls
- * ([PhoneCallOverlay]) with answer / hang-up buttons.
+ * in the Notifications card, sends back replies, shows its calls
+ * ([PhoneCallOverlay]) with answer / hang-up buttons, and types the text sent
+ * from its keyboard card ([PhoneKeyboard]).
  */
 
 /** A phone the driver paired by scanning the QR code with the companion app. */
@@ -381,6 +383,7 @@ object PhoneLink {
             is NotificationRemoved -> NotificationFeed.phoneRemoved(message.key)
             is ActionResult -> _results.tryEmit(message)
             is CallState -> _call.value = toPhoneCall(context, message)
+            is TypeText -> PhoneKeyboard.type(context, message) { send(it) }
             else -> Unit
         }
     }

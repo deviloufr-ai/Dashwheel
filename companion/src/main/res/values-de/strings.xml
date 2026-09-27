@@ -62,4 +62,17 @@
     <string name="drive_fuel">Kraftstoff ≈ %1$s L · %2$s %3$s</string>
     <string name="drive_duration_hm">%1$d h %2$02d</string>
     <string name="drive_duration_m">%1$d min</string>
+    <string name="keyboard_title">Im Auto tippen</string>
+    <string name="keyboard_detail">Wählen Sie ein Textfeld auf dem Autobildschirm und tippen Sie hier: Es folgt beim Tippen.</string>
+    <string name="keyboard_hint">Text für den Autobildschirm</string>
+    <string name="keyboard_paste">Einfügen</string>
+    <string name="keyboard_clear">Löschen</string>
+    <string name="keyboard_enter">Enter</string>
+    <string name="keyboard_typed">Auf dem Autobildschirm</string>
+    <string name="keyboard_copied">Kein Feld auf dem Autobildschirm ausgewählt: Der Text liegt in seiner Zwischenablage.</string>
+    <string name="keyboard_failed">Der Autobildschirm hat den Text nicht angenommen.</string>
+    <string name="keyboard_no_answer">Keine Antwort: Aktualisieren Sie Dashwheel im Auto.</string>
+    <string name="keyboard_not_connected">Das Auto ist nicht verbunden.</string>
+    <string name="send_to_car">An Auto senden</string>
+    <string name="sent_to_car">An den Autobildschirm gesendet</string>
 </resources>

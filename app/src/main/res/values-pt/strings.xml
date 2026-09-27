@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="split_a11y_description">Permite ao Dashwheel abrir apps em ecrã dividido ao lado do painel, com a mesma divisão do sistema usada no ecrã de apps recentes. Nenhum conteúdo do ecrã é lido. Também recebe os botões físicos, para que os botões do volante aprendidos funcionem sobre qualquer app; os outros passam sem alterações.</string>
+    <string name="split_a11y_description">Permite ao Dashwheel abrir apps em ecrã dividido ao lado do painel, com a mesma divisão do sistema usada no ecrã de apps recentes. Do conteúdo do ecrã só usa o campo de texto selecionado, para escrever o texto enviado do telemóvel. Também recebe os botões físicos, para que os botões do volante aprendidos funcionem sobre qualquer app; os outros passam sem alterações.</string>
 
     <!-- Language picker; each language is listed under its own name. -->
     <string name="language_menu">Idioma</string>

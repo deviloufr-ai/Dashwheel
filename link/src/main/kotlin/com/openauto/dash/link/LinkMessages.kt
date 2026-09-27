@@ -178,6 +178,41 @@ data class CallCommand(val action: Action) : LinkMessage {
     enum class Action { ANSWER, DECLINE, HANG_UP }
 }
 
+/**
+ * Phone → head unit: text from the phone, for the text field selected on the
+ * car's screen. [Mode.REPLACE]: the field becomes [text] (the phone's keyboard
+ * card sends its whole field on every change, so the car's field follows it);
+ * [Mode.INSERT]: [text] is pasted at the cursor, and stays on the head unit's
+ * clipboard (a paste or a share from the phone). [enter] then presses Enter,
+ * to run a search. Answered with [TypeResult] under the same [id].
+ */
+@Serializable
+@SerialName("type_text")
+data class TypeText(val text: String, val mode: Mode = Mode.INSERT, val enter: Boolean = false, val id: Long = 0) : LinkMessage {
+    @Serializable
+    enum class Mode { INSERT, REPLACE }
+
+    companion object {
+        /** Far more than a search box or a message needs, and always one frame. */
+        const val MAX_CHARS = 10_000
+    }
+}
+
+/** Head unit → phone: what became of a [TypeText]. */
+@Serializable
+@SerialName("typed")
+data class TypeResult(val id: Long, val outcome: Outcome) : LinkMessage {
+    @Serializable
+    enum class Outcome {
+        /** In the field selected on the car's screen. */
+        TYPED,
+        /** No text field selected there: the text is on the head unit's clipboard, to paste. */
+        COPIED,
+        /** Refused by the field or the head unit. */
+        FAILED
+    }
+}
+
 /** A notification as the head unit shows it. [key] is the phone's own key. */
 @Serializable
 data class PhoneNotification(
