@@ -189,10 +189,10 @@ Besides app icons (a tap opens the app full screen), another app can live on a p
 | Requirement | **In a window** | **Inside the tile** | **Side by side** |
 |---|---|---|---|
 | **Root shell** (Magisk `su`, or the unit's internal root ADB on port 9876) | Required: every window is placed and moved through it | Required on the K706: the app always opens full screen first and is moved into the tile with `am display move-stack` | Not needed |
-| **PMPatch3 Magisk module** (Zygisk on) | Not needed | Required: it makes Android grant Dashwheel the firmware's system permissions | Not needed |
+| **PMPatch3 Magisk module** (Zygisk on, Magisk 24 or newer) | Not needed | Required: it makes Android grant Dashwheel the firmware's system permissions. Settings → Advanced → *System permissions* downloads it from its GitHub release, checks it and installs it | Not needed |
 | **`INTERNAL_SYSTEM_WINDOW`** (open an app on Dashwheel's own display) | Not needed | Required: the option is hidden without it | Not needed |
 | **`INJECT_EVENTS`** (pass touches to the app) | Not needed | Needed for touch; without it the app shows but can't be touched | Not needed |
-| **One reinstall or update of Dashwheel** after PMPatch3 is active | – | Required: system permissions are only granted at install time | – |
+| **A reboot** after PMPatch3 is installed | – | Required: PMPatch3 and Zygisk start with the unit. If Android still holds the permissions back after it, Dashwheel reinstalls itself once to get them | – |
 | **Accessibility service** (Settings → Accessibility → Dashwheel) | Not needed | Not needed | Required: it opens the two apps together |
 | **Firmware support** | Floating (freeform) windows | Apps on additional displays (`activities_on_secondary_displays`) | Android split screen |
 | **The app itself** | Must accept being resized into a window | Must be openable from the launcher; apps that block screen capture (streaming video, banking) show black | Must accept split screen |

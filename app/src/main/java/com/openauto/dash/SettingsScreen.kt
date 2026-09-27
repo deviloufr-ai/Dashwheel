@@ -699,13 +699,21 @@ internal fun SettingsSection(title: String) {
     )
 }
 
-/** Whether Android granted Dashwheel the system permissions: a state to read, nothing to tap. */
+/**
+ * Whether Android granted Dashwheel the system permissions. While they aren't,
+ * a tap gets them through PMPatch3 ([PmPatchDialog]).
+ */
 @Composable
 private fun SystemPermissionsRow(granted: Boolean) {
+    var setup by remember { mutableStateOf(false) }
+    if (setup) PmPatchDialog { setup = false }
+    val tap = rememberTapFeedback()
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = DashSize.Bar)
+            .clip(DashShape.Medium)
+            .clickable(enabled = !granted) { tap(); setup = true }
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

@@ -647,6 +647,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         ObdBluetoothManager.setContext(context)
         McuReader.setContext(context)
         PrivilegedShell.probe()
+        PmPatch.finishSetup(context)
         CarProfileStore.setContext(context)
         SpeedCorrection.setContext(context)
         MediaVolume.setContext(context)
