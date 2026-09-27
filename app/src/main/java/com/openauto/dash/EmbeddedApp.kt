@@ -267,7 +267,68 @@ internal object EmbeddedApp {
     /** A touch on the dashboard begins ([MainActivity.dispatchTouchEvent]). */
     fun touchStarts() {
         tileTouched = false
+        downOn = null
         givingBack?.cancel()
+    }
+
+    // --- A touch on a tile, straight from the window -------------------------
+    //
+    // The dashboard decides where a finger lands (so a menu drawn over a tile
+    // keeps its touches), but once it lands on an app's tile the rest of that
+    // touch goes to the app straight from the window: through the dashboard's
+    // pages it reached the app as a press and a cancel, a whole drag as 4 touches.
+
+    /** The tile's app the finger just landed on, and where on the tile. Main thread. */
+    private var downOn: Host? = null
+    private var downX = 0f
+    private var downY = 0f
+
+    /** The app the current touch goes to, and the tile's offset in the window. */
+    private var routeTo: Host? = null
+    private var routeDx = 0f
+    private var routeDy = 0f
+
+    /** True while a touch goes straight to a tile's app: the tile's own view leaves it alone. */
+    val routing: Boolean get() = routeTo != null
+
+    /** The finger landed on [host]'s tile at ([x], [y]) on it. */
+    fun tileDown(host: Host, x: Float, y: Float) {
+        downOn = host
+        downX = x
+        downY = y
+    }
+
+    /**
+     * After the dashboard saw a finger go down at [down] (window coordinates):
+     * true when it landed on an app's tile, the rest of the touch then going
+     * there through [routeTouch].
+     */
+    fun takeTouch(down: MotionEvent): Boolean {
+        val host = downOn ?: return false
+        downOn = null
+        routeTo = host
+        routeDx = down.x - downX
+        routeDy = down.y - downY
+        return true
+    }
+
+    /** The rest of a touch taken by [takeTouch], moved onto the tile; false when none is. */
+    fun routeTouch(ev: MotionEvent): Boolean {
+        val host = routeTo ?: return false
+        if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
+            // A new touch without the end of the last one: that one is over.
+            routeTo = null
+            return false
+        }
+        val copy = MotionEvent.obtain(ev)
+        copy.offsetLocation(-routeDx, -routeDy)
+        host.touch(copy)
+        copy.recycle()
+        if (ev.actionMasked == MotionEvent.ACTION_UP || ev.actionMasked == MotionEvent.ACTION_CANCEL) {
+            routeTo = null
+            touchEnds()
+        }
+        return true
     }
 
     /** That touch landed on an app inside a tile. */
@@ -711,15 +772,19 @@ internal fun EmbeddedAppCard(packageName: String, label: String, modifier: Modif
                         override fun onSurfaceTextureUpdated(texture: SurfaceTexture) {}
                     }
                     setOnTouchListener { v, event ->
-                        if (event.actionMasked == MotionEvent.ACTION_DOWN) {
-                            // A drag on the map pans the map: the dashboard's pages must not take it.
-                            // Asked of the view's parent only: turning the pages' swipe off
-                            // instead, mid-touch, made Compose cancel the touch under the
-                            // finger, so the app got a press and a cancel, never a tap or a drag.
-                            v.parent?.requestDisallowInterceptTouchEvent(true)
-                            EmbeddedApp.tileTouched()
+                        when {
+                            event.actionMasked == MotionEvent.ACTION_DOWN -> {
+                                // A drag on the map pans the map: the dashboard's pages must not take it.
+                                v.parent?.requestDisallowInterceptTouchEvent(true)
+                                EmbeddedApp.tileTouched()
+                                // The rest of the touch comes straight from the window (EmbeddedApp.routeTouch).
+                                EmbeddedApp.tileDown(host, event.x, event.y)
+                                host.touch(event)
+                            }
+                            // Sent from the window already; the cancel that lets the dashboard go is not the app's.
+                            EmbeddedApp.routing -> Unit
+                            else -> host.touch(event)
                         }
-                        host.touch(event)
                         true
                     }
                 }

@@ -162,12 +162,22 @@ class MainActivity : ComponentActivity() {
     // tile must not take that for its own launch gone wrong (PipAnchor).
     // It also hands the unit's keys back to this screen when an app inside a
     // tile took them (EmbeddedApp).
+    // A touch that lands on an app inside a tile goes on to that app straight
+    // from here, the dashboard let go of it (EmbeddedApp.routeTouch).
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        if (EmbeddedApp.routeTouch(ev)) return true
         if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
             PipAnchor.noteUserTouch()
             EmbeddedApp.touchStarts()
         }
         val handled = super.dispatchTouchEvent(ev)
+        if (ev.actionMasked == MotionEvent.ACTION_DOWN && EmbeddedApp.takeTouch(ev)) {
+            val cancel = MotionEvent.obtain(ev)
+            cancel.action = MotionEvent.ACTION_CANCEL
+            super.dispatchTouchEvent(cancel)
+            cancel.recycle()
+            return true
+        }
         if (ev.actionMasked == MotionEvent.ACTION_UP || ev.actionMasked == MotionEvent.ACTION_CANCEL) EmbeddedApp.touchEnds()
         return handled
     }
