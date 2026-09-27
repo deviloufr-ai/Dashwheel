@@ -162,6 +162,14 @@ object WindowListing {
     /** Android's id for the screen itself (`Display.DEFAULT_DISPLAY`, kept out of the Android types here). */
     const val DEFAULT_DISPLAY = 0
 
+    /**
+     * Displays that show an app inside a tile (EmbeddedApp). What runs there is
+     * not a window of the dashboard: it is left out of every listing, so it is
+     * never parked, closed or brought back onto the screen as if it were one.
+     */
+    @Volatile
+    var embeddedDisplays: Set<Int> = emptySet()
+
     /** The display a stack block says it is on, from its `Stack id=N ... displayId=N` line. */
     private fun displayId(block: String): Int? =
         DISPLAY.find(block.lineSequence().first())?.groupValues?.get(1)?.toIntOrNull()
@@ -186,8 +194,11 @@ object WindowListing {
 
     private val MODE_NUMBER = Regex("indowingMode=(\\d)")
 
-    private fun stackBlocks(output: String): List<String> =
-        output.split(Regex("(?m)^\\s*Stack id=")).drop(1)
+    private fun stackBlocks(output: String): List<String> {
+        val blocks = output.split(Regex("(?m)^\\s*Stack id=")).drop(1)
+        val embedded = embeddedDisplays
+        return if (embedded.isEmpty()) blocks else blocks.filter { displayId(it) !in embedded }
+    }
 
     private fun windowingMode(block: String): String? {
         MODE_NAME.find(block)?.let { return it.groupValues[1] }

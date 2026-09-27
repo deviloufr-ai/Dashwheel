@@ -71,6 +71,9 @@ internal object EmbeddedApp {
     // InputManager.INJECT_INPUT_EVENT_MODE_ASYNC (@hide).
     private const val INJECT_ASYNC = 0
 
+    // WindowConfiguration.WINDOWING_MODE_FULLSCREEN (@hide).
+    private const val WINDOWING_MODE_FULLSCREEN = 1
+
     enum class Status {
         /** The display is being made or the app launched. */
         STARTING,
@@ -95,6 +98,13 @@ internal object EmbeddedApp {
 
     fun host(context: Context, packageName: String): Host =
         hosts.getOrPut(packageName) { Host(context.applicationContext, packageName) }
+
+    /** Apps with a display of their own right now; read from the window tiles' threads. */
+    @Volatile
+    private var held: Set<String> = emptySet()
+
+    /** True while [packageName] runs inside a tile, on its own display. */
+    fun holds(packageName: String): Boolean = packageName in held
 
     /** Closes the displays of the apps not in [keep]; each app closes with its display. */
     fun releaseUnless(keep: Set<String>) {
@@ -135,6 +145,9 @@ internal object EmbeddedApp {
                 return
             }
             display = made
+            // The window tiles now leave this app and this display alone.
+            WindowListing.embeddedDisplays = WindowListing.embeddedDisplays + made.display.displayId
+            held = held + packageName
             Log.i(TAG, "display ${made.display.displayId} for $packageName, ${width}x$height at $dpi dpi")
             launch(made)
         }
@@ -148,7 +161,11 @@ internal object EmbeddedApp {
         }
 
         fun release() {
-            display?.release()
+            display?.let { vd ->
+                WindowListing.embeddedDisplays = WindowListing.embeddedDisplays - vd.display.displayId
+                vd.release()
+            }
+            held = held - packageName
             display = null
             _status.value = Status.STARTING
         }
@@ -163,6 +180,11 @@ internal object EmbeddedApp {
             // window, full screen) is moved onto the tile instead of doubled.
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             val options = ActivityOptions.makeBasic().setLaunchDisplayId(vd.display.displayId)
+            // Full size on the tile's display. Without it, an app that was in a
+            // floating window before (the Maps window tile) keeps that mode and
+            // is taken for one of the dashboard's floating windows.
+            runCatching { HiddenApiBypass.invoke(ActivityOptions::class.java, options, "setLaunchWindowingMode", WINDOWING_MODE_FULLSCREEN) }
+                .onFailure { Log.w(TAG, "no windowing mode for $packageName", it) }
             _status.value = runCatching { context.startActivity(intent, options.toBundle()) }
                 .onFailure { Log.w(TAG, "$packageName refused on display ${vd.display.displayId}", it) }
                 .fold({ Status.SHOWN }, { Status.BLOCKED })

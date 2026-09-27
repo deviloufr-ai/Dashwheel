@@ -3,6 +3,7 @@ package com.openauto.dash
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** `am stack list` parsing for the pinned (picture-in-picture) stack. */
@@ -89,6 +90,28 @@ class PipAnchorTest {
               taskId=70: com.android.chrome/com.google.android.apps.chrome.Main bounds=[0,0][1280,720] userId=0 visible=true
         """.trimIndent()
         assertNull(WindowListing.fullscreenStackId(hiddenOnly))
+    }
+
+    @Test
+    fun mapsInsideATileIsNotAFloatingWindow() {
+        // Maps on the tile's own display (5), still in the freeform mode of its old window.
+        val listing = """
+            Stack id=0 bounds=[0,0][1280,720] displayId=0 userId=0
+             configuration={... mWindowingMode=fullscreen mActivityType=home ...}
+              taskId=2: com.openauto.dash/com.openauto.dash.MainActivity bounds=[0,0][1280,720] userId=0 visible=true
+            Stack id=12 bounds=[0,0][640,560] displayId=5 userId=0
+             configuration={ winConfig={ mWindowingMode=freeform mActivityType=standard} }
+              taskId=80: com.google.android.apps.maps/com.google.android.maps.MapsActivity bounds=[0,0][640,560] userId=0 visible=true
+        """.trimIndent()
+        try {
+            // Unknown display: taken for a parked window, which the tiles would bring back onto the screen.
+            assertEquals(true, WindowListing.parseFloatingWindow(listing, packageName = "com.google.android.apps.maps")?.offDisplay)
+            WindowListing.embeddedDisplays = setOf(5)
+            assertNull(WindowListing.parseFloatingWindow(listing, packageName = "com.google.android.apps.maps"))
+            assertTrue(WindowListing.strayWindows(listing, setOf("com.google.android.apps.maps"), emptySet()).isEmpty())
+        } finally {
+            WindowListing.embeddedDisplays = emptySet()
+        }
     }
 
     @Test
