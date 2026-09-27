@@ -295,7 +295,9 @@ Each build job: checkout → set up JDK 21 → set up Android SDK (explicit pack
 `AutoDriveReceiver` listens for `ACTION_ACL_CONNECTED`, but Android 8+ (this app targets `minSdk 29`) no longer delivers most implicit broadcasts to manifest-declared receivers — this only works if the app process is already running. Treat it as a best-effort convenience, not a guaranteed auto-launch.
 
 ## License
-Created for educational and demonstration purposes.
+Copyright (C) 2026 deviloufr-ai
+
+Dashwheel (the launcher and the Companion app) is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. It is distributed WITHOUT ANY WARRANTY; see the [LICENSE](LICENSE) file for the full text.
 
 ## Support
 - [Jetpack Compose Guidelines](https://developer.android.com/jetpack/compose)
