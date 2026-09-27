@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -266,13 +267,18 @@ internal fun PhonePane() {
         PhoneLinkState.Searching -> stringResource(R.string.phone_status_searching) to stringResource(R.string.phone_status_searching_detail)
         PhoneLinkState.Unpaired -> stringResource(R.string.phone_status_unpaired) to stringResource(R.string.phone_status_unpaired_detail)
     }
+    // A status, not a setting: on a panel of its own, so it is not taken for a row to tap.
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(DashShape.Medium)
+            .background(DashColors.CardHi.copy(alpha = DashColors.CardHi.alpha * 0.5f))
+            .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             if (state is PhoneLinkState.Connected) Icons.Filled.CheckCircle else Icons.Filled.PhoneAndroid, contentDescription = null,
-            tint = if (state is PhoneLinkState.Connected) DashColors.Good else DashColors.TextSecondary, modifier = Modifier.size(24.dp)
+            tint = if (state is PhoneLinkState.Connected) DashColors.Good else DashColors.TextSecondary, modifier = Modifier.size(28.dp)
         )
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f)) {
@@ -281,7 +287,7 @@ internal fun PhonePane() {
             if (state !is PhoneLinkState.Connected) LinkAttemptLine()
         }
     }
-    HorizontalDivider(color = DashColors.Line, modifier = Modifier.padding(horizontal = 12.dp))
+    Spacer(Modifier.height(8.dp))
 
     phones.forEach { phone ->
         Row(

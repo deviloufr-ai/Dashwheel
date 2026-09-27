@@ -290,6 +290,18 @@ private fun CarStep(onCarSettings: () -> Unit, onNext: () -> Unit) {
 /** Step 2: one row per thing the launcher can use, a check once allowed. */
 @Composable
 private fun AccessStep(onPickObd: () -> Unit, onNext: () -> Unit) {
+    StepTitle(stringResource(R.string.setup_access_title), stringResource(R.string.setup_access_body))
+    AccessRows(onPickObd)
+    Spacer(Modifier.height(20.dp))
+    PrimaryButton(stringResource(R.string.setup_next), onNext)
+}
+
+/**
+ * What the launcher may use, one row each: allowed, or the button that asks.
+ * In the setup and in Settings, where it can be looked up at any time.
+ */
+@Composable
+internal fun AccessRows(onPickObd: () -> Unit) {
     val context = LocalContext.current
     // The system screens grant on their side: read again each time the launcher comes back.
     var generation by remember { mutableStateOf(0) }
@@ -303,7 +315,6 @@ private fun AccessStep(onPickObd: () -> Unit, onNext: () -> Unit) {
     val location = rememberPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     val contacts = rememberPermission(Manifest.permission.READ_CONTACTS)
     val calendar = rememberPermission(Manifest.permission.READ_CALENDAR)
-    StepTitle(stringResource(R.string.setup_access_title), stringResource(R.string.setup_access_body))
     AccessNeed.entries.forEach { need ->
         val granted = when (need) {
             AccessNeed.LOCATION -> location.granted
@@ -327,8 +338,6 @@ private fun AccessStep(onPickObd: () -> Unit, onNext: () -> Unit) {
             }
         )
     }
-    Spacer(Modifier.height(20.dp))
-    PrimaryButton(stringResource(R.string.setup_next), onNext)
 }
 
 @Composable

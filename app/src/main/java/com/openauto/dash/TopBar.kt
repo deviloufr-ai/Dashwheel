@@ -44,6 +44,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SpaceDashboard
 import androidx.compose.material.icons.filled.Splitscreen
@@ -106,7 +107,7 @@ import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt
 
 /*
- * Top bar, edit toolbar, page dots and the update banner.
+ * The bottom bar, the edit bar that takes its place while arranging, and the page dots.
  */
 
 /**
@@ -884,8 +885,10 @@ internal fun DemoBadge(onStop: () -> Unit, modifier: Modifier = Modifier, compac
 }
 
 /**
- * Toolbar shown while arranging: what to do, plus Add / Undo / Reset / Done.
- * Changes save as they happen; Undo walks back through the last edits.
+ * The bar while arranging, in the launcher bar's place: what to do, plus
+ * Add / Undo / Templates / Text size / Reset / Done, each [DashSize.TouchPrimary]
+ * tall. Changes save as they happen; Undo walks back through the last edits.
+ * An upright screen keeps the page's name and shows the actions as icons.
  */
 @Composable
 internal fun EditBar(
@@ -904,67 +907,92 @@ internal fun EditBar(
     val glass = DashColors.Glass
     val shape = DashShape.Medium
     val tap = rememberTapFeedback()
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val narrow = maxWidth < NARROW_BAR
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 12.dp, end = 12.dp, top = 6.dp, bottom = 6.dp)
+                .then(if (glass) glassPanel(shape) else Modifier.clip(shape).background(DashColors.Bar))
+                .heightIn(min = DashSize.Bar)
+                .padding(horizontal = 14.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(if (narrow) 2.dp else 6.dp)
+        ) {
+            Box(
+                Modifier
+                    .size(8.dp)
+                    .clip(CircleShape)
+                    .background(DashColors.Accent)
+            )
+            Spacer(Modifier.width(4.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    stringResource(R.string.dash_arranging_dashboard, stringResource(DashboardStore.nameRes(page))),
+                    color = DashColors.TextPrimary,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.labelLarge
+                )
+                if (!narrow) {
+                    Text(
+                        stringResource(R.string.dash_arranging_hint),
+                        color = DashColors.Muted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
+            }
+            EditAction(Icons.Filled.Add, stringResource(R.string.dash_add), narrow, onClick = onAdd)
+            EditAction(Icons.Filled.Undo, stringResource(R.string.dash_undo), narrow, enabled = canUndo, onClick = onUndo)
+            EditAction(Icons.Filled.Dashboard, stringResource(R.string.templates_button), narrow, onClick = onTemplates)
+            PageZoomButton(pageZoom, narrow, onPageZoom)
+            EditAction(Icons.Filled.RestartAlt, stringResource(R.string.dash_reset_page), narrow, ink = DashColors.Critical, onClick = onReset)
+            Spacer(Modifier.width(4.dp))
+            Button(
+                onClick = { tap(); onDone() },
+                modifier = Modifier.heightIn(min = DashSize.TouchPrimary),
+                colors = ButtonDefaults.buttonColors(containerColor = DashColors.Accent, contentColor = DashColors.OnAccent),
+                shape = DashShape.Small,
+                contentPadding = PaddingValues(horizontal = 18.dp, vertical = 6.dp)
+            ) {
+                Icon(Icons.Filled.Done, contentDescription = null, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(R.string.dash_done), style = MaterialTheme.typography.titleMedium)
+            }
+        }
+    }
+}
+
+/** One action of the edit bar: icon and name, or the icon alone where the bar is [compact]. */
+@Composable
+private fun EditAction(
+    icon: ImageVector,
+    label: String,
+    compact: Boolean,
+    enabled: Boolean = true,
+    ink: Color = DashColors.TextPrimary,
+    onClick: () -> Unit
+) {
+    val tap = rememberTapFeedback()
+    val tint = if (enabled) ink else DashColors.Muted
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 12.dp, end = 12.dp, top = 8.dp)
-            .then(if (glass) glassPanel(shape) else Modifier.clip(shape).background(DashColors.Bar))
-            .padding(horizontal = 14.dp, vertical = 8.dp),
+            .heightIn(min = DashSize.TouchPrimary)
+            .widthIn(min = DashSize.TouchPrimary)
+            .clip(DashShape.Small)
+            .clickable(enabled = enabled, role = Role.Button, onClickLabel = label) { tap(); onClick() }
+            .semantics(mergeDescendants = true) { contentDescription = label }
+            .padding(horizontal = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.Center
     ) {
-        Box(
-            Modifier
-                .size(8.dp)
-                .clip(CircleShape)
-                .background(DashColors.Accent)
-        )
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                stringResource(R.string.dash_arranging_dashboard, stringResource(DashboardStore.nameRes(page))),
-                color = DashColors.TextPrimary,
-                fontWeight = FontWeight.SemiBold,
-                style = MaterialTheme.typography.labelLarge
-            )
-            Text(
-                stringResource(R.string.dash_arranging_hint),
-                color = DashColors.Muted,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.labelSmall
-            )
-        }
-        TextButton(onClick = onAdd) {
-            Icon(Icons.Filled.Add, contentDescription = null, tint = DashColors.Accent, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(4.dp))
-            Text(stringResource(R.string.dash_add), color = DashColors.TextPrimary)
-        }
-        TextButton(onClick = { tap(); onUndo() }, enabled = canUndo) {
-            Icon(
-                Icons.Filled.Undo, contentDescription = null,
-                tint = if (canUndo) DashColors.TextPrimary else DashColors.Muted, modifier = Modifier.size(18.dp)
-            )
-            Spacer(Modifier.width(4.dp))
-            Text(stringResource(R.string.dash_undo), color = if (canUndo) DashColors.TextPrimary else DashColors.Muted)
-        }
-        TextButton(onClick = onTemplates) {
-            Icon(Icons.Filled.Dashboard, contentDescription = null, tint = DashColors.Accent, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(4.dp))
-            Text(stringResource(R.string.templates_button), color = DashColors.TextPrimary)
-        }
-        PageZoomButton(pageZoom, onPageZoom)
-        TextButton(onClick = onReset) {
-            Text(stringResource(R.string.dash_reset_page), color = DashColors.Critical)
-        }
-        Button(
-            onClick = { tap(); onDone() },
-            colors = ButtonDefaults.buttonColors(containerColor = DashColors.Accent, contentColor = DashColors.OnAccent),
-            shape = DashShape.Small,
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp)
-        ) {
-            Icon(Icons.Filled.Done, contentDescription = null, modifier = Modifier.size(18.dp))
+        Icon(icon, contentDescription = null, tint = if (enabled && ink == DashColors.TextPrimary) DashColors.Accent else tint, modifier = Modifier.size(22.dp))
+        if (!compact) {
             Spacer(Modifier.width(6.dp))
-            Text(stringResource(R.string.dash_done))
+            Text(label, color = tint, maxLines = 1, style = MaterialTheme.typography.labelLarge)
         }
     }
 }
@@ -1081,14 +1109,10 @@ internal fun SetupPill(onClick: () -> Unit, modifier: Modifier = Modifier, compa
 
 /** The whole page's text size: a menu with smaller, the percentage, bigger and back to 100 %. */
 @Composable
-private fun PageZoomButton(zoom: Float, onZoom: (Float) -> Unit) {
+private fun PageZoomButton(zoom: Float, compact: Boolean, onZoom: (Float) -> Unit) {
     var open by remember { mutableStateOf(false) }
     Box {
-        TextButton(onClick = { open = true }) {
-            Icon(Icons.Filled.FormatSize, contentDescription = null, tint = DashColors.Accent, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(4.dp))
-            Text(stringResource(R.string.zoom_page), color = DashColors.TextPrimary)
-        }
+        EditAction(Icons.Filled.FormatSize, stringResource(R.string.zoom_page), compact) { open = true }
         DashMenu(open, onDismiss = { open = false }) {
             ZoomStepper(zoom, onZoom)
         }

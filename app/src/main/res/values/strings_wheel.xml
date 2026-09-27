@@ -7,7 +7,7 @@
         <item quantity="one">%1$d button assigned</item>
         <item quantity="other">%1$d buttons assigned</item>
     </plurals>
-    <string name="wheel_explanation">Tap Learn a new button below, then press any button on your steering wheel. Pick what it should do — media, volume, an app, or more.</string>
+    <string name="wheel_explanation">Tap Learn a new button, then press any button on your steering wheel. Then pick what it does: media, volume, an app and more.</string>
     <string name="wheel_learn_button">Learn a new button</string>
     <string name="wheel_empty">No buttons learned yet.</string>
     <string name="wheel_remove">Remove</string>

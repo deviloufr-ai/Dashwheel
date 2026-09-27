@@ -905,6 +905,8 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         }
     }
 
+    // Arranging with the edit bar up (a split screen's half has no room for it).
+    val arranging = editing && !inSplitMode
     val barOverlapPx = if (barForced) (statusBarPx - contentTopPx).coerceAtLeast(0) else 0
     CompositionLocalProvider(LocalDriveLock provides driveLock) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -1086,7 +1088,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                 page = pageIndicatorFor,
                 modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp)
             )
-            if (barAutoHide) BarHandle(barState, Modifier.align(Alignment.BottomCenter))
+            if (barAutoHide && !arranging) BarHandle(barState, Modifier.align(Alignment.BottomCenter))
 
             // needs the accessibility service; if it isn't on, tapping prompts to
             // enable it instead of silently doing nothing.
@@ -1115,6 +1117,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                     m = settingsModel,
                     theme = themeState,
                     initialTab = tab,
+                    onPickObd = onPickDevice,
                     onClose = { closeSettings() },
                     modifier = Modifier.fillMaxSize().padding(10.dp)
                 )
@@ -1206,31 +1209,32 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             }
         }
 
-        // Edit bar and update banner sit just above the launcher bar for the same
-        // reason: the OS status bar can cover the top strip and swallow its taps.
-        if (editing && !inSplitMode) {
+        // One bar at a time: while arranging, the edit bar stands where the
+        // launcher bar does (a swipe along it still turns the page), and
+        // Done brings the launcher bar back.
+        if (arranging) {
             val pageTiles = pages.getOrNull(currentPage).orEmpty()
-            EditBar(
-                page = currentPage,
-                canUndo = history.isNotEmpty(),
-                // The page's text size: what its tiles share, or what most of them have.
-                pageZoom = pageTiles.map { it.zoom }.groupingBy { it }.eachCount().maxByOrNull { it.value }?.key ?: 1f,
-                onAdd = { onAdd(currentPage) },
-                onUndo = { undo() },
-                onReset = { confirmReset = true },
-                onTemplates = { showTemplates = true },
-                onPageZoom = { zoom -> mutatePage(currentPage) { list -> list.map { it.withZoom(zoom) } } },
-                onDone = { editing = false }
-            )
-        }
-
-        if (!barAutoHide) {
+            launcherBar {
+                EditBar(
+                    page = currentPage,
+                    canUndo = history.isNotEmpty(),
+                    // The page's text size: what its tiles share, or what most of them have.
+                    pageZoom = pageTiles.map { it.zoom }.groupingBy { it }.eachCount().maxByOrNull { it.value }?.key ?: 1f,
+                    onAdd = { onAdd(currentPage) },
+                    onUndo = { undo() },
+                    onReset = { confirmReset = true },
+                    onTemplates = { showTemplates = true },
+                    onPageZoom = { zoom -> mutatePage(currentPage) { list -> list.map { it.withZoom(zoom) } } },
+                    onDone = { editing = false }
+                )
+            }
+        } else if (!barAutoHide) {
             launcherBar { TopBar(settingsModel) }
         }
     }
-    // Auto-hide (Settings › Look): the bar floats over the pages, which keep
+    // Auto-hide (Settings › Display): the bar floats over the pages, which keep
     // the whole height, so showing or hiding it never resizes the dashboard.
-    if (barAutoHide) {
+    if (barAutoHide && !arranging) {
         Column(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth()) {
             launcherBar {
                 AutoHidingBar(state = barState, hideSeconds = barHideSeconds) {

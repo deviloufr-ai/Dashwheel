@@ -396,8 +396,8 @@ internal fun cockpitBackground(): Modifier = Modifier.drawWithCache {
 // --- Top bar ------------------------------------------------------------------------
 
 /**
- * The dash top: chrome APPS / LAYOUT pills on the left, a chrome clock pod in
- * the middle, and on the right the setup pill, warning pills, the
+ * The dash top: chrome APPS / LAYOUT pills on the left, a chrome clock pod
+ * with the time in LCD digits beside it in the middle, and on the right the setup pill, warning pills, the
  * outside-temperature LCD, the OBD lamp and a chrome ⋮ button.
  */
 @Composable
@@ -429,8 +429,24 @@ internal fun CockpitTopBar(m: TopBarModel) {
             }
         }
 
-        // The head unit's status bar shows the time while it is up.
-        if (!m.merged) ClockPod(m.clock)
+        // The head unit's status bar shows the time while it is up. The pod is
+        // the dash's ornament; the digits are what is read at a glance.
+        if (!m.merged) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (!narrow) {
+                    ClockPod(m.clock)
+                    Spacer(Modifier.width(10.dp))
+                }
+                LcdPanel(Modifier.height(44.dp), corner = 8.dp) {
+                    Text(
+                        m.clock,
+                        style = lcd(26.sp, LcdInk),
+                        maxLines = 1,
+                        modifier = Modifier.align(Alignment.Center).padding(horizontal = 14.dp)
+                    )
+                }
+            }
+        }
 
         Row(
             modifier = Modifier.align(Alignment.CenterEnd),

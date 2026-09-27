@@ -138,6 +138,8 @@ internal fun SettingsScreen(
     m: TopBarModel,
     theme: ThemeState,
     initialTab: SettingsTab,
+    /** Opens the OBD adapter picker (with its Bluetooth permission). */
+    onPickObd: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -185,7 +187,7 @@ internal fun SettingsScreen(
                         SettingsTab.ALERTS -> AlertsPane()
                         SettingsTab.DRIVING -> DrivingPane(m, onWheelButtons = { deep = Deep.WHEEL })
                         SettingsTab.PHONE -> PhonePane()
-                        SettingsTab.ADVANCED -> AdvancedPane(m, onBootLogo = { bootLogo = true }, onClose = onClose)
+                        SettingsTab.ADVANCED -> AdvancedPane(m, onBootLogo = { bootLogo = true }, onPickObd = onPickObd, onClose = onClose)
                     }
                 }
                 MoreBelow(scroll, Modifier.align(Alignment.BottomCenter))
@@ -598,7 +600,7 @@ private fun SpeedVolumeSetting() {
 }
 
 @Composable
-private fun AdvancedPane(m: TopBarModel, onBootLogo: () -> Unit, onClose: () -> Unit) {
+private fun AdvancedPane(m: TopBarModel, onBootLogo: () -> Unit, onPickObd: () -> Unit, onClose: () -> Unit) {
     SettingsSection(stringResource(R.string.settings_section_advanced))
     SettingsToggle(
         Icons.Filled.PlayCircle, stringResource(R.string.demo_menu_start),
@@ -619,6 +621,10 @@ private fun AdvancedPane(m: TopBarModel, onBootLogo: () -> Unit, onClose: () -> 
     if (shell) {
         SettingsRow(Icons.Filled.Build, stringResource(R.string.dash_system_app_title), stringResource(R.string.settings_system_detail), m.onSystem)
     }
+    Spacer(Modifier.height(20.dp))
+    // What is allowed and what is not, without running the setup again.
+    SettingsSection(stringResource(R.string.setup_access_title))
+    Column(modifier = Modifier.padding(horizontal = 12.dp)) { AccessRows(onPickObd) }
     SettingsRow(Icons.Filled.Checklist, stringResource(R.string.setup_again), stringResource(R.string.setup_again_detail)) { m.onSetup(true) }
     Spacer(Modifier.height(20.dp))
     SettingsSection(stringResource(R.string.settings_section_about))
