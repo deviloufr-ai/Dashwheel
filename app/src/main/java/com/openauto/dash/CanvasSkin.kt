@@ -504,6 +504,9 @@ private fun CanvasWeather() {
 /** Something on the line: at [atMs], a [title] (a time) over a [caption]. */
 private class Stop(val atMs: Long, val title: String, val caption: String, val lead: Boolean = false)
 
+/** Under this width the strip drops its line: the labels along it would not fit. */
+private val NARROW_STRIP = 560.dp
+
 /** How much of the day the line covers without a route. */
 private const val DAY_LINE_HOURS = 6
 
@@ -564,19 +567,36 @@ private fun CanvasJourney(env: SkinTileEnv) {
     } else null
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize().then(canvasGlass())) {
-        val leftW = min(maxWidth * 0.32f, 320.dp)
-        Row(modifier = Modifier.fillMaxSize().padding(horizontal = 22.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.width(leftW)) {
-                if (nav.active) NextTurn(nav, onOpen = { openNavApp(context, nav.packageName) })
-                else Today(clock, timeFmt, onMaps = { openNavApp(context, null) })
+        // Too narrow for a line worth reading (a phone upright, a small tile): the
+        // turn or the time, and the arrival beside it.
+        if (maxWidth < NARROW_STRIP) {
+            Row(modifier = Modifier.fillMaxSize().padding(horizontal = 18.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.weight(1f)) {
+                    if (nav.active) NextTurn(nav, onOpen = { openNavApp(context, nav.packageName) })
+                    else Today(clock, timeFmt, onMaps = { openNavApp(context, null) })
+                }
+                if (endStop != null) {
+                    Column(horizontalAlignment = Alignment.End) {
+                        Num(endStop.title, 22f, DashColors.Good)
+                        Label(endStop.caption, 13f, align = TextAlign.End, maxLines = 2)
+                    }
+                }
             }
-            Box(Modifier.padding(horizontal = 20.dp).width(1.dp).fillMaxHeight(0.7f).background(DashColors.Line))
-            JourneyLine(
-                start = start, end = end, stops = stops, endStop = endStop,
-                header = if (nav.active) nav.etaParts.filterNot { ARRIVAL_CLOCK.containsMatchIn(it) }.joinToString(" · ") else null,
-                hourTicks = !nav.active,
-                modifier = Modifier.weight(1f).fillMaxHeight()
-            )
+        } else {
+            val leftW = min(maxWidth * 0.32f, 320.dp)
+            Row(modifier = Modifier.fillMaxSize().padding(horizontal = 22.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.width(leftW)) {
+                    if (nav.active) NextTurn(nav, onOpen = { openNavApp(context, nav.packageName) })
+                    else Today(clock, timeFmt, onMaps = { openNavApp(context, null) })
+                }
+                Box(Modifier.padding(horizontal = 20.dp).width(1.dp).fillMaxHeight(0.7f).background(DashColors.Line))
+                JourneyLine(
+                    start = start, end = end, stops = stops, endStop = endStop,
+                    header = if (nav.active) nav.etaParts.filterNot { ARRIVAL_CLOCK.containsMatchIn(it) }.joinToString(" · ") else null,
+                    hourTicks = !nav.active,
+                    modifier = Modifier.weight(1f).fillMaxHeight()
+                )
+            }
         }
     }
 }
@@ -711,7 +731,9 @@ private fun JourneyLine(
 
 @Composable
 private fun StopLabel(s: Stop, x: Dp, top: Dp, width: Dp, maxW: Dp, titleColor: Color, alignEnd: Boolean = false) {
-    val left = if (alignEnd) maxW - width else (x - width / 2).coerceIn(0.dp, maxW - width)
+    // A line narrower than one label keeps its labels at the start rather than failing to place them.
+    val room = (maxW - width).coerceAtLeast(0.dp)
+    val left = if (alignEnd) room else (x - width / 2).coerceIn(0.dp, room)
     Column(
         modifier = Modifier.offset(x = left, y = top).width(width),
         horizontalAlignment = if (alignEnd) Alignment.End else Alignment.CenterHorizontally
