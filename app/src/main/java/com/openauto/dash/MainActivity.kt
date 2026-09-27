@@ -92,6 +92,10 @@ class MainActivity : ComponentActivity() {
         // dashboard has drawn (posted from the first frame's pre-draw pass).
         window.decorView.doOnPreDraw {
             window.decorView.post {
+                // The theme's window background only matters until the dashboard
+                // has drawn: it paints its own opaque page, so from here on the
+                // window's would be one full-screen fill under it on every frame.
+                window.setBackgroundDrawable(null)
                 // Dials the paired phone whenever its hotspot is around, and shows its calls.
                 PhoneLink.start(this)
                 PhoneCallOverlay.start(this)

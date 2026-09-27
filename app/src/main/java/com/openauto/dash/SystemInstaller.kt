@@ -3,6 +3,8 @@ package com.openauto.dash
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.util.Log
+import java.io.IOException
+import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
@@ -193,5 +195,75 @@ internal object RootShell {
         }
         reader.join(2000); errReader.join(2000)
         return Output(process.exitValue(), out.toString(), err.toString())
+    }
+
+    /**
+     * One `su` kept open, the commands written to it one after another and
+     * each answer read back up to an end mark. The docking poller lists the
+     * windows every few seconds, and a fresh su for each (a fork, Magisk's
+     * grant, two reader threads) cost more than the listing itself. One
+     * command at a time: the caller serialises. A command that runs out of
+     * time, or a shell that has gone, closes the session; the next command
+     * opens a new one. Both output streams come back as one ([Output.out]).
+     * [shell] is `su`; a test hands it a plain shell.
+     */
+    class Session(shell: String = "su") {
+        private val process: Process = Runtime.getRuntime().exec(arrayOf(shell))
+        private val input = process.outputStream.bufferedWriter()
+        private val lines = LinkedBlockingQueue<String>()
+
+        init {
+            // Read on its own thread, so a wait for the end mark can time out.
+            Thread({
+                runCatching { process.inputStream.bufferedReader().forEachLine { lines.put(it) } }
+                lines.put(GONE)
+            }, "su-session").apply { isDaemon = true; start() }
+        }
+
+        /** Whether the shell is still there to take a command. */
+        val alive: Boolean get() = process.isAlive
+
+        /** Runs [cmd] (one line), waiting [timeoutS] at most for its end; throws when the shell fails. */
+        fun run(cmd: String, timeoutS: Long): Output {
+            require('\n' !in cmd) { "one line at a time" }
+            try {
+                // A subshell keeps a command's `;` chains and redirections to itself.
+                input.write("( $cmd ) 2>&1\necho \"$MARK \$?\"\n")
+                input.flush()
+            } catch (e: IOException) {
+                close()
+                throw IllegalStateException("su gone: ${e.message}")
+            }
+            val out = StringBuilder()
+            val deadline = System.nanoTime() + timeoutS * 1_000_000_000L
+            while (true) {
+                val wait = deadline - System.nanoTime()
+                val line = (if (wait > 0) lines.poll(wait, TimeUnit.NANOSECONDS) else null) ?: run {
+                    close()
+                    throw IllegalStateException("su timed out")
+                }
+                if (line === GONE) {
+                    close()
+                    throw IllegalStateException("su exited")
+                }
+                if (line.startsWith(MARK)) {
+                    return Output(line.substringAfter(' ').trim().toIntOrNull() ?: -1, out.toString(), "")
+                }
+                out.append(line).append('\n')
+            }
+        }
+
+        fun close() {
+            runCatching { input.close() }
+            process.destroy()
+        }
+
+        private companion object {
+            /** Ends each command's output, followed by its exit status. */
+            const val MARK = "__DW_END__"
+
+            /** Queued once the shell's output ends: it has gone. */
+            val GONE = String()
+        }
     }
 }

@@ -63,14 +63,16 @@ import androidx.compose.runtime.setValue
  * Current playback position for the progress bar. Polls twice a second only
  * while a track with a known duration is actually playing; paused or idle
  * sessions are read once per state change and then left alone, so an idle
- * media tile no longer recomposes at 2 Hz.
+ * media tile no longer recomposes at 2 Hz. On a page off screen it is read
+ * once and left alone too ([LocalPageActive]).
  */
 @Composable
 internal fun rememberMediaPosition(mediaState: MediaState, controller: CarMediaController): Long {
     var positionMs by remember { mutableLongStateOf(0L) }
-    LaunchedEffect(mediaState.isPlaying, mediaState.title, mediaState.durationMs) {
+    val active = LocalPageActive.current
+    LaunchedEffect(mediaState.isPlaying, mediaState.title, mediaState.durationMs, active) {
         positionMs = controller.positionMs()
-        if (!mediaState.isPlaying || mediaState.durationMs <= 0L) return@LaunchedEffect
+        if (!active || !mediaState.isPlaying || mediaState.durationMs <= 0L) return@LaunchedEffect
         while (true) {
             delay(500)
             positionMs = controller.positionMs()

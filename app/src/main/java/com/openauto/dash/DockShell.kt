@@ -151,9 +151,22 @@ object DockShell {
         }
     }
 
-    /** `su -c cmd`, bounded so a stuck root prompt can't pin the poller. */
+    /** The root shell kept open between commands; null until the first one, or after one failed. */
+    private var su: RootShell.Session? = null
+
+    /**
+     * [cmd] through the root shell kept open ([RootShell.Session]), bounded so
+     * a stuck command can't pin the poller. Only from inside [io]'s lock.
+     */
     private fun suShell(cmd: String): String {
-        val res = RootShell.su(cmd, SU_TIMEOUT_S)
+        val session = su?.takeIf { it.alive } ?: RootShell.Session().also { su = it }
+        val res = try {
+            session.run(cmd, SU_TIMEOUT_S)
+        } catch (e: IllegalStateException) {
+            // The session closed itself; the next command opens a new shell.
+            su = null
+            throw e
+        }
         if (res.exit != 0) {
             // "Permission denied", "not found"...: a failure, whatever it printed.
             val why = (res.err.ifBlank { res.out }).trim().lines().firstOrNull().orEmpty()
@@ -182,8 +195,10 @@ object DockShell {
     private fun closeConnection() {
         runCatching { dadb?.close() }
         dadb = null
+        runCatching { su?.close() }
+        su = null
     }
 
-    /** Drops the cached ADB connection (harmless with root). Safe from any coroutine. */
+    /** Drops the cached ADB connection and the root shell. Safe from any coroutine. */
     suspend fun release() = io.withLock { closeConnection() }
 }

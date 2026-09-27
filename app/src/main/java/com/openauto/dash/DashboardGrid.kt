@@ -118,7 +118,7 @@ internal fun DashboardPage(
     mediaController: CarMediaController,
     hasMediaAccess: Boolean,
     obd: State<ObdData>,
-    obdConnection: ObdConnectionState,
+    obdConnection: State<ObdConnectionState>,
     onConnectObd: () -> Unit,
     onPickDevice: () -> Unit,
     onLaunchApp: (String) -> Unit,
@@ -538,7 +538,7 @@ internal fun TileContent(
     hasMediaAccess: Boolean,
     context: android.content.Context,
     obd: State<ObdData>,
-    obdConnection: ObdConnectionState,
+    obdConnection: State<ObdConnectionState>,
     onConnectObd: () -> Unit,
     onPickDevice: () -> Unit,
     onLaunchApp: (String) -> Unit,
@@ -627,14 +627,14 @@ internal fun TileContent(
             BuiltinKind.RANGE, BuiltinKind.SPEED_HUD, BuiltinKind.CLOCK, BuiltinKind.WEATHER ->
                 StandardSkinnedTile(item, env)
             BuiltinKind.OBD_DTC -> ObdDtcCard(
-                connection = obdConnection,
+                connection = obdConnection.value,
                 onConnect = onConnectObd,
                 modifier = Modifier.fillMaxSize(),
                 onPickDevice = onPickDevice
             )
             BuiltinKind.OBD_ALL -> ObdAllCard(
                 obdData = obd.value,
-                connection = obdConnection,
+                connection = obdConnection.value,
                 onConnect = onConnectObd,
                 modifier = Modifier.fillMaxSize(),
                 onPickDevice = onPickDevice
@@ -656,8 +656,8 @@ internal fun TileContent(
             BuiltinKind.NOTIFICATIONS -> NotificationsCard(hasAccess = hasMediaAccess, modifier = Modifier.fillMaxSize())
             BuiltinKind.AUDIO -> AudioCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.FILTER_CARE -> FilterCareCard(modifier = Modifier.fillMaxSize())
-            BuiltinKind.WARMUP -> WarmupCard(obd.value, obdConnection == ObdConnectionState.CONNECTED, Modifier.fillMaxSize())
-            BuiltinKind.BATTERY -> BatteryCard(obd.value, obdConnection == ObdConnectionState.CONNECTED, Modifier.fillMaxSize())
+            BuiltinKind.WARMUP -> WarmupCard(obd.value, obdConnection.value == ObdConnectionState.CONNECTED, Modifier.fillMaxSize())
+            BuiltinKind.BATTERY -> BatteryCard(obd.value, obdConnection.value == ObdConnectionState.CONNECTED, Modifier.fillMaxSize())
             BuiltinKind.MY_CAR -> MyCarCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.ECO_DRIVE -> EcoDriveCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.BREAK_TIMER -> BreakCard(modifier = Modifier.fillMaxSize())

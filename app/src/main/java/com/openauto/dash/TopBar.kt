@@ -112,8 +112,9 @@ import kotlin.math.roundToInt
 
 /**
  * Everything a top bar shows and can do; each skin's bar arranges the same model.
- * The OBD readings are a [State], read only where they are drawn ([obdData]),
- * so a new sample does not recompose the whole bar.
+ * The OBD readings and the link's state are [State]s, read only where they
+ * are drawn ([obdData], [obdConnection]), so a new sample or a dial of the
+ * adapter does not recompose the whole bar.
  *
  * A data class: the dashboard builds a fresh model on each of its own
  * recompositions, and only one that differs in a value (the callbacks are
@@ -123,7 +124,7 @@ import kotlin.math.roundToInt
 internal data class TopBarModel(
     val clock: String,
     val versionName: String,
-    val obdConnection: ObdConnectionState,
+    val obdConnectionState: State<ObdConnectionState>,
     val obd: State<ObdData>,
     val editing: Boolean,
     val layout: DashLayout,
@@ -159,6 +160,7 @@ internal data class TopBarModel(
     val onSettings: () -> Unit = {}
 ) {
     val obdData: ObdData get() = obd.value
+    val obdConnection: ObdConnectionState get() = obdConnectionState.value
 }
 
 /** The bar from a model built by the caller (shared with the Settings screen). */

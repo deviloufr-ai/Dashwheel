@@ -21,8 +21,9 @@ import androidx.compose.ui.unit.dp
  * What a skinned tile needs: the same values [TileContent] receives.
  *
  * The live readings arrive as [State]s and are only read through [obdData] /
- * [mediaState], so an OBD sample or a song change recomposes just the tiles
- * that show it, not every tile on the page.
+ * [obdConnection] / [mediaState], so an OBD sample, a dial of the adapter or
+ * a song change recomposes just the tiles that show it, not every tile on
+ * the page.
  */
 @Stable
 internal class SkinTileEnv(
@@ -33,7 +34,7 @@ internal class SkinTileEnv(
     val hasMediaAccess: Boolean,
     val context: Context,
     private val obd: State<ObdData>,
-    val obdConnection: ObdConnectionState,
+    private val obdConnectionState: State<ObdConnectionState>,
     val onConnectObd: () -> Unit,
     val onPickDevice: () -> Unit,
     val onLaunchApp: (String) -> Unit,
@@ -41,6 +42,7 @@ internal class SkinTileEnv(
 ) {
     val mediaState: MediaState get() = media.value
     val obdData: ObdData get() = obd.value
+    val obdConnection: ObdConnectionState get() = obdConnectionState.value
 }
 
 /** Builtin widgets every skin redraws. App shortcuts and launch bars are redrawn too. */

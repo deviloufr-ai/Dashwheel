@@ -54,6 +54,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -165,7 +166,9 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     // The live readings stay States: reading them here would recompose the whole
     // dashboard on every OBD sample. Tiles read them where they draw them.
     val obd = ObdBluetoothManager.data.collectAsState()
-    val obdConnection by ObdBluetoothManager.connectionState.collectAsState()
+    // The link's state too: it flips at every dial while the adapter is out of
+    // reach, and read here that would recompose the whole dashboard each time.
+    val obdConnection = ObdBluetoothManager.connectionState.collectAsState()
     // Demo mode (Settings → Advanced) plays its own made-up tracks in place of the real session.
     val demoState = DemoMode.active.collectAsState()
     val demoOn by demoState
@@ -602,7 +605,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         // Roughly what the bars leave the grid.
         pageHeightDp = screenConfig.screenHeightDp * (if (ScreenShape.vertical) 0.9f else 0.8f) *
             if (half && ScreenShape.vertical) 1f - dockFraction.floatValue else 1f,
-        obdPaired = ObdBluetoothManager.savedDeviceAddress() != null || obdConnection == ObdConnectionState.CONNECTED,
+        obdPaired = ObdBluetoothManager.savedDeviceAddress() != null || obdConnection.value == ObdConnectionState.CONNECTED,
         driverOnRight = CarProfileStore.current.driverOnRight,
         mapsDocked = half,
         dockApps = TemplatePlacer.dockApps(pages, appsByPackage.keys),
@@ -796,8 +799,12 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     }
     // The bar's "Finish setting up" pill: a tile on some page still lacks
     // what it needs, the setup has been seen, and the driver has not skipped it.
-    val setupPending = remember(pages, accessGeneration, setupDone, setupPillOff, obdConnection) {
-        setupDone && !setupPillOff && AccessNeed.pending(context, pages).isNotEmpty()
+    // Looked at again when the OBD link changes, but only a change of the answer reaches the bar.
+    val setupPending by remember(pages, accessGeneration, setupDone, setupPillOff) {
+        derivedStateOf {
+            obdConnection.value
+            setupDone && !setupPillOff && AccessNeed.pending(context, pages).isNotEmpty()
+        }
     }
 
     // Android forces the status bar on whenever a floating (freeform) window is
@@ -824,7 +831,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     val settingsModel = TopBarModel(
         clock = clock,
         versionName = updateManager.currentVersionName,
-        obdConnection = obdConnection,
+        obdConnectionState = obdConnection,
         obd = obd,
         editing = editing,
         layout = layout,
@@ -983,8 +990,13 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             /** One dashboard, by its index into pages. */
             val dashboardPage: @Composable (Int) -> Unit = { page ->
                 // The pagers keep the pages beside this one composed; their
-                // window tiles must leave the windows alone (LocalPageOnScreen).
-                CompositionLocalProvider(LocalPageOnScreen provides (page == currentPage)) {
+                // window tiles must leave the windows alone (LocalPageOnScreen),
+                // and their clocks and motion stand still until the page can be
+                // seen: as soon as the pages start sliding (LocalPageActive).
+                CompositionLocalProvider(
+                    LocalPageOnScreen provides (page == currentPage),
+                    LocalPageActive provides (page == currentPage || pagerState.isScrollInProgress || columnState.isScrollInProgress)
+                ) {
                 DashboardPage(
                     pageItems = pages[page],
                     editing = editing,
@@ -1025,12 +1037,20 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             // Sideways swipes only from the middle row: the pages above and
             // below the centre one have nothing beside them.
             val onHomeRow = columnState.currentPage == DashboardStore.COLUMN_HOME && !columnState.isScrollInProgress
+            // The neighbouring pages stay composed: a map tile survives a swipe
+            // away and back instead of rebuilding its GL surface. Not for the
+            // first frames: at a cold start the page on screen is drawn alone,
+            // the four beside it right after, long before a swipe can reach them.
+            var beyondViewport by remember { mutableIntStateOf(0) }
+            LaunchedEffect(Unit) {
+                withFrameNanos { }
+                withFrameNanos { }
+                beyondViewport = 1
+            }
             HorizontalPager(
                 state = pagerState,
                 userScrollEnabled = !blockPagerSwipe && onHomeRow,
-                // The neighbouring pages stay composed: a map tile survives a
-                // swipe away and back instead of rebuilding its GL surface.
-                beyondViewportPageCount = 1,
+                beyondViewportPageCount = beyondViewport,
                 modifier = Modifier.fillMaxSize()
             ) { index ->
                 val page = DashboardStore.ROW[index]
@@ -1038,7 +1058,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                     VerticalPager(
                         state = columnState,
                         userScrollEnabled = !blockPagerSwipe && !pagerState.isScrollInProgress,
-                        beyondViewportPageCount = 1,
+                        beyondViewportPageCount = beyondViewport,
                         // Off the home row a sideways swipe heads back to it: the
                         // row is the only way sideways, and a dead swipe feels broken.
                         modifier = Modifier.fillMaxSize().pointerInput(onHomeRow, blockPagerSwipe) {
@@ -1170,7 +1190,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                                     aspect = (widget.w * 1.1f) / widget.h,
                                     env = SkinTileEnv(
                                         editing = false, appsByPackage = appsByPackage, media = media, mediaController = mediaController,
-                                        hasMediaAccess = mediaAccess, context = context, obd = obd, obdConnection = obdConnection,
+                                        hasMediaAccess = mediaAccess, context = context, obd = obd, obdConnectionState = obdConnection,
                                         onConnectObd = onConnectObd, onPickDevice = onPickDevice, onLaunchApp = onLaunchApp, onEditLaunchBar = {}
                                     ),
                                     standardPreview = {

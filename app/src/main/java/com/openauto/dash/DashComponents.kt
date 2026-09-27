@@ -294,7 +294,10 @@ internal fun dashBackground(): Modifier {
     // page; the modifier itself is kept too, or each recomposition of the
     // caller would hand the node a new one and throw the cache away.
     return remember(stops, glass, glow, accent, accent2) { Modifier.drawWithCache {
-        val page = Brush.linearGradient(
+        // A flat theme lists one colour twice: a plain fill, not a gradient
+        // shader over the whole screen for the same pixels.
+        val flat = stops.all { it == stops.first() }
+        val page = if (flat) SolidColor(stops.first()) else Brush.linearGradient(
             colors = stops,
             start = Offset.Zero,
             end = Offset(size.width, size.height)

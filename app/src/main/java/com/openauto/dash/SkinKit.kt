@@ -11,6 +11,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.LongState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
@@ -50,17 +51,32 @@ internal val CondensedFamily: FontFamily =
     FontFamily(android.graphics.Typeface.create("sans-serif-condensed", android.graphics.Typeface.NORMAL))
 
 /**
+ * Whether the dashboard page this is composed on can be seen: the current
+ * page, or any page while the pages are sliding. The pagers keep the pages
+ * beside the current one composed, and their tickers ([rememberWallClock],
+ * [rememberLoop], [rememberSpin], [rememberMediaPosition]) would otherwise
+ * keep the whole window redrawing for tiles nobody sees. True outside the
+ * pages (the bars, sheets, dialogs).
+ */
+internal val LocalPageActive = compositionLocalOf { true }
+
+/**
  * Wall-clock milliseconds, updated on each [stepMs] boundary (so a 1 s step
  * ticks exactly on the second). The one ticker every clock, blink and sweep
- * in the skins is built on.
+ * in the skins is built on. It waits for a frame before each step, so it
+ * sleeps while the app is in the background, and it stands still on a page
+ * off screen ([LocalPageActive]), catching up as soon as the page shows.
  */
 @Composable
 internal fun rememberWallClock(stepMs: Long): LongState {
     val now = remember { mutableLongStateOf(System.currentTimeMillis()) }
-    LaunchedEffect(stepMs) {
+    val active = LocalPageActive.current
+    LaunchedEffect(stepMs, active) {
+        if (!active) return@LaunchedEffect
+        now.longValue = System.currentTimeMillis()
         while (true) {
             delay(stepMs - System.currentTimeMillis() % stepMs)
-            now.longValue = System.currentTimeMillis()
+            withFrameMillis { now.longValue = System.currentTimeMillis() }
         }
     }
     return now
@@ -140,12 +156,15 @@ private fun ambientStepMs(effects: DashEffects): Long? = when (effects) {
 /**
  * Wall-clock ms for background motion, advanced every [stepMs] (all ambient
  * tickers share the same boundaries, so they land in one frame). It waits
- * for a frame before each step, so it sleeps while the app is in the background.
+ * for a frame before each step, so it sleeps while the app is in the
+ * background, and it holds on a page off screen ([LocalPageActive]).
  */
 @Composable
 private fun rememberAmbientClock(stepMs: Long): LongState {
     val now = remember { mutableLongStateOf(System.currentTimeMillis()) }
-    LaunchedEffect(stepMs) {
+    val active = LocalPageActive.current
+    LaunchedEffect(stepMs, active) {
+        if (!active) return@LaunchedEffect
         while (true) {
             delay(stepMs - System.currentTimeMillis() % stepMs)
             withFrameMillis { now.longValue = System.currentTimeMillis() }
@@ -290,14 +309,16 @@ internal fun openClockApp(context: Context) {
  * Rotation in degrees that keeps turning while [running] and holds its angle
  * when paused (a record or reel that stops where it is). Read it in a draw or
  * graphicsLayer lambda so only drawing reruns each step. Ambient motion: it
- * steps at the effects setting's rate and stands still with effects off.
+ * steps at the effects setting's rate, stands still with effects off, and
+ * holds on a page off screen ([LocalPageActive]).
  */
 @Composable
 internal fun rememberSpin(periodMs: Int, running: Boolean = true): State<Float> {
     val angle = remember { mutableFloatStateOf(0f) }
     val step = ambientStepMs(DashColors.Effects)
-    LaunchedEffect(running, periodMs, step) {
-        if (!running || step == null) return@LaunchedEffect
+    val active = LocalPageActive.current
+    LaunchedEffect(running, periodMs, step, active) {
+        if (!running || !active || step == null) return@LaunchedEffect
         var last = System.currentTimeMillis()
         while (true) {
             delay(step - System.currentTimeMillis() % step)
