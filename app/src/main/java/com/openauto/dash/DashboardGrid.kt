@@ -550,7 +550,7 @@ internal fun TileContent(
                     icon = Icons.Filled.OpenInNew,
                     label = stringResource(if (item.inside) R.string.dash_app_inside else R.string.dash_app_window, label)
                 )
-                item.inside -> EmbeddedAppCard(item.packageName, label, modifier = Modifier.fillMaxSize(), onTouch = onModelTouch)
+                item.inside -> EmbeddedAppCard(item.packageName, label, modifier = Modifier.fillMaxSize())
                 else -> PipAnchorCard(modifier = Modifier.fillMaxSize(), packageName = item.packageName, appLabel = label, onWindowBiggerThanTile = onFitToWindow)
             }
         }
@@ -614,7 +614,7 @@ internal fun TileContent(
             } else PipAnchorCard(modifier = Modifier.fillMaxSize(), onWindowBiggerThanTile = onFitToWindow)
             BuiltinKind.MAPS_INSIDE -> if (editing) {
                 EditPlaceholder(icon = Icons.Filled.Map, label = BuiltinKind.MAPS_INSIDE.label)
-            } else EmbeddedMapsCard(modifier = Modifier.fillMaxSize(), onTouch = onModelTouch)
+            } else EmbeddedMapsCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.TRIP -> TripCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.GFORCE -> GForceCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.PARKING -> ParkingCard(modifier = Modifier.fillMaxSize())

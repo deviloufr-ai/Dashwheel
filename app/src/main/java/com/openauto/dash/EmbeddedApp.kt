@@ -34,7 +34,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.boundsInWindow
@@ -652,13 +651,12 @@ internal object EmbeddedApp {
 
 /** Google Maps itself inside the tile, see [EmbeddedApp]. */
 @Composable
-internal fun EmbeddedMapsCard(modifier: Modifier = Modifier, onTouch: (Boolean) -> Unit = {}) =
-    EmbeddedAppCard(EmbeddedApp.MAPS_PACKAGE, "Google Maps", modifier, onTouch)
+internal fun EmbeddedMapsCard(modifier: Modifier = Modifier) =
+    EmbeddedAppCard(EmbeddedApp.MAPS_PACKAGE, "Google Maps", modifier)
 
 /** Any app ([packageName], called [label]) running inside the tile, see [EmbeddedApp]. */
 @Composable
-internal fun EmbeddedAppCard(packageName: String, label: String, modifier: Modifier = Modifier, onTouch: (Boolean) -> Unit = {}) {
-    val onTouching by rememberUpdatedState(onTouch)
+internal fun EmbeddedAppCard(packageName: String, label: String, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val host = EmbeddedApp.host(context, packageName)
     val status by host.status.collectAsState()
@@ -713,14 +711,13 @@ internal fun EmbeddedAppCard(packageName: String, label: String, modifier: Modif
                         override fun onSurfaceTextureUpdated(texture: SurfaceTexture) {}
                     }
                     setOnTouchListener { v, event ->
-                        // A drag on the map pans the map: the dashboard's pages must not take it.
-                        when (event.actionMasked) {
-                            MotionEvent.ACTION_DOWN -> {
-                                v.parent?.requestDisallowInterceptTouchEvent(true)
-                                onTouching(true)
-                                EmbeddedApp.tileTouched()
-                            }
-                            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> onTouching(false)
+                        if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+                            // A drag on the map pans the map: the dashboard's pages must not take it.
+                            // Asked of the view's parent only: turning the pages' swipe off
+                            // instead, mid-touch, made Compose cancel the touch under the
+                            // finger, so the app got a press and a cancel, never a tap or a drag.
+                            v.parent?.requestDisallowInterceptTouchEvent(true)
+                            EmbeddedApp.tileTouched()
                         }
                         host.touch(event)
                         true
