@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.TireRepair
-import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -29,7 +28,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -201,11 +199,11 @@ internal fun TyreGrid(tyres: Map<TyrePos, Tyre>, unit: PressureUnit, modifier: M
 @Composable
 private fun TyreCell(pos: TyrePos, tyre: Tyre?, unit: PressureUnit, modifier: Modifier, large: Boolean) {
     val problem = tyre?.let(::tyreProblem)
-    val edge: Color = if (problem != null) DashColors.Critical else DashColors.Line
+    val fill = if (DashColors.Glass) DashColors.haze(0.06f) else DashColors.CardHi
     Column(
         modifier = modifier
-            .border(if (problem != null) 2.dp else 1.dp, edge, DashShape.Medium)
-            .background(DashColors.CardHi.copy(alpha = DashColors.CardHi.alpha * 0.5f), DashShape.Medium)
+            .itemFill(fill, DashShape.Medium)
+            .then(if (problem != null) Modifier.border(2.dp, DashColors.Critical, DashShape.Medium) else Modifier)
             .padding(horizontal = 12.dp, vertical = if (large) 12.dp else 8.dp),
         verticalArrangement = Arrangement.Center
     ) {
@@ -223,7 +221,12 @@ private fun TyreCell(pos: TyrePos, tyre: Tyre?, unit: PressureUnit, modifier: Mo
             tyre.sensorBatteryLow -> stringResource(R.string.car_tyres_sensor_battery)
             else -> "${tyre.celsius} °C"
         }
-        note?.let { Text(it, color = if (problem != null) DashColors.Critical else DashColors.Muted, maxLines = 1, style = MaterialTheme.typography.bodySmall) }
+        val noteColor = when {
+            problem != null -> DashColors.Critical
+            tyre != null && !tyre.noSignal && tyre.sensorBatteryLow -> DashColors.Warning
+            else -> DashColors.TextSecondary
+        }
+        note?.let { Text(it, color = noteColor, maxLines = 1, style = MaterialTheme.typography.bodySmall) }
     }
 }
 
