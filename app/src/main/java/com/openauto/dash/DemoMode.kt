@@ -311,7 +311,8 @@ object DemoMode {
         var peakLon = 0f
         var care = demoCare(startedAt)
         // The same every tick: built once, so the feeds see nothing new.
-        val weather = Weather(18.4, 17.1, 2, 11.0, 21.0, 12.0, startedAt)
+        // Rain from 9 minutes in, for an hour: something for the journey line to show.
+        val weather = Weather(18.4, 17.1, 2, 11.0, 21.0, 12.0, startedAt, rainFromMs = startedAt + 9 * 60_000L, rainUntilMs = startedAt + 70 * 60_000L)
         var notifications: List<NotifItem>? = null
         val trip0 = TripState(startedAt = startedAt - 36 * 60_000L, distanceM = 23_400.0, movingMs = 29 * 60_000L, maxSpeedKmh = 92f)
         var trip = trip0

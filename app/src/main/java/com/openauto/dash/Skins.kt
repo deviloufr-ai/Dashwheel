@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 /*
- * Whole-design skins (Orbit, Cockpit, Horizon, Tape Deck). The active skin's
+ * Whole-design skins (Orbit, Cockpit, Horizon, Tape Deck, Canvas). The active skin's
  * file draws the page background, the top bar, the frame over a docked Maps
  * window and the main widgets; every other tile keeps its standard renderer on
  * the skin's (bare) palette.
@@ -70,6 +70,7 @@ internal fun SkinTile(item: DashboardItem, env: SkinTileEnv) {
         DashSkin.COCKPIT -> CockpitTile(item, env)
         DashSkin.HORIZON -> HorizonTile(item, env)
         DashSkin.TAPE_DECK -> TapeDeckTile(item, env)
+        DashSkin.CANVAS -> CanvasTile(item, env)
         DashSkin.STANDARD -> Unit
     }
 }
@@ -81,6 +82,8 @@ internal fun SkinTopBar(m: TopBarModel) {
         DashSkin.COCKPIT -> CockpitTopBar(m)
         DashSkin.HORIZON -> HorizonTopBar(m)
         DashSkin.TAPE_DECK -> TapeDeckTopBar(m)
+        // Canvas has no bar: its rail stands at the side (AutomotiveDashboard).
+        DashSkin.CANVAS -> Unit
         DashSkin.STANDARD -> Unit
     }
 }
@@ -92,6 +95,8 @@ internal fun skinBackground(): Modifier = when (DashColors.Skin) {
     DashSkin.COCKPIT -> cockpitBackground()
     DashSkin.HORIZON -> horizonBackground()
     DashSkin.TAPE_DECK -> tapeDeckBackground()
+    // The map is drawn under the whole dashboard instead (CanvasBackdrop).
+    DashSkin.CANVAS -> Modifier
     DashSkin.STANDARD -> Modifier
 }
 
@@ -107,6 +112,7 @@ internal fun SkinWindowFrame(modifier: Modifier) {
         DashSkin.COCKPIT -> CockpitWindowFrame(modifier)
         DashSkin.HORIZON -> HorizonWindowFrame(modifier)
         DashSkin.TAPE_DECK -> TapeDeckWindowFrame(modifier)
+        DashSkin.CANVAS -> Unit
         DashSkin.STANDARD -> Unit
     }
 }
@@ -166,6 +172,7 @@ private val OrbitShapes = shapes(28, 22, 16)
 private val CockpitShapes = shapes(8, 6, 4)
 private val HorizonShapes = shapes(20, 14, 10)
 private val TapeDeckShapes = shapes(4, 4, 2)
+private val CanvasShapes = shapes(28, 20, 14)
 
 /** The active skin's chrome, in the palette on screen now. */
 internal fun skinChrome(): SkinChrome = when (DashColors.Skin) {
@@ -173,5 +180,6 @@ internal fun skinChrome(): SkinChrome = when (DashColors.Skin) {
     DashSkin.COCKPIT -> SkinChrome(CockpitShapes)
     DashSkin.HORIZON -> SkinChrome(HorizonShapes)
     DashSkin.TAPE_DECK -> SkinChrome(TapeDeckShapes)
+    DashSkin.CANVAS -> SkinChrome(CanvasShapes)
     DashSkin.STANDARD -> SkinChrome(StandardShapes)
 }

@@ -309,6 +309,40 @@ object DashboardStore {
         )
     )
 
+    /** Default pages for [variant]: the Canvas theme's own ones put its home in the middle. */
+    private fun defaultPagesFor(variant: String): List<List<DashboardItem>> {
+        val pages = defaultPages(variant.endsWith("_half"))
+        return if (variant.contains(CANVAS_VARIANT)) withCanvasHome(pages) else pages
+    }
+
+    /**
+     * The Canvas theme keeps its own arrangement (variant suffix): its home is
+     * the map with the trip across the top, so switching to it or away from it
+     * never disturbs the other themes' pages.
+     */
+    const val CANVAS_VARIANT = "_canvas"
+
+    /**
+     * The Canvas home: the trip strip across the top, the speed on the left,
+     * the car on the right, music at the foot, and the middle left open for
+     * the map and the car on it (CanvasSkin.kt).
+     */
+    internal fun canvasHome(): List<DashboardItem> = if (ScreenShape.vertical) listOf(
+        DashboardItem.BuiltinWidget(BuiltinKind.NAVIGATION, x = 0, y = 0, w = 7, h = 2),
+        DashboardItem.BuiltinWidget(BuiltinKind.SPEED_HUD, x = 0, y = 2, w = 3, h = 3),
+        DashboardItem.BuiltinWidget(BuiltinKind.TELEMETRY, x = 4, y = 2, w = 3, h = 3),
+        DashboardItem.BuiltinWidget(BuiltinKind.MEDIA, x = 0, y = 10, w = 7, h = 2)
+    ) else listOf(
+        DashboardItem.BuiltinWidget(BuiltinKind.NAVIGATION, x = 0, y = 0, w = 12, h = 2),
+        DashboardItem.BuiltinWidget(BuiltinKind.SPEED_HUD, x = 0, y = 2, w = 3, h = 3),
+        DashboardItem.BuiltinWidget(BuiltinKind.TELEMETRY, x = 9, y = 2, w = 3, h = 3),
+        DashboardItem.BuiltinWidget(BuiltinKind.MEDIA, x = 3, y = 5, w = 6, h = 2)
+    )
+
+    /** [pages] with the Canvas home in the middle; the other pages come along as they are. */
+    internal fun withCanvasHome(pages: List<List<DashboardItem>>): List<List<DashboardItem>> =
+        pages.mapIndexed { i, page -> if (i == CENTER) canvasHome() else page }
+
     /**
      * Layout variants keep separate arrangements: the full-width dashboard and
      * the half-width one beside a Maps dock cannot share tile positions. The
@@ -324,7 +358,7 @@ object DashboardStore {
 
     fun load(context: Context, variant: String = ""): List<List<DashboardItem>> {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val raw = prefs.getString(pagesKey(variant), null) ?: run { retained(variant).clear(); return defaultPages(variant.endsWith("_half")) }
+        val raw = prefs.getString(pagesKey(variant), null) ?: run { retained(variant).clear(); return defaultPagesFor(variant) }
 
         // A corrupt primary value falls back to the last good layout rather
         // than to the defaults; only when both are unreadable does the user
@@ -338,7 +372,7 @@ object DashboardStore {
                 Log.e(TAG, "Saved layout and its backup are both unreadable; using defaults")
                 retained(variant).clear()
                 lastGoodDoc.remove(variant)
-                return defaultPages(variant.endsWith("_half"))
+                return defaultPagesFor(variant)
             }
 
         // Always return exactly PAGE_COUNT pages. Tiles that predate grid

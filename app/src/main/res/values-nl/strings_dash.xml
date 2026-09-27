@@ -171,6 +171,8 @@
     <string name="dash_theme_cyber_desc">Carbonzwart, van rood naar magenta, een racedisplay in de balk</string>
     <string name="dash_theme_nordic">Noords minimaal</string>
     <string name="dash_theme_nordic_desc">Grafiet en ijsblauw, dunne lijnen, niets schreeuwerigs</string>
+    <string name="dash_theme_canvas">Canvas</string>
+    <string name="dash_theme_canvas_desc">De kaart vult het scherm, de rit op één lijn, glazen panelen erboven</string>
     <!-- Updates without a strip (⋮ dot, Settings row, ready prompt); edit-mode confirms; tile options; theme gallery -->
     <string name="dash_update_to">Bijwerken naar %1$s</string>
     <string name="dash_update_available_detail">Nieuwer dan v%1$s. Installeren herstart Dashwheel.</string>

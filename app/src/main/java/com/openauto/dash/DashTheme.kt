@@ -42,7 +42,8 @@ enum class DashThemeMode(@StringRes val titleRes: Int, @StringRes val descriptio
     LUXURY(R.string.dash_theme_luxury, R.string.dash_theme_luxury_desc),
     ECO_LEAF(R.string.dash_theme_eco_leaf, R.string.dash_theme_eco_leaf_desc),
     CYBER_SPORT(R.string.dash_theme_cyber, R.string.dash_theme_cyber_desc),
-    NORDIC(R.string.dash_theme_nordic, R.string.dash_theme_nordic_desc)
+    NORDIC(R.string.dash_theme_nordic, R.string.dash_theme_nordic_desc),
+    CANVAS(R.string.dash_theme_canvas, R.string.dash_theme_canvas_desc)
 }
 
 /** Dark or light version of the theme; [AUTO] follows the car's day/night mode. */
@@ -68,7 +69,7 @@ enum class DashEffects(@StringRes val titleRes: Int, @StringRes val hintRes: Int
  * background, top bar and renderers for the main widgets (see Skins.kt).
  * [STANDARD] is every colour-only theme.
  */
-enum class DashSkin { STANDARD, ORBIT, COCKPIT, HORIZON, TAPE_DECK }
+enum class DashSkin { STANDARD, ORBIT, COCKPIT, HORIZON, TAPE_DECK, CANVAS }
 
 /**
  * Colours plus a few style knobs for one dashboard theme.
@@ -403,6 +404,22 @@ private val NordicLightPalette = DashPalette(
     HeroWeight = FontWeight.Light
 )
 
+// Canvas: the live map is the page (CanvasSkin.kt); everything floats over it
+// on smoked glass. No glow: one cyan accent, the fixed amber and red for
+// alerts. By day, a light map under white glass and a deeper cyan.
+private val CanvasPalette = DashPalette(
+    Background = Color(0xFF07090C), Bar = Color(0xBD0C0F14), Card = Color(0xBD0C0F14), CardHi = Color(0x17FFFFFF),
+    Accent = Color(0xFF3DD9FF), Secondary = Color(0xFF34D399), Critical = Color(0xFFFF4D4F),
+    Good = Color(0xFF34D399), Muted = Color(0xFF8C939C), TextPrimary = Color(0xFFF4F6F8), TextSecondary = Color(0xFFA9B0B8),
+    Accent2 = Color(0xFF8BE9FF), Line = Color(0x1FFFFFFF), Skin = DashSkin.CANVAS
+)
+private val CanvasLightPalette = DashPalette(
+    Background = Color(0xFFEEF1F4), Bar = Color(0xDBFFFFFF), Card = Color(0xDBFFFFFF), CardHi = Color(0x0F0E141B),
+    Accent = Color(0xFF0088C2), Secondary = Color(0xFF0F8A5F), Critical = Color(0xFFC8261B),
+    Good = Color(0xFF0F8A5F), Muted = Color(0xFF6B737D), TextPrimary = Color(0xFF0E141B), TextSecondary = Color(0xFF545C66),
+    Accent2 = Color(0xFF34A9DC), Line = Color(0x1A0E141B), Light = true, Skin = DashSkin.CANVAS
+)
+
 /** How the screen is divided: pages only, or a permanent Google Maps dock beside them. */
 enum class DashLayout(
     @StringRes val titleRes: Int,
@@ -537,6 +554,7 @@ internal fun paletteFor(mode: DashThemeMode, light: Boolean): DashPalette = when
     DashThemeMode.ECO_LEAF -> if (light) EcoLeafLightPalette else EcoLeafPalette
     DashThemeMode.CYBER_SPORT -> if (light) CyberSportLightPalette else CyberSportPalette
     DashThemeMode.NORDIC -> if (light) NordicLightPalette else NordicPalette
+    DashThemeMode.CANVAS -> if (light) CanvasLightPalette else CanvasPalette
 }
 
 /**

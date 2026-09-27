@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The Canvas theme (CanvasSkin.kt): the journey line and its glass tiles. -->
+    <string name="canvas_rain">Rain</string>
+    <string name="canvas_rain_stops">Rain stops</string>
+    <string name="canvas_break">Break</string>
+    <string name="canvas_sunset">Sunset</string>
+    <string name="canvas_fuel_left">%1$d km of fuel left</string>
+    <string name="canvas_rain_from">Rain from %1$s</string>
+    <string name="canvas_rain_until">Rain until %1$s</string>
+</resources>

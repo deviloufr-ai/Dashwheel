@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="canvas_rain">Regen</string>
+    <string name="canvas_rain_stops">Regen stopt</string>
+    <string name="canvas_break">Pauze</string>
+    <string name="canvas_sunset">Zonsondergang</string>
+    <string name="canvas_fuel_left">%1$d km brandstof over</string>
+    <string name="canvas_rain_from">Regen vanaf %1$s</string>
+    <string name="canvas_rain_until">Regen tot %1$s</string>
+</resources>

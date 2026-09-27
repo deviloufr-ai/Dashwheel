@@ -155,6 +155,8 @@
     <string name="dash_theme_cyber_desc">Carbon black, crimson into magenta, a race cluster in the bar</string>
     <string name="dash_theme_nordic">Nordic Minimal</string>
     <string name="dash_theme_nordic_desc">Graphite and ice blue, thin lines, nothing that shouts</string>
+    <string name="dash_theme_canvas">Canvas</string>
+    <string name="dash_theme_canvas_desc">The map fills the screen, your trip on one line, glass panels over it</string>
 
     <!-- Screen layouts (the enum names are what gets saved) -->
     <string name="dash_layout_grid">Dashboards only</string>

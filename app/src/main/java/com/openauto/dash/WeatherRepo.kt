@@ -21,7 +21,11 @@ data class Weather(
     val windKmh: Double,
     val hiC: Double,
     val loC: Double,
-    val fetchedAt: Long
+    val fetchedAt: Long,
+    /** Start of the next wet hour in the coming [RAIN_HORIZON_H] hours (now's hour if it rains already); null if dry. */
+    val rainFromMs: Long? = null,
+    /** End of that wet spell. */
+    val rainUntilMs: Long? = null
 ) {
     /** Plain-language condition for a WMO weather code, as a string resource. */
     @get:StringRes
@@ -110,7 +114,8 @@ object WeatherRepo {
             Locale.US,
             "https://api.open-meteo.com/v1/forecast?latitude=%.4f&longitude=%.4f" +
                 "&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m" +
-                "&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=1",
+                "&daily=temperature_2m_max,temperature_2m_min" +
+                "&hourly=precipitation,precipitation_probability&timezone=auto&forecast_days=2",
             lat, lng
         )
         withContext(Dispatchers.IO) {
@@ -120,6 +125,7 @@ object WeatherRepo {
                     val json = JSONObject(resp.body?.string().orEmpty())
                     val cur = json.getJSONObject("current")
                     val daily = json.getJSONObject("daily")
+                    val rain = json.optJSONObject("hourly")?.let { rainSpell(it, json.optInt("utc_offset_seconds", 0), now) }
                     Weather(
                         tempC = cur.getDouble("temperature_2m"),
                         feelsC = cur.optDouble("apparent_temperature", cur.getDouble("temperature_2m")),
@@ -127,7 +133,9 @@ object WeatherRepo {
                         windKmh = cur.optDouble("wind_speed_10m", 0.0),
                         hiC = daily.getJSONArray("temperature_2m_max").optDouble(0, Double.NaN),
                         loC = daily.getJSONArray("temperature_2m_min").optDouble(0, Double.NaN),
-                        fetchedAt = now
+                        fetchedAt = now,
+                        rainFromMs = rain?.first,
+                        rainUntilMs = rain?.second
                     )
                 }
             }.onSuccess {
@@ -141,3 +149,32 @@ object WeatherRepo {
         }
     }
 }
+
+/** How far ahead the forecast is searched for rain, in hours. */
+internal const val RAIN_HORIZON_H = 12
+
+/**
+ * The first wet spell in Open-Meteo's [hourly] block from [nowMs] on: an hour
+ * counts as wet from 0.3 mm or a 60 % chance. Times come as local
+ * "2026-09-28T14:00" at [offsetSeconds] from UTC. Null when dry or unreadable.
+ */
+internal fun rainSpell(hourly: JSONObject, offsetSeconds: Int, nowMs: Long): Pair<Long, Long>? = runCatching {
+    val times = hourly.getJSONArray("time")
+    val mm = hourly.optJSONArray("precipitation")
+    val chance = hourly.optJSONArray("precipitation_probability")
+    val fmt = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm", Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }
+    val hour = 3_600_000L
+    var from: Long? = null
+    var until: Long? = null
+    for (i in 0 until times.length()) {
+        val start = (fmt.parse(times.getString(i)) ?: continue).time - offsetSeconds * 1000L
+        if (start + hour <= nowMs) continue
+        if (start > nowMs + RAIN_HORIZON_H * hour) break
+        val wet = (mm?.optDouble(i, 0.0) ?: 0.0) >= 0.3 || (chance?.optInt(i, 0) ?: 0) >= 60
+        if (wet) {
+            if (from == null) from = start
+            until = start + hour
+        } else if (from != null) break
+    }
+    from?.let { it to (until ?: it + hour) }
+}.getOrNull()

@@ -113,9 +113,13 @@ private val OverlayBg = Color(0xE6141518)
  *  - type a destination (Nominatim geocoding) or tap the map,
  *  - route computed by a free Valhalla server, drawn on the map with ETA,
  *  - **Start** launches fullscreen turn-by-turn (voice + rerouting).
+ *
+ * As a [wallpaper] (the Canvas theme's page) it is only the map: no search,
+ * no route panel, no gestures, a lower and steeper camera with the car in
+ * the lower part of the screen, and at most [WALLPAPER_FPS] frames a second.
  */
 @Composable
-fun MapLibrePanel(modifier: Modifier = Modifier) {
+fun MapLibrePanel(modifier: Modifier = Modifier, wallpaper: Boolean = false) {
     // Typing a destination waits until the car has stopped (the drive lock).
     val moving = LocalDriveLock.current.moving
     val context = LocalContext.current
@@ -141,7 +145,7 @@ fun MapLibrePanel(modifier: Modifier = Modifier) {
     val mapView = remember {
         MapLibre.getInstance(context)
         val options = MapLibreMapOptions.createFromAttributes(context, null).textureMode(true)
-        MapView(context, options)
+        MapView(context, options).also { if (wallpaper) it.setMaximumFps(WALLPAPER_FPS) }
     }
 
     var mapRef by remember { mutableStateOf<MapLibreMap?>(null) }
@@ -258,6 +262,8 @@ fun MapLibrePanel(modifier: Modifier = Modifier) {
             // No MapLibre wordmark on the dashboard. The attribution (i)
             // stays: the CARTO / OpenStreetMap tile terms require it.
             map.uiSettings.isLogoEnabled = false
+            // Under the dashboard nothing reaches the map by touch anyway.
+            if (wallpaper) map.uiSettings.setAllGesturesEnabled(false)
             mapRef = map
         }
     }
@@ -293,102 +299,104 @@ fun MapLibrePanel(modifier: Modifier = Modifier) {
     LaunchedEffect(hasLocation, styleReady) {
         if (!hasLocation || !styleReady) return@LaunchedEffect
         val map = mapRef ?: return@LaunchedEffect
-        map.getStyle { style -> enableLocation(map, style, context, scope) }
+        map.getStyle { style -> enableLocation(map, style, context, scope, if (wallpaper) mapView else null) }
     }
 
     Box(modifier = modifier.fillMaxSize()) {
         AndroidView(factory = { mapView }, modifier = Modifier.fillMaxSize())
-
-        // Destination search bar. Searching from the IME key, the search button
-        // or a hardware Enter all dismiss the keyboard first so the map is
-        // visible while the route loads.
-        val keyboard = LocalSoftwareKeyboardController.current
-        val focusManager = LocalFocusManager.current
-        fun submitSearch() {
-            keyboard?.hide()
-            focusManager.clearFocus()
-            searchAndRoute()
-        }
-        Surface(
-            color = OverlayBg,
-            shape = DashShape.Medium,
-            modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth().padding(8.dp)
-        ) {
-            Row(modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                OutlinedTextField(
-                    value = query,
-                    onValueChange = { query = it },
-                    placeholder = { Text(stringResource(if (moving) R.string.dash_drive_lock_notice else R.string.info_map_where_to), color = Color(0xFF9AA0A6)) },
-                    enabled = !moving,
-                    singleLine = true,
-                    modifier = Modifier
-                        .weight(1f)
-                        .onPreviewKeyEvent { event ->
-                            if (event.type == KeyEventType.KeyUp &&
-                                (event.key == Key.Enter || event.key == Key.NumPadEnter)
-                            ) {
-                                submitSearch(); true
-                            } else false
-                        },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = Accent,
-                        unfocusedBorderColor = Color(0xFF2A2D33),
-                        cursorColor = Accent
-                    ),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    // Head-unit keyboards label the action key differently; accept them all.
-                    keyboardActions = KeyboardActions(
-                        onSearch = { submitSearch() },
-                        onDone = { submitSearch() },
-                        onGo = { submitSearch() },
-                        onSend = { submitSearch() }
-                    )
-                )
-                Spacer(Modifier.width(6.dp))
-                if (loading) {
-                    CircularProgressIndicator(modifier = Modifier.size(28.dp), color = Accent, strokeWidth = 3.dp)
-                } else {
-                    IconButton(onClick = { submitSearch() }) {
-                        Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.info_map_search), tint = Accent)
-                    }
-                }
-                if (route != null) {
-                    IconButton(onClick = { clearRoute() }) {
-                        Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.info_map_clear_route), tint = Color(0xFF9AA0A6))
-                    }
-                }
+        // The search and route panels belong to the map tile, not to a wallpaper.
+        if (!wallpaper) {
+            // Destination search bar. Searching from the IME key, the search button
+            // or a hardware Enter all dismiss the keyboard first so the map is
+            // visible while the route loads.
+            val keyboard = LocalSoftwareKeyboardController.current
+            val focusManager = LocalFocusManager.current
+            fun submitSearch() {
+                keyboard?.hide()
+                focusManager.clearFocus()
+                searchAndRoute()
             }
-        }
-
-        // Route info / error + Start (hands off to Google Maps navigation).
-        val currentInfo = info
-        val currentError = error
-        val hasDest = destination != null
-        if (currentInfo != null || currentError != null || hasDest) {
             Surface(
                 color = OverlayBg,
                 shape = DashShape.Medium,
-                modifier = Modifier.align(Alignment.BottomStart).padding(10.dp)
+                modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth().padding(8.dp)
             ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text(
-                        text = currentInfo ?: currentError ?: stringResource(R.string.info_map_ready),
-                        color = if (currentError != null) Color(0xFFF28B82) else Color.White
+                Row(modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        placeholder = { Text(stringResource(if (moving) R.string.dash_drive_lock_notice else R.string.info_map_where_to), color = Color(0xFF9AA0A6)) },
+                        enabled = !moving,
+                        singleLine = true,
+                        modifier = Modifier
+                            .weight(1f)
+                            .onPreviewKeyEvent { event ->
+                                if (event.type == KeyEventType.KeyUp &&
+                                    (event.key == Key.Enter || event.key == Key.NumPadEnter)
+                                ) {
+                                    submitSearch(); true
+                                } else false
+                            },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = Accent,
+                            unfocusedBorderColor = Color(0xFF2A2D33),
+                            cursorColor = Accent
+                        ),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        // Head-unit keyboards label the action key differently; accept them all.
+                        keyboardActions = KeyboardActions(
+                            onSearch = { submitSearch() },
+                            onDone = { submitSearch() },
+                            onGo = { submitSearch() },
+                            onSend = { submitSearch() }
+                        )
                     )
-                    if (hasDest) {
-                        Button(
-                            onClick = { destination?.let { startGoogleNavigation(context, it) } },
-                            colors = ButtonDefaults.buttonColors(containerColor = Accent, contentColor = Color(0xFF0B0C0F))
-                        ) {
-                            Icon(Icons.Filled.Navigation, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(6.dp))
-                            Text(stringResource(R.string.info_map_start))
+                    Spacer(Modifier.width(6.dp))
+                    if (loading) {
+                        CircularProgressIndicator(modifier = Modifier.size(28.dp), color = Accent, strokeWidth = 3.dp)
+                    } else {
+                        IconButton(onClick = { submitSearch() }) {
+                            Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.info_map_search), tint = Accent)
+                        }
+                    }
+                    if (route != null) {
+                        IconButton(onClick = { clearRoute() }) {
+                            Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.info_map_clear_route), tint = Color(0xFF9AA0A6))
+                        }
+                    }
+                }
+            }
+
+            // Route info / error + Start (hands off to Google Maps navigation).
+            val currentInfo = info
+            val currentError = error
+            val hasDest = destination != null
+            if (currentInfo != null || currentError != null || hasDest) {
+                Surface(
+                    color = OverlayBg,
+                    shape = DashShape.Medium,
+                    modifier = Modifier.align(Alignment.BottomStart).padding(10.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = currentInfo ?: currentError ?: stringResource(R.string.info_map_ready),
+                            color = if (currentError != null) Color(0xFFF28B82) else Color.White
+                        )
+                        if (hasDest) {
+                            Button(
+                                onClick = { destination?.let { startGoogleNavigation(context, it) } },
+                                colors = ButtonDefaults.buttonColors(containerColor = Accent, contentColor = Color(0xFF0B0C0F))
+                            ) {
+                                Icon(Icons.Filled.Navigation, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text(stringResource(R.string.info_map_start))
+                            }
                         }
                     }
                 }
@@ -402,7 +410,9 @@ private fun enableLocation(
     map: MapLibreMap,
     style: Style,
     context: Context,
-    scope: kotlinx.coroutines.CoroutineScope
+    scope: kotlinx.coroutines.CoroutineScope,
+    /** Set when the map is a wallpaper: the camera sits lower and the car low on it. */
+    wallpaper: MapView? = null
 ) {
     if (!hasLocationPerm(context)) return
     val lc = map.locationComponent
@@ -421,7 +431,7 @@ private fun enableLocation(
                     resume?.cancel()
                     resume = scope.launch {
                         delay(TRACKING_RESUME_MS)
-                        followVehicle(lc)
+                        followVehicle(lc, wallpaper)
                     }
                 }
 
@@ -434,7 +444,7 @@ private fun enableLocation(
         // Directional puck; the camera follows position AND heading (map rotates
         // with the car) at a close zoom with pitch for the driving-nav look.
         lc.renderMode = RenderMode.COMPASS
-        followVehicle(lc)
+        followVehicle(lc, wallpaper)
     }
     // TRACKING_GPS only re-centres on a FRESH fix; with only a last-known
     // location the camera stays at the default world view. Once any fix exists,
@@ -444,7 +454,7 @@ private fun enableLocation(
         repeat(15) {
             val loc = runCatching { lc.lastKnownLocation }.getOrNull()
             if (loc != null) {
-                followVehicle(lc)
+                followVehicle(lc, wallpaper)
                 return@launch
             }
             delay(800)
@@ -456,9 +466,21 @@ private fun enableLocation(
 private const val TRACKING_RESUME_MS = 10_000L
 
 /** Follow position and heading with the driving-nav zoom and pitch, keeping tracking on. */
-private fun followVehicle(lc: LocationComponent) {
-    runCatching { lc.setCameraMode(CameraMode.TRACKING_GPS, 1000L, 16.5, null, 45.0, null) }
+private fun followVehicle(lc: LocationComponent, wallpaper: MapView? = null) {
+    if (wallpaper == null) {
+        runCatching { lc.setCameraMode(CameraMode.TRACKING_GPS, 1000L, 16.5, null, 45.0, null) }
+        return
+    }
+    // A wallpaper looks further ahead: steeper, a little closer, and the car
+    // pushed down to the lower part of the screen, between the panels.
+    runCatching {
+        lc.setCameraMode(CameraMode.TRACKING_GPS, 1000L, 17.0, null, 60.0, null)
+        lc.paddingWhileTracking(doubleArrayOf(0.0, wallpaper.height * 0.42, 0.0, 0.0))
+    }
 }
+
+/** The wallpaper map's frame cap: smooth enough for a car moving under it, half the work of 60. */
+private const val WALLPAPER_FPS = 30
 
 /**
  * Adds extruded 3D buildings to the vector basemap, tinted for its [light] or dark

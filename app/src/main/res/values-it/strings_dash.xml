@@ -170,6 +170,8 @@
     <string name="dash_theme_cyber_desc">Nero carbonio, dal rosso al magenta, un quadro da corsa nella barra</string>
     <string name="dash_theme_nordic">Nordico minimal</string>
     <string name="dash_theme_nordic_desc">Grafite e blu ghiaccio, linee sottili, niente di chiassoso</string>
+    <string name="dash_theme_canvas">Canvas</string>
+    <string name="dash_theme_canvas_desc">La mappa riempie lo schermo, il viaggio su una linea, pannelli di vetro sopra</string>
     <string name="dash_theme_group_recommended">Consigliati</string>
     <string name="dash_theme_group_colours">Temi</string>
     <string name="dash_theme_group_skins">Skin</string>

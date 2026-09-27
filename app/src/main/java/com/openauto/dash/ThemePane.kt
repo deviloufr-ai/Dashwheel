@@ -337,6 +337,27 @@ private fun ThemeStamp(p: DashPalette, modifier: Modifier) {
                 drawRoundRect(Color(0xFF120D18), Offset(w * 0.56f, h * 0.14f), Size(w * 0.36f, h * 0.34f), CornerRadius(3f))
                 number("87", w * 0.74f, h * 0.31f, 14f, p.Accent, FontFamily.Monospace, FontWeight.Bold)
             }
+            DashSkin.CANVAS -> {
+                // Streets running to a horizon under the route, the rail, the trip strip, the speed dial and the music island.
+                val vp = Offset(w * 0.5f, h * 0.18f)
+                val road = p.TextPrimary.copy(alpha = 0.10f)
+                for (i in -6..6) drawLine(road, vp, Offset(w * 0.5f + i * w * 0.16f, h), 1f)
+                var y = h * 0.3f
+                var gap = h * 0.05f
+                while (y < h) { drawLine(road, Offset(0f, y), Offset(w, y), 1f); y += gap; gap *= 1.35f }
+                drawLine(p.Accent, vp, Offset(w * 0.5f, h), 3f)
+                val glass = p.Card
+                drawRoundRect(glass, Offset(w * 0.02f, h * 0.05f), Size(w * 0.07f, h * 0.9f), CornerRadius(h * 0.05f))
+                drawRoundRect(glass, Offset(w * 0.12f, h * 0.05f), Size(w * 0.85f, h * 0.22f), CornerRadius(h * 0.06f))
+                drawLine(p.Accent, Offset(w * 0.42f, h * 0.15f), Offset(w * 0.92f, h * 0.15f), 2.5f, StrokeCap.Round)
+                drawCircle(p.Good, 3f, Offset(w * 0.92f, h * 0.15f))
+                val r = h * 0.17f
+                val c = Offset(w * 0.22f, h * 0.52f)
+                drawCircle(glass, r, c)
+                drawArc(p.Accent, 135f, 130f, false, Offset(c.x - r * 0.82f, c.y - r * 0.82f), Size(r * 1.64f, r * 1.64f), style = Stroke(2f, cap = StrokeCap.Round))
+                number("88", c.x, c.y, 9f, p.TextPrimary)
+                drawRoundRect(glass, Offset(w * 0.34f, h * 0.8f), Size(w * 0.44f, h * 0.14f), CornerRadius(h * 0.07f))
+            }
             DashSkin.STANDARD -> {
                 // The standard bar and two tiles; glass themes show through, bare ones draw no card.
                 val cardFill = when {

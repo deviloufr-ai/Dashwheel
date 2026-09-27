@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="canvas_rain">Chuva</string>
+    <string name="canvas_rain_stops">A chuva para</string>
+    <string name="canvas_break">Pausa</string>
+    <string name="canvas_sunset">Pôr do sol</string>
+    <string name="canvas_fuel_left">%1$d km de combustível restante</string>
+    <string name="canvas_rain_from">Chuva a partir das %1$s</string>
+    <string name="canvas_rain_until">Chuva até às %1$s</string>
+</resources>

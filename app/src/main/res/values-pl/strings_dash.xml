@@ -171,6 +171,8 @@
     <string name="dash_theme_cyber_desc">Czerń karbonu, od czerwieni do magenty, zegary wyścigowe na pasku</string>
     <string name="dash_theme_nordic">Nordycki minimalizm</string>
     <string name="dash_theme_nordic_desc">Grafit i lodowy błękit, cienkie linie, nic krzykliwego</string>
+    <string name="dash_theme_canvas">Canvas</string>
+    <string name="dash_theme_canvas_desc">Mapa na cały ekran, trasa na jednej linii, szklane panele nad nią</string>
     <!-- Updates without a strip (⋮ dot, Settings row, ready prompt); edit-mode confirms; tile options; theme gallery -->
     <string name="dash_update_to">Zaktualizuj do %1$s</string>
     <string name="dash_update_available_detail">Nowsza niż v%1$s. Instalacja uruchomi Dashwheel ponownie.</string>

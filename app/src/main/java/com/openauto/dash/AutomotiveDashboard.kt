@@ -140,7 +140,10 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     val dockFraction = remember { mutableFloatStateOf(DashLayoutStore.loadDockFraction(context)) }
     // The half-width dashboard beside a Maps dock keeps its own arrangement,
     // and so does each screen shape (ScreenShape.layoutPrefix).
-    fun variantOf(l: DashLayout) = ScreenShape.layoutPrefix + if (l == DashLayout.GRID) "" else "_half"
+    // The Canvas theme keeps its own too (DashboardStore.CANVAS_VARIANT).
+    fun variantOf(l: DashLayout) = ScreenShape.layoutPrefix +
+        (if (themeMode == DashThemeMode.CANVAS) DashboardStore.CANVAS_VARIANT else "") +
+        if (l == DashLayout.GRID) "" else "_half"
     // Read when called, never captured: gesture handlers outlive a composition,
     // and a stale arrangement would save one layout's tiles over the other's.
     fun variant() = variantOf(layout)
@@ -193,11 +196,39 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     }
     val appsByPackage = remember(apps) { apps.associateBy { it.packageName } }
 
-    var pages by remember { mutableStateOf(DashboardStore.load(context, variant())) }
+    /**
+     * The pages for the theme and layout in use. The first time Canvas is
+     * used, its pages start as the driver's own with the Canvas home in the
+     * middle, rather than as the defaults.
+     */
+    fun loadPages(): List<List<DashboardItem>> {
+        val v = variant()
+        if (themeMode == DashThemeMode.CANVAS && !DashboardStore.exists(context, v)) {
+            val own = v.replace(DashboardStore.CANVAS_VARIANT, "")
+            if (DashboardStore.exists(context, own)) {
+                val seeded = DashboardStore.withCanvasHome(DashboardStore.load(context, own))
+                DashboardStore.save(context, seeded, v)
+                return seeded
+            }
+        }
+        return DashboardStore.load(context, v)
+    }
+    var pages by remember { mutableStateOf(loadPages()) }
     // The other arrangement's window apps, cached (see windowAppsEverywhere); null = read again.
     var otherLayoutWindows by remember { mutableStateOf<Set<String>?>(null) }
     // Layout snapshots for Undo while arranging (newest last, capped).
     var history by remember { mutableStateOf<List<List<List<DashboardItem>>>>(emptyList()) }
+
+    // Switching to Canvas or away from it swaps in that theme's own pages.
+    var pagesForCanvas by remember { mutableStateOf(themeMode == DashThemeMode.CANVAS) }
+    LaunchedEffect(themeMode) {
+        val canvas = themeMode == DashThemeMode.CANVAS
+        if (canvas == pagesForCanvas) return@LaunchedEffect
+        pagesForCanvas = canvas
+        pages = loadPages()
+        history = emptyList()
+        otherLayoutWindows = null
+    }
 
     val shellAccess = shellAccess()
     // The default layout is built before the shell is known. Once it is, and
@@ -942,8 +973,12 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     // Arranging with the edit bar up (a split screen's half has no room for it).
     val arranging = editing && !inSplitMode
     val barOverlapPx = if (barForced) (statusBarPx - contentTopPx).coerceAtLeast(0) else 0
+    // Canvas: the live map is the page itself, and a rail at the driver's side stands in for the bar.
+    val canvas = DashColors.Skin == DashSkin.CANVAS
+    val railOnRight = CarProfileStore.current.driverOnRight
     CompositionLocalProvider(LocalDriveLock provides driveLock) {
     Box(modifier = Modifier.fillMaxSize()) {
+    if (canvas) CanvasBackdrop(Modifier.fillMaxSize())
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -960,7 +995,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                 .weight(1f)
                 // With auto-hide the bar floats over the pages; once it has gone,
                 // a swipe up from their bottom edge brings it back.
-                .then(if (barAutoHide) Modifier.swipeUpRevealsBar(barState, barRevealTap) else Modifier)
+                .then(if (barAutoHide && !canvas) Modifier.swipeUpRevealsBar(barState, barRevealTap) else Modifier)
                 // Docked app windows must stay inside this area (above the bar,
                 // unless it floats over the pages and they step aside for it).
                 .onGloballyPositioned { coords ->
@@ -1084,7 +1119,9 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                 docked = dockSide != null,
                 dockFirst = dockSide == Alignment.Start,
                 dockFraction = { dockFraction.floatValue },
-                modifier = Modifier.fillMaxSize().onSizeChanged { splitLengthPx = if (vertical) it.height else it.width },
+                modifier = Modifier.fillMaxSize()
+                    .then(if (canvas) Modifier.padding(start = if (railOnRight) 0.dp else CANVAS_RAIL_SPACE, end = if (railOnRight) CANVAS_RAIL_SPACE else 0.dp) else Modifier)
+                    .onSizeChanged { splitLengthPx = if (vertical) it.height else it.width },
                 dock = {
                     // Android treats the 30 dp around a freeform window as its
                     // resize handle and takes any drag that starts there for the
@@ -1118,6 +1155,14 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                 pane = pagesPane
             )
 
+            if (canvas) {
+                CanvasRail(
+                    m = settingsModel,
+                    onHome = { showPage(DashboardStore.CENTER) },
+                    modifier = Modifier.align(if (railOnRight) Alignment.CenterEnd else Alignment.CenterStart)
+                )
+            }
+
             // Floating swap button (bottom-centre), shown whenever the launcher
             // shares the screen — regardless of how the split was started (our
             // accessibility path or the OS's manual recents gesture). Swapping
@@ -1127,7 +1172,9 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             if (demoOn && DashColors.Skin != DashSkin.STANDARD) {
                 DemoBadge(
                     onStop = DemoMode::stop,
-                    modifier = Modifier.align(Alignment.TopCenter).padding(top = 6.dp)
+                    // Canvas has its trip strip up there; the corner under the car is free.
+                    modifier = if (canvas) Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 24.dp)
+                        else Modifier.align(Alignment.TopCenter).padding(top = 6.dp)
                 )
             }
             if (lockNoticeAt > 0L) {
@@ -1138,7 +1185,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                 page = pageIndicatorFor,
                 modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp)
             )
-            if (barAutoHide && !arranging) BarHandle(barState, Modifier.align(Alignment.BottomCenter))
+            if (barAutoHide && !arranging && !canvas) BarHandle(barState, Modifier.align(Alignment.BottomCenter))
 
             // The tapped tile's panel, over the side of the pages that leaves
             // the tile in sight (TileOptions.kt).
@@ -1355,13 +1402,13 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                     onDone = { editing = false }
                 )
             }
-        } else if (!barAutoHide) {
+        } else if (!barAutoHide && !canvas) {
             launcherBar { TopBar(settingsModel) }
         }
     }
     // Auto-hide (Settings › Display): the bar floats over the pages, which keep
     // the whole height, so showing or hiding it never resizes the dashboard.
-    if (barAutoHide && !arranging) {
+    if (barAutoHide && !arranging && !canvas) {
         Column(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth()) {
             launcherBar {
                 AutoHidingBar(state = barState, hideSeconds = barHideSeconds) {
