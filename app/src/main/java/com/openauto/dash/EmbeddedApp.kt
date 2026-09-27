@@ -95,7 +95,10 @@ internal object EmbeddedApp {
     private const val START_WAIT_MS = 5_000L
 
     /** Moves tried before giving up (a new task of the app may appear meanwhile). */
-    private const val MOVE_ROUNDS = 4
+    private const val MOVE_ROUNDS = 5
+
+    /** How long a closed window gets to go before the app is opened afresh. */
+    private const val CLOSE_WAIT_MS = 500L
 
     enum class Status {
         /** The display is being made or the app launched. */
@@ -179,7 +182,9 @@ internal object EmbeddedApp {
         /** The tile the display draws on, and the picture and size it was given. */
         private var shownOn: Any? = null
         private var shownSurface: Surface? = null
+        @Volatile
         private var shownWidth = 0
+        @Volatile
         private var shownHeight = 0
         private var shownDpi = 0
 
@@ -286,9 +291,12 @@ internal object EmbeddedApp {
         }
 
         /**
-         * Puts the app on the tile, in the background. Already there: nothing is
-         * done, so coming back to the page never pulls it out again. Running
-         * elsewhere: moved over. Not running: started, then moved over.
+         * Puts the app on the tile, full size, in the background. Already there:
+         * nothing is done, so coming back to the page never pulls it out again.
+         * Running full screen elsewhere: moved over. In a floating window (the
+         * app's window tile, picture-in-picture): that window would keep its
+         * size and spot once moved, a corner of the tile, so it is closed and
+         * the app opened afresh. Not running: started, then moved over.
          */
         private fun launch(vd: VirtualDisplay) {
             if (settling?.isActive == true) return
@@ -297,38 +305,56 @@ internal object EmbeddedApp {
 
         private suspend fun place(vd: VirtualDisplay) {
             val id = vd.display.displayId
-            val stacks = listStacks()
-            if (stacks == null) {
+            var found: List<WindowListing.AppStack> = listStacks() ?: run {
                 // No shell to look with: the launch alone, which lands on the tile on most ROMs.
                 start(vd)
                 return
             }
-            if (stacks.isNotEmpty() && stacks.all { it.displayId == id }) {
-                _status.value = Status.SHOWN
-                return
-            }
-            var found: List<WindowListing.AppStack> = stacks
-            if (found.isEmpty()) {
-                start(vd)
-                if (_status.value != Status.SHOWN) return
-                // This ROM opens it full screen on the main screen whatever display is
-                // asked for: caught as soon as it shows, so it only flashes there.
-                found = awaitStacks()
-            }
+            var fresh = false
+            val filled = HashSet<Int>()
             repeat(MOVE_ROUNDS) {
-                val away = found.filter { it.displayId != id }
-                if (away.isEmpty()) {
-                    if (found.isNotEmpty()) Log.i(TAG, "$packageName is on the tile")
+                if (found.isEmpty()) {
+                    if (fresh) return
+                    start(vd)
+                    fresh = true
+                    if (_status.value != Status.SHOWN) return
+                    // This ROM opens it full screen on the main screen whatever display is
+                    // asked for: caught as soon as it shows, so it only flashes there.
+                    found = awaitStacks()
+                    if (found.isEmpty()) return
+                }
+                val floating = found.filter { floating(it) && it.stackId !in filled }
+                if (found.all { it.displayId == id } && floating.isEmpty()) {
+                    _status.value = Status.SHOWN
+                    Log.i(TAG, "$packageName is on the tile")
                     return
                 }
-                for (stack in away) {
-                    val out = runCatching { DockShell.shell(context, "am display move-stack ${stack.stackId} $id") }.getOrElse { "failed: ${it.message}" }
-                    Log.i(TAG, "$packageName stack ${stack.stackId} (${stack.mode}) from display ${stack.displayId} to $id: ${out.trim()}")
+                val closing = !fresh && floating.isNotEmpty()
+                for (stack in found) {
+                    if (closing && stack in floating) {
+                        shell("am stack remove ${stack.stackId}", "$packageName ${stack.mode} stack ${stack.stackId} on display ${stack.displayId} closed")
+                        continue
+                    }
+                    if (stack.displayId != id) {
+                        shell("am display move-stack ${stack.stackId} $id", "$packageName stack ${stack.stackId} (${stack.mode}) from display ${stack.displayId} to $id")
+                    }
+                    if (stack in floating) {
+                        // Even started afresh it floats (this ROM's choice): stretched to fill the tile.
+                        shell("am stack resize ${stack.stackId} 0 0 $shownWidth $shownHeight", "$packageName ${stack.mode} stack ${stack.stackId} fills the tile")
+                        filled += stack.stackId
+                    }
                 }
-                delay(POLL_MS)
+                delay(if (closing) CLOSE_WAIT_MS else POLL_MS)
                 found = listStacks() ?: return
             }
             Log.w(TAG, "$packageName still off the tile: " + found.joinToString { "stack ${it.stackId} ${it.mode} on display ${it.displayId}" })
+        }
+
+        private fun floating(stack: WindowListing.AppStack) = stack.mode == "freeform" || stack.mode == "pinned"
+
+        private suspend fun shell(cmd: String, what: String) {
+            val out = runCatching { DockShell.shell(context, cmd) }.getOrElse { "failed: ${it.message}" }
+            Log.i(TAG, "$what: ${out.trim()}")
         }
 
         private fun start(vd: VirtualDisplay) {
