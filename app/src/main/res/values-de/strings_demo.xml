@@ -3,7 +3,7 @@
     <!-- Demo mode: a made-up drive that shows every tile working (DemoMode.kt) -->
     <string name="demo_menu_start">Demomodus</string>
     <string name="demo_menu_stop">Demo beenden</string>
-    <string name="demo_settings_detail">Eine erfundene Fahrt durch Paris füllt jede Kachel, um das Dashboard im Stand vorzuführen. Nichts wird gespeichert; zum Beenden auf das Abzeichen tippen.</string>
+    <string name="demo_settings_detail">Eine erfundene Fahrt füllt jede Kachel. Nichts wird gespeichert.</string>
     <string name="demo_badge">Demo · erfundene Daten</string>
     <string name="demo_stop">Beenden</string>
     <!-- Fake turn-by-turn instructions; %1$s = street name -->

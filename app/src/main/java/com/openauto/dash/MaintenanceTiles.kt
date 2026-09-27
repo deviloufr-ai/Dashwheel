@@ -148,99 +148,90 @@ internal fun UpkeepDialog(onDismiss: () -> Unit) {
         if (km > 0 && km != state.odometer?.nowKm) Maintenance.setOdometer(km)
     }
 
-    AlertDialog(
-        modifier = Modifier.keepClearOfWindows(),
-        onDismissRequest = { commitOdometer(); onDismiss() },
-        containerColor = DashColors.Card,
-        title = { Text(stringResource(R.string.upkeep_dialog_title), color = DashColors.TextPrimary) },
-        text = {
-            Column(
-                modifier = Modifier.heightIn(max = 470.dp).verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Text(stringResource(R.string.upkeep_explanation), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
+    val leave = { commitOdometer(); onDismiss() }
+    SettingsSheet(
+        title = stringResource(R.string.upkeep_dialog_title),
+        onDismiss = leave,
+        actions = { SheetButton(stringResource(R.string.ai_done), onClick = leave) }
+    ) {
+        Text(stringResource(R.string.upkeep_explanation), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
 
-                Label(stringResource(R.string.upkeep_odometer))
-                OutlinedTextField(
-                    value = odoText,
-                    onValueChange = { odoText = it },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = fieldColors()
-                )
-                state.odometer?.let { odo ->
-                    Text(
-                        stringResource(
-                            R.string.upkeep_odometer_as_of,
-                            DateUtils.getRelativeTimeSpanString(odo.readAt, now, DateUtils.MINUTE_IN_MILLIS).toString(),
-                            odo.drivenSince.toInt()
-                        ),
-                        color = DashColors.Muted, style = MaterialTheme.typography.bodySmall
-                    )
+        Label(stringResource(R.string.upkeep_odometer))
+        OutlinedTextField(
+            value = odoText,
+            onValueChange = { odoText = it },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.fillMaxWidth(),
+            colors = fieldColors()
+        )
+        state.odometer?.let { odo ->
+            Text(
+                stringResource(
+                    R.string.upkeep_odometer_as_of,
+                    DateUtils.getRelativeTimeSpanString(odo.readAt, now, DateUtils.MINUTE_IN_MILLIS).toString(),
+                    odo.drivenSince.toInt()
+                ),
+                color = DashColors.Muted, style = MaterialTheme.typography.bodySmall
+            )
+        }
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Button(
+                enabled = !state.fetching,
+                onClick = {
+                    fetchResult = null
+                    scope.launch {
+                        Maintenance.fetchPlan()
+                            .onSuccess { fetchResult = true to context.getString(R.string.upkeep_fetch_ok) }
+                            .onFailure { fetchResult = false to context.getString(R.string.upkeep_fetch_failed, it.message.orEmpty()) }
+                    }
+                },
+                colors = buttonColors()
+            ) { Text(stringResource(R.string.upkeep_fetch)) }
+            Spacer(Modifier.size(12.dp))
+            if (state.fetching) {
+                CircularProgressIndicator(color = DashColors.Accent, modifier = Modifier.size(22.dp))
+            } else {
+                val (ok, message) = fetchResult
+                    ?: (state.planFromAi to stringResource(if (state.planFromAi) R.string.upkeep_plan_ai else R.string.upkeep_plan_default))
+                Text(message, color = if (ok) DashColors.Good else DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+            }
+        }
+
+        Label(stringResource(R.string.upkeep_section_items))
+        dues.forEach { d ->
+            val interval = state.plan.first { it.kind == d.kind }
+            val done = state.done[d.kind]
+            HorizontalDivider(color = DashColors.Line)
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(d.kind.labelRes), color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f))
+                Text(upkeepLeft(d), color = d.stage.color, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                NumField(stringResource(R.string.upkeep_every_km), interval.everyKm, Modifier.weight(1f)) {
+                    Maintenance.setInterval(interval.copy(everyKm = it))
                 }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Button(
-                        enabled = !state.fetching,
-                        onClick = {
-                            fetchResult = null
-                            scope.launch {
-                                Maintenance.fetchPlan()
-                                    .onSuccess { fetchResult = true to context.getString(R.string.upkeep_fetch_ok) }
-                                    .onFailure { fetchResult = false to context.getString(R.string.upkeep_fetch_failed, it.message.orEmpty()) }
-                            }
-                        },
-                        colors = buttonColors()
-                    ) { Text(stringResource(R.string.upkeep_fetch)) }
-                    Spacer(Modifier.size(12.dp))
-                    if (state.fetching) {
-                        CircularProgressIndicator(color = DashColors.Accent, modifier = Modifier.size(22.dp))
-                    } else {
-                        val (ok, message) = fetchResult
-                            ?: (state.planFromAi to stringResource(if (state.planFromAi) R.string.upkeep_plan_ai else R.string.upkeep_plan_default))
-                        Text(message, color = if (ok) DashColors.Good else DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
-                    }
-                }
-
-                Label(stringResource(R.string.upkeep_section_items))
-                dues.forEach { d ->
-                    val interval = state.plan.first { it.kind == d.kind }
-                    val done = state.done[d.kind]
-                    HorizontalDivider(color = DashColors.Line)
-                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text(stringResource(d.kind.labelRes), color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.weight(1f))
-                        Text(upkeepLeft(d), color = d.stage.color, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        NumField(stringResource(R.string.upkeep_every_km), interval.everyKm, Modifier.weight(1f)) {
-                            Maintenance.setInterval(interval.copy(everyKm = it))
-                        }
-                        NumField(stringResource(R.string.upkeep_every_months), interval.everyMonths, Modifier.weight(1f)) {
-                            Maintenance.setInterval(interval.copy(everyMonths = it))
-                        }
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        NumField(stringResource(R.string.upkeep_last_km), done?.km, Modifier.weight(1f)) {
-                            Maintenance.setDone(d.kind, UpkeepDone(km = it, at = done?.at))
-                        }
-                        MonthField(stringResource(R.string.upkeep_last_date), done?.at?.let { monthFmt.format(it) }.orEmpty(), Modifier.weight(1f)) { text ->
-                            val at = runCatching { monthFmt.parse(text)?.time }.getOrNull()
-                            if (text.isBlank() || at != null) Maintenance.setDone(d.kind, UpkeepDone(km = done?.km, at = at))
-                        }
-                        TextButton(onClick = {
-                            commitOdometer()
-                            Maintenance.setDone(d.kind, UpkeepDone(km = Maintenance.state.value.odometer?.nowKm, at = Calendar.getInstance().timeInMillis))
-                        }) { Text(stringResource(R.string.upkeep_done_today), color = DashColors.Accent, maxLines = 2) }
-                    }
+                NumField(stringResource(R.string.upkeep_every_months), interval.everyMonths, Modifier.weight(1f)) {
+                    Maintenance.setInterval(interval.copy(everyMonths = it))
                 }
             }
-        },
-        confirmButton = {
-            TextButton(onClick = { commitOdometer(); onDismiss() }) { Text(stringResource(R.string.ai_done), color = DashColors.Accent) }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                NumField(stringResource(R.string.upkeep_last_km), done?.km, Modifier.weight(1f)) {
+                    Maintenance.setDone(d.kind, UpkeepDone(km = it, at = done?.at))
+                }
+                MonthField(stringResource(R.string.upkeep_last_date), done?.at?.let { monthFmt.format(it) }.orEmpty(), Modifier.weight(1f)) { text ->
+                    val at = runCatching { monthFmt.parse(text)?.time }.getOrNull()
+                    if (text.isBlank() || at != null) Maintenance.setDone(d.kind, UpkeepDone(km = done?.km, at = at))
+                }
+                TextButton(onClick = {
+                    commitOdometer()
+                    Maintenance.setDone(d.kind, UpkeepDone(km = Maintenance.state.value.odometer?.nowKm, at = Calendar.getInstance().timeInMillis))
+                }) { Text(stringResource(R.string.upkeep_done_today), color = DashColors.Accent, maxLines = 2) }
+            }
         }
-    )
+    }
 }
 
 /** A whole-number field that reports on every valid change; blank = not known. */

@@ -98,4 +98,13 @@
     <string name="settings_screen_auto_hint_tall">Volgt het scherm: dit is staand</string>
     <string name="settings_screen_horizontal_hint">Zet het dashboard liggend, als het toestel dat toelaat</string>
     <string name="settings_screen_vertical_hint">Zet het dashboard staand met een eigen indeling, als het toestel dat toelaat</string>
+    <string name="settings_section_display">Weergave</string>
+    <string name="settings_appearance_title">Dag en nacht</string>
+    <string name="settings_section_popups">In plaats van de pop-ups van de radio</string>
+    <string name="alert_style_section">Hoe elke melding verschijnt</string>
+    <string name="settings_section_about">Over</string>
+    <string name="settings_screen_keep_title">Deze richting behouden?</string>
+    <string name="settings_screen_keep_detail">Gaat terug over %1$d s</string>
+    <string name="settings_screen_keep">Behouden</string>
+    <string name="settings_screen_revert">Terug</string>
 </resources>

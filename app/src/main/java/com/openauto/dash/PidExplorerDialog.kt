@@ -5,12 +5,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -63,100 +59,92 @@ internal fun PidExplorerDialog(onDismiss: () -> Unit) {
         }
     }
 
-    AlertDialog(
-        modifier = Modifier.keepClearOfWindows(),
-        onDismissRequest = onDismiss,
-        containerColor = DashColors.Card,
-        title = { Text(stringResource(R.string.explore_title), color = DashColors.TextPrimary) },
-        text = {
-            Column(
-                modifier = Modifier.heightIn(max = 470.dp).verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Text(stringResource(R.string.explore_explanation), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
+    SettingsSheet(
+        title = stringResource(R.string.explore_title),
+        onDismiss = onDismiss,
+        actions = { SheetButton(stringResource(R.string.ai_done), onClick = onDismiss) }
+    ) {
+        Text(stringResource(R.string.explore_explanation), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
 
-                Label(stringResource(R.string.explore_verified))
-                if (state.verified.isEmpty()) {
-                    Text(stringResource(R.string.explore_none_verified), color = DashColors.Muted, style = MaterialTheme.typography.bodySmall)
+        Label(stringResource(R.string.explore_verified))
+        if (state.verified.isEmpty()) {
+            Text(stringResource(R.string.explore_none_verified), color = DashColors.Muted, style = MaterialTheme.typography.bodySmall)
+        }
+        state.verified.forEach { c ->
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(c.reading.labelRes), color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        listOf(c.label, c.formula).joinToString(" · ") +
+                            " · " + stringResource(if (c.fromAi) R.string.explore_source_ai else R.string.explore_source_standard),
+                        color = DashColors.Muted, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis
+                    )
                 }
-                state.verified.forEach { c ->
-                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text(stringResource(c.reading.labelRes), color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold)
-                            Text(
-                                listOf(c.label, c.formula).joinToString(" · ") +
-                                    " · " + stringResource(if (c.fromAi) R.string.explore_source_ai else R.string.explore_source_standard),
-                                color = DashColors.Muted, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                        Spacer(Modifier.width(8.dp))
-                        val v = readings[c.reading]
-                        Text(
-                            v?.let { extraValueText(c.reading, it.value) } ?: "--",
-                            color = if (v != null) DashColors.Good else DashColors.Muted, fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
+                Spacer(Modifier.width(8.dp))
+                val v = readings[c.reading]
+                Text(
+                    v?.let { extraValueText(c.reading, it.value) } ?: "--",
+                    color = if (v != null) DashColors.Good else DashColors.Muted, fontWeight = FontWeight.Bold
+                )
+            }
+        }
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Button(
-                        enabled = !state.searching && connection == ObdConnectionState.CONNECTED,
-                        onClick = {
-                            failure = null
-                            scope.launch { PidExplorer.search().onFailure { failure = it.message } }
-                        },
-                        colors = buttonColors()
-                    ) { Text(stringResource(R.string.explore_search)) }
-                    Spacer(Modifier.size(12.dp))
-                    when {
-                        state.searching -> {
-                            CircularProgressIndicator(color = DashColors.Accent, modifier = Modifier.size(22.dp))
-                            Spacer(Modifier.size(8.dp))
-                            Text(stringResource(R.string.explore_searching, waited), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
-                        }
-                        connection != ObdConnectionState.CONNECTED ->
-                            Text(stringResource(R.string.vehicle_obd_not_connected), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
-                        failure != null || state.error != null ->
-                            Text(failure ?: state.error.orEmpty(), color = DashColors.Warning, style = MaterialTheme.typography.bodySmall)
-                        state.searched && state.results.none { it.verdict == ProbeVerdict.OK } ->
-                            Text(stringResource(R.string.explore_nothing_found), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
-                    }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Button(
+                enabled = !state.searching && connection == ObdConnectionState.CONNECTED,
+                onClick = {
+                    failure = null
+                    scope.launch { PidExplorer.search().onFailure { failure = it.message } }
+                },
+                colors = buttonColors()
+            ) { Text(stringResource(R.string.explore_search)) }
+            Spacer(Modifier.size(12.dp))
+            when {
+                state.searching -> {
+                    CircularProgressIndicator(color = DashColors.Accent, modifier = Modifier.size(22.dp))
+                    Spacer(Modifier.size(8.dp))
+                    Text(stringResource(R.string.explore_searching, waited), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
                 }
+                connection != ObdConnectionState.CONNECTED ->
+                    Text(stringResource(R.string.vehicle_obd_not_connected), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+                failure != null || state.error != null ->
+                    Text(failure ?: state.error.orEmpty(), color = DashColors.Warning, style = MaterialTheme.typography.bodySmall)
+                state.searched && state.results.none { it.verdict == ProbeVerdict.OK } ->
+                    Text(stringResource(R.string.explore_nothing_found), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+            }
+        }
 
-                if (state.results.isNotEmpty()) {
-                    Label(stringResource(R.string.explore_results))
-                    state.results.forEach { r ->
-                        val ok = r.verdict == ProbeVerdict.OK
-                        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                stringResource(r.candidate.reading.labelRes) + " · " + r.candidate.label,
-                                color = DashColors.TextSecondary, style = MaterialTheme.typography.labelMedium,
-                                maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f)
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                stringResource(r.verdict.labelRes) + (r.value?.takeIf { ok || r.verdict == ProbeVerdict.IMPLAUSIBLE || r.verdict == ProbeVerdict.UNSTABLE }
-                                    ?.let { " (" + String.format(Locale.getDefault(), "%.1f", it) + ")" } ?: ""),
-                                color = if (ok) DashColors.Good else DashColors.Muted, style = MaterialTheme.typography.labelMedium, maxLines = 1
-                            )
-                        }
-                        // What the adapter actually said: "NO DATA", "CAN ERROR", "?"... tells a silent car from a refused command.
-                        if (!ok) {
-                            Text(
-                                r.reply?.replace(WHITESPACE, " ")?.trim()?.ifEmpty { null } ?: stringResource(R.string.explore_silent),
-                                color = DashColors.Muted, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
+        if (state.results.isNotEmpty()) {
+            Label(stringResource(R.string.explore_results))
+            state.results.forEach { r ->
+                val ok = r.verdict == ProbeVerdict.OK
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        stringResource(r.candidate.reading.labelRes) + " · " + r.candidate.label,
+                        color = DashColors.TextSecondary, style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        stringResource(r.verdict.labelRes) + (r.value?.takeIf { ok || r.verdict == ProbeVerdict.IMPLAUSIBLE || r.verdict == ProbeVerdict.UNSTABLE }
+                            ?.let { " (" + String.format(Locale.getDefault(), "%.1f", it) + ")" } ?: ""),
+                        color = if (ok) DashColors.Good else DashColors.Muted, style = MaterialTheme.typography.labelMedium, maxLines = 1
+                    )
                 }
-
-                if (state.verified.isNotEmpty()) {
-                    TextButton(onClick = { PidExplorer.forget() }) { Text(stringResource(R.string.explore_forget), color = DashColors.Muted) }
+                // What the adapter actually said: "NO DATA", "CAN ERROR", "?"... tells a silent car from a refused command.
+                if (!ok) {
+                    Text(
+                        r.reply?.replace(WHITESPACE, " ")?.trim()?.ifEmpty { null } ?: stringResource(R.string.explore_silent),
+                        color = DashColors.Muted, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
-        },
-        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.ai_done), color = DashColors.Accent) } }
-    )
+        }
+
+        if (state.verified.isNotEmpty()) {
+            TextButton(onClick = { PidExplorer.forget() }) { Text(stringResource(R.string.explore_forget), color = DashColors.Muted) }
+        }
+    }
 }
 
 private val ProbeVerdict.labelRes: Int

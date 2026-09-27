@@ -98,4 +98,13 @@
     <string name="settings_screen_auto_hint_tall">Suit l\'écran : celui-ci est vertical</string>
     <string name="settings_screen_horizontal_hint">Met le tableau de bord à l\'horizontale, si l\'appareil le permet</string>
     <string name="settings_screen_vertical_hint">Met le tableau de bord à la verticale avec sa propre disposition, si l\'appareil le permet</string>
+    <string name="settings_section_display">Affichage</string>
+    <string name="settings_appearance_title">Jour et nuit</string>
+    <string name="settings_section_popups">À la place des fenêtres de l\'autoradio</string>
+    <string name="alert_style_section">Présentation de chaque alerte</string>
+    <string name="settings_section_about">À propos</string>
+    <string name="settings_screen_keep_title">Garder ce sens d\'écran ?</string>
+    <string name="settings_screen_keep_detail">Retour en arrière dans %1$d s</string>
+    <string name="settings_screen_keep">Garder</string>
+    <string name="settings_screen_revert">Revenir</string>
 </resources>

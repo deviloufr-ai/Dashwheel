@@ -183,4 +183,5 @@
     <string name="dash_tile_design">Design</string>
     <string name="dash_tile_move">Sposta in un\'altra pagina</string>
     <string name="dash_tile_remove">Rimuovi</string>
+    <string name="dash_apps">App</string>
 </resources>

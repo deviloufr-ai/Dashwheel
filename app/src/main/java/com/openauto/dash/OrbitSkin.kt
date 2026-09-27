@@ -274,19 +274,20 @@ internal fun orbitBackground(): Modifier {
 
 /**
  * The clock with a short date centred in the bar, and a floating frosted pill
- * ("dynamic island") at the driver's end of the screen: the right edge for a
- * left-hand-drive car, the left edge when the car profile puts the driver on
- * the right. The pill holds Apps, the layout picker, the OBD pill and the ⋮
- * menu, ⋮ nearest the screen edge; the buttons are 48 dp targets with 24 dp
- * icons, 8 dp apart. Vehicle alert chips sit on the pill's inner side, only
- * when something needs attention. By day the pill is frosted white, lifted off
- * the page by a soft ink shadow.
+ * ("dynamic island") at the driver's end of the screen: the left edge for a
+ * left-hand-drive car, the right edge when the car profile puts the driver on
+ * the right, as the templates do with the main tiles. The pill holds Apps,
+ * the layout picker, the OBD pill and the ⋮ menu, ⋮ nearest the screen edge;
+ * the buttons are 56 dp targets with 26 dp icons, 8 dp apart. The setup pill
+ * and the vehicle alert chips sit on the pill's inner side, only when
+ * something needs attention. By day the pill is frosted white, lifted off the
+ * page by a soft ink shadow.
  */
 @Composable
 internal fun OrbitTopBar(m: TopBarModel) {
     val now = rememberNow(60_000L)
     val dateFmt = rememberDateFormat("EEEdMMM", best = true)
-    val shape = RoundedCornerShape(28.dp)
+    val shape = RoundedCornerShape(32.dp)
     val light = DashColors.Light
     val ink = DashColors.TextPrimary
     val profile by CarProfileStore.profile.collectAsState()
@@ -294,12 +295,13 @@ internal fun OrbitTopBar(m: TopBarModel) {
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 8.dp)
-            .height(56.dp)
+            .padding(top = 4.dp)
+            .height(ORBIT_BAR)
             .ownLayer()
     ) {
         // A narrow screen keeps the date clear of the pill by dropping it.
         val showDate = maxWidth >= 640.dp
+        val narrow = maxWidth < NARROW_BAR
         // The head unit's status bar shows the time while it is up.
         if (!m.merged) {
             Row(modifier = Modifier.align(Alignment.Center), verticalAlignment = Alignment.CenterVertically) {
@@ -329,7 +331,7 @@ internal fun OrbitTopBar(m: TopBarModel) {
         }
         val apps: @Composable () -> Unit = {
             OrbitBarButton(onClick = m.onApps, filled = true) {
-                Icon(Icons.Filled.Apps, contentDescription = stringResource(R.string.orbit_all_apps), tint = DashColors.TextPrimary, modifier = Modifier.size(24.dp))
+                Icon(Icons.Filled.Apps, contentDescription = stringResource(R.string.orbit_all_apps), tint = DashColors.TextPrimary, modifier = Modifier.size(26.dp))
             }
         }
         val layout: @Composable () -> Unit = {
@@ -337,7 +339,7 @@ internal fun OrbitTopBar(m: TopBarModel) {
                 OrbitBarButton(onClick = open) {
                     LayoutIcon(
                         m.layout, stringResource(R.string.orbit_screen_layout_desc, m.layout.title),
-                        DashColors.TextSecondary, Modifier.size(24.dp)
+                        DashColors.TextSecondary, Modifier.size(26.dp)
                     )
                 }
             }
@@ -346,8 +348,13 @@ internal fun OrbitTopBar(m: TopBarModel) {
         val more: @Composable () -> Unit = {
             MorePicker(m) { open ->
                 OrbitBarButton(onClick = open) {
-                    Icon(Icons.Filled.MoreVert, stringResource(R.string.orbit_more), tint = DashColors.TextSecondary, modifier = Modifier.size(24.dp))
+                    Icon(Icons.Filled.MoreVert, stringResource(R.string.orbit_more), tint = DashColors.TextSecondary, modifier = Modifier.size(26.dp))
                 }
+            }
+        }
+        val setup: @Composable () -> Unit = {
+            if (m.setupPending) {
+                SetupPill(onClick = { m.onSetup(false) }, modifier = Modifier.padding(horizontal = 6.dp), compact = narrow)
             }
         }
         val pill: @Composable () -> Unit = {
@@ -364,39 +371,44 @@ internal fun OrbitTopBar(m: TopBarModel) {
             ) {
                 // Mirrored for a right-hand-drive car, so ⋮ stays nearest the screen edge.
                 if (driverOnRight) {
-                    more(); obd(); layout(); apps()
-                } else {
                     apps(); layout(); obd(); more()
+                } else {
+                    more(); obd(); layout(); apps()
                 }
             }
         }
         Row(
             modifier = Modifier
-                .align(if (driverOnRight) Alignment.CenterStart else Alignment.CenterEnd)
+                .align(if (driverOnRight) Alignment.CenterEnd else Alignment.CenterStart)
                 .padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (driverOnRight) {
-                pill()
-                Spacer(Modifier.width(10.dp))
-                VehicleAlerts(m.obdConnection, m.obd)
                 PhonePill()
+                VehicleAlerts(m.obdConnection, m.obd)
+                setup()
+                Spacer(Modifier.width(10.dp))
+                pill()
             } else {
-                PhonePill()
-                VehicleAlerts(m.obdConnection, m.obd)
-                Spacer(Modifier.width(10.dp))
                 pill()
+                Spacer(Modifier.width(10.dp))
+                setup()
+                VehicleAlerts(m.obdConnection, m.obd)
+                PhonePill()
             }
         }
     }
 }
 
-/** 48 dp round button inside the island; [filled] gives it the faint disc of the Apps button (white at night, ink by day). */
+/** The island's height: its buttons and 4 dp around them. */
+private val ORBIT_BAR = 64.dp
+
+/** 56 dp round button inside the island; [filled] gives it the faint disc of the Apps button (white at night, ink by day). */
 @Composable
 private fun OrbitBarButton(onClick: () -> Unit, filled: Boolean = false, content: @Composable () -> Unit) {
     Box(
         modifier = Modifier
-            .size(48.dp)
+            .size(DashSize.TouchPrimary)
             .clip(CircleShape)
             .background(if (filled) mist(0.08f) else Color.Transparent)
             .clickable(role = Role.Button, onClick = onClick),

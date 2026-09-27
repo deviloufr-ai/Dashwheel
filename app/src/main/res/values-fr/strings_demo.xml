@@ -3,7 +3,7 @@
     <!-- Demo mode: a made-up drive that shows every tile working (DemoMode.kt) -->
     <string name="demo_menu_start">Mode démo</string>
     <string name="demo_menu_stop">Arrêter la démo</string>
-    <string name="demo_settings_detail">Un trajet imaginaire dans Paris remplit chaque tuile, pour montrer le tableau de bord à l\'arrêt. Rien n\'est enregistré ; touchez le badge pour arrêter.</string>
+    <string name="demo_settings_detail">Un trajet imaginaire remplit chaque tuile. Rien n\'est enregistré.</string>
     <string name="demo_badge">Démo · données fictives</string>
     <string name="demo_stop">Arrêter</string>
     <!-- Fake turn-by-turn instructions; %1$s = street name -->

@@ -27,7 +27,7 @@
 
     <!-- Particle filter -->
     <string name="car_filter_title">PARTIKELFILTER</string>
-    <string name="car_filter_none">Dieses Auto hat keinen Partikelfilter. Ändern unter ⋮ → Mein Auto.</string>
+    <string name="car_filter_none">Dieses Auto hat keinen Partikelfilter. Ändern unter Einstellungen → Auto → Mein Auto.</string>
     <string name="car_filter_short_unit">Kurzstrecken in Folge</string>
     <string name="car_filter_ok">Filter reinigt sich normal</string>
     <string name="car_filter_needs_drive">20 Min. über 60 km/h einplanen</string>
@@ -116,7 +116,7 @@
     <string name="car_fetch">Daten per KI holen</string>
     <string name="car_fetch_ok">Daten ausgefüllt: prüfen, dann Speichern</string>
     <string name="car_fetch_failed">Daten konnten nicht geholt werden: %1$s</string>
-    <string name="car_fetch_no_key">zuerst einen Gemini-Schlüssel unter ⋮ → KI-Mechaniker eintragen</string>
+    <string name="car_fetch_no_key">zuerst einen Gemini-Schlüssel unter Einstellungen → Auto → KI-Mechaniker eintragen</string>
     <string name="car_section_engine">Motor</string>
     <string name="car_section_gearbox">Getriebe</string>
     <string name="car_section_upkeep">Wartung</string>
@@ -151,7 +151,7 @@
 
     <!-- AI mechanic settings -->
     <string name="car_ai_car">Auto</string>
-    <string name="car_ai_car_detail">%1$s. Ändern unter ⋮ → Mein Auto.</string>
+    <string name="car_ai_car_detail">%1$s. Ändern unter Einstellungen → Auto → Mein Auto.</string>
 
     <!-- Spoken by CarCare, in the mechanic's language -->
     <string name="car_say_cold_revs">Der Motor ist noch kalt. Bitte noch ein paar Minuten unter %1$d Umdrehungen bleiben.</string>

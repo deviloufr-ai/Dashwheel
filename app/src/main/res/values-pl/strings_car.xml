@@ -27,7 +27,7 @@
 
     <!-- Particle filter -->
     <string name="car_filter_title">FILTR DPF</string>
-    <string name="car_filter_none">To auto nie ma filtra cząstek stałych. Zmień to w ⋮ → Mój samochód.</string>
+    <string name="car_filter_none">To auto nie ma filtra cząstek stałych. Zmień to w Ustawienia → Samochód → Mój samochód.</string>
     <string name="car_filter_short_unit">krótkie trasy z rzędu</string>
     <string name="car_filter_ok">Filtr czyści się normalnie</string>
     <string name="car_filter_needs_drive">Zaplanuj 20 min powyżej 60 km/h</string>
@@ -116,7 +116,7 @@
     <string name="car_fetch">Pobierz dane przez AI</string>
     <string name="car_fetch_ok">Dane uzupełnione: sprawdź je, potem Zapisz</string>
     <string name="car_fetch_failed">Nie udało się pobrać danych: %1$s</string>
-    <string name="car_fetch_no_key">najpierw dodaj klucz Gemini w ⋮ → Mechanik AI</string>
+    <string name="car_fetch_no_key">najpierw dodaj klucz Gemini w Ustawienia → Samochód → Mechanik AI</string>
     <string name="car_section_engine">Silnik</string>
     <string name="car_section_gearbox">Skrzynia biegów</string>
     <string name="car_section_upkeep">Obsługa</string>
@@ -151,7 +151,7 @@
 
     <!-- AI mechanic settings -->
     <string name="car_ai_car">Samochód</string>
-    <string name="car_ai_car_detail">%1$s. Zmień to w ⋮ → Mój samochód.</string>
+    <string name="car_ai_car_detail">%1$s. Zmień to w Ustawienia → Samochód → Mój samochód.</string>
 
     <!-- Spoken by CarCare, in the mechanic's language -->
     <string name="car_say_cold_revs">Silnik jest jeszcze zimny. Przez kilka minut nie przekraczaj %1$d obrotów.</string>

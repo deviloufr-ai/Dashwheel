@@ -3,7 +3,7 @@
     <!-- Demo mode: a made-up drive that shows every tile working (DemoMode.kt) -->
     <string name="demo_menu_start">Modo demo</string>
     <string name="demo_menu_stop">Parar demo</string>
-    <string name="demo_settings_detail">Uma viagem inventada por Paris preenche todos os mosaicos, para mostrar o painel com o carro parado. Nada é guardado; toque no selo para parar.</string>
+    <string name="demo_settings_detail">Uma viagem inventada preenche todos os mosaicos. Nada é guardado.</string>
     <string name="demo_badge">Demo · dados fictícios</string>
     <string name="demo_stop">Parar</string>
     <!-- Fake turn-by-turn instructions; %1$s = street name -->

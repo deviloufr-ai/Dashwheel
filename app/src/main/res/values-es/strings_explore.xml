@@ -10,7 +10,7 @@
     <string name="explore_km_since_regen">Desde la última regeneración</string>
     <string name="explore_additive">Nivel de aditivo</string>
     <string name="explore_oil_temp">Temperatura del aceite</string>
-    <string name="explore_explanation">Experimental. El OBD genérico no lee el filtro de partículas. La IA propone las peticiones de diagnóstico propias de este coche; cada una se prueba en el adaptador y solo se conserva si el coche responde con un valor plausible y estable. Una lectura conservada aún puede ser errónea.</string>
+    <string name="explore_explanation">Experimental: la IA propone las peticiones de diagnóstico propias de este coche y conserva las que el coche responde con un valor plausible y estable. Una lectura conservada aún puede ser errónea.</string>
     <string name="explore_search">Buscar con IA</string>
     <string name="explore_searching">Probando las peticiones… %1$d s</string>
     <string name="explore_verified">Lecturas confirmadas</string>

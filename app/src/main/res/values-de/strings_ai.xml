@@ -2,7 +2,7 @@
 <resources>
     <!-- Settings dialog (also the menu item) -->
     <string name="ai_title">KI-Mechaniker</string>
-    <string name="ai_explanation">Sobald der Adapter verbunden ist, sucht Dashwheel nach Fehlercodes. Ein neuer wird von Gemini erklärt und vorgelesen. An Google gesendet werden Codes, Motorwerte und Automodell sowie Ihre Stimme, wenn Sie eine Frage laut stellen.</string>
+    <string name="ai_explanation">Ein neuer Fehlercode wird von Gemini erklärt und vorgelesen. An Google gesendet werden Codes, Motorwerte, Automodell und Ihre Stimme, wenn Sie eine Frage laut stellen.</string>
     <string name="ai_activation_code">Aktivierungscode</string>
     <string name="ai_activation_hint">Schaltet den integrierten Schlüssel frei</string>
     <string name="ai_activate">Aktivieren</string>
@@ -75,7 +75,7 @@
     <string name="ai_clear_failed">Löschen fehlgeschlagen</string>
     <string name="ai_thinking">KI-Mechaniker wird gefragt…</string>
     <string name="ai_retry">Erneut versuchen</string>
-    <string name="ai_note_no_key">Kostenlosen Gemini-Schlüssel hinzufügen (Menü → KI-Mechaniker) für verständliche Tipps.</string>
+    <string name="ai_note_no_key">Kostenlosen Gemini-Schlüssel unter Einstellungen → Auto → KI-Mechaniker hinzufügen für verständliche Tipps.</string>
     <string name="ai_note_unavailable">KI nicht verfügbar: %1$s</string>
 
     <!-- Why asking Gemini failed (follows "AI unavailable: " / "Didn't work: ") -->

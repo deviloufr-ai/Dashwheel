@@ -10,7 +10,7 @@
     <string name="explore_km_since_regen">Sinds laatste regeneratie</string>
     <string name="explore_additive">Additiefniveau</string>
     <string name="explore_oil_temp">Olietemperatuur</string>
-    <string name="explore_explanation">Experimenteel. Generiek OBD leest het roetfilter niet. AI stelt de eigen diagnoseverzoeken van deze auto voor; elk wordt op de adapter geprobeerd en alleen bewaard als de auto een plausibele, stabiele waarde geeft. Een bewaarde meting kan alsnog fout zijn.</string>
+    <string name="explore_explanation">Experimenteel: AI stelt de eigen diagnoseverzoeken van deze auto voor en bewaart die waarop de auto een plausibele, stabiele waarde geeft. Een bewaarde meting kan alsnog fout zijn.</string>
     <string name="explore_search">Zoeken met AI</string>
     <string name="explore_searching">Verzoeken proberen… %1$d s</string>
     <string name="explore_verified">Bevestigde metingen</string>

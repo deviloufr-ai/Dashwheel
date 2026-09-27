@@ -10,7 +10,7 @@
     <string name="explore_km_since_regen">Depuis la dernière régénération</string>
     <string name="explore_additive">Niveau d\'additif</string>
     <string name="explore_oil_temp">Température d\'huile</string>
-    <string name="explore_explanation">Expérimental. L\'OBD générique ne lit pas le filtre à particules. L\'IA propose les requêtes de diagnostic propres à cette voiture ; chacune est essayée sur l\'adaptateur et gardée seulement si la voiture répond une valeur plausible et stable. Une mesure gardée peut quand même être fausse.</string>
+    <string name="explore_explanation">Expérimental : l\'IA propose les requêtes de diagnostic propres à cette voiture et garde celles auxquelles la voiture répond une valeur plausible et stable. Une mesure gardée peut quand même être fausse.</string>
     <string name="explore_search">Chercher avec l\'IA</string>
     <string name="explore_searching">Essai des requêtes… %1$d s</string>
     <string name="explore_verified">Mesures confirmées</string>

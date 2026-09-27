@@ -27,7 +27,7 @@
 
     <!-- Particle filter -->
     <string name="car_filter_title">FILTRO PARTÍCULAS</string>
-    <string name="car_filter_none">Este coche no tiene filtro de partículas. Cámbialo en ⋮ → Mi coche.</string>
+    <string name="car_filter_none">Este coche no tiene filtro de partículas. Cámbialo en Ajustes → Coche → Mi coche.</string>
     <string name="car_filter_short_unit">trayectos cortos seguidos</string>
     <string name="car_filter_ok">El filtro se limpia bien</string>
     <string name="car_filter_needs_drive">Haz 20 min a más de 60 km/h</string>
@@ -116,7 +116,7 @@
     <string name="car_fetch">Obtener ficha con IA</string>
     <string name="car_fetch_ok">Ficha rellenada: revísala y pulsa Guardar</string>
     <string name="car_fetch_failed">No se pudo obtener la ficha: %1$s</string>
-    <string name="car_fetch_no_key">primero añade una clave de Gemini en ⋮ → Mecánico IA</string>
+    <string name="car_fetch_no_key">primero añade una clave de Gemini en Ajustes → Coche → Mecánico IA</string>
     <string name="car_section_engine">Motor</string>
     <string name="car_section_gearbox">Caja de cambios</string>
     <string name="car_section_upkeep">Mantenimiento</string>
@@ -151,7 +151,7 @@
 
     <!-- AI mechanic settings -->
     <string name="car_ai_car">Coche</string>
-    <string name="car_ai_car_detail">%1$s. Cámbialo en ⋮ → Mi coche.</string>
+    <string name="car_ai_car_detail">%1$s. Cámbialo en Ajustes → Coche → Mi coche.</string>
 
     <!-- Spoken by CarCare, in the mechanic's language -->
     <string name="car_say_cold_revs">El motor aún está frío. Mantenlo por debajo de %1$d revoluciones unos minutos más.</string>

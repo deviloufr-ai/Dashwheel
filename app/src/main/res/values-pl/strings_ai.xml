@@ -2,7 +2,7 @@
 <resources>
     <!-- Settings dialog (also the menu item) -->
     <string name="ai_title">Mechanik AI</string>
-    <string name="ai_explanation">Gdy adapter się połączy, Dashwheel szuka kodów usterek. Nowy kod objaśnia Gemini i odczytuje go na głos. Do Google trafiają kody, odczyty silnika i model auta, a także Twój głos, gdy zadajesz pytanie na głos.</string>
+    <string name="ai_explanation">Nowy kod usterki objaśnia Gemini i odczytuje go na głos. Do Google trafiają kody, odczyty silnika, model auta i Twój głos, gdy zadajesz pytanie na głos.</string>
     <string name="ai_activation_code">Kod aktywacyjny</string>
     <string name="ai_activation_hint">Odblokowuje wbudowany klucz</string>
     <string name="ai_activate">Aktywuj</string>
@@ -77,7 +77,7 @@
     <string name="ai_clear_failed">Usuwanie nieudane</string>
     <string name="ai_thinking">Pytanie mechanika AI…</string>
     <string name="ai_retry">Ponów</string>
-    <string name="ai_note_no_key">Dodaj darmowy klucz Gemini (menu → Mechanik AI), aby otrzymywać porady prostym językiem.</string>
+    <string name="ai_note_no_key">Dodaj darmowy klucz Gemini w Ustawienia → Samochód → Mechanik AI, aby otrzymywać porady prostym językiem.</string>
     <string name="ai_note_unavailable">AI niedostępne: %1$s</string>
 
     <!-- Why asking Gemini failed (follows "AI unavailable: " / "Didn't work: ") -->

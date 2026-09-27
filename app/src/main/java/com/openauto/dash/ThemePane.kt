@@ -67,16 +67,16 @@ import androidx.compose.runtime.setValue
 import kotlin.math.roundToInt
 
 /*
- * The Look settings: the appearance switch, the effects switch, and the
- * themes as a gallery of small dashboards drawn with each theme's own
- * palette, night half and day half side by side, so the choice is made on
- * what the screen will look like rather than on a name.
+ * The Look settings: the themes as a gallery of small dashboards drawn with
+ * each theme's own palette, so the choice is made on what the screen will
+ * look like rather than on a name; then the day and night switch and the
+ * effects switch. The bottom bar's auto-hide is here too, shown under Display.
  */
 
-
+/** Day and night: which version of the theme shows, or the car's light sensor deciding. */
 @Composable
-internal fun ThemePane(theme: ThemeState) {
-    SettingsSection(stringResource(R.string.dash_theme_picker_title))
+internal fun AppearanceSetting(theme: ThemeState) {
+    SettingsSection(stringResource(R.string.settings_appearance_title))
     SegmentedSwitch(
         options = DashAppearance.entries,
         chosen = theme.appearance,
@@ -99,16 +99,15 @@ internal fun ThemePane(theme: ThemeState) {
             }
         )
     )
-    Spacer(Modifier.height(12.dp))
-    // Effects: how much halo and glass a theme draws. Off is the
-    // high-legibility setting for a dim screen in full sun.
-    Text(
-        stringResource(R.string.dash_effects_title),
-        color = DashColors.TextPrimary,
-        fontWeight = FontWeight.SemiBold,
-        style = MaterialTheme.typography.labelLarge,
-        modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)
-    )
+}
+
+/**
+ * Effects: how much halo and glass a theme draws. Off is the
+ * high-legibility setting for a dim screen in full sun.
+ */
+@Composable
+internal fun EffectsSetting(theme: ThemeState) {
+    SettingsSection(stringResource(R.string.dash_effects_title))
     SegmentedSwitch(
         options = DashEffects.entries,
         chosen = theme.effects,
@@ -123,14 +122,14 @@ internal fun ThemePane(theme: ThemeState) {
         onChoose = theme.onEffects
     )
     SwitchHint(stringResource(theme.effects.hintRes))
-    Spacer(Modifier.height(12.dp))
-    BarAutoHideSetting(theme)
-    Spacer(Modifier.height(20.dp))
+}
 
-    // Three looks up front (the one in use first), the other eleven behind one tap.
+/** The themes: three up front (the one in use first), the other eleven behind one tap. */
+@Composable
+internal fun ThemeGallery(theme: ThemeState) {
     val lead = (listOf(theme.mode) + StarterThemes).distinct().take(3)
     var showAll by remember { mutableStateOf(false) }
-    ThemeGroup(stringResource(R.string.dash_theme_group_recommended), lead, theme)
+    ThemeGroup(stringResource(R.string.dash_theme_picker_title), lead, theme)
     val tap = rememberTapFeedback()
     Row(
         modifier = Modifier
@@ -165,14 +164,8 @@ internal fun ThemePane(theme: ThemeState) {
  * 0 to 20 seconds and coming back with a swipe up (BarAutoHide.kt).
  */
 @Composable
-private fun BarAutoHideSetting(theme: ThemeState) {
-    Text(
-        stringResource(R.string.dash_bar_title),
-        color = DashColors.TextPrimary,
-        fontWeight = FontWeight.SemiBold,
-        style = MaterialTheme.typography.labelLarge,
-        modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)
-    )
+internal fun BarAutoHideSetting(theme: ThemeState) {
+    SettingsSection(stringResource(R.string.dash_bar_title))
     SettingsToggle(
         icon = Icons.Filled.VerticalAlignBottom,
         title = stringResource(R.string.dash_bar_auto_hide),
@@ -383,7 +376,7 @@ internal fun SwitchHint(text: String) {
         text,
         color = DashColors.TextSecondary,
         style = MaterialTheme.typography.bodySmall,
-        modifier = Modifier.padding(start = 4.dp, top = 4.dp)
+        modifier = Modifier.padding(start = 12.dp, top = 6.dp)
     )
 }
 
@@ -413,17 +406,20 @@ internal fun <T> SegmentedSwitch(
             Row(
                 modifier = Modifier
                     .weight(1f)
-                    .heightIn(min = 48.dp)
+                    .heightIn(min = DashSize.TouchPrimary)
                     .clip(segment)
                     .then(if (picked) Modifier.background(DashColors.AccentBrush, segment) else Modifier)
                     .clickable { tap(); onChoose(option) }
-                    .padding(vertical = 10.dp),
+                    .padding(horizontal = 6.dp, vertical = 10.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(icon(option), contentDescription = null, tint = ink, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.size(8.dp))
-                Text(title(option), color = ink, fontWeight = if (picked) FontWeight.SemiBold else FontWeight.Normal, maxLines = 1)
+                Text(
+                    title(option), color = ink, fontWeight = if (picked) FontWeight.SemiBold else FontWeight.Normal,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false)
+                )
             }
         }
     }

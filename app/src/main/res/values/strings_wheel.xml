@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Steering wheel button learning (SteeringWheelDialog.kt), from Settings -> Driving -->
-    <string name="wheel_title">Steering Wheel Buttons</string>
+    <string name="wheel_title">Steering wheel buttons</string>
     <string name="wheel_settings_detail_empty">Learn your wheel\'s buttons and assign actions</string>
     <plurals name="wheel_settings_detail_count">
         <item quantity="one">%1$d button assigned</item>

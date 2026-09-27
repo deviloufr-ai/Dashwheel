@@ -33,9 +33,14 @@ object DashSpace {
 /**
  * Touch targets. Everything a finger may be asked to hit while the car moves
  * is at least [Touch] (the Android minimum); the actions used most at speed
- * (media transport, calls, connect) get [TouchPrimary].
+ * (media transport, calls, connect) get [TouchPrimary], and the bottom bar
+ * [Bar].
  */
 object DashSize {
     val Touch = 48.dp
     val TouchPrimary = 56.dp
+    /** The bottom bar's own buttons: reached for without looking, so larger still. */
+    val Bar = 64.dp
+    /** A row of the bar's menus. */
+    val MenuRow = 60.dp
 }

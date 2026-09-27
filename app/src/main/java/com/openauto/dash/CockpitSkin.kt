@@ -397,18 +397,19 @@ internal fun cockpitBackground(): Modifier = Modifier.drawWithCache {
 
 /**
  * The dash top: chrome APPS / LAYOUT pills on the left, a chrome clock pod in
- * the middle, and on the right the outside-temperature LCD, the OBD lamp,
- * warning pills and a chrome ⋮ button.
+ * the middle, and on the right the setup pill, warning pills, the
+ * outside-temperature LCD, the OBD lamp and a chrome ⋮ button.
  */
 @Composable
 internal fun CockpitTopBar(m: TopBarModel) {
-    Box(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
-            .height(64.dp)
+            .height(68.dp)
             .padding(horizontal = 16.dp),
         contentAlignment = Alignment.Center
     ) {
+        val narrow = maxWidth < NARROW_BAR
         Row(
             modifier = Modifier.align(Alignment.CenterStart),
             verticalAlignment = Alignment.CenterVertically,
@@ -435,14 +436,18 @@ internal fun CockpitTopBar(m: TopBarModel) {
             modifier = Modifier.align(Alignment.CenterEnd),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            if (m.setupPending) {
+                SetupPill(onClick = { m.onSetup(false) }, modifier = Modifier.padding(end = 6.dp), compact = narrow)
+            }
             VehicleAlerts(m.obdConnection, m.obd)
             PhonePill()
-            OutsideTempLcd()
+            // The page's weather tile says the same: dropped where the bar is tight.
+            if (!narrow) OutsideTempLcd()
             Spacer(Modifier.width(8.dp))
             ObdLamp(m.obdConnection, m.onConnectObd)
             Spacer(Modifier.width(6.dp))
             MorePicker(m) { open ->
-                ChromePill(onClick = open, description = stringResource(R.string.cockpit_more), modifier = Modifier.width(52.dp)) {
+                ChromePill(onClick = open, description = stringResource(R.string.cockpit_more), modifier = Modifier.width(60.dp)) {
                     Icon(Icons.Filled.MoreVert, contentDescription = null, tint = EngraveInk, modifier = Modifier.size(22.dp))
                 }
             }
@@ -467,7 +472,7 @@ private fun PillLabel(text: String) {
     )
 }
 
-/** Chrome push button: a pill on a dark ledge that sinks a little while pressed; 48 dp tall. */
+/** Chrome push button: a pill on a dark ledge that sinks a little while pressed; 56 dp tall. */
 @Composable
 private fun ChromePill(
     onClick: () -> Unit,
@@ -479,8 +484,8 @@ private fun ChromePill(
     val pressed by interaction.collectIsPressedAsState()
     Row(
         modifier = modifier
-            .heightIn(min = 48.dp)
-            .widthIn(min = 48.dp)
+            .heightIn(min = DashSize.TouchPrimary)
+            .widthIn(min = DashSize.TouchPrimary)
             .drawWithCache {
                 val drop = 3.dp.toPx()
                 val bodyH = size.height - drop

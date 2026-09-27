@@ -27,7 +27,7 @@
 
     <!-- Particle filter -->
     <string name="car_filter_title">PARTICLE FILTER</string>
-    <string name="car_filter_none">This car has no particle filter. Change it in ⋮ → My car.</string>
+    <string name="car_filter_none">This car has no particle filter. Change it in Settings → Car → My car.</string>
     <string name="car_filter_short_unit">short drives in a row</string>
     <string name="car_filter_ok">Filter cleaning normally</string>
     <string name="car_filter_needs_drive">Plan a 20 min drive above 60 km/h</string>
@@ -116,7 +116,7 @@
     <string name="car_fetch">Fetch specs with AI</string>
     <string name="car_fetch_ok">Specs filled in: check them, then Save</string>
     <string name="car_fetch_failed">Couldn\'t fetch the specs: %1$s</string>
-    <string name="car_fetch_no_key">add a Gemini key in ⋮ → AI mechanic first</string>
+    <string name="car_fetch_no_key">add a Gemini key in Settings → Car → AI mechanic first</string>
     <string name="car_section_engine">Engine</string>
     <string name="car_section_gearbox">Gearbox</string>
     <string name="car_section_upkeep">Upkeep</string>
@@ -151,7 +151,7 @@
 
     <!-- AI mechanic settings -->
     <string name="car_ai_car">Car</string>
-    <string name="car_ai_car_detail">%1$s. Change it in ⋮ → My car.</string>
+    <string name="car_ai_car_detail">%1$s. Change it in Settings → Car → My car.</string>
 
     <!-- Spoken by CarCare, in the mechanic's language -->
     <string name="car_say_cold_revs">The engine is still cold. Keep it under %1$d rpm for a few more minutes.</string>

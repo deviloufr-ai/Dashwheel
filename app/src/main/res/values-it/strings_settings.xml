@@ -98,4 +98,13 @@
     <string name="settings_screen_auto_hint_tall">Segue lo schermo: questo è verticale</string>
     <string name="settings_screen_horizontal_hint">Mette il cruscotto in orizzontale, se l\'unità lo consente</string>
     <string name="settings_screen_vertical_hint">Mette il cruscotto in verticale con una disposizione propria, se l\'unità lo consente</string>
+    <string name="settings_section_display">Display</string>
+    <string name="settings_appearance_title">Giorno e notte</string>
+    <string name="settings_section_popups">Al posto dei pop-up dell\'autoradio</string>
+    <string name="alert_style_section">Come appare ogni avviso</string>
+    <string name="settings_section_about">Informazioni</string>
+    <string name="settings_screen_keep_title">Mantenere questo orientamento?</string>
+    <string name="settings_screen_keep_detail">Torna indietro tra %1$d s</string>
+    <string name="settings_screen_keep">Mantieni</string>
+    <string name="settings_screen_revert">Indietro</string>
 </resources>

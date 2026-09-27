@@ -10,9 +10,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -22,7 +19,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -132,109 +128,101 @@ internal fun AiSettingsDialog(onDismiss: () -> Unit) {
         }
     }
 
-    AlertDialog(
-        modifier = Modifier.keepClearOfWindows(),
-        onDismissRequest = ::close,
-        containerColor = DashColors.Card,
-        title = { Text(stringResource(R.string.ai_title), color = DashColors.TextPrimary) },
-        text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Text(
-                    stringResource(R.string.ai_explanation),
-                    color = DashColors.TextSecondary,
-                    style = MaterialTheme.typography.bodyMedium
-                )
+    SettingsSheet(
+        title = stringResource(R.string.ai_title),
+        onDismiss = ::close,
+        actions = { SheetButton(stringResource(R.string.ai_done), onClick = ::close) }
+    ) {
+        Text(
+            stringResource(R.string.ai_explanation),
+            color = DashColors.TextSecondary,
+            style = MaterialTheme.typography.bodyMedium
+        )
 
-                if (AiKeyVault.available) {
-                    Label(stringResource(R.string.ai_activation_code))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        OutlinedTextField(
-                            value = code,
-                            onValueChange = { code = it; result = null },
-                            placeholder = { Text(stringResource(R.string.ai_activation_hint), color = DashColors.Muted) },
-                            singleLine = true,
-                            modifier = Modifier.weight(1f),
-                            colors = fieldColors()
-                        )
-                        Spacer(Modifier.size(12.dp))
-                        Button(
-                            enabled = !testing && code.isNotBlank(),
-                            onClick = ::activate,
-                            colors = buttonColors()
-                        ) { Text(stringResource(R.string.ai_activate)) }
-                    }
-                }
-
-                Label(stringResource(if (AiKeyVault.available) R.string.ai_own_key else R.string.ai_key))
+        if (AiKeyVault.available) {
+            Label(stringResource(R.string.ai_activation_code))
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
-                    value = config.apiKey,
-                    onValueChange = { config = config.copy(apiKey = it.trim(), keyFromCode = false); result = null },
-                    // The built-in key stays hidden; typing replaces it with your own.
-                    visualTransformation = if (config.keyFromCode) PasswordVisualTransformation() else VisualTransformation.None,
-                    placeholder = { Text(stringResource(R.string.ai_key_hint), color = DashColors.Muted) },
+                    value = code,
+                    onValueChange = { code = it; result = null },
+                    placeholder = { Text(stringResource(R.string.ai_activation_hint), color = DashColors.Muted) },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.weight(1f),
                     colors = fieldColors()
                 )
+                Spacer(Modifier.size(12.dp))
+                Button(
+                    enabled = !testing && code.isNotBlank(),
+                    onClick = ::activate,
+                    colors = buttonColors()
+                ) { Text(stringResource(R.string.ai_activate)) }
+            }
+        }
 
-                // The mechanic answers for the car set in "My car".
-                Label(stringResource(R.string.car_ai_car))
+        Label(stringResource(if (AiKeyVault.available) R.string.ai_own_key else R.string.ai_key))
+        OutlinedTextField(
+            value = config.apiKey,
+            onValueChange = { config = config.copy(apiKey = it.trim(), keyFromCode = false); result = null },
+            // The built-in key stays hidden; typing replaces it with your own.
+            visualTransformation = if (config.keyFromCode) PasswordVisualTransformation() else VisualTransformation.None,
+            placeholder = { Text(stringResource(R.string.ai_key_hint), color = DashColors.Muted) },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            colors = fieldColors()
+        )
+
+        // The mechanic answers for the car set in "My car".
+        Label(stringResource(R.string.car_ai_car))
+        Text(
+            stringResource(R.string.car_ai_car_detail, CarProfileStore.current.name),
+            color = DashColors.TextSecondary,
+            style = MaterialTheme.typography.bodySmall
+        )
+
+        Label(stringResource(R.string.ai_language))
+        // "Same as app" (null) first, then every language by its own name.
+        val sameAsApp = stringResource(R.string.ai_language_auto)
+        ChoiceRow(
+            listOf<AiLanguage?>(null) + AiLanguage.entries,
+            config.languageChoice,
+            { it?.label ?: sameAsApp },
+            perRow = 3
+        ) { config = config.copy(languageChoice = it) }
+
+        SwitchRow(stringResource(R.string.ai_speak), stringResource(R.string.ai_speak_detail), config.speak) {
+            config = config.copy(speak = it)
+        }
+        SwitchRow(
+            stringResource(R.string.briefing_setting),
+            stringResource(R.string.briefing_setting_detail),
+            config.briefing
+        ) { config = config.copy(briefing = it) }
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Button(
+                enabled = !testing && config.apiKey.isNotBlank(),
+                onClick = { test() },
+                colors = buttonColors()
+            ) { Text(stringResource(R.string.ai_test)) }
+            Spacer(Modifier.size(12.dp))
+            if (testing) {
+                CircularProgressIndicator(color = DashColors.Accent, modifier = Modifier.size(22.dp))
+                Spacer(Modifier.size(8.dp))
                 Text(
-                    stringResource(R.string.car_ai_car_detail, CarProfileStore.current.name),
+                    stringResource(R.string.ai_test_waiting, waited),
                     color = DashColors.TextSecondary,
                     style = MaterialTheme.typography.bodySmall
                 )
-
-                Label(stringResource(R.string.ai_language))
-                // "Same as app" (null) first, then every language by its own name.
-                val sameAsApp = stringResource(R.string.ai_language_auto)
-                ChoiceRow(
-                    listOf<AiLanguage?>(null) + AiLanguage.entries,
-                    config.languageChoice,
-                    { it?.label ?: sameAsApp },
-                    perRow = 3
-                ) { config = config.copy(languageChoice = it) }
-
-                SwitchRow(stringResource(R.string.ai_speak), stringResource(R.string.ai_speak_detail), config.speak) {
-                    config = config.copy(speak = it)
-                }
-                SwitchRow(
-                    stringResource(R.string.briefing_setting),
-                    stringResource(R.string.briefing_setting_detail),
-                    config.briefing
-                ) { config = config.copy(briefing = it) }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Button(
-                        enabled = !testing && config.apiKey.isNotBlank(),
-                        onClick = { test() },
-                        colors = buttonColors()
-                    ) { Text(stringResource(R.string.ai_test)) }
-                    Spacer(Modifier.size(12.dp))
-                    if (testing) {
-                        CircularProgressIndicator(color = DashColors.Accent, modifier = Modifier.size(22.dp))
-                        Spacer(Modifier.size(8.dp))
-                        Text(
-                            stringResource(R.string.ai_test_waiting, waited),
-                            color = DashColors.TextSecondary,
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                    result?.let { (ok, message) ->
-                        Text(
-                            message,
-                            color = if (ok) DashColors.Good else DashColors.Warning,
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                }
             }
-        },
-        confirmButton = { TextButton(onClick = ::close) { Text(stringResource(R.string.ai_done), color = DashColors.Accent) } }
-    )
+            result?.let { (ok, message) ->
+                Text(
+                    message,
+                    color = if (ok) DashColors.Good else DashColors.Warning,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
+    }
 }
 
 // Explicit disabled colours: the Material defaults vanish on the light theme cards.

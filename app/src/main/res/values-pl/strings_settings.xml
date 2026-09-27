@@ -98,4 +98,13 @@
     <string name="settings_screen_auto_hint_tall">Według ekranu: ten jest pionowy</string>
     <string name="settings_screen_horizontal_hint">Obraca pulpit poziomo, jeśli radio na to pozwala</string>
     <string name="settings_screen_vertical_hint">Obraca pulpit pionowo, z osobnym układem, jeśli radio na to pozwala</string>
+    <string name="settings_section_display">Wyświetlanie</string>
+    <string name="settings_appearance_title">Dzień i noc</string>
+    <string name="settings_section_popups">Zamiast okien radia</string>
+    <string name="alert_style_section">Wygląd każdego alertu</string>
+    <string name="settings_section_about">Informacje</string>
+    <string name="settings_screen_keep_title">Zachować tę orientację?</string>
+    <string name="settings_screen_keep_detail">Powrót za %1$d s</string>
+    <string name="settings_screen_keep">Zachowaj</string>
+    <string name="settings_screen_revert">Wróć</string>
 </resources>

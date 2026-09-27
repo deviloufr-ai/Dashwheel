@@ -3,7 +3,7 @@
     <!-- Demo mode: a made-up drive that shows every tile working (DemoMode.kt) -->
     <string name="demo_menu_start">Modalità demo</string>
     <string name="demo_menu_stop">Ferma demo</string>
-    <string name="demo_settings_detail">Un viaggio inventato per Parigi riempie ogni riquadro, per mostrare la dashboard a veicolo fermo. Non viene salvato nulla; tocca il badge per fermarla.</string>
+    <string name="demo_settings_detail">Un viaggio inventato riempie ogni riquadro. Non viene salvato nulla.</string>
     <string name="demo_badge">Demo · dati fittizi</string>
     <string name="demo_stop">Ferma</string>
     <!-- Fake turn-by-turn instructions; %1$s = street name -->

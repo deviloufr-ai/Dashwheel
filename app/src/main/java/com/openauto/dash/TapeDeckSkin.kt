@@ -184,7 +184,7 @@ private fun tdShadow(alpha: Float): Color =
 /** Gradient end fading [c] out: transparent black at night; [c] at zero alpha by day, as a fade to black greys a pale page. */
 private fun fadeOf(c: Color): Color = if (DashColors.Light) c.copy(alpha = 0f) else Color.Transparent
 
-private val TOP_BAR_HEIGHT = 60.dp
+private val TOP_BAR_HEIGHT = 64.dp
 private val KEY_DEPTH = 8.dp
 private val KEY_TRAVEL = 5.dp
 private val PRESET_DEPTH = 6.dp
@@ -335,8 +335,8 @@ internal fun tapeDeckBackground(): Modifier {
 
 /**
  * Chrome strip top bar: the gradient DASHWHEEL logo, APPS and LAYOUT pills on
- * the left, a VFD clock in the centre, the OBD LED, outside temperature, alert
- * chips and the ⋮ pill on the right, over a glowing magenta rule. By day the
+ * the left, a VFD clock in the centre, the setup pill, the OBD LED, outside
+ * temperature, alert chips and the ⋮ pill on the right, over a glowing magenta rule. By day the
  * strip is brushed aluminium with dark ink legends.
  */
 @Composable
@@ -374,6 +374,7 @@ internal fun TapeDeckTopBar(m: TopBarModel) {
     ) {
         // Narrow screens drop the logo so the pills never run into the clock.
         val showLogo = maxWidth >= 980.dp
+        val narrow = maxWidth < NARROW_BAR
         Row(modifier = Modifier.align(Alignment.CenterStart), verticalAlignment = Alignment.CenterVertically) {
             if (showLogo) {
                 TapeLogo()
@@ -398,8 +399,11 @@ internal fun TapeDeckTopBar(m: TopBarModel) {
         if (!m.merged) VfdClock(m.clock)
 
         Row(modifier = Modifier.align(Alignment.CenterEnd), verticalAlignment = Alignment.CenterVertically) {
+            if (m.setupPending) {
+                SetupPill(onClick = { m.onSetup(false) }, modifier = Modifier.padding(end = 6.dp), compact = narrow)
+            }
             ObdLed(m.obdConnection, m.onConnectObd)
-            OutsideTemp()
+            if (!narrow) OutsideTemp()
             VehicleAlerts(m.obdConnection, m.obd)
             PhonePill()
             MorePicker(m) { open ->
@@ -909,7 +913,7 @@ private fun TapeLogo() {
 }
 
 /**
- * Cyan-outlined pill button (icon, optional label) in a 48 dp touch target;
+ * Cyan-outlined pill button (icon, optional label) in a 56 dp touch target;
  * lights up while pressed. Dark inside at night, a raised pale pill with an
  * ink legend on the silver strip by day.
  */
@@ -922,15 +926,15 @@ private fun NeonPill(label: String?, description: String, onClick: () -> Unit, i
     val pressed by interaction.collectIsPressedAsState()
     Box(
         modifier = Modifier
-            .heightIn(min = 48.dp)
-            .widthIn(min = 48.dp)
+            .heightIn(min = DashSize.TouchPrimary)
+            .widthIn(min = DashSize.TouchPrimary)
             .clickable(interaction, indication = null, role = Role.Button, onClick = onClick)
             .semantics { contentDescription = description },
         contentAlignment = Alignment.Center
     ) {
         Row(
             modifier = Modifier
-                .height(34.dp)
+                .height(40.dp)
                 .cachedDraw(cyan, idle, interaction) {
                     val r = CornerRadius(size.height / 2f)
                     val line = 1.5.dp.toPx()

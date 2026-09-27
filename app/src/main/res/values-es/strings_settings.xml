@@ -98,4 +98,13 @@
     <string name="settings_screen_auto_hint_tall">Sigue la pantalla: esta es vertical</string>
     <string name="settings_screen_horizontal_hint">Pone el panel en horizontal, si la unidad lo permite</string>
     <string name="settings_screen_vertical_hint">Pone el panel en vertical con su propia disposición, si la unidad lo permite</string>
+    <string name="settings_section_display">Visualización</string>
+    <string name="settings_appearance_title">Día y noche</string>
+    <string name="settings_section_popups">En lugar de las ventanas de la radio</string>
+    <string name="alert_style_section">Cómo se muestra cada aviso</string>
+    <string name="settings_section_about">Acerca de</string>
+    <string name="settings_screen_keep_title">¿Mantener esta orientación?</string>
+    <string name="settings_screen_keep_detail">Vuelve atrás en %1$d s</string>
+    <string name="settings_screen_keep">Mantener</string>
+    <string name="settings_screen_revert">Volver</string>
 </resources>

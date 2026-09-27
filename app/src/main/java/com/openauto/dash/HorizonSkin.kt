@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -698,8 +699,8 @@ private fun sceneModifier(look: SkyLook, scene: HorizonScene, time: State<Float>
 
 /**
  * Transparent bar: a serif clock with the date beside it on the left; on the
- * right any vehicle alerts, then bare icon buttons in the text colour (all
- * apps, layout, the OBD dot and the ⋮ menu).
+ * right the setup pill and any vehicle alerts, then bare icon buttons in the
+ * text colour (all apps, layout, the OBD link and the ⋮ menu), 60 dp each.
  */
 @Composable
 internal fun HorizonTopBar(m: TopBarModel) {
@@ -709,48 +710,66 @@ internal fun HorizonTopBar(m: TopBarModel) {
     val date = dateFmt.format(now).replaceFirstChar { it.titlecase(locale) }
     val ink = DashColors.TextPrimary
     val soft = DashColors.TextSecondary
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(60.dp)
-            .graphicsLayer()
-            .padding(start = 22.dp, end = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(modifier = Modifier.weight(1f)) {
-            // The head unit's status bar shows the time while it is up.
-            if (!m.merged) {
-                SceneText(m.clock, display(40f), Modifier.alignByBaseline(), overflow = TextOverflow.Clip)
-                Spacer(Modifier.width(14.dp))
-                SceneText(date, ui(15f, soft), Modifier.alignByBaseline())
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth().height(64.dp).graphicsLayer()) {
+        val narrow = maxWidth < NARROW_BAR
+        Row(
+            modifier = Modifier.fillMaxSize().padding(start = 22.dp, end = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(modifier = Modifier.weight(1f)) {
+                // The head unit's status bar shows the time while it is up.
+                if (!m.merged) {
+                    SceneText(m.clock, display(40f), Modifier.alignByBaseline(), overflow = TextOverflow.Clip)
+                    if (!narrow) {
+                        Spacer(Modifier.width(14.dp))
+                        SceneText(date, ui(15f, soft), Modifier.alignByBaseline())
+                    }
+                }
             }
-        }
-        VehicleAlerts(m.obdConnection, m.obd)
-        PhonePill()
-        IconButton(onClick = m.onApps) {
-            Icon(Icons.Filled.Apps, contentDescription = stringResource(R.string.horizon_cd_all_apps), tint = ink)
-        }
-        LayoutPicker(m) { open ->
-            IconButton(onClick = open) {
-                LayoutIcon(m.layout, stringResource(R.string.horizon_cd_screen_layout, m.layout.title), soft)
+            if (m.setupPending) {
+                SetupPill(onClick = { m.onSetup(false) }, modifier = Modifier.padding(end = 6.dp), compact = narrow)
             }
-        }
-        HorizonObdDot(m.obdConnection, m.onConnectObd)
-        MorePicker(m) { open ->
-            IconButton(onClick = open) {
-                Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.horizon_cd_more), tint = soft)
+            VehicleAlerts(m.obdConnection, m.obd)
+            PhonePill()
+            val button = Modifier.size(HORIZON_BUTTON)
+            IconButton(onClick = m.onApps, modifier = button) {
+                Icon(Icons.Filled.Apps, contentDescription = stringResource(R.string.horizon_cd_all_apps), tint = ink, modifier = Modifier.size(28.dp))
+            }
+            LayoutPicker(m) { open ->
+                IconButton(onClick = open, modifier = button) {
+                    LayoutIcon(m.layout, stringResource(R.string.horizon_cd_screen_layout, m.layout.title), soft, Modifier.size(28.dp))
+                }
+            }
+            HorizonObdDot(m.obdConnection, m.onConnectObd)
+            MorePicker(m) { open ->
+                IconButton(onClick = open, modifier = button) {
+                    Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.horizon_cd_more), tint = soft, modifier = Modifier.size(28.dp))
+                }
             }
         }
     }
 }
 
-/** OBD link: a mint dot with a glow when connected, a hollow ring when off; tap connects while idle. */
+private val HORIZON_BUTTON = 60.dp
+
+/**
+ * OBD link: the letters OBD beside a mint dot with a glow when connected, a
+ * hollow ring when off, so the mark says what it is; tap connects while idle.
+ */
 @Composable
 private fun HorizonObdDot(state: ObdConnectionState, onConnect: () -> Unit) {
     val color = obdStatusColor(state)
     val label = obdStatusLabel(state)
     val idle = state.isIdle
-    IconButton(onClick = onConnect, enabled = idle, modifier = Modifier.semantics { contentDescription = label }) {
+    Row(
+        modifier = Modifier
+            .heightIn(min = HORIZON_BUTTON)
+            .clip(CircleShape)
+            .clickable(enabled = idle, role = Role.Button, onClick = onConnect)
+            .semantics(mergeDescendants = true) { contentDescription = label }
+            .padding(start = 6.dp, end = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Box(
             Modifier
                 .size(24.dp)
@@ -769,6 +788,10 @@ private fun HorizonObdDot(state: ObdConnectionState, onConnect: () -> Unit) {
                         }
                     }
                 }
+        )
+        SceneText(
+            stringResource(R.string.dash_obd_short),
+            ui(14f, if (state == ObdConnectionState.DISCONNECTED) DashColors.TextSecondary else color)
         )
     }
 }

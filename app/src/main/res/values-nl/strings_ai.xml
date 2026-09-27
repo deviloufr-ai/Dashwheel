@@ -2,7 +2,7 @@
 <resources>
     <!-- Settings dialog (also the menu item) -->
     <string name="ai_title">AI-monteur</string>
-    <string name="ai_explanation">Zodra de adapter verbindt, zoekt Dashwheel naar foutcodes. Een nieuwe wordt door Gemini uitgelegd en voorgelezen. Naar Google gaan de codes, motorwaarden en het automodel, en je stem als je hardop een vraag stelt.</string>
+    <string name="ai_explanation">Een nieuwe foutcode wordt door Gemini uitgelegd en voorgelezen. Naar Google gaan de codes, motorwaarden, het automodel en je stem als je hardop een vraag stelt.</string>
     <string name="ai_activation_code">Activeringscode</string>
     <string name="ai_activation_hint">Ontgrendelt de ingebouwde sleutel</string>
     <string name="ai_activate">Activeren</string>
@@ -75,7 +75,7 @@
     <string name="ai_clear_failed">Wissen mislukt</string>
     <string name="ai_thinking">AI-monteur wordt geraadpleegd…</string>
     <string name="ai_retry">Opnieuw</string>
-    <string name="ai_note_no_key">Voeg een gratis Gemini-sleutel toe (menu → AI-monteur) voor advies in gewone taal.</string>
+    <string name="ai_note_no_key">Voeg een gratis Gemini-sleutel toe via Instellingen → Auto → AI-monteur voor advies in gewone taal.</string>
     <string name="ai_note_unavailable">AI niet beschikbaar: %1$s</string>
 
     <!-- Why asking Gemini failed (follows "AI unavailable: " / "Didn't work: ") -->

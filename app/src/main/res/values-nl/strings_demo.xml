@@ -3,7 +3,7 @@
     <!-- Demo mode: a made-up drive that shows every tile working (DemoMode.kt) -->
     <string name="demo_menu_start">Demomodus</string>
     <string name="demo_menu_stop">Demo stoppen</string>
-    <string name="demo_settings_detail">Een verzonnen rit door Parijs vult elke tegel, om het dashboard geparkeerd te laten zien. Er wordt niets opgeslagen; tik op het label om te stoppen.</string>
+    <string name="demo_settings_detail">Een verzonnen rit vult elke tegel. Er wordt niets opgeslagen.</string>
     <string name="demo_badge">Demo · verzonnen gegevens</string>
     <string name="demo_stop">Stop</string>
     <!-- Fake turn-by-turn instructions; %1$s = street name -->

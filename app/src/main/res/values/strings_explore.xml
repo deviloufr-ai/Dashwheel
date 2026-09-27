@@ -10,7 +10,7 @@
     <string name="explore_km_since_regen">Since last regeneration</string>
     <string name="explore_additive">Additive level</string>
     <string name="explore_oil_temp">Oil temperature</string>
-    <string name="explore_explanation">Experimental. Generic OBD can\'t read the particle filter. AI proposes this car\'s own diagnostic requests; each is tried on the adapter and kept only if the car answers with a sensible, steady value. A kept reading can still be wrong.</string>
+    <string name="explore_explanation">Experimental: AI proposes this car\'s own diagnostic requests and keeps those the car answers with a sensible, steady value. A kept reading can still be wrong.</string>
     <string name="explore_search">Search with AI</string>
     <string name="explore_searching">Trying the requests… %1$d s</string>
     <string name="explore_verified">Confirmed readings</string>

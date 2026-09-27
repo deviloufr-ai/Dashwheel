@@ -159,7 +159,6 @@ internal fun ObdCard(
     }
     val connected = connection == ObdConnectionState.CONNECTED
     var speedFix by remember { mutableStateOf(false) }
-    val lock = LocalDriveLock.current
     Card(modifier = modifier) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(DashSpace.Lg)) {
             // Short tiles drop the secondary chips; tall tiles stack the RPM bar
@@ -182,8 +181,9 @@ internal fun ObdCard(
                         style = MaterialTheme.typography.labelMedium,
                         modifier = Modifier.weight(1f)
                     )
-                    // The speed correction, to match the car's speedometer.
-                    IconButton(onClick = { lock.whenParked { speedFix = true } }, modifier = Modifier.size(48.dp)) {
+                    // The speed correction, to match the car's speedometer: it
+                    // can only be compared while the car moves, so it opens then too.
+                    IconButton(onClick = { speedFix = true }, modifier = Modifier.size(48.dp)) {
                         Icon(Icons.Filled.Tune, contentDescription = stringResource(R.string.vehicle_speed_fix), tint = DashColors.Muted, modifier = Modifier.size(20.dp))
                     }
                     if (connected) {
@@ -302,11 +302,12 @@ internal fun ObdCard(
 
 /**
  * The speed correction from the telemetry tile, with the corrected speed live
- * above it: nudge it until it reads what the car's speedometer says.
+ * above it: nudge it until it reads what the car's speedometer says. The
+ * one dialog the drive lock lets through: two large buttons and a number, and
+ * the only time the two speeds can be compared is on the move.
  */
 @Composable
 internal fun SpeedCorrectionDialog(speedKmh: Int?, onDismiss: () -> Unit) {
-    ParkedOnly(onDismiss)
     AlertDialog(
         modifier = Modifier.keepClearOfWindows(),
         onDismissRequest = onDismiss,

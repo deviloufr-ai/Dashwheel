@@ -102,60 +102,43 @@ internal fun SteeringWheelDialog(onDismiss: () -> Unit) {
         step = WheelStep.LIST
     }
 
-    AlertDialog(
-        modifier = Modifier.keepClearOfWindows(),
-        onDismissRequest = onDismiss,
-        containerColor = DashColors.Card,
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (step != WheelStep.LIST) {
-                    IconButton(onClick = ::backToList, modifier = Modifier.size(32.dp)) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.wheel_back), tint = DashColors.TextPrimary)
+    SettingsSheet(
+        title = stringResource(R.string.wheel_title),
+        onDismiss = onDismiss,
+        onStepBack = if (step != WheelStep.LIST) ::backToList else null,
+        actions = { SheetButton(stringResource(R.string.dash_done), onClick = onDismiss) }
+    ) {
+        when (step) {
+            WheelStep.LIST -> WheelList(
+                mappings = mappings,
+                onLearn = {
+                    SteeringWheelStore.startListening()
+                    step = WheelStep.LISTENING
+                },
+                onEdit = { key ->
+                    editingKey = key
+                    step = WheelStep.PICK_ACTION
+                },
+                onRemove = { key -> SteeringWheelStore.remove(key) }
+            )
+            WheelStep.LISTENING -> WheelListening(onCancel = ::backToList)
+            WheelStep.PICK_ACTION, WheelStep.PICK_APP -> editingKey?.let { key ->
+                WheelActionPicker(
+                    keyLabel = wheelKeyLabel(key),
+                    hasExisting = mappings.any { it.key.id == key.id },
+                    onPick = { action ->
+                        SteeringWheelStore.assign(key, WheelAssignment.Preset(action))
+                        step = WheelStep.LIST
+                    },
+                    onPickApp = { step = WheelStep.PICK_APP },
+                    onRemove = {
+                        SteeringWheelStore.remove(key)
+                        step = WheelStep.LIST
                     }
-                    Spacer(Modifier.width(4.dp))
-                }
-                Text(stringResource(R.string.wheel_title), color = DashColors.TextPrimary)
+                )
             }
-        },
-        text = {
-            Column(modifier = Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState())) {
-                when (step) {
-                    WheelStep.LIST -> WheelList(
-                        mappings = mappings,
-                        onLearn = {
-                            SteeringWheelStore.startListening()
-                            step = WheelStep.LISTENING
-                        },
-                        onEdit = { key ->
-                            editingKey = key
-                            step = WheelStep.PICK_ACTION
-                        },
-                        onRemove = { key -> SteeringWheelStore.remove(key) }
-                    )
-                    WheelStep.LISTENING -> WheelListening(onCancel = ::backToList)
-                    WheelStep.PICK_ACTION, WheelStep.PICK_APP -> editingKey?.let { key ->
-                        WheelActionPicker(
-                            keyLabel = wheelKeyLabel(key),
-                            hasExisting = mappings.any { it.key.id == key.id },
-                            onPick = { action ->
-                                SteeringWheelStore.assign(key, WheelAssignment.Preset(action))
-                                step = WheelStep.LIST
-                            },
-                            onPickApp = { step = WheelStep.PICK_APP },
-                            onRemove = {
-                                SteeringWheelStore.remove(key)
-                                step = WheelStep.LIST
-                            }
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.dash_done), color = DashColors.Accent) }
         }
-    )
+    }
 
     if (step == WheelStep.PICK_APP) {
         val apps = remember { AppLauncher.loadApps(context) }

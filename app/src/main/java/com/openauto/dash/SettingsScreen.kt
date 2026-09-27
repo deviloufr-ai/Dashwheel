@@ -1,9 +1,13 @@
 package com.openauto.dash
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -31,15 +35,18 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Handyman
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Science
+import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.SensorDoor
 import androidx.compose.material.icons.filled.Sensors
-import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.SettingsRemote
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.StayCurrentLandscape
@@ -47,26 +54,32 @@ import androidx.compose.material.icons.filled.StayCurrentPortrait
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.TireRepair
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material.icons.filled.VolumeDown
 import androidx.compose.material.icons.filled.VolumeMute
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
@@ -77,22 +90,33 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import kotlinx.coroutines.delay
 
 /*
  * The Settings screen: everything set once, full screen in two columns like
- * a car's own settings. Categories on the left, the chosen one's settings on
- * the right, most of them right there (theme, appearance, language, driving,
- * the paired phone, demo mode) and the deep ones (car profile, AI, upkeep, readings, boot logo)
- * one tap away in their own sheet. Replaces the dialogs that used to stack four deep.
+ * a car's own settings. Categories on the left (along the top on an upright
+ * screen), the chosen one's settings on the right, most of them right there
+ * and the deep ones (car profile, AI, servicing, readings, wheel buttons,
+ * language) one tap further in the same pane, with a back arrow
+ * (SettingsSheet.kt). One subject, one place: every alert under Alerts, what
+ * the screen does under Display, what it looks like under Look.
  */
 
 internal enum class SettingsTab(@StringRes val titleRes: Int, val icon: ImageVector) {
     CAR(R.string.settings_section_car, Icons.Filled.DirectionsCar),
     LOOK(R.string.settings_section_look, Icons.Filled.Palette),
+    DISPLAY(R.string.settings_section_display, Icons.Filled.Tv),
+    ALERTS(R.string.alert_section, Icons.Filled.NotificationsActive),
     DRIVING(R.string.settings_section_driving, Icons.Filled.Speed),
     PHONE(R.string.settings_section_phone, Icons.Filled.PhoneAndroid),
     ADVANCED(R.string.settings_section_advanced, Icons.Filled.Tune)
 }
+
+/** The settings that open further into the pane. */
+private enum class Deep { CAR, AI, UPKEEP, EXPLORER, WHEEL, LANGUAGE }
+
+/** Under this width the categories go along the top: a rail would leave the settings half a screen. */
+private val NARROW_SETTINGS = 800.dp
 
 /** The theme choice and its setters, owned by the dashboard root. */
 internal data class ThemeState(
@@ -118,127 +142,276 @@ internal fun SettingsScreen(
     modifier: Modifier = Modifier
 ) {
     var tab by remember(initialTab) { mutableStateOf(initialTab) }
-    var carSettings by remember { mutableStateOf(false) }
-    var aiSettings by remember { mutableStateOf(false) }
-    var upkeep by remember { mutableStateOf(false) }
-    var explorer by remember { mutableStateOf(false) }
+    var deep by remember { mutableStateOf<Deep?>(null) }
     var bootLogo by remember { mutableStateOf(false) }
-    var wheelButtons by remember { mutableStateOf(false) }
-    val tap = rememberTapFeedback()
+    // Another category, or closing: the open sheet leaves first, as by its back arrow.
+    val choose: (SettingsTab) -> Unit = { t ->
+        OpenSheet.dismiss()
+        deep = null
+        tab = t
+    }
+    val close = {
+        OpenSheet.dismiss()
+        onClose()
+    }
+    val back = { deep = null }
 
-    SolidCard(modifier = modifier) {
-        Row(modifier = Modifier.fillMaxSize()) {
-            // Left: close, title, the categories.
-            Column(
-                modifier = Modifier
-                    .width(260.dp)
-                    .fillMaxHeight()
-                    .background(DashColors.CardHi.copy(alpha = DashColors.CardHi.alpha * 0.4f))
-                    .padding(12.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(56.dp)
-                            .clip(DashShape.Medium)
-                            .background(DashColors.CardHi)
-                            .clickable(role = Role.Button, onClickLabel = stringResource(R.string.dash_close)) { tap(); onClose() },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.dash_close), tint = DashColors.TextPrimary, modifier = Modifier.size(26.dp))
-                    }
-                    Spacer(Modifier.width(14.dp))
-                    Text(
-                        stringResource(R.string.settings_title),
-                        color = DashColors.TextPrimary,
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                }
-                Spacer(Modifier.height(16.dp))
-                SettingsTab.entries.forEach { t ->
-                    val chosen = t == tab
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 56.dp)
-                            .clip(DashShape.Medium)
-                            .then(if (chosen) Modifier.background(DashColors.AccentBrush) else Modifier)
-                            .clickable(role = Role.Tab) { tab = t }
-                            .padding(horizontal = 14.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        val ink = if (chosen) DashColors.OnAccent else DashColors.TextPrimary
-                        Icon(t.icon, contentDescription = null, tint = ink, modifier = Modifier.size(24.dp))
-                        Spacer(Modifier.width(14.dp))
-                        Text(stringResource(t.titleRes), color = ink, fontWeight = if (chosen) FontWeight.SemiBold else FontWeight.Normal, style = MaterialTheme.typography.bodyLarge)
-                    }
+    val pane: @Composable (Modifier) -> Unit = { paneModifier ->
+        Box(modifier = paneModifier) {
+            CompositionLocalProvider(LocalSheetInPane provides true) {
+                when (deep) {
+                    Deep.CAR -> CarSettingsDialog(onDismiss = back)
+                    Deep.AI -> AiSettingsDialog(onDismiss = back)
+                    Deep.UPKEEP -> UpkeepDialog(onDismiss = back)
+                    Deep.EXPLORER -> PidExplorerDialog(onDismiss = back)
+                    Deep.WHEEL -> SteeringWheelDialog(onDismiss = back)
+                    Deep.LANGUAGE -> LanguageSheet(onDismiss = back)
+                    null -> Unit
                 }
             }
-
-            // Right: the chosen category's settings.
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp, vertical = 16.dp)
-            ) {
-                when (tab) {
-                    SettingsTab.CAR -> CarPane(
-                        m,
-                        onCar = { carSettings = true },
-                        onAi = { aiSettings = true },
-                        onUpkeep = { upkeep = true },
-                        onExplorer = { explorer = true }
-                    )
-                    SettingsTab.LOOK -> LookPane(theme)
-                    SettingsTab.DRIVING -> DrivingPane(m, onWheelButtons = { wheelButtons = true })
-                    SettingsTab.PHONE -> {
-                        PhonePane()
-                        RomPopupToggle(RomPopups.Kind.CALL)
+            // Each category keeps its own place: a long one scrolled down does not move the next.
+            if (deep == null) key(tab) {
+                val scroll = rememberScrollState()
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(scroll)
+                        .padding(horizontal = 20.dp, vertical = 16.dp)
+                ) {
+                    when (tab) {
+                        SettingsTab.CAR -> CarPane(open = { deep = it })
+                        SettingsTab.LOOK -> LookPane(theme)
+                        SettingsTab.DISPLAY -> DisplayPane(theme, onLanguage = { deep = Deep.LANGUAGE })
+                        SettingsTab.ALERTS -> AlertsPane()
+                        SettingsTab.DRIVING -> DrivingPane(m, onWheelButtons = { deep = Deep.WHEEL })
+                        SettingsTab.PHONE -> PhonePane()
+                        SettingsTab.ADVANCED -> AdvancedPane(m, onBootLogo = { bootLogo = true }, onClose = onClose)
                     }
-                    SettingsTab.ADVANCED -> AdvancedPane(m, onBootLogo = { bootLogo = true }, onClose = onClose)
+                }
+                MoreBelow(scroll, Modifier.align(Alignment.BottomCenter))
+            }
+        }
+    }
+
+    SolidCard(modifier = modifier) {
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            if (maxWidth < NARROW_SETTINGS) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    SettingsTabs(tab, choose, close)
+                    pane(Modifier.weight(1f).fillMaxWidth())
+                }
+            } else {
+                Row(modifier = Modifier.fillMaxSize()) {
+                    SettingsRail(tab, choose, close)
+                    pane(Modifier.weight(1f).fillMaxHeight())
                 }
             }
         }
     }
 
-    if (carSettings) CarSettingsDialog(onDismiss = { carSettings = false })
-    if (aiSettings) AiSettingsDialog(onDismiss = { aiSettings = false })
-    if (upkeep) UpkeepDialog(onDismiss = { upkeep = false })
-    if (explorer) PidExplorerDialog(onDismiss = { explorer = false })
     if (bootLogo) BootLogoDialog(onDismiss = { bootLogo = false })
-    if (wheelButtons) SteeringWheelDialog(onDismiss = { wheelButtons = false })
 }
 
 @Composable
-private fun CarPane(m: TopBarModel, onCar: () -> Unit, onAi: () -> Unit, onUpkeep: () -> Unit, onExplorer: () -> Unit) {
+private fun SettingsHeader(onClose: () -> Unit) {
+    val tap = rememberTapFeedback()
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier = Modifier
+                .size(DashSize.TouchPrimary)
+                .clip(DashShape.Medium)
+                .background(DashColors.CardHi)
+                .clickable(role = Role.Button, onClickLabel = stringResource(R.string.dash_close)) { tap(); onClose() },
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.dash_close), tint = DashColors.TextPrimary, modifier = Modifier.size(26.dp))
+        }
+        Spacer(Modifier.width(14.dp))
+        Text(
+            stringResource(R.string.settings_title),
+            color = DashColors.TextPrimary,
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.titleLarge
+        )
+    }
+}
+
+/** Wide screens: close, the title and the categories down the left. */
+@Composable
+private fun SettingsRail(tab: SettingsTab, onChoose: (SettingsTab) -> Unit, onClose: () -> Unit) {
+    val tap = rememberTapFeedback()
+    Column(
+        modifier = Modifier
+            .width(260.dp)
+            .fillMaxHeight()
+            .background(DashColors.CardHi.copy(alpha = DashColors.CardHi.alpha * 0.4f))
+            .verticalScroll(rememberScrollState())
+            .padding(12.dp)
+    ) {
+        SettingsHeader(onClose)
+        Spacer(Modifier.height(16.dp))
+        SettingsTab.entries.forEach { t ->
+            val chosen = t == tab
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = DashSize.TouchPrimary)
+                    .clip(DashShape.Medium)
+                    .then(if (chosen) Modifier.background(DashColors.AccentBrush) else Modifier)
+                    .clickable(role = Role.Tab) { tap(); onChoose(t) }
+                    .padding(horizontal = 14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val ink = if (chosen) DashColors.OnAccent else DashColors.TextPrimary
+                Icon(t.icon, contentDescription = null, tint = ink, modifier = Modifier.size(24.dp))
+                Spacer(Modifier.width(14.dp))
+                Text(stringResource(t.titleRes), color = ink, fontWeight = if (chosen) FontWeight.SemiBold else FontWeight.Normal, style = MaterialTheme.typography.bodyLarge)
+            }
+        }
+    }
+}
+
+/** Upright screens: close and the title, then the categories in rows of four across the top. */
+@Composable
+private fun SettingsTabs(tab: SettingsTab, onChoose: (SettingsTab) -> Unit, onClose: () -> Unit) {
+    val tap = rememberTapFeedback()
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(DashColors.CardHi.copy(alpha = DashColors.CardHi.alpha * 0.4f))
+            .padding(12.dp)
+    ) {
+        SettingsHeader(onClose)
+        Spacer(Modifier.height(10.dp))
+        SettingsTab.entries.chunked(4).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) {
+                row.forEach { t ->
+                    val chosen = t == tab
+                    val ink = if (chosen) DashColors.OnAccent else DashColors.TextPrimary
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .heightIn(min = 68.dp)
+                            .clip(DashShape.Medium)
+                            .then(
+                                if (chosen) Modifier.background(DashColors.AccentBrush)
+                                else Modifier.border(1.dp, DashColors.Line, DashShape.Medium)
+                            )
+                            .clickable(role = Role.Tab) { tap(); onChoose(t) }
+                            .padding(horizontal = 4.dp, vertical = 8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(t.icon, contentDescription = null, tint = ink, modifier = Modifier.size(24.dp))
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            stringResource(t.titleRes), color = ink,
+                            fontWeight = if (chosen) FontWeight.SemiBold else FontWeight.Normal,
+                            style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+                repeat(4 - row.size) { Spacer(Modifier.weight(1f)) }
+            }
+        }
+    }
+}
+
+/** Over the pane's bottom edge while there is more under it: a fade and an arrow. */
+@Composable
+private fun MoreBelow(scroll: ScrollState, modifier: Modifier = Modifier) {
+    if (!scroll.canScrollForward) return
+    val card = DashColors.Card.copy(alpha = 1f)
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(44.dp)
+            .background(Brush.verticalGradient(listOf(Color.Transparent, card))),
+        contentAlignment = Alignment.BottomCenter
+    ) {
+        Icon(Icons.Filled.KeyboardArrowDown, contentDescription = null, tint = DashColors.TextSecondary, modifier = Modifier.size(24.dp))
+    }
+}
+
+@Composable
+private fun CarPane(open: (Deep) -> Unit) {
     val car by CarProfileStore.profile.collectAsState()
     SettingsSection(stringResource(R.string.settings_section_car))
-    SettingsRow(Icons.Filled.DirectionsCar, stringResource(R.string.car_menu), car.name, onCar)
+    SettingsRow(Icons.Filled.DirectionsCar, stringResource(R.string.car_menu), car.name) { open(Deep.CAR) }
     SpeedCorrectionRow()
-    SettingsRow(Icons.Filled.AutoAwesome, stringResource(R.string.ai_title), stringResource(R.string.settings_ai_detail), onAi)
-    SettingsRow(Icons.Filled.Handyman, stringResource(R.string.upkeep_dialog_title), stringResource(R.string.upkeep_settings_detail), onUpkeep)
-    SettingsRow(Icons.Filled.Science, stringResource(R.string.explore_title), stringResource(R.string.explore_settings_detail), onExplorer)
-    RomPopupToggle(RomPopups.Kind.DOORS)
-    RomPopupToggle(RomPopups.Kind.RADAR)
-    RomPopupToggle(RomPopups.Kind.AC)
-    RomPopupToggle(RomPopups.Kind.TYRES)
-    RomPopupToggle(RomPopups.Kind.BELT)
+    SettingsRow(Icons.Filled.AutoAwesome, stringResource(R.string.ai_title), stringResource(R.string.settings_ai_detail)) { open(Deep.AI) }
+    SettingsRow(Icons.Filled.Handyman, stringResource(R.string.upkeep_dialog_title), stringResource(R.string.upkeep_settings_detail)) { open(Deep.UPKEEP) }
+    SettingsRow(Icons.Filled.Science, stringResource(R.string.explore_title), stringResource(R.string.explore_settings_detail)) { open(Deep.EXPLORER) }
+}
+
+/** What the dashboard looks like: the theme first, then its day and night and its effects. */
+@Composable
+private fun LookPane(theme: ThemeState) {
+    ThemeGallery(theme)
+    Spacer(Modifier.height(20.dp))
+    AppearanceSetting(theme)
+    Spacer(Modifier.height(20.dp))
+    EffectsSetting(theme)
+}
+
+/** What the screen does: which way it stands, its bottom bar, its language. */
+@Composable
+private fun DisplayPane(theme: ThemeState, onLanguage: () -> Unit) {
+    val context = LocalContext.current
+    ScreenOrientationSetting()
+    Spacer(Modifier.height(20.dp))
+    BarAutoHideSetting(theme)
+    Spacer(Modifier.height(20.dp))
+    SettingsSection(stringResource(R.string.language_title))
+    SettingsRow(Icons.Filled.Language, stringResource(R.string.language_title), languageName(AppLanguage.current(context)), onLanguage)
+}
+
+/** A language by its own name; the system's says which one that is. */
+@Composable
+private fun languageName(language: AppLanguage): String {
+    if (language != AppLanguage.SYSTEM) return language.nativeName
+    val system = remember { AppLanguage.systemLocale() }
+    return stringResource(R.string.language_system, system.getDisplayLanguage(system).replaceFirstChar { it.titlecase(system) })
+}
+
+@Composable
+private fun LanguageSheet(onDismiss: () -> Unit) {
+    SettingsSheet(
+        title = stringResource(R.string.language_title),
+        onDismiss = onDismiss,
+        actions = {}
+    ) {
+        LanguageChoices()
+    }
 }
 
 /**
- * One of the head unit's own pop-ups replaced by Dashwheel's ([RomPopups]),
- * shown only on firmware that has it.
+ * Every alert in one place: which of the head unit's own pop-ups Dashwheel
+ * shows in its place (only on firmware that has them), then how each one looks.
+ */
+@Composable
+private fun AlertsPane() {
+    val context = LocalContext.current
+    val access = shellAccess()
+    val kinds = remember(access) {
+        RomPopups.Kind.entries.filter { RomPopups.available(context, it) && RomPopups.canWork(it, access) }
+    }
+    if (kinds.isNotEmpty()) {
+        SettingsSection(stringResource(R.string.settings_section_popups))
+        kinds.forEach { RomPopupToggle(it) }
+        Spacer(Modifier.height(20.dp))
+    }
+    AlertStyleRows()
+}
+
+/**
+ * One of the head unit's own pop-ups replaced by Dashwheel's ([RomPopups]).
+ * Offered only where it can work (PrivilegedShell): the door alert reads the
+ * CANbox through root, the radar switch is written through a shell.
  */
 @Composable
 private fun RomPopupToggle(kind: RomPopups.Kind) {
     val context = LocalContext.current
-    if (!remember(kind) { RomPopups.available(context, kind) }) return
-    // Offered only where it can work (PrivilegedShell): the door alert reads
-    // the CANbox through root, the radar switch is written through a shell.
-    if (!RomPopups.canWork(kind, shellAccess())) return
     val replaced by RomPopups.replaced.collectAsState()
     val failed by RomPopups.failed.collectAsState()
     val on = kind in replaced
@@ -261,28 +434,23 @@ private fun RomPopupToggle(kind: RomPopups.Kind) {
     }
 }
 
-@Composable
-private fun LookPane(theme: ThemeState) {
-    ScreenOrientationSetting()
-    Spacer(Modifier.height(20.dp))
-    ThemePane(theme)
-    Spacer(Modifier.height(20.dp))
-    AlertStyleRows()
-    Spacer(Modifier.height(20.dp))
-    SettingsSection(stringResource(R.string.language_title))
-    LanguageChoices()
-}
+/** How long a new screen direction waits to be kept before it goes back. */
+private const val KEEP_SECONDS = 15
 
 /**
  * Which way the dashboard stands ([ScreenShape]). Auto reads it from the
  * screen and says what it found; the others turn the launcher, which rebuilds
- * the dashboard for that shape with its own layout.
+ * the dashboard for that shape with its own layout. A turn is tried out: it
+ * goes back by itself unless it is kept, so a screen turned the wrong way
+ * never has to be read sideways to be put right.
  */
 @Composable
 private fun ScreenOrientationSetting() {
     val context = LocalContext.current
     val chosen by ScreenShape.choice.collectAsState()
+    val tryingFrom by ScreenShape.tryingFrom.collectAsState()
     SettingsSection(stringResource(R.string.settings_screen_title))
+    if (tryingFrom != null && ScreenShape.turned) KeepDirection()
     SegmentedSwitch(
         options = ScreenOrientation.entries,
         chosen = chosen,
@@ -294,7 +462,7 @@ private fun ScreenOrientationSetting() {
             }
         },
         title = { stringResource(it.titleRes) },
-        onChoose = { option -> context.findActivity()?.let { ScreenShape.save(it, option) } }
+        onChoose = { option -> context.findActivity()?.let { ScreenShape.tryOut(it, option) } }
     )
     SwitchHint(
         stringResource(
@@ -306,6 +474,43 @@ private fun ScreenOrientationSetting() {
             }
         )
     )
+}
+
+/** Asked once the screen has turned: keep it, or go back (which it does by itself after [KEEP_SECONDS]). */
+@Composable
+private fun KeepDirection() {
+    val context = LocalContext.current
+    var left by remember { mutableIntStateOf(KEEP_SECONDS) }
+    LaunchedEffect(Unit) {
+        while (left > 0) {
+            delay(1_000)
+            left--
+        }
+        context.findActivity()?.let { ScreenShape.revert(it) }
+    }
+    val shape = DashShape.Medium
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 12.dp)
+            .clip(shape)
+            .background(DashColors.Warning.copy(alpha = 0.12f))
+            .border(1.dp, DashColors.Warning.copy(alpha = 0.6f), shape)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(stringResource(R.string.settings_screen_keep_title), color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyLarge)
+            Text(stringResource(R.string.settings_screen_keep_detail, left), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+        }
+        CompositionLocalProvider(LocalSheetInPane provides true) {
+            SheetButton(stringResource(R.string.settings_screen_revert), primary = false) {
+                context.findActivity()?.let { ScreenShape.revert(it) }
+            }
+            SheetButton(stringResource(R.string.settings_screen_keep)) { ScreenShape.keep() }
+        }
+    }
 }
 
 @Composable
@@ -327,7 +532,9 @@ private fun DrivingPane(m: TopBarModel, onWheelButtons: () -> Unit) {
         else pluralStringResource(R.plurals.wheel_settings_detail_count, wheelMappings.size, wheelMappings.size),
         onWheelButtons
     )
+    Spacer(Modifier.height(20.dp))
     VolumeWaySetting()
+    Spacer(Modifier.height(20.dp))
     SpeedVolumeSetting()
     KeyTargetRows()
 }
@@ -344,13 +551,7 @@ private fun VolumeWaySetting() {
     val shell = shellAccess().shell
     val options = if (shell) VolumeWay.entries else VolumeWay.entries.filter { it != VolumeWay.KEYS }
     val way = if (saved in options) saved else VolumeWay.AUTO
-    Spacer(Modifier.height(12.dp))
-    Text(
-        stringResource(R.string.volume_way_title),
-        color = DashColors.TextPrimary,
-        style = MaterialTheme.typography.bodyLarge,
-        modifier = Modifier.padding(start = 12.dp, bottom = 8.dp)
-    )
+    SettingsSection(stringResource(R.string.volume_way_title))
     SegmentedSwitch(
         options = options,
         chosen = way,
@@ -372,13 +573,7 @@ private fun VolumeWaySetting() {
 private fun SpeedVolumeSetting() {
     val context = LocalContext.current
     val level by SpeedVolume.level.collectAsState()
-    Spacer(Modifier.height(12.dp))
-    Text(
-        stringResource(R.string.speed_volume_title),
-        color = DashColors.TextPrimary,
-        style = MaterialTheme.typography.bodyLarge,
-        modifier = Modifier.padding(start = 12.dp)
-    )
+    SettingsSection(stringResource(R.string.speed_volume_title))
     Text(
         stringResource(R.string.speed_volume_detail),
         color = DashColors.TextSecondary,
@@ -425,6 +620,8 @@ private fun AdvancedPane(m: TopBarModel, onBootLogo: () -> Unit, onClose: () -> 
         SettingsRow(Icons.Filled.Build, stringResource(R.string.dash_system_app_title), stringResource(R.string.settings_system_detail), m.onSystem)
     }
     SettingsRow(Icons.Filled.Checklist, stringResource(R.string.setup_again), stringResource(R.string.setup_again_detail)) { m.onSetup(true) }
+    Spacer(Modifier.height(20.dp))
+    SettingsSection(stringResource(R.string.settings_section_about))
     UpdateRow(m)
 }
 
@@ -456,6 +653,7 @@ private fun UpdateRow(m: TopBarModel) {
     }
 }
 
+/** The one heading of the Settings panes: every group of settings starts with it. */
 @Composable
 internal fun SettingsSection(title: String) {
     Text(
@@ -463,7 +661,7 @@ internal fun SettingsSection(title: String) {
         color = DashColors.Accent,
         letterSpacing = 0.08.em,
         style = MaterialTheme.typography.labelSmall,
-        modifier = Modifier.padding(start = 12.dp, top = 4.dp, bottom = 6.dp)
+        modifier = Modifier.padding(start = 12.dp, top = 4.dp, bottom = 8.dp)
     )
 }
 
@@ -474,7 +672,7 @@ internal fun SettingsRow(icon: ImageVector, title: String, detail: String?, onCl
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 56.dp)
+            .heightIn(min = DashSize.Bar)
             .clip(DashShape.Medium)
             .clickable { tap(); onClick() }
             .padding(horizontal = 12.dp, vertical = 10.dp),
@@ -488,7 +686,7 @@ internal fun SettingsRow(icon: ImageVector, title: String, detail: String?, onCl
                 Text(
                     detail,
                     color = DashColors.TextSecondary,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodySmall
                 )
@@ -502,17 +700,17 @@ internal fun SettingsRow(icon: ImageVector, title: String, detail: String?, onCl
 /**
  * The speed correction (see [SpeedCorrection]): − and + by 1 km/h, the value
  * between, applied at once so the speed on screen can be matched to the car's
- * speedometer while driving along. Also in the telemetry tile's dialog.
+ * speedometer while driving along. Also in the telemetry tile's dialog, which
+ * opens on the move for that reason.
  */
 @Composable
 internal fun SpeedCorrectionRow() {
     val context = LocalContext.current
     val offset by SpeedCorrection.offsetKmh.collectAsState()
-    val tap = rememberTapFeedback()
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 56.dp)
+            .heightIn(min = DashSize.Bar)
             .padding(horizontal = 12.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -529,12 +727,8 @@ internal fun SpeedCorrectionRow() {
             )
         }
         Spacer(Modifier.width(8.dp))
-        IconButton(
-            onClick = { tap(); SpeedCorrection.save(context, offset - 1) },
-            enabled = offset > -SpeedCorrection.MAX_OFFSET_KMH,
-            modifier = Modifier.size(48.dp)
-        ) {
-            Icon(Icons.Filled.Remove, contentDescription = stringResource(R.string.vehicle_speed_fix_less), tint = DashColors.TextPrimary)
+        StepButton(Icons.Filled.Remove, stringResource(R.string.vehicle_speed_fix_less), enabled = offset > -SpeedCorrection.MAX_OFFSET_KMH) {
+            SpeedCorrection.save(context, offset - 1)
         }
         Text(
             speedOffsetText(offset),
@@ -545,21 +739,33 @@ internal fun SpeedCorrectionRow() {
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.width(88.dp)
         )
-        IconButton(
-            onClick = { tap(); SpeedCorrection.save(context, offset + 1) },
-            enabled = offset < SpeedCorrection.MAX_OFFSET_KMH,
-            modifier = Modifier.size(48.dp)
-        ) {
-            Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.vehicle_speed_fix_more), tint = DashColors.TextPrimary)
+        StepButton(Icons.Filled.Add, stringResource(R.string.vehicle_speed_fix_more), enabled = offset < SpeedCorrection.MAX_OFFSET_KMH) {
+            SpeedCorrection.save(context, offset + 1)
         }
     }
     HorizontalDivider(color = DashColors.Line, modifier = Modifier.padding(horizontal = 12.dp))
 }
 
+/** − or +: a filled square a thumb lands on, since it is pressed on the move. */
+@Composable
+private fun StepButton(icon: ImageVector, description: String, enabled: Boolean, onClick: () -> Unit) {
+    val tap = rememberTapFeedback()
+    Box(
+        modifier = Modifier
+            .size(DashSize.TouchPrimary)
+            .clip(DashShape.Medium)
+            .background(DashColors.CardHi)
+            .clickable(enabled = enabled, role = Role.Button, onClickLabel = description) { tap(); onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(icon, contentDescription = description, tint = if (enabled) DashColors.TextPrimary else DashColors.Muted)
+    }
+}
+
 /** "+3 km/h", "−2 km/h", or "0 km/h" when there's no correction. */
 internal fun speedOffsetText(offsetKmh: Int): String = when {
     offsetKmh > 0 -> "+$offsetKmh km/h"
-    offsetKmh < 0 -> "\u2212${-offsetKmh} km/h"
+    offsetKmh < 0 -> "−${-offsetKmh} km/h"
     else -> "0 km/h"
 }
 
@@ -570,7 +776,7 @@ internal fun SettingsToggle(icon: ImageVector, title: String, detail: String, ch
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 56.dp)
+            .heightIn(min = DashSize.Bar)
             .clip(DashShape.Medium)
             .clickable(role = Role.Switch) { tap(); onChange(!checked) }
             .padding(horizontal = 12.dp, vertical = 10.dp),

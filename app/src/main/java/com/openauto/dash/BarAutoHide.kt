@@ -8,6 +8,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
@@ -33,7 +35,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
@@ -61,7 +62,7 @@ private const val BAR_SLIDE_MS = 250
 private const val BAR_SETTLE_MS = 400L
 
 /** Band along the pages' bottom edge where a swipe up brings the hidden bar back. */
-private val REVEAL_EDGE = 32.dp
+private val REVEAL_EDGE = 48.dp
 
 /**
  * How long the bar waits, unused, before it hides: [seconds] (0 to
@@ -206,8 +207,9 @@ internal fun Modifier.swipeUpRevealsBar(state: BarAutoHideState, onRevealed: () 
 
 /**
  * Drawn over the pages' bottom edge while the bar is hidden: a slim pill, and
- * for a few seconds after the bar goes the words "swipe up" above it. It
- * takes no touches; the swipe is read by the pages ([swipeUpRevealsBar]).
+ * for a few seconds after the bar goes the words "swipe up" above it. A tap
+ * on the pill brings the bar back as well as the swipe, which the pages read
+ * ([swipeUpRevealsBar]): on some units the swipe also pulls in Android's own bars.
  */
 @Composable
 internal fun BarHandle(state: BarAutoHideState, modifier: Modifier = Modifier) {
@@ -220,14 +222,13 @@ internal fun BarHandle(state: BarAutoHideState, modifier: Modifier = Modifier) {
     val label = stringResource(R.string.dash_bar_show)
     Column(
         modifier = modifier
-            .padding(bottom = 4.dp)
-            .semantics {
-                contentDescription = label
-                onClick(label) {
-                    state.reveal()
-                    true
-                }
-            },
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClickLabel = label
+            ) { state.reveal() }
+            .semantics { contentDescription = label }
+            .padding(start = 40.dp, end = 40.dp, top = 12.dp, bottom = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         AnimatedVisibility(words, enter = fadeIn(), exit = fadeOut()) {
@@ -245,7 +246,8 @@ internal fun BarHandle(state: BarAutoHideState, modifier: Modifier = Modifier) {
         }
         Box(
             Modifier
-                .size(width = 56.dp, height = 4.dp)
+                .padding(top = 8.dp, bottom = 4.dp)
+                .size(width = 72.dp, height = 5.dp)
                 .clip(DashShape.Pill)
                 .background(DashColors.TextSecondary.copy(alpha = 0.55f))
         )

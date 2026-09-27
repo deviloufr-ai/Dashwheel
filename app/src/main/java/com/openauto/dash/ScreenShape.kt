@@ -42,6 +42,30 @@ object ScreenShape {
     @Volatile
     var vertical = false
 
+    /**
+     * A new direction being tried out: the choice to go back to unless the
+     * driver keeps the new one (Settings asks once the screen has turned).
+     * Null while nothing is being tried.
+     */
+    private val _tryingFrom = MutableStateFlow<ScreenOrientation?>(null)
+    val tryingFrom: StateFlow<ScreenOrientation?> = _tryingFrom
+
+    /** The screen's shape when the try-out began. */
+    private var verticalBefore = false
+
+    /** The screen has turned since the try-out began: there is something to keep or undo. */
+    val turned: Boolean get() = vertical != verticalBefore
+
+    /** Set when a turn is undone: the dashboard the turn rebuilds opens Settings again. */
+    @Volatile
+    private var reopen = false
+
+    /**
+     * Whether the dashboard being built should open Settings on the screen's
+     * own page: a turn is being tried out, or was just undone. Asked once per build.
+     */
+    fun settingsWanted(): Boolean = (_tryingFrom.value != null) or reopen.also { reopen = false }
+
     /** Saved layouts for an upright screen are kept under their own names. */
     val layoutPrefix: String get() = if (vertical) "_v" else ""
 
@@ -59,6 +83,30 @@ object ScreenShape {
             .putString(KEY, orientation.name).apply()
         _choice.value = orientation
         apply(activity)
+    }
+
+    /** Turns the screen to [orientation] on trial: [keep] makes it stay, [revert] undoes it. */
+    fun tryOut(activity: Activity, orientation: ScreenOrientation) {
+        if (orientation == _choice.value) return
+        // Several changes in a row go back to where the first one started.
+        if (_tryingFrom.value == null) {
+            _tryingFrom.value = _choice.value
+            verticalBefore = vertical
+        }
+        save(activity, orientation)
+    }
+
+    /** The direction on screen stays. */
+    fun keep() {
+        _tryingFrom.value = null
+    }
+
+    /** Back to the direction the try-out started from. */
+    fun revert(activity: Activity) {
+        val before = _tryingFrom.value ?: return
+        reopen = turned
+        _tryingFrom.value = null
+        save(activity, before)
     }
 
     /** Asks for the chosen orientation; Auto leaves the screen as the unit has it. */

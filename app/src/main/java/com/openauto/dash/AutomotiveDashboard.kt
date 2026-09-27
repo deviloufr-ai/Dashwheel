@@ -141,8 +141,16 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     /** The arrangement of the other layout (full width / beside the Maps dock) on this screen shape. */
     fun otherVariant() = variantOf(if (layout == DashLayout.GRID) DashLayout.MAPS_LEFT else DashLayout.GRID)
     var showTemplates by remember { mutableStateOf(false) }
-    // The Settings screen, on the tab it was opened to; null while closed.
-    var settingsTab by remember { mutableStateOf<SettingsTab?>(null) }
+    // The Settings screen, on the tab it was opened to; null while closed. A
+    // dashboard rebuilt by a turn of the screen made in Settings opens there again.
+    var settingsTab by remember { mutableStateOf(if (ScreenShape.settingsWanted()) SettingsTab.DISPLAY else null) }
+    /** Closes Settings: its open sheet leaves first, and a screen direction on trial stays. */
+    fun closeSettings() {
+        if (settingsTab == null) return
+        OpenSheet.dismiss()
+        ScreenShape.keep()
+        settingsTab = null
+    }
     DashColors.Sync(themeMode, appearance, effects)
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
@@ -258,7 +266,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     LaunchedEffect(homePressed) {
         if (homePressed > 0L) {
             showAllApps = false
-            settingsTab = null
+            closeSettings()
             editing = false
             showPage(DashboardStore.CENTER)
         }
@@ -266,7 +274,10 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     // A learned steering wheel button asking for the app drawer (SteeringWheelActions.kt).
     val openAppsRequested by MainActivity.openAppsRequested.collectAsState()
     LaunchedEffect(openAppsRequested) {
-        if (openAppsRequested > 0L) showAllApps = true
+        if (openAppsRequested > 0L) {
+            closeSettings()
+            showAllApps = true
+        }
     }
     var hasMediaAccess by remember { mutableStateOf(CarMediaController.hasNotificationAccess(context)) }
     // The demo's music and directions need no access grant.
@@ -304,7 +315,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             }
             showAddSheet -> showAddSheet = false
             showAllApps -> showAllApps = false
-            settingsTab != null -> settingsTab = null
+            settingsTab != null -> closeSettings()
             editing -> editing = false
             else -> showPage(DashboardStore.CENTER)
         }
@@ -334,7 +345,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     LaunchedEffect(moving) {
         if (moving) {
             editing = false
-            settingsTab = null
+            closeSettings()
             showTemplates = false
             showSystemDialog = false
             showAddSheet = false
@@ -744,6 +755,18 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             showAddSheet = true
         }
     }
+    // The bar stays in reach under the sheets that fill the pages (Settings,
+    // the setup, the add sheet, the app grid): what it starts closes them
+    // first, so nothing opens underneath one.
+    val closeSheets: () -> Unit = {
+        closeSettings()
+        showAddSheet = false
+        showAllApps = false
+        if (setupStep != null) {
+            SetupStore.markDone(context); setupDone = true
+            setupStep = null
+        }
+    }
     // The bar's "Finish setting up" pill: a tile on some page still lacks
     // what it needs, the setup has been seen, and the driver has not skipped it.
     val setupPending = remember(pages, accessGeneration, setupDone, setupPillOff, obdConnection) {
@@ -778,24 +801,47 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         obd = obd,
         editing = editing,
         layout = layout,
-        onLayout = switchLayout,
-        onApps = { showAllApps = true },
+        onLayout = { next ->
+            closeSheets()
+            switchLayout(next)
+        },
+        onApps = {
+            closeSheets()
+            showAllApps = true
+        },
         onConnectObd = onConnectObd,
         onSplit = {
             whenParked {
+                closeSheets()
                 if (SplitLauncher.isSystemSplitAvailable()) showSplitPicker = true
                 else showSplitEnable = true
             }
         },
-        onToggleEdit = { if (editing) editing = false else whenParked { editing = true } },
-        onTemplates = { whenParked { showTemplates = true } },
+        onToggleEdit = {
+            if (editing) editing = false
+            else whenParked {
+                closeSheets()
+                editing = true
+            }
+        },
+        onTemplates = {
+            whenParked {
+                closeSheets()
+                showTemplates = true
+            }
+        },
         onSystem = { whenParked { showSystemDialog = true } },
         onCheckUpdates = checkForUpdates,
         update = updateStatus,
         onUpdate = onUpdate,
         onDismissUpdate = { updateManager.dismiss() },
         setupPending = setupPending,
-        onSetup = { fromStart -> whenParked { setupStep = if (fromStart) SetupStep.CAR else SetupStep.ACCESS } },
+        onSetup = { fromStart ->
+            whenParked {
+                closeSheets()
+                setupStep = if (fromStart) SetupStep.CAR else SetupStep.ACCESS
+            }
+        },
         demo = demoOn,
         onDemo = { DemoMode.toggle(context) },
         merged = barForced,
@@ -806,7 +852,13 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             lockWhileMoving = it
             DriveLockStore.save(context, it)
         },
-        onSettings = { whenParked { settingsTab = SettingsTab.CAR } }
+        onSettings = {
+            whenParked {
+                closeSheets()
+                editing = false
+                settingsTab = SettingsTab.CAR
+            }
+        }
     )
 
     // The bar lives at the bottom: the OS status bar owns the top edge on
@@ -1026,13 +1078,6 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                     modifier = Modifier.align(Alignment.TopCenter).padding(top = 6.dp)
                 )
             }
-            // The skins' bars do not carry the setup pill; it floats over the pages there.
-            if (setupPending && DashColors.Skin != DashSkin.STANDARD && !editing) {
-                SetupPill(
-                    onClick = { whenParked { setupStep = SetupStep.ACCESS } },
-                    modifier = Modifier.align(Alignment.TopEnd).padding(top = 6.dp, end = 12.dp)
-                )
-            }
             if (lockNoticeAt > 0L) {
                 DriveLockChip(modifier = Modifier.align(Alignment.TopCenter).padding(top = 6.dp))
             }
@@ -1070,7 +1115,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                     m = settingsModel,
                     theme = themeState,
                     initialTab = tab,
-                    onClose = { settingsTab = null },
+                    onClose = { closeSettings() },
                     modifier = Modifier.fillMaxSize().padding(10.dp)
                 )
             }

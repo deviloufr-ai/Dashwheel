@@ -2,7 +2,7 @@
 <resources>
     <!-- Settings dialog (also the menu item) -->
     <string name="ai_title">Mécanicien IA</string>
-    <string name="ai_explanation">Quand l\'adaptateur se connecte, Dashwheel recherche les codes défaut. Un nouveau code est expliqué par Gemini et lu à voix haute. Envoyés à Google : les codes, les mesures moteur et le modèle, et votre voix quand vous posez une question à l\'oral.</string>
+    <string name="ai_explanation">Un nouveau code défaut est expliqué par Gemini et lu à voix haute. Envoyés à Google : les codes, les mesures moteur, le modèle, et votre voix quand vous posez une question à l\'oral.</string>
     <string name="ai_activation_code">Code d\'activation</string>
     <string name="ai_activation_hint">Déverrouille la clé intégrée</string>
     <string name="ai_activate">Activer</string>
@@ -76,7 +76,7 @@
     <string name="ai_clear_failed">Échec de l\'effacement</string>
     <string name="ai_thinking">Le mécanicien IA réfléchit…</string>
     <string name="ai_retry">Réessayer</string>
-    <string name="ai_note_no_key">Ajoutez une clé Gemini gratuite (menu → Mécanicien IA) pour des conseils en langage clair.</string>
+    <string name="ai_note_no_key">Ajoutez une clé Gemini gratuite dans Réglages → Voiture → Mécanicien IA pour des conseils en langage clair.</string>
     <string name="ai_note_unavailable">IA indisponible : %1$s</string>
 
     <!-- Why asking Gemini failed (follows "AI unavailable: " / "Didn't work: ") -->

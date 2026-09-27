@@ -3,7 +3,7 @@
     <!-- Demo mode: a made-up drive that shows every tile working (DemoMode.kt) -->
     <string name="demo_menu_start">Tryb demo</string>
     <string name="demo_menu_stop">Zatrzymaj demo</string>
-    <string name="demo_settings_detail">Zmyślona jazda po Paryżu wypełnia każdy kafelek, by pokazać pulpit na postoju. Nic nie jest zapisywane; dotknij plakietki, aby zatrzymać.</string>
+    <string name="demo_settings_detail">Zmyślona jazda wypełnia każdy kafelek. Nic nie jest zapisywane.</string>
     <string name="demo_badge">Demo · zmyślone dane</string>
     <string name="demo_stop">Stop</string>
     <!-- Fake turn-by-turn instructions; %1$s = street name -->

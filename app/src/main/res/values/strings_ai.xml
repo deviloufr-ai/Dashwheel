@@ -2,7 +2,7 @@
 <resources>
     <!-- Settings dialog (also the menu item) -->
     <string name="ai_title">AI mechanic</string>
-    <string name="ai_explanation">When the adapter connects, Dashwheel scans for fault codes. A new one is explained by Gemini and spoken. Sent to Google: the codes, engine readings and car model, and your voice when you ask a question out loud.</string>
+    <string name="ai_explanation">A new fault code is explained by Gemini and spoken. Sent to Google: the codes, engine readings, car model, and your voice when you ask a question out loud.</string>
     <string name="ai_activation_code">Activation code</string>
     <string name="ai_activation_hint">Unlocks the built-in key</string>
     <string name="ai_activate">Activate</string>
@@ -77,7 +77,7 @@
     <string name="ai_clear_failed">Clear failed</string>
     <string name="ai_thinking">Asking the AI mechanic…</string>
     <string name="ai_retry">Retry</string>
-    <string name="ai_note_no_key">Add a free Gemini key (menu → AI mechanic) for plain-language advice.</string>
+    <string name="ai_note_no_key">Add a free Gemini key in Settings → Car → AI mechanic for plain-language advice.</string>
     <string name="ai_note_unavailable">AI unavailable: %1$s</string>
 
     <!-- Why asking Gemini failed (follows "AI unavailable: " / "Didn't work: ") -->

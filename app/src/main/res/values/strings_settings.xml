@@ -99,4 +99,14 @@
     <string name="settings_screen_auto_hint_tall">Follows the screen: this one is upright</string>
     <string name="settings_screen_horizontal_hint">Turns the dashboard sideways, if the unit allows it</string>
     <string name="settings_screen_vertical_hint">Turns the dashboard upright with a layout of its own, if the unit allows it</string>
+    <!-- Settings by subject: Display and Alerts categories, the screen direction on trial -->
+    <string name="settings_section_display">Display</string>
+    <string name="settings_appearance_title">Day and night</string>
+    <string name="settings_section_popups">In place of the head unit\'s pop-ups</string>
+    <string name="alert_style_section">How each alert shows</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_screen_keep_title">Keep this screen direction?</string>
+    <string name="settings_screen_keep_detail">Goes back in %1$d s</string>
+    <string name="settings_screen_keep">Keep</string>
+    <string name="settings_screen_revert">Go back</string>
 </resources>

@@ -65,7 +65,7 @@ internal fun AlertStyleRows() {
     // The car's own alerts only on units whose car app Dashwheel can stand in for.
     val carApp = remember { RomPopups.available(context, RomPopups.Kind.DOORS) }
 
-    SettingsSection(stringResource(R.string.alert_section))
+    SettingsSection(stringResource(R.string.alert_style_section))
     val access = shellAccess()
     AlertKind.entries.filter { kind ->
         when (kind) {

@@ -10,6 +10,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -86,6 +87,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.Placeable
+import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -95,6 +99,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
@@ -163,9 +168,10 @@ internal fun TopBar(m: TopBarModel) {
 
 /**
  * Minimal bar: Apps and the layout picker on the left, the clock centred, the
- * OBD link dot and a ⋮ menu on the right. Set-and-forget controls (theme,
+ * OBD link pill and a ⋮ menu on the right. Set-and-forget controls (theme,
  * system install, edit) live in the menu; battery and coolant only appear, as
- * warning pills, when a reading is out of range.
+ * warning pills, when a reading is out of range. The buttons are
+ * [DashSize.Bar] tall and reach the screen's bottom edge.
  */
 @Composable
 internal fun StandardTopBar(m: TopBarModel) {
@@ -173,72 +179,160 @@ internal fun StandardTopBar(m: TopBarModel) {
     // solid themes keep the flat full-width strip.
     val glass = DashColors.Glass
     Surface(color = if (glass) Color.Transparent else DashColors.Bar, modifier = Modifier.fillMaxWidth()) {
-        // Three columns in a Row: the two sides share what the centre leaves,
-        // equally, so the centre stays centred and nothing can draw over it.
-        // A long alert on the right shortens (ellipsis) instead of overlapping.
-        Row(
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
                 .then(
                     if (glass) Modifier.padding(start = 12.dp, end = 12.dp, bottom = 10.dp).then(glassPanel(DashShape.Large))
                     else Modifier
                 )
-                .padding(horizontal = 6.dp, vertical = 2.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(horizontal = 6.dp)
         ) {
-            Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = m.onApps) {
-                    Icon(Icons.Filled.Apps, contentDescription = stringResource(R.string.dash_all_apps), tint = DashColors.TextPrimary)
+            // An upright screen, or half of a split one: no room to keep the
+            // clock centred, so the left side takes only what its buttons need.
+            val narrow = maxWidth < NARROW_BAR
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Row(modifier = if (narrow) Modifier else Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                    BarButton(
+                        onClick = m.onApps,
+                        label = if (narrow) null else stringResource(R.string.dash_apps),
+                        description = stringResource(R.string.dash_all_apps)
+                    ) {
+                        Icon(Icons.Filled.Apps, contentDescription = null, tint = DashColors.TextPrimary, modifier = Modifier.size(28.dp))
+                    }
+                    LayoutPicker(m) { open ->
+                        BarButton(onClick = open, description = stringResource(R.string.dash_screen_layout, m.layout.title)) {
+                            LayoutIcon(m.layout, null, DashColors.TextSecondary, Modifier.size(28.dp))
+                        }
+                    }
                 }
-                LayoutPicker(m) { open ->
-                    IconButton(onClick = open) {
-                        LayoutIcon(m.layout, stringResource(R.string.dash_screen_layout, m.layout.title), DashColors.TextSecondary)
+
+                // A cluster bar (Mistral) puts the speed in the middle, like the car's
+                // own central display, and moves the clock to the right; without a
+                // speed source it is the plain bar again.
+                val speed = if (DashColors.BarStyle == DashBarStyle.CLUSTER) rememberSpeedKmh(m.obdData, m.obdConnection) else null
+                val cluster = speed != null
+                Box(modifier = Modifier.padding(horizontal = 8.dp), contentAlignment = Alignment.Center) {
+                    when {
+                        cluster -> ClusterReadout(speed ?: 0, m.obdData, m.obdConnection == ObdConnectionState.CONNECTED)
+                        // The head unit's status bar shows the time while it is up.
+                        !m.merged -> BarClock(m.clock)
+                    }
+                }
+
+                // ⋮ and the OBD pill get their room first, whatever else is on
+                // the bar; the badges go short when they share it.
+                BarEnd(modifier = Modifier.weight(1f)) {
+                    if (cluster) {
+                        Box(Modifier.layoutId(BarRank.CLOCK).padding(end = 10.dp)) {
+                            BarClock(m.clock, MaterialTheme.typography.titleMedium)
+                        }
+                    }
+                    if (m.demo) {
+                        Box(Modifier.layoutId(BarRank.DEMO).padding(end = 6.dp)) {
+                            DemoBadge(onStop = m.onDemo, compact = narrow || m.setupPending)
+                        }
+                    }
+                    Row(modifier = Modifier.layoutId(BarRank.ALERTS), verticalAlignment = Alignment.CenterVertically) {
+                        VehicleAlerts(m.obdConnection, m.obd)
+                    }
+                    Box(Modifier.layoutId(BarRank.PHONE).padding(end = 6.dp)) { PhonePill() }
+                    if (m.setupPending) {
+                        Box(Modifier.layoutId(BarRank.SETUP).padding(end = 6.dp)) {
+                            SetupPill(onClick = { m.onSetup(false) }, compact = narrow || m.demo)
+                        }
+                    }
+                    Box(Modifier.layoutId(BarRank.OBD)) { ObdPill(m.obdConnection, m.onConnectObd) }
+                    Box(Modifier.layoutId(BarRank.MORE)) {
+                        MorePicker(m) { open ->
+                            BarButton(onClick = open, description = stringResource(R.string.dash_more)) {
+                                Icon(Icons.Filled.MoreVert, contentDescription = null, tint = DashColors.TextSecondary, modifier = Modifier.size(28.dp))
+                            }
+                        }
                     }
                 }
             }
+        }
+    }
+}
 
-            // A cluster bar (Mistral) puts the speed in the middle, like the car's
-            // own central display, and moves the clock to the right; without a
-            // speed source it is the plain bar again.
-            val speed = if (DashColors.BarStyle == DashBarStyle.CLUSTER) rememberSpeedKmh(m.obdData, m.obdConnection) else null
-            val cluster = speed != null
-            Box(modifier = Modifier.padding(horizontal = 8.dp), contentAlignment = Alignment.Center) {
-                when {
-                    cluster -> ClusterReadout(speed ?: 0, m.obdData, m.obdConnection == ObdConnectionState.CONNECTED)
-                    // The head unit's status bar shows the time while it is up.
-                    !m.merged -> BarClock(m.clock)
+/** Under this width a bar stops centring its clock and shortens its badges. */
+internal val NARROW_BAR = 900.dp
+
+/** Who gets room first at the bar's end ([BarEnd]); lowest first. */
+internal object BarRank {
+    const val MORE = 0
+    const val OBD = 1
+    const val CLOCK = 2
+    const val ALERTS = 3
+    const val DEMO = 4
+    const val SETUP = 5
+    const val PHONE = 6
+}
+
+/**
+ * The bar's end, right-aligned in the order written. Room is handed out by
+ * [BarRank] (the child's layoutId), so a crowded bar never squeezes ⋮ or the
+ * OBD pill: what comes last in rank and no longer fits is left out whole.
+ */
+@Composable
+internal fun BarEnd(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    Layout(content = content, modifier = modifier) { measurables, constraints ->
+        val placeables = arrayOfNulls<Placeable>(measurables.size)
+        val maxHeight = constraints.maxHeight
+        var left = constraints.maxWidth
+        measurables.indices
+            .sortedBy { (measurables[it].layoutId as? Int) ?: Int.MAX_VALUE }
+            .forEach { i ->
+                val rank = (measurables[i].layoutId as? Int) ?: Int.MAX_VALUE
+                // The menu and the link pill always show; the rest only where it fits.
+                if (rank > BarRank.OBD && (left <= 0 || measurables[i].minIntrinsicWidth(maxHeight) > left)) return@forEach
+                val p = measurables[i].measure(Constraints(maxWidth = left.coerceAtLeast(0), maxHeight = maxHeight))
+                placeables[i] = p
+                left -= p.width
+            }
+        val width = if (constraints.hasBoundedWidth) constraints.maxWidth else constraints.maxWidth - left
+        val height = (placeables.maxOfOrNull { it?.height ?: 0 } ?: 0).coerceIn(constraints.minHeight, maxHeight)
+        layout(width, height) {
+            var x = left.coerceAtLeast(0)
+            placeables.forEach { p ->
+                if (p != null) {
+                    p.placeRelative(x, (height - p.height) / 2)
+                    x += p.width
                 }
             }
+        }
+    }
+}
 
-            Row(
-                modifier = Modifier.weight(1f),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (cluster) {
-                    BarClock(m.clock, MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.width(10.dp))
-                }
-                if (m.demo) {
-                    DemoBadge(onStop = m.onDemo)
-                    Spacer(Modifier.width(6.dp))
-                }
-                // Takes what is left and no more; its pills shorten first.
-                Row(modifier = Modifier.weight(1f, fill = false), verticalAlignment = Alignment.CenterVertically) {
-                    VehicleAlerts(m.obdConnection, m.obd)
-                    PhonePill()
-                }
-                if (m.setupPending) {
-                    SetupPill(onClick = { m.onSetup(false) })
-                    Spacer(Modifier.width(6.dp))
-                }
-                ObdPill(m.obdConnection, m.onConnectObd)
-                MorePicker(m) { open ->
-                    IconButton(onClick = open) {
-                        Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.dash_more), tint = DashColors.TextSecondary)
-                    }
-                }
-            }
+/**
+ * A button of the standard bar: [DashSize.Bar] each way at least, so it can
+ * be hit without aiming, with [label] beside the icon where there is room.
+ */
+@Composable
+private fun BarButton(onClick: () -> Unit, description: String, label: String? = null, icon: @Composable () -> Unit) {
+    val tap = rememberTapFeedback()
+    Row(
+        modifier = Modifier
+            .heightIn(min = DashSize.Bar)
+            .widthIn(min = DashSize.Bar)
+            .clip(DashShape.Medium)
+            .clickable(role = Role.Button, onClickLabel = description) { tap(); onClick() }
+            .semantics(mergeDescendants = true) { contentDescription = description }
+            .padding(horizontal = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        icon()
+        if (label != null) {
+            Spacer(Modifier.width(10.dp))
+            Text(
+                label,
+                color = DashColors.TextPrimary,
+                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1
+            )
         }
     }
 }
@@ -423,7 +517,7 @@ internal fun ObdPill(state: ObdConnectionState, onConnect: () -> Unit, modifier:
     val tap = rememberTapFeedback()
     Box(
         modifier = modifier
-            .heightIn(min = 48.dp)
+            .heightIn(min = DashSize.TouchPrimary)
             .clip(shape)
             .clickable(enabled = idle, role = Role.Button) { tap(); onConnect() }
             .semantics(mergeDescendants = true) { contentDescription = label }
@@ -432,7 +526,7 @@ internal fun ObdPill(state: ObdConnectionState, onConnect: () -> Unit, modifier:
     ) {
         Row(
             modifier = Modifier
-                .height(36.dp)
+                .height(40.dp)
                 .clip(shape)
                 .background(if (off) Color.Transparent else color.copy(alpha = 0.14f))
                 .border(1.dp, if (off) DashColors.Line else color.copy(alpha = 0.5f), shape)
@@ -539,7 +633,7 @@ internal fun MorePicker(m: TopBarModel, anchor: @Composable (open: () -> Unit) -
             Box(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = 8.dp, end = 8.dp)
+                    .padding(top = 12.dp, end = 12.dp)
                     .size(10.dp)
                     .clip(CircleShape)
                     .background(DashColors.Accent)
@@ -645,18 +739,23 @@ private fun DashMenuItem(
     leading: @Composable () -> Unit,
     selected: Boolean = false,
     enabled: Boolean = true,
+    /** In the accent colour without being a choice (no check mark): the update on offer. */
+    highlighted: Boolean = false,
     onClick: () -> Unit
 ) {
     DropdownMenuItem(
+        // Rows a finger finds in a moving car, not a phone menu's.
+        modifier = Modifier.heightIn(min = DashSize.MenuRow),
         text = {
             Text(
                 text,
                 color = when {
                     !enabled -> DashColors.Muted
-                    selected -> DashColors.Accent
+                    selected || highlighted -> DashColors.Accent
                     else -> DashColors.TextPrimary
                 },
-                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+                fontWeight = if (selected || highlighted) FontWeight.SemiBold else FontWeight.Normal,
+                style = MaterialTheme.typography.bodyLarge
             )
         },
         leadingIcon = leading,
@@ -741,33 +840,41 @@ private fun AlertChip(alert: VehicleAlert, onAcknowledge: (() -> Unit)?) {
     }
 }
 
-/** Floats over the dashboard while [DemoMode] runs, so made-up readings are never taken for the car's; tap to stop. */
+/**
+ * Floats over the dashboard while [DemoMode] runs, so made-up readings are
+ * never taken for the car's; tap to stop. [compact] where the bar is shared
+ * with other badges: the dot and "Stop demo".
+ */
 @Composable
-internal fun DemoBadge(onStop: () -> Unit, modifier: Modifier = Modifier) {
+internal fun DemoBadge(onStop: () -> Unit, modifier: Modifier = Modifier, compact: Boolean = false) {
     val shape = DashShape.Pill
+    val tap = rememberTapFeedback()
     Row(
         modifier = modifier
+            .heightIn(min = DashSize.Touch)
             .clip(shape)
             .background(DashColors.Card.copy(alpha = 1f))
             .border(1.dp, DashColors.Accent.copy(alpha = 0.6f), shape)
-            .clickable(onClick = onStop)
-            .padding(start = 14.dp, end = 10.dp, top = 8.dp, bottom = 8.dp),
+            .clickable(role = Role.Button) { tap(); onStop() }
+            .padding(start = 14.dp, end = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(Modifier.size(8.dp).clip(CircleShape).background(DashColors.Accent))
         Spacer(Modifier.width(8.dp))
-        Text(
-            stringResource(R.string.demo_badge),
-            color = DashColors.TextPrimary,
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.labelMedium,
-            maxLines = 1
-        )
-        Spacer(Modifier.width(12.dp))
+        if (!compact) {
+            Text(
+                stringResource(R.string.demo_badge),
+                color = DashColors.TextPrimary,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.labelMedium,
+                maxLines = 1
+            )
+            Spacer(Modifier.width(12.dp))
+        }
         Icon(Icons.Filled.Close, contentDescription = null, tint = DashColors.Accent, modifier = Modifier.size(16.dp))
         Spacer(Modifier.width(4.dp))
         Text(
-            stringResource(R.string.demo_stop),
+            stringResource(if (compact) R.string.demo_menu_stop else R.string.demo_stop),
             color = DashColors.Accent,
             fontWeight = FontWeight.Bold,
             style = MaterialTheme.typography.labelMedium,
@@ -927,7 +1034,7 @@ private fun UpdateMenuRow(status: UpdateStatus, parked: Boolean, onUpdate: () ->
     DashMenuItem(
         text = text,
         leading = { MenuIcon(Icons.Filled.SystemUpdate, enabled) },
-        selected = status !is UpdateStatus.Downloading,
+        highlighted = status !is UpdateStatus.Downloading,
         enabled = enabled,
         onClick = onUpdate
     )
@@ -938,31 +1045,37 @@ private fun UpdateMenuRow(status: UpdateStatus, parked: Boolean, onUpdate: () ->
  * On the bar while something the launcher could use is still not allowed
  * (notifications, location, contacts, calendar, the OBD adapter): one pill
  * for all of them, in place of a button on every tile. Opens the setup's
- * access step.
+ * access step. [compact] where the bar is tight: the mark alone.
  */
 @Composable
-internal fun SetupPill(onClick: () -> Unit, modifier: Modifier = Modifier) {
+internal fun SetupPill(onClick: () -> Unit, modifier: Modifier = Modifier, compact: Boolean = false) {
     val shape = DashShape.Pill
     val tap = rememberTapFeedback()
+    val label = stringResource(R.string.setup_pill)
     Row(
         modifier = modifier
             .heightIn(min = DashSize.Touch)
+            .widthIn(min = DashSize.Touch)
             .clip(shape)
             .background(DashColors.Card.copy(alpha = 1f))
             .border(1.dp, DashColors.Warning.copy(alpha = 0.7f), shape)
-            .clickable(role = Role.Button) { tap(); onClick() }
+            .clickable(role = Role.Button, onClickLabel = label) { tap(); onClick() }
+            .semantics(mergeDescendants = true) { contentDescription = label }
             .padding(horizontal = 14.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
     ) {
         Icon(Icons.Filled.Info, contentDescription = null, tint = DashColors.Warning, modifier = Modifier.size(20.dp))
-        Spacer(Modifier.width(8.dp))
-        Text(
-            stringResource(R.string.setup_pill),
-            color = DashColors.TextPrimary,
-            fontWeight = FontWeight.SemiBold,
-            style = MaterialTheme.typography.labelMedium,
-            maxLines = 1
-        )
+        if (!compact) {
+            Spacer(Modifier.width(8.dp))
+            Text(
+                label,
+                color = DashColors.TextPrimary,
+                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.labelMedium,
+                maxLines = 1
+            )
+        }
     }
 }
 

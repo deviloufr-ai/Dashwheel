@@ -184,4 +184,6 @@
     <string name="dash_tile_design">Design</string>
     <string name="dash_tile_move">Move to another page</string>
     <string name="dash_tile_remove">Remove</string>
+    <!-- The bar's Apps button, labelled -->
+    <string name="dash_apps">Apps</string>
 </resources>
