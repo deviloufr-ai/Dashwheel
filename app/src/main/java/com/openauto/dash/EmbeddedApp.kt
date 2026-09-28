@@ -525,6 +525,9 @@ internal object EmbeddedApp {
     /** The shortest time between two closings of an app whose tile stays black. */
     private const val REOPEN_EVERY_MS = 60_000L
 
+    /** How long the display draws on its spare picture before the tile's is handed back. */
+    private const val REFRESH_MS = 300L
+
     /** What a look at the tile calls for. */
     enum class Remedy {
         /** The app shows on its tile. */
@@ -628,6 +631,22 @@ internal object EmbeddedApp {
         private var shownHeight = 0
         private var shownDpi = 0
 
+        /**
+         * A picture nobody looks at, for the display while no tile can take
+         * it (arranging, a page no longer kept): with no picture at all
+         * Android 10 switches the display off and the app sleeps, and on the
+         * head unit Google Maps wakes black.
+         */
+        private var spareTexture: SurfaceTexture? = null
+        private var spare: Surface? = null
+
+        /** The spare picture, [width] x [height] pixels. Main thread. */
+        private fun spare(width: Int, height: Int): Surface {
+            val texture = spareTexture ?: SurfaceTexture(false).also { spareTexture = it }
+            if (width > 0 && height > 0) texture.setDefaultBufferSize(width, height)
+            return spare ?: Surface(texture).also { spare = it }
+        }
+
         /** [tile] shows [surface], [width] x [height] pixels at [dpi]; [black] tells whether its picture is all black. */
         fun attach(tile: Any, surface: Surface, width: Int, height: Int, dpi: Int, black: () -> Boolean = { false }) {
             val t = tiles.getOrPut(tile) { Tile() }
@@ -649,8 +668,8 @@ internal object EmbeddedApp {
 
         /**
          * [tile] lost its picture (a page no longer kept, arranging): the
-         * display moves to another tile of the app if there is one, else stays
-         * without a picture, so the app keeps running.
+         * display moves to another tile of the app if there is one, else draws
+         * on its spare picture, so the app keeps running.
          */
         fun detach(tile: Any) {
             tiles[tile]?.surface = null
@@ -666,8 +685,8 @@ internal object EmbeddedApp {
         /**
          * Gives the display to the tile [pickTile] chooses, when it is not
          * already there. A tile on a page beside the one on screen keeps its
-         * picture: without one Android 10 switches the display off and the app
-         * sleeps, and on the head unit Google Maps wakes black.
+         * picture, and with no tile left to draw on the display gets its
+         * [spare] one: it is never left without, see there.
          */
         private fun route() {
             val ready = tiles.filterValues { it.surface != null }.keys.toList()
@@ -678,7 +697,7 @@ internal object EmbeddedApp {
             if (t == null || surface == null) {
                 shownOn = null
                 shownSurface = null
-                display?.surface = null
+                display?.let { it.surface = spare(shownWidth, shownHeight) }
                 return
             }
             if (next == shownOn && surface === shownSurface &&
@@ -758,6 +777,10 @@ internal object EmbeddedApp {
                 WindowListing.embeddedDisplays = WindowListing.embeddedDisplays - vd.display.displayId
                 vd.release()
             }
+            spare?.release()
+            spare = null
+            spareTexture?.release()
+            spareTexture = null
             held = held - packageName
             scope.launch { FreeformBar.insideFloats(context, packageName, false) }
             display = null
@@ -789,22 +812,29 @@ internal object EmbeddedApp {
          * Looks at the tile again after a placing, and acts while the app does
          * not show there, see [remedy]. Only while the dashboard is in front
          * with this tile's picture on the display: an app the user opens full
-         * screen meanwhile is left there.
+         * screen meanwhile is left there. An app opened afresh is looked at
+         * once more: it is not closed a second time ([REOPEN_EVERY_MS]), only
+         * placed again and given its picture again.
          */
         private suspend fun watch(vd: VirtualDisplay) {
+            if (looks(vd)) looks(vd)
+        }
+
+        /** One round of looks at the tile; true when it ended with the app opened afresh. */
+        private suspend fun looks(vd: VirtualDisplay): Boolean {
             val id = vd.display.displayId
             for ((look, wait) in LOOK_AFTER_MS.withIndex()) {
                 delay(wait)
-                if (_status.value != Status.SHOWN || display !== vd || dashboard?.get() == null) return
-                val black = withContext(Dispatchers.Main) { if (shownSurface == null) null else pictureBlack() } ?: return
-                val found = listStacks() ?: return
+                if (_status.value != Status.SHOWN || display !== vd || dashboard?.get() == null) return false
+                val black = withContext(Dispatchers.Main) { if (shownSurface == null) null else pictureBlack() } ?: return false
+                val found = listStacks() ?: return false
                 val onTile = found.isNotEmpty() && found.all { it.displayId == id && it.visible }
                 val now = SystemClock.elapsedRealtime()
                 val mayReopen = now - startedAt > FRESH_MS && (reopenedAt == 0L || now - reopenedAt > REOPEN_EVERY_MS)
                 val remedy = remedy(look, onTile, black, mayReopen)
                 if (remedy == Remedy.DONE) {
                     if (look > 0) Log.i(TAG, "$packageName shows on its tile")
-                    return
+                    return false
                 }
                 val where = if (found.isEmpty()) "not running" else found.joinToString {
                     "stack ${it.stackId} ${it.mode} on display ${it.displayId}" + if (it.visible) "" else " hidden"
@@ -814,11 +844,15 @@ internal object EmbeddedApp {
                 when (remedy) {
                     Remedy.PLACE -> place(vd)
                     Remedy.REFRESH -> withContext(Dispatchers.Main) { refresh(vd) }
-                    Remedy.REOPEN -> reopen(vd)
-                    Remedy.GIVE_UP -> return
+                    Remedy.REOPEN -> {
+                        reopen(vd)
+                        return true
+                    }
+                    Remedy.GIVE_UP -> return false
                     else -> Unit
                 }
             }
+            return false
         }
 
         /** Whether the tile on screen shows one flat black. Main thread. */
@@ -827,11 +861,18 @@ internal object EmbeddedApp {
             return tile.onScreen && tile.black()
         }
 
-        /** Hands the tile's picture to the display again, as when the tile comes on screen. Main thread. */
-        private fun refresh(vd: VirtualDisplay) {
+        /**
+         * Hands the display its [spare] picture for a moment, then the tile's
+         * again: the system draws the whole display afresh for it. Never no
+         * picture at all, which switches the display off. Main thread.
+         */
+        private suspend fun refresh(vd: VirtualDisplay) {
+            if (display !== vd || shownSurface == null) return
+            vd.surface = spare(shownWidth, shownHeight)
+            delay(REFRESH_MS)
+            // The tile may have changed meanwhile, or gone: the display was seen to then.
             val surface = shownSurface ?: return
             if (display !== vd) return
-            vd.surface = null
             vd.resize(shownWidth, shownHeight, shownDpi)
             vd.surface = surface
         }
