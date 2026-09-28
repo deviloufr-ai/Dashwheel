@@ -139,8 +139,6 @@
     <string name="design_desk_calendar_desc">Dzisiejsza kartka obok następnego wydarzenia.</string>
     <string name="design_card_stack">Stos kart</string>
     <string name="design_card_stack_desc">Najnowsze na wierzchu, reszta wystaje z tyłu.</string>
-    <string name="design_rotary_phone">Telefon z tarczą</string>
-    <string name="design_rotary_phone_desc">Ulubione w otworach tarczy.</string>
     <string name="design_faces">Twarze</string>
     <string name="design_faces_desc">Duże kółka kontaktów, jedno dotknięcie, by zadzwonić.</string>
     <string name="design_badge">Plakietka</string>

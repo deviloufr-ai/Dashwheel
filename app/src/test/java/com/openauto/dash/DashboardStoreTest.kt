@@ -337,9 +337,14 @@ class DashboardStoreTest {
         val framed = setOf(BuiltinKind.NAVMAP, BuiltinKind.PIP_ANCHOR, BuiltinKind.MAPS_INSIDE, BuiltinKind.MY_CAR)
         // Every redrawn widget gets at least two designs made for it; live views get none,
         // and the dashboard bar, all buttons, has no designs at all.
+        // The speed keeps one: the road sign went, a number in a red ring reads as the limit.
         BuiltinKind.entries.filter { it !in framed && it != BuiltinKind.DASH_BAR }.forEach { kind ->
-            assertTrue("$kind", WidgetDesign.entries.count { it.isSignature && it.appliesTo(kind) } >= 2)
+            val least = if (kind == BuiltinKind.SPEED_HUD) 1 else 2
+            assertTrue("$kind", WidgetDesign.entries.count { it.isSignature && it.appliesTo(kind) } >= least)
         }
+        assertFalse(WidgetDesign.ROAD_SIGN.appliesTo(BuiltinKind.SPEED_HUD))
+        // A retired design's tiles wear its successor.
+        assertEquals(WidgetDesign.FACES, WidgetDesign.fromName("ROTARY_PHONE"))
         framed.forEach { kind -> assertTrue(WidgetDesign.offeredFor(kind, framed = true).none { it.isSignature }) }
         assertTrue(WidgetDesign.THERMOMETER.appliesTo(BuiltinKind.WARMUP))
         assertFalse(WidgetDesign.THERMOMETER.appliesTo(BuiltinKind.MEDIA))

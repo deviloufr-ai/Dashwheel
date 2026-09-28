@@ -91,4 +91,5 @@
     <string name="ai_error_tls">ligação segura recusada: verifique a data e a hora do rádio</string>
     <string name="ai_error_connect">não foi possível ligar à Google</string>
     <string name="ai_error_unknown">erro desconhecido</string>
+    <string name="ai_say_overcharging">A tensão da bateria está demasiado alta: %1$s volts com o motor a trabalhar. O regulador de carga pode estar avariado: mande verificar em breve.</string>
 </resources>

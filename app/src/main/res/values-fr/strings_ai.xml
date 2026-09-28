@@ -91,4 +91,5 @@
     <string name="ai_error_tls">connexion sécurisée refusée : vérifiez la date et l\'heure de l\'autoradio</string>
     <string name="ai_error_connect">impossible de joindre Google</string>
     <string name="ai_error_unknown">erreur inconnue</string>
+    <string name="ai_say_overcharging">La tension de la batterie est trop élevée : %1$s volts moteur tournant. Le régulateur de charge est peut-être défaillant : faites-le contrôler bientôt.</string>
 </resources>

@@ -381,6 +381,25 @@ object PipAnchor {
         Result.failure(e)
     }
 
+    /**
+     * Whether [packageName] has no process left. Closing its window leaves the
+     * app running; a crash or the system killing it does not. A shell that
+     * can't be asked counts as "still running": the window is then taken as
+     * closed by the driver, as before.
+     */
+    private suspend fun processGone(context: Context, packageName: String): Boolean =
+        runGuarded { DockShell.shell(context, "pidof $packageName") }
+            .map { out -> processGone(out, packageName) }
+            .getOrDefault(false)
+
+    /**
+     * [out] of `pidof`: nothing at all (the shell's echo of the command aside)
+     * means no process. A process id means running; anything else is an error,
+     * which proves nothing, so it counts as running.
+     */
+    internal fun processGone(out: String, packageName: String): Boolean =
+        out.lines().map { it.trim() }.none { it.isNotEmpty() && !it.contains(packageName) }
+
     /** True while the "Maps left" layout's permanent dock is on screen. */
     val dockActive = MutableStateFlow(false)
 
@@ -461,10 +480,14 @@ object PipAnchor {
                 noteFreeform(packageName, false)
                 if (onScreenWindows().isEmpty()) setDashboardFocusable(context, true)
                 val keepOpen = autoOpen(context, packageName)
+                val expected = expectedGone.remove(packageName)
+                // Only asked when a window we did not close just went: did the app die with it?
+                val died = mem.hadWindow && !expected && keepOpen && processGone(context, packageName)
                 val (step, next) = DockPolicy.onMissing(
-                    mem, expectedGone = expectedGone.remove(packageName),
+                    mem, expectedGone = expected,
                     autoOpen = keepOpen,
-                    lastReopenAt = lastReopenAt[packageName] ?: 0L, now = now
+                    lastReopenAt = lastReopenAt[packageName] ?: 0L, now = now,
+                    died = died
                 )
                 mem = next
                 // No window and none to open: nothing happens until the user
@@ -484,6 +507,7 @@ object PipAnchor {
                         status.value = status.value.copy(error = context.getString(R.string.apps_window_error_gave_up))
                     }
                     is DockPolicy.Step.Reopen -> {
+                        if (died) Log.w(TAG, "$packageName died with its window; opening it again")
                         lastReopenAt[packageName] = now
                         val bounds = android.graphics.Rect(rect.left, rect.top, rect.right, rect.bottom)
                         Log.i(TAG, "opening $packageName at $rect (attempt ${step.attempt})")

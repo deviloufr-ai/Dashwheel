@@ -2,6 +2,7 @@ package com.openauto.dash
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.Locale
 
@@ -32,6 +33,42 @@ class TyresTest {
         // A sensor not heard says nothing about the tyre.
         assertNull(tyreProblem(tyre(0, noSignal = true)))
         assertNull(tyreProblem(tyre(0)))
+    }
+
+    @Test
+    fun aTyreAtTheLimitIsOneAlertNotAFlicker() {
+        // Low at 180, then 181, 180, 181, 190: low throughout, until clearly back.
+        var before: TyreProblem? = null
+        listOf(180, 181, 180, 181, 190).forEach { kPa ->
+            before = tyreProblem(tyre(kPa), before)
+            assertEquals("at $kPa kPa", TyreProblem.LOW, before)
+        }
+        assertNull(tyreProblem(tyre(TYRE_LOW_KPA + TYRE_CLEAR_KPA), before))
+        // Hot the same way.
+        assertEquals(TyreProblem.HOT, tyreProblem(tyre(230, celsius = 73), TyreProblem.HOT))
+        assertNull(tyreProblem(tyre(230, celsius = 70), TyreProblem.HOT))
+        // Without a problem before, 181 kPa is fine.
+        assertNull(tyreProblem(tyre(181)))
+    }
+
+    @Test
+    fun theLowLimitFollowsTheCarsOwnPressures() {
+        val car = CarProfile.PRESET.copy(tyreFrontBar = 2.5, tyreRearBar = 2.2)
+        assertEquals(200, tyreLowKpa(TyrePos.FRONT_LEFT, car))
+        assertEquals(176, tyreLowKpa(TyrePos.REAR_RIGHT, car))
+        assertEquals(TYRE_LOW_KPA, tyreLowKpa(TyrePos.SPARE, car))
+        assertEquals(TYRE_LOW_KPA, tyreLowKpa(TyrePos.FRONT_LEFT, car.copy(tyreFrontBar = null)))
+        // 195 kPa is low on a front tyre meant for 2.5 bar, fine on a rear one meant for 2.2.
+        val tyres = mapOf(TyrePos.FRONT_LEFT to tyre(195), TyrePos.REAR_LEFT to tyre(195))
+        assertEquals(mapOf(TyrePos.FRONT_LEFT to TyreProblem.LOW), tyreProblems(tyres, emptyMap(), now = 1_000, car = car))
+    }
+
+    @Test
+    fun aSensorThatWentQuietHoldsNoWarningUp() {
+        val car = CarProfile.PRESET.copy(tyreFrontBar = null, tyreRearBar = null)
+        val tyres = mapOf(TyrePos.FRONT_LEFT to tyre(150))
+        assertEquals(mapOf(TyrePos.FRONT_LEFT to TyreProblem.LOW), tyreProblems(tyres, emptyMap(), now = TYRE_STALE_MS, car = car))
+        assertTrue(tyreProblems(tyres, emptyMap(), now = TYRE_STALE_MS + 1, car = car).isEmpty())
     }
 
     @Test

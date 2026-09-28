@@ -784,26 +784,16 @@ private fun MenuIcon(icon: ImageVector, enabled: Boolean = true) {
  * out of range, red ones for a critical reading, kept until tapped. Nothing
  * shows while everything is normal or OBD is off.
  */
+@Suppress("UNUSED_PARAMETER")
 @Composable
 internal fun VehicleAlerts(obdConnection: ObdConnectionState, obd: State<ObdData>) {
-    val context = LocalContext.current
-    val battery = BatteryWatch.state.collectAsState()
-    // Re-evaluated on every sample, but only a changed list of alerts recomposes the pills.
-    val live by remember(obdConnection, context) {
-        derivedStateOf {
-            if (obdConnection == ObdConnectionState.CONNECTED) vehicleAlerts(context, obd.value, battery.value) else emptyList()
-        }
-    }
-    // A critical reading goes to the centre, which keeps it until it is tapped.
-    LaunchedEffect(live) {
-        live.filter { it.level == AlertLevel.CRITICAL }.forEach { AlertCenter.raise(it) }
-        AlertCenter.noteWarnings(live.filter { it.level == AlertLevel.WARNING })
-    }
+    // Judged for the whole process (AlertCenter.evaluate, from VehicleMonitor),
+    // so an alert raised behind a full-screen app is here when the bar comes back.
     val held = AlertCenter.critical
     held.values.sortedBy { it.key }.forEach { alert ->
         AlertChip(alert, onAcknowledge = { AlertCenter.acknowledge(alert.key) })
     }
-    live.filter { it.level == AlertLevel.WARNING && !held.containsKey(it.key) }.forEach { alert ->
+    AlertCenter.warnings.filter { !held.containsKey(it.key) }.forEach { alert ->
         AlertChip(alert, onAcknowledge = null)
     }
 }

@@ -60,10 +60,10 @@ enum class BuiltinKind(
     MY_CAR(R.string.car_kind_my_car, WidgetCategory.VEHICLE, R.string.car_kind_my_car_blurb, 4, 3),
     ECO_DRIVE(R.string.car_kind_eco, WidgetCategory.DRIVING, R.string.car_kind_eco_blurb, 4, 3),
     BREAK_TIMER(R.string.car_kind_break, WidgetCategory.DRIVING, R.string.car_kind_break_blurb, 3, 3),
-    FUEL_TO_DEST(R.string.car_kind_fuel_dest, WidgetCategory.NAVIGATION, R.string.car_kind_fuel_dest_blurb, 3, 3),
+    FUEL_TO_DEST(R.string.car_kind_fuel_dest, WidgetCategory.VEHICLE, R.string.car_kind_fuel_dest_blurb, 3, 3),
     // Servicing planner (Maintenance.kt) and fuel prices around the car (FuelPrices.kt).
     SERVICE(R.string.upkeep_kind, WidgetCategory.VEHICLE, R.string.upkeep_kind_blurb, 4, 3),
-    FUEL_PRICES(R.string.fuel_kind, WidgetCategory.NAVIGATION, R.string.fuel_kind_blurb, 4, 3),
+    FUEL_PRICES(R.string.fuel_kind, WidgetCategory.VEHICLE, R.string.fuel_kind_blurb, 4, 3),
     // The car's own data from its CAN box, on the QF firmware (CarBox.kt).
     CAR_STATUS(R.string.car_kind_status, WidgetCategory.VEHICLE, R.string.car_kind_status_blurb, 4, 3),
     // The TPMS sensors, through the head unit's TPMS app (Tyres.kt).
@@ -75,6 +75,21 @@ enum class BuiltinKind(
     // The gear engaged, from reverse and the revs against the speed (GearEstimator.kt).
     GEAR(R.string.gear_kind, WidgetCategory.DRIVING, R.string.gear_kind_blurb, 3, 2)
 }
+
+/**
+ * Kinds the add sheet no longer offers, for being another tile twice over or
+ * showing nothing useful in the car: All OBD data is Engine gauges in another
+ * order; the Maps window and Google Maps inside are the Windows tab's own two
+ * ways to add Maps; My car is a Settings page; the parking spot measured the
+ * car against itself (the spot is kept at switch-off and sent to the phone
+ * anyway). Tiles already on a dashboard keep working.
+ */
+private val LEFT_OUT_OF_CATALOG = setOf(
+    BuiltinKind.OBD_ALL, BuiltinKind.PIP_ANCHOR, BuiltinKind.MAPS_INSIDE, BuiltinKind.MY_CAR, BuiltinKind.PARKING
+)
+
+/** Whether the add sheet offers this kind (see [LEFT_OUT_OF_CATALOG]). */
+internal val BuiltinKind.offered: Boolean get() = this !in LEFT_OUT_OF_CATALOG
 
 /**
  * One tile on a dashboard page, placed freely on a [GRID_COLS] x [GRID_ROWS]
@@ -311,7 +326,8 @@ object DashboardStore {
             driverOnRight = CarProfileStore.current.driverOnRight,
             mapsDocked = half,
             dockApps = emptyList(),
-            canbox = PrivilegedShell.access.value.root
+            canbox = PrivilegedShell.access.value.root,
+            tyres = Tyres.available
         )
     )
 

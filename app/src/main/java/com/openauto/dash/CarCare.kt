@@ -6,9 +6,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONObject
@@ -208,7 +211,7 @@ internal object CareRules {
         return x
     }
 
-    private fun restStep(r: RestTimer, d: ObdData, now: Long, events: MutableList<CareEvent>): RestTimer {
+    internal fun restStep(r: RestTimer, d: ObdData, now: Long, events: MutableList<CareEvent>): RestTimer {
         // Long enough without readings (car parked, unit asleep) is a break.
         var x = if (r.lastAt == 0L || now - r.lastAt >= BREAK_RESET_MS) RestTimer(lastAt = now) else r
         val dt = (now - x.lastAt).coerceIn(0, MAX_STEP_MS)
@@ -299,6 +302,44 @@ object CarCare {
         )
         fuelArmed = p.getBoolean(KEY_FUEL_ARMED, true)
         scope.launch { watchFuel() }
+        scope.launch { watchRestWithoutObd() }
+    }
+
+    /** How often driving time is counted without the adapter's readings. */
+    private const val REST_TICK_MS = 1_000L
+    private var gpsHeld = false
+
+    /**
+     * Driving time for the break reminder while the OBD adapter is not
+     * connected: from the car box's speed, else the GPS's (held only then).
+     * With the adapter, [watch] counts it with the rest of the drive. A gap in
+     * the adapter's link used to count as a stop and start the 2 hours again.
+     */
+    private suspend fun watchRestWithoutObd() {
+        val speed = carSpeedKmh().stateIn(scope, SharingStarted.Eagerly, 0)
+        while (true) {
+            delay(REST_TICK_MS)
+            val context = appContext ?: continue
+            val obd = ObdBluetoothManager.connectionState.value == ObdConnectionState.CONNECTED
+            val wantGps = !obd && CarBox.freshBody()?.speedKmh == null && CarPower.ignition.value != false
+            if (wantGps && !gpsHeld) gpsHeld = LocationFeed.acquire(context)
+            else if (!wantGps && gpsHeld) {
+                LocationFeed.release()
+                gpsHeld = false
+            }
+            if (obd || DemoMode.isOn || CarPower.ignition.value == false) continue
+            restTick(speed.value, System.currentTimeMillis())
+        }
+    }
+
+    private fun restTick(kmh: Int, now: Long) {
+        val before = _state.value
+        val events = mutableListOf<CareEvent>()
+        val rest = CareRules.restStep(before.rest, ObdData(speedKmh = kmh), now, events)
+        val next = before.copy(rest = rest)
+        _state.value = next
+        if (now - savedAt >= SAVE_EVERY_MS) save(next, now)
+        events.forEach { say(line(it, CarProfileStore.current)) }
     }
 
     private const val KEY_FUEL_ARMED = "fuel_armed"

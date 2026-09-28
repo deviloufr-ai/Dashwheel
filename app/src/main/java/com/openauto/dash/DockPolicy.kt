@@ -41,6 +41,12 @@ object DockPolicy {
     /** A tap on the dashboard this shortly before an app covered it is taken for the user opening that app. */
     const val TAP_OPENS_APP_MS = 3_000L
 
+    /** Reopens after the app died, within [CRASH_WINDOW_MS], before an app that keeps crashing is left closed. */
+    const val MAX_CRASH_REOPENS = 2
+
+    /** Crashes this far apart are counted afresh: one a day is bad luck, three in ten minutes a loop. */
+    const val CRASH_WINDOW_MS = 10 * 60_000L
+
     /**
      * The app the tile keeps open covers the whole screen. It is sent back into
      * its window only when the tile's own launch or raise put it there: that
@@ -65,7 +71,10 @@ object DockPolicy {
         /** The tile rectangle the window was last asked to take (tells a stale size from the app's minimum). */
         val askedFor: ScreenRect? = null,
         /** Failed tries so far to bring the window back from the hidden display. */
-        val unhideAttempts: Int = 0
+        val unhideAttempts: Int = 0,
+        /** Reopens after the app died, and when the last one was ([CRASH_WINDOW_MS]). */
+        val crashReopens: Int = 0,
+        val lastCrashAt: Long = 0L
     )
 
     sealed class Step {
@@ -99,11 +108,25 @@ object DockPolicy {
     /**
      * No window for this app right now. [expectedGone] is true when one of our
      * own close paths removed it; [autoOpen] is the persisted keep-open intent;
-     * [lastReopenAt] is when we last launched it (0 if never).
+     * [lastReopenAt] is when we last launched it (0 if never). [died]: the
+     * app's process is gone with its window, so it crashed or the system
+     * killed it: the driver closed nothing, and the window comes back (Maps
+     * in the middle of a route), unless it keeps crashing ([MAX_CRASH_REOPENS]).
      */
-    fun onMissing(mem: Memory, expectedGone: Boolean, autoOpen: Boolean, lastReopenAt: Long, now: Long): Pair<Step, Memory> {
+    fun onMissing(
+        mem: Memory,
+        expectedGone: Boolean,
+        autoOpen: Boolean,
+        lastReopenAt: Long,
+        now: Long,
+        died: Boolean = false
+    ): Pair<Step, Memory> {
         val next = mem.copy(hadWindow = false, attempts = 0, lastStack = null)
-        if (mem.hadWindow && !expectedGone) return Step.UserClosed to next.copy(openAttempts = 0)
+        if (mem.hadWindow && !expectedGone) {
+            val recent = if (now - mem.lastCrashAt <= CRASH_WINDOW_MS) mem.crashReopens else 0
+            if (!died || !autoOpen || recent >= MAX_CRASH_REOPENS) return Step.UserClosed to next.copy(openAttempts = 0)
+            return Step.Reopen(1) to next.copy(openAttempts = 1, crashReopens = recent + 1, lastCrashAt = now)
+        }
         if (!autoOpen || now - lastReopenAt <= REOPEN_COOLDOWN_MS) return Step.Idle to next
         if (mem.openAttempts >= MAX_OPEN_ATTEMPTS) return Step.GiveUp to next.copy(openAttempts = 0)
         return Step.Reopen(mem.openAttempts + 1) to next.copy(openAttempts = mem.openAttempts + 1)

@@ -130,11 +130,11 @@ class AiMechanicTest {
         val w = LiveWatch()
         var t = 0L
         while (t < LiveWatch.NOT_CHARGING_MS) {
-            assertNull(w.check(ObdData(rpm = 900, voltage = 12.2), t))
+            assertNull(w.check(ObdData(rpm = 900, voltage = 12.2, voltageFromEcu = true), t))
             t += 500
         }
-        assertEquals(LiveWatch.Alert.NOT_CHARGING, w.check(ObdData(rpm = 900, voltage = 12.2), t))
-        assertNull(w.check(ObdData(rpm = 900, voltage = 12.2), t + 500))
+        assertEquals(LiveWatch.Alert.NOT_CHARGING, w.check(ObdData(rpm = 900, voltage = 12.2, voltageFromEcu = true), t))
+        assertNull(w.check(ObdData(rpm = 900, voltage = 12.2, voltageFromEcu = true), t + 500))
     }
 
     @Test
@@ -158,14 +158,66 @@ class AiMechanicTest {
     }
 
     @Test
-    fun weakBatteryAtRestIsSaidAfterTenSeconds() {
+    fun weakBatteryAtRestIsSaidAfterAMinute() {
         val w = LiveWatch()
         var t = 0L
         while (t < LiveWatch.WEAK_BATTERY_MS) {
-            assertNull(w.check(ObdData(rpm = 0, voltage = 11.7), t))
+            assertNull(w.check(ObdData(rpm = 0, voltage = 11.7, voltageFromEcu = true), t))
             t += 500
         }
-        assertEquals(LiveWatch.Alert.WEAK_BATTERY, w.check(ObdData(rpm = 0, voltage = 11.7), t))
+        assertEquals(LiveWatch.Alert.WEAK_BATTERY, w.check(ObdData(rpm = 0, voltage = 11.7, voltageFromEcu = true), t))
+    }
+
+    @Test
+    fun glowPlugsAtIgnitionOnAreNotAWeakBattery() {
+        val w = LiveWatch()
+        var t = 0L
+        // Ten seconds of glow plugs and blower, then the engine starts.
+        while (t < 10_000L) {
+            assertNull(w.check(ObdData(rpm = 0, voltage = 11.6, voltageFromEcu = true), t))
+            t += 500
+        }
+        assertNull(w.check(ObdData(rpm = 850, voltage = 14.2, voltageFromEcu = true), t))
+    }
+
+    @Test
+    fun aWeakBatteryIsSaidOnceADayNotAtEveryStart() {
+        val w = LiveWatch()
+        fun restFor(from: Long): LiveWatch.Alert? {
+            var t = from
+            var said: LiveWatch.Alert? = null
+            while (t <= from + LiveWatch.WEAK_BATTERY_MS) {
+                said = w.check(ObdData(rpm = 0, voltage = 11.7, voltageFromEcu = true), t) ?: said
+                t += 500
+            }
+            // The engine runs and the alternator recharges: armed again.
+            w.check(ObdData(rpm = 850, voltage = 14.2, voltageFromEcu = true), t + 500)
+            return said
+        }
+        assertEquals(LiveWatch.Alert.WEAK_BATTERY, restFor(0))
+        // Back from the shop an hour later: the same weak battery, not said again.
+        assertNull(restFor(3_600_000L))
+        // The next morning: said again.
+        assertEquals(LiveWatch.Alert.WEAK_BATTERY, restFor(LiveWatch.WEAK_REPEAT_MS + 3_600_000L))
+    }
+
+    @Test
+    fun theAdaptersOwnVoltageIsGivenItsDiodesDrop() {
+        val w = LiveWatch()
+        var t = 0L
+        // 11.8 V at the adapter is about 12.2 V at the battery: fine.
+        while (t <= LiveWatch.WEAK_BATTERY_MS + 1_000) {
+            assertNull(w.check(ObdData(rpm = 0, voltage = 11.8), t))
+            t += 500
+        }
+        // Well under, it is weak whichever way it was read.
+        val start = t
+        var said: LiveWatch.Alert? = null
+        while (t <= start + LiveWatch.WEAK_BATTERY_MS) {
+            said = w.check(ObdData(rpm = 0, voltage = 11.4), t) ?: said
+            t += 500
+        }
+        assertEquals(LiveWatch.Alert.WEAK_BATTERY, said)
     }
 
     @Test

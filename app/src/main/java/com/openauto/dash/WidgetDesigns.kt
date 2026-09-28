@@ -74,7 +74,8 @@ enum class WidgetDesign(
     BATTERY_CELL(R.string.design_battery_cell, R.string.design_battery_cell_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.BATTERY)),
     FADER(R.string.design_fader, R.string.design_fader_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.AUDIO, BuiltinKind.BATTERY, BuiltinKind.WARMUP, BuiltinKind.RANGE, BuiltinKind.BREAK_TIMER)),
     SPEED_TAPE(R.string.design_speed_tape, R.string.design_speed_tape_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.SPEED_HUD, BuiltinKind.TELEMETRY)),
-    ROAD_SIGN(R.string.design_road_sign, R.string.design_road_sign_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.SPEED_HUD, BuiltinKind.PARKING, BuiltinKind.NAVIGATION, BuiltinKind.BREAK_TIMER, BuiltinKind.FUEL_TO_DEST, BuiltinKind.RANGE, BuiltinKind.FUEL_PRICES)),
+    // Not the speed: a number in a red ring reads as the speed limit.
+    ROAD_SIGN(R.string.design_road_sign, R.string.design_road_sign_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.PARKING, BuiltinKind.NAVIGATION, BuiltinKind.BREAK_TIMER, BuiltinKind.FUEL_TO_DEST, BuiltinKind.RANGE, BuiltinKind.FUEL_PRICES)),
     TWIN_DIALS(R.string.design_twin_dials, R.string.design_twin_dials_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.TELEMETRY, BuiltinKind.OBD_ALL)),
     SHIFT_LIGHTS(R.string.design_shift_lights, R.string.design_shift_lights_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.TELEMETRY, BuiltinKind.OBD_ALL, BuiltinKind.GEAR)),
     HEADING_TAPE(R.string.design_heading_tape, R.string.design_heading_tape_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.COMPASS)),
@@ -99,7 +100,6 @@ enum class WidgetDesign(
     TIMELINE(R.string.design_timeline, R.string.design_timeline_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.CALENDAR, BuiltinKind.NOTIFICATIONS)),
     DESK_CALENDAR(R.string.design_desk_calendar, R.string.design_desk_calendar_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.CALENDAR)),
     CARD_STACK(R.string.design_card_stack, R.string.design_card_stack_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.NOTIFICATIONS, BuiltinKind.CALENDAR, BuiltinKind.QUICK_DIAL)),
-    ROTARY_PHONE(R.string.design_rotary_phone, R.string.design_rotary_phone_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.QUICK_DIAL)),
     FACES(R.string.design_faces, R.string.design_faces_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.QUICK_DIAL)),
     BADGE(R.string.design_badge, R.string.design_badge_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.NOTIFICATIONS)),
     VINYL(R.string.design_vinyl, R.string.design_vinyl_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.MEDIA)),
@@ -131,10 +131,15 @@ enum class WidgetDesign(
             return listOf(STANDARD) + all.filter { it.isSignature } + all.filter { !it.isSignature && it != STANDARD }
         }
 
-        /** Designs dropped for looking too much like another, and the one their tiles now wear. */
+        /**
+         * Designs dropped, for looking too much like another or for hiding
+         * what the widget is for (the rotary phone's favourites could not be
+         * called), and the one their tiles now wear.
+         */
         private val RETIRED = mapOf(
             "MINIMAL" to HERO, "GAUGE" to NEON, "RING" to GLASS,
-            "BARS" to CARBON, "STATS" to PAPER, "BLUEPRINT" to CHRONO
+            "BARS" to CARBON, "STATS" to PAPER, "BLUEPRINT" to CHRONO,
+            "ROTARY_PHONE" to FACES
         )
 
         /** The saved design, its successor if it was retired, or [STANDARD] for a blank or unknown name (a newer build's design after a downgrade). */

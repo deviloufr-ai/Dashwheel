@@ -69,13 +69,13 @@
 
     <!-- System app install (root) -->
     <string name="dash_system_app_title">Systeem-app</string>
-    <string name="dash_system_app_body">Installeert Dashwheel als systeem-app zodat de Maps-tegel de echte Google Maps kan tonen, met navigatie. Vereist root, of de interne ADB op poort %1$d. Daarna opnieuw opstarten.</string>
+    <string name="dash_system_app_body">Installeert Dashwheel als systeem-app: Android-widgets worden toegevoegd zonder elke keer toestemming. Vereist root, of de interne ADB op poort %1$d. Start daarna opnieuw.</string>
     <string name="dash_root_checking">Root controleren…</string>
     <string name="dash_root_available">Root beschikbaar. Installeert als Magisk-module wanneer Magisk aanwezig is.</string>
     <string name="dash_root_missing">Geen root. Probeert de interne ADB op poort %1$d.</string>
     <string name="dash_install_system_app">Installeren als systeem-app</string>
     <string name="dash_reboot_now">Nu herstarten</string>
-    <string name="dash_system_installed">Geïnstalleerd. Herstart om ingesloten Maps te activeren.</string>
+    <string name="dash_system_installed">Geïnstalleerd. Start opnieuw om af te ronden.</string>
     <string name="dash_system_failed">Mislukt: %1$s</string>
 
     <!-- System app-widget picker -->

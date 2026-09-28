@@ -202,7 +202,7 @@ private fun WidgetsTab(
     // ones) are left out where there is none: they could only sit waiting.
     val access = shellAccess()
     val kinds = BuiltinKind.entries.filter { kind ->
-        access.allows(kind) &&
+        kind.offered && access.allows(kind) &&
             // Only the QF firmware's car app shares the car's data.
             (kind != BuiltinKind.CAR_STATUS || CarBox.available) &&
             // Only with the head unit's TPMS app.

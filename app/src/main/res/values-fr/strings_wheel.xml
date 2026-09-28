@@ -85,4 +85,5 @@
     <string name="wheel_action_dashboard_up">Tableau de bord du dessus</string>
     <string name="wheel_action_dashboard_down">Tableau de bord du dessous</string>
     <string name="wheel_action_read_message">Lire le dernier message</string>
+    <string name="wheel_action_dismiss_alert">Fermer l\'alerte</string>
 </resources>

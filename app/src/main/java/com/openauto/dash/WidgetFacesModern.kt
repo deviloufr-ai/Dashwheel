@@ -486,9 +486,12 @@ internal fun IslandLayout(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
     val fraction = f.fraction
     val extras = (if (fraction != null) 12f else 0f) + (if (chips) 40f else 0f)
     val pillH = min(m.h - m.pad * 2f - extras, m.w * 0.34f).coerceIn(36f, 120f)
-    // Media keeps play and next; everything else its first two.
+    // Three where the island is wide enough (a 3-column tile is), so the
+    // volume keeps both of its keys; squeezed, media keeps play and next and
+    // everything else its first two.
+    val room = if (m.w >= 220f) 3 else 2
     val acts = f.actions.let { all ->
-        if (all.size <= 2) all
+        if (all.size <= room) all
         else { val i = all.indexOfFirst { it.primary }.coerceAtLeast(0); listOfNotNull(all.getOrNull(i), all.getOrNull(i + 1)).ifEmpty { all.take(2) } }
     }
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

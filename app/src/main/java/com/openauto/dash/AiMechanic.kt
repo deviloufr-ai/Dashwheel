@@ -229,22 +229,37 @@ object MechanicPrompt {
  * adapter reconnecting mid-drive doesn't repeat it.
  */
 internal class LiveWatch {
-    enum class Alert { OVERHEAT, NOT_CHARGING, WEAK_BATTERY }
+    enum class Alert { OVERHEAT, NOT_CHARGING, WEAK_BATTERY, OVERCHARGING }
 
     private var overheatArmed = true
     private var chargeArmed = true
     private var batteryArmed = true
-    // When the current low stretch began; null while the reading is fine.
+    private var overchargeArmed = true
+    // When the current low (or high) stretch began; null while the reading is fine.
     private var lowChargeSince: Long? = null
     private var weakSince: Long? = null
+    private var highSince: Long? = null
     private var lastSample: Long? = null
 
-    /** [hotC]: the coolant temperature this engine runs at once warm ([CarProfile.hotC]). */
+    /**
+     * When a weak battery was last said (the [check] clock), 0 if never. Kept
+     * by the caller across restarts: a battery that is weak at every morning's
+     * ignition is said once a day, not at every start.
+     */
+    var weakSaidAt = 0L
+
+    /**
+     * [hotC]: the coolant temperature this engine runs at once warm ([CarProfile.hotC]).
+     * A voltage from the adapter's own pin rather than the engine computer
+     * ([ObdData.voltageFromEcu]) reads low by a diode's drop, so its limits
+     * are [ADAPTER_MARGIN_V] lower: a healthy battery must not sound weak.
+     */
     fun check(d: ObdData, now: Long, hotC: Int = DEFAULT_HOT_C): Alert? {
         // Timers only count uninterrupted readings; a gap (adapter dropped) restarts them.
         if (lastSample.let { it == null || now - it > GAP_MS }) {
             lowChargeSince = null
             weakSince = null
+            highSince = null
         }
         lastSample = now
 
@@ -259,11 +274,12 @@ internal class LiveWatch {
         val v = d.voltage
         if (v < MIN_PLAUSIBLE_V || v > MAX_PLAUSIBLE_V) return null
         val running = d.rpm > RUNNING_RPM
+        val margin = if (d.voltageFromEcu) 0.0 else ADAPTER_MARGIN_V
 
         // The alternator should hold ~14 V; the e-HDi's smart charging dips lower,
         // so only a long stretch well under 13 V counts.
-        if (running && v >= CHARGE_CLEAR_V) chargeArmed = true
-        if (running && v < NOT_CHARGING_V) {
+        if (running && v >= CHARGE_CLEAR_V - margin) chargeArmed = true
+        if (running && v < NOT_CHARGING_V - margin) {
             val since = lowChargeSince ?: now.also { lowChargeSince = it }
             if (chargeArmed && now - since >= NOT_CHARGING_MS) {
                 chargeArmed = false
@@ -273,13 +289,30 @@ internal class LiveWatch {
             lowChargeSince = null
         }
 
+        // A failed regulator boils the battery: over 15.5 V for half a minute with
+        // the engine running. Only the engine computer's reading counts, since
+        // clone adapters read their own pin high (16.9 V on a 14.5 V bus).
+        if (running && d.voltageFromEcu && v <= OVERCHARGE_CLEAR_V) overchargeArmed = true
+        if (running && d.voltageFromEcu && v > OVERCHARGE_V) {
+            val since = highSince ?: now.also { highSince = it }
+            if (overchargeArmed && now - since >= OVERCHARGE_MS) {
+                overchargeArmed = false
+                return Alert.OVERCHARGING
+            }
+        } else {
+            highSince = null
+        }
+
         // Ignition on, engine off: a healthy battery rests above 12.4 V. Sustained
-        // so the dip while cranking isn't mistaken for a weak battery.
-        if (v >= BATTERY_CLEAR_V) batteryArmed = true
-        if (d.rpm == 0 && v < WEAK_BATTERY_V) {
+        // for a minute, so neither cranking nor the glow plugs and blower at
+        // ignition-on are taken for a weak battery; then once a day at most.
+        if (v >= BATTERY_CLEAR_V - margin) batteryArmed = true
+        if (d.rpm == 0 && v < WEAK_BATTERY_V - margin) {
             val since = weakSince ?: now.also { weakSince = it }
-            if (batteryArmed && now - since >= WEAK_BATTERY_MS) {
+            val saidToday = weakSaidAt > 0 && now - weakSaidAt in 0 until WEAK_REPEAT_MS
+            if (batteryArmed && !saidToday && now - since >= WEAK_BATTERY_MS) {
                 batteryArmed = false
+                weakSaidAt = now
                 return Alert.WEAK_BATTERY
             }
         } else {
@@ -297,7 +330,15 @@ internal class LiveWatch {
         const val NOT_CHARGING_MS = 120_000L
         const val WEAK_BATTERY_V = 12.0
         const val BATTERY_CLEAR_V = 12.4
-        const val WEAK_BATTERY_MS = 10_000L
+        const val WEAK_BATTERY_MS = 60_000L
+        /** A weak battery is said again only this long after (it was, a day ago). */
+        const val WEAK_REPEAT_MS = 20 * 3_600_000L
+        /** How much lower the adapter's own voltage reads than the engine computer's. */
+        const val ADAPTER_MARGIN_V = 0.4
+        /** The bar's red limit ([BatteryJudge.CRITICAL_HIGH_V]), held this long. */
+        const val OVERCHARGE_V = 15.5
+        const val OVERCHARGE_CLEAR_V = 14.8
+        const val OVERCHARGE_MS = 30_000L
         const val MIN_PLAUSIBLE_V = 9.0
         const val MAX_PLAUSIBLE_V = 16.0
         const val GAP_MS = 5_000L
@@ -374,6 +415,7 @@ internal object MechanicLines {
             LiveWatch.Alert.OVERHEAT -> SpokenLine(R.string.ai_say_overheat, listOf(d.coolantTempC))
             LiveWatch.Alert.NOT_CHARGING -> SpokenLine(R.string.ai_say_not_charging, listOf(volts))
             LiveWatch.Alert.WEAK_BATTERY -> SpokenLine(R.string.ai_say_weak_battery, listOf(volts))
+            LiveWatch.Alert.OVERCHARGING -> SpokenLine(R.string.ai_say_overcharging, listOf(volts))
         }
     }
 }
@@ -431,7 +473,10 @@ object AiMechanic {
     fun setContext(context: Context) {
         appContext = context.applicationContext
         CarVoice.setContext(context)
+        liveWatch.weakSaidAt = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getLong(KEY_WEAK_SAID, 0L)
     }
+
+    private const val KEY_WEAK_SAID = "weak_battery_said_at"
 
     /** [DemoMode]'s fault codes (and, when it ends, the real ones back). */
     internal fun demoWrite(state: State) {
@@ -514,6 +559,9 @@ object AiMechanic {
         if (rescan.due(data.rpm, System.currentTimeMillis())) scope.launch { autoScan() }
         val alert = liveWatch.check(data, System.currentTimeMillis(), CarProfileStore.current.hotC) ?: return
         val context = appContext ?: return
+        if (alert == LiveWatch.Alert.WEAK_BATTERY) {
+            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putLong(KEY_WEAK_SAID, liveWatch.weakSaidAt).apply()
+        }
         val config = AiSettings.load(context)
         if (!config.speak) return
         val line = MechanicLines.alert(alert, data, config.language)

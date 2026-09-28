@@ -139,8 +139,6 @@
     <string name="design_desk_calendar_desc">A folha de hoje ao lado do próximo evento.</string>
     <string name="design_card_stack">Pilha de cartões</string>
     <string name="design_card_stack_desc">O mais recente em cima, os outros a espreitar atrás.</string>
-    <string name="design_rotary_phone">Telefone de disco</string>
-    <string name="design_rotary_phone_desc">Os favoritos nos buracos do disco.</string>
     <string name="design_faces">Rostos</string>
     <string name="design_faces_desc">Grandes círculos de contactos, um toque para ligar.</string>
     <string name="design_badge">Crachá</string>

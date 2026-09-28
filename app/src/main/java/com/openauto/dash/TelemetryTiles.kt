@@ -409,15 +409,16 @@ internal fun RpmBar(
     }
 }
 
-/** Coolant: cold is accent (still warming up), 75–104 °C is good, 105 °C is a warning and 115 °C means stop. */
+/** Coolant: cold is accent (still warming up), then good, amber and red at the bar's limits for this engine. */
 internal fun coolantColor(tempC: Int): Color = when {
     tempC >= COOLANT_CRITICAL_C -> DashColors.Critical
     tempC >= COOLANT_WARNING_C -> DashColors.Warning
     tempC >= 75 -> DashColors.Good
     else -> DashColors.Accent
 }
-internal const val COOLANT_WARNING_C = 105
-internal const val COOLANT_CRITICAL_C = 115
+/** The bar's coolant limits for the driver's engine ([coolantWarningC]): 105 and 110 °C for one that runs at 90. */
+internal val COOLANT_WARNING_C: Int get() = coolantWarningC(CarProfileStore.current.hotC)
+internal val COOLANT_CRITICAL_C: Int get() = coolantCriticalC(CarProfileStore.current.hotC)
 
 /**
  * A racing-style analog gauge: a 270° dark dial with tick marks, a coloured

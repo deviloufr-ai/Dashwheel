@@ -90,4 +90,5 @@
     <string name="ai_error_tls">beveiligde verbinding geweigerd: controleer de datum en tijd van de radio</string>
     <string name="ai_error_connect">kan geen verbinding maken met Google</string>
     <string name="ai_error_unknown">onbekende fout</string>
+    <string name="ai_say_overcharging">De accuspanning is te hoog: %1$s volt met draaiende motor. De laadregelaar is mogelijk defect: laat hem snel nakijken.</string>
 </resources>

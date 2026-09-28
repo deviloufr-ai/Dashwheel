@@ -63,6 +63,8 @@ internal fun DesignedTile(item: DashboardItem.BuiltinWidget, env: SkinTileEnv, s
         DesignFrame(item.design, kindIcon(item.kind), item.kind.label, Modifier.fillMaxSize()) { standard() }
         return
     }
+    // A design no longer offered for this widget (it could not show what the widget needs): its own look.
+    if (!item.design.appliesTo(item.kind)) return standard()
     val face = rememberWidgetFace(item.kind, env)
     if (face == null) standard() else DesignedFace(face, item.design, Modifier.fillMaxSize())
 }

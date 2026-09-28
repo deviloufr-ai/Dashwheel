@@ -18,6 +18,7 @@ import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.CallEnd
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -72,6 +73,7 @@ internal enum class SteeringWheelAction(
     // What the car tells and does without a look at the screen.
     SAY_STATUS(WheelActionGroup.CAR, R.string.wheel_action_status, Icons.Filled.RecordVoiceOver),
     QUIET(WheelActionGroup.CAR, R.string.wheel_action_quiet, Icons.Filled.NotificationsOff),
+    DISMISS_ALERT(WheelActionGroup.CAR, R.string.wheel_action_dismiss_alert, Icons.Filled.Done),
 
     NAVIGATE_HOME(WheelActionGroup.NAVIGATION, R.string.wheel_action_navigate_home, Icons.Filled.Home),
     NAVIGATE_WORK(WheelActionGroup.NAVIGATION, R.string.wheel_action_navigate_work, Icons.Filled.Work),
@@ -107,6 +109,12 @@ internal enum class SteeringWheelAction(
             VOLUME_MUTE -> MediaVolume.toggleMute(context)
             SAY_STATUS -> StartupBriefing.sayStatus(context)
             QUIET -> toggleQuiet(context)
+            // Seen: the red chips, the door and tyre cards on screen go (a new problem comes back).
+            DISMISS_ALERT -> {
+                AlertCenter.acknowledgeAll()
+                DoorAlertOverlay.dismiss()
+                TyreAlertOverlay.dismiss()
+            }
             NAVIGATE_HOME -> guideTo(context, home = true)
             NAVIGATE_WORK -> guideTo(context, home = false)
             NAVIGATE_FUEL -> HandsFree.navigateToFuel(context)

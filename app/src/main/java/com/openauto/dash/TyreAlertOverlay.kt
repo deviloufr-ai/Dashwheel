@@ -26,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -58,10 +59,8 @@ object TyreAlertOverlay {
     private var started = false
     private var window: AlertWindow? = null
 
-    /** What's wrong, tyre by tyre. */
-    val problems: StateFlow<Map<TyrePos, TyreProblem>> =
-        Tyres.tyres.map { tyres -> tyres.mapNotNull { (pos, t) -> tyreProblem(t)?.let { pos to it } }.toMap() }
-            .stateIn(scope, SharingStarted.Eagerly, emptyMap())
+    /** What's wrong, tyre by tyre ([Tyres.problems]). */
+    val problems: StateFlow<Map<TyrePos, TyreProblem>> get() = Tyres.problems
 
     /** The problems the driver tapped away: hidden until another one comes. */
     private val dismissed = MutableStateFlow<Map<TyrePos, TyreProblem>>(emptyMap())
@@ -121,9 +120,10 @@ private fun TyreAlertContent(style: AlertStyle) {
 @Composable
 private fun TyreAlert(tyres: Map<TyrePos, Tyre>, style: AlertStyle) {
     val unit by Tyres.unit.collectAsState()
+    val problems = rememberTyreProblems(tyres)
     val tap = rememberTapFeedback()
     val hide = Modifier.clickable(role = Role.Button, onClickLabel = stringResource(R.string.dash_close)) { tap(); TyreAlertOverlay.dismiss() }
-    val worst = tyres.entries.mapNotNull { (pos, t) -> tyreProblem(t)?.let { pos to it } }.minByOrNull { it.second.ordinal }
+    val worst = problems.entries.minByOrNull { it.value.ordinal }?.toPair()
     val headline = worst?.let { (pos, p) -> "${stringResource(pos.labelRes)}: ${stringResource(p.labelRes)}" } ?: stringResource(R.string.car_tyres_alert)
     when (style) {
         AlertStyle.PILL -> Surface(
@@ -157,7 +157,7 @@ private fun TyreAlert(tyres: Map<TyrePos, Tyre>, style: AlertStyle) {
                     Text(stringResource(R.string.car_tyres_alert).uppercase(), color = DashColors.Critical, letterSpacing = 1.5.sp,
                         fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge)
                     Spacer(Modifier.height(16.dp))
-                    TyreGrid(tyres, unit, Modifier.weight(1f).fillMaxWidth(), large = true)
+                    TyreGrid(tyres, problems, unit, Modifier.weight(1f).fillMaxWidth(), large = true)
                     Spacer(Modifier.height(12.dp))
                     Text(stringResource(R.string.alert_tap_to_hide), color = DashColors.Muted, style = MaterialTheme.typography.bodySmall)
                 }
@@ -167,7 +167,7 @@ private fun TyreAlert(tyres: Map<TyrePos, Tyre>, style: AlertStyle) {
             Column(Modifier.padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(headline, color = DashColors.Critical, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.headlineMedium)
                 Spacer(Modifier.height(20.dp))
-                TyreGrid(tyres, unit, Modifier.widthIn(max = 520.dp).fillMaxWidth(), large = true)
+                TyreGrid(tyres, problems, unit, Modifier.widthIn(max = 520.dp).fillMaxWidth(), large = true)
                 Spacer(Modifier.height(16.dp))
                 Text(stringResource(R.string.alert_tap_to_hide), color = DashColors.Muted, style = MaterialTheme.typography.bodyMedium)
             }
@@ -176,7 +176,7 @@ private fun TyreAlert(tyres: Map<TyrePos, Tyre>, style: AlertStyle) {
             Column(Modifier.padding(16.dp).width(300.dp)) {
                 Text(headline, color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold, maxLines = 2, style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.height(10.dp))
-                TyreGrid(tyres, unit, Modifier.fillMaxWidth(), large = false)
+                TyreGrid(tyres, problems, unit, Modifier.fillMaxWidth(), large = false)
             }
         }
     }
@@ -187,20 +187,32 @@ private fun TyreAlert(tyres: Map<TyrePos, Tyre>, style: AlertStyle) {
  * unit and temperature, the one with a problem framed in red and named.
  */
 @Composable
-internal fun TyreGrid(tyres: Map<TyrePos, Tyre>, unit: PressureUnit, modifier: Modifier = Modifier, large: Boolean) {
+internal fun TyreGrid(tyres: Map<TyrePos, Tyre>, problems: Map<TyrePos, TyreProblem>, unit: PressureUnit, modifier: Modifier = Modifier, large: Boolean) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(if (large) 14.dp else 8.dp)) {
         listOf(TyrePos.FRONT_LEFT to TyrePos.FRONT_RIGHT, TyrePos.REAR_LEFT to TyrePos.REAR_RIGHT).forEach { (left, right) ->
             Row(Modifier.fillMaxWidth().weight(1f, fill = large), horizontalArrangement = Arrangement.spacedBy(if (large) 14.dp else 8.dp)) {
-                TyreCell(left, tyres[left], unit, Modifier.weight(1f).then(if (large) Modifier.fillMaxHeight() else Modifier), large)
-                TyreCell(right, tyres[right], unit, Modifier.weight(1f).then(if (large) Modifier.fillMaxHeight() else Modifier), large)
+                TyreCell(left, tyres[left], problems[left], unit, Modifier.weight(1f).then(if (large) Modifier.fillMaxHeight() else Modifier), large)
+                TyreCell(right, tyres[right], problems[right], unit, Modifier.weight(1f).then(if (large) Modifier.fillMaxHeight() else Modifier), large)
             }
         }
     }
 }
 
+/**
+ * What's wrong with [tyres]: the shared judgement ([Tyres.problems]), or for
+ * the style picker's made-up tyres, their own.
+ */
 @Composable
-private fun TyreCell(pos: TyrePos, tyre: Tyre?, unit: PressureUnit, modifier: Modifier, large: Boolean) {
-    val problem = tyre?.let(::tyreProblem)
+private fun rememberTyreProblems(tyres: Map<TyrePos, Tyre>): Map<TyrePos, TyreProblem> {
+    val live by Tyres.problems.collectAsState()
+    val preview by AlertPreview.tyres.collectAsState()
+    return if (preview != null) {
+        remember(tyres) { tyreProblems(tyres, emptyMap(), android.os.SystemClock.elapsedRealtime(), CarProfileStore.current) }
+    } else live
+}
+
+@Composable
+private fun TyreCell(pos: TyrePos, tyre: Tyre?, problem: TyreProblem?, unit: PressureUnit, modifier: Modifier, large: Boolean) {
     val fill = if (DashColors.Glass) DashColors.haze(0.06f) else DashColors.CardHi
     Column(
         modifier = modifier
@@ -253,6 +265,7 @@ internal val TyreProblem.labelRes: Int
 @Composable
 internal fun TyresCard(modifier: Modifier = Modifier) {
     val tyres by Tyres.tyres.collectAsState()
+    val problems by Tyres.problems.collectAsState()
     val unit by Tyres.unit.collectAsState()
     Card(modifier = modifier) {
         Column(Modifier.fillMaxSize().padding(DashSpace.Lg), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -260,7 +273,7 @@ internal fun TyresCard(modifier: Modifier = Modifier) {
             if (tyres.isEmpty()) {
                 Text(stringResource(R.string.car_tyres_waiting), color = DashColors.Muted, style = MaterialTheme.typography.bodyMedium)
             } else {
-                TyreGrid(tyres, unit, Modifier.fillMaxWidth().weight(1f), large = true)
+                TyreGrid(tyres, problems, unit, Modifier.fillMaxWidth().weight(1f), large = true)
             }
         }
     }

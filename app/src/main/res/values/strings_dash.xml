@@ -69,13 +69,13 @@
 
     <!-- System app install (root) -->
     <string name="dash_system_app_title">System app</string>
-    <string name="dash_system_app_body">Installs Dashwheel as a system app so the Maps tile can hold the real Google Maps, navigation included. Needs root, or the internal ADB on port %1$d. Reboot afterwards.</string>
+    <string name="dash_system_app_body">Installs Dashwheel as a system app, so Android widgets can be added without being asked each time. Needs root, or the internal ADB on port %1$d. Reboot afterwards.</string>
     <string name="dash_root_checking">Checking root…</string>
     <string name="dash_root_available">Root available. Installs as a Magisk module when Magisk is present.</string>
     <string name="dash_root_missing">No root. Will try the internal ADB on port %1$d.</string>
     <string name="dash_install_system_app">Install as system app</string>
     <string name="dash_reboot_now">Reboot now</string>
-    <string name="dash_system_installed">Installed. Reboot to activate embedded Maps.</string>
+    <string name="dash_system_installed">Installed. Reboot to finish.</string>
     <string name="dash_system_failed">Failed: %1$s</string>
 
     <!-- System app-widget picker -->

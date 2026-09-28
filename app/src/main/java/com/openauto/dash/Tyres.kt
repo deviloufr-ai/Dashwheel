@@ -6,9 +6,15 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.SystemClock
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -47,7 +53,16 @@ object Tyres {
     private val _unit = MutableStateFlow(PressureUnit.BAR)
     val unit: StateFlow<PressureUnit> = _unit
 
+    private val _problems = MutableStateFlow<Map<TyrePos, TyreProblem>>(emptyMap())
+    /**
+     * What's wrong, tyre by tyre ([tyreProblems]): the one judgement the
+     * alert, its voice and every tile share, so none says "fine" while
+     * another says "low".
+     */
+    val problems: StateFlow<Map<TyrePos, TyreProblem>> = _problems
+
     private var started = false
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     /** Whether this unit has the TPMS app that reports the tyres. */
     val available: Boolean get() = started
@@ -58,6 +73,22 @@ object Tyres {
         if (!isPackageInstalled(app, TPMS_PACKAGE)) return
         started = true
         ContextCompat.registerReceiver(app, receiver, IntentFilter(ACTION), ContextCompat.RECEIVER_EXPORTED)
+        // Judged again at each reading, when the car's pressures change, and
+        // now and then so a sensor that went quiet stops holding a warning up.
+        scope.launch { combine(_tyres, CarProfileStore.profile) { _, _ -> }.collect { judge() } }
+        scope.launch {
+            while (true) {
+                delay(STALE_CHECK_MS)
+                if (_tyres.value.isNotEmpty()) judge()
+            }
+        }
+    }
+
+    private const val STALE_CHECK_MS = 15_000L
+
+    @Synchronized
+    private fun judge() {
+        _problems.value = tyreProblems(_tyres.value, _problems.value, SystemClock.elapsedRealtime(), CarProfileStore.current)
     }
 
     private val receiver = object : BroadcastReceiver() {
@@ -81,6 +112,8 @@ object Tyres {
     /** [DemoMode]'s tyres, and the real ones put back when it ends. */
     internal fun demoWrite(tyres: Map<TyrePos, Tyre>) {
         _tyres.value = tyres
+        // Judged at once, on a unit without the TPMS app (no collector) too.
+        judge()
     }
 
     /** For [AlertPreview]: made-up tyres, one of them low. */
@@ -117,15 +150,60 @@ internal const val TYRE_LOW_KPA = 180
 internal const val TYRE_HIGH_KPA = 310
 internal const val TYRE_HOT_C = 75
 
-/** What's wrong with [t], worst first; null when it's fine or its sensor isn't heard. */
-internal fun tyreProblem(t: Tyre): TyreProblem? = when {
+/**
+ * A problem ends only this far back on the right side of its limit: a tyre
+ * at 180 kPa that reads 181, 180, 181 is one alert, not three.
+ */
+internal const val TYRE_CLEAR_KPA = 15
+internal const val TYRE_CLEAR_C = 5
+
+/** A sensor not heard for this long says nothing about its tyre any more. */
+internal const val TYRE_STALE_MS = 60_000L
+
+/**
+ * What's wrong with [t], worst first; null when it's fine or its sensor isn't
+ * heard. [before] is what was wrong with it at the last reading: that holds
+ * until the reading is clearly back ([TYRE_CLEAR_KPA], [TYRE_CLEAR_C]).
+ * [lowKpa]: this tyre's own limit ([tyreLowKpa]).
+ */
+internal fun tyreProblem(t: Tyre, before: TyreProblem? = null, lowKpa: Int = TYRE_LOW_KPA): TyreProblem? = when {
     t.noSignal -> null
     t.leak -> TyreProblem.LEAK
-    t.kPa in 1..TYRE_LOW_KPA -> TyreProblem.LOW
+    t.kPa in 1..lowKpa -> TyreProblem.LOW
+    before == TyreProblem.LOW && t.kPa in 1 until lowKpa + TYRE_CLEAR_KPA -> TyreProblem.LOW
     t.kPa >= TYRE_HIGH_KPA -> TyreProblem.HIGH
+    before == TyreProblem.HIGH && t.kPa > TYRE_HIGH_KPA - TYRE_CLEAR_KPA -> TyreProblem.HIGH
     t.celsius >= TYRE_HOT_C -> TyreProblem.HOT
+    before == TyreProblem.HOT && t.celsius > TYRE_HOT_C - TYRE_CLEAR_C -> TyreProblem.HOT
     else -> null
 }
+
+/**
+ * A tyre is low at 80 % of the pressure the maker gives for it (the European
+ * rule for tyre sensors), else at the TPMS app's own 180 kPa.
+ */
+internal fun tyreLowKpa(pos: TyrePos, car: CarProfile): Int {
+    val bar = when (pos) {
+        TyrePos.FRONT_LEFT, TyrePos.FRONT_RIGHT -> car.tyreFrontBar
+        TyrePos.REAR_LEFT, TyrePos.REAR_RIGHT -> car.tyreRearBar
+        TyrePos.SPARE -> null
+    } ?: return TYRE_LOW_KPA
+    return (bar * 100 * 0.8).roundToInt().coerceIn(120, 280)
+}
+
+/**
+ * What's wrong with each tyre now, given what was wrong at the last look
+ * ([before]); tyres whose sensor went quiet ([TYRE_STALE_MS]) are left out.
+ */
+internal fun tyreProblems(
+    tyres: Map<TyrePos, Tyre>,
+    before: Map<TyrePos, TyreProblem>,
+    now: Long,
+    car: CarProfile
+): Map<TyrePos, TyreProblem> = tyres.mapNotNull { (pos, t) ->
+    if (now - t.at > TYRE_STALE_MS) null
+    else tyreProblem(t, before[pos], tyreLowKpa(pos, car))?.let { pos to it }
+}.toMap()
 
 /** "2.3 bar", "230 kPa", "33 psi". */
 internal fun formatPressure(kPa: Int, unit: PressureUnit): String = when (unit) {

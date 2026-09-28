@@ -85,4 +85,5 @@
     <string name="wheel_action_dashboard_up">Dashboard above</string>
     <string name="wheel_action_dashboard_down">Dashboard below</string>
     <string name="wheel_action_read_message">Read the last message</string>
+    <string name="wheel_action_dismiss_alert">Dismiss the alert</string>
 </resources>

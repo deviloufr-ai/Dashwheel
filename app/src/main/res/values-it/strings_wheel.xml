@@ -85,4 +85,5 @@
     <string name="wheel_action_dashboard_up">Plancia sopra</string>
     <string name="wheel_action_dashboard_down">Plancia sotto</string>
     <string name="wheel_action_read_message">Leggi l\'ultimo messaggio</string>
+    <string name="wheel_action_dismiss_alert">Chiudi l\'avviso</string>
 </resources>

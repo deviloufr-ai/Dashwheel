@@ -139,8 +139,6 @@
     <string name="design_desk_calendar_desc">Today\'s tear-off page beside the next event.</string>
     <string name="design_card_stack">Card stack</string>
     <string name="design_card_stack_desc">Newest on top, the rest peeking out behind.</string>
-    <string name="design_rotary_phone">Rotary phone</string>
-    <string name="design_rotary_phone_desc">Favourites sit in the finger holes.</string>
     <string name="design_faces">Faces</string>
     <string name="design_faces_desc">Big contact circles, one tap to call.</string>
     <string name="design_badge">Badge</string>

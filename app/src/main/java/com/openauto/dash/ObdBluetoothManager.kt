@@ -518,6 +518,18 @@ object ObdBluetoothManager {
     fun savedDeviceAddress(): String? =
         appContext?.getSharedPreferences(PREFS, Context.MODE_PRIVATE)?.getString(KEY_MAC, null)
 
+    /** The saved adapter's name as Bluetooth knows it, or its address when it is no longer paired; null when none is saved. */
+    fun savedDeviceName(): String? {
+        val mac = savedDeviceAddress() ?: return null
+        return bondedDevices().firstOrNull { it.second.equals(mac, ignoreCase = true) }?.first ?: mac
+    }
+
+    /** No adapter any more (Settings, Car): the link closes and nothing is redialled until one is picked. */
+    suspend fun forgetDevice() {
+        appContext?.getSharedPreferences(PREFS, Context.MODE_PRIVATE)?.edit()?.remove(KEY_MAC)?.remove(KEY_CHANNEL)?.apply()
+        disconnect()
+    }
+
     fun saveDeviceAddress(address: String) {
         val prefs = appContext?.getSharedPreferences(PREFS, Context.MODE_PRIVATE) ?: return
         val other = !address.equals(prefs.getString(KEY_MAC, null), ignoreCase = true)

@@ -139,8 +139,6 @@
     <string name="design_desk_calendar_desc">Das heutige Blatt neben dem nächsten Termin.</string>
     <string name="design_card_stack">Kartenstapel</string>
     <string name="design_card_stack_desc">Das Neueste oben, der Rest lugt dahinter hervor.</string>
-    <string name="design_rotary_phone">Wählscheibe</string>
-    <string name="design_rotary_phone_desc">Die Favoriten sitzen in den Fingerlöchern.</string>
     <string name="design_faces">Gesichter</string>
     <string name="design_faces_desc">Große Kontaktkreise, ein Tipp zum Anrufen.</string>
     <string name="design_badge">Abzeichen</string>

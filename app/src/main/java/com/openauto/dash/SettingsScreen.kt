@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.Adjust
 import androidx.compose.material.icons.filled.AirlineSeatReclineNormal
 import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Checklist
@@ -71,6 +72,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -90,6 +92,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /*
  * The Settings screen: everything set once, full screen in two columns like
@@ -181,7 +184,7 @@ internal fun SettingsScreen(
                         .padding(horizontal = 20.dp, vertical = 16.dp)
                 ) {
                     when (tab) {
-                        SettingsTab.CAR -> CarPane(open = { deep = it })
+                        SettingsTab.CAR -> CarPane(open = { deep = it }, onPickObd = onPickObd)
                         SettingsTab.LOOK -> LookPane(theme)
                         SettingsTab.DISPLAY -> DisplayPane(theme, onLanguage = { deep = Deep.LANGUAGE })
                         SettingsTab.ALERTS -> AlertsPane()
@@ -336,14 +339,61 @@ private fun MoreBelow(scroll: ScrollState, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun CarPane(open: (Deep) -> Unit) {
+private fun CarPane(open: (Deep) -> Unit, onPickObd: () -> Unit) {
     val car by CarProfileStore.profile.collectAsState()
     SettingsSection(stringResource(R.string.settings_section_car))
     SettingsRow(Icons.Filled.DirectionsCar, stringResource(R.string.car_menu), car.name) { open(Deep.CAR) }
+    ObdAdapterRow(onPickObd)
     SpeedCorrectionRow()
     SettingsRow(Icons.Filled.AutoAwesome, stringResource(R.string.ai_title), stringResource(R.string.settings_ai_detail)) { open(Deep.AI) }
     SettingsRow(Icons.Filled.Handyman, stringResource(R.string.upkeep_dialog_title), stringResource(R.string.upkeep_settings_detail)) { open(Deep.UPKEEP) }
     SettingsRow(Icons.Filled.Science, stringResource(R.string.explore_title), stringResource(R.string.explore_settings_detail)) { open(Deep.EXPLORER) }
+}
+
+/**
+ * The OBD adapter: which one is saved, a tap to pick another, and Forget.
+ * Once one was saved, the only way to change it used to be a vehicle tile's
+ * button while the link was down.
+ */
+@Composable
+private fun ObdAdapterRow(onPickObd: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    val connection by ObdBluetoothManager.connectionState.collectAsState()
+    // Read again when the link changes: a pick made in the picker connects it.
+    var forgotten by remember { mutableIntStateOf(0) }
+    val name = remember(connection, forgotten) { ObdBluetoothManager.savedDeviceName() }
+    val tap = rememberTapFeedback()
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = DashSize.Bar)
+            .clip(DashShape.Medium)
+            .clickable { tap(); onPickObd() }
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(Icons.Filled.Bluetooth, contentDescription = null, tint = DashColors.TextSecondary, modifier = Modifier.size(24.dp))
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
+            Text(stringResource(R.string.settings_obd_title), color = DashColors.TextPrimary, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                name?.let { stringResource(R.string.settings_obd_saved, it) } ?: stringResource(R.string.settings_obd_none),
+                color = DashColors.TextSecondary, maxLines = 2, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall
+            )
+        }
+        if (name != null) {
+            Spacer(Modifier.width(8.dp))
+            CompositionLocalProvider(LocalSheetInPane provides true) {
+                SheetButton(stringResource(R.string.settings_obd_forget), primary = false) {
+                    scope.launch {
+                        ObdBluetoothManager.forgetDevice()
+                        forgotten++
+                    }
+                }
+            }
+        }
+    }
+    HorizontalDivider(color = DashColors.Line, modifier = Modifier.padding(horizontal = 12.dp))
 }
 
 /** What the dashboard looks like: the theme first, then its day and night and its effects. */
@@ -410,54 +460,11 @@ private fun LanguageSheet(onDismiss: () -> Unit) {
     }
 }
 
-/**
- * Every alert in one place: which of the head unit's own pop-ups Dashwheel
- * shows in its place (only on firmware that has them), then how each one looks.
- */
+/** Every alert in one place: what the car says, then each alert with its switch and design. */
 @Composable
 private fun AlertsPane() {
-    val context = LocalContext.current
-    val access = shellAccess()
-    val kinds = remember(access) {
-        RomPopups.Kind.entries.filter { RomPopups.available(context, it) && RomPopups.canWork(it, access) }
-    }
     VoiceSettings()
-    if (kinds.isNotEmpty()) {
-        SettingsSection(stringResource(R.string.settings_section_popups))
-        kinds.forEach { RomPopupToggle(it) }
-        Spacer(Modifier.height(20.dp))
-    }
     AlertStyleRows()
-}
-
-/**
- * One of the head unit's own pop-ups replaced by Dashwheel's ([RomPopups]).
- * Offered only where it can work (PrivilegedShell): the door alert reads the
- * CANbox through root, the radar switch is written through a shell.
- */
-@Composable
-private fun RomPopupToggle(kind: RomPopups.Kind) {
-    val context = LocalContext.current
-    val replaced by RomPopups.replaced.collectAsState()
-    val failed by RomPopups.failed.collectAsState()
-    val on = kind in replaced
-    val (icon, title, detail) = when (kind) {
-        RomPopups.Kind.CALL -> Triple(Icons.Filled.Call, stringResource(R.string.settings_rom_call), stringResource(R.string.settings_rom_call_detail))
-        RomPopups.Kind.DOORS -> Triple(Icons.Filled.SensorDoor, stringResource(R.string.settings_rom_doors), stringResource(R.string.settings_rom_doors_detail))
-        RomPopups.Kind.RADAR -> Triple(Icons.Filled.Sensors, stringResource(R.string.settings_rom_radar), stringResource(R.string.settings_rom_radar_detail))
-        RomPopups.Kind.AC -> Triple(Icons.Filled.AcUnit, stringResource(R.string.settings_rom_ac), stringResource(R.string.settings_rom_ac_detail))
-        RomPopups.Kind.TYRES -> Triple(Icons.Filled.TireRepair, stringResource(R.string.settings_rom_tyres), stringResource(R.string.settings_rom_tyres_detail))
-        RomPopups.Kind.BELT -> Triple(Icons.Filled.AirlineSeatReclineNormal, stringResource(R.string.settings_rom_belt), stringResource(R.string.settings_rom_belt_detail))
-    }
-    val a11y by SplitAccessibilityService.connected.collectAsState()
-    val shown = when {
-        on && kind in failed -> stringResource(R.string.settings_rom_needs_root)
-        on && kind == RomPopups.Kind.RADAR && !a11y -> stringResource(R.string.settings_rom_radar_needs_access)
-        else -> detail
-    }
-    SettingsToggle(icon, title, shown, on) {
-        RomPopups.setReplaced(context, kind, it)
-    }
 }
 
 /** How long a new screen direction waits to be kept before it goes back. */
@@ -559,9 +566,13 @@ private fun DrivingPane(m: TopBarModel, onWheelButtons: () -> Unit, onPlaces: ()
         onWheelButtons
     )
     PlacesRow(onPlaces)
+    val resume by MediaResume.on.collectAsState()
+    LaunchedEffect(Unit) { MediaResume.load(context) }
+    SettingsToggle(
+        Icons.Filled.PlayCircle, stringResource(R.string.settings_resume_music),
+        stringResource(R.string.settings_resume_music_detail), resume
+    ) { MediaResume.save(context, it) }
     Spacer(Modifier.height(20.dp))
-    VolumeWaySetting()
-    Spacer(Modifier.height(12.dp))
     SpeedVolumeSetting()
     KeyTargetRows()
 }
@@ -672,6 +683,12 @@ private fun AdvancedPane(m: TopBarModel, onBootLogo: () -> Unit, onPickObd: () -
     val embed = EmbeddedApp.allowed(LocalContext.current)
     if (shell || embed) SystemPermissionsRow(embed)
     Spacer(Modifier.height(20.dp))
+    // Only for a unit whose sound ignores Android's volume; on the QF firmware Automatic is the only way that works.
+    if (MediaVolume.choiceOffered) {
+        VolumeWaySetting()
+        Spacer(Modifier.height(20.dp))
+    }
+    SetupBackupRows()
     // What is allowed and what is not, without running the setup again.
     SettingsSection(stringResource(R.string.setup_access_title))
     Column(modifier = Modifier.padding(horizontal = 12.dp)) { AccessRows(onPickObd) }

@@ -139,8 +139,6 @@
     <string name="design_desk_calendar_desc">La page du jour à côté du prochain rendez-vous.</string>
     <string name="design_card_stack">Pile de cartes</string>
     <string name="design_card_stack_desc">Le plus récent dessus, les autres qui dépassent derrière.</string>
-    <string name="design_rotary_phone">Téléphone à cadran</string>
-    <string name="design_rotary_phone_desc">Les favoris dans les trous du cadran.</string>
     <string name="design_faces">Visages</string>
     <string name="design_faces_desc">De grands cercles de contacts, un appui pour appeler.</string>
     <string name="design_badge">Pastille</string>

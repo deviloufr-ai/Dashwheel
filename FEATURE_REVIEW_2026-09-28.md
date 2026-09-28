@@ -133,6 +133,51 @@ without asking.
 24. **Past drives** are logged and sent to the phone but cannot be seen on the
     head unit.
 
+## 3b. Second batch: the high-priority findings (same day, after v1.0.464)
+
+| # | Finding | What it does now |
+|---|---|---|
+| 1 | Designs that hid a tile's buttons | The widget-specific designs show their keys from a two-row tile up (volume knob, fader, parking pointer); Neon puts the caption and keys under a square gauge; Island shows three keys; Contour shows every key where it fits. The rotary phone design is retired (its tiles wear Faces, whose contacts can be tapped) and the road sign no longer draws the speed. A design a widget no longer offers falls back to its own look. |
+| 2 | Default layout and templates | The three templates are built around the map, music and the car-care tiles (fault codes, battery, servicing, warm-up, particle filter, eco, break, tyres, fuel). G-force, raw OBD values, the CAN monitor, quick dial and the parking spot are left to the add sheet. Without an adapter only the OBD tiles go; range and fuel stay when the CAN box gives them; tyres only with the TPMS app. |
+| 8 | Two alert lists | One row per alert with its own switch, and the same switch at the top of its design dialog. The section is called "Alerts Dashwheel shows". |
+| 9 | Weak battery said at every start | It needs a full minute below 12 V (glow plugs and blower at ignition-on are not a weak battery), is said once a day at most (kept across restarts), and a voltage read at the adapter's own pin is allowed its diode drop (0.4 V). |
+| 10 | Tyre alerts flickering at the limit | A problem ends only 15 kPa (or 5 °C) back on the right side; a sensor not heard for a minute holds no warning; the low limit is 80 % of the car profile's pressure for that axle. The alert, its voice and every tyre tile share one judgement. |
+| 19 | Crashed Maps window left closed | When a docked app's window goes and its process is gone too, the window is opened again (twice in ten minutes at most). A window the driver closed, whose app still runs, stays closed as before. |
+
+Checked: 452 unit tests, lint, translations, and on the emulator the templates dialog and pages, and a page of designed tiles showing their keys. Not seen on a screen: the alert rows with switches (the emulator has none of the head unit's alerts, only calls), the tyre and battery rules and the crash reopen, which need the car.
+
+## 3d. Third batch: the medium findings
+
+| # | Finding | What it does now |
+|---|---|---|
+| 3 | Duplicate widgets | The add sheet no longer offers All OBD data (Engine gauges in another order), Maps window and Google Maps inside (the Windows tab's own two ways to add Maps) or My car (a Settings page). Tiles already placed keep working. Fuel & range, Fuel to destination and Fuel nearby sit together under Vehicle. |
+| 4 | Parking spot tile | No longer offered, nor in any template. The spot is still kept at switch-off and sent to the phone. |
+| 11 | Bar alerts behind a full-screen app | Judged for the whole app at every reading, not by the bar: an alert raised behind Maps is on the bar, and in the log, when the driver comes back. The coolant limits follow the engine (105 and 110 °C for one that runs at 90), red exactly where the voice says it is overheating. New: a spoken warning when the battery is over-charged (over 15.5 V for 30 s, engine computer's reading only), and a "Dismiss the alert" wheel button. |
+| 12 | Break reminder stopped without the adapter | Driving time is counted every second from the car box's speed, else the GPS's (held only then), whenever the adapter is not connected. |
+| 13 | Volume control setting | Hidden on the QF firmware, where Automatic is the only way that works (a saved "Android" is put back to Automatic); on other units it moved to Settings, Advanced. |
+| 14 | System app row | Says what it really does (Android widgets without a prompt each time). The PMPatch row is now called "Apps inside tiles". |
+| 15 | Units and clock | In progress, in a later update. |
+| 16 | Save and restore | Settings, Advanced, Your setup: every Dashwheel preference to a JSON file through Android's file picker (USB stick or the unit), restored from one with a confirmation and a restart. The AI key, phone pairings and this unit's own state stay out. |
+| 17 | OBD adapter row | Settings, Car: the saved adapter's name, a tap to pick another, Forget. |
+| 20 | Destination from the phone | In progress, in a later update. |
+| 21 | Music at start | Settings, Driving, Resume music at start (off by default): the app that was playing within 30 s of the switch-off is told to play again 6 s after the start, unless something already plays. |
+| 5 | Quick dial and Agenda | In progress, in a later update. |
+
+Checked on the emulator: the OBD adapter row with Forget, the file picker saving the setup and the restore bringing the old theme back after a restart, the Driving page with the music option.
+
+## 3c. Car test checklist (item A)
+
+With the car parked and the unit updated:
+
+1. Settings, Alerts: every alert has a switch in its row; turn Doors and Tyres on.
+2. Open Google Maps in a docked window, then `am crash com.google.android.apps.maps` from adb: the window should come back within a few seconds.
+3. Close the docked Maps window with its own close button: it should stay closed.
+4. Assign "Go to Home" and "Dashboard below" to wheel buttons; press them over Maps full screen.
+5. Map tile: the Home, Work and recent-destination buttons under the search bar.
+6. Ignition on with the engine off for a minute: no "weak battery" unless it really is under 12 V.
+
+Driving: a phone call (the voice waits), a message arriving (announced by sender), low fuel near 80 km, tyre pressure near the limit (one alert, not a flicker).
+
 ## 4. Suggested order
 
 1. Try this batch in the car: the voice during a call, a message, the wheel

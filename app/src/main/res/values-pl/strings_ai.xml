@@ -92,4 +92,5 @@
     <string name="ai_error_tls">odrzucono bezpieczne połączenie: sprawdź datę i godzinę radia</string>
     <string name="ai_error_connect">nie można połączyć się z Google</string>
     <string name="ai_error_unknown">nieznany błąd</string>
+    <string name="ai_say_overcharging">Napięcie akumulatora jest za wysokie: %1$s wolta przy pracującym silniku. Regulator ładowania może być uszkodzony: sprawdź go wkrótce.</string>
 </resources>

@@ -139,8 +139,6 @@
     <string name="design_desk_calendar_desc">Het blad van vandaag naast de volgende afspraak.</string>
     <string name="design_card_stack">Kaartenstapel</string>
     <string name="design_card_stack_desc">Nieuwste bovenop, de rest piept erachter uit.</string>
-    <string name="design_rotary_phone">Draaischijftelefoon</string>
-    <string name="design_rotary_phone_desc">Favorieten in de vingergaten.</string>
     <string name="design_faces">Gezichten</string>
     <string name="design_faces_desc">Grote contactcirkels, één tik om te bellen.</string>
     <string name="design_badge">Badge</string>

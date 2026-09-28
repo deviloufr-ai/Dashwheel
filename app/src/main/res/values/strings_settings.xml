@@ -7,7 +7,7 @@
     <string name="settings_section_look">Look</string>
     <string name="settings_section_advanced">Advanced</string>
     <string name="settings_ai_detail">Explains fault codes and speaks alerts</string>
-    <string name="settings_system_detail">The real Google Maps in the Maps tile. Needs root.</string>
+    <string name="settings_system_detail">Android widgets can be added without being asked each time. Needs root.</string>
     <string name="settings_version" translatable="false">Dashwheel v%1$s</string>
     <string name="settings_drive_lock">Changes only while parked</string>
     <string name="settings_drive_lock_detail">Editing, settings and the app grid wait until the car has stopped</string>
@@ -33,9 +33,7 @@
     <string name="volume_way_auto_hint">Android\'s volume, or the head unit\'s own volume or volume keys where it ignores Android\'s</string>
     <string name="volume_way_android_hint">Android\'s media volume, as on a phone</string>
     <string name="volume_way_keys_hint">Presses the volume keys like the wheel buttons and the knob. Needs root or the head unit\'s ADB</string>
-    <string name="settings_rom_call">Replace the unit\'s call screen</string>
     <string name="settings_rom_call_detail">Bluetooth calls show only in Dashwheel\'s card, with answer and hang up</string>
-    <string name="settings_rom_doors">Door alert</string>
     <string name="settings_rom_doors_detail">Shows which door is open over any app, in place of the unit\'s own alert</string>
     <string name="settings_rom_needs_root">Needs root or the head unit\'s ADB</string>
     <string name="alert_section">Alerts</string>
@@ -57,15 +55,14 @@
     <string name="alert_call_note">Side panel and full screen show while the phone rings. Once answered, the call shrinks to a slim bar.</string>
     <string name="alert_tap_to_hide">Tap to hide</string>
     <string name="alert_speak">Speak it</string>
+    <string name="alert_show">Show this alert</string>
     <string name="alert_speak_call_detail">Says who is calling as the phone rings</string>
     <string name="alert_speak_doors_detail">Says which door is open if one opens while driving or you set off with one open</string>
     <string name="alert_with_voice">%1$s, spoken</string>
     <string name="alert_say_call">Call from %1$s</string>
     <string name="alert_say_doors">Door open: %1$s</string>
-    <string name="settings_rom_radar">Parking radar</string>
     <string name="settings_rom_radar_detail">Shows the parking sensors in Dashwheel\'s design, in place of the unit\'s</string>
     <string name="settings_rom_radar_needs_access">Turn on Dashwheel in Accessibility to show it over the reversing camera</string>
-    <string name="settings_rom_ac">Climate</string>
     <string name="settings_rom_ac_detail">Shows climate changes in Dashwheel\'s design, in place of the unit\'s pop-up</string>
     <string name="alert_kind_radar">Parking radar</string>
     <string name="alert_kind_ac">Climate</string>
@@ -80,13 +77,11 @@
     <string name="keys_voice">Voice key</string>
     <string name="keys_custom">Custom key</string>
     <string name="keys_unit_choice">The unit\'s own choice</string>
-    <string name="settings_rom_tyres">Tyre alerts</string>
     <string name="settings_rom_tyres_detail">Tyre warnings in Dashwheel\'s design. For only these, turn off the TPMS app\'s own window in its settings</string>
     <string name="alert_kind_tyres">Tyres</string>
     <string name="alert_kind_tyres_title">Tyre alert</string>
     <string name="alert_speak_tyres_detail">Says which tyre and what\'s wrong</string>
     <string name="alert_say_tyre">%1$s tyre: %2$s</string>
-    <string name="settings_rom_belt">Seat belt reminder</string>
     <string name="settings_rom_belt_detail">Reminds you to buckle up once the car moves</string>
     <string name="alert_kind_belt">Seat belt</string>
     <string name="alert_kind_belt_title">Seat belt alert</string>
@@ -102,14 +97,13 @@
     <!-- Settings by subject: Display and Alerts categories, the screen direction on trial -->
     <string name="settings_section_display">Display</string>
     <string name="settings_appearance_title">Day and night</string>
-    <string name="settings_section_popups">In place of the head unit\'s pop-ups</string>
-    <string name="alert_style_section">How each alert shows</string>
+    <string name="alert_style_section">Alerts Dashwheel shows</string>
     <string name="settings_section_about">About</string>
     <string name="settings_screen_keep_title">Keep this screen direction?</string>
     <string name="settings_screen_keep_detail">Goes back in %1$d s</string>
     <string name="settings_screen_keep">Keep</string>
     <string name="settings_screen_revert">Go back</string>
-    <string name="settings_system_perms">System permissions</string>
+    <string name="settings_system_perms">Apps inside tiles</string>
     <string name="settings_system_perms_on">Granted. Google Maps can run inside a tile.</string>
     <string name="settings_system_perms_off">Not granted. Tap to get them through PMPatch3.</string>
     <string name="settings_pmpatch_body">PMPatch3 is a Magisk module that lets Android give Dashwheel these permissions. It also turns off signature checks for every app on this unit.</string>
@@ -125,4 +119,21 @@
     <string name="settings_unit_bar_title">The head unit\'s top bar</string>
     <string name="settings_unit_bar_hide">Hide it over app windows</string>
     <string name="settings_unit_bar_hide_detail">On some units the windows then show lower than their tiles.</string>
+    <string name="settings_obd_title">OBD adapter</string>
+    <string name="settings_obd_saved">%1$s. Tap to pick another.</string>
+    <string name="settings_obd_none">None chosen. Tap to pick yours.</string>
+    <string name="settings_obd_forget">Forget</string>
+    <string name="settings_backup_section">Your setup</string>
+    <string name="settings_backup_save">Save my setup</string>
+    <string name="settings_backup_save_detail">Dashboards, settings and places, to a file. Not the AI key or paired phones.</string>
+    <string name="settings_backup_restore">Restore a setup</string>
+    <string name="settings_backup_restore_detail">From a file saved on this unit or another one</string>
+    <string name="settings_backup_saved">Setup saved</string>
+    <string name="settings_backup_saved_to">Setup saved to %1$s</string>
+    <string name="settings_backup_failed">This file can\'t be used</string>
+    <string name="settings_backup_confirm_title">Restore this setup?</string>
+    <string name="settings_backup_confirm_body">Your dashboards and settings are replaced. Dashwheel restarts.</string>
+    <string name="settings_backup_confirm">Restore</string>
+    <string name="settings_resume_music">Resume music at start</string>
+    <string name="settings_resume_music_detail">The app that was playing when you switched off plays again. Leave off if the unit already does it.</string>
 </resources>

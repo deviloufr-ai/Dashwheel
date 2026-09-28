@@ -90,4 +90,5 @@
     <string name="ai_error_tls">sichere Verbindung abgelehnt: Datum und Uhrzeit des Radios prüfen</string>
     <string name="ai_error_connect">Google nicht erreichbar</string>
     <string name="ai_error_unknown">unbekannter Fehler</string>
+    <string name="ai_say_overcharging">Die Batteriespannung ist zu hoch: %1$s Volt bei laufendem Motor. Der Laderegler könnte defekt sein: bald prüfen lassen.</string>
 </resources>

@@ -523,12 +523,8 @@ private fun HeroLayout(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
 @Composable
 private fun ArcLayout(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
     val wide = m.wide
-    Row(
-        modifier = Modifier.fillMaxSize().padding(m.pad.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = if (wide) Arrangement.spacedBy(m.dp(4f)) else Arrangement.Center
-    ) {
-        BoxWithConstraints(modifier = Modifier.fillMaxHeight().aspectRatio(1f, matchHeightConstraintsFirst = true)) {
+    val gauge: @Composable (Modifier) -> Unit = { mod ->
+        BoxWithConstraints(modifier = mod.aspectRatio(1f, matchHeightConstraintsFirst = true)) {
             val g = maxWidth.value
             val fraction = rememberUpdatedState(f.fraction)
             val full = f.fullCircle
@@ -542,6 +538,28 @@ private fun ArcLayout(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
                 if (!wide) FaceText(f.title.uppercase(Locale.getDefault()), look, m.sp(max(g * 0.05f, 9f)), color = look.dim, weight = look.labelWeight, letterSpacing = 0.1.em)
             }
         }
+    }
+    // A square tile has no room beside the gauge: what the reading means
+    // (a battery "not charging") and the tile's buttons go under it instead
+    // of being dropped.
+    if (!wide && m.h >= 180f && (f.actions.isNotEmpty() || f.caption.isNotEmpty())) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(m.pad.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(m.dp(2.4f))
+        ) {
+            gauge(Modifier.weight(1f))
+            FaceCaption(f, look, m)
+            FaceActions(f, look, m, small = true)
+        }
+        return
+    }
+    Row(
+        modifier = Modifier.fillMaxSize().padding(m.pad.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = if (wide) Arrangement.spacedBy(m.dp(4f)) else Arrangement.Center
+    ) {
+        gauge(Modifier.fillMaxHeight())
         if (wide) {
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(m.dp(3f), Alignment.CenterVertically)) {
                 FaceHeader(f, look, m)

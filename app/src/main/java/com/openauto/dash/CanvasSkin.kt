@@ -325,8 +325,9 @@ private fun CanvasCar(env: SkinTileEnv) {
     val d = env.obdData
     val fuel = rememberFuel(d, env.obdConnection)
     val tyres by Tyres.tyres.collectAsState()
+    val problems by Tyres.problems.collectAsState()
     val unit by Tyres.unit.collectAsState()
-    val tyre = tyres.entries.firstNotNullOfOrNull { (pos, t) -> tyreProblem(t)?.let { pos to t } }
+    val tyre = problems.keys.firstNotNullOfOrNull { pos -> tyres[pos]?.let { pos to it } }
     val lines = buildList {
         fuel?.let { add(CarLine(stringResource(R.string.car_status_range), "${it.rangeKm} km", it.percent <= 10)) }
         if (connected && d.coolantTempC > 0) add(CarLine(stringResource(R.string.info_chip_coolant), "${d.coolantTempC} °C", d.coolantTempC >= 105))

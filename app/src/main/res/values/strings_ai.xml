@@ -92,4 +92,5 @@
     <string name="ai_error_tls">secure connection refused: check the head unit\'s date and time</string>
     <string name="ai_error_connect">couldn\'t connect to Google</string>
     <string name="ai_error_unknown">unknown error</string>
+    <string name="ai_say_overcharging">The battery voltage is too high: %1$s volts with the engine running. The charging regulator may be faulty: have it checked soon.</string>
 </resources>

@@ -99,6 +99,7 @@ object CarPower {
         // Quiet was asked for the drive that ended.
         CarVoice.quiet = false
         EmbeddedApp.carStarted(context)
+        MediaResume.carStarted(context)
         VehicleMonitor.connectSaved()
         if (briefOnIgnition(offAt, System.currentTimeMillis())) StartupBriefing.carStarted(context)
     }
@@ -109,6 +110,7 @@ object CarPower {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putLong(KEY_OFF_AT, now).apply()
         Log.i(TAG, "ignition off")
         EmbeddedApp.carStopped(context)
+        MediaResume.carStopped(context)
         if (!DemoMode.isOn) parkingFix(context)?.takeIf { parkFixUsable(it.time, now) }?.let { ParkingStore.save(context, it) }
         scope.launch { runCatching { ObdBluetoothManager.disconnect() } }
     }

@@ -50,6 +50,22 @@ internal object VehicleMonitor {
         )
         scope.launch { pollWhileConnected() }
         scope.launch { reconnectWhileWanted() }
+        // The bar's alerts, judged at every reading whatever is on screen (the demo's too).
+        scope.launch {
+            val app = context.applicationContext
+            combine(ObdBluetoothManager.connectionState, ObdBluetoothManager.data, BatteryWatch.state) { connection, data, battery ->
+                Triple(connection == ObdConnectionState.CONNECTED, data, battery)
+            }.collect { (connected, data, battery) -> AlertCenter.evaluate(strings(app), data, battery, connected) }
+        }
+    }
+
+    // The chips' text in the launcher's language, wrapped again only when that changes.
+    private var stringsFor: Pair<AppLanguage, Context>? = null
+
+    private fun strings(app: Context): Context {
+        val language = AppLanguage.current(app)
+        stringsFor?.takeIf { it.first == language }?.let { return it.second }
+        return AppLanguage.wrap(app).also { stringsFor = language to it }
     }
 
     /**

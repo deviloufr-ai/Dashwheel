@@ -77,11 +77,46 @@ class DashTemplatesTest {
     @Test
     fun withoutAnAdapter_carDataIsHeldBack_andTelemetryBecomesTrip() {
         val noObd = full.copy(obdPaired = false)
+        // The car page keeps what the CAN box and the servicing planner give.
         val carPage = TemplatePlacer.pages(DashTemplate.DAILY, noObd)[2]
-        assertEquals(listOf(BuiltinKind.TRIP), widgets(carPage).map { it.kind })
-        val obdKinds = setOf(BuiltinKind.TELEMETRY, BuiltinKind.RANGE, BuiltinKind.OBD_DTC, BuiltinKind.DOORS, BuiltinKind.OBD_ALL, BuiltinKind.CAN_MON)
+        assertEquals(setOf(BuiltinKind.RANGE, BuiltinKind.SERVICE), widgets(carPage).map { it.kind }.toSet())
+        val obdKinds = setOf(
+            BuiltinKind.TELEMETRY, BuiltinKind.OBD_DTC, BuiltinKind.OBD_ALL, BuiltinKind.BATTERY,
+            BuiltinKind.WARMUP, BuiltinKind.FILTER_CARE, BuiltinKind.ECO_DRIVE, BuiltinKind.BREAK_TIMER
+        )
         for (template in DashTemplate.entries) {
             assertFalse(TemplatePlacer.pages(template, noObd).flatten().any { it is DashboardItem.BuiltinWidget && it.kind in obdKinds })
+        }
+        val engine = TemplatePage(listOf(BuiltinKind.TELEMETRY, BuiltinKind.WARMUP))
+        assertEquals(listOf(BuiltinKind.TRIP), TemplatePlacer.kindsFor(engine, noObd))
+    }
+
+    @Test
+    fun theFuelTilesNeedTheCanBoxOrTheAdapter() {
+        val page = TemplatePage(listOf(BuiltinKind.RANGE, BuiltinKind.FUEL_TO_DEST, BuiltinKind.SERVICE))
+        assertEquals(page.kinds, TemplatePlacer.kindsFor(page, full.copy(obdPaired = false)))
+        assertEquals(page.kinds, TemplatePlacer.kindsFor(page, full.copy(canbox = false)))
+        assertEquals(listOf(BuiltinKind.SERVICE), TemplatePlacer.kindsFor(page, full.copy(obdPaired = false, canbox = false)))
+    }
+
+    @Test
+    fun theTyresNeedTheTpmsApp() {
+        for (template in DashTemplate.entries) {
+            val kinds = TemplatePlacer.pages(template, full.copy(tyres = false)).flatten().let(::widgets).map { it.kind }
+            assertFalse("$template offers the tyres without the TPMS app", BuiltinKind.TYRES in kinds)
+        }
+    }
+
+    @Test
+    fun templatesLeaveToolsAndEmptyTilesToTheAddSheet() {
+        val tools = setOf(BuiltinKind.GFORCE, BuiltinKind.OBD_ALL, BuiltinKind.CAN_MON, BuiltinKind.QUICK_DIAL, BuiltinKind.PARKING)
+        for (template in DashTemplate.entries) {
+            assertTrue("$template", template.pages.values.flatMap { it.kinds }.none { it in tools })
+        }
+        // And every template brings the car-care tiles that carry the spoken warnings.
+        for (template in DashTemplate.entries) {
+            val kinds = template.pages.values.flatMap { it.kinds }.toSet()
+            assertTrue("$template", kinds.containsAll(setOf(BuiltinKind.OBD_DTC, BuiltinKind.BATTERY, BuiltinKind.SERVICE)))
         }
     }
 

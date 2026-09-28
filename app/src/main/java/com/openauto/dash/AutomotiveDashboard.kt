@@ -714,7 +714,8 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         driverOnRight = CarProfileStore.current.driverOnRight,
         mapsDocked = half,
         dockApps = TemplatePlacer.dockApps(pages, appsByPackage.keys),
-        canbox = shellAccess.root
+        canbox = shellAccess.root,
+        tyres = Tyres.available
     )
 
     /**

@@ -2,11 +2,18 @@ package com.openauto.dash
 
 import androidx.annotation.StringRes
 import com.openauto.dash.BuiltinKind.AUDIO
+import com.openauto.dash.BuiltinKind.BATTERY
+import com.openauto.dash.BuiltinKind.BREAK_TIMER
 import com.openauto.dash.BuiltinKind.CALENDAR
 import com.openauto.dash.BuiltinKind.CAN_MON
+import com.openauto.dash.BuiltinKind.CAR_STATUS
 import com.openauto.dash.BuiltinKind.CLOCK
 import com.openauto.dash.BuiltinKind.COMPASS
 import com.openauto.dash.BuiltinKind.DOORS
+import com.openauto.dash.BuiltinKind.ECO_DRIVE
+import com.openauto.dash.BuiltinKind.FILTER_CARE
+import com.openauto.dash.BuiltinKind.FUEL_PRICES
+import com.openauto.dash.BuiltinKind.FUEL_TO_DEST
 import com.openauto.dash.BuiltinKind.GFORCE
 import com.openauto.dash.BuiltinKind.MEDIA
 import com.openauto.dash.BuiltinKind.NAVIGATION
@@ -17,9 +24,12 @@ import com.openauto.dash.BuiltinKind.OBD_DTC
 import com.openauto.dash.BuiltinKind.PARKING
 import com.openauto.dash.BuiltinKind.QUICK_DIAL
 import com.openauto.dash.BuiltinKind.RANGE
+import com.openauto.dash.BuiltinKind.SERVICE
 import com.openauto.dash.BuiltinKind.SPEED_HUD
 import com.openauto.dash.BuiltinKind.TELEMETRY
 import com.openauto.dash.BuiltinKind.TRIP
+import com.openauto.dash.BuiltinKind.TYRES
+import com.openauto.dash.BuiltinKind.WARMUP
 import com.openauto.dash.BuiltinKind.WEATHER
 import kotlin.math.abs
 import kotlin.math.ceil
@@ -40,37 +50,41 @@ data class TemplatePage(val kinds: List<BuiltinKind>, val dock: Boolean = false)
  * above it and 5 / 6 below it (nearest first).
  */
 enum class DashTemplate(@StringRes val titleRes: Int, @StringRes val blurbRes: Int, val pages: Map<Int, TemplatePage>) {
+    // Built around what a driver uses: the map, music, and the car-care tiles
+    // that carry the spoken warnings. Tools (G-force, raw OBD values, the CAN
+    // monitor) and tiles with nothing to show on a head unit (quick dial,
+    // parking spot) are left to the add sheet.
     DAILY(
         R.string.templates_daily, R.string.templates_daily_blurb, mapOf(
             1 to TemplatePage(listOf(NAVMAP, NAVIGATION, SPEED_HUD, MEDIA), dock = true),
-            0 to TemplatePage(listOf(MEDIA, AUDIO, QUICK_DIAL, NOTIFICATIONS)),
-            2 to TemplatePage(listOf(TELEMETRY, RANGE, OBD_DTC, DOORS)),
+            0 to TemplatePage(listOf(MEDIA, AUDIO, NOTIFICATIONS)),
+            2 to TemplatePage(listOf(RANGE, OBD_DTC, SERVICE, BATTERY)),
             4 to TemplatePage(listOf(WEATHER, CALENDAR, CLOCK)),
-            5 to TemplatePage(listOf(TRIP, PARKING, COMPASS)),
-            3 to TemplatePage(listOf(GFORCE)),
-            6 to TemplatePage(listOf(OBD_ALL))
+            5 to TemplatePage(listOf(TRIP, ECO_DRIVE, BREAK_TIMER)),
+            3 to TemplatePage(listOf(TELEMETRY, WARMUP, FILTER_CARE)),
+            6 to TemplatePage(listOf(TYRES, CAR_STATUS, FUEL_PRICES))
         )
     ),
     ROAD_TRIP(
         R.string.templates_road_trip, R.string.templates_road_trip_blurb, mapOf(
-            1 to TemplatePage(listOf(NAVMAP, NAVIGATION, SPEED_HUD, RANGE), dock = true),
-            0 to TemplatePage(listOf(MEDIA, AUDIO, QUICK_DIAL)),
-            2 to TemplatePage(listOf(WEATHER, PARKING, TRIP, COMPASS)),
-            4 to TemplatePage(listOf(NOTIFICATIONS, CALENDAR, CLOCK)),
-            5 to TemplatePage(listOf(TELEMETRY, OBD_DTC, DOORS)),
-            3 to TemplatePage(listOf(GFORCE)),
-            6 to TemplatePage(listOf(OBD_ALL))
+            1 to TemplatePage(listOf(NAVMAP, NAVIGATION, FUEL_TO_DEST, SPEED_HUD), dock = true),
+            0 to TemplatePage(listOf(MEDIA, AUDIO, NOTIFICATIONS)),
+            2 to TemplatePage(listOf(FUEL_PRICES, RANGE, BREAK_TIMER, WEATHER)),
+            4 to TemplatePage(listOf(CALENDAR, CLOCK)),
+            5 to TemplatePage(listOf(TRIP, ECO_DRIVE)),
+            3 to TemplatePage(listOf(OBD_DTC, TYRES, BATTERY, WARMUP)),
+            6 to TemplatePage(listOf(SERVICE, CAR_STATUS))
         )
     ),
     CAR_HEALTH(
         R.string.templates_car_health, R.string.templates_car_health_blurb, mapOf(
-            1 to TemplatePage(listOf(TELEMETRY, SPEED_HUD, OBD_DTC, RANGE), dock = true),
+            1 to TemplatePage(listOf(TELEMETRY, OBD_DTC, BATTERY, WARMUP), dock = true),
             0 to TemplatePage(listOf(NAVMAP, NAVIGATION, MEDIA)),
-            2 to TemplatePage(listOf(DOORS, GFORCE)),
-            4 to TemplatePage(listOf(OBD_ALL)),
-            3 to TemplatePage(listOf(CAN_MON)),
-            5 to TemplatePage(listOf(TRIP, COMPASS, PARKING)),
-            6 to TemplatePage(listOf(WEATHER, CALENDAR, CLOCK, NOTIFICATIONS))
+            2 to TemplatePage(listOf(FILTER_CARE, SERVICE, TYRES, RANGE)),
+            4 to TemplatePage(listOf(ECO_DRIVE, BREAK_TIMER, TRIP)),
+            3 to TemplatePage(listOf(CAR_STATUS, DOORS)),
+            5 to TemplatePage(listOf(WEATHER, CALENDAR, CLOCK)),
+            6 to TemplatePage(listOf(NOTIFICATIONS, AUDIO))
         )
     )
 }
@@ -93,7 +107,9 @@ data class TemplateScreen(
     val mapsDocked: Boolean = false,
     val dockApps: List<String> = emptyList(),
     /** The CANbox stream can be read (root, see [PrivilegedShell]): the door and CAN tiles have something to show. */
-    val canbox: Boolean = true
+    val canbox: Boolean = true,
+    /** The head unit has the TPMS app that reports the tyres ([Tyres.available]). */
+    val tyres: Boolean = true
 ) {
     companion object {
         /** Widgets never get narrower than their resize minimum. */
@@ -114,7 +130,8 @@ data class TemplateScreen(
             driverOnRight: Boolean,
             mapsDocked: Boolean,
             dockApps: List<String>,
-            canbox: Boolean = true
+            canbox: Boolean = true,
+            tyres: Boolean = true
         ): TemplateScreen {
             val cellW = (pageWidthDp / GRID_COLS).coerceAtLeast(1f)
             val cellH = (pageHeightDp / GRID_ROWS).coerceAtLeast(1f)
@@ -125,7 +142,8 @@ data class TemplateScreen(
                 driverOnRight = driverOnRight,
                 mapsDocked = mapsDocked,
                 dockApps = dockApps,
-                canbox = canbox
+                canbox = canbox,
+                tyres = tyres
             )
         }
     }
@@ -152,17 +170,28 @@ object TemplatePlacer {
         OBD_DTC to Shape(3, 1.6), DOORS to Shape(3, 1.5), WEATHER to Shape(3, 1.8),
         CALENDAR to Shape(4, 1.4), CLOCK to Shape(2, 1.6), TRIP to Shape(3, 1.8),
         PARKING to Shape(3, 1.8), COMPASS to Shape(2, 1.0),
-        GFORCE to Shape(3, 1.8), OBD_ALL to Shape(6, 1.4), CAN_MON to Shape(6, 1.4)
+        GFORCE to Shape(3, 1.8), OBD_ALL to Shape(6, 1.4), CAN_MON to Shape(6, 1.4),
+        FILTER_CARE to Shape(3, 1.3), WARMUP to Shape(3, 1.2), BATTERY to Shape(3, 1.2),
+        ECO_DRIVE to Shape(4, 1.4), BREAK_TIMER to Shape(3, 1.2), FUEL_TO_DEST to Shape(3, 1.3),
+        SERVICE to Shape(4, 1.4), FUEL_PRICES to Shape(4, 1.3), CAR_STATUS to Shape(4, 1.4),
+        TYRES to Shape(4, 1.3)
     )
     private val DEFAULT_SHAPE = Shape(3, 1.6)
     private fun shape(kind: BuiltinKind) = SHAPES[kind] ?: DEFAULT_SHAPE
 
-    /** Tiles that show nothing without an OBD adapter, and what (if anything) stands in for them. */
-    private val NEEDS_OBD = setOf(TELEMETRY, RANGE, OBD_DTC, DOORS, OBD_ALL, CAN_MON)
+    /**
+     * Tiles fed by the OBD adapter's readings alone, and what (if anything)
+     * stands in for them without one. The fuel, the doors and the car's own
+     * status come from the CAN box instead ([NEEDS_CANBOX]).
+     */
+    private val NEEDS_OBD = setOf(TELEMETRY, OBD_DTC, OBD_ALL, BATTERY, WARMUP, FILTER_CARE, ECO_DRIVE, BREAK_TIMER)
     private val WITHOUT_OBD = mapOf(TELEMETRY to TRIP)
 
     /** Tiles fed by the CANbox stream alone, which only root can read: nothing stands in for them. */
-    private val NEEDS_CANBOX = setOf(DOORS, CAN_MON)
+    private val NEEDS_CANBOX = setOf(DOORS, CAN_MON, CAR_STATUS)
+
+    /** Fuel and range: from the CAN box, else the adapter's fuel reading on cars that give one. */
+    private val NEEDS_FUEL = setOf(RANGE, FUEL_TO_DEST)
 
     /** Every page of [template] laid out for [screen]; pages the template leaves out stay empty. */
     fun pages(template: DashTemplate, screen: TemplateScreen): List<List<DashboardItem>> =
@@ -175,6 +204,8 @@ object TemplatePlacer {
             val use = when {
                 screen.mapsDocked && kind == NAVMAP -> null
                 !screen.canbox && kind in NEEDS_CANBOX -> null
+                !screen.canbox && !screen.obdPaired && kind in NEEDS_FUEL -> null
+                !screen.tyres && kind == TYRES -> null
                 !screen.obdPaired && kind in NEEDS_OBD -> WITHOUT_OBD[kind]?.takeIf { it !in page.kinds }
                 else -> kind
             }

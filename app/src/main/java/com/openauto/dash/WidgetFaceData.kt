@@ -1090,14 +1090,15 @@ private fun carStatusFace(): WidgetFace {
 @Composable
 private fun tyresFace(): WidgetFace {
     val tyres by Tyres.tyres.collectAsState()
+    val judged by Tyres.problems.collectAsState()
     val unit by Tyres.unit.collectAsState()
     if (tyres.isEmpty()) return idleFace(Icons.Filled.TireRepair, BuiltinKind.TYRES.label, stringResource(R.string.car_tyres_waiting))
     val order = listOf(TyrePos.FRONT_LEFT, TyrePos.FRONT_RIGHT, TyrePos.REAR_LEFT, TyrePos.REAR_RIGHT)
-    val problems = tyres.mapNotNull { (pos, t) -> tyreProblem(t)?.let { pos to it } }
+    val problems = judged.toList()
     val lowest = tyres.filterKeys { it in order }.values.minByOrNull { it.kPa }
     val wheels = order.map { pos ->
         tyres[pos]?.let { t ->
-            val problem = tyreProblem(t)
+            val problem = judged[pos]
             val value = listOfNotNull(problem?.let { stringResource(it.labelRes) }, formatPressure(t.kPa, unit)).joinToString(" · ")
             FaceRow(stringResource(pos.labelRes), value, alert = problem != null)
         }

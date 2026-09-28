@@ -139,8 +139,6 @@
     <string name="design_desk_calendar_desc">Il foglio di oggi accanto al prossimo evento.</string>
     <string name="design_card_stack">Pila di schede</string>
     <string name="design_card_stack_desc">La più recente sopra, le altre che spuntano dietro.</string>
-    <string name="design_rotary_phone">Telefono a disco</string>
-    <string name="design_rotary_phone_desc">I preferiti nei fori del disco.</string>
     <string name="design_faces">Volti</string>
     <string name="design_faces_desc">Grandi cerchi dei contatti, un tocco per chiamare.</string>
     <string name="design_badge">Badge</string>

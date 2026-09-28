@@ -78,6 +78,54 @@ class DockPolicyTest {
     }
 
     @Test
+    fun anAppThatDiedWithItsWindowComesBack() {
+        val (step, mem) = DockPolicy.onMissing(DockPolicy.Memory(hadWindow = true), expectedGone = false, autoOpen = true, lastReopenAt = 0, now = 100_000, died = true)
+        assertEquals(DockPolicy.Step.Reopen(1), step)
+        assertEquals(1, mem.crashReopens)
+    }
+
+    @Test
+    fun anAppThatKeepsCrashingIsLeftClosed() {
+        var mem = DockPolicy.Memory(hadWindow = true)
+        var now = 100_000L
+        repeat(DockPolicy.MAX_CRASH_REOPENS) {
+            val (step, next) = DockPolicy.onMissing(mem, expectedGone = false, autoOpen = true, lastReopenAt = 0, now = now, died = true)
+            assertEquals(DockPolicy.Step.Reopen(1), step)
+            // It came back as a window, then died again a minute later.
+            mem = next.copy(hadWindow = true)
+            now += 60_000
+        }
+        val (step, _) = DockPolicy.onMissing(mem, expectedGone = false, autoOpen = true, lastReopenAt = 0, now = now, died = true)
+        assertEquals(DockPolicy.Step.UserClosed, step)
+    }
+
+    @Test
+    fun aCrashLongAfterTheLastOneCountsAfresh() {
+        val old = DockPolicy.Memory(hadWindow = true, crashReopens = DockPolicy.MAX_CRASH_REOPENS, lastCrashAt = 100_000)
+        val (step, mem) = DockPolicy.onMissing(old, expectedGone = false, autoOpen = true, lastReopenAt = 0, now = 100_000 + DockPolicy.CRASH_WINDOW_MS + 1, died = true)
+        assertEquals(DockPolicy.Step.Reopen(1), step)
+        assertEquals(1, mem.crashReopens)
+    }
+
+    @Test
+    fun aClosedAppStillRunningWasTheDriversChoice() {
+        val (step, _) = DockPolicy.onMissing(DockPolicy.Memory(hadWindow = true), expectedGone = false, autoOpen = true, lastReopenAt = 0, now = 100_000, died = false)
+        assertEquals(DockPolicy.Step.UserClosed, step)
+    }
+
+    @Test
+    fun pidofTellsARunningAppFromAGoneOne() {
+        val maps = "com.google.android.apps.maps"
+        assertFalse(PipAnchor.processGone("12345\n", maps))
+        assertTrue(PipAnchor.processGone("", maps))
+        assertTrue(PipAnchor.processGone("  \n", maps))
+        // The shell's echo of the command is not an answer.
+        assertTrue(PipAnchor.processGone("pidof $maps\n", maps))
+        // An error proves nothing: the window counts as closed by the driver.
+        assertFalse(PipAnchor.processGone("sh: pidof: not found", maps))
+    }
+
+    @Test
     fun noIntentMeansNothingHappens() {
         val (step, _) = DockPolicy.onMissing(DockPolicy.Memory(), expectedGone = false, autoOpen = false, lastReopenAt = 0, now = 100_000)
         assertEquals(DockPolicy.Step.Idle, step)

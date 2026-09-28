@@ -593,8 +593,15 @@ internal fun ContourLayout(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
                         FaceCaption(f, look, m)
                     }
                 }
-                val action = f.actions.firstOrNull { it.primary } ?: f.actions.firstOrNull()
-                if (action != null) OutlinePill(action, look, m, labelled = m.w >= 260f)
+                // Every key where there is room (up to three, icons only), else the main one with its name.
+                if (f.actions.size > 1 && m.w >= 240f) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(m.dp(2f))) {
+                        f.actions.take(3).forEach { OutlinePill(it, look, m, labelled = false) }
+                    }
+                } else {
+                    val action = f.actions.firstOrNull { it.primary } ?: f.actions.firstOrNull()
+                    if (action != null) OutlinePill(action, look, m, labelled = m.w >= 260f)
+                }
             }
         }
     }

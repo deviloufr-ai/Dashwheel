@@ -69,13 +69,13 @@
 
     <!-- System app install (root) -->
     <string name="dash_system_app_title">Application système</string>
-    <string name="dash_system_app_body">Installe Dashwheel comme application système pour que la tuile Maps affiche le vrai Google Maps, navigation comprise. Nécessite le root, ou l\'ADB interne sur le port %1$d. Redémarrez ensuite.</string>
+    <string name="dash_system_app_body">Installe Dashwheel comme appli système : les widgets Android s\'ajoutent sans demande à chaque fois. Nécessite le root, ou l\'ADB interne sur le port %1$d. Redémarrez ensuite.</string>
     <string name="dash_root_checking">Vérification du root…</string>
     <string name="dash_root_available">Root disponible. S\'installe en module Magisk si Magisk est présent.</string>
     <string name="dash_root_missing">Pas de root. Essai via l\'ADB interne sur le port %1$d.</string>
     <string name="dash_install_system_app">Installer en appli système</string>
     <string name="dash_reboot_now">Redémarrer</string>
-    <string name="dash_system_installed">Installé. Redémarrez pour activer Maps intégré.</string>
+    <string name="dash_system_installed">Installé. Redémarrez pour terminer.</string>
     <string name="dash_system_failed">Échec : %1$s</string>
 
     <!-- System app-widget picker -->

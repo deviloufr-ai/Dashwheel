@@ -226,7 +226,6 @@ internal fun SignatureFace(face: WidgetFace, design: WidgetDesign, modifier: Mod
                 WidgetDesign.TIMELINE -> Timeline(f, look, m)
                 WidgetDesign.DESK_CALENDAR -> DeskCalendar(f, look, m)
                 WidgetDesign.CARD_STACK -> CardStack(f, look, m)
-                WidgetDesign.ROTARY_PHONE -> RotaryPhone(f, look, m)
                 WidgetDesign.FACES -> Faces(f, look, m)
                 WidgetDesign.BADGE -> Badge(f, look, m)
                 WidgetDesign.VINYL -> Vinyl(f, look, m)
@@ -322,7 +321,9 @@ private fun Split(f: WidgetFace, look: FaceLook, m: FaceMetrics, ratio: Float, v
             FaceHeader(f, look, m)
             FaceValue(f, look, m, min(m.h * 0.20f, m.w * 0.105f))
             FaceCaption(f, look, m)
-            if (m.h >= 170f) FaceActions(f, look, m, small = true)
+            // From a two-row tile up: the knob, the fader and the parking sign
+            // are pictures, and these are the tile's only keys.
+            if (m.h >= 140f) FaceActions(f, look, m, small = true)
         }
     }
 }
@@ -1183,31 +1184,6 @@ private fun Initials(text: String, look: FaceLook, size: Dp, m: FaceMetrics, mod
         modifier = modifier.size(size).clip(CircleShape).background(Brush.linearGradient(listOf(look.accent, look.accent2))),
         contentAlignment = Alignment.Center
     ) { FaceText(text, look, m.sp(size.value * 0.36f), color = look.onAccent, weight = FontWeight.ExtraBold) }
-}
-
-@Composable
-private fun RotaryPhone(f: WidgetFace, look: FaceLook, m: FaceMetrics) = Split(f, look, m, 1f) {
-    Vb(100f, 100f) { tm ->
-        val c = Offset(50f, 50f)
-        drawCircle(Color(0xFF1D1F23), 48f, c)
-        drawCircle(Color(0xFF3A3D44), 48f, c, style = Stroke(1.5f))
-        listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0").forEachIndexed { i, n ->
-            val p = polarPoint(c, 33f, 50f - i * 28f)
-            val fav = f.rows.getOrNull(i)?.badge
-            if (fav != null) {
-                drawCircle(look.accent, 9f, p)
-                label(tm, fav, p.x, p.y + 3f, if (fav.length > 1) 6.5f else 8f, look.onAccent, weight = FontWeight.ExtraBold)
-            } else {
-                drawCircle(Color(0xFF0B0C0E), 9f, p)
-                drawCircle(Color(0xFF555555), 9f, p, style = Stroke(0.6f))
-                label(tm, n, p.x, p.y + 3f, 8f, Color(0xFFBBBBBB))
-            }
-        }
-        drawCircle(Color(0xFFE8EAED), 17f, c)
-        label(tm, f.value.take(8), 50f, 53f, 8f, Color(0xFF111111))
-        val stop = polarPoint(c, 45f, 130f)
-        drawLine(Color(0xFFC0C4CA), stop, Offset(stop.x + 6f, stop.y - 6f), 3f, cap = StrokeCap.Round)
-    }
 }
 
 @Composable

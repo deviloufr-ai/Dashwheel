@@ -88,11 +88,19 @@ object MediaVolume {
     /** The level to come back to when unmuting a volume that was slid down to 0. */
     @Volatile private var lastAudible = 0
 
+    /**
+     * QF firmware: its own volume is the only one that works, so there is no
+     * choice to offer (Settings hides it) and none is kept. Android's volume,
+     * chosen there once, silenced every volume control.
+     */
+    val choiceOffered: Boolean get() = !qfUnit
+
     fun setContext(context: Context) {
         if (loaded) return
         loaded = true
         val name = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_WAY, null)
-        _way.value = VolumeWay.entries.firstOrNull { it.name == name } ?: VolumeWay.AUTO
+        val saved = VolumeWay.entries.firstOrNull { it.name == name } ?: VolumeWay.AUTO
+        if (qfUnit && saved != VolumeWay.AUTO) saveWay(context, VolumeWay.AUTO) else _way.value = saved
         applyWay()
     }
 

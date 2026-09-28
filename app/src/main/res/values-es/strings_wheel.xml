@@ -85,4 +85,5 @@
     <string name="wheel_action_dashboard_up">Panel de arriba</string>
     <string name="wheel_action_dashboard_down">Panel de abajo</string>
     <string name="wheel_action_read_message">Leer el último mensaje</string>
+    <string name="wheel_action_dismiss_alert">Cerrar el aviso</string>
 </resources>
