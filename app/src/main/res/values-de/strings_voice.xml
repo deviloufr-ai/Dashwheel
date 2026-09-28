@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- What the car says by itself: Settings -> Alerts -> Voice (HandsFreeSettings.kt) -->
+    <string name="voice_section">Stimme</string>
+    <string name="voice_warnings">Warnungen und Tipps</string>
+    <string name="voice_warnings_detail">Überhitzung, Batterie, neue Fehlercodes, wenig Kraftstoff, Pausen, Fahrtipps</string>
+    <string name="voice_messages">Nachrichten</string>
+    <string name="voice_messages_detail">Sagt, von wem eine Nachricht kommt. Eine Lenkradtaste liest sie vor.</string>
+    <string name="voice_where">Was das Auto von sich aus sagt, wird unter Einstellungen, Hinweise geschaltet.</string>
+
+    <!-- Spoken -->
+    <string name="voice_say_message">Nachricht von %1$s</string>
+    <string name="voice_no_message">Keine Nachricht.</string>
+    <string name="voice_status_range">Kraftstoff für etwa %1$d Kilometer.</string>
+    <string name="voice_status_no_faults">Kein Fehlercode.</string>
+    <string name="voice_status_nothing">Nichts zu melden.</string>
+    <string name="voice_quiet_on">Ruhe bis zum nächsten Start. Dringende Warnungen werden weiter gesagt.</string>
+    <string name="voice_quiet_off">Die Stimme ist wieder an.</string>
+    <string name="voice_no_position">Die Position ist noch nicht bekannt.</string>
+    <string name="voice_no_fuel_prices">Keine Kraftstoffpreise in dieser Gegend.</string>
+    <plurals name="voice_fuel_station">
+        <item quantity="one">Die günstigste Tankstelle in der Nähe ist %1$s, %2$d Kilometer entfernt.</item>
+        <item quantity="other">Die günstigste Tankstelle in der Nähe ist %1$s, %2$d Kilometer entfernt.</item>
+    </plurals>
+</resources>

@@ -251,6 +251,13 @@ private fun faultCodesFace(env: SkinTileEnv): WidgetFace {
     val pending by ObdBluetoothManager.pending.collectAsState()
     var busy by remember { mutableStateOf(false) }
     val connected = env.obdConnection == ObdConnectionState.CONNECTED
+    val clearCodes = rememberClearCodes {
+        busy = true
+        scope.launch {
+            ObdBluetoothManager.clearTroubleCodes().onSuccess { AiMechanic.cleared() }
+            busy = false
+        }
+    }
     val scan = FaceAction(Icons.Filled.Search, stringResource(R.string.vehicle_scan), primary = true, enabled = connected && !busy, onClick = {
         busy = true
         scope.launch {
@@ -282,13 +289,7 @@ private fun faultCodesFace(env: SkinTileEnv): WidgetFace {
         stats = listOfNotNull(lamp?.let { FaceStat(stringResource(R.string.design_engine_lamp), stringResource(if (it.on) R.string.design_on else R.string.design_off)) }),
         actions = listOf(
             scan,
-            FaceAction(Icons.Filled.DeleteSweep, stringResource(R.string.vehicle_clear), enabled = connected && !busy && codes.isNotEmpty(), onClick = {
-                busy = true
-                scope.launch {
-                    ObdBluetoothManager.clearTroubleCodes().onSuccess { AiMechanic.cleared() }
-                    busy = false
-                }
-            })
+            FaceAction(Icons.Filled.DeleteSweep, stringResource(R.string.vehicle_clear), enabled = connected && !busy && codes.isNotEmpty(), onClick = clearCodes)
         )
     )
 }

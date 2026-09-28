@@ -213,4 +213,6 @@
     <string name="vehicle_speed_fix_more">Raise the correction</string>
     <string name="vehicle_speed_fix_now">Speed now: %1$d km/h. Adjust until it matches your speedometer.</string>
     <string name="vehicle_speed_fix_not_connected">Connect the OBD adapter to see the corrected speed live.</string>
+    <string name="vehicle_clear_confirm_title">Clear the fault codes?</string>
+    <string name="vehicle_clear_confirm_body">They are erased from the car for good. A garage needs them to find a fault.</string>
 </resources>

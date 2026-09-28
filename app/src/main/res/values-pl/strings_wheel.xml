@@ -77,4 +77,14 @@
     <string name="wheel_unit_key_code">Klawisz radia %1$d</string>
     <string name="wheel_action_next_dashboard">Następny pulpit</string>
     <string name="wheel_action_previous_dashboard">Poprzedni pulpit</string>
+    <string name="wheel_group_car">Samochód</string>
+    <string name="wheel_group_navigation">Nawigacja</string>
+    <string name="wheel_action_status">Powiedz, jak się ma auto</string>
+    <string name="wheel_action_quiet">Cisza wł. / wył.</string>
+    <string name="wheel_action_navigate_home">Nawiguj do domu</string>
+    <string name="wheel_action_navigate_work">Nawiguj do pracy</string>
+    <string name="wheel_action_navigate_fuel">Jedź po najtańsze paliwo</string>
+    <string name="wheel_action_dashboard_up">Pulpit wyżej</string>
+    <string name="wheel_action_dashboard_down">Pulpit niżej</string>
+    <string name="wheel_action_read_message">Przeczytaj ostatnią wiadomość</string>
 </resources>

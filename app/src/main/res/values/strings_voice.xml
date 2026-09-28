@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- What the car says by itself: Settings -> Alerts -> Voice (HandsFreeSettings.kt) -->
+    <string name="voice_section">Voice</string>
+    <string name="voice_warnings">Warnings and tips</string>
+    <string name="voice_warnings_detail">Overheating, battery, new fault codes, low fuel, breaks, driving tips</string>
+    <string name="voice_messages">Messages</string>
+    <string name="voice_messages_detail">Says who a message is from. A wheel button reads it out.</string>
+    <string name="voice_where">What the car says by itself is switched in Settings, Alerts.</string>
+
+    <!-- Spoken -->
+    <string name="voice_say_message">Message from %1$s</string>
+    <string name="voice_no_message">No message.</string>
+    <string name="voice_status_range">About %1$d kilometres of fuel left.</string>
+    <string name="voice_status_no_faults">No fault code.</string>
+    <string name="voice_status_nothing">Nothing to report.</string>
+    <string name="voice_quiet_on">Quiet until the next start. Urgent warnings are still said.</string>
+    <string name="voice_quiet_off">Voice back on.</string>
+    <string name="voice_no_position">The position is not known yet.</string>
+    <string name="voice_no_fuel_prices">No fuel prices around here.</string>
+    <plurals name="voice_fuel_station">
+        <item quantity="one">The cheapest station nearby is %1$s, %2$d kilometre away.</item>
+        <item quantity="other">The cheapest station nearby is %1$s, %2$d kilometres away.</item>
+    </plurals>
+</resources>

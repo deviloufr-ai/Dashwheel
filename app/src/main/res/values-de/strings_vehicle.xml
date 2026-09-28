@@ -213,4 +213,6 @@
     <string name="vehicle_speed_fix_more">Korrektur erhöhen</string>
     <string name="vehicle_speed_fix_now">Aktuell: %1$d km/h. Anpassen, bis es mit dem Tacho übereinstimmt.</string>
     <string name="vehicle_speed_fix_not_connected">OBD-Adapter verbinden, um die korrigierte Geschwindigkeit live zu sehen.</string>
+    <string name="vehicle_clear_confirm_title">Fehlercodes löschen?</string>
+    <string name="vehicle_clear_confirm_body">Sie werden endgültig aus dem Auto gelöscht. Eine Werkstatt braucht sie, um einen Fehler zu finden.</string>
 </resources>

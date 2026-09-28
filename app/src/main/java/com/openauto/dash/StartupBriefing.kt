@@ -76,6 +76,29 @@ internal object BriefingLines {
         return if (body.isEmpty()) emptyList() else listOf(greeting(f.hour)) + body
     }
 
+    /**
+     * The car's state when the driver asks for it (a learned wheel button).
+     * Unlike the briefing, what is fine is said too, in a few words: the
+     * answer to a question is never silence. [BriefingFacts.upkeep] is then
+     * everything due or nearly, said before or not.
+     */
+    fun status(f: BriefingFacts): List<SpokenLine> = buildList {
+        f.fuel?.let { add(SpokenLine(if (it.percent <= LOW_FUEL_PCT) R.string.briefing_fuel_low else R.string.voice_status_range, listOf(it.rangeKm))) }
+        f.weather?.let { w ->
+            if (w.tempC.roundToInt() <= ICE_BELOW_C || w.code in FREEZING_CODES) add(SpokenLine(R.string.briefing_ice, emptyList()))
+        }
+        f.faults?.let { codes ->
+            when {
+                codes.isEmpty() -> add(SpokenLine(R.string.voice_status_no_faults, emptyList()))
+                f.faultSummary != null -> add(SpokenLine(R.string.briefing_verbatim, listOf(f.faultSummary)))
+                else -> add(SpokenLine(R.plurals.briefing_faults, listOf(codes.size), quantity = codes.size))
+            }
+        }
+        f.upkeep.forEach { add(UpkeepRules.line(it)) }
+        f.event?.let { add(SpokenLine(R.string.briefing_event, listOf(it.title, it.time))) }
+        if (isEmpty()) add(SpokenLine(R.string.voice_status_nothing, emptyList()))
+    }
+
     private fun greeting(hour: Int) = SpokenLine(
         when (hour) {
             in 5..11 -> R.string.briefing_morning
@@ -194,8 +217,34 @@ object StartupBriefing {
         val lines = BriefingLines.compose(facts)
         if (lines.isEmpty()) return
         val resources = config.language.resources(context)
-        CarVoice.speak(lines.joinToString(" ") { it.text(resources) }, config.language.locale)
+        CarVoice.announce(lines.joinToString(" ") { it.text(resources) }, config.language.locale)
         Maintenance.markSpoken(facts.upkeep)
+    }
+
+    /**
+     * Says how the car is, now, from what is already known (a learned wheel
+     * button): nothing is waited for, so the answer comes at once.
+     */
+    fun sayStatus(context: Context) {
+        val app = context.applicationContext
+        scope.launch {
+            val config = AiSettings.load(app)
+            val now = System.currentTimeMillis()
+            val engine = AiMechanic.state.value
+            val facts = BriefingFacts(
+                hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY),
+                weather = WeatherRepo.weather.value?.takeIf { now - it.fetchedAt < 3 * 3_600_000L },
+                fuel = carFuelInfo(McuReader.fuelPercent.value, ObdBluetoothManager.data.value.fuelLevelPct, McuReader.rangeKm.value),
+                faults = engine.codes,
+                faultSummary = engine.diagnosis?.summary,
+                event = withContext(Dispatchers.IO) { nextEvent(app, config.language) },
+                upkeep = Maintenance.state.value.statuses(now).filter { it.stage == UpkeepStage.SOON || it.stage == UpkeepStage.DUE }
+            )
+            val resources = config.language.resources(app)
+            CarVoice.setContext(app)
+            // Asked for: said whatever the switches for what the car says by itself.
+            CarVoice.speak(BriefingLines.status(facts).joinToString(" ") { it.text(resources) }, config.language.locale)
+        }
     }
 
     private suspend fun gather(context: Context, language: AiLanguage, startedAt: Long): BriefingFacts = coroutineScope {

@@ -189,14 +189,12 @@ internal fun AiSettingsDialog(onDismiss: () -> Unit) {
             perRow = 3
         ) { config = config.copy(languageChoice = it) }
 
-        SwitchRow(stringResource(R.string.ai_speak), stringResource(R.string.ai_speak_detail), config.speak) {
-            config = config.copy(speak = it)
-        }
-        SwitchRow(
-            stringResource(R.string.briefing_setting),
-            stringResource(R.string.briefing_setting_detail),
-            config.briefing
-        ) { config = config.copy(briefing = it) }
+        // What the car says by itself is switched under Settings, Alerts (VoiceSettings).
+        Text(
+            stringResource(R.string.voice_where),
+            color = DashColors.TextSecondary,
+            style = MaterialTheme.typography.bodySmall
+        )
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Button(

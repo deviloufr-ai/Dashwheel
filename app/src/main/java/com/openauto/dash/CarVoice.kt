@@ -49,9 +49,10 @@ object CarVoice {
         appContext = context.applicationContext
     }
 
-    // Sentences asked for while the car reverses, said once it's done
-    // ([hold]). Main thread only.
-    private var holding = false
+    // Sentences asked for while the car reverses or the driver is on the
+    // phone, said once it's done ([hold], [holdForCall]). Main thread only.
+    private var reversing = false
+    private var onCall = false
     private val held = mutableListOf<HeldLine>()
 
     /**
@@ -59,19 +60,57 @@ object CarVoice {
      * the parking sensors. What was asked meanwhile is said when it ends,
      * except what went stale waiting ([linesToRelease]).
      */
-    fun hold(on: Boolean) {
+    fun hold(on: Boolean) = setHold { reversing = on }
+
+    /**
+     * The same while the driver is on the phone: the voice never talks into a
+     * call. Only what can't wait is still said (see [speak]).
+     */
+    fun holdForCall(on: Boolean) = setHold { onCall = on }
+
+    private fun setHold(change: () -> Unit) {
         main.post {
-            if (holding == on) return@post
-            holding = on
-            if (on) return@post
+            val before = reversing || onCall
+            change()
+            if (!before || reversing || onCall) return@post
             val lines = linesToRelease(held.toList(), SystemClock.elapsedRealtime())
             held.clear()
-            lines.forEach { speakNow(it.text, it.locale) }
+            lines.forEach { speakNow(it.text, it.locale, it.urgent) }
         }
     }
 
-    /** Says [text] in [locale]; silently skipped when the unit has no voice for that language. */
-    fun speak(text: String, locale: Locale) {
+    /** Quiet asked for this long at most: a drive, not for good. */
+    private const val QUIET_MAX_MS = 4 * 3_600_000L
+    // Until when (elapsed realtime) the car keeps what it would say by itself to itself; 0 = not quiet.
+    @Volatile private var quietUntil = 0L
+
+    /**
+     * Quiet for this drive (a learned wheel button): what the car says by
+     * itself ([announce]) is dropped, except what can't wait. Ends at the
+     * next start of the car ([CarPower]).
+     */
+    var quiet: Boolean
+        get() = SystemClock.elapsedRealtime() < quietUntil
+        set(on) {
+            quietUntil = if (on) SystemClock.elapsedRealtime() + QUIET_MAX_MS else 0L
+        }
+
+    /**
+     * What the car says by itself: an alert, a reminder, the briefing. Like
+     * [speak], but not while the driver asked for [quiet], unless [urgent].
+     */
+    fun announce(text: String, locale: Locale, urgent: Boolean = false) {
+        if (quiet && !urgent) return
+        speak(text, locale, urgent)
+    }
+
+    /**
+     * Says [text] in [locale]; silently skipped when the unit has no voice for
+     * that language. [urgent]: what can't wait (the engine overheating, a
+     * door open on the move) is said ahead of anything being said or queued,
+     * and during a call too.
+     */
+    fun speak(text: String, locale: Locale, urgent: Boolean = false) {
         // Noted when asked, not when spoken, so a check right after already sees it.
         val now = System.currentTimeMillis()
         synchronized(recent) {
@@ -80,22 +119,23 @@ object CarVoice {
         }
         main.post {
             if (text.isBlank()) return@post
-            if (holding) {
-                held.add(HeldLine(text, locale, SystemClock.elapsedRealtime()))
+            if (reversing || onCall && !urgent) {
+                held.add(HeldLine(text, locale, SystemClock.elapsedRealtime(), urgent))
                 return@post
             }
-            speakNow(text, locale)
+            speakNow(text, locale, urgent)
         }
     }
 
     /** Main thread. */
-    private fun speakNow(text: String, locale: Locale) {
+    private fun speakNow(text: String, locale: Locale, urgent: Boolean) {
         val engine = engine() ?: return
         if (!ready) {
-            queued.add(text to locale)
+            // Still starting: what can't wait goes first.
+            if (urgent) queued.add(0, text to locale) else queued.add(text to locale)
             return
         }
-        say(engine, text, locale)
+        say(engine, text, locale, urgent)
     }
 
     /** What was asked to be said since [time] (the last ten minutes at most). */
@@ -155,7 +195,7 @@ object CarVoice {
         return created
     }
 
-    private fun say(engine: TextToSpeech, text: String, locale: Locale) {
+    private fun say(engine: TextToSpeech, text: String, locale: Locale, urgent: Boolean = false) {
         val voice = voiceFor(engine, locale)
         if (voice == null || engine.setLanguage(voice) < TextToSpeech.LANG_AVAILABLE) {
             Log.w(TAG, "No ${locale.displayLanguage} voice installed; not speaking")
@@ -164,11 +204,14 @@ object CarVoice {
         // Quiet during a call. Otherwise speak even if focus is refused: some
         // head-unit ROMs refuse or delay it for their own radio, and a missed
         // fault alert is worse than talking over the music.
-        if (!requestFocus() && inCall()) {
+        val focused = requestFocus()
+        if (!focused && !urgent && inCall()) {
             Log.i(TAG, "In a call; not speaking")
             return
         }
-        if (engine.speak(text, TextToSpeech.QUEUE_ADD, null, "carvoice-${nextId++}") == TextToSpeech.SUCCESS) {
+        // Urgent: what was being said or waiting is dropped (each gets its onStop).
+        val mode = if (urgent) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD
+        if (engine.speak(text, mode, null, "carvoice-${nextId++}") == TextToSpeech.SUCCESS) {
             talking++
             stillTalking()
         } else {
@@ -223,7 +266,7 @@ object CarVoice {
 }
 
 /** A sentence asked for while [CarVoice] was held, and when (elapsed realtime). */
-internal data class HeldLine(val text: String, val locale: Locale, val at: Long)
+internal data class HeldLine(val text: String, val locale: Locale, val at: Long, val urgent: Boolean = false)
 
 /** A held sentence older than this is dropped: by then it would be about something else. */
 internal const val HELD_MAX_MS = 2 * 60_000L

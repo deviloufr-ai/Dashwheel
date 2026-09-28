@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- What the car says by itself: Settings -> Alerts -> Voice (HandsFreeSettings.kt) -->
+    <string name="voice_section">Voz</string>
+    <string name="voice_warnings">Avisos y consejos</string>
+    <string name="voice_warnings_detail">Sobrecalentamiento, batería, códigos de avería nuevos, poco combustible, descansos, consejos de conducción</string>
+    <string name="voice_messages">Mensajes</string>
+    <string name="voice_messages_detail">Dice de quién es un mensaje. Un botón del volante lo lee.</string>
+    <string name="voice_where">Lo que el coche dice por sí mismo se ajusta en Ajustes, Avisos.</string>
+
+    <!-- Spoken -->
+    <string name="voice_say_message">Mensaje de %1$s</string>
+    <string name="voice_no_message">Ningún mensaje.</string>
+    <string name="voice_status_range">Queda combustible para unos %1$d kilómetros.</string>
+    <string name="voice_status_no_faults">Ningún código de avería.</string>
+    <string name="voice_status_nothing">Nada que señalar.</string>
+    <string name="voice_quiet_on">Silencio hasta el próximo arranque. Los avisos urgentes se siguen diciendo.</string>
+    <string name="voice_quiet_off">La voz ha vuelto.</string>
+    <string name="voice_no_position">Aún no se conoce la posición.</string>
+    <string name="voice_no_fuel_prices">No hay precios de combustible por aquí.</string>
+    <plurals name="voice_fuel_station">
+        <item quantity="one">La gasolinera más barata cerca es %1$s, a %2$d kilómetro.</item>
+        <item quantity="other">La gasolinera más barata cerca es %1$s, a %2$d kilómetros.</item>
+    </plurals>
+</resources>

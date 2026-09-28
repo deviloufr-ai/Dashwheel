@@ -113,12 +113,24 @@ object AlertStyleStore {
     /** The alerts also said out loud ([AlertVoice]); the doors until the driver says otherwise. */
     val spoken: StateFlow<Set<AlertKind>> = _spoken
 
+    private val _messages = MutableStateFlow(true)
+    /** Whether a message arriving on the phone is said: who it is from, never what it says ([AlertVoice]). */
+    val messages: StateFlow<Boolean> = _messages
+
     fun load(context: Context) {
         val p = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         _styles.value = AlertKind.entries.mapNotNull { kind ->
             p.getString(kind.key, null)?.let { name -> AlertStyle.entries.firstOrNull { it.name == name } }?.let { kind to it }
         }.toMap()
         _spoken.value = AlertKind.entries.filter { p.getBoolean("speak_${it.key}", it == AlertKind.DOORS || it == AlertKind.TYRES || it == AlertKind.BELT) }.toSet()
+        _messages.value = p.getBoolean(KEY_MESSAGES, true)
+    }
+
+    private const val KEY_MESSAGES = "speak_messages"
+
+    fun setMessages(context: Context, on: Boolean) {
+        _messages.value = on
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_MESSAGES, on).apply()
     }
 
     fun set(context: Context, kind: AlertKind, style: AlertStyle) {

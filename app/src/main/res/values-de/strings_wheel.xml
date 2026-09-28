@@ -75,4 +75,14 @@
     <string name="wheel_unit_key_code">Radiotaste %1$d</string>
     <string name="wheel_action_next_dashboard">Nächstes Dashboard</string>
     <string name="wheel_action_previous_dashboard">Vorheriges Dashboard</string>
+    <string name="wheel_group_car">Auto</string>
+    <string name="wheel_group_navigation">Navigation</string>
+    <string name="wheel_action_status">Zustand des Autos ansagen</string>
+    <string name="wheel_action_quiet">Ruhe ein / aus</string>
+    <string name="wheel_action_navigate_home">Nach Hause navigieren</string>
+    <string name="wheel_action_navigate_work">Zur Arbeit navigieren</string>
+    <string name="wheel_action_navigate_fuel">Zur günstigsten Tankstelle</string>
+    <string name="wheel_action_dashboard_up">Dashboard darüber</string>
+    <string name="wheel_action_dashboard_down">Dashboard darunter</string>
+    <string name="wheel_action_read_message">Letzte Nachricht vorlesen</string>
 </resources>

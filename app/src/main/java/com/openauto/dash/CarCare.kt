@@ -1,11 +1,19 @@
 package com.openauto.dash
 
 import android.content.Context
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONObject
 import kotlin.math.max
+import kotlin.math.roundToInt
 
 /*
  * Watches each drive for the car-care tiles and speaks up by itself, so the
@@ -249,6 +257,24 @@ internal object CareRules {
 
 internal enum class FuelVerdict { ENOUGH, TIGHT, SHORT }
 
+/**
+ * Low fuel on the move: said once as the range falls to [WARN_KM], and again
+ * only after a fill-up took it back over [REARM_KM]. Parked, the start-up
+ * briefing has it. Pure, so it's unit-tested.
+ */
+internal object LowFuel {
+    const val WARN_KM = 80
+    const val REARM_KM = 150
+
+    /** Whether to say it now, and whether the rule is armed afterwards. A range of 0 is the car not saying. */
+    fun step(armed: Boolean, rangeKm: Int?, moving: Boolean): Pair<Boolean, Boolean> = when {
+        rangeKm == null || rangeKm <= 0 -> false to armed
+        rangeKm >= REARM_KM -> false to true
+        armed && moving && rangeKm <= WARN_KM -> true to false
+        else -> false to armed
+    }
+}
+
 /** The live side: feeds [CareRules] every OBD reading, keeps the state and speaks the events. */
 object CarCare {
     private const val PREFS = "car_care"
@@ -271,6 +297,59 @@ object CarCare {
             filter = FilterLog(p.getInt("short_streak", 0), p.getLong("last_long_at", 0), p.getInt("warned_streak", 0)),
             rest = RestTimer(p.getLong("rest_ms", 0), p.getLong("rest_at", 0), spokenMin = p.getInt("rest_spoken", 0))
         )
+        fuelArmed = p.getBoolean(KEY_FUEL_ARMED, true)
+        scope.launch { watchFuel() }
+    }
+
+    private const val KEY_FUEL_ARMED = "fuel_armed"
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private var fuelArmed = true
+
+    /**
+     * Low fuel while driving, with or without the OBD adapter: the range is
+     * the car's own, and the speed whichever source has one ([carSpeedKmh]).
+     */
+    private suspend fun watchFuel() {
+        val fuel = combine(McuReader.fuelPercent, McuReader.rangeKm, ObdBluetoothManager.data) { percent, range, obd ->
+            carFuelInfo(percent, obd.fuelLevelPct, range)?.rangeKm
+        }
+        combine(fuel, carSpeedKmh()) { range, kmh -> range to (kmh >= MOVING_KMH) }
+            .distinctUntilChanged()
+            .collect { (range, moving) ->
+                if (DemoMode.isOn) return@collect
+                val (speak, armed) = LowFuel.step(fuelArmed, range, moving)
+                if (armed != fuelArmed) {
+                    fuelArmed = armed
+                    appContext?.getSharedPreferences(PREFS, Context.MODE_PRIVATE)?.edit()?.putBoolean(KEY_FUEL_ARMED, armed)?.apply()
+                }
+                if (speak && range != null) sayLowFuel(range)
+            }
+    }
+
+    /** "Fuel is low…", then the cheapest station around when the prices are known there. */
+    private fun sayLowFuel(rangeKm: Int) {
+        scope.launch {
+            val here = LocationFeed.location.value
+            val best = here?.let { withTimeoutOrNull(STATION_WAIT_MS) { FuelPriceRepo.cheapest(it.latitude, it.longitude) } }
+            val lines = listOfNotNull(
+                SpokenLine(R.string.briefing_fuel_low, listOf(rangeKm)),
+                best?.let(::stationLine)
+            )
+            val context = appContext ?: return@launch
+            val config = AiSettings.load(context)
+            if (!config.speak) return@launch
+            val resources = config.language.resources(context)
+            CarVoice.announce(lines.joinToString(" ") { it.text(resources) }, config.language.locale)
+        }
+    }
+
+    private const val STATION_WAIT_MS = 8_000L
+
+    /** "The cheapest station nearby is Intermarché, 3 kilometres away." */
+    internal fun stationLine(best: RankedStation): SpokenLine {
+        val km = best.distanceKm.roundToInt().coerceAtLeast(1)
+        val name = best.station.name.ifBlank { best.station.town }
+        return SpokenLine(R.plurals.voice_fuel_station, listOf(name, km), quantity = km)
     }
 
     /** [DemoMode]'s drive stats, never saved (and, when it ends, the real ones back). */
@@ -333,7 +412,7 @@ object CarCare {
         val context = appContext ?: return
         val config = AiSettings.load(context)
         if (!config.speak) return
-        CarVoice.speak(line.text(config.language.resources(context)), config.language.locale)
+        CarVoice.announce(line.text(config.language.resources(context)), config.language.locale)
     }
 
     private fun save(s: CareState, now: Long) {

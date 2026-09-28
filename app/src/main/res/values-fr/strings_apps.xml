@@ -125,4 +125,5 @@
     <string name="apps_kind_maps_inside_blurb">La vraie appli Google Maps, dans cette tuile</string>
     <string name="apps_kind_dash_bar">Barre des tableaux</string>
     <string name="apps_kind_dash_bar_blurb">Vos tableaux de bord et vos applis, en un toucher</string>
+    <string name="apps_most_used">Les plus utilisées</string>
 </resources>

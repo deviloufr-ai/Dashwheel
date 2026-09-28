@@ -145,13 +145,7 @@ internal fun PhoneMessageSheet(item: NotifItem, onDismiss: () -> Unit) {
             .takeIf { it.resolveActivity(context.packageManager) != null }
     }
     val lines = item.messages.ifEmpty { listOf(ConversationLine("", item.text, item.postedAt)) }
-    val spoken = buildString {
-        append(item.title.ifEmpty { item.appLabel }).append(". ")
-        lines.takeLast(3).forEach { l ->
-            if (l.sender.isNotEmpty() && l.sender != item.title) append(l.sender).append(": ")
-            append(l.text).append(". ")
-        }
-    }
+    val spoken = spokenMessage(item)
 
     AlertDialog(
         modifier = Modifier.keepClearOfWindows(),

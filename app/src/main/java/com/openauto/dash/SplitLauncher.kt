@@ -51,6 +51,9 @@ object SplitLauncher {
      * launch strategy was dispatched.
      */
     fun launchSplit(context: Context, packageName: String): Boolean {
+        // An app that is gone (a tile kept after it was removed): nothing to open, so
+        // the dashboard is not docked to half the screen with nothing beside it.
+        if (context.packageManager.getLaunchIntentForPackage(packageName) == null) return false
         // Already split: the toggle would *exit* split on this ROM and the app
         // would land full screen. The other half takes it as it is.
         if (SplitAccessibilityService.isSplit()) {

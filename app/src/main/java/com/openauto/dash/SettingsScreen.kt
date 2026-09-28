@@ -112,7 +112,7 @@ internal enum class SettingsTab(@StringRes val titleRes: Int, val icon: ImageVec
 }
 
 /** The settings that open further into the pane. */
-private enum class Deep { CAR, AI, UPKEEP, EXPLORER, WHEEL, LANGUAGE }
+private enum class Deep { CAR, AI, UPKEEP, EXPLORER, WHEEL, PLACES, LANGUAGE }
 
 /** Under this width the categories go along the top: a rail would leave the settings half a screen. */
 private val NARROW_SETTINGS = 800.dp
@@ -166,6 +166,7 @@ internal fun SettingsScreen(
                     Deep.UPKEEP -> UpkeepDialog(onDismiss = back)
                     Deep.EXPLORER -> PidExplorerDialog(onDismiss = back)
                     Deep.WHEEL -> SteeringWheelDialog(onDismiss = back)
+                    Deep.PLACES -> PlacesSheet(onDismiss = back)
                     Deep.LANGUAGE -> LanguageSheet(onDismiss = back)
                     null -> Unit
                 }
@@ -184,7 +185,7 @@ internal fun SettingsScreen(
                         SettingsTab.LOOK -> LookPane(theme)
                         SettingsTab.DISPLAY -> DisplayPane(theme, onLanguage = { deep = Deep.LANGUAGE })
                         SettingsTab.ALERTS -> AlertsPane()
-                        SettingsTab.DRIVING -> DrivingPane(m, onWheelButtons = { deep = Deep.WHEEL })
+                        SettingsTab.DRIVING -> DrivingPane(m, onWheelButtons = { deep = Deep.WHEEL }, onPlaces = { deep = Deep.PLACES })
                         SettingsTab.PHONE -> PhonePane()
                         SettingsTab.ADVANCED -> AdvancedPane(m, onBootLogo = { bootLogo = true }, onPickObd = onPickObd, onClose = onClose)
                     }
@@ -420,6 +421,7 @@ private fun AlertsPane() {
     val kinds = remember(access) {
         RomPopups.Kind.entries.filter { RomPopups.available(context, it) && RomPopups.canWork(it, access) }
     }
+    VoiceSettings()
     if (kinds.isNotEmpty()) {
         SettingsSection(stringResource(R.string.settings_section_popups))
         kinds.forEach { RomPopupToggle(it) }
@@ -538,7 +540,7 @@ private fun KeepDirection() {
 }
 
 @Composable
-private fun DrivingPane(m: TopBarModel, onWheelButtons: () -> Unit) {
+private fun DrivingPane(m: TopBarModel, onWheelButtons: () -> Unit, onPlaces: () -> Unit) {
     val context = LocalContext.current
     val wheelMappings by SteeringWheelStore.mappings.collectAsState()
     SettingsSection(stringResource(R.string.settings_section_driving))
@@ -556,6 +558,7 @@ private fun DrivingPane(m: TopBarModel, onWheelButtons: () -> Unit) {
         else pluralStringResource(R.plurals.wheel_settings_detail_count, wheelMappings.size, wheelMappings.size),
         onWheelButtons
     )
+    PlacesRow(onPlaces)
     Spacer(Modifier.height(20.dp))
     VolumeWaySetting()
     Spacer(Modifier.height(12.dp))

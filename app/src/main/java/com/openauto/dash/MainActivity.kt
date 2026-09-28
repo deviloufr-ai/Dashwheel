@@ -51,6 +51,16 @@ class MainActivity : ComponentActivity() {
          */
         val dashboardStep = MutableStateFlow(0L to 0)
 
+        /** (when, -1 or +1): the same for the dashboard above or below, in the column of the middle one. */
+        val dashboardClimb = MutableStateFlow(0L to 0)
+
+        /**
+         * On an intent that brings the launcher in front for a learned wheel
+         * button: true leaves the dashboard on its page, false takes it home
+         * as the Home key does.
+         */
+        const val EXTRA_KEEP_PAGE = "com.openauto.dash.KEEP_PAGE"
+
         /**
          * True while an app window exists, docked on its tile or parked aside,
          * on a unit that cannot keep the bar off over it ([FreeformBar]):
@@ -163,9 +173,9 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        if (intent.hasCategory(Intent.CATEGORY_HOME) || intent.action == Intent.ACTION_MAIN) {
-            homePressed.value = System.currentTimeMillis()
-        }
+        val home = if (intent.hasExtra(EXTRA_KEEP_PAGE)) !intent.getBooleanExtra(EXTRA_KEEP_PAGE, false)
+        else intent.hasCategory(Intent.CATEGORY_HOME) || intent.action == Intent.ACTION_MAIN
+        if (home) homePressed.value = System.currentTimeMillis()
     }
 
     // A tap on the dashboard may open an app fullscreen on purpose: the Maps

@@ -213,4 +213,6 @@
     <string name="vehicle_speed_fix_more">Aumenta la correzione</string>
     <string name="vehicle_speed_fix_now">Velocità attuale: %1$d km/h. Regola finché coincide con il tachimetro.</string>
     <string name="vehicle_speed_fix_not_connected">Collega l\'adattatore OBD per vedere la velocità corretta in diretta.</string>
+    <string name="vehicle_clear_confirm_title">Cancellare i codici guasto?</string>
+    <string name="vehicle_clear_confirm_body">Vengono cancellati dall\'auto per sempre. A un\'officina servono per trovare un guasto.</string>
 </resources>

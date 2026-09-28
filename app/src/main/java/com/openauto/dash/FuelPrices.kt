@@ -256,6 +256,19 @@ object FuelPriceRepo {
         return stations.map { s -> names[s.id]?.takeIf { it.isNotBlank() }?.let { s.copy(name = it) } ?: s }
     }
 
+    /**
+     * The cheapest station around ([lat], [lng]) for [car]'s fuel, with a list
+     * fetched for the occasion when the one at hand is stale; null where the
+     * data knows none (outside France) or offline.
+     */
+    suspend fun cheapest(lat: Double, lng: Double, car: CarProfile = CarProfileStore.current): RankedStation? {
+        val grades = FuelPrices.gradesFor(car)
+        refresh(lat, lng, grades.first())
+        val list = realStations ?: return null
+        val grade = grades.firstOrNull { g -> list.any { it.prices.containsKey(g) } } ?: return null
+        return FuelPrices.rank(list, grade, lat, lng).firstOrNull()
+    }
+
     /** Fetches when the list is stale, the car has moved or the grade changed; cheap to call often. */
     suspend fun refresh(lat: Double, lng: Double, grade: FuelGrade, force: Boolean = false) {
         if (DemoMode.isOn) return

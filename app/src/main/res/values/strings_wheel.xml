@@ -75,4 +75,14 @@
     <string name="wheel_unit_key_code">Unit key %1$d</string>
     <string name="wheel_action_next_dashboard">Next dashboard</string>
     <string name="wheel_action_previous_dashboard">Previous dashboard</string>
+    <string name="wheel_group_car">Car</string>
+    <string name="wheel_group_navigation">Navigation</string>
+    <string name="wheel_action_status">Say how the car is</string>
+    <string name="wheel_action_quiet">Quiet on / off</string>
+    <string name="wheel_action_navigate_home">Navigate home</string>
+    <string name="wheel_action_navigate_work">Navigate to work</string>
+    <string name="wheel_action_navigate_fuel">Go to the cheapest fuel</string>
+    <string name="wheel_action_dashboard_up">Dashboard above</string>
+    <string name="wheel_action_dashboard_down">Dashboard below</string>
+    <string name="wheel_action_read_message">Read the last message</string>
 </resources>

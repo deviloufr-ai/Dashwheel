@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- What the car says by itself: Settings -> Alerts -> Voice (HandsFreeSettings.kt) -->
+    <string name="voice_section">Stem</string>
+    <string name="voice_warnings">Waarschuwingen en tips</string>
+    <string name="voice_warnings_detail">Oververhitting, accu, nieuwe foutcodes, weinig brandstof, pauzes, rijtips</string>
+    <string name="voice_messages">Berichten</string>
+    <string name="voice_messages_detail">Zegt van wie een bericht komt. Een stuurknop leest het voor.</string>
+    <string name="voice_where">Wat de auto uit zichzelf zegt, stel je in bij Instellingen, Meldingen.</string>
+
+    <!-- Spoken -->
+    <string name="voice_say_message">Bericht van %1$s</string>
+    <string name="voice_no_message">Geen bericht.</string>
+    <string name="voice_status_range">Nog brandstof voor ongeveer %1$d kilometer.</string>
+    <string name="voice_status_no_faults">Geen foutcode.</string>
+    <string name="voice_status_nothing">Niets te melden.</string>
+    <string name="voice_quiet_on">Stil tot de volgende start. Dringende waarschuwingen worden nog gezegd.</string>
+    <string name="voice_quiet_off">De stem is weer aan.</string>
+    <string name="voice_no_position">De positie is nog niet bekend.</string>
+    <string name="voice_no_fuel_prices">Geen brandstofprijzen in deze buurt.</string>
+    <plurals name="voice_fuel_station">
+        <item quantity="one">Het goedkoopste tankstation in de buurt is %1$s, op %2$d kilometer.</item>
+        <item quantity="other">Het goedkoopste tankstation in de buurt is %1$s, op %2$d kilometer.</item>
+    </plurals>
+</resources>

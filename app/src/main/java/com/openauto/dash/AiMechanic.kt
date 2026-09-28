@@ -517,14 +517,16 @@ object AiMechanic {
         val config = AiSettings.load(context)
         if (!config.speak) return
         val line = MechanicLines.alert(alert, data, config.language)
-        CarVoice.speak(line.text(config.language.resources(context)), config.language.locale)
+        // Overheating or no longer charging can't wait behind a briefing; a weak battery at rest can.
+        val urgent = alert != LiveWatch.Alert.WEAK_BATTERY
+        CarVoice.announce(line.text(config.language.resources(context)), config.language.locale, urgent)
     }
 
     /** Fills in the advice for [codes]; speaks only when some are [fresh] (new and to be announced). */
     private suspend fun explain(context: Context, codes: List<String>, fresh: List<String>) {
         val config = AiSettings.load(context)
         explainedIn = config.language
-        val say: (String) -> Unit = { if (fresh.isNotEmpty() && config.speak) CarVoice.speak(it, config.language.locale) }
+        val say: (String) -> Unit = { if (fresh.isNotEmpty() && config.speak) CarVoice.announce(it, config.language.locale) }
         val resources = config.language.resources(context)
         val offline = MechanicLines.newCodes(fresh).text(resources)
         val car = CarProfileStore.current

@@ -11,8 +11,6 @@
     <string name="ai_key_hint">Gratis op aistudio.google.com → Get API key</string>
     <string name="ai_language">Taal</string>
     <string name="ai_language_auto">Zoals de app</string>
-    <string name="ai_speak">Waarschuwingen uitspreken</string>
-    <string name="ai_speak_detail">Nieuwe foutcodes, oververhitting, accu laadt niet op</string>
     <string name="ai_test">Testen</string>
     <string name="ai_done">Klaar</string>
 

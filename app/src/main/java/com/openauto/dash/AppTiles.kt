@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
@@ -48,6 +49,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -436,14 +439,29 @@ internal fun AppDrawer(
     /** The car is moving: one app per 64 dp row, big icon and name, instead of the grid. */
     moving: Boolean = false
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    LaunchedEffect(Unit) { AppUsage.load(context) }
+    val counts by AppUsage.counts.collectAsState()
+    // The apps opened most come first, as they were when the drawer opened:
+    // an app just launched does not reshuffle the row under the finger.
+    val mostUsed = remember(apps, counts.isEmpty()) {
+        val byPackage = apps.associateBy { it.packageName }
+        AppUsage.mostUsed(apps.map { it.packageName }, counts).mapNotNull { byPackage[it] }
+    }
+    // Typing waits for a stop (the drive lock): no search field on the move.
+    var query by remember { mutableStateOf("") }
+    val found = remember(apps, query, moving) {
+        val q = query.trim()
+        if (q.isEmpty() || moving) null else apps.filter { it.label.contains(q, ignoreCase = true) }
+    }
+
     SolidCard(modifier = modifier) {
         Column(modifier = Modifier.fillMaxSize()) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 20.dp, end = 6.dp, top = 14.dp, bottom = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = stringResource(R.string.apps_all_apps),
@@ -451,16 +469,23 @@ internal fun AppDrawer(
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.titleLarge
                 )
-                IconButton(onClick = onClose) {
+                Spacer(Modifier.width(20.dp))
+                if (!moving && apps.isNotEmpty()) SearchField(query, { query = it }, Modifier.weight(1f)) else Spacer(Modifier.weight(1f))
+                Spacer(Modifier.width(8.dp))
+                IconButton(onClick = onClose, modifier = Modifier.size(DashSize.TouchPrimary)) {
                     Icon(
                         imageVector = Icons.Filled.Close,
                         contentDescription = stringResource(R.string.apps_close_drawer),
-                        tint = DashColors.TextSecondary
+                        tint = DashColors.TextSecondary,
+                        modifier = Modifier.size(28.dp)
                     )
                 }
             }
 
-            if (apps.isEmpty()) {
+            val shown = found ?: apps
+            // Sections only when there is a row of favourites to tell apart from the rest.
+            val sections = found == null && mostUsed.isNotEmpty()
+            if (shown.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(stringResource(R.string.apps_no_apps_found), color = DashColors.Muted)
                 }
@@ -469,7 +494,14 @@ internal fun AppDrawer(
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    items(apps, key = { it.packageName }) { app ->
+                    if (sections) {
+                        item(key = "h:top") { DrawerSection(stringResource(R.string.apps_most_used)) }
+                        items(mostUsed, key = { "top:" + it.packageName }) { app ->
+                            AppRow(app = app, onClick = { onLaunch(app) })
+                        }
+                        item(key = "h:all") { DrawerSection(stringResource(R.string.apps_all_apps)) }
+                    }
+                    items(shown, key = { it.packageName }) { app ->
                         AppRow(app = app, onClick = { onLaunch(app) })
                     }
                 }
@@ -481,13 +513,31 @@ internal fun AppDrawer(
                     verticalArrangement = Arrangement.spacedBy(18.dp),
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    items(apps, key = { it.packageName }) { app ->
+                    if (sections) {
+                        item(key = "h:top", span = { GridItemSpan(maxLineSpan) }) { DrawerSection(stringResource(R.string.apps_most_used)) }
+                        items(mostUsed, key = { "top:" + it.packageName }) { app ->
+                            AppShortcutTile(app = app, packageName = app.packageName, onClick = { onLaunch(app) })
+                        }
+                        item(key = "h:all", span = { GridItemSpan(maxLineSpan) }) { DrawerSection(stringResource(R.string.apps_all_apps)) }
+                    }
+                    items(shown, key = { it.packageName }) { app ->
                         AppShortcutTile(app = app, packageName = app.packageName, onClick = { onLaunch(app) })
                     }
                 }
             }
         }
     }
+}
+
+/** "Most used", "All apps": what the drawer's two parts are. */
+@Composable
+private fun DrawerSection(title: String) {
+    Text(
+        title.uppercase(),
+        color = DashColors.Accent,
+        style = MaterialTheme.typography.labelSmall,
+        modifier = Modifier.padding(start = 4.dp, top = 2.dp)
+    )
 }
 
 /** One app on a 64 dp row: the drawer's layout while the car moves, hit without aiming. */

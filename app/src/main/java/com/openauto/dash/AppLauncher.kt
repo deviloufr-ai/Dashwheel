@@ -7,6 +7,10 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.os.UserHandle
 import androidx.compose.runtime.Immutable
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import org.json.JSONObject
 
 /**
  * A launchable app installed on the device.
@@ -29,15 +33,6 @@ data class AppEntry(
  * app's UI inside a view, so "opening" an app hands the whole screen to it.
  */
 object AppLauncher {
-
-    /** Package-name hints used to seed the favorites rail with common car apps. */
-    private val PREFERRED_HINTS = listOf(
-        "maps",        // Google Maps / navigation
-        "music", "spotify", "deezer", "youtube.music", // media
-        "dialer", "phone", // phone
-        "messaging", "messages", // messages
-        "waze"
-    )
 
     /** All launchable apps except this launcher, sorted alphabetically by label. */
     fun loadApps(context: Context): List<AppEntry> {
@@ -78,65 +73,70 @@ object AppLauncher {
         return { launcherApps.unregisterCallback(callback) }
     }
 
-    /**
-     * Picks up to [max] favorites for the rail: preferred car apps first (in
-     * hint order), then the remaining apps alphabetically to fill the slots.
-     */
-    fun pickFavorites(apps: List<AppEntry>, max: Int = 5): List<AppEntry> {
-        val preferred = PREFERRED_HINTS.mapNotNull { hint ->
-            apps.firstOrNull { it.packageName.contains(hint, ignoreCase = true) }
-        }.distinctBy { it.packageName }
-
-        val fill = apps.filter { app -> preferred.none { it.packageName == app.packageName } }
-        return (preferred + fill).take(max)
-    }
-
-    // --- User-chosen menu favorites -----------------------------------------
-
-    private const val PREFS = "launcher_prefs"
-    private const val KEY_FAVORITES = "favorite_packages"
-
-    /** Package names the user pinned to the menu, in order (may be empty). */
-    fun favoritePackages(context: Context): List<String> =
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .getString(KEY_FAVORITES, null)
-            ?.split(",")
-            ?.filter { it.isNotBlank() }
-            ?: emptyList()
-
-    private fun setFavoritePackages(context: Context, packages: List<String>) {
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-            .putString(KEY_FAVORITES, packages.joinToString(",")).apply()
-    }
-
-    /** Pins/unpins [packageName] (capped at [max]); returns the new list. */
-    fun toggleFavorite(context: Context, packageName: String, max: Int = 5): List<String> {
-        val current = favoritePackages(context).toMutableList()
-        when {
-            current.contains(packageName) -> current.remove(packageName)
-            current.size < max -> current.add(packageName)
-        }
-        setFavoritePackages(context, current)
-        return current
-    }
-
-    /** The rail's favorites: the user's chosen apps if any, else auto-picked. */
-    fun favorites(context: Context, apps: List<AppEntry>, max: Int = 5): List<AppEntry> {
-        val chosen = favoritePackages(context)
-        if (chosen.isNotEmpty()) {
-            val byPackage = apps.associateBy { it.packageName }
-            val resolved = chosen.mapNotNull { byPackage[it] }
-            if (resolved.isNotEmpty()) return resolved.take(max)
-        }
-        return pickFavorites(apps, max)
-    }
-
     /** Launches [packageName] fullscreen. Returns false if it has no launch intent. */
     fun launch(context: Context, packageName: String): Boolean {
         val launchIntent = context.packageManager
             .getLaunchIntentForPackage(packageName)
             ?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             ?: return false
-        return runCatching { context.startActivity(launchIntent); true }.getOrDefault(false)
+        val launched = runCatching { context.startActivity(launchIntent); true }.getOrDefault(false)
+        if (launched) AppUsage.opened(context, packageName)
+        return launched
     }
+}
+
+/**
+ * How often each app was opened from the launcher, so the drawer can put the
+ * ones the driver really uses first instead of an alphabet to read through.
+ */
+object AppUsage {
+    private const val PREFS = "app_usage"
+    private const val KEY = "counts"
+    /** Past this, every count is halved: what was used a lot long ago makes room for what is used now. */
+    private const val HALVE_AT = 200
+
+    private val _counts = MutableStateFlow<Map<String, Int>>(emptyMap())
+    val counts: StateFlow<Map<String, Int>> = _counts.asStateFlow()
+    private var loaded = false
+
+    @Synchronized
+    fun load(context: Context) {
+        if (loaded) return
+        loaded = true
+        val raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY, null) ?: return
+        _counts.value = runCatching {
+            val o = JSONObject(raw)
+            o.keys().asSequence().associateWith { o.optInt(it) }.filterValues { it > 0 }
+        }.getOrDefault(emptyMap())
+    }
+
+    @Synchronized
+    fun opened(context: Context, packageName: String) {
+        load(context)
+        val next = counted(_counts.value, packageName)
+        _counts.value = next
+        val json = JSONObject().apply { next.forEach { (pkg, n) -> put(pkg, n) } }
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY, json.toString()).apply()
+    }
+
+    /** [counts] with one more opening of [packageName]. */
+    internal fun counted(counts: Map<String, Int>, packageName: String): Map<String, Int> {
+        val next = counts + (packageName to (counts[packageName] ?: 0) + 1)
+        return if (next.getValue(packageName) < HALVE_AT) next else next.mapValues { it.value / 2 }.filterValues { it > 0 }
+    }
+
+    /**
+     * The apps opened most among [installed], most used first, [max] at most.
+     * Only those opened at least [MIN_OPENINGS] times: one try is not a habit.
+     * Empty until at least two qualify, a row of one being no help.
+     */
+    internal fun mostUsed(installed: List<String>, counts: Map<String, Int>, max: Int = 6): List<String> {
+        val used = installed
+            .filter { (counts[it] ?: 0) >= MIN_OPENINGS }
+            .sortedByDescending { counts.getValue(it) }
+            .take(max)
+        return if (used.size < 2) emptyList() else used
+    }
+
+    const val MIN_OPENINGS = 2
 }

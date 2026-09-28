@@ -2,8 +2,7 @@ package com.openauto.dash
 
 import android.Manifest
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -32,7 +31,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
-import java.util.Locale
 import kotlin.math.roundToInt
 
 /*
@@ -40,17 +38,9 @@ import kotlin.math.roundToInt
  * to navigate there. Prices come from the French open data (FuelPrices.kt).
  */
 
-/**
- * Hands the destination to Google Maps' free navigation intent (no key, no
- * billing), or to any map app if Maps isn't installed.
- */
+/** Hands the destination to the navigation app ([NavHandoff]), and says so when the unit has none. */
 internal fun navigateTo(context: Context, lat: Double, lng: Double, label: String) {
-    val nav = Intent(Intent.ACTION_VIEW, Uri.parse(String.format(Locale.US, "google.navigation:q=%.6f,%.6f&mode=d", lat, lng)))
-        .setPackage("com.google.android.apps.maps")
-    if (!context.launchSafely(nav)) {
-        val geo = Uri.parse(String.format(Locale.US, "geo:%.6f,%.6f?q=%.6f,%.6f(%s)", lat, lng, lat, lng, Uri.encode(label)))
-        context.launchSafely(Intent(Intent.ACTION_VIEW, geo))
-    }
+    if (!NavHandoff.start(context, lat, lng, label)) Toast.makeText(context, R.string.places_no_nav_app, Toast.LENGTH_SHORT).show()
 }
 
 /** What the fuel tile and its designed face share: the grade, the car's position and the ranked stations. */

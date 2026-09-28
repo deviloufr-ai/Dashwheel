@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The driver's places (Places.kt): Settings -> Driving, the map tile, the steering wheel buttons -->
+    <string name="places_title">Mijn plaatsen</string>
+    <string name="places_detail_empty">Thuis en werk, met één tik of één knop</string>
+    <string name="places_explanation">Stel ze één keer in. Daarna staan ze op de kaarttegel, en een stuurknop kan de routebegeleiding starten.</string>
+    <string name="places_home">Thuis</string>
+    <string name="places_work">Werk</string>
+    <string name="places_not_set">Niet ingesteld</string>
+    <string name="places_address_hint">Adres of plaats</string>
+    <string name="places_find">Zoeken</string>
+    <string name="places_here">De auto staat hier</string>
+    <string name="places_forget">Vergeten</string>
+    <string name="places_recent">Laatste bestemmingen</string>
+    <string name="places_forget_recent">Vergeten</string>
+    <string name="places_offline">Geen verbinding</string>
+    <string name="places_no_nav_app">Geen navigatie-app op dit apparaat</string>
+    <!-- Spoken when a steering wheel button asks for a place that isn't set -->
+    <string name="places_no_home">Thuis is niet ingesteld. Stel het in bij Instellingen, Rijden, Mijn plaatsen.</string>
+    <string name="places_no_work">Werk is niet ingesteld. Stel het in bij Instellingen, Rijden, Mijn plaatsen.</string>
+</resources>

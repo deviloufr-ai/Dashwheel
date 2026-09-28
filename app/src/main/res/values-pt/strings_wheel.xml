@@ -75,4 +75,14 @@
     <string name="wheel_unit_key_code">Tecla do rádio %1$d</string>
     <string name="wheel_action_next_dashboard">Painel seguinte</string>
     <string name="wheel_action_previous_dashboard">Painel anterior</string>
+    <string name="wheel_group_car">Carro</string>
+    <string name="wheel_group_navigation">Navegação</string>
+    <string name="wheel_action_status">Dizer como está o carro</string>
+    <string name="wheel_action_quiet">Silêncio sim / não</string>
+    <string name="wheel_action_navigate_home">Ir para casa</string>
+    <string name="wheel_action_navigate_work">Ir para o trabalho</string>
+    <string name="wheel_action_navigate_fuel">Ir ao combustível mais barato</string>
+    <string name="wheel_action_dashboard_up">Painel de cima</string>
+    <string name="wheel_action_dashboard_down">Painel de baixo</string>
+    <string name="wheel_action_read_message">Ler a última mensagem</string>
 </resources>

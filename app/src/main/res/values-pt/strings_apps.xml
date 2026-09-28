@@ -125,4 +125,5 @@
     <string name="apps_kind_maps_inside_blurb">A verdadeira app Google Maps, neste bloco</string>
     <string name="apps_kind_dash_bar">Barra de painéis</string>
     <string name="apps_kind_dash_bar_blurb">Os seus painéis e apps, com um toque</string>
+    <string name="apps_most_used">As mais usadas</string>
 </resources>

@@ -75,4 +75,14 @@
     <string name="wheel_unit_key_code">Radiotoets %1$d</string>
     <string name="wheel_action_next_dashboard">Volgend dashboard</string>
     <string name="wheel_action_previous_dashboard">Vorig dashboard</string>
+    <string name="wheel_group_car">Auto</string>
+    <string name="wheel_group_navigation">Navigatie</string>
+    <string name="wheel_action_status">Zeggen hoe de auto ervoor staat</string>
+    <string name="wheel_action_quiet">Stil aan / uit</string>
+    <string name="wheel_action_navigate_home">Naar huis navigeren</string>
+    <string name="wheel_action_navigate_work">Naar het werk navigeren</string>
+    <string name="wheel_action_navigate_fuel">Naar de goedkoopste brandstof</string>
+    <string name="wheel_action_dashboard_up">Dashboard erboven</string>
+    <string name="wheel_action_dashboard_down">Dashboard eronder</string>
+    <string name="wheel_action_read_message">Laatste bericht voorlezen</string>
 </resources>

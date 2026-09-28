@@ -11,8 +11,6 @@
     <string name="ai_key_hint">Free at aistudio.google.com → Get API key</string>
     <string name="ai_language">Language</string>
     <string name="ai_language_auto">Same as app</string>
-    <string name="ai_speak">Speak alerts</string>
-    <string name="ai_speak_detail">New fault codes, overheating, battery not charging</string>
     <string name="ai_test">Test</string>
     <string name="ai_done">Done</string>
 

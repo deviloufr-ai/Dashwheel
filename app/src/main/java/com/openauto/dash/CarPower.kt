@@ -96,6 +96,8 @@ object CarPower {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val offAt = prefs.getLong(KEY_OFF_AT, 0L).takeIf { it > 0 }
         Log.i(TAG, "ignition on")
+        // Quiet was asked for the drive that ended.
+        CarVoice.quiet = false
         EmbeddedApp.carStarted(context)
         VehicleMonitor.connectSaved()
         if (briefOnIgnition(offAt, System.currentTimeMillis())) StartupBriefing.carStarted(context)

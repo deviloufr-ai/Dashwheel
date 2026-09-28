@@ -125,4 +125,5 @@
     <string name="apps_kind_maps_inside_blurb">La app real de Google Maps, en esta tarjeta</string>
     <string name="apps_kind_dash_bar">Barra de paneles</string>
     <string name="apps_kind_dash_bar_blurb">Tus paneles y apps, con un toque</string>
+    <string name="apps_most_used">Las más usadas</string>
 </resources>

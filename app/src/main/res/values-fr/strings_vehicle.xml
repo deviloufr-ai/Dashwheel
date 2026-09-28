@@ -213,4 +213,6 @@
     <string name="vehicle_speed_fix_more">Augmenter la correction</string>
     <string name="vehicle_speed_fix_now">Vitesse actuelle : %1$d km/h. Ajustez jusqu\'à lire la même chose qu\'au compteur.</string>
     <string name="vehicle_speed_fix_not_connected">Branchez l\'adaptateur OBD pour voir la vitesse corrigée en direct.</string>
+    <string name="vehicle_clear_confirm_title">Effacer les codes défaut ?</string>
+    <string name="vehicle_clear_confirm_body">Ils sont effacés de la voiture pour de bon. Un garage en a besoin pour trouver une panne.</string>
 </resources>

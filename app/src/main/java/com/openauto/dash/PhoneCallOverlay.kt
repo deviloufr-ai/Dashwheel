@@ -109,6 +109,29 @@ object PhoneCallOverlay {
             call?.let { callStyle(it, styles.of(AlertKind.CALL), reversing) }
         }.stateIn(scope, SharingStarted.Eagerly, null)
 
+    /**
+     * The call a button acts on with no card to press (a learned steering
+     * wheel button): the one shown, else the head unit's own, which the ROM's
+     * pop-up shows when the driver kept it.
+     */
+    private fun callToControl(): PhoneCall? = call.value ?: HeadUnitPhone.call.value
+
+    /** Answers the call that rings, the way its card's button does. */
+    fun answerCall() {
+        val c = callToControl()
+        if (c != null) answer(c) else PhoneLink.callCommand(CallCommand.Action.ANSWER)
+    }
+
+    fun declineCall() {
+        val c = callToControl()
+        if (c != null) decline(c) else PhoneLink.callCommand(CallCommand.Action.DECLINE)
+    }
+
+    fun hangUpCall() {
+        val c = callToControl()
+        if (c != null) hangUp(c) else PhoneLink.callCommand(CallCommand.Action.HANG_UP)
+    }
+
     private var started = false
     private var window: AlertWindow? = null
 
@@ -205,22 +228,28 @@ private val PhoneCall.ringing: Boolean get() = phase == CallState.Phase.RINGING
 private val PhoneCall.title: String?
     get() = name ?: number
 
-private fun answer(call: PhoneCall) = when {
-    call.preview -> AlertPreview.stop()
-    call.viaHeadUnit -> HeadUnitPhone.accept()
-    else -> PhoneLink.callCommand(CallCommand.Action.ANSWER)
+private fun answer(call: PhoneCall) {
+    when {
+        call.preview -> AlertPreview.stop()
+        call.viaHeadUnit -> HeadUnitPhone.accept()
+        else -> PhoneLink.callCommand(CallCommand.Action.ANSWER)
+    }
 }
 
-private fun decline(call: PhoneCall) = when {
-    call.preview -> AlertPreview.stop()
-    call.viaHeadUnit -> HeadUnitPhone.decline()
-    else -> PhoneLink.callCommand(CallCommand.Action.DECLINE)
+private fun decline(call: PhoneCall) {
+    when {
+        call.preview -> AlertPreview.stop()
+        call.viaHeadUnit -> HeadUnitPhone.decline()
+        else -> PhoneLink.callCommand(CallCommand.Action.DECLINE)
+    }
 }
 
-private fun hangUp(call: PhoneCall) = when {
-    call.preview -> AlertPreview.stop()
-    call.viaHeadUnit -> HeadUnitPhone.hangUp()
-    else -> PhoneLink.callCommand(CallCommand.Action.HANG_UP)
+private fun hangUp(call: PhoneCall) {
+    when {
+        call.preview -> AlertPreview.stop()
+        call.viaHeadUnit -> HeadUnitPhone.hangUp()
+        else -> PhoneLink.callCommand(CallCommand.Action.HANG_UP)
+    }
 }
 
 /** Decline and Answer while it rings, Hang up once it's on; nothing when the companion may not. */

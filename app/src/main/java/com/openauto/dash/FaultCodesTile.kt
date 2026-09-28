@@ -122,6 +122,15 @@ internal fun ObdDtcCard(
     val scanFailed = stringResource(R.string.ai_scan_failed)
     val clearFailed = stringResource(R.string.ai_clear_failed)
     val clearedText = stringResource(R.string.ai_cleared)
+    val clearCodes = rememberClearCodes {
+        busy = true; message = null
+        scope.launch {
+            val res = ObdBluetoothManager.clearTroubleCodes()
+            busy = false
+            res.onSuccess { message = DtcMessage(clearedText, failed = false); AiMechanic.cleared() }
+                .onFailure { message = DtcMessage(it.message ?: clearFailed, failed = true) }
+        }
+    }
 
     Card(modifier = modifier) {
         Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
@@ -156,15 +165,7 @@ internal fun ObdDtcCard(
                     ) { Text(stringResource(R.string.vehicle_scan)) }
                     Button(
                         enabled = !busy && codes?.isNotEmpty() == true,
-                        onClick = {
-                            busy = true; message = null
-                            scope.launch {
-                                val res = ObdBluetoothManager.clearTroubleCodes()
-                                busy = false
-                                res.onSuccess { message = DtcMessage(clearedText, failed = false); AiMechanic.cleared() }
-                                    .onFailure { message = DtcMessage(it.message ?: clearFailed, failed = true) }
-                            }
-                        },
+                        onClick = clearCodes,
                         colors = ButtonDefaults.buttonColors(containerColor = DashColors.CardHi, contentColor = DashColors.TextPrimary)
                     ) { Text(stringResource(R.string.vehicle_clear)) }
                 }
@@ -252,6 +253,28 @@ internal fun ObdDtcCard(
         // A new scan can take the code away while the sheet is open: then it just closes.
         if (advice != null) FaultDetailSheet(code, advice, diagnosis, codes.orEmpty(), aiText, moving) { opened = null }
     }
+}
+
+/**
+ * What a Clear button runs. Clearing erases the codes stored in the car's
+ * computer for good, and a garage reads them to find a fault: it is asked
+ * first, and only parked, so a finger aiming at Scan can't do it.
+ */
+@Composable
+internal fun rememberClearCodes(onClear: () -> Unit): () -> Unit {
+    val lock = LocalDriveLock.current
+    var asking by remember { mutableStateOf(false) }
+    if (asking) {
+        ParkedOnly { asking = false }
+        ConfirmDialog(
+            title = stringResource(R.string.vehicle_clear_confirm_title),
+            body = stringResource(R.string.vehicle_clear_confirm_body),
+            action = stringResource(R.string.vehicle_clear),
+            onConfirm = { asking = false; onClear() },
+            onDismiss = { asking = false }
+        )
+    }
+    return { lock.whenParked { asking = true } }
 }
 
 /**

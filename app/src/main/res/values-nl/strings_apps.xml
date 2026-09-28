@@ -124,4 +124,5 @@
     <string name="apps_kind_maps_inside_blurb">De echte Google Maps-app, in deze tegel</string>
     <string name="apps_kind_dash_bar">Dashboardbalk</string>
     <string name="apps_kind_dash_bar_blurb">Je dashboards en apps, met één tik</string>
+    <string name="apps_most_used">Meest gebruikt</string>
 </resources>

@@ -213,4 +213,6 @@
     <string name="vehicle_speed_fix_more">Zwiększ korektę</string>
     <string name="vehicle_speed_fix_now">Prędkość teraz: %1$d km/h. Dostosuj, aż zgodzi się z prędkościomierzem.</string>
     <string name="vehicle_speed_fix_not_connected">Podłącz adapter OBD, aby widzieć skorygowaną prędkość na żywo.</string>
+    <string name="vehicle_clear_confirm_title">Wyczyścić kody błędów?</string>
+    <string name="vehicle_clear_confirm_body">Zostaną usunięte z auta na dobre. Warsztat potrzebuje ich, żeby znaleźć usterkę.</string>
 </resources>

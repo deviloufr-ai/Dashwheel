@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The driver's places (Places.kt): Settings -> Driving, the map tile, the steering wheel buttons -->
+    <string name="places_title">Mes lieux</string>
+    <string name="places_detail_empty">Domicile et travail, à un appui ou un bouton</string>
+    <string name="places_explanation">À régler une fois. Ils s\'affichent ensuite sur la tuile de la carte, et un bouton du volant peut lancer le guidage.</string>
+    <string name="places_home">Domicile</string>
+    <string name="places_work">Travail</string>
+    <string name="places_not_set">Non défini</string>
+    <string name="places_address_hint">Adresse ou lieu</string>
+    <string name="places_find">Chercher</string>
+    <string name="places_here">La voiture y est</string>
+    <string name="places_forget">Oublier</string>
+    <string name="places_recent">Dernières destinations</string>
+    <string name="places_forget_recent">Les oublier</string>
+    <string name="places_offline">Pas de connexion</string>
+    <string name="places_no_nav_app">Aucune appli de navigation sur cet autoradio</string>
+    <!-- Spoken when a steering wheel button asks for a place that isn't set -->
+    <string name="places_no_home">Le domicile n\'est pas défini. Réglez-le dans Réglages, Conduite, Mes lieux.</string>
+    <string name="places_no_work">Le travail n\'est pas défini. Réglez-le dans Réglages, Conduite, Mes lieux.</string>
+</resources>

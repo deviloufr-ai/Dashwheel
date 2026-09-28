@@ -3,6 +3,7 @@ package com.openauto.dash
 import android.content.Context
 import android.os.SystemClock
 import com.openauto.dash.link.CallState
+import com.openauto.dash.link.ConversationLine
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -39,6 +40,12 @@ object AlertVoice {
         CarVoice.setContext(app)
         // Quiet while reversing: the parking sensors come first; what waited is said after.
         scope.launch { CarBox.reversing.collect { CarVoice.hold(it) } }
+        // Quiet during a call, through the companion or the unit's own Bluetooth, whoever shows it.
+        scope.launch {
+            combine(PhoneLink.call, HeadUnitPhone.call) { link, unit -> talking(link) || talking(unit) }
+                .distinctUntilChanged()
+                .collect { CarVoice.holdForCall(it) }
+        }
 
         // A call starting to ring (a new one, not every update of it).
         scope.launch {
@@ -47,6 +54,9 @@ object AlertVoice {
                 .distinctUntilChanged { a, b -> (a == null) == (b == null) }
                 .collect { ringing -> if (ringing != null) sayCall(app, ringing) }
         }
+
+        // A message arriving on the phone: who it is from.
+        scope.launch { NotificationFeed.arrived.collect { sayMessage(app, it) } }
 
         // The GPS speed only while it's needed: a door open, and doors spoken.
         scope.launch {
@@ -88,6 +98,37 @@ object AlertVoice {
         say(context, text, force)
     }
 
+    /** A conversation isn't announced again this soon: a chat that goes on says so once. */
+    private const val SAME_SENDER_MS = 3 * 60_000L
+    private val messageSaidAt = HashMap<String, Long>()
+
+    /**
+     * "Message from Alex": who, never what, since passengers hear it too. The
+     * message itself is read on request ([readLastMessage]).
+     */
+    private fun sayMessage(context: Context, item: NotifItem) {
+        if (!AlertStyleStore.messages.value) return
+        // CarPlay / Android Auto announces its own messages.
+        if (UnitSignals.projectionOnScreen.value) return
+        val now = SystemClock.elapsedRealtime()
+        if (!messageDue(messageSaidAt[item.key], now, SAME_SENDER_MS)) return
+        messageSaidAt[item.key] = now
+        val res = AppLanguage.wrap(context.applicationContext).resources
+        say(context, res.getString(R.string.voice_say_message, item.title.ifEmpty { item.appLabel }), force = false)
+    }
+
+    /**
+     * Reads the latest message from the phone out loud, or says there is none
+     * (a learned wheel button): asked for, so said whatever the switches.
+     */
+    fun readLastMessage(context: Context) {
+        val app = context.applicationContext
+        // None: said and shown, like every answer to a button. A message is only said, not put on screen.
+        val message = NotificationFeed.latestMessage() ?: return HandsFree.say(app, R.string.voice_no_message)
+        CarVoice.setContext(app)
+        CarVoice.speak(spokenMessage(message), AppLanguage.wrap(app).resources.configuration.locales[0])
+    }
+
     /** "Door open: front left, tailgate", for the doors named in [open] (see [openNames]). */
     fun sayDoors(context: Context, open: Set<String>, force: Boolean = false) {
         if (AlertKind.DOORS !in AlertStyleStore.spoken.value || open.isEmpty()) return
@@ -104,7 +145,8 @@ object AlertVoice {
                 }
             )
         }
-        say(context, res.getString(R.string.alert_say_doors, names.joinToString(", ")), force)
+        // A door open on the move can't wait behind another sentence.
+        say(context, res.getString(R.string.alert_say_doors, names.joinToString(", ")), force, urgent = true)
     }
 
     /** "Fasten your seat belt". */
@@ -120,16 +162,39 @@ object AlertVoice {
         say(context, res.getString(R.string.alert_say_tyre, res.getString(pos.labelRes), res.getString(problem.labelRes)), force)
     }
 
-    /** [force]: said even if it was just said ("Try it" pressed again). */
-    private fun say(context: Context, text: String, force: Boolean) {
+    /** [force]: said even if it was just said, or quiet was asked for ("Try it" pressed again). */
+    private fun say(context: Context, text: String, force: Boolean, urgent: Boolean = false) {
         val now = SystemClock.elapsedRealtime()
         lastSaid?.let { (said, at) -> if (!force && said == text && now - at < REPEAT_MS) return }
         lastSaid = text to now
-        val wrapped = AppLanguage.wrap(context.applicationContext)
+        val locale = AppLanguage.wrap(context.applicationContext).resources.configuration.locales[0]
         CarVoice.setContext(context)
-        CarVoice.speak(text, wrapped.resources.configuration.locales[0])
+        if (force) CarVoice.speak(text, locale) else CarVoice.announce(text, locale, urgent)
     }
 }
+
+/** Whether a conversation last announced at [saidAt] (null: never) is announced again at [now]. */
+internal fun messageDue(saidAt: Long?, now: Long, every: Long): Boolean =
+    saidAt == null || now - saidAt >= every
+
+/**
+ * A phone message as it is read out: who, then its last lines, each with its
+ * sender when the conversation has several.
+ */
+internal fun spokenMessage(item: NotifItem): String {
+    val lines = item.messages.ifEmpty { listOf(ConversationLine("", item.text, item.postedAt)) }
+    return buildString {
+        append(item.title.ifEmpty { item.appLabel }).append(". ")
+        lines.takeLast(3).forEach { l ->
+            if (l.sender.isNotEmpty() && l.sender != item.title) append(l.sender).append(": ")
+            append(l.text).append(". ")
+        }
+    }
+}
+
+/** The driver is talking, or about to: a call answered or being placed, not one still ringing. */
+internal fun talking(call: PhoneCall?): Boolean =
+    call != null && !call.preview && (call.phase == CallState.Phase.ACTIVE || call.dialing)
 
 /** Moving from [MOVING_KMH] up, stopped again only at [STOPPED_KMH] or below, so traffic doesn't flicker it; unknown speed is stopped. */
 internal fun isMoving(kmh: Int?, wasMoving: Boolean): Boolean =

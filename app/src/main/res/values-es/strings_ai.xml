@@ -11,8 +11,6 @@
     <string name="ai_key_hint">Gratis en aistudio.google.com → Get API key</string>
     <string name="ai_language">Idioma</string>
     <string name="ai_language_auto">Como la app</string>
-    <string name="ai_speak">Avisos por voz</string>
-    <string name="ai_speak_detail">Códigos de avería nuevos, sobrecalentamiento, batería que no carga</string>
     <string name="ai_test">Probar</string>
     <string name="ai_done">Listo</string>
 

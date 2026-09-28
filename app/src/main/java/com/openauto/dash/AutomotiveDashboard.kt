@@ -366,6 +366,20 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             pagerState.animateScrollToPage(CanvasTabs.stepped(pagerState.currentPage, step, DashboardStore.ROW.size))
         }
     }
+    // The same up and down the middle column, going round; over an app, through its tabs.
+    val dashboardClimb by MainActivity.dashboardClimb.collectAsState()
+    LaunchedEffect(dashboardClimb) {
+        val step = dashboardClimb.second
+        if (dashboardClimb.first == 0L || step == 0) return@LaunchedEffect
+        if (tabsModeState.value) {
+            val tabs = barTabsState.value
+            val at = tabs.indexOfFirst { it.page == tabPage }.coerceAtLeast(0)
+            tabs.getOrNull(CanvasTabs.stepped(at, step, tabs.size))?.let { tabPage = it.page }
+        } else {
+            val at = if (pagerState.currentPage == DashboardStore.CENTER) columnState.currentPage else DashboardStore.COLUMN_HOME
+            showPage(DashboardStore.COLUMN[CanvasTabs.stepped(at, step, DashboardStore.COLUMN.size)])
+        }
+    }
     // A learned steering wheel button asking for the app drawer (SteeringWheelActions.kt).
     val openAppsRequested by MainActivity.openAppsRequested.collectAsState()
     LaunchedEffect(openAppsRequested) {
@@ -762,6 +776,9 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         PidExplorer.setContext(context)
         AiMechanic.setContext(context)
         SteeringWheelStore.setContext(context)
+        // Read now: a wheel button may ask for home, or the drawer for the apps used most, at any time.
+        PlacesStore.load(context)
+        AppUsage.load(context)
         StartupBriefing.start(context)
         VehicleMonitor.start(context)
         mediaController.start()
@@ -1939,9 +1956,9 @@ private fun DockSplit(
     }
 }
 
-/** A two-button question before something a tap could regret; Undo still exists, and the body says so. */
+/** A two-button question before something a tap could regret; where Undo still exists, the body says so. */
 @Composable
-private fun ConfirmDialog(title: String, body: String, action: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+internal fun ConfirmDialog(title: String, body: String, action: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         modifier = Modifier.keepClearOfWindows(),
         onDismissRequest = onDismiss,

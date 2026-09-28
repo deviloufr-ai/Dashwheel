@@ -213,4 +213,6 @@
     <string name="vehicle_speed_fix_more">Subir la corrección</string>
     <string name="vehicle_speed_fix_now">Velocidad actual: %1$d km/h. Ajuste hasta que coincida con el velocímetro.</string>
     <string name="vehicle_speed_fix_not_connected">Conecte el adaptador OBD para ver la velocidad corregida en directo.</string>
+    <string name="vehicle_clear_confirm_title">¿Borrar los códigos de avería?</string>
+    <string name="vehicle_clear_confirm_body">Se borran del coche para siempre. Un taller los necesita para encontrar una avería.</string>
 </resources>

@@ -213,4 +213,6 @@
     <string name="vehicle_speed_fix_more">Correctie verhogen</string>
     <string name="vehicle_speed_fix_now">Snelheid nu: %1$d km/h. Pas aan tot het gelijk is aan de snelheidsmeter.</string>
     <string name="vehicle_speed_fix_not_connected">Verbind de OBD-adapter om de gecorrigeerde snelheid live te zien.</string>
+    <string name="vehicle_clear_confirm_title">Foutcodes wissen?</string>
+    <string name="vehicle_clear_confirm_body">Ze worden voorgoed uit de auto gewist. Een garage heeft ze nodig om een storing te vinden.</string>
 </resources>

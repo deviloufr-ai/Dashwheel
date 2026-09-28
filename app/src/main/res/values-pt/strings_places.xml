@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The driver's places (Places.kt): Settings -> Driving, the map tile, the steering wheel buttons -->
+    <string name="places_title">Os meus locais</string>
+    <string name="places_detail_empty">Casa e trabalho, a um toque ou a um botão</string>
+    <string name="places_explanation">Definem-se uma vez. Depois aparecem no mosaico do mapa, e um botão do volante pode iniciar a navegação.</string>
+    <string name="places_home">Casa</string>
+    <string name="places_work">Trabalho</string>
+    <string name="places_not_set">Não definido</string>
+    <string name="places_address_hint">Morada ou local</string>
+    <string name="places_find">Procurar</string>
+    <string name="places_here">O carro está aqui</string>
+    <string name="places_forget">Esquecer</string>
+    <string name="places_recent">Últimos destinos</string>
+    <string name="places_forget_recent">Esquecê-los</string>
+    <string name="places_offline">Sem ligação</string>
+    <string name="places_no_nav_app">Nenhuma app de navegação nesta unidade</string>
+    <!-- Spoken when a steering wheel button asks for a place that isn't set -->
+    <string name="places_no_home">Casa não está definida. Defina-a em Definições, Condução, Os meus locais.</string>
+    <string name="places_no_work">Trabalho não está definido. Defina-o em Definições, Condução, Os meus locais.</string>
+</resources>

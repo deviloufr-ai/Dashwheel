@@ -150,7 +150,7 @@ internal fun AddSheet(
 private fun List<AppEntry>.matching(q: String) = if (q.isEmpty()) this else filter { it.label.contains(q, ignoreCase = true) }
 
 @Composable
-private fun SearchField(value: String, onChange: (String) -> Unit, modifier: Modifier = Modifier) {
+internal fun SearchField(value: String, onChange: (String) -> Unit, modifier: Modifier = Modifier) {
     OutlinedTextField(
         value = value,
         onValueChange = onChange,

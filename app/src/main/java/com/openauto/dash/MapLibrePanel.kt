@@ -4,26 +4,33 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.ComponentCallbacks2
 import android.content.Context
-import android.content.Intent
 import android.content.res.Configuration
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -36,6 +43,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,13 +64,13 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.google.gson.Gson
-import com.google.gson.JsonParser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -93,15 +101,13 @@ import org.maplibre.geojson.Point
 import org.maplibre.navigation.android.navigation.ui.v5.route.NavigationMapRoute
 import org.maplibre.navigation.core.models.DirectionsResponse
 import org.maplibre.navigation.core.models.DirectionsRoute
-import java.net.URLEncoder
 import java.util.Locale
 
 // Free, no-key services: CARTO dark-matter / positron basemaps (vector styles +
-// tiles, free with attribution), Nominatim geocoding, Valhalla routing.
+// tiles, free with attribution), Nominatim geocoding ([PlaceSearch]), Valhalla routing.
 private const val MAP_STYLE_DARK = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
 private const val MAP_STYLE_LIGHT = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
 private const val VALHALLA_URL = "https://valhalla1.openstreetmap.de/route"
-private const val NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
 private const val USER_AGENT = "OpenAutoDash/1.0 (car launcher)"
 
 private val Accent = Color(0xFF8AB4F8)
@@ -111,8 +117,9 @@ private val OverlayBg = Color(0xE6141518)
  * A free, open-source **GPS navigator** built on MapLibre GL:
  *  - map + your location (OpenFreeMap style — no token/account/card),
  *  - type a destination (Nominatim geocoding) or tap the map,
+ *  - home, work and the last destinations one tap away ([PlacesStore]),
  *  - route computed by a free Valhalla server, drawn on the map with ETA,
- *  - **Start** launches fullscreen turn-by-turn (voice + rerouting).
+ *  - **Start** hands the destination to the navigation app ([NavHandoff]).
  *
  * As a [wallpaper] (the Canvas theme's page) it is only the map: no search,
  * no route panel, no gestures, a lower and steeper camera with the car in
@@ -152,13 +159,15 @@ fun MapLibrePanel(modifier: Modifier = Modifier, wallpaper: Boolean = false) {
     var navRoute by remember { mutableStateOf<NavigationMapRoute?>(null) }
     var route by remember { mutableStateOf<DirectionsRoute?>(null) }
     var destination by remember { mutableStateOf<Point?>(null) }
+    // What the destination is called: the address typed, a saved place's name; null for a spot picked on the map.
+    var destinationName by remember { mutableStateOf<String?>(null) }
     var query by remember { mutableStateOf("") }
     var info by remember { mutableStateOf<String?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     var loading by remember { mutableStateOf(false) }
 
     fun clearRoute() {
-        route = null; destination = null; info = null; error = null
+        route = null; destination = null; destinationName = null; info = null; error = null
         navRoute?.removeRoute()
         mapRef?.markers?.forEach { mapRef?.removeMarker(it) }
     }
@@ -205,13 +214,45 @@ fun MapLibrePanel(modifier: Modifier = Modifier, wallpaper: Boolean = false) {
         if (q.isEmpty() || loading) return
         error = null; info = null; loading = true
         scope.launch {
-            val dest = withContext(Dispatchers.IO) { runCatching { geocode(q) }.getOrNull() }
-            if (dest == null) { loading = false; error = context.getString(R.string.info_map_address_not_found); return@launch }
-            val ll = LatLng(dest.latitude(), dest.longitude())
+            val found = withContext(Dispatchers.IO) { runCatching { PlaceSearch.find(q) } }
+            val place = found.getOrNull()
+            if (place == null) {
+                loading = false
+                // No answer at all is the connection, not the address.
+                error = context.getString(if (found.isFailure) R.string.places_offline else R.string.info_map_address_not_found)
+                return@launch
+            }
+            val ll = LatLng(place.lat, place.lng)
             mapRef?.addMarker(MarkerOptions().position(ll))
             mapRef?.animateCamera(CameraUpdateFactory.newLatLngZoom(ll, 14.0))
             loading = false
-            routeTo(dest)
+            routeTo(Point.fromLngLat(place.lng, place.lat))
+            destinationName = place.name
+        }
+    }
+
+    /** A saved place or a last destination, tapped: its route, ready to start. */
+    fun routeToPlace(place: Place) {
+        clearRoute()
+        val ll = LatLng(place.lat, place.lng)
+        mapRef?.addMarker(MarkerOptions().position(ll))
+        routeTo(Point.fromLngLat(place.lng, place.lat))
+        destinationName = place.name
+    }
+
+    /** Start: guidance in the navigation app, and the destination kept among the last ones. */
+    fun startGuidance(dest: Point) {
+        val lat = dest.latitude()
+        val lng = dest.longitude()
+        val name = destinationName
+        if (!NavHandoff.start(context, lat, lng, name.orEmpty())) {
+            error = context.getString(R.string.places_no_nav_app)
+            return
+        }
+        scope.launch {
+            // A spot picked on the map is kept under its address.
+            val known = name ?: withContext(Dispatchers.IO) { PlaceSearch.nameOf(lat, lng) } ?: PlaceSearch.coordinates(lat, lng)
+            PlacesStore.visited(context, Place(known, lat, lng))
         }
     }
 
@@ -316,10 +357,16 @@ fun MapLibrePanel(modifier: Modifier = Modifier, wallpaper: Boolean = false) {
                 focusManager.clearFocus()
                 searchAndRoute()
             }
+            val places by PlacesStore.places.collectAsState()
+            LaunchedEffect(Unit) { PlacesStore.load(context) }
+            Column(
+                modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth().padding(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
             Surface(
                 color = OverlayBg,
                 shape = DashShape.Medium,
-                modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth().padding(8.dp)
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Row(modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically) {
                     OutlinedTextField(
@@ -368,6 +415,9 @@ fun MapLibrePanel(modifier: Modifier = Modifier, wallpaper: Boolean = false) {
                     }
                 }
             }
+            // Out of the way once a destination is set: the route is what matters then.
+            if (destination == null) PlaceChips(places, onPick = { routeToPlace(it) })
+            }
 
             // Route info / error + Start (hands off to Google Maps navigation).
             val currentInfo = info
@@ -390,10 +440,11 @@ fun MapLibrePanel(modifier: Modifier = Modifier, wallpaper: Boolean = false) {
                         )
                         if (hasDest) {
                             Button(
-                                onClick = { destination?.let { startGoogleNavigation(context, it) } },
-                                colors = ButtonDefaults.buttonColors(containerColor = Accent, contentColor = Color(0xFF0B0C0F))
+                                onClick = { destination?.let { startGuidance(it) } },
+                                colors = ButtonDefaults.buttonColors(containerColor = Accent, contentColor = Color(0xFF0B0C0F)),
+                                modifier = Modifier.heightIn(min = DashSize.TouchPrimary)
                             ) {
-                                Icon(Icons.Filled.Navigation, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Icon(Icons.Filled.Navigation, contentDescription = null, modifier = Modifier.size(22.dp))
                                 Spacer(Modifier.width(6.dp))
                                 Text(stringResource(R.string.info_map_start))
                             }
@@ -514,39 +565,36 @@ private fun hasLocationPerm(context: Context): Boolean =
         PackageManager.PERMISSION_GRANTED
 
 /**
- * Hand off turn-by-turn to Google Maps (or any nav app) via the free
- * `google.navigation:` intent — no API key, no billing (that's the Directions API,
- * not this). This is how Car Nebula and other launchers do navigation. Falls back
- * to a generic `geo:` intent if Google Maps isn't installed.
+ * Home, work and the last destinations as buttons under the search bar: one
+ * tap shows the route, moving or not, where typing has to wait for a stop.
  */
-private fun startGoogleNavigation(context: Context, dest: Point) {
-    val lat = dest.latitude()
-    val lng = dest.longitude()
-    val nav = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("google.navigation:q=$lat,$lng&mode=d")).apply {
-        setPackage("com.google.android.apps.maps")
-        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+@Composable
+private fun PlaceChips(places: Places, onPick: (Place) -> Unit) {
+    val home = stringResource(R.string.places_home)
+    val work = stringResource(R.string.places_work)
+    val chips = remember(places, home, work) {
+        listOfNotNull(
+            places.home?.let { Triple(Icons.Filled.Home, home, it) },
+            places.work?.let { Triple(Icons.Filled.Work, work, it) }
+        ) + places.recent.map { Triple(Icons.Filled.History, it.name, it) }
     }
-    val started = runCatching { context.startActivity(nav) }.isSuccess
-    if (!started) {
-        val geo = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("geo:$lat,$lng?q=$lat,$lng"))
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        runCatching { context.startActivity(geo) }
-    }
-}
-
-/** Geocodes a free-text address to a point via Nominatim (free, no key). */
-private fun geocode(query: String): Point? {
-    val url = "$NOMINATIM_URL?format=json&limit=1&q=" + URLEncoder.encode(query, "UTF-8")
-    val request = Request.Builder().url(url).header("User-Agent", USER_AGENT).build()
-    Http.client.newCall(request).execute().use { resp ->
-        if (!resp.isSuccessful) return null
-        val body = resp.body?.string() ?: return null
-        val arr = JsonParser.parseString(body).asJsonArray
-        if (arr.size() == 0) return null
-        val o = arr[0].asJsonObject
-        val lat = o.get("lat").asString.toDouble()
-        val lon = o.get("lon").asString.toDouble()
-        return Point.fromLngLat(lon, lat)
+    if (chips.isEmpty()) return
+    Row(
+        modifier = Modifier.horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        chips.forEach { (icon, label, place) ->
+            Surface(onClick = { onPick(place) }, color = OverlayBg, shape = DashShape.Pill) {
+                Row(
+                    modifier = Modifier.heightIn(min = DashSize.TouchPrimary).padding(horizontal = 18.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(icon, contentDescription = null, tint = Accent, modifier = Modifier.size(22.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(label, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 220.dp))
+                }
+            }
+        }
     }
 }
 

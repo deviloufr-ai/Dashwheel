@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- What the car says by itself: Settings -> Alerts -> Voice (HandsFreeSettings.kt) -->
+    <string name="voice_section">Głos</string>
+    <string name="voice_warnings">Ostrzeżenia i porady</string>
+    <string name="voice_warnings_detail">Przegrzanie, akumulator, nowe kody błędów, mało paliwa, przerwy, porady dla kierowcy</string>
+    <string name="voice_messages">Wiadomości</string>
+    <string name="voice_messages_detail">Mówi, od kogo jest wiadomość. Przycisk na kierownicy ją czyta.</string>
+    <string name="voice_where">To, co auto mówi samo, włącza się w Ustawieniach, Alerty.</string>
+
+    <!-- Spoken -->
+    <string name="voice_say_message">Wiadomość od: %1$s</string>
+    <string name="voice_no_message">Brak wiadomości.</string>
+    <string name="voice_status_range">Paliwa zostało na około %1$d kilometrów.</string>
+    <string name="voice_status_no_faults">Brak kodów błędów.</string>
+    <string name="voice_status_nothing">Nic do zgłoszenia.</string>
+    <string name="voice_quiet_on">Cisza do następnego uruchomienia. Pilne ostrzeżenia nadal będą mówione.</string>
+    <string name="voice_quiet_off">Głos znów włączony.</string>
+    <string name="voice_no_position">Pozycja nie jest jeszcze znana.</string>
+    <string name="voice_no_fuel_prices">Brak cen paliwa w okolicy.</string>
+    <plurals name="voice_fuel_station">
+        <item quantity="one">Najtańsza stacja w pobliżu to %1$s, %2$d kilometr stąd.</item>
+        <item quantity="few">Najtańsza stacja w pobliżu to %1$s, %2$d kilometry stąd.</item>
+        <item quantity="many">Najtańsza stacja w pobliżu to %1$s, %2$d kilometrów stąd.</item>
+        <item quantity="other">Najtańsza stacja w pobliżu to %1$s, %2$d kilometra stąd.</item>
+    </plurals>
+</resources>

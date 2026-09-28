@@ -23,7 +23,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.openauto.dash.link.ConversationLine
 import com.openauto.dash.link.PhoneNotification
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import java.util.Base64
@@ -425,8 +427,24 @@ object NotificationFeed {
 
     fun phonePosted(notification: PhoneNotification) {
         val item = fromPhone(notification)
-        edit { items -> (listOf(item) + items.filter { it.key != item.key }).take(MAX) }
+        var fresh = false
+        edit { items ->
+            // A conversation's notification is posted again for each message, and for other reasons too.
+            fresh = item.canReply && items.firstOrNull { it.key == item.key }?.text != item.text
+            (listOf(item) + items.filter { it.key != item.key }).take(MAX)
+        }
+        if (fresh && !DemoMode.isOn) _arrived.tryEmit(item)
     }
+
+    private val _arrived = MutableSharedFlow<NotifItem>(extraBufferCapacity = 8)
+    /**
+     * A message as it arrives on the phone (one that can be answered), for the
+     * voice; not the ones already there when the link came up.
+     */
+    val arrived: SharedFlow<NotifItem> = _arrived
+
+    /** The latest message from the phone still on the card, to be read out; null when there is none. */
+    fun latestMessage(): NotifItem? = _items.value.filter { it.fromPhone && it.canReply }.maxByOrNull { it.postedAt }
 
     fun phoneRemoved(key: String) {
         edit { items -> items.filter { it.key != PHONE + key } }
