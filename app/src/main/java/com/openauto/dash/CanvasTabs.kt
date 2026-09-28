@@ -511,13 +511,18 @@ private fun RailTab(
     onHold: () -> Unit
 ) {
     val ink = if (active) DashColors.Accent else DashColors.TextSecondary
+    // Read when the finger lifts: keyed on the callbacks, which are new at each
+    // redraw of the dashboard, the touch was started over in the middle of a
+    // tap and the tap lost.
+    val tapped by rememberUpdatedState(onTap)
+    val held by rememberUpdatedState(onHold)
     Column(
         modifier = Modifier
             .size(width = width, height = width * (TAB_HEIGHT / TAB_WIDTH))
             .clip(TabShape)
             .then(if (active) Modifier.background(DashColors.Accent.copy(alpha = 0.18f)) else Modifier)
             .then(if (dashed) Modifier.border(1.5.dp, DashColors.Line, TabShape) else Modifier)
-            .pointerInput(onTap, onHold) { detectTapGestures(onTap = { onTap() }, onLongPress = { onHold() }) }
+            .pointerInput(Unit) { detectTapGestures(onTap = { tapped() }, onLongPress = { held() }) }
             .semantics { contentDescription = label; role = Role.Tab },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -536,11 +541,14 @@ private fun RailTab(
 
 @Composable
 private fun BarApp(app: AppEntry, size: Dp, onTap: () -> Unit, onHold: () -> Unit) {
+    // As for a dashboard's button ([RailTab]): a redraw must not lose the tap.
+    val tapped by rememberUpdatedState(onTap)
+    val held by rememberUpdatedState(onHold)
     Box(
         modifier = Modifier
             .size(size)
             .clip(RoundedCornerShape(18.dp))
-            .pointerInput(onTap, onHold) { detectTapGestures(onTap = { onTap() }, onLongPress = { onHold() }) }
+            .pointerInput(Unit) { detectTapGestures(onTap = { tapped() }, onLongPress = { held() }) }
             .semantics { contentDescription = app.label; role = Role.Button },
         contentAlignment = Alignment.Center
     ) {
