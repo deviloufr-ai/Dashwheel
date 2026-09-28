@@ -35,7 +35,7 @@
     <string name="scanned_download_code">Ese código descarga la app. Escanea ahora el otro, el código de vinculación a la derecha de la pantalla de la radio.</string>
     <string name="invalid_code_read">No es un código de vinculación de Dashwheel (leído: %1$s).</string>
     <string name="step_calls">Llamadas</string>
-    <string name="step_calls_detail">Muestra quién llama en la pantalla del coche, para contestar o colgar desde ahí. El sonido sigue en el Bluetooth del coche.</string>
+    <string name="step_calls_detail">Muestra quién llama en la pantalla del coche, para contestar o colgar desde ahí, y tus favoritos para llamar desde el coche. El sonido sigue en el Bluetooth del coche.</string>
     <string name="car_spot_title">Dónde está mi coche</string>
     <string name="car_spot_left">Dejado aquí: %1$s</string>
     <string name="car_spot_saved">Guardado en el coche: %1$s</string>
@@ -75,4 +75,8 @@
     <string name="keyboard_not_connected">El coche no está conectado.</string>
     <string name="send_to_car">Enviar al coche</string>
     <string name="sent_to_car">Enviado a la pantalla del coche</string>
+    <string name="place_sent">Ruta enviada al coche: %1$s</string>
+    <string name="place_unknown">Este enlace no indica dónde está el lugar.</string>
+    <string name="step_agenda">Agenda</string>
+    <string name="step_agenda_detail">Muestra tus próximos eventos en la pantalla del coche, con la ruta hasta el lugar.</string>
 </resources>

@@ -83,9 +83,11 @@ object PhoneCalls {
         return if (c.phase == CallState.Phase.ACTIVE) c.copy(activeForMs = SystemClock.elapsedRealtime() - answeredAt) else c
     }
 
-    /** Carries out the head unit's [action]. False when not allowed or nothing to act on. */
+    /** Carries out the head unit's [action] on the call under way. False when not allowed or nothing to act on. */
     @Synchronized
     fun command(context: Context, action: CallCommand.Action): Boolean {
+        // A new call, not this one: see dial().
+        if (action == CallCommand.Action.DIAL) return false
         val id = currentId ?: return false
         if (id == PHONE) return phoneCommand(context, action)
         val call = appCalls[id] ?: return false
@@ -94,8 +96,29 @@ object PhoneCalls {
             // A call that rings is declined; one just taken is hung up: whichever the app offers.
             CallCommand.Action.DECLINE -> call.decline ?: call.hangUp
             CallCommand.Action.HANG_UP -> call.hangUp ?: call.decline
+            CallCommand.Action.DIAL -> null
         } ?: return false
         return send(context, intent)
+    }
+
+    /**
+     * Calls [number] as the car asked (a Quick dial favourite tapped there).
+     * Through [TelecomManager.placeCall], which needs no screen: the phone is
+     * in a pocket. False without CALL_PHONE: the car then offers its own dialer.
+     */
+    @SuppressLint("MissingPermission") // checked just before
+    fun dial(context: Context, number: String): Boolean {
+        if (number.isBlank()) return false
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) return false
+        val telecom = context.getSystemService(TelecomManager::class.java) ?: return false
+        return try {
+            telecom.placeCall(Uri.fromParts("tel", number, null), android.os.Bundle())
+            LinkServer.note("calling $number for the car")
+            true
+        } catch (e: SecurityException) {
+            Log.w(TAG, "call refused", e)
+            false
+        }
     }
 
     @SuppressLint("MissingPermission") // checked by canControl()
@@ -111,6 +134,7 @@ object PhoneCalls {
                 // Deprecated for new designs (an InCallService), but still what a
                 // non-dialer app with ANSWER_PHONE_CALLS uses to end a call.
                 CallCommand.Action.DECLINE, CallCommand.Action.HANG_UP -> @Suppress("DEPRECATION") telecom.endCall()
+                CallCommand.Action.DIAL -> false
             }
         } catch (e: SecurityException) {
             Log.w(TAG, "call $action refused", e)
@@ -289,7 +313,8 @@ object PhoneCalls {
         }.onFailure { Log.w(TAG, "contact lookup failed", it) }.getOrNull()
     }
 
-    private fun photoPng(context: Context, uri: Uri): String? = runCatching {
+    /** A contact's photo as a small PNG, base64, as the car shows it. */
+    internal fun photoPng(context: Context, uri: Uri): String? = runCatching {
         val bitmap = context.contentResolver.openInputStream(uri)?.use(BitmapFactory::decodeStream) ?: return null
         val scaled = Bitmap.createScaledBitmap(bitmap, PHOTO_PX, PHOTO_PX, true)
         val bytes = ByteArrayOutputStream()

@@ -35,7 +35,7 @@
     <string name="scanned_download_code">That code downloads the app. Now scan the other one, the pairing code on the right of the head unit\'s screen.</string>
     <string name="invalid_code_read">This is not a Dashwheel pairing code (read: %1$s).</string>
     <string name="step_calls">Calls</string>
-    <string name="step_calls_detail">Shows who is calling on the car\'s screen, to answer or hang up from there. The sound stays on the car\'s Bluetooth.</string>
+    <string name="step_calls_detail">Shows who is calling on the car\'s screen, to answer or hang up there, and your favourites to call from the car. The sound stays on the car\'s Bluetooth.</string>
     <string name="car_spot_title">Where\'s my car</string>
     <string name="car_spot_left">Left here: %1$s</string>
     <string name="car_spot_saved">Saved in the car: %1$s</string>
@@ -76,4 +76,8 @@
     <string name="keyboard_not_connected">The car is not connected.</string>
     <string name="send_to_car">Send to car</string>
     <string name="sent_to_car">Sent to the car screen</string>
+    <string name="place_sent">Guidance sent to the car: %1$s</string>
+    <string name="place_unknown">This link does not say where the place is.</string>
+    <string name="step_agenda">Agenda</string>
+    <string name="step_agenda_detail">Shows your next events on the car\'s screen, with guidance to where they are.</string>
 </resources>

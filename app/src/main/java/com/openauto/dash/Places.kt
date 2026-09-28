@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import com.google.gson.JsonParser
+import com.openauto.dash.link.Destination
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -174,13 +175,7 @@ internal object NavHandoff {
 
     /** Starts guidance to ([lat], [lng]); false when no app on the unit can. */
     fun start(context: Context, lat: Double, lng: Double, label: String = ""): Boolean {
-        KeyTargets.refresh()
-        val preferred = KeyTargets.targets.value[KeyTargets.Key.NAVI]
-        val apps = order(preferred, isPackageInstalled(context, MAPS), isPackageInstalled(context, WAZE))
-        // The driver asked for it: the app opening full screen is not the unit's doing (EmbeddedApp, PipAnchor).
-        EmbeddedApp.userActed()
-        PipAnchor.noteUserTouch()
-        for (app in apps) {
+        for (app in apps(context)) {
             val uri = if (app == WAZE) String.format(Locale.US, "waze://?ll=%.6f,%.6f&navigate=yes", lat, lng)
             else String.format(Locale.US, "google.navigation:q=%.6f,%.6f&mode=d", lat, lng)
             if (context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(uri)).setPackage(app))) return true
@@ -194,5 +189,59 @@ internal object NavHandoff {
         val started = start(context, place.lat, place.lng, place.name)
         if (started) PlacesStore.visited(context, place)
         return started
+    }
+
+    /**
+     * Guidance to what [query] names (an address, a place's name), which the
+     * navigation app looks up itself; false when no app on the unit can.
+     */
+    fun startQuery(context: Context, query: String): Boolean {
+        for (app in apps(context)) {
+            if (context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(queryUri(app, query))).setPackage(app))) return true
+        }
+        return context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(queryUri(null, query))))
+    }
+
+    /** How [app] (null: any map app) is asked to guide to [query]. */
+    internal fun queryUri(app: String?, query: String): String {
+        // Uri.encode's form (%20, not +): each app reads it back the same way.
+        val q = URLEncoder.encode(query.trim(), "UTF-8").replace("+", "%20")
+        return when (app) {
+            WAZE -> "waze://?q=$q&navigate=yes"
+            MAPS -> "google.navigation:q=$q&mode=d"
+            else -> "geo:0,0?q=$q"
+        }
+    }
+
+    /**
+     * Guidance to [name] and says so, as a steering wheel button would: to its
+     * position when known (it then heads the last destinations), else to
+     * [query] looked up by the navigation app.
+     */
+    fun go(context: Context, name: String, lat: Double?, lng: Double?, query: String?) {
+        val started = when {
+            lat != null && lng != null -> start(context, Place(name.ifBlank { PlaceSearch.coordinates(lat, lng) }, lat, lng))
+            !query.isNullOrBlank() -> startQuery(context, query)
+            else -> return
+        }
+        val spoken = name.ifBlank { query.orEmpty() }.ifBlank { if (lat != null && lng != null) PlaceSearch.coordinates(lat, lng) else "" }
+        if (started) HandsFree.say(context, R.string.phone_guidance_to, spoken) else HandsFree.say(context, R.string.places_no_nav_app)
+    }
+
+    /**
+     * A place shared on the phone ([Destination]): guidance starts at once, even
+     * on the move (the passenger sent it), and only a spoken line confirms it.
+     */
+    fun fromPhone(context: Context, destination: Destination) =
+        go(context, destination.label, destination.lat, destination.lng, destination.query)
+
+    /** The navigation apps to ask, in order, noting that the driver asked. */
+    private fun apps(context: Context): List<String> {
+        KeyTargets.refresh()
+        val preferred = KeyTargets.targets.value[KeyTargets.Key.NAVI]
+        // The driver asked for it: the app opening full screen is not the unit's doing (EmbeddedApp, PipAnchor).
+        EmbeddedApp.userActed()
+        PipAnchor.noteUserTouch()
+        return order(preferred, isPackageInstalled(context, MAPS), isPackageInstalled(context, WAZE))
     }
 }

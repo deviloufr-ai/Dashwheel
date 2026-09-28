@@ -24,6 +24,10 @@
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
+    <!-- A favourite tapped on the car's Quick dial is called from here, the phone in a pocket. -->
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <!-- The next events on the car's Agenda tile, with guidance to where they are. -->
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
     <uses-feature android:name="android.hardware.telephony" android:required="false" />
 
     <!-- The pairing secret lives in this app's preferences: never in a backup,
@@ -58,7 +62,9 @@
         </activity>
 
         <!-- "Send to car": shared text, or text selected in any app, typed on
-             the car's screen. Only reaches a car paired and linked right now. -->
+             the car's screen; a place shared from a map app (or a geo: link
+             opened) becomes the car's destination. Only reaches a car paired
+             and linked right now. -->
         <activity
             android:name=".SendToCarActivity"
             android:exported="true"
@@ -69,6 +75,11 @@
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="text/plain" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="geo" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.PROCESS_TEXT" />

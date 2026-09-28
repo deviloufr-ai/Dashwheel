@@ -35,7 +35,7 @@
     <string name="scanned_download_code">Ce code sert à télécharger l\'appli. Scannez maintenant l\'autre, le code d\'association à droite sur l\'écran de l\'autoradio.</string>
     <string name="invalid_code_read">Ce n\'est pas un code d\'association Dashwheel (lu : %1$s).</string>
     <string name="step_calls">Appels</string>
-    <string name="step_calls_detail">Affiche qui appelle sur l\'écran de la voiture, pour décrocher ou raccrocher depuis celui-ci. Le son reste sur le Bluetooth de la voiture.</string>
+    <string name="step_calls_detail">Affiche qui appelle sur l\'écran de la voiture, pour décrocher ou raccrocher depuis celui-ci, et vos favoris à appeler depuis la voiture. Le son reste sur le Bluetooth de la voiture.</string>
     <string name="car_spot_title">Où est ma voiture</string>
     <string name="car_spot_left">Laissée ici : %1$s</string>
     <string name="car_spot_saved">Enregistrée dans la voiture : %1$s</string>
@@ -75,4 +75,8 @@
     <string name="keyboard_not_connected">La voiture n\'est pas connectée.</string>
     <string name="send_to_car">Envoyer à la voiture</string>
     <string name="sent_to_car">Envoyé à l\'écran de la voiture</string>
+    <string name="place_sent">Guidage envoyé à la voiture : %1$s</string>
+    <string name="place_unknown">Ce lien n\'indique pas où se trouve le lieu.</string>
+    <string name="step_agenda">Agenda</string>
+    <string name="step_agenda_detail">Affiche vos prochains rendez-vous sur l\'écran de la voiture, avec le guidage jusqu\'au lieu.</string>
 </resources>

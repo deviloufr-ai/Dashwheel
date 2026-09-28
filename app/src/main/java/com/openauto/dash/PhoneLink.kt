@@ -1,18 +1,25 @@
 package com.openauto.dash
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
+import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
 import com.openauto.dash.link.ActionResult
+import com.openauto.dash.link.AgendaSync
 import com.openauto.dash.link.CallCommand
 import com.openauto.dash.link.CallState
+import com.openauto.dash.link.Destination
+import com.openauto.dash.link.DialResult
 import com.openauto.dash.link.Dismiss
 import com.openauto.dash.link.Hello
 import com.openauto.dash.link.LINK_PORT
@@ -24,8 +31,10 @@ import com.openauto.dash.link.NotificationRemoved
 import com.openauto.dash.link.NotificationSync
 import com.openauto.dash.link.PairingOffer
 import com.openauto.dash.link.PairingStorage
+import com.openauto.dash.link.PhoneContacts
 import com.openauto.dash.link.Ping
 import com.openauto.dash.link.Pong
+import com.openauto.dash.link.RecentCall
 import com.openauto.dash.link.Reply
 import com.openauto.dash.link.SecureChannel
 import com.openauto.dash.link.StoredPairing
@@ -62,7 +71,10 @@ import java.util.concurrent.atomic.AtomicReference
  * the secret from the pairing QR code, then shows the phone's notifications
  * in the Notifications card, sends back replies, shows its calls
  * ([PhoneCallOverlay]) with answer / hang-up buttons, and types the text sent
- * from its keyboard card ([PhoneKeyboard]).
+ * from its keyboard card ([PhoneKeyboard]). It also brings the phone's
+ * favourites, last calls and agenda for the Quick dial and Agenda tiles
+ * ([PhoneLists]), calls a favourite through the phone, and starts guidance to
+ * a place shared on the phone ([Destination]).
  */
 
 /** A phone the driver paired by scanning the QR code with the companion app. */
@@ -97,6 +109,18 @@ data class PhoneCall(
     val dialing: Boolean = false,
     /** Made up by the alert style picker's "Try it": its buttons only close it. */
     val preview: Boolean = false
+)
+
+/**
+ * What the phone shares for the Quick dial and Agenda tiles (a head unit has
+ * no contacts or calendar of its own). Each is null until the phone sent it:
+ * no link, an older companion, or not allowed on the phone.
+ */
+internal data class PhoneLists(
+    val favourites: List<Favourite>? = null,
+    /** Newest first. */
+    val calls: List<RecentCall>? = null,
+    val agenda: List<AgendaEvent>? = null
 )
 
 sealed interface PhoneLinkState {
@@ -156,6 +180,19 @@ object PhoneLink {
     private val _call = MutableStateFlow<PhoneCall?>(null)
     val call: StateFlow<PhoneCall?> = _call
 
+    /** The phone's favourites, last calls and agenda; all null without a link. */
+    private val _lists = MutableStateFlow(PhoneLists())
+    internal val lists: StateFlow<PhoneLists> = _lists
+    /** The phone's own lists, kept up to date while [DemoMode] shows its made-up ones. */
+    private var realLists = PhoneLists()
+    /**
+     * The phone can call a number for the car ([CallCommand.Action.DIAL]): it
+     * sent [PhoneContacts], which came with DIAL. An older companion would skip
+     * the command without a word.
+     */
+    @Volatile private var phoneDials = false
+    private val main = Handler(Looper.getMainLooper())
+
     /** Bumped when the network changes or the phones change, to retry right away. */
     private val wake = MutableStateFlow(0)
     @Volatile private var session: LinkSession? = null
@@ -214,6 +251,27 @@ object PhoneLink {
     fun markRead(key: String) = send(MarkRead(NotificationFeed.phoneKey(key)))
     fun dismiss(key: String) = send(Dismiss(NotificationFeed.phoneKey(key)))
     fun callCommand(action: CallCommand.Action) = send(CallCommand(action))
+
+    /** Has the phone call [number]; false when it can't be asked (no link, an older companion). */
+    fun dial(number: String): Boolean = phoneDials && send(CallCommand(CallCommand.Action.DIAL, number))
+
+    /** [DemoMode]'s lists. */
+    internal fun demoWrite(lists: PhoneLists) {
+        _lists.value = lists
+    }
+
+    /** The demo is over: the phone's own lists back, as they are now. */
+    @Synchronized
+    internal fun endDemo() {
+        _lists.value = realLists
+    }
+
+    /** Applies [change] to the phone's lists; published unless the demo is on. */
+    @Synchronized
+    private fun editLists(change: (PhoneLists) -> PhoneLists) {
+        realLists = change(realLists)
+        if (!DemoMode.isOn) _lists.value = realLists
+    }
 
     private suspend fun run(context: Context) {
         var last = wake.value
@@ -325,6 +383,9 @@ object PhoneLink {
             if (session === link) session = null
             NotificationFeed.phoneClear()
             _call.value = null
+            // The tiles go back to this unit's own contacts and calendar.
+            phoneDials = false
+            editLists { PhoneLists() }
         }
     }
 
@@ -384,9 +445,30 @@ object PhoneLink {
             is ActionResult -> _results.tryEmit(message)
             is CallState -> _call.value = toPhoneCall(context, message)
             is TypeText -> PhoneKeyboard.type(context, message) { send(it) }
+            is PhoneContacts -> {
+                phoneDials = true
+                val favourites = message.favourites.map { Favourite(it.name, it.number, it.photoPng?.let(::bitmapOf)) }
+                editLists { it.copy(favourites = favourites, calls = message.recentCalls) }
+            }
+            is AgendaSync -> {
+                val events = message.events.map { AgendaEvent(it.title, it.begin, it.end, it.allDay, it.location) }
+                editLists { it.copy(agenda = events) }
+            }
+            // Not allowed on the phone: the unit's own dialer, with the number in, as before the link; and why.
+            is DialResult -> if (!message.placed) main.post {
+                context.launchSafely(Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", message.number, null)))
+                HandsFree.say(context, R.string.phone_dial_not_allowed)
+            }
+            // Toasts and the voice want the main thread.
+            is Destination -> main.post { NavHandoff.fromPhone(context, message) }
             else -> Unit
         }
     }
+
+    private fun bitmapOf(png: String): Bitmap? = runCatching {
+        val bytes = Base64.getDecoder().decode(png)
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+    }.getOrNull()
 
     private fun toPhoneCall(context: Context, state: CallState): PhoneCall? {
         if (state.phase == CallState.Phase.IDLE) return null
@@ -396,12 +478,7 @@ object PhoneLink {
         val before = _call.value
         val sameCaller = before != null && before.number == state.number && before.name == state.name && before.app == state.app
         val photo = if (before != null && state.photoPng != null && sameCaller) before.photo
-        else state.photoPng?.let { png ->
-            runCatching {
-                val bytes = Base64.getDecoder().decode(png)
-                BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-            }.getOrNull()
-        }
+        else state.photoPng?.let(::bitmapOf)
         return PhoneCall(
             phase = state.phase,
             number = state.number,

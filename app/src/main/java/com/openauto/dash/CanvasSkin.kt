@@ -744,7 +744,10 @@ private fun StopLabel(s: Stop, x: Dp, top: Dp, width: Dp, maxW: Dp, titleColor: 
     }
 }
 
-/** Today's coming appointments when the calendar may be read; re-read every five minutes. */
+/**
+ * Today's coming appointments: the phone's when linked, as on the Agenda tile
+ * ([phoneOrUnit]), else the unit's calendar when it may be read, re-read every five minutes.
+ */
 @Composable
 private fun rememberAgenda(context: Context, enabled: Boolean): List<AgendaEvent> {
     var events by remember { mutableStateOf<List<AgendaEvent>>(emptyList()) }
@@ -756,7 +759,8 @@ private fun rememberAgenda(context: Context, enabled: Boolean): List<AgendaEvent
             delay(5 * 60_000L)
         }
     }
-    return events
+    val phone = PhoneLink.lists.collectAsState().value.agenda
+    return phoneOrUnit(phone, events)
 }
 
 /** The navigation app that is guiding (or Google Maps), brought to the front. */

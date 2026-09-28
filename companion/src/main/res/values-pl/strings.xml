@@ -35,7 +35,7 @@
     <string name="scanned_download_code">Ten kod pobiera aplikację. Zeskanuj teraz drugi, kod parowania po prawej stronie ekranu radia.</string>
     <string name="invalid_code_read">To nie jest kod parowania Dashwheel (odczytano: %1$s).</string>
     <string name="step_calls">Połączenia</string>
-    <string name="step_calls_detail">Pokazuje na ekranie auta, kto dzwoni, by tam odebrać lub się rozłączyć. Dźwięk zostaje na Bluetooth auta.</string>
+    <string name="step_calls_detail">Pokazuje na ekranie auta, kto dzwoni, by tam odebrać lub się rozłączyć, oraz ulubione kontakty, by dzwonić z auta. Dźwięk zostaje na Bluetooth auta.</string>
     <string name="car_spot_title">Gdzie jest mój samochód</string>
     <string name="car_spot_left">Zostawiony tutaj: %1$s</string>
     <string name="car_spot_saved">Zapisany w samochodzie: %1$s</string>
@@ -75,4 +75,8 @@
     <string name="keyboard_not_connected">Auto nie jest połączone.</string>
     <string name="send_to_car">Wyślij do auta</string>
     <string name="sent_to_car">Wysłano na ekran auta</string>
+    <string name="place_sent">Trasa wysłana do auta: %1$s</string>
+    <string name="place_unknown">Ten link nie mówi, gdzie jest to miejsce.</string>
+    <string name="step_agenda">Terminarz</string>
+    <string name="step_agenda_detail">Pokazuje najbliższe wydarzenia na ekranie auta, z trasą do miejsca.</string>
 </resources>

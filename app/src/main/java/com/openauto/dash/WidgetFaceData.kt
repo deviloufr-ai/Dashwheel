@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PhoneMissed
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Remove
@@ -681,28 +682,21 @@ private fun weatherFace(): WidgetFace {
 @Composable
 private fun agendaFace(): WidgetFace {
     val context = LocalContext.current
-    val perm = rememberPermission(Manifest.permission.READ_CALENDAR)
-    val allowed = perm.granted
-    var events by remember { mutableStateOf<List<AgendaEvent>?>(null) }
-    LaunchedEffect(allowed) {
-        if (!allowed) return@LaunchedEffect
-        while (true) {
-            events = withContext(Dispatchers.IO) { loadAgenda(context) }
-            delay(5 * 60_000)
-        }
-    }
+    // The same events as the standard card: the phone's, else this unit's calendar.
+    val agenda = rememberAgendaSource()
+    val perm = agenda.access
+    val list = agenda.events
     val openCalendar = {
         context.launchSafely(Intent(Intent.ACTION_VIEW, CalendarContract.CONTENT_URI.buildUpon().appendPath("time").build()))
         Unit
     }
-    if (!allowed) {
+    if (list.isEmpty() && !agenda.phoneSent && !perm.granted) {
         return idleFace(Icons.Filled.Event, BuiltinKind.CALENDAR.label, stringResource(R.string.info_agenda_needs_access),
             action = FaceAction(Icons.Filled.LockOpen, stringResource(R.string.info_agenda_allow), primary = true, onClick = perm.request))
     }
-    val list = events.orEmpty()
     if (list.isEmpty()) {
-        return idleFace(Icons.Filled.Event, BuiltinKind.CALENDAR.label, stringResource(R.string.info_agenda_empty),
-            action = FaceAction(Icons.Filled.Event, stringResource(R.string.info_open), onClick = openCalendar))
+        return idleFace(Icons.Filled.Event, BuiltinKind.CALENDAR.label, stringResource(agenda.emptyText),
+            action = if (agenda.phoneSent) null else FaceAction(Icons.Filled.Event, stringResource(R.string.info_open), onClick = openCalendar))
     }
     val timeFmt = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
     val dayFmt = remember { SimpleDateFormat("EEE HH:mm", Locale.getDefault()) }
@@ -717,6 +711,11 @@ private fun agendaFace(): WidgetFace {
     val next = list.first()
     val now = System.currentTimeMillis()
     val span = (next.begin - now).coerceAtLeast(0L)
+    // Guidance to the next event's place, a tap away.
+    val guide = next.takeIf { it.location.isNotBlank() }?.let { e ->
+        FaceAction(Icons.Filled.Navigation, stringResource(R.string.phone_guidance_to, e.title.ifBlank { e.location }), primary = true,
+            onClick = { guideToEvent(context, e) })
+    }
     return WidgetFace(
         icon = Icons.Filled.Event,
         title = BuiltinKind.CALENDAR.label,
@@ -724,32 +723,40 @@ private fun agendaFace(): WidgetFace {
         caption = next.title.ifBlank { noTitle } + if (next.location.isNotBlank()) " · ${next.location}" else "",
         // The next event's approach over the coming 3 hours.
         fraction = 1f - (span / (3 * 3_600_000f)).coerceIn(0f, 1f),
-        rows = list.map { e -> FaceRow(e.title.ifBlank { noTitle }, whenText(e), alert = e.begin <= now) },
+        rows = list.map { e ->
+            FaceRow(e.title.ifBlank { noTitle }, whenText(e), alert = e.begin <= now,
+                onClick = if (e.location.isNotBlank()) ({ guideToEvent(context, e) }) else null)
+        },
         events = list.filter { !it.allDay }.map { FaceEvent(it.begin, it.end, it.title.ifBlank { noTitle }) },
-        onClick = openCalendar
+        actions = listOfNotNull(guide),
+        // The unit's calendar app knows nothing of the phone's events.
+        onClick = if (agenda.fromPhone) null else openCalendar
     )
 }
 
 @Composable
 private fun quickDialFace(): WidgetFace {
     val context = LocalContext.current
-    val perm = rememberPermission(Manifest.permission.READ_CONTACTS)
-    val allowed = perm.granted
-    var favourites by remember { mutableStateOf<List<Favourite>>(emptyList()) }
-    LaunchedEffect(allowed) {
-        if (allowed) favourites = withContext(Dispatchers.IO) { loadFavourites(context) }
-    }
+    // The same contacts as the standard card: the phone's favourites, else this unit's starred ones.
+    val source = rememberQuickDialSource()
+    val perm = source.access
+    val favourites = source.favourites
     val dialer = FaceAction(Icons.Filled.Dialpad, stringResource(R.string.info_quickdial_dialer), onClick = { context.launchSafely(Intent(Intent.ACTION_DIAL)) })
-    if (!allowed) {
+    // A missed call on the phone: calling back comes first.
+    val callBack = source.callBack?.let { call ->
+        FaceAction(Icons.Filled.PhoneMissed, stringResource(R.string.phone_call_back, call.name ?: call.number), primary = true,
+            onClick = { dialNumber(context, call.number) })
+    }
+    if (favourites.isEmpty() && !source.phoneSent && !perm.granted) {
         return idleFace(Icons.Filled.Call, BuiltinKind.QUICK_DIAL.label, stringResource(R.string.info_quickdial_needs_access),
             action = FaceAction(Icons.Filled.LockOpen, stringResource(R.string.info_quickdial_allow), primary = true, onClick = perm.request))
             .let { WidgetFace(it.icon, it.title, "--", caption = it.caption, actions = it.actions + dialer) }
     }
     if (favourites.isEmpty()) {
-        return idleFace(Icons.Filled.Call, BuiltinKind.QUICK_DIAL.label, stringResource(R.string.info_quickdial_empty), action = dialer)
+        return idleFace(Icons.Filled.Call, BuiltinKind.QUICK_DIAL.label, stringResource(source.emptyText), action = callBack ?: dialer)
     }
     fun dial(f: Favourite) {
-        f.number?.let { context.launchSafely(Intent(Intent.ACTION_DIAL, Uri.parse("tel:$it"))) }
+        f.number?.let { dialNumber(context, it) }
     }
     fun initials(name: String) = name.split(' ').take(2).mapNotNull { it.firstOrNull()?.uppercase() }.joinToString("")
     val first = favourites.first()
@@ -760,8 +767,9 @@ private fun quickDialFace(): WidgetFace {
         caption = first.number.orEmpty(),
         rows = favourites.map { f -> FaceRow(f.name, f.number.orEmpty(), badge = initials(f.name), onClick = { dial(f) }) },
         stats = favourites.drop(1).take(3).map { FaceStat(initials(it.name), it.name.substringBefore(' ')) },
-        actions = listOf(
-            FaceAction(Icons.Filled.Call, stringResource(R.string.design_call_first, first.name.substringBefore(' ')), primary = true,
+        actions = listOfNotNull(
+            callBack,
+            FaceAction(Icons.Filled.Call, stringResource(R.string.design_call_first, first.name.substringBefore(' ')), primary = callBack == null,
                 enabled = first.number != null, onClick = { dial(first) }),
             dialer
         )

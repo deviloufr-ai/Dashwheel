@@ -170,12 +170,105 @@ data class CallState(
     enum class Phase { IDLE, RINGING, ACTIVE }
 }
 
-/** Head unit → phone: answer, decline or end the call. */
+/**
+ * Head unit → phone: answer, decline or end the call, or ([Action.DIAL]) call
+ * [number]. A companion older than DIAL can't read the action and skips the
+ * whole message, so the head unit only asks one that sent [PhoneContacts]
+ * (the two came together); the phone answers a DIAL with [DialResult].
+ */
 @Serializable
 @SerialName("call_cmd")
-data class CallCommand(val action: Action) : LinkMessage {
+data class CallCommand(val action: Action, val number: String? = null) : LinkMessage {
     @Serializable
-    enum class Action { ANSWER, DECLINE, HANG_UP }
+    enum class Action { ANSWER, DECLINE, HANG_UP, DIAL }
+}
+
+/** Phone → head unit: whether the phone placed the call a [CallCommand.Action.DIAL] asked for. */
+@Serializable
+@SerialName("dialed")
+data class DialResult(val number: String, val placed: Boolean) : LinkMessage
+
+/**
+ * Phone → head unit: the phone's starred contacts and its last calls, for the
+ * Quick dial tile. Sent when the link comes up and whenever the contacts or the
+ * call log change on the phone.
+ */
+@Serializable
+@SerialName("contacts")
+data class PhoneContacts(
+    val favourites: List<PhoneFavourite>,
+    /** Newest first. */
+    val recentCalls: List<RecentCall> = emptyList()
+) : LinkMessage {
+    companion object {
+        /** A tile's width of avatars. */
+        const val MAX_FAVOURITES = 8
+        const val MAX_CALLS = 5
+        /** Photos are small, but ten of them add up: the list stays well under a frame. */
+        const val MAX_BYTES = 256 * 1024
+
+        /** At most [MAX_FAVOURITES] and [MAX_CALLS], photos dropped from the last favourite up until it fits in [maxBytes]. */
+        fun of(favourites: List<PhoneFavourite>, recentCalls: List<RecentCall>, maxBytes: Int = MAX_BYTES): PhoneContacts {
+            val calls = recentCalls.take(MAX_CALLS)
+            val items = favourites.take(MAX_FAVOURITES).toMutableList()
+            var i = items.lastIndex
+            while (i >= 0 && LinkCodec.encode(PhoneContacts(items, calls)).size > maxBytes) {
+                items[i] = items[i].copy(photoPng = null)
+                i--
+            }
+            return PhoneContacts(items, calls)
+        }
+    }
+}
+
+/** A starred contact: [photoPng] is a small PNG, base64. */
+@Serializable
+data class PhoneFavourite(val name: String, val number: String, val photoPng: String? = null)
+
+/** A call from the phone's call log. [at] is when it began, on the phone's clock. */
+@Serializable
+data class RecentCall(val number: String, val name: String? = null, val type: Type, val at: Long) {
+    @Serializable
+    enum class Type { INCOMING, OUTGOING, MISSED }
+}
+
+/**
+ * Phone → head unit: the phone's calendar for the next [AgendaSync.HOURS]
+ * hours, soonest first. Sent when the link comes up and whenever the calendar
+ * changes; not sent at all while the phone may not read its calendar.
+ */
+@Serializable
+@SerialName("agenda")
+data class AgendaSync(val events: List<PhoneEvent>) : LinkMessage {
+    companion object {
+        const val HOURS = 36
+        const val MAX_ITEMS = 12
+        /** A long description pasted into a location field stays a line. */
+        const val MAX_TEXT = 200
+
+        fun of(events: List<PhoneEvent>): AgendaSync =
+            AgendaSync(events.take(MAX_ITEMS).map { it.copy(title = it.title.take(MAX_TEXT), location = it.location.take(MAX_TEXT)) })
+    }
+}
+
+@Serializable
+data class PhoneEvent(val title: String, val begin: Long, val end: Long, val allDay: Boolean = false, val location: String = "")
+
+/**
+ * Phone → head unit: be guided there. A place shared from a map app on the
+ * phone: its position when the share carried one, else [query], an address
+ * or a place name for the navigation app to look up. [label] is what to call
+ * it out loud.
+ */
+@Serializable
+@SerialName("destination")
+data class Destination(
+    val label: String = "",
+    val lat: Double? = null,
+    val lng: Double? = null,
+    val query: String? = null
+) : LinkMessage {
+    val hasPosition: Boolean get() = lat != null && lng != null
 }
 
 /**

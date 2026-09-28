@@ -51,6 +51,7 @@ import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.Grain
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PhoneAndroid
+import androidx.compose.material.icons.filled.PhoneMissed
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.VolumeOff
@@ -96,6 +97,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import com.openauto.dash.link.RecentCall
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -352,24 +354,70 @@ internal fun loadAgenda(context: Context, hours: Int = 36): List<AgendaEvent> {
     return out
 }
 
-/** Next events from the device calendars. */
+/**
+ * The phone's list when it sent one, else this unit's own: a head unit
+ * rarely has contacts or a calendar, the driver's phone does. An empty list
+ * from the phone only wins over an empty one here. Every tile showing the
+ * list asks this, so the card and the designed faces never disagree.
+ */
+internal fun <T> phoneOrUnit(phone: List<T>?, unit: List<T>): List<T> =
+    if (phone != null && (phone.isNotEmpty() || unit.isEmpty())) phone else unit
+
+/** The phone's events still to come (it sent them a while ago), as many as the unit's own list holds. */
+internal fun upcoming(events: List<AgendaEvent>, now: Long, max: Int = AGENDA_MAX): List<AgendaEvent> =
+    events.filter { it.end >= now }.take(max)
+
+private const val AGENDA_MAX = 6
+
+/** The Agenda tile's events and where they came from. */
+internal class AgendaSource(
+    val events: List<AgendaEvent>,
+    val fromPhone: Boolean,
+    /** The phone sent its agenda: an empty one means nothing planned, not "link your phone". */
+    val phoneSent: Boolean,
+    val access: PermissionState
+) {
+    /** Nothing to show and nothing in the way of showing it. */
+    val emptyText: Int get() = if (phoneSent) R.string.info_agenda_empty else R.string.phone_agenda_empty
+}
+
+/** The next events for the Agenda tile ([phoneOrUnit]): the phone's, else the unit's calendar, re-read every five minutes. */
 @Composable
-internal fun CalendarCard(modifier: Modifier = Modifier) {
+internal fun rememberAgendaSource(): AgendaSource {
     val context = LocalContext.current
     val perm = rememberPermission(Manifest.permission.READ_CALENDAR)
-    var events by remember { mutableStateOf<List<AgendaEvent>>(emptyList()) }
+    var own by remember { mutableStateOf<List<AgendaEvent>>(emptyList()) }
+    var now by remember { mutableStateOf(System.currentTimeMillis()) }
     LaunchedEffect(perm.granted) {
-        if (!perm.granted) return@LaunchedEffect
         while (true) {
-            events = withContext(Dispatchers.IO) { loadAgenda(context) }
+            if (perm.granted) own = withContext(Dispatchers.IO) { loadAgenda(context) }
+            now = System.currentTimeMillis()
             delay(5 * 60_000)
         }
     }
+    val phone = PhoneLink.lists.collectAsState().value.agenda?.let { upcoming(it, now) }
+    val events = phoneOrUnit(phone, if (perm.granted) own else emptyList())
+    return AgendaSource(events, fromPhone = phone != null && events === phone, phoneSent = phone != null, access = perm)
+}
+
+/** Guidance to an event's place, by its address: the navigation app looks it up. */
+internal fun guideToEvent(context: Context, e: AgendaEvent) {
+    if (e.location.isBlank()) return
+    NavHandoff.go(context, e.title.ifBlank { e.location }, null, null, e.location)
+}
+
+/** Next events from the driver's phone, else the device calendars. An event with a place: a tap starts guidance there. */
+@Composable
+internal fun CalendarCard(modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val agenda = rememberAgendaSource()
+    val events = agenda.events
 
     Card(modifier = modifier) {
         Column(modifier = Modifier.fillMaxSize().padding(DashSpace.Lg)) {
             TileHeader(stringResource(R.string.info_agenda_title)) {
-                TextButton(
+                // The unit's calendar app knows nothing of the phone's events.
+                if (!agenda.fromPhone) TextButton(
                     onClick = {
                         runCatching {
                             context.startActivity(
@@ -382,15 +430,15 @@ internal fun CalendarCard(modifier: Modifier = Modifier) {
                 ) { Text(stringResource(R.string.info_open), color = DashColors.Accent, style = MaterialTheme.typography.labelMedium) }
             }
             when {
-                !perm.granted -> NeedsAccess(
+                events.isEmpty() && !agenda.phoneSent && !agenda.access.granted -> NeedsAccess(
                     Icons.Filled.Event, stringResource(R.string.info_agenda_needs_access),
-                    stringResource(R.string.info_agenda_allow), perm.request
+                    stringResource(R.string.info_agenda_allow), agenda.access.request
                 )
                 events.isEmpty() -> Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    Text(stringResource(R.string.info_agenda_empty), color = DashColors.Muted)
+                    Text(stringResource(agenda.emptyText), color = DashColors.Muted, textAlign = TextAlign.Center)
                 }
                 else -> LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    items(events) { e -> AgendaRow(e) }
+                    items(events) { e -> AgendaRow(e) { guideToEvent(context, e) } }
                 }
             }
         }
@@ -398,7 +446,7 @@ internal fun CalendarCard(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun AgendaRow(e: AgendaEvent) {
+private fun AgendaRow(e: AgendaEvent, onGuide: () -> Unit) {
     val timeFmt = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
     val dayFmt = remember { SimpleDateFormat("EEE", Locale.getDefault()) }
     val today = remember(e.begin) {
@@ -413,6 +461,7 @@ private fun AgendaRow(e: AgendaEvent) {
             .fillMaxWidth()
             .clip(DashShape.Small)
             .itemFill(if (DashColors.Glass) DashColors.haze(0.06f) else DashColors.CardHi, DashShape.Small)
+            .clickable(enabled = e.location.isNotBlank(), onClick = onGuide)
             .padding(horizontal = 10.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -472,15 +521,57 @@ internal fun loadFavourites(context: Context, limit: Int = 8): List<Favourite> {
     return out
 }
 
-/** Starred contacts as big tap-to-call targets. Tapping opens the dialer. */
+/** A missed call worth calling back: the phone's latest call, missed within the last [withinMs]. */
+internal fun callBack(calls: List<RecentCall>?, now: Long, withinMs: Long = CALL_BACK_MS): RecentCall? =
+    calls?.maxByOrNull { it.at }?.takeIf { it.type == RecentCall.Type.MISSED && now - it.at in 0..withinMs }
+
+/** Half a day: a call missed yesterday evening is no longer the one to return on the way to work. */
+private const val CALL_BACK_MS = 12 * 3_600_000L
+
+/** The Quick dial tile's contacts and where they came from. */
+internal class QuickDialSource(
+    val favourites: List<Favourite>,
+    /** The phone's last call, when it was missed and is recent: one tap calls back. */
+    val callBack: RecentCall?,
+    val phoneSent: Boolean,
+    val access: PermissionState
+) {
+    val emptyText: Int get() = if (phoneSent) R.string.info_quickdial_empty else R.string.phone_quickdial_empty
+}
+
+/** The Quick dial's contacts ([phoneOrUnit]): the phone's favourites, else the unit's starred contacts. */
+@Composable
+internal fun rememberQuickDialSource(): QuickDialSource {
+    val context = LocalContext.current
+    val perm = rememberPermission(Manifest.permission.READ_CONTACTS)
+    var own by remember { mutableStateOf<List<Favourite>>(emptyList()) }
+    LaunchedEffect(perm.granted) {
+        if (perm.granted) own = withContext(Dispatchers.IO) { loadFavourites(context) }
+    }
+    val lists by PhoneLink.lists.collectAsState()
+    val favourites = phoneOrUnit(lists.favourites, if (perm.granted) own else emptyList())
+    return QuickDialSource(favourites, callBack(lists.calls, System.currentTimeMillis()), lists.favourites != null, perm)
+}
+
+/**
+ * Calls [number]: through the linked phone, which places the call itself (its
+ * sound on the car's Bluetooth as any call), else this unit's dialer with the
+ * number in, as without a phone. Never through the phone during the demo:
+ * its contacts are made up.
+ */
+internal fun dialNumber(context: Context, number: String) {
+    if (!DemoMode.isOn && PhoneLink.dial(number)) return
+    context.launchSafely(Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", number, null)))
+}
+
+/** Starred contacts as big tap-to-call targets, from the driver's phone when linked. A missed call adds a Call back row. */
 @Composable
 internal fun QuickDialCard(modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    val perm = rememberPermission(Manifest.permission.READ_CONTACTS)
-    var favourites by remember { mutableStateOf<List<Favourite>>(emptyList()) }
-    LaunchedEffect(perm.granted) {
-        if (perm.granted) favourites = withContext(Dispatchers.IO) { loadFavourites(context) }
-    }
+    val source = rememberQuickDialSource()
+    val perm = source.access
+    val favourites = source.favourites
+    val timeFmt = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
 
     Card(modifier = modifier) {
         Column(modifier = Modifier.fillMaxSize().padding(DashSpace.Lg)) {
@@ -491,12 +582,12 @@ internal fun QuickDialCard(modifier: Modifier = Modifier) {
                 ) { Text(stringResource(R.string.info_quickdial_dialer), color = DashColors.Accent, style = MaterialTheme.typography.labelMedium) }
             }
             when {
-                !perm.granted -> NeedsAccess(
+                favourites.isEmpty() && !source.phoneSent && !perm.granted -> NeedsAccess(
                     Icons.Filled.Call, stringResource(R.string.info_quickdial_needs_access),
                     stringResource(R.string.info_quickdial_allow), perm.request
                 )
                 favourites.isEmpty() -> Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    Text(stringResource(R.string.info_quickdial_empty), color = DashColors.Muted, textAlign = TextAlign.Center)
+                    Text(stringResource(source.emptyText), color = DashColors.Muted, textAlign = TextAlign.Center)
                 }
                 else -> BoxWithConstraints(modifier = Modifier.weight(1f).fillMaxWidth()) {
                     val avatar = min(maxHeight.value * 0.55f, 64f).coerceAtLeast(36f).dp
@@ -506,11 +597,7 @@ internal fun QuickDialCard(modifier: Modifier = Modifier) {
                                 modifier = Modifier
                                     .weight(1f)
                                     .clip(DashShape.Medium)
-                                    .clickable(enabled = f.number != null) {
-                                        runCatching {
-                                            context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:${f.number}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                                        }
-                                    }
+                                    .clickable(enabled = f.number != null) { f.number?.let { dialNumber(context, it) } }
                                     .padding(vertical = 4.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
@@ -539,6 +626,27 @@ internal fun QuickDialCard(modifier: Modifier = Modifier) {
                             }
                         }
                     }
+                }
+            }
+            source.callBack?.let { call ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = DashSize.Touch)
+                        .clip(DashShape.Small)
+                        .itemFill(if (DashColors.Glass) DashColors.haze(0.06f) else DashColors.CardHi, DashShape.Small)
+                        .clickable { dialNumber(context, call.number) }
+                        .padding(horizontal = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Filled.PhoneMissed, contentDescription = null, tint = DashColors.Warning,modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        stringResource(R.string.phone_call_back, call.name ?: call.number), color = DashColors.TextPrimary,
+                        style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f)
+                    )
+                    Text(timeFmt.format(Date(call.at)), color = DashColors.Muted, style = MaterialTheme.typography.labelSmall)
                 }
             }
         }

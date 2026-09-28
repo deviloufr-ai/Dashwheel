@@ -35,7 +35,7 @@
     <string name="scanned_download_code">Questo codice scarica l\'app. Ora scansiona l\'altro, il codice di associazione a destra sullo schermo dell\'autoradio.</string>
     <string name="invalid_code_read">Non è un codice di associazione Dashwheel (letto: %1$s).</string>
     <string name="step_calls">Chiamate</string>
-    <string name="step_calls_detail">Mostra chi chiama sullo schermo dell\'auto, per rispondere o riagganciare da lì. L\'audio resta sul Bluetooth dell\'auto.</string>
+    <string name="step_calls_detail">Mostra chi chiama sullo schermo dell\'auto, per rispondere o riagganciare da lì, e i tuoi preferiti da chiamare dall\'auto. L\'audio resta sul Bluetooth dell\'auto.</string>
     <string name="car_spot_title">Dov\'è la mia auto</string>
     <string name="car_spot_left">Lasciata qui: %1$s</string>
     <string name="car_spot_saved">Salvata nell\'auto: %1$s</string>
@@ -75,4 +75,8 @@
     <string name="keyboard_not_connected">L\'auto non è connessa.</string>
     <string name="send_to_car">Invia all\'auto</string>
     <string name="sent_to_car">Inviato allo schermo dell\'auto</string>
+    <string name="place_sent">Percorso inviato all\'auto: %1$s</string>
+    <string name="place_unknown">Questo link non dice dove si trova il luogo.</string>
+    <string name="step_agenda">Agenda</string>
+    <string name="step_agenda_detail">Mostra i tuoi prossimi eventi sullo schermo dell\'auto, con la guida fino al luogo.</string>
 </resources>

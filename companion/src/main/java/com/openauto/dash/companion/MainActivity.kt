@@ -40,6 +40,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.DirectionsWalk
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.LocalParking
@@ -139,6 +140,8 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         resumes++
         LinkService.sync(this)
+        // Back from the system settings, maybe with contacts or the calendar just allowed.
+        PhoneLists.recheck()
     }
 
     /** The launcher shows two codes; the download one is the easy one to scan by mistake. */
@@ -587,6 +590,12 @@ private fun SetupSteps(resumes: Int) {
     var callsGranted by remember(resumes) { mutableStateOf(CALL_PERMISSIONS.all { granted(context, it) }) }
     val askCalls = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         callsGranted = CALL_PERMISSIONS.all { granted(context, it) }
+        PhoneLists.recheck()
+    }
+    var agendaGranted by remember(resumes) { mutableStateOf(granted(context, Manifest.permission.READ_CALENDAR)) }
+    val askAgenda = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        agendaGranted = it
+        PhoneLists.recheck()
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -618,6 +627,12 @@ private fun SetupSteps(resumes: Int) {
             stringResource(R.string.step_calls_detail), done = callsGranted
         ) {
             askCalls.launch(CALL_PERMISSIONS)
+        }
+        Step(
+            Icons.Filled.Event, stringResource(R.string.step_agenda),
+            stringResource(R.string.step_agenda_detail), done = agendaGranted
+        ) {
+            askAgenda.launch(Manifest.permission.READ_CALENDAR)
         }
         Step(
             Icons.Filled.BatteryFull, stringResource(R.string.step_battery),
@@ -658,12 +673,16 @@ private fun Step(icon: ImageVector, title: String, detail: String, done: Boolean
 private fun canPostNotifications(context: Context): Boolean =
     Build.VERSION.SDK_INT < 33 || granted(context, Manifest.permission.POST_NOTIFICATIONS)
 
-/** Who is calling (state, number, contact) and answering / hanging up from the car. */
+/**
+ * Who is calling (state, number, contact), answering / hanging up from the
+ * car, and its Quick dial: the favourites, the last calls, calling one.
+ */
 private val CALL_PERMISSIONS = arrayOf(
     Manifest.permission.READ_PHONE_STATE,
     Manifest.permission.READ_CALL_LOG,
     Manifest.permission.READ_CONTACTS,
-    Manifest.permission.ANSWER_PHONE_CALLS
+    Manifest.permission.ANSWER_PHONE_CALLS,
+    Manifest.permission.CALL_PHONE
 )
 
 private fun granted(context: Context, permission: String): Boolean =

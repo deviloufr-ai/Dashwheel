@@ -35,7 +35,7 @@
     <string name="scanned_download_code">Esse código transfere a app. Leia agora o outro, o código de associação à direita no ecrã do autorrádio.</string>
     <string name="invalid_code_read">Não é um código de associação Dashwheel (lido: %1$s).</string>
     <string name="step_calls">Chamadas</string>
-    <string name="step_calls_detail">Mostra quem liga no ecrã do carro, para atender ou desligar a partir dele. O som continua no Bluetooth do carro.</string>
+    <string name="step_calls_detail">Mostra quem liga no ecrã do carro, para atender ou desligar a partir dele, e os seus favoritos para ligar a partir do carro. O som continua no Bluetooth do carro.</string>
     <string name="car_spot_title">Onde está o meu carro</string>
     <string name="car_spot_left">Deixado aqui: %1$s</string>
     <string name="car_spot_saved">Guardado no carro: %1$s</string>
@@ -75,4 +75,8 @@
     <string name="keyboard_not_connected">O carro não está ligado.</string>
     <string name="send_to_car">Enviar para o carro</string>
     <string name="sent_to_car">Enviado para o ecrã do carro</string>
+    <string name="place_sent">Rota enviada para o carro: %1$s</string>
+    <string name="place_unknown">Esta ligação não indica onde fica o local.</string>
+    <string name="step_agenda">Agenda</string>
+    <string name="step_agenda_detail">Mostra os seus próximos eventos no ecrã do carro, com a rota até ao local.</string>
 </resources>

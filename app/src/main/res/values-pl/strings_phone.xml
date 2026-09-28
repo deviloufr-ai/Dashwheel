@@ -46,4 +46,9 @@
     <string name="phone_overlay">Pokazuj połączenia nad innymi aplikacjami</string>
     <string name="phone_overlay_detail">Połączenie pojawi się wtedy nawet, gdy inna aplikacja zajmuje cały ekran.</string>
     <string name="phone_text_copied">Skopiowano tekst z telefonu: przytrzymaj pole tekstowe, aby wkleić</string>
+    <string name="phone_quickdial_empty">Sparuj telefon, aby widzieć tu jego ulubione kontakty</string>
+    <string name="phone_agenda_empty">Sparuj telefon, aby widzieć tu jego terminarz</string>
+    <string name="phone_call_back">Oddzwoń: %1$s</string>
+    <string name="phone_dial_not_allowed">Aby dzwonić tutaj, zezwól na Połączenia w Dashwheel Companion.</string>
+    <string name="phone_guidance_to">Trasa do %1$s</string>
 </resources>

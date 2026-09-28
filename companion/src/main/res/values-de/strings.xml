@@ -35,7 +35,7 @@
     <string name="scanned_download_code">Dieser Code lädt die App herunter. Scanne jetzt den anderen, den Kopplungscode rechts auf dem Bildschirm des Autoradios.</string>
     <string name="invalid_code_read">Das ist kein Dashwheel-Kopplungscode (gelesen: %1$s).</string>
     <string name="step_calls">Anrufe</string>
-    <string name="step_calls_detail">Zeigt auf dem Bildschirm des Autos, wer anruft, um dort anzunehmen oder aufzulegen. Der Ton bleibt auf dem Bluetooth des Autos.</string>
+    <string name="step_calls_detail">Zeigt auf dem Bildschirm des Autos, wer anruft, um dort anzunehmen oder aufzulegen, und deine Favoriten, um vom Auto aus anzurufen. Der Ton bleibt auf dem Bluetooth des Autos.</string>
     <string name="car_spot_title">Wo ist mein Auto</string>
     <string name="car_spot_left">Hier abgestellt: %1$s</string>
     <string name="car_spot_saved">Im Auto gespeichert: %1$s</string>
@@ -75,4 +75,8 @@
     <string name="keyboard_not_connected">Das Auto ist nicht verbunden.</string>
     <string name="send_to_car">An Auto senden</string>
     <string name="sent_to_car">An den Autobildschirm gesendet</string>
+    <string name="place_sent">Route ans Auto gesendet: %1$s</string>
+    <string name="place_unknown">Dieser Link sagt nicht, wo der Ort ist.</string>
+    <string name="step_agenda">Kalender</string>
+    <string name="step_agenda_detail">Zeigt deine nächsten Termine auf dem Bildschirm des Autos, mit Route zum Ort.</string>
 </resources>

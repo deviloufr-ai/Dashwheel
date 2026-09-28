@@ -9,6 +9,7 @@ import android.util.Log
 import com.openauto.dash.link.ActionResult
 import com.openauto.dash.link.CallCommand
 import com.openauto.dash.link.CarLocation
+import com.openauto.dash.link.DialResult
 import com.openauto.dash.link.Dismiss
 import com.openauto.dash.link.DriveReport
 import com.openauto.dash.link.DriveSync
@@ -172,6 +173,7 @@ object LinkServer {
         send(Hello(deviceName(context), appVersion(context)))
         send(PhoneNotificationListener.syncMessage())
         send(PhoneCalls.snapshot())
+        PhoneLists.linked()
         try {
             while (true) {
                 val message = link.receive() ?: continue
@@ -202,8 +204,14 @@ object LinkServer {
             is MarkRead -> onMain(message.key, ActionResult.Action.MARK_READ) { it.markRead(message.key) }
             is Dismiss -> onMain(message.key, ActionResult.Action.DISMISS) { it.dismiss(message.key) }
             is CallCommand -> main.post {
-                // Refused (no permission, no call): tell the head unit what the call really is.
-                if (!PhoneCalls.command(context, message.action)) send(PhoneCalls.snapshot())
+                if (message.action == CallCommand.Action.DIAL) {
+                    // The call itself then reaches the car as any other, through the phone's call state.
+                    val number = message.number.orEmpty()
+                    send(DialResult(number, PhoneCalls.dial(context, number)))
+                } else if (!PhoneCalls.command(context, message.action)) {
+                    // Refused (no permission, no call): tell the head unit what the call really is.
+                    send(PhoneCalls.snapshot())
+                }
             }
             is CarLocation -> CarSpot.update(context, message)
             is DriveSync -> DriveJournal.sync(context, message.drives)

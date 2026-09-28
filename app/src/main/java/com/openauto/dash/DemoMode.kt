@@ -11,6 +11,7 @@ import android.graphics.Shader
 import android.location.Location
 import android.location.LocationManager
 import android.os.SystemClock
+import com.openauto.dash.link.RecentCall
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -36,8 +37,8 @@ import kotlin.math.sin
  * Demo mode: a made-up drive through Paris that feeds every live source the
  * tiles read (OBD readings and fault codes, GPS and the trip computer, g-force,
  * CANbox fuel / range / doors and the car's body (mileage, lights, belts),
- * the tyre sensors, weather, turn-by-turn, music, notifications,
- * fuel prices, the parking spot, the particle filter's soot load and the
+ * the tyre sensors, weather, turn-by-turn, music, notifications, the
+ * phone's favourites, calls and agenda, fuel prices, the parking spot, the particle filter's soot load and the
  * car-care stats), so the whole dashboard can be shown off parked and
  * without an adapter. Started from Settings → Advanced.
  *
@@ -86,6 +87,7 @@ object DemoMode {
         val sim = Simulation(System.currentTimeMillis())
         // Where the car stood before the drive: the parking tile points back to it.
         ParkingStore.demoWrite(ParkingSpot(START_LAT, START_LNG, sim.startedAt - 38 * 60_000L))
+        PhoneLink.demoWrite(demoPhoneLists(app, sim.startedAt))
         job = scope.launch {
             var tick = 0
             while (isActive) {
@@ -507,6 +509,38 @@ object DemoMode {
         )
     )
 
+    /**
+     * A linked phone's Quick dial and Agenda: a few favourites, a call from
+     * Camille missed just before the drive (the Call back row), and the
+     * dentist's appointment its notification announces, with an address to be
+     * guided to. The numbers are in the range kept for fiction.
+     */
+    private fun demoPhoneLists(context: Context, startedAt: Long): PhoneLists {
+        val dentist = java.util.Calendar.getInstance().apply {
+            timeInMillis = startedAt
+            add(java.util.Calendar.DAY_OF_YEAR, 1)
+            set(java.util.Calendar.HOUR_OF_DAY, 9)
+            set(java.util.Calendar.MINUTE, 30)
+            set(java.util.Calendar.SECOND, 0)
+            set(java.util.Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        return PhoneLists(
+            favourites = listOf(
+                Favourite("Camille Martin", "+33 6 39 98 00 01", null),
+                Favourite("Léo Bernard", "+33 6 39 98 00 02", null),
+                Favourite("Sophie Durand", "+33 6 39 98 00 03", null),
+                Favourite("Garage Moreau", "+33 1 99 00 00 04", null)
+            ),
+            calls = listOf(
+                RecentCall("+33 6 39 98 00 01", "Camille Martin", RecentCall.Type.MISSED, startedAt - 6 * 60_000L),
+                RecentCall("+33 6 39 98 00 03", "Sophie Durand", RecentCall.Type.INCOMING, startedAt - 3 * 3_600_000L)
+            ),
+            agenda = listOf(
+                AgendaEvent(context.getString(R.string.demo_notif_event_title), dentist, dentist + 45 * 60_000L, false, "12 Rue de Rivoli, Paris")
+            )
+        )
+    }
+
     private val arrows = HashMap<Turn, Bitmap>()
 
     /** A white manoeuvre arrow like the ones Maps posts. */
@@ -577,6 +611,7 @@ object DemoMode {
             AiMechanic.demoWrite(ai)
             FuelPriceRepo.endDemo()
             ParkingStore.endDemo()
+            PhoneLink.endDemo()
             PidExplorer.endDemo()
             CarBox.demoWrite(body, bodyAt)
             Tyres.demoWrite(tyres)

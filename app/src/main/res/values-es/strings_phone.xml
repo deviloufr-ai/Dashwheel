@@ -46,4 +46,9 @@
     <string name="phone_overlay">Mostrar llamadas sobre otras apps</string>
     <string name="phone_overlay_detail">Así una llamada aparece aunque otra app ocupe toda la pantalla.</string>
     <string name="phone_text_copied">Texto del teléfono copiado: mantén pulsado un campo para pegarlo</string>
+    <string name="phone_quickdial_empty">Vincula tu teléfono para ver aquí sus favoritos</string>
+    <string name="phone_agenda_empty">Vincula tu teléfono para ver aquí su agenda</string>
+    <string name="phone_call_back">Llamar a %1$s</string>
+    <string name="phone_dial_not_allowed">Para llamar desde aquí, permite Llamadas en Dashwheel Compañero.</string>
+    <string name="phone_guidance_to">Ruta a %1$s</string>
 </resources>
