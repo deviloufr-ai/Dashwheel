@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="monitor_kind">Autoradio</string>
+    <string name="monitor_kind_blurb">Processore, memoria, temperatura e le app più attive</string>
+    <string name="monitor_cpu">CPU</string>
+    <string name="monitor_ram">RAM</string>
+    <string name="monitor_chip">Chip</string>
+    <string name="monitor_storage">Memoria interna</string>
+    <string name="monitor_up">Accesa da %1$s</string>
+    <string name="monitor_apps_running">App in esecuzione</string>
+    <string name="monitor_apps_count">%1$d app</string>
+    <string name="monitor_busiest">La più attiva: %1$s</string>
+    <string name="monitor_no_shell">CPU e app in esecuzione richiedono il root</string>
+    <string name="monitor_reading">Lettura dell\'autoradio…</string>
+    <string name="monitor_stop">Chiudi</string>
+    <string name="monitor_stop_hint">Chiudere un\'app libera la sua memoria. Navigazione e musica si fermano con lei.</string>
+    <string name="monitor_system">Sistema</string>
+    <string name="monitor_hot_alert">L\'autoradio si sta scaldando, %1$d gradi.</string>
+    <string name="gear_kind">Marcia</string>
+    <string name="gear_kind_blurb">La marcia inserita, e la retromarcia</string>
+    <string name="gear_reverse">Retromarcia</string>
+    <string name="gear_free">In folle</string>
+    <string name="gear_stopped">Ferma</string>
+    <string name="gear_nth">Marcia %1$d</string>
+    <string name="gear_needs_data">Serve l\'adattatore OBD o la centralina CAN</string>
+    <string name="design_gear_gate">Griglia marce</string>
+    <string name="design_gear_gate_desc">Le marce in fila, quella inserita accesa</string>
+    <string name="monitor_title">AUTORADIO</string>
+    <string name="gear_title">MARCIA</string>
+    <string name="monitor_cores">%1$d core</string>
+</resources>

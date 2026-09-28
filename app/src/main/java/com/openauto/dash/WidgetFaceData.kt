@@ -81,6 +81,8 @@ import kotlinx.coroutines.withContext
 @Composable
 internal fun rememberWidgetFace(kind: BuiltinKind, env: SkinTileEnv): WidgetFace? = when (kind) {
     BuiltinKind.TELEMETRY -> telemetryFace(env)
+    BuiltinKind.HEAD_UNIT -> headUnitFace()
+    BuiltinKind.GEAR -> gearFace()
     BuiltinKind.SPEED_HUD -> speedFace(env)
     BuiltinKind.MEDIA -> mediaFace(env)
     BuiltinKind.NAVIGATION -> directionsFace(env)

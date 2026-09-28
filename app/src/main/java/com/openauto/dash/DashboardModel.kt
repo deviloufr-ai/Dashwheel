@@ -69,7 +69,11 @@ enum class BuiltinKind(
     // The TPMS sensors, through the head unit's TPMS app (Tyres.kt).
     TYRES(R.string.car_kind_tyres, WidgetCategory.VEHICLE, R.string.car_kind_tyres_blurb, 4, 3),
     // The dashboard bar: dashboards and apps, one tap each, as in the Canvas rail (CanvasTabs.kt).
-    DASH_BAR(R.string.apps_kind_dash_bar, WidgetCategory.APPS, R.string.apps_kind_dash_bar_blurb, 1, 5)
+    DASH_BAR(R.string.apps_kind_dash_bar, WidgetCategory.APPS, R.string.apps_kind_dash_bar_blurb, 1, 5),
+    // The head unit's CPU, memory, temperature and busiest apps (HeadUnitMonitor.kt).
+    HEAD_UNIT(R.string.monitor_kind, WidgetCategory.INFO, R.string.monitor_kind_blurb, 4, 3),
+    // The gear engaged, from reverse and the revs against the speed (GearEstimator.kt).
+    GEAR(R.string.gear_kind, WidgetCategory.DRIVING, R.string.gear_kind_blurb, 3, 2)
 }
 
 /**

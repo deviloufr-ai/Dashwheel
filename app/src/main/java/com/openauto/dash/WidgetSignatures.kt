@@ -239,6 +239,7 @@ internal fun SignatureFace(face: WidgetFace, design: WidgetDesign, modifier: Mod
                 WidgetDesign.LEAF -> Leaf(f, look, m)
                 WidgetDesign.TYRE_MAP -> TyreMap(f, look, m)
                 WidgetDesign.CAR_OUTLINE -> CarOutline(f, look, m)
+                WidgetDesign.GEAR_GATE -> GearGate(f, look, m)
                 else -> Unit
             }
         }

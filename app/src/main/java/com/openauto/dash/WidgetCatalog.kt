@@ -24,6 +24,8 @@ import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.CarRepair
 import androidx.compose.material.icons.filled.Coffee
 import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material.icons.filled.SettingsInputComponent
 import androidx.compose.material.icons.filled.Directions
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.DirectionsCarFilled
@@ -113,4 +115,6 @@ internal fun kindIcon(kind: BuiltinKind): ImageVector = when (kind) {
     BuiltinKind.SERVICE -> Icons.Filled.Build
     BuiltinKind.FUEL_PRICES -> Icons.Filled.LocalGasStation
     BuiltinKind.DASH_BAR -> Icons.Filled.Dashboard
+    BuiltinKind.HEAD_UNIT -> Icons.Filled.Memory
+    BuiltinKind.GEAR -> Icons.Filled.SettingsInputComponent
 }

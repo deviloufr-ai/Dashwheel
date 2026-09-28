@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="monitor_kind">Head unit</string>
+    <string name="monitor_kind_blurb">CPU, memory, temperature and the busiest apps</string>
+    <string name="monitor_cpu">CPU</string>
+    <string name="monitor_ram">RAM</string>
+    <string name="monitor_chip">Chip</string>
+    <string name="monitor_storage">Storage</string>
+    <string name="monitor_up">Up %1$s</string>
+    <string name="monitor_apps_running">Apps running</string>
+    <string name="monitor_apps_count">%1$d apps</string>
+    <string name="monitor_busiest">Busiest: %1$s</string>
+    <string name="monitor_no_shell">CPU and the running apps need root</string>
+    <string name="monitor_reading">Reading the head unit…</string>
+    <string name="monitor_stop">Stop</string>
+    <string name="monitor_stop_hint">Stopping an app frees its memory. Navigation and music stop with it.</string>
+    <string name="monitor_system">System</string>
+    <string name="monitor_hot_alert">The head unit is running hot, %1$d degrees.</string>
+    <string name="gear_kind">Gear</string>
+    <string name="gear_kind_blurb">The gear engaged, and reverse</string>
+    <string name="gear_reverse">Reverse</string>
+    <string name="gear_free">Rolling free</string>
+    <string name="gear_stopped">Stopped</string>
+    <string name="gear_nth">Gear %1$d</string>
+    <string name="gear_needs_data">Needs the OBD adapter or the car box</string>
+    <string name="design_gear_gate">Gear gate</string>
+    <string name="design_gear_gate_desc">The gears in a row, the one engaged lit</string>
+    <string name="monitor_title">HEAD UNIT</string>
+    <string name="gear_title">GEAR</string>
+    <string name="monitor_cores">%1$d cores</string>
+</resources>

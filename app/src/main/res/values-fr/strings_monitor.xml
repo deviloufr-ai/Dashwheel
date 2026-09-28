@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="monitor_kind">Autoradio</string>
+    <string name="monitor_kind_blurb">Processeur, mémoire, température et applis les plus actives</string>
+    <string name="monitor_cpu">Processeur</string>
+    <string name="monitor_ram">Mémoire</string>
+    <string name="monitor_chip">Puce</string>
+    <string name="monitor_storage">Stockage</string>
+    <string name="monitor_up">Allumé depuis %1$s</string>
+    <string name="monitor_apps_running">Applis en cours</string>
+    <string name="monitor_apps_count">%1$d applis</string>
+    <string name="monitor_busiest">La plus active : %1$s</string>
+    <string name="monitor_no_shell">Le processeur et les applis en cours demandent le root</string>
+    <string name="monitor_reading">Lecture de l\'autoradio…</string>
+    <string name="monitor_stop">Arrêter</string>
+    <string name="monitor_stop_hint">Arrêter une appli libère sa mémoire. La navigation et la musique s\'arrêtent avec elle.</string>
+    <string name="monitor_system">Système</string>
+    <string name="monitor_hot_alert">L\'autoradio chauffe, %1$d degrés.</string>
+    <string name="gear_kind">Rapport</string>
+    <string name="gear_kind_blurb">Le rapport engagé, et la marche arrière</string>
+    <string name="gear_reverse">Marche arrière</string>
+    <string name="gear_free">En roue libre</string>
+    <string name="gear_stopped">À l\'arrêt</string>
+    <string name="gear_nth">Rapport %1$d</string>
+    <string name="gear_needs_data">Demande l\'adaptateur OBD ou le boîtier CAN</string>
+    <string name="design_gear_gate">Grille de vitesses</string>
+    <string name="design_gear_gate_desc">Les rapports alignés, celui engagé allumé</string>
+    <string name="monitor_title">AUTORADIO</string>
+    <string name="gear_title">RAPPORT</string>
+    <string name="monitor_cores">%1$d cœurs</string>
+</resources>

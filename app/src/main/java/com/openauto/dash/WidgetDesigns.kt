@@ -76,7 +76,7 @@ enum class WidgetDesign(
     SPEED_TAPE(R.string.design_speed_tape, R.string.design_speed_tape_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.SPEED_HUD, BuiltinKind.TELEMETRY)),
     ROAD_SIGN(R.string.design_road_sign, R.string.design_road_sign_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.SPEED_HUD, BuiltinKind.PARKING, BuiltinKind.NAVIGATION, BuiltinKind.BREAK_TIMER, BuiltinKind.FUEL_TO_DEST, BuiltinKind.RANGE, BuiltinKind.FUEL_PRICES)),
     TWIN_DIALS(R.string.design_twin_dials, R.string.design_twin_dials_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.TELEMETRY, BuiltinKind.OBD_ALL)),
-    SHIFT_LIGHTS(R.string.design_shift_lights, R.string.design_shift_lights_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.TELEMETRY, BuiltinKind.OBD_ALL)),
+    SHIFT_LIGHTS(R.string.design_shift_lights, R.string.design_shift_lights_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.TELEMETRY, BuiltinKind.OBD_ALL, BuiltinKind.GEAR)),
     HEADING_TAPE(R.string.design_heading_tape, R.string.design_heading_tape_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.COMPASS)),
     COMPASS_ROSE(R.string.design_compass_rose, R.string.design_compass_rose_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.COMPASS, BuiltinKind.PARKING)),
     POINTER(R.string.design_pointer, R.string.design_pointer_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.COMPASS, BuiltinKind.PARKING)),
@@ -87,10 +87,10 @@ enum class WidgetDesign(
     ROAD_AHEAD(R.string.design_road_ahead, R.string.design_road_ahead_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.NAVIGATION, BuiltinKind.TRIP, BuiltinKind.FUEL_TO_DEST)),
     RADAR(R.string.design_radar, R.string.design_radar_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.PARKING)),
     ODOMETER(R.string.design_odometer, R.string.design_odometer_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.TRIP, BuiltinKind.RANGE, BuiltinKind.SERVICE, BuiltinKind.CAR_STATUS)),
-    PRINTOUT(R.string.design_printout, R.string.design_printout_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.TRIP, BuiltinKind.ECO_DRIVE, BuiltinKind.OBD_DTC, BuiltinKind.CAN_MON, BuiltinKind.SERVICE, BuiltinKind.FUEL_PRICES, BuiltinKind.CAR_STATUS, BuiltinKind.TYRES)),
+    PRINTOUT(R.string.design_printout, R.string.design_printout_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.TRIP, BuiltinKind.ECO_DRIVE, BuiltinKind.OBD_DTC, BuiltinKind.CAN_MON, BuiltinKind.SERVICE, BuiltinKind.FUEL_PRICES, BuiltinKind.CAR_STATUS, BuiltinKind.TYRES, BuiltinKind.HEAD_UNIT)),
     WARNING_LAMP(R.string.design_warning_lamp, R.string.design_warning_lamp_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.OBD_DTC, BuiltinKind.FILTER_CARE, BuiltinKind.BATTERY, BuiltinKind.WARMUP, BuiltinKind.DOORS, BuiltinKind.RANGE, BuiltinKind.FUEL_TO_DEST, BuiltinKind.SERVICE, BuiltinKind.TYRES)),
-    TRAFFIC_LIGHT(R.string.design_traffic_light, R.string.design_traffic_light_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.OBD_DTC, BuiltinKind.BATTERY, BuiltinKind.ECO_DRIVE, BuiltinKind.BREAK_TIMER, BuiltinKind.FILTER_CARE, BuiltinKind.DOORS, BuiltinKind.FUEL_TO_DEST)),
-    GAUGE_BANK(R.string.design_gauge_bank, R.string.design_gauge_bank_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.OBD_ALL, BuiltinKind.TELEMETRY)),
+    TRAFFIC_LIGHT(R.string.design_traffic_light, R.string.design_traffic_light_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.OBD_DTC, BuiltinKind.BATTERY, BuiltinKind.ECO_DRIVE, BuiltinKind.BREAK_TIMER, BuiltinKind.FILTER_CARE, BuiltinKind.DOORS, BuiltinKind.FUEL_TO_DEST, BuiltinKind.HEAD_UNIT)),
+    GAUGE_BANK(R.string.design_gauge_bank, R.string.design_gauge_bank_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.OBD_ALL, BuiltinKind.TELEMETRY, BuiltinKind.HEAD_UNIT)),
     CAR_TOP(R.string.design_car_top, R.string.design_car_top_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.DOORS)),
     DATA_RAIN(R.string.design_data_rain, R.string.design_data_rain_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.CAN_MON)),
     SKY(R.string.design_sky, R.string.design_sky_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.WEATHER, BuiltinKind.CLOCK)),
@@ -111,7 +111,8 @@ enum class WidgetDesign(
     HOURGLASS(R.string.design_hourglass, R.string.design_hourglass_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.BREAK_TIMER)),
     LEAF(R.string.design_leaf, R.string.design_leaf_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.ECO_DRIVE)),
     TYRE_MAP(R.string.design_tyre_map, R.string.design_tyre_map_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.TYRES)),
-    CAR_OUTLINE(R.string.design_car_outline, R.string.design_car_outline_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.CAR_STATUS, BuiltinKind.OBD_ALL, BuiltinKind.TELEMETRY, BuiltinKind.DOORS));
+    CAR_OUTLINE(R.string.design_car_outline, R.string.design_car_outline_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.CAR_STATUS, BuiltinKind.OBD_ALL, BuiltinKind.TELEMETRY, BuiltinKind.DOORS)),
+    GEAR_GATE(R.string.design_gear_gate, R.string.design_gear_gate_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.GEAR));
 
     /** Drawn by its own renderer for the widgets in [kinds] (see WidgetSignatures.kt). */
     internal val isSignature: Boolean get() = kinds != null
@@ -243,7 +244,9 @@ internal data class WidgetFace(
     /** Label on the marker along a road (the destination). */
     val marker: String? = null,
     /** Front left, front right, rear left, rear right: each wheel's row, null where it has no sensor (tyre map). */
-    val wheels: List<FaceRow?>? = null
+    val wheels: List<FaceRow?>? = null,
+    /** The gearbox's forward gears (the gear gate). */
+    val gears: Int? = null
 ) {
     /** [severity], or 2 / 0 from [alert]. */
     val level: Int get() = severity ?: if (alert) 2 else 0

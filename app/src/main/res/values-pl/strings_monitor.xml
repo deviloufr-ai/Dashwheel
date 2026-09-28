@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="monitor_kind">Radio</string>
+    <string name="monitor_kind_blurb">Procesor, pamięć, temperatura i najbardziej aktywne aplikacje</string>
+    <string name="monitor_cpu">CPU</string>
+    <string name="monitor_ram">RAM</string>
+    <string name="monitor_chip">Układ</string>
+    <string name="monitor_storage">Pamięć</string>
+    <string name="monitor_up">Włączone od %1$s</string>
+    <string name="monitor_apps_running">Działające aplikacje</string>
+    <string name="monitor_apps_count">%1$d aplikacji</string>
+    <string name="monitor_busiest">Najbardziej aktywna: %1$s</string>
+    <string name="monitor_no_shell">CPU i działające aplikacje wymagają roota</string>
+    <string name="monitor_reading">Odczyt radia…</string>
+    <string name="monitor_stop">Zatrzymaj</string>
+    <string name="monitor_stop_hint">Zatrzymanie aplikacji zwalnia jej pamięć. Nawigacja i muzyka zatrzymają się razem z nią.</string>
+    <string name="monitor_system">System</string>
+    <string name="monitor_hot_alert">Radio się nagrzewa, %1$d stopni.</string>
+    <string name="gear_kind">Bieg</string>
+    <string name="gear_kind_blurb">Włączony bieg i wsteczny</string>
+    <string name="gear_reverse">Wsteczny</string>
+    <string name="gear_free">Toczy się na luzie</string>
+    <string name="gear_stopped">Postój</string>
+    <string name="gear_nth">Bieg %1$d</string>
+    <string name="gear_needs_data">Wymaga adaptera OBD lub skrzynki CAN</string>
+    <string name="design_gear_gate">Kulisa biegów</string>
+    <string name="design_gear_gate_desc">Biegi w rzędzie, włączony podświetlony</string>
+    <string name="monitor_title">RADIO</string>
+    <string name="gear_title">BIEG</string>
+    <string name="monitor_cores">%1$d rdzeni</string>
+</resources>

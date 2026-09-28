@@ -789,6 +789,8 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     }
 
     LaunchedEffect(Unit) { updateManager.checkForUpdate() }
+    // The head unit running hot is said once, tile or not (HeadUnitMonitor).
+    LaunchedEffect(Unit) { withContext(Dispatchers.IO) { HeadUnitMonitor.watchHeat(context) } }
     val checkForUpdates: () -> Unit = { scope.launch { updateManager.checkForUpdate() } }
 
     // Installing restarts the launcher, and the permission screen is another

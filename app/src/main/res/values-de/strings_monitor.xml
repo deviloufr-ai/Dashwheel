@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="monitor_kind">Radio</string>
+    <string name="monitor_kind_blurb">Prozessor, Speicher, Temperatur und die aktivsten Apps</string>
+    <string name="monitor_cpu">CPU</string>
+    <string name="monitor_ram">RAM</string>
+    <string name="monitor_chip">Chip</string>
+    <string name="monitor_storage">Speicher</string>
+    <string name="monitor_up">An seit %1$s</string>
+    <string name="monitor_apps_running">Laufende Apps</string>
+    <string name="monitor_apps_count">%1$d Apps</string>
+    <string name="monitor_busiest">Am aktivsten: %1$s</string>
+    <string name="monitor_no_shell">CPU und laufende Apps brauchen Root</string>
+    <string name="monitor_reading">Radio wird gelesen…</string>
+    <string name="monitor_stop">Beenden</string>
+    <string name="monitor_stop_hint">Eine App zu beenden gibt ihren Speicher frei. Navigation und Musik enden mit ihr.</string>
+    <string name="monitor_system">System</string>
+    <string name="monitor_hot_alert">Das Radio wird heiß, %1$d Grad.</string>
+    <string name="gear_kind">Gang</string>
+    <string name="gear_kind_blurb">Der eingelegte Gang und der Rückwärtsgang</string>
+    <string name="gear_reverse">Rückwärtsgang</string>
+    <string name="gear_free">Rollt frei</string>
+    <string name="gear_stopped">Steht</string>
+    <string name="gear_nth">%1$d. Gang</string>
+    <string name="gear_needs_data">Braucht den OBD-Adapter oder die CAN-Box</string>
+    <string name="design_gear_gate">Schaltkulisse</string>
+    <string name="design_gear_gate_desc">Die Gänge in einer Reihe, der eingelegte leuchtet</string>
+    <string name="monitor_title">RADIO</string>
+    <string name="gear_title">GANG</string>
+    <string name="monitor_cores">%1$d Kerne</string>
+</resources>

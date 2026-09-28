@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="monitor_kind">Radio</string>
+    <string name="monitor_kind_blurb">Procesador, memoria, temperatura y las apps más activas</string>
+    <string name="monitor_cpu">CPU</string>
+    <string name="monitor_ram">RAM</string>
+    <string name="monitor_chip">Chip</string>
+    <string name="monitor_storage">Almacenamiento</string>
+    <string name="monitor_up">Encendida hace %1$s</string>
+    <string name="monitor_apps_running">Apps en marcha</string>
+    <string name="monitor_apps_count">%1$d apps</string>
+    <string name="monitor_busiest">La más activa: %1$s</string>
+    <string name="monitor_no_shell">La CPU y las apps en marcha necesitan root</string>
+    <string name="monitor_reading">Leyendo la radio…</string>
+    <string name="monitor_stop">Parar</string>
+    <string name="monitor_stop_hint">Parar una app libera su memoria. La navegación y la música se paran con ella.</string>
+    <string name="monitor_system">Sistema</string>
+    <string name="monitor_hot_alert">La radio se está calentando, %1$d grados.</string>
+    <string name="gear_kind">Marcha</string>
+    <string name="gear_kind_blurb">La marcha metida, y la marcha atrás</string>
+    <string name="gear_reverse">Marcha atrás</string>
+    <string name="gear_free">En punto muerto</string>
+    <string name="gear_stopped">Parado</string>
+    <string name="gear_nth">Marcha %1$d</string>
+    <string name="gear_needs_data">Necesita el adaptador OBD o la caja CAN</string>
+    <string name="design_gear_gate">Rejilla de marchas</string>
+    <string name="design_gear_gate_desc">Las marchas en fila, la metida encendida</string>
+    <string name="monitor_title">RADIO</string>
+    <string name="gear_title">MARCHA</string>
+    <string name="monitor_cores">%1$d núcleos</string>
+</resources>

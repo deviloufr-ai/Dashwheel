@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="monitor_kind">Radio</string>
+    <string name="monitor_kind_blurb">Processor, geheugen, temperatuur en de drukste apps</string>
+    <string name="monitor_cpu">CPU</string>
+    <string name="monitor_ram">RAM</string>
+    <string name="monitor_chip">Chip</string>
+    <string name="monitor_storage">Opslag</string>
+    <string name="monitor_up">Aan sinds %1$s</string>
+    <string name="monitor_apps_running">Actieve apps</string>
+    <string name="monitor_apps_count">%1$d apps</string>
+    <string name="monitor_busiest">Drukste: %1$s</string>
+    <string name="monitor_no_shell">CPU en actieve apps hebben root nodig</string>
+    <string name="monitor_reading">Radio wordt gelezen…</string>
+    <string name="monitor_stop">Stoppen</string>
+    <string name="monitor_stop_hint">Een app stoppen maakt zijn geheugen vrij. Navigatie en muziek stoppen mee.</string>
+    <string name="monitor_system">Systeem</string>
+    <string name="monitor_hot_alert">De radio wordt heet, %1$d graden.</string>
+    <string name="gear_kind">Versnelling</string>
+    <string name="gear_kind_blurb">De ingeschakelde versnelling, en achteruit</string>
+    <string name="gear_reverse">Achteruit</string>
+    <string name="gear_free">Rolt vrij</string>
+    <string name="gear_stopped">Stil</string>
+    <string name="gear_nth">Versnelling %1$d</string>
+    <string name="gear_needs_data">Heeft de OBD-adapter of de CAN-box nodig</string>
+    <string name="design_gear_gate">Schakelpatroon</string>
+    <string name="design_gear_gate_desc">De versnellingen op een rij, de ingeschakelde verlicht</string>
+    <string name="monitor_title">RADIO</string>
+    <string name="gear_title">VERSNELLING</string>
+    <string name="monitor_cores">%1$d kernen</string>
+</resources>

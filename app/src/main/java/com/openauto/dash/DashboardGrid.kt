@@ -652,6 +652,8 @@ internal fun TileContent(
             } else EmbeddedMapsCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.TRIP -> TripCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.DASH_BAR -> DashBarTile()
+            BuiltinKind.HEAD_UNIT -> HeadUnitCard(modifier = Modifier.fillMaxSize())
+            BuiltinKind.GEAR -> GearCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.GFORCE -> GForceCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.PARKING -> ParkingCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.CALENDAR -> CalendarCard(modifier = Modifier.fillMaxSize())
