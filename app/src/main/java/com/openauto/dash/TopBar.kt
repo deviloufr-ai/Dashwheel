@@ -364,12 +364,7 @@ private fun ClusterReadout(speedKmh: Int, obd: ObdData, connection: ObdConnectio
     // cars, the C4 Picasso among them, don't answer the OBD fuel PID), then OBD.
     val fuel = rememberFuel(obd, connection)
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(18.dp)) {
-        SegmentBar(
-            label = stringResource(R.string.vehicle_fuel),
-            fraction = fuel?.percent?.let { it / 100f } ?: 0f,
-            hot = false,
-            lowIsHot = true
-        )
+        FuelSegmentBar(label = stringResource(R.string.vehicle_fuel), percent = fuel?.percent)
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                 val lit = if (connected) (obd.rpm / 7000f * TACHO_SEGMENTS).toInt().coerceIn(0, TACHO_SEGMENTS) else 0
@@ -408,24 +403,49 @@ private fun ClusterReadout(speedKmh: Int, obd: ObdData, connection: ObdConnectio
         SegmentBar(
             label = stringResource(R.string.vehicle_coolant),
             fraction = if (connected) obd.coolantTempC / 120f else 0f,
-            hot = obd.coolantTempC >= COOLANT_WARNING_C,
-            lowIsHot = false
+            hot = obd.coolantTempC >= COOLANT_WARNING_C
         )
     }
 }
 
 private const val TACHO_SEGMENTS = 14
 
-/** Six segments and a caption; the top segment reads amber when [hot], the bottom one when [lowIsHot] and the level is low. */
+private const val FUEL_SEGMENTS = 10
+
+/**
+ * Fuel as ten segments, one per 10 % (a started tenth lights its segment, so
+ * the last drops still show). The lit segments turn amber at 20 % and red at 10 %.
+ */
 @Composable
-private fun SegmentBar(label: String, fraction: Float, hot: Boolean, lowIsHot: Boolean) {
+private fun FuelSegmentBar(label: String, percent: Int?) {
+    val level = percent?.coerceIn(0, 100)
+    val lit = if (level == null) 0 else (level * FUEL_SEGMENTS + 99) / 100
+    val litColour = when {
+        level == null -> DashColors.Accent
+        level <= 10 -> DashColors.Critical
+        level <= 20 -> DashColors.Tacho
+        else -> DashColors.Accent
+    }
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+            repeat(FUEL_SEGMENTS) { i ->
+                val colour = if (i < lit) litColour else DashColors.CardHi
+                Box(Modifier.size(width = 5.dp, height = 14.dp).clip(RoundedCornerShape(1.dp)).background(colour))
+            }
+        }
+        Text(label.uppercase(), color = DashColors.TextSecondary, letterSpacing = 0.12.em, style = MaterialTheme.typography.labelSmall, maxLines = 1)
+    }
+}
+
+/** Six segments and a caption; the top segment reads red when [hot]. */
+@Composable
+private fun SegmentBar(label: String, fraction: Float, hot: Boolean) {
     val lit = (fraction * 6f).toInt().coerceIn(0, 6)
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
             repeat(6) { i ->
                 val colour = when {
                     i >= lit -> DashColors.CardHi
-                    lowIsHot && lit <= 1 -> DashColors.Tacho
                     hot && i == 5 -> DashColors.Critical
                     else -> DashColors.Accent
                 }
