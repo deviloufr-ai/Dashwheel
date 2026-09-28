@@ -323,7 +323,7 @@ private fun rememberWobble(): State<Float> {
 /** Step of a clock's second hand: four a second with full effects (a smooth sweep), one a second otherwise. */
 private val secondHandStepMs: Long get() = if (DashColors.Effects == DashEffects.FULL) 250L else 1_000L
 
-/** Hours and minutes out of an "HH:mm" string, or the current time if it does not parse. */
+/** Hours and minutes out of an "HH:mm" or "h:mm a" string (the dial is 12 hours either way), or the current time if it does not parse. */
 private fun parseClock(clock: String): Pair<Int, Int> {
     val parts = clock.trim().split(':')
     val h = parts.getOrNull(0)?.toIntOrNull()
@@ -438,12 +438,17 @@ internal fun CockpitTopBar(m: TopBarModel) {
                     Spacer(Modifier.width(10.dp))
                 }
                 LcdPanel(Modifier.height(44.dp), corner = 8.dp) {
-                    Text(
-                        m.clock,
-                        style = lcd(26.sp, LcdInk),
-                        maxLines = 1,
-                        modifier = Modifier.align(Alignment.Center).padding(horizontal = 14.dp)
-                    )
+                    val (digits, amPm) = splitClock(m.clock)
+                    Row(
+                        modifier = Modifier.align(Alignment.Center).padding(horizontal = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(digits, style = lcd(26.sp, LcdInk), maxLines = 1)
+                        if (amPm != null) {
+                            Spacer(Modifier.width(6.dp))
+                            Text(amPm, style = lcd(13.sp, LcdInk.copy(alpha = 0.7f)), maxLines = 1)
+                        }
+                    }
                 }
             }
         }
@@ -619,7 +624,7 @@ private fun OutsideTempLcd() {
             Text(stringResource(R.string.cockpit_out), style = lcd(14.sp, ink.copy(alpha = 0.7f)), maxLines = 1)
             Spacer(Modifier.width(8.dp))
             Text(
-                weather?.let { "${it.tempC.roundToInt()}°C" } ?: "--",
+                weather?.let { LocalUnits.current.tempTight(it.tempC) } ?: "--",
                 style = lcd(20.sp, if (weather == null) ink.copy(alpha = 0.4f) else ink),
                 maxLines = 1
             )
@@ -901,21 +906,29 @@ private fun tachFace(fuel: Boolean, compact: Boolean, w: DialWords) = DialFace(
 )
 
 /**
- * Speedometer, 0–240 km/h, read by its needle alone (no speed readout in the
- * dial): battery and engine-load sub-dials when [subs], and an LCD for the
- * revs when the dial stands in for the tachometer ([revs]).
+ * Speedometer, 0–240 km/h or 0–150 mph, read by its needle alone (no speed
+ * readout in the dial): battery and engine-load sub-dials when [subs], and an
+ * LCD for the revs when the dial stands in for the tachometer ([revs]).
+ * Numbered every 20 km/h or every 10 mph (40 and 30 when compact), ticked
+ * every 10 or 5.
  */
-private fun speedFace(subs: Boolean, compact: Boolean, revs: Boolean, w: DialWords) = DialFace(
-    labels = (0..240 step if (compact) 40 else 20).map { it.toString() },
-    minor = if (compact) 4 else 2,
+private fun speedFace(subs: Boolean, compact: Boolean, revs: Boolean, w: DialWords, units: UnitSystem) = DialFace(
+    labels = (0..speedoTop(units) step if (units.imperial) (if (compact) 30 else 10) else (if (compact) 40 else 20)).map { it.toString() },
+    minor = if (units.imperial) (if (compact) 3 else 2) else (if (compact) 4 else 2),
     numeral = if (compact) 30f else 23f,
-    title = "km/h",
+    title = units.speedUnit,
     lcd = if (revs) LcdCompact else null,
     subs = if (subs && !compact) {
         listOf(SubDial(147f, 247f, "8", "16", w.volt), SubDial(233f, 247f, "0", "100", w.load))
     } else emptyList(),
     titleSize = if (compact) 20f else 15f
 )
+
+/** The speedometer's top figure in the shown unit. */
+private fun speedoTop(units: UnitSystem): Int = units.speedScale(240)
+
+/** Where [kmh] puts the speedometer's needle, 0 to 1. */
+private fun speedoFraction(kmh: Int, units: UnitSystem): Float = units.speed(kmh) / speedoTop(units).toFloat()
 
 /** Fuel gauge: a 120° arc over the hub, E to F, red below 12 %. */
 private fun fuelFace(w: DialWords) = DialFace(
@@ -1179,10 +1192,11 @@ private fun ChromeDial(
     }
 }
 
-/** Big LCD speed readout for when a dial would be too small, or beside a dial in a wide tile. */
+/** Big LCD speed readout for when a dial would be too small, or beside a dial in a wide tile; [speed] in km/h. */
 @Composable
 private fun SpeedLcd(speed: Int?, caption: String, modifier: Modifier) {
     val ink = LcdInk
+    val units = LocalUnits.current
     val color = when {
         speed == null -> ink.copy(alpha = 0.4f)
         speed >= SPEED_WARNING_KMH -> DashColors.Warning
@@ -1194,7 +1208,7 @@ private fun SpeedLcd(speed: Int?, caption: String, modifier: Modifier) {
         LcdPanel(Modifier.fillMaxSize()) {
             Column(Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    speed?.toString() ?: "--",
+                    speed?.let { units.speed(it).toString() } ?: "--",
                     style = lcd(min(h * 0.46f, w * 0.32f).fixedSp(), color),
                     maxLines = 1
                 )
@@ -1236,6 +1250,7 @@ private fun CockpitTelemetry(env: SkinTileEnv) {
     val load = if (connected) d.engineLoadPct / 100f else null
     val words = dialWords()
     val rpmUnit = stringResource(R.string.cockpit_unit_rpm)
+    val units = LocalUnits.current
 
     BoxWithConstraints(
         modifier = Modifier
@@ -1274,10 +1289,10 @@ private fun CockpitTelemetry(env: SkinTileEnv) {
         fun speedo(side: Dp, withRevs: Boolean) {
             val compact = side < 230.dp
             val revs = withRevs && !compact
-            val face = remember(compact, revs, words) { speedFace(subs = true, compact = compact, revs = revs, w = words) }
+            val face = remember(compact, revs, words, units) { speedFace(subs = true, compact = compact, revs = revs, w = words, units = units) }
             ChromeDial(
                 face = face,
-                fraction = speed?.let { it / 240f },
+                fraction = speed?.let { speedoFraction(it, units) },
                 subFractions = listOf(volts, load),
                 live = connected,
                 readout = if (revs) rpm?.toString() ?: "--" else null,
@@ -1373,11 +1388,13 @@ private fun CockpitSpeedHud(env: SkinTileEnv) {
     )
     val color = if ((speed ?: 0) >= SPEED_WARNING_KMH) DashColors.Warning else LcdInk
     val words = dialWords()
+    val units = LocalUnits.current
+    val unitCaps = units.speedUnit.uppercase()
     BoxWithConstraints(Modifier.fillMaxSize().padding(4.dp), contentAlignment = Alignment.Center) {
         val w = maxWidth
         val h = maxHeight
         if (min(w, h) < 120.dp) {
-            SpeedLcd(speed, if (speed == null) source else "KM/H · $source", Modifier.fillMaxSize())
+            SpeedLcd(speed, if (speed == null) source else "$unitCaps · $source", Modifier.fillMaxSize())
             return@BoxWithConstraints
         }
 
@@ -1385,10 +1402,10 @@ private fun CockpitSpeedHud(env: SkinTileEnv) {
         @Composable
         fun dial(side: Dp) {
             val compact = side < 230.dp
-            val face = remember(compact, words) { speedFace(subs = false, compact = compact, revs = false, w = words) }
+            val face = remember(compact, words, units) { speedFace(subs = false, compact = compact, revs = false, w = words, units = units) }
             ChromeDial(
                 face = face,
-                fraction = speed?.let { it / 240f },
+                fraction = speed?.let { speedoFraction(it, units) },
                 subFractions = emptyList(),
                 live = speed != null,
                 readout = null,
@@ -1402,7 +1419,7 @@ private fun CockpitSpeedHud(env: SkinTileEnv) {
                 dial(h)
                 Spacer(Modifier.width(12.dp))
                 SpeedLcd(
-                    speed, if (speed == null) source else "KM/H · $source",
+                    speed, if (speed == null) source else "$unitCaps · $source",
                     Modifier
                         .width(min(w - h - 12.dp, h * 1.4f))
                         .height(h * 0.62f)
@@ -2022,9 +2039,11 @@ private fun DateLcd(modifier: Modifier) {
     // Minutes only, so one tick a minute, on the minute.
     val now = rememberNow(60_000L)
     val locale = Locale.getDefault()
-    val timeFmt = rememberDateFormat("HH:mm")
+    val units = LocalUnits.current
+    val timeFmt = rememberDateFormat(units.digitsPattern())
     val dateFmt = rememberDateFormat("EEEEdMMMM", best = true)
     val time = remember(now, timeFmt) { timeFmt.format(now) }
+    val amPm = remember(now, units) { units.amPm(now, locale) }
     val date = remember(now, dateFmt) { dateFmt.format(now).uppercase(locale) }
     val ink = LcdInk
     BoxWithConstraints(modifier) {
@@ -2032,7 +2051,16 @@ private fun DateLcd(modifier: Modifier) {
         val w = maxWidth
         LcdPanel(Modifier.fillMaxSize()) {
             Column(Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(time, style = lcd(min(h * 0.44f, w * 0.22f).fixedSp(), ink), maxLines = 1)
+                val digits = min(h * 0.44f, w * 0.22f)
+                Row(verticalAlignment = Alignment.Bottom) {
+                    Text(time, style = lcd(digits.fixedSp(), ink), maxLines = 1)
+                    // A 12-hour clock's AM / PM, small beside the digits like a clock radio's.
+                    if (amPm != null) {
+                        Spacer(Modifier.width(6.dp))
+                        Text(amPm, style = lcd((digits * 0.3f).coerceAtLeast(14.dp).fixedSp(), ink.copy(alpha = 0.75f)), maxLines = 1,
+                            modifier = Modifier.padding(bottom = digits * 0.12f))
+                    }
+                }
                 Text(
                     date,
                     style = lcd((h * 0.12f).coerceIn(14.dp, 20.dp).fixedSp(), ink.copy(alpha = 0.75f)),
@@ -2051,6 +2079,7 @@ private fun DateLcd(modifier: Modifier) {
 @Composable
 private fun CockpitWeather() {
     val weather = rememberWeather()
+    val units = LocalUnits.current
     val ink = LcdInk
     val backlit = !DashColors.Light
     BoxWithConstraints(Modifier.fillMaxSize().padding(4.dp)) {
@@ -2081,7 +2110,7 @@ private fun CockpitWeather() {
                         Text(stringResource(R.string.cockpit_out), style = lcd((big * 0.36f).fixedSp(), ink.copy(alpha = 0.7f)), maxLines = 1)
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            weather?.let { "${it.tempC.roundToInt()}°C" } ?: "--°C",
+                            weather?.let { units.tempTight(it.tempC) } ?: "--${units.tempUnit}",
                             style = lcd(big.fixedSp(), if (weather == null) ink.copy(alpha = 0.4f) else ink),
                             maxLines = 1
                         )
@@ -2094,7 +2123,10 @@ private fun CockpitWeather() {
                     )
                     if (weather != null && h >= 110.dp) {
                         Text(
-                            stringResource(R.string.cockpit_feels_wind, weather.feelsC.roundToInt(), weather.windKmh.roundToInt()),
+                            stringResource(
+                                if (units.imperial) R.string.units_cockpit_feels_wind_mph else R.string.cockpit_feels_wind,
+                                units.temp(weather.feelsC), units.speed(weather.windKmh)
+                            ),
                             style = lcd((line * 0.85f).fixedSp(), ink.copy(alpha = 0.7f)),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -2128,6 +2160,9 @@ private fun CockpitRange(item: DashboardItem, env: SkinTileEnv) {
     val words = dialWords()
     val face = remember(words) { fuelFace(words) }
     val settingsLabel = stringResource(R.string.cockpit_fuel_settings)
+    val units = LocalUnits.current
+    val range = units.distance(fuel.rangeKm)
+    val rangeUnit = units.distanceUnit.uppercase()
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
@@ -2175,7 +2210,7 @@ private fun CockpitRange(item: DashboardItem, env: SkinTileEnv) {
                                 maxLines = 1
                             )
                             Text(
-                                "${fuel.rangeKm} KM",
+                                "$range $rangeUnit",
                                 style = lcd(min(ph * 0.34f, pw * 0.16f).fixedSp(), ink),
                                 maxLines = 1
                             )
@@ -2192,7 +2227,7 @@ private fun CockpitRange(item: DashboardItem, env: SkinTileEnv) {
                 }
             }
         } else {
-            gauge(min(w, h), "${fuel.rangeKm}", "KM")
+            gauge(min(w, h), "$range", rangeUnit)
         }
     }
     if (finder) FuelFinderDialog(onDismiss = { finder = false })

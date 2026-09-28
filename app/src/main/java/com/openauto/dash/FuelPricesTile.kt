@@ -96,10 +96,14 @@ internal fun FuelPricesCard(modifier: Modifier = Modifier) {
             when {
                 nearby == null && error != null -> Hint(stringResource(R.string.fuel_error))
                 nearby == null -> Hint(stringResource(if (location == null) R.string.info_waiting_gps else R.string.fuel_loading))
-                nearby.ranked.isEmpty() -> Hint(stringResource(R.string.fuel_none, FuelPrices.RADIUS_KM))
+                nearby.ranked.isEmpty() -> Hint(fuelNoneText())
                 else -> {
+                    val u = LocalUnits.current
                     Text(
-                        pluralStringResource(R.plurals.fuel_stations, nearby.ranked.size, nearby.ranked.size, FuelPrices.RADIUS_KM) +
+                        pluralStringResource(
+                            if (u.imperial) R.plurals.units_fuel_stations_mi else R.plurals.fuel_stations,
+                            nearby.ranked.size, nearby.ranked.size, u.distance(FuelPrices.RADIUS_KM)
+                        ) +
                             " · " + stringResource(R.string.fuel_navigate),
                         color = DashColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.labelSmall
                     )
@@ -145,6 +149,13 @@ private fun StationRow(r: RankedStation, cheapest: Boolean, onClick: () -> Unit)
         Spacer(Modifier.width(8.dp))
         Text(FuelPrices.formatDistance(r.distanceKm), color = DashColors.TextSecondary, style = MaterialTheme.typography.labelMedium)
     }
+}
+
+/** No station within the search radius, said in the driver's distance unit. */
+@Composable
+internal fun fuelNoneText(): String {
+    val u = LocalUnits.current
+    return stringResource(if (u.imperial) R.string.units_fuel_none_mi else R.string.fuel_none, u.distance(FuelPrices.RADIUS_KM))
 }
 
 @Composable

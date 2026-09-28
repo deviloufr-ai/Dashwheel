@@ -137,7 +137,7 @@ private fun LargeMonitor(s: HeadUnitStats, openApps: (() -> Unit)?) {
             Ring(s.ramPct, "${s.ramPct} %", stringResource(R.string.monitor_ram), 132.dp, gb(s.ramUsedMb / 1024f) + " / " + gb(s.ramTotalMb / 1024f) + " GB")
             Column(modifier = Modifier.weight(1f)) {
                 Text(stringResource(R.string.monitor_chip), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
-                HeroNumber(s.tempC?.let { "$it °C" } ?: "--", 34)
+                HeroNumber(s.tempC?.let { LocalUnits.current.tempText(it) } ?: "--", 34)
                 Spacer(Modifier.height(6.dp))
                 Text(stringResource(R.string.monitor_storage), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
                 Text("${gb(s.storageUsedGb)} / ${gb(s.storageTotalGb)} GB", color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium, maxLines = 1)
@@ -163,7 +163,8 @@ private fun MediumMonitor(s: HeadUnitStats, openApps: (() -> Unit)?, numberSize:
     Column(modifier = Modifier.fillMaxWidth().then(openApps?.let { Modifier.clickable(onClick = it) } ?: Modifier)) {
         Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
             BigReading(stringResource(R.string.monitor_cpu), s.cpuPct?.toString() ?: "--", "%", loadColor(s.cpuPct), numberSize)
-            BigReading(stringResource(R.string.monitor_chip), s.tempC?.toString() ?: "--", "°C", tempColor(s.tempC), numberSize)
+            val u = LocalUnits.current
+            BigReading(stringResource(R.string.monitor_chip), s.tempC?.let { u.temp(it).toString() } ?: "--", u.tempUnit, tempColor(s.tempC), numberSize)
         }
         Meter(stringResource(R.string.monitor_ram), "${gb(s.ramUsedMb / 1024f)} / ${gb(s.ramTotalMb / 1024f)} GB", s.ramPct)
         Meter(stringResource(R.string.monitor_storage), "${gb(s.storageUsedGb)} / ${gb(s.storageTotalGb)} GB", s.storagePct)
@@ -185,7 +186,7 @@ private fun SmallMonitor(s: HeadUnitStats, openApps: (() -> Unit)?) {
             BigReading(stringResource(R.string.monitor_ram), s.ramPct.toString(), "%", loadColor(s.ramPct), 30)
         }
         Text(
-            listOfNotNull(s.tempC?.let { "$it °C" }, s.appCount?.let { stringResource(R.string.monitor_apps_count, it) }).joinToString(" · "),
+            listOfNotNull(s.tempC?.let { LocalUnits.current.tempText(it) }, s.appCount?.let { stringResource(R.string.monitor_apps_count, it) }).joinToString(" · "),
             color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium, maxLines = 1
         )
     }
@@ -308,6 +309,7 @@ internal fun headUnitFace(): WidgetFace {
     val ramLabel = stringResource(R.string.monitor_ram)
     val chipLabel = stringResource(R.string.monitor_chip)
     val storageLabel = stringResource(R.string.monitor_storage)
+    val u = LocalUnits.current
     return WidgetFace(
         icon = Icons.Filled.Memory,
         title = BuiltinKind.HEAD_UNIT.label,
@@ -322,13 +324,13 @@ internal fun headUnitFace(): WidgetFace {
         },
         stats = listOfNotNull(
             FaceStat(ramLabel, s?.let { "${it.ramPct} %" } ?: "--"),
-            FaceStat(chipLabel, s?.tempC?.let { "$it °C" } ?: "--"),
+            FaceStat(chipLabel, s?.tempC?.let { u.tempText(it) } ?: "--"),
             FaceStat(storageLabel, s?.let { "${it.storagePct} %" } ?: "--")
         ),
         gauges = listOfNotNull(
             cpu?.let { FaceGauge(cpuLabel, it.toString(), "%", it / 100f) },
             s?.let { FaceGauge(ramLabel, it.ramPct.toString(), "%", it.ramPct / 100f) },
-            s?.tempC?.let { FaceGauge(chipLabel, it.toString(), "°C", it / 100f) },
+            s?.tempC?.let { FaceGauge(chipLabel, u.temp(it).toString(), u.tempUnit, it / 100f) },
             s?.let { FaceGauge(storageLabel, it.storagePct.toString(), "%", it.storagePct / 100f) }
         ),
         rows = s?.apps.orEmpty().take(4).map { FaceRow(it.label, "${it.cpuPct.toInt()} % · ${it.ramMb} MB") },
@@ -415,6 +417,7 @@ private fun GateRow(r: GearReading, accent: Color, warn: Color, fill: Color, ink
 internal fun gearFace(): WidgetFace {
     val r by rememberGear()
     val redline = CarProfileStore.current.redlineRpm ?: 4_500
+    val u = LocalUnits.current
     return WidgetFace(
         icon = Icons.Filled.SettingsInputComponent,
         title = BuiltinKind.GEAR.label,
@@ -425,7 +428,7 @@ internal fun gearFace(): WidgetFace {
         gears = r.gears,
         stats = listOfNotNull(
             r.rpm?.let { FaceStat("rpm", String.format(Locale.getDefault(), "%,d", it)) },
-            r.speedKmh?.let { FaceStat("km/h", it.toString()) }
+            r.speedKmh?.let { FaceStat(u.speedUnit, u.speed(it).toString()) }
         )
     )
 }

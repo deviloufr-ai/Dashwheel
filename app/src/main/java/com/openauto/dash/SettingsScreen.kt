@@ -413,6 +413,7 @@ private fun DisplayPane(theme: ThemeState, onLanguage: () -> Unit) {
     val context = LocalContext.current
     ScreenOrientationSetting()
     Spacer(Modifier.height(20.dp))
+    UnitsSetting()
     BarAutoHideSetting(theme)
     Spacer(Modifier.height(20.dp))
     if (FreeformBar.supported) {
@@ -626,7 +627,7 @@ private fun SpeedVolumeSetting() {
     if (!on) return
     StepperRow(
         Icons.Filled.Speed, stringResource(R.string.speed_volume_start), stringResource(R.string.speed_volume_start_detail),
-        value = "${curve.startKmh} km/h",
+        value = LocalUnits.current.speedText(curve.startKmh),
         less = less, more = more,
         canLess = curve.startKmh > SpeedVolumeCurve.START_MIN_KMH,
         canMore = curve.startKmh < SpeedVolumeCurve.START_MAX_KMH,
@@ -646,7 +647,7 @@ private fun SpeedVolumeSetting() {
     if (curve.maxSteps > 1) {
         StepperRow(
             Icons.Filled.VerticalAlignTop, stringResource(R.string.speed_volume_full), stringResource(R.string.speed_volume_full_detail),
-            value = "${curve.fullKmh} km/h",
+            value = LocalUnits.current.speedText(curve.fullKmh),
             less = less, more = more,
             canLess = curve.fullKmh > curve.startKmh + step,
             canMore = curve.fullKmh < SpeedVolumeCurve.FULL_MAX_KMH,
@@ -818,7 +819,7 @@ internal fun SpeedCorrectionRow() {
     val offset by SpeedCorrection.offsetKmh.collectAsState()
     StepperRow(
         Icons.Filled.Speed, stringResource(R.string.vehicle_speed_fix), stringResource(R.string.vehicle_speed_fix_detail),
-        value = speedOffsetText(offset),
+        value = speedOffsetText(offset, LocalUnits.current),
         valueColor = if (offset == 0) DashColors.TextSecondary else DashColors.Accent,
         less = stringResource(R.string.vehicle_speed_fix_less), more = stringResource(R.string.vehicle_speed_fix_more),
         canLess = offset > -SpeedCorrection.MAX_OFFSET_KMH,
@@ -892,13 +893,6 @@ private fun StepButton(icon: ImageVector, description: String, enabled: Boolean,
     ) {
         Icon(icon, contentDescription = description, tint = if (enabled) DashColors.TextPrimary else DashColors.Muted)
     }
-}
-
-/** "+3 km/h", "−2 km/h", or "0 km/h" when there's no correction. */
-internal fun speedOffsetText(offsetKmh: Int): String = when {
-    offsetKmh > 0 -> "+$offsetKmh km/h"
-    offsetKmh < 0 -> "−${-offsetKmh} km/h"
-    else -> "0 km/h"
 }
 
 /** One on/off setting: icon, name, what it does, and a switch; the whole row toggles it. */

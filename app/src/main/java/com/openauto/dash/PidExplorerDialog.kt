@@ -31,11 +31,19 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
 
-/** The value of an extra reading as shown: "42 %", "Regenerating", "312 °C". */
+/** The value of an extra reading as shown: "42 %", "Regenerating", "312 °C" (read in °C and km, shown in the driver's units). */
 @Composable
-internal fun extraValueText(reading: ExtraReading, value: Double): String = when (reading) {
-    ExtraReading.REGEN_ACTIVE -> stringResource(if (value >= 0.5) R.string.explore_regen_yes else R.string.explore_regen_no)
-    else -> String.format(Locale.getDefault(), if (value == Math.rint(value)) "%.0f %s" else "%.1f %s", value, reading.unit).trim()
+internal fun extraValueText(reading: ExtraReading, value: Double): String {
+    val units = LocalUnits.current
+    val (shown, unit) = when (reading.unit) {
+        "°C" -> units.tempExact(value) to units.tempUnit
+        "km" -> units.distance(value) to units.distanceUnit
+        else -> value to reading.unit
+    }
+    return when (reading) {
+        ExtraReading.REGEN_ACTIVE -> stringResource(if (value >= 0.5) R.string.explore_regen_yes else R.string.explore_regen_no)
+        else -> String.format(Locale.getDefault(), if (shown == Math.rint(shown)) "%.0f %s" else "%.1f %s", shown, unit).trim()
+    }
 }
 
 /**

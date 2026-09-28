@@ -383,9 +383,10 @@ private fun ClusterReadout(speedKmh: Int, obd: ObdData, connection: ObdConnectio
                     Box(Modifier.size(width = 12.dp, height = 5.dp).clip(RoundedCornerShape(2.dp)).background(colour))
                 }
             }
+            val u = LocalUnits.current
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
-                    speedKmh.toString(),
+                    u.speed(speedKmh).toString(),
                     color = DashColors.Accent,
                     fontFamily = DashColors.heroFamily(),
                     fontWeight = DashColors.HeroWeight,
@@ -396,7 +397,7 @@ private fun ClusterReadout(speedKmh: Int, obd: ObdData, connection: ObdConnectio
                 )
                 Spacer(Modifier.width(6.dp))
                 Text(
-                    "KM/H",
+                    u.speedUnit.uppercase(),
                     color = DashColors.TextSecondary,
                     letterSpacing = 0.1.em,
                     style = MaterialTheme.typography.labelSmall,

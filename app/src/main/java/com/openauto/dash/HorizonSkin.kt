@@ -94,7 +94,6 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import kotlin.math.min
-import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -719,7 +718,12 @@ internal fun HorizonTopBar(m: TopBarModel) {
             Row(modifier = Modifier.weight(1f)) {
                 // The head unit's status bar shows the time while it is up.
                 if (!m.merged) {
-                    SceneText(m.clock, display(40f), Modifier.alignByBaseline(), overflow = TextOverflow.Clip)
+                    val (digits, amPm) = splitClock(m.clock)
+                    SceneText(digits, display(40f), Modifier.alignByBaseline(), overflow = TextOverflow.Clip)
+                    if (amPm != null) {
+                        Spacer(Modifier.width(4.dp))
+                        SceneText(amPm, display(16f, soft, italic = true), Modifier.alignByBaseline())
+                    }
                     if (!narrow) {
                         Spacer(Modifier.width(14.dp))
                         SceneText(date, ui(15f, soft), Modifier.alignByBaseline())
@@ -823,9 +827,10 @@ internal fun HorizonTile(item: DashboardItem, env: SkinTileEnv) {
     }
 }
 
-/** Speed as a huge serif number with an italic "km/h"; a short dash when there is no reading. */
+/** Speed ([speed] in km/h) as a huge serif number with an italic "km/h" or "mph"; a short dash when there is no reading. */
 @Composable
 private fun SpeedFigure(speed: Int?, maxW: Dp, maxH: Dp) {
+    val units = LocalUnits.current
     val numSp = fitSp("188", display(100f), maxW * 0.78f, maxH, 28f, 400f)
     val unitSp = (numSp * 0.2f).coerceIn(14f, 44f)
     val color = when {
@@ -835,10 +840,10 @@ private fun SpeedFigure(speed: Int?, maxW: Dp, maxH: Dp) {
     }
     Row {
         // A lone dash at display size reads as a grey bar, so the placeholder is smaller.
-        if (speed != null) SceneText(speed.toString(), display(numSp, color), Modifier.alignByBaseline(), overflow = TextOverflow.Clip)
+        if (speed != null) SceneText(units.speed(speed).toString(), display(numSp, color), Modifier.alignByBaseline(), overflow = TextOverflow.Clip)
         else SceneText("–", display(numSp * 0.45f, color), Modifier.alignByBaseline(), overflow = TextOverflow.Clip)
         Spacer(Modifier.width((unitSp * 0.4f).dp))
-        SceneText("km/h", display(unitSp, DashColors.TextSecondary, italic = true), Modifier.alignByBaseline())
+        SceneText(units.speedUnit, display(unitSp, DashColors.TextSecondary, italic = true), Modifier.alignByBaseline())
     }
 }
 
@@ -846,15 +851,16 @@ private fun SpeedFigure(speed: Int?, maxW: Dp, maxH: Dp) {
 private const val THIN_SPACE = '\u2009'
 
 /** The stats line under the telemetry speed, longest first. */
-private fun telemetryLines(d: ObdData, context: android.content.Context): List<String> {
+private fun telemetryLines(d: ObdData, context: android.content.Context, units: UnitSystem): List<String> {
     val rpm = context.getString(R.string.horizon_rpm_value, groupThousands(d.rpm, THIN_SPACE))
-    val coolant = context.getString(R.string.horizon_coolant_value, d.coolantTempC)
+    val coolantDeg = units.temp(d.coolantTempC)
+    val coolant = context.getString(R.string.horizon_coolant_value, coolantDeg)
     val volts = if (d.voltage > 0.0) "%.1f V".format(d.voltage) else null
     val core = listOfNotNull(rpm, coolant, volts)
     return listOf(
         (core + context.getString(R.string.horizon_load_value, d.engineLoadPct)).joinToString(DOT),
         core.joinToString(DOT),
-        "$rpm$DOT${d.coolantTempC}°",
+        "$rpm$DOT$coolantDeg°",
         rpm
     )
 }
@@ -876,7 +882,7 @@ private fun HorizonTelemetry(env: SkinTileEnv, side: Side) {
         val lineSp = (maxWidth.value / 24f).coerceIn(12f, 20f)
         val lineStyle = ui(lineSp, if (connected || state == ObdConnectionState.CONNECTING) DashColors.TextSecondary else DashColors.Accent)
         val line = when (state) {
-            ObdConnectionState.CONNECTED -> firstFitting(telemetryLines(env.obdData, env.context), lineStyle, maxWidth)
+            ObdConnectionState.CONNECTED -> firstFitting(telemetryLines(env.obdData, env.context, LocalUnits.current), lineStyle, maxWidth)
             ObdConnectionState.CONNECTING -> stringResource(R.string.horizon_obd_connecting)
             ObdConnectionState.ERROR -> stringResource(R.string.horizon_obd_error_retry)
             ObdConnectionState.DISCONNECTED -> stringResource(R.string.horizon_obd_tap_connect)
@@ -1237,7 +1243,8 @@ private const val LONG_DATE = "EEEEdMMMM"
 private fun HorizonClock(env: SkinTileEnv, side: Side) {
     val now = rememberNow(60_000L)
     val locale = Locale.getDefault()
-    val timeFmt = rememberDateFormat("HH:mm")
+    val units = LocalUnits.current
+    val timeFmt = rememberDateFormat(units.digitsPattern())
     val dateFmt = rememberDateFormat(LONG_DATE, best = true)
     val weather by WeatherRepo.weather.collectAsState()
     val context = env.context
@@ -1253,12 +1260,22 @@ private fun HorizonClock(env: SkinTileEnv, side: Side) {
         val w = weather
         // Lowercased mid-sentence, except German, whose nouns stay capitalized ("Nebel").
         val mood = if (w != null && maxHeight > 190.dp) {
-            "${w.tempC.roundToInt()}°$DOT" + stringResource(partOfDayMood(now), w.condition.let { if (locale.language == "de") it else it.lowercase(locale) })
+            "${units.temp(w.tempC)}°$DOT" + stringResource(partOfDayMood(now), w.condition.let { if (locale.language == "de") it else it.lowercase(locale) })
         } else null
         val below = (dateSp * 1.3f * (if (mood != null) 2 else 1) + 8f).dp
         val timeSp = fitSp("00:00", display(100f), maxWidth, maxHeight - below, 28f, 420f)
+        val amPm = units.amPm(now, locale)
         Column(horizontalAlignment = side.h) {
-            SceneText(timeFmt.format(now), display(timeSp), overflow = TextOverflow.Clip)
+            // A 12-hour clock sets its AM / PM small and italic after the digits, like the units elsewhere.
+            if (amPm == null) {
+                SceneText(timeFmt.format(now), display(timeSp), overflow = TextOverflow.Clip)
+            } else {
+                Row {
+                    SceneText(timeFmt.format(now), display(timeSp), Modifier.alignByBaseline(), overflow = TextOverflow.Clip)
+                    Spacer(Modifier.width((timeSp * 0.06f).dp))
+                    SceneText(amPm, display((timeSp * 0.22f).coerceAtLeast(14f), DashColors.TextSecondary, italic = true), Modifier.alignByBaseline())
+                }
+            }
             Spacer(Modifier.height(4.dp))
             SceneText(dateFmt.format(now).replaceFirstChar { it.titlecase(locale) }, ui(dateSp), align = side.text)
             if (mood != null) SceneText(mood, ui(dateSp, DashColors.Muted), align = side.text)
@@ -1284,13 +1301,14 @@ private fun HorizonWeather(side: Side) {
         val wide = maxWidth > maxHeight * 1.7f
         val condSp = (min(maxWidth.value, maxHeight.value * 2f) / 18f).coerceIn(14f, 28f)
         val lineSp = (condSp * 0.72f).coerceIn(12f, 20f)
-        val temp = "${w.tempC.roundToInt()}°"
+        val units = LocalUnits.current
+        val temp = "${units.temp(w.tempC)}°"
         val tempBase = display(100f)
         val details: @Composable (Dp) -> Unit = { maxW ->
             val lineStyle = ui(lineSp, DashColors.Muted)
-            val feels = stringResource(R.string.horizon_feels, w.feelsC.roundToInt())
-            val wind = stringResource(R.string.horizon_wind, w.windKmh.roundToInt())
-            val range = if (!w.hiC.isNaN()) "${w.loC.roundToInt()}° / ${w.hiC.roundToInt()}°" else null
+            val feels = stringResource(R.string.horizon_feels, units.temp(w.feelsC))
+            val wind = stringResource(if (units.imperial) R.string.units_horizon_wind_mph else R.string.horizon_wind, units.speed(w.windKmh))
+            val range = if (!w.hiC.isNaN()) "${units.temp(w.loC)}° / ${units.temp(w.hiC)}°" else null
             val line = firstFitting(
                 listOfNotNull(range?.let { "$feels$DOT$wind$DOT$it" }, "$feels$DOT$wind", feels),
                 lineStyle, maxW
@@ -1344,9 +1362,10 @@ private fun HorizonRange(item: DashboardItem, env: SkinTileEnv, side: Side) {
         val gaugeW = min(maxWidth.value * 0.8f, 420f).dp
         Column(horizontalAlignment = side.h) {
             Row {
-                SceneText("${fuel.rangeKm}", display(numSp), Modifier.alignByBaseline(), overflow = TextOverflow.Clip)
+                val units = LocalUnits.current
+                SceneText("${units.distance(fuel.rangeKm)}", display(numSp), Modifier.alignByBaseline(), overflow = TextOverflow.Clip)
                 Spacer(Modifier.width((unitSp * 0.3f).dp))
-                SceneText("km", display(unitSp, DashColors.TextSecondary, italic = true), Modifier.alignByBaseline())
+                SceneText(units.distanceUnit, display(unitSp, DashColors.TextSecondary, italic = true), Modifier.alignByBaseline())
             }
             SceneText(
                 stringResource(R.string.horizon_range_fuel, fuel.percent),

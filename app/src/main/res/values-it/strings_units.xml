@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="units_title">Unità</string>
+    <string name="units_speed">Velocità e distanza</string>
+    <string name="units_temp">Temperatura</string>
+    <string name="units_economy">Consumi</string>
+    <string name="units_clock">Orologio</string>
+    <string name="units_auto">Auto</string>
+    <string name="units_auto_hint">Auto segue le impostazioni dell\'autoradio: %1$s</string>
+
+    <string name="units_eco_fuel_mi">Carburante per %1$s mi</string>
+    <string name="units_fuel_dest_spare_unit_mi">mi di margine</string>
+    <string name="units_fuel_dest_detail_mi">%1$d mi di autonomia · mancano %2$d mi</string>
+    <string name="units_fuel_none_mi">Nessun distributore con questo carburante entro %1$d mi. I prezzi coprono solo la Francia.</string>
+    <plurals name="units_fuel_stations_mi">
+        <item quantity="one">%1$d distributore entro %2$d mi</item>
+        <item quantity="many">%1$d distributori entro %2$d mi</item>
+        <item quantity="other">%1$d distributori entro %2$d mi</item>
+    </plurals>
+    <string name="units_weather_details_mph">Percepita %1$d° · Vento %2$d mph</string>
+    <string name="units_weather_details_range_mph">Percepita %1$d° · Vento %2$d mph · %3$d° / %4$d°</string>
+    <string name="units_speed_fix_now_mph">Velocità attuale: %1$d mph. Regola finché coincide con il tachimetro.</string>
+    <string name="units_mi_to_empty">MI RESIDUE</string>
+    <string name="units_upkeep_next_mi">%1$s tra %2$s mi</string>
+    <string name="units_upkeep_overdue_mi">%1$s in ritardo di %2$s mi</string>
+    <string name="units_upkeep_row_mi">%1$s mi</string>
+    <string name="units_upkeep_odometer_mi">Percorrenza in miglia</string>
+    <string name="units_upkeep_odometer_as_of_mi">Inserito %1$s, più %2$d mi percorse da allora</string>
+    <string name="units_upkeep_every_mi">Intervallo in miglia</string>
+    <string name="units_upkeep_last_mi">Fatto al miglio</string>
+    <string name="units_cockpit_feels_wind_mph">PERCEPITA %1$d° · VENTO %2$d MPH</string>
+    <string name="units_orbit_wind_mph">Vento %1$d mph</string>
+    <string name="units_orbit_feels_wind_mph">percepita %1$d° · %2$d mph</string>
+    <string name="units_horizon_wind_mph">vento %1$d mph</string>
+    <string name="units_tape_feels_wind_caps_mph">PERCEPITA %1$d° · VENTO %2$d MPH</string>
+    <string name="units_canvas_fuel_left_mi">%1$d mi di carburante rimasto</string>
+    <string name="units_alert_coolant_f">Refrigerante %1$d°F</string>
+    <string name="units_car_filter_needs_drive_mph">Fai 20 min sopra le 40 mph</string>
+
+    <string name="units_briefing_fuel_low_mi">Carburante in esaurimento: circa %1$d miglia, prevedi un rifornimento.</string>
+    <string name="units_voice_status_range_mi">Restano circa %1$d miglia di carburante.</string>
+    <plurals name="units_voice_fuel_station_mi">
+        <item quantity="one">Il distributore più economico nelle vicinanze è %1$s, a %2$d miglio.</item>
+        <item quantity="many">Il distributore più economico nelle vicinanze è %1$s, a %2$d miglia.</item>
+        <item quantity="other">Il distributore più economico nelle vicinanze è %1$s, a %2$d miglia.</item>
+    </plurals>
+    <string name="units_car_say_fuel_short_mi">La tua autonomia di %1$d miglia non basta per la destinazione, a %2$d miglia. Pianifica un rifornimento.</string>
+    <string name="units_car_say_filter_mph">Gli ultimi %1$d viaggi sono stati brevi. Appena puoi, guida da 15 a 20 minuti sopra le 40 miglia orarie, così il filtro antiparticolato si pulisce.</string>
+    <string name="units_upkeep_say_overdue_mi">%1$s in ritardo di %2$d miglia.</string>
+    <string name="units_upkeep_say_soon_mi">%1$s tra %2$d miglia.</string>
+</resources>

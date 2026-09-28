@@ -294,7 +294,7 @@ private class DtcMessage(val text: String, val failed: Boolean)
 /** The last three alerts, newest first: time, a dot in the alert's colour, what it said. */
 @Composable
 private fun RecentAlerts() {
-    val timeFmt = remember { java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()) }
+    val timeFmt = rememberTimeFormat()
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
             stringResource(R.string.vehicle_recent_alerts),

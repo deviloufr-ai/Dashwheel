@@ -92,7 +92,6 @@ import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.math.sqrt
 
@@ -515,11 +514,12 @@ private fun OrbitTelemetry(env: SkinTileEnv) {
     val data = env.obdData
     val warn = connected && data.speedKmh >= SPEED_WARNING_KMH
     val teal = DashColors.Secondary
+    val units = LocalUnits.current
     val satellites = listOf(
         Satellite(
             (data.coolantTempC - 40) / 90f,
             if (data.coolantTempC >= 105) DashColors.Warning else teal,
-            if (connected) "${data.coolantTempC}°" else "--",
+            if (connected) "${units.temp(data.coolantTempC)}°" else "--",
             stringResource(R.string.orbit_sat_coolant)
         ),
         Satellite(
@@ -548,7 +548,7 @@ private fun OrbitTelemetry(env: SkinTileEnv) {
             modifier = Modifier.offset((layout.center.x - d / 2).dp, (layout.center.y - d / 2).dp)
         ) {
             OrbitText(
-                if (connected) "${data.speedKmh}" else "--",
+                if (connected) "${units.speed(data.speedKmh)}" else "--",
                 d * 0.30f,
                 when {
                     warn -> DashColors.Warning
@@ -558,7 +558,7 @@ private fun OrbitTelemetry(env: SkinTileEnv) {
                 weight = FontWeight.SemiBold,
                 tight = true
             )
-            OrbitText("km/h", max(14f, d * 0.044f), DashColors.Muted)
+            OrbitText(units.speedUnit, max(14f, d * 0.044f), DashColors.Muted)
             Spacer(Modifier.height((d * 0.025f).dp))
             OrbitText(
                 when {
@@ -803,6 +803,7 @@ private fun OrbitSpeedHud(env: SkinTileEnv) {
     val obd = env.obdConnection == ObdConnectionState.CONNECTED
     val idle = env.obdConnection.isIdle
     val warn = (speed ?: 0) >= SPEED_WARNING_KMH
+    val units = LocalUnits.current
     BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         val d = min(maxWidth.value, maxHeight.value) - 8f
         OrbitDial(
@@ -814,7 +815,7 @@ private fun OrbitSpeedHud(env: SkinTileEnv) {
             onClick = if (speed == null && idle && !env.editing) env.onConnectObd else null
         ) {
             OrbitText(
-                speed?.toString() ?: "--",
+                speed?.let { units.speed(it).toString() } ?: "--",
                 d * 0.30f,
                 when {
                     speed == null -> DashColors.Muted
@@ -824,7 +825,7 @@ private fun OrbitSpeedHud(env: SkinTileEnv) {
                 weight = FontWeight.SemiBold,
                 tight = true
             )
-            OrbitText("km/h", max(14f, d * 0.044f), DashColors.Muted)
+            OrbitText(units.speedUnit, max(14f, d * 0.044f), DashColors.Muted)
             Spacer(Modifier.height((d * 0.025f).dp))
             OrbitText(
                 speedSource(obd, speed, stringResource(R.string.info_speed_no_signal)),
@@ -1359,7 +1360,10 @@ private fun OrbitNoRoute(access: Boolean, wide: Boolean, bubble: Float) {
 @Composable
 private fun OrbitClock(env: SkinTileEnv) {
     val now = rememberNow(60_000L)
-    val timeFmt = rememberDateFormat("HH:mm")
+    // Digits in the ring; a 12-hour clock's AM / PM goes on the small line under them.
+    val units = LocalUnits.current
+    val timeFmt = rememberDateFormat(units.digitsPattern())
+    val amPm = units.amPm(now)
     val shortDate = rememberDateFormat("EEEdMMM", best = true)
     val dayFmt = rememberDateFormat("EEEE")
     val longDate = rememberDateFormat("dMMMM", best = true)
@@ -1375,7 +1379,7 @@ private fun OrbitClock(env: SkinTileEnv) {
         if (w >= h * 2f) {
             val d = min(h - 8f, w * 0.45f)
             Row(verticalAlignment = Alignment.CenterVertically) {
-                OrbitClockRing(d, timeFmt.format(now), null, seconds, !env.editing, open)
+                OrbitClockRing(d, timeFmt.format(now), amPm, seconds, !env.editing, open)
                 Spacer(Modifier.width((16f + d * 0.08f).dp))
                 Column {
                     OrbitText(
@@ -1386,7 +1390,10 @@ private fun OrbitClock(env: SkinTileEnv) {
                 }
             }
         } else {
-            OrbitClockRing(min(w, h) - 8f, timeFmt.format(now), shortDate.format(now), seconds, !env.editing, open)
+            OrbitClockRing(
+                min(w, h) - 8f, timeFmt.format(now), listOfNotNull(amPm, shortDate.format(now)).joinToString(" · "),
+                seconds, !env.editing, open
+            )
         }
     }
 }
@@ -1478,21 +1485,23 @@ private fun OrbitWeather() {
         if (weather != null && w >= h * 1.7f) {
             val d = min(h - 8f, w * 0.5f)
             val detail = (d * 0.1f).coerceIn(14f, 22f)
+            val units = LocalUnits.current
             Row(verticalAlignment = Alignment.CenterVertically) {
                 OrbitWeatherBubble(d, weather, offline = false, feels = false)
                 Spacer(Modifier.width((14f + d * 0.06f).dp))
                 Column {
                     OrbitText(
-                        stringResource(R.string.orbit_feels, weather.feelsC.roundToInt()), detail, DashColors.Muted,
+                        stringResource(R.string.orbit_feels, units.temp(weather.feelsC)), detail, DashColors.Muted,
                         align = TextAlign.Start
                     )
                     OrbitText(
-                        stringResource(R.string.orbit_wind, weather.windKmh.roundToInt()), detail, DashColors.Muted,
+                        stringResource(if (units.imperial) R.string.units_orbit_wind_mph else R.string.orbit_wind, units.speed(weather.windKmh)),
+                        detail, DashColors.Muted,
                         align = TextAlign.Start
                     )
                     if (!weather.hiC.isNaN() && !weather.loC.isNaN()) {
                         OrbitText(
-                            "${weather.loC.roundToInt()}° / ${weather.hiC.roundToInt()}°", detail, DashColors.Muted,
+                            "${units.temp(weather.loC)}° / ${units.temp(weather.hiC)}°", detail, DashColors.Muted,
                             align = TextAlign.Start
                         )
                     }
@@ -1529,12 +1538,16 @@ private fun OrbitWeatherBubble(d: Float, weather: Weather?, offline: Boolean, fe
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             if (weather != null) {
+                val units = LocalUnits.current
                 Icon(weatherIcon(weather.code), contentDescription = null, tint = OrbitSun, modifier = Modifier.size((d * 0.22f).dp))
-                OrbitText("${weather.tempC.roundToInt()}°", d * 0.22f, DashColors.TextPrimary, weight = FontWeight.SemiBold, tight = true)
+                OrbitText("${units.temp(weather.tempC)}°", d * 0.22f, DashColors.TextPrimary, weight = FontWeight.SemiBold, tight = true)
                 OrbitText(weather.condition, max(14f, d * 0.105f), DashColors.Muted, Modifier.widthIn(max = (d * 0.76f).dp))
                 if (feels) {
                     OrbitText(
-                        stringResource(R.string.orbit_feels_wind, weather.feelsC.roundToInt(), weather.windKmh.roundToInt()),
+                        stringResource(
+                            if (units.imperial) R.string.units_orbit_feels_wind_mph else R.string.orbit_feels_wind,
+                            units.temp(weather.feelsC), units.speed(weather.windKmh)
+                        ),
                         max(14f, d * 0.068f),
                         DashColors.Muted.copy(alpha = 0.8f),
                         Modifier.widthIn(max = (d * 0.72f).dp)
@@ -1655,7 +1668,7 @@ private fun OrbitFuelBubble(d: Float, fuel: FuelInfo, enabled: Boolean, onClick:
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            OrbitText("${fuel.rangeKm} km", d * 0.17f, DashColors.TextPrimary, weight = FontWeight.SemiBold, tight = true)
+            OrbitText(LocalUnits.current.distanceText(fuel.rangeKm), d * 0.17f, DashColors.TextPrimary, weight = FontWeight.SemiBold, tight = true)
             OrbitText(
                 stringResource(R.string.orbit_fuel_percent, fuel.percent), max(14f, d * 0.1f), fluidInk,
                 weight = FontWeight.Medium

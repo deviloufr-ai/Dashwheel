@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="units_title">Eenheden</string>
+    <string name="units_speed">Snelheid en afstand</string>
+    <string name="units_temp">Temperatuur</string>
+    <string name="units_economy">Verbruik</string>
+    <string name="units_clock">Klok</string>
+    <string name="units_auto">Auto</string>
+    <string name="units_auto_hint">Auto volgt de instellingen van de radio: %1$s</string>
+
+    <string name="units_eco_fuel_mi">Brandstof voor %1$s mi</string>
+    <string name="units_fuel_dest_spare_unit_mi">mi over</string>
+    <string name="units_fuel_dest_detail_mi">%1$d mi actieradius · nog %2$d mi</string>
+    <string name="units_fuel_none_mi">Geen station met deze brandstof binnen %1$d mi. Prijzen alleen voor Frankrijk.</string>
+    <plurals name="units_fuel_stations_mi">
+        <item quantity="one">%1$d station binnen %2$d mi</item>
+        <item quantity="other">%1$d stations binnen %2$d mi</item>
+    </plurals>
+    <string name="units_weather_details_mph">Voelt als %1$d° · Wind %2$d mph</string>
+    <string name="units_weather_details_range_mph">Voelt als %1$d° · Wind %2$d mph · %3$d° / %4$d°</string>
+    <string name="units_speed_fix_now_mph">Snelheid nu: %1$d mph. Pas aan tot het gelijk is aan de snelheidsmeter.</string>
+    <string name="units_mi_to_empty">MI TOT LEEG</string>
+    <string name="units_upkeep_next_mi">%1$s over %2$s mi</string>
+    <string name="units_upkeep_overdue_mi">%1$s %2$s mi te laat</string>
+    <string name="units_upkeep_row_mi">%1$s mi</string>
+    <string name="units_upkeep_odometer_mi">Stand in mijl</string>
+    <string name="units_upkeep_odometer_as_of_mi">Ingevoerd %1$s, plus %2$d mi gereden sindsdien</string>
+    <string name="units_upkeep_every_mi">Interval in mijl</string>
+    <string name="units_upkeep_last_mi">Gedaan bij mijl</string>
+    <string name="units_cockpit_feels_wind_mph">VOELT %1$d° · WIND %2$d MPH</string>
+    <string name="units_orbit_wind_mph">Wind %1$d mph</string>
+    <string name="units_orbit_feels_wind_mph">voelt als %1$d° · %2$d mph</string>
+    <string name="units_horizon_wind_mph">wind %1$d mph</string>
+    <string name="units_tape_feels_wind_caps_mph">VOELT ALS %1$d° · WIND %2$d MPH</string>
+    <string name="units_canvas_fuel_left_mi">%1$d mi brandstof over</string>
+    <string name="units_alert_coolant_f">Koelvloeistof %1$d°F</string>
+    <string name="units_car_filter_needs_drive_mph">Plan 20 min boven 40 mph</string>
+
+    <string name="units_briefing_fuel_low_mi">Weinig brandstof: nog ongeveer %1$d mijl, plan een tankstop.</string>
+    <string name="units_voice_status_range_mi">Nog brandstof voor ongeveer %1$d mijl.</string>
+    <plurals name="units_voice_fuel_station_mi">
+        <item quantity="one">Het goedkoopste tankstation in de buurt is %1$s, op %2$d mijl.</item>
+        <item quantity="other">Het goedkoopste tankstation in de buurt is %1$s, op %2$d mijl.</item>
+    </plurals>
+    <string name="units_car_say_fuel_short_mi">Je actieradius van %1$d mijl haalt de bestemming op %2$d mijl niet. Plan een tankstop.</string>
+    <string name="units_car_say_filter_mph">Je laatste %1$d ritten waren kort. Rij als het kan 15 tot 20 minuten boven de 40 mijl per uur, zodat het roetfilter zichzelf kan reinigen.</string>
+    <string name="units_upkeep_say_overdue_mi">%1$s is %2$d mijl te laat.</string>
+    <string name="units_upkeep_say_soon_mi">%1$s over %2$d mijl.</string>
+</resources>

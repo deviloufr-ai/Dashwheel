@@ -606,7 +606,8 @@ private fun valhallaRoute(origin: Point, dest: Point, language: String): Directi
         "banner_instructions" to true,
         "voice_instructions" to true,
         "language" to language,
-        "directions_options" to mapOf("units" to "kilometers"),
+        // The spoken and written instructions in the driver's unit; the route's own figures stay in metres.
+        "directions_options" to mapOf("units" to if (Units.current.value.imperial) "miles" else "kilometers"),
         "locations" to listOf(
             mapOf("lon" to origin.longitude(), "lat" to origin.latitude(), "type" to "break"),
             mapOf("lon" to dest.longitude(), "lat" to dest.latitude(), "type" to "break")
@@ -626,9 +627,10 @@ private fun valhallaRoute(origin: Point, dest: Point, language: String): Directi
 }
 
 private fun formatEta(context: Context, distanceMeters: Double?, durationSeconds: Double?): String {
-    val km = (distanceMeters ?: 0.0) / 1000.0
+    val units = Units.current.value
+    val d = units.distance((distanceMeters ?: 0.0) / 1000.0)
     val mins = ((durationSeconds ?: 0.0) / 60.0).toInt()
-    val dist = if (km >= 10) "%.0f km".format(km) else "%.1f km".format(km)
+    val dist = (if (d >= 10) "%.0f %s" else "%.1f %s").format(d, units.distanceUnit)
     val time = if (mins >= 60) context.getString(R.string.info_map_duration_hm, mins / 60, mins % 60)
     else context.getString(R.string.info_map_duration_min, mins)
     return "$dist · $time"

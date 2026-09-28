@@ -408,11 +408,12 @@ internal object MechanicLines {
     fun ruleVerdict(severity: Severity): SpokenLine =
         SpokenLine(if (severity == Severity.STOP) R.string.ai_rules_stop else R.string.ai_rules_soon, emptyList())
 
-    fun alert(alert: LiveWatch.Alert, d: ObdData, language: AiLanguage): SpokenLine {
+    fun alert(alert: LiveWatch.Alert, d: ObdData, language: AiLanguage, units: UnitSystem = Units.current.value): SpokenLine {
         // Written the way the voice's language writes it: "12,1" in French.
         val volts = String.format(language.locale, "%.1f", d.voltage)
         return when (alert) {
-            LiveWatch.Alert.OVERHEAT -> SpokenLine(R.string.ai_say_overheat, listOf(d.coolantTempC))
+            // "Degrees" either way: the number follows the driver's scale.
+            LiveWatch.Alert.OVERHEAT -> SpokenLine(R.string.ai_say_overheat, listOf(units.temp(d.coolantTempC)))
             LiveWatch.Alert.NOT_CHARGING -> SpokenLine(R.string.ai_say_not_charging, listOf(volts))
             LiveWatch.Alert.WEAK_BATTERY -> SpokenLine(R.string.ai_say_weak_battery, listOf(volts))
             LiveWatch.Alert.OVERCHARGING -> SpokenLine(R.string.ai_say_overcharging, listOf(volts))

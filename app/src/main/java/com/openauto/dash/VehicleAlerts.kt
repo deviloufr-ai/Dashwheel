@@ -28,7 +28,12 @@ internal data class VehicleAlert(val key: String, val level: AlertLevel, val ico
  * The alerts [obdData] calls for right now, worst first. The battery's comes
  * from [battery] (a steady judgement, [BatteryJudge]), never from one reading.
  */
-internal fun vehicleAlerts(context: Context, obdData: ObdData, battery: BatteryState): List<VehicleAlert> {
+internal fun vehicleAlerts(
+    context: Context,
+    obdData: ObdData,
+    battery: BatteryState,
+    units: UnitSystem = Units.current.value
+): List<VehicleAlert> {
     val alerts = ArrayList<VehicleAlert>(2)
     battery.level?.let { level ->
         alerts += VehicleAlert(KEY_BATTERY, level, Icons.Filled.BatteryAlert, context.getString(R.string.dash_alert_battery, battery.volts))
@@ -37,7 +42,8 @@ internal fun vehicleAlerts(context: Context, obdData: ObdData, battery: BatteryS
     val hotC = CarProfileStore.current.hotC
     if (temp >= coolantWarningC(hotC)) {
         val level = if (temp >= coolantCriticalC(hotC)) AlertLevel.CRITICAL else AlertLevel.WARNING
-        alerts += VehicleAlert(KEY_COOLANT, level, Icons.Filled.Thermostat, context.getString(R.string.dash_alert_coolant, temp))
+        val text = context.getString(if (units.fahrenheit) R.string.units_alert_coolant_f else R.string.dash_alert_coolant, units.temp(temp))
+        alerts += VehicleAlert(KEY_COOLANT, level, Icons.Filled.Thermostat, text)
     }
     return alerts.sortedByDescending { it.level }
 }

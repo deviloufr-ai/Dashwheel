@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Settings, Display: units and clock (Units.kt) -->
+    <string name="units_title">Units</string>
+    <string name="units_speed">Speed and distance</string>
+    <string name="units_temp">Temperature</string>
+    <string name="units_economy">Fuel economy</string>
+    <string name="units_clock">Clock</string>
+    <string name="units_auto">Auto</string>
+    <string name="units_auto_hint">Auto follows the head unit\'s settings: %1$s</string>
+
+    <!-- Miles and mph versions of the lines that say km and km/h -->
+    <string name="units_eco_fuel_mi">Fuel for %1$s mi</string>
+    <string name="units_fuel_dest_spare_unit_mi">mi spare</string>
+    <string name="units_fuel_dest_detail_mi">%1$d mi range · %2$d mi to go</string>
+    <string name="units_fuel_none_mi">No station selling this fuel within %1$d mi. Prices cover France only.</string>
+    <plurals name="units_fuel_stations_mi">
+        <item quantity="one">%1$d station within %2$d mi</item>
+        <item quantity="other">%1$d stations within %2$d mi</item>
+    </plurals>
+    <string name="units_weather_details_mph">Feels %1$d° · Wind %2$d mph</string>
+    <string name="units_weather_details_range_mph">Feels %1$d° · Wind %2$d mph · %3$d° / %4$d°</string>
+    <string name="units_speed_fix_now_mph">Speed now: %1$d mph. Adjust until it matches your speedometer.</string>
+    <string name="units_mi_to_empty">MI TO EMPTY</string>
+    <string name="units_upkeep_next_mi">%1$s in %2$s mi</string>
+    <string name="units_upkeep_overdue_mi">%1$s overdue by %2$s mi</string>
+    <string name="units_upkeep_row_mi">%1$s mi</string>
+    <string name="units_upkeep_odometer_mi">Mileage in miles</string>
+    <string name="units_upkeep_odometer_as_of_mi">Entered %1$s, plus %2$d mi driven since</string>
+    <string name="units_upkeep_every_mi">Interval in miles</string>
+    <string name="units_upkeep_last_mi">Last done at mile</string>
+    <string name="units_cockpit_feels_wind_mph">FEELS %1$d° · WIND %2$d MPH</string>
+    <string name="units_orbit_wind_mph">Wind %1$d mph</string>
+    <string name="units_orbit_feels_wind_mph">feels %1$d° · %2$d mph</string>
+    <string name="units_horizon_wind_mph">wind %1$d mph</string>
+    <string name="units_tape_feels_wind_caps_mph">FEELS %1$d° · WIND %2$d MPH</string>
+    <string name="units_canvas_fuel_left_mi">%1$d mi of fuel left</string>
+    <string name="units_alert_coolant_f">Coolant %1$d°F</string>
+    <string name="units_car_filter_needs_drive_mph">Plan a 20 min drive above 40 mph</string>
+
+    <!-- Said aloud: full words -->
+    <string name="units_briefing_fuel_low_mi">Fuel is low: about %1$d miles left, plan a stop.</string>
+    <string name="units_voice_status_range_mi">About %1$d miles of fuel left.</string>
+    <plurals name="units_voice_fuel_station_mi">
+        <item quantity="one">The cheapest station nearby is %1$s, %2$d mile away.</item>
+        <item quantity="other">The cheapest station nearby is %1$s, %2$d miles away.</item>
+    </plurals>
+    <string name="units_car_say_fuel_short_mi">Your range of %1$d miles won\'t reach the destination, %2$d miles away. Plan a fuel stop.</string>
+    <string name="units_car_say_filter_mph">Your last %1$d drives were short. When you can, drive 15 to 20 minutes above 40 miles per hour so the particle filter can clean itself.</string>
+    <string name="units_upkeep_say_overdue_mi">%1$s overdue by %2$d miles.</string>
+    <string name="units_upkeep_say_soon_mi">%1$s due in %2$d miles.</string>
+</resources>

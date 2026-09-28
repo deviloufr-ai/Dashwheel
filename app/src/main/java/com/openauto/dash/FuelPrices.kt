@@ -130,8 +130,10 @@ object FuelPrices {
     /** "1,789 €" */
     fun formatPriceWithCurrency(price: Double): String = formatPrice(price) + " " + CURRENCY
 
-    fun formatDistance(km: Double): String =
-        if (km < 10) String.format(Locale.getDefault(), "%.1f km", km) else "${km.toInt()} km"
+    fun formatDistance(km: Double, units: UnitSystem = Units.current.value): String {
+        val d = units.distance(km)
+        return if (d < 10) String.format(Locale.getDefault(), "%.1f %s", d, units.distanceUnit) else "${d.toInt()} ${units.distanceUnit}"
+    }
 }
 
 /** One fuel station as OpenStreetMap knows it: where, its name, and the government's id when tagged. */

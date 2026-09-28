@@ -749,11 +749,13 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         }
     }
 
-    var clock by remember { mutableStateOf(currentClock()) }
-    LaunchedEffect(Unit) {
+    // Restarted when the clock choice changes, so the bar switches at once.
+    val units = LocalUnits.current
+    var clock by remember { mutableStateOf(currentClock(units)) }
+    LaunchedEffect(units.clock24) {
         while (true) {
-            clock = currentClock()
-            // The bar shows HH:mm, so wake at the next minute boundary (+ a beat).
+            clock = currentClock(units)
+            // The bar shows hours and minutes, so wake at the next minute boundary (+ a beat).
             delay(60_000L - System.currentTimeMillis() % 60_000L + 50L)
         }
     }

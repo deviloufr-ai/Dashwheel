@@ -161,10 +161,11 @@ private fun grantAccessAction(): FaceAction {
 /** The engine readings as small gauges (twin dials, shift lights, gauge bank). */
 @Composable
 private fun engineGauges(d: ObdData, rpmFirst: Boolean): List<FaceGauge> {
-    val speed = FaceGauge(stringResource(R.string.vehicle_speed), d.speedKmh.toString(), "km/h", d.speedKmh / 220f)
+    val u = LocalUnits.current
+    val speed = FaceGauge(stringResource(R.string.vehicle_speed), u.speed(d.speedKmh).toString(), u.speedUnit, d.speedKmh / 220f)
     val rpm = FaceGauge(stringResource(R.string.vehicle_rpm), d.rpm.toString(), "rpm", d.rpm / 7000f)
     return (if (rpmFirst) listOf(rpm, speed) else listOf(speed, rpm)) + listOf(
-        FaceGauge(stringResource(R.string.vehicle_coolant), d.coolantTempC.toString(), "°C", d.coolantTempC / 130f),
+        FaceGauge(stringResource(R.string.vehicle_coolant), u.temp(d.coolantTempC).toString(), u.tempUnit, d.coolantTempC / 130f),
         FaceGauge(stringResource(R.string.vehicle_battery), fmt("%.1f", d.voltage), "V", batteryFraction(d.voltage)),
         FaceGauge(stringResource(R.string.vehicle_load), d.engineLoadPct.toString(), "%", d.engineLoadPct / 100f),
         FaceGauge(stringResource(R.string.vehicle_throttle), d.throttlePct.toString(), "%", d.throttlePct / 100f)
@@ -173,20 +174,21 @@ private fun engineGauges(d: ObdData, rpmFirst: Boolean): List<FaceGauge> {
 
 @Composable
 private fun telemetryFace(env: SkinTileEnv): WidgetFace {
-    if (env.obdConnection != ObdConnectionState.CONNECTED) return obdIdle(BuiltinKind.TELEMETRY, env, "km/h")
+    val u = LocalUnits.current
+    if (env.obdConnection != ObdConnectionState.CONNECTED) return obdIdle(BuiltinKind.TELEMETRY, env, u.speedUnit)
     val d = env.obdData
     return WidgetFace(
         icon = Icons.Filled.Speed,
         title = BuiltinKind.TELEMETRY.label,
-        value = d.speedKmh.toString(), unit = "km/h",
+        value = u.speed(d.speedKmh).toString(), unit = u.speedUnit,
         caption = "${d.rpm} rpm",
         fraction = d.speedKmh / 220f,
         alert = d.speedKmh >= SPEED_WARNING_KMH || d.coolantTempC >= 110,
-        number = d.speedKmh.toFloat(),
+        number = u.speed(d.speedKmh).toFloat(),
         gauges = engineGauges(d, rpmFirst = false),
         stats = listOf(
             FaceStat(stringResource(R.string.vehicle_rpm), d.rpm.toString()),
-            FaceStat(stringResource(R.string.vehicle_coolant), "${d.coolantTempC} °C"),
+            FaceStat(stringResource(R.string.vehicle_coolant), u.tempText(d.coolantTempC)),
             FaceStat(stringResource(R.string.vehicle_battery), fmt("%.1f V", d.voltage)),
             FaceStat(stringResource(R.string.vehicle_load), "${d.engineLoadPct} %")
         )
@@ -196,18 +198,19 @@ private fun telemetryFace(env: SkinTileEnv): WidgetFace {
 @Composable
 private fun obdAllFace(env: SkinTileEnv): WidgetFace {
     if (env.obdConnection != ObdConnectionState.CONNECTED) return obdIdle(BuiltinKind.OBD_ALL, env, "rpm")
+    val u = LocalUnits.current
     val d = env.obdData
     return WidgetFace(
         icon = Icons.Filled.Sensors,
         title = BuiltinKind.OBD_ALL.label,
         value = d.rpm.toString(), unit = "rpm",
-        caption = "${d.speedKmh} km/h",
+        caption = u.speedText(d.speedKmh),
         fraction = d.rpm / 7000f,
         gauges = engineGauges(d, rpmFirst = true),
         stats = listOfNotNull(
-            FaceStat(stringResource(R.string.vehicle_speed), "${d.speedKmh} km/h"),
-            FaceStat(stringResource(R.string.vehicle_coolant), "${d.coolantTempC} °C"),
-            FaceStat(stringResource(R.string.vehicle_intake_air), "${d.intakeTempC} °C"),
+            FaceStat(stringResource(R.string.vehicle_speed), u.speedText(d.speedKmh)),
+            FaceStat(stringResource(R.string.vehicle_coolant), u.tempText(d.coolantTempC)),
+            FaceStat(stringResource(R.string.vehicle_intake_air), u.tempText(d.intakeTempC)),
             FaceStat(stringResource(R.string.vehicle_throttle), "${d.throttlePct} %"),
             FaceStat(stringResource(R.string.vehicle_engine_load), "${d.engineLoadPct} %"),
             FaceStat(stringResource(R.string.vehicle_battery), fmt("%.1f V", d.voltage)),
@@ -220,14 +223,15 @@ private fun obdAllFace(env: SkinTileEnv): WidgetFace {
 private fun rangeFace(env: SkinTileEnv): WidgetFace {
     var showRangeFinder by remember { mutableStateOf(false) }
     if (showRangeFinder) RangeFinderDialog(onDismiss = { showRangeFinder = false })
+    val u = LocalUnits.current
     val fuel = rememberFuel(env.obdData, env.obdConnection) ?: return idleFace(
-        Icons.Filled.LocalGasStation, BuiltinKind.RANGE.label, stringResource(R.string.design_range_unknown), "km",
+        Icons.Filled.LocalGasStation, BuiltinKind.RANGE.label, stringResource(R.string.design_range_unknown), u.distanceUnit,
         FaceAction(Icons.Filled.Tune, stringResource(R.string.vehicle_find_range_signal), primary = true, onClick = { showRangeFinder = true })
     )
     return WidgetFace(
         icon = Icons.Filled.LocalGasStation,
         title = BuiltinKind.RANGE.label,
-        value = fuel.rangeKm.toString(), unit = "km",
+        value = u.distance(fuel.rangeKm).toString(), unit = u.distanceUnit,
         // Worked back from the car's range when it sends no level: said to be approximate.
         caption = (if (fuel.percentEstimated) "≈ " else "") + fmt("%d %% · %.1f L", fuel.percent, fuel.liters),
         fraction = fuel.percent / 100f,
@@ -238,7 +242,11 @@ private fun rangeFace(env: SkinTileEnv): WidgetFace {
         stats = listOf(
             FaceStat(stringResource(R.string.vehicle_fuel), "${fuel.percent} %"),
             FaceStat(stringResource(R.string.vehicle_in_tank), fmt("%.1f L", fuel.liters)),
-            FaceStat(stringResource(R.string.vehicle_avg_use), fmt("%.1f L/100", fuel.avgUse))
+            // "L/100" alone fits the stat; the other units are short already.
+            FaceStat(
+                stringResource(R.string.vehicle_avg_use),
+                if (u.economy == Economy.L_PER_100KM) fmt("%.1f L/100", fuel.avgUse) else u.economyText(fuel.avgUse.toDouble())
+            )
         )
     )
 }
@@ -357,6 +365,7 @@ private fun canMonitorFace(): WidgetFace {
 
 @Composable
 private fun speedFace(env: SkinTileEnv): WidgetFace {
+    val u = LocalUnits.current
     val speed = rememberSpeedKmh(env.obdData, env.obdConnection)
     val source = when {
         env.obdConnection == ObdConnectionState.CONNECTED -> "OBD"
@@ -366,11 +375,11 @@ private fun speedFace(env: SkinTileEnv): WidgetFace {
     return WidgetFace(
         icon = Icons.Filled.Speed,
         title = BuiltinKind.SPEED_HUD.label,
-        value = speed?.toString() ?: "--", unit = "km/h",
+        value = speed?.let { u.speed(it).toString() } ?: "--", unit = u.speedUnit,
         caption = source,
         fraction = (speed ?: 0) / 200f,
         alert = (speed ?: 0) >= SPEED_WARNING_KMH,
-        number = speed?.toFloat(),
+        number = speed?.let { u.speed(it).toFloat() },
         sign = SignKind.SPEED
     )
 }
@@ -381,6 +390,7 @@ private fun compassFace(): WidgetFace {
     val location by LocationFeed.location.collectAsState()
     val heading by LocationFeed.headingDeg.collectAsState()
     val h = heading
+    val u = LocalUnits.current
     return WidgetFace(
         icon = Icons.Filled.Explore,
         title = BuiltinKind.COMPASS.label,
@@ -393,7 +403,7 @@ private fun compassFace(): WidgetFace {
         compass = true,
         stats = listOf(
             FaceStat(stringResource(R.string.info_compass_altitude), location?.takeIf { it.hasAltitude() }?.let { "${it.altitude.roundToInt()} m" } ?: "--"),
-            FaceStat(stringResource(R.string.info_compass_gps_speed), location?.let { "${(it.speed * 3.6f).roundToInt()} km/h" } ?: "--"),
+            FaceStat(stringResource(R.string.info_compass_gps_speed), location?.let { u.speedText(it.speed * 3.6f) } ?: "--"),
             FaceStat(stringResource(R.string.info_compass_accuracy), location?.let { "±${it.accuracy.roundToInt()} m" } ?: "--")
         )
     )
@@ -405,18 +415,19 @@ private fun tripFace(): WidgetFace {
     val trip by LocationFeed.trip.collectAsState()
     // Re-read each second so the elapsed time keeps moving while parked.
     rememberWallClock(1_000L).longValue
-    val km = trip.distanceM / 1000.0
-    val since = stringResource(R.string.info_trip_since, remember(trip.startedAt) { formatClock(trip.startedAt) })
+    val u = LocalUnits.current
+    val km = u.distance(trip.distanceM / 1000.0)
+    val since = stringResource(R.string.info_trip_since, remember(trip.startedAt, u) { formatClock(trip.startedAt, u) })
     return WidgetFace(
         icon = Icons.Filled.Timeline,
         title = BuiltinKind.TRIP.label,
-        value = if (km < 100) fmt("%.1f", km) else km.roundToInt().toString(), unit = "km",
+        value = if (km < 100) fmt("%.1f", km) else km.roundToInt().toString(), unit = u.distanceUnit,
         caption = since,
         reach = since,
         stats = listOf(
             FaceStat(stringResource(R.string.info_trip_time), formatDuration(trip.elapsedMs)),
-            FaceStat(stringResource(R.string.info_trip_average), "${trip.avgSpeedKmh.roundToInt()} km/h"),
-            FaceStat(stringResource(R.string.info_trip_top), "${trip.maxSpeedKmh.roundToInt()} km/h")
+            FaceStat(stringResource(R.string.info_trip_average), u.speedText(trip.avgSpeedKmh)),
+            FaceStat(stringResource(R.string.info_trip_top), u.speedText(trip.maxSpeedKmh))
         ),
         actions = listOf(FaceAction(Icons.Filled.Refresh, stringResource(R.string.info_reset), onClick = { LocationFeed.resetTrip() }))
     )
@@ -637,7 +648,9 @@ private fun clockFace(): WidgetFace {
     val context = LocalContext.current
     val now = rememberNow(1_000L)
     val locale = Locale.getDefault()
-    val timeFmt = remember(locale) { SimpleDateFormat("HH:mm", locale) }
+    val u = LocalUnits.current
+    // The digits alone: a 12-hour clock's AM / PM goes in the unit, which every design sets small.
+    val timeFmt = remember(locale, u.clock24) { SimpleDateFormat(u.digitsPattern(), locale) }
     val dateFmt = remember(locale) { SimpleDateFormat(android.text.format.DateFormat.getBestDateTimePattern(locale, "EEEEdMMMM"), locale) }
     val cal = remember(now) { Calendar.getInstance().apply { time = now } }
     val h = cal.get(Calendar.HOUR_OF_DAY)
@@ -646,7 +659,7 @@ private fun clockFace(): WidgetFace {
     return WidgetFace(
         icon = Icons.Filled.Schedule,
         title = BuiltinKind.CLOCK.label,
-        value = timeFmt.format(now),
+        value = timeFmt.format(now), unit = u.amPm(now, locale).orEmpty(),
         caption = dateFmt.format(now).replaceFirstChar { it.uppercase() },
         fraction = s / 60f,
         fullCircle = true,
@@ -658,23 +671,24 @@ private fun clockFace(): WidgetFace {
 @Composable
 private fun weatherFace(): WidgetFace {
     val location by LocationFeed.location.collectAsState()
+    val u = LocalUnits.current
     val w = rememberWeather() ?: return idleFace(
         Icons.Filled.WbSunny, BuiltinKind.WEATHER.label,
-        stringResource(if (location == null) R.string.info_waiting_gps else R.string.info_weather_loading), "°C"
+        stringResource(if (location == null) R.string.info_waiting_gps else R.string.info_weather_loading), u.tempUnit
     )
     return WidgetFace(
         icon = weatherIcon(w.code),
         title = BuiltinKind.WEATHER.label,
-        value = w.tempC.roundToInt().toString(), unit = "°C",
+        value = u.temp(w.tempC).toString(), unit = u.tempUnit,
         caption = w.condition,
         // -10 °C .. 40 °C across the gauge.
         fraction = ((w.tempC + 10.0) / 50.0).toFloat().coerceIn(0f, 1f),
-        scale = "-10°" to "40°",
+        scale = "${u.temp(-10)}°" to "${u.temp(40)}°",
         weatherCode = w.code,
         stats = listOfNotNull(
-            FaceStat(stringResource(R.string.design_feels_like), "${w.feelsC.roundToInt()}°"),
-            FaceStat(stringResource(R.string.design_wind), "${w.windKmh.roundToInt()} km/h"),
-            if (!w.hiC.isNaN()) FaceStat(stringResource(R.string.design_low_high), "${w.loC.roundToInt()}° / ${w.hiC.roundToInt()}°") else null
+            FaceStat(stringResource(R.string.design_feels_like), "${u.temp(w.feelsC)}°"),
+            FaceStat(stringResource(R.string.design_wind), u.speedText(w.windKmh)),
+            if (!w.hiC.isNaN()) FaceStat(stringResource(R.string.design_low_high), "${u.temp(w.loC)}° / ${u.temp(w.hiC)}°") else null
         )
     )
 }
@@ -698,8 +712,8 @@ private fun agendaFace(): WidgetFace {
         return idleFace(Icons.Filled.Event, BuiltinKind.CALENDAR.label, stringResource(agenda.emptyText),
             action = if (agenda.phoneSent) null else FaceAction(Icons.Filled.Event, stringResource(R.string.info_open), onClick = openCalendar))
     }
-    val timeFmt = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
-    val dayFmt = remember { SimpleDateFormat("EEE HH:mm", Locale.getDefault()) }
+    val timeFmt = rememberTimeFormat()
+    val dayFmt = remember(timeFmt) { SimpleDateFormat("EEE " + timeFmt.toPattern(), Locale.getDefault()) }
     val noTitle = stringResource(R.string.info_agenda_no_title)
     val allDay = stringResource(R.string.info_agenda_all_day)
     val today = Calendar.getInstance().get(Calendar.DAY_OF_YEAR)
@@ -782,7 +796,7 @@ private fun notificationsFace(env: SkinTileEnv): WidgetFace {
         return idleFace(Icons.Filled.Notifications, BuiltinKind.NOTIFICATIONS.label, stringResource(R.string.info_notif_needs_access), action = grantAccessAction())
     }
     val items by NotificationFeed.items.collectAsState()
-    val timeFmt = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
+    val timeFmt = rememberTimeFormat()
     val latest = items.firstOrNull()
     return WidgetFace(
         icon = Icons.Filled.Notifications,
@@ -832,7 +846,7 @@ private fun filterFace(): WidgetFace {
     val care by CarCare.state.collectAsState()
     if (!car.particleFilter) return idleFace(kindIcon(BuiltinKind.FILTER_CARE), BuiltinKind.FILTER_CARE.label, stringResource(R.string.car_filter_none))
     val streak = care.filter.shortStreak
-    val call = filterCall(streak)
+    val call = filterCall(streak, LocalUnits.current.imperial)
     val drive = care.drive
     val last = care.filter.lastLongAt
     val now = System.currentTimeMillis()
@@ -872,8 +886,9 @@ private fun warmupFace(env: SkinTileEnv): WidgetFace {
     val care by CarCare.state.collectAsState()
     // The coolant moves a degree at a time: follow it, not every OBD sample.
     val t by remember(env) { derivedStateOf { env.obdData.coolantTempC } }
-    if (env.obdConnection != ObdConnectionState.CONNECTED) return obdIdle(BuiltinKind.WARMUP, env, "°C")
-    if (t == 0) return idleFace(kindIcon(BuiltinKind.WARMUP), BuiltinKind.WARMUP.label, stringResource(R.string.car_waiting_obd), "°C")
+    val u = LocalUnits.current
+    if (env.obdConnection != ObdConnectionState.CONNECTED) return obdIdle(BuiltinKind.WARMUP, env, u.tempUnit)
+    if (t == 0) return idleFace(kindIcon(BuiltinKind.WARMUP), BuiltinKind.WARMUP.label, stringResource(R.string.car_waiting_obd), u.tempUnit)
     val call = warmupCall(t, car)
     // Ticks each second only while a drive runs, for its "running for" line.
     val runningFor = care.drive?.let { d ->
@@ -883,12 +898,12 @@ private fun warmupFace(env: SkinTileEnv): WidgetFace {
     return WidgetFace(
         icon = kindIcon(BuiltinKind.WARMUP),
         title = BuiltinKind.WARMUP.label,
-        value = t.toString(), unit = "°C",
+        value = u.temp(t).toString(), unit = u.tempUnit,
         caption = stringResource(call.text, car.coldRpmLimit),
         alert = call.level > 0,
         severity = call.level,
         fraction = t.toFloat() / car.hotC,
-        scale = "0°" to "${car.hotC}°",
+        scale = "${u.temp(0)}°" to "${u.temp(car.hotC)}°",
         rows = listOfNotNull(runningFor?.let { FaceRow(it, "") })
     )
 }
@@ -930,6 +945,7 @@ private fun ecoFace(): WidgetFace {
     val score = drive.ecoScore
     val liters = drive.distanceKm * car.typicalUse / 100
     val call = ecoCall(score)
+    val u = LocalUnits.current
     return WidgetFace(
         icon = kindIcon(BuiltinKind.ECO_DRIVE),
         title = stringResource(if (care.drive != null) R.string.car_eco_title else R.string.car_eco_title_last),
@@ -943,7 +959,7 @@ private fun ecoFace(): WidgetFace {
             FaceStat(stringResource(R.string.car_eco_hard), stringResource(R.string.car_eco_hard_value, drive.hardAccel, drive.hardBrake)),
             if (car.gearbox == GearboxType.ROBOTISED) FaceStat(stringResource(R.string.car_eco_clutch), drive.clutchHolds.toString()) else null,
             FaceStat(
-                stringResource(R.string.car_eco_fuel, fmt("%.1f", drive.distanceKm)),
+                stringResource(if (u.imperial) R.string.units_eco_fuel_mi else R.string.car_eco_fuel, fmt("%.1f", u.distance(drive.distanceKm))),
                 stringResource(R.string.car_eco_fuel_value, fmt("%.1f", liters), fmt("%.2f", liters * car.fuelPrice), car.currency)
             )
         )
@@ -952,30 +968,31 @@ private fun ecoFace(): WidgetFace {
 
 @Composable
 private fun fuelToDestFace(): WidgetFace {
+    val u = LocalUnits.current
     val trip = rememberFuelToDest()
-        ?: return idleFace(kindIcon(BuiltinKind.FUEL_TO_DEST), BuiltinKind.FUEL_TO_DEST.label, stringResource(R.string.car_fuel_dest_no_range), "km")
-    val range = trip.rangeKm
+        ?: return idleFace(kindIcon(BuiltinKind.FUEL_TO_DEST), BuiltinKind.FUEL_TO_DEST.label, stringResource(R.string.car_fuel_dest_no_range), u.distanceUnit)
+    val range = u.distance(trip.rangeKm)
     val verdict = trip.verdict
     val icon = kindIcon(BuiltinKind.FUEL_TO_DEST)
     val title = BuiltinKind.FUEL_TO_DEST.label
     if (verdict == null) {
-        return WidgetFace(icon = icon, title = title, value = range.toString(), unit = "km", caption = stringResource(R.string.car_fuel_dest_no_nav), sign = SignKind.FUEL)
+        return WidgetFace(icon = icon, title = title, value = range.toString(), unit = u.distanceUnit, caption = stringResource(R.string.car_fuel_dest_no_nav), sign = SignKind.FUEL)
     }
     val call = fuelCall(verdict)
-    val km = trip.km
+    val km = u.distance(trip.km)
     return WidgetFace(
         icon = icon, title = title,
-        value = trip.spareKm.toString(),
-        unit = stringResource(R.string.car_fuel_dest_spare_unit),
+        value = u.distance(trip.spareKm).toString(),
+        unit = stringResource(if (u.imperial) R.string.units_fuel_dest_spare_unit_mi else R.string.car_fuel_dest_spare_unit),
         caption = stringResource(call.text),
         alert = call.level > 0,
         severity = call.level,
         sign = SignKind.FUEL,
         scale = "E" to "F",
-        reach = "$range km",
-        marker = "${km.toInt()} km",
+        reach = "$range ${u.distanceUnit}",
+        marker = "${km.toInt()} ${u.distanceUnit}",
         fraction = trip.usedFraction,
-        rows = listOf(FaceRow(stringResource(R.string.car_fuel_dest_detail, range, km.toInt()), ""))
+        rows = listOf(FaceRow(stringResource(if (u.imperial) R.string.units_fuel_dest_detail_mi else R.string.car_fuel_dest_detail, range, km.toInt()), ""))
     )
 }
 
@@ -1008,6 +1025,7 @@ private fun serviceFace(): WidgetFace {
     val dues = remember(state) { state.statuses(now) }
     val first = dues.firstOrNull { it.stage != UpkeepStage.UNKNOWN }
     val odo = state.odometer
+    val u = LocalUnits.current
     val caption = when {
         odo == null -> stringResource(R.string.upkeep_no_odometer)
         first == null -> stringResource(R.string.upkeep_needs_dates)
@@ -1026,7 +1044,7 @@ private fun serviceFace(): WidgetFace {
     return WidgetFace(
         icon = kindIcon(BuiltinKind.SERVICE),
         title = BuiltinKind.SERVICE.label,
-        value = odo?.let { formatKm(it.nowKm) } ?: "--", unit = "km",
+        value = odo?.let { formatKm(u.distance(it.nowKm)) } ?: "--", unit = u.distanceUnit,
         caption = caption,
         fraction = fraction,
         alert = first?.stage == UpkeepStage.DUE || first?.stage == UpkeepStage.SOON,
@@ -1055,7 +1073,7 @@ private fun fuelPricesFace(): WidgetFace {
                 else -> R.string.fuel_loading
             }
         ), "€/L")
-    if (nearby.ranked.isEmpty()) return idleFace(icon, title, stringResource(R.string.fuel_none, FuelPrices.RADIUS_KM), "€/L")
+    if (nearby.ranked.isEmpty()) return idleFace(icon, title, fuelNoneText(), "€/L")
     val best = nearby.ranked.first()
     return WidgetFace(
         icon = icon, title = title,
@@ -1083,11 +1101,12 @@ private fun carStatusFace(): WidgetFace {
     val b = body ?: return idleFace(Icons.Filled.DirectionsCarFilled, BuiltinKind.CAR_STATUS.label, stringResource(R.string.car_status_waiting))
     val rows = carStatusRows(b)
     val lights = lightsOn(b)
+    val u = LocalUnits.current
     return WidgetFace(
         icon = Icons.Filled.DirectionsCarFilled,
         title = BuiltinKind.CAR_STATUS.label,
-        value = b.odometer?.let { NumberFormat.getIntegerInstance().format(it.toLong()) } ?: "--",
-        unit = stringResource(R.string.car_status_km),
+        value = b.odometer?.let { NumberFormat.getIntegerInstance().format(u.distance(it.toDouble()).toLong()) } ?: "--",
+        unit = if (u.imperial) u.distanceUnit else stringResource(R.string.car_status_km),
         caption = rows.first().second,
         alert = CarLight.HAZARD in lights,
         severity = if (CarLight.HAZARD in lights) 1 else 0,

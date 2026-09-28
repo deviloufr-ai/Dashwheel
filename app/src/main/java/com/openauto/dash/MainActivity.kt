@@ -101,6 +101,7 @@ class MainActivity : ComponentActivity() {
         enableImmersiveFullscreen()
         FeedbackStore.load(this)
         AlertStyleStore.load(this)
+        Units.load(this)
         // Rebuilt after a language change: the fault codes' advice follows it.
         AiMechanic.followLanguage(this)
         // Nothing the first frame needs waits behind these: they read their
@@ -227,6 +228,8 @@ class MainActivity : ComponentActivity() {
         FreeformBar.dashboardInFront = true
         // Home pressed over an app that never stopped the dashboard (a window): no onStart then.
         EmbeddedApp.dashboardBack()
+        // The unit's 24-hour switch may have changed in its settings meanwhile.
+        Units.refresh(this)
     }
 
     override fun onPause() {
@@ -337,5 +340,8 @@ fun OpenAutoDashTheme(content: @Composable () -> Unit) {
     }
     // The driving type scale (DashType.kt): nothing under 14 sp, labels at 16 sp.
     // The skin's corners for every stock dialog and menu (SkinChrome).
-    MaterialTheme(colorScheme = colorScheme, typography = DashTypography, shapes = skinChrome().shapes, content = content)
+    // The driver's units reach every tile and pop-up from here (Units).
+    ProvideUnits {
+        MaterialTheme(colorScheme = colorScheme, typography = DashTypography, shapes = skinChrome().shapes, content = content)
+    }
 }

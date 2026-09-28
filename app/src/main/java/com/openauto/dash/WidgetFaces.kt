@@ -71,7 +71,6 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
-import java.text.SimpleDateFormat
 import java.util.Locale
 import kotlin.math.cos
 import kotlin.math.max
@@ -1030,9 +1029,10 @@ internal fun DesignFrame(
 
 @Composable
 private fun FrameLabel(icon: ImageVector, title: String, look: FaceLook, big: Boolean) {
-    // HH:mm only: a tick on each minute is enough.
+    // Hours and minutes only: a tick on each minute is enough.
     val now = rememberNow(60_000L)
-    val time = remember(now) { SimpleDateFormat("HH:mm", Locale.getDefault()).format(now) }
+    val timeFmt = rememberTimeFormat()
+    val time = remember(now, timeFmt) { timeFmt.format(now) }
     val size = if (big) 16.sp else 12.sp
     Row(
         modifier = Modifier

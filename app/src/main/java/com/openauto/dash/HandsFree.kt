@@ -11,7 +11,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import kotlin.math.roundToInt
 
 /*
  * What a steering wheel button does with nothing to look at or tap: its
@@ -58,9 +57,8 @@ internal object HandsFree {
                 say(app, R.string.places_no_nav_app)
                 return@launch
             }
-            val km = best.distanceKm.roundToInt().coerceAtLeast(1)
             val resources = AppLanguage.wrap(app).resources
-            say(app, resources.getQuantityString(R.plurals.voice_fuel_station, km, station.name.ifBlank { station.town }, km))
+            say(app, CarCare.stationLine(best).text(resources))
         }
     }
 

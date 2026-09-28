@@ -285,15 +285,17 @@ internal fun OriginalObdCard(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                val u = LocalUnits.current
+                val top = u.speedScale(220)
                 OriginalAnalogGauge(
-                    value = if (connected) obdData.speedKmh.toFloat() else 0f,
-                    maxValue = 220f,
-                    valueText = if (connected) obdData.speedKmh.toString() else "--",
+                    value = if (connected) u.speed(obdData.speedKmh).toFloat() else 0f,
+                    maxValue = top.toFloat(),
+                    valueText = if (connected) u.speed(obdData.speedKmh).toString() else "--",
                     label = stringResource(R.string.info_speed_title),
-                    unit = "km/h",
+                    unit = u.speedUnit,
                     accent = DashColors.Accent,
                     redlineAccent = DashColors.Warning,
-                    redlineFraction = SPEED_WARNING_KMH / 220f,
+                    redlineFraction = u.speed(SPEED_WARNING_KMH) / top.toFloat(),
                     dimmed = !connected,
                     modifier = Modifier.weight(1.15f).fillMaxHeight()
                 )
@@ -320,7 +322,7 @@ internal fun OriginalObdCard(
             ) {
                 OriginalMeterChip(
                     label = stringResource(R.string.info_chip_coolant),
-                    valueText = if (connected) "${obdData.coolantTempC}°" else "--",
+                    valueText = if (connected) "${LocalUnits.current.temp(obdData.coolantTempC)}°" else "--",
                     fraction = (obdData.coolantTempC / 120f),
                     color = coolantColor(obdData.coolantTempC),
                     dimmed = !connected,

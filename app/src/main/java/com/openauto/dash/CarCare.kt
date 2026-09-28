@@ -373,8 +373,8 @@ object CarCare {
             val here = LocationFeed.location.value
             val best = here?.let { withTimeoutOrNull(STATION_WAIT_MS) { FuelPriceRepo.cheapest(it.latitude, it.longitude) } }
             val lines = listOfNotNull(
-                SpokenLine(R.string.briefing_fuel_low, listOf(rangeKm)),
-                best?.let(::stationLine)
+                fuelLowLine(rangeKm),
+                best?.let { stationLine(it) }
             )
             val context = appContext ?: return@launch
             val config = AiSettings.load(context)
@@ -386,11 +386,15 @@ object CarCare {
 
     private const val STATION_WAIT_MS = 8_000L
 
-    /** "The cheapest station nearby is Intermarché, 3 kilometres away." */
-    internal fun stationLine(best: RankedStation): SpokenLine {
-        val km = best.distanceKm.roundToInt().coerceAtLeast(1)
+    /** "Fuel is low: about 60 kilometres left" (or miles). */
+    internal fun fuelLowLine(rangeKm: Int, units: UnitSystem = Units.current.value): SpokenLine =
+        SpokenLine(if (units.imperial) R.string.units_briefing_fuel_low_mi else R.string.briefing_fuel_low, listOf(units.distance(rangeKm)))
+
+    /** "The cheapest station nearby is Intermarché, 3 kilometres away" (or miles). */
+    internal fun stationLine(best: RankedStation, units: UnitSystem = Units.current.value): SpokenLine {
+        val d = units.distance(best.distanceKm).roundToInt().coerceAtLeast(1)
         val name = best.station.name.ifBlank { best.station.town }
-        return SpokenLine(R.plurals.voice_fuel_station, listOf(name, km), quantity = km)
+        return SpokenLine(if (units.imperial) R.plurals.units_voice_fuel_station_mi else R.plurals.voice_fuel_station, listOf(name, d), quantity = d)
     }
 
     /** [DemoMode]'s drive stats, never saved (and, when it ends, the real ones back). */
@@ -427,7 +431,13 @@ object CarCare {
         val range = currentRange() ?: return
         if (CareRules.fuelVerdict(range, toGo) == FuelVerdict.SHORT) {
             fuelWarnedFor = nav.eta
-            say(SpokenLine(R.string.car_say_fuel_short, listOf(range, toGo.toInt())))
+            val units = Units.current.value
+            say(
+                SpokenLine(
+                    if (units.imperial) R.string.units_car_say_fuel_short_mi else R.string.car_say_fuel_short,
+                    listOf(units.distance(range), units.distance(toGo).toInt())
+                )
+            )
         }
     }
 
@@ -439,7 +449,8 @@ object CarCare {
     private fun line(e: CareEvent, car: CarProfile): SpokenLine = when (e) {
         CareEvent.ColdRevs -> SpokenLine(R.string.car_say_cold_revs, listOf(car.coldRpmLimit))
         CareEvent.ClutchHold -> SpokenLine(R.string.car_say_clutch_hold, emptyList())
-        is CareEvent.FilterNeedsDrive -> SpokenLine(R.string.car_say_filter, listOf(e.streak))
+        is CareEvent.FilterNeedsDrive ->
+            SpokenLine(if (Units.current.value.imperial) R.string.units_car_say_filter_mph else R.string.car_say_filter, listOf(e.streak))
         is CareEvent.BreakDue -> {
             val h = e.minutes / 60
             val m = e.minutes % 60

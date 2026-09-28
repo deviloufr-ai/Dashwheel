@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="units_title">Jednostki</string>
+    <string name="units_speed">Prędkość i odległość</string>
+    <string name="units_temp">Temperatura</string>
+    <string name="units_economy">Spalanie</string>
+    <string name="units_clock">Zegar</string>
+    <string name="units_auto">Auto</string>
+    <string name="units_auto_hint">Auto według ustawień radia: %1$s</string>
+
+    <string name="units_eco_fuel_mi">Paliwo na %1$s mi</string>
+    <string name="units_fuel_dest_spare_unit_mi">mi zapasu</string>
+    <string name="units_fuel_dest_detail_mi">Zasięg %1$d mi · do celu %2$d mi</string>
+    <string name="units_fuel_none_mi">Brak stacji z tym paliwem w promieniu %1$d mi. Ceny obejmują tylko Francję.</string>
+    <plurals name="units_fuel_stations_mi">
+        <item quantity="one">%1$d stacja w promieniu %2$d mi</item>
+        <item quantity="few">%1$d stacje w promieniu %2$d mi</item>
+        <item quantity="many">%1$d stacji w promieniu %2$d mi</item>
+        <item quantity="other">%1$d stacji w promieniu %2$d mi</item>
+    </plurals>
+    <string name="units_weather_details_mph">Odczuwalna %1$d° · Wiatr %2$d mph</string>
+    <string name="units_weather_details_range_mph">Odczuwalna %1$d° · Wiatr %2$d mph · %3$d° / %4$d°</string>
+    <string name="units_speed_fix_now_mph">Prędkość teraz: %1$d mph. Dostosuj, aż zgodzi się z prędkościomierzem.</string>
+    <string name="units_mi_to_empty">POZOSTAŁE MI</string>
+    <string name="units_upkeep_next_mi">%1$s za %2$s mi</string>
+    <string name="units_upkeep_overdue_mi">%1$s spóźnione o %2$s mi</string>
+    <string name="units_upkeep_row_mi">%1$s mi</string>
+    <string name="units_upkeep_odometer_mi">Przebieg w milach</string>
+    <string name="units_upkeep_odometer_as_of_mi">Wpisano %1$s, plus %2$d mi przejechanych od tego czasu</string>
+    <string name="units_upkeep_every_mi">Odstęp w milach</string>
+    <string name="units_upkeep_last_mi">Wykonano przy mili</string>
+    <string name="units_cockpit_feels_wind_mph">ODCZ. %1$d° · WIATR %2$d MPH</string>
+    <string name="units_orbit_wind_mph">Wiatr %1$d mph</string>
+    <string name="units_orbit_feels_wind_mph">odczuwalna %1$d° · %2$d mph</string>
+    <string name="units_horizon_wind_mph">wiatr %1$d mph</string>
+    <string name="units_tape_feels_wind_caps_mph">ODCZUWALNA %1$d° · WIATR %2$d MPH</string>
+    <string name="units_canvas_fuel_left_mi">%1$d mi paliwa zostanie</string>
+    <string name="units_alert_coolant_f">Płyn chłodn. %1$d°F</string>
+    <string name="units_car_filter_needs_drive_mph">Zaplanuj 20 min powyżej 40 mph</string>
+
+    <string name="units_briefing_fuel_low_mi">Mało paliwa: około %1$d mil, warto zatankować.</string>
+    <string name="units_voice_status_range_mi">Paliwa zostało na około %1$d mil.</string>
+    <plurals name="units_voice_fuel_station_mi">
+        <item quantity="one">Najtańsza stacja w pobliżu to %1$s, %2$d mila stąd.</item>
+        <item quantity="few">Najtańsza stacja w pobliżu to %1$s, %2$d mile stąd.</item>
+        <item quantity="many">Najtańsza stacja w pobliżu to %1$s, %2$d mil stąd.</item>
+        <item quantity="other">Najtańsza stacja w pobliżu to %1$s, %2$d mili stąd.</item>
+    </plurals>
+    <string name="units_car_say_fuel_short_mi">Twój zasięg to %1$d mil, a do celu zostało %2$d mil. Nie wystarczy, zaplanuj tankowanie.</string>
+    <string name="units_car_say_filter_mph">Twoje ostatnie trasy były krótkie, już %1$d z rzędu. Gdy będzie okazja, jedź od 15 do 20 minut powyżej 40 mil na godzinę, żeby filtr cząstek stałych mógł się oczyścić.</string>
+    <string name="units_upkeep_say_overdue_mi">%1$s spóźnione o %2$d mil.</string>
+    <string name="units_upkeep_say_soon_mi">%1$s za %2$d mil.</string>
+</resources>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="units_title">Unidades</string>
+    <string name="units_speed">Velocidade e distância</string>
+    <string name="units_temp">Temperatura</string>
+    <string name="units_economy">Consumo</string>
+    <string name="units_clock">Relógio</string>
+    <string name="units_auto">Auto</string>
+    <string name="units_auto_hint">Auto segue as definições do autorrádio: %1$s</string>
+
+    <string name="units_eco_fuel_mi">Combustível em %1$s mi</string>
+    <string name="units_fuel_dest_spare_unit_mi">mi de margem</string>
+    <string name="units_fuel_dest_detail_mi">%1$d mi de autonomia · faltam %2$d mi</string>
+    <string name="units_fuel_none_mi">Nenhum posto com este combustível num raio de %1$d mi. Os preços cobrem só França.</string>
+    <plurals name="units_fuel_stations_mi">
+        <item quantity="one">%1$d posto num raio de %2$d mi</item>
+        <item quantity="many">%1$d postos num raio de %2$d mi</item>
+        <item quantity="other">%1$d postos num raio de %2$d mi</item>
+    </plurals>
+    <string name="units_weather_details_mph">Sensação %1$d° · Vento %2$d mph</string>
+    <string name="units_weather_details_range_mph">Sensação %1$d° · Vento %2$d mph · %3$d° / %4$d°</string>
+    <string name="units_speed_fix_now_mph">Velocidade atual: %1$d mph. Ajuste até coincidir com o velocímetro.</string>
+    <string name="units_mi_to_empty">MI RESTANTES</string>
+    <string name="units_upkeep_next_mi">%1$s dentro de %2$s mi</string>
+    <string name="units_upkeep_overdue_mi">%1$s com %2$s mi de atraso</string>
+    <string name="units_upkeep_row_mi">%1$s mi</string>
+    <string name="units_upkeep_odometer_mi">Quilometragem em milhas</string>
+    <string name="units_upkeep_odometer_as_of_mi">Introduzido %1$s, mais %2$d mi percorridas desde então</string>
+    <string name="units_upkeep_every_mi">Intervalo em milhas</string>
+    <string name="units_upkeep_last_mi">Feito à milha</string>
+    <string name="units_cockpit_feels_wind_mph">SENSAÇÃO %1$d° · VENTO %2$d MPH</string>
+    <string name="units_orbit_wind_mph">Vento %1$d mph</string>
+    <string name="units_orbit_feels_wind_mph">sensação %1$d° · %2$d mph</string>
+    <string name="units_horizon_wind_mph">vento %1$d mph</string>
+    <string name="units_tape_feels_wind_caps_mph">SENSAÇÃO %1$d° · VENTO %2$d MPH</string>
+    <string name="units_canvas_fuel_left_mi">%1$d mi de combustível restante</string>
+    <string name="units_alert_coolant_f">Líquido refrig. %1$d°F</string>
+    <string name="units_car_filter_needs_drive_mph">Faça 20 min acima de 40 mph</string>
+
+    <string name="units_briefing_fuel_low_mi">Combustível baixo: cerca de %1$d milhas, convém abastecer em breve.</string>
+    <string name="units_voice_status_range_mi">Resta combustível para cerca de %1$d milhas.</string>
+    <plurals name="units_voice_fuel_station_mi">
+        <item quantity="one">O posto mais barato aqui perto é %1$s, a %2$d milha.</item>
+        <item quantity="many">O posto mais barato aqui perto é %1$s, a %2$d milhas.</item>
+        <item quantity="other">O posto mais barato aqui perto é %1$s, a %2$d milhas.</item>
+    </plurals>
+    <string name="units_car_say_fuel_short_mi">A sua autonomia de %1$d milhas não chega ao destino, a %2$d milhas. Planeie uma paragem para abastecer.</string>
+    <string name="units_car_say_filter_mph">As suas últimas %1$d viagens foram curtas. Quando puder, conduza 15 a 20 minutos acima de 40 milhas por hora para o filtro de partículas se limpar.</string>
+    <string name="units_upkeep_say_overdue_mi">%1$s com %2$d milhas de atraso.</string>
+    <string name="units_upkeep_say_soon_mi">%1$s dentro de %2$d milhas.</string>
+</resources>

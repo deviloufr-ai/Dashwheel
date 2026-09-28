@@ -205,12 +205,14 @@ internal fun ClockCard(modifier: Modifier = Modifier) {
 private fun ClockReadout(numSize: Int) {
     val now = rememberNow(1_000L)
     val locale = Locale.getDefault()
-    val timeFmt = remember(locale) { SimpleDateFormat("HH:mm", locale) }
+    val u = LocalUnits.current
+    val timeFmt = remember(locale, u.clock24) { SimpleDateFormat(u.digitsPattern(), locale) }
     val dateFmt = remember(locale) { SimpleDateFormat(android.text.format.DateFormat.getBestDateTimePattern(locale, "EEEEdMMMM"), locale) }
     val secFmt = remember(locale) { SimpleDateFormat("ss", locale) }
     val time = timeFmt.format(now)
     val date = dateFmt.format(now)
-    val seconds = secFmt.format(now)
+    // A 12-hour clock's AM / PM rides with the small seconds.
+    val seconds = secFmt.format(now) + (u.amPm(now, locale)?.let { " $it" } ?: "")
     Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
         Row(verticalAlignment = Alignment.Bottom) {
             HeroNumber(text = time, size = numSize)
@@ -279,26 +281,30 @@ internal fun WeatherCard(modifier: Modifier = Modifier) {
                 }
             }
             val w = weather
+            val u = LocalUnits.current
             when {
                 w != null -> Row(modifier = Modifier.weight(1f).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Icon(weatherIcon(w.code), contentDescription = null, tint = DashColors.Accent, modifier = Modifier.size(48.dp))
                     Spacer(Modifier.width(14.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Row(verticalAlignment = Alignment.Bottom) {
-                            HeroNumber(text = w.tempC.roundToInt().toString(), size = 44)
+                            HeroNumber(text = u.temp(w.tempC).toString(), size = 44)
                             Spacer(Modifier.width(4.dp))
-                            Text("°C", color = DashColors.TextSecondary, fontWeight = FontWeight.SemiBold,
+                            Text(u.tempUnit, color = DashColors.TextSecondary, fontWeight = FontWeight.SemiBold,
                                 style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 8.dp))
                         }
                         Text(w.condition, color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleSmall)
                         Text(
                             if (!w.hiC.isNaN()) {
                                 stringResource(
-                                    R.string.info_weather_details_range, w.feelsC.roundToInt(), w.windKmh.roundToInt(),
-                                    w.loC.roundToInt(), w.hiC.roundToInt()
+                                    if (u.imperial) R.string.units_weather_details_range_mph else R.string.info_weather_details_range,
+                                    u.temp(w.feelsC), u.speed(w.windKmh), u.temp(w.loC), u.temp(w.hiC)
                                 )
                             } else {
-                                stringResource(R.string.info_weather_details, w.feelsC.roundToInt(), w.windKmh.roundToInt())
+                                stringResource(
+                                    if (u.imperial) R.string.units_weather_details_mph else R.string.info_weather_details,
+                                    u.temp(w.feelsC), u.speed(w.windKmh)
+                                )
                             },
                             color = DashColors.Muted, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis
                         )
@@ -447,7 +453,7 @@ internal fun CalendarCard(modifier: Modifier = Modifier) {
 
 @Composable
 private fun AgendaRow(e: AgendaEvent, onGuide: () -> Unit) {
-    val timeFmt = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
+    val timeFmt = rememberTimeFormat()
     val dayFmt = remember { SimpleDateFormat("EEE", Locale.getDefault()) }
     val today = remember(e.begin) {
         val a = java.util.Calendar.getInstance(); val b = java.util.Calendar.getInstance().apply { timeInMillis = e.begin }
@@ -664,7 +670,7 @@ internal fun NotificationsCard(hasAccess: Boolean, modifier: Modifier = Modifier
     val context = LocalContext.current
     val items by NotificationFeed.items.collectAsState()
     val phoneConnected = PhoneLink.state.collectAsState().value is PhoneLinkState.Connected
-    val timeFmt = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
+    val timeFmt = rememberTimeFormat()
     var opened by remember { mutableStateOf<NotifItem?>(null) }
 
     Card(modifier = modifier) {

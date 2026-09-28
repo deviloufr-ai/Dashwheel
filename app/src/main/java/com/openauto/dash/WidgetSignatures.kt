@@ -828,7 +828,8 @@ private fun Printout(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
     val paperInk = Color(0xFF1D1D1D)
     val size = m.sp(max(m.u * 5.6f, 9f))
     val now = rememberNow(60_000L)
-    val stamp = remember(now) { SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(now) }
+    val timePattern = LocalUnits.current.timePattern()
+    val stamp = remember(now, timePattern) { SimpleDateFormat("dd/MM/yyyy $timePattern", Locale.getDefault()).format(now) }
     val lines = (f.stats.map { it.label to it.value } + f.rows.map { it.title to it.detail }).take(4)
     val torn = remember {
         GenericShape { s, _ ->

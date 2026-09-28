@@ -135,13 +135,15 @@ internal fun HeroNumber(text: String, size: Int, modifier: Modifier = Modifier, 
 /** Just the speed, as large as the tile allows. OBD when connected, GPS otherwise. */
 @Composable
 internal fun SpeedHudCard(obdData: ObdData, obdConnected: Boolean, modifier: Modifier = Modifier) {
-    val speed = rememberSpeedKmh(obdData, if (obdConnected) ObdConnectionState.CONNECTED else ObdConnectionState.DISCONNECTED)
+    val kmh = rememberSpeedKmh(obdData, if (obdConnected) ObdConnectionState.CONNECTED else ObdConnectionState.DISCONNECTED)
     val source = when {
         obdConnected -> "OBD"
-        speed != null -> "GPS"
+        kmh != null -> "GPS"
         else -> stringResource(R.string.info_speed_no_signal)
     }
-    val over = (speed ?: 0) >= SPEED_WARNING_KMH
+    val over = (kmh ?: 0) >= SPEED_WARNING_KMH
+    val u = LocalUnits.current
+    val speed = kmh?.let { u.speed(it) }
 
     Card(modifier = modifier) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(DashSpace.Lg)) {
@@ -174,7 +176,7 @@ internal fun SpeedHudCard(obdData: ObdData, obdConnected: Boolean, modifier: Mod
                         }
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            "KM/H",
+                            u.speedUnit.uppercase(),
                             color = DashColors.TextSecondary,
                             fontWeight = FontWeight.SemiBold,
                             letterSpacing = 0.25.em,
@@ -285,12 +287,13 @@ internal fun CompassCard(modifier: Modifier = Modifier) {
 @Composable
 private fun CompassFooter(locationState: State<Location?>) {
     val location = locationState.value
+    val u = LocalUnits.current
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         StatBlock(stringResource(R.string.info_compass_altitude), location?.takeIf { it.hasAltitude() }?.let { "${it.altitude.roundToInt()} m" } ?: "--")
-        StatBlock(stringResource(R.string.info_compass_gps_speed), location?.let { "${(it.speed * 3.6f).roundToInt()} km/h" } ?: "--")
+        StatBlock(stringResource(R.string.info_compass_gps_speed), location?.let { u.speedText(it.speed * 3.6f) } ?: "--")
         StatBlock(stringResource(R.string.info_compass_accuracy), location?.let { "±${it.accuracy.roundToInt()} m" } ?: "--")
     }
 }
@@ -320,8 +323,9 @@ internal fun StatBlock(label: String, value: String, modifier: Modifier = Modifi
 internal fun TripCard(modifier: Modifier = Modifier) {
     UseLocationFeed()
     val trip by LocationFeed.trip.collectAsState()
-    val km = trip.distanceM / 1000.0
-    val since = remember(trip.startedAt) { formatClock(trip.startedAt) }
+    val u = LocalUnits.current
+    val km = u.distance(trip.distanceM / 1000.0)
+    val since = remember(trip.startedAt, u) { formatClock(trip.startedAt, u) }
 
     Card(modifier = modifier) {
         Column(modifier = Modifier.fillMaxSize().padding(DashSpace.Lg)) {
@@ -338,7 +342,7 @@ internal fun TripCard(modifier: Modifier = Modifier) {
                     Row(verticalAlignment = Alignment.Bottom) {
                         HeroNumber(text = if (km < 100) String.format(Locale.getDefault(), "%.1f", km) else km.roundToInt().toString(), size = 48)
                         Spacer(Modifier.width(6.dp))
-                        Text("KM", color = DashColors.TextSecondary, fontWeight = FontWeight.SemiBold, letterSpacing = 0.2.em,
+                        Text(u.distanceUnit.uppercase(), color = DashColors.TextSecondary, fontWeight = FontWeight.SemiBold, letterSpacing = 0.2.em,
                             style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(bottom = 8.dp))
                     }
                     Text(stringResource(R.string.info_trip_since, since), color = DashColors.Muted, style = MaterialTheme.typography.labelSmall)
@@ -346,8 +350,8 @@ internal fun TripCard(modifier: Modifier = Modifier) {
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     TripElapsedRow(stringResource(R.string.info_trip_time), trip)
                     TripRow(stringResource(R.string.info_trip_moving), formatDuration(trip.movingMs))
-                    TripRow(stringResource(R.string.info_trip_average), "${trip.avgSpeedKmh.roundToInt()} km/h")
-                    TripRow(stringResource(R.string.info_trip_top), "${trip.maxSpeedKmh.roundToInt()} km/h")
+                    TripRow(stringResource(R.string.info_trip_average), u.speedText(trip.avgSpeedKmh))
+                    TripRow(stringResource(R.string.info_trip_top), u.speedText(trip.maxSpeedKmh))
                 }
             }
         }
@@ -379,8 +383,8 @@ internal fun formatDuration(ms: Long): String {
     else stringResource(R.string.info_duration_ms, m, s % 60)
 }
 
-internal fun formatClock(epochMs: Long): String =
-    java.text.SimpleDateFormat("HH:mm", Locale.getDefault()).format(java.util.Date(epochMs))
+internal fun formatClock(epochMs: Long, units: UnitSystem = Units.current.value): String =
+    units.time(java.util.Date(epochMs))
 
 // --- G-force --------------------------------------------------------------------
 
@@ -577,8 +581,11 @@ internal fun walkTo(context: Context, spot: ParkingSpot) {
     }
 }
 
-internal fun formatDistance(m: Float): String =
-    if (m < 1000f) "${m.roundToInt()} m" else String.format(Locale.getDefault(), "%.1f km", m / 1000f)
+internal fun formatDistance(m: Float, units: UnitSystem = Units.current.value): String = when {
+    units.imperial -> units.shortDistance(m.toDouble())
+    m < 1000f -> "${m.roundToInt()} m"
+    else -> String.format(Locale.getDefault(), "%.1f km", m / 1000f)
+}
 
 @Composable
 internal fun formatAgo(epochMs: Long): String {

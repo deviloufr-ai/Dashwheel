@@ -58,9 +58,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 import androidx.compose.foundation.BorderStroke
 
 /*
@@ -392,8 +390,7 @@ internal fun DockDivider(onDrag: (Float) -> Unit, onDragEnd: () -> Unit, vertica
     }
 }
 
-internal fun currentClock(): String =
-    SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
+internal fun currentClock(units: UnitSystem = Units.current.value): String = units.time(Date())
 
 /**
  * [content] that goes away with a swipe to either side, like a notification on

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="units_title">Einheiten</string>
+    <string name="units_speed">Tempo und Strecke</string>
+    <string name="units_temp">Temperatur</string>
+    <string name="units_economy">Verbrauch</string>
+    <string name="units_clock">Uhr</string>
+    <string name="units_auto">Auto</string>
+    <string name="units_auto_hint">Auto folgt den Einstellungen des Radios: %1$s</string>
+
+    <string name="units_eco_fuel_mi">Kraftstoff für %1$s mi</string>
+    <string name="units_fuel_dest_spare_unit_mi">mi Reserve</string>
+    <string name="units_fuel_dest_detail_mi">%1$d mi Reichweite · noch %2$d mi</string>
+    <string name="units_fuel_none_mi">Keine Tankstelle mit diesem Kraftstoff im Umkreis von %1$d mi. Preise gibt es nur für Frankreich.</string>
+    <plurals name="units_fuel_stations_mi">
+        <item quantity="one">%1$d Tankstelle im Umkreis von %2$d mi</item>
+        <item quantity="other">%1$d Tankstellen im Umkreis von %2$d mi</item>
+    </plurals>
+    <string name="units_weather_details_mph">Gefühlt %1$d° · Wind %2$d mph</string>
+    <string name="units_weather_details_range_mph">Gefühlt %1$d° · Wind %2$d mph · %3$d° / %4$d°</string>
+    <string name="units_speed_fix_now_mph">Aktuell: %1$d mph. Anpassen, bis es mit dem Tacho übereinstimmt.</string>
+    <string name="units_mi_to_empty">MI BIS LEER</string>
+    <string name="units_upkeep_next_mi">%1$s in %2$s mi</string>
+    <string name="units_upkeep_overdue_mi">%1$s seit %2$s mi überfällig</string>
+    <string name="units_upkeep_row_mi">%1$s mi</string>
+    <string name="units_upkeep_odometer_mi">Stand in Meilen</string>
+    <string name="units_upkeep_odometer_as_of_mi">Eingegeben %1$s, seitdem %2$d mi gefahren</string>
+    <string name="units_upkeep_every_mi">Intervall in Meilen</string>
+    <string name="units_upkeep_last_mi">Zuletzt bei Meile</string>
+    <string name="units_cockpit_feels_wind_mph">GEFÜHLT %1$d° · WIND %2$d MPH</string>
+    <string name="units_orbit_wind_mph">Wind %1$d mph</string>
+    <string name="units_orbit_feels_wind_mph">gefühlt %1$d° · %2$d mph</string>
+    <string name="units_horizon_wind_mph">Wind %1$d mph</string>
+    <string name="units_tape_feels_wind_caps_mph">GEFÜHLT %1$d° · WIND %2$d MPH</string>
+    <string name="units_canvas_fuel_left_mi">%1$d mi Kraftstoff übrig</string>
+    <string name="units_alert_coolant_f">Kühlmittel %1$d°F</string>
+    <string name="units_car_filter_needs_drive_mph">20 Min. über 40 mph einplanen</string>
+
+    <string name="units_briefing_fuel_low_mi">Wenig Kraftstoff: noch etwa %1$d Meilen, bald tanken.</string>
+    <string name="units_voice_status_range_mi">Kraftstoff für etwa %1$d Meilen.</string>
+    <plurals name="units_voice_fuel_station_mi">
+        <item quantity="one">Die günstigste Tankstelle in der Nähe ist %1$s, %2$d Meile entfernt.</item>
+        <item quantity="other">Die günstigste Tankstelle in der Nähe ist %1$s, %2$d Meilen entfernt.</item>
+    </plurals>
+    <string name="units_car_say_fuel_short_mi">Ihre Reichweite von %1$d Meilen reicht nicht bis zum Ziel in %2$d Meilen. Bitte einen Tankstopp einplanen.</string>
+    <string name="units_car_say_filter_mph">Die letzten %1$d Fahrten waren kurz. Wenn möglich 15 bis 20 Minuten über 40 Meilen pro Stunde fahren, damit sich der Partikelfilter reinigen kann.</string>
+    <string name="units_upkeep_say_overdue_mi">%1$s seit %2$d Meilen überfällig.</string>
+    <string name="units_upkeep_say_soon_mi">%1$s in %2$d Meilen fällig.</string>
+</resources>

@@ -301,8 +301,9 @@ private fun CanvasSpeed(env: SkinTileEnv) {
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Num(speed?.toString() ?: "–", d.value * 0.32f, if (fast) DashColors.Warning else DashColors.TextPrimary)
-                Label("km/h", (d.value * 0.075f).coerceAtLeast(13f))
+                val units = LocalUnits.current
+                Num(speed?.let { units.speed(it).toString() } ?: "–", d.value * 0.32f, if (fast) DashColors.Warning else DashColors.TextPrimary)
+                Label(units.speedUnit, (d.value * 0.075f).coerceAtLeast(13f))
                 if (connected && d >= 200.dp) {
                     Spacer(Modifier.height(4.dp))
                     Label(String.format(Locale.getDefault(), "%,d rpm", env.obdData.rpm), 14f, DashColors.Muted)
@@ -328,9 +329,10 @@ private fun CanvasCar(env: SkinTileEnv) {
     val problems by Tyres.problems.collectAsState()
     val unit by Tyres.unit.collectAsState()
     val tyre = problems.keys.firstNotNullOfOrNull { pos -> tyres[pos]?.let { pos to it } }
+    val units = LocalUnits.current
     val lines = buildList {
-        fuel?.let { add(CarLine(stringResource(R.string.car_status_range), "${it.rangeKm} km", it.percent <= 10)) }
-        if (connected && d.coolantTempC > 0) add(CarLine(stringResource(R.string.info_chip_coolant), "${d.coolantTempC} °C", d.coolantTempC >= 105))
+        fuel?.let { add(CarLine(stringResource(R.string.car_status_range), units.distanceText(it.rangeKm), it.percent <= 10)) }
+        if (connected && d.coolantTempC > 0) add(CarLine(stringResource(R.string.info_chip_coolant), units.tempText(d.coolantTempC), d.coolantTempC >= 105))
         if (connected && d.voltage > 0.0) add(CarLine(stringResource(R.string.info_chip_battery), String.format(Locale.getDefault(), "%.1f V", d.voltage), d.voltage < 11.8))
         tyre?.let { (pos, t) -> add(CarLine(stringResource(pos.labelRes), formatPressure(t.kPa, unit), true)) }
     }
@@ -365,9 +367,10 @@ private fun CanvasRange(env: SkinTileEnv) {
             Label(stringResource(R.string.car_status_range))
         }
         Row(verticalAlignment = Alignment.Bottom) {
-            Num(fuel.rangeKm.toString(), 48f, if (low) DashColors.Warning else DashColors.TextPrimary)
+            val units = LocalUnits.current
+            Num(units.distance(fuel.rangeKm).toString(), 48f, if (low) DashColors.Warning else DashColors.TextPrimary)
             Spacer(Modifier.width(6.dp))
-            Label("km", 20f, modifier = Modifier.padding(bottom = 6.dp))
+            Label(units.distanceUnit, 20f, modifier = Modifier.padding(bottom = 6.dp))
         }
         Box(Modifier.fillMaxWidth().height(8.dp).clip(CircleShape).background(DashColors.CardHi)) {
             Box(Modifier.fillMaxWidth(fuel.percent / 100f).fillMaxHeight().clip(CircleShape).background(if (low) DashColors.Warning else DashColors.TextPrimary))
@@ -468,7 +471,7 @@ private fun MediaKey(icon: androidx.compose.ui.graphics.vector.ImageVector, desc
 private fun CanvasClock() {
     val context = LocalContext.current
     val now = rememberNow(1_000L)
-    val time = remember { java.text.SimpleDateFormat("HH:mm", Locale.getDefault()) }
+    val time = rememberTimeFormat()
     val date = rememberDateFormat("EEEEdMMMM", best = true)
     Column(
         modifier = Modifier.fillMaxSize().then(canvasGlass()).clickable { openClockApp(context) }.padding(20.dp),
@@ -482,13 +485,14 @@ private fun CanvasClock() {
 @Composable
 private fun CanvasWeather() {
     val weather = rememberWeather()
-    val time = remember { java.text.SimpleDateFormat("HH:mm", Locale.getDefault()) }
+    val time = rememberTimeFormat()
+    val units = LocalUnits.current
     val now = System.currentTimeMillis()
     Column(modifier = Modifier.fillMaxSize().then(canvasGlass()).padding(20.dp), verticalArrangement = Arrangement.Center) {
         if (weather == null) {
             Num("--°", 48f, DashColors.Muted)
         } else {
-            Num(String.format(Locale.getDefault(), "%.0f°", weather.tempC), 52f)
+            Num(String.format(Locale.getDefault(), "%.0f°", units.tempExact(weather.tempC)), 52f)
             Label(weather.condition, 18f)
             val from = weather.rainFromMs
             val until = weather.rainUntilMs
@@ -523,7 +527,8 @@ private fun CanvasJourney(env: SkinTileEnv) {
     val context = LocalContext.current
     val nav by NavDirections.state.collectAsState()
     val clock = rememberWallClock(30_000L).longValue
-    val timeFmt = remember { java.text.SimpleDateFormat("HH:mm", Locale.getDefault()) }
+    val timeFmt = rememberTimeFormat()
+    val units = LocalUnits.current
     fun hm(ms: Long) = timeFmt.format(Date(ms))
 
     UseLocationFeed()
@@ -564,7 +569,8 @@ private fun CanvasJourney(env: SkinTileEnv) {
     val endStop = if (nav.active) {
         val spare = fuel?.takeIf { it.toGoKm != null }?.spareKm
         Stop(end, if (arrival != null) hm(arrival) else nav.etaParts.lastOrNull().orEmpty(),
-            spare?.let { stringResource(R.string.canvas_fuel_left, it) } ?: nav.etaParts.firstOrNull().orEmpty())
+            spare?.let { stringResource(if (units.imperial) R.string.units_canvas_fuel_left_mi else R.string.canvas_fuel_left, units.distance(it)) }
+                ?: nav.etaParts.firstOrNull().orEmpty())
     } else null
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize().then(canvasGlass())) {
@@ -662,8 +668,9 @@ private fun JourneyLine(
     val good = DashColors.Good
     val bg = DashColors.Background
     val faint = DashColors.Muted
-    // The hours as the dashboard's clock writes them (HH:mm everywhere).
-    val hourFmt = remember { java.text.SimpleDateFormat("H:mm", Locale.getDefault()) }
+    // The hours as the dashboard's clock writes them: "15:00", or "3 PM" on a 12-hour clock.
+    val clock24 = LocalUnits.current.clock24
+    val hourFmt = remember(clock24) { java.text.SimpleDateFormat(if (clock24) "H:mm" else "h a", Locale.getDefault()) }
     BoxWithConstraints(modifier = modifier) {
         val w = maxWidth
         val lineY = maxHeight * if (header != null) 0.40f else 0.34f

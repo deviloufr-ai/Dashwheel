@@ -43,6 +43,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import kotlin.math.roundToInt
 
 /*
  * The servicing tile (mileage, what's due next, every item's count-down) and
@@ -66,11 +67,14 @@ internal fun upkeepLine(d: UpkeepDue): String {
     val name = stringResource(d.kind.labelRes)
     val km = d.kmLeft
     val days = d.daysLeft
+    val u = LocalUnits.current
     return when {
-        d.stage == UpkeepStage.DUE && km != null && km <= 0 -> stringResource(R.string.upkeep_overdue_km, name, formatKm(-km))
+        d.stage == UpkeepStage.DUE && km != null && km <= 0 ->
+            stringResource(if (u.imperial) R.string.units_upkeep_overdue_mi else R.string.upkeep_overdue_km, name, formatKm(u.distance(-km)))
         d.stage == UpkeepStage.DUE -> stringResource(R.string.upkeep_overdue_days, name, -(days ?: 0))
         d.stage == UpkeepStage.UNKNOWN -> name
-        km != null && (days == null || km / 50 <= days) -> stringResource(R.string.upkeep_next_km, name, formatKm(km))
+        km != null && (days == null || km / 50 <= days) ->
+            stringResource(if (u.imperial) R.string.units_upkeep_next_mi else R.string.upkeep_next_km, name, formatKm(u.distance(km)))
         else -> stringResource(R.string.upkeep_next_days, name, days ?: 0)
     }
 }
@@ -80,9 +84,11 @@ internal fun upkeepLine(d: UpkeepDue): String {
 internal fun upkeepLeft(d: UpkeepDue): String {
     val km = d.kmLeft
     val days = d.daysLeft
+    val u = LocalUnits.current
     return when {
         d.stage == UpkeepStage.UNKNOWN -> stringResource(R.string.upkeep_not_set)
-        km != null && (days == null || km / 50 <= days) -> stringResource(R.string.upkeep_row_km, formatKm(km))
+        km != null && (days == null || km / 50 <= days) ->
+            stringResource(if (u.imperial) R.string.units_upkeep_row_mi else R.string.upkeep_row_km, formatKm(u.distance(km)))
         else -> stringResource(R.string.upkeep_row_days, days ?: 0)
     }
 }
@@ -102,10 +108,11 @@ internal fun ServiceCard(modifier: Modifier = Modifier) {
         ) {
             TileHeader(stringResource(R.string.upkeep_title))
             val odo = state.odometer
+            val u = LocalUnits.current
             Row(verticalAlignment = Alignment.Bottom) {
-                HeroNumber(text = odo?.let { formatKm(it.nowKm) } ?: "--", size = 34, dimmed = odo == null)
+                HeroNumber(text = odo?.let { formatKm(u.distance(it.nowKm)) } ?: "--", size = 34, dimmed = odo == null)
                 Spacer(Modifier.width(6.dp))
-                Text("km", color = DashColors.TextSecondary, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge,
+                Text(u.distanceUnit, color = DashColors.TextSecondary, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.padding(bottom = 5.dp))
             }
             val (status, color) = when {
@@ -137,15 +144,18 @@ internal fun UpkeepDialog(onDismiss: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val state by Maintenance.state.collectAsState()
-    var odoText by remember { mutableStateOf(state.odometer?.nowKm?.toString().orEmpty()) }
+    // Typed and shown in the driver's unit, kept in km.
+    val u = LocalUnits.current
+    var odoText by remember { mutableStateOf(state.odometer?.nowKm?.let { u.distance(it) }?.toString().orEmpty()) }
     var fetchResult by remember { mutableStateOf<Pair<Boolean, String>?>(null) }
     val now = System.currentTimeMillis()
     val dues = remember(state) { state.statuses(now) }
     val monthFmt = remember { SimpleDateFormat("yyyy-MM", Locale.US) }
+    val toKm = { shown: Int? -> shown?.let { u.km(it.toDouble()).roundToInt() } }
 
     fun commitOdometer() {
-        val km = odoText.trim().replace(" ", "").replace(",", "").replace(".", "").toIntOrNull() ?: return
-        if (km > 0 && km != state.odometer?.nowKm) Maintenance.setOdometer(km)
+        val typed = odoText.trim().replace(" ", "").replace(",", "").replace(".", "").toIntOrNull() ?: return
+        if (typed > 0 && typed != state.odometer?.nowKm?.let { u.distance(it) }) Maintenance.setOdometer(u.km(typed.toDouble()).roundToInt())
     }
 
     val leave = { commitOdometer(); onDismiss() }
@@ -156,7 +166,7 @@ internal fun UpkeepDialog(onDismiss: () -> Unit) {
     ) {
         Text(stringResource(R.string.upkeep_explanation), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
 
-        Label(stringResource(R.string.upkeep_odometer))
+        Label(stringResource(if (u.imperial) R.string.units_upkeep_odometer_mi else R.string.upkeep_odometer))
         OutlinedTextField(
             value = odoText,
             onValueChange = { odoText = it },
@@ -168,9 +178,9 @@ internal fun UpkeepDialog(onDismiss: () -> Unit) {
         state.odometer?.let { odo ->
             Text(
                 stringResource(
-                    R.string.upkeep_odometer_as_of,
+                    if (u.imperial) R.string.units_upkeep_odometer_as_of_mi else R.string.upkeep_odometer_as_of,
                     DateUtils.getRelativeTimeSpanString(odo.readAt, now, DateUtils.MINUTE_IN_MILLIS).toString(),
-                    odo.drivenSince.toInt()
+                    u.distance(odo.drivenSince).toInt()
                 ),
                 color = DashColors.Muted, style = MaterialTheme.typography.bodySmall
             )
@@ -210,16 +220,22 @@ internal fun UpkeepDialog(onDismiss: () -> Unit) {
                 Text(upkeepLeft(d), color = d.stage.color, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                NumField(stringResource(R.string.upkeep_every_km), interval.everyKm, Modifier.weight(1f)) {
-                    Maintenance.setInterval(interval.copy(everyKm = it))
+                NumField(
+                    stringResource(if (u.imperial) R.string.units_upkeep_every_mi else R.string.upkeep_every_km),
+                    interval.everyKm?.let { u.distance(it) }, Modifier.weight(1f)
+                ) {
+                    Maintenance.setInterval(interval.copy(everyKm = toKm(it)))
                 }
                 NumField(stringResource(R.string.upkeep_every_months), interval.everyMonths, Modifier.weight(1f)) {
                     Maintenance.setInterval(interval.copy(everyMonths = it))
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                NumField(stringResource(R.string.upkeep_last_km), done?.km, Modifier.weight(1f)) {
-                    Maintenance.setDone(d.kind, UpkeepDone(km = it, at = done?.at))
+                NumField(
+                    stringResource(if (u.imperial) R.string.units_upkeep_last_mi else R.string.upkeep_last_km),
+                    done?.km?.let { u.distance(it) }, Modifier.weight(1f)
+                ) {
+                    Maintenance.setDone(d.kind, UpkeepDone(km = toKm(it), at = done?.at))
                 }
                 MonthField(stringResource(R.string.upkeep_last_date), done?.at?.let { monthFmt.format(it) }.orEmpty(), Modifier.weight(1f)) { text ->
                     val at = runCatching { monthFmt.parse(text)?.time }.getOrNull()

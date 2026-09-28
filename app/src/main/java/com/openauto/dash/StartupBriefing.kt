@@ -41,7 +41,9 @@ internal data class BriefingFacts(
     val faultsJustSaid: Boolean = false,
     val event: UpcomingEvent? = null,
     /** Servicing coming due (or overdue) that hasn't been announced at that stage yet. */
-    val upkeep: List<UpkeepDue> = emptyList()
+    val upkeep: List<UpkeepDue> = emptyList(),
+    /** The driver's units, for the distances said. */
+    val units: UnitSystem = UnitSystem()
 )
 
 /** Picks the briefing's sentences. Pure, so it's unit-tested. */
@@ -61,7 +63,7 @@ internal object BriefingLines {
                 if (w.tempC.roundToInt() <= ICE_BELOW_C || w.code in FREEZING_CODES) add(SpokenLine(R.string.briefing_ice, emptyList()))
             }
             f.fuel?.let {
-                if (it.percent <= LOW_FUEL_PCT) add(SpokenLine(R.string.briefing_fuel_low, listOf(it.rangeKm)))
+                if (it.percent <= LOW_FUEL_PCT) add(CarCare.fuelLowLine(it.rangeKm, f.units))
             }
             f.faults?.let { codes ->
                 when {
@@ -70,7 +72,7 @@ internal object BriefingLines {
                     else -> add(SpokenLine(R.plurals.briefing_faults, listOf(codes.size), quantity = codes.size))
                 }
             }
-            f.upkeep.forEach { add(UpkeepRules.line(it)) }
+            f.upkeep.forEach { add(UpkeepRules.line(it, f.units)) }
             f.event?.let { add(SpokenLine(R.string.briefing_event, listOf(it.title, it.time))) }
         }
         return if (body.isEmpty()) emptyList() else listOf(greeting(f.hour)) + body
@@ -83,7 +85,12 @@ internal object BriefingLines {
      * everything due or nearly, said before or not.
      */
     fun status(f: BriefingFacts): List<SpokenLine> = buildList {
-        f.fuel?.let { add(SpokenLine(if (it.percent <= LOW_FUEL_PCT) R.string.briefing_fuel_low else R.string.voice_status_range, listOf(it.rangeKm))) }
+        f.fuel?.let {
+            add(
+                if (it.percent <= LOW_FUEL_PCT) CarCare.fuelLowLine(it.rangeKm, f.units)
+                else SpokenLine(if (f.units.imperial) R.string.units_voice_status_range_mi else R.string.voice_status_range, listOf(f.units.distance(it.rangeKm)))
+            )
+        }
         f.weather?.let { w ->
             if (w.tempC.roundToInt() <= ICE_BELOW_C || w.code in FREEZING_CODES) add(SpokenLine(R.string.briefing_ice, emptyList()))
         }
@@ -94,7 +101,7 @@ internal object BriefingLines {
                 else -> add(SpokenLine(R.plurals.briefing_faults, listOf(codes.size), quantity = codes.size))
             }
         }
-        f.upkeep.forEach { add(UpkeepRules.line(it)) }
+        f.upkeep.forEach { add(UpkeepRules.line(it, f.units)) }
         f.event?.let { add(SpokenLine(R.string.briefing_event, listOf(it.title, it.time))) }
         if (isEmpty()) add(SpokenLine(R.string.voice_status_nothing, emptyList()))
     }
@@ -238,7 +245,8 @@ object StartupBriefing {
                 faults = engine.codes,
                 faultSummary = engine.diagnosis?.summary,
                 event = withContext(Dispatchers.IO) { nextEvent(app, config.language) },
-                upkeep = Maintenance.state.value.statuses(now).filter { it.stage == UpkeepStage.SOON || it.stage == UpkeepStage.DUE }
+                upkeep = Maintenance.state.value.statuses(now).filter { it.stage == UpkeepStage.SOON || it.stage == UpkeepStage.DUE },
+                units = Units.current.value
             )
             val resources = config.language.resources(app)
             CarVoice.setContext(app)
@@ -261,7 +269,8 @@ object StartupBriefing {
             faultSummary = state?.diagnosis?.summary,
             faultsJustSaid = codes != null && justSaid(codes, state.diagnosis?.summary, startedAt),
             event = withContext(Dispatchers.IO) { nextEvent(context, language) },
-            upkeep = Maintenance.dueForBriefing(startedAt)
+            upkeep = Maintenance.dueForBriefing(startedAt),
+            units = Units.current.value
         )
     }
 

@@ -73,9 +73,11 @@ private val CareCall.tone: Tone
  */
 internal class CareCall(@StringRes val text: Int, val level: Int, val neutral: Boolean = false)
 
-internal fun filterCall(shortStreak: Int): CareCall = when {
+/** [imperial]: the drive it asks for is above 40 mph rather than 60 km/h. */
+internal fun filterCall(shortStreak: Int, imperial: Boolean = false): CareCall = when {
     shortStreak >= 6 -> CareCall(R.string.car_filter_needs_drive_now, 2)
-    shortStreak >= CareRules.FILTER_WARN_STREAK -> CareCall(R.string.car_filter_needs_drive, 1)
+    shortStreak >= CareRules.FILTER_WARN_STREAK ->
+        CareCall(if (imperial) R.string.units_car_filter_needs_drive_mph else R.string.car_filter_needs_drive, 1)
     else -> CareCall(R.string.car_filter_ok, 0)
 }
 
@@ -219,7 +221,7 @@ internal fun FilterCareCard(modifier: Modifier = Modifier) {
             return@CareCard
         }
         val streak = care.filter.shortStreak
-        val call = filterCall(streak)
+        val call = filterCall(streak, LocalUnits.current.imperial)
         Reading(streak.toString(), stringResource(R.string.car_filter_short_unit))
         Status(stringResource(call.text), call.tone)
         // The real soot load, when the experimental reading finder got the car to give it up.
@@ -253,12 +255,13 @@ internal fun WarmupCard(obd: ObdData, connected: Boolean, modifier: Modifier = M
     val care by CarCare.state.collectAsState()
     CareCard(stringResource(R.string.car_warmup_title), modifier) {
         val t = obd.coolantTempC
+        val u = LocalUnits.current
         if (!connected || t == 0) {
-            Reading("--", "°C", dimmed = true)
+            Reading("--", u.tempUnit, dimmed = true)
             Hint(stringResource(R.string.car_waiting_obd))
             return@CareCard
         }
-        Reading(t.toString(), "°C")
+        Reading(u.temp(t).toString(), u.tempUnit)
         val call = warmupCall(t, car)
         Meter(t.toFloat() / car.hotC, call.tone.color)
         Status(stringResource(call.text, car.coldRpmLimit), call.tone)
@@ -330,8 +333,9 @@ internal fun EcoDriveCard(modifier: Modifier = Modifier) {
         }
         // What the drive burned at the car's usual consumption, and what it cost.
         val liters = drive.distanceKm * car.typicalUse / 100
+        val u = LocalUnits.current
         InfoRow(
-            stringResource(R.string.car_eco_fuel, decimal(drive.distanceKm)),
+            stringResource(if (u.imperial) R.string.units_eco_fuel_mi else R.string.car_eco_fuel, decimal(u.distance(drive.distanceKm))),
             stringResource(R.string.car_eco_fuel_value, decimal(liters), decimal(liters * car.fuelPrice, 2), car.currency)
         )
     }
@@ -342,23 +346,32 @@ internal fun EcoDriveCard(modifier: Modifier = Modifier) {
 @Composable
 internal fun FuelToDestCard(modifier: Modifier = Modifier) {
     val trip = rememberFuelToDest()
+    val u = LocalUnits.current
     CareCard(stringResource(R.string.car_fuel_dest_title), modifier) {
         if (trip == null) {
-            Reading("--", "km", dimmed = true)
+            Reading("--", u.distanceUnit, dimmed = true)
             Hint(stringResource(R.string.car_fuel_dest_no_range))
             return@CareCard
         }
         val verdict = trip.verdict
         if (verdict == null) {
-            Reading(trip.rangeKm.toString(), "km")
+            Reading(u.distance(trip.rangeKm).toString(), u.distanceUnit)
             Hint(stringResource(R.string.car_fuel_dest_no_nav))
             return@CareCard
         }
         val call = fuelCall(verdict)
-        Reading(trip.spareKm.toString(), stringResource(R.string.car_fuel_dest_spare_unit))
+        Reading(
+            u.distance(trip.spareKm).toString(),
+            stringResource(if (u.imperial) R.string.units_fuel_dest_spare_unit_mi else R.string.car_fuel_dest_spare_unit)
+        )
         Meter(trip.usedFraction, call.tone.color)
         Status(stringResource(call.text), call.tone)
-        Hint(stringResource(R.string.car_fuel_dest_detail, trip.rangeKm, trip.km.toInt()))
+        Hint(
+            stringResource(
+                if (u.imperial) R.string.units_fuel_dest_detail_mi else R.string.car_fuel_dest_detail,
+                u.distance(trip.rangeKm), u.distance(trip.km).toInt()
+            )
+        )
     }
 }
 
@@ -451,7 +464,7 @@ private fun tyreText(car: CarProfile): String {
 
 @Composable
 private fun serviceText(car: CarProfile): String = listOfNotNull(
-    car.serviceKm?.let { String.format(Locale.getDefault(), "%,d km", it) },
+    car.serviceKm?.let { LocalUnits.current.let { u -> String.format(Locale.getDefault(), "%,d %s", u.distance(it), u.distanceUnit) } },
     car.serviceMonths?.let { stringResource(R.string.car_months, it) }
 ).joinToString(" / ")
 
@@ -480,13 +493,18 @@ internal fun CarStatusCard(modifier: Modifier = Modifier) {
 @Composable
 internal fun carStatusRows(b: CarBody): List<Pair<String, String>> {
     val lights = lightsOn(b).map { stringResource(it.labelRes) }
-    val km = stringResource(R.string.car_status_km)
+    val u = LocalUnits.current
+    val km = if (u.imperial) u.distanceUnit else stringResource(R.string.car_status_km)
     return listOfNotNull(
         stringResource(R.string.car_status_lights) to (lights.joinToString(", ").ifEmpty { stringResource(R.string.car_status_lights_off) }),
-        b.odometer?.let { stringResource(R.string.car_status_odometer) to "${NumberFormat.getIntegerInstance().format(it.toLong())} $km" },
-        b.trip1?.let { stringResource(R.string.car_status_trip) to "${decimal(it.toDouble(), 1)} $km" },
-        b.instantConsumption?.let { stringResource(R.string.car_status_consumption) to "${decimal(it.toDouble(), 1)} L/100 $km" },
-        b.range?.let { stringResource(R.string.car_status_range) to "${it.toInt()} $km" },
+        b.odometer?.let { stringResource(R.string.car_status_odometer) to "${NumberFormat.getIntegerInstance().format(u.distance(it.toDouble()).toLong())} $km" },
+        b.trip1?.let { stringResource(R.string.car_status_trip) to "${decimal(u.distance(it.toDouble()), 1)} $km" },
+        b.instantConsumption?.let {
+            stringResource(R.string.car_status_consumption) to
+                if (u.economy == Economy.L_PER_100KM) "${decimal(it.toDouble(), 1)} L/100 $km"
+                else "${u.economy(it.toDouble())?.let { e -> decimal(e, 1) } ?: "--"} ${u.economyUnit}"
+        },
+        b.range?.let { stringResource(R.string.car_status_range) to "${u.distance(it.toDouble()).toInt()} $km" },
         stringResource(R.string.car_status_parking_brake) to stringResource(if (b.handbrake) R.string.car_status_on else R.string.car_status_off)
     )
 }

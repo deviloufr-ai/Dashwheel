@@ -1024,7 +1024,7 @@ private fun OutsideTemp() {
     val weather = rememberWeather()
     if (weather != null) {
         Text(
-            "${weather.tempC.roundToInt()}°C",
+            LocalUnits.current.tempTight(weather.tempC),
             style = vfdText(DashColors.Accent2, 20.sp),
             maxLines = 1,
             modifier = Modifier.padding(horizontal = 8.dp)
@@ -1102,8 +1102,10 @@ private fun TapeTelemetry(env: SkinTileEnv) {
     val d = env.obdData
     val speedColor = if (live && d.speedKmh >= SPEED_WARNING_KMH) DashColors.Warning else cyan
     val volts = live && d.voltage > 0.0
+    val units = LocalUnits.current
+    val speedUnit = units.speedUnit.uppercase()
     val readouts = listOf(
-        TdReadout(stringResource(R.string.tape_temp_caps), if (live) "${d.coolantTempC}°C" else "--", live && d.coolantTempC >= 105),
+        TdReadout(stringResource(R.string.tape_temp_caps), if (live) units.tempTight(d.coolantTempC) else "--", live && d.coolantTempC >= 105),
         TdReadout(stringResource(R.string.tape_batt_caps), if (volts) "%.1fV".format(d.voltage) else "--", volts && d.voltage !in 12.0..15.0),
         TdReadout(stringResource(R.string.tape_load_caps), if (live) "${d.engineLoadPct}%" else "--")
     )
@@ -1122,7 +1124,7 @@ private fun TapeTelemetry(env: SkinTileEnv) {
             val valueSize = (maxHeight.value * 0.085f).coerceIn(15f, 40f).sp
             val side = maxWidth > maxHeight * 2.4f
             val showReadouts = maxHeight >= 200.dp
-            val digits = speedDigits(if (live) d.speedKmh else null)
+            val digits = speedDigits(if (live) units.speed(d.speedKmh) else null)
             Column(Modifier.fillMaxSize()) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text(stringResource(R.string.tape_telemetry_caps), style = chromeText(magenta, label), maxLines = 1)
@@ -1138,7 +1140,7 @@ private fun TapeTelemetry(env: SkinTileEnv) {
                 Spacer(Modifier.height(6.dp))
                 if (side) {
                     Row(Modifier.weight(1f).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        SegValue(null, digits, "KM/H", speedColor, label, Modifier.weight(1f).fillMaxHeight())
+                        SegValue(null, digits, speedUnit, speedColor, label, Modifier.weight(1f).fillMaxHeight())
                         Spacer(Modifier.width(16.dp))
                         Column(Modifier.weight(1.1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                             RpmLeds(d.rpm, live, label, Modifier.fillMaxWidth().height(ledH))
@@ -1146,7 +1148,7 @@ private fun TapeTelemetry(env: SkinTileEnv) {
                         }
                     }
                 } else {
-                    SegValue(null, digits, "KM/H", speedColor, label, Modifier.weight(1f).fillMaxWidth())
+                    SegValue(null, digits, speedUnit, speedColor, label, Modifier.weight(1f).fillMaxWidth())
                     Spacer(Modifier.height(8.dp))
                     RpmLeds(d.rpm, live, label, Modifier.fillMaxWidth().height(ledH))
                     if (showReadouts) {
@@ -1195,10 +1197,11 @@ private fun TapeSpeedHud(env: SkinTileEnv) {
                 Text(source, style = vfdText(if (speed != null) DashColors.Good else DashColors.Muted, label), maxLines = 1)
             }
             Spacer(Modifier.height(4.dp))
+            val units = LocalUnits.current
             SegValue(
                 null,
-                if (speed != null) speedDigits(speed) else " --",
-                "KM/H",
+                if (speed != null) speedDigits(units.speed(speed)) else " --",
+                units.speedUnit.uppercase(),
                 if (speed != null) color else color.copy(alpha = 0.5f),
                 label,
                 Modifier.weight(1f).fillMaxWidth()
@@ -1916,7 +1919,8 @@ private fun TurnGlyph(nav: NavState, size: Dp) {
 
 /**
  * HH:MM in cyan seven-segment digits with a blinking colon, the date in magenta
- * monospace underneath. 24-hour, like every other clock in the launcher.
+ * monospace underneath. On a 12-hour clock the hour's first digit stays dark
+ * below ten and AM / PM glows small beside the digits, as on a clock radio.
  */
 @Composable
 private fun TapeClock(env: SkinTileEnv) {
@@ -1926,9 +1930,11 @@ private fun TapeClock(env: SkinTileEnv) {
     val now = rememberNow(60_000L)
     val blink = rememberBlink()
     val locale = Locale.getDefault()
-    val timeFmt = rememberDateFormat("HH:mm")
+    val units = LocalUnits.current
+    val timeFmt = rememberDateFormat(units.digitsPattern())
     val dateFmt = rememberDateFormat("EEEdMMMyyyy", best = true)
     val time = remember(now, timeFmt) { timeFmt.format(now) }
+    val amPm = remember(now, units) { units.amPm(now, locale)?.filter { it.isLetter() }?.uppercase(locale) }
     val date = remember(now, dateFmt) { dateFmt.format(now).uppercase(locale) }
     val digits = time.padStart(5, ' ')
     BoxWithConstraints(
@@ -1943,9 +1949,19 @@ private fun TapeClock(env: SkinTileEnv) {
     ) {
         val dateSize = (maxHeight.value * 0.1f).coerceIn(14f, 26f).sp
         val ratio = segUnits(digits) / SEG_H
-        val digitH = minOf(maxHeight - (dateSize.value * 1.4f).dp - 10.dp, maxWidth / ratio).coerceAtLeast(16.dp)
+        // AM / PM takes about two date letters and a gap off the digits' width.
+        val markerW = if (amPm != null) (dateSize.value * 2.2f + 8f).dp else 0.dp
+        val digitH = minOf(maxHeight - (dateSize.value * 1.4f).dp - 10.dp, (maxWidth - markerW) / ratio).coerceAtLeast(16.dp)
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-            SevenSegment(digits, digitH, cyan, colonOn = { blink.value })
+            if (amPm == null) {
+                SevenSegment(digits, digitH, cyan, colonOn = { blink.value })
+            } else {
+                Row(verticalAlignment = Alignment.Bottom) {
+                    SevenSegment(digits, digitH, cyan, colonOn = { blink.value })
+                    Spacer(Modifier.width(8.dp))
+                    Text(amPm, style = vfdText(cyan, dateSize), maxLines = 1)
+                }
+            }
             Spacer(Modifier.height(8.dp))
             Text(
                 date,
@@ -2076,14 +2092,18 @@ private fun TapeWeather() {
             val iconSize = (tempSize * 0.55f).dp
             val condSize = (tempSize * 0.2f).coerceIn(14f, 28f).sp
             val smallSize = (tempSize * 0.145f).coerceIn(14f, 18f).sp
-            val feels = stringResource(R.string.tape_feels_wind_caps, w.feelsC.roundToInt(), w.windKmh.roundToInt())
+            val units = LocalUnits.current
+            val feels = stringResource(
+                if (units.imperial) R.string.units_tape_feels_wind_caps_mph else R.string.tape_feels_wind_caps,
+                units.temp(w.feelsC), units.speed(w.windKmh)
+            )
             val range = if (w.hiC.isNaN() || w.loC.isNaN()) null
-            else stringResource(R.string.tape_low_high_caps, w.loC.roundToInt(), w.hiC.roundToInt())
+            else stringResource(R.string.tape_low_high_caps, units.temp(w.loC), units.temp(w.hiC))
             val sign: @Composable () -> Unit = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     NeonIcon(weatherIcon(w.code), cyan, iconSize)
                     Spacer(Modifier.width(10.dp))
-                    NeonTubeText("${w.tempC.roundToInt()}°", magenta, tempSize.sp, Modifier.graphicsLayer { alpha = flicker.value })
+                    NeonTubeText("${units.temp(w.tempC)}°", magenta, tempSize.sp, Modifier.graphicsLayer { alpha = flicker.value })
                 }
             }
             val details: @Composable (Alignment.Horizontal) -> Unit = { align ->
@@ -2148,7 +2168,9 @@ private fun TapeRange(item: DashboardItem, env: SkinTileEnv) {
         val stackedDigits = minOf(regionH / 2 - labelH, (maxWidth - 30.dp) / ratio)
         val stacked = stackedDigits > sideDigits
         val pct = fuel.percent.coerceIn(0, 999).toString().padStart(3, ' ')
-        val km = fuel.rangeKm.coerceIn(0, 9999).toString().padStart(3, ' ')
+        val units = LocalUnits.current
+        val km = units.distance(fuel.rangeKm).coerceIn(0, 9999).toString().padStart(3, ' ')
+        val rangeUnit = units.distanceUnit.uppercase()
         val fuelLabel = stringResource(R.string.tape_fuel_caps)
         val rangeLabel = stringResource(R.string.tape_range_caps)
         Column(Modifier.fillMaxSize()) {
@@ -2161,12 +2183,12 @@ private fun TapeRange(item: DashboardItem, env: SkinTileEnv) {
             if (stacked) {
                 Column(Modifier.weight(1f).fillMaxWidth()) {
                     SegValue(fuelLabel, pct, "%", color, label, Modifier.weight(1f).fillMaxWidth())
-                    SegValue(rangeLabel, km, "KM", cyan, label, Modifier.weight(1f).fillMaxWidth())
+                    SegValue(rangeLabel, km, rangeUnit, cyan, label, Modifier.weight(1f).fillMaxWidth())
                 }
             } else {
                 Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                     SegValue(fuelLabel, pct, "%", color, label, Modifier.weight(1f).fillMaxHeight())
-                    SegValue(rangeLabel, km, "KM", cyan, label, Modifier.weight(1f).fillMaxHeight())
+                    SegValue(rangeLabel, km, rangeUnit, cyan, label, Modifier.weight(1f).fillMaxHeight())
                 }
             }
             Spacer(Modifier.height(8.dp))

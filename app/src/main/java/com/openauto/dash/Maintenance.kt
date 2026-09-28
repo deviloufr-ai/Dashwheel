@@ -132,14 +132,17 @@ object UpkeepRules {
         dues.filter { (it.stage == UpkeepStage.SOON || it.stage == UpkeepStage.DUE) && spoken[it.kind] != it.stage }
 
     /** The sentence for one due item; the km count wins over the date when both say something. */
-    internal fun line(d: UpkeepDue): SpokenLine {
+    internal fun line(d: UpkeepDue, units: UnitSystem = UnitSystem()): SpokenLine {
         val name = SpokenLine(d.kind.labelRes, emptyList())
         val km = d.kmLeft
         val days = d.daysLeft
+        val mi = units.imperial
         return when {
-            d.stage == UpkeepStage.DUE && km != null && km <= 0 -> SpokenLine(R.string.upkeep_say_overdue_km, listOf(name, -km))
+            d.stage == UpkeepStage.DUE && km != null && km <= 0 ->
+                SpokenLine(if (mi) R.string.units_upkeep_say_overdue_mi else R.string.upkeep_say_overdue_km, listOf(name, units.distance(-km)))
             d.stage == UpkeepStage.DUE -> SpokenLine(R.string.upkeep_say_overdue_days, listOf(name, -(days ?: 0)))
-            km != null && km <= SOON_KM -> SpokenLine(R.string.upkeep_say_soon_km, listOf(name, km))
+            km != null && km <= SOON_KM ->
+                SpokenLine(if (mi) R.string.units_upkeep_say_soon_mi else R.string.upkeep_say_soon_km, listOf(name, units.distance(km)))
             else -> SpokenLine(R.string.upkeep_say_soon_days, listOf(name, days ?: 0))
         }
     }

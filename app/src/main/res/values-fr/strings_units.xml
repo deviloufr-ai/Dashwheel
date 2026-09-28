@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="units_title">Unités</string>
+    <string name="units_speed">Vitesse et distance</string>
+    <string name="units_temp">Température</string>
+    <string name="units_economy">Consommation</string>
+    <string name="units_clock">Horloge</string>
+    <string name="units_auto">Auto</string>
+    <string name="units_auto_hint">Auto suit les réglages de l\'autoradio : %1$s</string>
+
+    <string name="units_eco_fuel_mi">Carburant sur %1$s mi</string>
+    <string name="units_fuel_dest_spare_unit_mi">mi de marge</string>
+    <string name="units_fuel_dest_detail_mi">%1$d mi d\'autonomie · %2$d mi restants</string>
+    <string name="units_fuel_none_mi">Aucune station vendant ce carburant à moins de %1$d mi. Les prix couvrent la France uniquement.</string>
+    <plurals name="units_fuel_stations_mi">
+        <item quantity="one">%1$d station à moins de %2$d mi</item>
+        <item quantity="many">%1$d stations à moins de %2$d mi</item>
+        <item quantity="other">%1$d stations à moins de %2$d mi</item>
+    </plurals>
+    <string name="units_weather_details_mph">Ressenti %1$d° · Vent %2$d mph</string>
+    <string name="units_weather_details_range_mph">Ressenti %1$d° · Vent %2$d mph · %3$d° / %4$d°</string>
+    <string name="units_speed_fix_now_mph">Vitesse actuelle : %1$d mph. Ajustez jusqu\'à lire la même chose qu\'au compteur.</string>
+    <string name="units_mi_to_empty">MI RESTANTS</string>
+    <string name="units_upkeep_next_mi">%1$s dans %2$s mi</string>
+    <string name="units_upkeep_overdue_mi">%1$s en retard de %2$s mi</string>
+    <string name="units_upkeep_row_mi">%1$s mi</string>
+    <string name="units_upkeep_odometer_mi">Kilométrage en miles</string>
+    <string name="units_upkeep_odometer_as_of_mi">Saisi %1$s, plus %2$d mi parcourus depuis</string>
+    <string name="units_upkeep_every_mi">Intervalle en miles</string>
+    <string name="units_upkeep_last_mi">Fait au mile</string>
+    <string name="units_cockpit_feels_wind_mph">RESSENTI %1$d° · VENT %2$d MPH</string>
+    <string name="units_orbit_wind_mph">Vent %1$d mph</string>
+    <string name="units_orbit_feels_wind_mph">ressenti %1$d° · %2$d mph</string>
+    <string name="units_horizon_wind_mph">vent %1$d mph</string>
+    <string name="units_tape_feels_wind_caps_mph">RESSENTI %1$d° · VENT %2$d MPH</string>
+    <string name="units_canvas_fuel_left_mi">%1$d mi de carburant restant</string>
+    <string name="units_alert_coolant_f">Liquide de refroid. %1$d°F</string>
+    <string name="units_car_filter_needs_drive_mph">Prévoir 20 min au-dessus de 40 mph</string>
+
+    <string name="units_briefing_fuel_low_mi">Réservoir presque vide : environ %1$d miles, prévoyez un plein.</string>
+    <string name="units_voice_status_range_mi">Il reste environ %1$d miles de carburant.</string>
+    <plurals name="units_voice_fuel_station_mi">
+        <item quantity="one">La station la moins chère près d\'ici est %1$s, à %2$d mile.</item>
+        <item quantity="many">La station la moins chère près d\'ici est %1$s, à %2$d miles.</item>
+        <item quantity="other">La station la moins chère près d\'ici est %1$s, à %2$d miles.</item>
+    </plurals>
+    <string name="units_car_say_fuel_short_mi">Votre autonomie de %1$d miles ne suffira pas pour la destination, à %2$d miles. Prévoyez un arrêt carburant.</string>
+    <string name="units_car_say_filter_mph">Vos %1$d derniers trajets étaient courts. Dès que possible, roulez 15 à 20 minutes au-dessus de 40 miles à l\'heure pour que le filtre à particules se nettoie.</string>
+    <string name="units_upkeep_say_overdue_mi">%1$s en retard de %2$d miles.</string>
+    <string name="units_upkeep_say_soon_mi">%1$s à prévoir dans %2$d miles.</string>
+</resources>

@@ -148,7 +148,7 @@ internal object HeadUnitMonitor {
                 announced = true
                 val config = AiSettings.load(context)
                 if (config.speak) {
-                    val line = config.language.resources(context).getString(R.string.monitor_hot_alert, t)
+                    val line = config.language.resources(context).getString(R.string.monitor_hot_alert, Units.current.value.temp(t))
                     CarVoice.speak(line, config.language.locale)
                 }
             }
