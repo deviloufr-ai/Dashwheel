@@ -849,7 +849,7 @@ internal fun CanvasMapSetting() {
     val context = LocalContext.current
     val allowed = remember { EmbeddedApp.allowed(context) }
     if (!allowed) return
-    remember { CanvasTabs.load(context) }
+    CanvasTabs.load(context) // returns at once after the first call
     val chosen by CanvasTabs.mapApp.collectAsState()
     val apps = remember {
         NavDirections.PACKAGES.mapNotNull { pkg ->

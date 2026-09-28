@@ -139,7 +139,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     )
     var layout by remember { mutableStateOf(DashLayoutStore.load(context)) }
     // Canvas over an app (Google Maps as the wallpaper): the pages become the rail's tabs (CanvasTabs.kt).
-    remember { CanvasTabs.load(context) }
+    CanvasTabs.load(context) // returns at once after the first call
     val mapApp by CanvasTabs.mapApp.collectAsState()
     val barLists by CanvasTabs.lists.collectAsState()
     val barApps by CanvasTabs.apps.collectAsState()
