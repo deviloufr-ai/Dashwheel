@@ -123,4 +123,6 @@
     <string name="apps_pair_change">Changer</string>
     <string name="apps_kind_maps_inside">Google Maps intégré</string>
     <string name="apps_kind_maps_inside_blurb">La vraie appli Google Maps, dans cette tuile</string>
+    <string name="apps_kind_dash_bar">Barre des tableaux</string>
+    <string name="apps_kind_dash_bar_blurb">Vos tableaux de bord et vos applis, en un toucher</string>
 </resources>

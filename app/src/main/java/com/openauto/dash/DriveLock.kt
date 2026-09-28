@@ -9,9 +9,11 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 
 /*
  * The drive lock: while the car moves, anything that needs more than a glance
@@ -90,14 +92,7 @@ internal fun rememberMoving(enabled: Boolean, demo: Boolean): State<Boolean> {
     val moving = remember { mutableStateOf(false) }
     UseLocationFeed()
     LaunchedEffect(Unit) {
-        combine(
-            ObdBluetoothManager.connectionState,
-            ObdBluetoothManager.data,
-            CarBox.body,
-            LocationFeed.freshSpeedKmh
-        ) { connection, obd, _, gps ->
-            // The OBD's speed, else the car box's, else the GPS's.
-            val speed = (if (connection == ObdConnectionState.CONNECTED) obd.speedKmh else CarBox.freshBody()?.speedKmh ?: gps) ?: 0
+        carSpeedKmh().map { speed ->
             when {
                 speed >= MOVING_KMH -> true
                 speed <= STOPPED_KMH -> false
@@ -117,4 +112,17 @@ internal fun rememberMoving(enabled: Boolean, demo: Boolean): State<Boolean> {
             }
     }
     return moving
+}
+
+/**
+ * The car's speed: the OBD's when connected, else the car box's, else the
+ * GPS's (which only runs while someone holds [UseLocationFeed]); 0 when none.
+ */
+internal fun carSpeedKmh(): Flow<Int> = combine(
+    ObdBluetoothManager.connectionState,
+    ObdBluetoothManager.data,
+    CarBox.body,
+    LocationFeed.freshSpeedKmh
+) { connection, obd, _, gps ->
+    (if (connection == ObdConnectionState.CONNECTED) obd.speedKmh else CarBox.freshBody()?.speedKmh ?: gps) ?: 0
 }

@@ -73,4 +73,6 @@
     <string name="wheel_unit_knob">Rueda de volumen</string>
     <string name="wheel_unit_key_n">Tecla %1$d</string>
     <string name="wheel_unit_key_code">Tecla de la radio %1$d</string>
+    <string name="wheel_action_next_dashboard">Panel siguiente</string>
+    <string name="wheel_action_previous_dashboard">Panel anterior</string>
 </resources>

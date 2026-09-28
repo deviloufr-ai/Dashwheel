@@ -122,4 +122,6 @@
     <string name="apps_pair_change">Ändern</string>
     <string name="apps_kind_maps_inside">Google Maps eingebettet</string>
     <string name="apps_kind_maps_inside_blurb">Die echte Google-Maps-App in dieser Kachel</string>
+    <string name="apps_kind_dash_bar">Dashboard-Leiste</string>
+    <string name="apps_kind_dash_bar_blurb">Deine Dashboards und Apps, mit einem Tipp</string>
 </resources>

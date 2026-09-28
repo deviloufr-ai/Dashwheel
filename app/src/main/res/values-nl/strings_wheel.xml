@@ -73,4 +73,6 @@
     <string name="wheel_unit_knob">Volumeknop</string>
     <string name="wheel_unit_key_n">Toets %1$d</string>
     <string name="wheel_unit_key_code">Radiotoets %1$d</string>
+    <string name="wheel_action_next_dashboard">Volgend dashboard</string>
+    <string name="wheel_action_previous_dashboard">Vorig dashboard</string>
 </resources>

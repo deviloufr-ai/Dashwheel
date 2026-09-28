@@ -73,4 +73,6 @@
     <string name="wheel_unit_knob">Volume knob</string>
     <string name="wheel_unit_key_n">Key %1$d</string>
     <string name="wheel_unit_key_code">Unit key %1$d</string>
+    <string name="wheel_action_next_dashboard">Next dashboard</string>
+    <string name="wheel_action_previous_dashboard">Previous dashboard</string>
 </resources>

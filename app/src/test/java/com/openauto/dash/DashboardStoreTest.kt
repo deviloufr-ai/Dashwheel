@@ -335,8 +335,9 @@ class DashboardStoreTest {
     @Test
     fun widgetSpecificDesignsOnlyReachTheirWidgets() {
         val framed = setOf(BuiltinKind.NAVMAP, BuiltinKind.PIP_ANCHOR, BuiltinKind.MAPS_INSIDE, BuiltinKind.MY_CAR)
-        // Every redrawn widget gets at least two designs made for it; live views get none.
-        BuiltinKind.entries.filter { it !in framed }.forEach { kind ->
+        // Every redrawn widget gets at least two designs made for it; live views get none,
+        // and the dashboard bar, all buttons, has no designs at all.
+        BuiltinKind.entries.filter { it !in framed && it != BuiltinKind.DASH_BAR }.forEach { kind ->
             assertTrue("$kind", WidgetDesign.entries.count { it.isSignature && it.appliesTo(kind) } >= 2)
         }
         framed.forEach { kind -> assertTrue(WidgetDesign.offeredFor(kind, framed = true).none { it.isSignature }) }

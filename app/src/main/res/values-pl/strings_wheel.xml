@@ -75,4 +75,6 @@
     <string name="wheel_unit_knob">Pokrętło głośności</string>
     <string name="wheel_unit_key_n">Klawisz %1$d</string>
     <string name="wheel_unit_key_code">Klawisz radia %1$d</string>
+    <string name="wheel_action_next_dashboard">Następny pulpit</string>
+    <string name="wheel_action_previous_dashboard">Poprzedni pulpit</string>
 </resources>

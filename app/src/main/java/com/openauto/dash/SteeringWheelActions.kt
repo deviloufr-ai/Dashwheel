@@ -9,6 +9,8 @@ import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.NavigateBefore
+import androidx.compose.material.icons.automirrored.filled.NavigateNext
 import androidx.compose.material.icons.automirrored.filled.VolumeDown
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
@@ -63,6 +65,8 @@ internal enum class SteeringWheelAction(
     SYSTEM_BACK(WheelActionGroup.SYSTEM, R.string.wheel_action_back, Icons.AutoMirrored.Filled.ArrowBack, needsAccessibility = true),
     RECENT_APPS(WheelActionGroup.SYSTEM, R.string.wheel_action_recents, Icons.Filled.ViewAgenda, needsAccessibility = true),
     OPEN_APPS(WheelActionGroup.SYSTEM, R.string.wheel_action_open_apps, Icons.Filled.Apps),
+    NEXT_DASHBOARD(WheelActionGroup.SYSTEM, R.string.wheel_action_next_dashboard, Icons.AutoMirrored.Filled.NavigateNext),
+    PREVIOUS_DASHBOARD(WheelActionGroup.SYSTEM, R.string.wheel_action_previous_dashboard, Icons.AutoMirrored.Filled.NavigateBefore),
     NOTIFICATIONS(WheelActionGroup.SYSTEM, R.string.wheel_action_notifications, Icons.Filled.Notifications, needsAccessibility = true),
     QUICK_SETTINGS(WheelActionGroup.SYSTEM, R.string.wheel_action_quick_settings, Icons.Filled.Tune, needsAccessibility = true),
     VOICE_ASSISTANT(WheelActionGroup.SYSTEM, R.string.wheel_action_voice, Icons.Filled.Mic),
@@ -86,6 +90,8 @@ internal enum class SteeringWheelAction(
             SYSTEM_BACK -> SplitAccessibilityService.globalAction(AccessibilityService.GLOBAL_ACTION_BACK)
             RECENT_APPS -> SplitAccessibilityService.globalAction(AccessibilityService.GLOBAL_ACTION_RECENTS)
             OPEN_APPS -> MainActivity.openAppsRequested.value = System.currentTimeMillis()
+            NEXT_DASHBOARD -> MainActivity.dashboardStep.value = System.currentTimeMillis() to 1
+            PREVIOUS_DASHBOARD -> MainActivity.dashboardStep.value = System.currentTimeMillis() to -1
             NOTIFICATIONS -> SplitAccessibilityService.globalAction(AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS)
             QUICK_SETTINGS -> SplitAccessibilityService.globalAction(AccessibilityService.GLOBAL_ACTION_QUICK_SETTINGS)
             VOICE_ASSISTANT -> startVoiceAssistant(context)

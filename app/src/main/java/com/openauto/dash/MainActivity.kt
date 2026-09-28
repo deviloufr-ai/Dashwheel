@@ -46,6 +46,12 @@ class MainActivity : ComponentActivity() {
         val openAppsRequested = MutableStateFlow(0L)
 
         /**
+         * (when, +1 or -1): a learned steering wheel button asking for the next
+         * or previous dashboard, a tab of the rail over an app, else a page of the row.
+         */
+        val dashboardStep = MutableStateFlow(0L to 0)
+
+        /**
          * True while an app window exists, docked on its tile or parked aside,
          * on a unit that cannot keep the bar off over it ([FreeformBar]):
          * Android then shows the status bar whatever the dashboard asks. Asking

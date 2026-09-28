@@ -353,6 +353,7 @@ private fun CarPane(open: (Deep) -> Unit) {
 private fun LookPane(theme: ThemeState) {
     ThemeGallery(theme)
     Spacer(Modifier.height(20.dp))
+    if (theme.mode == DashThemeMode.CANVAS) CanvasMapSetting()
     AppearanceSetting(theme)
     Spacer(Modifier.height(20.dp))
     EffectsSetting(theme)

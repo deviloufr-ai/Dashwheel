@@ -73,4 +73,6 @@
     <string name="wheel_unit_knob">Molette volume</string>
     <string name="wheel_unit_key_n">Touche %1$d</string>
     <string name="wheel_unit_key_code">Touche autoradio %1$d</string>
+    <string name="wheel_action_next_dashboard">Tableau de bord suivant</string>
+    <string name="wheel_action_previous_dashboard">Tableau de bord précédent</string>
 </resources>

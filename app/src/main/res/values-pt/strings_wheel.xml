@@ -73,4 +73,6 @@
     <string name="wheel_unit_knob">Botão de volume</string>
     <string name="wheel_unit_key_n">Tecla %1$d</string>
     <string name="wheel_unit_key_code">Tecla do rádio %1$d</string>
+    <string name="wheel_action_next_dashboard">Painel seguinte</string>
+    <string name="wheel_action_previous_dashboard">Painel anterior</string>
 </resources>

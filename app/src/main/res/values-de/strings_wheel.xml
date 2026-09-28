@@ -73,4 +73,6 @@
     <string name="wheel_unit_knob">Lautstärkeregler</string>
     <string name="wheel_unit_key_n">Taste %1$d</string>
     <string name="wheel_unit_key_code">Radiotaste %1$d</string>
+    <string name="wheel_action_next_dashboard">Nächstes Dashboard</string>
+    <string name="wheel_action_previous_dashboard">Vorheriges Dashboard</string>
 </resources>

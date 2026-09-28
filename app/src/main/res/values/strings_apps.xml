@@ -122,4 +122,6 @@
     <string name="apps_pair_change">Change</string>
     <string name="apps_kind_maps_inside">Google Maps inside</string>
     <string name="apps_kind_maps_inside_blurb">The real Google Maps app, running in this tile</string>
+    <string name="apps_kind_dash_bar">Dashboard bar</string>
+    <string name="apps_kind_dash_bar_blurb">Your dashboards and apps, one tap each</string>
 </resources>

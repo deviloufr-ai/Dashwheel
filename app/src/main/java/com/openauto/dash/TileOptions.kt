@@ -41,6 +41,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlin.math.max
 import kotlin.math.min
@@ -99,7 +100,9 @@ internal fun TilePanel(
     onMoveTo: (Int) -> Unit,
     onRemove: () -> Unit,
     onClose: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    /** The Dashboard bar's own actions, shown instead of the page picker (the bar is the same on every page). */
+    barActions: (@Composable () -> Unit)? = null
 ) {
     val upright = side == PanelSide.TOP || side == PanelSide.BOTTOM
     SolidCard(modifier = modifier.keepClearOfWindows()) {
@@ -127,7 +130,7 @@ internal fun TilePanel(
                         VerticalDivider(color = DashColors.Line)
                     }
                     Column(modifier = Modifier.width(220.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Controls(item, page, stacked = true, onZoom, onMoveTo, onRemove)
+                        Controls(item, page, stacked = true, onZoom, onMoveTo, onRemove, barActions)
                     }
                 }
             } else {
@@ -135,7 +138,7 @@ internal fun TilePanel(
                     designs(Modifier.weight(1f))
                     HorizontalDivider(color = DashColors.Line)
                 }
-                Controls(item, page, stacked = false, onZoom, onMoveTo, onRemove)
+                Controls(item, page, stacked = false, onZoom, onMoveTo, onRemove, barActions)
             }
         }
     }
@@ -154,7 +157,8 @@ private fun ColumnScope.Controls(
     stacked: Boolean,
     onZoom: (Float) -> Unit,
     onMoveTo: (Int) -> Unit,
-    onRemove: () -> Unit
+    onRemove: () -> Unit,
+    barActions: (@Composable () -> Unit)?
 ) {
     if (item.canZoom()) {
         if (stacked) {
@@ -166,6 +170,11 @@ private fun ColumnScope.Controls(
                 SizeStepper(item.zoom, onZoom)
             }
         }
+    }
+    if (barActions != null) {
+        barActions()
+        RemoveButton(onRemove)
+        return
     }
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Column(modifier = Modifier.weight(1f).height(PAGE_CROSS_HEIGHT)) {
@@ -244,6 +253,10 @@ private val PAGE_CROSS_HEIGHT = PAGE_CELL * 5 + PAGE_GAP * 4
  */
 @Composable
 private fun PageCrossPicker(current: Int, onPick: (Int) -> Unit) {
+    LocalDashboards.current?.takeIf { it.tabbed }?.let { dashboards ->
+        TabPicker(dashboards.tabs, current, onPick)
+        return
+    }
     val centreCol = DashboardStore.ROW.indexOf(DashboardStore.CENTER)
     val cells = DashboardStore.COLUMN.mapIndexed { row, p -> Triple(p, centreCol, row) } +
         DashboardStore.ROW.mapIndexedNotNull { col, p -> if (p == DashboardStore.CENTER) null else Triple(p, col, DashboardStore.COLUMN_HOME) }
@@ -252,15 +265,26 @@ private fun PageCrossPicker(current: Int, onPick: (Int) -> Unit) {
     }
 }
 
+/** Over an app: the tabs with their icons, two to a row in the rail's order, the tile's own filled in. */
 @Composable
-private fun PageCell(page: Int, here: Boolean, col: Int, row: Int, onClick: () -> Unit) {
+private fun TabPicker(tabs: List<CanvasTab>, current: Int, onPick: (Int) -> Unit) {
+    Box(modifier = Modifier.size(width = PAGE_CELL * 3 + PAGE_GAP * 2, height = PAGE_CROSS_HEIGHT)) {
+        tabs.forEachIndexed { t, tab -> PageCell(tab.page, tab.page == current, t % 2, t / 2, TAB_CELL, tab.icon) { onPick(tab.page) } }
+    }
+}
+
+/** A tab's cell: room for its icon. Two to a row and three rows fit where the cross does. */
+private val TAB_CELL = 36.dp
+
+@Composable
+private fun PageCell(page: Int, here: Boolean, col: Int, row: Int, cell: Dp = PAGE_CELL, icon: ImageVector? = null, onClick: () -> Unit) {
     val tap = rememberTapFeedback()
     val shape = RoundedCornerShape(6.dp)
-    val name = stringResource(DashboardStore.nameRes(page))
+    val name = pageName(page)
     Box(
         modifier = Modifier
-            .offset(x = (PAGE_CELL + PAGE_GAP) * col, y = (PAGE_CELL + PAGE_GAP) * row)
-            .size(PAGE_CELL)
+            .offset(x = (cell + PAGE_GAP) * col, y = (cell + PAGE_GAP) * row)
+            .size(cell)
             .clip(shape)
             .then(
                 if (here) Modifier.background(DashColors.Accent).semantics { contentDescription = name }
@@ -268,6 +292,11 @@ private fun PageCell(page: Int, here: Boolean, col: Int, row: Int, onClick: () -
                     .border(1.5.dp, DashColors.TextSecondary, shape)
                     .clickable(role = Role.Button, onClickLabel = name) { tap(); onClick() }
                     .semantics { contentDescription = name }
-            )
-    )
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        if (icon != null) {
+            Icon(icon, contentDescription = null, tint = if (here) DashColors.OnAccent else DashColors.TextSecondary, modifier = Modifier.size(20.dp))
+        }
+    }
 }

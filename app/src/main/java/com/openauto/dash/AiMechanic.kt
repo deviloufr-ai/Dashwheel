@@ -416,6 +416,11 @@ object AiMechanic {
     private val _state = MutableStateFlow(State())
     val state: StateFlow<State> = _state.asStateFlow()
 
+    private val _newFaultAt = MutableStateFlow(0L)
+
+    /** When a scan last found a code the car had not reported before; 0 until one does. The Canvas tabs follow it. */
+    val newFaultAt: StateFlow<Long> = _newFaultAt.asStateFlow()
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     // Scan results can come from the auto-scan and the Scan button at once.
     private val mutex = Mutex()
@@ -445,6 +450,7 @@ object AiMechanic {
     fun report(codes: List<String>, announce: Boolean) {
         // Demo codes are shown as scanned with canned advice, never remembered, asked of Gemini or spoken.
         if (DemoMode.isOn) {
+            if (codes.any { it !in _state.value.codes.orEmpty() }) _newFaultAt.value = System.currentTimeMillis()
             _state.value = DemoMode.mechanicState(codes)
             return
         }
@@ -458,6 +464,7 @@ object AiMechanic {
                 prefs.edit().putString(KEY_KNOWN, list.joinToString(",")).apply()
                 rescan.scanned(ObdBluetoothManager.data.value.rpm)
                 _state.value = State(codes = list)
+                if (list.any { it !in known }) _newFaultAt.value = System.currentTimeMillis()
                 if (list.isNotEmpty()) explain(context, list, fresh = if (announce) list.filter { it !in known } else emptyList())
             }
         }

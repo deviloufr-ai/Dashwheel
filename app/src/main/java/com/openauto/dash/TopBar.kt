@@ -930,7 +930,7 @@ internal fun EditBar(
             Spacer(Modifier.width(4.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    stringResource(R.string.dash_arranging_dashboard, stringResource(DashboardStore.nameRes(page))),
+                    stringResource(R.string.dash_arranging_dashboard, pageName(page)),
                     color = DashColors.TextPrimary,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
@@ -1034,7 +1034,7 @@ internal fun PageIndicator(current: Int, modifier: Modifier = Modifier) {
         }
         Spacer(Modifier.height(8.dp))
         Text(
-            stringResource(DashboardStore.nameRes(current)),
+            pageName(current),
             color = DashColors.TextPrimary,
             fontWeight = FontWeight.SemiBold,
             style = MaterialTheme.typography.labelMedium,

@@ -67,7 +67,9 @@ enum class BuiltinKind(
     // The car's own data from its CAN box, on the QF firmware (CarBox.kt).
     CAR_STATUS(R.string.car_kind_status, WidgetCategory.VEHICLE, R.string.car_kind_status_blurb, 4, 3),
     // The TPMS sensors, through the head unit's TPMS app (Tyres.kt).
-    TYRES(R.string.car_kind_tyres, WidgetCategory.VEHICLE, R.string.car_kind_tyres_blurb, 4, 3)
+    TYRES(R.string.car_kind_tyres, WidgetCategory.VEHICLE, R.string.car_kind_tyres_blurb, 4, 3),
+    // The dashboard bar: dashboards and apps, one tap each, as in the Canvas rail (CanvasTabs.kt).
+    DASH_BAR(R.string.apps_kind_dash_bar, WidgetCategory.APPS, R.string.apps_kind_dash_bar_blurb, 1, 5)
 }
 
 /**
@@ -311,6 +313,7 @@ object DashboardStore {
 
     /** Default pages for [variant]: the Canvas theme's own ones put its home in the middle. */
     private fun defaultPagesFor(variant: String): List<List<DashboardItem>> {
+        if (variant.contains(TABS_VARIANT)) return tabsPages()
         val pages = defaultPages(variant.endsWith("_half"))
         return if (variant.contains(CANVAS_VARIANT)) withCanvasHome(pages) else pages
     }
@@ -338,6 +341,35 @@ object DashboardStore {
         DashboardItem.BuiltinWidget(BuiltinKind.TELEMETRY, x = 9, y = 2, w = 3, h = 3),
         DashboardItem.BuiltinWidget(BuiltinKind.MEDIA, x = 3, y = 5, w = 6, h = 2)
     )
+
+    /**
+     * Canvas over an app (Google Maps as the wallpaper) keeps its own
+     * arrangement too: one page per tab of the rail (CanvasTabs.kt), none of
+     * them swiped.
+     */
+    const val TABS_VARIANT = "_tabs"
+
+    /**
+     * The tabs' first pages, matching [CanvasTabs.defaultTabs]: the map alone,
+     * then music, the car and the day. The tiles keep to the side away from
+     * the map app's own turn card and arrival time (a column on the right, a
+     * band at the foot upright).
+     */
+    internal fun tabsPages(): List<List<DashboardItem>> {
+        fun w(kind: BuiltinKind, x: Int, y: Int, width: Int, height: Int) = DashboardItem.BuiltinWidget(kind, x = x, y = y, w = width, h = height)
+        val tabs = if (ScreenShape.vertical) listOf(
+            emptyList(),
+            listOf(w(BuiltinKind.MEDIA, 0, 9, 7, 3)),
+            listOf(w(BuiltinKind.SPEED_HUD, 0, 9, 3, 3), w(BuiltinKind.TELEMETRY, 3, 9, 4, 3)),
+            listOf(w(BuiltinKind.WEATHER, 0, 9, 3, 3), w(BuiltinKind.CALENDAR, 3, 9, 4, 3))
+        ) else listOf(
+            emptyList(),
+            listOf(w(BuiltinKind.MEDIA, 8, 0, 4, 3)),
+            listOf(w(BuiltinKind.SPEED_HUD, 9, 0, 3, 2), w(BuiltinKind.TELEMETRY, 8, 2, 4, 3), w(BuiltinKind.OBD_DTC, 8, 5, 4, 2)),
+            listOf(w(BuiltinKind.WEATHER, 8, 0, 4, 2), w(BuiltinKind.CALENDAR, 8, 2, 4, 3), w(BuiltinKind.SERVICE, 8, 5, 4, 2))
+        )
+        return List(PAGE_COUNT) { tabs.getOrElse(it) { emptyList() } }
+    }
 
     /** [pages] with the Canvas home in the middle; the other pages come along as they are. */
     internal fun withCanvasHome(pages: List<List<DashboardItem>>): List<List<DashboardItem>> =

@@ -73,4 +73,6 @@
     <string name="wheel_unit_knob">Manopola volume</string>
     <string name="wheel_unit_key_n">Tasto %1$d</string>
     <string name="wheel_unit_key_code">Tasto autoradio %1$d</string>
+    <string name="wheel_action_next_dashboard">Plancia successiva</string>
+    <string name="wheel_action_previous_dashboard">Plancia precedente</string>
 </resources>

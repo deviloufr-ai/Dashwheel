@@ -123,4 +123,6 @@
     <string name="apps_pair_change">Cambia</string>
     <string name="apps_kind_maps_inside">Google Maps integrato</string>
     <string name="apps_kind_maps_inside_blurb">La vera app Google Maps, in questo riquadro</string>
+    <string name="apps_kind_dash_bar">Barra delle plance</string>
+    <string name="apps_kind_dash_bar_blurb">Le tue plance e app, con un tocco</string>
 </resources>

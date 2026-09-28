@@ -138,7 +138,9 @@ internal fun DashboardPage(
     /** A tap on the page between tiles while arranging: closes the panel. */
     onTapEmpty: () -> Unit = {},
     /** Opens the template chooser (offered by an empty page). */
-    onTemplates: () -> Unit = {}
+    onTemplates: () -> Unit = {},
+    /** An empty page offers to fill it; not a tab over an app, whose empty page is the map alone. */
+    emptyPrompt: Boolean = true
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
@@ -312,7 +314,7 @@ internal fun DashboardPage(
         // An empty page says so and offers both ways to fill it. Only there:
         // while arranging, the edit bar has the same two, so nothing ever
         // sits on top of a tile's corner.
-        if (pageItems.isEmpty()) {
+        if (pageItems.isEmpty() && emptyPrompt) {
             EmptyPage(onAdd = onAdd, onTemplates = onTemplates, modifier = Modifier.align(Alignment.Center))
         }
     }
@@ -649,6 +651,7 @@ internal fun TileContent(
                 EditPlaceholder(icon = Icons.Filled.Map, label = BuiltinKind.MAPS_INSIDE.label)
             } else EmbeddedMapsCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.TRIP -> TripCard(modifier = Modifier.fillMaxSize())
+            BuiltinKind.DASH_BAR -> DashBarTile()
             BuiltinKind.GFORCE -> GForceCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.PARKING -> ParkingCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.CALENDAR -> CalendarCard(modifier = Modifier.fillMaxSize())

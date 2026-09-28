@@ -116,7 +116,7 @@ internal fun AddSheet(
                 }
                 Spacer(Modifier.width(14.dp))
                 Text(
-                    stringResource(R.string.apps_add_title, stringResource(DashboardStore.nameRes(page))),
+                    stringResource(R.string.apps_add_title, pageName(page)),
                     color = DashColors.TextPrimary,
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.titleLarge,
@@ -209,6 +209,8 @@ private fun WidgetsTab(
             (kind != BuiltinKind.TYRES || Tyres.available) &&
             // Only where Android lets Dashwheel open another app on its own display (PMPatch in Magisk).
             (kind != BuiltinKind.MAPS_INSIDE || EmbeddedApp.allowed(context)) &&
+            // The Canvas rail over an app is that bar already.
+            (kind != BuiltinKind.DASH_BAR || !CanvasTabs.railShown) &&
             (category == null || kind.category == category) &&
             (query.isEmpty() || context.getString(kind.labelRes).contains(query, true) || context.getString(kind.blurbRes).contains(query, true))
     }

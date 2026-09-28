@@ -53,6 +53,8 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
@@ -84,6 +86,7 @@ import kotlinx.coroutines.withContext
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.background
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.animation.core.animateFloatAsState
@@ -135,13 +138,22 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         onBarHideSeconds = { barHideSeconds = it; DashThemeStore.saveBarHideSeconds(context, it) }
     )
     var layout by remember { mutableStateOf(DashLayoutStore.load(context)) }
+    // Canvas over an app (Google Maps as the wallpaper): the pages become the rail's tabs (CanvasTabs.kt).
+    remember { CanvasTabs.load(context) }
+    val mapApp by CanvasTabs.mapApp.collectAsState()
+    val barLists by CanvasTabs.lists.collectAsState()
+    val barApps by CanvasTabs.apps.collectAsState()
+    val embedAllowed = remember { EmbeddedApp.allowed(context) }
+    val tabsMode = themeMode == DashThemeMode.CANVAS && mapApp != null && embedAllowed
+    val tabsModeState = rememberUpdatedState(tabsMode)
     // Kept as a State and read only by the two panes it sizes: dragging the
     // divider writes it every frame, and a read here would recompose everything.
     val dockFraction = remember { mutableFloatStateOf(DashLayoutStore.loadDockFraction(context)) }
     // The half-width dashboard beside a Maps dock keeps its own arrangement,
     // and so does each screen shape (ScreenShape.layoutPrefix).
     // The Canvas theme keeps its own too (DashboardStore.CANVAS_VARIANT).
-    fun variantOf(l: DashLayout) = ScreenShape.layoutPrefix +
+    fun variantOf(l: DashLayout) = if (tabsModeState.value) ScreenShape.layoutPrefix + DashboardStore.TABS_VARIANT
+        else ScreenShape.layoutPrefix +
         (if (themeMode == DashThemeMode.CANVAS) DashboardStore.CANVAS_VARIANT else "") +
         if (l == DashLayout.GRID) "" else "_half"
     // Read when called, never captured: gesture handlers outlive a composition,
@@ -203,7 +215,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
      */
     fun loadPages(): List<List<DashboardItem>> {
         val v = variant()
-        if (themeMode == DashThemeMode.CANVAS && !DashboardStore.exists(context, v)) {
+        if (themeMode == DashThemeMode.CANVAS && !tabsModeState.value && !DashboardStore.exists(context, v)) {
             val own = v.replace(DashboardStore.CANVAS_VARIANT, "")
             if (DashboardStore.exists(context, own)) {
                 val seeded = DashboardStore.withCanvasHome(DashboardStore.load(context, own))
@@ -214,18 +226,26 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         return DashboardStore.load(context, v)
     }
     var pages by remember { mutableStateOf(loadPages()) }
+    // The dashboard bar's dashboards for this layout (CanvasTabs.kt): the rail's
+    // tabs over an app, the named pages of the cross otherwise.
+    val barTabs = CanvasTabs.tabsFor(CanvasTabs.keyFor(variant()), barLists, pages)
+    val barTabsState = rememberUpdatedState(barTabs)
+    // Over an app, the tab on screen, as a page.
+    var tabPage by remember { mutableIntStateOf(barTabs.firstOrNull()?.page ?: 0) }
     // The other arrangement's window apps, cached (see windowAppsEverywhere); null = read again.
     var otherLayoutWindows by remember { mutableStateOf<Set<String>?>(null) }
     // Layout snapshots for Undo while arranging (newest last, capped).
     var history by remember { mutableStateOf<List<List<List<DashboardItem>>>>(emptyList()) }
 
-    // Switching to Canvas or away from it swaps in that theme's own pages.
-    var pagesForCanvas by remember { mutableStateOf(themeMode == DashThemeMode.CANVAS) }
-    LaunchedEffect(themeMode) {
-        val canvas = themeMode == DashThemeMode.CANVAS
+    // Switching to Canvas or away from it swaps in that theme's own pages,
+    // and so does putting an app under it or taking it away (the tabs' pages).
+    var pagesForCanvas by remember { mutableStateOf((themeMode == DashThemeMode.CANVAS) to tabsMode) }
+    LaunchedEffect(themeMode, tabsMode) {
+        val canvas = (themeMode == DashThemeMode.CANVAS) to tabsMode
         if (canvas == pagesForCanvas) return@LaunchedEffect
         pagesForCanvas = canvas
         pages = loadPages()
+        tabPage = CanvasTabs.tabsFor(CanvasTabs.keyFor(variant()), CanvasTabs.lists.value, pages).firstOrNull()?.page ?: 0
         history = emptyList()
         otherLayoutWindows = null
     }
@@ -264,12 +284,19 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     /** The dashboard on screen, as an index into pages. */
     val currentPage by remember {
         derivedStateOf {
-            if (pagerState.currentPage == DashboardStore.CENTER) DashboardStore.COLUMN[columnState.currentPage]
-            else DashboardStore.ROW[pagerState.currentPage]
+            when {
+                tabsModeState.value -> tabPage
+                pagerState.currentPage == DashboardStore.CENTER -> DashboardStore.COLUMN[columnState.currentPage]
+                else -> DashboardStore.ROW[pagerState.currentPage]
+            }
         }
     }
-    /** Brings [page] on screen: back to the middle row first when it is above or below, and the reverse. */
+    /** Brings [page] on screen: back to the middle row first when it is above or below, and the reverse. Over an app, its tab. */
     fun showPage(page: Int) {
+        if (tabsModeState.value) {
+            tabPage = page
+            return
+        }
         scope.launch {
             val row = DashboardStore.COLUMN.indexOf(page)
             if (row >= 0 && page != DashboardStore.CENTER) {
@@ -282,12 +309,17 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         }
     }
 
+    /** Home: the middle of the cross, or the first tab over an app. */
+    fun showHome() = showPage(if (tabsModeState.value) barTabsState.value.firstOrNull()?.page ?: 0 else DashboardStore.CENTER)
+
     // After a page change the floating cross shows for a moment, then fades.
     var pageIndicatorShown by remember { mutableStateOf(false) }
     var pageIndicatorFor by remember { mutableIntStateOf(currentPage) }
     LaunchedEffect(currentPage) {
         if (currentPage != pageIndicatorFor) {
             pageIndicatorFor = currentPage
+            // The tabs say which one shows themselves.
+            if (tabsModeState.value) return@LaunchedEffect
             pageIndicatorShown = true
             delay(PAGE_INDICATOR_MS)
             pageIndicatorShown = false
@@ -298,6 +330,16 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     var showSplitEnable by remember { mutableStateOf(false) }
     var blockPagerSwipe by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf(false) }
+    // The dashboard bar's sheets: a dashboard's (by index, -1 for a new one), an
+    // app's (by index), the rail's "dashboard or app", the app picker.
+    var dashSheet by remember { mutableStateOf<Int?>(null) }
+    var appSheet by remember { mutableStateOf<Int?>(null) }
+    var showBarChooser by remember { mutableStateOf(false) }
+    var pickBarApp by remember { mutableStateOf(false) }
+    // A dashboard can come up by itself: as the car sets off, parks, or finds a new fault.
+    FollowTabTriggers(barTabs) { trigger ->
+        if (!editing && dashSheet == null) CanvasTabs.tabFor(barTabsState.value, trigger)?.let { showPage(it.page) }
+    }
     // The Home key: close whatever is open and come back to the middle of the cross.
     val homePressed by MainActivity.homePressed.collectAsState()
     LaunchedEffect(homePressed) {
@@ -305,7 +347,23 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             showAllApps = false
             closeSettings()
             editing = false
+            showHome()
+        }
+    }
+    // A learned steering wheel button stepping through the dashboards: the
+    // tabs over an app, else the pages of the middle row.
+    val dashboardStep by MainActivity.dashboardStep.collectAsState()
+    LaunchedEffect(dashboardStep) {
+        val step = dashboardStep.second
+        if (dashboardStep.first == 0L || step == 0) return@LaunchedEffect
+        if (tabsModeState.value) {
+            val tabs = barTabsState.value
+            val at = tabs.indexOfFirst { it.page == tabPage }.coerceAtLeast(0)
+            tabs.getOrNull(CanvasTabs.stepped(at, step, tabs.size))?.let { tabPage = it.page }
+        } else if (columnState.currentPage != DashboardStore.COLUMN_HOME) {
             showPage(DashboardStore.CENTER)
+        } else {
+            pagerState.animateScrollToPage(CanvasTabs.stepped(pagerState.currentPage, step, DashboardStore.ROW.size))
         }
     }
     // A learned steering wheel button asking for the app drawer (SteeringWheelActions.kt).
@@ -346,7 +404,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     // The Back key (the head unit's button, or a wheel button taught to it):
     // closes what is open, top-most first, then heads back to Home. Dialogs
     // are windows of their own and take Back themselves before this runs.
-    val offHome = currentPage != DashboardStore.CENTER
+    val offHome = currentPage != (if (tabsMode) barTabs.firstOrNull()?.page ?: 0 else DashboardStore.CENTER)
     BackHandler(enabled = setupStep != null || showAllApps || settingsTab != null || showAddSheet || tileOptions != null || editing || offHome) {
         when {
             setupStep != null -> {
@@ -358,7 +416,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             settingsTab != null -> closeSettings()
             tileOptions != null -> tileOptions = null
             editing -> editing = false
-            else -> showPage(DashboardStore.CENTER)
+            else -> showHome()
         }
     }
 
@@ -461,7 +519,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     }
     // An app inside a tile runs until the last tile showing it goes, in either
     // arrangement; then its display is closed and the app with it (EmbeddedApp).
-    LaunchedEffect(pages, layout) {
+    LaunchedEffect(pages, layout, tabsMode, mapApp) {
         val other = withContext(Dispatchers.IO) {
             val variant = otherVariant()
             if (DashboardStore.exists(context, variant)) DashboardStore.load(context, variant).flatten() else emptyList()
@@ -473,6 +531,8 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                 else -> null
             }
         }
+        // The app under Canvas runs as long as it is there.
+        if (tabsMode) mapApp?.let { inside += it }
         EmbeddedApp.releaseUnless(inside)
     }
     var rootChecked by remember { mutableStateOf(false) }
@@ -976,9 +1036,32 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     // Canvas: the live map is the page itself, and a rail at the driver's side stands in for the bar.
     val canvas = DashColors.Skin == DashSkin.CANVAS
     val railOnRight = CarProfileStore.current.driverOnRight
-    CompositionLocalProvider(LocalDriveLock provides driveLock) {
+    // Over an app, the tabs name the pages (pageName) and the app is the wallpaper beside the rail.
+    val tabsShown = canvas && tabsMode
+    SideEffect { CanvasTabs.railShown = tabsShown }
+    val barModel = DashBarModel(
+        tabs = barTabs,
+        currentPage = currentPage,
+        apps = barApps,
+        appsByPackage = appsByPackage,
+        onSelect = { showPage(it.page) },
+        onOpenTab = { whenParked { dashSheet = it } },
+        onLaunch = onLaunchApp,
+        onOpenApp = { whenParked { appSheet = it } },
+        onAddDashboard = { whenParked { dashSheet = -1 } },
+        onAddApp = { whenParked { pickBarApp = true } },
+        canAddDashboard = CanvasTabs.freePage(barTabs, pages) != null
+    )
+    CompositionLocalProvider(
+        LocalDriveLock provides driveLock,
+        LocalDashboards provides Dashboards(barTabs, tabbed = tabsShown),
+        LocalDashBar provides barModel
+    ) {
     Box(modifier = Modifier.fillMaxSize()) {
-    if (canvas) CanvasBackdrop(Modifier.fillMaxSize())
+    val underApp = mapApp
+    if (tabsShown && underApp != null) {
+        CanvasAppBackdrop(underApp, railOnRight, Modifier.fillMaxSize())
+    } else if (canvas) CanvasBackdrop(Modifier.fillMaxSize())
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -1012,7 +1095,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             // and never leaves composition, so the window is placed once and
             // swiping pages never touches it. Not while the OS itself has us in
             // split-screen: half of a half is too small for either.
-            val dockSide = if (inSplitMode) null else when (layout) {
+            val dockSide = if (inSplitMode || tabsShown) null else when (layout) {
                 DashLayout.MAPS_LEFT -> Alignment.Start
                 DashLayout.MAPS_RIGHT -> Alignment.End
                 DashLayout.GRID -> null
@@ -1061,14 +1144,22 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                     onTileOptions = { index -> tileOptions = page to index },
                     selectedIndex = tileOptions?.takeIf { it.first == page }?.second ?: -1,
                     onSelectedBounds = { bounds -> tileOptions?.let { selectedTileBounds = it to bounds } },
-                    onTapEmpty = { tileOptions = null }
+                    onTapEmpty = { tileOptions = null },
+                    // An empty tab is the map alone; the edit bar still adds to it.
+                    emptyPrompt = !tabsShown
                 )
                 }
             }
             // The pages' pane reads the dock fraction and the pagers' scroll
             // The pages' pane reads the pagers' scroll state itself, so a swipe
             // starting and ending recomposes this pane, not the dashboard.
-            val pagesPane: @Composable () -> Unit = {
+            val pagesPane: @Composable () -> Unit = pane@{
+            // Over an app nothing is swiped: one tab's page at a time, and every
+            // touch between its tiles goes on to the app under it.
+            if (tabsShown) {
+                Crossfade(targetState = tabPage.coerceIn(0, DashboardStore.PAGE_COUNT - 1), label = "tab") { tab -> dashboardPage(tab) }
+                return@pane
+            }
             // Sideways swipes only from the middle row: the pages above and
             // below the centre one have nothing beside them.
             val onHomeRow = columnState.currentPage == DashboardStore.COLUMN_HOME && !columnState.isScrollInProgress
@@ -1155,10 +1246,17 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                 pane = pagesPane
             )
 
-            if (canvas) {
+            if (tabsShown) {
+                CanvasTabRail(
+                    m = settingsModel,
+                    bar = barModel,
+                    onAdd = { whenParked { showBarChooser = true } },
+                    modifier = Modifier.align(if (railOnRight) Alignment.CenterEnd else Alignment.CenterStart)
+                )
+            } else if (canvas) {
                 CanvasRail(
                     m = settingsModel,
-                    onHome = { showPage(DashboardStore.CENTER) },
+                    onHome = { showHome() },
                     modifier = Modifier.align(if (railOnRight) Alignment.CenterEnd else Alignment.CenterStart)
                 )
             }
@@ -1228,7 +1326,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                         } ?: tile.describe(),
                         page = page,
                         side = side,
-                        designs = widget?.let {
+                        designs = widget?.takeIf { it.kind != BuiltinKind.DASH_BAR }?.let {
                             { shelfModifier ->
                                 DesignShelf(
                                     kind = widget.kind,
@@ -1257,6 +1355,15 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                         },
                         onZoom = { zoomTile(page, index, it) },
                         onMoveTo = { target -> tileOptions = null; moveToPage(page, index, target) },
+                        barActions = if (widget?.kind == BuiltinKind.DASH_BAR) {
+                            {
+                                DashBarPanelActions(
+                                    canAddDashboard = barModel.canAddDashboard,
+                                    onAddDashboard = { tileOptions = null; dashSheet = -1 },
+                                    onAddApp = { tileOptions = null; pickBarApp = true }
+                                )
+                            }
+                        } else null,
                         onRemove = { tileOptions = null; removeAt(page, index) },
                         onClose = { tileOptions = null },
                         modifier = placing
@@ -1448,6 +1555,94 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         )
     }
 
+    // --- The dashboard bar's sheets (CanvasTabs.kt) ---
+    val barKey = CanvasTabs.keyFor(variant())
+    if (showBarChooser) {
+        DashBarAddChooser(
+            canAddDashboard = barModel.canAddDashboard,
+            onDashboard = { showBarChooser = false; dashSheet = -1 },
+            onApp = { showBarChooser = false; pickBarApp = true },
+            onDismiss = { showBarChooser = false }
+        )
+    }
+    dashSheet?.let { index ->
+        val tab = barTabs.getOrNull(index)
+        val newPage = CanvasTabs.freePage(barTabs, pages)
+        if (tab == null && newPage == null) {
+            LaunchedEffect(Unit) { dashSheet = null }
+            return@let
+        }
+        DashboardSheet(
+            tab = tab,
+            newPage = tab?.page ?: newPage ?: 0,
+            tabs = barTabs,
+            tabbed = tabsShown,
+            pagesWithTiles = pages.indices.filterTo(HashSet()) { pages[it].isNotEmpty() },
+            canRemove = tab != null && barTabs.size > 1,
+            onSave = { edited, place ->
+                if (tabsShown) {
+                    // Over an app: its place in the rail.
+                    CanvasTabs.saveTabs(barKey, CanvasTabs.placed(barTabs, edited, place))
+                    if (tab == null) tabPage = edited.page
+                } else {
+                    // A cross: its spot. Moving to a taken one trades the two pages.
+                    var list = barTabs
+                    if (tab != null && place != tab.page) {
+                        tileOptions = null
+                        // Undo would bring the tiles back without their names.
+                        history = emptyList()
+                        val a = tab.page
+                        pages = pages.mapIndexed { i, l -> when (i) { a -> pages[place]; place -> pages[a]; else -> l } }
+                        DashboardStore.save(context, pages, variant())
+                        list = CanvasTabs.swapped(list, a, place)
+                    }
+                    CanvasTabs.saveTabs(barKey, CanvasTabs.placed(list, edited.copy(page = place), if (tab != null) index else list.size))
+                    showPage(place)
+                }
+                dashSheet = null
+            },
+            onRemove = {
+                val gone = tab ?: return@DashboardSheet
+                val left = barTabs.filterIndexed { i, _ -> i != index }
+                if (tabsShown) {
+                    // Over an app its widgets go with it; in a cross the page stays as it is.
+                    tileOptions = null
+                    history = emptyList()
+                    pages.getOrNull(gone.page)?.filterIsInstance<DashboardItem.SystemWidget>()
+                        ?.forEach { WidgetHostHolder.delete(context, it.appWidgetId) }
+                    pages = pages.mapIndexed { i, l -> if (i == gone.page) emptyList() else l }
+                    DashboardStore.save(context, pages, variant())
+                    if (tabPage == gone.page) tabPage = left.firstOrNull()?.page ?: 0
+                }
+                CanvasTabs.saveTabs(barKey, left)
+                dashSheet = null
+            },
+            onDismiss = { dashSheet = null }
+        )
+    }
+    appSheet?.let { index ->
+        val app = barApps.getOrNull(index)?.let { appsByPackage[it] }
+        if (app == null) {
+            LaunchedEffect(Unit) { appSheet = null }
+            return@let
+        }
+        DashBarAppSheet(
+            app = app,
+            otherApps = barApps.filterIndexed { i, _ -> i != index }.map { appsByPackage[it]?.label ?: it },
+            place = index,
+            onSave = { at -> CanvasTabs.saveApps(CanvasTabs.moved(barApps, index, at)); appSheet = null },
+            onRemove = { CanvasTabs.saveApps(barApps.filterIndexed { i, _ -> i != index }); appSheet = null },
+            onDismiss = { appSheet = null }
+        )
+    }
+    if (pickBarApp) {
+        AppPickerDialog(
+            apps = apps.filter { it.packageName !in barApps },
+            onPick = { app -> CanvasTabs.saveApps(barApps + app.packageName); pickBarApp = false },
+            onDismiss = { pickBarApp = false }
+        )
+    }
+
     confirmTemplate?.let { template ->
         ConfirmDialog(
             title = stringResource(R.string.templates_replace_confirm_title),
@@ -1456,7 +1651,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             onConfirm = {
                 confirmTemplate = null
                 applyTemplate(template, true)
-                showPage(DashboardStore.CENTER)
+                showHome()
             },
             onDismiss = { confirmTemplate = null }
         )
@@ -1518,7 +1713,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                     confirmTemplate = template
                 } else {
                     applyTemplate(template, false)
-                    showPage(DashboardStore.CENTER)
+                    showHome()
                 }
             },
             onDismiss = { showTemplates = false }
