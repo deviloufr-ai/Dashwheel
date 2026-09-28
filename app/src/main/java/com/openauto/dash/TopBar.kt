@@ -217,7 +217,7 @@ internal fun StandardTopBar(m: TopBarModel) {
                 val cluster = speed != null
                 Box(modifier = Modifier.padding(horizontal = 8.dp), contentAlignment = Alignment.Center) {
                     when {
-                        cluster -> ClusterReadout(speed ?: 0, m.obdData, m.obdConnection == ObdConnectionState.CONNECTED)
+                        cluster -> ClusterReadout(speed ?: 0, m.obdData, m.obdConnection)
                         // The head unit's status bar shows the time while it is up.
                         !m.merged -> BarClock(m.clock)
                     }
@@ -358,11 +358,15 @@ private fun BarClock(clock: String, style: TextStyle = MaterialTheme.typography.
  * needles: the reading is the count of lit cells.
  */
 @Composable
-private fun ClusterReadout(speedKmh: Int, obd: ObdData, connected: Boolean) {
+private fun ClusterReadout(speedKmh: Int, obd: ObdData, connection: ObdConnectionState) {
+    val connected = connection == ObdConnectionState.CONNECTED
+    // The same fuel as the Fuel & Range tile: the CANbox's level first (many
+    // cars, the C4 Picasso among them, don't answer the OBD fuel PID), then OBD.
+    val fuel = rememberFuel(obd, connection)
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(18.dp)) {
         SegmentBar(
             label = stringResource(R.string.vehicle_fuel),
-            fraction = if (connected && obd.fuelLevelPct > 0) obd.fuelLevelPct / 100f else 0f,
+            fraction = fuel?.percent?.let { it / 100f } ?: 0f,
             hot = false,
             lowIsHot = true
         )
