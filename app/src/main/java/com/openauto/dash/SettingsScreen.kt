@@ -57,9 +57,6 @@ import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.TireRepair
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Tv
-import androidx.compose.material.icons.filled.VolumeDown
-import androidx.compose.material.icons.filled.VolumeMute
-import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -561,7 +558,7 @@ private fun DrivingPane(m: TopBarModel, onWheelButtons: () -> Unit) {
     )
     Spacer(Modifier.height(20.dp))
     VolumeWaySetting()
-    Spacer(Modifier.height(20.dp))
+    Spacer(Modifier.height(12.dp))
     SpeedVolumeSetting()
     KeyTargetRows()
 }
@@ -595,33 +592,54 @@ private fun VolumeWaySetting() {
     SwitchHint(stringResource(way.hintRes))
 }
 
-/** Volume follows speed (see [SpeedVolume]): off or one of three strengths. */
+/**
+ * Volume follows speed (see [SpeedVolume]): on or off, and once on, the speed
+ * it starts at, how many volume steps it adds at most and the speed they are
+ * all there at. A single step has no second speed: it comes on at the start.
+ */
 @Composable
 private fun SpeedVolumeSetting() {
     val context = LocalContext.current
-    val level by SpeedVolume.level.collectAsState()
-    SettingsSection(stringResource(R.string.speed_volume_title))
-    Text(
-        stringResource(R.string.speed_volume_detail),
-        color = DashColors.TextSecondary,
-        style = MaterialTheme.typography.bodySmall,
-        modifier = Modifier.padding(start = 12.dp, bottom = 8.dp)
+    val on by SpeedVolume.on.collectAsState()
+    val curve by SpeedVolume.curve.collectAsState()
+    val less = stringResource(R.string.speed_volume_less)
+    val more = stringResource(R.string.speed_volume_more)
+    val step = SpeedVolumeCurve.SPEED_STEP_KMH
+    SettingsToggle(
+        Icons.Filled.VolumeUp, stringResource(R.string.speed_volume_title),
+        stringResource(R.string.speed_volume_detail), on
+    ) { SpeedVolume.save(context, it) }
+    if (!on) return
+    StepperRow(
+        Icons.Filled.Speed, stringResource(R.string.speed_volume_start), stringResource(R.string.speed_volume_start_detail),
+        value = "${curve.startKmh} km/h",
+        less = less, more = more,
+        canLess = curve.startKmh > SpeedVolumeCurve.START_MIN_KMH,
+        canMore = curve.startKmh < SpeedVolumeCurve.START_MAX_KMH,
+        onLess = { SpeedVolume.save(context, curve.copy(startKmh = curve.startKmh - step)) },
+        // Caught up, the top speed moves up with it (SpeedVolumeCurve.fixed).
+        onMore = { SpeedVolume.save(context, curve.copy(startKmh = curve.startKmh + step)) }
     )
-    SegmentedSwitch(
-        options = SpeedVolumeLevel.entries,
-        chosen = level,
-        icon = { option ->
-            when (option) {
-                SpeedVolumeLevel.OFF -> Icons.Filled.VolumeOff
-                SpeedVolumeLevel.LOW -> Icons.Filled.VolumeMute
-                SpeedVolumeLevel.MEDIUM -> Icons.Filled.VolumeDown
-                SpeedVolumeLevel.HIGH -> Icons.Filled.VolumeUp
-            }
-        },
-        title = { stringResource(it.titleRes) },
-        onChoose = { SpeedVolume.save(context, it) }
+    StepperRow(
+        Icons.Filled.Tune, stringResource(R.string.speed_volume_steps), stringResource(R.string.speed_volume_steps_detail),
+        value = "+${curve.maxSteps}",
+        less = less, more = more,
+        canLess = curve.maxSteps > 1,
+        canMore = curve.maxSteps < SpeedVolumeCurve.STEPS_MAX,
+        onLess = { SpeedVolume.save(context, curve.copy(maxSteps = curve.maxSteps - 1)) },
+        onMore = { SpeedVolume.save(context, curve.copy(maxSteps = curve.maxSteps + 1)) }
     )
-    SwitchHint(stringResource(level.hintRes))
+    if (curve.maxSteps > 1) {
+        StepperRow(
+            Icons.Filled.VerticalAlignTop, stringResource(R.string.speed_volume_full), stringResource(R.string.speed_volume_full_detail),
+            value = "${curve.fullKmh} km/h",
+            less = less, more = more,
+            canLess = curve.fullKmh > curve.startKmh + step,
+            canMore = curve.fullKmh < SpeedVolumeCurve.FULL_MAX_KMH,
+            onLess = { SpeedVolume.save(context, curve.copy(fullKmh = curve.fullKmh - step)) },
+            onMore = { SpeedVolume.save(context, curve.copy(fullKmh = curve.fullKmh + step)) }
+        )
+    }
 }
 
 @Composable
@@ -778,6 +796,33 @@ internal fun SettingsRow(icon: ImageVector, title: String, detail: String?, onCl
 internal fun SpeedCorrectionRow() {
     val context = LocalContext.current
     val offset by SpeedCorrection.offsetKmh.collectAsState()
+    StepperRow(
+        Icons.Filled.Speed, stringResource(R.string.vehicle_speed_fix), stringResource(R.string.vehicle_speed_fix_detail),
+        value = speedOffsetText(offset),
+        valueColor = if (offset == 0) DashColors.TextSecondary else DashColors.Accent,
+        less = stringResource(R.string.vehicle_speed_fix_less), more = stringResource(R.string.vehicle_speed_fix_more),
+        canLess = offset > -SpeedCorrection.MAX_OFFSET_KMH,
+        canMore = offset < SpeedCorrection.MAX_OFFSET_KMH,
+        onLess = { SpeedCorrection.save(context, offset - 1) },
+        onMore = { SpeedCorrection.save(context, offset + 1) }
+    )
+}
+
+/** One setting changed a step at a time: icon, name, what it does, then −, the value and +. */
+@Composable
+private fun StepperRow(
+    icon: ImageVector,
+    title: String,
+    detail: String,
+    value: String,
+    less: String,
+    more: String,
+    canLess: Boolean,
+    canMore: Boolean,
+    onLess: () -> Unit,
+    onMore: () -> Unit,
+    valueColor: Color = DashColors.TextPrimary
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -785,12 +830,12 @@ internal fun SpeedCorrectionRow() {
             .padding(horizontal = 12.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Filled.Speed, contentDescription = null, tint = DashColors.TextSecondary, modifier = Modifier.size(24.dp))
+        Icon(icon, contentDescription = null, tint = DashColors.TextSecondary, modifier = Modifier.size(24.dp))
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f)) {
-            Text(stringResource(R.string.vehicle_speed_fix), color = DashColors.TextPrimary, style = MaterialTheme.typography.bodyLarge)
+            Text(title, color = DashColors.TextPrimary, style = MaterialTheme.typography.bodyLarge)
             Text(
-                stringResource(R.string.vehicle_speed_fix_detail),
+                detail,
                 color = DashColors.TextSecondary,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
@@ -798,21 +843,17 @@ internal fun SpeedCorrectionRow() {
             )
         }
         Spacer(Modifier.width(8.dp))
-        StepButton(Icons.Filled.Remove, stringResource(R.string.vehicle_speed_fix_less), enabled = offset > -SpeedCorrection.MAX_OFFSET_KMH) {
-            SpeedCorrection.save(context, offset - 1)
-        }
+        StepButton(Icons.Filled.Remove, less, enabled = canLess, onClick = onLess)
         Text(
-            speedOffsetText(offset),
-            color = if (offset == 0) DashColors.TextSecondary else DashColors.Accent,
+            value,
+            color = valueColor,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
             maxLines = 1,
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.width(88.dp)
         )
-        StepButton(Icons.Filled.Add, stringResource(R.string.vehicle_speed_fix_more), enabled = offset < SpeedCorrection.MAX_OFFSET_KMH) {
-            SpeedCorrection.save(context, offset + 1)
-        }
+        StepButton(Icons.Filled.Add, more, enabled = canMore, onClick = onMore)
     }
     HorizontalDivider(color = DashColors.Line, modifier = Modifier.padding(horizontal = 12.dp))
 }

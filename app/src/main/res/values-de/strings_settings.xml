@@ -16,14 +16,14 @@
     <!-- Volume follows speed (SpeedVolume.kt), Settings → Driving -->
     <string name="speed_volume_title">Lautstärke nach Geschwindigkeit</string>
     <string name="speed_volume_detail">Gleicht Fahrgeräusche aus: lauter beim Beschleunigen, wieder leiser beim Bremsen. Deine eigenen Lautstärkeänderungen bleiben erhalten.</string>
-    <string name="speed_volume_off">Aus</string>
-    <string name="speed_volume_low">Leicht</string>
-    <string name="speed_volume_medium">Mittel</string>
-    <string name="speed_volume_high">Stark</string>
-    <string name="speed_volume_off_hint">Die Lautstärke bleibt, wie du sie eingestellt hast</string>
-    <string name="speed_volume_low_hint">Etwas lauter ab 40 km/h, höchstens 2 Stufen mehr auf der Autobahn</string>
-    <string name="speed_volume_medium_hint">Lauter ab 40 km/h, bis zu 4 Stufen mehr auf der Autobahn</string>
-    <string name="speed_volume_high_hint">Deutlich lauter ab 40 km/h, bis zu 6 Stufen mehr auf der Autobahn</string>
+    <string name="speed_volume_start">Beginnt bei</string>
+    <string name="speed_volume_start_detail">Darunter wird nichts hinzugefügt</string>
+    <string name="speed_volume_steps">Höchstens dazu</string>
+    <string name="speed_volume_steps_detail">In Lautstärkestufen, wie Klicks am Drehknopf</string>
+    <string name="speed_volume_full">Am lautesten bei</string>
+    <string name="speed_volume_full_detail">Die Stufen verteilen sich gleichmäßig bis zu dieser Geschwindigkeit</string>
+    <string name="speed_volume_less">Weniger</string>
+    <string name="speed_volume_more">Mehr</string>
     <!-- How the volume is changed (MediaVolume.kt), Settings → Driving -->
     <string name="volume_way_title">Lautstärkeregelung</string>
     <string name="volume_way_auto">Automatisch</string>

@@ -17,14 +17,14 @@
     <!-- Volume follows speed (SpeedVolume.kt), Settings → Driving -->
     <string name="speed_volume_title">Volume follows speed</string>
     <string name="speed_volume_detail">Covers road noise: louder as you speed up, back down as you slow. Your own volume changes are kept.</string>
-    <string name="speed_volume_off">Off</string>
-    <string name="speed_volume_low">Low</string>
-    <string name="speed_volume_medium">Medium</string>
-    <string name="speed_volume_high">High</string>
-    <string name="speed_volume_off_hint">The volume stays where you set it</string>
-    <string name="speed_volume_low_hint">A touch louder from 40 km/h, at most 2 notches on the motorway</string>
-    <string name="speed_volume_medium_hint">Louder from 40 km/h, up to 4 notches more on the motorway</string>
-    <string name="speed_volume_high_hint">Much louder from 40 km/h, up to 6 notches more on the motorway</string>
+    <string name="speed_volume_start">Starts at</string>
+    <string name="speed_volume_start_detail">Below this speed nothing is added</string>
+    <string name="speed_volume_steps">Most added</string>
+    <string name="speed_volume_steps_detail">In volume steps, as clicks of the knob</string>
+    <string name="speed_volume_full">Loudest at</string>
+    <string name="speed_volume_full_detail">The steps spread evenly up to this speed</string>
+    <string name="speed_volume_less">Less</string>
+    <string name="speed_volume_more">More</string>
     <!-- How the volume is changed (MediaVolume.kt), Settings → Driving -->
     <string name="volume_way_title">Volume control</string>
     <string name="volume_way_auto">Automatic</string>

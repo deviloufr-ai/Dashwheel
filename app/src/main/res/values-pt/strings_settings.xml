@@ -16,14 +16,14 @@
     <!-- Volume follows speed (SpeedVolume.kt), Settings → Driving -->
     <string name="speed_volume_title">Volume conforme a velocidade</string>
     <string name="speed_volume_detail">Cobre o ruído da estrada: mais alto ao acelerar, mais baixo ao abrandar. As suas próprias alterações de volume mantêm-se.</string>
-    <string name="speed_volume_off">Desligado</string>
-    <string name="speed_volume_low">Baixo</string>
-    <string name="speed_volume_medium">Médio</string>
-    <string name="speed_volume_high">Alto</string>
-    <string name="speed_volume_off_hint">O volume fica onde o deixou</string>
-    <string name="speed_volume_low_hint">Um pouco mais alto a partir de 40 km/h, no máximo 2 níveis a mais na autoestrada</string>
-    <string name="speed_volume_medium_hint">Mais alto a partir de 40 km/h, até 4 níveis a mais na autoestrada</string>
-    <string name="speed_volume_high_hint">Muito mais alto a partir de 40 km/h, até 6 níveis a mais na autoestrada</string>
+    <string name="speed_volume_start">Começa a</string>
+    <string name="speed_volume_start_detail">Abaixo disso nada é acrescentado</string>
+    <string name="speed_volume_steps">Aumento máximo</string>
+    <string name="speed_volume_steps_detail">Em níveis de volume, como os cliques do botão</string>
+    <string name="speed_volume_full">Máximo a</string>
+    <string name="speed_volume_full_detail">Os níveis distribuem-se até esta velocidade</string>
+    <string name="speed_volume_less">Menos</string>
+    <string name="speed_volume_more">Mais</string>
     <!-- How the volume is changed (MediaVolume.kt), Settings → Driving -->
     <string name="volume_way_title">Controlo do volume</string>
     <string name="volume_way_auto">Automático</string>

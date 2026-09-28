@@ -16,14 +16,14 @@
     <!-- Volume follows speed (SpeedVolume.kt), Settings → Driving -->
     <string name="speed_volume_title">Volume volgt snelheid</string>
     <string name="speed_volume_detail">Overstemt weggeruis: harder als je optrekt, weer zachter als je afremt. Je eigen volumewijzigingen blijven behouden.</string>
-    <string name="speed_volume_off">Uit</string>
-    <string name="speed_volume_low">Licht</string>
-    <string name="speed_volume_medium">Middel</string>
-    <string name="speed_volume_high">Sterk</string>
-    <string name="speed_volume_off_hint">Het volume blijft zoals je het instelde</string>
-    <string name="speed_volume_low_hint">Iets harder vanaf 40 km/h, hooguit 2 stappen meer op de snelweg</string>
-    <string name="speed_volume_medium_hint">Harder vanaf 40 km/h, tot 4 stappen meer op de snelweg</string>
-    <string name="speed_volume_high_hint">Veel harder vanaf 40 km/h, tot 6 stappen meer op de snelweg</string>
+    <string name="speed_volume_start">Begint bij</string>
+    <string name="speed_volume_start_detail">Daaronder komt er niets bij</string>
+    <string name="speed_volume_steps">Hoogstens erbij</string>
+    <string name="speed_volume_steps_detail">In volumestappen, zoals klikken van de knop</string>
+    <string name="speed_volume_full">Hardst bij</string>
+    <string name="speed_volume_full_detail">De stappen zijn gelijk verdeeld tot deze snelheid</string>
+    <string name="speed_volume_less">Minder</string>
+    <string name="speed_volume_more">Meer</string>
     <!-- How the volume is changed (MediaVolume.kt), Settings → Driving -->
     <string name="volume_way_title">Volumeregeling</string>
     <string name="volume_way_auto">Automatisch</string>

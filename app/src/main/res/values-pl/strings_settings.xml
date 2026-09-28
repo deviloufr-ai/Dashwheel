@@ -16,14 +16,14 @@
     <!-- Volume follows speed (SpeedVolume.kt), Settings → Driving -->
     <string name="speed_volume_title">Głośność zależna od prędkości</string>
     <string name="speed_volume_detail">Zagłusza szum drogi: głośniej przy przyspieszaniu, ciszej przy zwalnianiu. Twoje własne zmiany głośności zostają.</string>
-    <string name="speed_volume_off">Wył.</string>
-    <string name="speed_volume_low">Słabo</string>
-    <string name="speed_volume_medium">Średnio</string>
-    <string name="speed_volume_high">Mocno</string>
-    <string name="speed_volume_off_hint">Głośność zostaje na ustawionym poziomie</string>
-    <string name="speed_volume_low_hint">Trochę głośniej od 40 km/h, najwyżej 2 stopnie więcej na autostradzie</string>
-    <string name="speed_volume_medium_hint">Głośniej od 40 km/h, do 4 stopni więcej na autostradzie</string>
-    <string name="speed_volume_high_hint">Dużo głośniej od 40 km/h, do 6 stopni więcej na autostradzie</string>
+    <string name="speed_volume_start">Zaczyna od</string>
+    <string name="speed_volume_start_detail">Poniżej nic nie jest dodawane</string>
+    <string name="speed_volume_steps">Najwyżej dodane</string>
+    <string name="speed_volume_steps_detail">W stopniach głośności, jak kliknięcia pokrętła</string>
+    <string name="speed_volume_full">Najgłośniej przy</string>
+    <string name="speed_volume_full_detail">Stopnie rozkładają się równo do tej prędkości</string>
+    <string name="speed_volume_less">Mniej</string>
+    <string name="speed_volume_more">Więcej</string>
     <!-- How the volume is changed (MediaVolume.kt), Settings → Driving -->
     <string name="volume_way_title">Sterowanie głośnością</string>
     <string name="volume_way_auto">Automatycznie</string>

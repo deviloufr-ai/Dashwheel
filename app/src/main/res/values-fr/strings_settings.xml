@@ -16,14 +16,14 @@
     <!-- Volume follows speed (SpeedVolume.kt), Settings → Driving -->
     <string name="speed_volume_title">Volume selon la vitesse</string>
     <string name="speed_volume_detail">Couvre le bruit de la route : plus fort en accélérant, moins fort en ralentissant. Vos propres réglages du volume sont gardés.</string>
-    <string name="speed_volume_off">Désactivé</string>
-    <string name="speed_volume_low">Faible</string>
-    <string name="speed_volume_medium">Moyen</string>
-    <string name="speed_volume_high">Fort</string>
-    <string name="speed_volume_off_hint">Le volume reste là où vous l\'avez réglé</string>
-    <string name="speed_volume_low_hint">Un peu plus fort dès 40 km/h, 2 crans de plus au maximum sur autoroute</string>
-    <string name="speed_volume_medium_hint">Plus fort dès 40 km/h, jusqu\'à 4 crans de plus sur autoroute</string>
-    <string name="speed_volume_high_hint">Bien plus fort dès 40 km/h, jusqu\'à 6 crans de plus sur autoroute</string>
+    <string name="speed_volume_start">À partir de</string>
+    <string name="speed_volume_start_detail">En dessous, rien n\'est ajouté</string>
+    <string name="speed_volume_steps">Ajout maximal</string>
+    <string name="speed_volume_steps_detail">En crans de volume, comme ceux de la molette</string>
+    <string name="speed_volume_full">Maximum atteint à</string>
+    <string name="speed_volume_full_detail">Les crans se répartissent jusqu\'à cette vitesse</string>
+    <string name="speed_volume_less">Moins</string>
+    <string name="speed_volume_more">Plus</string>
     <!-- How the volume is changed (MediaVolume.kt), Settings → Driving -->
     <string name="volume_way_title">Réglage du volume</string>
     <string name="volume_way_auto">Automatique</string>
