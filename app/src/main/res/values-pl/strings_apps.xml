@@ -119,6 +119,7 @@
     <string name="apps_embed_app_starting">Otwieranie %1$s</string>
     <string name="apps_embed_app_missing">%1$s nie jest zainstalowana</string>
     <string name="apps_embed_app_blocked">Android nie pozwolił otworzyć tu %1$s</string>
+    <string name="apps_embed_under_dashboard">Już pod pulpitem</string>
     <string name="apps_pair_pick_first">Wybierz aplikację na lewą stronę.</string>
     <string name="apps_pair_pick_second">%1$s po lewej. Teraz wybierz aplikację na prawą stronę.</string>
     <string name="apps_pair_change">Zmień</string>

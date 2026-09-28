@@ -117,6 +117,7 @@
     <string name="apps_embed_app_starting">%1$s wordt geopend</string>
     <string name="apps_embed_app_missing">%1$s is niet geïnstalleerd</string>
     <string name="apps_embed_app_blocked">Android liet %1$s hier niet openen</string>
+    <string name="apps_embed_under_dashboard">Al onder het dashboard</string>
     <string name="apps_pair_pick_first">Tik op de app voor de linkerkant.</string>
     <string name="apps_pair_pick_second">%1$s links. Tik nu op de app voor de rechterkant.</string>
     <string name="apps_pair_change">Wijzigen</string>

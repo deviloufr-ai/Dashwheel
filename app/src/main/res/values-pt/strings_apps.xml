@@ -118,6 +118,7 @@
     <string name="apps_embed_app_starting">A abrir %1$s</string>
     <string name="apps_embed_app_missing">%1$s não está instalada</string>
     <string name="apps_embed_app_blocked">O Android não deixou abrir %1$s aqui</string>
+    <string name="apps_embed_under_dashboard">Já está sob o painel</string>
     <string name="apps_pair_pick_first">Toque na app para o lado esquerdo.</string>
     <string name="apps_pair_pick_second">%1$s à esquerda. Agora toque na app para o lado direito.</string>
     <string name="apps_pair_change">Alterar</string>

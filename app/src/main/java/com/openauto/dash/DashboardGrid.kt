@@ -585,6 +585,11 @@ internal fun TileContent(
                     icon = Icons.Filled.OpenInNew,
                     label = stringResource(if (item.inside) R.string.dash_app_inside else R.string.dash_app_window, label)
                 )
+                item.inside && underDashboard(item.packageName) -> EditPlaceholder(
+                    icon = Icons.Filled.OpenInNew,
+                    label = label,
+                    hint = stringResource(R.string.apps_embed_under_dashboard)
+                )
                 item.inside -> EmbeddedAppCard(item.packageName, label, modifier = Modifier.fillMaxSize())
                 else -> PipAnchorCard(modifier = Modifier.fillMaxSize(), packageName = item.packageName, appLabel = label, onWindowBiggerThanTile = onFitToWindow)
             }
@@ -649,6 +654,12 @@ internal fun TileContent(
             } else PipAnchorCard(modifier = Modifier.fillMaxSize(), onWindowBiggerThanTile = onFitToWindow)
             BuiltinKind.MAPS_INSIDE -> if (editing) {
                 EditPlaceholder(icon = Icons.Filled.Map, label = BuiltinKind.MAPS_INSIDE.label)
+            } else if (underDashboard(EmbeddedApp.MAPS_PACKAGE)) {
+                EditPlaceholder(
+                    icon = Icons.Filled.Map,
+                    label = BuiltinKind.MAPS_INSIDE.label,
+                    hint = stringResource(R.string.apps_embed_under_dashboard)
+                )
             } else EmbeddedMapsCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.TRIP -> TripCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.DASH_BAR -> DashBarTile()

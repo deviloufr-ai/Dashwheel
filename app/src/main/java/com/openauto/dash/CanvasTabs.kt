@@ -847,6 +847,17 @@ internal fun CanvasAppBackdrop(packageName: String, railOnRight: Boolean, modifi
 }
 
 /**
+ * Whether [packageName] is the app under the Canvas dashboard right now. An
+ * app runs once, on one display: a tile of it on a tab would wait for a
+ * picture the wallpaper keeps, so the tile says where the app is instead.
+ */
+@Composable
+internal fun underDashboard(packageName: String): Boolean {
+    val under by CanvasTabs.mapApp.collectAsState()
+    return CanvasTabs.railShown && under == packageName
+}
+
+/**
  * Settings → Look, with Canvas: what lies under the dashboard, the built-in
  * map or a navigation app running inside Dashwheel. Only where Android lets
  * Dashwheel open an app on its own display (EmbeddedApp.allowed), and only

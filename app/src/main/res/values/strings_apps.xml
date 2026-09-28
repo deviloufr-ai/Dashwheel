@@ -117,6 +117,7 @@
     <string name="apps_embed_app_starting">Opening %1$s</string>
     <string name="apps_embed_app_missing">%1$s is not installed</string>
     <string name="apps_embed_app_blocked">Android did not let %1$s open here</string>
+    <string name="apps_embed_under_dashboard">Already under the dashboard</string>
     <string name="apps_pair_pick_first">Tap the app for the left side.</string>
     <string name="apps_pair_pick_second">%1$s on the left. Now tap the app for the right side.</string>
     <string name="apps_pair_change">Change</string>
