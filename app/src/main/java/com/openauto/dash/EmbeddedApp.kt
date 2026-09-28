@@ -31,7 +31,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -614,8 +613,6 @@ internal object EmbeddedApp {
             var height = 0
             var dpi = 0
             var onScreen = false
-            /** Whether its page can be seen, or is about to be: the pages are sliding ([LocalPageActive]). */
-            var near = true
             /** Whether the tile's picture is all black right now. */
             var black: () -> Boolean = { false }
         }
@@ -630,15 +627,6 @@ internal object EmbeddedApp {
         @Volatile
         private var shownHeight = 0
         private var shownDpi = 0
-
-        /**
-         * Whether the display holds the tile's picture right now. Without one
-         * the display sleeps and the app with it, so it draws nothing for a
-         * page beside the one on screen; the picture is handed back the moment
-         * the pages start sliding, before the tile shows.
-         */
-        @Volatile
-        private var fed = false
 
         /** [tile] shows [surface], [width] x [height] pixels at [dpi]; [black] tells whether its picture is all black. */
         fun attach(tile: Any, surface: Surface, width: Int, height: Int, dpi: Int, black: () -> Boolean = { false }) {
@@ -656,14 +644,6 @@ internal object EmbeddedApp {
             val t = tiles.getOrPut(tile) { Tile() }
             if (t.onScreen == on) return
             t.onScreen = on
-            route()
-        }
-
-        /** [tile]'s page can be seen or is sliding in ([near]), or sits beside the one on screen. */
-        fun near(tile: Any, near: Boolean) {
-            val t = tiles.getOrPut(tile) { Tile() }
-            if (t.near == near) return
-            t.near = near
             route()
         }
 
@@ -685,8 +665,9 @@ internal object EmbeddedApp {
 
         /**
          * Gives the display to the tile [pickTile] chooses, when it is not
-         * already there, and hands it that tile's picture only while the tile
-         * can be seen or is about to be ([fed]).
+         * already there. A tile on a page beside the one on screen keeps its
+         * picture: without one Android 10 switches the display off and the app
+         * sleeps, and on the head unit Google Maps wakes black.
          */
         private fun route() {
             val ready = tiles.filterValues { it.surface != null }.keys.toList()
@@ -697,36 +678,18 @@ internal object EmbeddedApp {
             if (t == null || surface == null) {
                 shownOn = null
                 shownSurface = null
-                fed = false
                 display?.surface = null
                 return
             }
-            val seen = t.onScreen || t.near
             if (next == shownOn && surface === shownSurface &&
                 t.width == shownWidth && t.height == shownHeight && t.dpi == shownDpi
-            ) {
-                feed(seen)
-                return
-            }
+            ) return
             shownOn = next
             shownSurface = surface
             shownWidth = t.width
             shownHeight = t.height
             shownDpi = t.dpi
-            val vd = display
-            // The display is made (and the app opened on it) whether or not the
-            // tile can be seen; one already there is only sized for the picture
-            // it gets once the page shows.
-            if (vd == null || seen) show(surface, t.width, t.height, t.dpi) else vd.resize(t.width, t.height, t.dpi)
-            if (!seen) feed(false)
-        }
-
-        /** Hands the display the tile's picture, or takes it back. */
-        private fun feed(on: Boolean) {
-            val vd = display ?: return
-            if (on == fed) return
-            fed = on
-            vd.surface = if (on) shownSurface else null
+            show(surface, t.width, t.height, t.dpi)
         }
 
         @SuppressLint("WrongConstant") // DESTROY_CONTENT_ON_REMOVAL is a real flag, only @hide.
@@ -735,7 +698,6 @@ internal object EmbeddedApp {
             if (vd != null) {
                 vd.resize(width, height, dpi)
                 vd.surface = surface
-                fed = true
                 // Brought back to the front, started again if it was closed meanwhile,
                 // or opened now if it was installed since. A refusal stays refused.
                 if (_status.value != Status.BLOCKED) launch(vd)
@@ -753,7 +715,6 @@ internal object EmbeddedApp {
                 return
             }
             display = made
-            fed = true
             // The window tiles now leave this app and this display alone.
             WindowListing.embeddedDisplays = WindowListing.embeddedDisplays + made.display.displayId
             held = held + packageName
@@ -793,7 +754,6 @@ internal object EmbeddedApp {
             tiles.clear()
             shownOn = null
             shownSurface = null
-            fed = false
             display?.let { vd ->
                 WindowListing.embeddedDisplays = WindowListing.embeddedDisplays - vd.display.displayId
                 vd.release()
@@ -836,8 +796,7 @@ internal object EmbeddedApp {
             for ((look, wait) in LOOK_AFTER_MS.withIndex()) {
                 delay(wait)
                 if (_status.value != Status.SHOWN || display !== vd || dashboard?.get() == null) return
-                // Without its picture the display sleeps: nothing to look at until the page comes back.
-                val black = withContext(Dispatchers.Main) { if (shownSurface == null || !fed) null else pictureBlack() } ?: return
+                val black = withContext(Dispatchers.Main) { if (shownSurface == null) null else pictureBlack() } ?: return
                 val found = listStacks() ?: return
                 val onTile = found.isNotEmpty() && found.all { it.displayId == id && it.visible }
                 val now = SystemClock.elapsedRealtime()
@@ -871,7 +830,7 @@ internal object EmbeddedApp {
         /** Hands the tile's picture to the display again, as when the tile comes on screen. Main thread. */
         private fun refresh(vd: VirtualDisplay) {
             val surface = shownSurface ?: return
-            if (display !== vd || !fed) return
+            if (display !== vd) return
             vd.surface = null
             vd.resize(shownWidth, shownHeight, shownDpi)
             vd.surface = surface
@@ -1056,10 +1015,6 @@ internal fun EmbeddedAppCard(packageName: String, label: String, modifier: Modif
     DisposableEffect(host, tile) {
         onDispose { host.forget(tile) }
     }
-    // Its page can be seen, or is sliding in: the app draws for it; on a page
-    // kept beside the one on screen it sleeps until the pages move.
-    val pageActive = LocalPageActive.current
-    LaunchedEffect(host, tile, pageActive) { host.near(tile, pageActive) }
     // The app's first picture has arrived: from then on the picture covers the
     // tile, and the card colour under it would only be painted for nothing.
     var painted by remember { mutableStateOf(false) }
