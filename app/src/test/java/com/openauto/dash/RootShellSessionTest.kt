@@ -35,6 +35,12 @@ class RootShellSessionTest {
             assertEquals("oops\n", second.out)
             // A command without output.
             assertEquals("", session.run("true", 5).out)
+            // An output that does not end its last line: the end mark is still found, the status still the command's.
+            val open = session.run("printf abc; exit 2", 5)
+            assertEquals(2, open.exit)
+            assertEquals("abc\n", open.out)
+            // An empty line the command printed itself is kept.
+            assertEquals("a\n\n", session.run("echo a; echo", 5).out)
             assertTrue(session.alive)
         } finally {
             session.close()

@@ -228,13 +228,15 @@ internal object RootShell {
             require('\n' !in cmd) { "one line at a time" }
             try {
                 // A subshell keeps a command's `;` chains and redirections to itself.
-                input.write("( $cmd ) 2>&1\necho \"$MARK \$?\"\n")
+                // The empty line puts the end mark on a line of its own, also after
+                // an output that does not end its last line (it is taken off below).
+                input.write("( $cmd ) 2>&1\n__dw=\$?\necho\necho \"$MARK \$__dw\"\n")
                 input.flush()
             } catch (e: IOException) {
                 close()
                 throw IllegalStateException("su gone: ${e.message}")
             }
-            val out = StringBuilder()
+            val out = ArrayList<String>()
             val deadline = System.nanoTime() + timeoutS * 1_000_000_000L
             while (true) {
                 val wait = deadline - System.nanoTime()
@@ -247,9 +249,10 @@ internal object RootShell {
                     throw IllegalStateException("su exited")
                 }
                 if (line.startsWith(MARK)) {
-                    return Output(line.substringAfter(' ').trim().toIntOrNull() ?: -1, out.toString(), "")
+                    if (out.lastOrNull()?.isEmpty() == true) out.removeAt(out.lastIndex)
+                    return Output(line.substringAfter(' ').trim().toIntOrNull() ?: -1, out.joinToString("") { it + "\n" }, "")
                 }
-                out.append(line).append('\n')
+                out += line
             }
         }
 
