@@ -10,7 +10,11 @@ import android.os.SystemClock
 import android.provider.Settings
 import androidx.annotation.StringRes
 import androidx.core.content.FileProvider
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -76,6 +80,11 @@ class UpdateManager(private val context: Context) {
     val currentVersionCode: Long = BuildConfig.VERSION_CODE.toLong()
 
     private val prefs get() = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+
+    /** Where downloads run, whoever asked for them (see [download]). */
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private var downloadJob: Deferred<Boolean>? = null
+    private var downloadBuild = -1L
 
     /** Queries GitHub for the latest release and updates [status]. */
     suspend fun checkForUpdate() {
@@ -204,8 +213,24 @@ class UpdateManager(private val context: Context) {
     /**
      * Downloads [info]'s APK into the app's own downloads folder; [status]
      * follows the progress and ends [UpdateStatus.Ready] or an error. True on success.
+     *
+     * The download runs in the updater's own scope, not the caller's: the
+     * dashboard starts it from an effect keyed on [status], which the download
+     * itself changes, and the effect's restart used to cancel it a second in,
+     * remove it from the system's downloader and leave "Downloading 0 %" for
+     * good. A caller that goes away now only stops waiting. A second call for
+     * the same build joins the download under way.
      */
     suspend fun download(info: UpdateInfo): Boolean {
+        val running = downloadJob?.takeIf { it.isActive && downloadBuild == info.buildNumber }
+        val job = running ?: scope.async { runDownload(info) }.also {
+            downloadJob = it
+            downloadBuild = info.buildNumber
+        }
+        return job.await()
+    }
+
+    private suspend fun runDownload(info: UpdateInfo): Boolean {
         val apkFile = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), APK_NAME)
         withContext(Dispatchers.IO) { if (apkFile.exists()) apkFile.delete() }
         prefs.edit().remove(KEY_DOWNLOADED).apply()
@@ -227,8 +252,12 @@ class UpdateManager(private val context: Context) {
                 withTimeoutOrNull(DOWNLOAD_TIMEOUT_MS) { awaitDownload(downloadManager, info, downloadId) } ?: false
             }
         } finally {
-            // Failed, stuck or abandoned: nothing left queued in the system's downloader.
-            if (!success) downloadManager.remove(downloadId)
+            if (!success) {
+                // Failed, stuck or abandoned: nothing left queued in the system's
+                // downloader, and never a percentage left standing still.
+                downloadManager.remove(downloadId)
+                if (_status.value is UpdateStatus.Downloading) _status.value = UpdateStatus.Error(R.string.sys_update_download_failed)
+            }
         }
         if (!success) {
             _status.value = UpdateStatus.Error(R.string.sys_update_download_failed)
