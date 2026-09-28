@@ -5,7 +5,7 @@
     <string name="voice_warnings">Avisos e conselhos</string>
     <string name="voice_warnings_detail">Sobreaquecimento, bateria, novos códigos de avaria, pouco combustível, pausas, conselhos de condução</string>
     <string name="voice_messages">Mensagens</string>
-    <string name="voice_messages_detail">Diz de quem é uma mensagem. Um botão do volante lê-a.</string>
+    <string name="voice_messages_detail">Diz de quem é uma mensagem.</string>
     <string name="voice_where">O que o carro diz por si define-se em Definições, Alertas.</string>
 
     <!-- Spoken -->

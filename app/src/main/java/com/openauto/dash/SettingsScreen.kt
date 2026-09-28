@@ -560,7 +560,7 @@ private fun DrivingPane(m: TopBarModel, onWheelButtons: () -> Unit, onPlaces: ()
         Icons.Filled.VolumeUp, stringResource(R.string.settings_tap_sound),
         stringResource(R.string.settings_tap_sound_detail), FeedbackStore.sound
     ) { FeedbackStore.save(context, it) }
-    SettingsRow(
+    if (SteeringWheelStore.AVAILABLE) SettingsRow(
         Icons.Filled.SettingsRemote, stringResource(R.string.wheel_title),
         if (wheelMappings.isEmpty()) stringResource(R.string.wheel_settings_detail_empty)
         else pluralStringResource(R.plurals.wheel_settings_detail_count, wheelMappings.size, wheelMappings.size),

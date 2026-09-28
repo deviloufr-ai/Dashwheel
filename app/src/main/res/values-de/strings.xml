@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="split_a11y_description">Ermöglicht Dashwheel, Apps im geteilten Bildschirm neben dem Dashboard zu öffnen: mit derselben Systemteilung wie in der Übersicht der letzten Apps. Vom Bildschirminhalt wird nur das ausgewählte Textfeld genutzt, um vom Handy gesendeten Text einzutippen. Es empfängt auch die Hardwaretasten, damit angelernte Lenkradtasten über jeder App funktionieren; andere Tasten gehen unverändert weiter.</string>
+    <string name="split_a11y_description">Ermöglicht Dashwheel, Apps im geteilten Bildschirm neben dem Dashboard zu öffnen: mit derselben Systemteilung wie in der Übersicht der letzten Apps. Vom Bildschirminhalt wird nur das ausgewählte Textfeld genutzt, um vom Handy gesendeten Text einzutippen. Es empfängt auch die Hardwaretasten, damit Home und Zurück weiter funktionieren, während eine App in einer Kachel läuft; andere Tasten gehen unverändert weiter.</string>
 
     <!-- Language picker; each language is listed under its own name. -->
     <string name="language_menu">Sprache</string>

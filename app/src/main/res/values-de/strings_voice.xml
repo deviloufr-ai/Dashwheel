@@ -5,7 +5,7 @@
     <string name="voice_warnings">Warnungen und Tipps</string>
     <string name="voice_warnings_detail">Überhitzung, Batterie, neue Fehlercodes, wenig Kraftstoff, Pausen, Fahrtipps</string>
     <string name="voice_messages">Nachrichten</string>
-    <string name="voice_messages_detail">Sagt, von wem eine Nachricht kommt. Eine Lenkradtaste liest sie vor.</string>
+    <string name="voice_messages_detail">Sagt, von wem eine Nachricht kommt.</string>
     <string name="voice_where">Was das Auto von sich aus sagt, wird unter Einstellungen, Hinweise geschaltet.</string>
 
     <!-- Spoken -->

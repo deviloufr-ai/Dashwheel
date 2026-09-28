@@ -125,6 +125,14 @@ internal object SteeringWheelStore {
     /** How long a [candidate] waits for its second press before the screen goes back to plain listening. */
     private const val CONFIRM_MS = 15_000L
 
+    /**
+     * Whether the learned buttons are offered at all. Off for now: they do
+     * not work on the head unit. Nothing is then read or learned, the keys
+     * go on untouched and Settings has no row for them; what was learned
+     * before stays saved for the day this comes back.
+     */
+    val AVAILABLE = false
+
     private var appContext: Context? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val detector = CanButtonDetector()
@@ -145,7 +153,7 @@ internal object SteeringWheelStore {
     private var candidateTimeout: Job? = null
 
     fun setContext(context: Context) {
-        if (appContext != null) return
+        if (!AVAILABLE || appContext != null) return
         appContext = context.applicationContext
         _mappings.value = load(appContext!!)
         scope.launch { McuReader.changes.collect { onCanChange(it) } }

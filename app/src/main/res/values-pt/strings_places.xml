@@ -3,7 +3,7 @@
     <!-- The driver's places (Places.kt): Settings -> Driving, the map tile, the steering wheel buttons -->
     <string name="places_title">Os meus locais</string>
     <string name="places_detail_empty">Casa e trabalho, a um toque ou a um botão</string>
-    <string name="places_explanation">Definem-se uma vez. Depois aparecem no mosaico do mapa, e um botão do volante pode iniciar a navegação.</string>
+    <string name="places_explanation">Definem-se uma vez. Depois aparecem no mosaico do mapa.</string>
     <string name="places_home">Casa</string>
     <string name="places_work">Trabalho</string>
     <string name="places_not_set">Não definido</string>

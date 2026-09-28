@@ -3,7 +3,7 @@
     <!-- The driver's places (Places.kt): Settings -> Driving, the map tile, the steering wheel buttons -->
     <string name="places_title">My places</string>
     <string name="places_detail_empty">Home and work, one tap or one button away</string>
-    <string name="places_explanation">Set them once. They then show on the map tile, and a steering wheel button can start guidance to them.</string>
+    <string name="places_explanation">Set them once. They then show on the map tile.</string>
     <string name="places_home">Home</string>
     <string name="places_work">Work</string>
     <string name="places_not_set">Not set</string>

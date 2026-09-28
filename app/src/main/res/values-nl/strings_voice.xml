@@ -5,7 +5,7 @@
     <string name="voice_warnings">Waarschuwingen en tips</string>
     <string name="voice_warnings_detail">Oververhitting, accu, nieuwe foutcodes, weinig brandstof, pauzes, rijtips</string>
     <string name="voice_messages">Berichten</string>
-    <string name="voice_messages_detail">Zegt van wie een bericht komt. Een stuurknop leest het voor.</string>
+    <string name="voice_messages_detail">Zegt van wie een bericht komt.</string>
     <string name="voice_where">Wat de auto uit zichzelf zegt, stel je in bij Instellingen, Meldingen.</string>
 
     <!-- Spoken -->

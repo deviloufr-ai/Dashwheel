@@ -3,7 +3,7 @@
     <!-- The driver's places (Places.kt): Settings -> Driving, the map tile, the steering wheel buttons -->
     <string name="places_title">Meine Orte</string>
     <string name="places_detail_empty">Zuhause und Arbeit, mit einem Tipp oder einer Taste</string>
-    <string name="places_explanation">Einmal festlegen. Danach stehen sie auf der Kartenkachel, und eine Lenkradtaste kann die Zielführung starten.</string>
+    <string name="places_explanation">Einmal festlegen. Danach stehen sie auf der Kartenkachel.</string>
     <string name="places_home">Zuhause</string>
     <string name="places_work">Arbeit</string>
     <string name="places_not_set">Nicht festgelegt</string>

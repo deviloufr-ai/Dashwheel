@@ -35,7 +35,7 @@ More in [`docs/screenshots/`](docs/screenshots/) (one slide per skin). The scree
 - **In-app navigation**: a free MapLibre map (CARTO basemap, 3D buildings, Nominatim search, Valhalla routes) that hands turn-by-turn to Google Maps or Waze; the Directions tile reads their next turn
 - **Phone link (Dashwheel Companion)**: the phone's notifications and messages (read aloud, quick or voice replies), phone and WhatsApp-style calls answered from the screen, where the car is parked, and a log of every drive with its eco-driving score; paired by QR code, end-to-end encrypted
 - **Your own alerts instead of the head unit's pop-ups**: calls, doors, parking radar, climate, tyres and seat belt, each as a pill, card, banner, side panel or full screen, optionally spoken
-- **Hands-free**: steering wheel buttons learned from the car and mapped to Dashwheel actions; volume keys and volume that follows speed
+- **Hands-free**: spoken alerts and a start-up briefing, your places, volume keys and volume that follows speed
 - **Upright screens**: Tesla-style portrait units get their own grid and layouts, in every theme
 - **8 languages**: English, French, German, Spanish, Italian, Portuguese, Dutch, Polish
 - **Drive lock**: arranging tiles, settings and pickers wait until the car has stopped

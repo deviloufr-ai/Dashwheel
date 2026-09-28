@@ -5,7 +5,7 @@
     <string name="voice_warnings">Warnings and tips</string>
     <string name="voice_warnings_detail">Overheating, battery, new fault codes, low fuel, breaks, driving tips</string>
     <string name="voice_messages">Messages</string>
-    <string name="voice_messages_detail">Says who a message is from. A wheel button reads it out.</string>
+    <string name="voice_messages_detail">Says who a message is from.</string>
     <string name="voice_where">What the car says by itself is switched in Settings, Alerts.</string>
 
     <!-- Spoken -->
