@@ -170,6 +170,8 @@ class MainActivity : ComponentActivity() {
                 CarBox.start(this)
                 // The accessibility service, on by itself where there is a privileged shell.
                 SplitAccessibilityService.autoTurnOn(this)
+                // Dashwheel as the default Home, and the system copy up to date, after an update.
+                SystemUpkeep.start(this)
                 RadarOverlay.start(this)
                 ClimateOverlay.start(this)
                 // A new version runs JIT-only until it is compiled ahead of time.

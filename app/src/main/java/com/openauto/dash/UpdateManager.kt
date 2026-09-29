@@ -94,6 +94,7 @@ class UpdateManager(private val context: Context) {
         _status.value = UpdateStatus.Checking
         val info = withContext(Dispatchers.IO) { fetchLatestRelease() }
         val downloaded = info?.let { downloadedFile(it) }
+        if (info != null && info.buildNumber <= currentVersionCode) withContext(Dispatchers.IO) { forgetDownloads() }
         _status.value = when {
             info == null -> UpdateStatus.Error(R.string.sys_update_check_failed)
             info.buildNumber <= currentVersionCode -> UpdateStatus.UpToDate
@@ -236,11 +237,13 @@ class UpdateManager(private val context: Context) {
         prefs.edit().remove(KEY_DOWNLOADED).apply()
 
         val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        withContext(Dispatchers.IO) { forgetDownloads() }
         val request = DownloadManager.Request(Uri.parse(info.apkUrl))
             .setTitle("Dashwheel ${info.versionName}")
             .setDescription(context.getString(R.string.sys_update_downloading))
             .setMimeType("application/vnd.android.package-archive")
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            // The progress only: the dashboard itself says when it is ready.
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
             .setDestinationInExternalFilesDir(context, Environment.DIRECTORY_DOWNLOADS, APK_NAME)
 
         _status.value = UpdateStatus.Downloading(info, 0)
@@ -266,6 +269,24 @@ class UpdateManager(private val context: Context) {
         prefs.edit().putLong(KEY_DOWNLOADED, info.buildNumber).apply()
         _status.value = UpdateStatus.Ready(info, apkFile)
         return true
+    }
+
+    /**
+     * Every earlier download of an update taken out of the system's downloader,
+     * files with them. Each one stayed there with its notification, and the
+     * downloader posted them all again at every step of the next download: 83
+     * of them on the unit, the notification shade flooded while it ran.
+     */
+    private fun forgetDownloads() {
+        runCatching {
+            val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            // A query without a filter lists this app's own downloads only.
+            val ids = downloadManager.query(DownloadManager.Query())?.use { cursor ->
+                val column = cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_ID)
+                buildList { while (cursor.moveToNext()) add(cursor.getLong(column)) }
+            }.orEmpty()
+            if (ids.isNotEmpty()) downloadManager.remove(*ids.toLongArray())
+        }
     }
 
     /**
