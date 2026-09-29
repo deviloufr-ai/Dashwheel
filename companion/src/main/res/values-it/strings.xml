@@ -32,7 +32,7 @@
     <string name="remove_title">Rimuovere %1$s?</string>
     <string name="remove_body">L\'auto non riceverà più nulla da questo telefono. Per associarla di nuovo serve un nuovo codice.</string>
     <string name="paired_since">Associata il %1$s</string>
-    <string name="scanned_download_code">Questo codice scarica l\'app. Ora scansiona l\'altro, il codice di associazione a destra sullo schermo dell\'autoradio.</string>
+    <string name="scanned_download_code">Questo codice scarica l\'app. Ora scansiona l\'altro sullo schermo dell\'autoradio, quello indicato come Codice di associazione.</string>
     <string name="invalid_code_read">Non è un codice di associazione Dashwheel (letto: %1$s).</string>
     <string name="step_calls">Chiamate</string>
     <string name="step_calls_detail">Mostra chi chiama sullo schermo dell\'auto, per rispondere o riagganciare da lì, e i tuoi preferiti da chiamare dall\'auto. L\'audio resta sul Bluetooth dell\'auto.</string>
@@ -79,4 +79,15 @@
     <string name="place_unknown">Questo link non dice dove si trova il luogo.</string>
     <string name="step_agenda">Agenda</string>
     <string name="step_agenda_detail">Mostra i tuoi prossimi eventi sullo schermo dell\'auto, con la guida fino al luogo.</string>
+    <string name="status_unavailable">Il collegamento non è partito</string>
+    <string name="status_unavailable_detail">Disattiva e riattiva la condivisione. Se non basta, riavvia il telefono.</string>
+    <string name="status_off_detail">L\'auto non riceve nulla da questo telefono finché non la riattivi.</string>
+    <string name="status_waiting_detail">Attiva l\'hotspot del telefono e collega l\'autoradio.</string>
+    <string name="status_connected_detail">Notifiche, chiamate e agenda appaiono sullo schermo dell\'auto.</string>
+    <string name="setup_missing">Da consentire: %1$d</string>
+    <string name="setup_all_done">È tutto consentito</string>
+    <string name="setup_show">Mostra</string>
+    <string name="setup_hide">Nascondi</string>
+    <string name="pair_another">Associa un\'altra auto</string>
+    <string name="permission_in_settings">Android non lo chiede più: consentilo in Info app → Autorizzazioni.</string>
 </resources>

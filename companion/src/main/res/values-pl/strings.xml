@@ -32,7 +32,7 @@
     <string name="remove_title">Usunąć %1$s?</string>
     <string name="remove_body">Auto nie będzie już nic otrzymywać z tego telefonu. Ponowne parowanie wymaga nowego kodu.</string>
     <string name="paired_since">Sparowano %1$s</string>
-    <string name="scanned_download_code">Ten kod pobiera aplikację. Zeskanuj teraz drugi, kod parowania po prawej stronie ekranu radia.</string>
+    <string name="scanned_download_code">Ten kod pobiera aplikację. Zeskanuj teraz drugi na ekranie radia, podpisany Kod parowania.</string>
     <string name="invalid_code_read">To nie jest kod parowania Dashwheel (odczytano: %1$s).</string>
     <string name="step_calls">Połączenia</string>
     <string name="step_calls_detail">Pokazuje na ekranie auta, kto dzwoni, by tam odebrać lub się rozłączyć, oraz ulubione kontakty, by dzwonić z auta. Dźwięk zostaje na Bluetooth auta.</string>
@@ -79,4 +79,15 @@
     <string name="place_unknown">Ten link nie mówi, gdzie jest to miejsce.</string>
     <string name="step_agenda">Terminarz</string>
     <string name="step_agenda_detail">Pokazuje najbliższe wydarzenia na ekranie auta, z trasą do miejsca.</string>
+    <string name="status_unavailable">Nie udało się uruchomić połączenia</string>
+    <string name="status_unavailable_detail">Wyłącz i włącz udostępnianie. Jeśli dalej nie działa, uruchom telefon ponownie.</string>
+    <string name="status_off_detail">Auto nie dostaje nic z tego telefonu, dopóki go nie włączysz.</string>
+    <string name="status_waiting_detail">Włącz hotspot w telefonie i połącz z nim radio.</string>
+    <string name="status_connected_detail">Powiadomienia, połączenia i kalendarz widać na ekranie auta.</string>
+    <string name="setup_missing">Do zezwolenia: %1$d</string>
+    <string name="setup_all_done">Wszystko dozwolone</string>
+    <string name="setup_show">Pokaż</string>
+    <string name="setup_hide">Ukryj</string>
+    <string name="pair_another">Sparuj kolejne auto</string>
+    <string name="permission_in_settings">Android już nie pyta: zezwól w Informacjach o aplikacji → Uprawnienia.</string>
 </resources>

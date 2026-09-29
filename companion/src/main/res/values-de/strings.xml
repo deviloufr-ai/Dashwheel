@@ -32,7 +32,7 @@
     <string name="remove_title">%1$s entfernen?</string>
     <string name="remove_body">Das Auto erhält nichts mehr von diesem Telefon. Zum erneuten Koppeln braucht es einen neuen Code.</string>
     <string name="paired_since">Gekoppelt am %1$s</string>
-    <string name="scanned_download_code">Dieser Code lädt die App herunter. Scanne jetzt den anderen, den Kopplungscode rechts auf dem Bildschirm des Autoradios.</string>
+    <string name="scanned_download_code">Dieser Code lädt die App herunter. Scanne jetzt den anderen auf dem Bildschirm des Autoradios, mit der Aufschrift Kopplungscode.</string>
     <string name="invalid_code_read">Das ist kein Dashwheel-Kopplungscode (gelesen: %1$s).</string>
     <string name="step_calls">Anrufe</string>
     <string name="step_calls_detail">Zeigt auf dem Bildschirm des Autos, wer anruft, um dort anzunehmen oder aufzulegen, und deine Favoriten, um vom Auto aus anzurufen. Der Ton bleibt auf dem Bluetooth des Autos.</string>
@@ -79,4 +79,15 @@
     <string name="place_unknown">Dieser Link sagt nicht, wo der Ort ist.</string>
     <string name="step_agenda">Kalender</string>
     <string name="step_agenda_detail">Zeigt deine nächsten Termine auf dem Bildschirm des Autos, mit Route zum Ort.</string>
+    <string name="status_unavailable">Die Verbindung konnte nicht starten</string>
+    <string name="status_unavailable_detail">Teilen aus- und wieder einschalten. Klappt es weiter nicht, das Handy neu starten.</string>
+    <string name="status_off_detail">Das Auto bekommt nichts von diesem Handy, bis du es wieder einschaltest.</string>
+    <string name="status_waiting_detail">Schalte den Hotspot des Handys ein und verbinde das Autoradio damit.</string>
+    <string name="status_connected_detail">Benachrichtigungen, Anrufe und Termine erscheinen auf dem Bildschirm im Auto.</string>
+    <string name="setup_missing">Noch zu erlauben: %1$d</string>
+    <string name="setup_all_done">Alles ist erlaubt</string>
+    <string name="setup_show">Anzeigen</string>
+    <string name="setup_hide">Ausblenden</string>
+    <string name="pair_another">Weiteres Auto koppeln</string>
+    <string name="permission_in_settings">Android fragt nicht mehr: erlaube es in App-Info unter Berechtigungen.</string>
 </resources>

@@ -32,7 +32,7 @@
     <string name="remove_title">%1$s verwijderen?</string>
     <string name="remove_body">De auto ontvangt niets meer van deze telefoon. Opnieuw koppelen vraagt een nieuwe code.</string>
     <string name="paired_since">Gekoppeld op %1$s</string>
-    <string name="scanned_download_code">Die code downloadt de app. Scan nu de andere, de koppelcode rechts op het scherm van de autoradio.</string>
+    <string name="scanned_download_code">Die code downloadt de app. Scan nu de andere op het scherm van de autoradio, met als titel Koppelcode.</string>
     <string name="invalid_code_read">Dit is geen Dashwheel-koppelcode (gelezen: %1$s).</string>
     <string name="step_calls">Oproepen</string>
     <string name="step_calls_detail">Toont op het scherm van de auto wie er belt, om daar op te nemen of op te hangen, en je favorieten om vanuit de auto te bellen. Het geluid blijft op de bluetooth van de auto.</string>
@@ -79,4 +79,15 @@
     <string name="place_unknown">Deze link zegt niet waar de plek is.</string>
     <string name="step_agenda">Agenda</string>
     <string name="step_agenda_detail">Toont je volgende afspraken op het scherm van de auto, met de route naar de plek.</string>
+    <string name="status_unavailable">De verbinding kon niet starten</string>
+    <string name="status_unavailable_detail">Zet delen uit en weer aan. Lukt het nog steeds niet, herstart dan de telefoon.</string>
+    <string name="status_off_detail">De auto krijgt niets van deze telefoon tot je het weer aanzet.</string>
+    <string name="status_waiting_detail">Zet de hotspot van de telefoon aan en verbind de autoradio ermee.</string>
+    <string name="status_connected_detail">Meldingen, oproepen en je agenda staan op het scherm van de auto.</string>
+    <string name="setup_missing">Nog toe te staan: %1$d</string>
+    <string name="setup_all_done">Alles is toegestaan</string>
+    <string name="setup_show">Tonen</string>
+    <string name="setup_hide">Verbergen</string>
+    <string name="pair_another">Nog een auto koppelen</string>
+    <string name="permission_in_settings">Android vraagt het niet meer: sta het toe in App-info → Rechten.</string>
 </resources>

@@ -32,7 +32,7 @@
     <string name="remove_title">Remove %1$s?</string>
     <string name="remove_body">The car will no longer receive anything from this phone. Pairing again needs a new code.</string>
     <string name="paired_since">Paired on %1$s</string>
-    <string name="scanned_download_code">That code downloads the app. Now scan the other one, the pairing code on the right of the head unit\'s screen.</string>
+    <string name="scanned_download_code">That code downloads the app. Now scan the other one on the head unit\'s screen, labelled Pairing code.</string>
     <string name="invalid_code_read">This is not a Dashwheel pairing code (read: %1$s).</string>
     <string name="step_calls">Calls</string>
     <string name="step_calls_detail">Shows who is calling on the car\'s screen, to answer or hang up there, and your favourites to call from the car. The sound stays on the car\'s Bluetooth.</string>
@@ -80,4 +80,15 @@
     <string name="place_unknown">This link does not say where the place is.</string>
     <string name="step_agenda">Agenda</string>
     <string name="step_agenda_detail">Shows your next events on the car\'s screen, with guidance to where they are.</string>
+    <string name="status_unavailable">The link could not start</string>
+    <string name="status_unavailable_detail">Turn sharing off and on again. If it keeps failing, restart the phone.</string>
+    <string name="status_off_detail">The car gets nothing from this phone until you switch it back on.</string>
+    <string name="status_waiting_detail">Turn on the phone\'s hotspot and connect the head unit to it.</string>
+    <string name="status_connected_detail">Notifications, calls and your agenda show on the car\'s screen.</string>
+    <string name="setup_missing">Still to allow: %1$d</string>
+    <string name="setup_all_done">Everything is allowed</string>
+    <string name="setup_show">Show</string>
+    <string name="setup_hide">Hide</string>
+    <string name="pair_another">Pair another car</string>
+    <string name="permission_in_settings">Android no longer asks: allow it under Permissions in App info.</string>
 </resources>

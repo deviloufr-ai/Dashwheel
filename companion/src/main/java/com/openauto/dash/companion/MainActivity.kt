@@ -1,6 +1,7 @@
 package com.openauto.dash.companion
 
 import android.Manifest
+import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.ClipboardManager
 import android.content.Context
@@ -16,21 +17,26 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardReturn
@@ -40,8 +46,13 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.DirectionsWalk
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Keyboard
+import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.LinkOff
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.LocalParking
 import androidx.compose.material.icons.filled.Notifications
@@ -49,12 +60,15 @@ import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Route
 import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.filled.WifiTethering
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -71,6 +85,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -78,6 +93,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -110,13 +127,14 @@ class MainActivity : ComponentActivity() {
     private var offer by mutableStateOf<PairingOffer?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         PairedUnits.load(this)
         CarSpot.load(this)
         DriveJournal.load(this)
         takeOffer(intent)
         setContent {
-            MaterialTheme(colorScheme = darkColorScheme(primary = Color(0xFF5B8DEF), secondary = Color(0xFF2DD4BF))) {
+            MaterialTheme(colorScheme = darkColorScheme(primary = Color(0xFF5B8DEF), secondary = Color(0xFF2DD4BF), tertiary = Color(0xFFF5B942))) {
                 CompanionScreen(
                     resumes = resumes,
                     offer = offer,
@@ -175,81 +193,88 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
     var removing by remember { mutableStateOf<PairedUnit?>(null) }
     val scan = rememberLauncherForActivityResult(ScanContract()) { result -> result.contents?.let(onScanned) }
     val scanPrompt = stringResource(R.string.pair_hint)
+    val startScan = {
+        scan.launch(
+            ScanOptions()
+                .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
+                .setPrompt(scanPrompt)
+                .setBeepEnabled(false)
+                .setOrientationLocked(false)
+        )
+    }
+    val setup = rememberSetupChecks(resumes)
+    var setupOpen by rememberSaveable { mutableStateOf(false) }
+    val paired = units.isNotEmpty()
+    val connected = state is LinkState.Connected
 
     Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.app_name)) }) }) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
+            modifier = Modifier.fillMaxSize().padding(padding).imePadding(),
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
                 StatusCard(
-                    text = when {
-                        units.isEmpty() -> stringResource(R.string.status_no_car)
-                        !enabled -> stringResource(R.string.status_off)
-                        state is LinkState.Connected -> stringResource(R.string.status_connected, (state as LinkState.Connected).unitName)
-                        else -> stringResource(R.string.status_waiting)
+                    look = when {
+                        !paired -> StatusLook.NO_CAR
+                        !enabled -> StatusLook.OFF
+                        connected -> StatusLook.CONNECTED
+                        state == LinkState.Unavailable -> StatusLook.UNAVAILABLE
+                        else -> StatusLook.WAITING
                     },
-                    connected = state is LinkState.Connected,
+                    unitName = (state as? LinkState.Connected)?.unitName.orEmpty(),
                     enabled = enabled,
-                    canToggle = units.isNotEmpty(),
+                    canToggle = paired,
                     onToggle = {
                         enabled = it
                         PairedUnits.setEnabled(context, it)
                         LinkService.sync(context)
-                    }
+                    },
+                    onPair = startScan
                 )
             }
-            if (state is LinkState.Connected) item { KeyboardCard() }
-            if (units.isNotEmpty()) item { CarSpotCard() }
-            if (units.isNotEmpty()) {
+            if (connected) item { KeyboardCard() }
+            // Something still to allow comes before the drives: it is why the car shows less.
+            val setupFirst = setup.missing > 0 || !paired
+            if (setupFirst) setupSection(setup, open = true, onToggle = null)
+            if (paired) item { CarSpotCard() }
+            if (paired) {
                 item { SectionTitle(stringResource(R.string.drives_title)) }
                 val latest = drives.firstOrNull()
                 if (latest == null) {
                     item { HintCard(stringResource(R.string.drives_none)) }
                 } else {
                     // "Under way" only while the car is linked: once it is gone, the drive it reported last is simply the last one.
-                    item { LatestDriveCard(latest, underWay = latest.ongoing && state is LinkState.Connected) }
+                    item { LatestDriveCard(latest, underWay = latest.ongoing && connected) }
                     items(drives.drop(1).take(PAST_DRIVES_SHOWN), key = { it.startedAt }) { DriveRow(it) }
                 }
             }
-            item { SectionTitle(stringResource(R.string.setup_title)) }
-            item { SetupSteps(resumes) }
-            item { SectionTitle(stringResource(R.string.cars_title)) }
-            items(units, key = { it.id }) { unit ->
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Filled.DirectionsCar, contentDescription = null)
-                        Spacer(Modifier.width(12.dp))
-                        Column(Modifier.weight(1f)) {
-                            Text(unit.name, fontWeight = FontWeight.SemiBold)
-                            Text(
-                                stringResource(R.string.paired_since, DateFormat.getDateInstance().format(Date(unit.pairedAt))),
-                                style = MaterialTheme.typography.bodySmall
-                            )
+            if (!setupFirst) setupSection(setup, open = setupOpen, onToggle = { setupOpen = !setupOpen })
+            if (paired) {
+                item { SectionTitle(stringResource(R.string.cars_title)) }
+                items(units, key = { it.id }) { unit ->
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Filled.DirectionsCar, contentDescription = null)
+                            Spacer(Modifier.width(12.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text(unit.name, fontWeight = FontWeight.SemiBold)
+                                Text(
+                                    stringResource(R.string.paired_since, DateFormat.getDateInstance().format(Date(unit.pairedAt))),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                            TextButton(onClick = { removing = unit }) { Text(stringResource(R.string.remove)) }
                         }
-                        TextButton(onClick = { removing = unit }) { Text(stringResource(R.string.remove)) }
                     }
                 }
-            }
-            item {
-                Button(
-                    onClick = {
-                        scan.launch(
-                            ScanOptions()
-                                .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
-                                .setPrompt(scanPrompt)
-                                .setBeepEnabled(false)
-                                .setOrientationLocked(false)
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(Icons.Filled.QrCodeScanner, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.pair_car))
+                item {
+                    OutlinedButton(onClick = startScan, modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Filled.QrCodeScanner, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.pair_another))
+                    }
                 }
-                Text(scanPrompt, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
             }
         }
     }
@@ -279,38 +304,151 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
             title = { Text(stringResource(R.string.remove_title, unit.name)) },
             text = { Text(stringResource(R.string.remove_body)) },
             confirmButton = {
-                Button(onClick = {
-                    PairedUnits.remove(context, unit.id)
-                    LinkService.sync(context)
-                    removing = null
-                }) { Text(stringResource(R.string.remove)) }
+                Button(
+                    onClick = {
+                        PairedUnits.remove(context, unit.id)
+                        LinkService.sync(context)
+                        removing = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) { Text(stringResource(R.string.remove)) }
             },
             dismissButton = { TextButton(onClick = { removing = null }) { Text(stringResource(R.string.cancel)) } }
         )
     }
 }
 
+/**
+ * The setup checklist: in full while something is left to allow; once all is
+ * allowed, one line that opens it ([onToggle]), since there is nothing to do.
+ */
+private fun LazyListScope.setupSection(setup: SetupChecks, open: Boolean, onToggle: (() -> Unit)?) {
+    item {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            SectionTitle(stringResource(R.string.setup_title), Modifier.weight(1f))
+            if (setup.missing > 0) {
+                Text(
+                    stringResource(R.string.setup_missing, setup.missing),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.tertiary,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+        }
+    }
+    if (!open && onToggle != null) {
+        item {
+            Card(onClick = onToggle, modifier = Modifier.fillMaxWidth()) {
+                Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.secondary)
+                    Spacer(Modifier.width(12.dp))
+                    Text(stringResource(R.string.setup_all_done), fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                    Text(stringResource(R.string.setup_show), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
+                    Icon(Icons.Filled.ExpandMore, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                }
+            }
+        }
+    } else {
+        item { SetupSteps(setup) }
+        if (onToggle != null) {
+            item {
+                TextButton(onClick = onToggle, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.setup_hide))
+                    Icon(Icons.Filled.ExpandLess, contentDescription = null)
+                }
+            }
+        }
+    }
+}
+
+/** What the status card says, from the link and the switch. */
+private enum class StatusLook { NO_CAR, OFF, WAITING, UNAVAILABLE, CONNECTED }
+
+/**
+ * The link at a glance: an icon in its colour, what is happening and what to
+ * do about it, and the sharing switch. With no car paired, the button to pair one.
+ */
 @Composable
-private fun StatusCard(text: String, connected: Boolean, enabled: Boolean, canToggle: Boolean, onToggle: (Boolean) -> Unit) {
+private fun StatusCard(
+    look: StatusLook,
+    unitName: String,
+    enabled: Boolean,
+    canToggle: Boolean,
+    onToggle: (Boolean) -> Unit,
+    onPair: () -> Unit
+) {
     // The link's last event, for when the car does not connect (not translated: technical).
     val lastEvent = LinkServer.lastEvent.collectAsState().value
+    val scheme = MaterialTheme.colorScheme
+    val (icon, tint) = when (look) {
+        StatusLook.CONNECTED -> Icons.Filled.Link to scheme.secondary
+        StatusLook.WAITING -> Icons.Filled.WifiTethering to scheme.primary
+        StatusLook.UNAVAILABLE -> Icons.Filled.ErrorOutline to scheme.error
+        StatusLook.OFF -> Icons.Filled.LinkOff to scheme.onSurfaceVariant
+        StatusLook.NO_CAR -> Icons.Filled.DirectionsCar to scheme.primary
+    }
+    val title = when (look) {
+        StatusLook.NO_CAR -> stringResource(R.string.status_no_car)
+        StatusLook.OFF -> stringResource(R.string.status_off)
+        StatusLook.WAITING -> stringResource(R.string.status_waiting)
+        StatusLook.UNAVAILABLE -> stringResource(R.string.status_unavailable)
+        StatusLook.CONNECTED -> stringResource(R.string.status_connected, unitName)
+    }
+    val detail = when (look) {
+        StatusLook.NO_CAR -> stringResource(R.string.pair_hint)
+        StatusLook.OFF -> stringResource(R.string.status_off_detail)
+        StatusLook.WAITING -> stringResource(R.string.status_waiting_detail)
+        StatusLook.UNAVAILABLE -> stringResource(R.string.status_unavailable_detail)
+        StatusLook.CONNECTED -> stringResource(R.string.status_connected_detail)
+    }
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = if (connected) CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer) else CardDefaults.cardColors()
+        colors = if (look == StatusLook.CONNECTED) CardDefaults.cardColors(containerColor = scheme.primaryContainer) else CardDefaults.cardColors()
     ) {
-        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text(stringResource(R.string.share_toggle), fontWeight = FontWeight.SemiBold)
-                Text(text, style = MaterialTheme.typography.bodyMedium)
-                if (!connected && enabled && lastEvent != null) {
-                    Text(
-                        lastEvent,
-                        style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+        Column(Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(shape = CircleShape, color = tint.copy(alpha = 0.18f), modifier = Modifier.size(44.dp)) {
+                    Box(contentAlignment = Alignment.Center) { Icon(icon, contentDescription = null, tint = tint) }
+                }
+                Spacer(Modifier.width(14.dp))
+                Column(Modifier.weight(1f)) {
+                    // What the switch does, over the status it gives.
+                    if (canToggle) {
+                        Text(
+                            stringResource(R.string.share_toggle).uppercase(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = LocalContentColor.current.copy(alpha = 0.7f)
+                        )
+                    }
+                    Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Text(detail, style = MaterialTheme.typography.bodySmall, color = LocalContentColor.current.copy(alpha = 0.8f))
+                }
+                if (canToggle) {
+                    Spacer(Modifier.width(8.dp))
+                    // The switch speaks for itself to TalkBack: "Share with the car, on".
+                    val label = stringResource(R.string.share_toggle)
+                    Switch(
+                        checked = enabled,
+                        onCheckedChange = onToggle,
+                        modifier = Modifier.semantics { contentDescription = label }
                     )
                 }
             }
-            Switch(checked = enabled && canToggle, onCheckedChange = onToggle, enabled = canToggle)
+            if ((look == StatusLook.WAITING || look == StatusLook.UNAVAILABLE) && lastEvent != null) {
+                Text(
+                    lastEvent,
+                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+                    color = scheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 10.dp)
+                )
+            }
+            if (look == StatusLook.NO_CAR) {
+                Button(onClick = onPair, modifier = Modifier.fillMaxWidth().padding(top = 14.dp)) {
+                    Icon(Icons.Filled.QrCodeScanner, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.pair_car))
+                }
+            }
         }
     }
 }
@@ -538,7 +676,7 @@ private fun ecoCall(score: Int): Int = when {
 @Composable
 private fun ecoTint(score: Int): Color = when {
     score >= 80 -> MaterialTheme.colorScheme.secondary
-    score >= 60 -> Color(0xFFF5B942)
+    score >= 60 -> MaterialTheme.colorScheme.tertiary
     else -> MaterialTheme.colorScheme.error
 }
 
@@ -571,21 +709,37 @@ private fun walkingDirections(s: CarSpotInfo): Uri =
     Uri.parse("https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}&travelmode=walking")
 
 @Composable
-private fun SectionTitle(text: String) {
-    Text(text, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(top = 8.dp))
+private fun SectionTitle(text: String, modifier: Modifier = Modifier) {
+    Text(text, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, modifier = modifier.padding(top = 8.dp))
+}
+
+/** What the setup checklist found, and how to fix each; re-read on every resume. */
+private class SetupChecks(
+    val listener: Boolean,
+    /** Null below Android 13, where there is nothing to allow. */
+    val post: Boolean?,
+    val calls: Boolean,
+    val agenda: Boolean,
+    val battery: Boolean,
+    val askPost: () -> Unit,
+    val askCalls: () -> Unit,
+    val askAgenda: () -> Unit
+) {
+    /** The steps that can be checked from here and are not done (the hotspot can't be). */
+    val missing: Int get() = listOf(listener, post ?: true, calls, agenda, battery).count { !it }
 }
 
 @Composable
-private fun SetupSteps(resumes: Int) {
+private fun rememberSetupChecks(resumes: Int): SetupChecks {
     val context = LocalContext.current
     // Re-read on every resume: the driver comes back from the system settings.
     val listener = remember(resumes) {
         NotificationManagerCompat.getEnabledListenerPackages(context).contains(context.packageName)
     }
-    var postGranted by remember(resumes) { mutableStateOf(canPostNotifications(context)) }
     val battery = remember(resumes) {
         context.getSystemService(PowerManager::class.java).isIgnoringBatteryOptimizations(context.packageName)
     }
+    var postGranted by remember(resumes) { mutableStateOf(canPostNotifications(context)) }
     val askPost = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { postGranted = it }
     var callsGranted by remember(resumes) { mutableStateOf(CALL_PERMISSIONS.all { granted(context, it) }) }
     val askCalls = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
@@ -597,15 +751,52 @@ private fun SetupSteps(resumes: Int) {
         agendaGranted = it
         PhoneLists.recheck()
     }
+    return SetupChecks(
+        listener = listener,
+        post = if (Build.VERSION.SDK_INT >= 33) postGranted else null,
+        calls = callsGranted,
+        agenda = agendaGranted,
+        battery = battery,
+        askPost = { ask(context, arrayOf(Manifest.permission.POST_NOTIFICATIONS)) { askPost.launch(it.single()) } },
+        askCalls = { ask(context, CALL_PERMISSIONS) { askCalls.launch(it) } },
+        askAgenda = { ask(context, arrayOf(Manifest.permission.READ_CALENDAR)) { askAgenda.launch(it.single()) } }
+    )
+}
 
+/**
+ * Asks for [permissions] with [launch]; unless Android no longer asks (refused
+ * twice), where the Allow button would silently do nothing: App info is
+ * opened instead, where they can still be given. "Asked before" is kept, as
+ * Android gives no rationale either before the first request.
+ */
+private fun ask(context: Context, permissions: Array<String>, launch: (Array<String>) -> Unit) {
+    val activity = context as? Activity
+    val missing = permissions.filterNot { granted(context, it) }
+    val asked = context.getSharedPreferences(PERMISSION_PREFS, Context.MODE_PRIVATE)
+    val refusedForGood = activity != null && missing.isNotEmpty() &&
+        missing.all { asked.getBoolean(it, false) && !activity.shouldShowRequestPermissionRationale(it) }
+    if (refusedForGood) {
+        Toast.makeText(context, R.string.permission_in_settings, Toast.LENGTH_LONG).show()
+        open(context, Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")))
+        return
+    }
+    asked.edit().apply { missing.forEach { putBoolean(it, true) } }.apply()
+    launch(permissions)
+}
+
+private const val PERMISSION_PREFS = "permissions_asked"
+
+@Composable
+private fun SetupSteps(setup: SetupChecks) {
+    val context = LocalContext.current
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Step(
             Icons.Filled.Notifications, stringResource(R.string.step_notifications),
-            stringResource(R.string.step_notifications_detail), done = listener
+            stringResource(R.string.step_notifications_detail), done = setup.listener
         ) {
             open(context, Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
         }
-        if (!listener) {
+        if (!setup.listener) {
             // Android 13+ greys out Notification access for apps installed outside a store.
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 8.dp)) {
                 Text(stringResource(R.string.step_notifications_restricted), style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
@@ -614,29 +805,23 @@ private fun SetupSteps(resumes: Int) {
                 }) { Text(stringResource(R.string.step_app_info)) }
             }
         }
-        if (Build.VERSION.SDK_INT >= 33) {
+        setup.post?.let { post ->
             Step(
                 Icons.Filled.NotificationsActive, stringResource(R.string.step_post),
-                stringResource(R.string.step_post_detail), done = postGranted
-            ) {
-                askPost.launch(Manifest.permission.POST_NOTIFICATIONS)
-            }
+                stringResource(R.string.step_post_detail), done = post, onFix = setup.askPost
+            )
         }
         Step(
             Icons.Filled.Call, stringResource(R.string.step_calls),
-            stringResource(R.string.step_calls_detail), done = callsGranted
-        ) {
-            askCalls.launch(CALL_PERMISSIONS)
-        }
+            stringResource(R.string.step_calls_detail), done = setup.calls, onFix = setup.askCalls
+        )
         Step(
             Icons.Filled.Event, stringResource(R.string.step_agenda),
-            stringResource(R.string.step_agenda_detail), done = agendaGranted
-        ) {
-            askAgenda.launch(Manifest.permission.READ_CALENDAR)
-        }
+            stringResource(R.string.step_agenda_detail), done = setup.agenda, onFix = setup.askAgenda
+        )
         Step(
             Icons.Filled.BatteryFull, stringResource(R.string.step_battery),
-            stringResource(R.string.step_battery_detail), done = battery
+            stringResource(R.string.step_battery_detail), done = setup.battery
         ) {
             open(context, Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:${context.packageName}")))
         }
@@ -654,7 +839,7 @@ private fun SetupSteps(resumes: Int) {
 private fun Step(icon: ImageVector, title: String, detail: String, done: Boolean?, onFix: () -> Unit) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, contentDescription = null)
+            Icon(icon, contentDescription = null, tint = if (done == false) MaterialTheme.colorScheme.tertiary else LocalContentColor.current)
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(title, fontWeight = FontWeight.SemiBold)

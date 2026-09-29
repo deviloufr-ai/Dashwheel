@@ -32,7 +32,7 @@
     <string name="remove_title">¿Quitar %1$s?</string>
     <string name="remove_body">El coche ya no recibirá nada de este teléfono. Para volver a vincularlo hará falta un código nuevo.</string>
     <string name="paired_since">Vinculado el %1$s</string>
-    <string name="scanned_download_code">Ese código descarga la app. Escanea ahora el otro, el código de vinculación a la derecha de la pantalla de la radio.</string>
+    <string name="scanned_download_code">Ese código descarga la app. Escanea ahora el otro en la pantalla de la radio, el titulado Código de vinculación.</string>
     <string name="invalid_code_read">No es un código de vinculación de Dashwheel (leído: %1$s).</string>
     <string name="step_calls">Llamadas</string>
     <string name="step_calls_detail">Muestra quién llama en la pantalla del coche, para contestar o colgar desde ahí, y tus favoritos para llamar desde el coche. El sonido sigue en el Bluetooth del coche.</string>
@@ -79,4 +79,15 @@
     <string name="place_unknown">Este enlace no indica dónde está el lugar.</string>
     <string name="step_agenda">Agenda</string>
     <string name="step_agenda_detail">Muestra tus próximos eventos en la pantalla del coche, con la ruta hasta el lugar.</string>
+    <string name="status_unavailable">No se pudo iniciar la conexión</string>
+    <string name="status_unavailable_detail">Desactiva y vuelve a activar el uso compartido. Si sigue fallando, reinicia el teléfono.</string>
+    <string name="status_off_detail">El coche no recibe nada de este teléfono hasta que lo vuelvas a activar.</string>
+    <string name="status_waiting_detail">Activa el punto de acceso del teléfono y conecta la radio a él.</string>
+    <string name="status_connected_detail">Notificaciones, llamadas y agenda se ven en la pantalla del coche.</string>
+    <string name="setup_missing">Por permitir: %1$d</string>
+    <string name="setup_all_done">Todo está permitido</string>
+    <string name="setup_show">Mostrar</string>
+    <string name="setup_hide">Ocultar</string>
+    <string name="pair_another">Vincular otro coche</string>
+    <string name="permission_in_settings">Android ya no lo pide: permítelo en Info de la app → Permisos.</string>
 </resources>

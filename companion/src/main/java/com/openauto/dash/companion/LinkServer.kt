@@ -37,6 +37,8 @@ sealed interface LinkState {
     data object Off : LinkState
     /** Listening: waiting for the head unit to join the hotspot and dial in. */
     data object Waiting : LinkState
+    /** The port could not be opened: nothing is listening, the car can't reach this phone. */
+    data object Unavailable : LinkState
     data class Connected(val unitName: String) : LinkState
 }
 
@@ -91,6 +93,7 @@ object LinkServer {
         } catch (e: IOException) {
             Log.w(TAG, "cannot listen on $LINK_PORT", e)
             note("cannot listen on port $LINK_PORT: ${e.message.orEmpty()}")
+            _state.value = LinkState.Unavailable
             return
         }
         server = socket
@@ -106,6 +109,12 @@ object LinkServer {
         session?.close()
         session = null
         _state.value = LinkState.Off
+    }
+
+    /** Ends the link of the pairing [id] now (the driver removed it), rather than at its next message. */
+    fun forget(id: String) {
+        val current = session ?: return
+        if (current.pairingId == id) current.close()
     }
 
     /** Sends to the connected head unit, if any. Safe from any thread. */

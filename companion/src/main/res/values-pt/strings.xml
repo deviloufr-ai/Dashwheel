@@ -32,7 +32,7 @@
     <string name="remove_title">Remover %1$s?</string>
     <string name="remove_body">O carro deixa de receber o que quer que seja deste telefone. Para voltar a associar é preciso um novo código.</string>
     <string name="paired_since">Associado em %1$s</string>
-    <string name="scanned_download_code">Esse código transfere a app. Leia agora o outro, o código de associação à direita no ecrã do autorrádio.</string>
+    <string name="scanned_download_code">Esse código transfere a app. Leia agora o outro no ecrã do autorrádio, com o título Código de associação.</string>
     <string name="invalid_code_read">Não é um código de associação Dashwheel (lido: %1$s).</string>
     <string name="step_calls">Chamadas</string>
     <string name="step_calls_detail">Mostra quem liga no ecrã do carro, para atender ou desligar a partir dele, e os seus favoritos para ligar a partir do carro. O som continua no Bluetooth do carro.</string>
@@ -79,4 +79,15 @@
     <string name="place_unknown">Esta ligação não indica onde fica o local.</string>
     <string name="step_agenda">Agenda</string>
     <string name="step_agenda_detail">Mostra os seus próximos eventos no ecrã do carro, com a rota até ao local.</string>
+    <string name="status_unavailable">Não foi possível iniciar a ligação</string>
+    <string name="status_unavailable_detail">Desative e volte a ativar a partilha. Se continuar a falhar, reinicie o telemóvel.</string>
+    <string name="status_off_detail">O carro não recebe nada deste telemóvel até voltar a ativar.</string>
+    <string name="status_waiting_detail">Ative o hotspot do telemóvel e ligue o autorrádio a ele.</string>
+    <string name="status_connected_detail">Notificações, chamadas e agenda aparecem no ecrã do carro.</string>
+    <string name="setup_missing">Por permitir: %1$d</string>
+    <string name="setup_all_done">Está tudo permitido</string>
+    <string name="setup_show">Mostrar</string>
+    <string name="setup_hide">Ocultar</string>
+    <string name="pair_another">Associar outro carro</string>
+    <string name="permission_in_settings">O Android já não pergunta: permita em Info da app → Autorizações.</string>
 </resources>

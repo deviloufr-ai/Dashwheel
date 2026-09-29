@@ -72,6 +72,7 @@ class LinkService : Service() {
         )
         val text = when (state) {
             is LinkState.Connected -> getString(R.string.status_connected, state.unitName)
+            LinkState.Unavailable -> getString(R.string.status_unavailable)
             else -> getString(R.string.status_waiting)
         }
         return Notification.Builder(this, CHANNEL)

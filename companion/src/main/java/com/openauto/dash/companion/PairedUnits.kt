@@ -45,6 +45,7 @@ object PairedUnits {
     @Synchronized
     fun remove(context: Context, id: String) {
         write(context, load(context).filter { it.id != id })
+        LinkServer.forget(id)
     }
 
     /** Whether the driver has sharing switched on (on by default once paired). */
