@@ -43,11 +43,19 @@ data class NavState(
             return m.groupValues[1] to m.groupValues[2]
         }
 
-    /** ETA segments as separate chips: "12 min · 6.4 km · 09:48" → three entries. */
+    /**
+     * ETA segments as separate chips: "12 min · 6.4 km · 09:48" → three entries.
+     * The arrival comes as just its time: Maps words it "Arrivée : 13:51" or "ETA 1:51 PM".
+     */
     val etaParts: List<String>
-        get() = eta.split('·', '•', '|').map { it.trim() }.filter { it.isNotEmpty() }
+        get() = eta.split('·', '•', '|').map { it.trim() }.filter { it.isNotEmpty() }.map { part ->
+            // Only a time that ends the part: "1h05 min" is a duration.
+            val clock = CLOCK.find(part)?.takeIf { it.range.last == part.lastIndex } ?: return@map part
+            if (part.removeRange(clock.range).any { it.isDigit() }) part else clock.value
+        }
 
     companion object {
+        private val CLOCK = Regex("""\d{1,2}[:h.]\d{2}(\s?[AaPp]\.?[Mm]\.?)?""")
         val DISTANCE = Regex("""(\d+(?:[.,]\d+)?)\s?(km|m|mi|ft|yd)\b""")
     }
 }

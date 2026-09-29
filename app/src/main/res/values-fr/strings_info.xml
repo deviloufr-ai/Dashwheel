@@ -116,6 +116,7 @@
 
     <!-- Media tile (both the current and the Original theme) -->
     <string name="info_now_playing">EN COURS DE LECTURE</string>
+    <string name="info_paused">EN PAUSE</string>
     <string name="info_nothing_playing">Aucune lecture</string>
     <string name="info_media_access_needed">Accès aux médias</string>
     <string name="info_media_tap_to_enable">Touchez pour activer</string>

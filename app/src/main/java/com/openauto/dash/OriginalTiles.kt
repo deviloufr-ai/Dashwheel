@@ -113,7 +113,7 @@ internal fun OriginalMediaCard(
                 Spacer(Modifier.width(16.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = stringResource(R.string.info_now_playing),
+                        text = stringResource(if (!mediaState.isPlaying && mediaState.hasMedia && mediaState.title.isNotBlank()) R.string.info_paused else R.string.info_now_playing),
                         color = DashColors.Accent,
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold

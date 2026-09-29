@@ -199,12 +199,13 @@ object LocationFeed {
             val d = prev.distanceTo(l).toDouble()
             val dt = (l.time - prev.time).coerceIn(0L, 60_000L)
             if (d >= 2.0) {
-                _trip.value = _trip.value.let { t ->
+                val now = System.currentTimeMillis()
+                _trip.value = _trip.value.let { if (DriveLogRules.startsAfresh(it, now)) TripState(startedAt = now) else it }.let { t ->
                     t.copy(
                         distanceM = t.distanceM + d,
                         movingMs = t.movingMs + if (speedKmh > 3f) dt else 0L,
                         maxSpeedKmh = max(t.maxSpeedKmh, speedKmh),
-                        updatedAt = System.currentTimeMillis()
+                        updatedAt = now
                     )
                 }
             }

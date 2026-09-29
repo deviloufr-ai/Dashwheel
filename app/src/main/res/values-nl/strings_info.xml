@@ -116,6 +116,7 @@
 
     <!-- Media tile (both the current and the Original theme) -->
     <string name="info_now_playing">SPEELT NU</string>
+    <string name="info_paused">GEPAUZEERD</string>
     <string name="info_nothing_playing">Er speelt niets</string>
     <string name="info_media_access_needed">Mediatoegang vereist</string>
     <string name="info_media_tap_to_enable">Tik om in te schakelen</string>

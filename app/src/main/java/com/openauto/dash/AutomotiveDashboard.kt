@@ -81,6 +81,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.getValue
@@ -94,6 +96,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.activity.compose.ReportDrawn
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 
@@ -812,7 +816,16 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         }
     }
 
-    LaunchedEffect(Unit) { updateManager.checkForUpdate() }
+    // The unit sleeps at ignition off rather than restarting, often for days: a
+    // check at start alone missed every release after it. So also at each
+    // ignition on, and every six hours awake.
+    LaunchedEffect(Unit) {
+        launch { CarPower.ignition.drop(1).filter { it == true }.collect { updateManager.checkForUpdate() } }
+        while (true) {
+            updateManager.checkForUpdate()
+            delay(UPDATE_CHECK_EVERY_MS)
+        }
+    }
     // The head unit running hot is said once, tile or not (HeadUnitMonitor).
     LaunchedEffect(Unit) { withContext(Dispatchers.IO) { HeadUnitMonitor.watchHeat(context) } }
     val checkForUpdates: () -> Unit = { scope.launch { updateManager.checkForUpdate() } }
@@ -1183,7 +1196,9 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             // Over an app nothing is swiped: one tab's page at a time, and every
             // touch between its tiles goes on to the app under it.
             if (tabsShown) {
-                Crossfade(targetState = tabPage.coerceIn(0, DashboardStore.PAGE_COUNT - 1), label = "tab") { tab -> dashboardPage(tab) }
+                val tab = tabPage.coerceIn(0, DashboardStore.PAGE_COUNT - 1)
+                SideEffect { ClockInSight.on.value = pages.getOrNull(tab).orEmpty().any { it.isClock() } }
+                Crossfade(targetState = tab, label = "tab") { t -> dashboardPage(t) }
                 return@pane
             }
             // Sideways swipes only from the middle row: the pages above and
@@ -1199,6 +1214,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                 withFrameNanos { }
                 beyondViewport = 1
             }
+            Box(Modifier.fillMaxSize()) {
             HorizontalPager(
                 state = pagerState,
                 userScrollEnabled = !blockPagerSwipe && onHomeRow,
@@ -1229,6 +1245,31 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                 } else {
                     dashboardPage(page)
                 }
+            }
+            val shown = if (onHomeRow || pagerState.currentPage != DashboardStore.ROW.indexOf(DashboardStore.CENTER)) {
+                DashboardStore.ROW[pagerState.currentPage]
+            } else {
+                DashboardStore.COLUMN[columnState.currentPage]
+            }
+            SideEffect { ClockInSight.on.value = pages.getOrNull(shown).orEmpty().any { it.isClock() } }
+            // An app running in a tile takes every swipe over it: a page filled by one
+            // could not be left. Its edges still turn the page.
+            if (!editing && pages.getOrNull(shown).orEmpty().any { it.runsAnApp() }) {
+                PageEdgeSwipes(
+                    sideways = { forward ->
+                        if (onHomeRow) {
+                            val to = (pagerState.currentPage + if (forward) 1 else -1).coerceIn(0, DashboardStore.ROW.lastIndex)
+                            scope.launch { pagerState.animateScrollToPage(to) }
+                        } else {
+                            showPage(DashboardStore.CENTER)
+                        }
+                    },
+                    upDown = if (DashboardStore.ROW[pagerState.currentPage] != DashboardStore.CENTER) null else { forward ->
+                        val to = (columnState.currentPage + if (forward) 1 else -1).coerceIn(0, DashboardStore.COLUMN.lastIndex)
+                        scope.launch { columnState.animateScrollToPage(to) }
+                    }
+                )
+            }
             }
             }
             DockSplit(
@@ -1986,3 +2027,50 @@ internal fun ConfirmDialog(title: String, body: String, action: String, onConfir
         }
     )
 }
+
+private fun DashboardItem.isClock(): Boolean = this is DashboardItem.BuiltinWidget && kind == BuiltinKind.CLOCK
+
+/** A tile the app inside takes every touch of: Maps inside, or an app window. */
+private fun DashboardItem.runsAnApp(): Boolean =
+    this is DashboardItem.AppWindow || (this is DashboardItem.BuiltinWidget && kind == BuiltinKind.MAPS_INSIDE)
+
+/**
+ * Thin strips along the pages' edges that turn the page when swiped across:
+ * [sideways] with true for the next page to the right, [upDown] (null where
+ * the page has nothing above or below) with true for the page underneath.
+ */
+@Composable
+private fun BoxScope.PageEdgeSwipes(sideways: (Boolean) -> Unit, upDown: ((Boolean) -> Unit)?) {
+    val edge = 20.dp
+    @Composable
+    fun Strip(align: Alignment, horizontal: Boolean, turn: (Boolean) -> Unit) {
+        Box(
+            Modifier.align(align)
+                .then(if (horizontal) Modifier.width(edge).fillMaxHeight() else Modifier.height(edge).fillMaxWidth())
+                .pointerInput(horizontal) {
+                    var dragged = 0f
+                    val threshold = 48.dp.toPx()
+                    val end = { if (abs(dragged) >= threshold) turn(dragged < 0f) }
+                    if (horizontal) {
+                        detectHorizontalDragGestures(onDragStart = { dragged = 0f }, onDragEnd = end) { change, d ->
+                            dragged += d
+                            change.consume()
+                        }
+                    } else {
+                        detectVerticalDragGestures(onDragStart = { dragged = 0f }, onDragEnd = end) { change, d ->
+                            dragged += d
+                            change.consume()
+                        }
+                    }
+                }
+        )
+    }
+    Strip(Alignment.CenterStart, horizontal = true, turn = sideways)
+    Strip(Alignment.CenterEnd, horizontal = true, turn = sideways)
+    if (upDown != null) {
+        Strip(Alignment.TopCenter, horizontal = false, turn = upDown)
+        Strip(Alignment.BottomCenter, horizontal = false, turn = upDown)
+    }
+}
+
+private const val UPDATE_CHECK_EVERY_MS = 6 * 60 * 60_000L

@@ -142,6 +142,11 @@ object PhoneLink {
     private const val PING_EVERY_MS = 15_000L
     /** How often to look for the phone: quickly while a pairing code is on screen. */
     private const val RETRY_MS = 10_000L
+    /**
+     * Nobody answering on this Wi-Fi (home, work: the gateway is a router, not
+     * a phone) slows the tries down to this; a new network starts over at [RETRY_MS].
+     */
+    private const val RETRY_MAX_MS = 2 * 60_000L
     private const val RETRY_PAIRING_MS = 2_000L
     /**
      * Any other driver's companion refuses a pairing it never saw, so one
@@ -276,34 +281,50 @@ object PhoneLink {
 
     private suspend fun run(context: Context) {
         var last = wake.value
+        // Tries in a row where no phone answered at the gateway.
+        var misses = 0
         while (scope.isActive) {
             handover.getAndSet(null)?.let { runSession(context, it.gateway, it.link, it.phone, isPending = true) }
             val pending = _pending.value
             val candidates = listOfNotNull(pending?.let { PairedPhone(it.id, it.secret, "", 0) }) +
                 _phones.value.filter { !it.forgotten }
             val gateway = if (candidates.isEmpty()) null else hotspotGateway(context)
-            if (gateway != null) dial(context, gateway, candidates, pending?.id)
-            else if (candidates.isNotEmpty()) note("no Wi-Fi gateway: not on a phone hotspot")
+            val answered = gateway != null && dial(context, gateway, candidates, pending?.id)
+            if (gateway == null && candidates.isNotEmpty()) note("no Wi-Fi gateway: not on a phone hotspot")
+            misses = if (answered || gateway == null) 0 else misses + 1
             refreshIdleState()
-            val wait = if (_pending.value != null) RETRY_PAIRING_MS else RETRY_MS
-            withTimeoutOrNull(wait) { wake.first { it != last } }
+            val wait = if (_pending.value != null) RETRY_PAIRING_MS else retryDelay(misses)
+            // A network change or a new pairing code: look again at once, and quickly.
+            if (withTimeoutOrNull(wait) { wake.first { it != last } } != null) misses = 0
             last = wake.value
         }
     }
 
-    /** Tries each pairing on the phone at [gateway] until one links (and that link has ended). */
-    private fun dial(context: Context, gateway: InetAddress, candidates: List<PairedPhone>, pendingId: String?) {
+    /** Waits between tries: 10 s, then doubling while nobody answers, up to 2 min. */
+    internal fun retryDelay(misses: Int): Long =
+        if (misses <= 1) RETRY_MS else (RETRY_MS shl (misses - 1).coerceAtMost(4)).coerceAtMost(RETRY_MAX_MS)
+
+    /**
+     * Tries each pairing on the phone at [gateway] until one links (and that link has ended).
+     * False when nothing answered there at all.
+     */
+    private fun dial(context: Context, gateway: InetAddress, candidates: List<PairedPhone>, pendingId: String?): Boolean {
         val refused = mutableListOf<String>()
+        var answered = false
         for (phone in candidates) {
             val isPending = phone.id == pendingId
             when (tryPhone(context, gateway, phone, isPending)) {
-                Attempt.LINKED -> return
+                Attempt.LINKED -> return true
                 // A pairing code the phone hasn't accepted yet: the paired phones still get their turn.
-                Attempt.REFUSED -> if (!isPending) refused += phone.id
+                Attempt.REFUSED -> {
+                    answered = true
+                    if (!isPending) refused += phone.id
+                }
                 Attempt.UNREACHABLE -> Unit
             }
         }
         if (refused.isNotEmpty()) noteRefusals(context, refused)
+        return answered
     }
 
     /** One attempt with one pairing. */

@@ -116,6 +116,7 @@
 
     <!-- Media tile (both the current and the Original theme) -->
     <string name="info_now_playing">A REPRODUZIR</string>
+    <string name="info_paused">EM PAUSA</string>
     <string name="info_nothing_playing">Nada a reproduzir</string>
     <string name="info_media_access_needed">Acesso multimédia</string>
     <string name="info_media_tap_to_enable">Tocar para ativar</string>

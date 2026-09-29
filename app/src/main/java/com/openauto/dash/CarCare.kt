@@ -111,6 +111,8 @@ internal object CareRules {
     const val ENGINE_OFF_MS = 3 * 60_000L
     /** Shorter drives (a quick restart) don't count either way. */
     const val MIN_DRIVE_MS = 2 * 60_000L
+    /** Idling on the drive or in a car park isn't a trip: under this, the filter streak doesn't move. */
+    const val MIN_TRIP_KM = 0.5
     const val LONG_DRIVE_MS = 10 * 60_000L
     const val FILTER_SPEED_KMH = 60
     const val FILTER_WARN_STREAK = 3
@@ -155,7 +157,7 @@ internal object CareRules {
     }
 
     private fun close(drive: Drive, filter: FilterLog): FilterLog = when {
-        drive.runningMs < MIN_DRIVE_MS -> filter
+        drive.runningMs < MIN_DRIVE_MS || drive.distanceKm < MIN_TRIP_KM -> filter
         drive.filterFriendly -> FilterLog(shortStreak = 0, lastLongAt = drive.lastAt, warnedStreak = 0)
         else -> filter.copy(shortStreak = filter.shortStreak + 1)
     }

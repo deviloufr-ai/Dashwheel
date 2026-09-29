@@ -404,10 +404,6 @@ internal fun PosterLayout(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
                 modifier = Modifier.align(Alignment.BottomEnd).offset(y = (size * 0.12f).dp).padding(end = (m.pad * 0.5f).dp),
                 verticalAlignment = Alignment.Bottom
             ) {
-                if (f.unit.isNotEmpty()) {
-                    FaceText(f.unit.upper(), look, m.sp(size * 0.18f), color = look.accent, weight = FontWeight.Bold,
-                        letterSpacing = 0.08.em, modifier = Modifier.padding(bottom = (size * 0.24f).dp, end = (size * 0.04f).dp))
-                }
                 Text(
                     f.value,
                     color = color,
@@ -420,6 +416,11 @@ internal fun PosterLayout(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
                     softWrap = false,
                     overflow = TextOverflow.Clip
                 )
+                // After the number, as it is read: "20 °C", not "°C 20".
+                if (f.unit.isNotEmpty()) {
+                    FaceText(f.unit.upper(), look, m.sp(size * 0.18f), color = look.accent, weight = FontWeight.Bold,
+                        letterSpacing = 0.08.em, modifier = Modifier.padding(bottom = (size * 0.24f).dp, start = (size * 0.04f).dp))
+                }
             }
         }
     }

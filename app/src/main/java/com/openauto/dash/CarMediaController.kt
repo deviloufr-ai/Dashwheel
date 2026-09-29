@@ -164,7 +164,7 @@ class CarMediaController(private val context: Context) {
         val artist = metadata?.getString(MediaMetadata.METADATA_KEY_ARTIST).orEmpty()
         val track = listOf(controller.packageName, title, artist, metadata?.getString(MediaMetadata.METADATA_KEY_ALBUM))
         _mediaState.value = MediaState(
-            title = title,
+            title = MediaTitle.clean(title, artist),
             artist = artist,
             isPlaying = playback?.state == PlaybackState.STATE_PLAYING,
             hasMedia = metadata != null,

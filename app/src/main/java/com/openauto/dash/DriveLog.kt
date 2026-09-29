@@ -48,6 +48,13 @@ internal object DriveLogRules {
     fun isWorthLogging(trip: TripState): Boolean = trip.distanceM >= MIN_KM * 1000
 
     /**
+     * The car moves again after standing still: a trip that went nowhere
+     * starts afresh from now, so it says when the drive began. While parked it
+     * is left alone rather than restarted every ten minutes.
+     */
+    fun startsAfresh(trip: TripState, now: Long): Boolean = !isWorthLogging(trip) && isOver(trip, now)
+
+    /**
      * The eco-driving card just closed [ended]: the trip is over too when the
      * engine really was switched off (its readings went on until the end; an
      * adapter that dropped out mid-drive is not the end of the drive) and
@@ -175,8 +182,8 @@ internal object DriveLog {
             if (!gps) gps = LocationFeed.acquire(app)
             val trip = LocationFeed.trip.value
             if (DriveLogRules.isOver(trip, System.currentTimeMillis())) {
-                // An empty trip just starts afresh, so its "since" stays recent.
-                close(trip, restart = true)
+                // An empty trip waits for the car to move ([DriveLogRules.startsAfresh]).
+                if (DriveLogRules.isWorthLogging(trip)) close(trip, restart = true)
             } else if (trip.updatedAt != savedAt) {
                 save(app, trip)
                 if (DriveLogRules.isWorthLogging(trip)) {

@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocalGasStation
 import androidx.compose.material3.MaterialTheme
@@ -107,7 +105,8 @@ internal fun FuelPricesCard(modifier: Modifier = Modifier) {
                             " · " + stringResource(R.string.fuel_navigate),
                         color = DashColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.labelSmall
                     )
-                    Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    // As many whole stations as the tile holds, cheapest first: no half row, nothing to scroll.
+                    WholeRows(modifier = Modifier.fillMaxWidth().weight(1f), gap = 2.dp) {
                         nearby.ranked.forEachIndexed { i, r ->
                             StationRow(r, cheapest = i == 0) {
                                 navigateTo(context, r.station.lat, r.station.lng, r.station.label)
@@ -161,4 +160,29 @@ internal fun fuelNoneText(): String {
 @Composable
 private fun Hint(text: String) {
     Text(text, color = DashColors.Muted, maxLines = 3, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall)
+}
+
+/** Stacks its children top down and leaves out every one that would not fit whole. */
+@Composable
+private fun WholeRows(modifier: Modifier = Modifier, gap: androidx.compose.ui.unit.Dp, content: @Composable () -> Unit) {
+    androidx.compose.ui.layout.Layout(content, modifier) { measurables, constraints ->
+        val loose = constraints.copy(minHeight = 0)
+        val gapPx = gap.roundToPx()
+        val placeables = mutableListOf<androidx.compose.ui.layout.Placeable>()
+        var used = 0
+        for (m in measurables) {
+            val p = m.measure(loose)
+            val needed = used + (if (placeables.isEmpty()) 0 else gapPx) + p.height
+            if (needed > constraints.maxHeight) break
+            placeables += p
+            used = needed
+        }
+        layout(constraints.maxWidth, if (constraints.hasBoundedHeight) constraints.maxHeight else used) {
+            var y = 0
+            placeables.forEach { p ->
+                p.placeRelative(0, y)
+                y += p.height + gapPx
+            }
+        }
+    }
 }

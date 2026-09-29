@@ -26,6 +26,25 @@ class NavDirectionsTest {
     }
 
     @Test
+    fun theArrivalChipIsJustItsTime() {
+        val s = NavDirections.fromLines(
+            listOf("0 m", "vers Rue de Moimont", "24 min · 22 km · Arrivée : 13:51"),
+            icon = null, packageName = "com.google.android.apps.maps"
+        )
+        assertEquals(listOf("24 min", "22 km", "13:51"), s!!.etaParts)
+        val en = NavDirections.fromLines(
+            listOf("300 m", "Turn left", "1 h 5 min · 90 km · ETA 1:51 PM"),
+            icon = null, packageName = "com.google.android.apps.maps"
+        )
+        assertEquals(listOf("1 h 5 min", "90 km", "1:51 PM"), en!!.etaParts)
+        val long = NavDirections.fromLines(
+            listOf("300 m", "Tourner à gauche", "1h05 min · 90 km · Arrivée : 13:51"),
+            icon = null, packageName = "com.google.android.apps.maps"
+        )
+        assertEquals(listOf("1h05 min", "90 km", "13:51"), long!!.etaParts)
+    }
+
+    @Test
     fun distanceEmbeddedInTheInstructionIsSplitOut() {
         val s = NavDirections.fromLines(
             listOf("In 300 m, turn right", "12 min · 6.4 km"),

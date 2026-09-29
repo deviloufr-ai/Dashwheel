@@ -186,11 +186,12 @@ private fun telemetryFace(env: SkinTileEnv): WidgetFace {
         alert = d.speedKmh >= SPEED_WARNING_KMH || d.coolantTempC >= 110,
         number = u.speed(d.speedKmh).toFloat(),
         gauges = engineGauges(d, rpmFirst = false),
+        // The revs are already the caption: the designs showing only two stats don't repeat them.
         stats = listOf(
-            FaceStat(stringResource(R.string.vehicle_rpm), d.rpm.toString()),
             FaceStat(stringResource(R.string.vehicle_coolant), u.tempText(d.coolantTempC)),
             FaceStat(stringResource(R.string.vehicle_battery), fmt("%.1f V", d.voltage)),
-            FaceStat(stringResource(R.string.vehicle_load), "${d.engineLoadPct} %")
+            FaceStat(stringResource(R.string.vehicle_load), "${d.engineLoadPct} %"),
+            FaceStat(stringResource(R.string.vehicle_rpm), d.rpm.toString())
         )
     )
 }
@@ -567,7 +568,7 @@ private fun mediaFace(env: SkinTileEnv): WidgetFace {
     val controller = env.mediaController
     return WidgetFace(
         icon = Icons.Filled.MusicNote,
-        title = stringResource(R.string.info_now_playing),
+        title = stringResource(if (!state.isPlaying && state.title.isNotBlank()) R.string.info_paused else R.string.info_now_playing),
         value = state.title.ifBlank { stringResource(R.string.info_nothing_playing) },
         textValue = true,
         caption = state.artist,

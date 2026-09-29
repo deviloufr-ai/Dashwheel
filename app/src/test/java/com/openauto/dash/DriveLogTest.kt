@@ -23,6 +23,15 @@ class DriveLogRulesTest {
     }
 
     @Test
+    fun aTripThatWentNowhereStartsAfreshOnlyWhenTheCarMovesAgain() {
+        val parked = TripState(startedAt = t0, updatedAt = t0)
+        assertFalse(DriveLogRules.startsAfresh(parked, t0 + DriveLogRules.STOP_MS - 1))
+        assertTrue(DriveLogRules.startsAfresh(parked, t0 + DriveLogRules.STOP_MS))
+        // A real drive is closed and logged by the drive log, never wiped here.
+        assertFalse(DriveLogRules.startsAfresh(trip, trip.updatedAt + 60 * 60_000L))
+    }
+
+    @Test
     fun aShuffleInTheCarParkIsNotLogged() {
         assertFalse(DriveLogRules.isWorthLogging(trip.copy(distanceM = 499.0)))
         assertTrue(DriveLogRules.isWorthLogging(trip.copy(distanceM = 500.0)))

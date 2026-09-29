@@ -219,14 +219,15 @@ internal fun StandardTopBar(m: TopBarModel) {
                     when {
                         cluster -> ClusterReadout(speed ?: 0, m.obdData, m.obdConnection)
                         // The head unit's status bar shows the time while it is up.
-                        !m.merged -> BarClock(m.clock)
+                        // A clock tile in sight already tells the time.
+                        !m.merged && !ClockInSight.on.value -> BarClock(m.clock)
                     }
                 }
 
                 // ⋮ and the OBD pill get their room first, whatever else is on
                 // the bar; the badges go short when they share it.
                 BarEnd(modifier = Modifier.weight(1f)) {
-                    if (cluster) {
+                    if (cluster && !ClockInSight.on.value) {
                         Box(Modifier.layoutId(BarRank.CLOCK).padding(end = 10.dp)) {
                             BarClock(m.clock, MaterialTheme.typography.titleMedium)
                         }
@@ -340,6 +341,11 @@ private fun BarButton(onClick: () -> Unit, description: String, label: String? =
     }
 }
 
+/** Whether the dashboard page in sight has a clock tile: the bar then leaves the time out. */
+internal object ClockInSight {
+    val on = androidx.compose.runtime.mutableStateOf(false)
+}
+
 @Composable
 private fun BarClock(clock: String, style: TextStyle = MaterialTheme.typography.titleLarge) {
     Text(
@@ -403,7 +409,8 @@ private fun ClusterReadout(speedKmh: Int, obd: ObdData, connection: ObdConnectio
         SegmentBar(
             label = stringResource(R.string.vehicle_coolant),
             fraction = if (connected) obd.coolantTempC / 120f else 0f,
-            hot = obd.coolantTempC >= COOLANT_WARNING_C
+            hot = obd.coolantTempC >= COOLANT_WARNING_C,
+            value = if (connected) "${LocalUnits.current.temp(obd.coolantTempC)}°" else null
         )
     }
 }
@@ -427,22 +434,32 @@ private fun FuelSegmentBar(label: String, percent: Int?) {
         else -> DashColors.Accent
     }
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
             repeat(FUEL_SEGMENTS) { i ->
                 val colour = if (i < lit) litColour else DashColors.CardHi
                 Box(Modifier.size(width = 5.dp, height = 14.dp).clip(RoundedCornerShape(1.dp)).background(colour))
             }
+            if (level != null) SegmentValue("$level %")
         }
         Text(label.uppercase(), color = DashColors.TextSecondary, letterSpacing = 0.12.em, style = MaterialTheme.typography.labelSmall, maxLines = 1)
     }
 }
 
+/** The reading next to a segment bar, for a glance that doesn't count cells. */
+@Composable
+private fun SegmentValue(text: String) {
+    Text(
+        text, color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold,
+        style = MaterialTheme.typography.labelMedium, maxLines = 1, modifier = Modifier.padding(start = 4.dp)
+    )
+}
+
 /** Six segments and a caption; the top segment reads red when [hot]. */
 @Composable
-private fun SegmentBar(label: String, fraction: Float, hot: Boolean) {
+private fun SegmentBar(label: String, fraction: Float, hot: Boolean, value: String? = null) {
     val lit = (fraction * 6f).toInt().coerceIn(0, 6)
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
             repeat(6) { i ->
                 val colour = when {
                     i >= lit -> DashColors.CardHi
@@ -451,6 +468,7 @@ private fun SegmentBar(label: String, fraction: Float, hot: Boolean) {
                 }
                 Box(Modifier.size(width = 8.dp, height = 14.dp).clip(RoundedCornerShape(1.dp)).background(colour))
             }
+            if (value != null) SegmentValue(value)
         }
         Text(label.uppercase(), color = DashColors.TextSecondary, letterSpacing = 0.12.em, style = MaterialTheme.typography.labelSmall, maxLines = 1)
     }

@@ -51,8 +51,9 @@ internal object VehicleMonitor {
         scope.launch { pollWhileConnected() }
         scope.launch { reconnectWhileWanted() }
         // The bar's alerts, judged at every reading whatever is on screen (the demo's too).
+        // The application context, not [context]: this runs for good and must not keep the first screen alive.
+        val app = context.applicationContext
         scope.launch {
-            val app = context.applicationContext
             combine(ObdBluetoothManager.connectionState, ObdBluetoothManager.data, BatteryWatch.state) { connection, data, battery ->
                 Triple(connection == ObdConnectionState.CONNECTED, data, battery)
             }.collect { (connected, data, battery) -> AlertCenter.evaluate(strings(app), data, battery, connected) }

@@ -27,10 +27,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -292,25 +294,32 @@ internal fun FaceText(
     glow: Boolean = false,
     letterSpacing: TextUnit = TextUnit.Unspecified,
     maxLines: Int = 1,
-    align: TextAlign? = null
+    align: TextAlign? = null,
+    /** Shrinks the text (down to [MIN_FIT_SCALE]) before cutting it: for labels a word too long would lose. */
+    fit: Boolean = false
 ) {
     val halo = look.glow
+    var scale by remember(text, size) { mutableFloatStateOf(1f) }
+    val shrinking = fit && scale > MIN_FIT_SCALE
     Text(
         text = text,
         modifier = modifier,
         color = color,
-        fontSize = size,
-        lineHeight = size * 1.12f,
+        fontSize = size * scale,
+        lineHeight = size * scale * 1.12f,
         fontWeight = weight,
         fontFamily = family,
         fontStyle = if (italic) FontStyle.Italic else FontStyle.Normal,
         letterSpacing = letterSpacing,
         maxLines = maxLines,
-        overflow = TextOverflow.Ellipsis,
+        overflow = if (shrinking) TextOverflow.Clip else TextOverflow.Ellipsis,
         textAlign = align,
-        style = if (glow && halo != null) TextStyle(shadow = Shadow(halo, blurRadius = size.value * 0.6f)) else TextStyle.Default
+        style = if (glow && halo != null) TextStyle(shadow = Shadow(halo, blurRadius = size.value * 0.6f)) else TextStyle.Default,
+        onTextLayout = { if (shrinking && it.hasVisualOverflow) scale = (scale - 0.08f).coerceAtLeast(MIN_FIT_SCALE) }
     )
 }
+
+private const val MIN_FIT_SCALE = 0.72f
 
 @Composable
 internal fun FaceHeader(f: WidgetFace, look: FaceLook, m: FaceMetrics, trailing: (@Composable RowScope.() -> Unit)? = null) {
@@ -319,7 +328,7 @@ internal fun FaceHeader(f: WidgetFace, look: FaceLook, m: FaceMetrics, trailing:
         Spacer(Modifier.width(6.dp))
         FaceText(
             f.title.uppercase(Locale.getDefault()), look, m.label, Modifier.weight(1f),
-            color = look.dim, weight = look.labelWeight, letterSpacing = 0.12.em
+            color = look.dim, weight = look.labelWeight, letterSpacing = 0.12.em, fit = true
         )
         trailing?.invoke(this)
     }
@@ -408,7 +417,7 @@ internal fun FaceActions(f: WidgetFace, look: FaceLook, m: FaceMetrics, max: Int
 @Composable
 internal fun FaceStatBlock(stat: FaceStat, look: FaceLook, m: FaceMetrics, modifier: Modifier = Modifier, align: Alignment.Horizontal = Alignment.Start) {
     Column(modifier = modifier, horizontalAlignment = align) {
-        FaceText(stat.label.uppercase(Locale.getDefault()), look, m.sp(max(m.u * 5.2f, 9f)), color = look.dim, weight = look.labelWeight, letterSpacing = 0.1.em)
+        FaceText(stat.label.uppercase(Locale.getDefault()), look, m.sp(max(m.u * 5.2f, 9f)), color = look.dim, weight = look.labelWeight, letterSpacing = 0.1.em, fit = true)
         FaceText(stat.value, look, m.sp(max(m.u * 8.2f, 12f)), weight = look.numWeight.coerceAtLeast(FontWeight.Medium), family = look.numFont, italic = look.numItalic)
     }
 }
@@ -746,7 +755,7 @@ private fun StatsLayout(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
             modifier = modifier.fillMaxSize().then(cellMod).padding(m.dp(3f).coerceAtLeast(6.dp)),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            FaceText(stat.label.uppercase(Locale.getDefault()), look, m.sp(max(m.u * 5.2f, 9f)), color = look.dim, weight = look.labelWeight, letterSpacing = 0.1.em)
+            FaceText(stat.label.uppercase(Locale.getDefault()), look, m.sp(max(m.u * 5.2f, 9f)), color = look.dim, weight = look.labelWeight, letterSpacing = 0.1.em, fit = true)
             FaceText(stat.value, look, m.sp(max(m.u * 8.5f, 12f)), weight = look.numWeight, family = look.numFont, italic = look.numItalic)
         }
     }

@@ -58,6 +58,15 @@ class CareRulesTest {
     }
 
     @Test
+    fun idlingWithoutMovingIsNotAShortTrip() {
+        val idling = ObdData(speedKmh = 0, rpm = 800, coolantTempC = 80, engineLoadPct = 15)
+        val (running, _, t1) = run(CareState(filter = FilterLog(shortStreak = 2)), idling, t0, 24 * 60)
+        val (after, _, _) = run(running, off, t1, 4 * 60)
+        assertNull(after.drive)
+        assertEquals(2, after.filter.shortStreak)
+    }
+
+    @Test
     fun anEngineComputerGoneSilentEndsTheDrive() {
         // Key back to accessory: the adapter stays linked but nothing answers, and the
         // poll publishes the last readings with the engine stopped.

@@ -116,6 +116,7 @@
 
     <!-- Media tile (both the current and the Original theme) -->
     <string name="info_now_playing">TERAZ ODTWARZANE</string>
+    <string name="info_paused">WSTRZYMANO</string>
     <string name="info_nothing_playing">Nic nie jest odtwarzane</string>
     <string name="info_media_access_needed">Dostęp do mediów</string>
     <string name="info_media_tap_to_enable">Dotknij, aby włączyć</string>
