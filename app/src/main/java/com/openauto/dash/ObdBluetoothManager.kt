@@ -582,6 +582,14 @@ object ObdBluetoothManager {
             // unsupported (then it is the only request, not a second one each time).
             ecuVolt = read(0x42, alive, cycle) { ObdParser.parseControlModuleVoltage(it) }
             volt = ecuVolt ?: sendCommand("ATRV")?.let { ObdParser.parseVoltage(it) }
+            // Engine running, and the OBD figure is far from what the unit itself measures on the
+            // car's supply (12.3 V "not charging" against 14.3 V in the bar): the OBD figure is the
+            // one that's off, so the unit's is used, and trusted like the ECU's.
+            val unitVolt = UnitSignals.supplyVolts()
+            if (unitVolt != null && (rpm ?: _data.value.rpm) > BatteryJudge.RUNNING_RPM && (volt ?: _data.value.voltage).let { it > 0.0 && Math.abs(it - unitVolt) > UNIT_VOLT_DISAGREES_V }) {
+                volt = unitVolt
+                ecuVolt = unitVolt
+            }
         }
 
         val d = _data.value
@@ -634,6 +642,8 @@ object ObdBluetoothManager {
     private const val MAX_MISSES = 3
     /** The slow readings share this many polls, one each. */
     private const val SLOW_SLOTS = 4
+    /** OBD and unit voltages further apart than this: the unit's is believed. */
+    private const val UNIT_VOLT_DISAGREES_V = 1.0
     private const val SUPPORTED_RETRY_POLLS = 20
 
     /**

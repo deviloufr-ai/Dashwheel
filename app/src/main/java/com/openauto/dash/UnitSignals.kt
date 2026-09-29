@@ -99,6 +99,13 @@ object UnitSignals {
         }
     }
 
+    /**
+     * The car's supply voltage as the unit's own power board measures it (the
+     * figure in the firmware's status bar, tenths of a volt), or null off this firmware.
+     */
+    fun supplyVolts(): Double? =
+        systemProperty("sys.qf.update_battery_power")?.toIntOrNull()?.div(10.0)?.takeIf { it in 9.0..16.0 }
+
     private fun refreshPhone(context: Context) {
         val connected = systemProperty("sys.qf.bt.is.connect") == "true"
         val name = runCatching { Settings.Global.getString(context.contentResolver, "btConnectedName") }.getOrNull()?.trim()
