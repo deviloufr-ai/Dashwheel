@@ -52,4 +52,16 @@ class EmbeddedAppTest {
         // A floating window beside the tile's copy is closed the usual way.
         assertFalse(EmbeddedApp.runsTwice(listOf(WindowListing.AppStack(12, 7, "fullscreen"), WindowListing.AppStack(5, 0, "freeform")), 7))
     }
+
+    @Test
+    fun theOtherLayoutsTileLetsGoOfAnAppDockedHere() {
+        val maps = EmbeddedApp.MAPS_PACKAGE
+        val music = "app.music"
+        // On "Map on the left": Maps docked beside the pages, the grid's tile no longer holds it.
+        assertEquals(setOf(music), EmbeddedApp.keptInside(emptySet(), setOf(maps, music), setOf(maps)))
+        // Back on the grid, its own tile has it.
+        assertEquals(setOf(maps, music), EmbeddedApp.keptInside(setOf(maps, music), emptySet(), setOf("other.window")))
+        // An app inside a tile of the layout on screen stays, whatever else shows it.
+        assertEquals(setOf(maps), EmbeddedApp.keptInside(setOf(maps), emptySet(), setOf(maps)))
+    }
 }

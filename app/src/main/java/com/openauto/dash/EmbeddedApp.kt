@@ -587,6 +587,17 @@ internal object EmbeddedApp {
         stacks.any { it.displayId == tileDisplay } &&
             stacks.any { it.displayId != tileDisplay && it.mode != "freeform" && it.mode != "pinned" }
 
+    /**
+     * The apps whose display stays open: those inside a tile of the
+     * arrangement on screen ([here]), and those inside a tile of the other
+     * one ([other]) unless the arrangement on screen shows them in a window
+     * ([windows], Maps docked beside the pages). An app runs once: held inside
+     * a tile nobody sees, it never reached that window, which stayed empty
+     * while the app floated wherever Android put it.
+     */
+    fun keptInside(here: Set<String>, other: Set<String>, windows: Set<String>): Set<String> =
+        here + (other - windows)
+
     /** Closes the displays of the apps not in [keep]; each app closes with its display. */
     fun releaseUnless(keep: Set<String>) {
         val gone = hosts.keys - keep
@@ -737,6 +748,8 @@ internal object EmbeddedApp {
             // The window tiles now leave this app and this display alone.
             WindowListing.embeddedDisplays = WindowListing.embeddedDisplays + made.display.displayId
             held = held + packageName
+            // The dashboard's own context, so it also takes the focus back that a docked window had.
+            PipAnchor.takenInside(dashboard?.get() ?: context, packageName)
             Log.i(TAG, "display ${made.display.displayId} for $packageName, ${width}x$height at $dpi dpi")
             launch(made)
         }

@@ -173,6 +173,17 @@ object PipAnchor {
         }
     }
 
+    /**
+     * [packageName] went inside a tile (EmbeddedApp), which takes whatever
+     * window it had: it no longer counts as docked. Otherwise, back from a
+     * layout with Maps docked beside the pages, the status bar stayed forced
+     * over the dashboard until the next page change.
+     */
+    fun takenInside(context: Context, packageName: String) {
+        if (packageName !in freeformNow && packageName !in parked) return
+        scope.launch { forgetWindow(context, packageName) }
+    }
+
     /** Forgets windows that are gone from [listing] (e.g. a parked one the system closed). */
     private fun syncFreeform(context: Context, listing: String) {
         val present = WindowListing.allFloatingWindows(listing).filter { it.mode == "freeform" }.map { it.packageName }.toSet()

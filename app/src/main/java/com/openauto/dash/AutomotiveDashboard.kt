@@ -533,18 +533,22 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     }
     // An app inside a tile runs until the last tile showing it goes, in either
     // arrangement; then its display is closed and the app with it (EmbeddedApp).
+    // One the arrangement on screen shows in a window instead (Maps docked
+    // beside the pages) is let go, so that window can have it.
     LaunchedEffect(pages, layout, tabsMode, mapApp) {
         val other = withContext(Dispatchers.IO) {
             val variant = otherVariant()
             if (DashboardStore.exists(context, variant)) DashboardStore.load(context, variant).flatten() else emptyList()
         }
-        val inside = (pages.flatten() + other).mapNotNullTo(HashSet()) {
+        fun insideApps(items: List<DashboardItem>) = items.mapNotNullTo(HashSet()) {
             when {
                 it is DashboardItem.BuiltinWidget && it.kind == BuiltinKind.MAPS_INSIDE -> EmbeddedApp.MAPS_PACKAGE
                 it is DashboardItem.AppWindow && it.inside -> it.packageName
                 else -> null
             }
         }
+        val here = pages.flatten()
+        val inside = EmbeddedApp.keptInside(insideApps(here), insideApps(other), windowApps(here)).toHashSet()
         // The app under Canvas runs as long as it is there.
         if (tabsMode) mapApp?.let { inside += it }
         EmbeddedApp.releaseUnless(inside)
