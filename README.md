@@ -6,6 +6,8 @@
 
 **[Download the latest APK](https://github.com/deviloufr-ai/ACP/releases/latest)** · Android 10+ · made for 1280x720 head units (ROCO K706 / FYT / QF units), also works on upright screens and phones.
 
+Like it? [Buy me a coffee on Ko-fi](https://ko-fi.com/deviloufr).
+
 ## Screenshots
 
 | | |
