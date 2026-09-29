@@ -74,6 +74,11 @@
     <string name="keyboard_failed">The car screen did not take the text.</string>
     <string name="keyboard_no_answer">No answer: update Dashwheel on the car.</string>
     <string name="keyboard_not_connected">The car is not connected.</string>
+    <string name="keyboard_typing_off">Typing into fields is off on the car.</string>
+    <string name="keyboard_turn_on">Turn on</string>
+    <string name="keyboard_turning_on">Turning it on on the car…</string>
+    <string name="keyboard_typing_on">Typing is on: select a field on the car screen, then type here.</string>
+    <string name="keyboard_turn_on_failed">The car could not turn it on: on the car, open Settings, Accessibility, and turn on Dashwheel.</string>
     <string name="send_to_car">Send to car</string>
     <string name="sent_to_car">Sent to the car screen</string>
     <string name="place_sent">Guidance sent to the car: %1$s</string>

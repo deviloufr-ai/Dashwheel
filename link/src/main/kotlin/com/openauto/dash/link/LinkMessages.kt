@@ -291,10 +291,15 @@ data class TypeText(val text: String, val mode: Mode = Mode.INSERT, val enter: B
     }
 }
 
-/** Head unit → phone: what became of a [TypeText]. */
+/**
+ * Head unit → phone: what became of a [TypeText]. [typingOff]: the head unit
+ * cannot see the selected field at all, its accessibility service being off,
+ * so the text went to its clipboard ([Outcome.COPIED]); [EnableTyping] turns
+ * it on.
+ */
 @Serializable
 @SerialName("typed")
-data class TypeResult(val id: Long, val outcome: Outcome) : LinkMessage {
+data class TypeResult(val id: Long, val outcome: Outcome, val typingOff: Boolean = false) : LinkMessage {
     @Serializable
     enum class Outcome {
         /** In the field selected on the car's screen. */
@@ -305,6 +310,20 @@ data class TypeResult(val id: Long, val outcome: Outcome) : LinkMessage {
         FAILED
     }
 }
+
+/**
+ * Phone → head unit: the driver asks, from the keyboard card, for typing into
+ * the car's fields to be turned on (the head unit's accessibility service,
+ * which Dashwheel can switch on itself with root). Answered with [TypingAccess].
+ */
+@Serializable
+@SerialName("enable_typing")
+data object EnableTyping : LinkMessage
+
+/** Head unit → phone, after an [EnableTyping]: whether text from the phone now goes into the car's fields. */
+@Serializable
+@SerialName("typing_access")
+data class TypingAccess(val on: Boolean) : LinkMessage
 
 /** A notification as the head unit shows it. [key] is the phone's own key. */
 @Serializable

@@ -21,6 +21,7 @@ import com.openauto.dash.link.CallState
 import com.openauto.dash.link.Destination
 import com.openauto.dash.link.DialResult
 import com.openauto.dash.link.Dismiss
+import com.openauto.dash.link.EnableTyping
 import com.openauto.dash.link.Hello
 import com.openauto.dash.link.LINK_PORT
 import com.openauto.dash.link.LinkMessage
@@ -445,6 +446,7 @@ object PhoneLink {
             is ActionResult -> _results.tryEmit(message)
             is CallState -> _call.value = toPhoneCall(context, message)
             is TypeText -> PhoneKeyboard.type(context, message) { send(it) }
+            EnableTyping -> PhoneKeyboard.enable(context) { send(it) }
             is PhoneContacts -> {
                 phoneDials = true
                 val favourites = message.favourites.map { Favourite(it.name, it.number, it.photoPng?.let(::bitmapOf)) }

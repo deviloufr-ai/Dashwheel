@@ -27,6 +27,20 @@ class TypeTextTest {
     }
 
     @Test
+    fun typingOffAndTurningItOnRoundTrip() {
+        val off = TypeResult(7, TypeResult.Outcome.COPIED, typingOff = true)
+        assertEquals(off, LinkCodec.decode(LinkCodec.encode(off)))
+        assertEquals(EnableTyping, LinkCodec.decode(LinkCodec.encode(EnableTyping)))
+        assertEquals(TypingAccess(on = true), LinkCodec.decode(LinkCodec.encode(TypingAccess(on = true))))
+    }
+
+    @Test
+    fun anAnswerFromAnOlderHeadUnitIsNotTypingOff() {
+        val old = LinkCodec.decode("""{"t":"typed","id":3,"outcome":"COPIED"}""".encodeToByteArray())
+        assertEquals(TypeResult(3, TypeResult.Outcome.COPIED, typingOff = false), old)
+    }
+
+    @Test
     fun anOlderPeerSkipsItInsteadOfDroppingTheLink() {
         assertNull(LinkCodec.decode("""{"t":"type_text_v2","text":"x"}""".encodeToByteArray()))
     }

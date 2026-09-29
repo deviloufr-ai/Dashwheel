@@ -73,6 +73,11 @@
     <string name="keyboard_failed">Lo schermo dell\'auto non ha preso il testo.</string>
     <string name="keyboard_no_answer">Nessuna risposta: aggiorna Dashwheel sull\'auto.</string>
     <string name="keyboard_not_connected">L\'auto non è connessa.</string>
+    <string name="keyboard_typing_off">La digitazione nei campi è disattivata sull\'auto.</string>
+    <string name="keyboard_turn_on">Attiva</string>
+    <string name="keyboard_turning_on">Attivazione sull\'auto…</string>
+    <string name="keyboard_typing_on">Digitazione attiva: seleziona un campo sullo schermo dell\'auto, poi scrivi qui.</string>
+    <string name="keyboard_turn_on_failed">L\'auto non è riuscita ad attivarla: sull\'auto apri Impostazioni, Accessibilità, e attiva Dashwheel.</string>
     <string name="send_to_car">Invia all\'auto</string>
     <string name="sent_to_car">Inviato allo schermo dell\'auto</string>
     <string name="place_sent">Percorso inviato all\'auto: %1$s</string>

@@ -73,6 +73,11 @@
     <string name="keyboard_failed">Ekran auta nie przyjął tekstu.</string>
     <string name="keyboard_no_answer">Brak odpowiedzi: zaktualizuj Dashwheel w aucie.</string>
     <string name="keyboard_not_connected">Auto nie jest połączone.</string>
+    <string name="keyboard_typing_off">Pisanie w polach jest wyłączone w samochodzie.</string>
+    <string name="keyboard_turn_on">Włącz</string>
+    <string name="keyboard_turning_on">Włączanie w samochodzie…</string>
+    <string name="keyboard_typing_on">Pisanie włączone: wybierz pole na ekranie samochodu i pisz tutaj.</string>
+    <string name="keyboard_turn_on_failed">Samochód nie mógł tego włączyć: w samochodzie otwórz Ustawienia, Ułatwienia dostępu, i włącz Dashwheel.</string>
     <string name="send_to_car">Wyślij do auta</string>
     <string name="sent_to_car">Wysłano na ekran auta</string>
     <string name="place_sent">Trasa wysłana do auta: %1$s</string>

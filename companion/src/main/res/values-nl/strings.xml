@@ -73,6 +73,11 @@
     <string name="keyboard_failed">Het autoscherm nam de tekst niet aan.</string>
     <string name="keyboard_no_answer">Geen antwoord: werk Dashwheel in de auto bij.</string>
     <string name="keyboard_not_connected">De auto is niet verbonden.</string>
+    <string name="keyboard_typing_off">Typen in velden staat uit in de auto.</string>
+    <string name="keyboard_turn_on">Inschakelen</string>
+    <string name="keyboard_turning_on">Wordt ingeschakeld in de auto…</string>
+    <string name="keyboard_typing_on">Typen staat aan: kies een veld op het autoscherm en typ hier.</string>
+    <string name="keyboard_turn_on_failed">De auto kon het niet inschakelen: open in de auto Instellingen, Toegankelijkheid, en zet Dashwheel aan.</string>
     <string name="send_to_car">Naar auto sturen</string>
     <string name="sent_to_car">Naar het autoscherm gestuurd</string>
     <string name="place_sent">Route naar de auto gestuurd: %1$s</string>

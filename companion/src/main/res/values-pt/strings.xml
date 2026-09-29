@@ -73,6 +73,11 @@
     <string name="keyboard_failed">O ecrã do carro não aceitou o texto.</string>
     <string name="keyboard_no_answer">Sem resposta: atualize o Dashwheel no carro.</string>
     <string name="keyboard_not_connected">O carro não está ligado.</string>
+    <string name="keyboard_typing_off">A escrita em campos está desligada no carro.</string>
+    <string name="keyboard_turn_on">Ligar</string>
+    <string name="keyboard_turning_on">A ligar no carro…</string>
+    <string name="keyboard_typing_on">Escrita ligada: selecione um campo no ecrã do carro e escreva aqui.</string>
+    <string name="keyboard_turn_on_failed">O carro não conseguiu ligá-la: no carro, abra Definições, Acessibilidade, e ligue o Dashwheel.</string>
     <string name="send_to_car">Enviar para o carro</string>
     <string name="sent_to_car">Enviado para o ecrã do carro</string>
     <string name="place_sent">Rota enviada para o carro: %1$s</string>

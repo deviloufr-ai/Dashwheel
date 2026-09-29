@@ -73,6 +73,11 @@
     <string name="keyboard_failed">Der Autobildschirm hat den Text nicht angenommen.</string>
     <string name="keyboard_no_answer">Keine Antwort: Aktualisieren Sie Dashwheel im Auto.</string>
     <string name="keyboard_not_connected">Das Auto ist nicht verbunden.</string>
+    <string name="keyboard_typing_off">Das Tippen in Felder ist im Auto aus.</string>
+    <string name="keyboard_turn_on">Einschalten</string>
+    <string name="keyboard_turning_on">Wird im Auto eingeschaltet…</string>
+    <string name="keyboard_typing_on">Tippen ist an: Wählen Sie ein Feld auf dem Autobildschirm und tippen Sie hier.</string>
+    <string name="keyboard_turn_on_failed">Das Auto konnte es nicht einschalten: Öffnen Sie im Auto Einstellungen, Bedienungshilfen, und schalten Sie Dashwheel ein.</string>
     <string name="send_to_car">An Auto senden</string>
     <string name="sent_to_car">An den Autobildschirm gesendet</string>
     <string name="place_sent">Route ans Auto gesendet: %1$s</string>

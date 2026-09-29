@@ -499,12 +499,19 @@ private fun KeyboardCard() {
                 maxLines = 4
             )
             answer?.takeIf { sentHere }?.let { a ->
+                val good = a.status == CarKeyboard.Status.TYPED || a.status == CarKeyboard.Status.TYPING_ON
                 Text(
                     stringResource(CarKeyboard.message(a.status)),
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (a.status == CarKeyboard.Status.TYPED) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (good) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 8.dp)
                 )
+                // The car can't see its fields: one tap turns that on there.
+                if (a.status == CarKeyboard.Status.TYPING_OFF) {
+                    Button(onClick = { CarKeyboard.turnOn() }, modifier = Modifier.padding(top = 8.dp)) {
+                        Text(stringResource(R.string.keyboard_turn_on))
+                    }
+                }
             }
             Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(onClick = {

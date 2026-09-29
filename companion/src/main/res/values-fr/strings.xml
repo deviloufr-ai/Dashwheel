@@ -73,6 +73,11 @@
     <string name="keyboard_failed">L\'écran de la voiture n\'a pas pris le texte.</string>
     <string name="keyboard_no_answer">Pas de réponse : mettez à jour Dashwheel dans la voiture.</string>
     <string name="keyboard_not_connected">La voiture n\'est pas connectée.</string>
+    <string name="keyboard_typing_off">La saisie dans les champs est coupée sur la voiture.</string>
+    <string name="keyboard_turn_on">Activer</string>
+    <string name="keyboard_turning_on">Activation sur la voiture…</string>
+    <string name="keyboard_typing_on">Saisie activée : sélectionnez un champ sur l\'écran de la voiture, puis tapez ici.</string>
+    <string name="keyboard_turn_on_failed">La voiture n\'a pas pu l\'activer : sur la voiture, ouvrez Paramètres, Accessibilité, et activez Dashwheel.</string>
     <string name="send_to_car">Envoyer à la voiture</string>
     <string name="sent_to_car">Envoyé à l\'écran de la voiture</string>
     <string name="place_sent">Guidage envoyé à la voiture : %1$s</string>
