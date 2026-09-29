@@ -158,4 +158,10 @@
     <string name="bar_item_bluetooth">Bluetooth</string>
     <string name="bar_item_phone">Handy</string>
     <string name="bar_item_obd">OBD</string>
+    <string name="bar_look_labels">Beschriftet</string>
+    <string name="bar_look_labels_hint">Eine Beschriftung unter jeder Anzeige.</string>
+    <string name="bar_look_compact">Kompakt</string>
+    <string name="bar_look_compact_hint">Beschriftung an den Balken; WLAN und Bluetooth nur als Symbol.</string>
+    <string name="bar_look_minimal">Minimal</string>
+    <string name="bar_look_minimal_hint">Keine Beschriftung: ein kleines Symbol vor jedem Balken.</string>
 </resources>

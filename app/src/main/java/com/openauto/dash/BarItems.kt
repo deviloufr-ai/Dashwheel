@@ -43,6 +43,9 @@ import androidx.compose.material.icons.filled.Thermostat
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material.icons.filled.Cable
+import androidx.compose.material.icons.filled.CropFree
+import androidx.compose.material.icons.filled.Title
+import androidx.compose.material.icons.filled.ViewCompact
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
@@ -52,6 +55,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -99,6 +104,19 @@ enum class BarItem(@StringRes val label: Int, val icon: ImageVector) {
     OBD(R.string.bar_item_obd, Icons.Filled.Cable)
 }
 
+/**
+ * How much the readouts say beside their pictures: every caption, captions
+ * on the gauges only (Wi-Fi and Bluetooth as bare icons), or no caption at
+ * all, a small icon in front of each gauge instead. Names are persisted.
+ */
+enum class BarLook(@StringRes val title: Int, @StringRes val hint: Int, val icon: ImageVector) {
+    LABELS(R.string.bar_look_labels, R.string.bar_look_labels_hint, Icons.Filled.Title),
+    COMPACT(R.string.bar_look_compact, R.string.bar_look_compact_hint, Icons.Filled.ViewCompact),
+    MINIMAL(R.string.bar_look_minimal, R.string.bar_look_minimal_hint, Icons.Filled.CropFree)
+}
+
+private val LocalBarLook = staticCompositionLocalOf { BarLook.COMPACT }
+
 /** The driver's choice, kept in preferences; null: never chosen, the theme's own bar. */
 internal object BarItems {
     private const val PREFS = "bar_items"
@@ -109,13 +127,23 @@ internal object BarItems {
 
     private val _items = MutableStateFlow<List<BarItem>?>(null)
     val items: StateFlow<List<BarItem>?> = _items.asStateFlow()
+    private val _look = MutableStateFlow(BarLook.COMPACT)
+    val look: StateFlow<BarLook> = _look.asStateFlow()
     private var appContext: Context? = null
+    private const val KEY_LOOK = "look"
 
     fun setContext(context: Context) {
         if (appContext != null) return
         appContext = context.applicationContext
         _items.value = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY, null)
             ?.split(',')?.mapNotNull { n -> BarItem.entries.firstOrNull { it.name == n } }
+        _look.value = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_LOOK, null)
+            ?.let { n -> BarLook.entries.firstOrNull { it.name == n } } ?: BarLook.COMPACT
+    }
+
+    fun setLook(look: BarLook) {
+        _look.value = look
+        appContext?.getSharedPreferences(PREFS, Context.MODE_PRIVATE)?.edit()?.putString(KEY_LOOK, look.name)?.apply()
     }
 
     /** [list] from now on; null goes back to the theme's own bar. */
@@ -178,8 +206,13 @@ internal object Radios {
  */
 @Composable
 internal fun BarReadouts(items: List<BarItem>, m: TopBarModel, modifier: Modifier = Modifier) {
+    val look by BarItems.look.collectAsState()
     Layout(
-        content = { items.forEach { item -> Box(Modifier.padding(horizontal = 10.dp)) { BarReadout(item, m) } } },
+        content = {
+            CompositionLocalProvider(LocalBarLook provides look) {
+                items.forEach { item -> Box(Modifier.padding(horizontal = if (look == BarLook.LABELS) 10.dp else 8.dp)) { BarReadout(item, m) } }
+            }
+        },
         modifier = modifier
     ) { measurables, constraints ->
         var left = constraints.maxWidth
@@ -211,7 +244,7 @@ private fun BarReadout(item: BarItem, m: TopBarModel) {
     when (item) {
         BarItem.FUEL -> {
             val fuel = rememberFuel(obd, m.obdConnection)
-            MistralSegments(stringResource(item.label), fuel?.percent?.let { it / 100f }, fuel?.percent?.let { "$it %" }, cells = 10,
+            MistralSegments(stringResource(item.label), item.icon, fuel?.percent?.let { it / 100f }, fuel?.percent?.let { "$it %" }, cells = 10,
                 warnBelow = 0.2f, alarmBelow = 0.1f)
         }
         BarItem.SPEED -> {
@@ -227,27 +260,35 @@ private fun BarReadout(item: BarItem, m: TopBarModel) {
             }
         }
         BarItem.REVS -> MistralSegments(
-            stringResource(item.label), if (connected) obd.rpm / 7000f else null,
+            stringResource(item.label), item.icon, if (connected) obd.rpm / 7000f else null,
             if (connected) String.format(Locale.getDefault(), "%,d", obd.rpm) else null, cells = 10, hotAbove = 0.75f
         )
         BarItem.COOLANT -> MistralSegments(
-            stringResource(item.label), if (connected && obd.coolantTempC > 0) obd.coolantTempC / 120f else null,
+            stringResource(item.label), item.icon, if (connected && obd.coolantTempC > 0) obd.coolantTempC / 120f else null,
             if (connected && obd.coolantTempC > 0) "${units.temp(obd.coolantTempC)}°" else null, cells = 6,
             hotAbove = COOLANT_WARNING_C / 120f
         )
         BarItem.BATTERY -> {
             val v = obd.voltage.takeIf { connected && it > 0.0 }
             MistralSegments(
-                stringResource(item.label), v?.let { ((it - 11.0) / 4.0).toFloat() },
+                stringResource(item.label), item.icon, v?.let { ((it - 11.0) / 4.0).toFloat() },
                 v?.let { String.format(Locale.getDefault(), "%.1f V", it) }, cells = 6,
                 alarmBelow = (11.8f - 11f) / 4f, hotAbove = (15.0f - 11f) / 4f
             )
         }
         BarItem.RANGE -> {
             val fuel = rememberFuel(obd, m.obdConnection)
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(fuel?.let { units.distanceText(it.rangeKm) } ?: "–", color = DashColors.TextPrimary, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, maxLines = 1)
-                Caption(stringResource(item.label))
+            val value = fuel?.let { units.distanceText(it.rangeKm) } ?: "–"
+            if (LocalBarLook.current == BarLook.MINIMAL) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    LookIcon(item.icon)
+                    Text(value, color = DashColors.TextPrimary, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, maxLines = 1)
+                }
+            } else {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(value, color = DashColors.TextPrimary, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, maxLines = 1)
+                    Caption(stringResource(item.label))
+                }
             }
         }
         BarItem.CLOCK -> if (!m.merged) {
@@ -282,7 +323,7 @@ private fun BarReadout(item: BarItem, m: TopBarModel) {
 /** Segments that light up to [fraction] (null: unknown, all dark), the reading beside, a caption under. */
 @Composable
 private fun MistralSegments(
-    label: String, fraction: Float?, value: String?, cells: Int,
+    label: String, icon: ImageVector, fraction: Float?, value: String?, cells: Int,
     warnBelow: Float? = null, alarmBelow: Float? = null, hotAbove: Float? = null
 ) {
     val f = fraction?.coerceIn(0f, 1f)
@@ -295,8 +336,11 @@ private fun MistralSegments(
         else -> DashColors.Accent
     }
     val cellWidth = if (cells > 6) 5.dp else 8.dp
+    val minimal = LocalBarLook.current == BarLook.MINIMAL
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+            // No caption to say what it is: a small icon in front says it.
+            if (minimal) LookIcon(icon)
             repeat(cells) { i ->
                 Box(Modifier.size(width = cellWidth, height = 14.dp).clip(RoundedCornerShape(1.dp)).background(if (i < lit) colour else DashColors.CardHi))
             }
@@ -304,16 +348,24 @@ private fun MistralSegments(
                 Text(value, color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelMedium, maxLines = 1, modifier = Modifier.padding(start = 4.dp))
             }
         }
-        Caption(label)
+        if (!minimal) Caption(label)
     }
+}
+
+/** A gauge's own small icon, standing in for its caption in the minimal look. */
+@Composable
+private fun LookIcon(icon: ImageVector) {
+    Icon(icon, contentDescription = null, tint = DashColors.TextSecondary, modifier = Modifier.padding(end = 4.dp).size(16.dp))
 }
 
 /** A radio as its icon, lit when on, with four small strength bars when known. */
 @Composable
 private fun RadioReadout(icon: ImageVector, label: String, on: Boolean, strength: Int?, active: Boolean = on) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    // Only the labelled look names a radio: its icon says what it is.
+    val labelled = LocalBarLook.current == BarLook.LABELS
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = label }) {
         Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-            Icon(icon, contentDescription = null, tint = if (active) DashColors.Accent else DashColors.Muted, modifier = Modifier.size(18.dp).alpha(if (on) 1f else 0.6f))
+            Icon(icon, contentDescription = null, tint = if (active) DashColors.Accent else DashColors.Muted, modifier = Modifier.size(if (labelled) 18.dp else 22.dp).alpha(if (on) 1f else 0.6f))
             if (strength != null) {
                 Spacer(Modifier.width(2.dp))
                 repeat(4) { i ->
@@ -321,7 +373,7 @@ private fun RadioReadout(icon: ImageVector, label: String, on: Boolean, strength
                 }
             }
         }
-        Caption(label)
+        if (labelled) Caption(label)
     }
 }
 
@@ -367,6 +419,16 @@ internal fun BarItemsSetting() {
         onChange = { on -> BarItems.set(if (on) BarItems.STARTER else null) }
     )
     val list = chosen ?: return
+    val look by BarItems.look.collectAsState()
+    SegmentedSwitch(
+        options = BarLook.entries,
+        chosen = look,
+        icon = { it.icon },
+        title = { stringResource(it.title) },
+        onChoose = { BarItems.setLook(it) }
+    )
+    SwitchHint(stringResource(look.hint))
+    Spacer(Modifier.height(8.dp))
     // Chosen ones first, in their order, then the rest.
     val all = list + BarItem.entries.filter { it !in list }
     all.forEachIndexed { i, item ->
