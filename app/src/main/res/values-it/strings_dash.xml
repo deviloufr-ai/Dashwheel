@@ -193,4 +193,10 @@
     <string name="dash_tile_move">Sposta in un\'altra pagina</string>
     <string name="dash_tile_remove">Rimuovi</string>
     <string name="dash_apps">App</string>
+    <string name="dash_rootless_title">Serve l\'accesso root</string>
+    <plurals name="dash_rootless_body">
+        <item quantity="one">%1$s richiede l\'accesso root, che Dashwheel non ha su questa autoradio. Il riquadro verrà tolto dal cruscotto.</item>
+        <item quantity="many">%1$s richiedono l\'accesso root, che Dashwheel non ha su questa autoradio. I riquadri verranno tolti dal cruscotto.</item>
+        <item quantity="other">%1$s richiedono l\'accesso root, che Dashwheel non ha su questa autoradio. I riquadri verranno tolti dal cruscotto.</item>
+    </plurals>
 </resources>

@@ -189,4 +189,11 @@
     <string name="dash_tile_move">Przenieś na inną stronę</string>
     <string name="dash_tile_remove">Usuń</string>
     <string name="dash_apps">Aplikacje</string>
+    <string name="dash_rootless_title">Potrzebny dostęp root</string>
+    <plurals name="dash_rootless_body">
+        <item quantity="one">%1$s wymaga dostępu root, którego Dashwheel nie ma w tym radiu. Kafelek zostanie usunięty z pulpitu.</item>
+        <item quantity="few">%1$s wymagają dostępu root, którego Dashwheel nie ma w tym radiu. Kafelki zostaną usunięte z pulpitu.</item>
+        <item quantity="many">%1$s wymagają dostępu root, którego Dashwheel nie ma w tym radiu. Kafelki zostaną usunięte z pulpitu.</item>
+        <item quantity="other">%1$s wymagają dostępu root, którego Dashwheel nie ma w tym radiu. Kafelki zostaną usunięte z pulpitu.</item>
+    </plurals>
 </resources>

@@ -189,4 +189,10 @@
     <string name="dash_tile_move">Mover para outra página</string>
     <string name="dash_tile_remove">Remover</string>
     <string name="dash_apps">Apps</string>
+    <string name="dash_rootless_title">Acesso root necessário</string>
+    <plurals name="dash_rootless_body">
+        <item quantity="one">%1$s precisa de acesso root, que o Dashwheel não tem neste autorrádio. O bloco vai ser removido do painel.</item>
+        <item quantity="many">%1$s precisam de acesso root, que o Dashwheel não tem neste autorrádio. Os blocos vão ser removidos do painel.</item>
+        <item quantity="other">%1$s precisam de acesso root, que o Dashwheel não tem neste autorrádio. Os blocos vão ser removidos do painel.</item>
+    </plurals>
 </resources>

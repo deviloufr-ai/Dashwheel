@@ -189,4 +189,9 @@
     <string name="dash_tile_move">Auf eine andere Seite</string>
     <string name="dash_tile_remove">Entfernen</string>
     <string name="dash_apps">Apps</string>
+    <string name="dash_rootless_title">Root-Zugriff nötig</string>
+    <plurals name="dash_rootless_body">
+        <item quantity="one">%1$s braucht Root-Zugriff, den Dashwheel auf diesem Radio nicht hat. Die Kachel wird vom Dashboard entfernt.</item>
+        <item quantity="other">%1$s brauchen Root-Zugriff, den Dashwheel auf diesem Radio nicht hat. Die Kacheln werden vom Dashboard entfernt.</item>
+    </plurals>
 </resources>

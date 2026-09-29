@@ -1711,6 +1711,12 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
 
     if (showCarSettings) CarSettingsDialog(onDismiss = { showCarSettings = false })
 
+    // Tiles that need root or the unit's ADB, where Dashwheel has neither: said, then removed.
+    RootlessTiles(pages, shellAccess) { kept ->
+        mutateAll(kept)
+        releaseMapsAnchorIfGone()
+    }
+
     layoutNotice?.let { notice ->
         AlertDialog(
             modifier = Modifier.keepClearOfWindows(),

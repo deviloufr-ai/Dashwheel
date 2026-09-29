@@ -193,4 +193,10 @@
     <string name="dash_tile_move">Déplacer vers une autre page</string>
     <string name="dash_tile_remove">Retirer</string>
     <string name="dash_apps">Applis</string>
+    <string name="dash_rootless_title">Accès root nécessaire</string>
+    <plurals name="dash_rootless_body">
+        <item quantity="one">%1$s a besoin de l\'accès root, que Dashwheel n\'a pas sur cet autoradio. La tuile va être retirée du tableau de bord.</item>
+        <item quantity="many">%1$s ont besoin de l\'accès root, que Dashwheel n\'a pas sur cet autoradio. Ces tuiles vont être retirées du tableau de bord.</item>
+        <item quantity="other">%1$s ont besoin de l\'accès root, que Dashwheel n\'a pas sur cet autoradio. Ces tuiles vont être retirées du tableau de bord.</item>
+    </plurals>
 </resources>

@@ -189,4 +189,10 @@
     <string name="dash_tile_move">Mover a otra página</string>
     <string name="dash_tile_remove">Quitar</string>
     <string name="dash_apps">Apps</string>
+    <string name="dash_rootless_title">Se necesita acceso root</string>
+    <plurals name="dash_rootless_body">
+        <item quantity="one">%1$s necesita acceso root, que Dashwheel no tiene en esta radio. La tarjeta se quitará del panel.</item>
+        <item quantity="many">%1$s necesitan acceso root, que Dashwheel no tiene en esta radio. Las tarjetas se quitarán del panel.</item>
+        <item quantity="other">%1$s necesitan acceso root, que Dashwheel no tiene en esta radio. Las tarjetas se quitarán del panel.</item>
+    </plurals>
 </resources>

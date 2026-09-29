@@ -195,4 +195,10 @@
     <string name="dash_tile_remove">Remove</string>
     <!-- The bar's Apps button, labelled -->
     <string name="dash_apps">Apps</string>
+    <!-- Tiles on the dashboard that live on root or the unit's ADB, where Dashwheel has neither -->
+    <string name="dash_rootless_title">Root access needed</string>
+    <plurals name="dash_rootless_body">
+        <item quantity="one">%1$s needs root access, which Dashwheel doesn\'t have on this head unit. It will be removed from your dashboard.</item>
+        <item quantity="other">%1$s need root access, which Dashwheel doesn\'t have on this head unit. They will be removed from your dashboard.</item>
+    </plurals>
 </resources>
