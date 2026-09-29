@@ -73,6 +73,35 @@ class MainActivity : ComponentActivity() {
          */
         @Volatile
         var statusBarForced = false
+
+        /** The dashboard alive right now, to keep it the only one ([onlyOne]). */
+        private var live: java.lang.ref.WeakReference<MainActivity>? = null
+    }
+
+    /**
+     * One dashboard at a time. Opened as an ordinary app (the installer's
+     * "Open" after an update, an app list) while the home screen's is alive,
+     * Android made a second one in a task of its own, and the two fought over
+     * the apps inside tiles, which have one display each: this one brings the
+     * home screen's up and closes (false). The home screen's own, as it
+     * starts, closes such a second one left over.
+     */
+    private fun onlyOne(): Boolean {
+        val other = live?.get()?.takeIf { it !== this && !it.isFinishing && !it.isDestroyed }
+        val home = intent?.hasCategory(Intent.CATEGORY_HOME) == true
+        if (other != null && !home) {
+            startActivity(
+                Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).setPackage(packageName)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    // A wheel button's "stay on this page" goes along.
+                    .apply { intent?.extras?.let(::putExtras) }
+            )
+            finish()
+            return false
+        }
+        other?.finishAndRemoveTask()
+        live = java.lang.ref.WeakReference(this)
+        return true
     }
 
     // Whether the launcher is sharing the screen (split-screen / freeform). The
@@ -88,6 +117,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (!onlyOne()) return
 
         // Keep the screen on and turn it on while the vehicle is running.
         window.addFlags(
