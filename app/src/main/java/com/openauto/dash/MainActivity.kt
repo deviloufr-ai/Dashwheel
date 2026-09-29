@@ -168,6 +168,8 @@ class MainActivity : ComponentActivity() {
                 DockedNavBar.start(this)
                 FreeformBar.start(this)
                 CarBox.start(this)
+                // The accessibility service, on by itself where there is a privileged shell.
+                SplitAccessibilityService.autoTurnOn(this)
                 RadarOverlay.start(this)
                 ClimateOverlay.start(this)
                 // A new version runs JIT-only until it is compiled ahead of time.

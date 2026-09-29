@@ -2,6 +2,7 @@ package com.openauto.dash
 
 import android.accessibilityservice.AccessibilityService
 import android.annotation.SuppressLint
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
@@ -23,6 +24,12 @@ import android.view.accessibility.AccessibilityWindowInfo
 import android.util.Log
 import android.view.KeyEvent
 import android.widget.TextView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlin.math.hypot
 
 /**
@@ -365,8 +372,59 @@ class SplitAccessibilityService : AccessibilityService() {
         @Volatile
         private var instance: SplitAccessibilityService? = null
 
-        /** True once the user has enabled the service and the system bound it. */
+        /** True once the service is enabled and the system bound it. */
         val isConnected: Boolean get() = instance != null
+
+        /** How long the service gets to come up once turned on, and how often it is looked for. */
+        private const val BIND_WAIT_MS = 5_000L
+        private const val BIND_POLL_MS = 250L
+
+        private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+        @Volatile private var autoStarted = false
+
+        /**
+         * At start, once per process: the service is turned on by itself when
+         * it is off and a privileged shell is known ([PrivilegedShell]), so no
+         * one has to find Android's accessibility settings in the car. Typing
+         * from the phone, the split, the radar over the reversing camera and
+         * the wheel buttons all go through it.
+         */
+        fun autoTurnOn(context: Context) {
+            if (autoStarted) return
+            autoStarted = true
+            val app = context.applicationContext
+            scope.launch {
+                val access = PrivilegedShell.access.first { it != PrivilegedShell.Access.UNKNOWN }
+                if (access.shell && !isConnected) turnOn(app)
+            }
+        }
+
+        /**
+         * Adds the service to the enabled ones through the privileged shell, the
+         * others kept, then gives the system a few seconds to bind it. True once
+         * it is bound. Also asked from the phone's keyboard card ([PhoneKeyboard]).
+         */
+        suspend fun turnOn(context: Context): Boolean {
+            if (isConnected) return true
+            val service = ComponentName(context, SplitAccessibilityService::class.java).flattenToString()
+            runCatching { DockShell.shell(context, enableCommand(service)) }
+                .onFailure { Log.w(TAG, "could not turn the service on: ${it.message}") }
+            var waited = 0L
+            while (!isConnected && waited < BIND_WAIT_MS) {
+                delay(BIND_POLL_MS)
+                waited += BIND_POLL_MS
+            }
+            Log.i(TAG, if (isConnected) "turned on" else "still off after turning it on")
+            return isConnected
+        }
+
+        /** The shell line that adds [service] to the enabled accessibility services, keeping those already there. */
+        fun enableCommand(service: String): String =
+            "s=\$(settings get secure enabled_accessibility_services); " +
+                "case \":\$s:\" in *\":$service:\"*) ;; " +
+                "*) if [ -z \"\$s\" ] || [ \"\$s\" = null ]; then s=$service; else s=\"\$s:$service\"; fi; " +
+                "settings put secure enabled_accessibility_services \"\$s\" ;; esac; " +
+                "settings put secure accessibility_enabled 1"
 
         private val connectedState = kotlinx.coroutines.flow.MutableStateFlow(false)
         /** [isConnected], followed: the radar leans on it to draw above the reversing camera ([RomPopups]). */

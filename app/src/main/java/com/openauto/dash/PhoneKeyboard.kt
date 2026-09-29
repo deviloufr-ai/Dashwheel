@@ -2,7 +2,6 @@ package com.openauto.dash
 
 import android.content.ClipData
 import android.content.ClipboardManager
-import android.content.ComponentName
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
@@ -17,7 +16,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.Executors
@@ -51,42 +49,15 @@ internal object PhoneKeyboard {
         }
     }
 
-    /** How long the accessibility service gets to come up once turned on, and how often it is looked for. */
-    private const val BIND_WAIT_MS = 5_000L
-    private const val BIND_POLL_MS = 250L
-
     /**
      * Typing into the car's fields turned on, asked from the phone's keyboard
-     * card ([com.openauto.dash.link.EnableTyping]): the accessibility service
-     * is added to the enabled ones through the privileged shell, the others
-     * kept, then given a few seconds to come up. Answers whether it did.
+     * card ([com.openauto.dash.link.EnableTyping]), for a car where the
+     * service did not come on by itself at start. Answers whether it is on.
      */
     fun enable(context: Context, answer: (TypingAccess) -> Unit) {
         val app = context.applicationContext
-        scope.launch {
-            if (!SplitAccessibilityService.isConnected) {
-                val service = ComponentName(app, SplitAccessibilityService::class.java).flattenToString()
-                runCatching { DockShell.shell(app, enableCommand(service)) }
-                    .onFailure { Log.w(TAG, "typing from the phone not turned on: ${it.message}") }
-                var waited = 0L
-                while (!SplitAccessibilityService.isConnected && waited < BIND_WAIT_MS) {
-                    delay(BIND_POLL_MS)
-                    waited += BIND_POLL_MS
-                }
-            }
-            val on = SplitAccessibilityService.isConnected
-            Log.i(TAG, if (on) "typing from the phone is on" else "typing from the phone is still off")
-            answer(TypingAccess(on))
-        }
+        scope.launch { answer(TypingAccess(SplitAccessibilityService.turnOn(app))) }
     }
-
-    /** The shell line that adds [service] to the enabled accessibility services, keeping those already there. */
-    fun enableCommand(service: String): String =
-        "s=\$(settings get secure enabled_accessibility_services); " +
-            "case \":\$s:\" in *\":$service:\"*) ;; " +
-            "*) if [ -z \"\$s\" ] || [ \"\$s\" = null ]; then s=$service; else s=\"\$s:$service\"; fi; " +
-            "settings put secure enabled_accessibility_services \"\$s\" ;; esac; " +
-            "settings put secure accessibility_enabled 1"
 
     private suspend fun typeNow(context: Context, message: TypeText): TypeResult.Outcome {
         val text = message.text.take(TypeText.MAX_CHARS)
