@@ -9,6 +9,7 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.compose.material3.MaterialTheme
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -143,6 +144,14 @@ class MainActivity : ComponentActivity() {
                 CompileAfterUpdate.schedule(this)
             }
         }
+
+        // Back with nothing left to close stays on the dashboard, as on any home
+        // screen: Android otherwise finished it, showed the app behind, and
+        // built the tiles afresh at the next Home. The dashboard's own Back
+        // handlers, added later, still come first.
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() = Unit
+        })
 
         setContent {
             // An app window (docked or parked aside) forces the status bar on,
