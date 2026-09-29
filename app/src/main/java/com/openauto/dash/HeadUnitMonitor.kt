@@ -104,9 +104,9 @@ internal object HeadUnitMonitor {
     fun release() {
         if (users == 0) return
         if (--users > 0) return
+        // The root shell stays open for the next tile: each new su makes Magisk show its toast.
         poller?.cancel()
         poller = null
-        scope.launch { session?.close(); session = null }
     }
 
     /** Whether [packageName] may be force-stopped from the list. */
@@ -192,8 +192,11 @@ internal object HeadUnitMonitor {
     /** One command through root (a session kept open while tiles show), else the ADB shell. */
     private fun shell(context: Context, cmd: String, timeoutS: Long): String? = runCatching {
         if (PrivilegedShell.access.value.root) {
-            val s = session?.takeIf { it.alive } ?: RootShell.Session().also { session = it }
-            s.run(cmd, timeoutS).out
+            // A poller let go of mid-command and the next tile's may overlap: one command at a time.
+            synchronized(this) {
+                val s = session?.takeIf { it.alive } ?: RootShell.Session().also { session = it }
+                s.run(cmd, timeoutS).out
+            }
         } else {
             kotlinx.coroutines.runBlocking { DockShell.shell(context, cmd) }
         }

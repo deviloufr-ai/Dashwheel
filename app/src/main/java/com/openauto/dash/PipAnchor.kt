@@ -1,5 +1,6 @@
 package com.openauto.dash
 
+import android.app.ActivityManager
 import android.content.Context
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
@@ -305,9 +306,30 @@ object PipAnchor {
         val hidden = if (win.mode == "freeform") HiddenDisplay.acquire(context) else null
         if (hidden != null && moveOntoHiddenDisplay(context, win, hidden, reason)) {
             FreeformBar.offScreen(context, win.packageName)
+            keysBackToScreen(context)
             return
         }
         parkInCorner(context, win, reason)
+    }
+
+    /**
+     * A stack moved onto the hidden display puts that display in front, and
+     * the unit's keys go to the display in front: with the FM radio full
+     * screen and its window parked, Home did nothing until an app opened on
+     * the screen. The screen's front task is raised again, which changes
+     * nothing that shows. Dashwheel may be in the background by then; its
+     * overlay permission is what lets it raise another app's task.
+     */
+    private suspend fun keysBackToScreen(context: Context) {
+        DockShell.forgetListing()
+        val front = runGuarded { WindowListing.frontTask(DockShell.listStacks(context)) }.getOrNull() ?: return
+        grantOverlayPermission(context)
+        runGuarded {
+            context.getSystemService(ActivityManager::class.java)
+                .moveTaskToFront(front, ActivityManager.MOVE_TASK_NO_USER_ACTION)
+        }.onSuccess { Log.i(TAG, "keys back to the screen (task $front raised)") }
+            .onFailure { Log.w(TAG, "can't give the keys back to the screen", it) }
+        DockShell.forgetListing()
     }
 
     /** One park at a time per app: a page change parks the same window from the tile and from the pager at once. */

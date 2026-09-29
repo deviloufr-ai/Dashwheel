@@ -41,10 +41,25 @@ object SystemInstaller {
      * True if a root shell (`su`) is available and granted. Bounded: if the
      * Magisk prompt is left unanswered the probe gives up instead of pinning an
      * IO thread forever.
+     *
+     * Each `su` makes Magisk show its "granted Superuser rights" toast, so a
+     * yes is kept for the process (the probe, the shells and the installers
+     * all ask), and the probe turns that toast off for this app, as Magisk's
+     * own switch under Superuser does: a launcher on root all day showed it
+     * over and over.
      */
-    fun isRootAvailable(): Boolean = runCatching {
-        RootShell.su("id", ROOT_PROBE_TIMEOUT_S).exit == 0
-    }.getOrDefault(false)
+    fun isRootAvailable(): Boolean {
+        if (rootGranted) return true
+        return runCatching {
+            RootShell.su("id && { $quietToast; true; }", ROOT_PROBE_TIMEOUT_S).exit == 0
+        }.getOrDefault(false).also { if (it) rootGranted = true }
+    }
+
+    @Volatile private var rootGranted = false
+
+    /** Magisk's per-app toast switch, off for this app; nothing where there is no Magisk. */
+    private val quietToast =
+        "magisk --sqlite \"UPDATE policies SET notification=0 WHERE uid=${android.os.Process.myUid()}\" >/dev/null 2>&1"
 
     private const val ROOT_PROBE_TIMEOUT_S = 8L
 

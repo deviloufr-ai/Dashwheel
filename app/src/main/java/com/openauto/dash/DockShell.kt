@@ -195,10 +195,12 @@ object DockShell {
     private fun closeConnection() {
         runCatching { dadb?.close() }
         dadb = null
-        runCatching { su?.close() }
-        su = null
     }
 
-    /** Drops the cached ADB connection and the root shell. Safe from any coroutine. */
+    /**
+     * Drops the cached ADB connection. The root shell stays open: an idle `su`
+     * costs nothing, while each new one makes Magisk show its toast, and this
+     * runs every time another app goes full screen. Safe from any coroutine.
+     */
     suspend fun release() = io.withLock { closeConnection() }
 }
