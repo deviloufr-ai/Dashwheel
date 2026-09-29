@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -15,6 +16,7 @@ import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -68,6 +70,11 @@ internal fun VoiceSettings() {
         Icons.AutoMirrored.Filled.Message, stringResource(R.string.voice_messages),
         stringResource(R.string.voice_messages_detail), messages
     ) { AlertStyleStore.setMessages(context, it) }
+    if (messages) {
+        TextButton(onClick = { MessageAlerts.preview(context) }, modifier = Modifier.padding(start = 48.dp)) {
+            Text(stringResource(R.string.message_alert_try), color = DashColors.Accent)
+        }
+    }
     Spacer(Modifier.height(20.dp))
 }
 

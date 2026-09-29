@@ -785,6 +785,9 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         Maintenance.setContext(context)
         DriveLog.start(context)
         FuelLog.start(context)
+        BarItems.setContext(context)
+        Radios.start(context)
+        MessageAlerts.start()
         CarNews.start(context)
         PidExplorer.setContext(context)
         AiMechanic.setContext(context)
@@ -1934,6 +1937,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
 
     // The phone's call, when the overlay window can't show it over other apps.
     PhoneCallHost()
+    MessageAlertHost()
     DoorAlertHost()
     RadarHost()
     ClimateHost()

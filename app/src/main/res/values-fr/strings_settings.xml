@@ -140,4 +140,22 @@
     <string name="settings_backup_confirm">Restaurer</string>
     <string name="settings_resume_music">Reprendre la musique au démarrage</string>
     <string name="settings_resume_music_detail">L\'appli qui jouait à l\'arrêt reprend. Laissez désactivé si l\'autoradio le fait déjà.</string>
+    <string name="bar_items_title">Barre du bas</string>
+    <string name="bar_items_custom">Choisir ce que montre la barre</string>
+    <string name="bar_items_theme">Désactivé : la barre du thème</string>
+    <string name="bar_items_custom_detail">Cochez ce qu\'elle montre, dans l\'ordre voulu. Ce qui ne tient pas est laissé de côté.</string>
+    <string name="bar_items_left">Plus tôt dans la barre</string>
+    <string name="bar_items_right">Plus loin dans la barre</string>
+    <string name="bar_items_reset">Revenir à la sélection de départ</string>
+    <string name="bar_item_fuel">Carburant</string>
+    <string name="bar_item_speed">Vitesse</string>
+    <string name="bar_item_revs">Régime</string>
+    <string name="bar_item_coolant">Temp. moteur</string>
+    <string name="bar_item_battery">Batterie</string>
+    <string name="bar_item_range">Autonomie</string>
+    <string name="bar_item_clock">Heure</string>
+    <string name="bar_item_wifi">Wi-Fi</string>
+    <string name="bar_item_bluetooth">Bluetooth</string>
+    <string name="bar_item_phone">Téléphone</string>
+    <string name="bar_item_obd">OBD</string>
 </resources>

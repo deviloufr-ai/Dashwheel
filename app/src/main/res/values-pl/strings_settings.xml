@@ -140,4 +140,22 @@
     <string name="settings_backup_confirm">Przywróć</string>
     <string name="settings_resume_music">Wznów muzykę przy starcie</string>
     <string name="settings_resume_music_detail">Aplikacja grająca przy wyłączeniu zagra znowu. Zostaw wyłączone, jeśli radio robi to samo.</string>
+    <string name="bar_items_title">Dolny pasek</string>
+    <string name="bar_items_custom">Wybierz, co pokazuje pasek</string>
+    <string name="bar_items_theme">Wyłączone: pasek motywu</string>
+    <string name="bar_items_custom_detail">Zaznacz, co ma pokazywać, w wybranej kolejności. Co się nie mieści, zostaje pominięte.</string>
+    <string name="bar_items_left">Wcześniej na pasku</string>
+    <string name="bar_items_right">Dalej na pasku</string>
+    <string name="bar_items_reset">Wróć do wyboru początkowego</string>
+    <string name="bar_item_fuel">Paliwo</string>
+    <string name="bar_item_speed">Prędkość</string>
+    <string name="bar_item_revs">Obroty</string>
+    <string name="bar_item_coolant">Temp. silnika</string>
+    <string name="bar_item_battery">Akumulator</string>
+    <string name="bar_item_range">Zasięg</string>
+    <string name="bar_item_clock">Godzina</string>
+    <string name="bar_item_wifi">Wi-Fi</string>
+    <string name="bar_item_bluetooth">Bluetooth</string>
+    <string name="bar_item_phone">Telefon</string>
+    <string name="bar_item_obd">OBD</string>
 </resources>

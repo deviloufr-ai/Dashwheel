@@ -1,0 +1,406 @@
+package com.openauto.dash
+
+import android.annotation.SuppressLint
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothManager
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.wifi.WifiManager
+import androidx.annotation.StringRes
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.BatteryChargingFull
+import androidx.compose.material.icons.filled.Bluetooth
+import androidx.compose.material.icons.filled.BluetoothConnected
+import androidx.compose.material.icons.filled.BluetoothDisabled
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.LocalGasStation
+import androidx.compose.material.icons.filled.PhoneAndroid
+import androidx.compose.material.icons.filled.Route
+import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.Thermostat
+import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.filled.WifiOff
+import androidx.compose.material.icons.filled.Cable
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.Placeable
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import java.util.Locale
+
+/*
+ * The bottom bar's readouts, chosen by the driver (Settings, Display): any of
+ * the car's readings, the time, the Wi-Fi and Bluetooth, the phone, in their
+ * order, drawn the Mistral way: short segment gauges under small capitals.
+ * Until something is chosen the bar stays as each theme draws it.
+ */
+
+/** One readout of the bar. Names are persisted: append, never rename. */
+enum class BarItem(@StringRes val label: Int, val icon: ImageVector) {
+    FUEL(R.string.bar_item_fuel, Icons.Filled.LocalGasStation),
+    SPEED(R.string.bar_item_speed, Icons.Filled.Speed),
+    REVS(R.string.bar_item_revs, Icons.Filled.Tune),
+    COOLANT(R.string.bar_item_coolant, Icons.Filled.Thermostat),
+    BATTERY(R.string.bar_item_battery, Icons.Filled.BatteryChargingFull),
+    RANGE(R.string.bar_item_range, Icons.Filled.Route),
+    CLOCK(R.string.bar_item_clock, Icons.Filled.AccessTime),
+    WIFI(R.string.bar_item_wifi, Icons.Filled.Wifi),
+    BLUETOOTH(R.string.bar_item_bluetooth, Icons.Filled.Bluetooth),
+    PHONE(R.string.bar_item_phone, Icons.Filled.PhoneAndroid),
+    OBD(R.string.bar_item_obd, Icons.Filled.Cable)
+}
+
+/** The driver's choice, kept in preferences; null: never chosen, the theme's own bar. */
+internal object BarItems {
+    private const val PREFS = "bar_items"
+    private const val KEY = "items"
+
+    /** What the settings start from the first time: the Mistral bar as it is. */
+    val STARTER = listOf(BarItem.FUEL, BarItem.SPEED, BarItem.COOLANT, BarItem.BATTERY, BarItem.CLOCK, BarItem.WIFI, BarItem.BLUETOOTH, BarItem.PHONE, BarItem.OBD)
+
+    private val _items = MutableStateFlow<List<BarItem>?>(null)
+    val items: StateFlow<List<BarItem>?> = _items.asStateFlow()
+    private var appContext: Context? = null
+
+    fun setContext(context: Context) {
+        if (appContext != null) return
+        appContext = context.applicationContext
+        _items.value = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY, null)
+            ?.split(',')?.mapNotNull { n -> BarItem.entries.firstOrNull { it.name == n } }
+    }
+
+    /** [list] from now on; null goes back to the theme's own bar. */
+    fun set(list: List<BarItem>?) {
+        _items.value = list
+        appContext?.getSharedPreferences(PREFS, Context.MODE_PRIVATE)?.edit()?.apply {
+            if (list == null) remove(KEY) else putString(KEY, list.joinToString(",") { it.name })
+        }?.apply()
+    }
+}
+
+/** The Wi-Fi and the Bluetooth for the bar: on or off, and how strong the Wi-Fi is (0..4). */
+internal object Radios {
+    data class Wifi(val connected: Boolean, val bars: Int)
+
+    private val _wifi = MutableStateFlow(Wifi(false, 0))
+    val wifi: StateFlow<Wifi> = _wifi.asStateFlow()
+    private val _bluetoothOn = MutableStateFlow(false)
+    val bluetoothOn: StateFlow<Boolean> = _bluetoothOn.asStateFlow()
+    private var started = false
+
+    @SuppressLint("MissingPermission")
+    fun start(context: Context) {
+        if (started) return
+        started = true
+        val app = context.applicationContext
+        val cm = app.getSystemService(ConnectivityManager::class.java)
+        runCatching {
+            cm.registerDefaultNetworkCallback(object : ConnectivityManager.NetworkCallback() {
+                override fun onCapabilitiesChanged(network: Network, caps: NetworkCapabilities) = readWifi(app, caps)
+                override fun onLost(network: Network) {
+                    _wifi.value = Wifi(false, 0)
+                }
+            })
+        }
+        cm.activeNetwork?.let { cm.getNetworkCapabilities(it) }?.let { readWifi(app, it) }
+        val adapter = app.getSystemService(BluetoothManager::class.java)?.adapter
+        _bluetoothOn.value = runCatching { adapter?.isEnabled == true }.getOrDefault(false)
+        app.registerReceiver(object : BroadcastReceiver() {
+            override fun onReceive(c: Context, i: Intent) {
+                _bluetoothOn.value = i.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR) == BluetoothAdapter.STATE_ON
+            }
+        }, IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED))
+    }
+
+    @Suppress("DEPRECATION")
+    private fun readWifi(context: Context, caps: NetworkCapabilities) {
+        if (!caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+            _wifi.value = Wifi(false, 0)
+            return
+        }
+        val rssi = runCatching { context.getSystemService(WifiManager::class.java).connectionInfo.rssi }.getOrDefault(-60)
+        _wifi.value = Wifi(true, WifiManager.calculateSignalLevel(rssi, 5).coerceIn(0, 4))
+    }
+}
+
+/**
+ * The chosen readouts, left to right; those that no longer fit at the end are
+ * left out whole, never squeezed.
+ */
+@Composable
+internal fun BarReadouts(items: List<BarItem>, m: TopBarModel, modifier: Modifier = Modifier) {
+    Layout(
+        content = { items.forEach { item -> Box(Modifier.padding(horizontal = 10.dp)) { BarReadout(item, m) } } },
+        modifier = modifier
+    ) { measurables, constraints ->
+        var left = constraints.maxWidth
+        val placed = ArrayList<Placeable>()
+        for (m2 in measurables) {
+            val p = m2.measure(Constraints(maxHeight = constraints.maxHeight))
+            if (p.width > left) break
+            placed += p
+            left -= p.width
+        }
+        val height = (placed.maxOfOrNull { it.height } ?: 0).coerceIn(constraints.minHeight, constraints.maxHeight)
+        // Centred in the room they have, like the Mistral cluster in the middle of its bar.
+        val width = if (constraints.hasBoundedWidth) constraints.maxWidth else constraints.maxWidth - left
+        layout(width, height) {
+            var x = if (constraints.hasBoundedWidth) left / 2 else 0
+            placed.forEach { p ->
+                p.placeRelative(x, (height - p.height) / 2)
+                x += p.width
+            }
+        }
+    }
+}
+
+@Composable
+private fun BarReadout(item: BarItem, m: TopBarModel) {
+    val connected = m.obdConnection == ObdConnectionState.CONNECTED
+    val obd = m.obdData
+    val units = LocalUnits.current
+    when (item) {
+        BarItem.FUEL -> {
+            val fuel = rememberFuel(obd, m.obdConnection)
+            MistralSegments(stringResource(item.label), fuel?.percent?.let { it / 100f }, fuel?.percent?.let { "$it %" }, cells = 10,
+                warnBelow = 0.2f, alarmBelow = 0.1f)
+        }
+        BarItem.SPEED -> {
+            val kmh = rememberSpeedKmh(obd, m.obdConnection)
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(
+                    kmh?.let { units.speed(it).toString() } ?: "–", color = DashColors.Accent,
+                    fontFamily = DashColors.heroFamily(), fontWeight = DashColors.HeroWeight,
+                    fontSize = 34.sp, lineHeight = 34.sp, letterSpacing = (-0.02).em, maxLines = 1
+                )
+                Spacer(Modifier.width(5.dp))
+                Caption(units.speedUnit, Modifier.padding(bottom = 5.dp))
+            }
+        }
+        BarItem.REVS -> MistralSegments(
+            stringResource(item.label), if (connected) obd.rpm / 7000f else null,
+            if (connected) String.format(Locale.getDefault(), "%,d", obd.rpm) else null, cells = 10, hotAbove = 0.75f
+        )
+        BarItem.COOLANT -> MistralSegments(
+            stringResource(item.label), if (connected && obd.coolantTempC > 0) obd.coolantTempC / 120f else null,
+            if (connected && obd.coolantTempC > 0) "${units.temp(obd.coolantTempC)}°" else null, cells = 6,
+            hotAbove = COOLANT_WARNING_C / 120f
+        )
+        BarItem.BATTERY -> {
+            val v = obd.voltage.takeIf { connected && it > 0.0 }
+            MistralSegments(
+                stringResource(item.label), v?.let { ((it - 11.0) / 4.0).toFloat() },
+                v?.let { String.format(Locale.getDefault(), "%.1f V", it) }, cells = 6,
+                alarmBelow = (11.8f - 11f) / 4f, hotAbove = (15.0f - 11f) / 4f
+            )
+        }
+        BarItem.RANGE -> {
+            val fuel = rememberFuel(obd, m.obdConnection)
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(fuel?.let { units.distanceText(it.rangeKm) } ?: "–", color = DashColors.TextPrimary, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium, maxLines = 1)
+                Caption(stringResource(item.label))
+            }
+        }
+        BarItem.CLOCK -> if (!m.merged) {
+            Text(m.clock, color = DashColors.TextPrimary, fontWeight = FontWeight.Bold, letterSpacing = (-0.02).em, style = MaterialTheme.typography.titleLarge)
+        }
+        BarItem.WIFI -> {
+            val wifi by Radios.wifi.collectAsState()
+            RadioReadout(
+                if (wifi.connected) Icons.Filled.Wifi else Icons.Filled.WifiOff, stringResource(item.label),
+                on = wifi.connected, strength = if (wifi.connected) wifi.bars else null
+            )
+        }
+        BarItem.BLUETOOTH -> {
+            val on by Radios.bluetoothOn.collectAsState()
+            val phone by UnitSignals.phone.collectAsState()
+            val viaPhone by ObdBluetoothManager.viaPhone.collectAsState()
+            val linked = phone != null || (connected && !viaPhone)
+            RadioReadout(
+                when {
+                    !on -> Icons.Filled.BluetoothDisabled
+                    linked -> Icons.Filled.BluetoothConnected
+                    else -> Icons.Filled.Bluetooth
+                },
+                stringResource(item.label), on = on, strength = null, active = linked
+            )
+        }
+        BarItem.PHONE -> PhonePill()
+        BarItem.OBD -> ObdDot(m.obdConnection, m.onConnectObd)
+    }
+}
+
+/** Segments that light up to [fraction] (null: unknown, all dark), the reading beside, a caption under. */
+@Composable
+private fun MistralSegments(
+    label: String, fraction: Float?, value: String?, cells: Int,
+    warnBelow: Float? = null, alarmBelow: Float? = null, hotAbove: Float? = null
+) {
+    val f = fraction?.coerceIn(0f, 1f)
+    val lit = if (f == null) 0 else kotlin.math.ceil(f * cells).toInt().coerceIn(0, cells)
+    val colour = when {
+        f == null -> DashColors.Accent
+        alarmBelow != null && f <= alarmBelow -> DashColors.Critical
+        hotAbove != null && f >= hotAbove -> DashColors.Critical
+        warnBelow != null && f <= warnBelow -> DashColors.Tacho
+        else -> DashColors.Accent
+    }
+    val cellWidth = if (cells > 6) 5.dp else 8.dp
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+            repeat(cells) { i ->
+                Box(Modifier.size(width = cellWidth, height = 14.dp).clip(RoundedCornerShape(1.dp)).background(if (i < lit) colour else DashColors.CardHi))
+            }
+            if (value != null) {
+                Text(value, color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelMedium, maxLines = 1, modifier = Modifier.padding(start = 4.dp))
+            }
+        }
+        Caption(label)
+    }
+}
+
+/** A radio as its icon, lit when on, with four small strength bars when known. */
+@Composable
+private fun RadioReadout(icon: ImageVector, label: String, on: Boolean, strength: Int?, active: Boolean = on) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+            Icon(icon, contentDescription = null, tint = if (active) DashColors.Accent else DashColors.Muted, modifier = Modifier.size(18.dp).alpha(if (on) 1f else 0.6f))
+            if (strength != null) {
+                Spacer(Modifier.width(2.dp))
+                repeat(4) { i ->
+                    Box(Modifier.size(width = 3.dp, height = (5 + i * 3).dp).clip(RoundedCornerShape(1.dp)).background(if (i < strength) DashColors.Accent else DashColors.CardHi))
+                }
+            }
+        }
+        Caption(label)
+    }
+}
+
+/** The OBD link as a small dot and three letters: the bar's own pill takes less room. Tapped while idle, it connects. */
+@Composable
+private fun ObdDot(state: ObdConnectionState, onConnect: () -> Unit) {
+    val color = obdStatusColor(state)
+    val label = obdStatusLabel(state)
+    val tap = rememberTapFeedback()
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .heightIn(min = DashSize.Touch)
+            .clip(RoundedCornerShape(10.dp))
+            .clickable(enabled = state.isIdle) { tap(); onConnect() }
+            .padding(horizontal = 6.dp)
+            .semantics(mergeDescendants = true) { contentDescription = label }
+    ) {
+        Spacer(Modifier.height(4.dp))
+        Box(Modifier.size(10.dp).clip(CircleShape).background(if (state == ObdConnectionState.DISCONNECTED) DashColors.CardHi else color))
+        Spacer(Modifier.height(3.dp))
+        Caption(stringResource(R.string.dash_obd_short), color = if (state == ObdConnectionState.DISCONNECTED) DashColors.Muted else color)
+    }
+}
+
+@Composable
+private fun Caption(text: String, modifier: Modifier = Modifier, color: Color = DashColors.TextSecondary) {
+    Text(text.uppercase(), color = color, letterSpacing = 0.12.em, style = MaterialTheme.typography.labelSmall, maxLines = 1, modifier = modifier)
+}
+
+/**
+ * Settings, Display: the bar's readouts. Off: the theme's own bar. On: a list
+ * of every readout, ticked or not, moved up and down into order.
+ */
+@Composable
+internal fun BarItemsSetting() {
+    val chosen by BarItems.items.collectAsState()
+    SettingsSection(stringResource(R.string.bar_items_title))
+    SwitchRow(
+        title = stringResource(R.string.bar_items_custom),
+        detail = stringResource(if (chosen == null) R.string.bar_items_theme else R.string.bar_items_custom_detail),
+        checked = chosen != null,
+        onChange = { on -> BarItems.set(if (on) BarItems.STARTER else null) }
+    )
+    val list = chosen ?: return
+    // Chosen ones first, in their order, then the rest.
+    val all = list + BarItem.entries.filter { it !in list }
+    all.forEachIndexed { i, item ->
+        val on = item in list
+        Row(
+            modifier = Modifier.fillMaxWidth().heightIn(min = DashSize.Touch).padding(start = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked = on,
+                onCheckedChange = { BarItems.set(if (it) list + item else list - item) },
+                colors = CheckboxDefaults.colors(checkedColor = DashColors.Accent)
+            )
+            Icon(item.icon, contentDescription = null, tint = if (on) DashColors.TextPrimary else DashColors.Muted, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(12.dp))
+            Text(stringResource(item.label), color = if (on) DashColors.TextPrimary else DashColors.TextSecondary, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (on) {
+                IconButton(onClick = { BarItems.set(list.moved(i, -1)) }, enabled = i > 0) {
+                    Icon(Icons.Filled.KeyboardArrowUp, contentDescription = stringResource(R.string.bar_items_left), tint = DashColors.TextSecondary)
+                }
+                IconButton(onClick = { BarItems.set(list.moved(i, 1)) }, enabled = i < list.size - 1) {
+                    Icon(Icons.Filled.KeyboardArrowDown, contentDescription = stringResource(R.string.bar_items_right), tint = DashColors.TextSecondary)
+                }
+            }
+        }
+    }
+    TextButton(onClick = { BarItems.set(BarItems.STARTER) }) {
+        Text(stringResource(R.string.bar_items_reset), color = DashColors.Accent)
+    }
+}
+
+/** [this] with the item at [i] moved [by] places. */
+private fun List<BarItem>.moved(i: Int, by: Int): List<BarItem> {
+    val j = (i + by).coerceIn(0, size - 1)
+    if (i == j) return this
+    return toMutableList().also { val x = it.removeAt(i); it.add(j, x) }
+}

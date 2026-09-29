@@ -140,4 +140,22 @@
     <string name="settings_backup_confirm">Terugzetten</string>
     <string name="settings_resume_music">Muziek hervatten bij het starten</string>
     <string name="settings_resume_music_detail">De app die speelde bij het uitzetten speelt verder. Laat uit als het apparaat dat al doet.</string>
+    <string name="bar_items_title">Onderbalk</string>
+    <string name="bar_items_custom">Kies wat de balk toont</string>
+    <string name="bar_items_theme">Uit: de balk van het thema</string>
+    <string name="bar_items_custom_detail">Vink aan wat hij toont, in de volgorde die je wilt. Wat niet past, valt weg.</string>
+    <string name="bar_items_left">Eerder in de balk</string>
+    <string name="bar_items_right">Later in de balk</string>
+    <string name="bar_items_reset">Terug naar de beginkeuze</string>
+    <string name="bar_item_fuel">Brandstof</string>
+    <string name="bar_item_speed">Snelheid</string>
+    <string name="bar_item_revs">Toerental</string>
+    <string name="bar_item_coolant">Motortemp.</string>
+    <string name="bar_item_battery">Accu</string>
+    <string name="bar_item_range">Actieradius</string>
+    <string name="bar_item_clock">Tijd</string>
+    <string name="bar_item_wifi">Wifi</string>
+    <string name="bar_item_bluetooth">Bluetooth</string>
+    <string name="bar_item_phone">Telefoon</string>
+    <string name="bar_item_obd">OBD</string>
 </resources>

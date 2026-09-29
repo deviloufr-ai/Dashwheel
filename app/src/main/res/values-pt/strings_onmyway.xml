@@ -11,4 +11,7 @@
     <string name="onmyway_failed">O telemóvel não conseguiu enviar o SMS para %1$s</string>
     <string name="onmyway_no_answer">Sem resposta do telemóvel</string>
     <string name="phone_battery_percent">%1$d %%</string>
+    <string name="message_alert_read">Ler em voz alta</string>
+    <string name="message_alert_try">Experimentar</string>
+    <string name="message_alert_sample">Estou atrasado, até às 19h.</string>
 </resources>

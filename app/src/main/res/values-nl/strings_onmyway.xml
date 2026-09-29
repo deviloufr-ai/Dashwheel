@@ -11,4 +11,7 @@
     <string name="onmyway_failed">De telefoon kon %1$s geen sms sturen</string>
     <string name="onmyway_no_answer">Geen antwoord van de telefoon</string>
     <string name="phone_battery_percent">%1$d%%</string>
+    <string name="message_alert_read">Voorlezen</string>
+    <string name="message_alert_try">Proberen</string>
+    <string name="message_alert_sample">Ik ben te laat, tot 19 uur.</string>
 </resources>

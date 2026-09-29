@@ -11,4 +11,7 @@
     <string name="onmyway_failed">The phone could not text %1$s</string>
     <string name="onmyway_no_answer">No answer from the phone</string>
     <string name="phone_battery_percent">%1$d %%</string>
+    <string name="message_alert_read">Read it out</string>
+    <string name="message_alert_try">Try it</string>
+    <string name="message_alert_sample">I\'m running late, see you at 7.</string>
 </resources>

@@ -464,6 +464,8 @@ private fun DisplayPane(theme: ThemeState, onLanguage: () -> Unit) {
     UnitsSetting()
     BarAutoHideSetting(theme)
     Spacer(Modifier.height(20.dp))
+    BarItemsSetting()
+    Spacer(Modifier.height(20.dp))
     if (FreeformBar.supported) {
         UnitBarSetting()
         Spacer(Modifier.height(20.dp))

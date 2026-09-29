@@ -140,4 +140,22 @@
     <string name="settings_backup_confirm">Restaurar</string>
     <string name="settings_resume_music">Reanudar la música al arrancar</string>
     <string name="settings_resume_music_detail">La app que sonaba al apagar vuelve a sonar. Déjalo desactivado si el equipo ya lo hace.</string>
+    <string name="bar_items_title">Barra inferior</string>
+    <string name="bar_items_custom">Elegir lo que muestra la barra</string>
+    <string name="bar_items_theme">Desactivado: la barra del tema</string>
+    <string name="bar_items_custom_detail">Marca lo que muestra, en el orden que quieras. Lo que no cabe se queda fuera.</string>
+    <string name="bar_items_left">Antes en la barra</string>
+    <string name="bar_items_right">Después en la barra</string>
+    <string name="bar_items_reset">Volver a la selección inicial</string>
+    <string name="bar_item_fuel">Combustible</string>
+    <string name="bar_item_speed">Velocidad</string>
+    <string name="bar_item_revs">Revoluciones</string>
+    <string name="bar_item_coolant">Temp. motor</string>
+    <string name="bar_item_battery">Batería</string>
+    <string name="bar_item_range">Autonomía</string>
+    <string name="bar_item_clock">Hora</string>
+    <string name="bar_item_wifi">Wi-Fi</string>
+    <string name="bar_item_bluetooth">Bluetooth</string>
+    <string name="bar_item_phone">Teléfono</string>
+    <string name="bar_item_obd">OBD</string>
 </resources>

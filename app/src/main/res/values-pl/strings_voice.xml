@@ -5,7 +5,7 @@
     <string name="voice_warnings">Ostrzeżenia i porady</string>
     <string name="voice_warnings_detail">Przegrzanie, akumulator, nowe kody błędów, mało paliwa, przerwy, porady dla kierowcy</string>
     <string name="voice_messages">Wiadomości</string>
-    <string name="voice_messages_detail">Mówi, od kogo jest wiadomość.</string>
+    <string name="voice_messages_detail">Pokazuje i mówi, od kogo jest wiadomość.</string>
     <string name="voice_where">To, co auto mówi samo, włącza się w Ustawieniach, Alerty.</string>
 
     <!-- Spoken -->

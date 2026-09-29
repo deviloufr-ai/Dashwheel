@@ -140,4 +140,22 @@
     <string name="settings_backup_confirm">Wiederherstellen</string>
     <string name="settings_resume_music">Musik beim Start fortsetzen</string>
     <string name="settings_resume_music_detail">Die App, die beim Ausschalten lief, spielt weiter. Aus lassen, wenn das Gerät es schon tut.</string>
+    <string name="bar_items_title">Untere Leiste</string>
+    <string name="bar_items_custom">Wählen, was die Leiste zeigt</string>
+    <string name="bar_items_theme">Aus: die Leiste des Designs</string>
+    <string name="bar_items_custom_detail">Wählen Sie aus, was sie zeigt, in Ihrer Reihenfolge. Was nicht passt, fällt weg.</string>
+    <string name="bar_items_left">Weiter vorne in der Leiste</string>
+    <string name="bar_items_right">Weiter hinten in der Leiste</string>
+    <string name="bar_items_reset">Zurück zur Startauswahl</string>
+    <string name="bar_item_fuel">Kraftstoff</string>
+    <string name="bar_item_speed">Tempo</string>
+    <string name="bar_item_revs">Drehzahl</string>
+    <string name="bar_item_coolant">Motortemp.</string>
+    <string name="bar_item_battery">Batterie</string>
+    <string name="bar_item_range">Reichweite</string>
+    <string name="bar_item_clock">Uhrzeit</string>
+    <string name="bar_item_wifi">WLAN</string>
+    <string name="bar_item_bluetooth">Bluetooth</string>
+    <string name="bar_item_phone">Handy</string>
+    <string name="bar_item_obd">OBD</string>
 </resources>

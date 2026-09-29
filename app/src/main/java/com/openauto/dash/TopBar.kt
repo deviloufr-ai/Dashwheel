@@ -201,8 +201,10 @@ internal fun StandardTopBar(m: TopBarModel) {
             // An upright screen, or half of a split one: no room to keep the
             // clock centred, so the left side takes only what its buttons need.
             val narrow = maxWidth < NARROW_BAR
+            // The driver's own readouts (Settings, Display) replace the theme's middle and end.
+            val chosen by BarItems.items.collectAsState()
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Row(modifier = if (narrow) Modifier else Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                Row(modifier = if (narrow || chosen != null) Modifier else Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
                     BarButton(
                         onClick = m.onApps,
                         label = if (narrow) null else stringResource(R.string.dash_apps),
@@ -215,6 +217,22 @@ internal fun StandardTopBar(m: TopBarModel) {
                             LayoutIcon(m.layout, null, DashColors.TextSecondary, Modifier.size(28.dp))
                         }
                     }
+                }
+
+                chosen?.let { items ->
+                    // The readouts take all the room the end leaves them; what doesn't fit is left out.
+                    BarReadouts(items, m, Modifier.weight(1f).padding(horizontal = 8.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (m.demo) Box(Modifier.padding(end = 6.dp)) { DemoBadge(onStop = m.onDemo, compact = true) }
+                        VehicleAlerts(m.obdConnection, m.obd)
+                        if (m.setupPending) Box(Modifier.padding(end = 6.dp)) { SetupPill(onClick = { m.onSetup(false) }, compact = true) }
+                        MorePicker(m) { open ->
+                            BarButton(onClick = open, description = stringResource(R.string.dash_more)) {
+                                Icon(Icons.Filled.MoreVert, contentDescription = null, tint = DashColors.TextSecondary, modifier = Modifier.size(28.dp))
+                            }
+                        }
+                    }
+                    return@Row
                 }
 
                 // A cluster bar (Mistral) puts the speed in the middle, like the car's

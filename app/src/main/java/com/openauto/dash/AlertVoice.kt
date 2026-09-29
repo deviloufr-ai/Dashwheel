@@ -117,6 +117,12 @@ object AlertVoice {
         say(context, res.getString(R.string.voice_say_message, item.title.ifEmpty { item.appLabel }), force = false)
     }
 
+    /** Settings' "Try it" for message alerts: said whatever was said last. */
+    fun previewMessage(context: Context, item: NotifItem) {
+        val res = AppLanguage.wrap(context.applicationContext).resources
+        say(context, res.getString(R.string.voice_say_message, item.title), force = true)
+    }
+
     /**
      * Reads the latest message from the phone out loud, or says there is none
      * (a learned wheel button): asked for, so said whatever the switches.

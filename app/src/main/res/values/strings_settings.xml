@@ -142,4 +142,22 @@
     <string name="settings_backup_confirm">Restore</string>
     <string name="settings_resume_music">Resume music at start</string>
     <string name="settings_resume_music_detail">The app that was playing when you switched off plays again. Leave off if the unit already does it.</string>
+    <string name="bar_items_title">Bottom bar</string>
+    <string name="bar_items_custom">Choose what the bar shows</string>
+    <string name="bar_items_theme">Off: the bar as the theme draws it</string>
+    <string name="bar_items_custom_detail">Tick what to show, in the order you like. What doesn\'t fit is left out.</string>
+    <string name="bar_items_left">Earlier in the bar</string>
+    <string name="bar_items_right">Later in the bar</string>
+    <string name="bar_items_reset">Back to the starting set</string>
+    <string name="bar_item_fuel">Fuel</string>
+    <string name="bar_item_speed">Speed</string>
+    <string name="bar_item_revs">Revs</string>
+    <string name="bar_item_coolant">Engine temp</string>
+    <string name="bar_item_battery">Battery</string>
+    <string name="bar_item_range">Range</string>
+    <string name="bar_item_clock">Time</string>
+    <string name="bar_item_wifi">Wi-Fi</string>
+    <string name="bar_item_bluetooth">Bluetooth</string>
+    <string name="bar_item_phone">Phone</string>
+    <string name="bar_item_obd">OBD</string>
 </resources>

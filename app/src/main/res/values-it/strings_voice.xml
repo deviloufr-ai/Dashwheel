@@ -5,7 +5,7 @@
     <string name="voice_warnings">Avvisi e consigli</string>
     <string name="voice_warnings_detail">Surriscaldamento, batteria, nuovi codici guasto, poco carburante, pause, consigli di guida</string>
     <string name="voice_messages">Messaggi</string>
-    <string name="voice_messages_detail">Dice da chi arriva un messaggio.</string>
+    <string name="voice_messages_detail">Mostra e dice da chi arriva un messaggio.</string>
     <string name="voice_where">Ciò che l\'auto dice da sola si regola in Impostazioni, Avvisi.</string>
 
     <!-- Spoken -->
