@@ -19,6 +19,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,48 +29,53 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardReturn
+import androidx.compose.material.icons.filled.BatteryAlert
 import androidx.compose.material.icons.filled.BatteryFull
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Route
+import androidx.compose.material.icons.filled.Sms
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.DirectionsWalk
-import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Keyboard
-import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.LinkOff
-import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.LocalParking
+import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.QrCodeScanner
-import androidx.compose.material.icons.filled.Route
+import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Wifi
-import androidx.compose.material.icons.filled.WifiTethering
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -77,8 +84,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -89,29 +94,31 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
-import com.openauto.dash.link.DriveSummary
 import com.openauto.dash.link.PairingOffer
+import com.openauto.dash.link.PhoneAbilities
 import com.openauto.dash.link.TypeText
 import java.text.DateFormat
 import java.util.Date
-import java.util.Locale
-import kotlin.math.roundToInt
 
 /**
  * The companion's only screen: is the car connected, what still needs
@@ -132,9 +139,13 @@ class MainActivity : ComponentActivity() {
         PairedUnits.load(this)
         CarSpot.load(this)
         DriveJournal.load(this)
+        CarBluetooth.load(this)
+        ObdRelay.load(this)
+        FuelJournal.load(this)
+        CarNewsStore.load(this)
         takeOffer(intent)
         setContent {
-            MaterialTheme(colorScheme = darkColorScheme(primary = Color(0xFF5B8DEF), secondary = Color(0xFF2DD4BF), tertiary = Color(0xFFF5B942))) {
+            CompanionTheme {
                 CompanionScreen(
                     resumes = resumes,
                     offer = offer,
@@ -182,13 +193,14 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (String) -> Unit, onOfferDone: () -> Unit) {
     val context = LocalContext.current
     val units by PairedUnits.units.collectAsState()
     val state by LinkServer.state.collectAsState()
     val drives by DriveJournal.drives.collectAsState()
+    val fills by FuelJournal.fills.collectAsState()
+    val news by CarNewsStore.notices.collectAsState()
     var enabled by remember { mutableStateOf(PairedUnits.isEnabled(context)) }
     var removing by remember { mutableStateOf<PairedUnit?>(null) }
     val scan = rememberLauncherForActivityResult(ScanContract()) { result -> result.contents?.let(onScanned) }
@@ -206,23 +218,40 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
     var setupOpen by rememberSaveable { mutableStateOf(false) }
     val paired = units.isNotEmpty()
     val connected = state is LinkState.Connected
+    val carBluetooth by CarBluetooth.car.collectAsState()
+    val inCar by CarBluetooth.inCar.collectAsState()
+    // Which Bluetooth list is open: the car's own ("Start in the car") or the OBD adapter's.
+    var picking by remember { mutableStateOf<BluetoothPick?>(null) }
+    var wanted by remember { mutableStateOf(BluetoothPick.CAR) }
+    val askBluetooth = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
+        if (ok) picking = wanted else Toast.makeText(context, R.string.car_auto_permission, Toast.LENGTH_LONG).show()
+    }
+    val pick: (BluetoothPick) -> Unit = { what ->
+        wanted = what
+        if (CarBluetooth.hasPermission(context)) picking = what
+        else ask(context, arrayOf(Manifest.permission.BLUETOOTH_CONNECT)) { askBluetooth.launch(it.single()) }
+    }
+    val onAuto: (Boolean) -> Unit = { on -> if (on) pick(BluetoothPick.CAR) else CarBluetooth.choose(context, null) }
 
-    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.app_name)) }) }) { padding ->
+    Scaffold(containerColor = CompanionColors.Background) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding).imePadding(),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 28.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
-                StatusCard(
+                HeroCard(
                     look = when {
                         !paired -> StatusLook.NO_CAR
                         !enabled -> StatusLook.OFF
                         connected -> StatusLook.CONNECTED
+                        carBluetooth != null && !inCar -> StatusLook.ASLEEP
                         state == LinkState.Unavailable -> StatusLook.UNAVAILABLE
                         else -> StatusLook.WAITING
                     },
-                    unitName = (state as? LinkState.Connected)?.unitName.orEmpty(),
+                    carName = (state as? LinkState.Connected)?.unitName?.takeIf { it.isNotBlank() } ?: units.firstOrNull()?.name,
+                    carBluetooth = carBluetooth?.name,
+                    onAuto = onAuto,
                     enabled = enabled,
                     canToggle = paired,
                     onToggle = {
@@ -233,6 +262,7 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
                     onPair = startScan
                 )
             }
+            if (paired && news.isNotEmpty()) item { CarNewsCard(news) }
             if (connected) item { KeyboardCard() }
             // Something still to allow comes before the drives: it is why the car shows less.
             val setupFirst = setup.missing > 0 || !paired
@@ -244,32 +274,20 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
                 if (latest == null) {
                     item { HintCard(stringResource(R.string.drives_none)) }
                 } else {
+                    item { WeekCard(drives) }
+                    item { MonthCard(drives, fills) }
                     // "Under way" only while the car is linked: once it is gone, the drive it reported last is simply the last one.
                     item { LatestDriveCard(latest, underWay = latest.ongoing && connected) }
-                    items(drives.drop(1).take(PAST_DRIVES_SHOWN), key = { it.startedAt }) { DriveRow(it) }
+                    driveHistory(drives.drop(1).take(PAST_DRIVES_SHOWN))
                 }
             }
             if (!setupFirst) setupSection(setup, open = setupOpen, onToggle = { setupOpen = !setupOpen })
             if (paired) {
                 item { SectionTitle(stringResource(R.string.cars_title)) }
-                items(units, key = { it.id }) { unit ->
-                    Card(modifier = Modifier.fillMaxWidth()) {
-                        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Filled.DirectionsCar, contentDescription = null)
-                            Spacer(Modifier.width(12.dp))
-                            Column(Modifier.weight(1f)) {
-                                Text(unit.name, fontWeight = FontWeight.SemiBold)
-                                Text(
-                                    stringResource(R.string.paired_since, DateFormat.getDateInstance().format(Date(unit.pairedAt))),
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                            }
-                            TextButton(onClick = { removing = unit }) { Text(stringResource(R.string.remove)) }
-                        }
-                    }
-                }
+                item { ObdRelayCard(onPick = { pick(BluetoothPick.OBD) }) }
+                items(units, key = { it.id }) { unit -> CarRow(unit, onRemove = { removing = unit }) }
                 item {
-                    OutlinedButton(onClick = startScan, modifier = Modifier.fillMaxWidth()) {
+                    TextButton(onClick = startScan, modifier = Modifier.fillMaxWidth()) {
                         Icon(Icons.Filled.QrCodeScanner, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
                         Text(stringResource(R.string.pair_another))
@@ -282,6 +300,7 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
     if (offer != null) {
         AlertDialog(
             onDismissRequest = onOfferDone,
+            containerColor = CompanionColors.SurfaceHigh,
             icon = { Icon(Icons.Filled.DirectionsCar, contentDescription = null) },
             title = { Text(stringResource(R.string.confirm_title, offer.unitName)) },
             text = { Text(stringResource(R.string.confirm_body)) },
@@ -298,9 +317,24 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
         )
     }
 
+    picking?.let { what ->
+        val obd = what == BluetoothPick.OBD
+        BluetoothPicker(
+            title = stringResource(if (obd) R.string.obd_relay_pick else R.string.car_auto_pick),
+            hint = stringResource(if (obd) R.string.obd_relay_pick_hint else R.string.car_auto_pick_hint),
+            devices = remember(what) { CarBluetooth.bonded(context, if (obd) OBD_NAMES else units.map { it.name }) },
+            onPick = { device ->
+                picking = null
+                if (obd) ObdRelay.choose(context, device) else CarBluetooth.choose(context, device)
+            },
+            onDismiss = { picking = null }
+        )
+    }
+
     removing?.let { unit ->
         AlertDialog(
             onDismissRequest = { removing = null },
+            containerColor = CompanionColors.SurfaceHigh,
             title = { Text(stringResource(R.string.remove_title, unit.name)) },
             text = { Text(stringResource(R.string.remove_body)) },
             confirmButton = {
@@ -323,55 +357,38 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
  * allowed, one line that opens it ([onToggle]), since there is nothing to do.
  */
 private fun LazyListScope.setupSection(setup: SetupChecks, open: Boolean, onToggle: (() -> Unit)?) {
-    item {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            SectionTitle(stringResource(R.string.setup_title), Modifier.weight(1f))
-            if (setup.missing > 0) {
-                Text(
-                    stringResource(R.string.setup_missing, setup.missing),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.tertiary,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-        }
-    }
     if (!open && onToggle != null) {
         item {
-            Card(onClick = onToggle, modifier = Modifier.fillMaxWidth()) {
+            Panel(onClick = onToggle) {
                 Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.secondary)
+                    Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = CompanionColors.Teal)
                     Spacer(Modifier.width(12.dp))
                     Text(stringResource(R.string.setup_all_done), fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-                    Text(stringResource(R.string.setup_show), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
-                    Icon(Icons.Filled.ExpandMore, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    Text(stringResource(R.string.setup_show), color = CompanionColors.Blue, style = MaterialTheme.typography.labelLarge)
+                    Icon(Icons.Filled.ExpandMore, contentDescription = null, tint = CompanionColors.Blue)
                 }
             }
         }
     } else {
-        item { SetupSteps(setup) }
-        if (onToggle != null) {
-            item {
-                TextButton(onClick = onToggle, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.setup_hide))
-                    Icon(Icons.Filled.ExpandLess, contentDescription = null)
-                }
-            }
-        }
+        item { SetupPanel(setup, onHide = onToggle) }
     }
 }
 
-/** What the status card says, from the link and the switch. */
-private enum class StatusLook { NO_CAR, OFF, WAITING, UNAVAILABLE, CONNECTED }
+/** What the hero says, from the link and the switch. */
+private enum class StatusLook { NO_CAR, OFF, ASLEEP, WAITING, UNAVAILABLE, CONNECTED }
 
 /**
- * The link at a glance: an icon in its colour, what is happening and what to
- * do about it, and the sharing switch. With no car paired, the button to pair one.
+ * The top of the screen: the car's name, the link's state in its colour with
+ * what to do about it, and the sharing switch. With no car paired, the button
+ * to pair one. The link's technical last event stays behind "Details".
  */
 @Composable
-private fun StatusCard(
+private fun HeroCard(
     look: StatusLook,
-    unitName: String,
+    carName: String?,
+    /** The car's Bluetooth sharing is tied to ("Start in the car"), or null. */
+    carBluetooth: String?,
+    onAuto: (Boolean) -> Unit,
     enabled: Boolean,
     canToggle: Boolean,
     onToggle: (Boolean) -> Unit,
@@ -379,71 +396,102 @@ private fun StatusCard(
 ) {
     // The link's last event, for when the car does not connect (not translated: technical).
     val lastEvent = LinkServer.lastEvent.collectAsState().value
-    val scheme = MaterialTheme.colorScheme
-    val (icon, tint) = when (look) {
-        StatusLook.CONNECTED -> Icons.Filled.Link to scheme.secondary
-        StatusLook.WAITING -> Icons.Filled.WifiTethering to scheme.primary
-        StatusLook.UNAVAILABLE -> Icons.Filled.ErrorOutline to scheme.error
-        StatusLook.OFF -> Icons.Filled.LinkOff to scheme.onSurfaceVariant
-        StatusLook.NO_CAR -> Icons.Filled.DirectionsCar to scheme.primary
+    var details by rememberSaveable { mutableStateOf(false) }
+    val tint = when (look) {
+        StatusLook.CONNECTED -> CompanionColors.Teal
+        StatusLook.WAITING -> CompanionColors.Amber
+        StatusLook.UNAVAILABLE -> CompanionColors.Red
+        StatusLook.OFF -> CompanionColors.Muted
+        StatusLook.NO_CAR, StatusLook.ASLEEP -> CompanionColors.Blue
     }
-    val title = when (look) {
+    val status = when (look) {
         StatusLook.NO_CAR -> stringResource(R.string.status_no_car)
         StatusLook.OFF -> stringResource(R.string.status_off)
+        StatusLook.ASLEEP -> stringResource(R.string.status_sleeping)
         StatusLook.WAITING -> stringResource(R.string.status_waiting)
         StatusLook.UNAVAILABLE -> stringResource(R.string.status_unavailable)
-        StatusLook.CONNECTED -> stringResource(R.string.status_connected, unitName)
+        StatusLook.CONNECTED -> stringResource(R.string.status_linked)
     }
     val detail = when (look) {
         StatusLook.NO_CAR -> stringResource(R.string.pair_hint)
         StatusLook.OFF -> stringResource(R.string.status_off_detail)
+        StatusLook.ASLEEP -> stringResource(R.string.status_sleeping_detail, carBluetooth.orEmpty())
         StatusLook.WAITING -> stringResource(R.string.status_waiting_detail)
         StatusLook.UNAVAILABLE -> stringResource(R.string.status_unavailable_detail)
         StatusLook.CONNECTED -> stringResource(R.string.status_connected_detail)
     }
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = if (look == StatusLook.CONNECTED) CardDefaults.cardColors(containerColor = scheme.primaryContainer) else CardDefaults.cardColors()
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(26.dp))
+            .background(Brush.linearGradient(listOf(tint.copy(alpha = 0.30f), CompanionColors.Surface, CompanionColors.Surface)))
     ) {
-        Column(Modifier.padding(16.dp)) {
+        Column(Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(shape = CircleShape, color = tint.copy(alpha = 0.18f), modifier = Modifier.size(44.dp)) {
-                    Box(contentAlignment = Alignment.Center) { Icon(icon, contentDescription = null, tint = tint) }
+                Text(
+                    "DASHWHEEL", style = MaterialTheme.typography.labelMedium, letterSpacing = 3.sp,
+                    color = CompanionColors.Muted, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f)
+                )
+                if (canToggle) {
+                    // The switch speaks for itself to TalkBack: "Share with the car, on".
+                    val label = stringResource(R.string.share_toggle)
+                    Switch(checked = enabled, onCheckedChange = onToggle, modifier = Modifier.semantics { contentDescription = label })
+                }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = if (canToggle) 4.dp else 14.dp)) {
+                Surface(shape = CircleShape, color = tint.copy(alpha = 0.18f), modifier = Modifier.size(52.dp)) {
+                    Box(contentAlignment = Alignment.Center) { Icon(Icons.Filled.DirectionsCar, contentDescription = null, tint = tint, modifier = Modifier.size(28.dp)) }
                 }
                 Spacer(Modifier.width(14.dp))
                 Column(Modifier.weight(1f)) {
-                    // What the switch does, over the status it gives.
-                    if (canToggle) {
+                    Text(
+                        carName ?: stringResource(R.string.app_name),
+                        style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
+                        Box(Modifier.size(8.dp).clip(CircleShape).background(tint))
+                        Spacer(Modifier.width(8.dp))
+                        Text(status, style = MaterialTheme.typography.titleSmall, color = tint, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            }
+            Text(detail, style = MaterialTheme.typography.bodyMedium, color = CompanionColors.Muted, modifier = Modifier.padding(top = 14.dp))
+            if (canToggle && enabled) {
+                // "Start in the car": sharing follows the car's Bluetooth instead of running all day.
+                val label = stringResource(R.string.car_auto_title)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .padding(top = 14.dp)
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(CompanionColors.Background.copy(alpha = 0.45f))
+                        .padding(start = 14.dp, end = 10.dp, top = 8.dp, bottom = 8.dp)
+                ) {
+                    Icon(Icons.Filled.Bluetooth, contentDescription = null, tint = CompanionColors.Blue, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(label, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                         Text(
-                            stringResource(R.string.share_toggle).uppercase(),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = LocalContentColor.current.copy(alpha = 0.7f)
+                            carBluetooth?.let { stringResource(R.string.car_auto_on, it) } ?: stringResource(R.string.car_auto_off),
+                            style = MaterialTheme.typography.bodySmall, color = CompanionColors.Muted
                         )
                     }
-                    Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    Text(detail, style = MaterialTheme.typography.bodySmall, color = LocalContentColor.current.copy(alpha = 0.8f))
-                }
-                if (canToggle) {
-                    Spacer(Modifier.width(8.dp))
-                    // The switch speaks for itself to TalkBack: "Share with the car, on".
-                    val label = stringResource(R.string.share_toggle)
-                    Switch(
-                        checked = enabled,
-                        onCheckedChange = onToggle,
-                        modifier = Modifier.semantics { contentDescription = label }
-                    )
+                    Switch(checked = carBluetooth != null, onCheckedChange = onAuto, modifier = Modifier.semantics { contentDescription = label })
                 }
             }
             if ((look == StatusLook.WAITING || look == StatusLook.UNAVAILABLE) && lastEvent != null) {
-                Text(
-                    lastEvent,
-                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
-                    color = scheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 10.dp)
-                )
+                TextButton(onClick = { details = !details }, contentPadding = PaddingValues(horizontal = 0.dp)) {
+                    Text(stringResource(R.string.status_details), style = MaterialTheme.typography.labelLarge)
+                    Icon(if (details) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore, contentDescription = null, modifier = Modifier.size(18.dp))
+                }
+                if (details) {
+                    Text(lastEvent, style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace), color = CompanionColors.Muted)
+                }
             }
             if (look == StatusLook.NO_CAR) {
-                Button(onClick = onPair, modifier = Modifier.fillMaxWidth().padding(top = 14.dp)) {
+                Button(onClick = onPair, modifier = Modifier.fillMaxWidth().padding(top = 16.dp).height(52.dp)) {
                     Icon(Icons.Filled.QrCodeScanner, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
                     Text(stringResource(R.string.pair_car))
@@ -479,21 +527,15 @@ private fun KeyboardCard() {
         CarKeyboard.send(field.text, TypeText.Mode.REPLACE, enter = true)
     }
 
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Filled.Keyboard, contentDescription = null)
-                Spacer(Modifier.width(12.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(stringResource(R.string.keyboard_title), fontWeight = FontWeight.SemiBold)
-                    Text(stringResource(R.string.keyboard_detail), style = MaterialTheme.typography.bodySmall)
-                }
-            }
+    Panel {
+        Column(Modifier.padding(18.dp)) {
+            CardHeading(Icons.Filled.Keyboard, stringResource(R.string.keyboard_title), stringResource(R.string.keyboard_detail))
             OutlinedTextField(
                 value = field,
                 onValueChange = ::change,
-                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
                 placeholder = { Text(stringResource(R.string.keyboard_hint)) },
+                shape = MaterialTheme.shapes.medium,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
                 keyboardActions = KeyboardActions(onGo = { enter() }),
                 maxLines = 4
@@ -503,7 +545,7 @@ private fun KeyboardCard() {
                 Text(
                     stringResource(CarKeyboard.message(a.status)),
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (good) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (good) CompanionColors.Teal else CompanionColors.Muted,
                     modifier = Modifier.padding(top = 8.dp)
                 )
                 // The car can't see its fields: one tap turns that on there.
@@ -513,7 +555,7 @@ private fun KeyboardCard() {
                     }
                 }
             }
-            Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(onClick = {
                     // The phone's clipboard, at the cursor: the car's field follows.
                     val clip = context.getSystemService(ClipboardManager::class.java)?.primaryClip
@@ -529,7 +571,7 @@ private fun KeyboardCard() {
                     Spacer(Modifier.width(8.dp))
                     Text(stringResource(R.string.keyboard_paste))
                 }
-                OutlinedButton(onClick = { change(TextFieldValue("")) }) { Text(stringResource(R.string.keyboard_clear)) }
+                TextButton(onClick = { change(TextFieldValue("")) }) { Text(stringResource(R.string.keyboard_clear)) }
                 Spacer(Modifier.weight(1f))
                 Button(onClick = ::enter) {
                     Icon(Icons.AutoMirrored.Filled.KeyboardReturn, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -541,175 +583,197 @@ private fun KeyboardCard() {
     }
 }
 
-/** Where the car was left (see [CarSpot]), with the map and walking directions to it. */
+/** An icon in a tinted circle, a title and a line under it: the head of most cards. */
+@Composable
+private fun CardHeading(icon: ImageVector, title: String, detail: String?, tint: Color = CompanionColors.Blue) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Surface(shape = CircleShape, color = tint.copy(alpha = 0.16f), modifier = Modifier.size(40.dp)) {
+            Box(contentAlignment = Alignment.Center) { Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(22.dp)) }
+        }
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            detail?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = CompanionColors.Muted) }
+        }
+    }
+}
+
+/** What the car wants the driver to know ([CarNewsStore]): servicing, faults, the battery, the filter. */
+@Composable
+private fun CarNewsCard(news: List<com.openauto.dash.link.CarNotice>) {
+    Panel {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(stringResource(R.string.news_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            news.forEach { n ->
+                val (icon, tint) = when (n.kind) {
+                    com.openauto.dash.link.CarNotice.FAULT -> Icons.Filled.Warning to CompanionColors.Red
+                    com.openauto.dash.link.CarNotice.BATTERY -> Icons.Filled.BatteryAlert to CompanionColors.Amber
+                    com.openauto.dash.link.CarNotice.FILTER -> Icons.Filled.Route to CompanionColors.Amber
+                    else -> Icons.Filled.Build to CompanionColors.Blue
+                }
+                CardHeading(icon, n.title, n.text, tint)
+            }
+        }
+    }
+}
+
+/** Where the car was left (see [CarSpot]), how long ago, and walking directions to it. */
 @Composable
 private fun CarSpotCard() {
     val context = LocalContext.current
     val spot by CarSpot.spot.collectAsState()
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Filled.LocalParking, contentDescription = null)
-                Spacer(Modifier.width(12.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(stringResource(R.string.car_spot_title), fontWeight = FontWeight.SemiBold)
-                    val s = spot
-                    Text(
-                        when {
-                            s == null -> stringResource(R.string.car_spot_none)
-                            s.saved -> stringResource(R.string.car_spot_saved, whenText(s.at))
-                            else -> stringResource(R.string.car_spot_left, whenText(s.at))
-                        },
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
+    val s = spot
+    Panel {
+        Column(Modifier.padding(18.dp)) {
+            val line = when {
+                s == null -> stringResource(R.string.car_spot_none)
+                s.saved -> stringResource(R.string.car_spot_saved, agoText(s.at))
+                else -> stringResource(R.string.car_spot_left, agoText(s.at))
             }
-            spot?.let { s ->
-                Row(Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = { open(context, Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=${s.lat},${s.lng}"))) }) {
+            CardHeading(Icons.Filled.LocalParking, stringResource(R.string.car_spot_title), line)
+            if (s != null) {
+                Row(Modifier.fillMaxWidth().padding(top = 14.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Button(
+                        onClick = { open(context, Intent(Intent.ACTION_VIEW, walkingDirections(s))) },
+                        modifier = Modifier.weight(1f).height(48.dp)
+                    ) {
+                        Icon(Icons.Filled.DirectionsWalk, contentDescription = null, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.car_spot_walk))
+                    }
+                    OutlinedButton(
+                        onClick = { open(context, Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=${s.lat},${s.lng}"))) },
+                        modifier = Modifier.height(48.dp)
+                    ) {
                         Icon(Icons.Filled.Map, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
                         Text(stringResource(R.string.car_spot_map))
                     }
-                    Button(onClick = { open(context, Intent(Intent.ACTION_VIEW, walkingDirections(s))) }) {
-                        Icon(Icons.Filled.DirectionsWalk, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.car_spot_walk))
+                }
+            }
+        }
+    }
+}
+
+/** Which paired Bluetooth device the picker is for. */
+private enum class BluetoothPick { CAR, OBD }
+
+/** How OBD adapters usually call themselves, to list them first. */
+private val OBD_NAMES = listOf("OBD", "ELM", "V-LINK", "VLINK", "VGATE", "KONNWEI")
+
+/**
+ * OBD through this phone ([ObdRelay]): the adapter it holds for the car, and
+ * what the relay is doing. With none chosen, the car uses its own Bluetooth.
+ */
+@Composable
+private fun ObdRelayCard(onPick: () -> Unit) {
+    val context = LocalContext.current
+    val adapter by ObdRelay.adapter.collectAsState()
+    val status by ObdRelay.status.collectAsState()
+    val a = adapter
+    val line = when {
+        a == null -> stringResource(R.string.obd_relay_off)
+        status == ObdRelay.Status.RELAYING -> stringResource(R.string.obd_relay_relaying, a.name)
+        status == ObdRelay.Status.CONNECTING -> stringResource(R.string.obd_relay_connecting, a.name)
+        status == ObdRelay.Status.FAILED -> stringResource(R.string.obd_relay_failed, a.name)
+        else -> stringResource(R.string.obd_relay_ready, a.name)
+    }
+    val tint = when {
+        a == null -> CompanionColors.Muted
+        status == ObdRelay.Status.RELAYING -> CompanionColors.Teal
+        status == ObdRelay.Status.FAILED -> CompanionColors.Amber
+        else -> CompanionColors.Blue
+    }
+    Panel {
+        Column(Modifier.padding(18.dp)) {
+            CardHeading(Icons.Filled.Speed, stringResource(R.string.obd_relay_title), line, tint)
+            Row(Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (a == null) {
+                    Button(onClick = onPick) { Text(stringResource(R.string.obd_relay_choose)) }
+                } else {
+                    OutlinedButton(onClick = onPick) { Text(stringResource(R.string.obd_relay_change)) }
+                    TextButton(onClick = { ObdRelay.choose(context, null) }) { Text(stringResource(R.string.obd_relay_stop)) }
+                }
+            }
+        }
+    }
+}
+
+/** The phone's paired Bluetooth devices to pick one from; the likeliest ones first. */
+@Composable
+private fun BluetoothPicker(title: String, hint: String, devices: List<CarBluetooth.Device>, onPick: (CarBluetooth.Device) -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = CompanionColors.SurfaceHigh,
+        icon = { Icon(Icons.Filled.Bluetooth, contentDescription = null) },
+        title = { Text(title) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(hint, style = MaterialTheme.typography.bodyMedium, color = CompanionColors.Muted)
+                if (devices.isEmpty()) {
+                    Text(stringResource(R.string.car_auto_none), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 12.dp))
+                }
+                LazyColumn(Modifier.padding(top = 8.dp).height((devices.size.coerceAtMost(5) * 56).dp)) {
+                    items(devices, key = { it.address }) { device ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable { onPick(device) }
+                                .padding(horizontal = 8.dp)
+                        ) {
+                            Icon(Icons.Filled.DirectionsCar, contentDescription = null, tint = CompanionColors.Blue)
+                            Spacer(Modifier.width(14.dp))
+                            Text(device.name, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
                     }
                 }
             }
+        },
+        confirmButton = {},
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } }
+    )
+}
+
+/** One paired car, with Remove kept in its menu rather than a tap away. */
+@Composable
+private fun CarRow(unit: PairedUnit, onRemove: () -> Unit) {
+    var menu by remember { mutableStateOf(false) }
+    Panel {
+        Row(Modifier.padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.weight(1f)) {
+                CardHeading(
+                    Icons.Filled.DirectionsCar, unit.name,
+                    stringResource(R.string.paired_since, DateFormat.getDateInstance().format(Date(unit.pairedAt)))
+                )
+            }
+            Box {
+                IconButton(onClick = { menu = true }) {
+                    Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.more_options), tint = CompanionColors.Muted)
+                }
+                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.remove), color = CompanionColors.Red) },
+                        onClick = { menu = false; onRemove() }
+                    )
+                }
+            }
         }
     }
 }
-
-/** Past drives listed under the latest one; older ones stay in [DriveJournal]. */
-private const val PAST_DRIVES_SHOWN = 30
 
 @Composable
 private fun HintCard(text: String) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Text(text, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(16.dp))
+    Panel {
+        Text(text, style = MaterialTheme.typography.bodyMedium, color = CompanionColors.Muted, modifier = Modifier.padding(18.dp))
     }
 }
 
-/** The latest drive in full (see [DriveJournal]): the trip computer's figures, then the eco-driving card's. */
-@Composable
-private fun LatestDriveCard(d: DriveSummary, underWay: Boolean) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Filled.Route, contentDescription = null)
-                Spacer(Modifier.width(12.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(stringResource(if (underWay) R.string.drive_under_way else R.string.drive_last), fontWeight = FontWeight.SemiBold)
-                    Text(dateText(d.startedAt), style = MaterialTheme.typography.bodySmall)
-                }
-                EcoBadge(d.ecoScore)
-            }
-            Row(Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                Figure(kmText(d.distanceKm), stringResource(R.string.drive_km))
-                Figure(durationText(d.elapsedMs), stringResource(R.string.drive_time))
-                Figure(d.avgSpeedKmh.toString(), stringResource(R.string.drive_average))
-                Figure(d.maxSpeedKmh.toString(), stringResource(R.string.drive_top))
-            }
-            Column(Modifier.padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                val score = d.ecoScore
-                if (score == null) {
-                    Text(stringResource(R.string.drive_eco_none), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                } else {
-                    Text(
-                        stringResource(R.string.drive_eco_score, score) + " · " + stringResource(ecoCall(score)),
-                        style = MaterialTheme.typography.bodyMedium, color = ecoTint(score), fontWeight = FontWeight.SemiBold
-                    )
-                    Text(stringResource(R.string.drive_hard, d.hardAccel, d.hardBrake), style = MaterialTheme.typography.bodySmall)
-                    d.sweetPercent?.let { Text(stringResource(R.string.drive_band, it), style = MaterialTheme.typography.bodySmall) }
-                    if (d.clutchHolds > 0) Text(stringResource(R.string.drive_clutch, d.clutchHolds), style = MaterialTheme.typography.bodySmall)
-                }
-                val liters = d.fuelLiters
-                val cost = d.fuelCost
-                if (liters != null && cost != null) {
-                    Text(stringResource(R.string.drive_fuel, decimal(liters, 1), decimal(cost, 2), d.currency.orEmpty()), style = MaterialTheme.typography.bodySmall)
-                }
-            }
-        }
-    }
-}
-
-/** One past drive on a line: when, how far, how long, how fast, and its score. */
-@Composable
-private fun DriveRow(d: DriveSummary) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Row(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text(dateText(d.startedAt), fontWeight = FontWeight.SemiBold)
-                Text(
-                    stringResource(R.string.drive_row, kmText(d.distanceKm), durationText(d.elapsedMs), d.avgSpeedKmh),
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-            Spacer(Modifier.width(8.dp))
-            EcoBadge(d.ecoScore)
-        }
-    }
-}
-
-@Composable
-private fun Figure(value: String, label: String) {
-    Column {
-        Text(value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-}
-
-/** The eco-driving score as a small tinted chip; "--" without one. */
-@Composable
-private fun EcoBadge(score: Int?) {
-    val tint = if (score == null) MaterialTheme.colorScheme.onSurfaceVariant else ecoTint(score)
-    Surface(shape = RoundedCornerShape(8.dp), color = tint.copy(alpha = 0.18f)) {
-        Text(
-            score?.toString() ?: "--", color = tint, fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-        )
-    }
-}
-
-/** The same verdict as the head unit's eco-driving card. */
-private fun ecoCall(score: Int): Int = when {
-    score >= 80 -> R.string.drive_eco_smooth
-    score >= 60 -> R.string.drive_eco_fair
-    else -> R.string.drive_eco_harsh
-}
-
-@Composable
-private fun ecoTint(score: Int): Color = when {
-    score >= 80 -> MaterialTheme.colorScheme.secondary
-    score >= 60 -> MaterialTheme.colorScheme.tertiary
-    else -> MaterialTheme.colorScheme.error
-}
-
-private fun kmText(km: Double): String =
-    if (km < 100) String.format(Locale.getDefault(), "%.1f", km) else km.roundToInt().toString()
-
-private fun decimal(value: Double, digits: Int): String = String.format(Locale.getDefault(), "%.${digits}f", value)
-
-/** "1 h 05" / "25 min". */
-@Composable
-private fun durationText(ms: Long): String {
-    val minutes = (ms / 60_000L).toInt()
-    return if (minutes >= 60) stringResource(R.string.drive_duration_hm, minutes / 60, minutes % 60)
-    else stringResource(R.string.drive_duration_m, minutes.coerceAtLeast(1))
-}
-
-/** Weekday, date and time, abbreviated: "Tue, 24 Sep, 08:12". */
-@Composable
-private fun dateText(at: Long): String = DateUtils.formatDateTime(
-    LocalContext.current, at,
-    DateUtils.FORMAT_SHOW_WEEKDAY or DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME or DateUtils.FORMAT_ABBREV_ALL
-)
-
-/** The time alone today, the date on other days. */
-private fun whenText(at: Long): String =
-    DateUtils.formatSameDayTime(at, System.currentTimeMillis(), DateFormat.MEDIUM, DateFormat.SHORT).toString()
+/** "50 minutes ago", "Yesterday"... in the phone's language. */
+private fun agoText(at: Long): String =
+    DateUtils.getRelativeTimeSpanString(at, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS).toString()
 
 /** Walking directions in Google Maps (the app when installed, else the browser). */
 private fun walkingDirections(s: CarSpotInfo): Uri =
@@ -717,7 +781,10 @@ private fun walkingDirections(s: CarSpotInfo): Uri =
 
 @Composable
 private fun SectionTitle(text: String, modifier: Modifier = Modifier) {
-    Text(text, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, modifier = modifier.padding(top = 8.dp))
+    Text(
+        text, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold,
+        modifier = modifier.padding(start = 4.dp, top = 14.dp, bottom = 2.dp)
+    )
 }
 
 /** What the setup checklist found, and how to fix each; re-read on every resume. */
@@ -728,12 +795,19 @@ private class SetupChecks(
     val calls: Boolean,
     val agenda: Boolean,
     val battery: Boolean,
+    /** "On my way" texts: optional, so not counted as left to do. */
+    val texts: Boolean,
     val askPost: () -> Unit,
     val askCalls: () -> Unit,
-    val askAgenda: () -> Unit
+    val askAgenda: () -> Unit,
+    val askTexts: () -> Unit
 ) {
+    private val checks: List<Boolean> get() = listOfNotNull(listener, post, calls, agenda, battery)
+
     /** The steps that can be checked from here and are not done (the hotspot can't be). */
-    val missing: Int get() = listOf(listener, post ?: true, calls, agenda, battery).count { !it }
+    val missing: Int get() = checks.count { !it }
+
+    val total: Int get() = checks.size
 }
 
 @Composable
@@ -753,6 +827,12 @@ private fun rememberSetupChecks(resumes: Int): SetupChecks {
         callsGranted = CALL_PERMISSIONS.all { granted(context, it) }
         PhoneLists.recheck()
     }
+    var textsGranted by remember(resumes) { mutableStateOf(TextSender.canSend(context)) }
+    val askTexts = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        textsGranted = TextSender.canSend(context)
+        // The car learns it can now ask for "On my way" texts.
+        LinkServer.send(PhoneAbilities(sendsTexts = textsGranted))
+    }
     var agendaGranted by remember(resumes) { mutableStateOf(granted(context, Manifest.permission.READ_CALENDAR)) }
     val askAgenda = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
         agendaGranted = it
@@ -764,6 +844,8 @@ private fun rememberSetupChecks(resumes: Int): SetupChecks {
         calls = callsGranted,
         agenda = agendaGranted,
         battery = battery,
+        texts = textsGranted,
+        askTexts = { ask(context, arrayOf(Manifest.permission.SEND_SMS)) { askTexts.launch(it.single()) } },
         askPost = { ask(context, arrayOf(Manifest.permission.POST_NOTIFICATIONS)) { askPost.launch(it.single()) } },
         askCalls = { ask(context, CALL_PERMISSIONS) { askCalls.launch(it) } },
         askAgenda = { ask(context, arrayOf(Manifest.permission.READ_CALENDAR)) { askAgenda.launch(it.single()) } }
@@ -793,71 +875,100 @@ private fun ask(context: Context, permissions: Array<String>, launch: (Array<Str
 
 private const val PERMISSION_PREFS = "permissions_asked"
 
+/**
+ * The checklist in one card: how far along it is, then one slim row per
+ * step, the ones left to do first. [onHide] folds it once all is allowed.
+ */
 @Composable
-private fun SetupSteps(setup: SetupChecks) {
+private fun SetupPanel(setup: SetupChecks, onHide: (() -> Unit)?) {
     val context = LocalContext.current
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Step(
-            Icons.Filled.Notifications, stringResource(R.string.step_notifications),
-            stringResource(R.string.step_notifications_detail), done = setup.listener
-        ) {
-            open(context, Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
-        }
-        if (!setup.listener) {
-            // Android 13+ greys out Notification access for apps installed outside a store.
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 8.dp)) {
-                Text(stringResource(R.string.step_notifications_restricted), style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
-                TextButton(onClick = {
-                    open(context, Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")))
-                }) { Text(stringResource(R.string.step_app_info)) }
+    val done = setup.total - setup.missing
+    Panel {
+        Column(Modifier.padding(18.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    stringResource(if (setup.missing > 0) R.string.setup_finish else R.string.setup_title),
+                    style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f)
+                )
+                Text(
+                    stringResource(R.string.setup_progress, done, setup.total),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = if (setup.missing > 0) CompanionColors.Amber else CompanionColors.Teal
+                )
             }
-        }
-        setup.post?.let { post ->
-            Step(
-                Icons.Filled.NotificationsActive, stringResource(R.string.step_post),
-                stringResource(R.string.step_post_detail), done = post, onFix = setup.askPost
+            LinearProgressIndicator(
+                progress = { if (setup.total == 0) 1f else done / setup.total.toFloat() },
+                modifier = Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 6.dp).height(6.dp).clip(RoundedCornerShape(50)),
+                color = if (setup.missing > 0) CompanionColors.Amber else CompanionColors.Teal,
+                trackColor = CompanionColors.Line,
+                drawStopIndicator = {}
             )
-        }
-        Step(
-            Icons.Filled.Call, stringResource(R.string.step_calls),
-            stringResource(R.string.step_calls_detail), done = setup.calls, onFix = setup.askCalls
-        )
-        Step(
-            Icons.Filled.Event, stringResource(R.string.step_agenda),
-            stringResource(R.string.step_agenda_detail), done = setup.agenda, onFix = setup.askAgenda
-        )
-        Step(
-            Icons.Filled.BatteryFull, stringResource(R.string.step_battery),
-            stringResource(R.string.step_battery_detail), done = setup.battery
-        ) {
-            open(context, Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:${context.packageName}")))
-        }
-        Step(
-            Icons.Filled.Wifi, stringResource(R.string.step_hotspot),
-            stringResource(R.string.step_hotspot_detail), done = null
-        ) {
-            if (!open(context, Intent("android.settings.TETHER_SETTINGS"))) open(context, Intent(Settings.ACTION_WIRELESS_SETTINGS))
+            val steps = buildList {
+                add(StepInfo(Icons.Filled.Notifications, R.string.step_notifications, R.string.step_notifications_detail, setup.listener) {
+                    open(context, Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+                })
+                setup.post?.let { add(StepInfo(Icons.Filled.NotificationsActive, R.string.step_post, R.string.step_post_detail, it, onFix = setup.askPost)) }
+                add(StepInfo(Icons.Filled.Call, R.string.step_calls, R.string.step_calls_detail, setup.calls, onFix = setup.askCalls))
+                add(StepInfo(Icons.Filled.Event, R.string.step_agenda, R.string.step_agenda_detail, setup.agenda, onFix = setup.askAgenda))
+                add(StepInfo(Icons.Filled.BatteryFull, R.string.step_battery, R.string.step_battery_detail, setup.battery) {
+                    open(context, Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:${context.packageName}")))
+                })
+                add(StepInfo(Icons.Filled.Wifi, R.string.step_hotspot, R.string.step_hotspot_detail, null) {
+                    if (!open(context, Intent("android.settings.TETHER_SETTINGS"))) open(context, Intent(Settings.ACTION_WIRELESS_SETTINGS))
+                })
+                if (context.packageManager.hasSystemFeature(PackageManager.FEATURE_TELEPHONY_MESSAGING)) {
+                    add(StepInfo(Icons.Filled.Sms, R.string.step_texts, R.string.step_texts_detail, setup.texts, optional = true, onFix = setup.askTexts))
+                }
+            }.sortedBy { if (it.done == false && !it.optional) 0 else 1 }
+            steps.forEach { step ->
+                StepRow(step)
+                // Android 13+ greys out Notification access for apps installed outside a store.
+                if (step.title == R.string.step_notifications && step.done == false) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 54.dp)) {
+                        Text(stringResource(R.string.step_notifications_restricted), style = MaterialTheme.typography.bodySmall, color = CompanionColors.Muted, modifier = Modifier.weight(1f))
+                        TextButton(onClick = {
+                            open(context, Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")))
+                        }) { Text(stringResource(R.string.step_app_info)) }
+                    }
+                }
+            }
+            if (onHide != null) {
+                TextButton(onClick = onHide, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.setup_hide))
+                    Icon(Icons.Filled.ExpandLess, contentDescription = null)
+                }
+            }
         }
     }
 }
 
 /** One thing to set up. [done] null: can't be checked from here, always offers to open it. */
+private class StepInfo(val icon: ImageVector, val title: Int, val detail: Int, val done: Boolean?, val optional: Boolean = false, val onFix: () -> Unit)
+
 @Composable
-private fun Step(icon: ImageVector, title: String, detail: String, done: Boolean?, onFix: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, contentDescription = null, tint = if (done == false) MaterialTheme.colorScheme.tertiary else LocalContentColor.current)
-            Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
-                Text(title, fontWeight = FontWeight.SemiBold)
-                Text(detail, style = MaterialTheme.typography.bodySmall)
-            }
-            Spacer(Modifier.width(8.dp))
-            when (done) {
-                true -> Icon(Icons.Filled.CheckCircle, contentDescription = stringResource(R.string.done), tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(28.dp))
-                false -> Button(onClick = onFix) { Text(stringResource(R.string.action_allow)) }
-                null -> OutlinedButton(onClick = onFix) { Text(stringResource(R.string.step_open_settings)) }
-            }
+private fun StepRow(step: StepInfo) {
+    val tint = when (step.done) {
+        false -> if (step.optional) CompanionColors.Blue else CompanionColors.Amber
+        true -> CompanionColors.Teal
+        null -> CompanionColors.Blue
+    }
+    Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Surface(shape = CircleShape, color = tint.copy(alpha = 0.15f), modifier = Modifier.size(40.dp)) {
+            Box(contentAlignment = Alignment.Center) { Icon(step.icon, contentDescription = null, tint = tint, modifier = Modifier.size(20.dp)) }
+        }
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
+            Text(stringResource(step.title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+            Text(
+                stringResource(step.detail), style = MaterialTheme.typography.bodySmall, color = CompanionColors.Muted,
+                maxLines = if (step.done == true) 1 else 3, overflow = TextOverflow.Ellipsis
+            )
+        }
+        Spacer(Modifier.width(10.dp))
+        when (step.done) {
+            true -> Icon(Icons.Filled.CheckCircle, contentDescription = stringResource(R.string.done), tint = CompanionColors.Teal, modifier = Modifier.size(26.dp))
+            false -> Button(onClick = step.onFix, contentPadding = PaddingValues(horizontal = 16.dp)) { Text(stringResource(R.string.action_allow)) }
+            null -> FilledTonalButton(onClick = step.onFix, contentPadding = PaddingValues(horizontal = 16.dp)) { Text(stringResource(R.string.step_open_settings)) }
         }
     }
 }

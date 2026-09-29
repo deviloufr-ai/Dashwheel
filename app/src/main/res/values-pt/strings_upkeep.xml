@@ -13,6 +13,7 @@
     <string name="upkeep_additive">Aditivo do filtro</string>
     <string name="upkeep_gearbox_oil">Óleo da caixa</string>
     <string name="upkeep_spark_plugs">Velas</string>
+    <string name="upkeep_inspection">Inspeção periódica</string>
     <string name="upkeep_title">MANUTENÇÃO</string>
     <string name="upkeep_no_odometer">Toque para introduzir a quilometragem</string>
     <string name="upkeep_needs_dates">Indique quando cada item foi feito</string>

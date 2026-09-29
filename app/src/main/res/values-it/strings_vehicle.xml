@@ -204,6 +204,11 @@
     <string name="vehicle_err_bt_stuck">Il Bluetooth Android dell\'autoradio è bloccato: riavvia l\'autoradio, poi tocca OBD</string>
     <string name="vehicle_err_refused">%1$s ha rifiutato la connessione: occupato da un telefono o un\'altra app, senza alimentazione o fuori portata</string>
     <string name="vehicle_err_silent">%1$s si è connesso ma non ha mai risposto: inserisci il quadro, poi tocca OBD</string>
+    <string name="vehicle_err_phone_not_linked">L\'OBD passa dal telefono: collega prima il telefono</string>
+    <string name="vehicle_err_phone_no_adapter">L\'OBD passa dal telefono: scegli l\'adattatore nell\'app compagna</string>
+    <string name="vehicle_obd_asking_phone">Richiesta dell\'adattatore al telefono</string>
+    <string name="vehicle_err_phone_relay">Il telefono non ha raggiunto %1$s: controlla che sia inserito e associato al telefono</string>
+    <string name="vehicle_err_in_call">L\'OBD è in pausa durante la chiamata e torna quando finisce</string>
     <string name="vehicle_err_phone_aa">Android Auto su %1$s sta bloccando l\'adattatore OBD</string>
     <string name="vehicle_phone_aa_fix">Come risolvere</string>
     <string name="vehicle_phone_aa_title">Android Auto blocca l\'OBD</string>

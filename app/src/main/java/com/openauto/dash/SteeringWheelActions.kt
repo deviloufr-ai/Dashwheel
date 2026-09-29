@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.QuestionAnswer
 import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.Screenshot
 import androidx.compose.material.icons.filled.SkipNext
@@ -97,7 +98,10 @@ internal enum class SteeringWheelAction(
     READ_MESSAGE(WheelActionGroup.PHONE, R.string.wheel_action_read_message, Icons.AutoMirrored.Filled.Message),
     ANSWER_CALL(WheelActionGroup.PHONE, R.string.wheel_action_answer, Icons.Filled.Call),
     DECLINE_CALL(WheelActionGroup.PHONE, R.string.wheel_action_decline, Icons.Filled.CallEnd),
-    HANG_UP_CALL(WheelActionGroup.PHONE, R.string.wheel_action_hang_up, Icons.Filled.CallEnd);
+    HANG_UP_CALL(WheelActionGroup.PHONE, R.string.wheel_action_hang_up, Icons.Filled.CallEnd),
+
+    // Names are saved with the learned buttons: new ones go last, whatever their group.
+    ASK_MECHANIC(WheelActionGroup.CAR, R.string.ai_ask_wheel_action, Icons.Filled.QuestionAnswer);
 
     fun run(context: Context) {
         when (this) {
@@ -142,6 +146,8 @@ internal enum class SteeringWheelAction(
             ANSWER_CALL -> PhoneCallOverlay.answerCall()
             DECLINE_CALL -> PhoneCallOverlay.declineCall()
             HANG_UP_CALL -> PhoneCallOverlay.hangUpCall()
+            // Asked out loud, answered out loud from the live readings; a second press sends.
+            ASK_MECHANIC -> AskMechanic.listenHandsFree(context)
         }
     }
 

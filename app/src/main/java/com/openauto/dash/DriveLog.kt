@@ -67,10 +67,17 @@ internal object DriveLogRules {
     fun ecoFor(trip: TripState, care: CareState): Drive? =
         listOfNotNull(care.drive, care.lastDrive).firstOrNull { it.startedAt <= trip.updatedAt && it.lastAt >= trip.startedAt }
 
-    /** [trip] as logged and sent, with [eco]'s figures and the fuel it took at [car]'s usual consumption. */
-    fun summary(trip: TripState, eco: Drive?, car: CarProfile, ongoing: Boolean): DriveSummary {
+    /**
+     * [trip] as logged and sent, with [eco]'s figures and the fuel it took at
+     * [use] L/100 km and [price] a litre: the car's measured figures from its
+     * refuels ([FuelLog]) when known, else [car]'s usual ones.
+     */
+    fun summary(
+        trip: TripState, eco: Drive?, car: CarProfile, ongoing: Boolean,
+        use: Double = car.typicalUse, price: Double = car.fuelPrice
+    ): DriveSummary {
         val km = trip.distanceM / 1000.0
-        val liters = km * car.typicalUse / 100
+        val liters = km * use / 100
         return DriveSummary(
             startedAt = trip.startedAt,
             endedAt = trip.updatedAt,
@@ -83,7 +90,7 @@ internal object DriveLogRules {
             hardBrake = eco?.hardBrake ?: 0,
             clutchHolds = eco?.clutchHolds ?: 0,
             fuelLiters = liters,
-            fuelCost = liters * car.fuelPrice,
+            fuelCost = liters * price,
             currency = car.currency,
             ongoing = ongoing
         )
@@ -212,8 +219,14 @@ internal object DriveLog {
         }
     }
 
-    private fun summary(trip: TripState, ongoing: Boolean): DriveSummary =
-        DriveLogRules.summary(trip, DriveLogRules.ecoFor(trip, CarCare.state.value), CarProfileStore.current, ongoing)
+    private fun summary(trip: TripState, ongoing: Boolean): DriveSummary {
+        val car = CarProfileStore.current
+        return DriveLogRules.summary(
+            trip, DriveLogRules.ecoFor(trip, CarCare.state.value), car, ongoing,
+            use = FuelLog.litersPer100() ?: car.typicalUse,
+            price = FuelLog.lastPrice() ?: car.fuelPrice
+        )
+    }
 
     private fun log(drive: DriveSummary) {
         val app = appContext ?: return

@@ -30,6 +30,16 @@
     <uses-permission android:name="android.permission.READ_CALENDAR" />
     <uses-feature android:name="android.hardware.telephony" android:required="false" />
 
+    <!-- "Start in the car": the car's Bluetooth connecting starts sharing, its
+         leaving stops it. Android 12+ calls it "Nearby devices"; older ones need
+         only the plain Bluetooth permission. -->
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
+
+    <!-- "On my way": the car asks the phone to text a contact its arrival time. -->
+    <uses-permission android:name="android.permission.SEND_SMS" />
+
     <!-- The pairing secret lives in this app's preferences: never in a backup,
          nor in a device-to-device transfer (which allowBackup alone doesn't stop on Android 12+). -->
     <application
@@ -115,6 +125,16 @@
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- System broadcasts, so exported; they only move sharing on or off for the chosen car. -->
+        <receiver
+            android:name=".CarBluetoothReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.bluetooth.device.action.ACL_CONNECTED" />
+                <action android:name="android.bluetooth.device.action.ACL_DISCONNECTED" />
             </intent-filter>
         </receiver>
     </application>

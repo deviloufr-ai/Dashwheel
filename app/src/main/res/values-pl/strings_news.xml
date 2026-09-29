@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Car news for the phone companion (CarNews.kt): reminders shown as notifications. -->
+<resources>
+    <string name="news_battery_title">Akumulator słaby na postoju</string>
+    <string name="news_battery_text">Akumulator miał %1$s V przy wyłączonym silniku. Jeśli auto źle zapala, zleć test akumulatora.</string>
+    <string name="news_upkeep_soon">Wkrótce: %1$s</string>
+    <string name="news_upkeep_due">Do zrobienia: %1$s</string>
+    <string name="news_fault_title">Kody błędów silnika: %1$s</string>
+    <string name="news_fault_text">Otwórz mechanika AI w samochodzie, aby dowiedzieć się, co oznaczają.</string>
+    <string name="news_filter_title">Filtr cząstek stałych potrzebuje dłuższej jazdy</string>
+    <string name="news_filter_text">%1$d krótkich przejazdów z rzędu. Zaplanuj wkrótce 20 minut jazdy drogą szybkiego ruchu.</string>
+</resources>

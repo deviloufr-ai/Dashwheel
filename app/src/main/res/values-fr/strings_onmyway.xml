@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- "On my way": the arrival time texted by the phone (OnMyWay.kt). -->
+<resources>
+    <string name="onmyway_button">J\'arrive</string>
+    <string name="onmyway_title">Envoyer l\'heure d\'arrivée</string>
+    <string name="onmyway_no_contacts">Aucun favori avec un numéro sur le téléphone. Ajoutez une étoile à un contact dans le téléphone.</string>
+    <string name="onmyway_text_to">Je suis en route pour %1$s, j\'arrive vers %2$s.</string>
+    <string name="onmyway_text_eta">Je suis en route, j\'arrive vers %1$s.</string>
+    <string name="onmyway_text_plain">Je suis en route.</string>
+    <string name="onmyway_sent">Envoyé à %1$s</string>
+    <string name="onmyway_failed">Le téléphone n\'a pas pu envoyer le SMS à %1$s</string>
+    <string name="onmyway_no_answer">Pas de réponse du téléphone</string>
+</resources>

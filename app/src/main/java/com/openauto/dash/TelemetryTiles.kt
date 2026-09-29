@@ -114,7 +114,11 @@ internal fun ObdNotConnected(connection: ObdConnectionState, onConnect: () -> Un
     val lastError by ObdBluetoothManager.lastError.collectAsState()
     val connectStep by ObdBluetoothManager.connectStep.collectAsState()
     // Looked up again on every state change: the name appears once the adapter is paired.
-    val adapter = remember(connection) { ObdBluetoothManager.savedDeviceLabel() }
+    val offered by PhoneObd.offer.collectAsState()
+    val adapter = remember(connection, offered) {
+        // Through the phone: the adapter is the one its companion holds.
+        if (ObdBluetoothManager.usesPhone()) offered else ObdBluetoothManager.savedDeviceLabel()
+    }
     if (connecting) {
         Text(stringResource(R.string.vehicle_obd_connecting_to, adapter ?: "OBD"), color = DashColors.Accent)
         // A long step (Android's PIN dialog, a Bluetooth restart): say what is going on.

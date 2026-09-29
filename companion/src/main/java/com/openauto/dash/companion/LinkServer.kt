@@ -18,6 +18,15 @@ import com.openauto.dash.link.LINK_PORT
 import com.openauto.dash.link.LinkMessage
 import com.openauto.dash.link.LinkSession
 import com.openauto.dash.link.MarkRead
+import com.openauto.dash.link.CarNotices
+import com.openauto.dash.link.FuelReport
+import com.openauto.dash.link.FuelSync
+import com.openauto.dash.link.PhoneAbilities
+import com.openauto.dash.link.SendText
+import com.openauto.dash.link.TextSent
+import com.openauto.dash.link.ObdClose
+import com.openauto.dash.link.ObdOpen
+import com.openauto.dash.link.ObdTx
 import com.openauto.dash.link.Ping
 import com.openauto.dash.link.Pong
 import com.openauto.dash.link.Reply
@@ -183,6 +192,8 @@ object LinkServer {
         send(Hello(deviceName(context), appVersion(context)))
         send(PhoneNotificationListener.syncMessage())
         send(PhoneCalls.snapshot())
+        send(ObdRelay.offer(context))
+        send(PhoneAbilities(sendsTexts = TextSender.canSend(context)))
         PhoneLists.linked()
         try {
             while (true) {
@@ -197,6 +208,8 @@ object LinkServer {
                 if (session === link) {
                     session = null
                     if (server != null) _state.value = LinkState.Waiting
+                    // No head unit to relay to: the OBD adapter is let go for the next start.
+                    ObdRelay.close()
                 }
             }
         }
@@ -228,6 +241,13 @@ object LinkServer {
             is DriveReport -> DriveJournal.update(context, message.drive)
             is TypeResult -> CarKeyboard.answered(message)
             is TypingAccess -> CarKeyboard.accessChanged(message)
+            ObdOpen -> ObdRelay.open(context)
+            ObdClose -> ObdRelay.close()
+            is ObdTx -> ObdRelay.write(message.data)
+            is FuelSync -> FuelJournal.sync(context, message.fills)
+            is FuelReport -> FuelJournal.update(context, message.fill)
+            is CarNotices -> main.post { CarNewsStore.update(context, message) }
+            is SendText -> main.post { send(TextSent(message.id, TextSender.send(context, message.number, message.text))) }
             else -> Unit
         }
     }

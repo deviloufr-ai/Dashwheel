@@ -30,6 +30,15 @@ import com.openauto.dash.link.MarkRead
 import com.openauto.dash.link.NotificationPosted
 import com.openauto.dash.link.NotificationRemoved
 import com.openauto.dash.link.NotificationSync
+import com.openauto.dash.link.ObdOffer
+import com.openauto.dash.link.ObdRelayState
+import com.openauto.dash.link.ObdRx
+import com.openauto.dash.link.PhoneAbilities
+import com.openauto.dash.link.SendText
+import com.openauto.dash.link.TextSent
+import kotlinx.coroutines.CompletableDeferred
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 import com.openauto.dash.link.PairingOffer
 import com.openauto.dash.link.PairingStorage
 import com.openauto.dash.link.PhoneContacts
@@ -261,6 +270,28 @@ object PhoneLink {
     /** Has the phone call [number]; false when it can't be asked (no link, an older companion). */
     fun dial(number: String): Boolean = phoneDials && send(CallCommand(CallCommand.Action.DIAL, number))
 
+    private val _textsOn = MutableStateFlow(false)
+    /** The linked phone sends texts for the car ([PhoneAbilities]): "On my way". */
+    val textsOn: StateFlow<Boolean> = _textsOn
+
+    private val textIds = AtomicLong()
+    private val textsWaiting = ConcurrentHashMap<Long, CompletableDeferred<Boolean>>()
+
+    /** Has the phone text [text] to [number]: true once sent, false when refused, null without an answer. */
+    suspend fun sendText(number: String, text: String): Boolean? {
+        if (!_textsOn.value) return false
+        val id = textIds.incrementAndGet()
+        val answer = CompletableDeferred<Boolean>()
+        textsWaiting[id] = answer
+        return try {
+            if (!send(SendText(number, text, id))) false else withTimeoutOrNull(TEXT_TIMEOUT_MS) { answer.await() }
+        } finally {
+            textsWaiting.remove(id)
+        }
+    }
+
+    private const val TEXT_TIMEOUT_MS = 15_000L
+
     /** [DemoMode]'s lists. */
     internal fun demoWrite(lists: PhoneLists) {
         _lists.value = lists
@@ -389,6 +420,9 @@ object PhoneLink {
         val whereabouts = scope.launch { CarWhereabouts.report(context) { send(it) } }
         // The drives it logged, and the one under way, for the phone's drive journal.
         val drives = scope.launch { DriveLog.report { send(it) } }
+        // The refuels, and what the phone should remind the driver of.
+        val fuel = scope.launch { FuelLog.report { send(it) } }
+        val news = scope.launch { CarNews.report { send(it) } }
         try {
             while (true) {
                 val message = link.receive() ?: continue
@@ -401,6 +435,8 @@ object PhoneLink {
             prober?.cancel()
             whereabouts.cancel()
             drives.cancel()
+            fuel.cancel()
+            news.cancel()
             link.close()
             if (session === link) session = null
             NotificationFeed.phoneClear()
@@ -408,6 +444,9 @@ object PhoneLink {
             // The tiles go back to this unit's own contacts and calendar.
             phoneDials = false
             editLists { PhoneLists() }
+            // An OBD link relayed by the phone ends with it; the unit's own Bluetooth takes over.
+            PhoneObd.linkDown()
+            _textsOn.value = false
         }
     }
 
@@ -484,6 +523,11 @@ object PhoneLink {
             }
             // Toasts and the voice want the main thread.
             is Destination -> main.post { NavHandoff.fromPhone(context, message) }
+            is ObdOffer -> PhoneObd.onOffer(message)
+            is ObdRelayState -> PhoneObd.onState(message)
+            is ObdRx -> PhoneObd.onRx(message)
+            is PhoneAbilities -> _textsOn.value = message.sendsTexts
+            is TextSent -> textsWaiting[message.id]?.complete(message.sent)
             else -> Unit
         }
     }

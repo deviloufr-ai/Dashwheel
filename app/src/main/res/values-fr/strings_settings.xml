@@ -121,6 +121,12 @@
     <string name="settings_obd_saved">%1$s. Touchez pour en choisir un autre.</string>
     <string name="settings_obd_none">Aucun choisi. Touchez pour choisir le vôtre.</string>
     <string name="settings_obd_forget">Oublier</string>
+    <string name="settings_obd_route_auto">Automatique</string>
+    <string name="settings_obd_route_unit">Cet autoradio</string>
+    <string name="settings_obd_route_phone">Téléphone</string>
+    <string name="settings_obd_route_offered">Le téléphone tient %1$s et le relaie : les appels et Android Auto ne le gênent plus.</string>
+    <string name="settings_obd_route_unit_hint">L\'adaptateur est joint par le Bluetooth de cet autoradio.</string>
+    <string name="settings_obd_route_hint">Par le téléphone quand son compagnon tient l\'adaptateur, sinon par le Bluetooth de l\'autoradio. Choisissez l\'adaptateur dans le compagnon.</string>
     <string name="settings_backup_section">Votre configuration</string>
     <string name="settings_backup_save">Enregistrer ma configuration</string>
     <string name="settings_backup_save_detail">Tableaux de bord, réglages et lieux, dans un fichier. Sans la clé IA ni les téléphones associés.</string>

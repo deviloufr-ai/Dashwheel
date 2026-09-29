@@ -13,6 +13,7 @@
     <string name="upkeep_additive">Filteradditiv</string>
     <string name="upkeep_gearbox_oil">Getriebeöl</string>
     <string name="upkeep_spark_plugs">Zündkerzen</string>
+    <string name="upkeep_inspection">Hauptuntersuchung</string>
     <string name="upkeep_title">WARTUNG</string>
     <string name="upkeep_no_odometer">Tippen, um den Kilometerstand einzugeben</string>
     <string name="upkeep_needs_dates">Eintragen, wann jeder Punkt zuletzt gemacht wurde</string>

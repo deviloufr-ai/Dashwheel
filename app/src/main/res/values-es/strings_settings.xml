@@ -121,6 +121,12 @@
     <string name="settings_obd_saved">%1$s. Toca para elegir otro.</string>
     <string name="settings_obd_none">Ninguno elegido. Toca para elegir el tuyo.</string>
     <string name="settings_obd_forget">Olvidar</string>
+    <string name="settings_obd_route_auto">Automático</string>
+    <string name="settings_obd_route_unit">Esta radio</string>
+    <string name="settings_obd_route_phone">Teléfono</string>
+    <string name="settings_obd_route_offered">El teléfono mantiene %1$s y lo transmite: las llamadas y Android Auto ya no molestan.</string>
+    <string name="settings_obd_route_unit_hint">Se llega al adaptador con el Bluetooth de esta radio.</string>
+    <string name="settings_obd_route_hint">Por el teléfono cuando su app acompañante tiene el adaptador; si no, por el Bluetooth de la radio. Elige el adaptador en la app acompañante.</string>
     <string name="settings_backup_section">Tu configuración</string>
     <string name="settings_backup_save">Guardar mi configuración</string>
     <string name="settings_backup_save_detail">Paneles, ajustes y lugares, en un archivo. Sin la clave de IA ni los teléfonos vinculados.</string>

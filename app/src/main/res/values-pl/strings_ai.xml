@@ -93,4 +93,11 @@
     <string name="ai_error_connect">nie można połączyć się z Google</string>
     <string name="ai_error_unknown">nieznany błąd</string>
     <string name="ai_say_overcharging">Napięcie akumulatora jest za wysokie: %1$s wolta przy pracującym silniku. Regulator ładowania może być uszkodzony: sprawdź go wkrótce.</string>
+    <!-- Asking the mechanic about the car as it is now (fault codes tile microphone, hands-free) -->
+    <string name="ai_ask_wheel_action">Zapytaj mechanika AI</string>
+    <!-- Spoken, in the mechanic's language -->
+    <string name="ai_ask_say_listening">Słucham.</string>
+    <string name="ai_ask_say_nothing_heard">Nie usłyszałem pytania.</string>
+    <string name="ai_ask_say_no_key">Mechanik AI potrzebuje klucza Gemini. Dodaj go w ustawieniach Samochód, w sekcji Mechanik AI.</string>
+    <string name="ai_ask_say_mic">Mikrofon nie jest jeszcze dozwolony. Dotknij raz mikrofonu na kafelku Kody błędów, aby na niego zezwolić.</string>
 </resources>

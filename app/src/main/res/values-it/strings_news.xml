@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Car news for the phone companion (CarNews.kt): reminders shown as notifications. -->
+<resources>
+    <string name="news_battery_title">Batteria debole a motore fermo</string>
+    <string name="news_battery_text">La batteria segnava %1$s V a motore spento. Se l\'auto parte a fatica, fai controllare la batteria.</string>
+    <string name="news_upkeep_soon">%1$s a breve</string>
+    <string name="news_upkeep_due">%1$s da fare</string>
+    <string name="news_fault_title">Codici guasto motore: %1$s</string>
+    <string name="news_fault_text">Apri il meccanico IA in auto per sapere cosa significano.</string>
+    <string name="news_filter_title">Il filtro antiparticolato ha bisogno di un viaggio lungo</string>
+    <string name="news_filter_text">%1$d tragitti brevi di fila. Pianifica presto 20 minuti su strada veloce.</string>
+</resources>

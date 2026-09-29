@@ -13,6 +13,7 @@
     <string name="upkeep_additive">Filter additive</string>
     <string name="upkeep_gearbox_oil">Gearbox oil</string>
     <string name="upkeep_spark_plugs">Spark plugs</string>
+    <string name="upkeep_inspection">Roadworthiness test</string>
     <string name="upkeep_title">SERVICING</string>
     <string name="upkeep_no_odometer">Tap to enter the mileage</string>
     <string name="upkeep_needs_dates">Set when each item was last done</string>

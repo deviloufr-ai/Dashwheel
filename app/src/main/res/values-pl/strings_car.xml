@@ -36,6 +36,8 @@
     <string name="car_filter_last_long">Ostatnia długa trasa: %1$s</string>
     <string name="car_filter_last_long_never">Brak zapisanej długiej trasy</string>
     <string name="car_filter_additive">Używa dodatku do paliwa: sprawdzaj jego poziom przy każdym serwisie</string>
+    <string name="car_filter_regen">Trwa czyszczenie</string>
+    <string name="car_filter_additive_low">Mało dodatku, %1$d %%. Uzupełnij przy następnym serwisie</string>
 
     <!-- Warm-up -->
     <string name="car_warmup_title">ROZGRZEWANIE</string>
@@ -157,6 +159,11 @@
     <string name="car_say_cold_revs">Silnik jest jeszcze zimny. Przez kilka minut nie przekraczaj %1$d obrotów.</string>
     <string name="car_say_clutch_hold">Trzymaj auto hamulcem, nie gazem. To zużywa sprzęgło tej skrzyni biegów.</string>
     <string name="car_say_filter">Twoje ostatnie trasy były krótkie, już %1$d z rzędu. Gdy będzie okazja, jedź od 15 do 20 minut powyżej 60 kilometrów na godzinę, żeby filtr cząstek stałych mógł się oczyścić.</string>
+    <string name="car_say_filter_regen">Filtr cząstek stałych się oczyszcza. Jeśli możesz, jedź jeszcze około 10 minut ze stałą prędkością.</string>
+    <string name="car_say_filter_regen_standing">Filtr cząstek stałych nadal się oczyszcza. Jeśli możesz, jedź jeszcze kilka minut, zanim wyłączysz silnik.</string>
+    <string name="car_say_filter_soot">Filtr cząstek stałych jest zapełniony w %1$d procentach. Postaraj się wkrótce zaplanować 20 minut jazdy szybką drogą.</string>
+    <string name="car_say_filter_soot_short">Twoje ostatnie trasy były krótkie, już %1$d z rzędu, a filtr cząstek stałych jest zapełniony w %2$d procentach. Postaraj się wkrótce zaplanować 20 minut jazdy szybką drogą.</string>
+    <string name="car_say_filter_additive">Mało dodatku do filtra cząstek stałych, zostało %1$d procent. Uzupełnij go przy następnym serwisie.</string>
     <string name="car_say_break">Jedziesz już %1$s. Czas na przerwę.</string>
     <string name="car_say_fuel_short">Twój zasięg to %1$d km, a do celu zostało %2$d km. Nie wystarczy, zaplanuj tankowanie.</string>
     <string name="car_hours_minutes">%1$s i %2$s</string>

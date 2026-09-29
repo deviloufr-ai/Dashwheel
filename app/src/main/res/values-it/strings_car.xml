@@ -36,6 +36,8 @@
     <string name="car_filter_last_long">Ultimo viaggio lungo: %1$s</string>
     <string name="car_filter_last_long_never">Nessun viaggio lungo registrato</string>
     <string name="car_filter_additive">Usa un additivo: fanne controllare il livello a ogni tagliando</string>
+    <string name="car_filter_regen">Pulizia in corso</string>
+    <string name="car_filter_additive_low">Additivo basso al %1$d %%. Rabbocca al prossimo tagliando</string>
 
     <!-- Warm-up -->
     <string name="car_warmup_title">RISCALDAMENTO</string>
@@ -157,6 +159,11 @@
     <string name="car_say_cold_revs">Il motore è ancora freddo. Resta sotto i %1$d giri ancora per qualche minuto.</string>
     <string name="car_say_clutch_hold">Tieni ferma l\'auto con il freno, non con l\'acceleratore. Consuma la frizione di questo cambio.</string>
     <string name="car_say_filter">Gli ultimi %1$d viaggi sono stati brevi. Appena puoi, guida da 15 a 20 minuti sopra i 60 chilometri orari, così il filtro antiparticolato si pulisce.</string>
+    <string name="car_say_filter_regen">Il filtro antiparticolato si sta pulendo. Se puoi, continua a guidare per altri 10 minuti circa a velocità costante.</string>
+    <string name="car_say_filter_regen_standing">Il filtro antiparticolato si sta ancora pulendo. Se puoi, guida ancora qualche minuto prima di spegnere il motore.</string>
+    <string name="car_say_filter_soot">Il filtro antiparticolato è pieno al %1$d per cento. Cerca di fare presto un viaggio di 20 minuti su una strada veloce.</string>
+    <string name="car_say_filter_soot_short">Gli ultimi %1$d viaggi sono stati brevi e il filtro antiparticolato è pieno al %2$d per cento. Cerca di fare presto un viaggio di 20 minuti su una strada veloce.</string>
+    <string name="car_say_filter_additive">L\'additivo del filtro antiparticolato è basso, al %1$d per cento. Fallo rabboccare al prossimo tagliando.</string>
     <string name="car_say_break">Stai guidando da %1$s. È ora di fare una pausa.</string>
     <string name="car_say_fuel_short">La tua autonomia di %1$d chilometri non basta per la destinazione, a %2$d chilometri. Pianifica un rifornimento.</string>
     <string name="car_hours_minutes">%1$s e %2$s</string>

@@ -204,6 +204,11 @@
     <string name="vehicle_err_bt_stuck">Das Android-Bluetooth des Autoradios hängt: Autoradio neu starten, dann OBD antippen</string>
     <string name="vehicle_err_refused">%1$s hat die Verbindung abgelehnt: von einem Handy oder einer anderen App belegt, ohne Strom oder außer Reichweite</string>
     <string name="vehicle_err_silent">%1$s hat sich verbunden, aber nie geantwortet: Zündung einschalten, dann OBD antippen</string>
+    <string name="vehicle_err_phone_not_linked">OBD läuft über das Handy: zuerst das Handy verbinden</string>
+    <string name="vehicle_err_phone_no_adapter">OBD läuft über das Handy: den Adapter in der Begleit-App wählen</string>
+    <string name="vehicle_obd_asking_phone">Handy wird nach dem Adapter gefragt</string>
+    <string name="vehicle_err_phone_relay">Das Handy hat %1$s nicht erreicht: prüfen, ob er eingesteckt und mit dem Handy gekoppelt ist</string>
+    <string name="vehicle_err_in_call">OBD pausiert während des Anrufs und kommt danach zurück</string>
     <string name="vehicle_err_phone_aa">Android Auto auf %1$s blockiert den OBD-Adapter</string>
     <string name="vehicle_phone_aa_fix">So beheben</string>
     <string name="vehicle_phone_aa_title">Android Auto blockiert OBD</string>

@@ -123,6 +123,12 @@
     <string name="settings_obd_saved">%1$s. Tap to pick another.</string>
     <string name="settings_obd_none">None chosen. Tap to pick yours.</string>
     <string name="settings_obd_forget">Forget</string>
+    <string name="settings_obd_route_auto">Automatic</string>
+    <string name="settings_obd_route_unit">This unit</string>
+    <string name="settings_obd_route_phone">Phone</string>
+    <string name="settings_obd_route_offered">The phone holds %1$s and passes it on: calls and Android Auto no longer get in the way.</string>
+    <string name="settings_obd_route_unit_hint">The adapter is reached with this unit\'s own Bluetooth.</string>
+    <string name="settings_obd_route_hint">Through the phone when its companion holds the adapter, else with this unit\'s Bluetooth. Choose the adapter in the companion.</string>
     <string name="settings_backup_section">Your setup</string>
     <string name="settings_backup_save">Save my setup</string>
     <string name="settings_backup_save_detail">Dashboards, settings and places, to a file. Not the AI key or paired phones.</string>

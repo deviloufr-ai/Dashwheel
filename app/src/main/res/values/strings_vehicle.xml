@@ -204,6 +204,11 @@
     <string name="vehicle_err_bt_stuck">Android\'s Bluetooth on the head unit is stuck: restart the head unit, then tap OBD</string>
     <string name="vehicle_err_refused">%1$s refused the connection: taken by a phone or another app, unpowered, or out of range</string>
     <string name="vehicle_err_silent">%1$s connected but never answered: switch the ignition on, then tap OBD</string>
+    <string name="vehicle_err_phone_not_linked">OBD goes through the phone: link the phone first</string>
+    <string name="vehicle_err_phone_no_adapter">OBD goes through the phone: choose the adapter in the companion</string>
+    <string name="vehicle_obd_asking_phone">Asking the phone for the adapter</string>
+    <string name="vehicle_err_phone_relay">The phone could not reach %1$s: check it is plugged in and paired with the phone</string>
+    <string name="vehicle_err_in_call">OBD is paused during the call and comes back when it ends</string>
     <string name="vehicle_err_phone_aa">Android Auto on %1$s is blocking the OBD adapter</string>
     <string name="vehicle_phone_aa_fix">How to fix</string>
     <string name="vehicle_phone_aa_title">Android Auto is blocking OBD</string>

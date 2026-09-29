@@ -13,6 +13,7 @@
     <string name="upkeep_additive">Aditivo del filtro</string>
     <string name="upkeep_gearbox_oil">Aceite de caja</string>
     <string name="upkeep_spark_plugs">Bujías</string>
+    <string name="upkeep_inspection">ITV</string>
     <string name="upkeep_title">MANTENIMIENTO</string>
     <string name="upkeep_no_odometer">Toca para introducir el kilometraje</string>
     <string name="upkeep_needs_dates">Indica cuándo se hizo cada punto</string>

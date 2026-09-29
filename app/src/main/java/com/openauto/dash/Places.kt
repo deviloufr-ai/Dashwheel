@@ -173,8 +173,21 @@ internal object NavHandoff {
         return installed.sortedByDescending { it == preferred }
     }
 
+    /**
+     * Where guidance was last started from here, and when, for "On my way"
+     * ([OnMyWay]): the navigation app's notification says the next turn and
+     * the arrival time, never the destination.
+     */
+    @Volatile var destination: Pair<String, Long>? = null
+        private set
+
+    private fun heading(to: String) {
+        if (to.isNotBlank()) destination = to to System.currentTimeMillis()
+    }
+
     /** Starts guidance to ([lat], [lng]); false when no app on the unit can. */
     fun start(context: Context, lat: Double, lng: Double, label: String = ""): Boolean {
+        heading(label)
         for (app in apps(context)) {
             val uri = if (app == WAZE) String.format(Locale.US, "waze://?ll=%.6f,%.6f&navigate=yes", lat, lng)
             else String.format(Locale.US, "google.navigation:q=%.6f,%.6f&mode=d", lat, lng)
@@ -196,6 +209,7 @@ internal object NavHandoff {
      * navigation app looks up itself; false when no app on the unit can.
      */
     fun startQuery(context: Context, query: String): Boolean {
+        heading(query)
         for (app in apps(context)) {
             if (context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(queryUri(app, query))).setPackage(app))) return true
         }

@@ -325,6 +325,147 @@ data object EnableTyping : LinkMessage
 @SerialName("typing_access")
 data class TypingAccess(val on: Boolean) : LinkMessage
 
+/*
+ * OBD through the phone: the phone holds the Bluetooth link to the car's
+ * ELM327 adapter and passes its serial bytes both ways, so the head unit's
+ * own OBD code runs unchanged over the link. The bytes travel as ISO-8859-1
+ * text (the adapter speaks ASCII). Enum-free, so an older side just skips them.
+ */
+
+/** Phone → head unit, on link up and whenever it changes: the adapter the phone can relay, or null for none. */
+@Serializable
+@SerialName("obd_offer")
+data class ObdOffer(val adapter: String? = null) : LinkMessage
+
+/** Head unit → phone: connect to the offered adapter and start relaying. */
+@Serializable
+@SerialName("obd_open")
+data object ObdOpen : LinkMessage
+
+/** Head unit → phone: stop relaying and let the adapter go. */
+@Serializable
+@SerialName("obd_close")
+data object ObdClose : LinkMessage
+
+/** Phone → head unit: the relay is up ([open]), or it failed or closed, with why for the log. */
+@Serializable
+@SerialName("obd_state")
+data class ObdRelayState(val open: Boolean, val reason: String? = null) : LinkMessage
+
+/** Head unit → phone: bytes for the adapter. */
+@Serializable
+@SerialName("obd_tx")
+data class ObdTx(val data: String) : LinkMessage
+
+/** Phone → head unit: bytes from the adapter. */
+@Serializable
+@SerialName("obd_rx")
+data class ObdRx(val data: String) : LinkMessage
+
+/**
+ * A refuel the head unit noticed (the fuel level jumping up while parked):
+ * how much went in, at what price where known, and the mileage then, from
+ * which the companion works out the real consumption and the spending.
+ * [estimated]: the level was worked back from the car's range, so the litres are rough.
+ */
+@Serializable
+data class FuelFill(
+    val at: Long,
+    val liters: Double,
+    val pricePerL: Double? = null,
+    val currency: String? = null,
+    val odometerKm: Int? = null,
+    val station: String? = null,
+    val estimated: Boolean = false
+) {
+    val cost: Double? get() = pricePerL?.let { it * liters }
+}
+
+/** Head unit → phone, on link up: the refuels it keeps, newest first. */
+@Serializable
+@SerialName("fuel_sync")
+data class FuelSync(val fills: List<FuelFill>) : LinkMessage
+
+/** Head unit → phone: a refuel just noticed. */
+@Serializable
+@SerialName("fuel")
+data class FuelReport(val fill: FuelFill) : LinkMessage
+
+/** The refuels each app keeps, and the sums over them: the same on both sides. */
+object FuelFills {
+    private val json = Json { ignoreUnknownKeys = true }
+    private val list = ListSerializer(FuelFill.serializer())
+    const val MAX = 100
+
+    /** [fill] into [fills] (newest first), replacing one at the same time. */
+    fun merge(fills: List<FuelFill>, fill: FuelFill, max: Int = MAX): List<FuelFill> =
+        (listOf(fill) + fills.filter { it.at != fill.at }).sortedByDescending { it.at }.take(max)
+
+    fun mergeAll(fills: List<FuelFill>, more: List<FuelFill>, max: Int = MAX): List<FuelFill> =
+        more.fold(fills) { acc, f -> merge(acc, f, max) }
+
+    /**
+     * Litres per 100 km over the refuels with a mileage: what went in after
+     * the first, over the distance from the first to the last. Null under
+     * [minKm], where a partly filled tank still skews it.
+     */
+    fun litersPer100(fills: List<FuelFill>, minKm: Int = 300): Double? {
+        val known = fills.filter { it.odometerKm != null }.sortedBy { it.at }
+        if (known.size < 2) return null
+        val km = known.last().odometerKm!! - known.first().odometerKm!!
+        if (km < minKm) return null
+        return known.drop(1).sumOf { it.liters } / km * 100
+    }
+
+    fun encode(fills: List<FuelFill>): String = json.encodeToString(list, fills)
+
+    /** Empty for a text this side can't read. */
+    fun decode(text: String): List<FuelFill> =
+        try {
+            json.decodeFromString(list, text)
+        } catch (_: SerializationException) {
+            emptyList()
+        } catch (_: IllegalArgumentException) {
+            emptyList()
+        }
+}
+
+/**
+ * Something about the car worth a notification on the phone, where the
+ * driver sees it once out of the car: servicing coming up, a new fault, a
+ * weak battery, the particulate filter. Written by the head unit in its own
+ * language; [id] stays the same for the same news, so the phone tells it once.
+ */
+@Serializable
+data class CarNotice(val id: String, val kind: String, val title: String, val text: String, val at: Long) {
+    companion object {
+        const val UPKEEP = "upkeep"
+        const val FAULT = "fault"
+        const val BATTERY = "battery"
+        const val FILTER = "filter"
+    }
+}
+
+/** Head unit → phone, on link up and whenever it changes: every notice standing now. */
+@Serializable
+@SerialName("notices")
+data class CarNotices(val notices: List<CarNotice>) : LinkMessage
+
+/** Phone → head unit, on link up: what this companion can do for the car beyond the basics. */
+@Serializable
+@SerialName("abilities")
+data class PhoneAbilities(val sendsTexts: Boolean = false) : LinkMessage
+
+/** Head unit → phone: send [text] by SMS to [number] ("On my way"); answered by [TextSent] with the same [id]. */
+@Serializable
+@SerialName("send_text")
+data class SendText(val number: String, val text: String, val id: Long) : LinkMessage
+
+/** Phone → head unit: whether the [SendText] with [id] went. */
+@Serializable
+@SerialName("text_sent")
+data class TextSent(val id: Long, val sent: Boolean) : LinkMessage
+
 /** A notification as the head unit shows it. [key] is the phone's own key. */
 @Serializable
 data class PhoneNotification(

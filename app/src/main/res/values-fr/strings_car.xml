@@ -36,6 +36,8 @@
     <string name="car_filter_last_long">Dernier long trajet : %1$s</string>
     <string name="car_filter_last_long_never">Aucun long trajet enregistré</string>
     <string name="car_filter_additive">Additif carburant : faire vérifier son niveau à chaque révision</string>
+    <string name="car_filter_regen">Nettoyage en cours</string>
+    <string name="car_filter_additive_low">Additif bas à %1$d %%. Faire l\'appoint à la prochaine révision</string>
 
     <!-- Warm-up -->
     <string name="car_warmup_title">CHAUFFE MOTEUR</string>
@@ -157,6 +159,11 @@
     <string name="car_say_cold_revs">Le moteur est encore froid. Restez sous les %1$d tours pendant encore quelques minutes.</string>
     <string name="car_say_clutch_hold">Retenez la voiture avec le frein, pas avec l\'accélérateur. Cela use l\'embrayage de cette boîte.</string>
     <string name="car_say_filter">Vos %1$d derniers trajets étaient courts. Dès que possible, roulez 15 à 20 minutes au-dessus de 60 kilomètres-heure pour que le filtre à particules se nettoie.</string>
+    <string name="car_say_filter_regen">Le filtre à particules se nettoie. Si possible, continuez à rouler une dizaine de minutes à vitesse régulière.</string>
+    <string name="car_say_filter_regen_standing">Le filtre à particules est encore en nettoyage. Si possible, roulez encore quelques minutes avant de couper le moteur.</string>
+    <string name="car_say_filter_soot">Le filtre à particules est plein à %1$d pour cent. Prévoyez bientôt un trajet de 20 minutes sur voie rapide.</string>
+    <string name="car_say_filter_soot_short">Vos %1$d derniers trajets étaient courts et le filtre à particules est plein à %2$d pour cent. Prévoyez bientôt un trajet de 20 minutes sur voie rapide.</string>
+    <string name="car_say_filter_additive">L\'additif du filtre à particules est bas, à %1$d pour cent. Faites faire l\'appoint à la prochaine révision.</string>
     <string name="car_say_break">Vous conduisez depuis %1$s. C\'est l\'heure de faire une pause.</string>
     <string name="car_say_fuel_short">Votre autonomie de %1$d kilomètres ne suffira pas pour la destination, à %2$d kilomètres. Prévoyez un arrêt carburant.</string>
     <string name="car_hours_minutes">%1$s et %2$s</string>

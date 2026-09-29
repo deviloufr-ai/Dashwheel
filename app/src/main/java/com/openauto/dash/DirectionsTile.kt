@@ -23,6 +23,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Directions
 import androidx.compose.material.icons.filled.Navigation
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Sms
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -191,15 +196,24 @@ internal fun DirectionsCard(
                         }
                     }
                     val chips = nav.etaParts
-                    if (chips.isNotEmpty()) {
+                    val texts by PhoneLink.textsOn.collectAsState()
+                    var picking by remember { mutableStateOf(false) }
+                    if (chips.isNotEmpty() || texts) {
                         Spacer(Modifier.height(8.dp))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            chips.take(3).forEach { InfoPill(it) }
+                            chips.take(if (texts) 2 else 3).forEach { InfoPill(it) }
+                            // "On my way": the arrival time to a favourite, texted by the phone.
+                            if (texts) {
+                                Spacer(Modifier.weight(1f))
+                                OnMyWayPill { picking = true }
+                            }
                         }
                     }
+                    if (picking) OnMyWayDialog(onDismiss = { picking = false })
                 }
             }
         }
@@ -281,6 +295,66 @@ internal fun ManeuverIcon(nav: NavState, size: Dp) {
             )
         }
     }
+}
+
+/** The "On my way" button beside the ETA chips. */
+@Composable
+private fun OnMyWayPill(onClick: () -> Unit) {
+    val shape = DashShape.Pill
+    val tap = rememberTapFeedback()
+    Row(
+        modifier = Modifier
+            .clip(shape)
+            .background(DashColors.Accent)
+            .clickable { tap(); onClick() }
+            .padding(horizontal = 14.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(Icons.Filled.Sms, contentDescription = null, tint = DashColors.OnAccent, modifier = Modifier.size(16.dp))
+        Spacer(Modifier.width(6.dp))
+        Text(stringResource(R.string.onmyway_button), color = DashColors.OnAccent, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelMedium, maxLines = 1)
+    }
+}
+
+/**
+ * Who gets the arrival time: the phone's favourites, the last one texted
+ * first, and the text as it will go. One tap sends; the answer is spoken.
+ */
+@Composable
+private fun OnMyWayDialog(onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    val contacts = remember { OnMyWay.contacts(context) }
+    val preview = remember { OnMyWay.message(context) }
+    AlertDialog(
+        modifier = Modifier.keepClearOfWindows(),
+        onDismissRequest = onDismiss,
+        containerColor = DashColors.Card,
+        title = { Text(stringResource(R.string.onmyway_title), color = DashColors.TextPrimary) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("“$preview”", color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
+                if (contacts.isEmpty()) {
+                    Text(stringResource(R.string.onmyway_no_contacts), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
+                }
+                contacts.take(6).forEach { fav ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(DashShape.Medium)
+                            .clickable { onDismiss(); OnMyWay.send(context, fav) }
+                            .padding(horizontal = 8.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Filled.Person, contentDescription = null, tint = DashColors.Accent)
+                        Spacer(Modifier.width(12.dp))
+                        Text(fav.name, color = DashColors.TextPrimary, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.dash_cancel), color = DashColors.Muted) } }
+    )
 }
 
 /** Small glass pill for an ETA segment ("12 min", "6.4 km", "09:48"). */

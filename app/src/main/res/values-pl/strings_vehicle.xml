@@ -204,6 +204,11 @@
     <string name="vehicle_err_bt_stuck">Bluetooth Androida w radiu się zawiesił: uruchom ponownie radio, potem dotknij OBD</string>
     <string name="vehicle_err_refused">%1$s odrzucił połączenie: zajęty przez telefon lub inną aplikację, bez zasilania albo poza zasięgiem</string>
     <string name="vehicle_err_silent">%1$s połączył się, ale nigdy nie odpowiedział: włącz zapłon, potem dotknij OBD</string>
+    <string name="vehicle_err_phone_not_linked">OBD idzie przez telefon: najpierw połącz telefon</string>
+    <string name="vehicle_err_phone_no_adapter">OBD idzie przez telefon: wybierz adapter w aplikacji towarzyszącej</string>
+    <string name="vehicle_obd_asking_phone">Pytanie telefonu o adapter</string>
+    <string name="vehicle_err_phone_relay">Telefon nie połączył się z %1$s: sprawdź, czy jest włożony i sparowany z telefonem</string>
+    <string name="vehicle_err_in_call">OBD wstrzymuje się na czas rozmowy i wraca po jej zakończeniu</string>
     <string name="vehicle_err_phone_aa">Android Auto na %1$s blokuje adapter OBD</string>
     <string name="vehicle_phone_aa_fix">Jak to naprawić</string>
     <string name="vehicle_phone_aa_title">Android Auto blokuje OBD</string>

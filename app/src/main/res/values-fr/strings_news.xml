@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Car news for the phone companion (CarNews.kt): reminders shown as notifications. -->
+<resources>
+    <string name="news_battery_title">Batterie faible à l\'arrêt</string>
+    <string name="news_battery_text">La batterie indiquait %1$s V moteur coupé. Si la voiture démarre mal, faites tester la batterie.</string>
+    <string name="news_upkeep_soon">%1$s bientôt</string>
+    <string name="news_upkeep_due">%1$s à faire</string>
+    <string name="news_fault_title">Codes défaut moteur : %1$s</string>
+    <string name="news_fault_text">Ouvrez le mécano IA dans la voiture pour savoir ce qu\'ils veulent dire.</string>
+    <string name="news_filter_title">Le filtre à particules a besoin d\'un long trajet</string>
+    <string name="news_filter_text">%1$d trajets courts d\'affilée. Prévoyez bientôt 20 minutes sur voie rapide.</string>
+</resources>

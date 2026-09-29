@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Car news for the phone companion (CarNews.kt): reminders shown as notifications. -->
+<resources>
+    <string name="news_battery_title">Bateria fraca em repouso</string>
+    <string name="news_battery_text">A bateria marcava %1$s V com o motor desligado. Se o carro custar a pegar, mande testar a bateria.</string>
+    <string name="news_upkeep_soon">%1$s em breve</string>
+    <string name="news_upkeep_due">%1$s por fazer</string>
+    <string name="news_fault_title">Códigos de avaria do motor: %1$s</string>
+    <string name="news_fault_text">Abra o mecânico IA no carro para saber o que significam.</string>
+    <string name="news_filter_title">O filtro de partículas precisa de uma viagem longa</string>
+    <string name="news_filter_text">%1$d viagens curtas seguidas. Planeie em breve 20 minutos em via rápida.</string>
+</resources>

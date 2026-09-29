@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Car news for the phone companion (CarNews.kt): reminders shown as notifications. -->
+<resources>
+    <string name="news_battery_title">Accu zwak in rust</string>
+    <string name="news_battery_text">De accu gaf %1$s V met de motor uit. Start de auto moeizaam, laat de accu dan testen.</string>
+    <string name="news_upkeep_soon">%1$s binnenkort</string>
+    <string name="news_upkeep_due">%1$s nodig</string>
+    <string name="news_fault_title">Motorfoutcodes: %1$s</string>
+    <string name="news_fault_text">Open de AI-monteur in de auto om te zien wat ze betekenen.</string>
+    <string name="news_filter_title">Het roetfilter heeft een lange rit nodig</string>
+    <string name="news_filter_text">%1$d korte ritten achter elkaar. Plan binnenkort 20 minuten op een snelle weg.</string>
+</resources>

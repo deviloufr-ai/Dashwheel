@@ -562,6 +562,8 @@ object AiMechanic {
         val context = appContext ?: return
         if (alert == LiveWatch.Alert.WEAK_BATTERY) {
             context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putLong(KEY_WEAK_SAID, liveWatch.weakSaidAt).apply()
+            // Also for the phone: the driver is about to walk away from a car that may not start next time.
+            CarNews.weakBattery(data.voltage)
         }
         val config = AiSettings.load(context)
         if (!config.speak) return

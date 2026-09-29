@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Car news for the phone companion (CarNews.kt): reminders shown as notifications. -->
+<resources>
+    <string name="news_battery_title">Battery weak at rest</string>
+    <string name="news_battery_text">The battery read %1$s V with the engine off. If the car is slow to start, have the battery tested.</string>
+    <string name="news_upkeep_soon">%1$s coming up</string>
+    <string name="news_upkeep_due">%1$s due</string>
+    <string name="news_fault_title">Engine fault codes: %1$s</string>
+    <string name="news_fault_text">Open the AI mechanic on the car for what they mean.</string>
+    <string name="news_filter_title">Particulate filter needs a long drive</string>
+    <string name="news_filter_text">%1$d short trips in a row. Plan a 20-minute drive on a fast road soon.</string>
+</resources>

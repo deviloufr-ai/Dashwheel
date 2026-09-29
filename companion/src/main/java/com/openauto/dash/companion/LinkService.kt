@@ -89,8 +89,9 @@ class LinkService : Service() {
         private const val CHANNEL = "link"
         private const val NOTIFICATION_ID = 1
 
+        /** Sharing on, a car paired, and, with "Start in the car", the car's Bluetooth connected. */
         fun shouldRun(context: Context): Boolean =
-            PairedUnits.isEnabled(context) && PairedUnits.load(context).isNotEmpty()
+            PairedUnits.isEnabled(context) && PairedUnits.load(context).isNotEmpty() && CarBluetooth.allowsSharing(context)
 
         /** Starts or stops the service to match [shouldRun]. */
         fun sync(context: Context) {

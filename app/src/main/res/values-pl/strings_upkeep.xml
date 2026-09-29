@@ -13,6 +13,7 @@
     <string name="upkeep_additive">Dodatek do filtra</string>
     <string name="upkeep_gearbox_oil">Olej w skrzyni</string>
     <string name="upkeep_spark_plugs">Świece zapłonowe</string>
+    <string name="upkeep_inspection">Przegląd techniczny</string>
     <string name="upkeep_title">SERWIS</string>
     <string name="upkeep_no_odometer">Dotknij, aby wpisać przebieg</string>
     <string name="upkeep_needs_dates">Podaj, kiedy każdy punkt był ostatnio wykonany</string>

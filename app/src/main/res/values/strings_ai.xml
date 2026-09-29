@@ -93,4 +93,11 @@
     <string name="ai_error_connect">couldn\'t connect to Google</string>
     <string name="ai_error_unknown">unknown error</string>
     <string name="ai_say_overcharging">The battery voltage is too high: %1$s volts with the engine running. The charging regulator may be faulty: have it checked soon.</string>
+    <!-- Asking the mechanic about the car as it is now (fault codes tile microphone, hands-free) -->
+    <string name="ai_ask_wheel_action">Ask the AI mechanic</string>
+    <!-- Spoken, in the mechanic's language -->
+    <string name="ai_ask_say_listening">I\'m listening.</string>
+    <string name="ai_ask_say_nothing_heard">I didn\'t hear a question.</string>
+    <string name="ai_ask_say_no_key">The AI mechanic needs a Gemini key. Add one in the Car settings, under AI mechanic.</string>
+    <string name="ai_ask_say_mic">The microphone isn\'t allowed yet. Tap the microphone on the fault codes tile once to allow it.</string>
 </resources>

@@ -784,6 +784,8 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         CarCare.setContext(context)
         Maintenance.setContext(context)
         DriveLog.start(context)
+        FuelLog.start(context)
+        CarNews.start(context)
         PidExplorer.setContext(context)
         AiMechanic.setContext(context)
         SteeringWheelStore.setContext(context)
@@ -884,6 +886,9 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         if (saved != null) scope.launch { ObdBluetoothManager.connect(saved, byDriver = true) } else openDevicePicker()
     }
 
+    // Through the phone, the phone holds the adapter: nothing to pick or allow on this unit.
+    val connectObd: () -> Unit = { scope.launch { ObdBluetoothManager.connect(ObdBluetoothManager.savedDeviceAddress().orEmpty(), byDriver = true) } }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { result ->
@@ -897,7 +902,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         if (missing.isNotEmpty()) permissionLauncher.launch(missing.toTypedArray()) else action()
     }
 
-    val onConnectObd: () -> Unit = { ensureBluetooth { connectSavedOrPick() } }
+    val onConnectObd: () -> Unit = { if (ObdBluetoothManager.usesPhone()) connectObd() else ensureBluetooth { connectSavedOrPick() } }
     val onPickDevice: () -> Unit = { ensureBluetooth { openDevicePicker() } }
 
     val onLaunchApp: (String) -> Unit = { pkg ->

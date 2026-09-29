@@ -92,4 +92,11 @@
     <string name="ai_error_connect">no se puede conectar con Google</string>
     <string name="ai_error_unknown">error desconocido</string>
     <string name="ai_say_overcharging">La tensión de la batería es demasiado alta: %1$s voltios con el motor en marcha. El regulador de carga puede estar averiado: revísalo pronto.</string>
+    <!-- Asking the mechanic about the car as it is now (fault codes tile microphone, hands-free) -->
+    <string name="ai_ask_wheel_action">Preguntar al mecánico IA</string>
+    <!-- Spoken, in the mechanic's language -->
+    <string name="ai_ask_say_listening">Te escucho.</string>
+    <string name="ai_ask_say_nothing_heard">No he oído ninguna pregunta.</string>
+    <string name="ai_ask_say_no_key">El mecánico IA necesita una clave de Gemini. Añádela en los ajustes de Coche, en Mecánico IA.</string>
+    <string name="ai_ask_say_mic">El micrófono aún no está permitido. Toca una vez el micrófono del panel Códigos de avería para permitirlo.</string>
 </resources>

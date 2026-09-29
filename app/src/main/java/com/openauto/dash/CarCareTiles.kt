@@ -226,8 +226,11 @@ internal fun FilterCareCard(modifier: Modifier = Modifier) {
         Status(stringResource(call.text), call.tone)
         // The real soot load, when the experimental reading finder got the car to give it up.
         val extra by PidExplorer.readings.collectAsState()
+        val watch by CarCare.filterWatch.collectAsState()
+        // A regeneration the car reports, while the reading is still there (it goes when the adapter drops).
+        if (watch.regenActive && extra[ExtraReading.REGEN_ACTIVE] != null) Status(stringResource(R.string.car_filter_regen), Tone.INFO)
         extra[ExtraReading.SOOT_LOAD]?.let { soot ->
-            Meter((soot.value / 100).toFloat(), if (soot.value >= 80) DashColors.Warning else DashColors.Accent)
+            Meter((soot.value / 100).toFloat(), if (soot.value >= FilterRules.SOOT_HIGH_PCT) DashColors.Warning else DashColors.Accent)
             Hint(stringResource(R.string.explore_soot_status, soot.value.roundToInt()))
         }
         care.drive?.let { d ->
@@ -243,7 +246,10 @@ internal fun FilterCareCard(modifier: Modifier = Modifier) {
         } else {
             Hint(stringResource(R.string.car_filter_last_long_never))
         }
-        if (car.filterAdditive) Hint(stringResource(R.string.car_filter_additive))
+        val additive = extra[ExtraReading.ADDITIVE_LEVEL]?.value
+        if (additive != null && additive < FilterRules.ADDITIVE_LOW_PCT) {
+            Status(stringResource(R.string.car_filter_additive_low, additive.roundToInt()), Tone.CAUTION)
+        } else if (car.filterAdditive) Hint(stringResource(R.string.car_filter_additive))
     }
 }
 

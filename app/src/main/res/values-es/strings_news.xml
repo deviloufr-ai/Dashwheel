@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Car news for the phone companion (CarNews.kt): reminders shown as notifications. -->
+<resources>
+    <string name="news_battery_title">Batería débil en reposo</string>
+    <string name="news_battery_text">La batería marcaba %1$s V con el motor apagado. Si el coche arranca mal, haz revisar la batería.</string>
+    <string name="news_upkeep_soon">%1$s pronto</string>
+    <string name="news_upkeep_due">%1$s pendiente</string>
+    <string name="news_fault_title">Códigos de avería del motor: %1$s</string>
+    <string name="news_fault_text">Abre el mecánico IA en el coche para saber qué significan.</string>
+    <string name="news_filter_title">El filtro de partículas necesita un trayecto largo</string>
+    <string name="news_filter_text">%1$d trayectos cortos seguidos. Planea pronto 20 minutos por vía rápida.</string>
+</resources>

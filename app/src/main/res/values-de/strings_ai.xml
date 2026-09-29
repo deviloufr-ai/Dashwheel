@@ -91,4 +91,11 @@
     <string name="ai_error_connect">Google nicht erreichbar</string>
     <string name="ai_error_unknown">unbekannter Fehler</string>
     <string name="ai_say_overcharging">Die Batteriespannung ist zu hoch: %1$s Volt bei laufendem Motor. Der Laderegler könnte defekt sein: bald prüfen lassen.</string>
+    <!-- Asking the mechanic about the car as it is now (fault codes tile microphone, hands-free) -->
+    <string name="ai_ask_wheel_action">KI-Mechaniker fragen</string>
+    <!-- Spoken, in the mechanic's language -->
+    <string name="ai_ask_say_listening">Ich höre zu.</string>
+    <string name="ai_ask_say_nothing_heard">Ich habe keine Frage gehört.</string>
+    <string name="ai_ask_say_no_key">Der KI-Mechaniker braucht einen Gemini-Schlüssel. Fügen Sie ihn in den Auto-Einstellungen unter KI-Mechaniker hinzu.</string>
+    <string name="ai_ask_say_mic">Das Mikrofon ist noch nicht erlaubt. Tippen Sie einmal auf das Mikrofon der Kachel Fehlercodes, um es zu erlauben.</string>
 </resources>

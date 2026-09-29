@@ -344,6 +344,7 @@ private fun CarPane(open: (Deep) -> Unit, onPickObd: () -> Unit) {
     SettingsSection(stringResource(R.string.settings_section_car))
     SettingsRow(Icons.Filled.DirectionsCar, stringResource(R.string.car_menu), car.name) { open(Deep.CAR) }
     ObdAdapterRow(onPickObd)
+    ObdRouteSetting()
     SpeedCorrectionRow()
     SettingsRow(Icons.Filled.AutoAwesome, stringResource(R.string.ai_title), stringResource(R.string.settings_ai_detail)) { open(Deep.AI) }
     SettingsRow(Icons.Filled.Handyman, stringResource(R.string.upkeep_dialog_title), stringResource(R.string.upkeep_settings_detail)) { open(Deep.UPKEEP) }
@@ -394,6 +395,53 @@ private fun ObdAdapterRow(onPickObd: () -> Unit) {
         }
     }
     HorizontalDivider(color = DashColors.Line, modifier = Modifier.padding(horizontal = 12.dp))
+}
+
+/**
+ * Which way the unit reaches the adapter: its own Bluetooth, or the phone's
+ * companion holding it and passing it on ([PhoneObd]). A change closes the
+ * current link and dials again the new way.
+ */
+@Composable
+private fun ObdRouteSetting() {
+    val scope = rememberCoroutineScope()
+    var chosen by remember { mutableStateOf(ObdBluetoothManager.route()) }
+    val offered by PhoneObd.offer.collectAsState()
+    SegmentedSwitch(
+        options = ObdRoute.entries,
+        chosen = chosen,
+        icon = { option ->
+            when (option) {
+                ObdRoute.AUTO -> Icons.Filled.AutoAwesome
+                ObdRoute.UNIT -> Icons.Filled.Bluetooth
+                ObdRoute.PHONE -> Icons.Filled.PhoneAndroid
+            }
+        },
+        title = { option ->
+            stringResource(
+                when (option) {
+                    ObdRoute.AUTO -> R.string.settings_obd_route_auto
+                    ObdRoute.UNIT -> R.string.settings_obd_route_unit
+                    ObdRoute.PHONE -> R.string.settings_obd_route_phone
+                }
+            )
+        },
+        onChoose = { option ->
+            chosen = option
+            ObdBluetoothManager.setRoute(option)
+            scope.launch {
+                ObdBluetoothManager.disconnect()
+                VehicleMonitor.connectSaved()
+            }
+        }
+    )
+    SwitchHint(
+        when {
+            offered != null -> stringResource(R.string.settings_obd_route_offered, offered!!)
+            chosen == ObdRoute.UNIT -> stringResource(R.string.settings_obd_route_unit_hint)
+            else -> stringResource(R.string.settings_obd_route_hint)
+        }
+    )
 }
 
 /** What the dashboard looks like: the theme first, then its day and night and its effects. */

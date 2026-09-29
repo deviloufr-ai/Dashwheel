@@ -121,6 +121,12 @@
     <string name="settings_obd_saved">%1$s. Tippen, um einen anderen zu wählen.</string>
     <string name="settings_obd_none">Keiner gewählt. Tippen, um deinen zu wählen.</string>
     <string name="settings_obd_forget">Vergessen</string>
+    <string name="settings_obd_route_auto">Automatisch</string>
+    <string name="settings_obd_route_unit">Dieses Radio</string>
+    <string name="settings_obd_route_phone">Handy</string>
+    <string name="settings_obd_route_offered">Das Handy hält %1$s und leitet ihn weiter: Anrufe und Android Auto stören nicht mehr.</string>
+    <string name="settings_obd_route_unit_hint">Der Adapter wird über das Bluetooth dieses Radios erreicht.</string>
+    <string name="settings_obd_route_hint">Über das Handy, wenn die Begleit-App den Adapter hält, sonst über das Bluetooth des Radios. Den Adapter in der Begleit-App wählen.</string>
     <string name="settings_backup_section">Deine Einrichtung</string>
     <string name="settings_backup_save">Einrichtung sichern</string>
     <string name="settings_backup_save_detail">Dashboards, Einstellungen und Orte in eine Datei. Ohne KI-Schlüssel und gekoppelte Telefone.</string>

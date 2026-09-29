@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONObject
+import java.time.LocalDate
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -303,6 +304,7 @@ object CarCare {
             rest = RestTimer(p.getLong("rest_ms", 0), p.getLong("rest_at", 0), spokenMin = p.getInt("rest_spoken", 0))
         )
         fuelArmed = p.getBoolean(KEY_FUEL_ARMED, true)
+        _filterWatch.value = FilterWatch(sootSaidDay = p.getLong(KEY_SOOT_DAY, -1), additiveSaidAt = p.getLong(KEY_ADDITIVE_AT, 0))
         scope.launch { watchFuel() }
         scope.launch { watchRestWithoutObd() }
     }
@@ -417,8 +419,46 @@ object CarCare {
         if (drive != null && previous != null && drive.startedAt == previous.startedAt) {
             Maintenance.drove(drive.distanceKm - previous.distanceKm)
         }
-        events.forEach { say(line(it, CarProfileStore.current)) }
+        // The short-drive reminder waits for the filter's own readings, to be said with them.
+        val streak = events.filterIsInstance<CareEvent.FilterNeedsDrive>().firstOrNull()?.streak
+        events.filterNot { it is CareEvent.FilterNeedsDrive }.forEach { say(line(it, CarProfileStore.current)) }
+        watchFilter(data, started = next.drive != null && next.drive.startedAt != before.drive?.startedAt, streak = streak, now = now)
         checkFuel()
+    }
+
+    private const val KEY_SOOT_DAY = "filter_soot_day"
+    private const val KEY_ADDITIVE_AT = "filter_additive_at"
+    private val _filterWatch = MutableStateFlow(FilterWatch())
+    /** The particle filter's regeneration and reminders, for its tile. */
+    internal val filterWatch: StateFlow<FilterWatch> = _filterWatch.asStateFlow()
+
+    private fun watchFilter(data: ObdData, started: Boolean, streak: Int?, now: Long) {
+        val car = CarProfileStore.current
+        var w = _filterWatch.value
+        if (started) w = FilterRules.driveStarted(w, now, streak)
+        val expected = PidExplorer.state.value.verified.map { it.reading }.toSet()
+        val (next, events) = FilterRules.step(
+            w, PidExplorer.readings.value, expected, data.speedKmh, data.rpm > CareRules.RUNNING_RPM,
+            now, LocalDate.now().toEpochDay(), car
+        )
+        _filterWatch.value = next
+        if (next.sootSaidDay != w.sootSaidDay || next.additiveSaidAt != w.additiveSaidAt) {
+            appContext?.getSharedPreferences(PREFS, Context.MODE_PRIVATE)?.edit()
+                ?.putLong(KEY_SOOT_DAY, next.sootSaidDay)
+                ?.putLong(KEY_ADDITIVE_AT, next.additiveSaidAt)
+                ?.apply()
+        }
+        events.forEach { say(filterLine(it)) }
+    }
+
+    private fun filterLine(e: FilterEvent): SpokenLine = when (e) {
+        FilterEvent.RegenKeepDriving -> SpokenLine(R.string.car_say_filter_regen, emptyList())
+        FilterEvent.RegenStanding -> SpokenLine(R.string.car_say_filter_regen_standing, emptyList())
+        is FilterEvent.ShortDrives -> line(CareEvent.FilterNeedsDrive(e.streak), CarProfileStore.current)
+        is FilterEvent.SootHigh ->
+            if (e.streak != null) SpokenLine(R.string.car_say_filter_soot_short, listOf(e.streak, e.percent))
+            else SpokenLine(R.string.car_say_filter_soot, listOf(e.percent))
+        is FilterEvent.AdditiveLow -> SpokenLine(R.string.car_say_filter_additive, listOf(e.percent))
     }
 
     /** Says once per navigation when the range won't reach the destination. */

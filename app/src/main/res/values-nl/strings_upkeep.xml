@@ -13,6 +13,7 @@
     <string name="upkeep_additive">Filteradditief</string>
     <string name="upkeep_gearbox_oil">Versnellingsbakolie</string>
     <string name="upkeep_spark_plugs">Bougies</string>
+    <string name="upkeep_inspection">APK</string>
     <string name="upkeep_title">ONDERHOUD</string>
     <string name="upkeep_no_odometer">Tik om de kilometerstand in te voeren</string>
     <string name="upkeep_needs_dates">Geef aan wanneer elk punt voor het laatst is gedaan</string>

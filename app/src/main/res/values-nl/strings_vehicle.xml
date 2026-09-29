@@ -204,6 +204,11 @@
     <string name="vehicle_err_bt_stuck">De Android-bluetooth van de autoradio hangt: herstart de autoradio en tik dan op OBD</string>
     <string name="vehicle_err_refused">%1$s weigerde de verbinding: in gebruik door een telefoon of andere app, zonder stroom, of buiten bereik</string>
     <string name="vehicle_err_silent">%1$s is verbonden maar heeft nooit geantwoord: zet het contact aan en tik dan op OBD</string>
+    <string name="vehicle_err_phone_not_linked">OBD loopt via de telefoon: verbind eerst de telefoon</string>
+    <string name="vehicle_err_phone_no_adapter">OBD loopt via de telefoon: kies de adapter in de companion-app</string>
+    <string name="vehicle_obd_asking_phone">De telefoon wordt om de adapter gevraagd</string>
+    <string name="vehicle_err_phone_relay">De telefoon kon %1$s niet bereiken: controleer of hij is ingestoken en gekoppeld aan de telefoon</string>
+    <string name="vehicle_err_in_call">OBD pauzeert tijdens het gesprek en komt terug als het voorbij is</string>
     <string name="vehicle_err_phone_aa">Android Auto op %1$s blokkeert de OBD-adapter</string>
     <string name="vehicle_phone_aa_fix">Zo los je het op</string>
     <string name="vehicle_phone_aa_title">Android Auto blokkeert OBD</string>

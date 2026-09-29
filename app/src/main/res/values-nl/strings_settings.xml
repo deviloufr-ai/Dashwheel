@@ -121,6 +121,12 @@
     <string name="settings_obd_saved">%1$s. Tik om een andere te kiezen.</string>
     <string name="settings_obd_none">Geen gekozen. Tik om de jouwe te kiezen.</string>
     <string name="settings_obd_forget">Vergeten</string>
+    <string name="settings_obd_route_auto">Automatisch</string>
+    <string name="settings_obd_route_unit">Deze radio</string>
+    <string name="settings_obd_route_phone">Telefoon</string>
+    <string name="settings_obd_route_offered">De telefoon houdt %1$s vast en geeft hem door: bellen en Android Auto zitten niet meer in de weg.</string>
+    <string name="settings_obd_route_unit_hint">De adapter wordt bereikt met de Bluetooth van deze radio.</string>
+    <string name="settings_obd_route_hint">Via de telefoon als de companion-app de adapter vasthoudt, anders met de Bluetooth van de radio. Kies de adapter in de companion-app.</string>
     <string name="settings_backup_section">Jouw instellingen</string>
     <string name="settings_backup_save">Instellingen bewaren</string>
     <string name="settings_backup_save_detail">Dashboards, instellingen en plaatsen in een bestand. Zonder AI-sleutel en gekoppelde telefoons.</string>

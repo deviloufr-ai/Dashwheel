@@ -166,6 +166,31 @@ object ObdBluetoothManager {
     /** Said once per start of the app, not at every retry. */
     private var phoneBlockingSaid = false
 
+    private val _viaPhone = MutableStateFlow(false)
+    /** The link runs through the phone's companion ([PhoneObd]) rather than this unit's Bluetooth. */
+    val viaPhone: StateFlow<Boolean> = _viaPhone.asStateFlow()
+
+    private const val KEY_ROUTE = "obd_route"
+
+    /** The way to the adapter the driver chose (Settings, Car). */
+    fun route(): ObdRoute =
+        appContext?.getSharedPreferences(PREFS, Context.MODE_PRIVATE)?.getString(KEY_ROUTE, null)
+            ?.let { name -> ObdRoute.entries.firstOrNull { it.name == name } } ?: ObdRoute.AUTO
+
+    fun setRoute(route: ObdRoute) {
+        appContext?.getSharedPreferences(PREFS, Context.MODE_PRIVATE)?.edit()?.putString(KEY_ROUTE, route.name)?.apply()
+    }
+
+    /** Whether the next link goes through the phone: chosen so, or Automatic with a phone offering its adapter. */
+    fun usesPhone(): Boolean = when (route()) {
+        ObdRoute.PHONE -> true
+        ObdRoute.UNIT -> false
+        ObdRoute.AUTO -> PhoneObd.offer.value != null
+    }
+
+    /** Something to dial: an adapter saved here, or one the phone relays. */
+    fun canDial(): Boolean = usesPhone() || savedDeviceAddress() != null
+
     private fun fail(@StringRes reason: Int, vararg args: Any): Boolean {
         _lastError.value = appContext?.let { if (args.isEmpty()) it.getString(reason) else it.getString(reason, *args) }
         return false
@@ -208,7 +233,7 @@ object ObdBluetoothManager {
             val ok = withContext(Dispatchers.IO) {
                 // No poll or fault-code scan may talk to the link being replaced.
                 commandMutex.withLock {
-                    runCatching { open(deviceAddress, byDriver) }
+                    runCatching { if (usesPhone()) openThroughPhone() else open(deviceAddress, byDriver) }
                         .onFailure {
                             Log.w(TAG, "connect failed", it)
                             if (it is SecurityException) fail(R.string.vehicle_err_permission)
@@ -255,16 +280,7 @@ object ObdBluetoothManager {
             // Tapped by the driver: switch it on rather than send them looking for the setting.
             if (!switchBluetoothOn(adapter)) return fail(R.string.vehicle_err_bt_still_off)
         }
-        closeQuietly()
-        _phoneBlocking.value = false
-        silentCommands = 0
-        // Another adapter, or the same one in another car: learn it afresh.
-        supported = null
-        supportedAskedAt = 0
-        pollCount = 0
-        silentPolls = 0
-        lastAliveAt = SystemClock.elapsedRealtime()
-        misses.fill(0)
+        freshLink()
         val device = adapter.getRemoteDevice(deviceAddress)
         val label = runCatching { device.name }.getOrNull() ?: deviceAddress
         // Only a paired adapter can be reached; an unpaired one fails slowly and says nothing.
@@ -320,6 +336,9 @@ object ObdBluetoothManager {
             Log.w(TAG, "no RFCOMM channel to $deviceAddress accepted the connection")
             return fail(R.string.vehicle_err_refused, label)
         }
+        // A call through the unit: its Bluetooth leaves the adapter alone until the call ends
+        // (seen on the K706 with a WhatsApp call), and [VehicleMonitor] dials again then.
+        if (inCall()) return fail(R.string.vehicle_err_in_call)
         // The unit's phone connected at the same time: its Android Auto is the likely holder.
         val phone = UnitSignals.phone.value
         if (phone != null) {
@@ -330,6 +349,54 @@ object ObdBluetoothManager {
         // A socket nothing answers on is no adapter: fail, so it is tried again.
         return fail(R.string.vehicle_err_silent, label)
     }
+
+    /** Closes any link left and forgets what the last one learned: another adapter, or the same one in another car. */
+    private fun freshLink() {
+        closeQuietly()
+        _phoneBlocking.value = false
+        silentCommands = 0
+        supported = null
+        supportedAskedAt = 0
+        pollCount = 0
+        silentPolls = 0
+        lastAliveAt = SystemClock.elapsedRealtime()
+        misses.fill(0)
+    }
+
+    /**
+     * The adapter through the phone ([PhoneObd]): the companion reaches it
+     * with the phone's Bluetooth and relays it, and the same set-up runs over
+     * that as over a socket here.
+     */
+    private suspend fun openThroughPhone(): Boolean {
+        freshLink()
+        val name = PhoneObd.offer.value
+        if (PhoneLink.state.value !is PhoneLinkState.Connected) return fail(R.string.vehicle_err_phone_not_linked)
+        if (name == null) return fail(R.string.vehicle_err_phone_no_adapter)
+        _connectStep.value = R.string.vehicle_obd_asking_phone
+        val opened = try {
+            PhoneObd.open()
+        } finally {
+            _connectStep.value = null
+        }
+        when (opened) {
+            is PhoneObd.Opened.Failed -> {
+                Log.w(TAG, "through the phone: ${opened.reason}")
+                return fail(R.string.vehicle_err_phone_relay, name)
+            }
+            is PhoneObd.Opened.Streams -> {
+                inputStream = opened.input
+                outputStream = opened.output
+                _viaPhone.value = true
+            }
+        }
+        if (initializeAdapter()) return true
+        Log.w(TAG, "$name through the phone: connected but the adapter never answered")
+        return fail(R.string.vehicle_err_silent, name)
+    }
+
+    /** A call ringing or going on, through the unit's Bluetooth or the companion. */
+    internal fun inCall(): Boolean = HeadUnitPhone.call.value != null || talking(PhoneLink.call.value)
 
     private fun sayPhoneBlocking(context: Context, phoneName: String) {
         if (phoneBlockingSaid || DemoMode.isOn) return
@@ -902,7 +969,7 @@ object ObdBluetoothManager {
 
     /** The demo is over: back to the real link, whose next poll fills the readings in again. */
     internal fun endDemo(lamp: EngineLamp?, pending: Set<String>) {
-        val linked = socket?.isConnected == true
+        val linked = socket?.isConnected == true || (_viaPhone.value && outputStream != null)
         _connectionState.value = if (linked) ObdConnectionState.CONNECTED else ObdConnectionState.DISCONNECTED
         _data.value = ObdData()
         _lamp.value = lamp
@@ -925,5 +992,16 @@ object ObdBluetoothManager {
         inputStream = null
         outputStream = null
         socket = null
+        _viaPhone.value = false
     }
+}
+
+/** Which way the head unit reaches the OBD adapter (Settings, Car). */
+enum class ObdRoute {
+    /** Through the phone when its companion offers the adapter, else this unit's Bluetooth. */
+    AUTO,
+    /** Always this unit's own Bluetooth. */
+    UNIT,
+    /** Always through the phone's companion. */
+    PHONE
 }

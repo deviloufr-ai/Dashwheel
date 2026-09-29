@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 /**
@@ -32,6 +33,8 @@ internal object VehicleMonitor {
     private const val MAX_RETRY_MS = 60_000L
     /** The paired devices load just after Bluetooth says it's on. */
     private const val BLUETOOTH_SETTLE_MS = 2_000L
+    /** The unit's Bluetooth takes a moment to hand the call audio back. */
+    private const val CALL_SETTLE_MS = 2_000L
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var started = false
@@ -50,6 +53,8 @@ internal object VehicleMonitor {
         )
         scope.launch { pollWhileConnected() }
         scope.launch { reconnectWhileWanted() }
+        scope.launch { redialAfterCalls() }
+        scope.launch { followPhoneOffer() }
         // The bar's alerts, judged at every reading whatever is on screen (the demo's too).
         // The application context, not [context]: this runs for good and must not keep the first screen alive.
         val app = context.applicationContext
@@ -97,11 +102,50 @@ internal object VehicleMonitor {
         val context = appContext ?: return
         if (CarPower.ignition.value == false) return
         if (!ObdBluetoothManager.connectionState.value.isIdle) return
+        // Through the phone: its companion holds the adapter, nothing to pair or allow here.
+        if (ObdBluetoothManager.usesPhone()) {
+            scope.launch { ObdBluetoothManager.connect(ObdBluetoothManager.savedDeviceAddress().orEmpty()) }
+            return
+        }
         val saved = ObdBluetoothManager.savedDeviceAddress() ?: return
         val missingPerms = requiredBluetoothPermissions().any {
             ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED
         }
         if (!missingPerms) scope.launch { ObdBluetoothManager.connect(saved) }
+    }
+
+    /**
+     * A call through the unit keeps its Bluetooth from reaching the adapter;
+     * once it ends the adapter is dialled straight away, not when the retries,
+     * slowed down during a long call, next come round.
+     */
+    private suspend fun redialAfterCalls() {
+        var calling = false
+        combine(HeadUnitPhone.call, PhoneLink.call) { _, _ -> ObdBluetoothManager.inCall() }
+            .distinctUntilChanged()
+            .collect { now ->
+                val ended = calling && !now
+                calling = now
+                if (!ended) return@collect
+                delay(CALL_SETTLE_MS)
+                if (redials(foreground.value, CarPower.ignition.value)) connectSaved()
+            }
+    }
+
+    /**
+     * The phone starts or stops offering its adapter (Automatic): a link on
+     * the wrong side is closed and the adapter dialled the right way, since
+     * the adapter takes one connection at a time.
+     */
+    private suspend fun followPhoneOffer() {
+        ObdBluetoothManager.setContext(appContext ?: return)
+        PhoneObd.offer.map { it != null }.distinctUntilChanged().collect {
+            if (ObdBluetoothManager.route() != ObdRoute.AUTO) return@collect
+            val state = ObdBluetoothManager.connectionState.value
+            val wrongSide = state == ObdConnectionState.CONNECTED && ObdBluetoothManager.viaPhone.value != ObdBluetoothManager.usesPhone()
+            if (wrongSide) ObdBluetoothManager.disconnect()
+            if (redials(foreground.value, CarPower.ignition.value)) connectSaved()
+        }
     }
 
     private suspend fun pollWhileConnected() {

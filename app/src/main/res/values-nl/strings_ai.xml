@@ -91,4 +91,11 @@
     <string name="ai_error_connect">kan geen verbinding maken met Google</string>
     <string name="ai_error_unknown">onbekende fout</string>
     <string name="ai_say_overcharging">De accuspanning is te hoog: %1$s volt met draaiende motor. De laadregelaar is mogelijk defect: laat hem snel nakijken.</string>
+    <!-- Asking the mechanic about the car as it is now (fault codes tile microphone, hands-free) -->
+    <string name="ai_ask_wheel_action">Vraag het de AI-monteur</string>
+    <!-- Spoken, in the mechanic's language -->
+    <string name="ai_ask_say_listening">Ik luister.</string>
+    <string name="ai_ask_say_nothing_heard">Ik hoorde geen vraag.</string>
+    <string name="ai_ask_say_no_key">De AI-monteur heeft een Gemini-sleutel nodig. Voeg er een toe in de Auto-instellingen, onder AI-monteur.</string>
+    <string name="ai_ask_say_mic">De microfoon is nog niet toegestaan. Tik één keer op de microfoon van de tegel Foutcodes om hem toe te staan.</string>
 </resources>

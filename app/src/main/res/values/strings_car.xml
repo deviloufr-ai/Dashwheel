@@ -36,6 +36,8 @@
     <string name="car_filter_last_long">Last long drive: %1$s</string>
     <string name="car_filter_last_long_never">No long drive recorded yet</string>
     <string name="car_filter_additive">Uses a fuel additive: have its level checked at each service</string>
+    <string name="car_filter_regen">Cleaning in progress</string>
+    <string name="car_filter_additive_low">Additive low at %1$d %%. Top it up at the next service</string>
 
     <!-- Warm-up -->
     <string name="car_warmup_title">WARM-UP</string>
@@ -157,6 +159,11 @@
     <string name="car_say_cold_revs">The engine is still cold. Keep it under %1$d rpm for a few more minutes.</string>
     <string name="car_say_clutch_hold">Hold the car with the brake, not the accelerator. It wears the clutch of this gearbox.</string>
     <string name="car_say_filter">Your last %1$d drives were short. When you can, drive 15 to 20 minutes above 60 km/h so the particle filter can clean itself.</string>
+    <string name="car_say_filter_regen">The particle filter is cleaning itself. If you can, keep driving for about 10 more minutes at a steady speed.</string>
+    <string name="car_say_filter_regen_standing">The particle filter is still cleaning. If you can, drive a few more minutes before switching off.</string>
+    <string name="car_say_filter_soot">The particle filter is %1$d percent full. Try to plan a 20-minute drive on a fast road soon.</string>
+    <string name="car_say_filter_soot_short">Your last %1$d drives were short and the particle filter is %2$d percent full. Try to plan a 20-minute drive on a fast road soon.</string>
+    <string name="car_say_filter_additive">The particle filter additive is low, at %1$d percent. Have it topped up at the next service.</string>
     <string name="car_say_break">You\'ve been driving for %1$s. Time for a break.</string>
     <string name="car_say_fuel_short">Your range of %1$d kilometres won\'t reach the destination, %2$d kilometres away. Plan a fuel stop.</string>
     <string name="car_hours_minutes">%1$s and %2$s</string>

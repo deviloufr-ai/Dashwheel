@@ -35,8 +35,13 @@ enum class UpkeepKind(@StringRes val labelRes: Int) {
     TIMING_BELT(R.string.upkeep_timing_belt),
     ADDITIVE(R.string.upkeep_additive),
     GEARBOX_OIL(R.string.upkeep_gearbox_oil),
-    SPARK_PLUGS(R.string.upkeep_spark_plugs)
+    SPARK_PLUGS(R.string.upkeep_spark_plugs),
+    /** The roadworthiness test (contrôle technique, MOT, TÜV): by date only. */
+    INSPECTION(R.string.upkeep_inspection)
 }
+
+/** Every two years in France and most of Europe once the car is four years old. */
+private const val INSPECTION_MONTHS = 24
 
 /** How often [kind] is due; null = not known (no reminder on that count). */
 data class UpkeepInterval(val kind: UpkeepKind, val everyKm: Int? = null, val everyMonths: Int? = null) {
@@ -83,7 +88,13 @@ object UpkeepRules {
         if (car.particleFilter && car.filterAdditive) add(UpkeepInterval(UpkeepKind.ADDITIVE))
         if (car.gearbox != GearboxType.MANUAL) add(UpkeepInterval(UpkeepKind.GEARBOX_OIL))
         if (!car.diesel) add(UpkeepInterval(UpkeepKind.SPARK_PLUGS))
+        add(UpkeepInterval(UpkeepKind.INSPECTION, everyMonths = INSPECTION_MONTHS))
     }
+
+    /** A plan saved before the inspection was an item gets it too. */
+    fun withInspection(plan: List<UpkeepInterval>): List<UpkeepInterval> =
+        if (plan.isEmpty() || plan.any { it.kind == UpkeepKind.INSPECTION }) plan
+        else plan + UpkeepInterval(UpkeepKind.INSPECTION, everyMonths = INSPECTION_MONTHS)
 
     /** [ai]'s intervals over [base]: a known figure replaces, an unknown one keeps the base's. */
     fun merge(base: List<UpkeepInterval>, ai: List<UpkeepInterval>): List<UpkeepInterval> {
@@ -365,7 +376,7 @@ object Maintenance {
                     kind to stage
                 }.toMap()
             }.orEmpty()
-            _state.value = UpkeepState(plan, done, odo, planFromAi = o.optBoolean("plan_ai"))
+            _state.value = UpkeepState(UpkeepRules.withInspection(plan), done, odo, planFromAi = o.optBoolean("plan_ai"))
         }
     }
 

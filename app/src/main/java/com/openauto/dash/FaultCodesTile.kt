@@ -64,6 +64,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -87,7 +88,8 @@ import kotlinx.coroutines.launch
  * adapter connects (see [AiMechanic]); Scan / Clear are here for doing it by
  * hand. The tile is the overview (verdict, one card per code); a code opens
  * the AI mechanic's full explanation. Without a Gemini key each code shows
- * the built-in table's description.
+ * the built-in table's description. The microphone by the title asks the
+ * mechanic anything about the car, answered from the live readings.
  */
 @Composable
 internal fun ObdDtcCard(
@@ -112,6 +114,9 @@ internal fun ObdDtcCard(
     // the localised resources are rebuilt only when the language itself changes.
     val aiLanguage = remember(ai, context) { AiSettings.load(context).language }
     val aiText = remember(aiLanguage, context) { aiLanguage.resources(context) }
+    // Asked from the microphone by the title: about the car as it is now, no fault needed.
+    val ask by AskMechanic.state.collectAsState()
+    val askAboutCar = rememberAskQuestion { AskMechanic.listenAboutCar(context) }
     var busy by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<DtcMessage?>(null) }
     // The code whose detail sheet is open.
@@ -143,8 +148,15 @@ internal fun ObdDtcCard(
                     modifier = Modifier.weight(1f)
                 )
                 lamp?.let { LampChip(it) }
+                Spacer(Modifier.width(4.dp))
+                AskIconButton(ask, aiText, onClick = askAboutCar)
             }
             Spacer(Modifier.height(10.dp))
+            // A question about the car, asked here or hands-free; the detail sheet shows its own.
+            if (ask != AskMechanic.State.Idle && opened == null) {
+                AskPanel(ask, aiText, onReplay = { AskMechanic.replay(context) }, compact = true, onClose = AskMechanic::cancel)
+                Spacer(Modifier.height(10.dp))
+            }
 
             if (!connected) {
                 ObdNotConnected(connection, onConnect, onPickDevice)
@@ -473,16 +485,7 @@ private fun FaultDetailSheet(
 ) {
     val context = LocalContext.current
     val ask by AskMechanic.state.collectAsState()
-    val micPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) AskMechanic.listen(context, code, codes, diagnosis) else AskMechanic.micDenied(context)
-    }
-    val askQuestion = {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-            AskMechanic.listen(context, code, codes, diagnosis)
-        } else {
-            micPermission.launch(Manifest.permission.RECORD_AUDIO)
-        }
-    }
+    val askQuestion = rememberAskQuestion { AskMechanic.listen(context, code, codes, diagnosis) }
     // Leaving the sheet stops listening, and the answer shown goes with it.
     DisposableEffect(Unit) { onDispose { AskMechanic.cancel() } }
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
@@ -577,6 +580,41 @@ private fun FaultDetailSheet(
     }
 }
 
+/** What an Ask button runs: [listen] once the microphone may be used, asking for it the first time. */
+@Composable
+private fun rememberAskQuestion(listen: () -> Unit): () -> Unit {
+    val context = LocalContext.current
+    val latest by rememberUpdatedState(listen)
+    val micPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) latest() else AskMechanic.micDenied(context)
+    }
+    return {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+            latest()
+        } else {
+            micPermission.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
+}
+
+/** The tile's microphone, beside its title: a question about the car as it is now. While listening it sends. */
+@Composable
+private fun AskIconButton(state: AskMechanic.State, aiText: Resources, onClick: () -> Unit) {
+    val listening = state == AskMechanic.State.Listening
+    val thinking = state == AskMechanic.State.Thinking
+    IconButton(onClick = onClick, enabled = !thinking, modifier = Modifier.size(40.dp)) {
+        Icon(
+            if (listening) Icons.AutoMirrored.Filled.Send else Icons.Filled.Mic,
+            contentDescription = aiText.getString(if (listening) R.string.ai_ask_send else R.string.ai_ask),
+            tint = when {
+                listening -> DashColors.Warning
+                thinking -> DashColors.Muted
+                else -> DashColors.Accent
+            }
+        )
+    }
+}
+
 /** Ask the mechanic out loud; while listening it becomes Send. */
 @Composable
 private fun AskButton(state: AskMechanic.State, aiText: Resources, onClick: () -> Unit) {
@@ -597,14 +635,25 @@ private fun AskButton(state: AskMechanic.State, aiText: Resources, onClick: () -
     }
 }
 
-/** Under the title: listening, thinking, or the question as heard and the answer (which is also spoken). */
+/**
+ * Under the title: listening, thinking, or the question as heard and the
+ * answer (which is also spoken). [compact]: on the tile, a rounded strip with
+ * a shorter answer and [onClose] to put it away.
+ */
 @Composable
-private fun AskPanel(state: AskMechanic.State, aiText: Resources, onReplay: () -> Unit) {
+private fun AskPanel(
+    state: AskMechanic.State,
+    aiText: Resources,
+    onReplay: () -> Unit,
+    compact: Boolean = false,
+    onClose: (() -> Unit)? = null
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .then(if (compact) Modifier.clip(DashShape.Medium) else Modifier)
             .background(DashColors.Accent.copy(alpha = 0.08f))
-            .padding(horizontal = 20.dp, vertical = 12.dp),
+            .padding(horizontal = if (compact) 12.dp else 20.dp, vertical = if (compact) 8.dp else 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         when (state) {
@@ -630,17 +679,36 @@ private fun AskPanel(state: AskMechanic.State, aiText: Resources, onReplay: () -
                         )
                         Spacer(Modifier.height(4.dp))
                     }
-                    Text(state.exchange.answer, color = DashColors.TextPrimary, style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        state.exchange.answer,
+                        color = DashColors.TextPrimary,
+                        style = MaterialTheme.typography.bodyLarge,
+                        // The whole answer is spoken; the tile keeps a few lines of it.
+                        maxLines = if (compact) 4 else Int.MAX_VALUE,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
                 IconButton(onClick = onReplay) {
                     Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = aiText.getString(R.string.ai_ask_replay), tint = DashColors.Accent)
                 }
             }
             AskMechanic.State.NothingHeard ->
-                Text(aiText.getString(R.string.ai_ask_nothing_heard), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    aiText.getString(R.string.ai_ask_nothing_heard),
+                    color = DashColors.TextSecondary,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.weight(1f)
+                )
             is AskMechanic.State.Failed ->
-                Text(state.reason, color = DashColors.Warning, style = MaterialTheme.typography.bodyLarge)
+                Text(state.reason, color = DashColors.Warning, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
             AskMechanic.State.Idle -> Unit
+        }
+        // Listening and thinking end by themselves (the microphone button sends); the rest can be put away.
+        val settled = state != AskMechanic.State.Listening && state != AskMechanic.State.Thinking
+        if (onClose != null && settled) {
+            IconButton(onClick = onClose) {
+                Icon(Icons.Filled.Close, contentDescription = aiText.getString(R.string.ai_close), tint = DashColors.TextSecondary)
+            }
         }
     }
 }

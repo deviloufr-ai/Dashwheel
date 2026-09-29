@@ -36,6 +36,8 @@
     <string name="car_filter_last_long">Laatste lange rit: %1$s</string>
     <string name="car_filter_last_long_never">Nog geen lange rit geregistreerd</string>
     <string name="car_filter_additive">Gebruikt een brandstofadditief: laat het niveau bij elke beurt controleren</string>
+    <string name="car_filter_regen">Reiniging bezig</string>
+    <string name="car_filter_additive_low">Additief laag, %1$d %%. Laat het bijvullen bij de volgende beurt</string>
 
     <!-- Warm-up -->
     <string name="car_warmup_title">WARMDRAAIEN</string>
@@ -157,6 +159,11 @@
     <string name="car_say_cold_revs">De motor is nog koud. Blijf nog een paar minuten onder de %1$d toeren.</string>
     <string name="car_say_clutch_hold">Houd de auto vast met de rem, niet met het gaspedaal. Dat slijt de koppeling van deze versnellingsbak.</string>
     <string name="car_say_filter">Je laatste %1$d ritten waren kort. Rij als het kan 15 tot 20 minuten boven de 60 kilometer per uur, zodat het roetfilter zichzelf kan reinigen.</string>
+    <string name="car_say_filter_regen">Het roetfilter reinigt zichzelf. Rij als het kan nog zo\'n 10 minuten door met een constante snelheid.</string>
+    <string name="car_say_filter_regen_standing">Het roetfilter is nog aan het reinigen. Rij als het kan nog een paar minuten voordat je de motor uitzet.</string>
+    <string name="car_say_filter_soot">Het roetfilter is voor %1$d procent vol. Plan binnenkort een rit van 20 minuten over een snelle weg.</string>
+    <string name="car_say_filter_soot_short">Je laatste %1$d ritten waren kort en het roetfilter is voor %2$d procent vol. Plan binnenkort een rit van 20 minuten over een snelle weg.</string>
+    <string name="car_say_filter_additive">Het additief voor het roetfilter is laag, op %1$d procent. Laat het bijvullen bij de volgende beurt.</string>
     <string name="car_say_break">Je rijdt al %1$s. Tijd voor een pauze.</string>
     <string name="car_say_fuel_short">Je actieradius van %1$d kilometer haalt de bestemming op %2$d kilometer niet. Plan een tankstop.</string>
     <string name="car_hours_minutes">%1$s en %2$s</string>

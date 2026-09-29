@@ -36,6 +36,8 @@
     <string name="car_filter_last_long">Letzte lange Fahrt: %1$s</string>
     <string name="car_filter_last_long_never">Noch keine lange Fahrt erfasst</string>
     <string name="car_filter_additive">Nutzt ein Kraftstoffadditiv: Füllstand bei jeder Wartung prüfen lassen</string>
+    <string name="car_filter_regen">Reinigung läuft</string>
+    <string name="car_filter_additive_low">Additiv niedrig bei %1$d %%. Bei der nächsten Wartung auffüllen</string>
 
     <!-- Warm-up -->
     <string name="car_warmup_title">WARMLAUF</string>
@@ -157,6 +159,11 @@
     <string name="car_say_cold_revs">Der Motor ist noch kalt. Bitte noch ein paar Minuten unter %1$d Umdrehungen bleiben.</string>
     <string name="car_say_clutch_hold">Das Auto mit der Bremse halten, nicht mit dem Gaspedal. Das verschleißt die Kupplung dieses Getriebes.</string>
     <string name="car_say_filter">Die letzten %1$d Fahrten waren kurz. Wenn möglich 15 bis 20 Minuten über 60 Kilometer pro Stunde fahren, damit sich der Partikelfilter reinigen kann.</string>
+    <string name="car_say_filter_regen">Der Partikelfilter reinigt sich gerade. Wenn möglich noch etwa 10 Minuten gleichmäßig weiterfahren.</string>
+    <string name="car_say_filter_regen_standing">Der Partikelfilter reinigt sich noch. Wenn möglich noch ein paar Minuten fahren, bevor der Motor abgestellt wird.</string>
+    <string name="car_say_filter_soot">Der Partikelfilter ist zu %1$d Prozent voll. Bald eine Fahrt von 20 Minuten auf einer Schnellstraße einplanen.</string>
+    <string name="car_say_filter_soot_short">Die letzten %1$d Fahrten waren kurz und der Partikelfilter ist zu %2$d Prozent voll. Bald eine Fahrt von 20 Minuten auf einer Schnellstraße einplanen.</string>
+    <string name="car_say_filter_additive">Das Additiv für den Partikelfilter ist niedrig, bei %1$d Prozent. Bei der nächsten Wartung auffüllen lassen.</string>
     <string name="car_say_break">Sie fahren seit %1$s. Zeit für eine Pause.</string>
     <string name="car_say_fuel_short">Ihre Reichweite von %1$d Kilometern reicht nicht bis zum Ziel in %2$d Kilometern. Bitte einen Tankstopp einplanen.</string>
     <string name="car_hours_minutes">%1$s und %2$s</string>
