@@ -204,6 +204,15 @@
     <string name="vehicle_err_bt_stuck">Das Android-Bluetooth des Autoradios hängt: Autoradio neu starten, dann OBD antippen</string>
     <string name="vehicle_err_refused">%1$s hat die Verbindung abgelehnt: von einem Handy oder einer anderen App belegt, ohne Strom oder außer Reichweite</string>
     <string name="vehicle_err_silent">%1$s hat sich verbunden, aber nie geantwortet: Zündung einschalten, dann OBD antippen</string>
+    <string name="vehicle_err_phone_aa">Android Auto auf %1$s blockiert den OBD-Adapter</string>
+    <string name="vehicle_phone_aa_fix">So beheben</string>
+    <string name="vehicle_phone_aa_title">Android Auto blockiert OBD</string>
+    <string name="vehicle_phone_aa_body">Handy und OBD-Adapter teilen sich das Bluetooth des Radios. Android Auto auf dem Handy versucht ständig, ohne Kabel zu starten, und belegt es.</string>
+    <string name="vehicle_phone_aa_step1">Öffnen Sie auf dem Handy Einstellungen, dann Apps, dann Android Auto.</string>
+    <string name="vehicle_phone_aa_step2">Tippen Sie auf Berechtigungen, dann Geräte in der Nähe, und wählen Sie Nicht zulassen.</string>
+    <string name="vehicle_phone_aa_step3">Schalten Sie die Zündung aus und wieder ein.</string>
+    <string name="vehicle_phone_aa_note">Anrufe, Musik und Android Auto per USB-Kabel funktionieren weiter.</string>
+    <string name="vehicle_phone_aa_say">Android Auto auf %1$s blockiert OBD. Die Schritte zur Lösung stehen auf dem Bildschirm.</string>
     <string name="vehicle_err_permission">Bluetooth-Berechtigung nicht erteilt</string>
     <string name="vehicle_obd_connect_from_bar">Über die OBD-Taste in der Leiste verbinden</string>
     <string name="vehicle_recent_alerts">Letzte Warnungen</string>

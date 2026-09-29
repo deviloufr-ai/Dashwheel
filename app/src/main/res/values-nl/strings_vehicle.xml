@@ -204,6 +204,15 @@
     <string name="vehicle_err_bt_stuck">De Android-bluetooth van de autoradio hangt: herstart de autoradio en tik dan op OBD</string>
     <string name="vehicle_err_refused">%1$s weigerde de verbinding: in gebruik door een telefoon of andere app, zonder stroom, of buiten bereik</string>
     <string name="vehicle_err_silent">%1$s is verbonden maar heeft nooit geantwoord: zet het contact aan en tik dan op OBD</string>
+    <string name="vehicle_err_phone_aa">Android Auto op %1$s blokkeert de OBD-adapter</string>
+    <string name="vehicle_phone_aa_fix">Zo los je het op</string>
+    <string name="vehicle_phone_aa_title">Android Auto blokkeert OBD</string>
+    <string name="vehicle_phone_aa_body">De telefoon en de OBD-adapter delen de Bluetooth van de radio. Android Auto op de telefoon probeert steeds zonder kabel te starten en legt beslag op de Bluetooth.</string>
+    <string name="vehicle_phone_aa_step1">Open op de telefoon Instellingen, dan Apps, dan Android Auto.</string>
+    <string name="vehicle_phone_aa_step2">Tik op Machtigingen, dan Apparaten in de buurt, en kies Niet toestaan.</string>
+    <string name="vehicle_phone_aa_step3">Zet het contact uit en weer aan.</string>
+    <string name="vehicle_phone_aa_note">Bellen, muziek en Android Auto met een USB-kabel blijven werken.</string>
+    <string name="vehicle_phone_aa_say">Android Auto op %1$s blokkeert OBD. De stappen om het op te lossen staan op het scherm.</string>
     <string name="vehicle_err_permission">Bluetooth-toestemming niet verleend</string>
     <string name="vehicle_obd_connect_from_bar">Verbind met de OBD-knop in de balk</string>
     <string name="vehicle_recent_alerts">Recente waarschuwingen</string>

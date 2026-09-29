@@ -153,6 +153,19 @@ object ObdBluetoothManager {
     private val _connectStep = MutableStateFlow<Int?>(null)
     val connectStep: StateFlow<Int?> = _connectStep.asStateFlow()
 
+    /**
+     * The last attempt reached an adapter that stayed silent while the unit's
+     * phone was connected. On QF units the phone and the adapter share one
+     * Bluetooth radio, and a phone whose Android Auto keeps trying to start
+     * wirelessly holds it: the link opens, nothing ever answers. Seen with a
+     * Galaxy S25; denying Android Auto "Nearby devices" on the phone ends it.
+     */
+    private val _phoneBlocking = MutableStateFlow(false)
+    val phoneBlocking: StateFlow<Boolean> = _phoneBlocking.asStateFlow()
+
+    /** Said once per start of the app, not at every retry. */
+    private var phoneBlockingSaid = false
+
     private fun fail(@StringRes reason: Int, vararg args: Any): Boolean {
         _lastError.value = appContext?.let { if (args.isEmpty()) it.getString(reason) else it.getString(reason, *args) }
         return false
@@ -210,7 +223,10 @@ object ObdBluetoothManager {
                     closeQuietly()
                     return false
                 }
-                if (!ok) closeQuietly() else _lastError.value = null
+                if (!ok) closeQuietly() else {
+                    _lastError.value = null
+                    _phoneBlocking.value = false
+                }
                 // A demo started meanwhile owns the state; it hands back the real one when it ends.
                 if (!DemoMode.isOn) _connectionState.value = if (ok) ObdConnectionState.CONNECTED else ObdConnectionState.ERROR
             }
@@ -240,6 +256,7 @@ object ObdBluetoothManager {
             if (!switchBluetoothOn(adapter)) return fail(R.string.vehicle_err_bt_still_off)
         }
         closeQuietly()
+        _phoneBlocking.value = false
         silentCommands = 0
         // Another adapter, or the same one in another car: learn it afresh.
         supported = null
@@ -303,8 +320,23 @@ object ObdBluetoothManager {
             Log.w(TAG, "no RFCOMM channel to $deviceAddress accepted the connection")
             return fail(R.string.vehicle_err_refused, label)
         }
+        // The unit's phone connected at the same time: its Android Auto is the likely holder.
+        val phone = UnitSignals.phone.value
+        if (phone != null) {
+            _phoneBlocking.value = true
+            sayPhoneBlocking(context, phone.name)
+            return fail(R.string.vehicle_err_phone_aa, phone.name)
+        }
         // A socket nothing answers on is no adapter: fail, so it is tried again.
         return fail(R.string.vehicle_err_silent, label)
+    }
+
+    private fun sayPhoneBlocking(context: Context, phoneName: String) {
+        if (phoneBlockingSaid || DemoMode.isOn) return
+        phoneBlockingSaid = true
+        val res = AppLanguage.wrap(context).resources
+        CarVoice.setContext(context)
+        CarVoice.announce(res.getString(R.string.vehicle_phone_aa_say, phoneName), res.configuration.locales[0])
     }
 
     /**

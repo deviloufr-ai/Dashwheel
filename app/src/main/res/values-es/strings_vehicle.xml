@@ -204,6 +204,15 @@
     <string name="vehicle_err_bt_stuck">El Bluetooth de Android de la radio está bloqueado: reinicia la radio y toca OBD</string>
     <string name="vehicle_err_refused">%1$s rechazó la conexión: ocupado por un teléfono u otra app, sin alimentación o fuera de alcance</string>
     <string name="vehicle_err_silent">%1$s se conectó pero nunca respondió: pon el contacto y toca OBD</string>
+    <string name="vehicle_err_phone_aa">Android Auto en %1$s está bloqueando el adaptador OBD</string>
+    <string name="vehicle_phone_aa_fix">Cómo solucionarlo</string>
+    <string name="vehicle_phone_aa_title">Android Auto bloquea el OBD</string>
+    <string name="vehicle_phone_aa_body">El teléfono y el adaptador OBD comparten el Bluetooth de la radio. Android Auto en el teléfono intenta sin parar iniciarse sin cable y lo acapara.</string>
+    <string name="vehicle_phone_aa_step1">En el teléfono, abre Ajustes, luego Aplicaciones, luego Android Auto.</string>
+    <string name="vehicle_phone_aa_step2">Toca Permisos, luego Dispositivos cercanos, y elige No permitir.</string>
+    <string name="vehicle_phone_aa_step3">Quita el contacto y vuelve a ponerlo.</string>
+    <string name="vehicle_phone_aa_note">Las llamadas, la música y Android Auto con cable USB siguen funcionando.</string>
+    <string name="vehicle_phone_aa_say">Android Auto en %1$s está bloqueando el OBD. Los pasos para solucionarlo están en la pantalla.</string>
     <string name="vehicle_err_permission">Permiso de Bluetooth no concedido</string>
     <string name="vehicle_obd_connect_from_bar">Conecta con el botón OBD de la barra</string>
     <string name="vehicle_recent_alerts">Últimos avisos</string>

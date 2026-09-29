@@ -204,6 +204,15 @@
     <string name="vehicle_err_bt_stuck">Il Bluetooth Android dell\'autoradio è bloccato: riavvia l\'autoradio, poi tocca OBD</string>
     <string name="vehicle_err_refused">%1$s ha rifiutato la connessione: occupato da un telefono o un\'altra app, senza alimentazione o fuori portata</string>
     <string name="vehicle_err_silent">%1$s si è connesso ma non ha mai risposto: inserisci il quadro, poi tocca OBD</string>
+    <string name="vehicle_err_phone_aa">Android Auto su %1$s sta bloccando l\'adattatore OBD</string>
+    <string name="vehicle_phone_aa_fix">Come risolvere</string>
+    <string name="vehicle_phone_aa_title">Android Auto blocca l\'OBD</string>
+    <string name="vehicle_phone_aa_body">Il telefono e l\'adattatore OBD condividono il Bluetooth dell\'autoradio. Android Auto sul telefono prova di continuo ad avviarsi senza cavo e lo occupa.</string>
+    <string name="vehicle_phone_aa_step1">Sul telefono apri Impostazioni, poi App, poi Android Auto.</string>
+    <string name="vehicle_phone_aa_step2">Tocca Autorizzazioni, poi Dispositivi nelle vicinanze, e scegli Non consentire.</string>
+    <string name="vehicle_phone_aa_step3">Spegni il quadro e riaccendilo.</string>
+    <string name="vehicle_phone_aa_note">Chiamate, musica e Android Auto con cavo USB continuano a funzionare.</string>
+    <string name="vehicle_phone_aa_say">Android Auto su %1$s sta bloccando l\'OBD. I passaggi per risolvere sono sullo schermo.</string>
     <string name="vehicle_err_permission">Permesso Bluetooth non concesso</string>
     <string name="vehicle_obd_connect_from_bar">Connetti con il pulsante OBD nella barra</string>
     <string name="vehicle_recent_alerts">Ultimi avvisi</string>

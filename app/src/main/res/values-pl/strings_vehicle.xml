@@ -204,6 +204,15 @@
     <string name="vehicle_err_bt_stuck">Bluetooth Androida w radiu się zawiesił: uruchom ponownie radio, potem dotknij OBD</string>
     <string name="vehicle_err_refused">%1$s odrzucił połączenie: zajęty przez telefon lub inną aplikację, bez zasilania albo poza zasięgiem</string>
     <string name="vehicle_err_silent">%1$s połączył się, ale nigdy nie odpowiedział: włącz zapłon, potem dotknij OBD</string>
+    <string name="vehicle_err_phone_aa">Android Auto na %1$s blokuje adapter OBD</string>
+    <string name="vehicle_phone_aa_fix">Jak to naprawić</string>
+    <string name="vehicle_phone_aa_title">Android Auto blokuje OBD</string>
+    <string name="vehicle_phone_aa_body">Telefon i adapter OBD dzielą Bluetooth radia. Android Auto na telefonie stale próbuje uruchomić się bez kabla i go zajmuje.</string>
+    <string name="vehicle_phone_aa_step1">Na telefonie otwórz Ustawienia, potem Aplikacje, potem Android Auto.</string>
+    <string name="vehicle_phone_aa_step2">Dotknij Uprawnienia, potem Urządzenia w pobliżu, i wybierz Nie zezwalaj.</string>
+    <string name="vehicle_phone_aa_step3">Wyłącz zapłon i włącz go ponownie.</string>
+    <string name="vehicle_phone_aa_note">Połączenia, muzyka i Android Auto przez kabel USB nadal działają.</string>
+    <string name="vehicle_phone_aa_say">Android Auto na %1$s blokuje OBD. Kroki naprawy są na ekranie.</string>
     <string name="vehicle_err_permission">Brak uprawnienia Bluetooth</string>
     <string name="vehicle_obd_connect_from_bar">Połącz przyciskiem OBD na pasku</string>
     <string name="vehicle_recent_alerts">Ostatnie ostrzeżenia</string>

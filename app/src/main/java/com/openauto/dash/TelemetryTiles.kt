@@ -123,6 +123,14 @@ internal fun ObdNotConnected(connection: ObdConnectionState, onConnect: () -> Un
         Text(stringResource(R.string.vehicle_obd_not_connected), color = DashColors.Muted)
         // What the last attempt ran into, so a silent adapter is not a mystery.
         lastError?.let { Text(it, color = DashColors.Warning, style = MaterialTheme.typography.bodySmall) }
+        val phoneBlocking by ObdBluetoothManager.phoneBlocking.collectAsState()
+        if (phoneBlocking) {
+            var help by remember { mutableStateOf(false) }
+            TextButton(onClick = { help = true }) {
+                Text(stringResource(R.string.vehicle_phone_aa_fix), color = DashColors.Accent)
+            }
+            if (help) PhoneAaHelpDialog(onConnect = { help = false; onConnect() }, onDismiss = { help = false })
+        }
         adapter?.let { Text(stringResource(R.string.vehicle_obd_adapter, it), color = DashColors.Muted, style = MaterialTheme.typography.labelSmall) }
     }
     Spacer(Modifier.height(10.dp))
@@ -143,6 +151,40 @@ internal fun ObdNotConnected(connection: ObdConnectionState, onConnect: () -> Un
             }
         }
     }
+}
+
+/**
+ * How to stop the phone's Android Auto from holding the unit's Bluetooth
+ * ([ObdBluetoothManager.phoneBlocking]): the steps on the phone, then a
+ * fresh start of the unit's Bluetooth, which stays stuck until then.
+ */
+@Composable
+internal fun PhoneAaHelpDialog(onConnect: () -> Unit, onDismiss: () -> Unit) {
+    val steps = listOf(R.string.vehicle_phone_aa_step1, R.string.vehicle_phone_aa_step2, R.string.vehicle_phone_aa_step3)
+    AlertDialog(
+        modifier = Modifier.keepClearOfWindows(),
+        onDismissRequest = onDismiss,
+        containerColor = DashColors.Card,
+        title = { Text(stringResource(R.string.vehicle_phone_aa_title), color = DashColors.TextPrimary) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(stringResource(R.string.vehicle_phone_aa_body), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
+                steps.forEachIndexed { i, step ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("${i + 1}", color = DashColors.Accent, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
+                        Text(stringResource(step), color = DashColors.TextPrimary, style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+                Text(stringResource(R.string.vehicle_phone_aa_note), color = DashColors.Muted, style = MaterialTheme.typography.bodySmall)
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onConnect) { Text(stringResource(R.string.vehicle_connect), color = DashColors.Accent) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.dash_close), color = DashColors.Muted) }
+        }
+    )
 }
 
 @Composable

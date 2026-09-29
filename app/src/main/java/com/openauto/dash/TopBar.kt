@@ -561,11 +561,18 @@ internal fun ObdPill(state: ObdConnectionState, onConnect: () -> Unit, modifier:
     val ink = if (off) DashColors.Muted else color
     val shape = DashShape.Pill
     val tap = rememberTapFeedback()
+    // The phone's Android Auto holding the radio: another try would fail the same way, the steps help.
+    val phoneBlocking by ObdBluetoothManager.phoneBlocking.collectAsState()
+    var help by remember { mutableStateOf(false) }
+    if (help) PhoneAaHelpDialog(onConnect = { help = false; onConnect() }, onDismiss = { help = false })
     Box(
         modifier = modifier
             .heightIn(min = DashSize.TouchPrimary)
             .clip(shape)
-            .clickable(enabled = idle, role = Role.Button) { tap(); onConnect() }
+            .clickable(enabled = idle, role = Role.Button) {
+                tap()
+                if (state == ObdConnectionState.ERROR && phoneBlocking) help = true else onConnect()
+            }
             .semantics(mergeDescendants = true) { contentDescription = label }
             .padding(horizontal = 4.dp),
         contentAlignment = Alignment.Center
