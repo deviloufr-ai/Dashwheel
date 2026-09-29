@@ -32,6 +32,14 @@ class FuelFillsTest {
     }
 
     @Test
+    fun whatThePhonePlaysRoundTripsWithItsCover() {
+        val playing = NowPlaying("Skål!", "Miracle of Sound", "Level 10", playing = true, durationMs = 201_000, artKey = 42, artJpeg = "/9j/4AAQ")
+        assertEquals(playing, LinkCodec.decode(LinkCodec.encode(playing)))
+        // An older head unit that has never heard of it skips it.
+        assertEquals(NowPlaying(), LinkCodec.decode("""{"t":"now_playing"}""".encodeToByteArray()))
+    }
+
+    @Test
     fun mergeKeepsNewestFirstAndOneEntryPerRefuel() {
         val a = FuelFill(1, 10.0)
         val b = FuelFill(2, 20.0)

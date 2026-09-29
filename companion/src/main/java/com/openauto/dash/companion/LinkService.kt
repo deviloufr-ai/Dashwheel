@@ -35,6 +35,7 @@ class LinkService : Service() {
         LinkServer.start(this)
         PhoneCalls.start(this)
         PhoneLists.start(this)
+        PhoneMedia.start(this)
         scope.launch {
             LinkServer.state.collect { state ->
                 getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification(state))
@@ -55,6 +56,7 @@ class LinkService : Service() {
         scope.cancel()
         PhoneCalls.stop(this)
         PhoneLists.stop(this)
+        PhoneMedia.stop()
         LinkServer.stop()
         super.onDestroy()
     }

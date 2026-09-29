@@ -1,7 +1,9 @@
 package com.openauto.dash
 
+import android.app.ActivityOptions
 import android.content.Context
 import android.content.Intent
+import android.graphics.Rect
 import android.net.Uri
 import com.google.gson.JsonParser
 import com.openauto.dash.link.Destination
@@ -191,7 +193,7 @@ internal object NavHandoff {
         for (app in apps(context)) {
             val uri = if (app == WAZE) String.format(Locale.US, "waze://?ll=%.6f,%.6f&navigate=yes", lat, lng)
             else String.format(Locale.US, "google.navigation:q=%.6f,%.6f&mode=d", lat, lng)
-            if (context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(uri)).setPackage(app))) return true
+            if (open(context, app, uri)) return true
         }
         val geo = Uri.parse(String.format(Locale.US, "geo:%.6f,%.6f?q=%.6f,%.6f(%s)", lat, lng, lat, lng, Uri.encode(label)))
         return context.launchSafely(Intent(Intent.ACTION_VIEW, geo))
@@ -211,7 +213,7 @@ internal object NavHandoff {
     fun startQuery(context: Context, query: String): Boolean {
         heading(query)
         for (app in apps(context)) {
-            if (context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(queryUri(app, query))).setPackage(app))) return true
+            if (open(context, app, queryUri(app, query))) return true
         }
         return context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(queryUri(null, query))))
     }
@@ -249,13 +251,45 @@ internal object NavHandoff {
     fun fromPhone(context: Context, destination: Destination) =
         go(context, destination.label, destination.lat, destination.lng, destination.query)
 
-    /** The navigation apps to ask, in order, noting that the driver asked. */
+    /**
+     * Guidance [uri] in [app]: inside its dashboard tile when it runs in one,
+     * so the map stays where the driver put it, else opened as usual.
+     */
+    private fun open(context: Context, app: String, uri: String): Boolean =
+        EmbeddedApp.openInside(app, Intent(Intent.ACTION_VIEW, Uri.parse(uri))) ||
+            openInWindow(context, app, uri) ||
+            context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(uri)).setPackage(app))
+
+    /**
+     * [app] docked in a window tile ([PipAnchor]): guidance goes to that
+     * window, same place and size, as the tile's own doing, not full screen.
+     */
+    private fun openInWindow(context: Context, app: String, uri: String): Boolean {
+        val status = PipAnchor.statusOf(app).value
+        val at = status.windowBounds?.takeIf { status.docked } ?: return false
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri)).setPackage(app).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val options = ActivityOptions.makeBasic().setLaunchBounds(Rect(at.left, at.top, at.right, at.bottom))
+        runCatching {
+            ActivityOptions::class.java.getMethod("setLaunchWindowingMode", Int::class.javaPrimitiveType).invoke(options, WINDOWING_MODE_FREEFORM)
+        }
+        PipAnchor.openedByTile(app)
+        return runCatching { context.startActivity(intent, options.toBundle()) }.isSuccess
+    }
+
+    /** WindowConfiguration.WINDOWING_MODE_FREEFORM (@hide). */
+    private const val WINDOWING_MODE_FREEFORM = 5
+
+    /**
+     * The navigation apps to ask, in order, noting that the driver asked. One
+     * running inside a dashboard tile goes first: that's the map on screen.
+     */
     private fun apps(context: Context): List<String> {
         KeyTargets.refresh()
         val preferred = KeyTargets.targets.value[KeyTargets.Key.NAVI]
         // The driver asked for it: the app opening full screen is not the unit's doing (EmbeddedApp, PipAnchor).
         EmbeddedApp.userActed()
         PipAnchor.noteUserTouch()
-        return order(preferred, isPackageInstalled(context, MAPS), isPackageInstalled(context, WAZE))
+        val apps = order(preferred, isPackageInstalled(context, MAPS), isPackageInstalled(context, WAZE))
+        return apps.sortedByDescending { EmbeddedApp.holds(it) }
     }
 }

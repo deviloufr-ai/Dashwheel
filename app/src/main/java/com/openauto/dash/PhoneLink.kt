@@ -33,6 +33,7 @@ import com.openauto.dash.link.NotificationSync
 import com.openauto.dash.link.ObdOffer
 import com.openauto.dash.link.ObdRelayState
 import com.openauto.dash.link.ObdRx
+import com.openauto.dash.link.NowPlaying
 import com.openauto.dash.link.PhoneAbilities
 import com.openauto.dash.link.SendText
 import com.openauto.dash.link.TextSent
@@ -447,6 +448,7 @@ object PhoneLink {
             // An OBD link relayed by the phone ends with it; the unit's own Bluetooth takes over.
             PhoneObd.linkDown()
             _textsOn.value = false
+            HeadUnitMedia.phoneGone()
         }
     }
 
@@ -528,6 +530,7 @@ object PhoneLink {
             is ObdRx -> PhoneObd.onRx(message)
             is PhoneAbilities -> _textsOn.value = message.sendsTexts
             is TextSent -> textsWaiting[message.id]?.complete(message.sent)
+            is NowPlaying -> HeadUnitMedia.fromPhone(message)
             else -> Unit
         }
     }

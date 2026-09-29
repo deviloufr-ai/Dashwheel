@@ -195,6 +195,7 @@ object LinkServer {
         send(ObdRelay.offer(context))
         send(PhoneAbilities(sendsTexts = TextSender.canSend(context)))
         PhoneLists.linked()
+        PhoneMedia.linked(context)
         try {
             while (true) {
                 val message = link.receive() ?: continue

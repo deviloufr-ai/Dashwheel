@@ -461,6 +461,24 @@ data class PhoneAbilities(val sendsTexts: Boolean = false) : LinkMessage
 @SerialName("send_text")
 data class SendText(val number: String, val text: String, val id: Long) : LinkMessage
 
+/**
+ * Phone → head unit: what the phone is playing (the audio the car hears over
+ * Bluetooth), with its cover, which the unit's Bluetooth doesn't pass on.
+ * [artKey] names the picture: [artJpeg] (base64) comes only when it changed,
+ * so a play or pause doesn't resend it. An empty [title]: nothing playing.
+ */
+@Serializable
+@SerialName("now_playing")
+data class NowPlaying(
+    val title: String = "",
+    val artist: String = "",
+    val album: String = "",
+    val playing: Boolean = false,
+    val durationMs: Long = 0,
+    val artKey: Int = 0,
+    val artJpeg: String? = null
+) : LinkMessage
+
 /** Phone → head unit: whether the [SendText] with [id] went. */
 @Serializable
 @SerialName("text_sent")

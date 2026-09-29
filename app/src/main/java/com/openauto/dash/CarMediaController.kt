@@ -169,7 +169,9 @@ class CarMediaController(private val context: Context) {
             isPlaying = playback?.state == PlaybackState.STATE_PLAYING,
             hasMedia = metadata != null,
             durationMs = (metadata?.getLong(MediaMetadata.METADATA_KEY_DURATION) ?: 0L).coerceAtLeast(0L),
+            // The unit's Bluetooth app names the track but has no cover: the phone's, where it sent one.
             artwork = artworkFor(track, metadata?.artwork())
+                ?: HeadUnitMedia.phone?.art?.takeIf { controller.packageName == HeadUnitMedia.BT_PACKAGE }
         )
     }
 

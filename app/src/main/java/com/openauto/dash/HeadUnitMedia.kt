@@ -6,7 +6,12 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import com.openauto.dash.link.NowPlaying
 import androidx.core.content.ContextCompat
 import java.util.concurrent.CopyOnWriteArraySet
 
@@ -47,6 +52,39 @@ object HeadUnitMedia {
         private set
     @Volatile var radio: RadioStation? = null
         private set
+
+    /** What the linked phone says it plays ([NowPlaying]): the cover the unit's Bluetooth doesn't pass on. */
+    data class PhoneTrack(val title: String, val artist: String, val album: String, val playing: Boolean, val durationMs: Long, val artKey: Int, val art: Bitmap?)
+
+    @Volatile var phone: PhoneTrack? = null
+        private set
+    private val main = Handler(Looper.getMainLooper())
+
+    /** The phone's latest [NowPlaying]; a cover sent earlier is kept while its key stays the same. */
+    fun fromPhone(message: NowPlaying) {
+        val before = phone
+        val art = when {
+            message.artJpeg != null -> runCatching {
+                val bytes = android.util.Base64.decode(message.artJpeg, android.util.Base64.DEFAULT)
+                BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+            }.getOrNull()
+            message.artKey != 0 && message.artKey == before?.artKey -> before.art
+            else -> null
+        }
+        phone = message.title.takeIf { it.isNotBlank() }?.let {
+            PhoneTrack(it, message.artist, message.album, message.playing, message.durationMs, message.artKey, art)
+        }
+        main.post { tell() }
+    }
+
+    /** The phone link is gone: so is what it said. */
+    fun phoneGone() {
+        if (phone == null) return
+        phone = null
+        main.post { tell() }
+    }
+
+    private fun tell() = listeners.forEach { runCatching { it() }.onFailure { e -> Log.w(TAG, "listener failed", e) } }
 
     private var started = false
     private val listeners = CopyOnWriteArraySet<() -> Unit>()
@@ -91,19 +129,28 @@ object HeadUnitMedia {
                 }
                 else -> return
             }
-            listeners.forEach { runCatching { it() }.onFailure { e -> Log.w(TAG, "listener failed", e) } }
+            tell()
         }
     }
 
+    /** The unit's own track, unless its Bluetooth only said it had none ("Not Provided"). */
+    private fun btTrack(): BtTrack? = bt?.takeIf { it.title.isNotEmpty() && !it.title.equals(NOT_PROVIDED, ignoreCase = true) }
+
+    private const val NOT_PROVIDED = "Not Provided"
+
     /** What [pkg] (one of the head unit's players) is playing, for the media tile; null when it said nothing yet. */
     fun state(pkg: String): MediaState? = when {
-        pkg == BT_PACKAGE -> bt?.takeIf { it.title.isNotEmpty() }?.let { t ->
-            MediaState(
-                title = t.title,
-                artist = listOf(t.artist, t.album).filter { it.isNotEmpty() }.joinToString(" · "),
-                isPlaying = systemProperty("sys.qf.bt.music.state") == "1",
+        // Bluetooth music is the phone's: its title where the unit has none, and its cover always.
+        pkg == BT_PACKAGE -> {
+            val t = btTrack()
+            val p = phone
+            if (t == null && p == null) null else MediaState(
+                title = t?.title ?: p!!.title,
+                artist = (if (t != null) listOf(t.artist, t.album) else listOf(p!!.artist, p.album)).filter { it.isNotEmpty() }.joinToString(" · "),
+                isPlaying = systemProperty("sys.qf.bt.music.state") == "1" || p?.playing == true,
                 hasMedia = true,
-                durationMs = btProgress()?.second?.toLong() ?: 0L
+                durationMs = btProgress()?.second?.toLong()?.takeIf { it > 0 } ?: p?.durationMs ?: 0L,
+                artwork = p?.art
             )
         }
         isStock(pkg) -> radio?.let { r ->

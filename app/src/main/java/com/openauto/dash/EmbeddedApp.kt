@@ -159,6 +159,10 @@ internal object EmbeddedApp {
     /** True while [packageName] runs inside a tile, on its own display. */
     fun holds(packageName: String): Boolean = packageName in held
 
+    /** Opens [intent] in [packageName]'s tile when it runs in one ([Host.open]); false otherwise. */
+    fun openInside(packageName: String, intent: Intent): Boolean =
+        holds(packageName) && hosts[packageName]?.open(intent) == true
+
     // --- Touches ------------------------------------------------------------
 
     /** Where the tiles' touches are sent to their apps from, one after another. */
@@ -752,6 +756,31 @@ internal object EmbeddedApp {
             PipAnchor.takenInside(dashboard?.get() ?: context, packageName)
             Log.i(TAG, "display ${made.display.displayId} for $packageName, ${width}x$height at $dpi dpi")
             launch(made)
+        }
+
+        /**
+         * Hands [intent] (guidance to a place...) to the app on its tile, on
+         * the tile's display, rather than full screen over the dashboard;
+         * then makes sure it is still on the tile (some ROMs open on the main
+         * screen whatever display is asked for). False when the tile's app
+         * isn't running there, or Android refused.
+         */
+        fun open(intent: Intent): Boolean {
+            val vd = display ?: return false
+            if (_status.value != Status.SHOWN) return false
+            intent.setPackage(packageName).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            val options = ActivityOptions.makeBasic().setLaunchDisplayId(vd.display.displayId)
+            runCatching { HiddenApiBypass.invoke(ActivityOptions::class.java, options, "setLaunchWindowingMode", WINDOWING_MODE_FULLSCREEN) }
+            val ok = runCatching { context.startActivity(intent, options.toBundle()) }
+                .onFailure { Log.w(TAG, "$packageName refused the intent on display ${vd.display.displayId}", it) }
+                .isSuccess
+            if (ok) {
+                launchedOnTile()
+                // Placed again even while a placing runs: the intent may have opened a new task elsewhere.
+                settling?.cancel()
+                launch(vd)
+            }
+            return ok
         }
 
         /** Puts the app back on the tile if it was taken elsewhere meanwhile; nothing when it is still there. */
