@@ -47,8 +47,6 @@ import androidx.compose.material.icons.filled.CropFree
 import androidx.compose.material.icons.filled.Title
 import androidx.compose.material.icons.filled.ViewCompact
 import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -70,6 +68,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -433,18 +433,27 @@ internal fun BarItemsSetting() {
     val all = list + BarItem.entries.filter { it !in list }
     all.forEachIndexed { i, item ->
         val on = item in list
+        val tap = rememberTapFeedback()
+        // The whole row is the switch: a tap anywhere on the name puts it in the bar or takes it out.
         Row(
-            modifier = Modifier.fillMaxWidth().heightIn(min = DashSize.Touch).padding(start = 4.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 2.dp)
+                .heightIn(min = DashSize.Touch)
+                .clip(DashShape.Medium)
+                .background(if (on) DashColors.Accent.copy(alpha = 0.12f) else Color.Transparent)
+                .clickable(role = Role.Switch) { tap(); BarItems.set(if (on) list - item else list + item) }
+                .semantics { selected = on }
+                .padding(start = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Checkbox(
-                checked = on,
-                onCheckedChange = { BarItems.set(if (it) list + item else list - item) },
-                colors = CheckboxDefaults.colors(checkedColor = DashColors.Accent)
+            Icon(item.icon, contentDescription = null, tint = if (on) DashColors.Accent else DashColors.Muted, modifier = Modifier.size(22.dp))
+            Spacer(Modifier.width(14.dp))
+            Text(
+                stringResource(item.label), color = if (on) DashColors.TextPrimary else DashColors.Muted,
+                fontWeight = if (on) FontWeight.SemiBold else FontWeight.Normal,
+                style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis
             )
-            Icon(item.icon, contentDescription = null, tint = if (on) DashColors.TextPrimary else DashColors.Muted, modifier = Modifier.size(20.dp))
-            Spacer(Modifier.width(12.dp))
-            Text(stringResource(item.label), color = if (on) DashColors.TextPrimary else DashColors.TextSecondary, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
             if (on) {
                 IconButton(onClick = { BarItems.set(list.moved(i, -1)) }, enabled = i > 0) {
                     Icon(Icons.Filled.KeyboardArrowUp, contentDescription = stringResource(R.string.bar_items_left), tint = DashColors.TextSecondary)

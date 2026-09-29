@@ -143,7 +143,7 @@
     <string name="bar_items_title">Dolny pasek</string>
     <string name="bar_items_custom">Wybierz, co pokazuje pasek</string>
     <string name="bar_items_theme">Wyłączone: pasek motywu</string>
-    <string name="bar_items_custom_detail">Zaznacz, co ma pokazywać, w wybranej kolejności. Co się nie mieści, zostaje pominięte.</string>
+    <string name="bar_items_custom_detail">Dotknij wskaźnika, aby dodać go do paska lub usunąć; strzałki ustalają kolejność. Co się nie mieści, zostaje pominięte.</string>
     <string name="bar_items_left">Wcześniej na pasku</string>
     <string name="bar_items_right">Dalej na pasku</string>
     <string name="bar_items_reset">Wróć do wyboru początkowego</string>

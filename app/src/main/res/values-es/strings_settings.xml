@@ -143,7 +143,7 @@
     <string name="bar_items_title">Barra inferior</string>
     <string name="bar_items_custom">Elegir lo que muestra la barra</string>
     <string name="bar_items_theme">Desactivado: la barra del tema</string>
-    <string name="bar_items_custom_detail">Marca lo que muestra, en el orden que quieras. Lo que no cabe se queda fuera.</string>
+    <string name="bar_items_custom_detail">Toca un indicador para ponerlo en la barra o quitarlo; las flechas fijan el orden. Lo que no cabe se queda fuera.</string>
     <string name="bar_items_left">Antes en la barra</string>
     <string name="bar_items_right">Después en la barra</string>
     <string name="bar_items_reset">Volver a la selección inicial</string>
