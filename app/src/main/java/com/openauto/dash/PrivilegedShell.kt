@@ -98,11 +98,14 @@ object PrivilegedShell {
     /**
      * Root first (it is what the most features need), else the ADB socket. Only
      * a listening socket is looked for, not a connection: the connection's
-     * authorisation prompt is left to the first feature that uses it.
+     * authorisation prompt is left to the first feature that uses it. An
+     * emulator counts as having the socket, so what needs a shell can be tried
+     * there without root (`adb tcpip 5555` makes it answer).
      */
     private fun find(): Access = when {
         SystemInstaller.isRootAvailable() -> Access.ROOT
         AdbInstaller.listeningPort() != null -> Access.ADB
+        isEmulator -> Access.ADB
         else -> Access.NONE
     }
 }

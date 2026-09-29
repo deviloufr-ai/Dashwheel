@@ -56,8 +56,12 @@ object FreeformBar {
     private val lock = Mutex()
     private var started = false
 
-    /** Whether this is the QF firmware, the one with the switch. */
-    val supported: Boolean by lazy { !systemProperty("ro.qf.platform").isNullOrBlank() }
+    /**
+     * Whether this is the QF firmware, the one with the switch. An emulator
+     * counts too, so the setting and its shell calls can be tried there
+     * without root (ro.qf.platform can only be set as root).
+     */
+    val supported: Boolean by lazy { !systemProperty("ro.qf.platform").isNullOrBlank() || isEmulator }
 
     private data class State(
         /** Top edge (screen px) of each window on the screen, by app. */
