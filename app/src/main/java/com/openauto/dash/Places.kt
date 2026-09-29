@@ -5,6 +5,12 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Rect
 import android.net.Uri
+import android.util.Log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import com.google.gson.JsonParser
 import com.openauto.dash.link.Destination
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -262,7 +268,9 @@ internal object NavHandoff {
 
     /**
      * [app] docked in a window tile ([PipAnchor]): guidance goes to that
-     * window, same place and size, as the tile's own doing, not full screen.
+     * window, same place and size. This ROM may still open it full screen:
+     * it is then put back into its window by the window manager ([backInWindow]).
+     * Never by pressing Back, which Maps reads as "quit the navigation?".
      */
     private fun openInWindow(context: Context, app: String, uri: String): Boolean {
         val status = PipAnchor.statusOf(app).value
@@ -272,9 +280,31 @@ internal object NavHandoff {
         runCatching {
             ActivityOptions::class.java.getMethod("setLaunchWindowingMode", Int::class.javaPrimitiveType).invoke(options, WINDOWING_MODE_FREEFORM)
         }
-        PipAnchor.openedByTile(app)
-        return runCatching { context.startActivity(intent, options.toBundle()) }.isSuccess
+        if (runCatching { context.startActivity(intent, options.toBundle()) }.isFailure) return false
+        windowScope.launch { backInWindow(context.applicationContext, app, at) }
+        return true
     }
+
+    /** For a few seconds after [openInWindow]: [app] found full screen in front goes back into its window at [at]. */
+    private suspend fun backInWindow(context: Context, app: String, at: ScreenRect) {
+        repeat(WINDOW_CHECKS) {
+            delay(WINDOW_CHECK_MS)
+            DockShell.forgetListing()
+            val listing = runCatching { DockShell.listStacks(context) }.getOrNull() ?: return
+            WindowListing.fullscreenInFront(listing, app, context.packageName) ?: return@repeat
+            // Android 10 can't switch a task's mode by command; started again as a
+            // window, the running task moves into one, guidance and all (the way the
+            // window tile brings it back).
+            Log.i("NavHandoff", "$app came up full screen: back into its window")
+            SplitLauncher.launchFreeform(context, app, Rect(at.left, at.top, at.right, at.bottom))
+            PipAnchor.pollAgainSoon()
+            return
+        }
+    }
+
+    private val windowScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private const val WINDOW_CHECKS = 10
+    private const val WINDOW_CHECK_MS = 300L
 
     /** WindowConfiguration.WINDOWING_MODE_FREEFORM (@hide). */
     private const val WINDOWING_MODE_FREEFORM = 5

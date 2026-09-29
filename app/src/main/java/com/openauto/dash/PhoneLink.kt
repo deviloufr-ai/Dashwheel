@@ -35,6 +35,7 @@ import com.openauto.dash.link.ObdRelayState
 import com.openauto.dash.link.ObdRx
 import com.openauto.dash.link.NowPlaying
 import com.openauto.dash.link.PhoneAbilities
+import com.openauto.dash.link.PhoneBattery
 import com.openauto.dash.link.SendText
 import com.openauto.dash.link.TextSent
 import kotlinx.coroutines.CompletableDeferred
@@ -271,6 +272,10 @@ object PhoneLink {
     /** Has the phone call [number]; false when it can't be asked (no link, an older companion). */
     fun dial(number: String): Boolean = phoneDials && send(CallCommand(CallCommand.Action.DIAL, number))
 
+    private val _battery = MutableStateFlow<PhoneBattery?>(null)
+    /** The linked phone's battery, exact and with its charging ([PhoneBattery]); null without a companion link. */
+    val battery: StateFlow<PhoneBattery?> = _battery
+
     private val _textsOn = MutableStateFlow(false)
     /** The linked phone sends texts for the car ([PhoneAbilities]): "On my way". */
     val textsOn: StateFlow<Boolean> = _textsOn
@@ -449,6 +454,7 @@ object PhoneLink {
             PhoneObd.linkDown()
             _textsOn.value = false
             HeadUnitMedia.phoneGone()
+            _battery.value = null
         }
     }
 
@@ -531,6 +537,7 @@ object PhoneLink {
             is PhoneAbilities -> _textsOn.value = message.sendsTexts
             is TextSent -> textsWaiting[message.id]?.complete(message.sent)
             is NowPlaying -> HeadUnitMedia.fromPhone(message)
+            is PhoneBattery -> _battery.value = message
             else -> Unit
         }
     }

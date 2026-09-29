@@ -196,6 +196,7 @@ object LinkServer {
         send(PhoneAbilities(sendsTexts = TextSender.canSend(context)))
         PhoneLists.linked()
         PhoneMedia.linked(context)
+        PhoneBatteryWatch.current(context)?.let(::send)
         try {
             while (true) {
                 val message = link.receive() ?: continue

@@ -479,6 +479,11 @@ data class NowPlaying(
     val artJpeg: String? = null
 ) : LinkMessage
 
+/** Phone → head unit, on link up and at each change: the phone's battery, exact, and whether it charges. */
+@Serializable
+@SerialName("battery")
+data class PhoneBattery(val percent: Int, val charging: Boolean = false) : LinkMessage
+
 /** Phone → head unit: whether the [SendText] with [id] went. */
 @Serializable
 @SerialName("text_sent")

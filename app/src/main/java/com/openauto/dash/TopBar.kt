@@ -10,6 +10,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -93,6 +94,12 @@ import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -620,49 +627,121 @@ internal fun ObdPill(state: ObdConnectionState, onConnect: () -> Unit, modifier:
 }
 
 /**
- * The phone on the head unit's Bluetooth ([UnitSignals]): its battery as five
- * bars and its name, beside the car's alerts in every skin's bar. Nothing
- * while no phone is connected, or on a unit that doesn't say.
+ * The phone beside the car's alerts in every skin's bar: its name and its
+ * battery. Exact, with the charging, from the companion when it is linked
+ * ([PhoneLink.battery]); else as the head unit's Bluetooth gives it, five
+ * bars ([UnitSignals]). Nothing while no phone is connected either way.
  */
 @Composable
 internal fun PhonePill(modifier: Modifier = Modifier) {
     val phone by UnitSignals.phone.collectAsState()
-    val p = phone ?: return
+    val link by PhoneLink.state.collectAsState()
+    val exact by PhoneLink.battery.collectAsState()
+    val name = phone?.name ?: (link as? PhoneLinkState.Connected)?.phoneName ?: return
     val shape = DashShape.Pill
     Row(
         modifier = modifier
             .height(36.dp)
             .clip(shape)
-            .border(1.dp, DashColors.Line, shape)
+            .border(1.dp, if (exact?.charging == true) DashColors.Good.copy(alpha = 0.6f) else DashColors.Line, shape)
             .semantics(mergeDescendants = true) {}
             .padding(start = 10.dp, end = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(Icons.Filled.PhoneAndroid, contentDescription = null, tint = DashColors.TextSecondary, modifier = Modifier.size(18.dp))
-        p.battery?.let { level ->
-            Spacer(Modifier.width(4.dp))
-            // A battery that fills with the phone's level (0..5); red when nearly empty.
-            Icon(
-                when (level) {
-                    0 -> Icons.Filled.BatteryAlert
-                    1 -> Icons.Filled.Battery1Bar
-                    2 -> Icons.Filled.Battery3Bar
-                    3 -> Icons.Filled.Battery4Bar
-                    4 -> Icons.Filled.Battery5Bar
-                    else -> Icons.Filled.BatteryFull
-                },
-                contentDescription = null,
-                tint = if (level <= 1) DashColors.Critical else DashColors.TextSecondary,
-                modifier = Modifier.size(18.dp)
-            )
+        val b = exact
+        when {
+            b != null -> {
+                Spacer(Modifier.width(4.dp))
+                if (b.charging) ChargingBattery(b.percent) else {
+                    Icon(
+                        batteryIcon(b.percent), contentDescription = null,
+                        tint = if (b.percent <= LOW_PERCENT) DashColors.Critical else DashColors.TextSecondary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+                Spacer(Modifier.width(2.dp))
+                Text(
+                    stringResource(R.string.phone_battery_percent, b.percent),
+                    color = when {
+                        b.charging -> DashColors.Good
+                        b.percent <= LOW_PERCENT -> DashColors.Critical
+                        else -> DashColors.TextSecondary
+                    },
+                    style = MaterialTheme.typography.labelSmall, maxLines = 1
+                )
+            }
+            phone?.battery != null -> {
+                val level = phone!!.battery!!
+                Spacer(Modifier.width(4.dp))
+                // A battery that fills with the phone's level (0..5); red when nearly empty.
+                Icon(
+                    when (level) {
+                        0 -> Icons.Filled.BatteryAlert
+                        1 -> Icons.Filled.Battery1Bar
+                        2 -> Icons.Filled.Battery3Bar
+                        3 -> Icons.Filled.Battery4Bar
+                        4 -> Icons.Filled.Battery5Bar
+                        else -> Icons.Filled.BatteryFull
+                    },
+                    contentDescription = null,
+                    tint = if (level <= 1) DashColors.Critical else DashColors.TextSecondary,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
         }
         Spacer(Modifier.width(8.dp))
         Text(
-            p.name, color = DashColors.TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis,
+            name, color = DashColors.TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis,
             style = MaterialTheme.typography.labelMedium, modifier = Modifier.widthIn(max = 120.dp)
         )
     }
 }
+
+/** Under this the phone's battery shows red. */
+private const val LOW_PERCENT = 15
+
+private fun batteryIcon(percent: Int) = when {
+    percent <= 5 -> Icons.Filled.BatteryAlert
+    percent <= 20 -> Icons.Filled.Battery1Bar
+    percent <= 40 -> Icons.Filled.Battery3Bar
+    percent <= 60 -> Icons.Filled.Battery4Bar
+    percent <= 85 -> Icons.Filled.Battery5Bar
+    else -> Icons.Filled.BatteryFull
+}
+
+/**
+ * A green battery with a bolt whose fill rises from the phone's level to
+ * full and starts again, the way phones show charging. Drawn here: the icon
+ * set has one charging battery only.
+ */
+@Composable
+private fun ChargingBattery(percent: Int) {
+    val from = (percent / 100f).coerceIn(0f, 1f)
+    val rise by rememberInfiniteTransition(label = "charging").animateFloat(
+        initialValue = from, targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(CHARGE_MS, easing = LinearEasing)),
+        label = "charging fill"
+    )
+    val green = DashColors.Good
+    Box(Modifier.size(width = 12.dp, height = 18.dp), contentAlignment = Alignment.Center) {
+        Canvas(Modifier.fillMaxSize()) {
+            val stroke = 1.5.dp.toPx()
+            val cap = Size(size.width * 0.4f, 2.dp.toPx())
+            drawRect(green, topLeft = Offset((size.width - cap.width) / 2f, 0f), size = cap)
+            val top = cap.height
+            val body = Size(size.width, size.height - top)
+            drawRoundRect(green, topLeft = Offset(0f, top), size = body, cornerRadius = CornerRadius(2.dp.toPx()), style = Stroke(stroke))
+            val inner = body.height - stroke * 2
+            val filled = inner * (if (percent >= 100) 1f else rise)
+            drawRect(green.copy(alpha = 0.55f), topLeft = Offset(stroke, top + stroke + inner - filled), size = Size(body.width - stroke * 2, filled))
+        }
+        Icon(Icons.Filled.Bolt, contentDescription = null, tint = DashColors.TextPrimary, modifier = Modifier.size(11.dp))
+    }
+}
+
+/** One rise of the fill, from the level to full. */
+private const val CHARGE_MS = 1_600
 
 /**
  * Menu around any [anchor] a skin draws: the things done often (edit,

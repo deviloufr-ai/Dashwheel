@@ -10,4 +10,5 @@
     <string name="onmyway_sent">Wysłano do %1$s</string>
     <string name="onmyway_failed">Telefon nie mógł wysłać SMS-a do %1$s</string>
     <string name="onmyway_no_answer">Brak odpowiedzi z telefonu</string>
+    <string name="phone_battery_percent">%1$d%%</string>
 </resources>
