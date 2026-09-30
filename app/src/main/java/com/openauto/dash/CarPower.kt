@@ -8,6 +8,7 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
+import android.provider.Settings
 import android.util.Log
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
@@ -39,6 +40,10 @@ object CarPower {
 
     private const val PREFS = "car_power"
     private const val KEY_OFF_AT = "off_at"
+    private const val KEY_ON_AT = "on_at"
+    private const val KEY_BOOT = "boot"
+    private const val KEY_LOST = "sleep_lost"
+    private const val KEY_LOST_KEEP = 10
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var started = false
@@ -57,6 +62,7 @@ object CarPower {
         started = true
         appContext = app
         _ignition.value = acc == "true"
+        noteBoot(app)
         val filter = IntentFilter().apply {
             addAction(ACTION_ACC_ON)
             addAction(ACTION_ACC_OFF)
@@ -64,6 +70,39 @@ object CarPower {
         }
         ContextCompat.registerReceiver(app, receiver, filter, ContextCompat.RECEIVER_EXPORTED)
     }
+
+    /**
+     * A full boot right after a switch-off is a deep sleep that was lost. It
+     * is logged and kept in the prefs (last [KEY_LOST_KEEP] of them, newest
+     * first) so a driver can report when it happens and what came before.
+     */
+    private fun noteBoot(context: Context) {
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val boot = runCatching { Settings.Global.getInt(context.contentResolver, Settings.Global.BOOT_COUNT) }.getOrDefault(-1)
+        val lastBoot = prefs.getInt(KEY_BOOT, -1)
+        val offAt = prefs.getLong(KEY_OFF_AT, 0L)
+        val now = System.currentTimeMillis()
+        val edit = prefs.edit().putInt(KEY_BOOT, boot)
+        DebugLog.note(context, "app start, boot $boot (last seen $lastBoot), uptime ${android.os.SystemClock.elapsedRealtime() / 1000} s")
+        if (boot != -1 && lastBoot != -1 && boot != lastBoot && offAt > 0 && offAt > prefs.getLong(KEY_ON_AT, 0L)) {
+            val note = "boot $lastBoot->$boot, off ${java.util.Date(offAt)}, back ${java.util.Date(now)}, " +
+                "${(now - offAt) / 60_000} min later, uptime ${android.os.SystemClock.elapsedRealtime() / 1000} s"
+            Log.w(TAG, "deep sleep lost: $note")
+            DebugLog.note(context, "deep sleep lost: $note")
+            val kept = (listOf(note) + prefs.getString(KEY_LOST, "").orEmpty().split('\n').filter { it.isNotBlank() })
+                .take(KEY_LOST_KEEP)
+            edit.putString(KEY_LOST, kept.joinToString("\n"))
+        }
+        edit.apply()
+    }
+
+    /** Whether this unit announces its ignition (the QF firmware), so deep sleep is the unit's to lose. */
+    val available: Boolean get() = started
+
+    /** The recorded lost deep sleeps, newest first ([noteBoot]). */
+    fun sleepLost(context: Context): List<String> =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_LOST, "").orEmpty()
+            .split('\n').filter { it.isNotBlank() }
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -95,9 +134,15 @@ object CarPower {
         _ignition.value = true
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val offAt = prefs.getLong(KEY_OFF_AT, 0L).takeIf { it > 0 }
+        prefs.edit().putLong(KEY_ON_AT, System.currentTimeMillis()).apply()
         Log.i(TAG, "ignition on")
+        DebugLog.note(context, "ignition on, off since ${offAt?.let { (System.currentTimeMillis() - it) / 60_000 }} min")
         // Quiet was asked for the drive that ended.
         CarVoice.quiet = false
+        scope.launch {
+            kotlinx.coroutines.delay(20_000)
+            DebugLog.snapshot(context, "20 s after ignition on")
+        }
         EmbeddedApp.carStarted(context)
         MediaResume.carStarted(context)
         VehicleMonitor.connectSaved()
@@ -109,6 +154,8 @@ object CarPower {
         val now = System.currentTimeMillis()
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putLong(KEY_OFF_AT, now).apply()
         Log.i(TAG, "ignition off")
+        DebugLog.note(context, "ignition off")
+        DebugLog.snapshot(context, "ignition off")
         EmbeddedApp.carStopped(context)
         MediaResume.carStopped(context)
         if (!DemoMode.isOn) parkingFix(context)?.takeIf { parkFixUsable(it.time, now) }?.let { ParkingStore.save(context, it) }

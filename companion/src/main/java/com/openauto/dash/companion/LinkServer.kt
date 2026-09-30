@@ -9,6 +9,8 @@ import android.util.Log
 import com.openauto.dash.link.ActionResult
 import com.openauto.dash.link.CallCommand
 import com.openauto.dash.link.CarLocation
+import com.openauto.dash.link.CarLog
+import com.openauto.dash.link.CarLogAck
 import com.openauto.dash.link.DialResult
 import com.openauto.dash.link.Dismiss
 import com.openauto.dash.link.DriveReport
@@ -239,6 +241,7 @@ object LinkServer {
                 }
             }
             is CarLocation -> CarSpot.update(context, message)
+            is CarLog -> send(CarLogAck(message.id, CarLogStore.receive(context, message)))
             is DriveSync -> DriveJournal.sync(context, message.drives)
             is DriveReport -> DriveJournal.update(context, message.drive)
             is TypeResult -> CarKeyboard.answered(message)

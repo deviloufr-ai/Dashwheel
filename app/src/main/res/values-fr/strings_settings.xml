@@ -164,4 +164,14 @@
     <string name="bar_look_compact_hint">Libellés sur les jauges ; Wi-Fi et Bluetooth en icônes seules.</string>
     <string name="bar_look_minimal">Minimal</string>
     <string name="bar_look_minimal_hint">Aucun libellé : une petite icône devant chaque jauge.</string>
+    <string name="settings_sleep_title">Veille profonde</string>
+    <string name="settings_sleep_none">Aucune veille profonde perdue enregistrée</string>
+    <string name="settings_sleep_lost">Perdue %1$d fois. Touchez pour afficher ou masquer le détail.\n%2$s</string>
+    <string name="settings_log_title">Journal de l\'appareil</string>
+    <string name="settings_log_detail">Donne le journal de cet appareil au téléphone, à partager comme rapport de bug</string>
+    <string name="settings_log_detail_last">Journal enregistré à %1$s. Touchez pour l\'envoyer au téléphone</string>
+    <string name="settings_log_sending">Envoi du journal au téléphone</string>
+    <string name="settings_log_sent">Enregistré sur le téléphone. Ouvrez sa notification pour le partager</string>
+    <string name="settings_log_failed">Le téléphone n\'a pas pris le journal</string>
+    <string name="settings_log_no_phone">Aucun téléphone n\'a répondu. Liez le téléphone et mettez à jour son application compagnon</string>
 </resources>

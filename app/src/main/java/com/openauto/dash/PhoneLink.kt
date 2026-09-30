@@ -37,6 +37,8 @@ import com.openauto.dash.link.NowPlaying
 import com.openauto.dash.link.PhoneAbilities
 import com.openauto.dash.link.PhoneBattery
 import com.openauto.dash.link.SendText
+import com.openauto.dash.link.CarLog
+import com.openauto.dash.link.CarLogAck
 import com.openauto.dash.link.TextSent
 import kotlinx.coroutines.CompletableDeferred
 import java.util.concurrent.ConcurrentHashMap
@@ -298,6 +300,27 @@ object PhoneLink {
 
     private const val TEXT_TIMEOUT_MS = 15_000L
 
+    private val logIds = AtomicLong()
+    private val logsWaiting = ConcurrentHashMap<Long, CompletableDeferred<Boolean>>()
+
+    /**
+     * Gives the phone the unit's log to share ([DebugLog]): true once it is saved
+     * there, false when it can't be, null without an answer (no link, or a
+     * companion too old to know the message).
+     */
+    suspend fun sendLog(title: String, text: String): Boolean? {
+        val id = logIds.incrementAndGet()
+        val answer = CompletableDeferred<Boolean>()
+        logsWaiting[id] = answer
+        return try {
+            if (!send(CarLog(id, title, CarLog.fit(text)))) null else withTimeoutOrNull(LOG_TIMEOUT_MS) { answer.await() }
+        } finally {
+            logsWaiting.remove(id)
+        }
+    }
+
+    private const val LOG_TIMEOUT_MS = 20_000L
+
     /** [DemoMode]'s lists. */
     internal fun demoWrite(lists: PhoneLists) {
         _lists.value = lists
@@ -536,6 +559,7 @@ object PhoneLink {
             is ObdRx -> PhoneObd.onRx(message)
             is PhoneAbilities -> _textsOn.value = message.sendsTexts
             is TextSent -> textsWaiting[message.id]?.complete(message.sent)
+            is CarLogAck -> logsWaiting[message.id]?.complete(message.ok)
             is NowPlaying -> HeadUnitMedia.fromPhone(message)
             is PhoneBattery -> _battery.value = message
             else -> Unit

@@ -166,4 +166,14 @@
     <string name="bar_look_compact_hint">Captions on the gauges; Wi-Fi and Bluetooth as icons only.</string>
     <string name="bar_look_minimal">Minimal</string>
     <string name="bar_look_minimal_hint">No captions: a small icon in front of each gauge.</string>
+    <string name="settings_sleep_title">Deep sleep</string>
+    <string name="settings_sleep_none">No lost deep sleep recorded</string>
+    <string name="settings_sleep_lost">Lost %1$d times. Tap to show or hide the details.\n%2$s</string>
+    <string name="settings_log_title">Unit log</string>
+    <string name="settings_log_detail">Gives this unit\'s log to the phone, to share as a bug report</string>
+    <string name="settings_log_detail_last">Log saved at %1$s. Tap to send it to the phone</string>
+    <string name="settings_log_sending">Sending the log to the phone</string>
+    <string name="settings_log_sent">Saved on the phone. Open its notification to share it</string>
+    <string name="settings_log_failed">The phone did not take the log</string>
+    <string name="settings_log_no_phone">No phone answered. Link the phone and update its companion app</string>
 </resources>

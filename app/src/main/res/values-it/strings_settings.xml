@@ -164,4 +164,14 @@
     <string name="bar_look_compact_hint">Etichette sugli indicatori; Wi-Fi e Bluetooth solo come icona.</string>
     <string name="bar_look_minimal">Minimo</string>
     <string name="bar_look_minimal_hint">Nessuna etichetta: una piccola icona davanti a ogni indicatore.</string>
+    <string name="settings_sleep_title">Sospensione profonda</string>
+    <string name="settings_sleep_none">Nessuna sospensione profonda persa registrata</string>
+    <string name="settings_sleep_lost">Persa %1$d volte. Tocca per mostrare o nascondere i dettagli.\n%2$s</string>
+    <string name="settings_log_title">Registro dell\'unità</string>
+    <string name="settings_log_detail">Dà il registro di questa unità al telefono, da condividere come segnalazione di errore</string>
+    <string name="settings_log_detail_last">Registro salvato alle %1$s. Tocca per inviarlo al telefono</string>
+    <string name="settings_log_sending">Invio del registro al telefono</string>
+    <string name="settings_log_sent">Salvato sul telefono. Apri la sua notifica per condividerlo</string>
+    <string name="settings_log_failed">Il telefono non ha accettato il registro</string>
+    <string name="settings_log_no_phone">Nessun telefono ha risposto. Collega il telefono e aggiorna la sua app companion</string>
 </resources>

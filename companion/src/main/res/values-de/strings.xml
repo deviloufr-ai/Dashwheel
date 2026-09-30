@@ -134,4 +134,8 @@
     <string name="report_share_subject">Autobericht: %1$s</string>
     <string name="report_earlier">Früherer Monat</string>
     <string name="report_later">Späterer Monat</string>
+    <string name="log_channel">Fahrzeugprotokoll</string>
+    <string name="log_received">Das Protokoll des Autos ist bereit</string>
+    <string name="log_received_detail">Tippen zum Teilen. Die Schaltfläche öffnet ein GitHub-Issue zum Anhängen.</string>
+    <string name="log_github">GitHub-Issue</string>
 </resources>

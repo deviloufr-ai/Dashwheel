@@ -1,5 +1,6 @@
 package com.openauto.dash
 
+import android.text.format.DateFormat
 import androidx.annotation.StringRes
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
@@ -25,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.VerticalAlignTop
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.AcUnit
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Adjust
 import androidx.compose.material.icons.filled.AirlineSeatReclineNormal
@@ -623,6 +625,16 @@ private fun DrivingPane(m: TopBarModel, onWheelButtons: () -> Unit, onPlaces: ()
         Icons.Filled.PlayCircle, stringResource(R.string.settings_resume_music),
         stringResource(R.string.settings_resume_music_detail), resume
     ) { MediaResume.save(context, it) }
+    if (CarPower.available) {
+        val lost = remember { CarPower.sleepLost(context) }
+        var open by remember { mutableStateOf(false) }
+        SettingsRow(
+            Icons.Filled.DirectionsCar, stringResource(R.string.settings_sleep_title),
+            if (lost.isEmpty()) stringResource(R.string.settings_sleep_none)
+            else stringResource(R.string.settings_sleep_lost, lost.size, if (open) lost.joinToString("\n") else lost.first())
+        ) { open = !open }
+    }
+    SendLogRow()
     Spacer(Modifier.height(20.dp))
     SpeedVolumeSetting()
     KeyTargetRows()
@@ -978,4 +990,35 @@ internal fun SettingsToggle(icon: ImageVector, title: String, detail: String, ch
         )
     }
     HorizontalDivider(color = DashColors.Line, modifier = Modifier.padding(horizontal = 12.dp))
+}
+
+/** Test builds: gives the unit's log to the phone, to share as a bug report ([DebugLog]). */
+@Composable
+private fun SendLogRow() {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var status by remember { mutableStateOf<Int?>(null) }
+    var sending by remember { mutableStateOf(false) }
+    val last = remember { DebugLog.lastSnapshot(context) }
+    SettingsRow(
+        Icons.Filled.BugReport, stringResource(R.string.settings_log_title),
+        when {
+            sending -> stringResource(R.string.settings_log_sending)
+            status != null -> stringResource(status!!)
+            last != null -> stringResource(R.string.settings_log_detail_last, DateFormat.getTimeFormat(context).format(last))
+            else -> stringResource(R.string.settings_log_detail)
+        }
+    ) {
+        if (sending) return@SettingsRow
+        sending = true
+        scope.launch {
+            val ok = DebugLog.sendToPhone(context)
+            sending = false
+            status = when (ok) {
+                true -> R.string.settings_log_sent
+                false -> R.string.settings_log_failed
+                null -> R.string.settings_log_no_phone
+            }
+        }
+    }
 }

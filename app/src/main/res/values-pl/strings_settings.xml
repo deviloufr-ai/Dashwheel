@@ -164,4 +164,14 @@
     <string name="bar_look_compact_hint">Podpisy przy wskaźnikach; Wi-Fi i Bluetooth tylko jako ikony.</string>
     <string name="bar_look_minimal">Minimalny</string>
     <string name="bar_look_minimal_hint">Bez podpisów: mała ikona przed każdym wskaźnikiem.</string>
+    <string name="settings_sleep_title">Głęboki sen</string>
+    <string name="settings_sleep_none">Brak zarejestrowanych utraconych głębokich snów</string>
+    <string name="settings_sleep_lost">Utracono %1$d razy. Dotknij, aby pokazać lub ukryć szczegóły.\n%2$s</string>
+    <string name="settings_log_title">Dziennik urządzenia</string>
+    <string name="settings_log_detail">Przekazuje dziennik tego urządzenia telefonowi, by udostępnić go jako zgłoszenie błędu</string>
+    <string name="settings_log_detail_last">Dziennik zapisany o %1$s. Dotknij, by wysłać go do telefonu</string>
+    <string name="settings_log_sending">Wysyłanie dziennika do telefonu</string>
+    <string name="settings_log_sent">Zapisano w telefonie. Otwórz jego powiadomienie, by udostępnić</string>
+    <string name="settings_log_failed">Telefon nie przyjął dziennika</string>
+    <string name="settings_log_no_phone">Żaden telefon nie odpowiedział. Połącz telefon i zaktualizuj jego aplikację towarzyszącą</string>
 </resources>

@@ -134,4 +134,8 @@
     <string name="report_share_subject">Raport auta: %1$s</string>
     <string name="report_earlier">Wcześniejszy miesiąc</string>
     <string name="report_later">Późniejszy miesiąc</string>
+    <string name="log_channel">Dziennik samochodu</string>
+    <string name="log_received">Dziennik samochodu jest gotowy</string>
+    <string name="log_received_detail">Dotknij, by udostępnić. Przycisk otwiera zgłoszenie na GitHubie, do którego go dołączysz.</string>
+    <string name="log_github">Zgłoszenie GitHub</string>
 </resources>

@@ -164,4 +164,14 @@
     <string name="bar_look_compact_hint">Legendas nos indicadores; Wi-Fi e Bluetooth só como ícone.</string>
     <string name="bar_look_minimal">Mínimo</string>
     <string name="bar_look_minimal_hint">Sem legendas: um pequeno ícone antes de cada indicador.</string>
+    <string name="settings_sleep_title">Suspensão profunda</string>
+    <string name="settings_sleep_none">Nenhuma suspensão profunda perdida registada</string>
+    <string name="settings_sleep_lost">Perdida %1$d vezes. Toque para mostrar ou ocultar os detalhes.\n%2$s</string>
+    <string name="settings_log_title">Registo da unidade</string>
+    <string name="settings_log_detail">Dá o registo desta unidade ao telemóvel, para partilhar como relatório de erro</string>
+    <string name="settings_log_detail_last">Registo guardado às %1$s. Toque para o enviar ao telemóvel</string>
+    <string name="settings_log_sending">A enviar o registo ao telemóvel</string>
+    <string name="settings_log_sent">Guardado no telemóvel. Abra a sua notificação para partilhar</string>
+    <string name="settings_log_failed">O telemóvel não aceitou o registo</string>
+    <string name="settings_log_no_phone">Nenhum telemóvel respondeu. Ligue o telemóvel e atualize a sua app complementar</string>
 </resources>

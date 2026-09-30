@@ -134,4 +134,8 @@
     <string name="report_share_subject">Bilan voiture : %1$s</string>
     <string name="report_earlier">Mois précédent</string>
     <string name="report_later">Mois suivant</string>
+    <string name="log_channel">Journal de la voiture</string>
+    <string name="log_received">Le journal de la voiture est prêt</string>
+    <string name="log_received_detail">Touchez pour le partager. Le bouton ouvre un ticket GitHub où le joindre.</string>
+    <string name="log_github">Ticket GitHub</string>
 </resources>

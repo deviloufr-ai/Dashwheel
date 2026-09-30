@@ -164,4 +164,14 @@
     <string name="bar_look_compact_hint">Labels bij de meters; wifi en Bluetooth alleen als pictogram.</string>
     <string name="bar_look_minimal">Minimaal</string>
     <string name="bar_look_minimal_hint">Geen labels: een klein pictogram voor elke meter.</string>
+    <string name="settings_sleep_title">Diepe slaap</string>
+    <string name="settings_sleep_none">Geen verloren diepe slaap geregistreerd</string>
+    <string name="settings_sleep_lost">%1$d keer verloren. Tik om details te tonen of te verbergen.\n%2$s</string>
+    <string name="settings_log_title">Logboek van het toestel</string>
+    <string name="settings_log_detail">Geeft het logboek van dit toestel aan de telefoon, om als foutrapport te delen</string>
+    <string name="settings_log_detail_last">Logboek opgeslagen om %1$s. Tik om het naar de telefoon te sturen</string>
+    <string name="settings_log_sending">Logboek wordt naar de telefoon gestuurd</string>
+    <string name="settings_log_sent">Opgeslagen op de telefoon. Open de melding om het te delen</string>
+    <string name="settings_log_failed">De telefoon nam het logboek niet aan</string>
+    <string name="settings_log_no_phone">Geen telefoon antwoordde. Koppel de telefoon en werk de companion-app bij</string>
 </resources>
