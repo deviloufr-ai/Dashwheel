@@ -167,4 +167,10 @@
     <string name="settings_sleep_title">Głęboki sen</string>
     <string name="settings_sleep_none">Brak zarejestrowanych utraconych głębokich snów</string>
     <string name="settings_sleep_lost">Utracono %1$d razy. Dotknij, aby pokazać lub ukryć szczegóły.\n%2$s</string>
+    <string name="settings_log_title">Wyślij dziennik</string>
+    <string name="settings_log_detail">Wysyła dziennik tego urządzenia do zgłoszeń projektu na GitHubie</string>
+    <string name="settings_log_sending">Wysyłanie dziennika</string>
+    <string name="settings_log_sent">Wysłano: %1$s</string>
+    <string name="settings_log_no_token">Urządzenie nie ma jeszcze tokena GitHub</string>
+    <string name="settings_log_failed">Nie udało się wysłać dziennika</string>
 </resources>

@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.VerticalAlignTop
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.AcUnit
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Adjust
 import androidx.compose.material.icons.filled.AirlineSeatReclineNormal
@@ -632,6 +633,7 @@ private fun DrivingPane(m: TopBarModel, onWheelButtons: () -> Unit, onPlaces: ()
             else stringResource(R.string.settings_sleep_lost, lost.size, if (open) lost.joinToString("\n") else lost.first())
         ) { open = !open }
     }
+    SendLogRow()
     Spacer(Modifier.height(20.dp))
     SpeedVolumeSetting()
     KeyTargetRows()
@@ -987,4 +989,32 @@ internal fun SettingsToggle(icon: ImageVector, title: String, detail: String, ch
         )
     }
     HorizontalDivider(color = DashColors.Line, modifier = Modifier.padding(horizontal = 12.dp))
+}
+
+/** Test builds: sends the unit's log to the project's GitHub issues ([DebugLog]). */
+@Composable
+private fun SendLogRow() {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var status by remember { mutableStateOf<String?>(null) }
+    var sending by remember { mutableStateOf(false) }
+    val idle = stringResource(R.string.settings_log_detail)
+    val busy = stringResource(R.string.settings_log_sending)
+    val noToken = stringResource(R.string.settings_log_no_token)
+    val failed = stringResource(R.string.settings_log_failed)
+    SettingsRow(
+        Icons.Filled.BugReport, stringResource(R.string.settings_log_title),
+        if (sending) busy else status ?: idle
+    ) {
+        if (sending) return@SettingsRow
+        sending = true
+        scope.launch {
+            val result = DebugLog.send(context)
+            sending = false
+            status = result.fold(
+                { context.getString(R.string.settings_log_sent, it) },
+                { if (it.message == "no token") noToken else failed }
+            )
+        }
+    }
 }

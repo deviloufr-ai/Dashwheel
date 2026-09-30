@@ -167,4 +167,10 @@
     <string name="settings_sleep_title">Sospensione profonda</string>
     <string name="settings_sleep_none">Nessuna sospensione profonda persa registrata</string>
     <string name="settings_sleep_lost">Persa %1$d volte. Tocca per mostrare o nascondere i dettagli.\n%2$s</string>
+    <string name="settings_log_title">Invia il registro</string>
+    <string name="settings_log_detail">Invia il registro di questa unità alle issue GitHub del progetto</string>
+    <string name="settings_log_sending">Invio del registro</string>
+    <string name="settings_log_sent">Inviato: %1$s</string>
+    <string name="settings_log_no_token">L\'unità non ha ancora un token GitHub</string>
+    <string name="settings_log_failed">Impossibile inviare il registro</string>
 </resources>

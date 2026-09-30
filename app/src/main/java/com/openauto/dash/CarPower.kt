@@ -83,10 +83,12 @@ object CarPower {
         val offAt = prefs.getLong(KEY_OFF_AT, 0L)
         val now = System.currentTimeMillis()
         val edit = prefs.edit().putInt(KEY_BOOT, boot)
+        DebugLog.note(context, "app start, boot $boot (last seen $lastBoot), uptime ${android.os.SystemClock.elapsedRealtime() / 1000} s")
         if (boot != -1 && lastBoot != -1 && boot != lastBoot && offAt > 0 && offAt > prefs.getLong(KEY_ON_AT, 0L)) {
             val note = "boot $lastBoot->$boot, off ${java.util.Date(offAt)}, back ${java.util.Date(now)}, " +
                 "${(now - offAt) / 60_000} min later, uptime ${android.os.SystemClock.elapsedRealtime() / 1000} s"
             Log.w(TAG, "deep sleep lost: $note")
+            DebugLog.note(context, "deep sleep lost: $note")
             val kept = (listOf(note) + prefs.getString(KEY_LOST, "").orEmpty().split('\n').filter { it.isNotBlank() })
                 .take(KEY_LOST_KEEP)
             edit.putString(KEY_LOST, kept.joinToString("\n"))
@@ -134,6 +136,7 @@ object CarPower {
         val offAt = prefs.getLong(KEY_OFF_AT, 0L).takeIf { it > 0 }
         prefs.edit().putLong(KEY_ON_AT, System.currentTimeMillis()).apply()
         Log.i(TAG, "ignition on")
+        DebugLog.note(context, "ignition on, off since ${offAt?.let { (System.currentTimeMillis() - it) / 60_000 }} min")
         // Quiet was asked for the drive that ended.
         CarVoice.quiet = false
         EmbeddedApp.carStarted(context)
@@ -147,6 +150,7 @@ object CarPower {
         val now = System.currentTimeMillis()
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putLong(KEY_OFF_AT, now).apply()
         Log.i(TAG, "ignition off")
+        DebugLog.note(context, "ignition off")
         EmbeddedApp.carStopped(context)
         MediaResume.carStopped(context)
         if (!DemoMode.isOn) parkingFix(context)?.takeIf { parkFixUsable(it.time, now) }?.let { ParkingStore.save(context, it) }

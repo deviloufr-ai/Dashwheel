@@ -167,4 +167,10 @@
     <string name="settings_sleep_title">Veille profonde</string>
     <string name="settings_sleep_none">Aucune veille profonde perdue enregistrée</string>
     <string name="settings_sleep_lost">Perdue %1$d fois. Touchez pour afficher ou masquer le détail.\n%2$s</string>
+    <string name="settings_log_title">Envoyer le journal</string>
+    <string name="settings_log_detail">Envoie le journal de cet appareil aux tickets GitHub du projet</string>
+    <string name="settings_log_sending">Envoi du journal</string>
+    <string name="settings_log_sent">Envoyé : %1$s</string>
+    <string name="settings_log_no_token">L\'appareil n\'a pas encore de jeton GitHub</string>
+    <string name="settings_log_failed">Impossible d\'envoyer le journal</string>
 </resources>

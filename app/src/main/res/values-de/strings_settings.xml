@@ -167,4 +167,10 @@
     <string name="settings_sleep_title">Tiefschlaf</string>
     <string name="settings_sleep_none">Kein verlorener Tiefschlaf aufgezeichnet</string>
     <string name="settings_sleep_lost">%1$d Mal verloren. Tippen, um Details ein- oder auszublenden.\n%2$s</string>
+    <string name="settings_log_title">Protokoll senden</string>
+    <string name="settings_log_detail">Sendet das Protokoll dieses Geräts an die GitHub-Issues des Projekts</string>
+    <string name="settings_log_sending">Protokoll wird gesendet</string>
+    <string name="settings_log_sent">Gesendet: %1$s</string>
+    <string name="settings_log_no_token">Das Gerät hat noch kein GitHub-Token</string>
+    <string name="settings_log_failed">Protokoll konnte nicht gesendet werden</string>
 </resources>

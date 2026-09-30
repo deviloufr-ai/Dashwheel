@@ -323,7 +323,10 @@ internal object EmbeddedApp {
                 .setPackage(context.packageName)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
             runCatching { context.startActivity(home) }
-                .onSuccess { Log.i(TAG, "power-up: an app came up in front of the dashboard, Home brought back") }
+                .onSuccess {
+                    Log.i(TAG, "power-up: an app came up in front of the dashboard, Home brought back")
+                    DebugLog.note(context, "power-up: an app was in front, Home brought back")
+                }
                 .onFailure { Log.w(TAG, "power-up: can't bring the dashboard back to the front", it) }
         }
     }
