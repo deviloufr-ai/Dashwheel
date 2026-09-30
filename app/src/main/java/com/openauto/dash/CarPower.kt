@@ -139,6 +139,10 @@ object CarPower {
         DebugLog.note(context, "ignition on, off since ${offAt?.let { (System.currentTimeMillis() - it) / 60_000 }} min")
         // Quiet was asked for the drive that ended.
         CarVoice.quiet = false
+        scope.launch {
+            kotlinx.coroutines.delay(20_000)
+            DebugLog.snapshot(context, "20 s after ignition on")
+        }
         EmbeddedApp.carStarted(context)
         MediaResume.carStarted(context)
         VehicleMonitor.connectSaved()
@@ -151,6 +155,7 @@ object CarPower {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putLong(KEY_OFF_AT, now).apply()
         Log.i(TAG, "ignition off")
         DebugLog.note(context, "ignition off")
+        DebugLog.snapshot(context, "ignition off")
         EmbeddedApp.carStopped(context)
         MediaResume.carStopped(context)
         if (!DemoMode.isOn) parkingFix(context)?.takeIf { parkFixUsable(it.time, now) }?.let { ParkingStore.save(context, it) }

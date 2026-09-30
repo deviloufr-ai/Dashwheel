@@ -134,4 +134,8 @@
     <string name="report_share_subject">Autoverslag: %1$s</string>
     <string name="report_earlier">Eerdere maand</string>
     <string name="report_later">Latere maand</string>
+    <string name="log_channel">Autologboek</string>
+    <string name="log_received">Het logboek van de auto is klaar</string>
+    <string name="log_received_detail">Tik om te delen. De knop opent een GitHub-issue om het aan toe te voegen.</string>
+    <string name="log_github">GitHub-issue</string>
 </resources>

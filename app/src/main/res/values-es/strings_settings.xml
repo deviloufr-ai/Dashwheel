@@ -167,10 +167,11 @@
     <string name="settings_sleep_title">Suspensión profunda</string>
     <string name="settings_sleep_none">No hay suspensiones profundas perdidas registradas</string>
     <string name="settings_sleep_lost">Perdida %1$d veces. Toca para mostrar u ocultar el detalle.\n%2$s</string>
-    <string name="settings_log_title">Enviar el registro</string>
-    <string name="settings_log_detail">Envía el registro de esta unidad a los issues de GitHub del proyecto</string>
-    <string name="settings_log_sending">Enviando el registro</string>
-    <string name="settings_log_sent">Enviado: %1$s</string>
-    <string name="settings_log_no_token">La unidad aún no tiene token de GitHub</string>
-    <string name="settings_log_failed">No se pudo enviar el registro</string>
+    <string name="settings_log_title">Registro de la unidad</string>
+    <string name="settings_log_detail">Da el registro de esta unidad al móvil, para compartirlo como informe de error</string>
+    <string name="settings_log_detail_last">Registro guardado a las %1$s. Toque para enviarlo al móvil</string>
+    <string name="settings_log_sending">Enviando el registro al móvil</string>
+    <string name="settings_log_sent">Guardado en el móvil. Abra su notificación para compartirlo</string>
+    <string name="settings_log_failed">El móvil no aceptó el registro</string>
+    <string name="settings_log_no_phone">Ningún móvil respondió. Vincule el móvil y actualice su app complementaria</string>
 </resources>

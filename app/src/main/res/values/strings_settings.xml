@@ -169,10 +169,11 @@
     <string name="settings_sleep_title">Deep sleep</string>
     <string name="settings_sleep_none">No lost deep sleep recorded</string>
     <string name="settings_sleep_lost">Lost %1$d times. Tap to show or hide the details.\n%2$s</string>
-    <string name="settings_log_title">Send the log</string>
-    <string name="settings_log_detail">Sends this unit\'s log to the project\'s GitHub issues</string>
-    <string name="settings_log_sending">Sending the log</string>
-    <string name="settings_log_sent">Sent: %1$s</string>
-    <string name="settings_log_no_token">The unit has no GitHub token yet</string>
-    <string name="settings_log_failed">Could not send the log</string>
+    <string name="settings_log_title">Unit log</string>
+    <string name="settings_log_detail">Gives this unit\'s log to the phone, to share as a bug report</string>
+    <string name="settings_log_detail_last">Log saved at %1$s. Tap to send it to the phone</string>
+    <string name="settings_log_sending">Sending the log to the phone</string>
+    <string name="settings_log_sent">Saved on the phone. Open its notification to share it</string>
+    <string name="settings_log_failed">The phone did not take the log</string>
+    <string name="settings_log_no_phone">No phone answered. Link the phone and update its companion app</string>
 </resources>

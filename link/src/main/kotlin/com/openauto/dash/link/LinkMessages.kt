@@ -591,3 +591,27 @@ object LinkCodec {
             null
         }
 }
+
+/**
+ * Head unit → phone: the unit's log (what it did around switch-off and
+ * wake-up), for the driver to share as a bug report. [id] pairs it with the
+ * [CarLogAck].
+ */
+@Serializable
+@SerialName("car_log")
+data class CarLog(val id: Long, val title: String, val text: String) : LinkMessage {
+    companion object {
+        /** The newest part of [text] that fits in one frame, with room for the rest of the message. */
+        fun fit(text: String, maxBytes: Int = LinkSession.MAX_MESSAGE - 1024): String {
+            var t = text
+            // The JSON frame escapes newlines and quotes, so budget double: cut from the front until it fits.
+            while (t.isNotEmpty() && t.toByteArray().size * 2 > maxBytes) t = t.substring(t.length / 4)
+            return t
+        }
+    }
+}
+
+/** Phone → head unit: the [CarLog] is saved on the phone, ready to share. */
+@Serializable
+@SerialName("car_log_ack")
+data class CarLogAck(val id: Long, val ok: Boolean) : LinkMessage

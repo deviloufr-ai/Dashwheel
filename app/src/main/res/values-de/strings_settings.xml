@@ -167,10 +167,11 @@
     <string name="settings_sleep_title">Tiefschlaf</string>
     <string name="settings_sleep_none">Kein verlorener Tiefschlaf aufgezeichnet</string>
     <string name="settings_sleep_lost">%1$d Mal verloren. Tippen, um Details ein- oder auszublenden.\n%2$s</string>
-    <string name="settings_log_title">Protokoll senden</string>
-    <string name="settings_log_detail">Sendet das Protokoll dieses Geräts an die GitHub-Issues des Projekts</string>
-    <string name="settings_log_sending">Protokoll wird gesendet</string>
-    <string name="settings_log_sent">Gesendet: %1$s</string>
-    <string name="settings_log_no_token">Das Gerät hat noch kein GitHub-Token</string>
-    <string name="settings_log_failed">Protokoll konnte nicht gesendet werden</string>
+    <string name="settings_log_title">Geräteprotokoll</string>
+    <string name="settings_log_detail">Gibt das Protokoll dieses Geräts ans Handy, um es als Fehlerbericht zu teilen</string>
+    <string name="settings_log_detail_last">Protokoll gespeichert um %1$s. Tippen, um es ans Handy zu senden</string>
+    <string name="settings_log_sending">Protokoll wird ans Handy gesendet</string>
+    <string name="settings_log_sent">Auf dem Handy gespeichert. Die Benachrichtigung öffnen, um es zu teilen</string>
+    <string name="settings_log_failed">Das Handy hat das Protokoll nicht angenommen</string>
+    <string name="settings_log_no_phone">Kein Handy hat geantwortet. Handy verbinden und die Companion-App aktualisieren</string>
 </resources>

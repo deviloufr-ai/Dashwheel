@@ -134,4 +134,8 @@
     <string name="report_share_subject">Informe del coche: %1$s</string>
     <string name="report_earlier">Mes anterior</string>
     <string name="report_later">Mes siguiente</string>
+    <string name="log_channel">Registro del coche</string>
+    <string name="log_received">El registro del coche está listo</string>
+    <string name="log_received_detail">Toque para compartirlo. El botón abre un issue de GitHub donde adjuntarlo.</string>
+    <string name="log_github">Issue de GitHub</string>
 </resources>

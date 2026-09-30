@@ -1,5 +1,6 @@
 package com.openauto.dash
 
+import android.text.format.DateFormat
 import androidx.annotation.StringRes
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
@@ -991,30 +992,33 @@ internal fun SettingsToggle(icon: ImageVector, title: String, detail: String, ch
     HorizontalDivider(color = DashColors.Line, modifier = Modifier.padding(horizontal = 12.dp))
 }
 
-/** Test builds: sends the unit's log to the project's GitHub issues ([DebugLog]). */
+/** Test builds: gives the unit's log to the phone, to share as a bug report ([DebugLog]). */
 @Composable
 private fun SendLogRow() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var status by remember { mutableStateOf<String?>(null) }
+    var status by remember { mutableStateOf<Int?>(null) }
     var sending by remember { mutableStateOf(false) }
-    val idle = stringResource(R.string.settings_log_detail)
-    val busy = stringResource(R.string.settings_log_sending)
-    val noToken = stringResource(R.string.settings_log_no_token)
-    val failed = stringResource(R.string.settings_log_failed)
+    val last = remember { DebugLog.lastSnapshot(context) }
     SettingsRow(
         Icons.Filled.BugReport, stringResource(R.string.settings_log_title),
-        if (sending) busy else status ?: idle
+        when {
+            sending -> stringResource(R.string.settings_log_sending)
+            status != null -> stringResource(status!!)
+            last != null -> stringResource(R.string.settings_log_detail_last, DateFormat.getTimeFormat(context).format(last))
+            else -> stringResource(R.string.settings_log_detail)
+        }
     ) {
         if (sending) return@SettingsRow
         sending = true
         scope.launch {
-            val result = DebugLog.send(context)
+            val ok = DebugLog.sendToPhone(context)
             sending = false
-            status = result.fold(
-                { context.getString(R.string.settings_log_sent, it) },
-                { if (it.message == "no token") noToken else failed }
-            )
+            status = when (ok) {
+                true -> R.string.settings_log_sent
+                false -> R.string.settings_log_failed
+                null -> R.string.settings_log_no_phone
+            }
         }
     }
 }

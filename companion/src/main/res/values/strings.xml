@@ -135,4 +135,8 @@
     <string name="report_share_subject">Car report: %1$s</string>
     <string name="report_earlier">Earlier month</string>
     <string name="report_later">Later month</string>
+    <string name="log_channel">Car log</string>
+    <string name="log_received">The car\'s log is ready</string>
+    <string name="log_received_detail">Tap to share it. The button opens a GitHub issue to attach it to.</string>
+    <string name="log_github">GitHub issue</string>
 </resources>

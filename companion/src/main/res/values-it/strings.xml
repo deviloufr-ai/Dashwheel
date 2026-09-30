@@ -134,4 +134,8 @@
     <string name="report_share_subject">Resoconto auto: %1$s</string>
     <string name="report_earlier">Mese precedente</string>
     <string name="report_later">Mese successivo</string>
+    <string name="log_channel">Registro dell\'auto</string>
+    <string name="log_received">Il registro dell\'auto è pronto</string>
+    <string name="log_received_detail">Tocca per condividerlo. Il pulsante apre una issue GitHub a cui allegarlo.</string>
+    <string name="log_github">Issue GitHub</string>
 </resources>
