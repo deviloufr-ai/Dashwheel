@@ -299,6 +299,30 @@ internal object EmbeddedApp {
     fun carStarted(context: Context) {
         scope.launch { forgetNaviToRestore(context) }
         mainScope.launch { watchFront(POWER_UP_WATCH_MS) }
+        mainScope.launch { homeAfterPowerUp(context) }
+    }
+
+    /**
+     * The unit wakes on the app that was in front at switch-off (any app, not
+     * only the navigation one): for [POWER_UP_WATCH_MS] after the ignition, as
+     * long as the user has not touched or pressed anything, the dashboard is
+     * put back in front whenever it is not. Main thread.
+     */
+    private suspend fun homeAfterPowerUp(context: Context) {
+        val since = userActedAt
+        val until = SystemClock.elapsedRealtime() + POWER_UP_WATCH_MS
+        while (SystemClock.elapsedRealtime() < until) {
+            delay(WATCH_EVERY_MS)
+            if (userActedAt != since) return
+            if (dashboard?.get() != null) continue
+            val home = Intent(Intent.ACTION_MAIN)
+                .addCategory(Intent.CATEGORY_HOME)
+                .setPackage(context.packageName)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+            runCatching { context.startActivity(home) }
+                .onSuccess { Log.i(TAG, "power-up: an app came up in front of the dashboard, Home brought back") }
+                .onFailure { Log.w(TAG, "power-up: can't bring the dashboard back to the front", it) }
+        }
     }
 
     /** Wipes the firmware's app to reopen at power-up when it is one inside a tile. */
