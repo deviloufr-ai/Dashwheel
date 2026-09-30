@@ -267,6 +267,9 @@ internal object EmbeddedApp {
     /** How long the unit's own opening of an app is watched for, after the ignition comes on. */
     private const val POWER_UP_WATCH_MS = 60_000L
 
+    /** How long after the ignition the dashboard is put back in front of an app the unit reopened. */
+    private const val HOME_AFTER_POWER_UP_MS = 20_000L
+
     /** How long it is watched for once the dashboard got covered without the user. */
     private const val COVERED_WATCH_MS = 10_000L
 
@@ -304,13 +307,13 @@ internal object EmbeddedApp {
 
     /**
      * The unit wakes on the app that was in front at switch-off (any app, not
-     * only the navigation one): for [POWER_UP_WATCH_MS] after the ignition, as
+     * only the navigation one): for [HOME_AFTER_POWER_UP_MS] after the ignition, as
      * long as the user has not touched or pressed anything, the dashboard is
      * put back in front whenever it is not. Main thread.
      */
     private suspend fun homeAfterPowerUp(context: Context) {
         val since = userActedAt
-        val until = SystemClock.elapsedRealtime() + POWER_UP_WATCH_MS
+        val until = SystemClock.elapsedRealtime() + HOME_AFTER_POWER_UP_MS
         while (SystemClock.elapsedRealtime() < until) {
             delay(WATCH_EVERY_MS)
             if (userActedAt != since) return
