@@ -164,4 +164,7 @@
     <string name="bar_look_compact_hint">Libellés sur les jauges ; Wi-Fi et Bluetooth en icônes seules.</string>
     <string name="bar_look_minimal">Minimal</string>
     <string name="bar_look_minimal_hint">Aucun libellé : une petite icône devant chaque jauge.</string>
+    <string name="settings_sleep_title">Veille profonde</string>
+    <string name="settings_sleep_none">Aucune veille profonde perdue enregistrée</string>
+    <string name="settings_sleep_lost">Perdue %1$d fois. Touchez pour afficher ou masquer le détail.\n%2$s</string>
 </resources>

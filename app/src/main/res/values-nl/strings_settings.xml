@@ -164,4 +164,7 @@
     <string name="bar_look_compact_hint">Labels bij de meters; wifi en Bluetooth alleen als pictogram.</string>
     <string name="bar_look_minimal">Minimaal</string>
     <string name="bar_look_minimal_hint">Geen labels: een klein pictogram voor elke meter.</string>
+    <string name="settings_sleep_title">Diepe slaap</string>
+    <string name="settings_sleep_none">Geen verloren diepe slaap geregistreerd</string>
+    <string name="settings_sleep_lost">%1$d keer verloren. Tik om details te tonen of te verbergen.\n%2$s</string>
 </resources>

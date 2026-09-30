@@ -164,4 +164,7 @@
     <string name="bar_look_compact_hint">Podpisy przy wskaźnikach; Wi-Fi i Bluetooth tylko jako ikony.</string>
     <string name="bar_look_minimal">Minimalny</string>
     <string name="bar_look_minimal_hint">Bez podpisów: mała ikona przed każdym wskaźnikiem.</string>
+    <string name="settings_sleep_title">Głęboki sen</string>
+    <string name="settings_sleep_none">Brak zarejestrowanych utraconych głębokich snów</string>
+    <string name="settings_sleep_lost">Utracono %1$d razy. Dotknij, aby pokazać lub ukryć szczegóły.\n%2$s</string>
 </resources>

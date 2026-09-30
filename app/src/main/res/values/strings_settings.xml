@@ -166,4 +166,7 @@
     <string name="bar_look_compact_hint">Captions on the gauges; Wi-Fi and Bluetooth as icons only.</string>
     <string name="bar_look_minimal">Minimal</string>
     <string name="bar_look_minimal_hint">No captions: a small icon in front of each gauge.</string>
+    <string name="settings_sleep_title">Deep sleep</string>
+    <string name="settings_sleep_none">No lost deep sleep recorded</string>
+    <string name="settings_sleep_lost">Lost %1$d times. Tap to show or hide the details.\n%2$s</string>
 </resources>

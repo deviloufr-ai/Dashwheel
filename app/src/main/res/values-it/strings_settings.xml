@@ -164,4 +164,7 @@
     <string name="bar_look_compact_hint">Etichette sugli indicatori; Wi-Fi e Bluetooth solo come icona.</string>
     <string name="bar_look_minimal">Minimo</string>
     <string name="bar_look_minimal_hint">Nessuna etichetta: una piccola icona davanti a ogni indicatore.</string>
+    <string name="settings_sleep_title">Sospensione profonda</string>
+    <string name="settings_sleep_none">Nessuna sospensione profonda persa registrata</string>
+    <string name="settings_sleep_lost">Persa %1$d volte. Tocca per mostrare o nascondere i dettagli.\n%2$s</string>
 </resources>

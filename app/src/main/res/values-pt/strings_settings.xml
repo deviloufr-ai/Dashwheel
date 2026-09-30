@@ -164,4 +164,7 @@
     <string name="bar_look_compact_hint">Legendas nos indicadores; Wi-Fi e Bluetooth só como ícone.</string>
     <string name="bar_look_minimal">Mínimo</string>
     <string name="bar_look_minimal_hint">Sem legendas: um pequeno ícone antes de cada indicador.</string>
+    <string name="settings_sleep_title">Suspensão profunda</string>
+    <string name="settings_sleep_none">Nenhuma suspensão profunda perdida registada</string>
+    <string name="settings_sleep_lost">Perdida %1$d vezes. Toque para mostrar ou ocultar os detalhes.\n%2$s</string>
 </resources>

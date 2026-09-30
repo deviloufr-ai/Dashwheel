@@ -94,6 +94,14 @@ object CarPower {
         edit.apply()
     }
 
+    /** Whether this unit announces its ignition (the QF firmware), so deep sleep is the unit's to lose. */
+    val available: Boolean get() = started
+
+    /** The recorded lost deep sleeps, newest first ([noteBoot]). */
+    fun sleepLost(context: Context): List<String> =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_LOST, "").orEmpty()
+            .split('\n').filter { it.isNotBlank() }
+
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {

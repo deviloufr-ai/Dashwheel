@@ -623,6 +623,15 @@ private fun DrivingPane(m: TopBarModel, onWheelButtons: () -> Unit, onPlaces: ()
         Icons.Filled.PlayCircle, stringResource(R.string.settings_resume_music),
         stringResource(R.string.settings_resume_music_detail), resume
     ) { MediaResume.save(context, it) }
+    if (CarPower.available) {
+        val lost = remember { CarPower.sleepLost(context) }
+        var open by remember { mutableStateOf(false) }
+        SettingsRow(
+            Icons.Filled.DirectionsCar, stringResource(R.string.settings_sleep_title),
+            if (lost.isEmpty()) stringResource(R.string.settings_sleep_none)
+            else stringResource(R.string.settings_sleep_lost, lost.size, if (open) lost.joinToString("\n") else lost.first())
+        ) { open = !open }
+    }
     Spacer(Modifier.height(20.dp))
     SpeedVolumeSetting()
     KeyTargetRows()

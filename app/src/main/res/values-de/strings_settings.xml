@@ -164,4 +164,7 @@
     <string name="bar_look_compact_hint">Beschriftung an den Balken; WLAN und Bluetooth nur als Symbol.</string>
     <string name="bar_look_minimal">Minimal</string>
     <string name="bar_look_minimal_hint">Keine Beschriftung: ein kleines Symbol vor jedem Balken.</string>
+    <string name="settings_sleep_title">Tiefschlaf</string>
+    <string name="settings_sleep_none">Kein verlorener Tiefschlaf aufgezeichnet</string>
+    <string name="settings_sleep_lost">%1$d Mal verloren. Tippen, um Details ein- oder auszublenden.\n%2$s</string>
 </resources>
