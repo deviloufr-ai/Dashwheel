@@ -2,13 +2,11 @@ package com.openauto.dash
 
 import android.content.Context
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,7 +21,6 @@ import androidx.compose.material.icons.filled.Loop
 import androidx.compose.material.icons.filled.Waves
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -208,10 +205,7 @@ private fun ClimateMiddle(c: Climate, fanHeight: Dp) {
 
 @Composable
 private fun ClimatePill(c: Climate) {
-    Surface(
-        color = DashColors.Card.copy(alpha = 1f), shape = DashShape.Pill, shadowElevation = 6.dp,
-        modifier = Modifier.border(1.dp, DashColors.Line, DashShape.Pill)
-    ) {
+    AlertSurface(AlertStyle.PILL) {
         Row(Modifier.padding(horizontal = 18.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Temp(c.left, 18)
             Spacer(Modifier.width(14.dp))
@@ -224,7 +218,7 @@ private fun ClimatePill(c: Climate) {
 
 @Composable
 private fun ClimateCard(c: Climate) {
-    SolidCard {
+    AlertSurface(AlertStyle.CARD) {
         Row(
             modifier = Modifier.padding(horizontal = 24.dp, vertical = 14.dp).widthIn(min = 360.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -241,10 +235,7 @@ private fun ClimateCard(c: Climate) {
 
 @Composable
 private fun ClimateBanner(c: Climate) {
-    Surface(
-        color = DashColors.Card.copy(alpha = 1f), shape = DashShape.Medium, shadowElevation = 8.dp,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp).border(1.dp, DashColors.Line, DashShape.Medium)
-    ) {
+    AlertSurface(AlertStyle.BANNER) {
         Row(
             Modifier.padding(horizontal = 32.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -259,24 +250,21 @@ private fun ClimateBanner(c: Climate) {
 
 @Composable
 private fun ClimatePanel(c: Climate) {
-    Surface(color = DashColors.Card.copy(alpha = 1f), shadowElevation = 12.dp, modifier = Modifier.fillMaxSize()) {
-        Row(Modifier.fillMaxSize()) {
-            Box(Modifier.width(1.dp).fillMaxHeight().background(DashColors.Line))
-            Column(
-                modifier = Modifier.fillMaxSize().padding(28.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Text(
-                    stringResource(R.string.alert_kind_ac).uppercase(), color = DashColors.Accent, letterSpacing = 1.5.sp,
-                    fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge
-                )
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    Temp(c.left, 52)
-                    Temp(c.right, 52)
-                }
-                ClimateMiddle(c, 36.dp)
+    AlertSurface(AlertStyle.PANEL) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Text(
+                stringResource(R.string.alert_kind_ac).uppercase(), color = DashColors.Accent, letterSpacing = 1.5.sp,
+                fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge
+            )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                Temp(c.left, 52)
+                Temp(c.right, 52)
             }
+            ClimateMiddle(c, 36.dp)
         }
     }
 }

@@ -50,6 +50,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -312,20 +313,22 @@ private fun StyleOption(kind: AlertKind, style: AlertStyle, selected: Boolean, m
 @Composable
 private fun StyleThumbnail(kind: AlertKind, style: AlertStyle, modifier: Modifier) {
     val screen = DashColors.Background.copy(alpha = 1f)
-    val tile = DashColors.CardHi.copy(alpha = 1f)
+    val tile = DashColors.CardHi.compositeOver(DashColors.Card.copy(alpha = 1f))
     val alert = kind.tint()
     val frame = DashColors.Line
+    val square = alertSquare
     Canvas(modifier.clip(DashShape.Small)) {
         val w = size.width
         val h = size.height
-        val r = CornerRadius(h * 0.04f)
+        // The look's corners: square plates in the hard-edged looks (AlertChrome.kt).
+        val r = CornerRadius(h * if (square) 0.015f else 0.04f)
         drawRect(screen)
         // The dashboard behind: three tiles.
         val gap = w * 0.03f
         val tw = (w - gap * 4) / 3f
         repeat(3) { i -> drawRoundRect(tile, Offset(gap + i * (tw + gap), h * 0.12f), Size(tw, h * 0.76f), r) }
         when (style) {
-            AlertStyle.PILL -> drawRoundRect(alert, Offset(w * 0.36f, h * 0.05f), Size(w * 0.28f, h * 0.12f), CornerRadius(h))
+            AlertStyle.PILL -> drawRoundRect(alert, Offset(w * 0.36f, h * 0.05f), Size(w * 0.28f, h * 0.12f), if (square) r else CornerRadius(h))
             AlertStyle.CARD -> when (kind.cardAt) {
                 CardAt.TOP -> drawRoundRect(alert, Offset(w * 0.3f, h * 0.07f), Size(w * 0.4f, h * 0.22f), r)
                 CardAt.TOP_END -> drawRoundRect(alert, Offset(w * 0.56f, h * 0.07f), Size(w * 0.4f, h * 0.22f), r)

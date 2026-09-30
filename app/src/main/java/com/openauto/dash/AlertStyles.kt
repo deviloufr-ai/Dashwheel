@@ -21,7 +21,6 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -29,7 +28,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -62,6 +60,7 @@ import kotlin.math.max
 /*
  * How Dashwheel's own alerts look, chosen per alert in Settings, Look: the
  * phone's calls ([PhoneCallOverlay]) and the open doors ([DoorAlertOverlay]).
+ * The chosen design is dressed in the dashboard's look (AlertChrome.kt).
  * Each shows in an overlay window of its own ([AlertWindow]) over whatever app
  * fills the screen, or inside the launcher without "display over other apps"
  * ([AlertPopup]).
@@ -387,24 +386,21 @@ internal fun AlertPopup(style: AlertStyle, cardAlignment: Alignment, content: @C
 }
 
 /**
- * The full-screen design: everything behind dimmed, [content] in a solid card
- * in the middle. A tap outside the card runs [onTap] (and never reaches what's behind).
+ * The full-screen design: everything behind veiled in the look's own page
+ * colour, [content] in a solid card in the middle, dressed like the other
+ * designs ([AlertSurface], lit in [tone]). A tap outside the card runs
+ * [onTap] (and never reaches what's behind).
  */
 @Composable
-internal fun FullScreenModal(onTap: () -> Unit, content: @Composable () -> Unit) {
+internal fun FullScreenModal(onTap: () -> Unit, tone: Color = DashColors.Accent, content: @Composable () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.62f))
+            .background(DashColors.Background.copy(alpha = if (DashColors.Light) 0.72f else 0.66f))
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onTap),
         contentAlignment = Alignment.Center
     ) {
-        Surface(
-            color = DashColors.Card.copy(alpha = 1f),
-            shape = DashShape.Large,
-            shadowElevation = 16.dp,
-            modifier = Modifier.fillMaxWidth(0.72f).fillMaxHeight(0.78f).border(1.dp, DashColors.Line, DashShape.Large)
-        ) {
+        AlertSurface(AlertStyle.FULL, Modifier.fillMaxWidth(0.72f).fillMaxHeight(0.78f), tone = tone) {
             Box(contentAlignment = Alignment.Center) { content() }
         }
     }

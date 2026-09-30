@@ -1,13 +1,8 @@
 package com.openauto.dash
 
 import android.content.Context
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -15,7 +10,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AirlineSeatReclineNormal
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -95,29 +89,23 @@ internal fun beltReminder(driverUnbuckled: Boolean, moving: Boolean): Boolean = 
 private fun BeltAlert(style: AlertStyle) {
     val text = stringResource(R.string.car_belt_fasten)
     when (style) {
-        AlertStyle.BANNER -> Surface(
-            color = DashColors.Card.copy(alpha = 1f), shape = DashShape.Medium, shadowElevation = 8.dp,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp).border(1.dp, DashColors.Line, DashShape.Medium)
-        ) {
+        AlertStyle.BANNER -> AlertSurface(AlertStyle.BANNER, tone = DashColors.Critical) {
             Row(Modifier.padding(horizontal = 18.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.width(4.dp).height(40.dp).background(DashColors.Critical, DashShape.Pill))
+                AlertStripe(DashColors.Critical)
                 Spacer(Modifier.width(14.dp))
                 Icon(Icons.Filled.AirlineSeatReclineNormal, contentDescription = null, tint = DashColors.Critical, modifier = Modifier.size(30.dp))
                 Spacer(Modifier.width(14.dp))
                 Text(text, color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
             }
         }
-        AlertStyle.CARD -> SolidCard {
+        AlertStyle.CARD -> AlertSurface(AlertStyle.CARD, tone = DashColors.Critical) {
             Row(Modifier.padding(horizontal = 20.dp, vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Filled.AirlineSeatReclineNormal, contentDescription = null, tint = DashColors.Critical, modifier = Modifier.size(40.dp))
                 Spacer(Modifier.width(14.dp))
                 Text(text, color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleLarge)
             }
         }
-        else -> Surface(
-            color = DashColors.Card.copy(alpha = 1f), shape = DashShape.Pill, shadowElevation = 6.dp,
-            modifier = Modifier.border(1.dp, DashColors.Critical.copy(alpha = 0.6f), DashShape.Pill)
-        ) {
+        else -> AlertSurface(AlertStyle.PILL, tone = DashColors.Critical) {
             Row(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Filled.AirlineSeatReclineNormal, contentDescription = null, tint = DashColors.Critical, modifier = Modifier.size(22.dp))
                 Spacer(Modifier.width(10.dp))

@@ -159,6 +159,9 @@ private val TdBezelOuter get() = tone(Color(0xFF0A0812), Color(0xFF8E91A0))
 /** Behind the LED readouts: the black VFD glass at night, a pearl panel by day. */
 private val TdPanel get() = tone(TdVfd, Color(0xFFFFFBFD))
 
+/** The same glass behind an alert (AlertChrome.kt). */
+internal val TapeDeckGlass: Color get() = TdPanel
+
 /** Ink printed on the cassette label and the white keys: the shell colour at night, deep purple by day. */
 private val TdPrint get() = if (DashColors.Light) DashColors.TextPrimary else TdShell
 

@@ -2,7 +2,6 @@ package com.openauto.dash
 
 import android.content.Context
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -117,44 +116,42 @@ internal fun MessageAlertHost() {
     replying?.let { PhoneMessageSheet(it) { replying = null } }
     val n = item ?: return
     AlertPopup(AlertStyle.CARD, Alignment.TopCenter) {
-        Row(
-            modifier = Modifier
-                .widthIn(min = 360.dp, max = 620.dp)
-                // A solid card under the glass: over the dashboard it must read on its own.
-                .clip(DashShape.Large)
-                .background(DashColors.Card.copy(alpha = 1f))
-                .then(glassPanel(DashShape.Large))
-                .clickable {
-                    MessageAlerts.dismiss()
-                    replying = n
-                }
-                .padding(start = 16.dp, end = 6.dp, top = 12.dp, bottom = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
+        AlertSurface(
+            AlertStyle.CARD,
+            Modifier.widthIn(min = 360.dp, max = 620.dp).clickable {
+                MessageAlerts.dismiss()
+                replying = n
+            }
         ) {
-            val icon = remember(n.icon) { n.icon?.asImageBitmap() }
-            if (icon != null) {
-                Image(icon, contentDescription = null, modifier = Modifier.size(40.dp).clip(CircleShape))
-            } else {
-                Icon(Icons.Filled.Chat, contentDescription = null, tint = DashColors.Accent, modifier = Modifier.size(32.dp))
-            }
-            Spacer(Modifier.width(14.dp))
-            Column(Modifier.weight(1f)) {
-                Text(
-                    n.title.ifEmpty { n.appLabel }, color = DashColors.TextPrimary, fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis
-                )
-                val body = n.messages.lastOrNull()?.text ?: n.text
-                if (body.isNotBlank()) {
-                    Text(body, color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Row(
+                modifier = Modifier.padding(start = 16.dp, end = 6.dp, top = 12.dp, bottom = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val icon = remember(n.icon) { n.icon?.asImageBitmap() }
+                if (icon != null) {
+                    Image(icon, contentDescription = null, modifier = Modifier.size(40.dp).clip(CircleShape))
+                } else {
+                    Icon(Icons.Filled.Chat, contentDescription = null, tint = DashColors.Accent, modifier = Modifier.size(32.dp))
                 }
-                Text(n.appLabel, color = DashColors.Muted, style = MaterialTheme.typography.labelSmall, maxLines = 1)
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(0.dp)) {
-                IconButton(onClick = { MessageAlerts.readOut(context, n); MessageAlerts.dismiss() }) {
-                    Icon(Icons.Filled.VolumeUp, contentDescription = stringResource(R.string.message_alert_read), tint = DashColors.Accent)
+                Spacer(Modifier.width(14.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        n.title.ifEmpty { n.appLabel }, color = DashColors.TextPrimary, fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis
+                    )
+                    val body = n.messages.lastOrNull()?.text ?: n.text
+                    if (body.isNotBlank()) {
+                        Text(body, color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    }
+                    Text(n.appLabel, color = DashColors.Muted, style = MaterialTheme.typography.labelSmall, maxLines = 1)
                 }
-                IconButton(onClick = { MessageAlerts.dismiss() }) {
-                    Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.dash_close), tint = DashColors.TextSecondary)
+                Row(horizontalArrangement = Arrangement.spacedBy(0.dp)) {
+                    IconButton(onClick = { MessageAlerts.readOut(context, n); MessageAlerts.dismiss() }) {
+                        Icon(Icons.Filled.VolumeUp, contentDescription = stringResource(R.string.message_alert_read), tint = DashColors.Accent)
+                    }
+                    IconButton(onClick = { MessageAlerts.dismiss() }) {
+                        Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.dash_close), tint = DashColors.TextSecondary)
+                    }
                 }
             }
         }

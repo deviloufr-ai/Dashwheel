@@ -5,16 +5,13 @@ import android.os.SystemClock
 import android.provider.Settings
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -26,7 +23,6 @@ import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.CallEnd
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -324,7 +320,7 @@ private fun callTitle(call: PhoneCall): String = call.title ?: stringResource(R.
 @Composable
 internal fun CallCard(call: PhoneCall) {
     val ringing = call.ringing
-    SolidCard {
+    AlertSurface(AlertStyle.CARD) {
         Row(
             modifier = Modifier.padding(horizontal = 18.dp, vertical = if (ringing) 16.dp else 10.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -350,7 +346,7 @@ internal fun CallCard(call: PhoneCall) {
 /** A capsule at the top: the least in the way. */
 @Composable
 private fun CallPill(call: PhoneCall) {
-    Surface(color = DashColors.Card.copy(alpha = 1f), shape = DashShape.Pill, shadowElevation = 6.dp, modifier = Modifier.border(1.dp, DashColors.Line, DashShape.Pill)) {
+    AlertSurface(AlertStyle.PILL) {
         Row(Modifier.padding(start = 8.dp, end = 8.dp, top = 6.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
             CallerAvatar(call, 36.dp)
             Spacer(Modifier.width(10.dp))
@@ -369,12 +365,7 @@ private fun CallPill(call: PhoneCall) {
 /** A strip across the whole top of the screen. */
 @Composable
 private fun CallBanner(call: PhoneCall) {
-    Surface(
-        color = DashColors.Card.copy(alpha = 1f),
-        shape = DashShape.Medium,
-        shadowElevation = 8.dp,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp).border(1.dp, DashColors.Line, DashShape.Medium)
-    ) {
+    AlertSurface(AlertStyle.BANNER) {
         Row(Modifier.padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             CallerAvatar(call, 52.dp)
             Spacer(Modifier.width(14.dp))
@@ -391,33 +382,30 @@ private fun CallBanner(call: PhoneCall) {
 /** A full-height panel on the right: the caller large, the buttons large at the bottom. */
 @Composable
 private fun CallPanel(call: PhoneCall) {
-    Surface(color = DashColors.Card.copy(alpha = 1f), shadowElevation = 12.dp, modifier = Modifier.fillMaxSize()) {
-        Row(Modifier.fillMaxSize()) {
-            Box(Modifier.width(1.dp).fillMaxSize().background(DashColors.Line))
-            Column(
-                modifier = Modifier.fillMaxSize().padding(horizontal = 28.dp, vertical = 32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    listOfNotNull(call.app, stringResource(R.string.phone_call_incoming)).joinToString(" · ").uppercase(),
-                    color = DashColors.Accent, letterSpacing = 1.5.sp,
-                    fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge
-                )
-                Spacer(Modifier.weight(1f))
-                CallerAvatar(call, 148.dp)
-                Spacer(Modifier.height(22.dp))
-                Text(
-                    callTitle(call), color = DashColors.TextPrimary, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
-                    maxLines = 2, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.headlineMedium
-                )
-                if (call.name != null && call.number != null) {
-                    Spacer(Modifier.height(6.dp))
-                    Text(call.number, color = DashColors.TextSecondary, style = MaterialTheme.typography.titleMedium)
-                }
-                NoControlLine(call, TextAlign.Center)
-                Spacer(Modifier.weight(1f))
-                CallButtons(call, 84.dp, 56.dp, labels = true)
+    AlertSurface(AlertStyle.PANEL) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 28.dp, vertical = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                listOfNotNull(call.app, stringResource(R.string.phone_call_incoming)).joinToString(" · ").uppercase(),
+                color = DashColors.Accent, letterSpacing = 1.5.sp,
+                fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge
+            )
+            Spacer(Modifier.weight(1f))
+            CallerAvatar(call, 148.dp)
+            Spacer(Modifier.height(22.dp))
+            Text(
+                callTitle(call), color = DashColors.TextPrimary, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
+                maxLines = 2, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.headlineMedium
+            )
+            if (call.name != null && call.number != null) {
+                Spacer(Modifier.height(6.dp))
+                Text(call.number, color = DashColors.TextSecondary, style = MaterialTheme.typography.titleMedium)
             }
+            NoControlLine(call, TextAlign.Center)
+            Spacer(Modifier.weight(1f))
+            CallButtons(call, 84.dp, 56.dp, labels = true)
         }
     }
 }

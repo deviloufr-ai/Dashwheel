@@ -6,11 +6,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,12 +22,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -40,6 +34,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
@@ -181,7 +176,7 @@ private fun Modifier.hideOnTap(): Modifier {
 
 @Composable
 private fun DoorCard(doors: McuReader.DoorState) {
-    SolidCard(Modifier.hideOnTap()) {
+    AlertSurface(AlertStyle.CARD, Modifier.hideOnTap(), tone = DashColors.Warning) {
         Row(
             modifier = Modifier.padding(horizontal = 18.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -202,10 +197,7 @@ private fun DoorCard(doors: McuReader.DoorState) {
 /** A capsule at the top: the least in the way. */
 @Composable
 private fun DoorPill(doors: McuReader.DoorState) {
-    Surface(
-        color = DashColors.Card.copy(alpha = 1f), shape = DashShape.Pill, shadowElevation = 6.dp,
-        modifier = Modifier.border(1.dp, DashColors.Warning.copy(alpha = 0.6f), DashShape.Pill).hideOnTap()
-    ) {
+    AlertSurface(AlertStyle.PILL, Modifier.hideOnTap(), tone = DashColors.Warning) {
         Row(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Filled.DirectionsCar, contentDescription = null, tint = DashColors.Warning, modifier = Modifier.size(22.dp))
             Spacer(Modifier.width(10.dp))
@@ -220,13 +212,9 @@ private fun DoorPill(doors: McuReader.DoorState) {
 /** A strip across the whole top of the screen. */
 @Composable
 private fun DoorBanner(doors: McuReader.DoorState) {
-    Surface(
-        color = DashColors.Card.copy(alpha = 1f), shape = DashShape.Medium, shadowElevation = 8.dp,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)
-            .border(1.dp, DashColors.Line, DashShape.Medium).hideOnTap()
-    ) {
+    AlertSurface(AlertStyle.BANNER, Modifier.hideOnTap(), tone = DashColors.Warning) {
         Row(Modifier.padding(horizontal = 18.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.width(4.dp).height(40.dp).background(DashColors.Warning, DashShape.Pill))
+            AlertStripe(DashColors.Warning)
             Spacer(Modifier.width(14.dp))
             CarFromAbove(doors, Modifier.size(width = 28.dp, height = 46.dp))
             Spacer(Modifier.width(14.dp))
@@ -246,25 +234,22 @@ private fun DoorBanner(doors: McuReader.DoorState) {
 /** A full-height panel on the right with the car drawn large, its open doors swung out. */
 @Composable
 private fun DoorPanel(doors: McuReader.DoorState) {
-    Surface(color = DashColors.Card.copy(alpha = 1f), shadowElevation = 12.dp, modifier = Modifier.fillMaxSize().hideOnTap()) {
-        Row(Modifier.fillMaxSize()) {
-            Box(Modifier.width(1.dp).fillMaxHeight().background(DashColors.Line))
-            Column(
-                modifier = Modifier.fillMaxSize().padding(horizontal = 28.dp, vertical = 28.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    stringResource(R.string.vehicle_door_any_open).uppercase(), color = DashColors.Warning, letterSpacing = 1.5.sp,
-                    fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge
-                )
-                CarFromAbove(doors, Modifier.weight(1f).fillMaxWidth().padding(vertical = 16.dp))
-                Text(
-                    openDoorNames(doors), color = DashColors.TextPrimary, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.headlineSmall
-                )
-                Spacer(Modifier.height(8.dp))
-                Text(stringResource(R.string.alert_tap_to_hide), color = DashColors.Muted, style = MaterialTheme.typography.bodySmall)
-            }
+    AlertSurface(AlertStyle.PANEL, Modifier.hideOnTap(), tone = DashColors.Warning) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 28.dp, vertical = 28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                stringResource(R.string.vehicle_door_any_open).uppercase(), color = DashColors.Warning, letterSpacing = 1.5.sp,
+                fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge
+            )
+            CarFromAbove(doors, Modifier.weight(1f).fillMaxWidth().padding(vertical = 16.dp))
+            Text(
+                openDoorNames(doors), color = DashColors.TextPrimary, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.headlineSmall
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(stringResource(R.string.alert_tap_to_hide), color = DashColors.Muted, style = MaterialTheme.typography.bodySmall)
         }
     }
 }
@@ -273,7 +258,7 @@ private fun DoorPanel(doors: McuReader.DoorState) {
 @Composable
 private fun DoorFullScreen(doors: McuReader.DoorState) {
     val tap = rememberTapFeedback()
-    FullScreenModal(onTap = { tap(); DoorAlertOverlay.dismiss() }) {
+    FullScreenModal(onTap = { tap(); DoorAlertOverlay.dismiss() }, tone = DashColors.Warning) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 40.dp, vertical = 28.dp)) {
             CarFromAbove(doors, Modifier.fillMaxHeight().width(240.dp))
             Spacer(Modifier.width(40.dp))
@@ -308,7 +293,8 @@ internal fun CarFromAbove(doors: McuReader.DoorState, modifier: Modifier = Modif
     val tail by animateFloatAsState(swing(doors.tailgate), spec, label = "tail")
     val bonnet by animateFloatAsState(swing(doors.bonnet), spec, label = "bonnet")
 
-    val body = DashColors.CardHi.copy(alpha = 1f)
+    // A translucent CardHi (the glass and skinned looks) laid on the card, not made opaque as it is: that is white.
+    val body = DashColors.CardHi.compositeOver(DashColors.Card.copy(alpha = 1f))
     val edge = DashColors.TextSecondary
     // Tinted from the outline, so the windows show on light and dark themes alike.
     val glass = edge.copy(alpha = 0.24f)

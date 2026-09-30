@@ -3,7 +3,6 @@ package com.openauto.dash
 import android.content.Context
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,7 +18,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -29,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
@@ -134,10 +133,7 @@ private fun nearestLabel(radar: Radar): String {
 @Composable
 private fun RadarPill(radar: Radar) {
     val closest = radar.closest
-    Surface(
-        color = DashColors.Card.copy(alpha = 1f), shape = DashShape.Pill, shadowElevation = 6.dp,
-        modifier = Modifier.border(1.dp, levelColor(closest), DashShape.Pill)
-    ) {
+    AlertSurface(AlertStyle.PILL, tone = levelColor(closest)) {
         Row(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Filled.Sensors, contentDescription = null, tint = levelColor(closest), modifier = Modifier.size(22.dp))
             Spacer(Modifier.width(10.dp))
@@ -148,8 +144,9 @@ private fun RadarPill(radar: Radar) {
             Spacer(Modifier.width(12.dp))
             // Fuller as something gets closer.
             val fill = if (closest == null) 0f else (Radar.MAX_LEVEL + 1 - closest) / Radar.MAX_LEVEL.toFloat()
-            Box(Modifier.width(90.dp).height(8.dp).background(DashColors.CardHi, DashShape.Pill)) {
-                Box(Modifier.fillMaxHeight().fillMaxWidth(fill).background(levelColor(closest), DashShape.Pill))
+            val bar = if (alertSquare) DashShape.Small else DashShape.Pill
+            Box(Modifier.width(90.dp).height(8.dp).background(DashColors.CardHi, bar)) {
+                Box(Modifier.fillMaxHeight().fillMaxWidth(fill).background(levelColor(closest), bar))
             }
         }
     }
@@ -157,7 +154,7 @@ private fun RadarPill(radar: Radar) {
 
 @Composable
 private fun RadarCard(radar: Radar) {
-    SolidCard {
+    AlertSurface(AlertStyle.CARD, tone = levelColor(radar.closest)) {
         Column(Modifier.padding(14.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             RadarFromAbove(radar, Modifier.size(width = 130.dp, height = 240.dp))
         }
@@ -166,21 +163,18 @@ private fun RadarCard(radar: Radar) {
 
 @Composable
 private fun RadarPanel(radar: Radar) {
-    Surface(color = DashColors.Card.copy(alpha = 1f), shadowElevation = 12.dp, modifier = Modifier.fillMaxSize()) {
-        Row(Modifier.fillMaxSize()) {
-            Box(Modifier.width(1.dp).fillMaxHeight().background(DashColors.Line))
-            Column(
-                modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    stringResource(R.string.alert_radar_title).uppercase(), color = DashColors.Accent, letterSpacing = 1.5.sp,
-                    fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge
-                )
-                RadarFromAbove(radar, Modifier.weight(1f).fillMaxWidth().padding(vertical = 12.dp))
-                if (radar.closest != null) {
-                    Text(nearestLabel(radar), color = levelColor(radar.closest), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.headlineSmall)
-                }
+    AlertSurface(AlertStyle.PANEL, tone = levelColor(radar.closest)) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                stringResource(R.string.alert_radar_title).uppercase(), color = DashColors.Accent, letterSpacing = 1.5.sp,
+                fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge
+            )
+            RadarFromAbove(radar, Modifier.weight(1f).fillMaxWidth().padding(vertical = 12.dp))
+            if (radar.closest != null) {
+                Text(nearestLabel(radar), color = levelColor(radar.closest), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.headlineSmall)
             }
         }
     }
@@ -193,7 +187,8 @@ private fun RadarPanel(radar: Radar) {
  */
 @Composable
 internal fun RadarFromAbove(radar: Radar, modifier: Modifier = Modifier) {
-    val body = DashColors.CardHi.copy(alpha = 1f)
+    // A translucent CardHi (the glass and skinned looks) laid on the card, not made opaque as it is: that is white.
+    val body = DashColors.CardHi.compositeOver(DashColors.Card.copy(alpha = 1f))
     val edge = DashColors.TextSecondary
     val glass = edge.copy(alpha = 0.24f)
     val warn = DashColors.Warning

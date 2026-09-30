@@ -1,11 +1,9 @@
 package com.openauto.dash
 
 import android.content.Context
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,7 +19,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.TireRepair
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -126,10 +123,7 @@ private fun TyreAlert(tyres: Map<TyrePos, Tyre>, style: AlertStyle) {
     val worst = problems.entries.minByOrNull { it.value.ordinal }?.toPair()
     val headline = worst?.let { (pos, p) -> "${stringResource(pos.labelRes)}: ${stringResource(p.labelRes)}" } ?: stringResource(R.string.car_tyres_alert)
     when (style) {
-        AlertStyle.PILL -> Surface(
-            color = DashColors.Card.copy(alpha = 1f), shape = DashShape.Pill, shadowElevation = 6.dp,
-            modifier = Modifier.border(1.dp, DashColors.Critical.copy(alpha = 0.6f), DashShape.Pill).then(hide)
-        ) {
+        AlertStyle.PILL -> AlertSurface(AlertStyle.PILL, hide, tone = DashColors.Critical) {
             Row(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Filled.TireRepair, contentDescription = null, tint = DashColors.Critical, modifier = Modifier.size(22.dp))
                 Spacer(Modifier.width(10.dp))
@@ -137,12 +131,9 @@ private fun TyreAlert(tyres: Map<TyrePos, Tyre>, style: AlertStyle) {
                     overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.widthIn(max = 380.dp))
             }
         }
-        AlertStyle.BANNER -> Surface(
-            color = DashColors.Card.copy(alpha = 1f), shape = DashShape.Medium, shadowElevation = 8.dp,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp).border(1.dp, DashColors.Line, DashShape.Medium).then(hide)
-        ) {
+        AlertStyle.BANNER -> AlertSurface(AlertStyle.BANNER, hide, tone = DashColors.Critical) {
             Row(Modifier.padding(horizontal = 18.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.width(4.dp).height(40.dp).background(DashColors.Critical, DashShape.Pill))
+                AlertStripe(DashColors.Critical)
                 Spacer(Modifier.width(14.dp))
                 Icon(Icons.Filled.TireRepair, contentDescription = null, tint = DashColors.Critical, modifier = Modifier.size(30.dp))
                 Spacer(Modifier.width(14.dp))
@@ -150,20 +141,17 @@ private fun TyreAlert(tyres: Map<TyrePos, Tyre>, style: AlertStyle) {
                 worst?.let { (pos, _) -> tyres[pos]?.let { Text(formatPressure(it.kPa, unit), color = DashColors.Critical, style = MaterialTheme.typography.titleMedium) } }
             }
         }
-        AlertStyle.PANEL -> Surface(color = DashColors.Card.copy(alpha = 1f), shadowElevation = 12.dp, modifier = Modifier.fillMaxSize().then(hide)) {
-            Row(Modifier.fillMaxSize()) {
-                Box(Modifier.width(1.dp).fillMaxHeight().background(DashColors.Line))
-                Column(Modifier.fillMaxSize().padding(28.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(stringResource(R.string.car_tyres_alert).uppercase(), color = DashColors.Critical, letterSpacing = 1.5.sp,
-                        fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge)
-                    Spacer(Modifier.height(16.dp))
-                    TyreGrid(tyres, problems, unit, Modifier.weight(1f).fillMaxWidth(), large = true)
-                    Spacer(Modifier.height(12.dp))
-                    Text(stringResource(R.string.alert_tap_to_hide), color = DashColors.Muted, style = MaterialTheme.typography.bodySmall)
-                }
+        AlertStyle.PANEL -> AlertSurface(AlertStyle.PANEL, hide, tone = DashColors.Critical) {
+            Column(Modifier.fillMaxSize().padding(28.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(stringResource(R.string.car_tyres_alert).uppercase(), color = DashColors.Critical, letterSpacing = 1.5.sp,
+                    fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge)
+                Spacer(Modifier.height(16.dp))
+                TyreGrid(tyres, problems, unit, Modifier.weight(1f).fillMaxWidth(), large = true)
+                Spacer(Modifier.height(12.dp))
+                Text(stringResource(R.string.alert_tap_to_hide), color = DashColors.Muted, style = MaterialTheme.typography.bodySmall)
             }
         }
-        AlertStyle.FULL -> FullScreenModal(onTap = { tap(); TyreAlertOverlay.dismiss() }) {
+        AlertStyle.FULL -> FullScreenModal(onTap = { tap(); TyreAlertOverlay.dismiss() }, tone = DashColors.Critical) {
             Column(Modifier.padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(headline, color = DashColors.Critical, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.headlineMedium)
                 Spacer(Modifier.height(20.dp))
@@ -172,7 +160,7 @@ private fun TyreAlert(tyres: Map<TyrePos, Tyre>, style: AlertStyle) {
                 Text(stringResource(R.string.alert_tap_to_hide), color = DashColors.Muted, style = MaterialTheme.typography.bodyMedium)
             }
         }
-        else -> SolidCard(hide) {
+        else -> AlertSurface(AlertStyle.CARD, hide, tone = DashColors.Critical) {
             Column(Modifier.padding(16.dp).width(300.dp)) {
                 Text(headline, color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold, maxLines = 2, style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.height(10.dp))

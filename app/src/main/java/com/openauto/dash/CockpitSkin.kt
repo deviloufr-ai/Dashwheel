@@ -181,11 +181,11 @@ private val Halo get() = if (DashColors.Light) 0.5f else 1f
 /** Black for a cast shadow; a bit softer by day on the light leather. */
 private fun castShadow(alpha: Float): Color = Color.Black.copy(alpha = if (DashColors.Light) alpha * 0.6f else alpha)
 
-/** Diagonal turned-chrome: bright, dark band, bright again, dark edge. */
-private fun chromeBrush(from: Offset, to: Offset): Brush = Brush.linearGradient(
-    0f to Chrome0, 0.38f to Chrome1, 0.56f to Chrome2, 1f to Chrome3,
-    start = from, end = to
-)
+/** Turned chrome: bright, dark band, bright again, dark edge (also an alert's bezel, AlertChrome.kt). */
+internal val CockpitChromeStops: Array<Pair<Float, Color>> = arrayOf(0f to Chrome0, 0.38f to Chrome1, 0.56f to Chrome2, 1f to Chrome3)
+
+/** Diagonal turned-chrome. */
+private fun chromeBrush(from: Offset, to: Offset): Brush = Brush.linearGradient(*CockpitChromeStops, start = from, end = to)
 
 /** Vertical chrome for the pill buttons. */
 private fun pillBrush(height: Float): Brush = Brush.verticalGradient(
