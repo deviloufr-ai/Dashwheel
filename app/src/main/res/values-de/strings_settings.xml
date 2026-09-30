@@ -174,4 +174,14 @@
     <string name="settings_log_sent">Auf dem Handy gespeichert. Die Benachrichtigung öffnen, um es zu teilen</string>
     <string name="settings_log_failed">Das Handy hat das Protokoll nicht angenommen</string>
     <string name="settings_log_no_phone">Kein Handy hat geantwortet. Handy verbinden und die Companion-App aktualisieren</string>
+    <!-- About tab -->
+    <string name="about_author_section">Erstellt von</string>
+    <string name="about_description">Dashwheel ist ein Launcher für Android-Autoradios: Karte, Musik und Fahrzeugdaten auf einem ruhigen Bildschirm, mit Dashboards, die Sie selbst anordnen. Kostenlos und Open Source.</string>
+    <string name="about_author_role">Entwickler</string>
+    <string name="about_support_section">Dashwheel unterstützen</string>
+    <string name="about_support_text">Dashwheel ist kostenlos. Wenn es Ihnen gefällt, hilft ein Kaffee weiter.</string>
+    <string name="about_kofi">Spendiere mir einen Kaffee auf Ko-fi</string>
+    <string name="about_scan">Mit dem Handy scannen</string>
+    <string name="about_project">Projektseite</string>
+    <string name="about_project_detail">Quellcode, Versionen und Fehlermeldungen</string>
 </resources>

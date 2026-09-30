@@ -4,6 +4,10 @@ import android.text.format.DateFormat
 import androidx.annotation.StringRes
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.Image
+import android.net.Uri
+import android.content.Intent
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,7 +43,9 @@ import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Handyman
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.NotificationsActive
@@ -113,7 +119,8 @@ internal enum class SettingsTab(@StringRes val titleRes: Int, val icon: ImageVec
     ALERTS(R.string.alert_section, Icons.Filled.NotificationsActive),
     DRIVING(R.string.settings_section_driving, Icons.Filled.Speed),
     PHONE(R.string.settings_section_phone, Icons.Filled.PhoneAndroid),
-    ADVANCED(R.string.settings_section_advanced, Icons.Filled.Tune)
+    ADVANCED(R.string.settings_section_advanced, Icons.Filled.Tune),
+    ABOUT(R.string.settings_section_about, Icons.Filled.Info)
 }
 
 /** The settings that open further into the pane. */
@@ -193,6 +200,7 @@ internal fun SettingsScreen(
                         SettingsTab.DRIVING -> DrivingPane(m, onWheelButtons = { deep = Deep.WHEEL }, onPlaces = { deep = Deep.PLACES })
                         SettingsTab.PHONE -> PhonePane()
                         SettingsTab.ADVANCED -> AdvancedPane(m, onBootLogo = { bootLogo = true }, onPickObd = onPickObd, onClose = onClose)
+                        SettingsTab.ABOUT -> AboutPane(m)
                     }
                 }
                 MoreBelow(scroll, Modifier.align(Alignment.BottomCenter))
@@ -756,9 +764,65 @@ private fun AdvancedPane(m: TopBarModel, onBootLogo: () -> Unit, onPickObd: () -
     SettingsSection(stringResource(R.string.setup_access_title))
     Column(modifier = Modifier.padding(horizontal = 12.dp)) { AccessRows(onPickObd) }
     SettingsRow(Icons.Filled.Checklist, stringResource(R.string.setup_again), stringResource(R.string.setup_again_detail)) { m.onSetup(true) }
+}
+
+private const val KOFI_URL = "https://ko-fi.com/deviloufr"
+private const val PROJECT_URL = "https://github.com/deviloufr-ai/Dashwheel"
+
+/** Who made the app, what it is, the update check, and a Ko-fi link with its QR code. */
+@Composable
+private fun AboutPane(m: TopBarModel) {
+    val context = LocalContext.current
+    val tap = rememberTapFeedback()
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp)) {
+        Box(Modifier.size(64.dp).clip(DashShape.Medium)) {
+            Image(painterResource(R.drawable.ic_launcher_background), null, Modifier.fillMaxSize())
+            Image(painterResource(R.drawable.ic_launcher_foreground), null, Modifier.fillMaxSize())
+        }
+        Spacer(Modifier.width(16.dp))
+        Column {
+            Text(stringResource(R.string.app_name), color = DashColors.TextPrimary, style = MaterialTheme.typography.headlineSmall)
+            Text(stringResource(R.string.settings_version, m.versionName), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
+        }
+    }
+    Spacer(Modifier.height(12.dp))
+    Text(
+        stringResource(R.string.about_description),
+        color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium,
+        modifier = Modifier.padding(horizontal = 12.dp)
+    )
+    Spacer(Modifier.height(20.dp))
+    SettingsSection(stringResource(R.string.about_author_section))
+    Column(modifier = Modifier.padding(horizontal = 12.dp)) {
+        Text(stringResource(R.string.about_author_name), color = DashColors.TextPrimary, style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.about_author_role), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+    }
+    Spacer(Modifier.height(20.dp))
+    SettingsSection(stringResource(R.string.about_support_section))
+    Row(
+        modifier = Modifier.padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(stringResource(R.string.about_support_text), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
+            Spacer(Modifier.height(12.dp))
+            SheetButton(stringResource(R.string.about_kofi)) {
+                tap()
+                context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(KOFI_URL)))
+            }
+        }
+        Spacer(Modifier.width(16.dp))
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            QrCode(KOFI_URL, Modifier.size(120.dp).clip(DashShape.Small))
+            Text(stringResource(R.string.about_scan), color = DashColors.TextSecondary, style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 4.dp))
+        }
+    }
     Spacer(Modifier.height(20.dp))
     SettingsSection(stringResource(R.string.settings_section_about))
     UpdateRow(m)
+    SettingsRow(Icons.Filled.Favorite, stringResource(R.string.about_project), stringResource(R.string.about_project_detail)) {
+        context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(PROJECT_URL)))
+    }
 }
 
 /**

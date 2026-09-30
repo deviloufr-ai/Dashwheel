@@ -174,4 +174,14 @@
     <string name="settings_log_sent">Salvato sul telefono. Apri la sua notifica per condividerlo</string>
     <string name="settings_log_failed">Il telefono non ha accettato il registro</string>
     <string name="settings_log_no_phone">Nessun telefono ha risposto. Collega il telefono e aggiorna la sua app companion</string>
+    <!-- About tab -->
+    <string name="about_author_section">Creato da</string>
+    <string name="about_description">Dashwheel è un launcher per autoradio Android: mappa, musica e dati dell\'auto su un unico schermo tranquillo, con dashboard che organizzi tu. Gratuito e open source.</string>
+    <string name="about_author_role">Creatore e sviluppatore</string>
+    <string name="about_support_section">Sostieni Dashwheel</string>
+    <string name="about_support_text">Dashwheel è gratuito. Se ti piace, un caffè aiuta a mantenerlo.</string>
+    <string name="about_kofi">Offrimi un caffè su Ko-fi</string>
+    <string name="about_scan">Inquadra con il telefono</string>
+    <string name="about_project">Pagina del progetto</string>
+    <string name="about_project_detail">Codice sorgente, versioni e segnalazione di bug</string>
 </resources>

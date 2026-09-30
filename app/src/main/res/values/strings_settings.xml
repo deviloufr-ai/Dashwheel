@@ -176,4 +176,15 @@
     <string name="settings_log_sent">Saved on the phone. Open its notification to share it</string>
     <string name="settings_log_failed">The phone did not take the log</string>
     <string name="settings_log_no_phone">No phone answered. Link the phone and update its companion app</string>
+    <!-- About tab -->
+    <string name="about_author_section">Made by</string>
+    <string name="about_description">Dashwheel is a launcher for Android car head units: a map, music and live car data on one calm screen, with dashboards you arrange yourself. Free and open source.</string>
+    <string name="about_author_name" translatable="false">Alexandre Leblanc</string>
+    <string name="about_author_role">Creator and developer</string>
+    <string name="about_support_section">Support Dashwheel</string>
+    <string name="about_support_text">Dashwheel is free. If you like it, a coffee helps keep it going.</string>
+    <string name="about_kofi">Buy me a coffee on Ko-fi</string>
+    <string name="about_scan">Scan with your phone</string>
+    <string name="about_project">Project page</string>
+    <string name="about_project_detail">Source code, releases and bug reports</string>
 </resources>

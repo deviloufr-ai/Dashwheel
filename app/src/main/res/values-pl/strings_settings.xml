@@ -174,4 +174,14 @@
     <string name="settings_log_sent">Zapisano w telefonie. Otwórz jego powiadomienie, by udostępnić</string>
     <string name="settings_log_failed">Telefon nie przyjął dziennika</string>
     <string name="settings_log_no_phone">Żaden telefon nie odpowiedział. Połącz telefon i zaktualizuj jego aplikację towarzyszącą</string>
+    <!-- About tab -->
+    <string name="about_author_section">Autor</string>
+    <string name="about_description">Dashwheel to launcher do radioodtwarzaczy samochodowych z Androidem: mapa, muzyka i dane auta na jednym spokojnym ekranie, z pulpitami układanymi samodzielnie. Darmowy i open source.</string>
+    <string name="about_author_role">Twórca i programista</string>
+    <string name="about_support_section">Wesprzyj Dashwheel</string>
+    <string name="about_support_text">Dashwheel jest darmowy. Jeśli Ci się podoba, kawa pomoże go rozwijać.</string>
+    <string name="about_kofi">Postaw mi kawę na Ko-fi</string>
+    <string name="about_scan">Zeskanuj telefonem</string>
+    <string name="about_project">Strona projektu</string>
+    <string name="about_project_detail">Kod źródłowy, wersje i zgłoszenia błędów</string>
 </resources>
