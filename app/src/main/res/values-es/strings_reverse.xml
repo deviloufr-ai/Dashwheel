@@ -45,4 +45,5 @@
     <string name="reverse_boot_title">Línea del maletero</string>
     <string name="reverse_boot_detail">Una línea discontinua hasta donde llega el portón abierto, y un aviso si algo está más cerca.</string>
     <string name="reverse_boot_room">Espacio del maletero: %1$d cm</string>
+    <string name="reverse_lens">Curva del objetivo</string>
 </resources>

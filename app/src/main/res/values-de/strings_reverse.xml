@@ -45,4 +45,5 @@
     <string name="reverse_boot_title">Heckklappenlinie</string>
     <string name="reverse_boot_detail">Eine gestrichelte Linie, bis wohin die offene Heckklappe reicht, und eine Warnung, wenn etwas näher ist.</string>
     <string name="reverse_boot_room">Platz für die Klappe: %1$d cm</string>
+    <string name="reverse_lens">Objektivkrümmung</string>
 </resources>

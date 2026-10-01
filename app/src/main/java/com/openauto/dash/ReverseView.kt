@@ -42,6 +42,12 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
@@ -107,7 +113,9 @@ internal data class ReverseCalibration(
     val bumper: Float = 0.94f,
     val far: Float = 0.50f,
     val width: Float = 0.60f,
-    val mirror: Boolean = false
+    val mirror: Boolean = false,
+    /** The wide-angle lens's bend: negative pulls the picture's edges in, as a fish-eye shows them. */
+    val lens: Float = 0f
 )
 
 /** The car's shape for the lines, in metres: the user's C4 Picasso until the car profile carries it. */
@@ -224,6 +232,7 @@ internal object ReverseView {
             bumper = p.getFloat("bumper", d.bumper),
             far = p.getFloat("far", d.far),
             width = p.getFloat("width", d.width),
+            lens = p.getFloat("lens", d.lens),
             mirror = p.getBoolean("mirror", d.mirror)
         )
     }
@@ -255,12 +264,13 @@ internal object ReverseView {
             shift = c.shift.coerceIn(-0.3f, 0.3f),
             bumper = c.bumper.coerceIn(0.5f, 1.1f),
             far = c.far.coerceIn(0.1f, c.bumper.coerceIn(0.5f, 1.1f) - 0.05f),
-            width = c.width.coerceIn(0.2f, 1.2f)
+            width = c.width.coerceIn(0.2f, 1.2f),
+            lens = c.lens.coerceIn(-0.6f, 0.3f)
         )
         _calibration.value = fixed
         prefs(context).edit()
             .putFloat("shift", fixed.shift).putFloat("bumper", fixed.bumper).putFloat("far", fixed.far)
-            .putFloat("width", fixed.width).putBoolean("mirror", fixed.mirror)
+            .putFloat("width", fixed.width).putBoolean("mirror", fixed.mirror).putFloat("lens", fixed.lens)
             .apply()
     }
 
@@ -287,6 +297,8 @@ internal object ReverseView {
                 previewSteering.value = 380f * sin(t / 8_000f * 2f * PI.toFloat())
                 // Backing up 3 m in the 20 s, slowly.
                 ParkingMotion.previewStep(-0.015f)
+                // The ground the camera would film, five times a second like the real one.
+                if ((t / 100f).toInt() % 2 == 0) ParkingMotion.pose.value?.let { GroundMemory.previewPaint(it) }
                 // Something closing in behind, slightly right of the middle.
                 val level = (10f - t / PREVIEW_MS * 9.5f).toInt().coerceIn(1, 10)
                 previewRadar.value = Radar(
@@ -395,6 +407,9 @@ internal class Ground(w: Float, h: Float, c: ReverseCalibration) {
     private val bottom = h * c.bumper
     private val horizon: Float
     private val halfWidth = w * c.width / 2f
+    private val lens = c.lens
+    private val mid = Offset(w / 2f, h / 2f)
+    private val halfDiagonal2 = (w * w + h * h) / 4f
 
     init {
         val k = Z0 / (FAR_M + Z0)
@@ -403,9 +418,18 @@ internal class Ground(w: Float, h: Float, c: ReverseCalibration) {
 
     fun at(x: Float, z: Float): Offset {
         val f = Z0 / (z.coerceAtLeast(0f) + Z0)
-        return Offset(cx + x / (CarShape.WIDTH / 2f) * halfWidth * f, horizon + (bottom - horizon) * f)
+        val p = Offset(cx + x / (CarShape.WIDTH / 2f) * halfWidth * f, horizon + (bottom - horizon) * f)
+        if (lens == 0f) return p
+        // The lens bends a point towards (or away from) the picture's middle, more the further out it is.
+        val d = p - mid
+        val bend = 1f + lens * (d.x * d.x + d.y * d.y) / halfDiagonal2
+        return mid + d * bend.coerceAtLeast(0.2f)
     }
 }
+
+/** [n] points along the ground from ([x0], [z0]) to ([x1], [z1]): a straight line on the ground bends with the lens. */
+private fun Ground.along(x0: Float, z0: Float, x1: Float, z1: Float, n: Int = 12): List<Offset> =
+    (0..n).map { i -> val t = i / n.toFloat(); at(x0 + (x1 - x0) * t, z0 + (z1 - z0) * t) }
 
 /**
  * Where the rear corner on [side] (-1 left, 1 right) goes as the car backs up
@@ -488,11 +512,11 @@ private fun DrawScope.fixedLines(g: Ground, shadow: Boolean) {
     val bands = listOf(Triple(0f, 0.5f, ReverseInk.Red), Triple(0.5f, 1.5f, ReverseInk.Amber), Triple(1.5f, FAR_M, ReverseInk.Green))
     val w = 3.dp.toPx()
     for (side in listOf(-1f, 1f)) {
-        for ((from, to, color) in bands) outlined(pathOf(listOf(g.at(side * half, from), g.at(side * half, to))), color, w, shadow, !shadow)
+        for ((from, to, color) in bands) outlined(pathOf(g.along(side * half, from, side * half, to)), color, w, shadow, !shadow)
     }
     for ((z, color) in listOf(0.5f to ReverseInk.Red, 1.5f to ReverseInk.Amber, FAR_M to ReverseInk.Green)) {
         for (side in listOf(-1f, 1f)) {
-            outlined(pathOf(listOf(g.at(side * half, z), g.at(side * (half - 0.35f), z))), color, w + 1.dp.toPx(), shadow, !shadow)
+            outlined(pathOf(g.along(side * half, z, side * (half - 0.35f), z, 3)), color, w + 1.dp.toPx(), shadow, !shadow)
         }
     }
 }
@@ -505,15 +529,22 @@ private fun DrawScope.steeringLines(g: Ground, steeringDeg: Float) {
     }
 }
 
+/** How far the view from above shows the ground behind the car, in metres. */
+private const val FAN_M = 3.5f
+
 /**
- * The car from above, nose up, its parking sensors as bars around the
- * bumpers and, behind it, where the rear corners go with the wheel as it is.
+ * The car from above, nose up, in its surroundings: behind it a half circle
+ * of ground (3.5 m) as the camera films it, fading out at its edge; beside
+ * it, dimmer, the ground it has already passed. On the ground: the distances
+ * from the bumper (0.5, 1.5 and 3 m), each sensor's reading as a glow where
+ * it sees something, what the sensors saw earlier, where the rear corners go
+ * with the wheel as it is, and the tailgate's room.
  */
 private fun DrawScope.fromAbove(radar: Radar?, steeringDeg: Float?, look: CarView?, lookStyle: CarLookStyle, above: Above) {
-    // The scene in metres: the car with room around it for the bars (in front only when it has front sensors), more behind for the path.
+    // The scene in metres: the car, the half circle behind it, a little room in front (more with front sensors).
     val ahead = if (radar?.front.orEmpty().any { it != null }) 1.4f else 0.3f
-    val sceneW = CarShape.WIDTH + 2.6f
-    val sceneH = CarShape.LENGTH + ahead + 2.4f
+    val sceneW = 2f * FAN_M + 0.4f
+    val sceneH = ahead + CarShape.LENGTH + FAN_M + 0.2f
     val m = min(size.width / sceneW, size.height / sceneH)
     val cx = size.width / 2f
     val noseY = (size.height - sceneH * m) / 2f + ahead * m
@@ -523,8 +554,12 @@ private fun DrawScope.fromAbove(radar: Radar?, steeringDeg: Float?, look: CarVie
     /** A point of the car (metres right, metres ahead of the rear axle) on screen. */
     fun onScreen(c: Offset) = Offset(cx + c.x * m, axleY - c.y * m)
 
+    above.pose?.let { pose -> if (above.ground) fadedGround(pose, cx, axleY, tailY, noseY, m) }
+    distanceRings(cx, tailY, m)
+    sensorGlows(radar?.rear.orEmpty(), rear = true, ::onScreen, m)
+    sensorGlows(radar?.front.orEmpty(), rear = false, ::onScreen, m)
+
     above.pose?.let { pose ->
-        if (above.ground) groundMap(pose, cx, axleY, m)
         // What the sensors saw on the way, where it is now around the car: red when close to the body.
         for (s in ObstacleMemory.snapshot()) {
             val c = pose.toCar(s.at)
@@ -538,33 +573,33 @@ private fun DrawScope.fromAbove(radar: Radar?, steeringDeg: Float?, look: CarVie
             val ink = when {
                 gap < 0.3f -> ReverseInk.Red
                 gap < 0.6f -> ReverseInk.Amber
-                else -> ReverseInk.Text.copy(alpha = 0.7f)
+                else -> ReverseInk.Text
             }
             val at = onScreen(c)
-            drawCircle(ReverseInk.Shadow, 0.13f * m, at)
-            drawCircle(ink, 0.09f * m, at)
+            drawCircle(ReverseInk.Shadow, 0.16f * m, at)
+            drawCircle(ink, 0.11f * m, at)
         }
     }
 
-    // Where the rear corners go, faint so the bars stay first.
+    // Where the rear corners go.
     steeringDeg?.let { deg ->
         for (side in listOf(-1, 1)) {
-            val pts = cornerPath(deg, side, reach = 2f).map { (x, z) -> Offset(cx + x * m, tailY + z * m) }
-            drawPath(pathOf(pts), ReverseInk.Steer.copy(alpha = 0.55f), style = Stroke(3.dp.toPx(), cap = StrokeCap.Round))
+            val pts = cornerPath(deg, side, reach = FAN_M - 0.3f).map { (x, z) -> Offset(cx + x * m, tailY + z * m) }
+            outlined(pathOf(pts), ReverseInk.Steer, 0.07f * m)
         }
     }
-
-    sensorBars(radar?.rear.orEmpty(), Offset(cx, tailY - 0.55f * m), m, rear = true)
-    sensorBars(radar?.front.orEmpty(), Offset(cx, noseY + 0.55f * m), m, rear = false)
-    // Over the bars: it's a limit, not a reading.
+    // Over the rest: it's a limit, not a reading.
     if (above.tailgate > 0f) {
         val y = tailY + above.tailgate * m
+        drawLine(ReverseInk.Shadow, Offset(car.left, y), Offset(car.right, y), 0.09f * m, cap = StrokeCap.Round)
         drawLine(
-            ReverseInk.Boot, Offset(car.left, y), Offset(car.right, y), 3.dp.toPx(),
-            cap = StrokeCap.Round, pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 8f))
+            ReverseInk.Boot, Offset(car.left, y), Offset(car.right, y), 0.05f * m,
+            cap = StrokeCap.Round, pathEffect = PathEffect.dashPathEffect(floatArrayOf(0.2f * m, 0.15f * m))
         )
     }
 
+    // The car on its shadow.
+    drawRoundRect(ReverseInk.Shadow, car.topLeft + Offset(0f, 0.12f * m), car.size, androidx.compose.ui.geometry.CornerRadius(0.5f * m))
     if (look != null) {
         drawCarView(look, lookStyle, fitCar(look, car), ReverseInk.Selected, ReverseInk.Red)
     } else {
@@ -579,29 +614,66 @@ private fun DrawScope.fromAbove(radar: Radar?, steeringDeg: Float?, look: CarVie
 }
 
 /**
- * Four bars for each sensor the car has, fanned around [center] (behind the
- * car for the rear ones), left to right: lit from the outside in as something
- * gets closer, in its level's colour.
+ * The ground map, masked: whole in the half circle behind the bumper, fading
+ * out at its edge, and dimmer beside the car (filmed earlier), fading out
+ * towards the nose.
  */
-private fun DrawScope.sensorBars(levels: List<Int?>, center: Offset, m: Float, rear: Boolean) {
-    if (levels.isEmpty() || levels.all { it == null }) return
-    val span = 120f
-    val step = span / levels.size
-    val thick = 0.2f * m
-    levels.forEachIndexed { i, level ->
-        if (level == null) return@forEachIndexed
-        val start = if (rear) 90f + span / 2f - (i + 1) * step else 270f - span / 2f + i * step
-        val lit = litBars(level)
-        val ink = levelInk(level)
-        for (bar in 0 until 4) {
-            // Bar 0 is the outermost; the innermost hugs the bumper.
-            val r = (0.95f + (3 - bar) * 0.27f) * m
-            val on = bar < lit && ink != null
-            drawArc(
-                if (on) ink!! else ReverseInk.Dim, startAngle = start + 2f, sweepAngle = step - 4f, useCenter = false,
-                topLeft = Offset(center.x - r, center.y - r), size = Size(r * 2, r * 2), style = Stroke(thick)
-            )
+private fun DrawScope.fadedGround(pose: Pose, cx: Float, axleY: Float, tailY: Float, noseY: Float, m: Float) {
+    val bounds = Rect(Offset.Zero, size)
+    drawIntoCanvas { it.saveLayer(bounds, Paint()) }
+    groundMap(pose, cx, axleY, m)
+    // The half circle's edge.
+    drawRect(
+        Brush.radialGradient(0f to Color.Black, 0.78f to Color.Black, 1f to Color.Transparent, center = Offset(cx, tailY), radius = FAN_M * m),
+        blendMode = BlendMode.DstIn
+    )
+    // Beside the car: the remembered ground, dimmer, gone by the nose.
+    drawRect(
+        Brush.verticalGradient(0f to Color.Transparent, 0.55f to Color.Black.copy(alpha = 0.45f), 1f to Color.Black, startY = noseY, endY = tailY),
+        blendMode = BlendMode.DstIn
+    )
+    drawIntoCanvas { it.restore() }
+}
+
+/** The distances from the bumper on the ground: the bumper's outline grown by 0.5, 1.5 and 3 m, dashed, with their labels. */
+private fun DrawScope.distanceRings(cx: Float, tailY: Float, m: Float) {
+    val half = CarShape.WIDTH / 2f * m
+    val label = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+        textSize = (0.26f * m).coerceAtLeast(11.dp.toPx())
+        isFakeBoldText = true
+    }
+    for ((d, ink) in listOf(0.5f to ReverseInk.Red, 1.5f to ReverseInk.Amber, FAR_M to ReverseInk.Green)) {
+        val r = d * m
+        val ring = Path().apply {
+            // Down the left corner's quarter circle, along behind the bumper, up the right corner's.
+            arcTo(Rect(Offset(cx - half - r, tailY - r), Size(2 * r, 2 * r)), 180f, -90f, true)
+            lineTo(cx + half, tailY + r)
+            arcTo(Rect(Offset(cx + half - r, tailY - r), Size(2 * r, 2 * r)), 90f, -90f, false)
         }
+        drawPath(ring, ReverseInk.Shadow, style = Stroke(0.06f * m))
+        drawPath(ring, ink, style = Stroke(0.035f * m, pathEffect = PathEffect.dashPathEffect(floatArrayOf(0.12f * m, 0.1f * m))))
+        label.color = ink.toArgb()
+        val text = if (d % 1f == 0f) "${d.toInt()} m" else String.format("%.1f m", d)
+        drawIntoCanvas { it.nativeCanvas.drawText(text, cx + half + r * 0.75f + 4.dp.toPx(), tailY + r * 0.72f, label) }
+    }
+}
+
+/**
+ * Each sensor's reading as a glow on the ground, in its level's colour,
+ * where the sensor sees something, with an arc at that distance across its
+ * beam.
+ */
+private fun DrawScope.sensorGlows(levels: List<Int?>, rear: Boolean, onScreen: (Offset) -> Offset, m: Float) {
+    for ((pos, dir, level) in ObstacleMemory.sensors(levels, rear)) {
+        val ink = levelInk(level) ?: continue
+        val d = ObstacleMemory.metres(level!!)
+        val at = onScreen(Offset(pos.x + dir.x * d, pos.y + dir.y * d))
+        drawCircle(Brush.radialGradient(listOf(ink.copy(alpha = 0.75f), ink.copy(alpha = 0f)), center = at, radius = 0.55f * m), 0.55f * m, at)
+        // Screen angles run clockwise from the right with y down: the car's forward is up.
+        val sensor = onScreen(pos)
+        val angle = Math.toDegrees(kotlin.math.atan2(-dir.y.toDouble(), dir.x.toDouble())).toFloat()
+        val r = d * m
+        drawArc(ink, angle - 14f, 28f, false, Offset(sensor.x - r, sensor.y - r), Size(2 * r, 2 * r), style = Stroke(0.13f * m, cap = StrokeCap.Round))
     }
 }
 
@@ -626,7 +698,7 @@ private fun DrawScope.groundMap(pose: Pose, cx: Float, axleY: Float, m: Float) {
 /** The tailgate's room on the camera picture: a dashed line where it would touch. */
 private fun DrawScope.tailgateLine(g: Ground, metres: Float) {
     val half = CarShape.WIDTH / 2f
-    val p = pathOf(listOf(g.at(-half, metres), g.at(half, metres)))
+    val p = pathOf(g.along(-half, metres, half, metres))
     drawPath(p, ReverseInk.Shadow, style = Stroke(6.dp.toPx(), cap = StrokeCap.Round))
     drawPath(p, ReverseInk.Boot, style = Stroke(3.dp.toPx(), cap = StrokeCap.Round, pathEffect = PathEffect.dashPathEffect(floatArrayOf(18f, 12f))))
 }
@@ -833,6 +905,7 @@ private fun AdjustPanel(c: ReverseCalibration) {
         Stepper(stringResource(R.string.reverse_bumper), { set(c.copy(bumper = c.bumper - 0.01f)) }, { set(c.copy(bumper = c.bumper + 0.01f)) })
         Stepper(stringResource(R.string.reverse_far), { set(c.copy(far = c.far - 0.01f)) }, { set(c.copy(far = c.far + 0.01f)) })
         Stepper(stringResource(R.string.reverse_width), { set(c.copy(width = c.width - 0.01f)) }, { set(c.copy(width = c.width + 0.01f)) })
+        Stepper(stringResource(R.string.reverse_lens), { set(c.copy(lens = c.lens - 0.02f)) }, { set(c.copy(lens = c.lens + 0.02f)) })
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             Chip(stringResource(R.string.reverse_mirror), selected = c.mirror) { set(c.copy(mirror = !c.mirror)) }
             Chip(stringResource(R.string.reverse_done), selected = true) { ReverseView.adjusting.value = false }

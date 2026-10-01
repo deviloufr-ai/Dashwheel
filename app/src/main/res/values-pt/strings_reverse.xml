@@ -45,4 +45,5 @@
     <string name="reverse_boot_title">Linha da mala</string>
     <string name="reverse_boot_detail">Uma linha tracejada até onde chega a porta da mala aberta, e um aviso se algo estiver mais perto.</string>
     <string name="reverse_boot_room">Espaço da mala: %1$d cm</string>
+    <string name="reverse_lens">Curvatura da lente</string>
 </resources>

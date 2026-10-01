@@ -257,8 +257,12 @@ internal object ObstacleMemory {
  */
 internal object GroundMemory {
     const val RES = 0.025f
-    const val SIZE = 400
-    /** The ground taken from each picture: across the car's width and a bit, from the bumper out to 2.75 m. */
+    const val SIZE = 480
+    /** The ground laid on the map from each picture: a half circle of 3.6 m behind the bumper. */
+    private const val FAN_M = 3.6f
+    private const val FAN_COLS = (2 * FAN_M / RES).toInt()
+    private const val FAN_ROWS = (FAN_M / RES).toInt()
+    /** The ground the car's movement is measured on: across the car's width and a bit, from the bumper out to 2.75 m. */
     private const val COLS = 112
     private const val ROWS = 100
     private const val X0 = -1.4f
@@ -284,6 +288,7 @@ internal object GroundMemory {
     private var previous: IntArray? = null
     private var lookup: IntArray? = null
     private var lookupKey: Any? = null
+    private var fanLookup: IntArray? = null
 
     @Synchronized
     fun clear() {
@@ -317,17 +322,18 @@ internal object GroundMemory {
 
         // Laid onto the map where the car is now (re-centred when it nears the edge).
         val centre = pose.toWorld(0f, -CarShape.REAR_OVERHANG - 1.5f)
-        if (abs(centre.x - (originX + SIZE * RES / 2f)) > 3.5f || abs(centre.y - (originY - SIZE * RES / 2f)) > 3.5f) {
+        if (abs(centre.x - (originX + SIZE * RES / 2f)) > 3f || abs(centre.y - (originY - SIZE * RES / 2f)) > 3f) {
             pixels.fill(0)
             originX = centre.x - SIZE * RES / 2f
             originY = centre.y + SIZE * RES / 2f
         }
-        for (r in 0 until ROWS) {
-            val z = Z0 + r * RES
-            for (c in 0 until COLS) {
-                val idx = map[r * COLS + c]
+        val fan = fanLookup ?: return
+        for (r in 0 until FAN_ROWS) {
+            val z = r * RES
+            for (c in 0 until FAN_COLS) {
+                val idx = fan[r * FAN_COLS + c]
                 if (idx < 0) continue
-                val w = pose.toWorld(X0 + c * RES, -CarShape.REAR_OVERHANG - z)
+                val w = pose.toWorld(-FAN_M + c * RES, -CarShape.REAR_OVERHANG - z)
                 val u = ((w.x - originX) / RES).toInt()
                 val v = ((originY - w.y) / RES).toInt()
                 if (u in 0 until SIZE && v in 0 until SIZE) pixels[v * SIZE + u] = frame[idx] or (0xFF shl 24)
@@ -336,6 +342,53 @@ internal object GroundMemory {
         bitmap.setPixels(pixels, 0, SIZE, 0, 0, SIZE, SIZE)
         _filled.value = true
         _version.value++
+    }
+
+    /**
+     * For the settings' try-out: made-up ground (cobblestones, a kerb on the
+     * right, grass beyond) laid in the half circle behind the car at [pose],
+     * as the camera would film it.
+     */
+    @Synchronized
+    fun previewPaint(pose: Pose) {
+        val centre = pose.toWorld(0f, -CarShape.REAR_OVERHANG - 1.5f)
+        if (abs(centre.x - (originX + SIZE * RES / 2f)) > 3f || abs(centre.y - (originY - SIZE * RES / 2f)) > 3f) {
+            pixels.fill(0)
+            originX = centre.x - SIZE * RES / 2f
+            originY = centre.y + SIZE * RES / 2f
+        }
+        for (r in 0 until FAN_ROWS step 2) {
+            val z = r * RES
+            for (c in 0 until FAN_COLS step 2) {
+                val x = -FAN_M + c * RES
+                if (x * x + z * z > FAN_M * FAN_M) continue
+                val w = pose.toWorld(x, -CarShape.REAR_OVERHANG - z)
+                val colour = madeUpGround(w.x, w.y)
+                val u = ((w.x - originX) / RES).toInt()
+                val v = ((originY - w.y) / RES).toInt()
+                for (dv in 0..1) for (du in 0..1) {
+                    val uu = u + du
+                    val vv = v + dv
+                    if (uu in 0 until SIZE && vv in 0 until SIZE) pixels[vv * SIZE + uu] = colour
+                }
+            }
+        }
+        bitmap.setPixels(pixels, 0, SIZE, 0, 0, SIZE, SIZE)
+        _filled.value = true
+        _version.value++
+    }
+
+    private fun madeUpGround(x: Float, y: Float): Int {
+        if (x > 1.9f) return if (x > 2.1f) 0xFF4E7A34.toInt() else 0xFF9A9792.toInt()
+        val row = kotlin.math.floor(y / 0.12f).toInt()
+        val sx = x / 0.16f + if (row % 2 == 0) 0f else 0.5f
+        val col = kotlin.math.floor(sx).toInt()
+        val fx = sx - col
+        val fy = y / 0.12f - row
+        if (fx < 0.08f || fy < 0.1f) return 0xFF3E3B36.toInt()
+        val h = ((col * 73856093) xor (row * 19349663)) and 0x3F
+        val g = 140 + h
+        return (0xFF shl 24) or (g shl 16) or ((g - 6) shl 8) or (g - 18)
     }
 
     /** Which frame pixel each ground cell comes from, kept while the picture and the calibration stay the same. */
@@ -353,6 +406,16 @@ internal object GroundMemory {
         }
         lookup = map
         lookupKey = key
+        // The half circle, from the bumper's middle; what the picture doesn't reach is left out.
+        fanLookup = IntArray(FAN_COLS * FAN_ROWS) { i ->
+            val x = -FAN_M + (i % FAN_COLS) * RES
+            val z = (i / FAN_COLS) * RES
+            if (x * x + z * z > FAN_M * FAN_M || z < 0.15f) return@IntArray -1
+            val p = g.at(x, z)
+            val px = (p.x * sx).toInt()
+            val py = (p.y * sy).toInt()
+            if (px in 0 until fw && py in 0 until fh) py * fw + px else -1
+        }
         return map
     }
 

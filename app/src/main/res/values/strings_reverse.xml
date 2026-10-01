@@ -46,4 +46,5 @@
     <string name="reverse_boot_title">Boot line</string>
     <string name="reverse_boot_detail">A dashed line where the open tailgate would reach, and a warning when something is closer.</string>
     <string name="reverse_boot_room">Boot room: %1$d cm</string>
+    <string name="reverse_lens">Lens curve</string>
 </resources>

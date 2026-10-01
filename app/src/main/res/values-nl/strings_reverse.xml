@@ -45,4 +45,5 @@
     <string name="reverse_boot_title">Achterkleplijn</string>
     <string name="reverse_boot_detail">Een stippellijn tot waar de open achterklep reikt, en een waarschuwing als iets dichterbij is.</string>
     <string name="reverse_boot_room">Ruimte voor de klep: %1$d cm</string>
+    <string name="reverse_lens">Lenskromming</string>
 </resources>
