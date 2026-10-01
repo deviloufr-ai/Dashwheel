@@ -77,6 +77,11 @@ object DebugLog {
             appendLine("Android ${Build.VERSION.RELEASE} (${Build.VERSION.SDK_INT}), ${Build.MANUFACTURER} ${Build.MODEL}")
             appendLine("Boot count $boot, uptime ${SystemClock.elapsedRealtime() / 1000} s, now ${Date()}")
             appendLine("Boot reason: $reason")
+            // What Android kept of the earlier boots and of the last one's end, to tell a watchdog or a crash from a plain reboot.
+            appendLine("Last boot reason: ${sh("getprop sys.boot.reason.last").ifBlank { "-" }}")
+            appendLine("Boot reason history:")
+            appendLine(sh("getprop persist.sys.boot.reason.history").ifBlank { "-" })
+            appendLine("Kept kernel logs: ${sh("ls /sys/fs/pstore /proc/last_kmsg 2>&1").replace('\n', ' ')}")
             appendLine("Ignition property: ${sh("getprop sys.qf.is.acc.on")}")
             appendLine()
             appendLine("Lost deep sleeps:")
