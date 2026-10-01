@@ -20,9 +20,9 @@ class RootlessTilesTest {
     }
 
     @Test
-    fun adbShellLeavesOutOnlyTheCanboxTiles() {
-        assertFalse(Access.ADB.allows(doors))
-        listOf(carStatus, clock, window, inside, shortcut).forEach { assertTrue(Access.ADB.allows(it)) }
+    fun adbShellAllowsEveryTileHere() {
+        // The doors come from the car app's shared data, registered through the shell.
+        listOf(doors, carStatus, clock, window, inside, shortcut).forEach { assertTrue(Access.ADB.allows(it)) }
     }
 
     @Test

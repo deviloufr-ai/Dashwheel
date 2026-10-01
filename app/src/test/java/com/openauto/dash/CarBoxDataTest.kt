@@ -110,6 +110,14 @@ class CarBoxDataTest {
         assertNull(r.closest)
     }
 
+    @Test
+    fun doorBitsAsTheCarAppPacksThem() {
+        // Front left and tailgate open.
+        assertEquals(0x88, parseDoorBits(byteArrayOf(0x2E, SHARE_DOORS.toByte(), 0x88.toByte())))
+        assertNull(parseDoorBits(byteArrayOf(0x2E, SHARE_DOORS.toByte())))
+        assertNull(parseDoorBits(byteArrayOf(0x2E, SHARE_AC.toByte(), 0x88.toByte())))
+    }
+
     private fun body(vararg set: Pair<Int, Int>) = parseCarBody(bytes(79, 0 to 0x2E, 1 to SHARE_BODY, *set))!!
 
     @Test

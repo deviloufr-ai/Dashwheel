@@ -380,18 +380,21 @@ object McuReader {
         if (cmdId == 65 && bytes.size > 4 && bytes[2] == 0x0C && bytes[3] == 0x38) {
             val b = bytes[4]
             _doorBits.value = b
-            setDoors(
-                DoorState(
-                    frontLeft = b and 0x80 != 0,
-                    frontRight = b and 0x40 != 0,
-                    rearLeft = b and 0x20 != 0,
-                    rearRight = b and 0x10 != 0,
-                    tailgate = b and 0x08 != 0,
-                    bonnet = b and 0x04 != 0
-                )
-            )
+            setDoors(doorsOf(b))
         }
     }
+
+    /** The doors from the car app's shared data ([CarBox]), the same bits as the MCU frame's. */
+    internal fun carBoxDoors(bits: Int) = setDoors(doorsOf(bits))
+
+    private fun doorsOf(b: Int) = DoorState(
+        frontLeft = b and 0x80 != 0,
+        frontRight = b and 0x40 != 0,
+        rearLeft = b and 0x20 != 0,
+        rearRight = b and 0x10 != 0,
+        tailgate = b and 0x08 != 0,
+        bonnet = b and 0x04 != 0
+    )
 
     private fun hex2(b: Int): String = charArrayOf(HEX_DIGITS[(b shr 4) and 0x0F], HEX_DIGITS[b and 0x0F]).concatToString()
 }

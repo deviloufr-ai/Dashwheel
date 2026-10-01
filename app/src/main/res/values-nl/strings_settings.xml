@@ -96,6 +96,7 @@
     <string name="settings_section_display">Weergave</string>
     <string name="settings_appearance_title">Dag en nacht</string>
     <string name="alert_style_section">Meldingen van Dashwheel</string>
+    <string name="alert_more_with_permission">Meer automeldingen met root, of na deze opdracht vanaf een pc: %1$s</string>
     <string name="settings_section_about">Over</string>
     <string name="settings_screen_keep_title">Deze richting behouden?</string>
     <string name="settings_screen_keep_detail">Gaat terug over %1$d s</string>

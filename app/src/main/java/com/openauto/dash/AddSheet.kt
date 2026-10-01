@@ -205,6 +205,8 @@ private fun WidgetsTab(
         kind.offered && access.allows(kind) &&
             // Only the QF firmware's car app shares the car's data.
             (kind != BuiltinKind.CAR_STATUS || CarBox.available) &&
+            // The doors: from the CAN box stream with root, else from the car app's data.
+            (kind != BuiltinKind.DOORS || access.root || CarBox.available) &&
             // Only with the head unit's TPMS app.
             (kind != BuiltinKind.TYRES || Tyres.available) &&
             // Only where Android lets Dashwheel open another app on its own display (PMPatch in Magisk).

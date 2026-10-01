@@ -96,6 +96,7 @@
     <string name="settings_section_display">Wyświetlanie</string>
     <string name="settings_appearance_title">Dzień i noc</string>
     <string name="alert_style_section">Alerty pokazywane przez Dashwheel</string>
+    <string name="alert_more_with_permission">Więcej alertów auta z rootem lub po tym poleceniu z komputera: %1$s</string>
     <string name="settings_section_about">Informacje</string>
     <string name="settings_screen_keep_title">Zachować tę orientację?</string>
     <string name="settings_screen_keep_detail">Powrót za %1$d s</string>

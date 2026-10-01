@@ -20,10 +20,10 @@ import kotlin.math.roundToInt
 /*
  * The car's data as the QF firmware's car app (com.qf.vehicle) shares it with
  * launchers, straight from the CAN box: the body and trip computer, the
- * climate control and the parking sensors (decoded in CarBoxData.kt), plus
- * the reverse gear. The car app sends them to every app once Dashwheel is
- * listed as a launcher that wants them ("<package>KeyShare…" = 1 in the
- * global settings, written through the root shell); each is sent when it
+ * climate control, the doors and the parking sensors (decoded in
+ * CarBoxData.kt), plus the reverse gear. The car app sends them to every
+ * app once Dashwheel is listed as a launcher that wants them ("<package>KeyShare…" = 1 in the
+ * global settings, see [RomPopups.writeGlobals]); each is sent when it
  * changes, the body at most every two seconds.
  */
 object CarBox {
@@ -74,11 +74,25 @@ object CarBox {
             addAction(ACTION_REVERSE_OFF)
         }
         ContextCompat.registerReceiver(app, receiver, filter, ContextCompat.RECEIVER_EXPORTED)
+        register(app)
+    }
+
+    /**
+     * Lists Dashwheel with the car app for its data. At start, and again when
+     * an alert built on it is turned on: the settings permission may have
+     * been granted since.
+     */
+    fun register(context: Context) {
+        if (!started) return
+        val app = context.applicationContext
         val me = app.packageName
         scope.launch {
             RomPopups.writeGlobals(
                 app,
-                mapOf("${me}KeyShareCarbodyState" to 1, "${me}KeyShareAcState" to 1, "${me}KeyShareRadarState" to 1)
+                mapOf(
+                    "${me}KeyShareCarbodyState" to 1, "${me}KeyShareAcState" to 1,
+                    "${me}KeyShareRadarState" to 1, "${me}KeyShareDoorWindow" to 1
+                )
             )
         }
     }
@@ -120,6 +134,8 @@ object CarBox {
             }
             SHARE_AC -> parseClimate(data!!)?.let { _climate.value = it }
             SHARE_RADAR -> parseRadar(data!!)?.let { _radar.value = it }
+            // Sent when a door changes, so the doors are only known from the first change on.
+            SHARE_DOORS -> parseDoorBits(data!!)?.let { McuReader.carBoxDoors(it) }
         }
     }
 

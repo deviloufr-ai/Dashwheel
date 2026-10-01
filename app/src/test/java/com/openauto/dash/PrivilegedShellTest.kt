@@ -18,16 +18,26 @@ class PrivilegedShellTest {
     }
 
     @Test
-    fun theCanboxTilesNeedRoot_theMapsWindowAShell_theRestNothing() {
-        for (kind in listOf(BuiltinKind.DOORS, BuiltinKind.CAN_MON)) {
-            assertEquals(kind.name, listOf(Access.ROOT), Access.entries.filter { it.allows(kind) })
-        }
-        // The Maps window, and the car box's data (shared once registered through the shell).
-        for (kind in listOf(BuiltinKind.PIP_ANCHOR, BuiltinKind.CAR_STATUS)) {
+    fun theCanMonitorNeedsRoot_theCarDataAndMapsWindowAShell_theRestNothing() {
+        assertEquals(listOf(Access.ROOT), Access.entries.filter { it.allows(BuiltinKind.CAN_MON) })
+        // The Maps window, and the car box's data (doors included), shared once registered through the shell.
+        for (kind in listOf(BuiltinKind.PIP_ANCHOR, BuiltinKind.DOORS, BuiltinKind.CAR_STATUS)) {
             assertEquals(kind.name, setOf(Access.ROOT, Access.ADB), Access.entries.filter { it.allows(kind) }.toSet())
         }
         val plain = BuiltinKind.entries - setOf(BuiltinKind.DOORS, BuiltinKind.CAN_MON, BuiltinKind.PIP_ANCHOR, BuiltinKind.CAR_STATUS)
         for (kind in plain) for (access in Access.entries) assertTrue("$kind under $access", access.allows(kind))
+    }
+
+    @Test
+    fun theCarAppAlertsNeedItsSettings_callsAndTyresNothing() {
+        // No settings permission in a unit test: a shell is the only way.
+        assertFalse(PrivilegedShell.settingsGranted)
+        for (kind in listOf(RomPopups.Kind.DOORS, RomPopups.Kind.RADAR, RomPopups.Kind.AC, RomPopups.Kind.BELT)) {
+            assertEquals(kind.name, setOf(Access.ROOT, Access.ADB), Access.entries.filter { RomPopups.canWork(kind, it) }.toSet())
+        }
+        for (kind in listOf(RomPopups.Kind.CALL, RomPopups.Kind.TYRES)) {
+            for (access in Access.entries) assertTrue("$kind under $access", RomPopups.canWork(kind, access))
+        }
     }
 
     @Test

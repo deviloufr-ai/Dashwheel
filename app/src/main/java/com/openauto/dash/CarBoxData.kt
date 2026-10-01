@@ -116,6 +116,10 @@ private fun ByteArray.tenths(i: Int, n: Int = 2): Float? = uBE(i, n)?.let { it /
 internal fun shareType(data: ByteArray?): Int? =
     data?.takeIf { it.size >= 2 && it.u8(0) == SHARE_MAGIC }?.u8(1)
 
+/** The door bits of a type 3 message: 0x80 front left, 0x40 front right, 0x20 rear left, 0x10 rear right, 0x08 tailgate, 0x04 bonnet. */
+internal fun parseDoorBits(d: ByteArray): Int? =
+    d.takeIf { shareType(it) == SHARE_DOORS && it.size >= 3 }?.u8(2)
+
 internal fun parseCarBody(d: ByteArray): CarBody? {
     if (shareType(d) != SHARE_BODY || d.size < 20) return null
     return CarBody(

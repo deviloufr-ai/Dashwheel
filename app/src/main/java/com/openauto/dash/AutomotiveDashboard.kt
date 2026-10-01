@@ -775,6 +775,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     DisposableEffect(lifecycleOwner) {
         ObdBluetoothManager.setContext(context)
         McuReader.setContext(context)
+        PrivilegedShell.setContext(context)
         PrivilegedShell.probe()
         PmPatch.finishSetup(context)
         CarProfileStore.setContext(context)

@@ -1,5 +1,8 @@
 package com.openauto.dash
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
 import android.os.SystemClock
 import android.util.Log
 import androidx.compose.runtime.Composable
@@ -42,14 +45,36 @@ object PrivilegedShell {
         /** `su` itself: the CANbox stream ([McuReader]) and the wheel sniffers ([WheelMonitor]) only run through it. */
         val root: Boolean get() = this == ROOT
 
-        /** Whether [kind] can show anything here: the CANbox tiles need root, the Maps window a shell. */
+        /**
+         * The car app's switches in the global settings can be written
+         * ([RomPopups.writeGlobals]): through a shell, or by Dashwheel itself
+         * once it holds WRITE_SECURE_SETTINGS ([settingsGranted]).
+         */
+        val carSettings: Boolean get() = shell || settingsGranted
+
+        /** Whether [kind] can show anything here: the CANbox monitor needs root, the Maps window a shell. */
         fun allows(kind: BuiltinKind): Boolean = when (kind) {
-            BuiltinKind.DOORS, BuiltinKind.CAN_MON -> root
-            // The car box's data is shared once Dashwheel is registered with the car app, through the shell (CarBox).
-            BuiltinKind.PIP_ANCHOR, BuiltinKind.CAR_STATUS -> shell
+            BuiltinKind.CAN_MON -> root
+            // The car box's data (doors included) is shared once Dashwheel is registered with the car app (CarBox).
+            BuiltinKind.DOORS, BuiltinKind.CAR_STATUS -> carSettings
+            BuiltinKind.PIP_ANCHOR -> shell
             else -> true
         }
     }
+
+    @Volatile private var appContext: Context? = null
+
+    fun setContext(context: Context) {
+        appContext = context.applicationContext
+    }
+
+    /**
+     * Dashwheel holds WRITE_SECURE_SETTINGS: granted once from a PC
+     * (`adb shell pm grant`), or by the system to its privileged copy. Read
+     * each time, so a grant made while it runs counts at once.
+     */
+    val settingsGranted: Boolean
+        get() = appContext?.checkSelfPermission(Manifest.permission.WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_GRANTED
 
     private const val TAG = "PrivilegedShell"
 

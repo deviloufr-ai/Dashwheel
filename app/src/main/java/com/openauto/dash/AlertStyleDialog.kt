@@ -86,10 +86,28 @@ internal fun AlertStyleRows() {
             kind == AlertKind.CALL || RomPopups.available(context, rom) && RomPopups.canWork(rom, access)
         }
     }
+    // Alerts this unit could have once the car app's settings can be written.
+    val held = remember(access) {
+        AlertKind.entries.any { kind ->
+            val rom = kind.romKind
+            kind != AlertKind.CALL && RomPopups.available(context, rom) && !RomPopups.canWork(rom, access)
+        }
+    }
     SettingsSection(stringResource(R.string.alert_style_section))
     kinds.forEach { kind -> AlertRow(kind) { picking = kind } }
+    if (held && access != PrivilegedShell.Access.UNKNOWN) {
+        Text(
+            stringResource(R.string.alert_more_with_permission, GRANT_COMMAND),
+            color = DashColors.TextSecondary,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+        )
+    }
     picking?.let { kind -> AlertStyleDialog(kind) { picking = null } }
 }
+
+/** One command from a PC that lets Dashwheel write the car app's settings without root. */
+private const val GRANT_COMMAND = "adb shell pm grant com.openauto.dash android.permission.WRITE_SECURE_SETTINGS"
 
 /** The switch that turns [this] alert on, in [RomPopups]. */
 private val AlertKind.romKind: RomPopups.Kind get() = RomPopups.Kind.valueOf(name)

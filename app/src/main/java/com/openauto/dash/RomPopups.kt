@@ -1,7 +1,9 @@
 package com.openauto.dash
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.provider.Settings
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
@@ -29,7 +31,8 @@ import kotlinx.coroutines.launch
  *    the car app's own "popup_enable" broadcast. The reversing radar is only
  *    taken over while the accessibility service is on, the one way to draw
  *    above the reversing camera; otherwise the car's own stays. The settings are written
- *    through the root shell and last across reboots; a reset of the car
+ *    by Dashwheel itself when it holds WRITE_SECURE_SETTINGS, else through
+ *    the root or ADB shell, and last across reboots; a reset of the car
  *    settings turns the climate one back on, so every switch is applied again
  *    at each start.
  * Turning a switch off gives the ROM its pop-up back.
@@ -47,7 +50,7 @@ object RomPopups {
     val replaced: StateFlow<Set<Kind>> = _replaced
 
     private val _failed = MutableStateFlow<Set<Kind>>(emptySet())
-    /** The kinds whose ROM switch could not be written (no root, no ADB). */
+    /** The kinds whose ROM switch could not be written (no root, no ADB, no permission). */
     val failed: StateFlow<Set<Kind>> = _failed
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -61,12 +64,14 @@ object RomPopups {
         Kind.BELT -> isPackageInstalled(context, VEHICLE_PACKAGE)
     }
 
-    /** Whether [kind] can work with this shell access: see [PrivilegedShell]. */
+    /**
+     * Whether [kind] can work with this access ([PrivilegedShell]): the car
+     * app's door, climate and body data, and its radar switch, need its
+     * global settings written ([PrivilegedShell.Access.carSettings]).
+     */
     fun canWork(kind: Kind, access: PrivilegedShell.Access): Boolean = when (kind) {
-        Kind.DOORS -> access.root
-        // The belt comes with the car box's shared data, registered through the shell.
-        Kind.RADAR, Kind.BELT -> access.shell
-        Kind.CALL, Kind.AC, Kind.TYRES -> true
+        Kind.DOORS, Kind.RADAR, Kind.AC, Kind.BELT -> access.carSettings
+        Kind.CALL, Kind.TYRES -> true
     }
 
     fun start(context: Context) {
@@ -94,8 +99,12 @@ object RomPopups {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean("replace_${kind.key}", on).apply()
         val app = context.applicationContext
         if (kind == Kind.DOORS) if (on) McuReader.start() else McuReader.stop()
+        if (on && kind in CAR_DATA) CarBox.register(app)
         apply(app, kind, hide = on)
     }
+
+    /** The alerts built on the car app's shared data ([CarBox]). */
+    private val CAR_DATA = setOf(Kind.DOORS, Kind.AC, Kind.BELT, Kind.RADAR)
 
     private fun apply(context: Context, kind: Kind, hide: Boolean) {
         val me = context.packageName
@@ -135,9 +144,15 @@ object RomPopups {
             .split(',').map { it.trim() }.filter { it.isNotEmpty() && it != "null" }
         val pending = keys.filter { (key, value) -> globalInt(context, key) != value }
         if (me in listed && pending.isEmpty()) return true
+        // Dashwheel's own write when it holds the permission, else the shell's.
+        val direct = context.checkSelfPermission(Manifest.permission.WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_GRANTED
+        suspend fun put(key: String, value: String) {
+            if (direct) Settings.Global.putString(context.contentResolver, key, value)
+            else DockShell.shell(context, "settings put global $key $value")
+        }
         return runCatching {
-            if (me !in listed) DockShell.shell(context, "settings put global KeyAllPackages ${(listed + me).joinToString(",")}")
-            for ((key, value) in pending) DockShell.shell(context, "settings put global $key $value")
+            if (me !in listed) put("KeyAllPackages", (listed + me).joinToString(","))
+            for ((key, value) in pending) put(key, value.toString())
             check(keys.all { (key, value) -> globalInt(context, key) == value }) { "settings did not change" }
         }.onSuccess { Log.i(TAG, "car app settings written: ${keys.keys}") }
             .onFailure { Log.w(TAG, "could not write the car app settings ${keys.keys}", it) }
