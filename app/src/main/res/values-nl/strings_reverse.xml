@@ -39,4 +39,10 @@
     <string name="reverse_picture_hint_own">Experimenteel: Dashwheel toont de camera zelf. Komt er geen beeld, dan is dat van de auto-app binnen enkele seconden terug.</string>
     <string name="reverse_picture_denied">Dashwheel heeft hiervoor cameratoegang nodig.</string>
     <string name="reverse_picture_failed">Dashwheel kreeg de camera niet: beeld van de auto-app</string>
+    <string name="reverse_side_left">Links: %1$d cm</string>
+    <string name="reverse_side_right">Rechts: %1$d cm</string>
+    <string name="reverse_boot_blocked">De achterklep gaat hier niet helemaal open</string>
+    <string name="reverse_boot_title">Achterkleplijn</string>
+    <string name="reverse_boot_detail">Een stippellijn tot waar de open achterklep reikt, en een waarschuwing als iets dichterbij is.</string>
+    <string name="reverse_boot_room">Ruimte voor de klep: %1$d cm</string>
 </resources>

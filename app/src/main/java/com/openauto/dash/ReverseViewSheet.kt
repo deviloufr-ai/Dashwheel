@@ -11,6 +11,10 @@ import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.ViewQuilt
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.ui.graphics.Color
+import kotlin.math.roundToInt
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -108,6 +112,27 @@ internal fun ReverseViewSheet(onDismiss: () -> Unit) {
             }
         )
         SwitchHint(stringResource(if (hideStock) R.string.reverse_stock_hint_hide else R.string.reverse_stock_hint_keep))
+
+        SettingsSection(stringResource(R.string.reverse_boot_title))
+        val tailgate by ReverseView.tailgate.collectAsState()
+        SwitchRow(stringResource(R.string.reverse_boot_title), stringResource(R.string.reverse_boot_detail), checked = tailgate > 0f) {
+            ReverseView.setTailgate(context, if (it) ReverseView.DEFAULT_TAILGATE_M else 0f)
+        }
+        if (tailgate > 0f) {
+            var room by remember(tailgate) { mutableStateOf(tailgate) }
+            Text(stringResource(R.string.reverse_boot_room, (room * 100).roundToInt()), color = DashColors.TextPrimary, style = MaterialTheme.typography.bodyLarge)
+            Slider(
+                value = room,
+                onValueChange = { room = (it * 20f).roundToInt() / 20f },
+                onValueChangeFinished = { ReverseView.setTailgate(context, room) },
+                valueRange = 0.5f..1.5f,
+                colors = SliderDefaults.colors(
+                    thumbColor = if (DashColors.Light) DashColors.Accent else Color.White,
+                    activeTrackColor = DashColors.Accent,
+                    inactiveTrackColor = DashColors.CardHi
+                )
+            )
+        }
 
         SettingsSection(stringResource(R.string.reverse_lines_title))
         Text(stringResource(R.string.reverse_lines_hint), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)

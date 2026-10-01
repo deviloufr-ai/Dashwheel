@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.CameraCaptureSession
 import android.hardware.camera2.CameraDevice
@@ -24,7 +25,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /*
  * EXPERIMENTAL: the reversing camera's picture shown by Dashwheel itself,
@@ -55,6 +58,10 @@ internal object ReverseCamera {
     private const val CLOSE_MS = 400L
     /** The camera's first frame came within a second on the K706; past this, it's not coming. */
     private const val FIRST_FRAME_MS = 3_500L
+    /** The copy of the picture the ground map is read from. */
+    private const val FRAME_W = 320
+    private const val FRAME_H = 180
+    private const val SAMPLE_MS = 200L
 
     /** TAKING: the car app's picture is still up; OPENING: it's gone, Dashwheel's not there yet. */
     enum class State { OFF, TAKING, OPENING, LIVE, FAILED }
@@ -69,6 +76,8 @@ internal object ReverseCamera {
     private var surface: Surface? = null
     private var opening: Job? = null
     private var watchdog: Job? = null
+    private var sampler: Job? = null
+    private var frame: Bitmap? = null
     /** The ROM app was stopped this reverse: on a failure, it has to be started again. */
     private var romStopped = false
 
@@ -109,6 +118,7 @@ internal object ReverseCamera {
                 if (_state.value == State.OPENING && device != null) {
                     _state.value = State.LIVE
                     watchdog?.cancel()
+                    sample(view)
                 }
             }
         }
@@ -211,7 +221,37 @@ internal object ReverseCamera {
         }
     }
 
+    /**
+     * A small copy of the picture five times a second while it's live, for
+     * the ground map and the camera's measure of how far the car moved
+     * ([GroundMemory], [ParkingMotion]).
+     */
+    private fun sample(view: TextureView) {
+        sampler?.cancel()
+        sampler = scope.launch {
+            val pixels = IntArray(FRAME_W * FRAME_H)
+            while (isActive && _state.value == State.LIVE) {
+                delay(SAMPLE_MS)
+                if (ParkingMotion.pose.value == null || view.width == 0) continue
+                val b = frame ?: Bitmap.createBitmap(FRAME_W, FRAME_H, Bitmap.Config.ARGB_8888).also { frame = it }
+                if (runCatching { view.getBitmap(b) }.isFailure) continue
+                b.getPixels(pixels, 0, FRAME_W, 0, 0, FRAME_W, FRAME_H)
+                val w = view.width.toFloat()
+                val h = view.height.toFloat()
+                val cal = ReverseView.calibration.value
+                withContext(Dispatchers.Default) {
+                    GroundMemory.onFrame(pixels, FRAME_W, FRAME_H, w, h, cal) { step ->
+                        step?.let { ParkingMotion.cameraStep(it) }
+                        ParkingMotion.pose.value
+                    }
+                }
+            }
+        }
+    }
+
     private fun close() {
+        sampler?.cancel()
+        sampler = null
         opening?.cancel()
         opening = null
         watchdog?.cancel()

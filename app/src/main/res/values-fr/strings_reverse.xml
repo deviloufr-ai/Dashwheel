@@ -39,4 +39,10 @@
     <string name="reverse_picture_hint_own">Expérimental : Dashwheel affiche lui-même la caméra. Sans image, celle de l\'app voiture revient en quelques secondes.</string>
     <string name="reverse_picture_denied">Dashwheel a besoin de l\'autorisation caméra pour cela.</string>
     <string name="reverse_picture_failed">Dashwheel n\'a pas pu prendre la caméra : image de l\'app voiture</string>
+    <string name="reverse_side_left">Côté gauche : %1$d cm</string>
+    <string name="reverse_side_right">Côté droit : %1$d cm</string>
+    <string name="reverse_boot_blocked">Le coffre ne s\'ouvrira pas en entier ici</string>
+    <string name="reverse_boot_title">Ligne du coffre</string>
+    <string name="reverse_boot_detail">Une ligne en pointillés là où arrive le hayon ouvert, et une alerte si un obstacle est plus près.</string>
+    <string name="reverse_boot_room">Place du coffre : %1$d cm</string>
 </resources>

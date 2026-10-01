@@ -35,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,6 +44,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -123,6 +125,8 @@ internal object ReverseView {
     private const val TAG = "ReverseView"
     private const val PREFS = "reverse_view"
     private const val PREVIEW_MS = 20_000L
+    /** The C4 Picasso's tailgate, measured from its hinge to its edge: about 95 cm behind the bumper when open. */
+    const val DEFAULT_TAILGATE_M = 0.95f
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var started = false
@@ -145,6 +149,10 @@ internal object ReverseView {
     private val _hideStock = MutableStateFlow(false)
     /** The car app's own lines are off: the angle is read from its log. */
     val hideStock: StateFlow<Boolean> = _hideStock.asStateFlow()
+
+    private val _tailgate = MutableStateFlow(DEFAULT_TAILGATE_M)
+    /** Room the tailgate needs behind the bumper to open, in metres; 0 hides its line. */
+    val tailgate: StateFlow<Float> = _tailgate.asStateFlow()
 
     /** The lines are being lined up on the reverse screen. */
     val adjusting = MutableStateFlow(false)
@@ -179,6 +187,7 @@ internal object ReverseView {
         started = true
         val app = AppLanguage.wrap(context.applicationContext)
         load(app)
+        ParkingMotion.start()
         scope.launch {
             wanted.collect { want ->
                 if (want) {
@@ -208,6 +217,7 @@ internal object ReverseView {
         _layout.value = runCatching { ReverseLayout.valueOf(p.getString("layout", null) ?: "") }.getOrDefault(ReverseLayout.BOTH)
         _hideStock.value = p.getBoolean("hide_stock", false)
         _ownCamera.value = p.getBoolean("own_camera", false)
+        _tailgate.value = p.getFloat("tailgate", DEFAULT_TAILGATE_M)
         val d = ReverseCalibration()
         _calibration.value = ReverseCalibration(
             shift = p.getFloat("shift", d.shift),
@@ -223,6 +233,11 @@ internal object ReverseView {
         prefs(context).edit().putBoolean("on", on).apply()
         // The radar arrives with the car app's sharing, which this switch may be the first to need.
         if (on) CarBox.register(context)
+    }
+
+    fun setTailgate(context: Context, metres: Float) {
+        _tailgate.value = metres
+        prefs(context).edit().putFloat("tailgate", metres).apply()
     }
 
     fun setOwnCamera(context: Context, own: Boolean) {
@@ -263,12 +278,15 @@ internal object ReverseView {
     fun tryIt() {
         previewJob?.cancel()
         _preview.value = true
+        ParkingMotion.previewBegin()
         previewJob = scope.launch {
             val t0 = System.currentTimeMillis()
             while (isActive) {
                 val t = (System.currentTimeMillis() - t0).toFloat()
                 if (t > PREVIEW_MS) break
                 previewSteering.value = 380f * sin(t / 8_000f * 2f * PI.toFloat())
+                // Backing up 3 m in the 20 s, slowly.
+                ParkingMotion.previewStep(-0.015f)
                 // Something closing in behind, slightly right of the middle.
                 val level = (10f - t / PREVIEW_MS * 9.5f).toInt().coerceIn(1, 10)
                 previewRadar.value = Radar(
@@ -286,6 +304,7 @@ internal object ReverseView {
     fun stopTrying() {
         previewJob?.cancel()
         previewJob = null
+        if (_preview.value) ParkingMotion.previewEnd()
         _preview.value = false
         previewSteering.value = null
         previewRadar.value = null
@@ -371,7 +390,7 @@ private const val Z0 = 1f
  * The ground behind the car on the camera picture: [at] puts a point [x]
  * metres right of the car's middle and [z] metres behind the bumper on screen.
  */
-private class Ground(w: Float, h: Float, c: ReverseCalibration) {
+internal class Ground(w: Float, h: Float, c: ReverseCalibration) {
     private val cx = w * (0.5f + c.shift)
     private val bottom = h * c.bumper
     private val horizon: Float
@@ -427,6 +446,7 @@ private object ReverseInk {
     val Dim = Color(0x40FFFFFF)
     val Chip = Color(0x99000000)
     val Selected = Color(0xFF378ADD)
+    val Boot = Color(0xFFB794F6)
 }
 
 /** A sensor's colour like the radar alert's: red when close, amber, then green; null when clear. */
@@ -483,7 +503,7 @@ private fun DrawScope.steeringLines(g: Ground, steeringDeg: Float) {
  * The car from above, nose up, its parking sensors as bars around the
  * bumpers and, behind it, where the rear corners go with the wheel as it is.
  */
-private fun DrawScope.fromAbove(radar: Radar?, steeringDeg: Float?, look: CarView?, lookStyle: CarLookStyle) {
+private fun DrawScope.fromAbove(radar: Radar?, steeringDeg: Float?, look: CarView?, lookStyle: CarLookStyle, above: Above) {
     // The scene in metres: the car with room around it for the bars (in front only when it has front sensors), more behind for the path.
     val ahead = if (radar?.front.orEmpty().any { it != null }) 1.4f else 0.3f
     val sceneW = CarShape.WIDTH + 2.6f
@@ -493,6 +513,32 @@ private fun DrawScope.fromAbove(radar: Radar?, steeringDeg: Float?, look: CarVie
     val noseY = (size.height - sceneH * m) / 2f + ahead * m
     val tailY = noseY + CarShape.LENGTH * m
     val car = Rect(Offset(cx - CarShape.WIDTH / 2f * m, noseY), Size(CarShape.WIDTH * m, CarShape.LENGTH * m))
+    val axleY = tailY - CarShape.REAR_OVERHANG * m
+    /** A point of the car (metres right, metres ahead of the rear axle) on screen. */
+    fun onScreen(c: Offset) = Offset(cx + c.x * m, axleY - c.y * m)
+
+    above.pose?.let { pose ->
+        if (above.ground) groundMap(pose, cx, axleY, m)
+        // What the sensors saw on the way, where it is now around the car: red when close to the body.
+        for (s in ObstacleMemory.snapshot()) {
+            val c = pose.toCar(s.at)
+            val dx = (abs(c.x) - CarShape.WIDTH / 2f).coerceAtLeast(0f)
+            val dy = when {
+                c.y < -CarShape.REAR_OVERHANG -> -CarShape.REAR_OVERHANG - c.y
+                c.y > CarShape.LENGTH - CarShape.REAR_OVERHANG -> c.y - (CarShape.LENGTH - CarShape.REAR_OVERHANG)
+                else -> 0f
+            }
+            val gap = kotlin.math.hypot(dx, dy)
+            val ink = when {
+                gap < 0.3f -> ReverseInk.Red
+                gap < 0.6f -> ReverseInk.Amber
+                else -> ReverseInk.Text.copy(alpha = 0.7f)
+            }
+            val at = onScreen(c)
+            drawCircle(ReverseInk.Shadow, 0.13f * m, at)
+            drawCircle(ink, 0.09f * m, at)
+        }
+    }
 
     // Where the rear corners go, faint so the bars stay first.
     steeringDeg?.let { deg ->
@@ -504,6 +550,14 @@ private fun DrawScope.fromAbove(radar: Radar?, steeringDeg: Float?, look: CarVie
 
     sensorBars(radar?.rear.orEmpty(), Offset(cx, tailY - 0.55f * m), m, rear = true)
     sensorBars(radar?.front.orEmpty(), Offset(cx, noseY + 0.55f * m), m, rear = false)
+    // Over the bars: it's a limit, not a reading.
+    if (above.tailgate > 0f) {
+        val y = tailY + above.tailgate * m
+        drawLine(
+            ReverseInk.Boot, Offset(car.left, y), Offset(car.right, y), 3.dp.toPx(),
+            cap = StrokeCap.Round, pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 8f))
+        )
+    }
 
     if (look != null) {
         drawCarView(look, lookStyle, fitCar(look, car), ReverseInk.Selected, ReverseInk.Red)
@@ -545,6 +599,73 @@ private fun DrawScope.sensorBars(levels: List<Int?>, center: Offset, m: Float, r
     }
 }
 
+/** What the view from above shows besides the sensors: the manoeuvre's memory and the tailgate's room. */
+private class Above(val pose: Pose?, val version: Int, val ground: Boolean, val tailgate: Float)
+
+/** The filmed ground under and around the car, turned with it, the car's rear axle at ([cx], [axleY]), [m] pixels a metre. */
+private fun DrawScope.groundMap(pose: Pose, cx: Float, axleY: Float, m: Float) {
+    val a = GroundMemory.originX - pose.x
+    val b = GroundMemory.originY - pose.y
+    val c = cos(pose.heading)
+    val s = sin(pose.heading)
+    withTransform({
+        translate(cx + m * (a * c - b * s), axleY - m * (a * s + b * c))
+        rotate(-Math.toDegrees(pose.heading.toDouble()).toFloat(), Offset.Zero)
+        scale(m * GroundMemory.RES, m * GroundMemory.RES, Offset.Zero)
+    }) {
+        drawImage(GroundMemory.image, alpha = 0.9f)
+    }
+}
+
+/** The tailgate's room on the camera picture: a dashed line where it would touch. */
+private fun DrawScope.tailgateLine(g: Ground, metres: Float) {
+    val half = CarShape.WIDTH / 2f
+    val p = pathOf(listOf(g.at(-half, metres), g.at(half, metres)))
+    drawPath(p, ReverseInk.Shadow, style = Stroke(6.dp.toPx(), cap = StrokeCap.Round))
+    drawPath(p, ReverseInk.Boot, style = Stroke(3.dp.toPx(), cap = StrokeCap.Round, pathEffect = PathEffect.dashPathEffect(floatArrayOf(18f, 12f))))
+}
+
+/**
+ * What the memory adds in words: the gap on a side the car has no sensor
+ * for, once something is beside it, and whether the tailgate can still open.
+ */
+@Composable
+private fun MemoryNotes(pose: Pose?, version: Int, tailgate: Float) {
+    val p = pose ?: return
+    val (left, right) = remember(p, version) { ObstacleMemory.sideGaps(p) }
+    val behind = remember(p, version) { ObstacleMemory.behind(p) }
+    val live = ReverseView.radar.collectAsState().value?.rear?.filterNotNull()?.filter { it in 1..Radar.MAX_LEVEL }?.minOrNull()?.let { ObstacleMemory.metres(it) }
+    val closest = listOfNotNull(behind, live).minOrNull()
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        left?.takeIf { it < SIDE_WARN_M }?.let { SideGap(stringResource(R.string.reverse_side_left, centimetres(it)), it) }
+        right?.takeIf { it < SIDE_WARN_M }?.let { SideGap(stringResource(R.string.reverse_side_right, centimetres(it)), it) }
+        if (tailgate > 0f && closest != null && closest < tailgate) {
+            Note(stringResource(R.string.reverse_boot_blocked), ReverseInk.Boot)
+        }
+    }
+}
+
+/** Beside the car closer than this, the gap is shown. */
+private const val SIDE_WARN_M = 0.8f
+
+/** Rounded to 5 cm: the memory is no finer than that. */
+private fun centimetres(m: Float): Int = ((m * 100f / 5f).toInt() * 5).coerceAtLeast(5)
+
+@Composable
+private fun SideGap(text: String, gap: Float) = Note(text, if (gap < 0.3f) ReverseInk.Red else if (gap < 0.6f) ReverseInk.Amber else ReverseInk.Text)
+
+@Composable
+private fun Note(text: String, ink: Color) {
+    Row(
+        Modifier.clip(RoundedCornerShape(14.dp)).background(ReverseInk.Chip).padding(horizontal = 14.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(Modifier.size(12.dp).clip(CircleShape).background(ink))
+        Spacer(Modifier.width(10.dp))
+        Text(text, color = ink, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+    }
+}
+
 // --- Screen -----------------------------------------------------------------------------
 
 @Composable
@@ -562,12 +683,19 @@ private fun ReverseScreen() {
     // The car app sends the angle in steps: glide between them.
     val steering by animateFloatAsState(steeringNow ?: 0f, tween(180), label = "steering")
     val hasSteering = steeringNow != null
+    val tailgate by ReverseView.tailgate.collectAsState()
+    val pose by ParkingMotion.pose.collectAsState()
+    // Redrawn as the memory and the ground map change.
+    val memoryVersion by ObstacleMemory.version.collectAsState()
+    val groundVersion by GroundMemory.version.collectAsState()
+    val ground by GroundMemory.filled.collectAsState()
+    val above = Above(pose, memoryVersion + groundVersion, ground, tailgate)
     val top = look?.top
 
     Box(Modifier.fillMaxSize()) {
         if (layout == ReverseLayout.RADAR) {
             Canvas(Modifier.fillMaxSize().background(ReverseInk.PanelSolid).padding(24.dp)) {
-                fromAbove(radar, steering.takeIf { hasSteering }, top, lookStyle)
+                fromAbove(radar, steering.takeIf { hasSteering }, top, lookStyle, above)
             }
         } else {
             if (preview) Box(Modifier.fillMaxSize().background(Color(0xFF2B2C2E)))
@@ -581,6 +709,7 @@ private fun ReverseScreen() {
                 val g = Ground(size.width, size.height, calibration)
                 fixedLines(g)
                 if (hasSteering) steeringLines(g, steering)
+                if (tailgate > 0f) tailgateLine(g, tailgate)
             }
             if (layout == ReverseLayout.BOTH) {
                 // In the corner over the far end of the picture, the least useful part when backing up.
@@ -592,7 +721,7 @@ private fun ReverseScreen() {
                             .width(maxWidth * 0.26f)
                             .height(maxHeight * 0.62f)
                             .padding(10.dp)
-                    ) { fromAbove(radar, steering.takeIf { hasSteering }, top, lookStyle) }
+                    ) { fromAbove(radar, steering.takeIf { hasSteering }, top, lookStyle, above) }
                 }
             }
         }
@@ -600,6 +729,7 @@ private fun ReverseScreen() {
         Column(Modifier.align(Alignment.TopStart).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Chips(layout, adjusting, preview)
             Nearest(radar)
+            MemoryNotes(pose, memoryVersion, tailgate)
             if (ownCamera && !preview && camera == ReverseCamera.State.FAILED) {
                 Text(
                     stringResource(R.string.reverse_picture_failed), color = ReverseInk.Text, fontSize = 15.sp,

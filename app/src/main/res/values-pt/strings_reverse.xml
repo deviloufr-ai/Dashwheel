@@ -39,4 +39,10 @@
     <string name="reverse_picture_hint_own">Experimental: o Dashwheel mostra a câmara ele próprio. Se não chegar imagem, a da app do carro volta em segundos.</string>
     <string name="reverse_picture_denied">O Dashwheel precisa da permissão da câmara para isto.</string>
     <string name="reverse_picture_failed">O Dashwheel não conseguiu a câmara: imagem da app do carro</string>
+    <string name="reverse_side_left">Lado esquerdo: %1$d cm</string>
+    <string name="reverse_side_right">Lado direito: %1$d cm</string>
+    <string name="reverse_boot_blocked">A mala não abre por completo aqui</string>
+    <string name="reverse_boot_title">Linha da mala</string>
+    <string name="reverse_boot_detail">Uma linha tracejada até onde chega a porta da mala aberta, e um aviso se algo estiver mais perto.</string>
+    <string name="reverse_boot_room">Espaço da mala: %1$d cm</string>
 </resources>

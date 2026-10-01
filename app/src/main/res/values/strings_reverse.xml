@@ -40,4 +40,10 @@
     <string name="reverse_picture_hint_own">Experimental: Dashwheel shows the camera itself. If no picture comes, the car app\'s is back within seconds.</string>
     <string name="reverse_picture_denied">Dashwheel needs the camera permission for this.</string>
     <string name="reverse_picture_failed">Dashwheel couldn\'t get the camera: this is the car app\'s picture</string>
+    <string name="reverse_side_left">Left side: %1$d cm</string>
+    <string name="reverse_side_right">Right side: %1$d cm</string>
+    <string name="reverse_boot_blocked">The boot won\'t open fully here</string>
+    <string name="reverse_boot_title">Boot line</string>
+    <string name="reverse_boot_detail">A dashed line where the open tailgate would reach, and a warning when something is closer.</string>
+    <string name="reverse_boot_room">Boot room: %1$d cm</string>
 </resources>

@@ -39,4 +39,10 @@
     <string name="reverse_picture_hint_own">Experimental: Dashwheel muestra la cámara por sí mismo. Si no llega imagen, la de la app del coche vuelve en segundos.</string>
     <string name="reverse_picture_denied">Dashwheel necesita el permiso de cámara para esto.</string>
     <string name="reverse_picture_failed">Dashwheel no pudo usar la cámara: imagen de la app del coche</string>
+    <string name="reverse_side_left">Lado izquierdo: %1$d cm</string>
+    <string name="reverse_side_right">Lado derecho: %1$d cm</string>
+    <string name="reverse_boot_blocked">El maletero no se abrirá del todo aquí</string>
+    <string name="reverse_boot_title">Línea del maletero</string>
+    <string name="reverse_boot_detail">Una línea discontinua hasta donde llega el portón abierto, y un aviso si algo está más cerca.</string>
+    <string name="reverse_boot_room">Espacio del maletero: %1$d cm</string>
 </resources>
