@@ -9,7 +9,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -441,7 +440,7 @@ private object ReverseInk {
     val Green = Color(0xFF46B36B)
     val Steer = Color(0xFFFFE14D)
     val Shadow = Color(0xB3000000)
-    val Panel = Color(0xE6111315)
+    val Panel = Color(0xF2111315)
     val PanelSolid = Color(0xFF111315)
     val Text = Color(0xFFF1EFE8)
     val Dim = Color(0x40FFFFFF)
@@ -467,9 +466,9 @@ private fun litBars(level: Int?): Int = when {
     else -> 1
 }
 
-private fun DrawScope.outlined(path: Path, color: Color, width: Float) {
-    drawPath(path, ReverseInk.Shadow, style = Stroke(width + 5.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
-    drawPath(path, color, style = Stroke(width, cap = StrokeCap.Round, join = StrokeJoin.Round))
+private fun DrawScope.outlined(path: Path, color: Color, width: Float, shadow: Boolean = true, ink: Boolean = true) {
+    if (shadow) drawPath(path, ReverseInk.Shadow, style = Stroke(width + 5.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
+    if (ink) drawPath(path, color, style = Stroke(width, cap = StrokeCap.Round, join = StrokeJoin.Round))
 }
 
 private fun pathOf(points: List<Offset>): Path = Path().apply {
@@ -477,17 +476,23 @@ private fun pathOf(points: List<Offset>): Path = Path().apply {
     points.drop(1).forEach { lineTo(it.x, it.y) }
 }
 
-/** The fixed lines: the car's width out to 3 m, red, amber then green, with a tick at each change. */
-private fun DrawScope.fixedLines(g: Ground) {
+/**
+ * The fixed lines: the car's width out to 3 m, red, amber then green, with
+ * a tick at each change. Drawn in two passes around the steering lines
+ * ([shadow] under them, the colours over them): with the wheel straight both
+ * lie on the same spot, and the distance colours stay visible as a stripe in
+ * the yellow.
+ */
+private fun DrawScope.fixedLines(g: Ground, shadow: Boolean) {
     val half = CarShape.WIDTH / 2f
     val bands = listOf(Triple(0f, 0.5f, ReverseInk.Red), Triple(0.5f, 1.5f, ReverseInk.Amber), Triple(1.5f, FAR_M, ReverseInk.Green))
-    val w = 4.dp.toPx()
+    val w = 3.dp.toPx()
     for (side in listOf(-1f, 1f)) {
-        for ((from, to, color) in bands) outlined(pathOf(listOf(g.at(side * half, from), g.at(side * half, to))), color, w)
+        for ((from, to, color) in bands) outlined(pathOf(listOf(g.at(side * half, from), g.at(side * half, to))), color, w, shadow, !shadow)
     }
     for ((z, color) in listOf(0.5f to ReverseInk.Red, 1.5f to ReverseInk.Amber, FAR_M to ReverseInk.Green)) {
         for (side in listOf(-1f, 1f)) {
-            outlined(pathOf(listOf(g.at(side * half, z), g.at(side * (half - 0.35f), z))), color, w)
+            outlined(pathOf(listOf(g.at(side * half, z), g.at(side * (half - 0.35f), z))), color, w + 1.dp.toPx(), shadow, !shadow)
         }
     }
 }
@@ -496,7 +501,7 @@ private fun DrawScope.fixedLines(g: Ground) {
 private fun DrawScope.steeringLines(g: Ground, steeringDeg: Float) {
     for (side in listOf(-1, 1)) {
         val points = cornerPath(steeringDeg, side).takeWhile { it.second <= FAR_M }.filter { it.second >= 0f }.map { (x, z) -> g.at(x, z) }
-        if (points.size > 1) outlined(pathOf(points), ReverseInk.Steer, 6.dp.toPx())
+        if (points.size > 1) outlined(pathOf(points), ReverseInk.Steer, 8.dp.toPx())
     }
 }
 
@@ -712,8 +717,9 @@ private fun ReverseScreen() {
             }
             if (pictureUp) Canvas(Modifier.fillMaxSize()) {
                 val g = Ground(size.width, size.height, calibration)
-                fixedLines(g)
+                fixedLines(g, shadow = true)
                 if (hasSteering) steeringLines(g, steering)
+                fixedLines(g, shadow = false)
                 if (tailgate > 0f) tailgateLine(g, tailgate)
             }
             if (layout == ReverseLayout.BOTH && pictureUp && !adjusting) {
@@ -850,10 +856,10 @@ private fun StepButton(icon: ImageVector, onStep: () -> Unit) {
         Modifier
             .size(52.dp)
             .clip(CircleShape)
-            .border(1.dp, ReverseInk.Text.copy(alpha = 0.4f), CircleShape)
+            .background(ReverseInk.Selected)
             .clickable { onStep() },
         contentAlignment = Alignment.Center
     ) {
-        Icon(icon, contentDescription = null, tint = ReverseInk.Text, modifier = Modifier.size(26.dp))
+        Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(30.dp))
     }
 }
