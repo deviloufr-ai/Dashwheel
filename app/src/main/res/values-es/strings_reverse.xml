@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="reverse_title">Vista de marcha atrás</string>
+    <string name="reverse_settings_detail">Líneas guía y radar de aparcamiento sobre la cámara trasera</string>
+    <string name="reverse_switch">Vista de marcha atrás de Dashwheel</string>
+    <string name="reverse_switch_detail">Líneas que siguen el volante, el radar de aparcamiento y tu coche, sobre la cámara trasera.</string>
+    <string name="reverse_needs_access">Activa el servicio de accesibilidad de Dashwheel: es la única forma de dibujar sobre la cámara.</string>
+    <string name="reverse_layout_title">En pantalla</string>
+    <string name="reverse_layout_both">Cámara y radar</string>
+    <string name="reverse_layout_camera">Cámara</string>
+    <string name="reverse_layout_radar">Radar</string>
+    <string name="reverse_layout_hint">También puedes cambiarlo en la pantalla de marcha atrás.</string>
+    <string name="reverse_stock_title">Líneas de la app del coche</string>
+    <string name="reverse_stock_keep">Mantener</string>
+    <string name="reverse_stock_hide">Ocultar</string>
+    <string name="reverse_stock_hint_keep">Las líneas de la app del coche quedan bajo las de Dashwheel. Las de dirección se mueven en pasos de unos 12°.</string>
+    <string name="reverse_stock_hint_hide">Solo las líneas de Dashwheel, más suaves. Necesita root.</string>
+    <string name="reverse_stock_failed">No se pudieron cambiar. Necesita root.</string>
+    <string name="reverse_lines_title">Alinearlas</string>
+    <string name="reverse_lines_hint">Mete la marcha atrás y toca Ajustar en la pantalla de marcha atrás para encajar las líneas con la calzada.</string>
+    <string name="reverse_preview">Probar</string>
+    <string name="reverse_reset">Restablecer líneas</string>
+    <string name="reverse_preview_badge">Vista previa: datos inventados</string>
+    <string name="reverse_adjust">Ajustar</string>
+    <string name="reverse_done">Listo</string>
+    <string name="reverse_close">Cerrar</string>
+    <string name="reverse_shift">Izquierda o derecha</string>
+    <string name="reverse_bumper">Línea del parachoques</string>
+    <string name="reverse_far">Línea de 3 m</string>
+    <string name="reverse_width">Ancho</string>
+    <string name="reverse_mirror">Invertir dirección</string>
+    <string name="reverse_near_stop">Para</string>
+    <string name="reverse_near_close">Cerca</string>
+    <string name="reverse_near_far">Algo detrás</string>
+</resources>

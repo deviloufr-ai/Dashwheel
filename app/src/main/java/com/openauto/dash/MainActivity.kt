@@ -177,6 +177,7 @@ class MainActivity : ComponentActivity() {
                 // Dashwheel as the default Home, and the system copy up to date, after an update.
                 SystemUpkeep.start(this)
                 RadarOverlay.start(this)
+                ReverseView.start(this)
                 ClimateOverlay.start(this)
                 // A new version runs JIT-only until it is compiled ahead of time.
                 CompileAfterUpdate.schedule(this)

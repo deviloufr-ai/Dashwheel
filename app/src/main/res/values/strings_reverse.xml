@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dashwheel's reverse view over the reversing camera (ReverseView.kt, ReverseViewSheet.kt) -->
+    <string name="reverse_title">Reverse view</string>
+    <string name="reverse_settings_detail">Guide lines and parking radar over the reversing camera</string>
+    <string name="reverse_switch">Dashwheel\'s reverse view</string>
+    <string name="reverse_switch_detail">Lines that follow the steering wheel, the parking radar and your car, over the reversing camera.</string>
+    <string name="reverse_needs_access">Turn on Dashwheel\'s accessibility service: it is the only way to draw over the camera.</string>
+    <string name="reverse_layout_title">On screen</string>
+    <string name="reverse_layout_both">Camera and radar</string>
+    <string name="reverse_layout_camera">Camera</string>
+    <string name="reverse_layout_radar">Radar</string>
+    <string name="reverse_layout_hint">You can also switch on the reverse screen itself.</string>
+    <string name="reverse_stock_title">Car app\'s lines</string>
+    <string name="reverse_stock_keep">Keep</string>
+    <string name="reverse_stock_hide">Hide</string>
+    <string name="reverse_stock_hint_keep">The car app\'s lines stay under Dashwheel\'s. The steering lines move in steps of about 12°.</string>
+    <string name="reverse_stock_hint_hide">Only Dashwheel\'s lines, smoother. Needs root.</string>
+    <string name="reverse_stock_failed">Couldn\'t change them. This needs root.</string>
+    <string name="reverse_lines_title">Line them up</string>
+    <string name="reverse_lines_hint">Select R, then tap Adjust on the reverse screen to match the lines to the road.</string>
+    <string name="reverse_preview">Try it</string>
+    <string name="reverse_reset">Reset the lines</string>
+    <string name="reverse_preview_badge">Preview: made-up data</string>
+    <string name="reverse_adjust">Adjust</string>
+    <string name="reverse_done">Done</string>
+    <string name="reverse_close">Close</string>
+    <string name="reverse_shift">Left or right</string>
+    <string name="reverse_bumper">Bumper line</string>
+    <string name="reverse_far">3 m line</string>
+    <string name="reverse_width">Width</string>
+    <string name="reverse_mirror">Mirror steering</string>
+    <string name="reverse_near_stop">Stop</string>
+    <string name="reverse_near_close">Close</string>
+    <string name="reverse_near_far">Something behind</string>
+</resources>
