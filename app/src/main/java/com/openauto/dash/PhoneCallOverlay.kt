@@ -178,7 +178,8 @@ private fun CallAlertContent(style: AlertStyle) {
 @Composable
 private fun CallAlert(call: PhoneCall, style: AlertStyle) = when (style) {
     AlertStyle.PILL -> CallPill(call)
-    AlertStyle.CARD -> CallCard(call)
+    // The round designs are Gemini Live's only; never offered here.
+    AlertStyle.CARD, AlertStyle.BUBBLE, AlertStyle.ICON -> CallCard(call)
     AlertStyle.BANNER -> CallBanner(call)
     AlertStyle.PANEL -> CallPanel(call)
     AlertStyle.FULL -> CallFullScreen(call)

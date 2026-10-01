@@ -2,10 +2,18 @@ package com.openauto.dash
 
 import android.content.Context
 import android.graphics.SurfaceTexture
+import android.os.SystemClock
 import android.util.Log
-import android.view.Gravity
 import android.view.Surface
 import android.view.TextureView
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,11 +34,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.coroutines.CancellationException
@@ -39,15 +56,23 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
 /*
  * Gemini Live, the spoken conversation with Google's AI, as the dashboard's
- * companion: opened from the ⋮ menu or a steering-wheel button, in a side
- * panel dressed like the alerts. Gemini's own Live screen runs on a display
- * of its own (EmbeddedApp) shown in the panel, so its captions and buttons
- * work there. A second press, or the panel's close button, ends it.
+ * companion: opened from the bar, the ⋮ menu or a steering-wheel button, and
+ * shown as one of the alerts, in the design chosen in Settings, Alerts
+ * (AlertKind.GEMINI): a pill that only says it listens, or Gemini's own Live
+ * screen in a card, the side panel or full screen. Gemini's screen runs on a
+ * display of its own (EmbeddedApp) drawn in the alert, so its captions and
+ * buttons work there. While driving the bigger designs shrink to the pill
+ * after a few seconds; reversing puts the alert aside and a phone call ends
+ * the conversation. A second press, or the alert's close button, ends it.
  *
  * Live has no public way in: Gemini's home-screen widget opens it through an
  * activity of Gemini's that only the system or root may start, asking for
@@ -62,54 +87,113 @@ internal object GeminiLive {
     private const val LIVE = "am start -n $GEMINI_PACKAGE/.widget.RobinWidgetEntryPointActivity --es feature liveconv"
     private const val TAG = "GeminiLive"
 
-    /** How long Gemini gets to show on the panel before Live is asked for. */
+    /** How long Gemini gets to show before Live is asked for. */
     private const val SHOW_WAIT_MS = 15_000L
     /** Gemini's first screen hands off to the Google app's ([EmbeddedApp]): left to settle first. */
     private const val SETTLE_MS = 2_500L
-    /** Live's screen may open on the main screen: put back on the panel after this. */
+    /** Live's screen may open on the main screen: put back on the alert after this. */
     private const val PLACE_AFTER_MS = 1_500L
+    /** While driving, the card, panel or full screen shrinks to the pill after this long. */
+    private const val COLLAPSE_MS = 10_000L
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private var started = false
     private var window: AlertWindow? = null
+    /** The design on screen now, null when none. */
+    private var shown: AlertStyle? = null
     private var starting: Job? = null
-    /** The panel, as one of Gemini's tiles ([EmbeddedApp.Host.attach]). */
-    private val panel = Any()
+    private var ticking: Job? = null
+
+    private val _active = MutableStateFlow(false)
+    /** A conversation is open: the bar's button turns into its end button. */
+    val active: StateFlow<Boolean> = _active
+
+    /** When the alert was opened, or last made big again from the pill (elapsedRealtime). */
+    private var bigSince = 0L
+    private var moving = false
+    private var reversing = false
+
+    /** The alert's pictures of Gemini's screen, as its tiles ([EmbeddedApp.Host.attach]): one per design shown. */
+    internal val pictures: MutableSet<Any> = java.util.Collections.newSetFromMap(java.util.IdentityHashMap())
+    /** A picture nobody sees, so Gemini runs while only the pill shows. */
+    private val unseen = Any()
+    private var unseenTexture: SurfaceTexture? = null
+    private var unseenSurface: Surface? = null
 
     fun available(context: Context): Boolean = isPackageInstalled(context, GEMINI_PACKAGE)
 
+    /** Follows the car (speed, reverse gear, calls) and the alert's "Try it". From the dashboard's start. */
+    fun start(context: Context) {
+        if (started) return
+        started = true
+        val app = AppLanguage.wrap(context.applicationContext)
+        scope.launch {
+            var was = false
+            combine(ObdBluetoothManager.connectionState, ObdBluetoothManager.data, CarBox.body, LocationFeed.freshSpeedKmh) { connection, obd, _, gps ->
+                if (connection == ObdConnectionState.CONNECTED) obd.speedKmh else CarBox.freshBody()?.speedKmh ?: gps
+            }.collect { kmh ->
+                val now = isMoving(kmh, was)
+                was = now
+                if (now != moving) {
+                    moving = now
+                    render(app)
+                }
+            }
+        }
+        scope.launch {
+            CarBox.reversing.collect {
+                reversing = it
+                render(app)
+            }
+        }
+        scope.launch {
+            // The driver talks on the phone: the conversation with Gemini ends.
+            PhoneCallOverlay.call.collect { if (talking(it) && _active.value) end(app) }
+        }
+        scope.launch { AlertStyleStore.styles.collect { render(app) } }
+        scope.launch { AlertPreview.gemini.collect { render(app) } }
+    }
+
     /** Opens Live, or ends it when it is open: one button does both. Main thread. */
     fun toggle(context: Context) {
-        if (window != null) end(context) else open(context)
+        if (_active.value) end(context) else open(context)
     }
 
     private fun open(context: Context) {
-        val app = context.applicationContext
+        val app = AppLanguage.wrap(context.applicationContext)
+        start(app)
         if (!available(app)) {
             HandsFree.say(app, R.string.ai_gemini_live_missing)
             return
         }
         val root = SystemInstaller.isRootAvailable()
-        val w = AlertWindow(app, "gemini live", Gravity.TOP or Gravity.END)
-        if (!root || !EmbeddedApp.allowed(app) || !w.canShow()) {
+        if (!root || !EmbeddedApp.allowed(app) || !window(app).canShow()) {
             fullScreen(app, root)
             return
         }
+        AlertPreview.stop()
         val host = EmbeddedApp.host(app, GEMINI_PACKAGE)
-        if (!w.show(AlertStyle.PANEL) { GeminiLivePanel(host, panel) { end(app) } }) {
-            fullScreen(app, root)
-            return
-        }
-        window = w
+        attachUnseen(app, host)
+        _active.value = true
+        bigSince = SystemClock.elapsedRealtime()
+        render(app)
         starting = scope.launch { startLive(app, host) }
+        ticking = scope.launch {
+            // The shrink to the pill comes with time, not with an event.
+            while (isActive) {
+                delay(1_000)
+                render(app)
+            }
+        }
     }
 
-    /** Gemini on the panel first, then Live on Gemini's display, then Live's screen kept there. */
+    /** Gemini on its display first, then Live there, then Live's screen kept there. */
     private suspend fun startLive(context: Context, host: EmbeddedApp.Host) {
         val id = withTimeoutOrNull(SHOW_WAIT_MS) {
             while (host.status.value != EmbeddedApp.Status.SHOWN || host.displayId == null) delay(200)
             host.displayId
         } ?: run {
-            Log.w(TAG, "Gemini did not show on the panel: ${host.status.value}")
+            Log.w(TAG, "Gemini did not show on its display: ${host.status.value}")
             return
         }
         delay(SETTLE_MS)
@@ -118,16 +202,24 @@ internal object GeminiLive {
         host.bringBack()
     }
 
-    /** Closes the panel and the conversation with it. */
+    /** Closes the alert and the conversation with it. */
     fun end(context: Context) {
         val app = context.applicationContext
+        if (!_active.value) return
         starting?.cancel()
         starting = null
-        window?.hide()
-        window = null
+        ticking?.cancel()
+        ticking = null
+        _active.value = false
+        render(app)
         val host = EmbeddedApp.host(app, GEMINI_PACKAGE)
-        val elsewhere = host.heldBesides(panel)
-        host.forget(panel)
+        val elsewhere = host.heldBesides(pictures + unseen)
+        pictures.toList().forEach { host.forget(it) }
+        host.forget(unseen)
+        unseenSurface?.release()
+        unseenSurface = null
+        unseenTexture?.release()
+        unseenTexture = null
         scope.launch {
             // Live goes on in the background once its screen is gone: the Google app is closed.
             shell(app, "am force-stop $GOOGLE_APP")
@@ -136,7 +228,54 @@ internal object GeminiLive {
         }
     }
 
-    /** No panel possible: Live full screen with root, else Gemini as its icon opens it. */
+    /** From the pill: the chosen design again, for a while when driving. */
+    private fun enlarge(context: Context) {
+        bigSince = SystemClock.elapsedRealtime()
+        render(context)
+    }
+
+    /** Puts up, changes or takes down the alert to match the conversation, the car and the preview. */
+    private fun render(context: Context) {
+        val chosen = AlertStyleStore.styles.value.of(AlertKind.GEMINI)
+        val preview = AlertPreview.gemini.value && !_active.value
+        val style = when {
+            preview -> chosen
+            !_active.value || reversing -> null
+            else -> design(chosen, moving, SystemClock.elapsedRealtime() - bigSince)
+        }
+        if (style == shown) return
+        shown = style
+        val w = window(context)
+        if (style == null) {
+            w.hide()
+            return
+        }
+        val host = EmbeddedApp.host(context, GEMINI_PACKAGE)
+        w.show(style) {
+            if (preview) GeminiAlert(style, host = null, onEnd = { AlertPreview.stop() }, onEnlarge = {})
+            else GeminiAlert(style, host, onEnd = { end(context) }, onEnlarge = { enlarge(context) })
+        }
+    }
+
+    private fun window(context: Context): AlertWindow =
+        window ?: AlertWindow(context.applicationContext, "gemini live", AlertKind.GEMINI.cardAt.gravity, clearOfBar = true)
+            .also { window = it }
+
+    /**
+     * Gemini needs a picture to start on its display, and to keep running
+     * while only the pill shows: one nobody sees, the panel's size.
+     */
+    private fun attachUnseen(context: Context, host: EmbeddedApp.Host) {
+        val dm = context.resources.displayMetrics
+        val width = (panelWidthDp((dm.widthPixels / dm.density).toInt()).value * dm.density).toInt()
+        val height = dm.heightPixels - ((DashSize.Bar.value + 10f) * dm.density).toInt()
+        val texture = unseenTexture ?: SurfaceTexture(false).also { unseenTexture = it }
+        texture.setDefaultBufferSize(width, height)
+        val surface = unseenSurface ?: Surface(texture).also { unseenSurface = it }
+        host.attach(unseen, surface, width, height, dm.densityDpi)
+    }
+
+    /** No alert possible: Live full screen with root, else Gemini as its icon opens it. */
     private fun fullScreen(context: Context, root: Boolean) {
         if (root) {
             scope.launch { shell(context, LIVE) }
@@ -155,74 +294,183 @@ internal object GeminiLive {
             Log.w(TAG, "$cmd failed", e)
         }
     }
+
+    /** The designs that show Gemini's screen, shrunk to the pill while driving. */
+    private val BIG = setOf(AlertStyle.CARD, AlertStyle.PANEL, AlertStyle.FULL)
+
+    /** The design shown for [chosen]: the pill once the car has moved a while with it big. */
+    internal fun design(chosen: AlertStyle, moving: Boolean, bigForMs: Long): AlertStyle =
+        if (chosen in BIG && moving && bigForMs > COLLAPSE_MS) AlertStyle.PILL else chosen
 }
 
-/** The side panel: Live's own screen under a title row with the close button. */
+/**
+ * The alert in [style]: the pill alone, or a title row over Gemini's Live
+ * screen ([host]'s picture; a stand-in for "Try it", without [host]).
+ */
 @Composable
-private fun GeminiLivePanel(host: EmbeddedApp.Host, panel: Any, onEnd: () -> Unit) {
-    DisposableEffect(host, panel) {
-        onDispose { host.forget(panel) }
+private fun GeminiAlert(style: AlertStyle, host: EmbeddedApp.Host?, onEnd: () -> Unit, onEnlarge: () -> Unit) {
+    if (style == AlertStyle.BUBBLE || style == AlertStyle.ICON) {
+        GeminiOrb(style, onEnd)
+        return
     }
-    val dpi = (LocalDensity.current.density * 160).toInt()
-    AlertSurface(AlertStyle.PANEL) {
+    if (style == AlertStyle.PILL) {
+        AlertSurface(AlertStyle.PILL) {
+            Row(
+                modifier = Modifier
+                    .clickable(onClickLabel = stringResource(R.string.ai_gemini_live_show), onClick = onEnlarge)
+                    .padding(start = 18.dp, end = 6.dp, top = 6.dp, bottom = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Listening()
+                Spacer(Modifier.width(12.dp))
+                Text(stringResource(R.string.ai_gemini_live), color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.width(8.dp))
+                EndButton(onEnd)
+            }
+        }
+        return
+    }
+    val size = when (style) {
+        AlertStyle.CARD -> Modifier.size(width = 440.dp, height = 380.dp)
+        else -> Modifier.fillMaxSize()
+    }
+    AlertSurface(style, size) {
         Column(Modifier.fillMaxSize()) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = DashColors.Accent)
+                    Listening()
                     Spacer(Modifier.width(10.dp))
-                    Text(stringResource(R.string.ai_gemini_live), style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.ai_gemini_live), color = DashColors.TextPrimary, style = MaterialTheme.typography.titleMedium)
                 }
-                val end = stringResource(R.string.ai_gemini_live_end)
-                Box(
-                    modifier = Modifier.size(56.dp).clip(CircleShape).clickable(onClickLabel = end, onClick = onEnd),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Filled.Close, contentDescription = end)
-                }
+                EndButton(onEnd)
             }
-            AndroidView(
-                modifier = Modifier.fillMaxWidth().weight(1f),
-                factory = { ctx ->
-                    // A TextureView, as on the dashboard's tiles (EmbeddedAppCard).
-                    TextureView(ctx).apply {
-                        var surface: Surface? = null
-                        surfaceTextureListener = object : TextureView.SurfaceTextureListener {
-                            override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
-                                texture.setDefaultBufferSize(width, height)
-                                val s = Surface(texture).also { surface = it }
-                                if (width > 0 && height > 0) {
-                                    host.attach(panel, s, width, height, dpi)
-                                    host.onScreen(panel, true)
-                                }
-                            }
-
-                            override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) {
-                                texture.setDefaultBufferSize(width, height)
-                                val s = surface ?: return
-                                if (width > 0 && height > 0) host.attach(panel, s, width, height, dpi)
-                            }
-
-                            override fun onSurfaceTextureDestroyed(texture: SurfaceTexture): Boolean {
-                                host.detach(panel)
-                                surface?.release()
-                                surface = null
-                                return true
-                            }
-
-                            override fun onSurfaceTextureUpdated(texture: SurfaceTexture) = Unit
-                        }
-                        // Live's own buttons (mute, end) take the touches; the dashboard's window is not involved.
-                        setOnTouchListener { _, event ->
-                            host.touch(event)
-                            true
-                        }
-                    }
-                }
-            )
+            val screen = Modifier.fillMaxWidth().weight(1f)
+            if (host != null) LiveScreen(host, screen) else LiveStandIn(screen)
         }
     }
+}
+
+/** Gemini's own colours, for the ring and the halo that turn while it listens. */
+private val GeminiColours = listOf(Color(0xFF4285F4), Color(0xFF9B72CB), Color(0xFFD96570), Color(0xFF4285F4))
+
+/**
+ * The round designs: the bubble (a round surface, Gemini's colours turning
+ * around its sparkle) or the icon alone (the sparkle over a turning halo).
+ * A tap ends the conversation.
+ */
+@Composable
+private fun GeminiOrb(style: AlertStyle, onEnd: () -> Unit) {
+    val turn by rememberInfiniteTransition(label = "orb").animateFloat(
+        initialValue = 0f, targetValue = 360f,
+        animationSpec = infiniteRepeatable(tween(3_000, easing = LinearEasing)), label = "turn"
+    )
+    val end = stringResource(R.string.ai_gemini_live_end)
+    val tap = Modifier.clip(CircleShape).clickable(onClickLabel = end, onClick = onEnd)
+    if (style == AlertStyle.ICON) {
+        Box(Modifier.size(76.dp).then(tap), contentAlignment = Alignment.Center) {
+            Canvas(Modifier.fillMaxSize()) {
+                rotate(turn) { drawCircle(Brush.sweepGradient(GeminiColours), alpha = 0.55f) }
+                drawCircle(Brush.radialGradient(listOf(Color.White.copy(alpha = 0.5f), Color.Transparent)))
+            }
+            Listening(Color.White, 34.dp)
+        }
+        return
+    }
+    AlertSurface(AlertStyle.BUBBLE, Modifier.size(96.dp).then(tap)) {
+        Box(contentAlignment = Alignment.Center) {
+            Canvas(Modifier.fillMaxSize().padding(5.dp)) {
+                rotate(turn) { drawCircle(Brush.sweepGradient(GeminiColours), style = Stroke(width = 5.dp.toPx())) }
+            }
+            Listening(DashColors.Accent, 36.dp)
+        }
+    }
+}
+
+/** Gemini's sparkle, breathing while the conversation is open. */
+@Composable
+private fun Listening(tint: Color = DashColors.Accent, size: Dp = 26.dp) {
+    val pulse by rememberInfiniteTransition(label = "gemini").animateFloat(
+        initialValue = 0.45f, targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse), label = "pulse"
+    )
+    Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = tint, modifier = Modifier.size(size).alpha(pulse))
+}
+
+@Composable
+private fun EndButton(onEnd: () -> Unit) {
+    val end = stringResource(R.string.ai_gemini_live_end)
+    Box(
+        modifier = Modifier.size(DashSize.TouchPrimary).clip(CircleShape).clickable(onClickLabel = end, onClick = onEnd),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(Icons.Filled.Close, contentDescription = end, tint = DashColors.TextPrimary)
+    }
+}
+
+/** "Try it": Live's dark screen and its glow, no conversation. */
+@Composable
+private fun LiveStandIn(modifier: Modifier) {
+    Box(
+        modifier = modifier.background(
+            Brush.verticalGradient(0f to Color(0xFF131313), 0.6f to Color(0xFF16233A), 1f to Color(0xFF5AA9FF))
+        ),
+        contentAlignment = Alignment.TopCenter
+    ) {
+        Text("Live", color = Color.White, style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp))
+    }
+}
+
+/** Gemini's own screen, as on the dashboard's tiles (EmbeddedAppCard); touches go to it. */
+@Composable
+private fun LiveScreen(host: EmbeddedApp.Host, modifier: Modifier) {
+    val key = remember { Any() }
+    DisposableEffect(host, key) {
+        GeminiLive.pictures += key
+        onDispose {
+            GeminiLive.pictures -= key
+            host.forget(key)
+        }
+    }
+    val dpi = (LocalDensity.current.density * 160).toInt()
+    AndroidView(
+        modifier = modifier,
+        factory = { ctx ->
+            TextureView(ctx).apply {
+                var surface: Surface? = null
+                surfaceTextureListener = object : TextureView.SurfaceTextureListener {
+                    override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
+                        texture.setDefaultBufferSize(width, height)
+                        val s = Surface(texture).also { surface = it }
+                        if (width > 0 && height > 0) {
+                            host.attach(key, s, width, height, dpi)
+                            host.onScreen(key, true)
+                        }
+                    }
+
+                    override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) {
+                        texture.setDefaultBufferSize(width, height)
+                        val s = surface ?: return
+                        if (width > 0 && height > 0) host.attach(key, s, width, height, dpi)
+                    }
+
+                    override fun onSurfaceTextureDestroyed(texture: SurfaceTexture): Boolean {
+                        host.detach(key)
+                        surface?.release()
+                        surface = null
+                        return true
+                    }
+
+                    override fun onSurfaceTextureUpdated(texture: SurfaceTexture) = Unit
+                }
+                setOnTouchListener { _, event ->
+                    host.touch(event)
+                    true
+                }
+            }
+        }
+    )
 }

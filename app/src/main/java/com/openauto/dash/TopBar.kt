@@ -26,6 +26,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.ui.draw.alpha
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Apps
@@ -218,6 +220,7 @@ internal fun StandardTopBar(m: TopBarModel) {
                             LayoutIcon(m.layout, null, DashColors.TextSecondary, Modifier.size(28.dp))
                         }
                     }
+                    GeminiBarButton()
                 }
 
                 chosen?.let { items ->
@@ -227,7 +230,7 @@ internal fun StandardTopBar(m: TopBarModel) {
                         if (m.demo) Box(Modifier.padding(end = 6.dp)) { DemoBadge(onStop = m.onDemo, compact = true) }
                         VehicleAlerts(m.obdConnection, m.obd)
                         if (m.setupPending) Box(Modifier.padding(end = 6.dp)) { SetupPill(onClick = { m.onSetup(false) }, compact = true) }
-                        MorePicker(m) { open ->
+                        MorePicker(m, geminiInBar = true) { open ->
                             BarButton(onClick = open, description = stringResource(R.string.dash_more)) {
                                 Icon(Icons.Filled.MoreVert, contentDescription = null, tint = DashColors.TextSecondary, modifier = Modifier.size(28.dp))
                             }
@@ -274,7 +277,7 @@ internal fun StandardTopBar(m: TopBarModel) {
                     }
                     Box(Modifier.layoutId(BarRank.OBD)) { ObdPill(m.obdConnection, m.onConnectObd) }
                     Box(Modifier.layoutId(BarRank.MORE)) {
-                        MorePicker(m) { open ->
+                        MorePicker(m, geminiInBar = true) { open ->
                             BarButton(onClick = open, description = stringResource(R.string.dash_more)) {
                                 Icon(Icons.Filled.MoreVert, contentDescription = null, tint = DashColors.TextSecondary, modifier = Modifier.size(28.dp))
                             }
@@ -282,6 +285,36 @@ internal fun StandardTopBar(m: TopBarModel) {
                     }
                 }
             }
+        }
+    }
+}
+
+/**
+ * Gemini Live from the bar ([GeminiLive]): its sparkle, and while the
+ * conversation is open a red end button that breathes, so the driver sees
+ * Gemini is listening. Only with Gemini on the unit.
+ */
+@Composable
+private fun GeminiBarButton() {
+    val context = LocalContext.current
+    val installed = remember { GeminiLive.available(context) }
+    if (!installed) return
+    val active by GeminiLive.active.collectAsState()
+    val label = stringResource(if (active) R.string.ai_gemini_live_end else R.string.ai_gemini_live)
+    BarButton(onClick = { GeminiLive.toggle(context) }, description = label) {
+        if (active) {
+            val pulse by rememberInfiniteTransition(label = "gemini").animateFloat(
+                initialValue = 0.6f, targetValue = 1f,
+                animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse), label = "pulse"
+            )
+            Box(
+                modifier = Modifier.size(36.dp).alpha(pulse).clip(CircleShape).background(DashColors.Critical),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Filled.Close, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
+            }
+        } else {
+            Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = DashColors.Accent, modifier = Modifier.size(28.dp))
         }
     }
 }
@@ -768,7 +801,7 @@ private const val CHARGE_MS = 1_600
  * of the demo while it runs (it starts from Settings → Advanced).
  */
 @Composable
-internal fun MorePicker(m: TopBarModel, anchor: @Composable (open: () -> Unit) -> Unit) {
+internal fun MorePicker(m: TopBarModel, geminiInBar: Boolean = false, anchor: @Composable (open: () -> Unit) -> Unit) {
     var open by remember { mutableStateOf(false) }
     val pick: (() -> Unit) -> () -> Unit = { action ->
         {
@@ -803,9 +836,9 @@ internal fun MorePicker(m: TopBarModel, anchor: @Composable (open: () -> Unit) -
             )
             DashMenuItem(stringResource(R.string.templates_button), leading = { MenuIcon(Icons.Filled.Dashboard, parked) }, enabled = parked, onClick = pick(m.onTemplates))
             DashMenuItem(stringResource(R.string.dash_menu_split_screen), leading = { MenuIcon(Icons.Filled.Splitscreen) }, onClick = pick(m.onSplit))
-            // Spoken, so offered while driving too.
+            // Spoken, so offered while driving too; here only when the look's bar has no button for it.
             val context = LocalContext.current
-            if (GeminiLive.available(context)) {
+            if (!geminiInBar && GeminiLive.available(context)) {
                 DashMenuItem(stringResource(R.string.ai_gemini_live), leading = { MenuIcon(Icons.Filled.AutoAwesome) }, onClick = pick { GeminiLive.toggle(context) })
             }
             DashMenuItem(stringResource(R.string.settings_menu), leading = { MenuIcon(Icons.Filled.Settings, parked) }, enabled = parked, onClick = pick(m.onSettings))

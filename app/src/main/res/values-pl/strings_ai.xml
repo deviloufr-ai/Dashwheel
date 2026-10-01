@@ -102,4 +102,5 @@
     <string name="ai_ask_say_mic">Mikrofon nie jest jeszcze dozwolony. Dotknij raz mikrofonu na kafelku Kody błędów, aby na niego zezwolić.</string>
     <string name="ai_gemini_live_missing">Gemini nie jest zainstalowany na tym urządzeniu.</string>
     <string name="ai_gemini_live_end">Zakończ</string>
+    <string name="ai_gemini_live_show">Pokaż Gemini Live</string>
 </resources>

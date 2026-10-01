@@ -100,4 +100,5 @@
     <string name="ai_ask_say_mic">Das Mikrofon ist noch nicht erlaubt. Tippen Sie einmal auf das Mikrofon der Kachel Fehlercodes, um es zu erlauben.</string>
     <string name="ai_gemini_live_missing">Gemini ist auf diesem Gerät nicht installiert.</string>
     <string name="ai_gemini_live_end">Beenden</string>
+    <string name="ai_gemini_live_show">Gemini Live zeigen</string>
 </resources>

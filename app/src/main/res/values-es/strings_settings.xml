@@ -185,4 +185,10 @@
     <string name="about_scan">Escanea con el móvil</string>
     <string name="about_project">Página del proyecto</string>
     <string name="about_project_detail">Código fuente, versiones y avisos de errores</string>
+    <string name="alert_kind_gemini_title">Cómo se muestra Gemini Live</string>
+    <string name="alert_gemini_detail">Se abre desde la barra, el menú o un botón del volante. Al conducir se reduce a una píldora tras unos segundos</string>
+    <string name="alert_style_bubble">Burbuja</string>
+    <string name="alert_style_bubble_detail">Una insignia redonda en la esquina. Tócala para terminar</string>
+    <string name="alert_style_icon">Icono</string>
+    <string name="alert_style_icon_detail">Solo un icono animado en la esquina. Tócalo para terminar</string>
 </resources>

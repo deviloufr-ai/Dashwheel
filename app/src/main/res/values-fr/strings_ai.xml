@@ -101,4 +101,5 @@
     <string name="ai_ask_say_mic">Le micro n\'est pas encore autorisé. Touchez une fois le micro de la tuile Codes défaut pour l\'autoriser.</string>
     <string name="ai_gemini_live_missing">Gemini n\'est pas installé sur cet autoradio.</string>
     <string name="ai_gemini_live_end">Terminer</string>
+    <string name="ai_gemini_live_show">Afficher Gemini Live</string>
 </resources>

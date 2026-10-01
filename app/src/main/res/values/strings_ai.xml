@@ -103,4 +103,5 @@
     <string name="ai_gemini_live" translatable="false">Gemini Live</string>
     <string name="ai_gemini_live_missing">Gemini isn\'t installed on this unit.</string>
     <string name="ai_gemini_live_end">End</string>
+    <string name="ai_gemini_live_show">Show Gemini Live</string>
 </resources>

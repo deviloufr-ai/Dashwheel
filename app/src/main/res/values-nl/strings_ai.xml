@@ -100,4 +100,5 @@
     <string name="ai_ask_say_mic">De microfoon is nog niet toegestaan. Tik één keer op de microfoon van de tegel Foutcodes om hem toe te staan.</string>
     <string name="ai_gemini_live_missing">Gemini is niet geïnstalleerd op dit apparaat.</string>
     <string name="ai_gemini_live_end">Beëindigen</string>
+    <string name="ai_gemini_live_show">Gemini Live tonen</string>
 </resources>

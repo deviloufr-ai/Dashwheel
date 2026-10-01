@@ -101,4 +101,5 @@
     <string name="ai_ask_say_mic">El micrófono aún no está permitido. Toca una vez el micrófono del panel Códigos de avería para permitirlo.</string>
     <string name="ai_gemini_live_missing">Gemini no está instalado en esta unidad.</string>
     <string name="ai_gemini_live_end">Finalizar</string>
+    <string name="ai_gemini_live_show">Mostrar Gemini Live</string>
 </resources>

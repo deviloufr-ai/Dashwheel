@@ -101,4 +101,5 @@
     <string name="ai_ask_say_mic">Il microfono non è ancora consentito. Tocca una volta il microfono del riquadro Codici guasto per consentirlo.</string>
     <string name="ai_gemini_live_missing">Gemini non è installato su questa unità.</string>
     <string name="ai_gemini_live_end">Termina</string>
+    <string name="ai_gemini_live_show">Mostra Gemini Live</string>
 </resources>

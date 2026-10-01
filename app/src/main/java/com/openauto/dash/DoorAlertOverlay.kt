@@ -139,7 +139,8 @@ private fun DoorAlertContent(style: AlertStyle) {
 @Composable
 private fun DoorAlert(doors: McuReader.DoorState, style: AlertStyle) = when (style) {
     AlertStyle.PILL -> DoorPill(doors)
-    AlertStyle.CARD -> DoorCard(doors)
+    // The round designs are Gemini Live's only; never offered here.
+    AlertStyle.CARD, AlertStyle.BUBBLE, AlertStyle.ICON -> DoorCard(doors)
     AlertStyle.BANNER -> DoorBanner(doors)
     AlertStyle.PANEL -> DoorPanel(doors)
     AlertStyle.FULL -> DoorFullScreen(doors)

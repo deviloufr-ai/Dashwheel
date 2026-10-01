@@ -72,7 +72,15 @@ enum class AlertStyle(@StringRes val title: Int, @StringRes val detail: Int) {
     CARD(R.string.alert_style_card, R.string.alert_style_card_detail),
     BANNER(R.string.alert_style_banner, R.string.alert_style_banner_detail),
     PANEL(R.string.alert_style_panel, R.string.alert_style_panel_detail),
-    FULL(R.string.alert_style_full, R.string.alert_style_full_detail)
+    FULL(R.string.alert_style_full, R.string.alert_style_full_detail),
+    // Gemini Live's alone so far (AlertKind.GEMINI): round, in the corner, the conversation by voice only.
+    BUBBLE(R.string.alert_style_bubble, R.string.alert_style_bubble_detail),
+    ICON(R.string.alert_style_icon, R.string.alert_style_icon_detail);
+
+    companion object {
+        /** The designs every alert can take, from the pill to full screen. */
+        val CLASSIC = listOf(PILL, CARD, BANNER, PANEL, FULL)
+    }
 }
 
 /**
@@ -80,14 +88,24 @@ enum class AlertStyle(@StringRes val title: Int, @StringRes val detail: Int) {
  * (the radar never covers the reversing camera) and whether it can be said
  * out loud ([AlertVoice]).
  */
-enum class AlertKind(val key: String, val styles: List<AlertStyle>, val speakable: Boolean, val cardAt: CardAt) {
-    CALL("call", AlertStyle.entries, speakable = true, cardAt = CardAt.TOP),
-    DOORS("doors", AlertStyle.entries, speakable = true, cardAt = CardAt.TOP_END),
+enum class AlertKind(
+    val key: String,
+    val styles: List<AlertStyle>,
+    val speakable: Boolean,
+    val cardAt: CardAt,
+    /** Its design until one is chosen. */
+    val default: AlertStyle = AlertStyle.CARD
+) {
+    CALL("call", AlertStyle.CLASSIC, speakable = true, cardAt = CardAt.TOP),
+    DOORS("doors", AlertStyle.CLASSIC, speakable = true, cardAt = CardAt.TOP_END),
     RADAR("radar", listOf(AlertStyle.PILL, AlertStyle.CARD, AlertStyle.PANEL), speakable = false, cardAt = CardAt.END),
     AC("ac", listOf(AlertStyle.PILL, AlertStyle.CARD, AlertStyle.BANNER, AlertStyle.PANEL), speakable = false, cardAt = CardAt.BOTTOM),
-    TYRES("tyres", AlertStyle.entries, speakable = true, cardAt = CardAt.TOP_END),
+    TYRES("tyres", AlertStyle.CLASSIC, speakable = true, cardAt = CardAt.TOP_END),
     // Shown while driving: never anything that covers the screen.
-    BELT("belt", listOf(AlertStyle.PILL, AlertStyle.CARD, AlertStyle.BANNER), speakable = true, cardAt = CardAt.TOP)
+    BELT("belt", listOf(AlertStyle.PILL, AlertStyle.CARD, AlertStyle.BANNER), speakable = true, cardAt = CardAt.TOP),
+    // Gemini Live's conversation (GeminiLive): its own screen in the card, the panel or full screen;
+    // the icon, the bubble and the pill only say it listens.
+    GEMINI("gemini", listOf(AlertStyle.ICON, AlertStyle.BUBBLE, AlertStyle.PILL, AlertStyle.CARD, AlertStyle.PANEL, AlertStyle.FULL), speakable = false, cardAt = CardAt.TOP_END, default = AlertStyle.PANEL)
 }
 
 /**
@@ -143,8 +161,8 @@ object AlertStyleStore {
     }
 }
 
-/** [kind]'s chosen design; the card until one is chosen (or when the chosen one doesn't suit it). */
-fun Map<AlertKind, AlertStyle>.of(kind: AlertKind): AlertStyle = this[kind]?.takeIf { it in kind.styles } ?: AlertStyle.CARD
+/** [kind]'s chosen design; its default until one is chosen (or when the chosen one doesn't suit it). */
+fun Map<AlertKind, AlertStyle>.of(kind: AlertKind): AlertStyle = this[kind]?.takeIf { it in kind.styles } ?: kind.default
 
 /**
  * "Try it" in the style picker: a made-up call or open doors for a few
@@ -161,6 +179,7 @@ object AlertPreview {
     val climate = MutableStateFlow<Climate?>(null)
     val tyres = MutableStateFlow<Map<TyrePos, Tyre>?>(null)
     val belt = MutableStateFlow(false)
+    val gemini = MutableStateFlow(false)
 
     private const val SHOW_MS = 8_000L
 
@@ -188,6 +207,7 @@ object AlertPreview {
                 belt.value = true
                 AlertVoice.sayBelt(context, force = true)
             }
+            AlertKind.GEMINI -> gemini.value = true
         }
         job = scope.launch {
             delay(SHOW_MS)
@@ -208,6 +228,7 @@ object AlertPreview {
         climate.value = null
         tyres.value = null
         belt.value = false
+        gemini.value = false
     }
 }
 
@@ -229,7 +250,9 @@ internal class AlertWindow(
      * app overlay sits under it). Asked at each [show]: the radar always, a
      * call while reversing. Such a window needs no "display over other apps".
      */
-    private val aboveCamera: () -> Boolean = { false }
+    private val aboveCamera: () -> Boolean = { false },
+    /** The panel and full-screen designs stop above the dashboard's bar, so its buttons stay in reach. */
+    private val clearOfBar: Boolean = false
 ) {
     /** The shown window is the accessibility service's. */
     private var above = false
@@ -293,11 +316,14 @@ internal class AlertWindow(
         val wrap = WindowManager.LayoutParams.WRAP_CONTENT
         val match = WindowManager.LayoutParams.MATCH_PARENT
         val panel = (panelWidthDp((dm.widthPixels / dm.density).toInt()).value * dm.density).toInt()
+        // The bar's height, its glass margin under it included (TopBar).
+        val aboveBar = dm.heightPixels - ((DashSize.Bar.value + 10f) * dm.density).toInt()
+        val tall = if (clearOfBar) aboveBar else match
         val (w, h) = when (style) {
-            AlertStyle.PILL, AlertStyle.CARD -> wrap to wrap
+            AlertStyle.PILL, AlertStyle.CARD, AlertStyle.BUBBLE, AlertStyle.ICON -> wrap to wrap
             AlertStyle.BANNER -> match to wrap
-            AlertStyle.PANEL -> panel to match
-            AlertStyle.FULL -> match to match
+            AlertStyle.PANEL -> panel to tall
+            AlertStyle.FULL -> match to tall
         }
         return WindowManager.LayoutParams(
             w, h,
@@ -307,13 +333,13 @@ internal class AlertWindow(
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = when (style) {
-                AlertStyle.CARD -> cardGravity
+                AlertStyle.CARD, AlertStyle.BUBBLE, AlertStyle.ICON -> cardGravity
                 AlertStyle.PILL, AlertStyle.BANNER -> Gravity.TOP or Gravity.CENTER_HORIZONTAL
                 AlertStyle.PANEL -> Gravity.TOP or Gravity.END
                 AlertStyle.FULL -> Gravity.TOP or Gravity.START
             }
             when (style) {
-                AlertStyle.CARD -> {
+                AlertStyle.CARD, AlertStyle.BUBBLE, AlertStyle.ICON -> {
                     if (cardGravity and Gravity.HORIZONTAL_GRAVITY_MASK != Gravity.CENTER_HORIZONTAL) x = margin
                     when (cardGravity and Gravity.VERTICAL_GRAVITY_MASK) {
                         Gravity.TOP -> y = margin
@@ -342,6 +368,7 @@ internal fun AlertMotion(style: AlertStyle, state: MutableTransitionState<Boolea
 
 private fun enterOf(style: AlertStyle): EnterTransition = when (style) {
     AlertStyle.CARD -> fadeIn(tween(180)) + scaleIn(tween(220), initialScale = 0.9f)
+    AlertStyle.BUBBLE, AlertStyle.ICON -> fadeIn(tween(200)) + scaleIn(tween(280, easing = FastOutSlowInEasing), initialScale = 0.4f)
     AlertStyle.PILL, AlertStyle.BANNER -> slideInVertically(tween(260, easing = FastOutSlowInEasing)) { -it } + fadeIn(tween(200))
     AlertStyle.PANEL -> slideInHorizontally(tween(320, easing = FastOutSlowInEasing)) { it }
     AlertStyle.FULL -> fadeIn(tween(220)) + scaleIn(tween(260), initialScale = 1.04f)
@@ -349,6 +376,7 @@ private fun enterOf(style: AlertStyle): EnterTransition = when (style) {
 
 private fun exitOf(style: AlertStyle): ExitTransition = when (style) {
     AlertStyle.CARD -> fadeOut(tween(160)) + scaleOut(tween(160), targetScale = 0.9f)
+    AlertStyle.BUBBLE, AlertStyle.ICON -> fadeOut(tween(180)) + scaleOut(tween(200), targetScale = 0.4f)
     AlertStyle.PILL, AlertStyle.BANNER -> slideOutVertically(tween(220)) { -it } + fadeOut(tween(180))
     AlertStyle.PANEL -> slideOutHorizontally(tween(260)) { it }
     AlertStyle.FULL -> fadeOut(tween(200))
@@ -362,7 +390,7 @@ private fun exitOf(style: AlertStyle): ExitTransition = when (style) {
 internal fun AlertPopup(style: AlertStyle, cardAlignment: Alignment, content: @Composable () -> Unit) {
     val margin = with(LocalDensity.current) { 24.dp.roundToPx() }
     val (alignment, offset) = when (style) {
-        AlertStyle.CARD -> cardAlignment to when (cardAlignment) {
+        AlertStyle.CARD, AlertStyle.BUBBLE, AlertStyle.ICON -> cardAlignment to when (cardAlignment) {
             Alignment.TopEnd -> IntOffset(-margin, margin)
             Alignment.CenterEnd -> IntOffset(-margin, 0)
             Alignment.BottomCenter -> IntOffset(0, -margin * 4)

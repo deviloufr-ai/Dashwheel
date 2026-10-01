@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
@@ -94,6 +95,7 @@ internal fun alertShape(style: AlertStyle): Shape {
         AlertStyle.CARD, AlertStyle.FULL -> shapes.large
         AlertStyle.BANNER -> shapes.medium
         AlertStyle.PANEL -> RectangleShape
+        AlertStyle.BUBBLE, AlertStyle.ICON -> CircleShape
     }
 }
 
@@ -103,6 +105,8 @@ private fun elevationOf(style: AlertStyle): Dp = when (style) {
     AlertStyle.BANNER -> 8.dp
     AlertStyle.PANEL -> 12.dp
     AlertStyle.FULL -> 16.dp
+    AlertStyle.BUBBLE -> 10.dp
+    AlertStyle.ICON -> 0.dp
 }
 
 /**

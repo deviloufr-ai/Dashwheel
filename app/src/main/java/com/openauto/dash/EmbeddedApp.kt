@@ -741,8 +741,8 @@ internal object EmbeddedApp {
         /** The app's own display while it has one: for a command sent to it ([GeminiLive]). */
         val displayId: Int? get() = display?.display?.displayId
 
-        /** Whether a tile other than [tile] shows this app too. */
-        fun heldBesides(tile: Any): Boolean = tiles.keys.any { it !== tile }
+        /** Whether a tile other than [mine] shows this app too. */
+        fun heldBesides(mine: Collection<Any>): Boolean = tiles.keys.any { tile -> mine.none { it === tile } }
 
         /** [tile] is gone for good. */
         fun forget(tile: Any) {
