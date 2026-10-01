@@ -138,4 +138,35 @@
     <string name="log_received">O registo do carro está pronto</string>
     <string name="log_received_detail">Toque para partilhar. O botão abre uma issue do GitHub onde o anexar.</string>
     <string name="log_github">Issue do GitHub</string>
+    <!-- Experimental: the driver's own car sent to the car's screen (CarLookSender.kt) -->
+    <string name="car_look_title">Imagem do carro</string>
+    <string name="car_look_detail">Experimental: o seu próprio carro no ecrã do carro. Um pacote de carro, ou uma foto do carro de lado.</string>
+    <string name="car_look_offline">Ligue-se ao carro para enviar uma imagem</string>
+    <string name="car_look_sending">A enviar para o carro</string>
+    <string name="car_look_sent">No ecrã do carro</string>
+    <string name="car_look_too_big">Esse ficheiro é demasiado grande</string>
+    <string name="car_look_failed">Não foi possível enviar. Tente de novo no carro.</string>
+    <string name="car_look_choose">Escolher ficheiro</string>
+
+    <!-- Car picture from three photos (CarFromPhotos). -->
+    <string name="car_photos_open">Criar com 3 fotos</string>
+    <string name="car_photos_title">O seu carro em 3 fotos</string>
+    <string name="car_photos_detail">Três fotos do seu carro criam a sua imagem e a vista de cima.</string>
+    <string name="car_photos_side">Lado</string>
+    <string name="car_photos_front">Frente</string>
+    <string name="car_photos_back">Traseira</string>
+    <string name="car_photos_ready">Pronta</string>
+    <string name="car_photos_add">Tirar ou escolher uma foto</string>
+    <string name="car_photos_take">Tirar uma foto</string>
+    <string name="car_photos_choose">Escolher uma foto</string>
+    <string name="car_photos_tip">Fique bem de frente para cada lado, a cerca de 8 passos. Retirar primeiro o fundo no Gemini ou na galeria dá contornos mais limpos.</string>
+    <string name="car_photos_build">Criar o meu carro</string>
+    <string name="car_photos_building">A criar o seu carro</string>
+    <string name="car_photos_result">O seu carro</string>
+    <string name="car_photos_result_hint">Os anéis verdes mostram onde aparecem os avisos dos pneus e das portas.</string>
+    <string name="car_photos_turned">Virado para a direita</string>
+    <string name="car_photos_send">Enviar para o carro</string>
+    <string name="car_photos_change">Mudar uma foto</string>
+    <string name="car_photos_not_found">Nenhum carro encontrado na foto %1$s. Use uma com o carro inteiro sobre um fundo liso.</string>
+    <string name="car_photos_close">Fechar</string>
 </resources>

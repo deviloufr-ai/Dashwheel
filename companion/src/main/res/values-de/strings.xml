@@ -138,4 +138,35 @@
     <string name="log_received">Das Protokoll des Autos ist bereit</string>
     <string name="log_received_detail">Tippen zum Teilen. Die Schaltfläche öffnet ein GitHub-Issue zum Anhängen.</string>
     <string name="log_github">GitHub-Issue</string>
+    <!-- Experimental: the driver's own car sent to the car's screen (CarLookSender.kt) -->
+    <string name="car_look_title">Fahrzeugbild</string>
+    <string name="car_look_detail">Experimentell: dein eigenes Auto auf dem Bildschirm im Auto. Ein Fahrzeugpaket oder ein Seitenfoto des Autos.</string>
+    <string name="car_look_offline">Verbinde dich mit dem Auto, um ein Bild zu senden</string>
+    <string name="car_look_sending">Wird ans Auto gesendet</string>
+    <string name="car_look_sent">Auf dem Bildschirm im Auto</string>
+    <string name="car_look_too_big">Die Datei ist zu groß</string>
+    <string name="car_look_failed">Das hat nicht geklappt. Versuch es im Auto noch einmal.</string>
+    <string name="car_look_choose">Datei wählen</string>
+
+    <!-- Car picture from three photos (CarFromPhotos). -->
+    <string name="car_photos_open">Aus 3 Fotos erstellen</string>
+    <string name="car_photos_title">Ihr Auto aus 3 Fotos</string>
+    <string name="car_photos_detail">Drei Fotos Ihres Autos ergeben sein Bild und seine Ansicht von oben.</string>
+    <string name="car_photos_side">Seite</string>
+    <string name="car_photos_front">Vorne</string>
+    <string name="car_photos_back">Hinten</string>
+    <string name="car_photos_ready">Bereit</string>
+    <string name="car_photos_add">Foto aufnehmen oder wählen</string>
+    <string name="car_photos_take">Foto aufnehmen</string>
+    <string name="car_photos_choose">Foto wählen</string>
+    <string name="car_photos_tip">Stellen Sie sich gerade vor jede Seite, etwa 8 Schritte entfernt. Wenn Sie den Hintergrund vorher in Gemini oder der Galerie entfernen, werden die Ränder sauberer.</string>
+    <string name="car_photos_build">Mein Auto erstellen</string>
+    <string name="car_photos_building">Ihr Auto wird erstellt</string>
+    <string name="car_photos_result">Ihr Auto</string>
+    <string name="car_photos_result_hint">Die grünen Ringe zeigen, wo die Reifen- und Türwarnungen erscheinen.</string>
+    <string name="car_photos_turned">Nach rechts gedreht</string>
+    <string name="car_photos_send">An das Auto senden</string>
+    <string name="car_photos_change">Ein Foto ändern</string>
+    <string name="car_photos_not_found">Kein Auto auf dem Foto %1$s gefunden. Nehmen Sie eines mit dem ganzen Auto vor einem schlichten Hintergrund.</string>
+    <string name="car_photos_close">Schließen</string>
 </resources>

@@ -139,4 +139,35 @@
     <string name="log_received">The car\'s log is ready</string>
     <string name="log_received_detail">Tap to share it. The button opens a GitHub issue to attach it to.</string>
     <string name="log_github">GitHub issue</string>
+    <!-- Experimental: the driver's own car sent to the car's screen (CarLookSender.kt) -->
+    <string name="car_look_title">Car picture</string>
+    <string name="car_look_detail">Experimental: your own car on the car\'s screen. A car pack, or a picture of the car from the side.</string>
+    <string name="car_look_offline">Connect to the car to send a picture</string>
+    <string name="car_look_sending">Sending to the car</string>
+    <string name="car_look_sent">On the car\'s screen</string>
+    <string name="car_look_too_big">That file is too big</string>
+    <string name="car_look_failed">It did not go through. Try again in the car.</string>
+    <string name="car_look_choose">Choose a file</string>
+
+    <!-- Car picture from three photos (CarFromPhotos). -->
+    <string name="car_photos_open">Make it from 3 photos</string>
+    <string name="car_photos_title">Your car from 3 photos</string>
+    <string name="car_photos_detail">Three photos of your car make its picture and its view from above.</string>
+    <string name="car_photos_side">Side</string>
+    <string name="car_photos_front">Front</string>
+    <string name="car_photos_back">Back</string>
+    <string name="car_photos_ready">Ready</string>
+    <string name="car_photos_add">Take or choose a photo</string>
+    <string name="car_photos_take">Take a photo</string>
+    <string name="car_photos_choose">Choose a photo</string>
+    <string name="car_photos_tip">Stand straight in front of each side, about 8 steps away. Removing the background first in Gemini or your gallery gives cleaner edges.</string>
+    <string name="car_photos_build">Build my car</string>
+    <string name="car_photos_building">Building your car</string>
+    <string name="car_photos_result">Your car</string>
+    <string name="car_photos_result_hint">The green rings are where the tyre and door alerts go.</string>
+    <string name="car_photos_turned">Turned to face right</string>
+    <string name="car_photos_send">Send to the car</string>
+    <string name="car_photos_change">Change a photo</string>
+    <string name="car_photos_not_found">No car found in the %1$s photo. Use one with the whole car on a plain background.</string>
+    <string name="car_photos_close">Close</string>
 </resources>

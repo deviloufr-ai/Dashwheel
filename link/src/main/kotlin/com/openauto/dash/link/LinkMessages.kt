@@ -615,3 +615,27 @@ data class CarLog(val id: Long, val title: String, val text: String) : LinkMessa
 @Serializable
 @SerialName("car_log_ack")
 data class CarLogAck(val id: Long, val ok: Boolean) : LinkMessage
+
+/**
+ * Phone → head unit, EXPERIMENTAL: a picture of the driver's own car (a car
+ * pack or an image), for the head unit to show in place of its drawn car. Too
+ * big for one frame, it goes in parts: [data] is part [index] of [count]
+ * (base64), all under one [id]. The head unit answers the last part, or the
+ * first one it can't take, with a [CarLookAck].
+ */
+@Serializable
+@SerialName("car_look_part")
+data class CarLookPart(val id: Long, val index: Int, val count: Int, val name: String, val data: String) : LinkMessage {
+    companion object {
+        /** Raw bytes per part: base64 makes it a third bigger, well inside a frame. */
+        const val PART_BYTES = 256 * 1024
+
+        /** The largest file sent: a car pack is a few pictures. */
+        const val MAX_BYTES = 24 * 1024 * 1024
+    }
+}
+
+/** Head unit → phone: what became of the [CarLookPart]s under [id]. */
+@Serializable
+@SerialName("car_look_ack")
+data class CarLookAck(val id: Long, val ok: Boolean) : LinkMessage

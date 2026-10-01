@@ -99,4 +99,14 @@
     <string name="ai_ask_say_nothing_heard">No he oído ninguna pregunta.</string>
     <string name="ai_ask_say_no_key">El mecánico IA necesita una clave de Gemini. Añádela en los ajustes de Coche, en Mecánico IA.</string>
     <string name="ai_ask_say_mic">El micrófono aún no está permitido. Toca una vez el micrófono del panel Códigos de avería para permitirlo.</string>
+    <string name="ai_gemini_live_missing">Gemini no está instalado en esta unidad.</string>
+    <string name="ai_gemini_live_end">Finalizar</string>
+    <string name="ai_gemini_live_show">Mostrar Gemini Live</string>
+    <string name="ai_live_connecting">Conectando</string>
+    <string name="ai_live_listening">Escuchando</string>
+    <string name="ai_live_thinking">Pensando</string>
+    <string name="ai_live_speaking">Hablando</string>
+    <string name="ai_live_failed">Gemini no responde. Comprueba la conexión.</string>
+    <string name="ai_live_own">Gemini que conoce el coche</string>
+    <string name="ai_live_own_detail">Usa tu clave de Gemini: lee el coche, el viaje y el panel, y actúa sobre ellos. Desactivado: la app Gemini de Google</string>
 </resources>

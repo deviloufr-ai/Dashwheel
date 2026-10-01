@@ -1,0 +1,40 @@
+<p>Dashwheel remplace l'écran d'accueil d'un autoradio Android. Carte, musique et données de la voiture tiennent sur un seul écran, que vous organisez vous-même.</p>
+
+<p>Conçu pour les autoradios 1280x720 (ROCO K706, unités FYT et QF). Fonctionne aussi sur les écrans verticaux type Tesla et sur téléphone. Android 10 ou plus récent.</p>
+
+<p><b>Tableaux de bord</b></p>
+<ul>
+<li>Sept tableaux de bord en croix : trois côte à côte, deux au-dessus et deux en dessous de celui du milieu</li>
+<li>Une grille libre sur chacun : appui long pour déplacer une tuile, glisser son coin pour la redimensionner, annulation de chaque changement</li>
+<li>Modèles prêts à l'emploi : Quotidien, Road trip et Santé de la voiture</li>
+<li>Plus de 30 widgets intégrés et plus de 60 designs, plus les widgets Android, raccourcis d'applis et applis ancrées</li>
+<li>14 thèmes, dont quatre habillages complets (Orbit, Cockpit, Horizon, Tape Deck), chacun en version jour et nuit</li>
+</ul>
+
+<p><b>Votre voiture</b></p>
+<ul>
+<li>Données en direct d'un adaptateur OBD ELM327 Bluetooth : vitesse, régime, températures, carburant, tension, codes défaut lus et effacés</li>
+<li>Les données de l'autoradio quand il les fournit : portes, niveau de carburant, feux, kilométrage, marche arrière, pression des pneus</li>
+<li>Entretien : santé du filtre à particules, montée en température, batterie, planning d'entretien avec rappels vocaux</li>
+<li>Vue de recul avec lignes de guidage et radar de stationnement sur les unités compatibles</li>
+</ul>
+
+<p><b>Sur la route</b></p>
+<ul>
+<li>Une carte MapLibre libre avec recherche et itinéraires, qui passe le guidage à votre appli de navigation</li>
+<li>Prochaine direction de Google Maps ou Waze sur sa propre tuile</li>
+<li>Rappel de pause, score d'éco-conduite, prix des carburants à proximité (France)</li>
+<li>Volume qui suit la vitesse, alertes vocales et briefing au démarrage</li>
+<li>Vos propres fenêtres pour les appels, portes, radar de recul, climatisation et ceinture</li>
+</ul>
+
+<p><b>En option</b></p>
+<ul>
+<li>Mécanicien IA : codes défaut expliqués simplement avec Google Gemini (votre propre clé API gratuite)</li>
+<li>Lien avec le téléphone via l'appli Dashwheel Companion : notifications, messages et appels sur le grand écran, appairage par QR code et chiffrement de bout en bout</li>
+<li>Les fonctions root (installation en appli système, logo de démarrage, applis dans les tuiles, commandes au volant) n'apparaissent que si l'autoradio offre un shell root</li>
+</ul>
+
+<p>8 langues : anglais, français, allemand, espagnol, italien, portugais, néerlandais, polonais.</p>
+
+<p>Libre et open source sous licence GPL v3. Sans publicité, sans pistage.</p>

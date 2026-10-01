@@ -98,4 +98,14 @@
     <string name="ai_ask_say_nothing_heard">Ik hoorde geen vraag.</string>
     <string name="ai_ask_say_no_key">De AI-monteur heeft een Gemini-sleutel nodig. Voeg er een toe in de Auto-instellingen, onder AI-monteur.</string>
     <string name="ai_ask_say_mic">De microfoon is nog niet toegestaan. Tik één keer op de microfoon van de tegel Foutcodes om hem toe te staan.</string>
+    <string name="ai_gemini_live_missing">Gemini is niet geïnstalleerd op dit apparaat.</string>
+    <string name="ai_gemini_live_end">Beëindigen</string>
+    <string name="ai_gemini_live_show">Gemini Live tonen</string>
+    <string name="ai_live_connecting">Verbinden</string>
+    <string name="ai_live_listening">Luistert</string>
+    <string name="ai_live_thinking">Denkt na</string>
+    <string name="ai_live_speaking">Spreekt</string>
+    <string name="ai_live_failed">Gemini antwoordt niet. Controleer de verbinding.</string>
+    <string name="ai_live_own">Gemini die de auto kent</string>
+    <string name="ai_live_own_detail">Gebruikt je Gemini-sleutel: leest de auto, de rit en het dashboard, en handelt ernaar. Uit: de Gemini-app van Google</string>
 </resources>

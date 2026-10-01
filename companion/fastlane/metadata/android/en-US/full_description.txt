@@ -1,0 +1,13 @@
+<p>Dashwheel Companion links your phone to a car head unit running the Dashwheel launcher. It is of no use without Dashwheel in the car.</p>
+
+<ul>
+<li>Notifications and messages appear on the car screen, read aloud if you like, with quick or voice replies</li>
+<li>Phone calls and app calls (WhatsApp, Signal, Telegram and others) answered and ended from the car screen</li>
+<li>Where's my car: the last place the car stopped, with Map and Walk there</li>
+<li>Drives: a log of every drive with its distance, time and eco-driving score</li>
+<li>Start in the car: sharing turns on by itself when the phone joins the car's Bluetooth</li>
+</ul>
+
+<p>The phone and the head unit talk over the phone's hotspot. They pair once by QR code, and every connection is end-to-end encrypted. Nothing goes through a server.</p>
+
+<p>Free and open source under the GPL v3. No ads, no tracking.</p>

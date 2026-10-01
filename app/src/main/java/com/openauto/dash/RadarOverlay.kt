@@ -69,9 +69,10 @@ object RadarOverlay {
 
     /** The sensors to show, or null when there's no radar up: the picker's made-up ones while it is tried. */
     val alert: StateFlow<Radar?> =
-        combine(RomPopups.replaced, CarBox.radar, CarBox.reversing, AlertPreview.radar) { replaced, radar, reversing, preview ->
+        combine(RomPopups.replaced, CarBox.radar, CarBox.reversing, AlertPreview.radar, ReverseView.covering) { replaced, radar, reversing, preview, reverseView ->
+            // The reverse view has its own radar.
             preview ?: radar.takeIf {
-                RomPopups.Kind.RADAR in replaced && it != null && it.present && (reversing || it.active)
+                !reverseView && RomPopups.Kind.RADAR in replaced && it != null && it.present && (reversing || it.active)
             }
         }.stateIn(scope, SharingStarted.Eagerly, null)
 

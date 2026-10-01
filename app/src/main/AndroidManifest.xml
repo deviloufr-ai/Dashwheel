@@ -51,6 +51,11 @@
          without root or the unit's ADB: granted once from a PC with
          "adb shell pm grant com.openauto.dash android.permission.WRITE_SECURE_SETTINGS". -->
     <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" tools:ignore="ProtectedPermissions" />
+    <!-- The car app's log, where it writes the steering angle once its own guide lines are hidden (ReverseView). Granted through the root shell. -->
+    <uses-permission android:name="android.permission.READ_LOGS" tools:ignore="ProtectedPermissions" />
+    <!-- The reversing camera's picture shown by Dashwheel itself (ReverseCamera, experimental). -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <!-- Hardware Requirements -->
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />

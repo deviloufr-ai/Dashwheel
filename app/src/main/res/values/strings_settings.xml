@@ -188,4 +188,10 @@
     <string name="about_scan">Scan with your phone</string>
     <string name="about_project">Project page</string>
     <string name="about_project_detail">Source code, releases and bug reports</string>
+    <string name="alert_kind_gemini_title">How Gemini Live shows</string>
+    <string name="alert_gemini_detail">Opens from the bar, the menu or a steering wheel button. While driving it shrinks to a pill after a few seconds</string>
+    <string name="alert_style_bubble">Bubble</string>
+    <string name="alert_style_bubble_detail">A round badge in the corner. Tap it to end</string>
+    <string name="alert_style_icon">Icon</string>
+    <string name="alert_style_icon_detail">Only an animated icon in the corner. Tap it to end</string>
 </resources>

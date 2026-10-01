@@ -198,19 +198,27 @@ object LocationFeed {
         ) {
             val d = prev.distanceTo(l).toDouble()
             val dt = (l.time - prev.time).coerceIn(0L, 60_000L)
-            if (d >= 2.0) {
-                val now = System.currentTimeMillis()
-                _trip.value = _trip.value.let { if (DriveLogRules.startsAfresh(it, now)) TripState(startedAt = now) else it }.let { t ->
-                    t.copy(
-                        distanceM = t.distanceM + d,
-                        movingMs = t.movingMs + if (speedKmh > 3f) dt else 0L,
-                        maxSpeedKmh = max(t.maxSpeedKmh, speedKmh),
-                        updatedAt = now
-                    )
-                }
-            }
+            tripStep(_trip.value, d, dt, speedKmh, System.currentTimeMillis())?.let { _trip.value = it }
         }
         lastFix = l
+    }
+
+    /**
+     * [trip] after a GPS step of [d] metres in [dt] ms at [speedKmh], or null
+     * when the step doesn't count. Only a moving car travels: a parked unit's
+     * fixes drift metres apart at a near-zero speed, and adding them gave
+     * distance with no moving time (a 90 km/h average on a 6 km/h top speed)
+     * and kept the trip from ever ending.
+     */
+    internal fun tripStep(trip: TripState, d: Double, dt: Long, speedKmh: Float, now: Long): TripState? {
+        if (d < 2.0 || speedKmh <= 3f) return null
+        val t = if (DriveLogRules.startsAfresh(trip, now)) TripState(startedAt = now) else trip
+        return t.copy(
+            distanceM = t.distanceM + d,
+            movingMs = t.movingMs + dt,
+            maxSpeedKmh = max(t.maxSpeedKmh, speedKmh),
+            updatedAt = now
+        )
     }
 }
 

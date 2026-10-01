@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Experimental: the driver's own car in place of the drawn one (MyCarLook.kt, MyCarLookSheet.kt) -->
+    <string name="mycar_title">Obraz auta</string>
+    <string name="mycar_settings_detail">Eksperymentalne: twoje własne auto w kafelkach</string>
+    <string name="mycar_experimental">Eksperymentalne: twoje własne auto zamiast rysunku. Użyj pakietu auta z modelu 3D albo zdjęcia auta z boku.</string>
+    <string name="mycar_empty">Brak obrazu. Wybierz plik albo wyślij go z aplikacji w telefonie.</string>
+    <string name="mycar_working">Przygotowywanie</string>
+    <string name="mycar_ready">Obraz twojego auta jest gotowy</string>
+    <string name="mycar_failed">Nie udało się odczytać pliku</string>
+    <string name="mycar_no_picker">Brak wyboru plików w tym urządzeniu. Umieść plik tutaj: %1$s</string>
+    <string name="mycar_pick">Wybierz plik</string>
+    <string name="mycar_remove">Usuń</string>
+    <string name="mycar_remove_title">Usunąć obraz twojego auta?</string>
+    <string name="mycar_remove_body">Kafelki wrócą do rysunku auta.</string>
+    <string name="mycar_cancel">Anuluj</string>
+    <string name="mycar_views">Widoki: %1$s</string>
+    <string name="mycar_view_side">bok</string>
+    <string name="mycar_view_top">z góry</string>
+    <string name="mycar_view_hero">trzy czwarte</string>
+    <string name="mycar_show_title">Pokaż</string>
+    <string name="mycar_show_drawn">Rysunek auta</string>
+    <string name="mycar_show_mine">Moje auto</string>
+    <string name="mycar_style_title">Styl</string>
+    <string name="mycar_style_photo">Zdjęcie</string>
+    <string name="mycar_style_photo_hint">Obraz bez zmian</string>
+    <string name="mycar_style_tinted">Barwiony</string>
+    <string name="mycar_style_tinted_hint">W kolorze motywu, z cieniami</string>
+    <string name="mycar_style_outline">Kontur</string>
+    <string name="mycar_style_outline_hint">Tylko linie, w kolorze motywu</string>
+    <string name="mycar_where">Widoczne w projektach Mapa opon i Sylwetka oraz na kafelku Mój samochód.</string>
+    <string name="mycar_phone_hint">Z telefonu: w aplikacji Dashwheel companion, Obraz auta, potem Wybierz plik.</string>
+    <string name="mycar_photos">3 zdjęcia</string>
+    <string name="mycar_photos_hint">Albo wybierz od razu trzy zdjęcia auta: bok, przód i tył. Nazwane bok, przód i tył nigdy się nie pomylą.</string>
+    <string name="mycar_photos_no_car">Nie znaleziono samochodu na tych zdjęciach. Użyj zdjęć z całym autem na gładkim tle.</string>
+</resources>

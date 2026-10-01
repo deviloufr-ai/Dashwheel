@@ -1,0 +1,13 @@
+<p>Dashwheel Companion relie votre téléphone à un autoradio équipé du lanceur Dashwheel. Elle ne sert à rien sans Dashwheel dans la voiture.</p>
+
+<ul>
+<li>Notifications et messages s'affichent sur l'écran de la voiture, lus à voix haute si vous le souhaitez, avec réponses rapides ou vocales</li>
+<li>Appels téléphoniques et appels d'applis (WhatsApp, Signal, Telegram et autres) décrochés et raccrochés depuis l'écran de la voiture</li>
+<li>Où est ma voiture : le dernier endroit où la voiture s'est arrêtée, avec Carte et Y aller à pied</li>
+<li>Trajets : un journal de chaque trajet avec sa distance, sa durée et son score d'éco-conduite</li>
+<li>Démarrer dans la voiture : le partage s'active tout seul quand le téléphone se connecte au Bluetooth de la voiture</li>
+</ul>
+
+<p>Le téléphone et l'autoradio communiquent par le point d'accès du téléphone. Ils s'appairent une fois par QR code, et chaque connexion est chiffrée de bout en bout. Rien ne passe par un serveur.</p>
+
+<p>Libre et open source sous licence GPL v3. Sans publicité, sans pistage.</p>

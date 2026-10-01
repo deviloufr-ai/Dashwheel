@@ -64,7 +64,9 @@ data class AiConfig(
     val languageChoice: AiLanguage? = null,
     val speak: Boolean = true,
     /** Say the start-up briefing when the car starts. */
-    val briefing: Boolean = true
+    val briefing: Boolean = true,
+    /** Gemini Live is Dashwheel's own (DashAssistant, knows the car), not Google's Gemini app. */
+    val ownLive: Boolean = true
 ) {
     /** The language actually used: the pick, else the launcher's current one. */
     val language: AiLanguage get() = languageChoice ?: AiLanguage.of(Locale.getDefault())
@@ -80,7 +82,8 @@ object AiSettings {
             keyFromCode = p.getBoolean("key_from_code", false),
             languageChoice = p.getString("language", null)?.let { runCatching { AiLanguage.valueOf(it) }.getOrNull() },
             speak = p.getBoolean("speak", true),
-            briefing = p.getBoolean("briefing", true)
+            briefing = p.getBoolean("briefing", true),
+            ownLive = p.getBoolean("own_live", true)
         )
     }
 
@@ -91,6 +94,7 @@ object AiSettings {
             .apply { config.languageChoice?.let { putString("language", it.name) } ?: remove("language") }
             .putBoolean("speak", config.speak)
             .putBoolean("briefing", config.briefing)
+            .putBoolean("own_live", config.ownLive)
             .apply()
     }
 }

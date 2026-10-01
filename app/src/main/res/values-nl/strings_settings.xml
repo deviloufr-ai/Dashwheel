@@ -185,4 +185,10 @@
     <string name="about_scan">Scan met je telefoon</string>
     <string name="about_project">Projectpagina</string>
     <string name="about_project_detail">Broncode, versies en foutmeldingen</string>
+    <string name="alert_kind_gemini_title">Hoe Gemini Live verschijnt</string>
+    <string name="alert_gemini_detail">Opent vanuit de balk, het menu of een stuurknop. Tijdens het rijden krimpt het na een paar seconden tot een pil</string>
+    <string name="alert_style_bubble">Bel</string>
+    <string name="alert_style_bubble_detail">Een rond badge in de hoek. Tik erop om te stoppen</string>
+    <string name="alert_style_icon">Pictogram</string>
+    <string name="alert_style_icon_detail">Alleen een bewegend pictogram in de hoek. Tik erop om te stoppen</string>
 </resources>

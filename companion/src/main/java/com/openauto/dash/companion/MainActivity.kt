@@ -58,6 +58,7 @@ import androidx.compose.material.icons.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.LocalParking
 import androidx.compose.material.icons.filled.Map
@@ -232,6 +233,12 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
         else ask(context, arrayOf(Manifest.permission.BLUETOOTH_CONNECT)) { askBluetooth.launch(it.single()) }
     }
     val onAuto: (Boolean) -> Unit = { on -> if (on) pick(BluetoothPick.CAR) else CarBluetooth.choose(context, null) }
+    // The car from three photos takes the whole screen while open.
+    var fromPhotos by rememberSaveable { mutableStateOf(false) }
+    if (fromPhotos) {
+        CarFromPhotosScreen(connected, onClose = { fromPhotos = false })
+        return
+    }
 
     Scaffold(containerColor = CompanionColors.Background) { padding ->
         LazyColumn(
@@ -285,6 +292,7 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
             if (paired) {
                 item { SectionTitle(stringResource(R.string.cars_title)) }
                 item { ObdRelayCard(onPick = { pick(BluetoothPick.OBD) }) }
+                item { CarLookCard(connected, onFromPhotos = { fromPhotos = true }) }
                 items(units, key = { it.id }) { unit -> CarRow(unit, onRemove = { removing = unit }) }
                 item {
                     TextButton(onClick = startScan, modifier = Modifier.fillMaxWidth()) {
@@ -650,6 +658,45 @@ private fun CarSpotCard() {
                         Text(stringResource(R.string.car_spot_map))
                     }
                 }
+            }
+        }
+    }
+}
+
+/**
+ * EXPERIMENTAL: the driver's own car on the car's screen ([CarLookSender]):
+ * a car pack or a picture of the car from the side, picked here and sent.
+ */
+@Composable
+private fun CarLookCard(connected: Boolean, onFromPhotos: () -> Unit) {
+    val context = LocalContext.current
+    val status by CarLookSender.status.collectAsState()
+    val choose = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) CarLookSender.send(context, uri)
+    }
+    val line = when {
+        status == CarLookSender.Status.SENDING -> stringResource(R.string.car_look_sending)
+        status == CarLookSender.Status.SENT -> stringResource(R.string.car_look_sent)
+        status == CarLookSender.Status.TOO_BIG -> stringResource(R.string.car_look_too_big)
+        status == CarLookSender.Status.FAILED -> stringResource(R.string.car_look_failed)
+        !connected -> stringResource(R.string.car_look_offline)
+        else -> stringResource(R.string.car_look_detail)
+    }
+    val tint = when (status) {
+        CarLookSender.Status.SENT -> CompanionColors.Teal
+        CarLookSender.Status.TOO_BIG, CarLookSender.Status.FAILED -> CompanionColors.Amber
+        else -> CompanionColors.Blue
+    }
+    Panel {
+        Column(Modifier.padding(18.dp)) {
+            CardHeading(Icons.Filled.Image, stringResource(R.string.car_look_title), line, tint)
+            Row(Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Building from photos works offline; only sending needs the car.
+                Button(onClick = onFromPhotos) { Text(stringResource(R.string.car_photos_open)) }
+                OutlinedButton(
+                    onClick = { choose.launch(arrayOf("image/*", "application/zip", "application/octet-stream")) },
+                    enabled = connected && status != CarLookSender.Status.SENDING
+                ) { Text(stringResource(R.string.car_look_choose)) }
             }
         }
     }

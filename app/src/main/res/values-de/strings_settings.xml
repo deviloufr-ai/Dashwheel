@@ -185,4 +185,10 @@
     <string name="about_scan">Mit dem Handy scannen</string>
     <string name="about_project">Projektseite</string>
     <string name="about_project_detail">Quellcode, Versionen und Fehlermeldungen</string>
+    <string name="alert_kind_gemini_title">So erscheint Gemini Live</string>
+    <string name="alert_gemini_detail">Öffnet sich über die Leiste, das Menü oder eine Lenkradtaste. Während der Fahrt schrumpft es nach einigen Sekunden zur Pille</string>
+    <string name="alert_style_bubble">Blase</string>
+    <string name="alert_style_bubble_detail">Ein rundes Abzeichen in der Ecke. Zum Beenden antippen</string>
+    <string name="alert_style_icon">Symbol</string>
+    <string name="alert_style_icon_detail">Nur ein animiertes Symbol in der Ecke. Zum Beenden antippen</string>
 </resources>

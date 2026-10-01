@@ -22,6 +22,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.AirlineSeatReclineNormal
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.RecordVoiceOver
@@ -82,14 +83,14 @@ internal fun AlertStyleRows() {
     val access = shellAccess()
     val kinds = remember(access) {
         AlertKind.entries.filter { kind ->
-            val rom = kind.romKind
+            val rom = kind.romKind ?: return@filter kind != AlertKind.GEMINI || GeminiLive.available(context)
             kind == AlertKind.CALL || RomPopups.available(context, rom) && RomPopups.canWork(rom, access)
         }
     }
     // Alerts this unit could have once the car app's settings can be written.
     val held = remember(access) {
         AlertKind.entries.any { kind ->
-            val rom = kind.romKind
+            val rom = kind.romKind ?: return@any false
             kind != AlertKind.CALL && RomPopups.available(context, rom) && !RomPopups.canWork(rom, access)
         }
     }
@@ -109,14 +110,14 @@ internal fun AlertStyleRows() {
 /** One command from a PC that lets Dashwheel write the car app's settings without root. */
 private const val GRANT_COMMAND = "adb shell pm grant com.openauto.dash android.permission.WRITE_SECURE_SETTINGS"
 
-/** The switch that turns [this] alert on, in [RomPopups]. */
-private val AlertKind.romKind: RomPopups.Kind get() = RomPopups.Kind.valueOf(name)
+/** The switch that turns [this] alert on, in [RomPopups]; none for Gemini Live, opened by the driver. */
+private val AlertKind.romKind: RomPopups.Kind? get() = if (this == AlertKind.GEMINI) null else RomPopups.Kind.valueOf(name)
 
-/** Whether [kind] has a switch on this unit: all but the calls where only the companion brings them. */
+/** Whether [kind] has a switch on this unit: all but Gemini Live, and the calls where only the companion brings them. */
 @Composable
 private fun switchable(kind: AlertKind): Boolean {
     val context = LocalContext.current
-    return remember(kind) { kind != AlertKind.CALL || RomPopups.available(context, RomPopups.Kind.CALL) }
+    return remember(kind) { kind.romKind != null && (kind != AlertKind.CALL || RomPopups.available(context, RomPopups.Kind.CALL)) }
 }
 
 /**
@@ -159,7 +160,7 @@ private fun AlertRow(kind: AlertKind, onOpen: () -> Unit) {
         }
         Spacer(Modifier.width(12.dp))
         if (hasSwitch) {
-            AlertSwitch(on) { tap(); RomPopups.setReplaced(context, kind.romKind, it) }
+            AlertSwitch(on) { tap(); kind.romKind?.let { rom -> RomPopups.setReplaced(context, rom, it) } }
         } else {
             Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = DashColors.Muted)
         }
@@ -193,6 +194,7 @@ private val AlertKind.offDetail: Int
         AlertKind.AC -> R.string.settings_rom_ac_detail
         AlertKind.TYRES -> R.string.settings_rom_tyres_detail
         AlertKind.BELT -> R.string.settings_rom_belt_detail
+        AlertKind.GEMINI -> R.string.alert_gemini_detail
     }
 
 private val AlertKind.icon: ImageVector
@@ -203,6 +205,7 @@ private val AlertKind.icon: ImageVector
         AlertKind.AC -> Icons.Filled.AcUnit
         AlertKind.TYRES -> Icons.Filled.TireRepair
         AlertKind.BELT -> Icons.Filled.AirlineSeatReclineNormal
+        AlertKind.GEMINI -> Icons.Filled.AutoAwesome
     }
 
 private val AlertKind.label: Int
@@ -213,6 +216,7 @@ private val AlertKind.label: Int
         AlertKind.AC -> R.string.alert_kind_ac
         AlertKind.TYRES -> R.string.alert_kind_tyres
         AlertKind.BELT -> R.string.alert_kind_belt
+        AlertKind.GEMINI -> R.string.ai_gemini_live
     }
 
 private val AlertKind.dialogTitle: Int
@@ -223,6 +227,7 @@ private val AlertKind.dialogTitle: Int
         AlertKind.AC -> R.string.alert_kind_ac_title
         AlertKind.TYRES -> R.string.alert_kind_tyres_title
         AlertKind.BELT -> R.string.alert_kind_belt_title
+        AlertKind.GEMINI -> R.string.alert_kind_gemini_title
     }
 
 /** The alert's colour in the picker's small screens. */
@@ -257,7 +262,7 @@ private fun AlertStyleDialog(kind: AlertKind, onDismiss: () -> Unit) {
                     val replaced by RomPopups.replaced.collectAsState()
                     SettingsToggle(
                         kind.icon, stringResource(R.string.alert_show), stringResource(kind.offDetail), kind.romKind in replaced
-                    ) { RomPopups.setReplaced(context, kind.romKind, it) }
+                    ) { on -> kind.romKind?.let { RomPopups.setReplaced(context, it, on) } }
                     Spacer(Modifier.height(12.dp))
                 }
                 kind.styles.chunked(3).forEach { row ->
@@ -274,6 +279,16 @@ private fun AlertStyleDialog(kind: AlertKind, onDismiss: () -> Unit) {
                 if (kind == AlertKind.CALL) {
                     Text(stringResource(R.string.alert_call_note), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
                     Spacer(Modifier.height(8.dp))
+                }
+                if (kind == AlertKind.GEMINI) {
+                    // Which Gemini answers: Dashwheel's own, that knows the car, or Google's app.
+                    var ai by remember { mutableStateOf(AiSettings.load(context)) }
+                    SettingsToggle(
+                        Icons.Filled.AutoAwesome, stringResource(R.string.ai_live_own), stringResource(R.string.ai_live_own_detail), ai.ownLive
+                    ) {
+                        ai = ai.copy(ownLive = it)
+                        AiSettings.save(context, ai)
+                    }
                 }
                 if (kind.speakable) {
                     SettingsToggle(
@@ -361,6 +376,14 @@ private fun StyleThumbnail(kind: AlertKind, style: AlertStyle, modifier: Modifie
             AlertStyle.FULL -> {
                 drawRect(screen.copy(alpha = 0.85f))
                 drawRoundRect(alert, Offset(w * 0.3f, h * 0.25f), Size(w * 0.4f, h * 0.5f), r)
+            }
+            AlertStyle.BUBBLE -> {
+                drawCircle(alert, radius = h * 0.14f, center = Offset(w * 0.86f, h * 0.2f))
+                drawCircle(Color.White.copy(alpha = 0.7f), radius = h * 0.05f, center = Offset(w * 0.86f, h * 0.2f))
+            }
+            AlertStyle.ICON -> {
+                drawCircle(alert.copy(alpha = 0.3f), radius = h * 0.1f, center = Offset(w * 0.88f, h * 0.16f))
+                drawCircle(alert, radius = h * 0.05f, center = Offset(w * 0.88f, h * 0.16f))
             }
         }
         drawRoundRect(frame, style = androidx.compose.ui.graphics.drawscope.Stroke(1.5f), cornerRadius = r)

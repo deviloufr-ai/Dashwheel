@@ -138,4 +138,35 @@
     <string name="log_received">Le journal de la voiture est prêt</string>
     <string name="log_received_detail">Touchez pour le partager. Le bouton ouvre un ticket GitHub où le joindre.</string>
     <string name="log_github">Ticket GitHub</string>
+    <!-- Experimental: the driver's own car sent to the car's screen (CarLookSender.kt) -->
+    <string name="car_look_title">Photo de la voiture</string>
+    <string name="car_look_detail">Expérimental : votre propre voiture sur l\'écran de la voiture. Un pack voiture, ou une photo de la voiture de profil.</string>
+    <string name="car_look_offline">Connectez-vous à la voiture pour envoyer une photo</string>
+    <string name="car_look_sending">Envoi à la voiture</string>
+    <string name="car_look_sent">Sur l\'écran de la voiture</string>
+    <string name="car_look_too_big">Ce fichier est trop gros</string>
+    <string name="car_look_failed">L\'envoi n\'a pas abouti. Réessayez dans la voiture.</string>
+    <string name="car_look_choose">Choisir un fichier</string>
+
+    <!-- Car picture from three photos (CarFromPhotos). -->
+    <string name="car_photos_open">La créer avec 3 photos</string>
+    <string name="car_photos_title">Votre voiture en 3 photos</string>
+    <string name="car_photos_detail">Trois photos de votre voiture donnent son image et sa vue de dessus.</string>
+    <string name="car_photos_side">Côté</string>
+    <string name="car_photos_front">Avant</string>
+    <string name="car_photos_back">Arrière</string>
+    <string name="car_photos_ready">Prête</string>
+    <string name="car_photos_add">Prendre ou choisir une photo</string>
+    <string name="car_photos_take">Prendre une photo</string>
+    <string name="car_photos_choose">Choisir une photo</string>
+    <string name="car_photos_tip">Placez-vous bien en face de chaque côté, à environ 8 pas. Retirer d\'abord le fond dans Gemini ou la galerie donne des bords plus nets.</string>
+    <string name="car_photos_build">Créer ma voiture</string>
+    <string name="car_photos_building">Création de votre voiture</string>
+    <string name="car_photos_result">Votre voiture</string>
+    <string name="car_photos_result_hint">Les anneaux verts montrent où vont les alertes des pneus et des portes.</string>
+    <string name="car_photos_turned">Tournée vers la droite</string>
+    <string name="car_photos_send">Envoyer à la voiture</string>
+    <string name="car_photos_change">Changer une photo</string>
+    <string name="car_photos_not_found">Aucune voiture trouvée sur la photo %1$s. Prenez-en une avec toute la voiture sur un fond uni.</string>
+    <string name="car_photos_close">Fermer</string>
 </resources>

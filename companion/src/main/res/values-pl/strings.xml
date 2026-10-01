@@ -138,4 +138,35 @@
     <string name="log_received">Dziennik samochodu jest gotowy</string>
     <string name="log_received_detail">Dotknij, by udostępnić. Przycisk otwiera zgłoszenie na GitHubie, do którego go dołączysz.</string>
     <string name="log_github">Zgłoszenie GitHub</string>
+    <!-- Experimental: the driver's own car sent to the car's screen (CarLookSender.kt) -->
+    <string name="car_look_title">Obraz auta</string>
+    <string name="car_look_detail">Eksperymentalne: twoje własne auto na ekranie w aucie. Pakiet auta albo zdjęcie auta z boku.</string>
+    <string name="car_look_offline">Połącz się z autem, aby wysłać obraz</string>
+    <string name="car_look_sending">Wysyłanie do auta</string>
+    <string name="car_look_sent">Na ekranie w aucie</string>
+    <string name="car_look_too_big">Ten plik jest za duży</string>
+    <string name="car_look_failed">Nie udało się wysłać. Spróbuj ponownie w aucie.</string>
+    <string name="car_look_choose">Wybierz plik</string>
+
+    <!-- Car picture from three photos (CarFromPhotos). -->
+    <string name="car_photos_open">Utwórz z 3 zdjęć</string>
+    <string name="car_photos_title">Twój samochód z 3 zdjęć</string>
+    <string name="car_photos_detail">Trzy zdjęcia samochodu tworzą jego obraz i widok z góry.</string>
+    <string name="car_photos_side">Bok</string>
+    <string name="car_photos_front">Przód</string>
+    <string name="car_photos_back">Tył</string>
+    <string name="car_photos_ready">Gotowe</string>
+    <string name="car_photos_add">Zrób lub wybierz zdjęcie</string>
+    <string name="car_photos_take">Zrób zdjęcie</string>
+    <string name="car_photos_choose">Wybierz zdjęcie</string>
+    <string name="car_photos_tip">Stań prosto naprzeciw każdej strony, około 8 kroków od auta. Usunięcie tła w Gemini lub galerii daje czystsze krawędzie.</string>
+    <string name="car_photos_build">Utwórz mój samochód</string>
+    <string name="car_photos_building">Tworzenie samochodu</string>
+    <string name="car_photos_result">Twój samochód</string>
+    <string name="car_photos_result_hint">Zielone pierścienie pokazują, gdzie pojawią się alerty opon i drzwi.</string>
+    <string name="car_photos_turned">Obrócony w prawo</string>
+    <string name="car_photos_send">Wyślij do samochodu</string>
+    <string name="car_photos_change">Zmień zdjęcie</string>
+    <string name="car_photos_not_found">Nie znaleziono samochodu na zdjęciu %1$s. Użyj zdjęcia z całym autem na gładkim tle.</string>
+    <string name="car_photos_close">Zamknij</string>
 </resources>

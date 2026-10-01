@@ -2,6 +2,7 @@ package com.openauto.dash
 
 import android.text.format.DateUtils
 import androidx.annotation.StringRes
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -27,6 +28,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -409,6 +412,14 @@ internal fun MyCarCard(modifier: Modifier = Modifier) {
     var editing by remember { mutableStateOf(false) }
     val unknown = stringResource(R.string.car_unknown)
     val lock = LocalDriveLock.current
+    val mine by MyCarLook.shown.collectAsState()
+    val style by MyCarLook.style.collectAsState()
+    val picture = mine?.portrait
+    if (picture != null) {
+        MyCarPicture(car, picture, style, modifier) { lock.whenParked { editing = true } }
+        if (editing) CarSettingsDialog(onDismiss = { editing = false })
+        return
+    }
     Card(modifier = modifier) {
         Column(
             modifier = Modifier.fillMaxSize().clickable { lock.whenParked { editing = true } }.padding(DashSpace.Lg),
@@ -428,6 +439,26 @@ internal fun MyCarCard(modifier: Modifier = Modifier) {
         }
     }
     if (editing) CarSettingsDialog(onDismiss = { editing = false })
+}
+
+/** The My car tile with the driver's own car (MyCarLook.kt): its name and engine over the picture, which takes the rest. */
+@Composable
+private fun MyCarPicture(car: CarProfile, picture: CarView, style: CarLookStyle, modifier: Modifier, onOpen: () -> Unit) {
+    val ink = DashColors.Accent
+    val warn = DashColors.Warning
+    Card(modifier = modifier) {
+        Column(modifier = Modifier.fillMaxSize().clickable(onClick = onOpen).padding(DashSpace.Lg)) {
+            TileHeader(stringResource(R.string.car_my_car_title))
+            Text(car.name, color = DashColors.TextPrimary, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.titleLarge)
+            car.engine.takeIf { it.isNotBlank() }?.let {
+                Text(it, color = DashColors.TextSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium)
+            }
+            Canvas(modifier = Modifier.weight(1f).fillMaxWidth().padding(top = 6.dp)) {
+                drawCarView(picture, style, fitCar(picture, Rect(Offset.Zero, size)), ink, warn)
+            }
+        }
+    }
 }
 
 internal val SpecSource.labelRes: Int

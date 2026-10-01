@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Experimental: the driver's own car in place of the drawn one (MyCarLook.kt, MyCarLookSheet.kt) -->
+    <string name="mycar_title">Imagen del coche</string>
+    <string name="mycar_settings_detail">Experimental: tu propio coche en los mosaicos</string>
+    <string name="mycar_experimental">Experimental: tu propio coche en lugar del dibujado. Usa un paquete de coche hecho con un modelo 3D, o una foto del coche de lado.</string>
+    <string name="mycar_empty">Aún no hay imagen. Elige un archivo o envía uno desde la app del móvil.</string>
+    <string name="mycar_working">Preparándola</string>
+    <string name="mycar_ready">La imagen de tu coche está lista</string>
+    <string name="mycar_failed">No se pudo leer ese archivo</string>
+    <string name="mycar_no_picker">No hay selector de archivos en esta unidad. Pon el archivo aquí: %1$s</string>
+    <string name="mycar_pick">Elegir archivo</string>
+    <string name="mycar_remove">Quitar</string>
+    <string name="mycar_remove_title">¿Quitar la imagen de tu coche?</string>
+    <string name="mycar_remove_body">Los mosaicos vuelven al coche dibujado.</string>
+    <string name="mycar_cancel">Cancelar</string>
+    <string name="mycar_views">Vistas: %1$s</string>
+    <string name="mycar_view_side">lateral</string>
+    <string name="mycar_view_top">desde arriba</string>
+    <string name="mycar_view_hero">tres cuartos</string>
+    <string name="mycar_show_title">Mostrar</string>
+    <string name="mycar_show_drawn">Coche dibujado</string>
+    <string name="mycar_show_mine">Mi coche</string>
+    <string name="mycar_style_title">Estilo</string>
+    <string name="mycar_style_photo">Foto</string>
+    <string name="mycar_style_photo_hint">La imagen tal cual</string>
+    <string name="mycar_style_tinted">Tintada</string>
+    <string name="mycar_style_tinted_hint">En el color del aspecto, con sus sombras</string>
+    <string name="mycar_style_outline">Contorno</string>
+    <string name="mycar_style_outline_hint">Solo sus líneas, en el color del aspecto</string>
+    <string name="mycar_where">Se ve en los diseños Mapa de ruedas y Silueta y en el mosaico Mi coche.</string>
+    <string name="mycar_phone_hint">Desde el móvil: en la app Dashwheel companion, Imagen del coche y luego Elegir archivo.</string>
+    <string name="mycar_photos">3 fotos</string>
+    <string name="mycar_photos_hint">O elige tres fotos del coche a la vez: lateral, delante y detrás. Si se llaman lateral, delante y detrás, nunca se confunden.</string>
+    <string name="mycar_photos_no_car">No se encuentra el coche en esas fotos. Usa unas con el coche entero sobre un fondo liso.</string>
+</resources>

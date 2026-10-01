@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Experimental: the driver's own car in place of the drawn one (MyCarLook.kt, MyCarLookSheet.kt) -->
+    <string name="mycar_title">Photo de la voiture</string>
+    <string name="mycar_settings_detail">Expérimental : votre propre voiture dans les tuiles</string>
+    <string name="mycar_experimental">Expérimental : votre propre voiture à la place de celle dessinée. Utilisez un pack voiture fait à partir d\'un modèle 3D, ou une photo de la voiture de profil.</string>
+    <string name="mycar_empty">Pas encore de photo. Choisissez un fichier, ou envoyez-en un depuis l\'appli du téléphone.</string>
+    <string name="mycar_working">Préparation en cours</string>
+    <string name="mycar_ready">La photo de votre voiture est prête</string>
+    <string name="mycar_failed">Ce fichier n\'a pas pu être lu</string>
+    <string name="mycar_no_picker">Pas de sélecteur de fichiers sur cet appareil. Placez le fichier ici : %1$s</string>
+    <string name="mycar_pick">Choisir un fichier</string>
+    <string name="mycar_remove">Retirer</string>
+    <string name="mycar_remove_title">Retirer la photo de votre voiture ?</string>
+    <string name="mycar_remove_body">Les tuiles reprennent la voiture dessinée.</string>
+    <string name="mycar_cancel">Annuler</string>
+    <string name="mycar_views">Vues : %1$s</string>
+    <string name="mycar_view_side">profil</string>
+    <string name="mycar_view_top">dessus</string>
+    <string name="mycar_view_hero">trois-quarts</string>
+    <string name="mycar_show_title">Afficher</string>
+    <string name="mycar_show_drawn">Voiture dessinée</string>
+    <string name="mycar_show_mine">Ma voiture</string>
+    <string name="mycar_style_title">Style</string>
+    <string name="mycar_style_photo">Photo</string>
+    <string name="mycar_style_photo_hint">La photo telle quelle</string>
+    <string name="mycar_style_tinted">Teintée</string>
+    <string name="mycar_style_tinted_hint">Dans la couleur du thème, ombres gardées</string>
+    <string name="mycar_style_outline">Contour</string>
+    <string name="mycar_style_outline_hint">Ses lignes seules, dans la couleur du thème</string>
+    <string name="mycar_where">Affichée sur les designs Carte des pneus et Silhouette et sur la tuile Ma voiture.</string>
+    <string name="mycar_phone_hint">Depuis le téléphone : dans l\'appli compagnon Dashwheel, Photo de la voiture, puis Choisir un fichier.</string>
+    <string name="mycar_photos">3 photos</string>
+    <string name="mycar_photos_hint">Ou choisissez trois photos de la voiture d\'un coup : côté, avant et arrière. Nommées côté, avant et arrière, elles ne sont jamais confondues.</string>
+    <string name="mycar_photos_no_car">Aucune voiture trouvée sur ces photos. Prenez-en avec toute la voiture sur un fond uni.</string>
+</resources>

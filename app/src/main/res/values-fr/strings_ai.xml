@@ -99,4 +99,14 @@
     <string name="ai_ask_say_nothing_heard">Je n\'ai pas entendu de question.</string>
     <string name="ai_ask_say_no_key">Le mécanicien IA a besoin d\'une clé Gemini. Ajoutez-en une dans les réglages Voiture, rubrique Mécanicien IA.</string>
     <string name="ai_ask_say_mic">Le micro n\'est pas encore autorisé. Touchez une fois le micro de la tuile Codes défaut pour l\'autoriser.</string>
+    <string name="ai_gemini_live_missing">Gemini n\'est pas installé sur cet autoradio.</string>
+    <string name="ai_gemini_live_end">Terminer</string>
+    <string name="ai_gemini_live_show">Afficher Gemini Live</string>
+    <string name="ai_live_connecting">Connexion</string>
+    <string name="ai_live_listening">À l\'écoute</string>
+    <string name="ai_live_thinking">Réflexion</string>
+    <string name="ai_live_speaking">Parle</string>
+    <string name="ai_live_failed">Gemini ne répond pas. Vérifiez la connexion.</string>
+    <string name="ai_live_own">Gemini qui connaît la voiture</string>
+    <string name="ai_live_own_detail">Utilise votre clé Gemini : il lit la voiture, le trajet et le tableau de bord, et agit dessus. Désactivé : l\'appli Gemini de Google</string>
 </resources>
