@@ -198,6 +198,42 @@ object WindowListing {
             AppStack(id, displayId(block) ?: DEFAULT_DISPLAY, windowingMode(block), !taskLine.contains("visible=false"))
         }
 
+    /**
+     * The app [packageName] handed its screen to, from listings [before] and
+     * [after] it was started on a tile: the task now in front off the tiles'
+     * displays, new or newly raised, of another app. Gemini's icon is only a
+     * hand-off: its screen opens in the Google app, full screen on the main
+     * screen, where the tile looking for Gemini's own windows never saw it.
+     * Null when nothing else came to the front, or only an app of [others]
+     * (another tile's, started at the same time).
+     */
+    internal fun handedTo(
+        before: String,
+        after: String,
+        packageName: String,
+        selfPackage: String,
+        others: Set<String> = emptySet()
+    ): String? {
+        val was = frontTasks(before, selfPackage)
+        val (taskId, pkg) = frontTasks(after, selfPackage).firstOrNull() ?: return null
+        if (pkg == packageName || pkg == selfPackage || pkg == SYSTEM_UI || pkg in others) return null
+        return pkg.takeIf { taskId != was.firstOrNull()?.first }
+    }
+
+    /** Each stack's top task (id, package), front first, on the screen [selfPackage] is on. */
+    private fun frontTasks(output: String, selfPackage: String): List<Pair<Int, String>> {
+        val blocks = stackBlocks(output)
+        val selfDisplay = blocks.firstOrNull { TASK.find(it)?.groupValues?.get(2) == selfPackage }
+            ?.let { displayId(it) } ?: DEFAULT_DISPLAY
+        return blocks.filter { (displayId(it) ?: DEFAULT_DISPLAY) == selfDisplay }.mapNotNull { block ->
+            val task = TASK.find(block) ?: return@mapNotNull null
+            val id = task.groupValues[1].toIntOrNull() ?: return@mapNotNull null
+            id to task.groupValues[2]
+        }
+    }
+
+    private const val SYSTEM_UI = "com.android.systemui"
+
     /** The display a stack block says it is on, from its `Stack id=N ... displayId=N` line. */
     private fun displayId(block: String): Int? =
         DISPLAY.find(block.lineSequence().first())?.groupValues?.get(1)?.toIntOrNull()

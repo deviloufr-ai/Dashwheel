@@ -119,6 +119,12 @@ internal object EmbeddedApp {
     /** Moves tried before giving up (a new task of the app may appear meanwhile). */
     private const val MOVE_ROUNDS = 5
 
+    /**
+     * How long a freshly started app's first screen gets to hand off to
+     * another app's ([WindowListing.handedTo]) before it counts as on the tile.
+     */
+    private const val HAND_OFF_MS = 1_000L
+
     /** How long a closed window gets to go before the app is opened afresh. */
     private const val CLOSE_WAIT_MS = 500L
 
@@ -145,7 +151,7 @@ internal object EmbeddedApp {
     private fun granted(context: Context, permission: String) =
         ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
 
-    private val hosts = HashMap<String, Host>()
+    private val hosts = java.util.concurrent.ConcurrentHashMap<String, Host>()
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -155,6 +161,10 @@ internal object EmbeddedApp {
     /** Apps with a display of their own right now; read from the window tiles' threads. */
     @Volatile
     private var held: Set<String> = emptySet()
+
+    /** The apps the other tiles show ([Host.windowPackage]): never taken for [host]'s hand-off. */
+    private fun claimedBesides(host: Host): Set<String> =
+        hosts.values.filter { it !== host }.flatMap { listOf(it.packageName, it.windowPackage) }.toSet()
 
     /** True while [packageName] runs inside a tile, on its own display. */
     fun holds(packageName: String): Boolean = packageName in held
@@ -644,6 +654,13 @@ internal object EmbeddedApp {
      * below, all live on the main thread.
      */
     class Host(private val context: Context, val packageName: String) {
+        /**
+         * The app whose windows show this one: [packageName] itself, or the
+         * app its icon hands off to ([WindowListing.handedTo]).
+         */
+        @Volatile
+        internal var windowPackage = packageName
+            private set
 
         private val _status = MutableStateFlow(Status.STARTING)
         val status: StateFlow<Status> = _status.asStateFlow()
@@ -720,6 +737,12 @@ internal object EmbeddedApp {
             tiles[tile]?.surface = null
             route()
         }
+
+        /** The app's own display while it has one: for a command sent to it ([GeminiLive]). */
+        val displayId: Int? get() = display?.display?.displayId
+
+        /** Whether a tile other than [tile] shows this app too. */
+        fun heldBesides(tile: Any): Boolean = tiles.keys.any { it !== tile }
 
         /** [tile] is gone for good. */
         fun forget(tile: Any) {
@@ -835,7 +858,7 @@ internal object EmbeddedApp {
             } catch (e: Exception) {
                 return
             }
-            val front = WindowListing.fullscreenInFront(listing, packageName, context.packageName) ?: return
+            val front = WindowListing.fullscreenInFront(listing, windowPackage, context.packageName) ?: return
             Log.i(TAG, "$packageName came full screen by itself (task ${front.taskId}): back onto its tile")
             launch(vd)
         }
@@ -975,20 +998,41 @@ internal object EmbeddedApp {
                 found = listStacks() ?: return
             }
             var fresh = false
+            // The listing before the start, to see what it handed off to.
+            var before: String? = null
+            var settled = false
             val filled = HashSet<Int>()
             repeat(MOVE_ROUNDS) {
+                // Its first screen showed and went: what it opened instead belongs to another app.
+                if (found.isEmpty() && before != null) found = awaitHandOff(before!!)
                 if (found.isEmpty()) {
                     if (fresh) return
+                    before = rawListing()
                     start(vd)
                     fresh = true
                     if (_status.value != Status.SHOWN) return
                     // This ROM opens it full screen on the main screen whatever display is
                     // asked for: caught as soon as it shows, so it only flashes there.
                     found = awaitStacks()
+                    if (found.isEmpty()) found = before?.let { awaitHandOff(it) } ?: emptyList()
                     if (found.isEmpty()) return
                 }
                 val floating = found.filter { floating(it) && it.stackId !in filled }
                 if (found.all { it.displayId == id } && floating.isEmpty()) {
+                    val handOff = before
+                    if (fresh && !settled && handOff != null) {
+                        // Gemini's first screen reaches the tile and stays there hidden, while
+                        // the Google app's opens full screen: looked at once more a moment later.
+                        settled = true
+                        delay(HAND_OFF_MS)
+                        val now = rawListing() ?: return
+                        // Its own screen in view is no hand-off, whatever else came up meanwhile.
+                        val own = WindowListing.appStacks(now, windowPackage)
+                        val other = if (own.any { it.visible }) null
+                            else WindowListing.handedTo(handOff, now, packageName, context.packageName, claimedBesides(this))
+                        found = if (other != null) follow(other, now) else own
+                        if (found.isEmpty() || found.any { it.displayId != id }) return@repeat
+                    }
                     _status.value = Status.SHOWN
                     Log.i(TAG, "$packageName is on the tile")
                     FreeformBar.insideFloats(context, packageName, found.any { floating(it) })
@@ -1065,10 +1109,40 @@ internal object EmbeddedApp {
             return emptyList()
         }
 
+        /**
+         * The stacks of the app [packageName] handed its screen to since
+         * [before] ([WindowListing.handedTo]), followed from then on; empty
+         * when nothing else came up within [START_WAIT_MS].
+         */
+        private suspend fun awaitHandOff(before: String): List<WindowListing.AppStack> {
+            repeat((START_WAIT_MS / POLL_MS).toInt()) {
+                val now = rawListing() ?: return emptyList()
+                val other = WindowListing.handedTo(before, now, packageName, context.packageName, claimedBesides(this))
+                if (other != null) return follow(other, now)
+                delay(POLL_MS)
+            }
+            return emptyList()
+        }
+
+        /** From now on the tile shows [other]'s windows: its stacks in [listing]. */
+        private fun follow(other: String, listing: String): List<WindowListing.AppStack> {
+            if (other != windowPackage) Log.i(TAG, "$packageName opens its screen in $other: the tile follows $other")
+            windowPackage = other
+            return WindowListing.appStacks(listing, other)
+        }
+
+        /** A fresh `am stack list`, or null (logged) when the shell cannot list. */
+        private suspend fun rawListing(): String? {
+            DockShell.forgetListing()
+            return runCatching { DockShell.listStacks(context) }
+                .onFailure { Log.w(TAG, "can't list the windows", it) }
+                .getOrNull()
+        }
+
         /** The app's stacks right now, or null (logged) when the shell cannot list them. */
         private suspend fun listStacks(): List<WindowListing.AppStack>? {
             DockShell.forgetListing()
-            return runCatching { WindowListing.appStacks(DockShell.listStacks(context), packageName) }
+            return runCatching { WindowListing.appStacks(DockShell.listStacks(context), windowPackage) }
                 .onFailure { Log.w(TAG, "can't see where $packageName is", it) }
                 .getOrNull()
         }
