@@ -14,12 +14,17 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
@@ -601,7 +606,7 @@ private fun DrawScope.fromAbove(radar: Radar?, steeringDeg: Float?, look: CarVie
     // The car on its shadow.
     drawRoundRect(ReverseInk.Shadow, car.topLeft + Offset(0f, 0.12f * m), car.size, androidx.compose.ui.geometry.CornerRadius(0.5f * m))
     if (look != null) {
-        drawCarView(look, lookStyle, fitCar(look, car), ReverseInk.Selected, ReverseInk.Red)
+        drawCarView(look, lookStyle, fitCarOn(look, car), ReverseInk.Selected, ReverseInk.Red)
     } else {
         // The drawn car's body spans 35..105 x 35..225 of its 140 x 260 drawing.
         withTransform({
@@ -774,6 +779,15 @@ private fun ReverseScreen() {
     val above = Above(pose, memoryVersion + groundVersion, ground, tailgate)
     val top = look?.top
 
+    // Camera and radar side by side when the picture is Dashwheel's own (the car app's can't be moved).
+    if (layout == ReverseLayout.BOTH && pictureUp && !adjusting && (own || preview)) {
+        SplitScreen(
+            radar, steering.takeIf { hasSteering }, top, lookStyle, above, calibration, tailgate,
+            preview, live = camera == ReverseCamera.State.LIVE, pose = pose, memoryVersion = memoryVersion
+        )
+        return
+    }
+
     Box(Modifier.fillMaxSize()) {
         if (layout == ReverseLayout.RADAR) {
             Canvas(Modifier.fillMaxSize().background(ReverseInk.PanelSolid).padding(24.dp)) {
@@ -832,9 +846,94 @@ private fun ReverseScreen() {
     }
 }
 
+/**
+ * Camera and radar in two panels: the radar on the left, on the driver's
+ * side, with the nearest reading over the car and the layout chips under
+ * it; the camera on the right with only its lines on it, the notes and
+ * Adjust / Close along its top. The picture keeps the full screen's shape
+ * as much as it can: the panel squeezes it a little and crops a little off
+ * each side, the lines drawn in the same box so they stay on the road.
+ */
+@Composable
+private fun SplitScreen(
+    radar: Radar?, steering: Float?, top: CarView?, lookStyle: CarLookStyle, above: Above,
+    calibration: ReverseCalibration, tailgate: Float, preview: Boolean, live: Boolean,
+    pose: Pose?, memoryVersion: Int
+) {
+    val layout by ReverseView.layout.collectAsState()
+    BoxWithConstraints(Modifier.fillMaxSize().background(ReverseInk.PanelSolid)) {
+        val screenAspect = maxWidth / maxHeight
+        val radarWidth = maxWidth * SPLIT_RADAR
+        Row(Modifier.fillMaxSize().padding(16.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(
+                Modifier
+                    .width(radarWidth)
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(22.dp))
+                    .background(ReverseInk.Chip)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Nearest(radar, compact = true)
+                Canvas(Modifier.weight(1f).fillMaxWidth()) { fromAbove(radar, steering, top, lookStyle, above) }
+                LayoutChips(layout)
+            }
+            BoxWithConstraints(
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(22.dp))
+                    .background(Color.Black)
+            ) {
+                val full = maxHeight * screenAspect
+                val boxWidth = (maxWidth + full) / 2f
+                Box(Modifier.align(Alignment.Center).requiredSize(boxWidth, maxHeight)) {
+                    if (preview) Box(Modifier.fillMaxSize().background(Color(0xFF2B2C2E)))
+                    else ReverseCameraPicture(Modifier.fillMaxSize())
+                    if (preview || live) Canvas(Modifier.fillMaxSize()) {
+                        val g = Ground(size.width, size.height, calibration)
+                        fixedLines(g, shadow = true)
+                        if (steering != null) steeringLines(g, steering)
+                        fixedLines(g, shadow = false)
+                        if (tailgate > 0f) tailgateLine(g, tailgate)
+                    }
+                }
+                // The notes wrap beside the buttons rather than run under them.
+                Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Box(Modifier.weight(1f)) { MemoryNotes(pose, memoryVersion, tailgate) }
+                    Chip(stringResource(R.string.reverse_adjust), selected = false, icon = Icons.Filled.Tune) { ReverseView.adjusting.value = true }
+                    if (preview) Chip(stringResource(R.string.reverse_close), selected = false) { ReverseView.stopTrying() }
+                }
+                if (preview) {
+                    Text(
+                        stringResource(R.string.reverse_preview_badge), color = ReverseInk.Text, fontSize = 15.sp,
+                        modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp).clip(RoundedCornerShape(50)).background(ReverseInk.Chip)
+                            .padding(horizontal = 14.dp, vertical = 6.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** The radar panel's share of the screen's width in the split layout. */
+private const val SPLIT_RADAR = 0.32f
+
+/** Camera and radar, Camera, Radar: wrapping in the narrow radar panel. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun LayoutChips(layout: ReverseLayout) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        ReverseLayout.entries.forEach { l ->
+            Chip(stringResource(l.titleRes), selected = l == layout, compact = true) { ReverseView.setLayout(context, l) }
+        }
+    }
+}
+
 /** The closest thing any sensor sees, in its colour: Stop, Close, or just there. */
 @Composable
-private fun Nearest(radar: Radar?) {
+private fun Nearest(radar: Radar?, compact: Boolean = false) {
     val level = radar?.closest ?: return
     val ink = levelInk(level) ?: return
     val text = stringResource(
@@ -845,12 +944,13 @@ private fun Nearest(radar: Radar?) {
         }
     )
     Row(
-        Modifier.clip(RoundedCornerShape(18.dp)).background(ReverseInk.Chip).padding(horizontal = 18.dp, vertical = 10.dp),
+        Modifier.clip(RoundedCornerShape(18.dp)).background(ReverseInk.Chip)
+            .padding(horizontal = if (compact) 12.dp else 18.dp, vertical = if (compact) 6.dp else 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(Modifier.size(18.dp).clip(CircleShape).background(ink))
-        Spacer(Modifier.width(12.dp))
-        Text(text, color = ink, fontSize = 30.sp, fontWeight = FontWeight.Bold)
+        Box(Modifier.size(if (compact) 14.dp else 18.dp).clip(CircleShape).background(ink))
+        Spacer(Modifier.width(if (compact) 10.dp else 12.dp))
+        Text(text, color = ink, fontSize = if (compact) 22.sp else 30.sp, fontWeight = FontWeight.Bold, lineHeight = if (compact) 24.sp else 34.sp)
     }
 }
 
@@ -869,22 +969,22 @@ private fun Chips(layout: ReverseLayout, adjusting: Boolean, preview: Boolean) {
 }
 
 @Composable
-private fun Chip(text: String, selected: Boolean, icon: ImageVector? = null, onClick: () -> Unit) {
+private fun Chip(text: String, selected: Boolean, icon: ImageVector? = null, compact: Boolean = false, onClick: () -> Unit) {
     val tap = rememberTapFeedback()
     Row(
         Modifier
-            .heightIn(min = 52.dp)
+            .heightIn(min = if (compact) 44.dp else 52.dp)
             .clip(RoundedCornerShape(50))
             .background(if (selected) ReverseInk.Selected else ReverseInk.Chip)
             .clickable { tap(); onClick() }
-            .padding(horizontal = 18.dp),
+            .padding(horizontal = if (compact) 14.dp else 18.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         icon?.let {
             Icon(it, contentDescription = null, tint = ReverseInk.Text, modifier = Modifier.size(22.dp))
             Spacer(Modifier.width(8.dp))
         }
-        Text(text, color = ReverseInk.Text, fontSize = 18.sp, fontWeight = FontWeight.Medium)
+        Text(text, color = ReverseInk.Text, fontSize = if (compact) 16.sp else 18.sp, fontWeight = FontWeight.Medium)
     }
 }
 

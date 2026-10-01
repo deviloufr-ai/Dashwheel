@@ -398,6 +398,22 @@ internal fun fitCar(view: CarView, area: Rect): Rect {
     return Rect(Offset(area.center.x - w / 2f, area.center.y - h / 2f), Size(w, h))
 }
 
+/**
+ * Where a view from above sits on the car's real [footprint] (nose up): its
+ * nose on the footprint's front and its tail on the back, centred across, so
+ * the bumpers meet whatever is drawn around them (the reverse view's
+ * distance rings). Mirrors stick out beside it. Without its bumpers, [fitCar].
+ */
+internal fun fitCarOn(view: CarView, footprint: Rect): Rect {
+    val nose = view.nose ?: return fitCar(view, footprint)
+    val tail = view.tail ?: return fitCar(view, footprint)
+    val span = tail.y - nose.y
+    if (span < 0.2f) return fitCar(view, footprint)
+    val h = footprint.height / span
+    val w = h * view.aspect
+    return Rect(Offset(footprint.center.x - w * nose.x, footprint.top - h * nose.y), Size(w, h))
+}
+
 /** A point of [view] (fractions) in the [placed] rectangle. */
 internal fun Rect.at(fraction: Offset): Offset = Offset(left + width * fraction.x, top + height * fraction.y)
 
