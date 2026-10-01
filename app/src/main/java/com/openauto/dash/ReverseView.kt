@@ -188,6 +188,7 @@ internal object ReverseView {
         val app = AppLanguage.wrap(context.applicationContext)
         load(app)
         ParkingMotion.start()
+        ReverseCamera.watch(app)
         scope.launch {
             wanted.collect { want ->
                 if (want) {
@@ -678,6 +679,10 @@ private fun ReverseScreen() {
     val preview by ReverseView.preview.collectAsState()
     val ownCamera by ReverseView.ownCamera.collectAsState()
     val camera by ReverseCamera.state.collectAsState()
+    val romPicture by ReverseCamera.romPicture.collectAsState()
+    val own = ownCamera && !preview && camera != ReverseCamera.State.FAILED
+    // Nothing over an empty screen: the lines come with the picture, Dashwheel's or the car app's.
+    val pictureUp = preview || layout == ReverseLayout.RADAR || (if (own) camera == ReverseCamera.State.LIVE else romPicture)
     val look by MyCarLook.shown.collectAsState()
     val lookStyle by MyCarLook.style.collectAsState()
     // The car app sends the angle in steps: glide between them.
@@ -700,18 +705,18 @@ private fun ReverseScreen() {
         } else {
             if (preview) Box(Modifier.fillMaxSize().background(Color(0xFF2B2C2E)))
             // Clear until its first frame: the ROM app's picture shows through meanwhile.
-            else if (ownCamera && camera != ReverseCamera.State.FAILED) {
-                // Black only between the car app's picture going and Dashwheel's coming.
-                if (camera == ReverseCamera.State.OPENING) Box(Modifier.fillMaxSize().background(Color.Black))
+            else if (own) {
+                // Black until Dashwheel's picture comes: the car app's screen never shows in between.
+                if (camera != ReverseCamera.State.LIVE) Box(Modifier.fillMaxSize().background(Color.Black))
                 ReverseCameraPicture(Modifier.fillMaxSize())
             }
-            Canvas(Modifier.fillMaxSize()) {
+            if (pictureUp) Canvas(Modifier.fillMaxSize()) {
                 val g = Ground(size.width, size.height, calibration)
                 fixedLines(g)
                 if (hasSteering) steeringLines(g, steering)
                 if (tailgate > 0f) tailgateLine(g, tailgate)
             }
-            if (layout == ReverseLayout.BOTH) {
+            if (layout == ReverseLayout.BOTH && pictureUp) {
                 // In the corner over the far end of the picture, the least useful part when backing up.
                 BoxWithConstraints(Modifier.fillMaxSize()) {
                     Canvas(
@@ -726,7 +731,7 @@ private fun ReverseScreen() {
             }
         }
         // Everything along the top, over the far end of the picture: the bottom, right behind the bumper, stays clear.
-        Column(Modifier.align(Alignment.TopStart).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        if (pictureUp) Column(Modifier.align(Alignment.TopStart).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Chips(layout, adjusting, preview)
             Nearest(radar)
             MemoryNotes(pose, memoryVersion, tailgate)

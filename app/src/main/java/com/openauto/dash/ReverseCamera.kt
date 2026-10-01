@@ -25,6 +25,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -52,10 +54,12 @@ internal object ReverseCamera {
     private const val HEIGHT = 1080
     /** The video chip's input switch: 2 is the reversing camera. */
     private const val INPUT_SWITCH = "/sys/class/tp9950_class/tp9950_class_dev/auxvideo_backcvbs_switch"
-    /** The ROM app has its picture up by then (about 1.8 s after the reverse key), so it's stopped and not raced. */
-    private const val TAKE_AFTER_MS = 1_500L
-    /** Time for the ROM app to close its camera. */
-    private const val CLOSE_MS = 400L
+    /** The ROM app opens the camera about 0.5 s after the reverse key; past this, it's stopped anyway. */
+    private const val ROM_OPEN_WAIT_MS = 2_500L
+    /** The ROM app closes its camera within about 0.1 s. */
+    private const val CLOSE_WAIT_MS = 1_500L
+    /** The ROM app's picture shows about this long after it opened the camera (its signal check). */
+    private const val ROM_PICTURE_MS = 700L
     /** The camera's first frame came within a second on the K706; past this, it's not coming. */
     private const val FIRST_FRAME_MS = 3_500L
     /** The copy of the picture the ground map is read from. */
@@ -78,6 +82,45 @@ internal object ReverseCamera {
     private var watchdog: Job? = null
     private var sampler: Job? = null
     private var frame: Bitmap? = null
+    private val _cameraFree = MutableStateFlow(true)
+    private val _romPicture = MutableStateFlow(false)
+    /** The ROM app's picture is on screen: the lines can go over it ([ReverseView]). */
+    val romPicture: StateFlow<Boolean> = _romPicture.asStateFlow()
+    private var romPictureJob: Job? = null
+    private var watching = false
+
+    /**
+     * Follows who has the reversing camera: when the ROM app opens it,
+     * Dashwheel can take it straight away, and the ROM app's picture is
+     * known to be up a moment later.
+     */
+    fun watch(context: Context) {
+        if (watching) return
+        watching = true
+        val manager = context.applicationContext.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        runCatching {
+            manager.registerAvailabilityCallback(object : CameraManager.AvailabilityCallback() {
+                override fun onCameraAvailable(id: String) {
+                    if (id != CAMERA_ID) return
+                    _cameraFree.value = true
+                    romPictureJob?.cancel()
+                    _romPicture.value = false
+                }
+
+                override fun onCameraUnavailable(id: String) {
+                    if (id != CAMERA_ID) return
+                    _cameraFree.value = false
+                    if (device != null) return
+                    romPictureJob?.cancel()
+                    romPictureJob = scope.launch {
+                        delay(ROM_PICTURE_MS)
+                        if (device == null) _romPicture.value = true
+                    }
+                }
+            }, Handler(android.os.Looper.getMainLooper()))
+        }.onFailure { Log.w(TAG, "can't follow the camera", it) }
+    }
+
     /** The ROM app was stopped this reverse: on a failure, it has to be started again. */
     private var romStopped = false
 
@@ -100,9 +143,10 @@ internal object ReverseCamera {
                 opening?.cancel()
                 opening = scope.launch {
                     _state.value = State.TAKING
-                    delay(TAKE_AFTER_MS)
+                    // As soon as the ROM app has the camera, it's asked to let go of it.
+                    withTimeoutOrNull(ROM_OPEN_WAIT_MS) { _cameraFree.first { !it } }
                     if (!stopRomCamera(app)) return@launch fail(app, "the car app's camera could not be stopped")
-                    delay(CLOSE_MS)
+                    withTimeoutOrNull(CLOSE_WAIT_MS) { _cameraFree.first { it } }
                     open(app, texture, retry = true)
                 }
             }
@@ -193,14 +237,24 @@ internal object ReverseCamera {
                         // The ROM app hadn't opened yet when it was stopped, and has since: once more.
                         if (busy && retry && device == null) {
                             if (stopRomCamera(context)) {
-                                delay(CLOSE_MS)
+                                withTimeoutOrNull(CLOSE_WAIT_MS) { _cameraFree.first { it } }
                                 open(context, texture, retry = false)
                             } else fail(context, "the car app's camera could not be stopped")
                         } else fail(context, "camera error $error")
                     }
                 }
             }, handler)
-        }.onFailure { fail(context, "open refused: $it") }
+        }.onFailure { e ->
+            // Refused at once: the ROM app opened the camera again in between. Once more.
+            if (retry && e is android.hardware.camera2.CameraAccessException && e.reason == android.hardware.camera2.CameraAccessException.CAMERA_IN_USE) {
+                scope.launch {
+                    if (stopRomCamera(context)) {
+                        withTimeoutOrNull(CLOSE_WAIT_MS) { _cameraFree.first { it } }
+                        open(context, texture, retry = false)
+                    } else fail(context, "the car app's camera could not be stopped")
+                }
+            } else fail(context, "open refused: $e")
+        }
     }
 
     /**
