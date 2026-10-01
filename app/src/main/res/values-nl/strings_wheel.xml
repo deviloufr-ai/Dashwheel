@@ -2,28 +2,20 @@
 <resources>
     <!-- Steering wheel button learning (SteeringWheelDialog.kt), from Settings -> Driving -->
     <string name="wheel_title">Stuurwielknoppen</string>
-    <string name="wheel_settings_detail_empty">Leer de knoppen van je stuur aan en wijs acties toe</string>
+    <string name="wheel_settings_detail_empty">Zet de stuurknoppen op een kaart en kies wat elke knop doet</string>
     <plurals name="wheel_settings_detail_count">
         <item quantity="one">%1$d knop toegewezen</item>
         <item quantity="other">%1$d knoppen toegewezen</item>
     </plurals>
-    <string name="wheel_explanation">Tik op Nieuwe knop aanleren en druk op een knop op je stuur. Kies daarna wat hij moet doen: media, volume, een app en meer.</string>
-    <string name="wheel_learn_button">Nieuwe knop aanleren</string>
-    <string name="wheel_empty">Nog geen knoppen aangeleerd.</string>
-    <string name="wheel_remove">Verwijderen</string>
-    <string name="wheel_back">Terug</string>
-    <string name="wheel_listening_title">Druk op een knop op het stuur…</string>
-    <string name="wheel_listening_detail">Dashwheel wacht op de volgende druk op een knop.</string>
-    <string name="wheel_confirm_title">Druk nog een keer op dezelfde knop…</string>
+    <string name="wheel_explanation">Druk op elke knop van het stuur. Een nieuwe komt op de kaart, een bekende licht groen op. Tik op een knop om hem een naam en plaats te geven en te kiezen wat hij doet.</string>
     <string name="wheel_confirm_detail">%1$s is gezien. Druk er nog eens op zodat Dashwheel weet dat jij het was: een autowaarde die vanzelf verandert, komt niet op commando terug.</string>
     <string name="wheel_assign_prompt">Wat moet %1$s doen?</string>
     <string name="wheel_choose_app">Een app openen…</string>
-    <string name="wheel_remove_binding">Deze knop vergeten</string>
     <string name="wheel_raw_button">Knop #%1$d</string>
     <string name="wheel_can_button">Stuurknop (%1$s)</string>
     <string name="wheel_listening_can_live">Luistert ook naar de CAN-gegevens van de auto</string>
     <string name="wheel_listening_can_off">CAN-gegevens van de auto niet leesbaar (root nodig): alleen Android-toetsen zijn aan te leren</string>
-    <string name="wheel_monitor_title">Wat de radio ontvangt</string>
+    <string name="wheel_monitor_title">Wat de radio ziet</string>
     <string name="wheel_monitor_hint">Tik op de regel die verscheen toen je op de knop drukte om hem te gebruiken.</string>
     <string name="wheel_monitor_empty">Nog niets. Druk op een stuurknop.</string>
     <string name="wheel_group_media">Media</string>
@@ -86,4 +78,37 @@
     <string name="wheel_action_dashboard_down">Dashboard eronder</string>
     <string name="wheel_action_read_message">Laatste bericht voorlezen</string>
     <string name="wheel_action_dismiss_alert">Melding sluiten</string>
+    <string name="wheel_map_waiting_for">Druk op de knop voor %1$s</string>
+    <string name="wheel_zone_left">Links van het stuur</string>
+    <string name="wheel_zone_right">Rechts van het stuur</string>
+    <string name="wheel_zone_stalk">Achter het stuur</string>
+    <string name="wheel_zone_panel">Naast het scherm</string>
+    <string name="wheel_zone_unplaced">Nog niet geplaatst</string>
+    <string name="wheel_zone_empty">Hier nog niets</string>
+    <string name="wheel_no_action">Geen actie</string>
+    <string name="wheel_no_signal">Geen signaal</string>
+    <string name="wheel_add_silent">Knop zonder signaal toevoegen</string>
+    <string name="wheel_silent_default_name">Knop %1$d</string>
+    <string name="wheel_name_label">Naam</string>
+    <string name="wheel_where">Waar hij zit</string>
+    <string name="wheel_does">Wat hij doet</string>
+    <string name="wheel_signal_section">Signaal</string>
+    <string name="wheel_signal">Herkend als %1$s</string>
+    <string name="wheel_silent_title">De radio krijgt geen signaal van deze knop.</string>
+    <string name="wheel_silent_tip_monitor">Tik op Luisteren, druk op de knop en open Wat de radio ziet. Verschijnt er een regel, tik erop.</string>
+    <string name="wheel_silent_tip_canbox">Controleer het automodel in de CAN-box-instellingen van de radio. Met het verkeerde model vallen sommige knoppen weg.</string>
+    <string name="wheel_silent_tip_car">Sommige knoppen blijven in de auto, zoals cruise control, en bereiken de radio nooit.</string>
+    <string name="wheel_silent_tip_other">Geef zijn taak aan een knop die werkt.</string>
+    <string name="wheel_listen_again">Signaal opnieuw leren</string>
+    <string name="wheel_listen_for_it">Luisteren</string>
+    <string name="wheel_unit_also_acts">De radio voert voor deze knop ook zijn eigen actie uit.</string>
+    <string name="wheel_remove_button">Van de kaart halen</string>
+    <plurals name="wheel_settings_detail_mapped">
+        <item quantity="one">%1$d knop op de kaart</item>
+        <item quantity="other">%1$d knoppen op de kaart</item>
+    </plurals>
+    <string name="wheel_reset">Alle knoppen terugzetten</string>
+    <string name="wheel_reset_title">Stuurknoppen terugzetten?</string>
+    <string name="wheel_reset_body">Elke knop verdwijnt van de kaart en verliest zijn actie. Het stuur doet weer wat de radio zelf doet.</string>
+    <string name="wheel_reset_confirm">Terugzetten</string>
 </resources>

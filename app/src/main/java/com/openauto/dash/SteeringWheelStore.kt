@@ -1,6 +1,7 @@
 package com.openauto.dash
 
 import android.content.Context
+import android.os.SystemClock
 import android.view.KeyEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -10,37 +11,45 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.UUID
 
 /**
- * Identifies one physical button, seen one of three ways:
- * - a standard Android [keyCode] (most remotes);
+ * Identifies one physical button, seen one of four ways:
+ * - a standard Android [keyCode] (most remotes), or one of the head unit's
+ *   own keys from its key service ([HeadUnitKeys]);
  * - a raw HID [scanCode] Android can't name (`keyCode == KEYCODE_UNKNOWN`);
+ * - a key the input system reports but no app is given ([input],
+ *   "KEY_NEXTSONG@event2", read with root `getevent` by [WheelMonitor]);
  * - a CAN frame from the car ([canKey], a [McuReader] key) taking the value
- *   [canHex] while the button is held. On MCU head units (the ROCO K706) the
- *   wheel buttons never become Android keys at all; they only show up here.
+ *   [canHex] while the button is held. On MCU head units (the ROCO K706)
+ *   some wheel buttons only show up here.
  */
 internal data class WheelKey(
     val keyCode: Int,
     val scanCode: Int,
     val canKey: String? = null,
-    val canHex: String? = null
+    val canHex: String? = null,
+    val input: String? = null
 ) {
     val id: String
         get() = when {
             canKey != null -> "c:$canKey=$canHex"
+            input != null -> "i:$input"
             keyCode != KeyEvent.KEYCODE_UNKNOWN -> "k$keyCode"
             else -> "s$scanCode"
         }
 
-    /** A readable name: "Media Next", "Volume Up"... The dialog words the raw and CAN ones in the chosen language. */
+    /** A readable name: "Media Next", "Volume Up"... The map words the raw and CAN ones in the chosen language. */
     val label: String
         get() {
             if (canKey != null) return "CAN $canKey: $canHex"
+            if (input != null) return input
             if (keyCode == KeyEvent.KEYCODE_UNKNOWN) return "Button #$scanCode"
-            // The head unit's own keys ([HeadUnitKeys]) have no Android name: the dialog words them.
+            // The head unit's own keys ([HeadUnitKeys]) have no Android name: the map words them.
             if (keyCode >= HeadUnitKeys.FIRST_VENDOR_KEY) return "Key $keyCode"
             val raw = runCatching { KeyEvent.keyCodeToString(keyCode) }.getOrDefault("KEYCODE_$keyCode")
             return raw.removePrefix("KEYCODE_")
@@ -49,12 +58,41 @@ internal data class WheelKey(
                 .joinToString(" ") { it.lowercase().replaceFirstChar(Char::uppercase) }
         }
 
+    /**
+     * Which way to keep when one press shows up several ways at once: the one
+     * that takes the least to hear afterwards. A key reaches Dashwheel by
+     * itself; an input event or a CAN frame needs a root reader running.
+     */
+    val rank: Int
+        get() = when {
+            canKey != null -> 3
+            input != null -> 2
+            keyCode == KeyEvent.KEYCODE_UNKNOWN -> 1
+            else -> 0
+        }
+
     companion object {
-        fun can(key: String, hex: String) = WheelKey(KeyEvent.KEYCODE_UNKNOWN, 0, key, hex)
+        fun can(key: String, hex: String) = WheelKey(KeyEvent.KEYCODE_UNKNOWN, 0, canKey = key, canHex = hex)
+        fun input(name: String) = WheelKey(KeyEvent.KEYCODE_UNKNOWN, 0, input = name)
     }
 }
 
-internal data class WheelMapping(val key: WheelKey, val assignment: WheelAssignment)
+/** Where a button sits, for the map: either side of the wheel, the stalk behind it, beside the screen. */
+internal enum class WheelZone { LEFT, RIGHT, STALK, PANEL, UNPLACED }
+
+/**
+ * One button on the map: its signal ([key], null for a button that gives
+ * none the unit can see), the name the driver gave it (empty: named after
+ * its signal), where it sits and what it does (null: nothing yet, it only
+ * lights up when pressed).
+ */
+internal data class WheelButton(
+    val uid: String,
+    val key: WheelKey?,
+    val name: String = "",
+    val zone: WheelZone = WheelZone.UNPLACED,
+    val assignment: WheelAssignment? = null
+)
 
 /**
  * Tells a steering wheel button apart from the rest of the CAN stream: a frame
@@ -85,6 +123,10 @@ internal class CanButtonDetector(
     var lastWasQuiet = false
         private set
 
+    /** How long the last press [onChange] returned was held. */
+    var lastHeldMs = 0L
+        private set
+
     fun reset() {
         pending.clear()
     }
@@ -101,113 +143,205 @@ internal class CanButtonDetector(
         val p = pending.remove(key)
         if (p != null) {
             val held = at - p.at
-            return if (hex == p.idle && held <= releaseMs && held < p.idleFor) p.pressed else null
+            if (hex != p.idle || held > releaseMs || held >= p.idleFor) return null
+            lastHeldMs = held
+            return p.pressed
         }
         if (previousHex != null && stillFor >= quietMs && !busy) pending[key] = Pending(previousHex, hex, at, stillFor)
         return null
     }
 }
 
+/** Of the ways one press showed up, the one to keep ([WheelKey.rank]). */
+internal fun bestOf(keys: List<WheelKey>): WheelKey? = keys.minByOrNull { it.rank }
+
 /**
- * Learned steering wheel buttons: what each one is bound to, persisted as
- * JSON, and the two ways a press arrives: an Android key through
- * [MainActivity.dispatchKeyEvent] (or the learning dialog's own window), and
- * a CAN frame through [McuReader.changes], which works whatever app is in
- * front. While the "press a button" screen (SteeringWheelDialog.kt) is
- * [listening], the next press is captured instead of running what it's bound to.
- * A CAN press is only a [candidate] until it's pressed again: the detector's
- * rules can still be met by a car value that happens to flip and flip back,
- * and that one won't repeat itself on cue.
+ * The steering wheel button map: every button the driver pressed while the
+ * map was open, persisted as JSON, and what each one does.
+ *
+ * While the map is open ([mapping]) a press runs nothing: a known button
+ * lights up ([lit]), an unknown one is added to the map, or given to the
+ * button waiting for a signal ([listeningFor]). One press can show up
+ * several ways within a moment (an Android key, the unit's key service, an
+ * input event): a known one wins at once, else the best one after
+ * [SAME_PRESS_MS]. A CAN press is only a [candidate] until it is pressed
+ * again: a car value can flip and flip back by itself, but not on cue.
+ *
+ * With the map closed, a press runs what its button is bound to, from
+ * [MainActivity.dispatchKeyEvent] (or the accessibility service), the unit's
+ * key service ([HeadUnitKeys]), the CAN stream ([McuReader.changes]) or the
+ * input events ([WheelMonitor.inputPresses]).
  */
 internal object SteeringWheelStore {
     private const val PREFS = "steering_wheel"
-    private const val KEY_MAPPINGS = "mappings"
-    /** How long a [candidate] waits for its second press before the screen goes back to plain listening. */
+    private const val KEY_BUTTONS = "mappings"
+    /** How long a [candidate] waits for its second press. */
     private const val CONFIRM_MS = 15_000L
+    /** One press arriving several ways lands within this; the same key twice within it runs once. */
+    private const val SAME_PRESS_MS = 250L
+    /** How long a pressed button stays lit on the map. */
+    private const val LIT_MS = 700L
 
-    /**
-     * Whether the learned buttons are offered at all. Off for now: they do
-     * not work on the head unit. Nothing is then read or learned, the keys
-     * go on untouched and Settings has no row for them; what was learned
-     * before stays saved for the day this comes back.
-     */
-    val AVAILABLE = false
+    /** Whether the wheel buttons are offered at all (Settings, Driving). */
+    val AVAILABLE = true
 
     private var appContext: Context? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val detector = CanButtonDetector()
-    /** This store holds a [McuReader.start]: while listening, or while a CAN button is bound. */
+    /** This store holds a [McuReader.start]: while the map is open, or while a CAN button does something. */
     private var holdsReader = false
+    /** This store holds [WheelMonitor.holdInput]: while an input-event button does something. */
+    private var holdsInput = false
 
-    private val _mappings = MutableStateFlow<List<WheelMapping>>(emptyList())
-    val mappings: StateFlow<List<WheelMapping>> = _mappings.asStateFlow()
+    private val _buttons = MutableStateFlow<List<WheelButton>>(emptyList())
+    val buttons: StateFlow<List<WheelButton>> = _buttons.asStateFlow()
 
-    /** True while the learning screen wants the very next press, instead of running its mapped action. */
-    val listening = MutableStateFlow(false)
+    private val _mapping = MutableStateFlow(false)
+    /** The map is open: presses light their button or add one, and run nothing. */
+    val mapping: StateFlow<Boolean> = _mapping.asStateFlow()
 
-    /** The key just seen while [listening] was on; the screen consumes it via [consumeCaptured]. */
-    val captured = MutableStateFlow<WheelKey?>(null)
+    private val _lit = MutableStateFlow<Set<String>>(emptySet())
+    /** The buttons just pressed, by [WheelButton.uid]. */
+    val lit: StateFlow<Set<String>> = _lit.asStateFlow()
 
-    /** A CAN press seen while [listening], waiting to be pressed once more (within [CONFIRM_MS]) before it counts. */
+    private val _listeningFor = MutableStateFlow<String?>(null)
+    /** A button the next unknown press is given to: a silent one, or one whose signal is learned again. */
+    val listeningFor: StateFlow<String?> = _listeningFor.asStateFlow()
+
+    /** A CAN press seen on the map, waiting to be pressed once more (within [CONFIRM_MS]) before it counts. */
     val candidate = MutableStateFlow<WheelKey?>(null)
     private var candidateTimeout: Job? = null
+
+    /** When a press was last counted on the map ([SystemClock.uptimeMillis]). */
+    private var lastPressAt = Long.MIN_VALUE / 2
+    private val burst = mutableListOf<WheelKey>()
+    private var burstJob: Job? = null
+    private val litJobs = HashMap<String, Job>()
+    /** When each key last ran its action: the same press from two ways runs once. */
+    private val lastRun = HashMap<String, Long>()
 
     fun setContext(context: Context) {
         if (!AVAILABLE || appContext != null) return
         appContext = context.applicationContext
-        _mappings.value = load(appContext!!)
+        _buttons.value = load(appContext!!)
         scope.launch { McuReader.changes.collect { onCanChange(it) } }
-        updateReader()
+        scope.launch { WheelMonitor.inputPresses.collect { onInputPress(it) } }
+        updateReaders()
     }
 
-    fun startListening() {
-        captured.value = null
+    fun openMap() {
+        burst.clear()
         clearCandidate()
         detector.reset()
-        listening.value = true
+        _mapping.value = true
         WheelMonitor.start()
-        updateReader()
+        updateReaders()
     }
 
-    fun stopListening() {
-        listening.value = false
+    fun closeMap() {
+        _mapping.value = false
+        _listeningFor.value = null
+        burstJob?.cancel()
+        burst.clear()
         clearCandidate()
         WheelMonitor.stop()
-        updateReader()
+        updateReaders()
     }
 
-    /** A line the learning screen's monitor showed, tapped: that's the button. */
+    /** The next unknown press goes to [uid]; null: back to adding new buttons. */
+    fun listenFor(uid: String?) {
+        _listeningFor.value = uid
+    }
+
+    /** A button that gives no signal, put on the map by hand. */
+    fun addSilent(name: String, zone: WheelZone): String {
+        val button = WheelButton(newWheelUid(), key = null, name = name.trim(), zone = zone)
+        persist(_buttons.value + button)
+        return button.uid
+    }
+
+    fun rename(uid: String, name: String) = update(uid) { it.copy(name = name.trim()) }
+
+    fun place(uid: String, zone: WheelZone) = update(uid) { it.copy(zone = zone) }
+
+    fun assign(uid: String, assignment: WheelAssignment?) = update(uid) { it.copy(assignment = assignment) }
+
+    fun remove(uid: String) {
+        if (_listeningFor.value == uid) _listeningFor.value = null
+        persist(_buttons.value.filterNot { it.uid == uid })
+    }
+
+    /** Back to the unit's own buttons: the map emptied, every action gone. */
+    fun resetAll() {
+        _listeningFor.value = null
+        clearCandidate()
+        persist(emptyList())
+    }
+
+    /** A line of the map's monitor tapped: that's the button, as if it had been recognised by itself. */
     fun learnFromMonitor(key: WheelKey) {
-        if (listening.value) capture(key)
+        if (_mapping.value) count(key)
     }
 
-    fun consumeCaptured() {
-        captured.value = null
+    private fun update(uid: String, change: (WheelButton) -> WheelButton) {
+        persist(_buttons.value.map { if (it.uid == uid) change(it) else it })
     }
 
-    fun assign(key: WheelKey, assignment: WheelAssignment) {
-        persist(_mappings.value.filterNot { it.key.id == key.id } + WheelMapping(key, assignment))
-    }
-
-    fun remove(key: WheelKey) {
-        persist(_mappings.value.filterNot { it.key.id == key.id })
-    }
-
-    private fun persist(updated: List<WheelMapping>) {
-        _mappings.value = updated
+    private fun persist(updated: List<WheelButton>) {
+        _buttons.value = updated
         appContext?.let { save(it, updated) }
-        updateReader()
+        updateReaders()
     }
 
-    private fun capture(key: WheelKey) {
-        listening.value = false
-        clearCandidate()
-        WheelMonitor.stop()
-        captured.value = key
-        updateReader()
+    private fun known(key: WheelKey): WheelButton? = _buttons.value.firstOrNull { it.key?.id == key.id }
+
+    private fun bound(key: WheelKey): WheelAssignment? = known(key)?.assignment
+
+    /** A press counted on the map: its button lights, or it becomes one. */
+    private fun count(key: WheelKey) {
+        lastPressAt = SystemClock.uptimeMillis()
+        val button = known(key) ?: run {
+            val waiting = _listeningFor.value?.let { uid -> _buttons.value.firstOrNull { it.uid == uid } }
+            _listeningFor.value = null
+            if (waiting != null) waiting.copy(key = key).also { b -> update(b.uid) { b } }
+            else WheelButton(newWheelUid(), key).also { persist(_buttons.value + it) }
+        }
+        light(button.uid)
     }
 
-    /** A CAN press was detected: remember it and ask for it again; forgotten if it doesn't come. */
+    private fun light(uid: String) {
+        _lit.update { it + uid }
+        litJobs.remove(uid)?.cancel()
+        litJobs[uid] = scope.launch {
+            delay(LIT_MS)
+            _lit.update { it - uid }
+        }
+    }
+
+    /**
+     * A key press on the map. A known button lights at once; an unknown one
+     * waits a moment for the other ways the same press may come, and the
+     * best of them is kept.
+     */
+    private fun mapPress(key: WheelKey) {
+        if (known(key) != null) {
+            burstJob?.cancel()
+            burst.clear()
+            count(key)
+            return
+        }
+        if (SystemClock.uptimeMillis() - lastPressAt < SAME_PRESS_MS) return
+        burst += key
+        if (burstJob?.isActive == true) return
+        burstJob = scope.launch {
+            delay(SAME_PRESS_MS)
+            val best = bestOf(burst)
+            burst.clear()
+            if (best != null) count(best)
+        }
+    }
+
+    /** A CAN press was seen on the map: remember it and ask for it again; forgotten if it doesn't come. */
     private fun propose(key: WheelKey) {
         candidateTimeout?.cancel()
         candidate.value = key
@@ -223,113 +357,166 @@ internal object SteeringWheelStore {
         candidate.value = null
     }
 
-    /** The CAN stream is read (root logcat) only while it can be needed. */
-    private fun updateReader() {
-        val wanted = listening.value || _mappings.value.any { it.key.canKey != null }
-        if (wanted == holdsReader) return
-        holdsReader = wanted
-        if (wanted) McuReader.start() else McuReader.stop()
+    /** The root readers run only while they can be needed: the map open, or a button bound to them. */
+    private fun updateReaders() {
+        val bound = _buttons.value.filter { it.assignment != null }.mapNotNull { it.key }
+        val can = _mapping.value || bound.any { it.canKey != null }
+        if (can != holdsReader) {
+            holdsReader = can
+            if (can) McuReader.start() else McuReader.stop()
+        }
+        val input = bound.any { it.input != null }
+        if (input != holdsInput) {
+            holdsInput = input
+            WheelMonitor.holdInput(input)
+        }
     }
 
     /**
      * Every hardware key the launcher's windows get reaches here first.
-     * True means "handled" — swallow it: either it was captured for the
-     * learning screen, or it just ran the action it's bound to. False leaves
-     * the key to Android's own handling (volume UI, back, an unmapped media
-     * button...).
+     * True means "handled" — swallow it: either the map took it, or it just
+     * ran the action it's bound to. False leaves the key to Android's own
+     * handling (volume UI, back, an unbound media button...).
      */
     fun onKeyEvent(context: Context, event: KeyEvent): Boolean {
+        // The on-screen keyboard's keys (Delete while naming a button) are typing, not buttons.
+        if (event.flags and KeyEvent.FLAG_SOFT_KEYBOARD != 0) return false
         val key = WheelKey(event.keyCode, event.scanCode)
-        if (listening.value) {
-            if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
+        val press = event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0
+        if (_mapping.value) {
+            if (press) {
                 WheelMonitor.add(WheelMonitor.Source.KEY, "${key.label} (${event.keyCode}/${event.scanCode})", key)
-                capture(key)
+                mapPress(key)
             }
             return true
         }
-        val mapping = _mappings.value.firstOrNull { it.key.id == key.id } ?: return false
-        if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) perform(context, mapping.assignment)
+        val assignment = bound(key) ?: return false
+        if (press) run(context, key, assignment)
         return true
     }
 
     /**
      * A key from the head unit's own key service ([HeadUnitKeys]): the
-     * firmware's keys (NAVI, MODE, PHONE…), which never come as Android keys.
-     * Captured while learning; otherwise runs what it's bound to, once per
-     * press. The unit does its own thing with the key as well.
+     * firmware's keys (NAVI, MODE, PHONE…), which never come as Android
+     * keys, and the Android ones the unit may keep to itself (its volume).
+     * Counted on the map; otherwise runs what it's bound to, once per press
+     * however many ways it came. The unit does its own thing with the key as
+     * well.
      */
     fun onUnitKey(context: Context, keyCode: Int, event: KeyEvent?) {
         // One press: its down (the event is left out by some senders: count that as the press).
         if (event != null && (event.action != KeyEvent.ACTION_DOWN || event.repeatCount != 0)) return
         val key = WheelKey(keyCode, 0)
-        if (listening.value) {
+        if (_mapping.value) {
             WheelMonitor.add(WheelMonitor.Source.KEY, "${key.label} ($keyCode)", key)
-            capture(key)
+            mapPress(key)
             return
         }
-        val mapping = _mappings.value.firstOrNull { it.key.id == key.id } ?: return
-        perform(context, mapping.assignment)
+        run(context, key, bound(key) ?: return)
+    }
+
+    /** A key only the input system saw ([WheelMonitor.inputPresses]). */
+    private fun onInputPress(name: String) {
+        val key = WheelKey.input(name)
+        if (_mapping.value) return mapPress(key)
+        run(appContext ?: return, key, bound(key) ?: return)
     }
 
     private fun onCanChange(change: McuReader.Change) {
         val e = change.entry
         val pressed = detector.onChange(e.key, change.previousHex, e.hex, e.changedAt)
-        if (listening.value) {
+        if (_mapping.value) {
             if (detector.lastWasQuiet) {
                 WheelMonitor.add(WheelMonitor.Source.CAN, "${e.key}: ${change.previousHex} → ${e.hex}", WheelKey.can(e.key, e.hex))
             }
             if (pressed != null) {
                 val key = WheelKey.can(e.key, pressed)
-                // Same press twice: that's a button. Anything else seen meanwhile takes its place.
-                if (candidate.value == key) capture(key) else propose(key)
+                when {
+                    known(key) != null -> count(key)
+                    // The same press already came another way while it was held.
+                    SystemClock.uptimeMillis() - lastPressAt < detector.lastHeldMs + SAME_PRESS_MS -> Unit
+                    candidate.value == key -> {
+                        clearCandidate()
+                        count(key)
+                    }
+                    else -> propose(key)
+                }
             }
             return
         }
-        val context = appContext ?: return
-        val mapping = _mappings.value.firstOrNull { it.key.canKey == e.key && it.key.canHex == e.hex } ?: return
-        perform(context, mapping.assignment)
+        // Run as the frame takes the pressed value, not when the button is let go.
+        val key = WheelKey.can(e.key, e.hex)
+        run(appContext ?: return, key, bound(key) ?: return)
     }
 
-    private fun perform(context: Context, assignment: WheelAssignment) {
+    private fun run(context: Context, key: WheelKey, assignment: WheelAssignment) {
+        val now = SystemClock.uptimeMillis()
+        if (now - (lastRun[key.id] ?: Long.MIN_VALUE / 2) < SAME_PRESS_MS) return
+        lastRun[key.id] = now
         when (assignment) {
             is WheelAssignment.Preset -> assignment.action.run(context)
             is WheelAssignment.LaunchApp -> AppLauncher.launch(context, assignment.packageName)
         }
     }
 
-    private fun load(context: Context): List<WheelMapping> {
-        val raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_MAPPINGS, null) ?: return emptyList()
-        return runCatching {
-            val arr = JSONArray(raw)
-            (0 until arr.length()).mapNotNull { i -> arr.optJSONObject(i)?.toMapping() }
-        }.getOrDefault(emptyList())
+    private fun load(context: Context): List<WheelButton> {
+        val raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_BUTTONS, null) ?: return emptyList()
+        return runCatching { wheelButtonsFromJson(raw) }.getOrDefault(emptyList())
     }
 
-    private fun save(context: Context, mappings: List<WheelMapping>) {
-        val arr = JSONArray()
-        mappings.forEach { arr.put(it.toJson()) }
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_MAPPINGS, arr.toString()).apply()
-    }
-
-    private fun WheelMapping.toJson(): JSONObject {
-        val obj = JSONObject().put("keyCode", key.keyCode).put("scanCode", key.scanCode)
-        if (key.canKey != null) obj.put("canKey", key.canKey).put("canHex", key.canHex)
-        return when (val a = assignment) {
-            is WheelAssignment.Preset -> obj.put("t", "preset").put("a", a.action.name)
-            is WheelAssignment.LaunchApp -> obj.put("t", "app").put("pkg", a.packageName).put("label", a.appLabel)
-        }
-    }
-
-    private fun JSONObject.toMapping(): WheelMapping? {
-        val canKey = if (has("canKey")) optString("canKey") else null
-        val canHex = if (has("canHex")) optString("canHex") else null
-        val key = if (canKey != null && canHex != null) WheelKey.can(canKey, canHex)
-        else WheelKey(optInt("keyCode", KeyEvent.KEYCODE_UNKNOWN), optInt("scanCode", 0))
-        val assignment = when (optString("t")) {
-            "preset" -> runCatching { SteeringWheelAction.valueOf(optString("a")) }.getOrNull()?.let { WheelAssignment.Preset(it) }
-            "app" -> optString("pkg").takeIf { it.isNotBlank() }?.let { WheelAssignment.LaunchApp(it, optString("label")) }
-            else -> null
-        } ?: return null
-        return WheelMapping(key, assignment)
+    private fun save(context: Context, buttons: List<WheelButton>) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_BUTTONS, wheelButtonsToJson(buttons)).apply()
     }
 }
+
+/** The map from JSON; buttons learned before the map (a key and an action, no uid) come back unplaced. */
+internal fun wheelButtonsFromJson(raw: String): List<WheelButton> {
+    val arr = JSONArray(raw)
+    return (0 until arr.length()).mapNotNull { i -> arr.optJSONObject(i)?.toButton() }
+}
+
+internal fun wheelButtonsToJson(buttons: List<WheelButton>): String {
+    val arr = JSONArray()
+    buttons.forEach { arr.put(it.toJson()) }
+    return arr.toString()
+}
+
+private fun WheelButton.toJson(): JSONObject {
+    val obj = JSONObject().put("uid", uid).put("name", name).put("zone", zone.name)
+    key?.let { k ->
+        obj.put("keyCode", k.keyCode).put("scanCode", k.scanCode)
+        if (k.canKey != null) obj.put("canKey", k.canKey).put("canHex", k.canHex)
+        if (k.input != null) obj.put("input", k.input)
+    }
+    when (val a = assignment) {
+        is WheelAssignment.Preset -> obj.put("t", "preset").put("a", a.action.name)
+        is WheelAssignment.LaunchApp -> obj.put("t", "app").put("pkg", a.packageName).put("label", a.appLabel)
+        null -> Unit
+    }
+    return obj
+}
+
+private fun JSONObject.toButton(): WheelButton {
+    val canKey = if (has("canKey")) optString("canKey") else null
+    val canHex = if (has("canHex")) optString("canHex") else null
+    val key = when {
+        canKey != null && canHex != null -> WheelKey.can(canKey, canHex)
+        has("input") -> WheelKey.input(optString("input"))
+        has("keyCode") -> WheelKey(optInt("keyCode", KeyEvent.KEYCODE_UNKNOWN), optInt("scanCode", 0))
+        else -> null
+    }
+    val assignment = when (optString("t")) {
+        "preset" -> runCatching { SteeringWheelAction.valueOf(optString("a")) }.getOrNull()?.let { WheelAssignment.Preset(it) }
+        "app" -> optString("pkg").takeIf { it.isNotBlank() }?.let { WheelAssignment.LaunchApp(it, optString("label")) }
+        else -> null
+    }
+    return WheelButton(
+        uid = optString("uid").ifEmpty { key?.id ?: newWheelUid() },
+        key = key,
+        name = optString("name"),
+        zone = runCatching { WheelZone.valueOf(optString("zone")) }.getOrDefault(WheelZone.UNPLACED),
+        assignment = assignment
+    )
+}
+
+internal fun newWheelUid(): String = UUID.randomUUID().toString().take(8)

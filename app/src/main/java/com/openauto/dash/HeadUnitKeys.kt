@@ -96,11 +96,11 @@ object HeadUnitKeys {
     }
 
     private fun onKey(keyCode: Int, event: KeyEvent?) {
-        // Android's own keys come to the launcher anyway; taking them here too would run them twice.
-        if (keyCode < FIRST_VENDOR_KEY) return
         val context = appContext ?: return
         // The NAVI key may open the navigation app full screen: the user's doing, left so.
-        EmbeddedApp.userActed()
+        if (keyCode >= FIRST_VENDOR_KEY) EmbeddedApp.userActed()
+        // Android's own keys too: the unit keeps some to itself (its volume), and
+        // one that also comes to the launcher runs once (SteeringWheelStore).
         SteeringWheelStore.onUnitKey(context, keyCode, event)
     }
 

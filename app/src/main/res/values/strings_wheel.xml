@@ -2,23 +2,15 @@
 <resources>
     <!-- Steering wheel button learning (SteeringWheelDialog.kt), from Settings -> Driving -->
     <string name="wheel_title">Steering wheel buttons</string>
-    <string name="wheel_settings_detail_empty">Learn your wheel\'s buttons and assign actions</string>
+    <string name="wheel_settings_detail_empty">Put your wheel\'s buttons on a map and choose what each does</string>
     <plurals name="wheel_settings_detail_count">
         <item quantity="one">%1$d button assigned</item>
         <item quantity="other">%1$d buttons assigned</item>
     </plurals>
-    <string name="wheel_explanation">Tap Learn a new button, then press any button on your steering wheel. Then pick what it does: media, volume, an app and more.</string>
-    <string name="wheel_learn_button">Learn a new button</string>
-    <string name="wheel_empty">No buttons learned yet.</string>
-    <string name="wheel_remove">Remove</string>
-    <string name="wheel_back">Back</string>
-    <string name="wheel_listening_title">Press a button on the wheel…</string>
-    <string name="wheel_listening_detail">Dashwheel is waiting for the next button press.</string>
-    <string name="wheel_confirm_title">Press the same button again…</string>
+    <string name="wheel_explanation">Press each button on the wheel. A new one joins the map, a known one lights up green. Tap a button to name it, place it and choose what it does.</string>
     <string name="wheel_confirm_detail">%1$s was seen. Press it once more so Dashwheel knows it was you: a car value that changes on its own won\'t come back on cue.</string>
     <string name="wheel_assign_prompt">What should %1$s do?</string>
     <string name="wheel_choose_app">Launch an app…</string>
-    <string name="wheel_remove_binding">Forget this button</string>
     <string name="wheel_raw_button">Button #%1$d</string>
     <string name="wheel_can_button">Wheel button (%1$s)</string>
     <string name="wheel_listening_can_live">Also listening to the car\'s CAN data</string>
@@ -86,4 +78,37 @@
     <string name="wheel_action_dashboard_down">Dashboard below</string>
     <string name="wheel_action_read_message">Read the last message</string>
     <string name="wheel_action_dismiss_alert">Dismiss the alert</string>
+    <string name="wheel_map_waiting_for">Press the button for %1$s</string>
+    <string name="wheel_zone_left">Left of the wheel</string>
+    <string name="wheel_zone_right">Right of the wheel</string>
+    <string name="wheel_zone_stalk">Behind the wheel</string>
+    <string name="wheel_zone_panel">Beside the screen</string>
+    <string name="wheel_zone_unplaced">Not placed yet</string>
+    <string name="wheel_zone_empty">Nothing here yet</string>
+    <string name="wheel_no_action">No action</string>
+    <string name="wheel_no_signal">No signal</string>
+    <string name="wheel_add_silent">Add a button with no signal</string>
+    <string name="wheel_silent_default_name">Button %1$d</string>
+    <string name="wheel_name_label">Name</string>
+    <string name="wheel_where">Where it is</string>
+    <string name="wheel_does">What it does</string>
+    <string name="wheel_signal_section">Signal</string>
+    <string name="wheel_signal">Heard as %1$s</string>
+    <string name="wheel_silent_title">The unit gets no signal from this button.</string>
+    <string name="wheel_silent_tip_monitor">Tap Listen for it, press the button and open What the unit sees. If a line appears, tap it.</string>
+    <string name="wheel_silent_tip_canbox">Check the car model in the unit\'s CAN box settings. With the wrong model, some buttons are left out.</string>
+    <string name="wheel_silent_tip_car">Some buttons stay inside the car, like cruise control, and never reach the head unit.</string>
+    <string name="wheel_silent_tip_other">Give its job to a button that works.</string>
+    <string name="wheel_listen_again">Learn its signal again</string>
+    <string name="wheel_listen_for_it">Listen for it</string>
+    <string name="wheel_unit_also_acts">The unit still does its own action for this button too.</string>
+    <string name="wheel_remove_button">Remove from the map</string>
+    <plurals name="wheel_settings_detail_mapped">
+        <item quantity="one">%1$d button on the map</item>
+        <item quantity="other">%1$d buttons on the map</item>
+    </plurals>
+    <string name="wheel_reset">Reset all buttons</string>
+    <string name="wheel_reset_title">Reset the wheel buttons?</string>
+    <string name="wheel_reset_body">Every button leaves the map and loses its action. The wheel goes back to what the unit does by itself.</string>
+    <string name="wheel_reset_confirm">Reset</string>
 </resources>

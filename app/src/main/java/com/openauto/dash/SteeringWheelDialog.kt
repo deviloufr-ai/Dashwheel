@@ -1,18 +1,16 @@
 package com.openauto.dash
 
 import android.view.KeyEvent
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,23 +19,20 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Accessibility
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Apps
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Hearing
+import androidx.compose.material.icons.filled.PortableWifiOff
 import androidx.compose.material.icons.filled.TouchApp
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -51,7 +46,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.onPreviewKeyEvent
@@ -59,83 +53,112 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 
 /*
- * Learning tool for the head unit's steering wheel (or remote) buttons: press
- * one, then pick what it does. A learned button runs straight from
- * MainActivity's key dispatch (SteeringWheelStore.kt); this file is only the
- * screen that teaches it.
+ * The steering wheel button map (SteeringWheelStore.kt), from Settings,
+ * Driving. While it is open every button pressed is put on the map, or lights
+ * up green if it is there already, and nothing runs: the driver presses each
+ * button in turn, then taps one to name it, say where it sits and choose what
+ * it does. A button the unit can't see is put on the map by hand, with what
+ * can be tried about it.
  */
 
-private enum class WheelStep { LIST, LISTENING, PICK_ACTION, PICK_APP }
+private enum class WheelStep { MAP, BUTTON, PICK_ACTION, PICK_APP }
+
+/** The zones in the map's order, drawn the way they sit around the wheel. */
+private val PLACED_ZONES = listOf(WheelZone.LEFT, WheelZone.RIGHT, WheelZone.STALK, WheelZone.PANEL)
 
 @Composable
 internal fun SteeringWheelDialog(onDismiss: () -> Unit) {
     val context = LocalContext.current
-    val mappings by SteeringWheelStore.mappings.collectAsState()
-    val captured by SteeringWheelStore.captured.collectAsState()
+    val buttons by SteeringWheelStore.buttons.collectAsState()
 
-    var step by remember { mutableStateOf(WheelStep.LIST) }
-    var editingKey by remember { mutableStateOf<WheelKey?>(null) }
+    var step by remember { mutableStateOf(WheelStep.MAP) }
+    var editing by remember { mutableStateOf<String?>(null) }
 
-    // A key arrived while listening: go straight to picking what it should do.
-    LaunchedEffect(captured) {
-        captured?.let {
-            editingKey = it
-            step = WheelStep.PICK_ACTION
-            SteeringWheelStore.consumeCaptured()
+    // The map listens for as long as the screen is up, whichever step shows:
+    // pressing the button being edited lights it there too.
+    DisposableEffect(Unit) {
+        SteeringWheelStore.openMap()
+        onDispose { SteeringWheelStore.closeMap() }
+    }
+
+    fun back() {
+        step = when (step) {
+            WheelStep.PICK_ACTION, WheelStep.PICK_APP -> WheelStep.BUTTON
+            else -> WheelStep.MAP
         }
     }
 
-    // However the screen goes away, stop waiting for a key so a press
-    // afterwards doesn't get silently swallowed by SteeringWheelStore.
-    DisposableEffect(Unit) {
-        onDispose { SteeringWheelStore.stopListening() }
-    }
+    // A button removed while open (or never there): back to the map.
+    val button = buttons.firstOrNull { it.uid == editing }
+    if (step != WheelStep.MAP && button == null) step = WheelStep.MAP
 
-    fun backToList() {
-        SteeringWheelStore.stopListening()
-        step = WheelStep.LIST
-    }
+    // A dialog is its own window: while it's up, keys go to it, not to
+    // MainActivity.dispatchKeyEvent. So the screen takes focus and hands
+    // them to the store itself.
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(step) { runCatching { focus.requestFocus() } }
 
     SettingsSheet(
         title = stringResource(R.string.wheel_title),
         onDismiss = onDismiss,
-        onStepBack = if (step != WheelStep.LIST) ::backToList else null,
+        onStepBack = if (step != WheelStep.MAP) ::back else null,
         actions = { SheetButton(stringResource(R.string.dash_done), onClick = onDismiss) }
     ) {
-        when (step) {
-            WheelStep.LIST -> WheelList(
-                mappings = mappings,
-                onLearn = {
-                    SteeringWheelStore.startListening()
-                    step = WheelStep.LISTENING
-                },
-                onEdit = { key ->
-                    editingKey = key
-                    step = WheelStep.PICK_ACTION
-                },
-                onRemove = { key -> SteeringWheelStore.remove(key) }
-            )
-            WheelStep.LISTENING -> WheelListening(onCancel = ::backToList)
-            WheelStep.PICK_ACTION, WheelStep.PICK_APP -> editingKey?.let { key ->
-                WheelActionPicker(
-                    keyLabel = wheelKeyLabel(key),
-                    hasExisting = mappings.any { it.key.id == key.id },
-                    onPick = { action ->
-                        SteeringWheelStore.assign(key, WheelAssignment.Preset(action))
-                        step = WheelStep.LIST
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .focusRequester(focus)
+                .onPreviewKeyEvent { SteeringWheelStore.onKeyEvent(context, it.nativeKeyEvent) }
+                .focusable(),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            when (step) {
+                WheelStep.MAP -> WheelMap(
+                    buttons = buttons,
+                    onOpen = { uid ->
+                        editing = uid
+                        step = WheelStep.BUTTON
                     },
-                    onPickApp = { step = WheelStep.PICK_APP },
-                    onRemove = {
-                        SteeringWheelStore.remove(key)
-                        step = WheelStep.LIST
+                    onAddSilent = {
+                        val n = buttons.count { it.key == null } + 1
+                        editing = SteeringWheelStore.addSilent(context.getString(R.string.wheel_silent_default_name, n), WheelZone.UNPLACED)
+                        step = WheelStep.BUTTON
                     }
                 )
+                WheelStep.BUTTON -> button?.let {
+                    WheelButtonDetail(
+                        button = it,
+                        onPickAction = { step = WheelStep.PICK_ACTION },
+                        onListen = {
+                            SteeringWheelStore.listenFor(it.uid)
+                            step = WheelStep.MAP
+                        },
+                        onRemove = {
+                            SteeringWheelStore.remove(it.uid)
+                            step = WheelStep.MAP
+                        }
+                    )
+                }
+                WheelStep.PICK_ACTION, WheelStep.PICK_APP -> button?.let {
+                    WheelActionPicker(
+                        keyLabel = buttonName(it),
+                        hasExisting = it.assignment != null,
+                        onPick = { action ->
+                            SteeringWheelStore.assign(it.uid, WheelAssignment.Preset(action))
+                            step = WheelStep.BUTTON
+                        },
+                        onPickApp = { step = WheelStep.PICK_APP },
+                        onRemove = {
+                            SteeringWheelStore.assign(it.uid, null)
+                            step = WheelStep.BUTTON
+                        }
+                    )
+                }
             }
         }
     }
@@ -145,93 +168,272 @@ internal fun SteeringWheelDialog(onDismiss: () -> Unit) {
         AppPickerDialog(
             apps = apps,
             onPick = { app ->
-                editingKey?.let { key -> SteeringWheelStore.assign(key, WheelAssignment.LaunchApp(app.packageName, app.label)) }
-                step = WheelStep.LIST
+                editing?.let { uid -> SteeringWheelStore.assign(uid, WheelAssignment.LaunchApp(app.packageName, app.label)) }
+                step = WheelStep.BUTTON
             },
             onDismiss = { step = WheelStep.PICK_ACTION }
         )
     }
 }
 
+/**
+ * The map: what to do, the wheel's two sides next to each other, the stalk
+ * and the screen's bezel under them, then the buttons not placed yet. Below,
+ * a button that gives no signal can be added, and what the unit sees.
+ */
 @Composable
-private fun WheelList(
-    mappings: List<WheelMapping>,
-    onLearn: () -> Unit,
-    onEdit: (WheelKey) -> Unit,
-    onRemove: (WheelKey) -> Unit
-) {
-    // Without the accessibility service a key only reaches Dashwheel while it
-    // is in front; polled, it isn't observable and the user may just have turned it on.
-    var accessibilityOn by remember { mutableStateOf(SplitLauncher.isSystemSplitAvailable()) }
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(1_000)
-            accessibilityOn = SplitLauncher.isSystemSplitAvailable()
+private fun WheelMap(buttons: List<WheelButton>, onOpen: (String) -> Unit, onAddSilent: () -> Unit) {
+    val listeningFor by SteeringWheelStore.listeningFor.collectAsState()
+    val candidate by SteeringWheelStore.candidate.collectAsState()
+    val waiting = buttons.firstOrNull { it.uid == listeningFor }
+    MapStatus(waiting, candidate)
+    // The CAN stream is read through root: where there is none, there is
+    // nothing to report about it (see PrivilegedShell).
+    if (shellAccess().root) CanStatus()
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+        ZoneCard(WheelZone.LEFT, buttons, onOpen, Modifier.weight(1f))
+        ZoneCard(WheelZone.RIGHT, buttons, onOpen, Modifier.weight(1f))
+    }
+    ZoneCard(WheelZone.STALK, buttons, onOpen, Modifier.fillMaxWidth())
+    ZoneCard(WheelZone.PANEL, buttons, onOpen, Modifier.fillMaxWidth())
+    if (buttons.any { it.zone == WheelZone.UNPLACED }) ZoneCard(WheelZone.UNPLACED, buttons, onOpen, Modifier.fillMaxWidth())
+    OutlinedButton(onClick = onAddSilent, modifier = Modifier.fillMaxWidth()) {
+        Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(6.dp))
+        Text(stringResource(R.string.wheel_add_silent))
+    }
+    if (buttons.any { it.assignment != null }) AccessibilityReminder()
+    HorizontalDivider(color = DashColors.Line)
+    MonitorPanel()
+    if (buttons.isNotEmpty()) ResetButton()
+}
+
+/** Empties the map, after asking: the wheel goes back to what the unit does by itself. */
+@Composable
+private fun ResetButton() {
+    var asking by remember { mutableStateOf(false) }
+    TextButton(onClick = { asking = true }) {
+        Text(stringResource(R.string.wheel_reset), color = DashColors.Critical)
+    }
+    if (asking) {
+        ConfirmDialog(
+            title = stringResource(R.string.wheel_reset_title),
+            body = stringResource(R.string.wheel_reset_body),
+            action = stringResource(R.string.wheel_reset_confirm),
+            onConfirm = {
+                SteeringWheelStore.resetAll()
+                asking = false
+            },
+            onDismiss = { asking = false }
+        )
+    }
+}
+
+/** What the map waits for: any button, the one being learned again, or a CAN press once more. */
+@Composable
+private fun MapStatus(waiting: WheelButton?, candidate: WheelKey?) {
+    val text = when {
+        candidate != null -> stringResource(R.string.wheel_confirm_detail, wheelKeyLabel(candidate))
+        waiting != null -> stringResource(R.string.wheel_map_waiting_for, buttonName(waiting))
+        else -> stringResource(R.string.wheel_explanation)
+    }
+    val highlight = candidate != null || waiting != null
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(DashShape.Small)
+            .background(if (highlight) DashColors.Accent.copy(alpha = 0.12f) else DashColors.CardHi)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            if (waiting != null) Icons.Filled.Hearing else Icons.Filled.TouchApp, contentDescription = null,
+            tint = if (highlight) DashColors.Accent else DashColors.TextSecondary, modifier = Modifier.size(22.dp)
+        )
+        Spacer(Modifier.width(10.dp))
+        Text(text, color = DashColors.TextPrimary, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+        if (waiting != null) {
+            TextButton(onClick = { SteeringWheelStore.listenFor(null) }) { Text(stringResource(R.string.dash_cancel)) }
         }
     }
-    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(stringResource(R.string.wheel_explanation), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
-        Button(onClick = onLearn, colors = buttonColors(), modifier = Modifier.fillMaxWidth()) {
-            Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(6.dp))
-            Text(stringResource(R.string.wheel_learn_button))
-        }
-        if (!accessibilityOn && mappings.isNotEmpty()) AccessibilityHint(stringResource(R.string.wheel_accessibility_anywhere))
-        HorizontalDivider(color = DashColors.Line)
-        if (mappings.isEmpty()) {
-            Box(Modifier.fillMaxWidth().padding(vertical = 24.dp), contentAlignment = Alignment.Center) {
-                Text(stringResource(R.string.wheel_empty), color = DashColors.Muted, style = MaterialTheme.typography.bodyMedium)
-            }
+}
+
+/** One zone of the map with its buttons. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ZoneCard(zone: WheelZone, buttons: List<WheelButton>, onOpen: (String) -> Unit, modifier: Modifier) {
+    val inZone = buttons.filter { it.zone == zone }
+    Column(
+        modifier = modifier
+            .clip(DashShape.Medium)
+            .border(1.dp, DashColors.Line, DashShape.Medium)
+            .padding(10.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            stringResource(zone.labelRes).uppercase(),
+            color = DashColors.TextSecondary,
+            style = MaterialTheme.typography.labelSmall
+        )
+        if (inZone.isEmpty()) {
+            Text(stringResource(R.string.wheel_zone_empty), color = DashColors.Muted, style = MaterialTheme.typography.bodySmall)
         } else {
-            mappings.sortedBy { it.key.label }.forEach { mapping ->
-                WheelMappingRow(mapping, onClick = { onEdit(mapping.key) }, onRemove = { onRemove(mapping.key) })
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                inZone.forEach { ButtonChip(it, onClick = { onOpen(it.uid) }) }
             }
         }
     }
 }
 
+/**
+ * One button on the map: its name and what it does. Green while pressed;
+ * dimmed with a crossed-out signal when the unit can't see it.
+ */
 @Composable
-private fun WheelMappingRow(mapping: WheelMapping, onClick: () -> Unit, onRemove: () -> Unit) {
-    val context = LocalContext.current
+private fun ButtonChip(button: WheelButton, onClick: () -> Unit, wide: Boolean = false) {
+    val lit by SteeringWheelStore.lit.collectAsState()
+    val listeningFor by SteeringWheelStore.listeningFor.collectAsState()
+    val on = button.uid in lit
+    val silent = button.key == null
+    val fill by animateColorAsState(if (on) DashColors.Good.copy(alpha = 0.6f) else DashColors.CardHi, label = "wheel-lit")
+    val edge = when {
+        on -> DashColors.Good
+        button.uid == listeningFor -> DashColors.Accent
+        silent -> DashColors.Muted.copy(alpha = 0.5f)
+        else -> DashColors.Line
+    }
     val tap = rememberTapFeedback()
     Row(
         modifier = Modifier
-            .fillMaxWidth()
+            .then(if (wide) Modifier.fillMaxWidth() else Modifier.width(132.dp))
             .heightIn(min = 56.dp)
             .clip(DashShape.Medium)
+            .background(fill)
+            .border(if (on) 2.dp else 1.dp, edge, DashShape.Medium)
             .clickable { tap(); onClick() }
-            .padding(horizontal = 8.dp, vertical = 6.dp),
+            .padding(horizontal = 10.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier.size(40.dp).clip(CircleShape).itemFill(DashColors.CardHi, CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            when (val a = mapping.assignment) {
-                is WheelAssignment.Preset ->
-                    Icon(a.action.icon, contentDescription = null, tint = DashColors.Accent, modifier = Modifier.size(20.dp))
-                is WheelAssignment.LaunchApp -> {
-                    val icon = remember(a.packageName) { loadAppIcon(context, a.packageName) }
-                    if (icon != null) AppIcon(icon = icon, size = 26.dp)
-                    else Icon(Icons.Filled.Apps, contentDescription = null, tint = DashColors.Accent, modifier = Modifier.size(20.dp))
-                }
-            }
+        if (silent) {
+            Icon(Icons.Filled.PortableWifiOff, contentDescription = null, tint = DashColors.Muted, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.width(6.dp))
         }
-        Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
-            Text(wheelKeyLabel(mapping.key), color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(assignmentSummary(mapping.assignment), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
-        IconButton(onClick = { tap(); onRemove() }) {
-            Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.wheel_remove), tint = DashColors.Muted)
+            Text(
+                buttonName(button),
+                color = if (silent) DashColors.TextSecondary else DashColors.TextPrimary,
+                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                when {
+                    silent -> stringResource(R.string.wheel_no_signal)
+                    button.assignment != null -> assignmentSummary(button.assignment)
+                    else -> stringResource(R.string.wheel_no_action)
+                },
+                color = if (button.assignment != null) DashColors.Accent else DashColors.Muted,
+                style = MaterialTheme.typography.labelSmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }
+
+/**
+ * One button: its name, where it sits, what it does, its signal (learned
+ * again on demand) and, for one the unit can't see, what can be tried.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun WheelButtonDetail(button: WheelButton, onPickAction: () -> Unit, onListen: () -> Unit, onRemove: () -> Unit) {
+    ButtonChip(button, onClick = {}, wide = true)
+    var name by remember(button.uid) { mutableStateOf(button.name) }
+    OutlinedTextField(
+        value = name,
+        onValueChange = {
+            name = it
+            SteeringWheelStore.rename(button.uid, it)
+        },
+        label = { Text(stringResource(R.string.wheel_name_label)) },
+        placeholder = { button.key?.let { Text(wheelKeyLabel(it), color = DashColors.Muted) } },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth(),
+        colors = fieldColors()
+    )
+    SettingsSection(stringResource(R.string.wheel_where))
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        PLACED_ZONES.forEach { zone ->
+            CategoryChip(stringResource(zone.labelRes), selected = button.zone == zone) { SteeringWheelStore.place(button.uid, zone) }
+        }
+    }
+    SettingsSection(stringResource(R.string.wheel_does))
+    SettingsRow(
+        if (button.assignment is WheelAssignment.Preset) button.assignment.action.icon else Icons.Filled.Apps,
+        button.assignment?.let { assignmentSummary(it) } ?: stringResource(R.string.wheel_no_action),
+        null,
+        onPickAction
+    )
+    val key = button.key
+    if (key != null && key.keyCode >= HeadUnitKeys.FIRST_VENDOR_KEY) {
+        Text(stringResource(R.string.wheel_unit_also_acts), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+    }
+    SettingsSection(stringResource(R.string.wheel_signal_section))
+    Text(
+        if (key != null) stringResource(R.string.wheel_signal, wheelKeyLabel(key)) else stringResource(R.string.wheel_silent_title),
+        color = if (key != null) DashColors.TextPrimary else DashColors.Warning,
+        style = MaterialTheme.typography.bodyMedium
+    )
+    if (key == null) SilentTips()
+    OutlinedButton(onClick = onListen, modifier = Modifier.fillMaxWidth()) {
+        Icon(Icons.Filled.Hearing, contentDescription = null, modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(6.dp))
+        Text(stringResource(if (key != null) R.string.wheel_listen_again else R.string.wheel_listen_for_it))
+    }
+    TextButton(onClick = onRemove) {
+        Text(stringResource(R.string.wheel_remove_button), color = DashColors.Critical)
+    }
+}
+
+/** What can be tried about a button the unit doesn't see, most useful first. */
+@Composable
+private fun SilentTips() {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        listOf(
+            R.string.wheel_silent_tip_monitor,
+            R.string.wheel_silent_tip_canbox,
+            R.string.wheel_silent_tip_car,
+            R.string.wheel_silent_tip_other
+        ).forEachIndexed { i, tip ->
+            Row {
+                Text("${i + 1}.", color = DashColors.Accent, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodySmall, modifier = Modifier.width(20.dp))
+                Text(stringResource(tip), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+
+private val WheelZone.labelRes: Int
+    get() = when (this) {
+        WheelZone.LEFT -> R.string.wheel_zone_left
+        WheelZone.RIGHT -> R.string.wheel_zone_right
+        WheelZone.STALK -> R.string.wheel_zone_stalk
+        WheelZone.PANEL -> R.string.wheel_zone_panel
+        WheelZone.UNPLACED -> R.string.wheel_zone_unplaced
+    }
+
+/** The name the driver gave [button], else its signal's. */
+@Composable
+private fun buttonName(button: WheelButton): String =
+    button.name.ifBlank { button.key?.let { wheelKeyLabel(it) } ?: stringResource(R.string.wheel_no_signal) }
 
 /** [WheelKey.label], with the name of a raw, unnamed button in the chosen language. */
 @Composable
 private fun wheelKeyLabel(key: WheelKey): String = when {
     key.canKey != null -> stringResource(R.string.wheel_can_button, key.canHex.orEmpty())
+    key.input != null -> key.input
     key.keyCode == KeyEvent.KEYCODE_UNKNOWN -> stringResource(R.string.wheel_raw_button, key.scanCode)
     // The head unit's own keys (HeadUnitKeys): by the name on the button.
     key.keyCode >= HeadUnitKeys.FIRST_VENDOR_KEY -> HeadUnitKeys.nameRes[key.keyCode]?.let { stringResource(it) }
@@ -247,76 +449,19 @@ private fun assignmentSummary(assignment: WheelAssignment): String = when (assig
 }
 
 /**
- * The "press a button now" screen: a pulsing badge so it's obvious the app is
- * waiting, plus a way out. Once a CAN press is seen it asks for the same one
- * again ([SteeringWheelStore.candidate]) before taking it as a button.
+ * Without the accessibility service a key only reaches Dashwheel while it is
+ * in front. Not observable, so polled: the user may just have turned it on.
  */
 @Composable
-private fun WheelListening(onCancel: () -> Unit) {
-    val candidate by SteeringWheelStore.candidate.collectAsState()
-    val transition = rememberInfiniteTransition(label = "wheel-pulse")
-    val scale by transition.animateFloat(
-        initialValue = 0.92f,
-        targetValue = 1.08f,
-        animationSpec = infiniteRepeatable(tween(700, easing = LinearEasing), RepeatMode.Reverse),
-        label = "wheel-pulse-scale"
-    )
-    // A dialog is its own window: while it's up, keys go to it, not to
-    // MainActivity.dispatchKeyEvent. So this screen takes focus and hands
-    // them to the store itself.
-    val context = LocalContext.current
-    val focus = remember { FocusRequester() }
-    LaunchedEffect(Unit) { focus.requestFocus() }
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .focusRequester(focus)
-            .onPreviewKeyEvent { SteeringWheelStore.onKeyEvent(context, it.nativeKeyEvent) }
-            .focusable()
-            .padding(vertical = 28.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Box(
-            modifier = Modifier.size(88.dp).scale(scale).clip(CircleShape).background(DashColors.AccentBrush),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(Icons.Filled.TouchApp, contentDescription = null, tint = DashColors.OnAccent, modifier = Modifier.size(40.dp))
+private fun AccessibilityReminder() {
+    var accessibilityOn by remember { mutableStateOf(SplitLauncher.isSystemSplitAvailable()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(1_000)
+            accessibilityOn = SplitLauncher.isSystemSplitAvailable()
         }
-        Text(
-            stringResource(if (candidate != null) R.string.wheel_confirm_title else R.string.wheel_listening_title),
-            color = DashColors.TextPrimary,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.titleMedium
-        )
-        val seen = candidate
-        if (seen != null) {
-            Text(
-                stringResource(R.string.wheel_confirm_detail, wheelKeyLabel(seen)),
-                color = DashColors.TextPrimary,
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(DashShape.Small)
-                    .background(DashColors.Accent.copy(alpha = 0.12f))
-                    .padding(horizontal = 12.dp, vertical = 10.dp)
-            )
-        } else {
-            Text(
-                stringResource(R.string.wheel_listening_detail),
-                color = DashColors.TextSecondary,
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-        // The CAN stream is read through root: where there is none, there is
-        // nothing to report about it (see PrivilegedShell).
-        if (shellAccess().root) CanStatus()
-        MonitorPanel()
-        OutlinedButton(onClick = onCancel) { Text(stringResource(R.string.dash_cancel)) }
     }
+    if (!accessibilityOn) AccessibilityHint(stringResource(R.string.wheel_accessibility_anywhere))
 }
 
 @Composable
@@ -355,7 +500,7 @@ private fun WheelActionPicker(
         if (hasExisting) {
             Spacer(Modifier.height(8.dp))
             TextButton(onClick = onRemove) {
-                Text(stringResource(R.string.wheel_remove_binding), color = DashColors.Critical)
+                Text(stringResource(R.string.wheel_no_action), color = DashColors.Critical)
             }
         }
     }
@@ -388,7 +533,7 @@ private fun WheelActionRow(action: SteeringWheelAction, unavailable: Boolean, on
 /**
  * Why to turn Dashwheel on under Accessibility, with a way there: back, recents,
  * notifications, split screen go through the service, and it is what puts a
- * learned key in front of whatever app is showing.
+ * button's action in front of whatever app is showing.
  */
 @Composable
 private fun AccessibilityHint(text: String) {
@@ -417,9 +562,9 @@ private fun AccessibilityHint(text: String) {
 }
 
 /**
- * Whether the car's CAN data can be read (root): on MCU units that's where the
- * wheel buttons are, so saying it can't is better than recording nothing.
- * Given a few seconds to start before saying so.
+ * Whether the car's CAN data can be read (root): on MCU units that's where
+ * some wheel buttons are, so saying it can't is better than recording
+ * nothing. Given a few seconds to start before saying so.
  */
 @Composable
 private fun CanStatus() {
@@ -434,27 +579,40 @@ private fun CanStatus() {
     Text(
         stringResource(if (live) R.string.wheel_listening_can_live else R.string.wheel_listening_can_off),
         color = if (live) DashColors.Good else DashColors.Warning,
-        textAlign = TextAlign.Center,
         style = MaterialTheme.typography.bodySmall
     )
 }
 
 /**
- * Everything the unit shows while waiting (WheelMonitor): where this
- * firmware's wheel buttons surface. A key or CAN line can be tapped to learn
- * it when the press-and-release wasn't recognised by itself.
+ * Everything the unit shows while the map is open (WheelMonitor): where this
+ * firmware's wheel buttons surface. Folded away until asked for; a key or CAN
+ * line can be tapped to use it when the press wasn't recognised by itself.
  */
 @Composable
 private fun MonitorPanel() {
     val lines by WheelMonitor.lines.collectAsState()
+    var open by remember { mutableStateOf(false) }
     val tap = rememberTapFeedback()
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(
-            stringResource(R.string.wheel_monitor_title),
-            color = DashColors.TextPrimary,
-            fontWeight = FontWeight.SemiBold,
-            style = MaterialTheme.typography.labelLarge
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = DashSize.Touch)
+                .clip(DashShape.Small)
+                .clickable { tap(); open = !open }
+                .padding(horizontal = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                stringResource(R.string.wheel_monitor_title),
+                color = DashColors.TextPrimary,
+                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.weight(1f)
+            )
+            Icon(if (open) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore, contentDescription = null, tint = DashColors.TextSecondary)
+        }
+        if (!open) return@Column
         Text(
             stringResource(if (lines.any { it.learn != null }) R.string.wheel_monitor_hint else R.string.wheel_monitor_empty),
             color = DashColors.TextSecondary,

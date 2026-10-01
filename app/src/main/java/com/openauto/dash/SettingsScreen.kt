@@ -610,7 +610,7 @@ private fun KeepDirection() {
 @Composable
 private fun DrivingPane(m: TopBarModel, onWheelButtons: () -> Unit, onPlaces: () -> Unit) {
     val context = LocalContext.current
-    val wheelMappings by SteeringWheelStore.mappings.collectAsState()
+    val wheelButtons by SteeringWheelStore.buttons.collectAsState()
     SettingsSection(stringResource(R.string.settings_section_driving))
     SettingsToggle(
         Icons.Filled.DirectionsCar, stringResource(R.string.settings_drive_lock),
@@ -622,8 +622,13 @@ private fun DrivingPane(m: TopBarModel, onWheelButtons: () -> Unit, onPlaces: ()
     ) { FeedbackStore.save(context, it) }
     if (SteeringWheelStore.AVAILABLE) SettingsRow(
         Icons.Filled.SettingsRemote, stringResource(R.string.wheel_title),
-        if (wheelMappings.isEmpty()) stringResource(R.string.wheel_settings_detail_empty)
-        else pluralStringResource(R.plurals.wheel_settings_detail_count, wheelMappings.size, wheelMappings.size),
+        wheelButtons.count { it.assignment != null }.let { assigned ->
+            when {
+                assigned > 0 -> pluralStringResource(R.plurals.wheel_settings_detail_count, assigned, assigned)
+                wheelButtons.isNotEmpty() -> pluralStringResource(R.plurals.wheel_settings_detail_mapped, wheelButtons.size, wheelButtons.size)
+                else -> stringResource(R.string.wheel_settings_detail_empty)
+            }
+        },
         onWheelButtons
     )
     PlacesRow(onPlaces)

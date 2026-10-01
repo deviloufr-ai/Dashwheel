@@ -2,30 +2,22 @@
 <resources>
     <!-- Steering wheel button learning (SteeringWheelDialog.kt), from Settings -> Driving -->
     <string name="wheel_title">Przyciski na kierownicy</string>
-    <string name="wheel_settings_detail_empty">Naucz przyciski na kierownicy i przypisz im akcje</string>
+    <string name="wheel_settings_detail_empty">Umieść przyciski kierownicy na mapie i wybierz, co robi każdy</string>
     <plurals name="wheel_settings_detail_count">
         <item quantity="one">%1$d przycisk przypisany</item>
         <item quantity="few">%1$d przyciski przypisane</item>
         <item quantity="many">%1$d przycisków przypisanych</item>
         <item quantity="other">%1$d przycisku przypisanego</item>
     </plurals>
-    <string name="wheel_explanation">Dotknij Naucz nowy przycisk, a potem naciśnij dowolny przycisk na kierownicy. Wybierz, co ma robić: multimedia, głośność, aplikacja i więcej.</string>
-    <string name="wheel_learn_button">Naucz nowy przycisk</string>
-    <string name="wheel_empty">Nie nauczono jeszcze żadnych przycisków.</string>
-    <string name="wheel_remove">Usuń</string>
-    <string name="wheel_back">Wstecz</string>
-    <string name="wheel_listening_title">Naciśnij przycisk na kierownicy…</string>
-    <string name="wheel_listening_detail">Dashwheel czeka na następne naciśnięcie.</string>
-    <string name="wheel_confirm_title">Naciśnij ten sam przycisk jeszcze raz…</string>
+    <string name="wheel_explanation">Naciśnij każdy przycisk na kierownicy. Nowy trafia na mapę, znany świeci na zielono. Dotknij przycisku, aby go nazwać, umieścić i wybrać, co robi.</string>
     <string name="wheel_confirm_detail">Wykryto %1$s. Naciśnij go ponownie, aby Dashwheel wiedział, że to Ty: wartość z samochodu, która zmienia się sama, nie powtórzy się na zawołanie.</string>
     <string name="wheel_assign_prompt">Co ma robić %1$s?</string>
     <string name="wheel_choose_app">Uruchom aplikację…</string>
-    <string name="wheel_remove_binding">Zapomnij ten przycisk</string>
     <string name="wheel_raw_button">Przycisk nr %1$d</string>
     <string name="wheel_can_button">Przycisk na kierownicy (%1$s)</string>
     <string name="wheel_listening_can_live">Słucha też danych CAN samochodu</string>
     <string name="wheel_listening_can_off">Nie można odczytać danych CAN samochodu (wymaga roota): można nauczyć tylko klawiszy Androida</string>
-    <string name="wheel_monitor_title">Co odbiera radio</string>
+    <string name="wheel_monitor_title">Co widzi radio</string>
     <string name="wheel_monitor_hint">Dotknij wiersza, który pojawił się po naciśnięciu przycisku, aby go użyć.</string>
     <string name="wheel_monitor_empty">Na razie nic. Naciśnij przycisk na kierownicy.</string>
     <string name="wheel_group_media">Multimedia</string>
@@ -88,4 +80,39 @@
     <string name="wheel_action_dashboard_down">Pulpit niżej</string>
     <string name="wheel_action_read_message">Przeczytaj ostatnią wiadomość</string>
     <string name="wheel_action_dismiss_alert">Zamknij alert</string>
+    <string name="wheel_map_waiting_for">Naciśnij przycisk dla %1$s</string>
+    <string name="wheel_zone_left">Z lewej strony kierownicy</string>
+    <string name="wheel_zone_right">Z prawej strony kierownicy</string>
+    <string name="wheel_zone_stalk">Za kierownicą</string>
+    <string name="wheel_zone_panel">Obok ekranu</string>
+    <string name="wheel_zone_unplaced">Jeszcze nieumieszczone</string>
+    <string name="wheel_zone_empty">Na razie nic tu nie ma</string>
+    <string name="wheel_no_action">Brak akcji</string>
+    <string name="wheel_no_signal">Brak sygnału</string>
+    <string name="wheel_add_silent">Dodaj przycisk bez sygnału</string>
+    <string name="wheel_silent_default_name">Przycisk %1$d</string>
+    <string name="wheel_name_label">Nazwa</string>
+    <string name="wheel_where">Gdzie jest</string>
+    <string name="wheel_does">Co robi</string>
+    <string name="wheel_signal_section">Sygnał</string>
+    <string name="wheel_signal">Odbierany jako %1$s</string>
+    <string name="wheel_silent_title">Radio nie dostaje żadnego sygnału z tego przycisku.</string>
+    <string name="wheel_silent_tip_monitor">Dotknij Nasłuchuj, naciśnij przycisk i otwórz Co widzi radio. Jeśli pojawi się wiersz, dotknij go.</string>
+    <string name="wheel_silent_tip_canbox">Sprawdź model auta w ustawieniach skrzynki CAN radia. Przy złym modelu część przycisków jest pomijana.</string>
+    <string name="wheel_silent_tip_car">Niektóre przyciski zostają w aucie, jak tempomat, i nigdy nie docierają do radia.</string>
+    <string name="wheel_silent_tip_other">Przekaż jego zadanie przyciskowi, który działa.</string>
+    <string name="wheel_listen_again">Naucz się sygnału ponownie</string>
+    <string name="wheel_listen_for_it">Nasłuchuj</string>
+    <string name="wheel_unit_also_acts">Radio wykonuje też własną akcję dla tego przycisku.</string>
+    <string name="wheel_remove_button">Usuń z mapy</string>
+    <plurals name="wheel_settings_detail_mapped">
+        <item quantity="one">%1$d przycisk na mapie</item>
+        <item quantity="few">%1$d przyciski na mapie</item>
+        <item quantity="many">%1$d przycisków na mapie</item>
+        <item quantity="other">%1$d przycisku na mapie</item>
+    </plurals>
+    <string name="wheel_reset">Resetuj wszystkie przyciski</string>
+    <string name="wheel_reset_title">Zresetować przyciski kierownicy?</string>
+    <string name="wheel_reset_body">Każdy przycisk znika z mapy i traci swoją akcję. Kierownica wraca do tego, co radio robi samo.</string>
+    <string name="wheel_reset_confirm">Resetuj</string>
 </resources>

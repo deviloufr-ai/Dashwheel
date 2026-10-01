@@ -2,28 +2,20 @@
 <resources>
     <!-- Steering wheel button learning (SteeringWheelDialog.kt), from Settings -> Driving -->
     <string name="wheel_title">Comandi al volante</string>
-    <string name="wheel_settings_detail_empty">Fai imparare i tasti del volante e assegna le azioni</string>
+    <string name="wheel_settings_detail_empty">Metti i tasti del volante su una mappa e scegli cosa fa ognuno</string>
     <plurals name="wheel_settings_detail_count">
         <item quantity="one">%1$d tasto assegnato</item>
         <item quantity="other">%1$d tasti assegnati</item>
     </plurals>
-    <string name="wheel_explanation">Tocca Impara un nuovo tasto, poi premi un tasto qualsiasi sul volante. Scegli cosa deve fare: media, volume, un\'app e altro.</string>
-    <string name="wheel_learn_button">Impara un nuovo tasto</string>
-    <string name="wheel_empty">Nessun tasto ancora imparato.</string>
-    <string name="wheel_remove">Rimuovi</string>
-    <string name="wheel_back">Indietro</string>
-    <string name="wheel_listening_title">Premi un tasto sul volante…</string>
-    <string name="wheel_listening_detail">Dashwheel attende la prossima pressione di un tasto.</string>
-    <string name="wheel_confirm_title">Premi di nuovo lo stesso tasto…</string>
+    <string name="wheel_explanation">Premi ogni tasto del volante. Uno nuovo entra nella mappa, uno già noto si accende di verde. Tocca un tasto per dargli un nome, posizionarlo e scegliere cosa fa.</string>
     <string name="wheel_confirm_detail">È stato rilevato %1$s. Premilo un\'altra volta perché Dashwheel sappia che sei stato tu: un dato dell\'auto che cambia da solo non si ripete a comando.</string>
     <string name="wheel_assign_prompt">Cosa deve fare %1$s?</string>
     <string name="wheel_choose_app">Avvia un\'app…</string>
-    <string name="wheel_remove_binding">Dimentica questo tasto</string>
     <string name="wheel_raw_button">Tasto n. %1$d</string>
     <string name="wheel_can_button">Tasto del volante (%1$s)</string>
     <string name="wheel_listening_can_live">Ascolta anche i dati CAN dell\'auto</string>
     <string name="wheel_listening_can_off">Dati CAN dell\'auto non leggibili (serve il root): si possono imparare solo i tasti Android</string>
-    <string name="wheel_monitor_title">Cosa riceve l\'autoradio</string>
+    <string name="wheel_monitor_title">Cosa vede l\'autoradio</string>
     <string name="wheel_monitor_hint">Tocca la riga apparsa quando hai premuto il tasto per usarla.</string>
     <string name="wheel_monitor_empty">Ancora niente. Premi un tasto del volante.</string>
     <string name="wheel_group_media">Media</string>
@@ -86,4 +78,37 @@
     <string name="wheel_action_dashboard_down">Plancia sotto</string>
     <string name="wheel_action_read_message">Leggi l\'ultimo messaggio</string>
     <string name="wheel_action_dismiss_alert">Chiudi l\'avviso</string>
+    <string name="wheel_map_waiting_for">Premi il tasto per %1$s</string>
+    <string name="wheel_zone_left">A sinistra del volante</string>
+    <string name="wheel_zone_right">A destra del volante</string>
+    <string name="wheel_zone_stalk">Dietro il volante</string>
+    <string name="wheel_zone_panel">Accanto allo schermo</string>
+    <string name="wheel_zone_unplaced">Non ancora posizionati</string>
+    <string name="wheel_zone_empty">Ancora niente qui</string>
+    <string name="wheel_no_action">Nessuna azione</string>
+    <string name="wheel_no_signal">Nessun segnale</string>
+    <string name="wheel_add_silent">Aggiungi un tasto senza segnale</string>
+    <string name="wheel_silent_default_name">Tasto %1$d</string>
+    <string name="wheel_name_label">Nome</string>
+    <string name="wheel_where">Dove si trova</string>
+    <string name="wheel_does">Cosa fa</string>
+    <string name="wheel_signal_section">Segnale</string>
+    <string name="wheel_signal">Ricevuto come %1$s</string>
+    <string name="wheel_silent_title">L\'autoradio non riceve alcun segnale da questo tasto.</string>
+    <string name="wheel_silent_tip_monitor">Tocca Ascoltalo, premi il tasto e apri Cosa vede l\'autoradio. Se compare una riga, toccala.</string>
+    <string name="wheel_silent_tip_canbox">Controlla il modello d\'auto nelle impostazioni della scatola CAN dell\'autoradio. Con il modello sbagliato alcuni tasti mancano.</string>
+    <string name="wheel_silent_tip_car">Alcuni tasti restano nell\'auto, come il cruise control, e non arrivano mai all\'autoradio.</string>
+    <string name="wheel_silent_tip_other">Affida il suo compito a un tasto che funziona.</string>
+    <string name="wheel_listen_again">Impara di nuovo il segnale</string>
+    <string name="wheel_listen_for_it">Ascoltalo</string>
+    <string name="wheel_unit_also_acts">L\'autoradio esegue anche la sua azione per questo tasto.</string>
+    <string name="wheel_remove_button">Togli dalla mappa</string>
+    <plurals name="wheel_settings_detail_mapped">
+        <item quantity="one">%1$d tasto sulla mappa</item>
+        <item quantity="other">%1$d tasti sulla mappa</item>
+    </plurals>
+    <string name="wheel_reset">Ripristina tutti i tasti</string>
+    <string name="wheel_reset_title">Ripristinare i tasti del volante?</string>
+    <string name="wheel_reset_body">Ogni tasto lascia la mappa e perde la sua azione. Il volante torna a ciò che fa l\'autoradio da sola.</string>
+    <string name="wheel_reset_confirm">Ripristina</string>
 </resources>

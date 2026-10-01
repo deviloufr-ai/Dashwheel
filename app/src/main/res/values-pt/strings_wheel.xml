@@ -2,28 +2,20 @@
 <resources>
     <!-- Steering wheel button learning (SteeringWheelDialog.kt), from Settings -> Driving -->
     <string name="wheel_title">Botões do volante</string>
-    <string name="wheel_settings_detail_empty">Ensine os botões do volante e atribua-lhes ações</string>
+    <string name="wheel_settings_detail_empty">Coloque os botões do volante num mapa e escolha o que cada um faz</string>
     <plurals name="wheel_settings_detail_count">
         <item quantity="one">%1$d botão atribuído</item>
         <item quantity="other">%1$d botões atribuídos</item>
     </plurals>
-    <string name="wheel_explanation">Toque em Aprender um novo botão e prima qualquer botão do volante. Depois escolha o que deve fazer: multimédia, volume, uma app e mais.</string>
-    <string name="wheel_learn_button">Aprender um novo botão</string>
-    <string name="wheel_empty">Ainda não há botões aprendidos.</string>
-    <string name="wheel_remove">Remover</string>
-    <string name="wheel_back">Voltar</string>
-    <string name="wheel_listening_title">Prima um botão do volante…</string>
-    <string name="wheel_listening_detail">O Dashwheel aguarda que prima o próximo botão.</string>
-    <string name="wheel_confirm_title">Prima o mesmo botão outra vez…</string>
+    <string name="wheel_explanation">Prima cada botão do volante. Um novo entra no mapa, um conhecido acende a verde. Toque num botão para lhe dar nome, posição e escolher o que faz.</string>
     <string name="wheel_confirm_detail">%1$s foi detetado. Prima-o mais uma vez para o Dashwheel saber que foi você: um valor do carro que muda sozinho não volta a aparecer quando pedido.</string>
     <string name="wheel_assign_prompt">O que deve fazer %1$s?</string>
     <string name="wheel_choose_app">Abrir uma app…</string>
-    <string name="wheel_remove_binding">Esquecer este botão</string>
     <string name="wheel_raw_button">Botão n.º %1$d</string>
     <string name="wheel_can_button">Botão do volante (%1$s)</string>
     <string name="wheel_listening_can_live">Também ouve os dados CAN do carro</string>
     <string name="wheel_listening_can_off">Não é possível ler os dados CAN do carro (requer root): só se aprendem teclas Android</string>
-    <string name="wheel_monitor_title">O que o rádio recebe</string>
+    <string name="wheel_monitor_title">O que o rádio vê</string>
     <string name="wheel_monitor_hint">Toque na linha que apareceu ao premir o botão para a usar.</string>
     <string name="wheel_monitor_empty">Ainda nada. Prima um botão do volante.</string>
     <string name="wheel_group_media">Multimédia</string>
@@ -86,4 +78,37 @@
     <string name="wheel_action_dashboard_down">Painel de baixo</string>
     <string name="wheel_action_read_message">Ler a última mensagem</string>
     <string name="wheel_action_dismiss_alert">Fechar o alerta</string>
+    <string name="wheel_map_waiting_for">Prima o botão de %1$s</string>
+    <string name="wheel_zone_left">À esquerda do volante</string>
+    <string name="wheel_zone_right">À direita do volante</string>
+    <string name="wheel_zone_stalk">Atrás do volante</string>
+    <string name="wheel_zone_panel">Ao lado do ecrã</string>
+    <string name="wheel_zone_unplaced">Ainda sem posição</string>
+    <string name="wheel_zone_empty">Nada aqui ainda</string>
+    <string name="wheel_no_action">Nenhuma ação</string>
+    <string name="wheel_no_signal">Sem sinal</string>
+    <string name="wheel_add_silent">Adicionar um botão sem sinal</string>
+    <string name="wheel_silent_default_name">Botão %1$d</string>
+    <string name="wheel_name_label">Nome</string>
+    <string name="wheel_where">Onde está</string>
+    <string name="wheel_does">O que faz</string>
+    <string name="wheel_signal_section">Sinal</string>
+    <string name="wheel_signal">Recebido como %1$s</string>
+    <string name="wheel_silent_title">O rádio não recebe nenhum sinal deste botão.</string>
+    <string name="wheel_silent_tip_monitor">Toque em Escutá-lo, prima o botão e abra O que o rádio vê. Se aparecer uma linha, toque nela.</string>
+    <string name="wheel_silent_tip_canbox">Verifique o modelo do carro nas definições da caixa CAN do rádio. Com o modelo errado, alguns botões ficam de fora.</string>
+    <string name="wheel_silent_tip_car">Alguns botões ficam no carro, como o cruise control, e nunca chegam ao rádio.</string>
+    <string name="wheel_silent_tip_other">Dê a sua função a um botão que funcione.</string>
+    <string name="wheel_listen_again">Aprender o sinal de novo</string>
+    <string name="wheel_listen_for_it">Escutá-lo</string>
+    <string name="wheel_unit_also_acts">O rádio também faz a sua própria ação para este botão.</string>
+    <string name="wheel_remove_button">Tirar do mapa</string>
+    <plurals name="wheel_settings_detail_mapped">
+        <item quantity="one">%1$d botão no mapa</item>
+        <item quantity="other">%1$d botões no mapa</item>
+    </plurals>
+    <string name="wheel_reset">Repor todos os botões</string>
+    <string name="wheel_reset_title">Repor os botões do volante?</string>
+    <string name="wheel_reset_body">Cada botão sai do mapa e perde a sua ação. O volante volta ao que o rádio faz sozinho.</string>
+    <string name="wheel_reset_confirm">Repor</string>
 </resources>

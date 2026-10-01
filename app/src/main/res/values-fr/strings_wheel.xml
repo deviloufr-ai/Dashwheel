@@ -2,28 +2,20 @@
 <resources>
     <!-- Steering wheel button learning (SteeringWheelDialog.kt), from Settings -> Driving -->
     <string name="wheel_title">Commandes au volant</string>
-    <string name="wheel_settings_detail_empty">Apprenez les boutons du volant et attribuez-leur des actions</string>
+    <string name="wheel_settings_detail_empty">Placez les boutons du volant sur une carte et choisissez leur action</string>
     <plurals name="wheel_settings_detail_count">
         <item quantity="one">%1$d bouton attribué</item>
         <item quantity="other">%1$d boutons attribués</item>
     </plurals>
-    <string name="wheel_explanation">Touchez Apprendre un nouveau bouton, puis appuyez sur un bouton du volant. Choisissez ensuite son action : média, volume, une appli, et plus.</string>
-    <string name="wheel_learn_button">Apprendre un nouveau bouton</string>
-    <string name="wheel_empty">Aucun bouton appris pour l\'instant.</string>
-    <string name="wheel_remove">Supprimer</string>
-    <string name="wheel_back">Retour</string>
-    <string name="wheel_listening_title">Appuyez sur un bouton du volant…</string>
-    <string name="wheel_listening_detail">Dashwheel attend le prochain appui.</string>
-    <string name="wheel_confirm_title">Appuyez encore une fois sur le même bouton…</string>
+    <string name="wheel_explanation">Appuyez sur chaque bouton du volant. Un nouveau rejoint la carte, un bouton connu s\'allume en vert. Touchez un bouton pour le nommer, le placer et choisir son action.</string>
     <string name="wheel_confirm_detail">%1$s a été détecté. Appuyez une seconde fois pour que Dashwheel sache que c\'est bien vous : une donnée de la voiture qui change toute seule ne revient pas sur commande.</string>
     <string name="wheel_assign_prompt">Que doit faire %1$s ?</string>
     <string name="wheel_choose_app">Lancer une appli…</string>
-    <string name="wheel_remove_binding">Oublier ce bouton</string>
     <string name="wheel_raw_button">Bouton n° %1$d</string>
     <string name="wheel_can_button">Bouton du volant (%1$s)</string>
     <string name="wheel_listening_can_live">Écoute aussi les données CAN de la voiture</string>
     <string name="wheel_listening_can_off">Données CAN de la voiture illisibles (root requis) : seules les touches Android peuvent être apprises</string>
-    <string name="wheel_monitor_title">Ce que l\'autoradio reçoit</string>
+    <string name="wheel_monitor_title">Ce que voit l\'autoradio</string>
     <string name="wheel_monitor_hint">Touchez la ligne apparue quand vous avez appuyé sur le bouton pour l\'utiliser.</string>
     <string name="wheel_monitor_empty">Rien pour l\'instant. Appuyez sur un bouton du volant.</string>
     <string name="wheel_group_media">Média</string>
@@ -86,4 +78,37 @@
     <string name="wheel_action_dashboard_down">Tableau de bord du dessous</string>
     <string name="wheel_action_read_message">Lire le dernier message</string>
     <string name="wheel_action_dismiss_alert">Fermer l\'alerte</string>
+    <string name="wheel_map_waiting_for">Appuyez sur le bouton %1$s</string>
+    <string name="wheel_zone_left">À gauche du volant</string>
+    <string name="wheel_zone_right">À droite du volant</string>
+    <string name="wheel_zone_stalk">Derrière le volant</string>
+    <string name="wheel_zone_panel">À côté de l\'écran</string>
+    <string name="wheel_zone_unplaced">Pas encore placés</string>
+    <string name="wheel_zone_empty">Rien ici pour l\'instant</string>
+    <string name="wheel_no_action">Aucune action</string>
+    <string name="wheel_no_signal">Aucun signal</string>
+    <string name="wheel_add_silent">Ajouter un bouton sans signal</string>
+    <string name="wheel_silent_default_name">Bouton %1$d</string>
+    <string name="wheel_name_label">Nom</string>
+    <string name="wheel_where">Où il se trouve</string>
+    <string name="wheel_does">Ce qu\'il fait</string>
+    <string name="wheel_signal_section">Signal</string>
+    <string name="wheel_signal">Reçu comme %1$s</string>
+    <string name="wheel_silent_title">L\'autoradio ne reçoit aucun signal de ce bouton.</string>
+    <string name="wheel_silent_tip_monitor">Touchez L\'écouter, appuyez sur le bouton et ouvrez Ce que voit l\'autoradio. Si une ligne apparaît, touchez-la.</string>
+    <string name="wheel_silent_tip_canbox">Vérifiez le modèle de voiture dans les réglages du boîtier CAN de l\'autoradio. Avec le mauvais modèle, certains boutons sont ignorés.</string>
+    <string name="wheel_silent_tip_car">Certains boutons restent dans la voiture, comme le régulateur de vitesse, et n\'arrivent jamais à l\'autoradio.</string>
+    <string name="wheel_silent_tip_other">Confiez son rôle à un bouton qui marche.</string>
+    <string name="wheel_listen_again">Réapprendre son signal</string>
+    <string name="wheel_listen_for_it">L\'écouter</string>
+    <string name="wheel_unit_also_acts">L\'autoradio fait aussi sa propre action pour ce bouton.</string>
+    <string name="wheel_remove_button">Retirer de la carte</string>
+    <plurals name="wheel_settings_detail_mapped">
+        <item quantity="one">%1$d bouton sur la carte</item>
+        <item quantity="other">%1$d boutons sur la carte</item>
+    </plurals>
+    <string name="wheel_reset">Réinitialiser tous les boutons</string>
+    <string name="wheel_reset_title">Réinitialiser les boutons du volant ?</string>
+    <string name="wheel_reset_body">Chaque bouton quitte la carte et perd son action. Le volant revient à ce que fait l\'autoradio tout seul.</string>
+    <string name="wheel_reset_confirm">Réinitialiser</string>
 </resources>
