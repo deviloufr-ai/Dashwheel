@@ -32,4 +32,10 @@
     <string name="reverse_near_stop">Para</string>
     <string name="reverse_near_close">Cerca</string>
     <string name="reverse_near_far">Algo detrás</string>
+    <string name="reverse_picture_title">Imagen de la cámara</string>
+    <string name="reverse_picture_rom">App del coche</string>
+    <string name="reverse_picture_own">Dashwheel</string>
+    <string name="reverse_picture_hint_rom">La app del coche muestra la cámara y Dashwheel dibuja encima.</string>
+    <string name="reverse_picture_hint_own">Experimental: Dashwheel muestra la cámara por sí mismo. Si no llega imagen, la de la app del coche vuelve en segundos.</string>
+    <string name="reverse_picture_denied">Dashwheel necesita el permiso de cámara para esto.</string>
 </resources>

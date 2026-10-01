@@ -32,4 +32,10 @@
     <string name="reverse_near_stop">Stop</string>
     <string name="reverse_near_close">Blisko</string>
     <string name="reverse_near_far">Coś z tyłu</string>
+    <string name="reverse_picture_title">Obraz z kamery</string>
+    <string name="reverse_picture_rom">Aplikacja auta</string>
+    <string name="reverse_picture_own">Dashwheel</string>
+    <string name="reverse_picture_hint_rom">Aplikacja auta pokazuje kamerę, a Dashwheel rysuje na niej.</string>
+    <string name="reverse_picture_hint_own">Eksperymentalne: Dashwheel sam pokazuje obraz z kamery. Jeśli obraz nie przyjdzie, obraz aplikacji auta wraca po kilku sekundach.</string>
+    <string name="reverse_picture_denied">Dashwheel potrzebuje do tego uprawnienia do kamery.</string>
 </resources>

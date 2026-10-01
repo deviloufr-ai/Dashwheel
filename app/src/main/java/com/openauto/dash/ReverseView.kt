@@ -138,6 +138,10 @@ internal object ReverseView {
     private val _calibration = MutableStateFlow(ReverseCalibration())
     val calibration: StateFlow<ReverseCalibration> = _calibration.asStateFlow()
 
+    private val _ownCamera = MutableStateFlow(false)
+    /** Experimental: Dashwheel shows the camera's picture itself ([ReverseCamera]). */
+    val ownCamera: StateFlow<Boolean> = _ownCamera.asStateFlow()
+
     private val _hideStock = MutableStateFlow(false)
     /** The car app's own lines are off: the angle is read from its log. */
     val hideStock: StateFlow<Boolean> = _hideStock.asStateFlow()
@@ -182,6 +186,7 @@ internal object ReverseView {
                     _covering.value = w.canShow() && w.show(AlertStyle.FULL) { ReverseScreen() }
                 } else {
                     adjusting.value = false
+                    ReverseCamera.reverseEnded()
                     window?.hide()
                     _covering.value = false
                 }
@@ -202,6 +207,7 @@ internal object ReverseView {
         _on.value = p.getBoolean("on", false)
         _layout.value = runCatching { ReverseLayout.valueOf(p.getString("layout", null) ?: "") }.getOrDefault(ReverseLayout.BOTH)
         _hideStock.value = p.getBoolean("hide_stock", false)
+        _ownCamera.value = p.getBoolean("own_camera", false)
         val d = ReverseCalibration()
         _calibration.value = ReverseCalibration(
             shift = p.getFloat("shift", d.shift),
@@ -217,6 +223,11 @@ internal object ReverseView {
         prefs(context).edit().putBoolean("on", on).apply()
         // The radar arrives with the car app's sharing, which this switch may be the first to need.
         if (on) CarBox.register(context)
+    }
+
+    fun setOwnCamera(context: Context, own: Boolean) {
+        _ownCamera.value = own
+        prefs(context).edit().putBoolean("own_camera", own).apply()
     }
 
     fun setLayout(context: Context, layout: ReverseLayout) {
@@ -544,6 +555,8 @@ private fun ReverseScreen() {
     val radar by ReverseView.radar.collectAsState()
     val adjusting by ReverseView.adjusting.collectAsState()
     val preview by ReverseView.preview.collectAsState()
+    val ownCamera by ReverseView.ownCamera.collectAsState()
+    val camera by ReverseCamera.state.collectAsState()
     val look by MyCarLook.shown.collectAsState()
     val lookStyle by MyCarLook.style.collectAsState()
     // The car app sends the angle in steps: glide between them.
@@ -558,6 +571,8 @@ private fun ReverseScreen() {
             }
         } else {
             if (preview) Box(Modifier.fillMaxSize().background(Color(0xFF2B2C2E)))
+            // Clear until its first frame: the ROM app's picture shows through meanwhile.
+            else if (ownCamera && camera != ReverseCamera.State.FAILED) ReverseCameraPicture(Modifier.fillMaxSize())
             Canvas(Modifier.fillMaxSize()) {
                 val g = Ground(size.width, size.height, calibration)
                 fixedLines(g)

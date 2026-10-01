@@ -1,6 +1,9 @@
 package com.openauto.dash
 
+import android.Manifest
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.LayersClear
@@ -31,6 +34,11 @@ internal fun ReverseViewSheet(onDismiss: () -> Unit) {
     val on by ReverseView.on.collectAsState()
     val layout by ReverseView.layout.collectAsState()
     val hideStock by ReverseView.hideStock.collectAsState()
+    val ownCamera by ReverseView.ownCamera.collectAsState()
+    val denied = stringResource(R.string.reverse_picture_denied)
+    val askCamera = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) ReverseView.setOwnCamera(context, true) else Toast.makeText(context, denied, Toast.LENGTH_LONG).show()
+    }
     var busy by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val failed = stringResource(R.string.reverse_stock_failed)
@@ -69,6 +77,19 @@ internal fun ReverseViewSheet(onDismiss: () -> Unit) {
             onChoose = { ReverseView.setLayout(context, it) }
         )
         SwitchHint(stringResource(R.string.reverse_layout_hint))
+
+        SettingsSection(stringResource(R.string.reverse_picture_title))
+        SegmentedSwitch(
+            options = listOf(false, true),
+            chosen = ownCamera,
+            icon = { if (it) Icons.Filled.Videocam else Icons.Filled.Layers },
+            title = { stringResource(if (it) R.string.reverse_picture_own else R.string.reverse_picture_rom) },
+            onChoose = { own ->
+                if (!own || ReverseCamera.hasPermission(context)) ReverseView.setOwnCamera(context, own)
+                else askCamera.launch(Manifest.permission.CAMERA)
+            }
+        )
+        SwitchHint(stringResource(if (ownCamera) R.string.reverse_picture_hint_own else R.string.reverse_picture_hint_rom))
 
         SettingsSection(stringResource(R.string.reverse_stock_title))
         SegmentedSwitch(

@@ -32,4 +32,10 @@
     <string name="reverse_near_stop">Stop</string>
     <string name="reverse_near_close">Vicino</string>
     <string name="reverse_near_far">Qualcosa dietro</string>
+    <string name="reverse_picture_title">Immagine della telecamera</string>
+    <string name="reverse_picture_rom">App auto</string>
+    <string name="reverse_picture_own">Dashwheel</string>
+    <string name="reverse_picture_hint_rom">L\'app auto mostra la telecamera e Dashwheel disegna sopra.</string>
+    <string name="reverse_picture_hint_own">Sperimentale: Dashwheel mostra direttamente la telecamera. Se non arriva l\'immagine, quella dell\'app auto torna in pochi secondi.</string>
+    <string name="reverse_picture_denied">Dashwheel ha bisogno del permesso della fotocamera.</string>
 </resources>

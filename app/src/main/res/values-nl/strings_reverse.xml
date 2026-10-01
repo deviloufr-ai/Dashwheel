@@ -32,4 +32,10 @@
     <string name="reverse_near_stop">Stop</string>
     <string name="reverse_near_close">Dichtbij</string>
     <string name="reverse_near_far">Iets erachter</string>
+    <string name="reverse_picture_title">Camerabeeld</string>
+    <string name="reverse_picture_rom">Auto-app</string>
+    <string name="reverse_picture_own">Dashwheel</string>
+    <string name="reverse_picture_hint_rom">De auto-app toont de camera en Dashwheel tekent eroverheen.</string>
+    <string name="reverse_picture_hint_own">Experimenteel: Dashwheel toont de camera zelf. Komt er geen beeld, dan is dat van de auto-app binnen enkele seconden terug.</string>
+    <string name="reverse_picture_denied">Dashwheel heeft hiervoor cameratoegang nodig.</string>
 </resources>
