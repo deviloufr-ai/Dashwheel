@@ -66,6 +66,21 @@ object CarBox {
     /** The steering wheel's angle in degrees, right positive, once the car has sent it ([ReverseView]). */
     val steering: StateFlow<Float?> = _steering
 
+    /**
+     * The car app's last line picture (0..90, 45 straight ahead, global
+     * KeyDefaultTraceAngle) as an angle: its broadcast only comes when the
+     * wheel turns, so a reverse with the wheel still would have none.
+     */
+    private fun lastSteering(context: Context) {
+        if (_steering.value != null) return
+        val index = runCatching { android.provider.Settings.Global.getInt(context.contentResolver, "KeyDefaultTraceAngle") }.getOrNull() ?: return
+        if (index !in 0..90) return
+        _steering.value = (index - 45) * FULL_LOCK_DEG / 45f
+    }
+
+    /** The car app's full lock (its extra_rate, 5450 tenths of a degree on the C4 Picasso). */
+    private const val FULL_LOCK_DEG = 545f
+
     /** The angle read from the car app's log ([StockLines]), when its broadcast is off. */
     internal fun steeringWrite(degrees: Float) {
         _steering.value = degrees
@@ -80,6 +95,7 @@ object CarBox {
         if (!isPackageInstalled(app, RomPopups.VEHICLE_PACKAGE)) return
         started = true
         _reversing.value = systemProperty("sys.qf.backcar_state") == "true"
+        lastSteering(app)
         val filter = IntentFilter().apply {
             addAction(ACTION_SHARE)
             addAction(ACTION_RADAR)
@@ -129,7 +145,10 @@ object CarBox {
                     @Suppress("DEPRECATION")
                     intent.getParcelableExtra<RadarState>(EXTRA_RADAR)?.let { _radar.value = it.toRadar() }
                 }.onFailure { Log.w(TAG, "unreadable radar", it) }
-                ACTION_REVERSE_ON -> _reversing.value = true
+                ACTION_REVERSE_ON -> {
+                    lastSteering(context)
+                    _reversing.value = true
+                }
                 ACTION_REVERSE_OFF -> _reversing.value = false
                 ACTION_STEERING -> if (intent.hasExtra(EXTRA_STEERING)) _steering.value = intent.getIntExtra(EXTRA_STEERING, 0) / 10f
             }

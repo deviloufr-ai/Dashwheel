@@ -38,4 +38,5 @@
     <string name="reverse_picture_hint_rom">Aplikacja auta pokazuje kamerę, a Dashwheel rysuje na niej.</string>
     <string name="reverse_picture_hint_own">Eksperymentalne: Dashwheel sam pokazuje obraz z kamery. Jeśli obraz nie przyjdzie, obraz aplikacji auta wraca po kilku sekundach.</string>
     <string name="reverse_picture_denied">Dashwheel potrzebuje do tego uprawnienia do kamery.</string>
+    <string name="reverse_picture_failed">Dashwheel nie dostał kamery: obraz z aplikacji auta</string>
 </resources>

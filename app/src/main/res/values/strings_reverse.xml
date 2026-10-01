@@ -39,4 +39,5 @@
     <string name="reverse_picture_hint_rom">The car app shows the camera and Dashwheel draws over it.</string>
     <string name="reverse_picture_hint_own">Experimental: Dashwheel shows the camera itself. If no picture comes, the car app\'s is back within seconds.</string>
     <string name="reverse_picture_denied">Dashwheel needs the camera permission for this.</string>
+    <string name="reverse_picture_failed">Dashwheel couldn\'t get the camera: this is the car app\'s picture</string>
 </resources>

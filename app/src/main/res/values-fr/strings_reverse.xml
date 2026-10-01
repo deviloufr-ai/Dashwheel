@@ -38,4 +38,5 @@
     <string name="reverse_picture_hint_rom">L\'app voiture affiche la caméra et Dashwheel dessine par-dessus.</string>
     <string name="reverse_picture_hint_own">Expérimental : Dashwheel affiche lui-même la caméra. Sans image, celle de l\'app voiture revient en quelques secondes.</string>
     <string name="reverse_picture_denied">Dashwheel a besoin de l\'autorisation caméra pour cela.</string>
+    <string name="reverse_picture_failed">Dashwheel n\'a pas pu prendre la caméra : image de l\'app voiture</string>
 </resources>

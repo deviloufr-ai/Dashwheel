@@ -38,4 +38,5 @@
     <string name="reverse_picture_hint_rom">Die Auto-App zeigt die Kamera, Dashwheel zeichnet darüber.</string>
     <string name="reverse_picture_hint_own">Experimentell: Dashwheel zeigt die Kamera selbst. Kommt kein Bild, ist das der Auto-App nach Sekunden zurück.</string>
     <string name="reverse_picture_denied">Dashwheel braucht dafür die Kamera-Berechtigung.</string>
+    <string name="reverse_picture_failed">Dashwheel bekam die Kamera nicht: Bild der Auto-App</string>
 </resources>

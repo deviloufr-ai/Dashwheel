@@ -424,7 +424,7 @@ private object ReverseInk {
     val Panel = Color(0xE6111315)
     val PanelSolid = Color(0xFF111315)
     val Text = Color(0xFFF1EFE8)
-    val Dim = Color(0xFF2C2E31)
+    val Dim = Color(0x40FFFFFF)
     val Chip = Color(0x99000000)
     val Selected = Color(0xFF378ADD)
 }
@@ -587,8 +587,6 @@ private fun ReverseScreen() {
                             .padding(16.dp)
                             .width(maxWidth * 0.26f)
                             .height(maxHeight * 0.62f)
-                            .clip(RoundedCornerShape(18.dp))
-                            .background(ReverseInk.Panel)
                             .padding(10.dp)
                     ) { fromAbove(radar, steering.takeIf { hasSteering }, top, lookStyle) }
                 }
@@ -598,6 +596,12 @@ private fun ReverseScreen() {
         Column(Modifier.align(Alignment.TopStart).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Chips(layout, adjusting, preview)
             Nearest(radar)
+            if (ownCamera && !preview && camera == ReverseCamera.State.FAILED) {
+                Text(
+                    stringResource(R.string.reverse_picture_failed), color = ReverseInk.Text, fontSize = 15.sp,
+                    modifier = Modifier.clip(RoundedCornerShape(50)).background(ReverseInk.Chip).padding(horizontal = 14.dp, vertical = 6.dp)
+                )
+            }
             if (adjusting) AdjustPanel(calibration)
         }
         if (preview) {

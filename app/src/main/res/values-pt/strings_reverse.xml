@@ -38,4 +38,5 @@
     <string name="reverse_picture_hint_rom">A app do carro mostra a câmara e o Dashwheel desenha por cima.</string>
     <string name="reverse_picture_hint_own">Experimental: o Dashwheel mostra a câmara ele próprio. Se não chegar imagem, a da app do carro volta em segundos.</string>
     <string name="reverse_picture_denied">O Dashwheel precisa da permissão da câmara para isto.</string>
+    <string name="reverse_picture_failed">O Dashwheel não conseguiu a câmara: imagem da app do carro</string>
 </resources>
