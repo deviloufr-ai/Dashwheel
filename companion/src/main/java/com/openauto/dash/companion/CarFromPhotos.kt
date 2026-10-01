@@ -1,7 +1,10 @@
 package com.openauto.dash.companion
 
 import android.Manifest
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
@@ -86,10 +89,14 @@ import kotlin.math.max
  * view from above for the tyre tile, with where the wheels are on each.
  */
 
-/** Which photo a slot holds, in the order they are asked for. */
-internal enum class CarShot(val titleRes: Int) {
-    SIDE(R.string.car_photos_side), FRONT(R.string.car_photos_front), BACK(R.string.car_photos_back)
+/** Which photo a slot holds, in the order they are asked for; the view from above is optional. */
+internal enum class CarShot(val titleRes: Int, val needed: Boolean = true) {
+    SIDE(R.string.car_photos_side), FRONT(R.string.car_photos_front), BACK(R.string.car_photos_back),
+    ABOVE(R.string.car_photos_above, needed = false)
 }
+
+/** The Gemini app, which draws the view from above from the three photos for free. */
+private const val GEMINI_APP = "com.google.android.apps.bard"
 
 /** A photo as picked: the decoded picture and a small copy for its slot. */
 private class Shot(val photo: Argb, val thumb: Bitmap)
@@ -156,7 +163,7 @@ internal fun CarFromPhotosScreen(connected: Boolean, onClose: () -> Unit) {
         busy = true
         scope.launch {
             val result = withContext(Dispatchers.Default) {
-                buildCar(side.photo, shots[CarShot.FRONT]?.photo, shots[CarShot.BACK]?.photo)
+                buildCar(side.photo, shots[CarShot.FRONT]?.photo, shots[CarShot.BACK]?.photo, shots[CarShot.ABOVE]?.photo)
             }
             busy = false
             when (result) {
@@ -166,6 +173,29 @@ internal fun CarFromPhotosScreen(connected: Boolean, onClose: () -> Unit) {
                     Toast.makeText(context, context.getString(R.string.car_photos_not_found, which), Toast.LENGTH_LONG).show()
                 }
             }
+        }
+    }
+
+    // The three photos and what to draw, handed to the Gemini app; its picture comes back as the view from above.
+    fun askGemini() {
+        busy = true
+        scope.launch {
+            val uris = withContext(Dispatchers.IO) {
+                listOf(CarShot.SIDE, CarShot.FRONT, CarShot.BACK).mapNotNull { shot -> shots[shot]?.let { shareUri(context, shot, it.photo) } }
+            }
+            busy = false
+            val prompt = context.getString(R.string.car_photos_gemini_prompt)
+            (context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText(prompt, prompt))
+            val send = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+                type = "image/jpeg"
+                putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
+                putExtra(Intent.EXTRA_TEXT, prompt)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            val gemini = Intent(send).setPackage(GEMINI_APP)
+            val started = runCatching { context.startActivity(gemini) }.isSuccess ||
+                runCatching { context.startActivity(Intent.createChooser(send, null)) }.isSuccess
+            if (started) Toast.makeText(context, R.string.car_photos_prompt_copied, Toast.LENGTH_LONG).show()
         }
     }
 
@@ -207,10 +237,16 @@ internal fun CarFromPhotosScreen(connected: Boolean, onClose: () -> Unit) {
                     stringResource(R.string.car_photos_tip), color = CompanionColors.Muted,
                     style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 12.dp)
                 )
+                val photosIn = CarShot.entries.filter { it.needed }.all { it in shots }
+                OutlinedButton(
+                    onClick = { askGemini() },
+                    enabled = !busy && photosIn,
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp).height(50.dp)
+                ) { Text(stringResource(R.string.car_photos_gemini)) }
                 Button(
                     onClick = { build() },
-                    enabled = !busy && CarShot.entries.all { it in shots },
-                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp).height(50.dp)
+                    enabled = !busy && photosIn,
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp).height(50.dp)
                 ) {
                     if (busy) {
                         CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp, color = CompanionColors.Background)
@@ -290,7 +326,13 @@ private fun ShotSlot(shot: CarShot, taken: Shot?, onClick: () -> Unit) {
         Column {
             Text(stringResource(shot.titleRes), fontWeight = FontWeight.SemiBold)
             Text(
-                stringResource(if (taken != null) R.string.car_photos_ready else R.string.car_photos_add),
+                stringResource(
+                    when {
+                        taken != null -> R.string.car_photos_ready
+                        !shot.needed -> R.string.car_photos_above_hint
+                        else -> R.string.car_photos_add
+                    }
+                ),
                 color = if (taken != null) CompanionColors.Teal else CompanionColors.Muted,
                 style = MaterialTheme.typography.bodySmall
             )
@@ -325,6 +367,16 @@ private fun cameraUri(context: Context, shot: CarShot): Uri {
     return FileProvider.getUriForFile(context, "${context.packageName}.logs", File(dir, "${shot.name.lowercase()}.jpg"))
 }
 
+/** A slot's photo as a JPEG in the app's shared folder, to hand to another app. */
+private fun shareUri(context: Context, shot: CarShot, photo: Argb): Uri {
+    val dir = File(context.cacheDir, "car_photos").apply { mkdirs() }
+    val file = File(dir, "share_${shot.name.lowercase()}.jpg")
+    val bitmap = photo.toBitmap()
+    file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.JPEG, 92, it) }
+    bitmap.recycle()
+    return FileProvider.getUriForFile(context, "${context.packageName}.logs", file)
+}
+
 /** A photo decoded upright (camera rotation applied) and no bigger than needed. */
 private fun decode(context: Context, uri: Uri): Shot {
     val source = ImageDecoder.createSource(context.contentResolver, uri)
@@ -344,11 +396,11 @@ private fun decode(context: Context, uri: Uri): Shot {
 }
 
 /** The car from its photos; a photo with no car in it is named, so the driver knows which to redo. */
-private fun buildCar(side: Argb, front: Argb?, back: Argb?): Built {
-    for ((shot, photo) in listOf(CarShot.SIDE to side, CarShot.FRONT to front, CarShot.BACK to back)) {
+private fun buildCar(side: Argb, front: Argb?, back: Argb?, above: Argb?): Built {
+    for ((shot, photo) in listOf(CarShot.SIDE to side, CarShot.FRONT to front, CarShot.BACK to back, CarShot.ABOVE to above)) {
         if (photo != null && runCatching { CarPhotoKit.cutOut(photo) }.isFailure) return Built.NotFound(shot)
     }
-    val result = runCatching { CarPhotoKit.build(side, front, back) }.getOrElse { return Built.NotFound(CarShot.SIDE) }
+    val result = runCatching { CarPhotoKit.build(side, front, back, above = above) }.getOrElse { return Built.NotFound(CarShot.SIDE) }
     return Built.Car(result, result.side.image.toBitmap(), result.top?.image?.toBitmap())
 }
 

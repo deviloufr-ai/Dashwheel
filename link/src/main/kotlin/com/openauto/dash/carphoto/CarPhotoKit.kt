@@ -151,7 +151,10 @@ object CarPhotoKit {
 
     /**
      * The whole car from its photos. [front] or [back] may be missing (the
-     * other stands in for it); without both there is no view from above.
+     * other stands in for it); without both there is no view from above built
+     * from the outlines. [above]: a picture of the car from directly above
+     * (one the Gemini app drew from the photos, say), used as the view from
+     * above instead, its wheels placed from the side photo ([topFrom]).
      */
     fun build(
         side: Argb,
@@ -159,20 +162,110 @@ object CarPhotoKit {
         back: Argb?,
         facing: CarFacing = CarFacing.AUTO,
         name: String = "",
-        mirrors: Boolean = true
+        mirrors: Boolean = true,
+        above: Argb? = null
     ): CarPhotoResult {
         val levelled = levelledSide(side, facing)
         val sideOut = sideOf(levelled)
         val frontCut = front?.let { cutOf(it) }
         val backCut = back?.let { cutOf(it) }
-        val top = if (frontCut != null || backCut != null) {
+        val built = if (frontCut != null || backCut != null) {
             val small = if (levelled.cut.w > TOP_LENGTH) trim(scale(levelled.cut, TOP_LENGTH.toDouble() / levelled.cut.w)) else levelled.cut
             val s = analyseSide(small, levelled.tilt)
             val f = analyseEnd(frontCut ?: backCut!!, s.h)
             val b = if (backCut != null) analyseEnd(backCut, s.h) else f
             topView(small, s, f, b, mirrors)
         } else null
+        val top = above?.let { topFrom(it, sideOut, built) } ?: built
         return CarPhotoResult(name, sideOut, top, backCut?.let { picture(it) })
+    }
+
+    /**
+     * A picture of the car from above as its view from above: cut out, turned
+     * nose up (the red rear lights go to the bottom), its wheels placed along
+     * the car where the side photo has them and across it where the view
+     * built from the outlines has them ([built]), else just inside the body.
+     */
+    fun topFrom(above: Argb, side: CarSide, built: CarTop? = null): CarTop {
+        var c = cutOf(above)
+        if (c.w > c.h) c = turn(c, quarter = true)
+        if (redShare(c, top = true) > 1.5 * redShare(c, top = false) + 0.002) c = turn(c, quarter = false)
+        val img = picture(c)
+        // the body's sides: the middle of each row's extent, so mirrors (short, wide rows) don't count
+        val lefts = ArrayList<Int>()
+        val rights = ArrayList<Int>()
+        var r0 = c.h
+        var r1 = -1
+        for (y in 0 until c.h) {
+            var a = -1
+            var b = -1
+            for (x in 0 until c.w) if (c.m[y * c.w + x]) { if (a < 0) a = x; b = x }
+            if (a < 0) continue
+            if (y < r0) r0 = y
+            r1 = y
+            if (y > c.h * 0.15 && y < c.h * 0.85) { lefts.add(a); rights.add(b) }
+        }
+        require(r1 > r0 && lefts.isNotEmpty()) { "no car found in the picture" }
+        lefts.sort()
+        rights.sort()
+        val bl = lefts[lefts.size / 2].toFloat()
+        val br = rights[rights.size / 2] + 1f
+        val bt = r0.toFloat()
+        val bb = r1 + 1f
+        // along the car: as in the side picture (nose right there, up here)
+        val span = side.nose.x - side.tail.x
+        fun along(w: CarPoint) = ((side.nose.x - w.x) / span).coerceIn(0f, 1f)
+        val front = along(side.wheels[0])
+        val rear = along(side.wheels.getOrElse(1) { side.wheels[0] })
+        // across it: the built view's track, else wheels a tenth in from each side
+        val inL = built?.bodyWheels?.get(0)?.x ?: 0.1f
+        val inR = built?.bodyWheels?.get(1)?.x ?: 0.9f
+        val bodyWheels = listOf(
+            CarPoint(inL, front), CarPoint(inR, front), CarPoint(inL, rear), CarPoint(inR, rear)
+        )
+        fun inPicture(q: CarPoint) = CarPoint((bl + q.x * (br - bl)) / c.w, (bt + q.y * (bb - bt)) / c.h)
+        val mid = (bl + br) / 2 / c.w
+        return CarTop(
+            img,
+            bodyWheels.map(::inPicture),
+            CarPoint(mid, bt / c.h), CarPoint(mid, bb / c.h),
+            bodyWheels,
+            listOf(bl / c.w, bt / c.h, br / c.w, bb / c.h),
+            (bb - bt) * side.image.h / side.image.w.toFloat(),
+            CarPoint((bl + br) / 2, (bt + bb) / 2)
+        )
+    }
+
+    /** The share of the car's pixels in its top or bottom fifth that are rear-light red. */
+    private fun redShare(c: Cut, top: Boolean): Double {
+        val ys = if (top) 0 until c.h / 5 else (c.h - c.h / 5) until c.h
+        var red = 0
+        var all = 0
+        for (y in ys) for (x in 0 until c.w) {
+            val i = y * c.w + x
+            if (!c.m[i]) continue
+            all++
+            val p = c.px[i]
+            val r = (p shr 16) and 255
+            val g = (p shr 8) and 255
+            val b = p and 255
+            if (r > 120 && r > 1.8 * g && r > 1.8 * b) red++
+        }
+        return if (all == 0) 0.0 else red.toDouble() / all
+    }
+
+    /** Turned a quarter clockwise, or half way round. */
+    private fun turn(c: Cut, quarter: Boolean): Cut {
+        val w = if (quarter) c.h else c.w
+        val h = if (quarter) c.w else c.h
+        val px = IntArray(w * h)
+        val m = BooleanArray(w * h)
+        for (y in 0 until c.h) for (x in 0 until c.w) {
+            val o = if (quarter) x * w + (c.h - 1 - y) else (c.h - 1 - y) * c.w + (c.w - 1 - x)
+            px[o] = c.px[y * c.w + x]
+            m[o] = c.m[y * c.w + x]
+        }
+        return Cut(w, h, px, m)
     }
 
     /** The side picture alone. */
@@ -182,33 +275,42 @@ object CarPhotoKit {
     fun cutOut(photo: Argb): Argb = picture(cutOf(photo))
 
     /** A zip of [entries] (a car pack once the pictures are encoded). */
+    /** Which photo picked is which, as indexes into the list picked ([sortShots]). */
+    data class Shots(val side: Int, val front: Int?, val back: Int?, val above: Int?)
+
     /**
-     * Which of several photos picked at once is the side, the front and the
-     * back: by file name first (in the launcher's languages), else the widest
-     * is the side and the others follow in the order picked. [aspects] are
-     * each photo's width over height. Returns the photos' indexes as side,
-     * front, back (front or back null when fewer than three were picked).
+     * Which of several photos picked at once is the side, the front, the back
+     * and the view from above: by file name first (in the launcher's
+     * languages), else by shape: a tall one is the view from above, the
+     * widest the side, and the others follow in the order picked. [aspects]
+     * are each photo's width over height.
      */
-    fun sortShots(names: List<String>, aspects: List<Float>): Triple<Int, Int?, Int?> {
+    fun sortShots(names: List<String>, aspects: List<Float>): Shots {
         require(names.isNotEmpty() && names.size == aspects.size) { "no photos" }
-        fun named(words: List<String>) = names.indices.firstOrNull { i ->
+        val left = names.indices.toMutableList()
+        fun named(words: List<String>) = left.firstOrNull { i ->
             val n = names[i].lowercase()
             words.any { w -> Regex("(^|[^\\p{L}])$w($|[^\\p{L}])").containsMatchIn(n) }
-        }
-        val left = names.indices.toMutableList()
-        val side = named(SIDE_WORDS)?.also { left.remove(it) }
-        val front = named(FRONT_WORDS)?.takeIf { it in left }?.also { left.remove(it) }
-        val back = named(BACK_WORDS)?.takeIf { it in left }?.also { left.remove(it) }
+        }?.also { left.remove(it) }
+        val above = named(ABOVE_WORDS)
+        val side = named(SIDE_WORDS)
+        val front = named(FRONT_WORDS)
+        val back = named(BACK_WORDS)
+        val a = above ?: left.filter { aspects[it] < TALL }.minByOrNull { aspects[it] }?.takeIf { left.size > 1 }?.also { left.remove(it) }
         val s = side ?: left.maxByOrNull { aspects[it] }!!.also { left.remove(it) }
         val f = front ?: left.firstOrNull()?.also { left.remove(it) }
         val b = back ?: left.firstOrNull()
-        return Triple(s, f, b)
+        return Shots(s, f, b, a)
     }
+
+    /** A picture this much taller than wide is the car seen from above (nose up). */
+    private const val TALL = 0.75f
 
     // Words a photo's name may carry, in the launcher's 8 languages (accents both ways).
     private val SIDE_WORDS = listOf("side", "cote", "côté", "profil", "seite", "lateral", "lato", "lado", "zijkant", "zij", "bok")
     private val FRONT_WORDS = listOf("front", "avant", "face", "vorne", "delante", "frontal", "davanti", "frente", "voorkant", "voor", "przod", "przód")
     private val BACK_WORDS = listOf("back", "rear", "arriere", "arrière", "hinten", "heck", "detras", "detrás", "trasera", "dietro", "retro", "traseira", "achterkant", "achter", "tyl", "tył")
+    private val ABOVE_WORDS = listOf("top", "above", "dessus", "haut", "oben", "draufsicht", "arriba", "encima", "sopra", "alto", "cima", "boven", "bovenaanzicht", "gora", "góra", "gory", "góry")
 
     fun zip(entries: Map<String, ByteArray>): ByteArray {
         val bytes = ByteArrayOutputStream()

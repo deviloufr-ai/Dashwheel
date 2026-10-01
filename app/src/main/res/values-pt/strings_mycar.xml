@@ -31,6 +31,6 @@
     <string name="mycar_where">Visível nos designs Mapa dos pneus e Silhueta e no mosaico O meu carro.</string>
     <string name="mycar_phone_hint">No telemóvel: na app Dashwheel companion, Imagem do carro e depois Escolher ficheiro.</string>
     <string name="mycar_photos">3 fotos</string>
-    <string name="mycar_photos_hint">Ou escolha três fotos do carro de uma vez: lado, frente e traseira. Com os nomes lado, frente e traseira, nunca se trocam.</string>
+    <string name="mycar_photos_hint">Ou escolha três fotos do carro de uma vez: lado, frente e traseira, e uma vista de cima se a tiver. Com os nomes lado, frente, traseira e cima, nunca se trocam.</string>
     <string name="mycar_photos_no_car">Nenhum carro encontrado nessas fotos. Use fotos com o carro inteiro sobre um fundo liso.</string>
 </resources>

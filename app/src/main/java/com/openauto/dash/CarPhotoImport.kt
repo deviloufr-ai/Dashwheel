@@ -13,8 +13,9 @@ import kotlin.math.max
 /**
  * EXPERIMENTAL: the driver's car from photos picked on the unit itself (a USB
  * stick), the same way the phone app builds it: the shared car photo kit makes
- * the side picture and the view from above, then [MyCarLook] imports them as a
- * car pack. Which photo is the side, the front and the back comes from their
+ * the side picture and the view from above (or uses a fourth photo
+ * taken from above, as the Gemini app draws it), then [MyCarLook] imports them as a
+ * car pack. Which photo is which comes from their
  * names, else their shape ([CarPhotoKit.sortShots]).
  */
 internal object CarPhotoImport {
@@ -23,12 +24,12 @@ internal object CarPhotoImport {
 
     /** Blocking, call off the main thread. */
     fun import(context: Context, uris: List<Uri>): Result<CarLook> = runCatching {
-        val photos = uris.take(3).map { decode(context, it) }
-        val names = uris.take(3).map { nameOf(context, it) }
-        val (side, front, back) = CarPhotoKit.sortShots(names, photos.map { it.w.toFloat() / it.h })
+        val photos = uris.take(4).map { decode(context, it) }
+        val names = uris.take(4).map { nameOf(context, it) }
+        val shots = CarPhotoKit.sortShots(names, photos.map { it.w.toFloat() / it.h })
         val result = CarPhotoKit.build(
-            photos[side], front?.let { photos[it] }, back?.let { photos[it] },
-            name = CarProfileStore.current.name
+            photos[shots.side], shots.front?.let { photos[it] }, shots.back?.let { photos[it] },
+            name = CarProfileStore.current.name, above = shots.above?.let { photos[it] }
         )
         val files = LinkedHashMap<String, ByteArray>()
         files["car.json"] = result.toCarJson().toByteArray()

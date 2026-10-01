@@ -169,4 +169,9 @@
     <string name="car_photos_change">Cambia una foto</string>
     <string name="car_photos_not_found">Nessuna auto trovata nella foto %1$s. Usane una con l\'auto intera su uno sfondo uniforme.</string>
     <string name="car_photos_close">Chiudi</string>
+    <string name="car_photos_above">Dall\'alto</string>
+    <string name="car_photos_above_hint">Facoltativa: quella disegnata da Gemini</string>
+    <string name="car_photos_gemini">Disegna la vista dall\'alto in Gemini</string>
+    <string name="car_photos_gemini_prompt">Usando queste tre foto della mia auto (lato, davanti e dietro), disegna la stessa auto vista esattamente dall\'alto: una vista dall\'alto piatta senza prospettiva, il muso verso l\'alto, stessa vernice, stesso tetto e stesse ruote, su uno sfondo bianco uniforme, senza testo né logo.</string>
+    <string name="car_photos_prompt_copied">Richiesta copiata: incollala in Gemini se serve</string>
 </resources>

@@ -215,11 +215,52 @@ class CarPhotoKitTest {
     @Test
     fun photosPickedTogetherAreSortedByNameThenShape() {
         // Named, in any order and language.
-        assertEquals(Triple(2, 0, 1), CarPhotoKit.sortShots(listOf("avant.jpg", "IMG_arrière.jpg", "côté.jpg"), listOf(1.3f, 1.3f, 2.1f)))
-        assertEquals(Triple(1, 2, 0), CarPhotoKit.sortShots(listOf("car_back.png", "car_side.jpg", "car_front.png"), listOf(1f, 1f, 1f)))
-        // Not named: the widest is the side, then the order picked.
-        assertEquals(Triple(1, 0, 2), CarPhotoKit.sortShots(listOf("IMG_1.jpg", "IMG_2.jpg", "IMG_3.jpg"), listOf(1.2f, 2.4f, 1.3f)))
-        // "backup" or "frontier" are not the back or the front; only one photo: the side alone.
-        assertEquals(Triple(0, null, null), CarPhotoKit.sortShots(listOf("backup.jpg"), listOf(2f)))
+        assertEquals(CarPhotoKit.Shots(2, 0, 1, null), CarPhotoKit.sortShots(listOf("avant.jpg", "IMG_arrière.jpg", "côté.jpg"), listOf(1.3f, 1.3f, 2.1f)))
+        assertEquals(CarPhotoKit.Shots(1, 2, 0, 3), CarPhotoKit.sortShots(listOf("car_back.png", "car_side.jpg", "car_front.png", "car_top.png"), listOf(1f, 1f, 1f, 1f)))
+        // Not named: a tall one is the view from above, the widest the side, then the order picked.
+        assertEquals(CarPhotoKit.Shots(1, 0, 3, 2), CarPhotoKit.sortShots(listOf("IMG_1.jpg", "IMG_2.jpg", "IMG_3.jpg", "IMG_4.jpg"), listOf(1.2f, 2.4f, 0.46f, 1.3f)))
+        // "backup" or "frontier" are not the back or the front; only one photo: the side alone, even tall.
+        assertEquals(CarPhotoKit.Shots(0, null, null, null), CarPhotoKit.sortShots(listOf("backup.jpg"), listOf(0.5f)))
+    }
+
+    @Test
+    fun aPictureFromAboveIsTurnedNoseUpWithItsWheelsFromTheSide() {
+        // The true view from above as a silver car with red rear lights on white, lying on its side.
+        val gt = javaClass.getResourceAsStream("/carphoto/top_mask.png")!!.use { ImageIO.read(it) }
+        val w = gt.width
+        val h = gt.height
+        var bottom = 0
+        for (y in 0 until h) for (x in 0 until w) if ((gt.getRGB(x, y) and 0xFFFFFF) != 0) bottom = y
+        val lying = Argb(h, w)
+        for (y in 0 until h) for (x in 0 until w) {
+            val car = (gt.getRGB(x, y) and 0xFFFFFF) != 0
+            val light = car && y > bottom - 40 && (x < w * 0.3 || x > w * 0.7)
+            val c = when { light -> 0xFFD01818.toInt(); car -> 0xFFB4B6BA.toInt(); else -> 0xFFFAFAFA.toInt() }
+            lying.px[x * h + (h - 1 - y)] = c // a quarter turn clockwise: nose to the right
+        }
+        val side = CarPhotoKit.side(onFlat(load("side.png"), 0xFF000000.toInt()))
+        val top = CarPhotoKit.topFrom(lying, side)
+        save(top.image, "above_turned.png")
+        assertTrue("upright", top.image.h > top.image.w)
+        assertTrue("nose up", top.nose.y < top.tail.y)
+        val (fl, fr, rl, rr) = top.wheels
+        assertTrue("front wheels ahead", fl.y < rl.y && fr.y < rr.y)
+        assertTrue("left of right", fl.x < fr.x && rl.x < rr.x)
+        // wheelbase as on the model, within 3 % of the length
+        val wheelbase = (rl.y - fl.y) * (top.tail.y - top.nose.y).let { 1 / it }
+        assertEquals(2.73 / modelLength, wheelbase.toDouble(), 0.03)
+    }
+
+    /** A picture from above drawn by the Gemini app, when one is put in build/carphoto-in/above.jpg (not kept in the repo). */
+    @Test
+    fun aGeminiPictureFromAboveWhenGiven() {
+        val file = File("build/carphoto-in/above.jpg").takeIf { it.exists() } ?: return
+        val img = ImageIO.read(file)
+        val a = Argb(img.width, img.height, IntArray(img.width * img.height).also { img.getRGB(0, 0, img.width, img.height, it, 0, img.width) })
+        val side = CarPhotoKit.side(load("real_side.jpg"))
+        val top = CarPhotoKit.topFrom(a, side)
+        save(top.image, "above_gemini.png")
+        note("gemini above: ${top.image.w}x${top.image.h}, nose ${top.nose}, tail ${top.tail}, wheels ${top.wheels}")
+        assertTrue(top.nose.y < top.tail.y)
     }
 }

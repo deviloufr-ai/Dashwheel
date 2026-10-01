@@ -169,4 +169,9 @@
     <string name="car_photos_change">Zmień zdjęcie</string>
     <string name="car_photos_not_found">Nie znaleziono samochodu na zdjęciu %1$s. Użyj zdjęcia z całym autem na gładkim tle.</string>
     <string name="car_photos_close">Zamknij</string>
+    <string name="car_photos_above">Z góry</string>
+    <string name="car_photos_above_hint">Opcjonalnie: ten, który narysuje Gemini</string>
+    <string name="car_photos_gemini">Narysuj widok z góry w Gemini</string>
+    <string name="car_photos_gemini_prompt">Na podstawie tych trzech zdjęć mojego samochodu (bok, przód i tył) narysuj ten sam samochód widziany dokładnie z góry: płaski widok z góry bez perspektywy, przodem do góry, ten sam lakier, dach i koła, na gładkim białym tle, bez tekstu i logo.</string>
+    <string name="car_photos_prompt_copied">Prośba skopiowana: w razie potrzeby wklej ją w Gemini</string>
 </resources>

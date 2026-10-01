@@ -169,4 +169,9 @@
     <string name="car_photos_change">Cambiar una foto</string>
     <string name="car_photos_not_found">No se encuentra el coche en la foto %1$s. Usa una con el coche entero sobre un fondo liso.</string>
     <string name="car_photos_close">Cerrar</string>
+    <string name="car_photos_above">Desde arriba</string>
+    <string name="car_photos_above_hint">Opcional: la que dibuja Gemini</string>
+    <string name="car_photos_gemini">Dibujar la vista desde arriba en Gemini</string>
+    <string name="car_photos_gemini_prompt">Con estas tres fotos de mi coche (lateral, delante y detrás), dibuja el mismo coche visto justo desde arriba: una vista superior plana sin perspectiva, el frontal hacia arriba, misma pintura, mismo techo y mismas ruedas, sobre un fondo blanco liso, sin texto ni logotipo.</string>
+    <string name="car_photos_prompt_copied">Petición copiada: pégala en Gemini si hace falta</string>
 </resources>

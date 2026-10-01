@@ -31,6 +31,6 @@
     <string name="mycar_where">Widoczne w projektach Mapa opon i Sylwetka oraz na kafelku Mój samochód.</string>
     <string name="mycar_phone_hint">Z telefonu: w aplikacji Dashwheel companion, Obraz auta, potem Wybierz plik.</string>
     <string name="mycar_photos">3 zdjęcia</string>
-    <string name="mycar_photos_hint">Albo wybierz od razu trzy zdjęcia auta: bok, przód i tył. Nazwane bok, przód i tył nigdy się nie pomylą.</string>
+    <string name="mycar_photos_hint">Albo wybierz od razu trzy zdjęcia auta: bok, przód i tył, plus widok z góry, jeśli go masz. Nazwane bok, przód, tył i góra nigdy się nie pomylą.</string>
     <string name="mycar_photos_no_car">Nie znaleziono samochodu na tych zdjęciach. Użyj zdjęć z całym autem na gładkim tle.</string>
 </resources>
