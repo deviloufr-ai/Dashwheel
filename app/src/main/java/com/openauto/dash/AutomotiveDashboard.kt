@@ -779,6 +779,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         PrivilegedShell.probe()
         PmPatch.finishSetup(context)
         CarProfileStore.setContext(context)
+        MyCarLook.setContext(context)
         SpeedCorrection.setContext(context)
         MediaVolume.setContext(context)
         SpeedVolume.start(context)

@@ -138,4 +138,13 @@
     <string name="log_received">Het logboek van de auto is klaar</string>
     <string name="log_received_detail">Tik om te delen. De knop opent een GitHub-issue om het aan toe te voegen.</string>
     <string name="log_github">GitHub-issue</string>
+    <!-- Experimental: the driver's own car sent to the car's screen (CarLookSender.kt) -->
+    <string name="car_look_title">Autoafbeelding</string>
+    <string name="car_look_detail">Experimenteel: je eigen auto op het scherm in de auto. Een autopakket, of een zijfoto van de auto.</string>
+    <string name="car_look_offline">Maak verbinding met de auto om een afbeelding te sturen</string>
+    <string name="car_look_sending">Wordt naar de auto gestuurd</string>
+    <string name="car_look_sent">Op het scherm in de auto</string>
+    <string name="car_look_too_big">Dat bestand is te groot</string>
+    <string name="car_look_failed">Het is niet gelukt. Probeer het opnieuw in de auto.</string>
+    <string name="car_look_choose">Bestand kiezen</string>
 </resources>

@@ -39,6 +39,7 @@ import com.openauto.dash.link.PhoneBattery
 import com.openauto.dash.link.SendText
 import com.openauto.dash.link.CarLog
 import com.openauto.dash.link.CarLogAck
+import com.openauto.dash.link.CarLookPart
 import com.openauto.dash.link.TextSent
 import kotlinx.coroutines.CompletableDeferred
 import java.util.concurrent.ConcurrentHashMap
@@ -560,6 +561,7 @@ object PhoneLink {
             is PhoneAbilities -> _textsOn.value = message.sendsTexts
             is TextSent -> textsWaiting[message.id]?.complete(message.sent)
             is CarLogAck -> logsWaiting[message.id]?.complete(message.ok)
+            is CarLookPart -> MyCarLook.receive(context, message) { send(it) }
             is NowPlaying -> HeadUnitMedia.fromPhone(message)
             is PhoneBattery -> _battery.value = message
             else -> Unit

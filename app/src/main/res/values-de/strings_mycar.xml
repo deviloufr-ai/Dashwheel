@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Experimental: the driver's own car in place of the drawn one (MyCarLook.kt, MyCarLookSheet.kt) -->
+    <string name="mycar_title">Fahrzeugbild</string>
+    <string name="mycar_settings_detail">Experimentell: dein eigenes Auto in den Kacheln</string>
+    <string name="mycar_experimental">Experimentell: dein eigenes Auto statt des gezeichneten. Nimm ein Fahrzeugpaket aus einem 3D-Modell oder ein Seitenfoto des Autos.</string>
+    <string name="mycar_empty">Noch kein Bild. Wähle eine Datei oder sende eine aus der Handy-App.</string>
+    <string name="mycar_working">Wird vorbereitet</string>
+    <string name="mycar_ready">Das Bild deines Autos ist da</string>
+    <string name="mycar_failed">Die Datei konnte nicht gelesen werden</string>
+    <string name="mycar_no_picker">Keine Dateiauswahl auf diesem Gerät. Lege die Datei hier ab: %1$s</string>
+    <string name="mycar_pick">Datei wählen</string>
+    <string name="mycar_remove">Entfernen</string>
+    <string name="mycar_remove_title">Bild deines Autos entfernen?</string>
+    <string name="mycar_remove_body">Die Kacheln zeigen wieder das gezeichnete Auto.</string>
+    <string name="mycar_cancel">Abbrechen</string>
+    <string name="mycar_views">Ansichten: %1$s</string>
+    <string name="mycar_view_side">Seite</string>
+    <string name="mycar_view_top">von oben</string>
+    <string name="mycar_view_hero">Dreiviertel</string>
+    <string name="mycar_show_title">Anzeigen</string>
+    <string name="mycar_show_drawn">Gezeichnetes Auto</string>
+    <string name="mycar_show_mine">Mein Auto</string>
+    <string name="mycar_style_title">Stil</string>
+    <string name="mycar_style_photo">Foto</string>
+    <string name="mycar_style_photo_hint">Das Bild, wie es ist</string>
+    <string name="mycar_style_tinted">Getönt</string>
+    <string name="mycar_style_tinted_hint">In der Farbe des Looks, Schattierung bleibt</string>
+    <string name="mycar_style_outline">Umriss</string>
+    <string name="mycar_style_outline_hint">Nur seine Linien, in der Farbe des Looks</string>
+    <string name="mycar_where">Zu sehen in den Designs Reifenkarte und Fahrzeugumriss und auf der Kachel Mein Auto.</string>
+    <string name="mycar_phone_hint">Vom Handy: in der Dashwheel-Begleit-App Fahrzeugbild, dann Datei wählen.</string>
+</resources>

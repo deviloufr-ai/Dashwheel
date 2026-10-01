@@ -139,4 +139,13 @@
     <string name="log_received">The car\'s log is ready</string>
     <string name="log_received_detail">Tap to share it. The button opens a GitHub issue to attach it to.</string>
     <string name="log_github">GitHub issue</string>
+    <!-- Experimental: the driver's own car sent to the car's screen (CarLookSender.kt) -->
+    <string name="car_look_title">Car picture</string>
+    <string name="car_look_detail">Experimental: your own car on the car\'s screen. A car pack, or a picture of the car from the side.</string>
+    <string name="car_look_offline">Connect to the car to send a picture</string>
+    <string name="car_look_sending">Sending to the car</string>
+    <string name="car_look_sent">On the car\'s screen</string>
+    <string name="car_look_too_big">That file is too big</string>
+    <string name="car_look_failed">It did not go through. Try again in the car.</string>
+    <string name="car_look_choose">Choose a file</string>
 </resources>

@@ -45,6 +45,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Handyman
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Language
@@ -124,7 +125,7 @@ internal enum class SettingsTab(@StringRes val titleRes: Int, val icon: ImageVec
 }
 
 /** The settings that open further into the pane. */
-private enum class Deep { CAR, AI, UPKEEP, EXPLORER, WHEEL, PLACES, LANGUAGE }
+private enum class Deep { CAR, CAR_LOOK, AI, UPKEEP, EXPLORER, WHEEL, PLACES, LANGUAGE }
 
 /** Under this width the categories go along the top: a rail would leave the settings half a screen. */
 private val NARROW_SETTINGS = 800.dp
@@ -174,6 +175,7 @@ internal fun SettingsScreen(
             CompositionLocalProvider(LocalSheetInPane provides true) {
                 when (deep) {
                     Deep.CAR -> CarSettingsDialog(onDismiss = back)
+                    Deep.CAR_LOOK -> MyCarLookSheet(onDismiss = back)
                     Deep.AI -> AiSettingsDialog(onDismiss = back)
                     Deep.UPKEEP -> UpkeepDialog(onDismiss = back)
                     Deep.EXPLORER -> PidExplorerDialog(onDismiss = back)
@@ -353,6 +355,7 @@ private fun CarPane(open: (Deep) -> Unit, onPickObd: () -> Unit) {
     val car by CarProfileStore.profile.collectAsState()
     SettingsSection(stringResource(R.string.settings_section_car))
     SettingsRow(Icons.Filled.DirectionsCar, stringResource(R.string.car_menu), car.name) { open(Deep.CAR) }
+    SettingsRow(Icons.Filled.Image, stringResource(R.string.mycar_title), stringResource(R.string.mycar_settings_detail)) { open(Deep.CAR_LOOK) }
     ObdAdapterRow(onPickObd)
     ObdRouteSetting()
     SpeedCorrectionRow()

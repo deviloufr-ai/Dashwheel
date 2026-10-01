@@ -30,6 +30,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
@@ -761,7 +762,17 @@ internal fun TyreMap(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
                 WheelCallout(wheels.getOrNull(2), look, m, end = false)
             }
             val alerts = wheels.map { it?.alert == true }
-            Canvas(modifier = Modifier.fillMaxHeight().aspectRatio(0.62f).padding(horizontal = m.dp(2f))) { carFromAbove(look, alerts) }
+            val mine by MyCarLook.shown.collectAsState()
+            val style by MyCarLook.style.collectAsState()
+            val top = mine?.top?.takeIf { it.wheels.size == 4 }
+            if (top != null) {
+                // The driver's own car (MyCarLook.kt), with room either side for the leader lines; never so wide the callouts get cut.
+                Canvas(modifier = Modifier.weight(2f).fillMaxHeight().padding(horizontal = m.dp(2f))) {
+                    myCarFromAbove(top, style, look, alerts)
+                }
+            } else {
+                Canvas(modifier = Modifier.fillMaxHeight().aspectRatio(0.62f).padding(horizontal = m.dp(2f))) { carFromAbove(look, alerts) }
+            }
             Column(
                 modifier = Modifier.weight(1f).fillMaxHeight().padding(vertical = m.dp(2f)),
                 verticalArrangement = Arrangement.SpaceBetween,
@@ -772,6 +783,29 @@ internal fun TyreMap(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
             }
         }
         if (m.h >= 170f) FaceCaption(f, look, m, Modifier.fillMaxWidth(), align = TextAlign.Center)
+    }
+}
+
+/** How much of the Tyre map's car column the driver's own car takes; the rest is for the leader lines. */
+private const val MY_CAR_SHARE = 0.8f
+
+/**
+ * [carFromAbove] with the driver's own car ([MyCarLook]): the picture in its
+ * style, and from each wheel's anchor point a leader line out to its callout.
+ */
+private fun DrawScope.myCarFromAbove(view: CarView, style: CarLookStyle, look: FaceLook, alerts: List<Boolean>) {
+    val w = size.width
+    val car = fitCar(view, Rect(Offset(w * (1f - MY_CAR_SHARE) / 2f, 0f), Size(w * MY_CAR_SHARE, size.height)))
+    drawCarView(view, style, car, look.accent, look.warn)
+    view.wheels.forEachIndexed { i, fraction ->
+        val bad = alerts.getOrElse(i) { false }
+        val at = car.at(fraction)
+        val left = i % 2 == 0
+        val to = if (left) 0f else w
+        drawLine((if (bad) look.warn else look.dim).copy(alpha = 0.7f), at, Offset(to, at.y), 1.dp.toPx())
+        if (bad) drawCircle(look.warn.copy(alpha = 0.35f), 9.dp.toPx(), at)
+        drawCircle(if (bad) look.warn else look.accent, 3.dp.toPx(), at)
+        drawCircle(if (bad) look.warn else look.accent, 2.dp.toPx(), Offset(to + (if (left) 2.dp.toPx() else -2.dp.toPx()), at.y))
     }
 }
 
@@ -845,7 +879,14 @@ internal fun CarOutline(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
     Column(modifier = Modifier.fillMaxSize().padding(m.pad.dp), verticalArrangement = Arrangement.spacedBy(m.dp(1.6f))) {
         CabinHeader(f, look, m)
         Row(modifier = Modifier.weight(1f).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(m.dp(3f))) {
-            Canvas(modifier = Modifier.weight(if (side) 1.6f else 1f).fillMaxHeight()) { carProfile(look, doors, f.alert) }
+            val mine by MyCarLook.shown.collectAsState()
+            val style by MyCarLook.style.collectAsState()
+            val own = mine?.side
+            Canvas(modifier = Modifier.weight(if (side) 1.6f else 1f).fillMaxHeight()) {
+                // The driver's own car (MyCarLook.kt): anything open or wrong turns it to the warning colour.
+                if (own != null) drawCarView(own, style, fitCar(own, Rect(Offset.Zero, size)), look.accent, look.warn, f.alert || doors?.any { it } == true)
+                else carProfile(look, doors, f.alert)
+            }
             if (side) {
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(m.dp(1.4f), Alignment.CenterVertically)) {
                     details.take(if (m.h >= 200f) 4 else 3).forEach { (label, value) ->

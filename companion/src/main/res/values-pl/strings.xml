@@ -138,4 +138,13 @@
     <string name="log_received">Dziennik samochodu jest gotowy</string>
     <string name="log_received_detail">Dotknij, by udostępnić. Przycisk otwiera zgłoszenie na GitHubie, do którego go dołączysz.</string>
     <string name="log_github">Zgłoszenie GitHub</string>
+    <!-- Experimental: the driver's own car sent to the car's screen (CarLookSender.kt) -->
+    <string name="car_look_title">Obraz auta</string>
+    <string name="car_look_detail">Eksperymentalne: twoje własne auto na ekranie w aucie. Pakiet auta albo zdjęcie auta z boku.</string>
+    <string name="car_look_offline">Połącz się z autem, aby wysłać obraz</string>
+    <string name="car_look_sending">Wysyłanie do auta</string>
+    <string name="car_look_sent">Na ekranie w aucie</string>
+    <string name="car_look_too_big">Ten plik jest za duży</string>
+    <string name="car_look_failed">Nie udało się wysłać. Spróbuj ponownie w aucie.</string>
+    <string name="car_look_choose">Wybierz plik</string>
 </resources>

@@ -88,8 +88,8 @@ private val LEFT_OUT_OF_CATALOG = setOf(
     BuiltinKind.OBD_ALL, BuiltinKind.PIP_ANCHOR, BuiltinKind.MAPS_INSIDE, BuiltinKind.MY_CAR, BuiltinKind.PARKING
 )
 
-/** Whether the add sheet offers this kind (see [LEFT_OUT_OF_CATALOG]). */
-internal val BuiltinKind.offered: Boolean get() = this !in LEFT_OUT_OF_CATALOG
+/** Whether the add sheet offers this kind (see [LEFT_OUT_OF_CATALOG]); My car comes back once it has the driver's own car to show (MyCarLook.kt). */
+internal val BuiltinKind.offered: Boolean get() = this !in LEFT_OUT_OF_CATALOG || (this == BuiltinKind.MY_CAR && MyCarLook.hasLook)
 
 /**
  * One tile on a dashboard page, placed freely on a [GRID_COLS] x [GRID_ROWS]

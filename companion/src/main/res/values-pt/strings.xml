@@ -138,4 +138,13 @@
     <string name="log_received">O registo do carro está pronto</string>
     <string name="log_received_detail">Toque para partilhar. O botão abre uma issue do GitHub onde o anexar.</string>
     <string name="log_github">Issue do GitHub</string>
+    <!-- Experimental: the driver's own car sent to the car's screen (CarLookSender.kt) -->
+    <string name="car_look_title">Imagem do carro</string>
+    <string name="car_look_detail">Experimental: o seu próprio carro no ecrã do carro. Um pacote de carro, ou uma foto do carro de lado.</string>
+    <string name="car_look_offline">Ligue-se ao carro para enviar uma imagem</string>
+    <string name="car_look_sending">A enviar para o carro</string>
+    <string name="car_look_sent">No ecrã do carro</string>
+    <string name="car_look_too_big">Esse ficheiro é demasiado grande</string>
+    <string name="car_look_failed">Não foi possível enviar. Tente de novo no carro.</string>
+    <string name="car_look_choose">Escolher ficheiro</string>
 </resources>

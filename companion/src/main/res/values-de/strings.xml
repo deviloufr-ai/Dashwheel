@@ -138,4 +138,13 @@
     <string name="log_received">Das Protokoll des Autos ist bereit</string>
     <string name="log_received_detail">Tippen zum Teilen. Die Schaltfläche öffnet ein GitHub-Issue zum Anhängen.</string>
     <string name="log_github">GitHub-Issue</string>
+    <!-- Experimental: the driver's own car sent to the car's screen (CarLookSender.kt) -->
+    <string name="car_look_title">Fahrzeugbild</string>
+    <string name="car_look_detail">Experimentell: dein eigenes Auto auf dem Bildschirm im Auto. Ein Fahrzeugpaket oder ein Seitenfoto des Autos.</string>
+    <string name="car_look_offline">Verbinde dich mit dem Auto, um ein Bild zu senden</string>
+    <string name="car_look_sending">Wird ans Auto gesendet</string>
+    <string name="car_look_sent">Auf dem Bildschirm im Auto</string>
+    <string name="car_look_too_big">Die Datei ist zu groß</string>
+    <string name="car_look_failed">Das hat nicht geklappt. Versuch es im Auto noch einmal.</string>
+    <string name="car_look_choose">Datei wählen</string>
 </resources>

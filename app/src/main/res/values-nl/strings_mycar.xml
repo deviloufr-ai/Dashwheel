@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Experimental: the driver's own car in place of the drawn one (MyCarLook.kt, MyCarLookSheet.kt) -->
+    <string name="mycar_title">Autoafbeelding</string>
+    <string name="mycar_settings_detail">Experimenteel: je eigen auto in de tegels</string>
+    <string name="mycar_experimental">Experimenteel: je eigen auto in plaats van de getekende. Gebruik een autopakket gemaakt van een 3D-model, of een zijfoto van de auto.</string>
+    <string name="mycar_empty">Nog geen afbeelding. Kies een bestand of stuur er een vanuit de telefoon-app.</string>
+    <string name="mycar_working">Wordt klaargemaakt</string>
+    <string name="mycar_ready">De afbeelding van je auto staat erin</string>
+    <string name="mycar_failed">Dat bestand kon niet worden gelezen</string>
+    <string name="mycar_no_picker">Geen bestandskiezer op dit toestel. Zet het bestand hier: %1$s</string>
+    <string name="mycar_pick">Bestand kiezen</string>
+    <string name="mycar_remove">Verwijderen</string>
+    <string name="mycar_remove_title">Afbeelding van je auto verwijderen?</string>
+    <string name="mycar_remove_body">De tegels tonen weer de getekende auto.</string>
+    <string name="mycar_cancel">Annuleren</string>
+    <string name="mycar_views">Aanzichten: %1$s</string>
+    <string name="mycar_view_side">zijkant</string>
+    <string name="mycar_view_top">van boven</string>
+    <string name="mycar_view_hero">driekwart</string>
+    <string name="mycar_show_title">Tonen</string>
+    <string name="mycar_show_drawn">Getekende auto</string>
+    <string name="mycar_show_mine">Mijn auto</string>
+    <string name="mycar_style_title">Stijl</string>
+    <string name="mycar_style_photo">Foto</string>
+    <string name="mycar_style_photo_hint">De afbeelding zoals ze is</string>
+    <string name="mycar_style_tinted">Getint</string>
+    <string name="mycar_style_tinted_hint">In de kleur van de look, met schaduw</string>
+    <string name="mycar_style_outline">Omtrek</string>
+    <string name="mycar_style_outline_hint">Alleen de lijnen, in de kleur van de look</string>
+    <string name="mycar_where">Te zien in de ontwerpen Bandenkaart en Silhouet en op de tegel Mijn auto.</string>
+    <string name="mycar_phone_hint">Vanaf de telefoon: in de Dashwheel companion-app, Autoafbeelding, dan Bestand kiezen.</string>
+</resources>
