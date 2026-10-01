@@ -36,6 +36,13 @@ object CarLookSender {
         Thread({ _status.value = sendNow(app, uri) }, "car-look-send").start()
     }
 
+    /** A car pack made on the phone ([CarFromPhotos]). */
+    fun send(bytes: ByteArray) {
+        if (_status.value == Status.SENDING) return
+        _status.value = Status.SENDING
+        Thread({ _status.value = if (bytes.size > CarLookPart.MAX_BYTES) Status.TOO_BIG else sendBytes(bytes) }, "car-look-send").start()
+    }
+
     private fun sendNow(context: Context, uri: Uri): Status {
         val bytes = runCatching {
             context.contentResolver.openInputStream(uri)?.use { input ->
@@ -50,6 +57,10 @@ object CarLookSender {
                 out.toByteArray()
             }
         }.getOrNull() ?: return Status.FAILED
+        return sendBytes(bytes)
+    }
+
+    private fun sendBytes(bytes: ByteArray): Status {
         if (bytes.isEmpty()) return Status.FAILED
         if (LinkServer.state.value !is LinkState.Connected) return Status.FAILED
 

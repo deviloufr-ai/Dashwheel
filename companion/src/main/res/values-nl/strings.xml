@@ -147,4 +147,27 @@
     <string name="car_look_too_big">Dat bestand is te groot</string>
     <string name="car_look_failed">Het is niet gelukt. Probeer het opnieuw in de auto.</string>
     <string name="car_look_choose">Bestand kiezen</string>
+
+    <!-- Car picture from three photos (CarFromPhotos). -->
+    <string name="car_photos_open">Maak met 3 foto\'s</string>
+    <string name="car_photos_title">Uw auto uit 3 foto\'s</string>
+    <string name="car_photos_detail">Drie foto\'s van uw auto maken zijn afbeelding en zijn bovenaanzicht.</string>
+    <string name="car_photos_side">Zijkant</string>
+    <string name="car_photos_front">Voorkant</string>
+    <string name="car_photos_back">Achterkant</string>
+    <string name="car_photos_ready">Klaar</string>
+    <string name="car_photos_add">Foto maken of kiezen</string>
+    <string name="car_photos_take">Foto maken</string>
+    <string name="car_photos_choose">Foto kiezen</string>
+    <string name="car_photos_tip">Ga recht voor elke kant staan, zo\'n 8 stappen ervandaan. Haal eerst de achtergrond weg in Gemini of de galerij voor strakkere randen.</string>
+    <string name="car_photos_build">Mijn auto maken</string>
+    <string name="car_photos_building">Uw auto wordt gemaakt</string>
+    <string name="car_photos_result">Uw auto</string>
+    <string name="car_photos_result_hint">De groene ringen tonen waar de band- en deurmeldingen komen.</string>
+    <string name="car_photos_turned">Naar rechts gedraaid</string>
+    <string name="car_photos_length">%1$s m lang</string>
+    <string name="car_photos_send">Naar de auto sturen</string>
+    <string name="car_photos_change">Een foto wijzigen</string>
+    <string name="car_photos_not_found">Geen auto gevonden op de foto %1$s. Gebruik er een met de hele auto op een effen achtergrond.</string>
+    <string name="car_photos_close">Sluiten</string>
 </resources>

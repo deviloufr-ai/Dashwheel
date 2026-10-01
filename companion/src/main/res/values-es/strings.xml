@@ -147,4 +147,27 @@
     <string name="car_look_too_big">Ese archivo es demasiado grande</string>
     <string name="car_look_failed">No se ha podido enviar. Inténtalo de nuevo en el coche.</string>
     <string name="car_look_choose">Elegir archivo</string>
+
+    <!-- Car picture from three photos (CarFromPhotos). -->
+    <string name="car_photos_open">Crearla con 3 fotos</string>
+    <string name="car_photos_title">Tu coche con 3 fotos</string>
+    <string name="car_photos_detail">Tres fotos de tu coche crean su imagen y su vista desde arriba.</string>
+    <string name="car_photos_side">Lateral</string>
+    <string name="car_photos_front">Delante</string>
+    <string name="car_photos_back">Detrás</string>
+    <string name="car_photos_ready">Lista</string>
+    <string name="car_photos_add">Hacer o elegir una foto</string>
+    <string name="car_photos_take">Hacer una foto</string>
+    <string name="car_photos_choose">Elegir una foto</string>
+    <string name="car_photos_tip">Ponte justo enfrente de cada lado, a unos 8 pasos. Quitar antes el fondo en Gemini o en la galería da bordes más limpios.</string>
+    <string name="car_photos_build">Crear mi coche</string>
+    <string name="car_photos_building">Creando tu coche</string>
+    <string name="car_photos_result">Tu coche</string>
+    <string name="car_photos_result_hint">Los anillos verdes indican dónde van los avisos de ruedas y puertas.</string>
+    <string name="car_photos_turned">Girado hacia la derecha</string>
+    <string name="car_photos_length">%1$s m de largo</string>
+    <string name="car_photos_send">Enviar al coche</string>
+    <string name="car_photos_change">Cambiar una foto</string>
+    <string name="car_photos_not_found">No se encuentra el coche en la foto %1$s. Usa una con el coche entero sobre un fondo liso.</string>
+    <string name="car_photos_close">Cerrar</string>
 </resources>

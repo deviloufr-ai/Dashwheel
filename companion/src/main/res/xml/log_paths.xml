@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
     <cache-path name="car_logs" path="car_logs/" />
+    <!-- Photos of the car taken for its picture (CarFromPhotos). -->
+    <cache-path name="car_photos" path="car_photos/" />
 </paths>
