@@ -30,4 +30,7 @@
     <string name="mycar_style_outline_hint">Ses lignes seules, dans la couleur du thème</string>
     <string name="mycar_where">Affichée sur les designs Carte des pneus et Silhouette et sur la tuile Ma voiture.</string>
     <string name="mycar_phone_hint">Depuis le téléphone : dans l\'appli compagnon Dashwheel, Photo de la voiture, puis Choisir un fichier.</string>
+    <string name="mycar_photos">3 photos</string>
+    <string name="mycar_photos_hint">Ou choisissez trois photos de la voiture d\'un coup : côté, avant et arrière. Nommées côté, avant et arrière, elles ne sont jamais confondues.</string>
+    <string name="mycar_photos_no_car">Aucune voiture trouvée sur ces photos. Prenez-en avec toute la voiture sur un fond uni.</string>
 </resources>

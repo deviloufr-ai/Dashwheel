@@ -166,7 +166,6 @@
     <string name="car_photos_result">Your car</string>
     <string name="car_photos_result_hint">The green rings are where the tyre and door alerts go.</string>
     <string name="car_photos_turned">Turned to face right</string>
-    <string name="car_photos_length">%1$s m long</string>
     <string name="car_photos_send">Send to the car</string>
     <string name="car_photos_change">Change a photo</string>
     <string name="car_photos_not_found">No car found in the %1$s photo. Use one with the whole car on a plain background.</string>

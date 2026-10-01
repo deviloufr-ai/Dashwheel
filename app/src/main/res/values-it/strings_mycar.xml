@@ -30,4 +30,7 @@
     <string name="mycar_style_outline_hint">Solo le sue linee, nel colore del tema</string>
     <string name="mycar_where">Visibile nei design Mappa gomme e Sagoma e nel riquadro La mia auto.</string>
     <string name="mycar_phone_hint">Dal telefono: nell\'app Dashwheel companion, Immagine dell\'auto, poi Scegli un file.</string>
+    <string name="mycar_photos">3 foto</string>
+    <string name="mycar_photos_hint">Oppure scegli tre foto dell\'auto insieme: lato, davanti e dietro. Se si chiamano lato, davanti e dietro, non si confondono mai.</string>
+    <string name="mycar_photos_no_car">Nessuna auto trovata in queste foto. Usane con l\'auto intera su uno sfondo uniforme.</string>
 </resources>

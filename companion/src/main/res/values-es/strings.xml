@@ -165,7 +165,6 @@
     <string name="car_photos_result">Tu coche</string>
     <string name="car_photos_result_hint">Los anillos verdes indican dónde van los avisos de ruedas y puertas.</string>
     <string name="car_photos_turned">Girado hacia la derecha</string>
-    <string name="car_photos_length">%1$s m de largo</string>
     <string name="car_photos_send">Enviar al coche</string>
     <string name="car_photos_change">Cambiar una foto</string>
     <string name="car_photos_not_found">No se encuentra el coche en la foto %1$s. Usa una con el coche entero sobre un fondo liso.</string>

@@ -165,7 +165,6 @@
     <string name="car_photos_result">Uw auto</string>
     <string name="car_photos_result_hint">De groene ringen tonen waar de band- en deurmeldingen komen.</string>
     <string name="car_photos_turned">Naar rechts gedraaid</string>
-    <string name="car_photos_length">%1$s m lang</string>
     <string name="car_photos_send">Naar de auto sturen</string>
     <string name="car_photos_change">Een foto wijzigen</string>
     <string name="car_photos_not_found">Geen auto gevonden op de foto %1$s. Gebruik er een met de hele auto op een effen achtergrond.</string>

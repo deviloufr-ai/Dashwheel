@@ -165,7 +165,6 @@
     <string name="car_photos_result">Twój samochód</string>
     <string name="car_photos_result_hint">Zielone pierścienie pokazują, gdzie pojawią się alerty opon i drzwi.</string>
     <string name="car_photos_turned">Obrócony w prawo</string>
-    <string name="car_photos_length">%1$s m długości</string>
     <string name="car_photos_send">Wyślij do samochodu</string>
     <string name="car_photos_change">Zmień zdjęcie</string>
     <string name="car_photos_not_found">Nie znaleziono samochodu na zdjęciu %1$s. Użyj zdjęcia z całym autem na gładkim tle.</string>

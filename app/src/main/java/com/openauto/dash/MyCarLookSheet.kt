@@ -6,7 +6,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -68,6 +70,24 @@ internal fun MyCarLookSheet(onDismiss: () -> Unit) {
 
     val open = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) import { MyCarLook.importUri(context, uri) }
+    }
+    val noCar = stringResource(R.string.mycar_photos_no_car)
+    val openPhotos = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+        if (uris.isNotEmpty()) {
+            busy = true
+            scope.launch {
+                val result = withContext(Dispatchers.Default) { CarPhotoImport.import(context, uris) }
+                busy = false
+                Toast.makeText(context, if (result.isSuccess) ready else noCar, Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+    val pickPhotos = {
+        try {
+            openPhotos.launch(arrayOf("image/*"))
+        } catch (e: ActivityNotFoundException) {
+            Toast.makeText(context, context.getString(R.string.mycar_no_picker, MyCarLook.fallbackFile(context).path), Toast.LENGTH_LONG).show()
+        }
     }
     val pick = {
         try {
@@ -148,6 +168,13 @@ internal fun MyCarLookSheet(onDismiss: () -> Unit) {
             )
             SwitchHint(stringResource(style.hintRes))
             Text(stringResource(R.string.mycar_where), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+        }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Text(
+                stringResource(R.string.mycar_photos_hint), color = DashColors.TextSecondary,
+                style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f)
+            )
+            SheetButton(stringResource(R.string.mycar_photos), primary = false) { if (!busy) pickPhotos() }
         }
         Text(stringResource(R.string.mycar_phone_hint), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
     }

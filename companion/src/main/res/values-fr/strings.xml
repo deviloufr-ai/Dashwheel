@@ -165,7 +165,6 @@
     <string name="car_photos_result">Votre voiture</string>
     <string name="car_photos_result_hint">Les anneaux verts montrent où vont les alertes des pneus et des portes.</string>
     <string name="car_photos_turned">Tournée vers la droite</string>
-    <string name="car_photos_length">%1$s m de long</string>
     <string name="car_photos_send">Envoyer à la voiture</string>
     <string name="car_photos_change">Changer une photo</string>
     <string name="car_photos_not_found">Aucune voiture trouvée sur la photo %1$s. Prenez-en une avec toute la voiture sur un fond uni.</string>

@@ -233,6 +233,12 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
         else ask(context, arrayOf(Manifest.permission.BLUETOOTH_CONNECT)) { askBluetooth.launch(it.single()) }
     }
     val onAuto: (Boolean) -> Unit = { on -> if (on) pick(BluetoothPick.CAR) else CarBluetooth.choose(context, null) }
+    // The car from three photos takes the whole screen while open.
+    var fromPhotos by rememberSaveable { mutableStateOf(false) }
+    if (fromPhotos) {
+        CarFromPhotosScreen(connected, onClose = { fromPhotos = false })
+        return
+    }
 
     Scaffold(containerColor = CompanionColors.Background) { padding ->
         LazyColumn(
@@ -286,7 +292,7 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
             if (paired) {
                 item { SectionTitle(stringResource(R.string.cars_title)) }
                 item { ObdRelayCard(onPick = { pick(BluetoothPick.OBD) }) }
-                item { CarLookCard(connected) }
+                item { CarLookCard(connected, onFromPhotos = { fromPhotos = true }) }
                 items(units, key = { it.id }) { unit -> CarRow(unit, onRemove = { removing = unit }) }
                 item {
                     TextButton(onClick = startScan, modifier = Modifier.fillMaxWidth()) {
@@ -662,7 +668,7 @@ private fun CarSpotCard() {
  * a car pack or a picture of the car from the side, picked here and sent.
  */
 @Composable
-private fun CarLookCard(connected: Boolean) {
+private fun CarLookCard(connected: Boolean, onFromPhotos: () -> Unit) {
     val context = LocalContext.current
     val status by CarLookSender.status.collectAsState()
     val choose = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -685,7 +691,9 @@ private fun CarLookCard(connected: Boolean) {
         Column(Modifier.padding(18.dp)) {
             CardHeading(Icons.Filled.Image, stringResource(R.string.car_look_title), line, tint)
             Row(Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(
+                // Building from photos works offline; only sending needs the car.
+                Button(onClick = onFromPhotos) { Text(stringResource(R.string.car_photos_open)) }
+                OutlinedButton(
                     onClick = { choose.launch(arrayOf("image/*", "application/zip", "application/octet-stream")) },
                     enabled = connected && status != CarLookSender.Status.SENDING
                 ) { Text(stringResource(R.string.car_look_choose)) }

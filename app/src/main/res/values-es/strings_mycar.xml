@@ -30,4 +30,7 @@
     <string name="mycar_style_outline_hint">Solo sus líneas, en el color del aspecto</string>
     <string name="mycar_where">Se ve en los diseños Mapa de ruedas y Silueta y en el mosaico Mi coche.</string>
     <string name="mycar_phone_hint">Desde el móvil: en la app Dashwheel companion, Imagen del coche y luego Elegir archivo.</string>
+    <string name="mycar_photos">3 fotos</string>
+    <string name="mycar_photos_hint">O elige tres fotos del coche a la vez: lateral, delante y detrás. Si se llaman lateral, delante y detrás, nunca se confunden.</string>
+    <string name="mycar_photos_no_car">No se encuentra el coche en esas fotos. Usa unas con el coche entero sobre un fondo liso.</string>
 </resources>

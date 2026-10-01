@@ -165,7 +165,6 @@
     <string name="car_photos_result">La tua auto</string>
     <string name="car_photos_result_hint">Gli anelli verdi indicano dove compaiono gli avvisi di gomme e porte.</string>
     <string name="car_photos_turned">Girata verso destra</string>
-    <string name="car_photos_length">%1$s m di lunghezza</string>
     <string name="car_photos_send">Invia all\'auto</string>
     <string name="car_photos_change">Cambia una foto</string>
     <string name="car_photos_not_found">Nessuna auto trovata nella foto %1$s. Usane una con l\'auto intera su uno sfondo uniforme.</string>

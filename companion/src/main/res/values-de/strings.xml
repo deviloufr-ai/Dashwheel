@@ -165,7 +165,6 @@
     <string name="car_photos_result">Ihr Auto</string>
     <string name="car_photos_result_hint">Die grünen Ringe zeigen, wo die Reifen- und Türwarnungen erscheinen.</string>
     <string name="car_photos_turned">Nach rechts gedreht</string>
-    <string name="car_photos_length">%1$s m lang</string>
     <string name="car_photos_send">An das Auto senden</string>
     <string name="car_photos_change">Ein Foto ändern</string>
     <string name="car_photos_not_found">Kein Auto auf dem Foto %1$s gefunden. Nehmen Sie eines mit dem ganzen Auto vor einem schlichten Hintergrund.</string>

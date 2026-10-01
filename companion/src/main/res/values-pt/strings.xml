@@ -165,7 +165,6 @@
     <string name="car_photos_result">O seu carro</string>
     <string name="car_photos_result_hint">Os anéis verdes mostram onde aparecem os avisos dos pneus e das portas.</string>
     <string name="car_photos_turned">Virado para a direita</string>
-    <string name="car_photos_length">%1$s m de comprimento</string>
     <string name="car_photos_send">Enviar para o carro</string>
     <string name="car_photos_change">Mudar uma foto</string>
     <string name="car_photos_not_found">Nenhum carro encontrado na foto %1$s. Use uma com o carro inteiro sobre um fundo liso.</string>
