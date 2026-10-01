@@ -572,7 +572,11 @@ private fun ReverseScreen() {
         } else {
             if (preview) Box(Modifier.fillMaxSize().background(Color(0xFF2B2C2E)))
             // Clear until its first frame: the ROM app's picture shows through meanwhile.
-            else if (ownCamera && camera != ReverseCamera.State.FAILED) ReverseCameraPicture(Modifier.fillMaxSize())
+            else if (ownCamera && camera != ReverseCamera.State.FAILED) {
+                // Black only between the car app's picture going and Dashwheel's coming.
+                if (camera == ReverseCamera.State.OPENING) Box(Modifier.fillMaxSize().background(Color.Black))
+                ReverseCameraPicture(Modifier.fillMaxSize())
+            }
             Canvas(Modifier.fillMaxSize()) {
                 val g = Ground(size.width, size.height, calibration)
                 fixedLines(g)
