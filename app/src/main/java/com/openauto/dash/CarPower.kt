@@ -62,7 +62,7 @@ object CarPower {
         started = true
         appContext = app
         _ignition.value = acc == "true"
-        noteBoot(app)
+        noteBoot(app, acc == "true")
         val filter = IntentFilter().apply {
             addAction(ACTION_ACC_ON)
             addAction(ACTION_ACC_OFF)
@@ -76,15 +76,25 @@ object CarPower {
      * is logged and kept in the prefs (last [KEY_LOST_KEEP] of them, newest
      * first) so a driver can report when it happens and what came before.
      */
-    private fun noteBoot(context: Context) {
+    private fun noteBoot(context: Context, ignitionOn: Boolean) {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val boot = runCatching { Settings.Global.getInt(context.contentResolver, Settings.Global.BOOT_COUNT) }.getOrDefault(-1)
         val lastBoot = prefs.getInt(KEY_BOOT, -1)
         val offAt = prefs.getLong(KEY_OFF_AT, 0L)
         val now = System.currentTimeMillis()
         val edit = prefs.edit().putInt(KEY_BOOT, boot)
-        DebugLog.note(context, "app start, boot $boot (last seen $lastBoot), uptime ${android.os.SystemClock.elapsedRealtime() / 1000} s")
-        if (boot != -1 && lastBoot != -1 && boot != lastBoot && offAt > 0 && offAt > prefs.getLong(KEY_ON_AT, 0L)) {
+        val reason = listOfNotNull(systemProperty("sys.boot.reason"), systemProperty("ro.boot.bootreason")).filter { it.isNotBlank() }
+        DebugLog.note(
+            context,
+            "app start, boot $boot (last seen $lastBoot), uptime ${android.os.SystemClock.elapsedRealtime() / 1000} s, " +
+                "ignition ${if (ignitionOn) "on" else "off"}, boot reason $reason"
+        )
+        // A boot comes up with the ignition already on, and no "on" broadcast
+        // follows: it is marked here, or the next reboot of the same drive
+        // would count as another lost sleep.
+        val lost = boot != -1 && lastBoot != -1 && boot != lastBoot && offAt > 0 && offAt > prefs.getLong(KEY_ON_AT, 0L)
+        if (ignitionOn) edit.putLong(KEY_ON_AT, now)
+        if (lost) {
             val note = "boot $lastBoot->$boot, off ${java.util.Date(offAt)}, back ${java.util.Date(now)}, " +
                 "${(now - offAt) / 60_000} min later, uptime ${android.os.SystemClock.elapsedRealtime() / 1000} s"
             Log.w(TAG, "deep sleep lost: $note")
