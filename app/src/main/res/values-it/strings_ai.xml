@@ -99,4 +99,6 @@
     <string name="ai_ask_say_nothing_heard">Non ho sentito nessuna domanda.</string>
     <string name="ai_ask_say_no_key">Il meccanico IA ha bisogno di una chiave Gemini. Aggiungila nelle impostazioni Auto, alla voce Meccanico IA.</string>
     <string name="ai_ask_say_mic">Il microfono non è ancora consentito. Tocca una volta il microfono del riquadro Codici guasto per consentirlo.</string>
+    <string name="ai_gemini_live_missing">Gemini non è installato su questa unità.</string>
+    <string name="ai_gemini_live_end">Termina</string>
 </resources>

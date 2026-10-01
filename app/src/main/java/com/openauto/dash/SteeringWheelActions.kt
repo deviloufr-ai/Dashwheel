@@ -16,6 +16,7 @@ import androidx.compose.material.icons.automirrored.filled.VolumeDown
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.CallEnd
 import androidx.compose.material.icons.filled.Done
@@ -101,7 +102,8 @@ internal enum class SteeringWheelAction(
     HANG_UP_CALL(WheelActionGroup.PHONE, R.string.wheel_action_hang_up, Icons.Filled.CallEnd),
 
     // Names are saved with the learned buttons: new ones go last, whatever their group.
-    ASK_MECHANIC(WheelActionGroup.CAR, R.string.ai_ask_wheel_action, Icons.Filled.QuestionAnswer);
+    ASK_MECHANIC(WheelActionGroup.CAR, R.string.ai_ask_wheel_action, Icons.Filled.QuestionAnswer),
+    GEMINI_LIVE(WheelActionGroup.CAR, R.string.ai_gemini_live, Icons.Filled.AutoAwesome);
 
     fun run(context: Context) {
         when (this) {
@@ -148,6 +150,7 @@ internal enum class SteeringWheelAction(
             HANG_UP_CALL -> PhoneCallOverlay.hangUpCall()
             // Asked out loud, answered out loud from the live readings; a second press sends.
             ASK_MECHANIC -> AskMechanic.listenHandsFree(context)
+            GEMINI_LIVE -> GeminiLive.toggle(context)
         }
     }
 

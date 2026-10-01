@@ -100,4 +100,6 @@
     <string name="ai_ask_say_nothing_heard">Nie usłyszałem pytania.</string>
     <string name="ai_ask_say_no_key">Mechanik AI potrzebuje klucza Gemini. Dodaj go w ustawieniach Samochód, w sekcji Mechanik AI.</string>
     <string name="ai_ask_say_mic">Mikrofon nie jest jeszcze dozwolony. Dotknij raz mikrofonu na kafelku Kody błędów, aby na niego zezwolić.</string>
+    <string name="ai_gemini_live_missing">Gemini nie jest zainstalowany na tym urządzeniu.</string>
+    <string name="ai_gemini_live_end">Zakończ</string>
 </resources>

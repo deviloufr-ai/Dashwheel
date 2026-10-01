@@ -100,4 +100,7 @@
     <string name="ai_ask_say_nothing_heard">I didn\'t hear a question.</string>
     <string name="ai_ask_say_no_key">The AI mechanic needs a Gemini key. Add one in the Car settings, under AI mechanic.</string>
     <string name="ai_ask_say_mic">The microphone isn\'t allowed yet. Tap the microphone on the fault codes tile once to allow it.</string>
+    <string name="ai_gemini_live" translatable="false">Gemini Live</string>
+    <string name="ai_gemini_live_missing">Gemini isn\'t installed on this unit.</string>
+    <string name="ai_gemini_live_end">End</string>
 </resources>

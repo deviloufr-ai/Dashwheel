@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Battery1Bar
@@ -802,6 +803,11 @@ internal fun MorePicker(m: TopBarModel, anchor: @Composable (open: () -> Unit) -
             )
             DashMenuItem(stringResource(R.string.templates_button), leading = { MenuIcon(Icons.Filled.Dashboard, parked) }, enabled = parked, onClick = pick(m.onTemplates))
             DashMenuItem(stringResource(R.string.dash_menu_split_screen), leading = { MenuIcon(Icons.Filled.Splitscreen) }, onClick = pick(m.onSplit))
+            // Spoken, so offered while driving too.
+            val context = LocalContext.current
+            if (GeminiLive.available(context)) {
+                DashMenuItem(stringResource(R.string.ai_gemini_live), leading = { MenuIcon(Icons.Filled.AutoAwesome) }, onClick = pick { GeminiLive.toggle(context) })
+            }
             DashMenuItem(stringResource(R.string.settings_menu), leading = { MenuIcon(Icons.Filled.Settings, parked) }, enabled = parked, onClick = pick(m.onSettings))
             if (m.demo) {
                 HorizontalDivider(color = DashColors.Line, modifier = Modifier.padding(vertical = 4.dp))

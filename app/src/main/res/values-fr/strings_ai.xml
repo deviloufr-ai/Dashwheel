@@ -99,4 +99,6 @@
     <string name="ai_ask_say_nothing_heard">Je n\'ai pas entendu de question.</string>
     <string name="ai_ask_say_no_key">Le mécanicien IA a besoin d\'une clé Gemini. Ajoutez-en une dans les réglages Voiture, rubrique Mécanicien IA.</string>
     <string name="ai_ask_say_mic">Le micro n\'est pas encore autorisé. Touchez une fois le micro de la tuile Codes défaut pour l\'autoriser.</string>
+    <string name="ai_gemini_live_missing">Gemini n\'est pas installé sur cet autoradio.</string>
+    <string name="ai_gemini_live_end">Terminer</string>
 </resources>

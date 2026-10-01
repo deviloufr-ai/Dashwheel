@@ -98,4 +98,6 @@
     <string name="ai_ask_say_nothing_heard">Ich habe keine Frage gehört.</string>
     <string name="ai_ask_say_no_key">Der KI-Mechaniker braucht einen Gemini-Schlüssel. Fügen Sie ihn in den Auto-Einstellungen unter KI-Mechaniker hinzu.</string>
     <string name="ai_ask_say_mic">Das Mikrofon ist noch nicht erlaubt. Tippen Sie einmal auf das Mikrofon der Kachel Fehlercodes, um es zu erlauben.</string>
+    <string name="ai_gemini_live_missing">Gemini ist auf diesem Gerät nicht installiert.</string>
+    <string name="ai_gemini_live_end">Beenden</string>
 </resources>
