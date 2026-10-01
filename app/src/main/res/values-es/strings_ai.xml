@@ -102,4 +102,11 @@
     <string name="ai_gemini_live_missing">Gemini no está instalado en esta unidad.</string>
     <string name="ai_gemini_live_end">Finalizar</string>
     <string name="ai_gemini_live_show">Mostrar Gemini Live</string>
+    <string name="ai_live_connecting">Conectando</string>
+    <string name="ai_live_listening">Escuchando</string>
+    <string name="ai_live_thinking">Pensando</string>
+    <string name="ai_live_speaking">Hablando</string>
+    <string name="ai_live_failed">Gemini no responde. Comprueba la conexión.</string>
+    <string name="ai_live_own">Gemini que conoce el coche</string>
+    <string name="ai_live_own_detail">Usa tu clave de Gemini: lee el coche, el viaje y el panel, y actúa sobre ellos. Desactivado: la app Gemini de Google</string>
 </resources>

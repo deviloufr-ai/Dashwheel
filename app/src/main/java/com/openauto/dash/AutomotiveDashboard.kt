@@ -384,6 +384,14 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             showPage(DashboardStore.COLUMN[CanvasTabs.stepped(at, step, DashboardStore.COLUMN.size)])
         }
     }
+    // Dashwheel's Gemini asking for one dashboard by its name (DashAssistant).
+    val dashboardGoTo by MainActivity.dashboardGoTo.collectAsState()
+    LaunchedEffect(dashboardGoTo) {
+        if (dashboardGoTo.first != 0L && dashboardGoTo.second >= 0) showPage(dashboardGoTo.second)
+    }
+    // What Gemini is told about the dashboards and the music (CarFacts).
+    LaunchedEffect(barTabs) { LiveFacts.dashboards = barTabs.map { it.page to it.label(context) } }
+    LaunchedEffect(mediaController) { mediaController.mediaState.collect { LiveFacts.media = it } }
     // A learned steering wheel button asking for the app drawer (SteeringWheelActions.kt).
     val openAppsRequested by MainActivity.openAppsRequested.collectAsState()
     LaunchedEffect(openAppsRequested) {

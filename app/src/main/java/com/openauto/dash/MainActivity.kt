@@ -55,6 +55,9 @@ class MainActivity : ComponentActivity() {
         /** (when, -1 or +1): the same for the dashboard above or below, in the column of the middle one. */
         val dashboardClimb = MutableStateFlow(0L to 0)
 
+        /** (when, page): one dashboard by its page, asked for by Dashwheel's Gemini (DashAssistant). */
+        val dashboardGoTo = MutableStateFlow(0L to -1)
+
         /**
          * On an intent that brings the launcher in front for a learned wheel
          * button: true leaves the dashboard on its page, false takes it home

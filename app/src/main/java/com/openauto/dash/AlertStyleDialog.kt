@@ -280,6 +280,16 @@ private fun AlertStyleDialog(kind: AlertKind, onDismiss: () -> Unit) {
                     Text(stringResource(R.string.alert_call_note), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
                     Spacer(Modifier.height(8.dp))
                 }
+                if (kind == AlertKind.GEMINI) {
+                    // Which Gemini answers: Dashwheel's own, that knows the car, or Google's app.
+                    var ai by remember { mutableStateOf(AiSettings.load(context)) }
+                    SettingsToggle(
+                        Icons.Filled.AutoAwesome, stringResource(R.string.ai_live_own), stringResource(R.string.ai_live_own_detail), ai.ownLive
+                    ) {
+                        ai = ai.copy(ownLive = it)
+                        AiSettings.save(context, ai)
+                    }
+                }
                 if (kind.speakable) {
                     SettingsToggle(
                         Icons.Filled.RecordVoiceOver, stringResource(R.string.alert_speak),

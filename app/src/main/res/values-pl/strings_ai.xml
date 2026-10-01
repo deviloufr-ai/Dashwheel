@@ -103,4 +103,11 @@
     <string name="ai_gemini_live_missing">Gemini nie jest zainstalowany na tym urządzeniu.</string>
     <string name="ai_gemini_live_end">Zakończ</string>
     <string name="ai_gemini_live_show">Pokaż Gemini Live</string>
+    <string name="ai_live_connecting">Łączenie</string>
+    <string name="ai_live_listening">Słucha</string>
+    <string name="ai_live_thinking">Myśli</string>
+    <string name="ai_live_speaking">Mówi</string>
+    <string name="ai_live_failed">Gemini nie odpowiada. Sprawdź połączenie.</string>
+    <string name="ai_live_own">Gemini, które zna auto</string>
+    <string name="ai_live_own_detail">Używa Twojego klucza Gemini: czyta auto, trasę i pulpit i działa na nich. Wyłączone: aplikacja Gemini od Google</string>
 </resources>

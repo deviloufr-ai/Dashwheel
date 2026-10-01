@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -42,6 +43,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -55,6 +57,8 @@ import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -133,7 +137,12 @@ internal object GeminiLive {
     private var unseenTexture: SurfaceTexture? = null
     private var unseenSurface: Surface? = null
 
-    fun available(context: Context): Boolean = isPackageInstalled(context, GEMINI_PACKAGE)
+    /** The conversation open is Dashwheel's own Gemini ([DashAssistant]), not Google's app. */
+    private var own = false
+
+    /** A Gemini to talk to: Dashwheel's own with a Gemini key, or Google's app. */
+    fun available(context: Context): Boolean =
+        isPackageInstalled(context, GEMINI_PACKAGE) || AiSettings.load(context).apiKey.isNotBlank()
 
     /** Follows the car (speed, reverse gear, calls) and the alert's "Try it". From the dashboard's start. */
     fun start(context: Context) {
@@ -175,7 +184,14 @@ internal object GeminiLive {
     private fun open(context: Context) {
         val app = AppLanguage.wrap(context.applicationContext)
         start(app)
-        if (!available(app)) {
+        val config = AiSettings.load(app)
+        val googleApp = isPackageInstalled(app, GEMINI_PACKAGE)
+        // Dashwheel's own Gemini knows the car: chosen, or the only one there is.
+        if (config.apiKey.isNotBlank() && (config.ownLive || !googleApp)) {
+            openOwn(app)
+            return
+        }
+        if (!googleApp) {
             HandsFree.say(app, R.string.ai_gemini_live_missing)
             return
         }
@@ -217,6 +233,26 @@ internal object GeminiLive {
         }
     }
 
+    /** Dashwheel's own Gemini: the alert shows the conversation, no app to start. */
+    private fun openOwn(app: Context) {
+        if (!DashAssistant.ready(app)) {
+            HandsFree.say(app, R.string.ai_ask_say_mic)
+            return
+        }
+        AlertPreview.stop()
+        own = true
+        _active.value = true
+        bigSince = SystemClock.elapsedRealtime()
+        render(app)
+        DashAssistant.start(app)
+        ticking = scope.launch {
+            while (isActive) {
+                delay(1_000)
+                render(app)
+            }
+        }
+    }
+
     /** Gemini already on its display (a dashboard tile): Live asked for there, then Live's screen kept there. */
     private suspend fun startLive(context: Context, host: EmbeddedApp.Host) {
         val id = withTimeoutOrNull(SHOW_WAIT_MS) {
@@ -236,6 +272,15 @@ internal object GeminiLive {
     fun end(context: Context) {
         val app = context.applicationContext
         if (!_active.value) return
+        if (own) {
+            own = false
+            ticking?.cancel()
+            ticking = null
+            _active.value = false
+            render(app)
+            DashAssistant.stop(app)
+            return
+        }
         starting?.cancel()
         starting = null
         LaunchCurtain.lift()
@@ -282,10 +327,11 @@ internal object GeminiLive {
             w.hide()
             return
         }
-        val host = EmbeddedApp.host(context, GEMINI_PACKAGE)
+        val talking = if (preview) AiSettings.load(context).let { it.ownLive && it.apiKey.isNotBlank() } else own
+        val host = if (talking) null else EmbeddedApp.host(context, GEMINI_PACKAGE)
         w.show(style) {
-            if (preview) GeminiAlert(style, host = null, onEnd = { AlertPreview.stop() }, onEnlarge = {})
-            else GeminiAlert(style, host, onEnd = { end(context) }, onEnlarge = { enlarge(context) })
+            if (preview) GeminiAlert(style, host = null, own = talking, onEnd = { AlertPreview.stop() }, onEnlarge = {})
+            else GeminiAlert(style, host, own = talking, onEnd = { end(context) }, onEnlarge = { enlarge(context) })
         }
     }
 
@@ -409,7 +455,7 @@ private object LaunchCurtain {
  * screen ([host]'s picture; a stand-in for "Try it", without [host]).
  */
 @Composable
-private fun GeminiAlert(style: AlertStyle, host: EmbeddedApp.Host?, onEnd: () -> Unit, onEnlarge: () -> Unit) {
+private fun GeminiAlert(style: AlertStyle, host: EmbeddedApp.Host?, own: Boolean, onEnd: () -> Unit, onEnlarge: () -> Unit) {
     if (style == AlertStyle.BUBBLE || style == AlertStyle.ICON) {
         GeminiOrb(style, onEnd)
         return
@@ -450,7 +496,11 @@ private fun GeminiAlert(style: AlertStyle, host: EmbeddedApp.Host?, onEnd: () ->
                 EndButton(onEnd)
             }
             val screen = Modifier.fillMaxWidth().weight(1f)
-            if (host != null) LiveScreen(host, screen) else LiveStandIn(screen)
+            when {
+                own -> Conversation(screen)
+                host != null -> LiveScreen(host, screen)
+                else -> LiveStandIn(screen)
+            }
         }
     }
 }
@@ -509,6 +559,39 @@ private fun EndButton(onEnd: () -> Unit) {
         contentAlignment = Alignment.Center
     ) {
         Icon(Icons.Filled.Close, contentDescription = end, tint = DashColors.TextPrimary)
+    }
+}
+
+/** Dashwheel's Gemini in the card, panel or full screen: the last lines said, and what it is doing. */
+@Composable
+private fun Conversation(modifier: Modifier) {
+    val lines by DashAssistant.lines.collectAsState()
+    val phase by DashAssistant.phase.collectAsState()
+    Column(modifier.padding(horizontal = 20.dp, vertical = 12.dp), verticalArrangement = Arrangement.Bottom) {
+        lines.takeLast(4).forEach { line ->
+            Text(
+                line.text,
+                color = if (line.driver) DashColors.TextSecondary else DashColors.TextPrimary,
+                style = if (line.driver) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.titleMedium,
+                textAlign = if (line.driver) TextAlign.End else TextAlign.Start,
+                maxLines = 4,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)
+            )
+        }
+        Spacer(Modifier.height(8.dp))
+        val status = when (phase) {
+            DashAssistant.Phase.CONNECTING -> R.string.ai_live_connecting
+            DashAssistant.Phase.THINKING -> R.string.ai_live_thinking
+            DashAssistant.Phase.SPEAKING -> R.string.ai_live_speaking
+            DashAssistant.Phase.FAILED -> R.string.ai_live_failed
+            else -> R.string.ai_live_listening
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Listening(DashColors.Accent, 20.dp)
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(status), color = DashColors.Accent, style = MaterialTheme.typography.labelLarge)
+        }
     }
 }
 
