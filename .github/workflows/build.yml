@@ -78,6 +78,26 @@ jobs:
           cp app/build/outputs/apk/release/app-release.apk Dashwheel-1.0.${{ github.run_number }}.apk
           cp companion/build/outputs/apk/release/companion-release.apk dashwheel-companion.apk
 
+      # A 64-bit-only copy for app stores with a size cap (IzzyOnDroid: 30 MB):
+      # the universal APK minus its 32-bit native code, realigned and re-signed
+      # with the same key. The in-app updater keeps taking the universal one.
+      - name: Build arm64-only APK
+        env:
+          KEYSTORE_FILE: ${{ runner.temp }}/release.keystore
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          bt="$ANDROID_HOME/build-tools/35.0.0"
+          cp Dashwheel-1.0.${{ github.run_number }}.apk "$RUNNER_TEMP/arm64.apk"
+          zip -q -d "$RUNNER_TEMP/arm64.apk" 'lib/armeabi-v7a/*' 'META-INF/*.SF' 'META-INF/*.RSA' 'META-INF/*.EC' 'META-INF/MANIFEST.MF' || true
+          "$bt/zipalign" -f -P 16 4 "$RUNNER_TEMP/arm64.apk" Dashwheel-1.0.${{ github.run_number }}-arm64-v8a.apk
+          "$bt/apksigner" sign --ks "$KEYSTORE_FILE" --ks-pass env:KEYSTORE_PASSWORD \
+            --ks-key-alias "$KEY_ALIAS" --key-pass env:KEY_PASSWORD \
+            Dashwheel-1.0.${{ github.run_number }}-arm64-v8a.apk
+          "$bt/apksigner" verify Dashwheel-1.0.${{ github.run_number }}-arm64-v8a.apk
+          ls -l Dashwheel-1.0.${{ github.run_number }}*.apk
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
@@ -119,6 +139,16 @@ jobs:
             Dashwheel-1.0.${{ github.run_number }}.apk
             dashwheel-companion.apk
           body_path: ${{ runner.temp }}/release-notes.md
+
+      # Uploaded after the universal APK on purpose: launchers from before the
+      # updater learnt to skip it take the first .apk asset, and the head unit
+      # may run 32-bit Android.
+      - name: Add arm64-only APK to the release
+        if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          files: Dashwheel-1.0.${{ github.run_number }}-arm64-v8a.apk
 
       - name: Publish branch pre-release
         if: ${{ github.ref != 'refs/heads/main' && github.event_name == 'push' }}

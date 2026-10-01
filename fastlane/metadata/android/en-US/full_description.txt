@@ -1,0 +1,40 @@
+<p>Dashwheel replaces the home screen of an Android car head unit. Map, music and live car data share one calm screen, and you arrange it yourself.</p>
+
+<p>Made for 1280x720 head units (ROCO K706, FYT and QF units). It also works on upright Tesla-style screens and on phones. Android 10 or newer.</p>
+
+<p><b>Dashboards</b></p>
+<ul>
+<li>Seven dashboards in a cross: three side by side, two above and two below the middle one</li>
+<li>A free grid on each: hold a tile to move it, drag its corner to resize, undo any change</li>
+<li>Ready-made templates: Daily, Road trip and Car health</li>
+<li>30+ built-in widgets with 60+ designs, plus Android widgets, app shortcuts and docked apps</li>
+<li>14 themes, four of them whole-design skins (Orbit, Cockpit, Horizon, Tape Deck), each with a day and a night version</li>
+</ul>
+
+<p><b>Your car</b></p>
+<ul>
+<li>Live data from a Bluetooth ELM327 OBD adapter: speed, revs, temperatures, fuel, voltage, fault codes read and cleared</li>
+<li>The head unit's own car data where it exposes it: doors, fuel level, lights, mileage, reversing, tyre pressures</li>
+<li>Car care: particle filter health, engine warm-up, battery, servicing planner with spoken reminders</li>
+<li>Reverse view with guide lines and parking radar on supported units</li>
+</ul>
+
+<p><b>On the road</b></p>
+<ul>
+<li>A free MapLibre map with search and routes that hands turn-by-turn to your navigation app</li>
+<li>Next turn from Google Maps or Waze on its own tile</li>
+<li>Break reminder, eco-driving score, fuel prices nearby (France)</li>
+<li>Volume that follows speed, spoken alerts and a start-up briefing</li>
+<li>Your own pop-ups for calls, doors, parking radar, climate and seat belt</li>
+</ul>
+
+<p><b>Optional extras</b></p>
+<ul>
+<li>AI mechanic: fault codes explained in plain words with Google Gemini (your own free API key)</li>
+<li>Phone link with the Dashwheel Companion app: notifications, messages and calls on the big screen, paired by QR code and end-to-end encrypted</li>
+<li>Root features (system-app install, boot logo, apps inside tiles, steering-wheel keys) only appear when the unit offers a root shell</li>
+</ul>
+
+<p>8 languages: English, French, German, Spanish, Italian, Portuguese, Dutch, Polish.</p>
+
+<p>Free and open source under the GPL v3. No ads, no tracking.</p>

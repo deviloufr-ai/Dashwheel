@@ -167,8 +167,11 @@ class UpdateManager(private val context: Context) {
         for (i in 0 until assets.length()) {
             val asset = assets.getJSONObject(i)
             val name = asset.optString("name")
-            // The release also carries the phone companion app: never install that here.
-            if (name.endsWith(".apk", ignoreCase = true) && !name.equals(COMPANION_APK_NAME, ignoreCase = true)) {
+            // The release also carries the phone companion app and a 64-bit-only
+            // copy for app stores: never install those here.
+            if (name.endsWith(".apk", ignoreCase = true) && !name.equals(COMPANION_APK_NAME, ignoreCase = true) &&
+                !name.endsWith(STORE_APK_SUFFIX, ignoreCase = true)
+            ) {
                 val url = asset.optString("browser_download_url").ifBlank { null } ?: continue
                 // The URL comes from a JSON document fetched over the network;
                 // only accept GitHub's own release hosts.
@@ -375,6 +378,9 @@ class UpdateManager(private val context: Context) {
         private const val STALL_MS = 5 * 60_000L
         /** The phone companion app's asset in each release (see build.yml). */
         const val COMPANION_APK_NAME = "dashwheel-companion.apk"
+
+        /** The 64-bit-only store copy in each release (see build.yml). */
+        private const val STORE_APK_SUFFIX = "-arm64-v8a.apk"
         private val ALLOWED_DOWNLOAD_HOSTS = setOf("github.com", "objects.githubusercontent.com", "release-assets.githubusercontent.com")
     }
 }
