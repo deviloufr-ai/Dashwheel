@@ -12,6 +12,7 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.wifi.WifiManager
 import androidx.annotation.StringRes
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -70,6 +71,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -297,8 +300,8 @@ private fun BarReadout(item: BarItem, m: TopBarModel) {
         BarItem.WIFI -> {
             val wifi by Radios.wifi.collectAsState()
             RadioReadout(
-                if (wifi.connected) Icons.Filled.Wifi else Icons.Filled.WifiOff, stringResource(item.label),
-                on = wifi.connected, strength = if (wifi.connected) wifi.bars else null
+                Icons.Filled.WifiOff, stringResource(item.label),
+                on = wifi.connected, wifiBars = if (wifi.connected) wifi.bars else null
             )
         }
         BarItem.BLUETOOTH -> {
@@ -312,7 +315,7 @@ private fun BarReadout(item: BarItem, m: TopBarModel) {
                     linked -> Icons.Filled.BluetoothConnected
                     else -> Icons.Filled.Bluetooth
                 },
-                stringResource(item.label), on = on, strength = null, active = linked
+                stringResource(item.label), on = on, active = linked
             )
         }
         BarItem.PHONE -> PhonePill()
@@ -358,22 +361,38 @@ private fun LookIcon(icon: ImageVector) {
     Icon(icon, contentDescription = null, tint = DashColors.TextSecondary, modifier = Modifier.padding(end = 4.dp).size(16.dp))
 }
 
-/** A radio as its icon, lit when on, with four small strength bars when known. */
+/** A radio as its icon, lit when on; the Wi-Fi's icon shows its strength too. */
 @Composable
-private fun RadioReadout(icon: ImageVector, label: String, on: Boolean, strength: Int?, active: Boolean = on) {
+private fun RadioReadout(icon: ImageVector, label: String, on: Boolean, active: Boolean = on, wifiBars: Int? = null) {
     // Only the labelled look names a radio: its icon says what it is.
     val labelled = LocalBarLook.current == BarLook.LABELS
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = label }) {
-        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-            Icon(icon, contentDescription = null, tint = if (active) DashColors.Accent else DashColors.Muted, modifier = Modifier.size(if (labelled) 18.dp else 22.dp).alpha(if (on) 1f else 0.6f))
-            if (strength != null) {
-                Spacer(Modifier.width(2.dp))
-                repeat(4) { i ->
-                    Box(Modifier.size(width = 3.dp, height = (5 + i * 3).dp).clip(RoundedCornerShape(1.dp)).background(if (i < strength) DashColors.Accent else DashColors.CardHi))
-                }
-            }
-        }
+        val size = if (labelled) 18.dp else 22.dp
+        val tint = if (active) DashColors.Accent else DashColors.Muted
+        if (wifiBars != null) WifiFan(wifiBars, tint, Modifier.size(size))
+        else Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(size).alpha(if (on) 1f else 0.6f))
         if (labelled) Caption(label)
+    }
+}
+
+/**
+ * The Wi-Fi fan with its strength inside: a dim wedge, lit from its point
+ * up to [bars] of 4, like the phone's own status bar draws it.
+ */
+@Composable
+private fun WifiFan(bars: Int, tint: Color, modifier: Modifier) {
+    val dim = DashColors.CardHi
+    Canvas(modifier) {
+        val radius = size.width / 2f * 1.3f
+        val center = Offset(size.width / 2f, size.height * 0.88f)
+        fun wedge(r: Float, color: Color) = drawArc(
+            color, startAngle = 225f, sweepAngle = 90f, useCenter = true,
+            topLeft = Offset(center.x - r, center.y - r), size = Size(r * 2, r * 2)
+        )
+        wedge(radius, dim)
+        // Even no bars keeps a lit point: still connected.
+        val lit = (bars.coerceIn(0, 4) + 1) / 5f
+        wedge(radius * lit, tint)
     }
 }
 
