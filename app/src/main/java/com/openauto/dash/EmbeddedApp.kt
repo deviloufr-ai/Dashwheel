@@ -221,6 +221,9 @@ internal object EmbeddedApp {
     /** Home or Back held back by [keyWhileAway], until let go. */
     private var heldKey = 0
 
+    /** The dashboard's activity while it shows, for a picture of it ([GeminiLive]'s curtain). */
+    fun dashboardActivity(): Activity? = dashboard?.get()
+
     /** [activity] shows (onStart), or null once it no longer does (onStop). */
     fun dashboardShown(activity: Activity?) {
         dashboard = activity?.let { WeakReference(it) }
@@ -255,9 +258,10 @@ internal object EmbeddedApp {
     // seconds after ACC on. Coming on top of the one inside the tile, it made
     // two copies of the app: one covering the dashboard, where menus did
     // nothing, the map no longer turned with the car and Home could not get
-    // rid of it, and one inside the tile. So that record is wiped when it names
-    // an app inside a tile (the tile brings it back itself); and, should the
-    // unit open it anyway, for a while after the ignition comes on, and after
+    // rid of it, and one inside the tile. The driver wants to wake on the
+    // dashboard anyway, so that record is always wiped (a tile brings its app
+    // back itself) and the dashboard comes in front at switch-off; and, should
+    // the unit open it anyway, for a while after the ignition comes on, and after
     // the dashboard gets covered without a touch or a key, a tile's app found
     // full screen in front is put back into its tile. What the user opens full
     // screen themselves is left there.
@@ -286,6 +290,9 @@ internal object EmbeddedApp {
     /** How often, meanwhile. */
     private const val WATCH_EVERY_MS = 1_000L
 
+    /** How often the dashboard is looked for in front after the ignition comes on. */
+    private const val HOME_EVERY_MS = 500L
+
     /** When the user last touched the dashboard or pressed a key of the unit (elapsedRealtime). */
     @Volatile
     private var userActedAt = 0L
@@ -297,8 +304,14 @@ internal object EmbeddedApp {
         userActedAt = SystemClock.elapsedRealtime()
     }
 
-    /** The ignition went off: the unit is not to reopen a tile's app full screen at the next start. */
+    /**
+     * The ignition went off: the dashboard comes in front at once, so the unit
+     * sleeps, and wakes, on it (the app that was in front goes on behind it:
+     * music, guidance), and the unit is not to reopen any app full screen at
+     * the next start.
+     */
     fun carStopped(context: Context) {
+        mainScope.launch { bringHome(context, "switch-off") }
         scope.launch {
             delay(NAVI_SAVED_MS)
             forgetNaviToRestore(context)
@@ -317,38 +330,47 @@ internal object EmbeddedApp {
 
     /**
      * The unit wakes on the app that was in front at switch-off (any app, not
-     * only the navigation one): for [HOME_AFTER_POWER_UP_MS] after the ignition, as
-     * long as the user has not touched or pressed anything, the dashboard is
-     * put back in front whenever it is not. Main thread.
+     * only the navigation one) when the dashboard could not come in front at
+     * switch-off: from the ignition on, at once and then every
+     * [HOME_EVERY_MS] for [HOME_AFTER_POWER_UP_MS], as long as the user has
+     * not touched or pressed anything, the dashboard is put back in front
+     * whenever it is not. Main thread.
      */
     private suspend fun homeAfterPowerUp(context: Context) {
         val since = userActedAt
         val until = SystemClock.elapsedRealtime() + HOME_AFTER_POWER_UP_MS
         while (SystemClock.elapsedRealtime() < until) {
-            delay(WATCH_EVERY_MS)
             if (userActedAt != since) return
-            if (dashboard?.get() != null) continue
-            val home = Intent(Intent.ACTION_MAIN)
-                .addCategory(Intent.CATEGORY_HOME)
-                .setPackage(context.packageName)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-            runCatching { context.startActivity(home) }
-                .onSuccess {
-                    Log.i(TAG, "power-up: an app came up in front of the dashboard, Home brought back")
-                    DebugLog.note(context, "power-up: an app was in front, Home brought back")
-                }
-                .onFailure { Log.w(TAG, "power-up: can't bring the dashboard back to the front", it) }
+            bringHome(context, "power-up")
+            delay(HOME_EVERY_MS)
         }
     }
 
-    /** Wipes the firmware's app to reopen at power-up when it is one inside a tile. */
+    /** The dashboard in front, when it is not; [why] for the log. Main thread. */
+    private fun bringHome(context: Context, why: String) {
+        if (dashboard?.get() != null) return
+        val home = Intent(Intent.ACTION_MAIN)
+            .addCategory(Intent.CATEGORY_HOME)
+            .setPackage(context.packageName)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+        runCatching { context.startActivity(home) }
+            .onSuccess {
+                Log.i(TAG, "$why: an app was in front of the dashboard, Home brought back")
+                DebugLog.note(context, "$why: an app was in front, Home brought back")
+            }
+            .onFailure { Log.w(TAG, "$why: can't bring the dashboard back to the front", it) }
+    }
+
+    /**
+     * Wipes the firmware's app to reopen at power-up: the unit wakes on the
+     * dashboard, and an app inside a tile is brought back by its tile.
+     */
     private suspend fun forgetNaviToRestore(context: Context) {
-        if (held.isEmpty()) return
         try {
             val saved = DockShell.shell(context, "settings get system $NAVI_TO_RESTORE").trim()
-            if (saved.substringBefore('/') !in held) return
+            if (saved.isEmpty() || saved == NO_NAVI || saved == "null") return
             DockShell.shell(context, "settings put system $NAVI_TO_RESTORE $NO_NAVI")
-            Log.i(TAG, "the unit won't reopen $saved full screen at power-up: it lives inside a tile")
+            Log.i(TAG, "the unit won't reopen $saved full screen at power-up: it wakes on the dashboard")
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -661,6 +683,18 @@ internal object EmbeddedApp {
         @Volatile
         internal var windowPackage = packageName
             private set
+
+        /**
+         * A root shell command that starts the app instead of its icon's
+         * launch, once (`--display` is added): Gemini started straight in
+         * Live ([GeminiLive]). Used by the next start, then forgotten.
+         */
+        @Volatile
+        var startCommand: String? = null
+
+        private val _placed = MutableStateFlow(0L)
+        /** When the app was last seen in place on its display (elapsedRealtime). */
+        val placed: StateFlow<Long> = _placed.asStateFlow()
 
         private val _status = MutableStateFlow(Status.STARTING)
         val status: StateFlow<Status> = _status.asStateFlow()
@@ -1035,6 +1069,7 @@ internal object EmbeddedApp {
                     }
                     _status.value = Status.SHOWN
                     Log.i(TAG, "$packageName is on the tile")
+                    _placed.value = SystemClock.elapsedRealtime()
                     FreeformBar.insideFloats(context, packageName, found.any { floating(it) })
                     return
                 }
@@ -1079,7 +1114,19 @@ internal object EmbeddedApp {
             Log.i(TAG, "$what: ${out.trim()}")
         }
 
-        private fun start(vd: VirtualDisplay) {
+        private suspend fun start(vd: VirtualDisplay) {
+            startCommand?.let { cmd ->
+                startCommand = null
+                val ok = runCatching { DockShell.shell(context, "$cmd --display ${vd.display.displayId}") }
+                    .onFailure { Log.w(TAG, "$packageName refused its start command", it) }
+                    .isSuccess
+                _status.value = if (ok) Status.SHOWN else Status.BLOCKED
+                if (ok) {
+                    startedAt = SystemClock.elapsedRealtime()
+                    launchedOnTile()
+                }
+                return
+            }
             val intent = context.packageManager.getLaunchIntentForPackage(packageName)
             if (intent == null) {
                 _status.value = Status.MISSING

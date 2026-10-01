@@ -158,6 +158,8 @@ object CarPower {
         DebugLog.snapshot(context, "ignition off")
         EmbeddedApp.carStopped(context)
         MediaResume.carStopped(context)
+        // A conversation with Gemini doesn't go on, microphone open, while the car sleeps.
+        scope.launch { GeminiLive.end(context) }
         if (!DemoMode.isOn) parkingFix(context)?.takeIf { parkFixUsable(it.time, now) }?.let { ParkingStore.save(context, it) }
         scope.launch { runCatching { ObdBluetoothManager.disconnect() } }
     }

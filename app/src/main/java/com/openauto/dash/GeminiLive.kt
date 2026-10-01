@@ -1,11 +1,19 @@
 package com.openauto.dash
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.PixelFormat
 import android.graphics.SurfaceTexture
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
+import android.view.Gravity
+import android.view.PixelCopy
 import android.view.Surface
 import android.view.TextureView
+import android.view.WindowManager
+import android.widget.ImageView
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -59,6 +67,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -93,6 +102,10 @@ internal object GeminiLive {
     private const val SETTLE_MS = 2_500L
     /** Live's screen may open on the main screen: put back on the alert after this. */
     private const val PLACE_AFTER_MS = 1_500L
+    /** The curtain over Gemini's start comes off once Gemini is in place, or after this at most. */
+    private const val CURTAIN_MAX_MS = 4_000L
+    /** And stays a moment more, while the unit draws Gemini where it now is. */
+    private const val CURTAIN_AFTER_MS = 200L
     /** While driving, the card, panel or full screen shrinks to the pill after this long. */
     private const val COLLAPSE_MS = 10_000L
 
@@ -173,11 +186,28 @@ internal object GeminiLive {
         }
         AlertPreview.stop()
         val host = EmbeddedApp.host(app, GEMINI_PACKAGE)
-        attachUnseen(app, host)
+        // No display yet: Gemini starts straight in Live there, one launch instead of two.
+        val fresh = host.displayId == null
+        if (fresh) host.startCommand = LIVE
         _active.value = true
         bigSince = SystemClock.elapsedRealtime()
-        render(app)
-        starting = scope.launch { startLive(app, host) }
+        // The unit shows each new app full screen for a moment before it reaches its display:
+        // a picture of the dashboard hides that, until Gemini is in place.
+        val since = host.placed.value
+        LaunchCurtain.cover(app) {
+            if (!_active.value) {
+                LaunchCurtain.lift()
+                return@cover
+            }
+            render(app)
+            attachUnseen(app, host)
+            starting = scope.launch {
+                withTimeoutOrNull(CURTAIN_MAX_MS) { host.placed.first { it > since } }
+                delay(CURTAIN_AFTER_MS)
+                LaunchCurtain.lift()
+                if (!fresh) startLive(app, host)
+            }
+        }
         ticking = scope.launch {
             // The shrink to the pill comes with time, not with an event.
             while (isActive) {
@@ -187,7 +217,7 @@ internal object GeminiLive {
         }
     }
 
-    /** Gemini on its display first, then Live there, then Live's screen kept there. */
+    /** Gemini already on its display (a dashboard tile): Live asked for there, then Live's screen kept there. */
     private suspend fun startLive(context: Context, host: EmbeddedApp.Host) {
         val id = withTimeoutOrNull(SHOW_WAIT_MS) {
             while (host.status.value != EmbeddedApp.Status.SHOWN || host.displayId == null) delay(200)
@@ -208,11 +238,13 @@ internal object GeminiLive {
         if (!_active.value) return
         starting?.cancel()
         starting = null
+        LaunchCurtain.lift()
         ticking?.cancel()
         ticking = null
         _active.value = false
         render(app)
         val host = EmbeddedApp.host(app, GEMINI_PACKAGE)
+        host.startCommand = null
         val elsewhere = host.heldBesides(pictures + unseen)
         pictures.toList().forEach { host.forget(it) }
         host.forget(unseen)
@@ -301,6 +333,75 @@ internal object GeminiLive {
     /** The design shown for [chosen]: the pill once the car has moved a while with it big. */
     internal fun design(chosen: AlertStyle, moving: Boolean, bigForMs: Long): AlertStyle =
         if (chosen in BIG && moving && bigForMs > COLLAPSE_MS) AlertStyle.PILL else chosen
+}
+
+/**
+ * A still picture of the dashboard over the whole screen while an app starts:
+ * the unit shows each new app full screen for a moment, whatever display it
+ * is started on, before it reaches that display, and the picture hides that
+ * flash. Taken from the dashboard's own window (PixelCopy, the apps inside
+ * its tiles included); nothing when the dashboard isn't in front. Touches go
+ * through it, and it never stays more than a few seconds.
+ */
+private object LaunchCurtain {
+    private var view: ImageView? = null
+    private val main = Handler(Looper.getMainLooper())
+
+    /** Covers the screen, then runs [then]; [then] runs at once when no picture can be taken. Main thread. */
+    fun cover(context: Context, then: () -> Unit) {
+        lift()
+        val activity = EmbeddedApp.dashboardActivity()
+        val decor = activity?.window?.decorView
+        if (activity == null || decor == null || !activity.hasWindowFocus() || decor.width == 0 || decor.height == 0 ||
+            !android.provider.Settings.canDrawOverlays(context)
+        ) {
+            then()
+            return
+        }
+        val picture = Bitmap.createBitmap(decor.width, decor.height, Bitmap.Config.ARGB_8888)
+        var done = false
+        val go = {
+            if (!done) {
+                done = true
+                then()
+            }
+        }
+        runCatching {
+            PixelCopy.request(activity.window, picture, { result ->
+                if (result == PixelCopy.SUCCESS) show(context, picture)
+                go()
+            }, main)
+        }.onFailure { go() }
+        // A copy that never answers must not hold Gemini up.
+        main.postDelayed({ go() }, 300)
+        main.postDelayed({ lift() }, 6_000)
+    }
+
+    private fun show(context: Context, picture: Bitmap) {
+        val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        val v = ImageView(context).apply { setImageBitmap(picture) }
+        val params = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+            // Translucent, so its fade shows the dashboard under it, not black.
+            PixelFormat.TRANSLUCENT
+        ).apply {
+            gravity = Gravity.TOP or Gravity.START
+            title = "Dashwheel launch curtain"
+        }
+        runCatching { wm.addView(v, params) }.onSuccess { view = v }
+    }
+
+    /** Takes the picture away, with a short fade. Main thread. */
+    fun lift() {
+        val v = view ?: return
+        view = null
+        v.animate().alpha(0f).setDuration(150).withEndAction {
+            runCatching { (v.context.getSystemService(Context.WINDOW_SERVICE) as WindowManager).removeViewImmediate(v) }
+        }.start()
+    }
 }
 
 /**
