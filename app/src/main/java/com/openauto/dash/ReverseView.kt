@@ -716,7 +716,7 @@ private fun ReverseScreen() {
                 if (hasSteering) steeringLines(g, steering)
                 if (tailgate > 0f) tailgateLine(g, tailgate)
             }
-            if (layout == ReverseLayout.BOTH && pictureUp) {
+            if (layout == ReverseLayout.BOTH && pictureUp && !adjusting) {
                 // In the corner over the far end of the picture, the least useful part when backing up.
                 BoxWithConstraints(Modifier.fillMaxSize()) {
                     Canvas(
@@ -741,8 +741,9 @@ private fun ReverseScreen() {
                     modifier = Modifier.clip(RoundedCornerShape(50)).background(ReverseInk.Chip).padding(horizontal = 14.dp, vertical = 6.dp)
                 )
             }
-            if (adjusting) AdjustPanel(calibration)
         }
+        // On the right, in the radar's place: the lines and the left of the picture stay in sight while lining them up.
+        if (adjusting && pictureUp) Box(Modifier.align(Alignment.TopEnd).padding(16.dp)) { AdjustPanel(calibration) }
         if (preview) {
             Text(
                 stringResource(R.string.reverse_preview_badge), color = ReverseInk.Text, fontSize = 15.sp,
