@@ -117,6 +117,21 @@ object WindowListing {
     }
 
     /**
+     * [packageName]'s front-most stack in the listing, whatever its windowing
+     * mode and display: (stack id, display id). What the second screen moves
+     * onto its display, and back.
+     */
+    internal fun stackOf(output: String, packageName: String): Pair<Int, Int>? {
+        for (block in stackBlocks(output)) {
+            if (block.contains("ActivityType=home")) continue
+            if (TASK.find(block)?.groupValues?.get(2) != packageName) continue
+            val id = block.takeWhile { it.isDigit() }.toIntOrNull() ?: continue
+            return id to (displayId(block) ?: DEFAULT_DISPLAY)
+        }
+        return null
+    }
+
+    /**
      * The id of a fullscreen stack for ordinary apps on the dashboard's own
      * display: the one holding the dashboard's task when it is listed, else any
      * other. A floating task moved there leaves freeform and shows full screen,

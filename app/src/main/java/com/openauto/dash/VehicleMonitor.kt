@@ -84,13 +84,20 @@ internal object VehicleMonitor {
             if (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR) != BluetoothAdapter.STATE_ON) return
             scope.launch {
                 delay(BLUETOOTH_SETTLE_MS)
-                if (redials(foreground.value, CarPower.ignition.value)) connectSaved()
+                if (redials(foreground.value || secondScreen.value, CarPower.ignition.value)) connectSaved()
             }
         }
     }
 
+    /** The second screen shows the car's readings: they are wanted even with an app in front. */
+    private val secondScreen = MutableStateFlow(false)
+
     fun setForeground(inFront: Boolean) {
         foreground.value = inFront
+    }
+
+    fun setSecondScreenShowing(showing: Boolean) {
+        secondScreen.value = showing
     }
 
     /**
@@ -128,7 +135,7 @@ internal object VehicleMonitor {
                 calling = now
                 if (!ended) return@collect
                 delay(CALL_SETTLE_MS)
-                if (redials(foreground.value, CarPower.ignition.value)) connectSaved()
+                if (redials(foreground.value || secondScreen.value, CarPower.ignition.value)) connectSaved()
             }
     }
 
@@ -144,7 +151,7 @@ internal object VehicleMonitor {
             val state = ObdBluetoothManager.connectionState.value
             val wrongSide = state == ObdConnectionState.CONNECTED && ObdBluetoothManager.viaPhone.value != ObdBluetoothManager.usesPhone()
             if (wrongSide) ObdBluetoothManager.disconnect()
-            if (redials(foreground.value, CarPower.ignition.value)) connectSaved()
+            if (redials(foreground.value || secondScreen.value, CarPower.ignition.value)) connectSaved()
         }
     }
 
@@ -174,13 +181,14 @@ internal object VehicleMonitor {
     }
 
     /**
-     * Redials a missing adapter while it is wanted ([redials]): after 5 s,
+     * Redials a missing adapter while it is wanted ([redials], the second
+     * screen showing the car's readings counting as in front): after 5 s,
      * then less and less often up to once a minute, so an adapter that is
      * unplugged or asleep does not keep the Bluetooth radio calling it.
      * Wanted again, or a link that was up and dropped, starts over at 5 s.
      */
     private suspend fun reconnectWhileWanted() {
-        combine(foreground, CarPower.ignition) { inFront, ignition -> redials(inFront, ignition) }
+        combine(foreground, secondScreen, CarPower.ignition) { inFront, cluster, ignition -> redials(inFront || cluster, ignition) }
             .distinctUntilChanged()
             .collectLatest { wanted ->
                 if (!wanted) {

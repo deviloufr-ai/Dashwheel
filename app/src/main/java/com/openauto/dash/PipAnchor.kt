@@ -243,12 +243,14 @@ object PipAnchor {
     private val lentUntil = java.util.concurrent.ConcurrentHashMap<String, Long>()
 
     /**
-     * True while [packageName] belongs to a split launch, or runs inside a tile
-     * (EmbeddedApp), and the window tiles must leave it alone: an app has one
-     * task, so opening its window would pull it out of that tile.
+     * True while [packageName] belongs to a split launch, runs inside a tile
+     * (EmbeddedApp) or is shown on the second screen (SecondScreenController),
+     * and the window tiles must leave it alone: an app has one task, so
+     * opening its window would pull it out of there.
      */
     fun isLent(packageName: String): Boolean {
         if (EmbeddedApp.holds(packageName)) return true
+        if (packageName in SecondScreenController.heldPackages.value) return true
         val until = lentUntil[packageName] ?: return false
         if (System.currentTimeMillis() < until) return true
         lentUntil.remove(packageName, until)

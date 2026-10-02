@@ -1,0 +1,394 @@
+package com.openauto.dash
+
+import android.content.Context
+import android.content.Intent
+import android.util.Log
+import android.view.KeyEvent
+import com.openauto.dash.link.DisplayHello
+import com.openauto.dash.link.DisplayMode
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
+
+/** What the second screen is being sent, for Settings and the tile. */
+data class SecondScreenStatus(
+    val output: SecondScreenOutput = SecondScreenOutput.NONE,
+    val block: SecondScreenBlock = SecondScreenBlock.NONE,
+    /** The display's own measure of the video it receives. */
+    val kbps: Int = 0
+)
+
+/**
+ * Puts on the second screen what Settings asks for, as far as the display,
+ * the encoder and the road allow ([SecondScreenRules.output]):
+ *
+ * - the cluster, drawn here in a Presentation on a [StreamDisplay] and streamed;
+ * - an app, its stack moved onto that display (and back when it is done);
+ * - or, when video isn't possible, the readings for the display to draw
+ *   ([ClusterFeed]).
+ *
+ * Process-wide like DisplayLink, so the second screen carries on while another
+ * app covers the dashboard.
+ */
+internal object SecondScreenController {
+    private const val TAG = "SecondScreen"
+    /** A display gone this long (Wi-Fi hiccup, the Pi rebooting) before its stream is taken down. */
+    private const val LINK_GRACE_MS = 30_000L
+    /** Time for an app launched on the screen to show its window before it is moved. */
+    private const val APP_LAUNCH_WAIT_MS = 1_500L
+    private const val APP_LAUNCH_TRIES = 6
+    private const val CLUSTER_FPS = 15
+    private const val APP_FPS = 30
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private var started = false
+    private lateinit var appContext: Context
+
+    private val _status = MutableStateFlow(SecondScreenStatus())
+    val status: StateFlow<SecondScreenStatus> = _status
+
+    /** Apps shown on the second screen: the dashboard's tiles leave their windows alone (see PipAnchor.isLent). */
+    private val _heldPackages = MutableStateFlow<Set<String>>(emptySet())
+    val heldPackages: StateFlow<Set<String>> = _heldPackages
+
+    /** The cluster's page, and the pages it cycles through. */
+    private val _page = MutableStateFlow(ClusterPage.DRIVE)
+    val page: StateFlow<ClusterPage> = _page
+    private val _pages = MutableStateFlow(ClusterPage.entries.toList())
+
+    val keys = ClusterKeyTracker()
+
+    /** The accessibility service sees every key first: the dashboard then leaves them to it, or each would count twice. */
+    @Volatile var serviceFiltersKeys = false
+
+    private val encoderFailed = MutableStateFlow(false)
+    private val moving = MutableStateFlow(false)
+    private val applying = Mutex()
+
+    private var stream: StreamDisplay? = null
+    /** What the encoder is set to now: the configured rate, or less while the Wi-Fi struggles. */
+    private var bitrateKbps = 0
+    private var streamShape: List<Int>? = null
+    private var presentation: ClusterPresentation? = null
+    private var appShown: String? = null
+    private var feed: Job? = null
+    private var holdsFeeds = false
+    private var teardown: Job? = null
+
+    private data class Wanted(
+        val output: SecondScreenOutput,
+        val block: SecondScreenBlock,
+        val config: SecondScreenConfig,
+        val display: DisplayHello?
+    )
+
+    fun start(context: Context) {
+        if (started) return
+        started = true
+        appContext = context.applicationContext
+        SecondScreenStore.load(appContext)
+        scope.launch {
+            SecondScreenStore.config.collect { c ->
+                _pages.value = c.pages
+                if (_page.value !in c.pages) _page.value = c.pages.first()
+            }
+        }
+        scope.launch { followSpeed() }
+        scope.launch {
+            combine(SecondScreenStore.config, DisplayLink.state, moving, encoderFailed) { config, link, isMoving, failed ->
+                val display = (link as? DisplayLinkState.Connected)?.display
+                val canStream = display != null && com.openauto.dash.link.CODEC_H264 in display.decoders && !failed
+                val (output, block) = SecondScreenRules.output(
+                    config, connected = display != null, canStream = canStream, moving = isMoving,
+                    appIsVideo = config.appPackage?.let(::isVideoApp) == true
+                )
+                Wanted(output, block, config, display)
+            }
+                .distinctUntilChanged()
+                .conflate()
+                .collect { wanted -> applying.withLock { apply(wanted) } }
+        }
+        // An encoder that failed gets another chance when the display comes back or the picture asked for changes.
+        scope.launch { DisplayLink.state.filterIsInstance<DisplayLinkState.Connected>().collect { encoderFailed.value = false } }
+        scope.launch {
+            SecondScreenStore.config.map { listOf(it.video, it.maxHeight, it.bitrateKbps, it.mode) }.distinctUntilChanged().collect { encoderFailed.value = false }
+        }
+        scope.launch { DisplayLink.keyFrameRequests.collect { stream?.requestKeyFrame() } }
+        scope.launch {
+            DisplayLink.stats.collect { report ->
+                _status.update { it.copy(kbps = report?.kbps ?: 0) }
+                // Too much for the Wi-Fi: lighter frames rather than frames lost.
+                val s = stream ?: return@collect
+                if (report == null) return@collect
+                val next = SecondScreenRules.adaptBitrate(bitrateKbps, SecondScreenStore.config.value.bitrateKbps, report.framesShown, report.framesDropped)
+                if (next != bitrateKbps) {
+                    Log.i(TAG, "bitrate $bitrateKbps -> $next kbit/s (${report.framesDropped} of ${report.framesShown + report.framesDropped} frames dropped)")
+                    bitrateKbps = next
+                    s.setBitrate(next)
+                }
+            }
+        }
+    }
+
+    /** Next (or, with a negative [step], previous) cluster page; from the tile, Settings or a key. */
+    fun turnPage(step: Int = 1) {
+        val next = SecondScreenRules.nextPage(_pages.value, _page.value, step)
+        _page.value = next
+    }
+
+    /**
+     * [onKey] ahead of the steering wheel's button map, which keeps every key
+     * while it is learning them (SteeringWheelStore.mapping).
+     */
+    fun onWheelKey(event: KeyEvent): Boolean =
+        !SteeringWheelStore.mapping.value && runCatching { onKey(event) }.getOrDefault(false)
+
+    /** A key from the dashboard or the accessibility service; true when it was the cluster's. */
+    fun onKey(event: KeyEvent): Boolean {
+        if (!started) return false
+        val showing = _status.value.output.let { it == SecondScreenOutput.VIDEO_CLUSTER || it == SecondScreenOutput.DATA }
+        val decision = keys.onKey(event.keyCode, event.action == KeyEvent.ACTION_DOWN, event.repeatCount, SecondScreenStore.config.value, showing)
+        when (decision.action) {
+            ClusterKeyAction.NEXT_PAGE -> turnPage(1)
+            ClusterKeyAction.PREVIOUS_PAGE -> turnPage(-1)
+            ClusterKeyAction.SKIP_NEXT -> CarMediaController.shared(appContext).next()
+            ClusterKeyAction.SKIP_PREVIOUS -> CarMediaController.shared(appContext).previous()
+            null -> Unit
+        }
+        return decision.consume
+    }
+
+    private suspend fun apply(wanted: Wanted) {
+        _status.update { it.copy(output = wanted.output, block = wanted.block) }
+        val connected = wanted.display != null
+        if (!connected && wanted.config.mode != SecondScreenMode.OFF && (stream != null || appShown != null)) {
+            // Gone for now: keep the app where it is for a while, it will likely be back.
+            if (teardown?.isActive != true) {
+                teardown = scope.launch {
+                    delay(LINK_GRACE_MS)
+                    applying.withLock {
+                        tearDown()
+                        holdFeeds(false)
+                    }
+                }
+            }
+            stopFeed()
+            return
+        }
+        teardown?.cancel()
+        teardown = null
+
+        val display = wanted.display
+        val videoOut = wanted.output == SecondScreenOutput.VIDEO_CLUSTER || wanted.output == SecondScreenOutput.VIDEO_APP
+        if (!videoOut || display == null) {
+            tearDown()
+        } else {
+            val (w, h) = SecondScreenRules.streamSize(display.width, display.height, wanted.config.maxHeight, display.maxWidth, display.maxHeight)
+            val fps = if (wanted.output == SecondScreenOutput.VIDEO_APP) APP_FPS else CLUSTER_FPS
+            val shape = listOf(w, h, fps, wanted.config.bitrateKbps)
+            if (streamShape != shape) {
+                tearDown()
+                stream = makeStream(w, h, fps, wanted.config.bitrateKbps) ?: return
+                streamShape = shape
+                bitrateKbps = wanted.config.bitrateKbps
+            }
+        }
+
+        when (wanted.output) {
+            SecondScreenOutput.VIDEO_CLUSTER -> {
+                releaseApp()
+                showCluster(display?.overscanPct ?: 0)
+                startVideo()
+            }
+            SecondScreenOutput.VIDEO_APP -> {
+                dismissCluster()
+                val pkg = wanted.config.appPackage
+                if (pkg != null && appShown != pkg) {
+                    releaseApp()
+                    showApp(pkg)
+                }
+                startVideo()
+            }
+            SecondScreenOutput.DATA -> {
+                DisplayLink.send(DisplayMode(DisplayMode.Mode.DATA))
+                startFeed()
+            }
+            SecondScreenOutput.NONE -> if (connected) DisplayLink.send(DisplayMode(DisplayMode.Mode.IDLE))
+        }
+        if (wanted.output != SecondScreenOutput.DATA) stopFeed()
+        holdFeeds(wanted.output != SecondScreenOutput.NONE)
+    }
+
+    /** Tells the display to play, with the stream's parameter sets and a fresh key frame (also after a reconnect). */
+    private fun startVideo() {
+        val s = stream ?: return
+        DisplayLink.send(DisplayMode(DisplayMode.Mode.VIDEO))
+        s.videoConfig?.let(DisplayLink::send)
+        s.requestKeyFrame()
+    }
+
+    private suspend fun makeStream(w: Int, h: Int, fps: Int, kbps: Int): StreamDisplay? {
+        val made = withContext(Dispatchers.Default) {
+            StreamDisplay.create(
+                appContext, w, h, SecondScreenRules.streamDensity(h), fps, kbps,
+                onConfig = { DisplayLink.send(it) },
+                // With no display to send to (a hiccup), frames are simply let go: asking the
+                // encoder for key frames meanwhile would only waste it. startVideo() asks
+                // for one when the display is back.
+                onPacket = { !DisplayLink.connected || DisplayLink.sendVideo(it) },
+                onFailed = { scope.launch { encoderFailed.value = true } }
+            )
+        }
+        if (made == null) {
+            // Taken by a camera, say: the display draws the cluster itself.
+            encoderFailed.value = true
+            Log.w(TAG, "no encoder; falling back to readings")
+        }
+        return made
+    }
+
+    private fun showCluster(overscanPct: Int) {
+        val s = stream ?: return
+        if (presentation != null) return
+        presentation = runCatching {
+            ClusterPresentation(appContext, s.androidDisplay, _page, _pages, overscanPct, MainActivity.started).also { it.show() }
+        }.onFailure { Log.w(TAG, "cluster presentation refused", it) }.getOrNull()
+    }
+
+    private fun dismissCluster() {
+        presentation?.let { runCatching { it.dismiss() } }
+        presentation = null
+    }
+
+    /**
+     * Opens [pkg] and moves its stack onto the streamed display. An app can't
+     * be launched straight onto another app's private display, but the shell
+     * can move a stack there, as the tiles park windows (HiddenDisplay).
+     */
+    private suspend fun showApp(pkg: String) {
+        val s = stream ?: return
+        _heldPackages.update { it + pkg }
+        if (!AppLauncher.launch(appContext, pkg)) {
+            _heldPackages.update { it - pkg }
+            return
+        }
+        repeat(APP_LAUNCH_TRIES) {
+            delay(APP_LAUNCH_WAIT_MS / 2)
+            DockShell.forgetListing()
+            val listing = runCatching { DockShell.listStacks(appContext) }.getOrNull() ?: return@repeat
+            val (stackId, displayId) = WindowListing.stackOf(listing, pkg) ?: return@repeat
+            if (displayId == s.displayId) {
+                appShown = pkg
+                refocusDashboard()
+                return
+            }
+            val out = runCatching { DockShell.shell(appContext, "am display move-stack $stackId ${s.displayId}") }
+            Log.i(TAG, "$pkg (stack $stackId) -> second screen: ${out.getOrElse { it.message }}")
+        }
+        Log.w(TAG, "$pkg could not be moved onto the second screen")
+        _heldPackages.update { it - pkg }
+    }
+
+    /** Back onto the screen, behind the dashboard; the tiles take it from there. */
+    private suspend fun releaseApp() {
+        val pkg = appShown ?: return
+        appShown = null
+        DockShell.forgetListing()
+        val listing = runCatching { DockShell.listStacks(appContext) }.getOrNull()
+        val stack = listing?.let { WindowListing.stackOf(it, pkg) }
+        if (stack != null && stack.second != WindowListing.DEFAULT_DISPLAY) {
+            runCatching { DockShell.shell(appContext, "am display move-stack ${stack.first} ${WindowListing.DEFAULT_DISPLAY}") }
+            refocusDashboard()
+        }
+        _heldPackages.update { it - pkg }
+    }
+
+    /** The app moved over took the focus with it: steering keys and the keyboard belong to the head unit's screen. */
+    private fun refocusDashboard() {
+        runCatching {
+            appContext.startActivity(
+                Intent(appContext, MainActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                    .putExtra(MainActivity.EXTRA_REFOCUS, true)
+            )
+        }
+    }
+
+    private suspend fun tearDown() {
+        stopFeed()
+        releaseApp()
+        dismissCluster()
+        stream?.release()
+        stream = null
+        streamShape = null
+    }
+
+    private fun startFeed() {
+        if (feed?.isActive == true) return
+        feed = ClusterFeed.run(appContext, scope, _page)
+    }
+
+    private fun stopFeed() {
+        feed?.cancel()
+        feed = null
+    }
+
+    /** Speed (GPS), what's playing, the OBD link: kept up while the second screen shows anything. */
+    private fun holdFeeds(hold: Boolean) {
+        if (hold == holdsFeeds) return
+        holdsFeeds = hold
+        val media = CarMediaController.shared(appContext)
+        if (hold) {
+            LocationFeed.acquire(appContext)
+            media.acquire()
+        } else {
+            LocationFeed.release()
+            media.release()
+        }
+        VehicleMonitor.setSecondScreenShowing(hold)
+    }
+
+    /** Moving or stopped, as the drive lock decides it ([MOVING_KMH], [STOPPED_KMH]), for the video-app rule. */
+    private suspend fun followSpeed() {
+        combine(ObdBluetoothManager.connectionState, ObdBluetoothManager.data, LocationFeed.freshSpeedKmh, DemoMode.active) { connection, obd, gps, demo ->
+            if (demo) return@combine false
+            val speed = (if (connection == ObdConnectionState.CONNECTED) obd.speedKmh else gps) ?: 0
+            when {
+                speed >= MOVING_KMH -> true
+                speed <= STOPPED_KMH -> false
+                else -> null
+            }
+        }
+            .distinctUntilChanged()
+            .collectLatest { fast ->
+                when (fast) {
+                    true -> moving.value = true
+                    false -> {
+                        delay(STOPPED_HOLD_MS)
+                        moving.value = false
+                    }
+                    null -> Unit
+                }
+            }
+    }
+
+    private fun isVideoApp(pkg: String): Boolean {
+        val category = runCatching { appContext.packageManager.getApplicationInfo(pkg, 0).category }.getOrNull()
+        return VideoApps.isVideo(pkg, category)
+    }
+}

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="split_a11y_description">Permet à Dashwheel d\'ouvrir des applis en écran partagé à côté du tableau de bord, avec le même partage d\'écran que l\'écran des applis récentes. Le seul contenu de l\'écran utilisé est le champ de texte sélectionné, pour y taper le texte envoyé depuis votre téléphone. Il reçoit aussi les boutons physiques, pour que Accueil et Retour fonctionnent encore quand une appli tourne dans une tuile ; les autres passent sans changement.</string>
+    <string name="split_a11y_description">Permet à Dashwheel d\'ouvrir des applis en écran partagé à côté du tableau de bord, avec le même partage d\'écran que l\'écran des applis récentes. Le seul contenu de l\'écran utilisé est le champ de texte sélectionné, pour y taper le texte envoyé depuis votre téléphone. Il reçoit aussi les boutons physiques, pour que Accueil et Retour fonctionnent encore quand une appli tourne dans une tuile, et que les boutons du volant choisis tournent la page du second écran ; les autres passent sans changement.</string>
 
     <!-- Language picker; each language is listed under its own name. -->
     <string name="language_menu">Langue</string>

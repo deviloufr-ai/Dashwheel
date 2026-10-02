@@ -41,7 +41,7 @@ jobs:
         run: ./gradlew lintDebug --stacktrace
 
       - name: Unit tests
-        run: ./gradlew testDebugUnitTest :link:test --stacktrace
+        run: ./gradlew testDebugUnitTest :link:test :display:test --stacktrace
 
       - name: Upload lint report
         if: always()

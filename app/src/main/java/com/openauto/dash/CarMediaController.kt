@@ -90,6 +90,24 @@ class CarMediaController(private val context: Context) {
         }
     }
 
+    private var users = 0
+
+    /**
+     * One more user of the [shared] controller (the dashboard, the second
+     * screen): observes sessions while any is there.
+     */
+    @Synchronized
+    fun acquire() {
+        users++
+        start()
+    }
+
+    @Synchronized
+    fun release() {
+        if (users > 0) users--
+        if (users == 0) stop()
+    }
+
     /** Stops observing and releases callbacks. */
     fun stop() {
         HeadUnitMedia.removeListener(stockChanged)
@@ -328,6 +346,17 @@ class CarMediaController(private val context: Context) {
     }
 
     companion object {
+        @Volatile private var sharedInstance: CarMediaController? = null
+
+        /**
+         * The controller the dashboard and the second screen share, on the
+         * application context: one session listener, one idea of what plays.
+         */
+        fun shared(context: Context): CarMediaController =
+            sharedInstance ?: synchronized(this) {
+                sharedInstance ?: CarMediaController(context.applicationContext).also { sharedInstance = it }
+            }
+
         /** How often the head unit player's play state and position are read again while it's shown. */
         private const val STOCK_TICK_MS = 1_000L
         /** How long a player opened by [playPause] has to publish its session. */

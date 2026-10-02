@@ -1,0 +1,17 @@
+# The Dashwheel second screen: answers the head unit and drives the monitor.
+# It takes the console's screen (tty1), so the login prompt is kept off it.
+[Unit]
+Description=Dashwheel second screen
+After=network.target
+Conflicts=getty@tty1.service
+
+[Service]
+ExecStart=/opt/dashwheel-display/bin/dashwheel-display --config @CONFIG_DIR@
+# Root, to hold the screen through DRM/KMS without a desktop session.
+User=root
+Restart=always
+RestartSec=2
+Nice=-5
+
+[Install]
+WantedBy=multi-user.target

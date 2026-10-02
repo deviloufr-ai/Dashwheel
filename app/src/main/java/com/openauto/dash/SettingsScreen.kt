@@ -42,6 +42,7 @@ import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ConnectedTv
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Handyman
@@ -109,7 +110,7 @@ import kotlinx.coroutines.launch
  * a car's own settings. Categories on the left (along the top on an upright
  * screen), the chosen one's settings on the right, most of them right there
  * and the deep ones (car profile, AI, servicing, readings, wheel buttons,
- * language) one tap further in the same pane, with a back arrow
+ * language, second screen) one tap further in the same pane, with a back arrow
  * (SettingsSheet.kt). One subject, one place: every alert under Alerts, what
  * the screen does under Display, what it looks like under Look.
  */
@@ -126,7 +127,7 @@ internal enum class SettingsTab(@StringRes val titleRes: Int, val icon: ImageVec
 }
 
 /** The settings that open further into the pane. */
-private enum class Deep { CAR, CAR_LOOK, REVERSE, AI, UPKEEP, EXPLORER, WHEEL, PLACES, LANGUAGE }
+private enum class Deep { CAR, CAR_LOOK, REVERSE, AI, UPKEEP, EXPLORER, WHEEL, PLACES, LANGUAGE, SECOND_SCREEN }
 
 /** Under this width the categories go along the top: a rail would leave the settings half a screen. */
 private val NARROW_SETTINGS = 800.dp
@@ -184,6 +185,7 @@ internal fun SettingsScreen(
                     Deep.WHEEL -> SteeringWheelDialog(onDismiss = back)
                     Deep.PLACES -> PlacesSheet(onDismiss = back)
                     Deep.LANGUAGE -> LanguageSheet(onDismiss = back)
+                    Deep.SECOND_SCREEN -> SecondScreenSheet(onDismiss = back)
                     null -> Unit
                 }
             }
@@ -199,7 +201,7 @@ internal fun SettingsScreen(
                     when (tab) {
                         SettingsTab.CAR -> CarPane(open = { deep = it }, onPickObd = onPickObd)
                         SettingsTab.LOOK -> LookPane(theme)
-                        SettingsTab.DISPLAY -> DisplayPane(theme, onLanguage = { deep = Deep.LANGUAGE })
+                        SettingsTab.DISPLAY -> DisplayPane(theme, onLanguage = { deep = Deep.LANGUAGE }, onSecondScreen = { deep = Deep.SECOND_SCREEN })
                         SettingsTab.ALERTS -> AlertsPane()
                         SettingsTab.DRIVING -> DrivingPane(m, onWheelButtons = { deep = Deep.WHEEL }, onPlaces = { deep = Deep.PLACES })
                         SettingsTab.PHONE -> PhonePane()
@@ -471,9 +473,9 @@ private fun LookPane(theme: ThemeState) {
     EffectsSetting(theme)
 }
 
-/** What the screen does: which way it stands, its bottom bar, its language. */
+/** What the screen does: which way it stands, its bottom bar, its language, the second screen. */
 @Composable
-private fun DisplayPane(theme: ThemeState, onLanguage: () -> Unit) {
+private fun DisplayPane(theme: ThemeState, onLanguage: () -> Unit, onSecondScreen: () -> Unit) {
     val context = LocalContext.current
     ScreenOrientationSetting()
     Spacer(Modifier.height(20.dp))
@@ -488,6 +490,9 @@ private fun DisplayPane(theme: ThemeState, onLanguage: () -> Unit) {
     }
     SettingsSection(stringResource(R.string.language_title))
     SettingsRow(Icons.Filled.Language, stringResource(R.string.language_title), languageName(AppLanguage.current(context)), onLanguage)
+    Spacer(Modifier.height(20.dp))
+    SettingsSection(stringResource(R.string.settings_section_second_screen))
+    SettingsRow(Icons.Filled.ConnectedTv, stringResource(R.string.settings_section_second_screen), secondScreenSummary(), onSecondScreen)
 }
 
 /**

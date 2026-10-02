@@ -199,4 +199,11 @@
         <item quantity="one">%d Freigabe fehlt noch</item>
         <item quantity="other">%d Freigaben fehlen noch</item>
     </plurals>
+
+    <!-- A second-screen display's code, scanned here and passed to the car (DisplayPair). -->
+    <string name="display_confirm_title">Bildschirm %1$s zum Auto hinzufügen?</string>
+    <string name="display_confirm_body">Dein Handy gibt den Code dieses Bildschirms an das verbundene Auto weiter.</string>
+    <string name="display_confirm_send">An das Auto senden</string>
+    <string name="display_sent">An %1$s gesendet: Der Bildschirm verbindet sich in wenigen Sekunden.</string>
+    <string name="display_needs_car">Verbinde dich zuerst mit dem Auto und scanne dann den Code des Bildschirms erneut.</string>
 </resources>

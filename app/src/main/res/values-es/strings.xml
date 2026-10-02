@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="split_a11y_description">Permite a Dashwheel abrir apps en pantalla dividida junto al panel, con la misma división del sistema que usa la pantalla de apps recientes. Del contenido de la pantalla solo usa el campo de texto seleccionado, para escribir el texto enviado desde el teléfono. También recibe los botones físicos, para que Inicio y Atrás sigan funcionando mientras una app se ejecuta dentro de una tarjeta; los demás pasan sin cambios.</string>
+    <string name="split_a11y_description">Permite a Dashwheel abrir apps en pantalla dividida junto al panel, con la misma división del sistema que usa la pantalla de apps recientes. Del contenido de la pantalla solo usa el campo de texto seleccionado, para escribir el texto enviado desde el teléfono. También recibe los botones físicos, para que Inicio y Atrás sigan funcionando mientras una app se ejecuta dentro de una tarjeta, y los botones del volante elegidos cambien la página de la segunda pantalla; los demás pasan sin cambios.</string>
 
     <!-- Language picker; each language is listed under its own name. -->
     <string name="language_menu">Idioma</string>

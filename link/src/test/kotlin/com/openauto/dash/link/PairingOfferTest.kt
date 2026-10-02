@@ -3,6 +3,7 @@ package com.openauto.dash.link
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PairingOfferTest {
@@ -36,5 +37,18 @@ class PairingOfferTest {
                 assertEquals(name, offer.unitName.trim(), back?.unitName)
             }
         }
+    }
+
+    @Test
+    fun displayOffersKeepTheirKind() {
+        val offer = PairingOffer.create("Rear screen", kind = PairingOffer.Kind.DISPLAY)
+        assertTrue(offer.toUri().startsWith("dashwheel://display?"))
+        val back = PairingOffer.parse(offer.toUri())!!
+        assertEquals(PairingOffer.Kind.DISPLAY, back.kind)
+        assertEquals(offer.id, back.id)
+        assertArrayEquals(offer.secret, back.secret)
+        // A head unit's code stays what it always was.
+        assertEquals(PairingOffer.Kind.HEAD_UNIT, PairingOffer.parse(PairingOffer.create("Unit").toUri())!!.kind)
+        assertNull(PairingOffer.parse(offer.toUri().replace("://display?", "://screen?")))
     }
 }

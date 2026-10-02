@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="split_a11y_description">Pozwala Dashwheel otwierać aplikacje na podzielonym ekranie obok pulpitu, z tym samym systemowym podziałem, którego używa ekran ostatnich aplikacji. Z zawartości ekranu używa tylko zaznaczonego pola tekstowego, aby wpisać tekst wysłany z telefonu. Odbiera też przyciski sprzętowe, aby Ekran główny i Wstecz działały, gdy aplikacja działa w kafelku; pozostałe przechodzą bez zmian.</string>
+    <string name="split_a11y_description">Pozwala Dashwheel otwierać aplikacje na podzielonym ekranie obok pulpitu, z tym samym systemowym podziałem, którego używa ekran ostatnich aplikacji. Z zawartości ekranu używa tylko zaznaczonego pola tekstowego, aby wpisać tekst wysłany z telefonu. Odbiera też przyciski sprzętowe, aby Ekran główny i Wstecz działały, gdy aplikacja działa w kafelku, a wybrane przyciski na kierownicy zmieniały stronę drugiego ekranu; pozostałe przechodzą bez zmian.</string>
 
     <!-- Language picker; each language is listed under its own name. -->
     <string name="language_menu">Język</string>

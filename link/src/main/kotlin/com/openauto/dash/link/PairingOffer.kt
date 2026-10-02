@@ -13,11 +13,19 @@ import java.util.Base64
  * so it is only shown on demand and replaced each time.
  *
  * `dashwheel://pair?v=1&id=<hex>&n=<name>&k=<base64url secret>`
+ *
+ * A second-screen display (the Raspberry Pi) shows the same offer under
+ * `dashwheel://display?…` ([Kind.DISPLAY]): the phone scans it and hands it to
+ * the head unit, which then dials the display with it. The other host keeps an
+ * older companion app from taking a display's code for a head unit's.
  */
-class PairingOffer(val id: String, val unitName: String, val secret: ByteArray) {
+class PairingOffer(val id: String, val unitName: String, val secret: ByteArray, val kind: Kind = Kind.HEAD_UNIT) {
+
+    /** Who showed the code, which is who the head unit will dial. */
+    enum class Kind(val host: String) { HEAD_UNIT("pair"), DISPLAY("display") }
 
     fun toUri(): String =
-        "$SCHEME://$HOST?v=$VERSION&id=$id&n=${URLEncoder.encode(unitName, "UTF-8")}" +
+        "$SCHEME://${kind.host}?v=$VERSION&id=$id&n=${URLEncoder.encode(unitName, "UTF-8")}" +
             "&k=${Base64.getUrlEncoder().withoutPadding().encodeToString(secret)}"
 
     companion object {
@@ -27,16 +35,17 @@ class PairingOffer(val id: String, val unitName: String, val secret: ByteArray) 
         const val SECRET_BYTES = 32
         private val ID = Regex("[0-9a-f]{16}")
 
-        fun create(unitName: String, random: SecureRandom = SecureRandom()): PairingOffer {
+        fun create(unitName: String, random: SecureRandom = SecureRandom(), kind: Kind = Kind.HEAD_UNIT): PairingOffer {
             val id = ByteArray(8).also(random::nextBytes).joinToString("") { "%02x".format(it) }
             val secret = ByteArray(SECRET_BYTES).also(random::nextBytes)
-            return PairingOffer(id, unitName.trim().take(64), secret)
+            return PairingOffer(id, unitName.trim().take(64), secret, kind)
         }
 
         /** Null for anything that isn't a well-formed offer of a version this side knows. */
         fun parse(text: String): PairingOffer? {
             val uri = runCatching { URI(text.trim()) }.getOrNull() ?: return null
-            if (!uri.scheme.equals(SCHEME, ignoreCase = true) || !uri.host.equals(HOST, ignoreCase = true)) return null
+            if (!uri.scheme.equals(SCHEME, ignoreCase = true)) return null
+            val kind = Kind.entries.firstOrNull { uri.host.equals(it.host, ignoreCase = true) } ?: return null
             val params = uri.rawQuery.orEmpty().split('&').mapNotNull { part ->
                 val eq = part.indexOf('=')
                 if (eq <= 0) null
@@ -48,7 +57,7 @@ class PairingOffer(val id: String, val unitName: String, val secret: ByteArray) 
             val secret = params["k"]
                 ?.let { runCatching { Base64.getUrlDecoder().decode(it) }.getOrNull() }
                 ?.takeIf { it.size == SECRET_BYTES } ?: return null
-            return PairingOffer(id, name, secret)
+            return PairingOffer(id, name, secret, kind)
         }
     }
 }

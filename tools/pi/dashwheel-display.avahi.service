@@ -1,0 +1,10 @@
+<?xml version="1.0" standalone='no'?>
+<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+<!-- How the head unit finds the display on the phone's hotspot (DNS-SD). -->
+<service-group>
+  <name replace-wildcards="yes">Dashwheel display on %h</name>
+  <service>
+    <type>_dashwheel-display._tcp</type>
+    <port>47811</port>
+  </service>
+</service-group>

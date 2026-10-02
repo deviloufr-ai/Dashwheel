@@ -59,6 +59,9 @@ class SplitAccessibilityService : AccessibilityService() {
     override fun onServiceConnected() {
         instance = this
         connectedState.value = true
+        SecondScreenController.serviceFiltersKeys = serviceInfo?.let {
+            it.flags and android.accessibilityservice.AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS != 0
+        } == true
         Log.d(TAG, "connected")
         updateOverlayForSplit()
     }
@@ -66,6 +69,7 @@ class SplitAccessibilityService : AccessibilityService() {
     override fun onUnbind(intent: Intent?): Boolean {
         instance = null
         connectedState.value = false
+        SecondScreenController.serviceFiltersKeys = false
         hideSwapOverlay()
         return super.onUnbind(intent)
     }
@@ -73,6 +77,7 @@ class SplitAccessibilityService : AccessibilityService() {
     override fun onDestroy() {
         instance = null
         connectedState.value = false
+        SecondScreenController.serviceFiltersKeys = false
         hideSwapOverlay()
         super.onDestroy()
     }
@@ -93,11 +98,14 @@ class SplitAccessibilityService : AccessibilityService() {
 
     override fun onInterrupt() {}
 
-    // Every hardware key, before any app: a learned steering wheel button runs
-    // (or is captured while learning) whatever is in front. Home and Back are
-    // brought back to the main screen when an app inside a tile took them (EmbeddedApp).
+    // Every hardware key, before any app: the second screen's page keys while
+    // its cluster shows, then a learned steering wheel button runs (or is
+    // captured while learning) whatever is in front. Home and Back are brought
+    // back to the main screen when an app inside a tile took them (EmbeddedApp).
     override fun onKeyEvent(event: KeyEvent): Boolean =
-        SteeringWheelStore.onKeyEvent(this, event) || EmbeddedApp.keyWhileAway(this, event)
+        SecondScreenController.onWheelKey(event) ||
+            SteeringWheelStore.onKeyEvent(this, event) ||
+            EmbeddedApp.keyWhileAway(this, event)
 
     /**
      * The on-screen bounds of the two split panes, ordered left-to-right, or null

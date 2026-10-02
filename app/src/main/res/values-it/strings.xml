@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="split_a11y_description">Consente a Dashwheel di aprire le app a schermo diviso accanto al cruscotto, con la stessa divisione di sistema usata dalla schermata delle app recenti. Del contenuto dello schermo usa solo il campo di testo selezionato, per scrivere il testo inviato dal telefono. Riceve anche i tasti fisici, così Home e Indietro continuano a funzionare mentre un\'app gira dentro un riquadro; gli altri passano invariati.</string>
+    <string name="split_a11y_description">Consente a Dashwheel di aprire le app a schermo diviso accanto al cruscotto, con la stessa divisione di sistema usata dalla schermata delle app recenti. Del contenuto dello schermo usa solo il campo di testo selezionato, per scrivere il testo inviato dal telefono. Riceve anche i tasti fisici, così Home e Indietro continuano a funzionare mentre un\'app gira dentro un riquadro, e i tasti al volante scelti cambiano la pagina del secondo schermo; gli altri passano invariati.</string>
 
     <!-- Language picker; each language is listed under its own name. -->
     <string name="language_menu">Lingua</string>

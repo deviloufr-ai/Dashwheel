@@ -67,6 +67,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -126,6 +127,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
+import com.openauto.dash.link.DisplayPair
 import com.openauto.dash.link.PairingOffer
 import com.openauto.dash.link.PhoneAbilities
 import com.openauto.dash.link.TypeText
@@ -366,7 +368,27 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
         }
     }
 
-    if (offer != null) {
+    if (offer != null && offer.kind == PairingOffer.Kind.DISPLAY) {
+        // A second screen's code: this phone only carries it to the car it is linked to.
+        val car = (state as? LinkState.Connected)?.unitName
+        AlertDialog(
+            onDismissRequest = onOfferDone,
+            containerColor = CompanionColors.SurfaceHigh,
+            icon = { Icon(Icons.Filled.Tv, contentDescription = null) },
+            title = { Text(stringResource(R.string.display_confirm_title, offer.unitName)) },
+            text = { Text(stringResource(if (car != null) R.string.display_confirm_body else R.string.display_needs_car)) },
+            confirmButton = {
+                if (car != null) {
+                    Button(onClick = {
+                        LinkServer.send(DisplayPair(offer.toUri()))
+                        Toast.makeText(context, context.getString(R.string.display_sent, car), Toast.LENGTH_LONG).show()
+                        onOfferDone()
+                    }) { Text(stringResource(R.string.display_confirm_send)) }
+                }
+            },
+            dismissButton = { TextButton(onClick = onOfferDone) { Text(stringResource(R.string.cancel)) } }
+        )
+    } else if (offer != null) {
         AlertDialog(
             onDismissRequest = onOfferDone,
             containerColor = CompanionColors.SurfaceHigh,

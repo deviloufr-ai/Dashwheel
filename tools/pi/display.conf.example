@@ -1,0 +1,20 @@
+# Dashwheel display settings. Every line is optional; remove the # to use one.
+# This file lives on the SD card's boot partition, so any computer can edit it.
+
+# The name the head unit shows for this screen.
+name=Dashwheel display
+
+# Percent of each edge a TV-style (composite / RCA) monitor crops off.
+# 0 for HDMI; 5 is typical for a headrest monitor on the composite output.
+#overscan=5
+
+# Force the picture size when the monitor reports none (composite has no EDID).
+#width=720
+#height=576
+
+# kms: straight to the screen (the Pi). auto: a desktop window (testing on a computer).
+#sink=kms
+
+# The whole GStreamer chain for the video, reading H.264 on stdin, when the
+# default (h264parse ! v4l2h264dec ! kmssink) doesn't suit a board.
+#video_pipeline=fdsrc fd=0 ! h264parse ! v4l2h264dec ! kmssink sync=false

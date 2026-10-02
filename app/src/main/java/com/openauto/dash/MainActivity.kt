@@ -77,6 +77,15 @@ class MainActivity : ComponentActivity() {
         @Volatile
         var statusBarForced = false
 
+        /**
+         * The dashboard is on screen (started). While it isn't, the second
+         * screen's cluster keeps the palette following the time of day itself.
+         */
+        val started = MutableStateFlow(false)
+
+        /** Brought to the front by the second screen, to take the focus back from an app it moved over: not a Home press. */
+        const val EXTRA_REFOCUS = "com.openauto.dash.REFOCUS"
+
         /** The dashboard alive right now, to keep it the only one ([onlyOne]). */
         private var live: java.lang.ref.WeakReference<MainActivity>? = null
     }
@@ -136,6 +145,7 @@ class MainActivity : ComponentActivity() {
         FeedbackStore.load(this)
         AlertStyleStore.load(this)
         Units.load(this)
+        SecondScreenStore.load(this)
         // Rebuilt after a language change: the fault codes' advice follows it.
         AiMechanic.followLanguage(this)
         // Nothing the first frame needs waits behind these: they read their
@@ -150,6 +160,9 @@ class MainActivity : ComponentActivity() {
                 // Dials the paired phone whenever its hotspot is around, and shows its calls.
                 PhoneLink.start(this)
                 PhoneCallOverlay.start(this)
+                // The second screen (a Raspberry Pi on the same hotspot), when one is paired.
+                DisplayLink.start(this)
+                SecondScreenController.start(this)
                 // Calls on the head unit's own Bluetooth, the ROM pop-ups the driver
                 // chose to replace, and the door alert that replaces one of them.
                 HeadUnitPhone.start(this)
@@ -222,6 +235,7 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        if (intent.getBooleanExtra(EXTRA_REFOCUS, false)) return
         val home = if (intent.hasExtra(EXTRA_KEEP_PAGE)) !intent.getBooleanExtra(EXTRA_KEEP_PAGE, false)
         else intent.hasCategory(Intent.CATEGORY_HOME) || intent.action == Intent.ACTION_MAIN
         if (home) homePressed.value = System.currentTimeMillis()
@@ -252,13 +266,16 @@ class MainActivity : ComponentActivity() {
     }
 
     // Every hardware key the head unit delivers here first — including
-    // whatever a steering wheel or remote sends. SteeringWheelStore either
-    // captures it for the learning screen, runs the action it's learned to,
-    // or (unmapped) leaves it to Android's own handling.
+    // whatever a steering wheel or remote sends. The keys chosen to turn the
+    // second screen's page go there first, when the accessibility service
+    // isn't already seeing every key. SteeringWheelStore then either captures
+    // it for the learning screen, runs the action it's learned to, or
+    // (unmapped) leaves it to Android's own handling.
     // RestrictedApi: a lint false positive, it flags ComponentActivity's own
     // override of this public Activity method.
     @SuppressLint("RestrictedApi")
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (!SecondScreenController.serviceFiltersKeys && SecondScreenController.onWheelKey(event)) return true
         if (SteeringWheelStore.onKeyEvent(this, event)) return true
         return super.dispatchKeyEvent(event)
     }
@@ -288,10 +305,12 @@ class MainActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
         EmbeddedApp.dashboardShown(this)
+        started.value = true
     }
 
     override fun onStop() {
         EmbeddedApp.dashboardShown(null)
+        started.value = false
         super.onStop()
     }
 

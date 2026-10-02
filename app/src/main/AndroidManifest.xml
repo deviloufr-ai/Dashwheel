@@ -30,6 +30,11 @@
     <!-- Phone link: finds the phone's hotspot gateway and redials when Wi-Fi changes. -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <!-- Second screen (DisplayLink): keeps Wi-Fi out of power saving while
+         streaming to the display, so frames aren't held back. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
     <!-- The MapLibre navigation library posts its own guidance notification. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 

@@ -166,4 +166,39 @@ class SecureChannelTest {
         val answer = CallCommand(CallCommand.Action.ANSWER)
         assertEquals(answer, LinkCodec.decode(LinkCodec.encode(answer)))
     }
+
+    @Test
+    fun rawFramesTravelBetweenMessages() {
+        val out = java.io.ByteArrayOutputStream()
+        val sender = LinkSession(ByteArray(0).inputStream(), out, ByteArray(32) { 1 }, ByteArray(32) { 2 }, "id", onClose = {})
+        val au = ByteArray(40_000) { (it * 7).toByte() }
+        sender.send(Hello("unit", "1"))
+        sender.sendBinary(au)
+        sender.send(Ping)
+        val receiver = wire(out.toByteArray())
+        assertEquals(Incoming.Message(Hello("unit", "1")), receiver.receiveAny())
+        val raw = receiver.receiveAny() as Incoming.Binary
+        assertTrue(raw.bytes.contentEquals(au))
+        assertEquals(Incoming.Message(Ping), receiver.receiveAny())
+    }
+
+    @Test
+    fun receiveSkipsRawFramesLikeAnOlderPeer() {
+        val out = java.io.ByteArrayOutputStream()
+        val sender = LinkSession(ByteArray(0).inputStream(), out, ByteArray(32) { 1 }, ByteArray(32) { 2 }, "id", onClose = {})
+        sender.sendBinary(byteArrayOf(1, 2, 3))
+        sender.send(Ping)
+        val receiver = wire(out.toByteArray())
+        assertNull(receiver.receive())
+        assertEquals(Ping, receiver.receive())
+    }
+
+    @Test
+    fun oversizedRawFrameIsNotSent() {
+        val out = java.io.ByteArrayOutputStream()
+        val sender = LinkSession(ByteArray(0).inputStream(), out, ByteArray(32) { 1 }, ByteArray(32) { 2 }, "id", onClose = {})
+        assertEquals(false, sender.sendBinary(ByteArray(LinkSession.MAX_MESSAGE)))
+        assertEquals(0, out.size())
+        assertTrue(sender.sendBinary(ByteArray(LinkSession.MAX_MESSAGE - 1)))
+    }
 }

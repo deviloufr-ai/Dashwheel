@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The second screen: a Raspberry Pi display on the phone's hotspot (DisplayLink, SecondScreenSheet). -->
+    <string name="settings_section_second_screen">Secondo schermo</string>
+    <string name="second_screen_status_unpaired">Nessun secondo schermo associato</string>
+    <string name="second_screen_status_unpaired_detail">Scansiona il codice sul secondo schermo con l\'app Dashwheel del telefono mentre il telefono è collegato a quest\'auto.</string>
+    <string name="second_screen_status_searching">Ricerca del secondo schermo</string>
+    <string name="second_screen_status_searching_detail">Lo schermo e questa autoradio devono essere entrambi sull\'hotspot del telefono.</string>
+    <string name="second_screen_status_connected">Connesso a %1$s</string>
+    <string name="second_screen_size">Schermo %1$d × %2$d</string>
+    <string name="second_screen_import">Importa un file di associazione</string>
+    <string name="second_screen_import_detail">pairing.txt dalla scheda SD dello schermo, copiato su una chiavetta USB</string>
+    <string name="second_screen_import_failed">Quel file non è un\'associazione di secondo schermo</string>
+    <string name="second_screen_import_done">Associato a %1$s</string>
+    <string name="second_screen_show">Cosa mostra</string>
+    <string name="second_screen_mode_off">Spento</string>
+    <string name="second_screen_mode_cluster">Quadro strumenti</string>
+    <string name="second_screen_mode_app">Un\'app</string>
+    <string name="second_screen_pages">Pagine</string>
+    <string name="second_screen_page_drive">Velocità</string>
+    <string name="second_screen_page_media">Media</string>
+    <string name="second_screen_page_nav">Percorso</string>
+    <string name="second_screen_page_obd">Letture</string>
+    <string name="second_screen_video">Immagine nitida</string>
+    <string name="second_screen_video_detail">L\'autoradio disegna il quadro e lo trasmette. Disattivato: lo schermo ne disegna uno più semplice dalle letture, usando pochissimo Wi-Fi.</string>
+    <string name="second_screen_app">App sullo schermo</string>
+    <string name="second_screen_app_none">Scegli un\'app</string>
+    <string name="second_screen_rear_seat">Schermo per i sedili posteriori</string>
+    <string name="second_screen_rear_seat_detail">Il conducente non lo vede: le app video possono funzionare durante la guida.</string>
+    <string name="second_screen_quality">Altezza dell\'immagine</string>
+    <string name="second_screen_quality_detail">Più bassa pesa meno sul Wi-Fi del telefono.</string>
+    <string name="second_screen_output_video">Immagine in streaming · %1$d kbit/s</string>
+    <string name="second_screen_output_data">Invio delle letture; lo schermo disegna il quadro</string>
+    <string name="second_screen_blocked_moving">Le app video attendono che l\'auto si fermi, tranne su uno schermo posteriore</string>
+    <string name="second_screen_blocked_no_video">Questo schermo può solo disegnare il quadro dalle letture</string>
+    <string name="second_screen_blocked_no_app">Scegli l\'app da mostrare</string>
+    <string name="second_screen_on_screen">Sul secondo schermo</string>
+    <string name="second_screen_keys">Tasti al volante</string>
+    <string name="second_screen_keys_none">Nessuno appreso: impara il tasto che cambia pagina</string>
+    <string name="second_screen_keys_count">Tasti che cambiano pagina: %1$s</string>
+    <string name="second_screen_keys_learn">Impara un tasto</string>
+    <string name="second_screen_keys_learn_prompt">Premi il tasto al volante che deve cambiare la pagina del quadro.</string>
+    <string name="second_screen_keys_learn_none">Se non succede nulla, questo tasto non arriva alle app su questa autoradio.</string>
+    <string name="second_screen_keys_clear">Dimentica i tasti</string>
+    <string name="second_screen_media_keys">I tasti multimediali cambiano pagina</string>
+    <string name="second_screen_media_keys_detail">Una pressione lunga su avanti o indietro cambia la pagina del quadro.</string>
+    <string name="second_screen_next_page">Pagina successiva</string>
+    <string name="second_screen_not_connected">Non connesso</string>
+</resources>

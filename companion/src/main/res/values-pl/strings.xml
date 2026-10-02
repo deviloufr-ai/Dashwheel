@@ -201,4 +201,11 @@
         <item quantity="many">Brakuje %d zgód</item>
         <item quantity="other">Brakuje %d zgody</item>
     </plurals>
+
+    <!-- A second-screen display's code, scanned here and passed to the car (DisplayPair). -->
+    <string name="display_confirm_title">Dodać ekran %1$s do auta?</string>
+    <string name="display_confirm_body">Telefon przekaże kod tego ekranu do połączonego auta.</string>
+    <string name="display_confirm_send">Wyślij do auta</string>
+    <string name="display_sent">Wysłano do %1$s: ekran połączy się za kilka sekund.</string>
+    <string name="display_needs_car">Najpierw połącz się z autem, potem zeskanuj ponownie kod ekranu.</string>
 </resources>

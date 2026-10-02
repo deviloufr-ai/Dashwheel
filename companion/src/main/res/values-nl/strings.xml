@@ -199,4 +199,11 @@
         <item quantity="one">Nog %d toestemming nodig</item>
         <item quantity="other">Nog %d toestemmingen nodig</item>
     </plurals>
+
+    <!-- A second-screen display's code, scanned here and passed to the car (DisplayPair). -->
+    <string name="display_confirm_title">Scherm %1$s aan je auto toevoegen?</string>
+    <string name="display_confirm_body">Je telefoon geeft de code van dit scherm door aan de auto waarmee hij verbonden is.</string>
+    <string name="display_confirm_send">Naar de auto sturen</string>
+    <string name="display_sent">Verstuurd naar %1$s: het scherm maakt binnen enkele seconden verbinding.</string>
+    <string name="display_needs_car">Maak eerst verbinding met je auto en scan daarna de code van het scherm opnieuw.</string>
 </resources>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The second screen: a Raspberry Pi display on the phone's hotspot (DisplayLink, SecondScreenSheet). -->
+    <string name="settings_section_second_screen">Segundo ecrã</string>
+    <string name="second_screen_status_unpaired">Nenhum segundo ecrã associado</string>
+    <string name="second_screen_status_unpaired_detail">Leia o código do segundo ecrã com a app Dashwheel do telemóvel enquanto o telemóvel está ligado a este carro.</string>
+    <string name="second_screen_status_searching">À procura do segundo ecrã</string>
+    <string name="second_screen_status_searching_detail">O ecrã e este auto-rádio têm de estar ambos no hotspot do telemóvel.</string>
+    <string name="second_screen_status_connected">Ligado a %1$s</string>
+    <string name="second_screen_size">Ecrã %1$d × %2$d</string>
+    <string name="second_screen_import">Importar um ficheiro de associação</string>
+    <string name="second_screen_import_detail">pairing.txt do cartão SD do ecrã, copiado para uma pen USB</string>
+    <string name="second_screen_import_failed">Esse ficheiro não é uma associação de segundo ecrã</string>
+    <string name="second_screen_import_done">Associado a %1$s</string>
+    <string name="second_screen_show">O que mostra</string>
+    <string name="second_screen_mode_off">Desligado</string>
+    <string name="second_screen_mode_cluster">Quadrante</string>
+    <string name="second_screen_mode_app">Uma app</string>
+    <string name="second_screen_pages">Páginas</string>
+    <string name="second_screen_page_drive">Velocidade</string>
+    <string name="second_screen_page_media">Multimédia</string>
+    <string name="second_screen_page_nav">Percurso</string>
+    <string name="second_screen_page_obd">Leituras</string>
+    <string name="second_screen_video">Imagem nítida</string>
+    <string name="second_screen_video_detail">O auto-rádio desenha o quadrante e transmite-o. Desligado: o ecrã desenha um mais simples a partir das leituras, quase sem usar Wi-Fi.</string>
+    <string name="second_screen_app">App no ecrã</string>
+    <string name="second_screen_app_none">Escolher uma app</string>
+    <string name="second_screen_rear_seat">Ecrã para os bancos traseiros</string>
+    <string name="second_screen_rear_seat_detail">O condutor não o vê: as apps de vídeo podem reproduzir durante a condução.</string>
+    <string name="second_screen_quality">Altura da imagem</string>
+    <string name="second_screen_quality_detail">Mais baixa é mais leve para o Wi-Fi do telemóvel.</string>
+    <string name="second_screen_output_video">A transmitir a imagem · %1$d kbit/s</string>
+    <string name="second_screen_output_data">A enviar leituras; o ecrã desenha o quadrante</string>
+    <string name="second_screen_blocked_moving">As apps de vídeo esperam que o carro pare, exceto num ecrã traseiro</string>
+    <string name="second_screen_blocked_no_video">Este ecrã só consegue desenhar o quadrante a partir das leituras</string>
+    <string name="second_screen_blocked_no_app">Escolha a app a mostrar</string>
+    <string name="second_screen_on_screen">No segundo ecrã</string>
+    <string name="second_screen_keys">Botões do volante</string>
+    <string name="second_screen_keys_none">Nenhum aprendido: aprenda o botão que muda de página</string>
+    <string name="second_screen_keys_count">Botões que mudam de página: %1$s</string>
+    <string name="second_screen_keys_learn">Aprender um botão</string>
+    <string name="second_screen_keys_learn_prompt">Prima o botão do volante que deve mudar a página do quadrante.</string>
+    <string name="second_screen_keys_learn_none">Se nada acontecer, este botão não chega às apps neste auto-rádio.</string>
+    <string name="second_screen_keys_clear">Esquecer os botões</string>
+    <string name="second_screen_media_keys">Os botões multimédia mudam de página</string>
+    <string name="second_screen_media_keys_detail">Um toque longo em seguinte ou anterior muda a página do quadrante.</string>
+    <string name="second_screen_next_page">Página seguinte</string>
+    <string name="second_screen_not_connected">Não ligado</string>
+</resources>

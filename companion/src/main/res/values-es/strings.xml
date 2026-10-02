@@ -200,4 +200,11 @@
         <item quantity="many">Faltan %d permisos</item>
         <item quantity="other">Faltan %d permisos</item>
     </plurals>
+
+    <!-- A second-screen display's code, scanned here and passed to the car (DisplayPair). -->
+    <string name="display_confirm_title">¿Añadir la pantalla %1$s a tu coche?</string>
+    <string name="display_confirm_body">Tu teléfono pasa el código de esta pantalla al coche al que está conectado.</string>
+    <string name="display_confirm_send">Enviar al coche</string>
+    <string name="display_sent">Enviado a %1$s: la pantalla se conecta en unos segundos.</string>
+    <string name="display_needs_car">Conéctate primero al coche y vuelve a escanear el código de la pantalla.</string>
 </resources>

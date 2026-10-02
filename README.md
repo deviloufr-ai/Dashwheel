@@ -228,6 +228,21 @@ The driver's phone shares its connection with the head unit over Wi-Fi. **Dashwh
 
 On Android 13+, a sideloaded app's Notification access is a "restricted setting": on the phone, open App info → ⋮ → *Allow restricted settings* first. The companion app shows this step.
 
+### 9b. Second Screen (Raspberry Pi)
+A non-touch monitor for head units with no video output of their own, such as the K706 (QF001, UIS7862). A **Raspberry Pi 3** wired to the monitor over HDMI (or its composite jack for RCA monitors) joins the phone's hotspot like the head unit. Setup, wiring and power are covered in [`tools/pi/README.md`](tools/pi/README.md).
+- **What it shows.** Settings → Display → *Second screen* picks off, a **cluster** or an **app**:
+  - The cluster is the dashboard's own widgets, one page at a time: speed, media, directions, readings.
+  - An app, Google Maps say, runs on the head unit and is shown on the Pi.
+- **Video.** The head unit (`StreamDisplay`) draws on a private virtual display composed straight into a hardware H.264 encoder.
+  - The cluster is a `Presentation` there (`ClusterPresentation`).
+  - An app's stack is moved there with `am display move-stack`, like the tiles park windows.
+  - The Pi (`display/`, a small JVM service) hands the stream to GStreamer, which decodes it in hardware straight to the screen (`v4l2h264dec ! kmssink`).
+- **Readings instead of video.** When the encoder is busy or the Wi-Fi can't keep up, the head unit sends only the readings (`ClusterFeed`), and the Pi draws a plain cluster itself.
+- **Link.** The same encrypted `SecureChannel` as the phone link, the Pi being the server on TCP 47811 (`DisplayLink`).
+  - Finding the Pi: DNS-SD (`_dashwheel-display._tcp`), then the last address it answered on, then a scan of the hotspot.
+  - Pairing: the Pi shows a QR code (`dashwheel://display?…`). The companion app scans it and passes it to the head unit over the phone link.
+- **Control.** Steering-wheel keys learnt in Settings turn the cluster's page, through the accessibility service while another app is in front. Video apps wait until the car stops unless the screen is marked for the rear seats.
+
 ### 10. In-App Auto-Update
 `UpdateManager` keeps the app current from GitHub Releases:
 - On launch it queries `https://api.github.com/repos/deviloufr-ai/ACP/releases/latest`.

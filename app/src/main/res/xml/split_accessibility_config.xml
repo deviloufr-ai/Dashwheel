@@ -14,7 +14,9 @@
   of a second later costs nothing and saves a window-list fetch per change.
   flagRequestFilterKeyEvents: hardware keys pass through the service first,
   so a learned steering wheel button works whatever app is in front
-  (SteeringWheelStore); keys that aren't learned go on untouched.
+  (SteeringWheelStore), and the keys the driver chose turn the second
+  screen's cluster page (SecondScreenController.onKey); keys that aren't
+  learned go on untouched.
 -->
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
     android:accessibilityEventTypes="typeWindowStateChanged|typeWindowsChanged"

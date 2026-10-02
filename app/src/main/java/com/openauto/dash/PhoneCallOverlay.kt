@@ -46,12 +46,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LifecycleRegistry
-import androidx.savedstate.SavedStateRegistry
-import androidx.savedstate.SavedStateRegistryController
-import androidx.savedstate.SavedStateRegistryOwner
 import com.openauto.dash.link.CallCommand
 import com.openauto.dash.link.CallState
 import kotlinx.coroutines.CoroutineScope
@@ -195,27 +189,6 @@ internal fun PhoneCallHost() {
     val s = style ?: return
     if (overlay) return
     AlertPopup(s, AlertKind.CALL.cardAt.alignment) { CallAlert(c, s) }
-}
-
-/**
- * Keeps the overlay's composition running on its own: tied to the launcher's
- * activity it would pause whenever another app is in front, exactly when a
- * call card is needed most.
- */
-internal class OverlayOwner : LifecycleOwner, SavedStateRegistryOwner {
-    private val registry = LifecycleRegistry(this)
-    private val saved = SavedStateRegistryController.create(this)
-    override val lifecycle: Lifecycle get() = registry
-    override val savedStateRegistry: SavedStateRegistry get() = saved.savedStateRegistry
-
-    init {
-        saved.performRestore(null)
-        registry.currentState = Lifecycle.State.RESUMED
-    }
-
-    fun destroy() {
-        registry.currentState = Lifecycle.State.DESTROYED
-    }
 }
 
 private val Answer = Color(0xFF2E9D4F)

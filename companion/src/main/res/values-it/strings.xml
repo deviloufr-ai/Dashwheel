@@ -200,4 +200,11 @@
         <item quantity="many">Mancano %d autorizzazioni</item>
         <item quantity="other">Mancano %d autorizzazioni</item>
     </plurals>
+
+    <!-- A second-screen display's code, scanned here and passed to the car (DisplayPair). -->
+    <string name="display_confirm_title">Aggiungere lo schermo %1$s alla tua auto?</string>
+    <string name="display_confirm_body">Il telefono passa il codice di questo schermo all\'auto a cui è collegato.</string>
+    <string name="display_confirm_send">Invia all\'auto</string>
+    <string name="display_sent">Inviato a %1$s: lo schermo si collega in pochi secondi.</string>
+    <string name="display_needs_car">Collegati prima all\'auto, poi scansiona di nuovo il codice dello schermo.</string>
 </resources>

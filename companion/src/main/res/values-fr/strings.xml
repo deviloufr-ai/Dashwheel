@@ -200,4 +200,11 @@
         <item quantity="many">%d autorisations à donner</item>
         <item quantity="other">%d autorisations à donner</item>
     </plurals>
+
+    <!-- A second-screen display's code, scanned here and passed to the car (DisplayPair). -->
+    <string name="display_confirm_title">Ajouter l\'écran %1$s à votre voiture ?</string>
+    <string name="display_confirm_body">Votre téléphone transmet le code de cet écran à la voiture à laquelle il est relié.</string>
+    <string name="display_confirm_send">Envoyer à la voiture</string>
+    <string name="display_sent">Envoyé à %1$s : l\'écran se connecte dans quelques secondes.</string>
+    <string name="display_needs_car">Connectez-vous d\'abord à votre voiture, puis scannez à nouveau le code de l\'écran.</string>
 </resources>

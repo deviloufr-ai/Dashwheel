@@ -71,6 +71,8 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="dashwheel" android:host="pair" />
+                <!-- A second-screen display's code, read with the phone's own camera app. -->
+                <data android:scheme="dashwheel" android:host="display" />
             </intent-filter>
         </activity>
 

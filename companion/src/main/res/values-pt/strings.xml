@@ -200,4 +200,11 @@
         <item quantity="many">Faltam %d autorizações</item>
         <item quantity="other">Faltam %d autorizações</item>
     </plurals>
+
+    <!-- A second-screen display's code, scanned here and passed to the car (DisplayPair). -->
+    <string name="display_confirm_title">Adicionar o ecrã %1$s ao seu carro?</string>
+    <string name="display_confirm_body">O telemóvel passa o código deste ecrã ao carro a que está ligado.</string>
+    <string name="display_confirm_send">Enviar ao carro</string>
+    <string name="display_sent">Enviado para %1$s: o ecrã liga-se em poucos segundos.</string>
+    <string name="display_needs_car">Ligue-se primeiro ao carro e depois leia de novo o código do ecrã.</string>
 </resources>

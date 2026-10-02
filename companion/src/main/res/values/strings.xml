@@ -201,4 +201,11 @@
         <item quantity="one">%d thing left to allow</item>
         <item quantity="other">%d things left to allow</item>
     </plurals>
+
+    <!-- A second-screen display's code, scanned here and passed to the car (DisplayPair). -->
+    <string name="display_confirm_title">Add the screen %1$s to your car?</string>
+    <string name="display_confirm_body">Your phone passes this screen\'s code to the car it is linked to.</string>
+    <string name="display_confirm_send">Send to the car</string>
+    <string name="display_sent">Sent to %1$s: the screen connects in a few seconds.</string>
+    <string name="display_needs_car">Connect to your car first, then scan the screen\'s code again.</string>
 </resources>

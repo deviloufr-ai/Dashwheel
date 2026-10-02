@@ -22,7 +22,8 @@ import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
 /*
- * The encrypted channel between the head unit (client) and the phone (server).
+ * The encrypted channel between the head unit (client) and the phone (server),
+ * or a second-screen display (also a server, see DisplayMessages.kt).
  *
  * Handshake, over length-prefixed frames:
  *   1. client → server  "DWL1" · pairing id · client nonce · client ephemeral P-256 key
@@ -47,7 +48,7 @@ class UnknownPairingException : IOException("pairing not known by the phone")
 /** The other side failed to prove it holds the pairing secret. */
 class HandshakeException(message: String) : IOException(message)
 
-/** An open, authenticated channel. [send] is thread-safe; [receive] is for one reader thread. */
+/** An open, authenticated channel. [send] is thread-safe; [receive] / [receiveAny] are for one reader thread. */
 class LinkSession internal constructor(
     input: InputStream,
     output: OutputStream,
@@ -71,11 +72,22 @@ class LinkSession internal constructor(
     fun send(message: LinkMessage): Boolean {
         val plain = LinkCodec.encode(message)
         if (plain.size > MAX_MESSAGE) return false
-        synchronized(output) {
-            val cipher = Cipher.getInstance(AES_GCM)
-            cipher.init(Cipher.ENCRYPT_MODE, sendKey, GCMParameterSpec(128, nonce(sendCounter++)))
-            writeFrame(output, cipher.doFinal(plain))
-        }
+        seal(plain)
+        return true
+    }
+
+    /**
+     * Sends raw bytes (a video access unit for a display), in a frame of its
+     * own. False, with nothing sent, when it is too big for one frame. Only
+     * sent to a peer that asked for them: [receive] on an older peer skips them.
+     */
+    fun sendBinary(payload: ByteArray): Boolean {
+        if (payload.size + 1 > MAX_MESSAGE) return false
+        // A JSON message always starts with '{', so a leading 0 marks the bytes as raw.
+        val plain = ByteArray(payload.size + 1)
+        System.arraycopy(payload, 0, plain, 1, payload.size)
+        plain[0] = BINARY_MARK
+        seal(plain)
         return true
     }
 
@@ -88,10 +100,17 @@ class LinkSession internal constructor(
     }
 
     /**
-     * The next message, or null for one this side doesn't understand (skip it).
+     * The next message, or null for one this side doesn't understand (skip it);
+     * raw frames ([sendBinary]) are skipped too.
      * Throws [IOException] when the link is gone or a frame was tampered with.
      */
-    fun receive(): LinkMessage? {
+    fun receive(): LinkMessage? = (receiveAny() as? Incoming.Message)?.message
+
+    /**
+     * The next frame: a message, raw bytes, or null for a message this side
+     * doesn't understand (skip it). Throws like [receive].
+     */
+    fun receiveAny(): Incoming? {
         val frame = readFrame(input, MAX_FRAME)
         val cipher = Cipher.getInstance(AES_GCM)
         val plain = try {
@@ -100,7 +119,16 @@ class LinkSession internal constructor(
         } catch (e: GeneralSecurityException) {
             throw IOException("frame failed authentication", e)
         }
-        return LinkCodec.decode(plain)
+        if (plain.isNotEmpty() && plain[0] == BINARY_MARK) return Incoming.Binary(plain.copyOfRange(1, plain.size))
+        return LinkCodec.decode(plain)?.let(Incoming::Message)
+    }
+
+    private fun seal(plain: ByteArray) {
+        synchronized(output) {
+            val cipher = Cipher.getInstance(AES_GCM)
+            cipher.init(Cipher.ENCRYPT_MODE, sendKey, GCMParameterSpec(128, nonce(sendCounter++)))
+            writeFrame(output, cipher.doFinal(plain))
+        }
     }
 
     override fun close() = onClose()
@@ -112,7 +140,16 @@ class LinkSession internal constructor(
         const val MAX_FRAME = 512 * 1024
         /** The largest encoded message that fits in a frame, next to the GCM tag. */
         const val MAX_MESSAGE = MAX_FRAME - GCM_TAG_BYTES
+
+        private const val BINARY_MARK: Byte = 0
     }
+}
+
+/** One frame read by [LinkSession.receiveAny]. */
+sealed class Incoming {
+    data class Message(val message: LinkMessage) : Incoming()
+
+    class Binary(val bytes: ByteArray) : Incoming()
 }
 
 object SecureChannel {
