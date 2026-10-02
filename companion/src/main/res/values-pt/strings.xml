@@ -172,6 +172,6 @@
     <string name="car_photos_above">Vista de cima</string>
     <string name="car_photos_above_hint">Opcional: a que o Gemini desenha</string>
     <string name="car_photos_gemini">Desenhar a vista de cima no Gemini</string>
-    <string name="car_photos_gemini_prompt">Com estas três fotos do meu carro (lado, frente e traseira), desenha o mesmo carro visto exatamente de cima: uma vista de cima plana sem perspetiva, a frente para cima, a mesma pintura, o mesmo tejadilho e as mesmas rodas, sobre um fundo branco liso, sem texto nem logótipo.</string>
+    <string name="car_photos_gemini_prompt">Com estas três fotos do meu carro (lado, frente e traseira), desenha o mesmo carro visto exatamente de cima: uma vista de cima plana sem perspetiva, a frente para cima, a mesma pintura, o mesmo tejadilho e as mesmas rodas, sobre um fundo branco liso e sólido (sem xadrez de transparência), sem texto nem logótipo.</string>
     <string name="car_photos_prompt_copied">Pedido copiado: cole-o no Gemini se for preciso</string>
 </resources>

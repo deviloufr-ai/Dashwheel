@@ -172,6 +172,6 @@
     <string name="car_photos_above">Van boven</string>
     <string name="car_photos_above_hint">Optioneel: die Gemini tekent</string>
     <string name="car_photos_gemini">Bovenaanzicht tekenen in Gemini</string>
-    <string name="car_photos_gemini_prompt">Teken met deze drie foto\'s van mijn auto (zijkant, voorkant en achterkant) dezelfde auto recht van boven gezien: een plat bovenaanzicht zonder perspectief, de neus naar boven, dezelfde lak, hetzelfde dak en dezelfde wielen, op een effen witte achtergrond, zonder tekst of logo.</string>
+    <string name="car_photos_gemini_prompt">Teken met deze drie foto\'s van mijn auto (zijkant, voorkant en achterkant) dezelfde auto recht van boven gezien: een plat bovenaanzicht zonder perspectief, de neus naar boven, dezelfde lak, hetzelfde dak en dezelfde wielen, op een effen, volle witte achtergrond (geen dambord voor transparantie), zonder tekst of logo.</string>
     <string name="car_photos_prompt_copied">Vraag gekopieerd: plak hem zo nodig in Gemini</string>
 </resources>

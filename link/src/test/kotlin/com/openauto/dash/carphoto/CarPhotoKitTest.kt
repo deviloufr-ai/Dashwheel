@@ -74,6 +74,31 @@ class CarPhotoKitTest {
         return Argb(w, h, px)
     }
 
+    /** On the checkerboard the Gemini app draws for "transparent", a blend of its greys along the squares' edges. */
+    private fun onChecker(img: Argb, square: Int = 24): Argb {
+        val pad = 60
+        val w = img.w + 2 * pad
+        val h = img.h + 2 * pad
+        val px = IntArray(w * h)
+        for (y in 0 until h) for (x in 0 until w) {
+            // the squares cut by the picture's edge, as they are in a drawn one
+            val cx = x + square / 3
+            val cy = y + square / 3
+            val bg = when {
+                cx % square == 0 || cy % square == 0 -> 0xFFE6E6E6.toInt()
+                (cx / square + cy / square) % 2 == 0 -> 0xFFFFFFFF.toInt()
+                else -> 0xFFCCCCCC.toInt()
+            }
+            val sx = x - pad
+            val sy = y - pad
+            val p = if (sx in 0 until img.w && sy in 0 until img.h) img.px[sy * img.w + sx] else 0
+            val a = (p ushr 24) / 255.0
+            fun mix(sh: Int) = (((p shr sh) and 255) * a + ((bg shr sh) and 255) * (1 - a)).roundToInt()
+            px[y * w + x] = (0xFF shl 24) or (mix(16) shl 16) or (mix(8) shl 8) or mix(0)
+        }
+        return Argb(w, h, px)
+    }
+
     private class Score(val iou: Double, val wheelErr: Double, val lengthErr: Double, val widthErr: Double)
 
     /** The view from above placed on the true one, scaled by the car's height alone. */
@@ -170,6 +195,20 @@ class CarPhotoKitTest {
         val s = score(r.top!!, "keyed")
         note("keyed renders: IoU %.3f, wheel err %.2f %%".format(Locale.ROOT, s.iou, s.wheelErr))
         assertTrue("IoU ${s.iou}", s.iou >= 0.93)
+    }
+
+    @Test
+    fun aCheckerboardBackgroundIsKeyedOut() {
+        val side = load("side.png")
+        val clean = CarPhotoKit.cutOut(side)
+        val cut = CarPhotoKit.cutOut(onChecker(side))
+        save(cut, "side_checker.png")
+        assertEquals(clean.w.toDouble(), cut.w.toDouble(), clean.w * 0.02)
+        assertEquals(clean.h.toDouble(), cut.h.toDouble(), clean.h * 0.03)
+        // none of the squares left: as many car pixels as on the clean cut-out
+        fun solid(a: Argb) = a.px.count { (it ushr 24) > 128 }
+        assertEquals(solid(clean).toDouble(), solid(cut).toDouble(), solid(clean) * 0.03)
+        assertEquals(2, CarPhotoKit.side(onChecker(side)).wheelsFound)
     }
 
     @Test

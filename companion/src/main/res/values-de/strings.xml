@@ -172,6 +172,6 @@
     <string name="car_photos_above">Von oben</string>
     <string name="car_photos_above_hint">Optional: die Ansicht, die Gemini zeichnet</string>
     <string name="car_photos_gemini">Ansicht von oben in Gemini zeichnen</string>
-    <string name="car_photos_gemini_prompt">Zeichne aus diesen drei Fotos meines Autos (Seite, vorne und hinten) dasselbe Auto genau von oben gesehen: eine flache Draufsicht ohne Perspektive, Front nach oben, gleiche Farbe, gleiches Dach und gleiche Räder, auf schlichtem weißem Hintergrund, ohne Text oder Logo.</string>
+    <string name="car_photos_gemini_prompt">Zeichne aus diesen drei Fotos meines Autos (Seite, vorne und hinten) dasselbe Auto genau von oben gesehen: eine flache Draufsicht ohne Perspektive, Front nach oben, gleiche Farbe, gleiches Dach und gleiche Räder, auf schlichtem, durchgehend weißem Hintergrund (kein Transparenz-Schachbrett), ohne Text oder Logo.</string>
     <string name="car_photos_prompt_copied">Anfrage kopiert: bei Bedarf in Gemini einfügen</string>
 </resources>
