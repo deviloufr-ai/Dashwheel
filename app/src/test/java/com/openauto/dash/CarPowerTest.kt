@@ -29,4 +29,16 @@ class CarPowerTest {
         // A fix stamped in the future (clock change) isn't trusted.
         assertFalse(parkFixUsable(fixTime = now + 5 * min, now = now))
     }
+
+    @Test
+    fun actsOnASwitchOnMissedWhileNotRunning() {
+        val now = 1_000 * min
+        // Off at the last stop, the app back with the ignition on: woken up.
+        assertTrue(startedBySwitchOn(ignitionOn = true, offAt = now - 60 * min, onAt = now - 90 * min))
+        // Restarted mid-drive: the "on" was already acted on.
+        assertFalse(startedBySwitchOn(ignitionOn = true, offAt = now - 90 * min, onAt = now - 60 * min))
+        // Started while the car is off, or never seen switched off.
+        assertFalse(startedBySwitchOn(ignitionOn = false, offAt = now - 60 * min, onAt = now - 90 * min))
+        assertFalse(startedBySwitchOn(ignitionOn = true, offAt = 0, onAt = 0))
+    }
 }

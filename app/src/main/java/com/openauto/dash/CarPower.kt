@@ -61,14 +61,23 @@ object CarPower {
         if (acc.isNullOrBlank()) return
         started = true
         appContext = app
-        _ignition.value = acc == "true"
-        noteBoot(app, acc == "true")
+        val on = acc == "true"
+        _ignition.value = on
+        val prefs = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        // Read before [noteBoot] marks the ignition on.
+        val wokeUp = startedBySwitchOn(on, prefs.getLong(KEY_OFF_AT, 0L), prefs.getLong(KEY_ON_AT, 0L))
+        noteBoot(app, on)
         val filter = IntentFilter().apply {
             addAction(ACTION_ACC_ON)
             addAction(ACTION_ACC_OFF)
             addAction(ACTION_SLEEP_SOON)
         }
         ContextCompat.registerReceiver(app, receiver, filter, ContextCompat.RECEIVER_EXPORTED)
+        // The unit kills the app while it sleeps (a new process at nearly every
+        // wake-up in the logs), and the "on" broadcast goes out before the app
+        // is back: the switch-on is acted on here, or the dashboard, the media
+        // and the briefing would wait for the next turn of the key.
+        if (wokeUp) switchedOn(app)
     }
 
     /**
@@ -196,6 +205,14 @@ object CarPower {
  */
 internal fun briefOnIgnition(offAt: Long?, now: Long): Boolean =
     offAt != null && now - offAt >= CarStart.OFF_GAP_MS
+
+/**
+ * Whether the app, starting with the ignition on, comes up from a switch-off
+ * it saw (the last thing it noted was the ignition going off): the "on" it
+ * missed while not running is to be acted on now.
+ */
+internal fun startedBySwitchOn(ignitionOn: Boolean, offAt: Long, onAt: Long): Boolean =
+    ignitionOn && offAt > 0 && offAt > onAt
 
 /** A GPS fix older than this at switch-off isn't where the car stopped. */
 internal const val PARK_FIX_MAX_AGE_MS = 3 * 60_000L
