@@ -18,6 +18,7 @@
     <string name="mycar_view_side">bok</string>
     <string name="mycar_view_top">z góry</string>
     <string name="mycar_view_hero">trzy czwarte</string>
+    <string name="mycar_view_open">otwarte drzwi</string>
     <string name="mycar_show_title">Pokaż</string>
     <string name="mycar_show_drawn">Rysunek auta</string>
     <string name="mycar_show_mine">Moje auto</string>
@@ -31,6 +32,6 @@
     <string name="mycar_where">Widoczne w projektach Mapa opon i Sylwetka oraz na kafelku Mój samochód.</string>
     <string name="mycar_phone_hint">Z telefonu: w aplikacji Dashwheel companion, Obraz auta, potem Wybierz plik.</string>
     <string name="mycar_photos">3 zdjęcia</string>
-    <string name="mycar_photos_hint">Albo wybierz od razu trzy zdjęcia auta: bok, przód i tył, plus widok z góry, jeśli go masz. Nazwane bok, przód, tył i góra nigdy się nie pomylą.</string>
+    <string name="mycar_photos_hint">Albo wybierz od razu zdjęcia auta: bok, przód i tył, plus widok z góry i widok z góry z otwartymi drzwiami, jeśli je masz. Nazwane bok, przód, tył, góra i otwarte nigdy się nie pomylą.</string>
     <string name="mycar_photos_no_car">Nie znaleziono samochodu na tych zdjęciach. Użyj zdjęć z całym autem na gładkim tle.</string>
 </resources>

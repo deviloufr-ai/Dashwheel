@@ -18,6 +18,7 @@
     <string name="mycar_view_side">side</string>
     <string name="mycar_view_top">from above</string>
     <string name="mycar_view_hero">three-quarter</string>
+    <string name="mycar_view_open">doors open</string>
     <string name="mycar_show_title">Show</string>
     <string name="mycar_show_drawn">Drawn car</string>
     <string name="mycar_show_mine">My car</string>
@@ -31,6 +32,6 @@
     <string name="mycar_where">Shown on the Tyre map and Car outline designs and on the My car tile.</string>
     <string name="mycar_phone_hint">From the phone: in the Dashwheel companion app, Car picture, then Choose a file.</string>
     <string name="mycar_photos">3 photos</string>
-    <string name="mycar_photos_hint">Or pick three photos of the car at once: side, front and back, plus one from above if you have it. Named side, front, back and top, they never get mixed up.</string>
+    <string name="mycar_photos_hint">Or pick the photos of the car at once: side, front and back, plus one from above and one from above with the doors open if you have them. Named side, front, back, top and open, they never get mixed up.</string>
     <string name="mycar_photos_no_car">No car found in those photos. Use ones with the whole car on a plain background.</string>
 </resources>

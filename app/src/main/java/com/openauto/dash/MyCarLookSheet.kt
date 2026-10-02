@@ -139,6 +139,7 @@ internal fun MyCarLookSheet(onDismiss: () -> Unit) {
             val views = listOfNotNull(
                 l.side?.let { stringResource(R.string.mycar_view_side) },
                 l.top?.let { stringResource(R.string.mycar_view_top) },
+                l.top?.takeIf { it.parts.isNotEmpty() }?.let { stringResource(R.string.mycar_view_open) },
                 l.hero?.let { stringResource(R.string.mycar_view_hero) }
             )
             Text(stringResource(R.string.mycar_views, views.joinToString(", ")), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)

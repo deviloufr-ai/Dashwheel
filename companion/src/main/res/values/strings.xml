@@ -175,4 +175,8 @@
     <string name="car_photos_gemini">Draw the view from above in Gemini</string>
     <string name="car_photos_gemini_prompt">Using these three photos of my car (side, front and back), draw the same car seen from directly above: a flat top view without perspective, nose pointing up, same paint, roof and wheels, on a plain white background, with no text or logo.</string>
     <string name="car_photos_prompt_copied">Request copied: paste it in Gemini if needed</string>
+    <string name="car_photos_opened">Doors open</string>
+    <string name="car_photos_opened_hint">Optional: Gemini opens them on the view from above</string>
+    <string name="car_photos_gemini_open">Open the doors in Gemini</string>
+    <string name="car_photos_gemini_open_prompt">Redraw this exact picture of my car seen from directly above, keeping the same size, position, angle and colours, but with all four doors swung wide open, the tailgate open and the bonnet open. Plain white background, no text or logo.</string>
 </resources>

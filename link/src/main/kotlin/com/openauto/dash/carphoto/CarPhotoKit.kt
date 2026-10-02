@@ -80,14 +80,37 @@ class CarTop(
     val centrePx: CarPoint
 )
 
-/** Everything built from the photos; [back] is the back photo cleaned, kept for the reverse view. */
-class CarPhotoResult(val name: String, val side: CarSide, val top: CarTop?, val back: Argb?) {
+/** A part of the car that opens, by the key the car pack uses. */
+enum class CarPart(val key: String) {
+    FRONT_LEFT("fl"), FRONT_RIGHT("fr"), REAR_LEFT("rl"), REAR_RIGHT("rr"), TAILGATE("tailgate"), BONNET("bonnet")
+}
+
+/**
+ * One part open, seen from above: its picture (transparent around it) and
+ * where it goes on the closed view from above, as left, top, right, bottom
+ * fractions of that picture; beyond 0..1 where it sticks out (a door swung open).
+ */
+class CarOpenPart(val part: CarPart, val image: Argb, val box: List<Float>)
+
+/**
+ * Everything built from the photos; [back] is the back photo cleaned, kept for
+ * the reverse view; [open]: the parts found open in a picture of the car from
+ * above with its doors open ([CarPhotoKit.openParts]).
+ */
+class CarPhotoResult(
+    val name: String,
+    val side: CarSide,
+    val top: CarTop?,
+    val back: Argb?,
+    val open: List<CarOpenPart> = emptyList()
+) {
 
     /** The pictures of a car pack by file name, for the caller to encode as PNG. */
     fun packEntries(): Map<String, Argb> = LinkedHashMap<String, Argb>().apply {
         put("side.png", side.image)
         top?.let { put("top.png", it.image) }
         back?.let { put("back.png", it) }
+        for (p in open) put("top_${p.part.key}.png", p.image)
     }
 
     /** car.json as the launcher's pack import reads it (anchors as fractions of each picture). */
@@ -114,6 +137,14 @@ class CarPhotoResult(val name: String, val side: CarSide, val top: CarTop?, val 
                 putJsonObject("topBody") {
                     put("wheels", JsonArray(t.bodyWheels.map(::point)))
                     put("box", JsonArray(t.bodyBox.map { JsonPrimitive(round4(it)) }))
+                }
+            }
+        }
+        if (open.isNotEmpty()) putJsonObject("parts") {
+            putJsonObject("top") {
+                for (p in open) putJsonObject(p.part.key) {
+                    put("file", "top_${p.part.key}.png")
+                    put("box", JsonArray(p.box.map { JsonPrimitive(round4(it)) }))
                 }
             }
         }
@@ -155,6 +186,8 @@ object CarPhotoKit {
      * from the outlines. [above]: a picture of the car from directly above
      * (one the Gemini app drew from the photos, say), used as the view from
      * above instead, its wheels placed from the side photo ([topFrom]).
+     * [opened]: the same car from above with its doors, tailgate and bonnet
+     * open, whose open parts are laid on the view from above ([openParts]).
      */
     fun build(
         side: Argb,
@@ -163,7 +196,8 @@ object CarPhotoKit {
         facing: CarFacing = CarFacing.AUTO,
         name: String = "",
         mirrors: Boolean = true,
-        above: Argb? = null
+        above: Argb? = null,
+        opened: Argb? = null
     ): CarPhotoResult {
         val levelled = levelledSide(side, facing)
         val sideOut = sideOf(levelled)
@@ -177,7 +211,8 @@ object CarPhotoKit {
             topView(small, s, f, b, mirrors)
         } else null
         val top = above?.let { topFrom(it, sideOut, built) } ?: built
-        return CarPhotoResult(name, sideOut, top, backCut?.let { picture(it) })
+        val open = if (opened != null && top != null) openParts(opened, top) else emptyList()
+        return CarPhotoResult(name, sideOut, top, backCut?.let { picture(it) }, open)
     }
 
     /**
@@ -236,6 +271,190 @@ object CarPhotoKit {
         )
     }
 
+    /**
+     * The parts open in [opened], a picture of the same car from above with
+     * doors, tailgate or bonnet open (the Gemini app redraws [top] that way),
+     * each cut out and placed on [top]. The two pictures are matched by the
+     * body: its width (the columns covered over half the car's length, which
+     * open doors are not) and its nose, at [top]'s scale. Then:
+     * - a door is what sticks out of [top]'s outline beside the body, front or
+     *   rear by where it is hinged (its foremost point);
+     * - the tailgate is the whole back of the car, the bonnet the whole front,
+     *   when they stick out of [top] or don't look like it.
+     * Parts not found are left out (the app shows those its own way).
+     */
+    fun openParts(opened: Argb, top: CarTop): List<CarOpenPart> {
+        val tw = top.image.w
+        val th = top.image.h
+        val closed = BooleanArray(tw * th) { (top.image.px[it] ushr 24) > 128 }
+        val cbl = top.bodyBox[0] * tw
+        val cbt = top.bodyBox[1] * th
+        val cbr = top.bodyBox[2] * tw
+        val cbb = top.bodyBox[3] * th
+
+        var c = runCatching { cutOf(opened) }.getOrElse { return emptyList() }
+        if (c.w > c.h * 1.4f) c = turn(c, quarter = true)
+        val up = bodyOf(c) ?: return emptyList()
+        // nose up like [top], or the other way round: whichever matches it best
+        val turned = turn(c, quarter = false)
+        val down = bodyOf(turned)
+        val (cut, body) = if (down != null && agreement(turned, down, closed, tw, th, cbl, cbt, cbr) > agreement(c, up, closed, tw, th, cbl, cbt, cbr)) {
+            turned to down
+        } else c to up
+        val img = picture(cut)
+        val w = cut.w
+        val h = cut.h
+        val s = (cbr - cbl) / body.width
+        fun tx(x: Float) = cbl + (x - body.left) * s
+        fun ty(y: Float) = cbt + (y - body.nose) * s
+        // how far along the car a row is: 0 at the nose, 1 at the tail
+        fun along(y: Int) = (ty(y + 0.5f) - cbt) / (cbb - cbt)
+
+        // what sticks out of the closed car, with a little slack as the two pictures never match exactly
+        val slack = max(2, (tw * 0.015f).roundToInt())
+        val near = dilate(closed, tw, th, slack, slack)
+        var out = BooleanArray(w * h)
+        for (y in 0 until h) for (x in 0 until w) {
+            val i = y * w + x
+            if (!cut.m[i]) continue
+            val cx = tx(x + 0.5f).toInt()
+            val cy = ty(y + 0.5f).toInt()
+            out[i] = cx !in 0 until tw || cy !in 0 until th || !near[cy * tw + cx]
+        }
+        val r = max(1, (w * 0.004f).roundToInt())
+        out = dilate(erode(out, w, h, r, r), w, h, r, r)
+
+        val bodyRight = body.left + body.width
+        val margin = body.width * 0.12f
+        val minArea = (body.width * body.width * 0.01f).roundToInt()
+        val parts = ArrayList<CarOpenPart>()
+        fun add(part: CarPart, keep: BooleanArray) {
+            var x0 = w; var y0 = h; var x1 = -1; var y1 = -1; var n = 0
+            for (y in 0 until h) for (x in 0 until w) if (keep[y * w + x]) {
+                n++
+                if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y
+            }
+            if (n < minArea) return
+            val pw = x1 - x0 + 1
+            val ph = y1 - y0 + 1
+            val px = IntArray(pw * ph)
+            for (y in 0 until ph) for (x in 0 until pw) {
+                val i = (y0 + y) * w + x0 + x
+                if (keep[i]) px[y * pw + x] = img.px[i]
+            }
+            parts.add(CarOpenPart(part, Argb(pw, ph, px), listOf(tx(x0.toFloat()) / tw, ty(y0.toFloat()) / th, tx(x1 + 1f) / tw, ty(y1 + 1f) / th)))
+        }
+
+        // The doors: blobs sticking out beside the body, front or rear by their hinge.
+        val sides = BooleanArray(w * h)
+        for (y in 0 until h) {
+            val a = along(y)
+            if (a < 0.1f || a > 0.95f) continue
+            for (x in 0 until w) {
+                val i = y * w + x
+                if (out[i] && (x < body.left + margin || x > bodyRight - margin)) sides[i] = true
+            }
+        }
+        val wheelFront = top.bodyWheels.getOrNull(0)?.y ?: 0.2f
+        val wheelRear = top.bodyWheels.getOrNull(2)?.y ?: 0.8f
+        // between the front door's hinge (just behind the front wheel) and the rear one's (about mid-wheelbase)
+        val split = wheelFront + 0.35f * (wheelRear - wheelFront)
+        val b = blobs(sides, w, h)
+        val doors = LinkedHashMap<CarPart, BooleanArray>()
+        for (k in 1..b.count) {
+            if (b.area[k] < minArea) continue
+            val left = (b.x0[k] + b.x1[k]) / 2f < body.left + body.width / 2f
+            val front = along(b.y0[k]) < split
+            val part = when {
+                left && front -> CarPart.FRONT_LEFT
+                left -> CarPart.REAR_LEFT
+                front -> CarPart.FRONT_RIGHT
+                else -> CarPart.REAR_RIGHT
+            }
+            val m = doors.getOrPut(part) { BooleanArray(w * h) }
+            for (i in m.indices) if (b.label[i] == k) m[i] = true
+        }
+        for (part in listOf(CarPart.FRONT_LEFT, CarPart.FRONT_RIGHT, CarPart.REAR_LEFT, CarPart.REAR_RIGHT)) doors[part]?.let { add(part, it) }
+
+        // The tailgate and the bonnet: the whole end of the car, when it is not as on [top].
+        fun end(part: CarPart, from: Float, to: Float) {
+            val keep = BooleanArray(w * h)
+            var stick = 0
+            for (y in 0 until h) {
+                val a = along(y)
+                if (a < from || a > to) continue
+                for (x in 0 until w) {
+                    val i = y * w + x
+                    if (!cut.m[i] || x < body.left - margin / 2 || x > bodyRight + margin / 2) continue
+                    keep[i] = true
+                    if (out[i]) stick++
+                }
+            }
+            if (stick >= minArea || endDiffers(cut, keep, top.image, ::tx, ::ty)) add(part, keep)
+        }
+        end(CarPart.TAILGATE, 0.86f, Float.MAX_VALUE)
+        end(CarPart.BONNET, -Float.MAX_VALUE, 0.28f)
+        return parts
+    }
+
+    /** The body in a picture from above: its columns (those covered over half the car's length) and its nose row. */
+    private class Body(val left: Float, val width: Float, val nose: Float)
+
+    private fun bodyOf(c: Cut): Body? {
+        val counts = IntArray(c.w)
+        for (y in 0 until c.h) for (x in 0 until c.w) if (c.m[y * c.w + x]) counts[x]++
+        val full = counts.max()
+        if (full == 0) return null
+        val left = counts.indexOfFirst { it >= full * 0.5f }
+        val right = counts.indexOfLast { it >= full * 0.5f }
+        if (right - left < 4) return null
+        // the nose: the first row reaching the body (an open door or a mirror is beside it)
+        var nose = -1
+        for (y in 0 until c.h) {
+            for (x in left..right) if (c.m[y * c.w + x]) { nose = y; break }
+            if (nose >= 0) break
+        }
+        return Body(left.toFloat(), (right - left + 1).toFloat(), nose.toFloat())
+    }
+
+    /** How well [c] laid on the closed car's mask matches it, across the body: the share of pixels that agree. */
+    private fun agreement(c: Cut, body: Body, closed: BooleanArray, tw: Int, th: Int, cbl: Float, cbt: Float, cbr: Float): Double {
+        val s = (cbr - cbl) / body.width
+        var same = 0
+        var all = 0
+        for (cy in 0 until th) for (cx in cbl.toInt() until min(tw, cbr.toInt())) {
+            val x = ((cx + 0.5f - cbl) / s + body.left).toInt()
+            val y = ((cy + 0.5f - cbt) / s + body.nose).toInt()
+            val m = x in 0 until c.w && y in 0 until c.h && c.m[y * c.w + x]
+            all++
+            if (m == closed[cy * tw + cx]) same++
+        }
+        return if (all == 0) 0.0 else same.toDouble() / all
+    }
+
+    /** Whether the pixels [keep] of [c] look unlike the same place on [closed]: a lifted tailgate or bonnet. */
+    private fun endDiffers(c: Cut, keep: BooleanArray, closed: Argb, tx: (Float) -> Float, ty: (Float) -> Float): Boolean {
+        fun lum(v: Int) = 0.3 * ((v shr 16) and 255) + 0.59 * ((v shr 8) and 255) + 0.11 * (v and 255)
+        var diff = 0.0
+        var n = 0
+        var missing = 0
+        for (y in 0 until c.h) for (x in 0 until c.w) {
+            val i = y * c.w + x
+            if (!keep[i]) continue
+            val cx = tx(x + 0.5f).toInt()
+            val cy = ty(y + 0.5f).toInt()
+            val q = if (cx in 0 until closed.w && cy in 0 until closed.h) closed.px[cy * closed.w + cx] else 0
+            if ((q ushr 24) < 128) { missing++; continue }
+            diff += abs(lum(c.px[i]) - lum(q))
+            n++
+        }
+        if (n + missing == 0) return false
+        return missing > 0.15 * (n + missing) || (n > 0 && diff / n > END_DIFF)
+    }
+
+    /** An end of the car this much brighter or darker on average (0-255) than when shut is open. */
+    private const val END_DIFF = 28.0
+
     /** The share of the car's pixels in its top or bottom fifth that are rear-light red. */
     private fun redShare(c: Cut, top: Boolean): Double {
         val ys = if (top) 0 until c.h / 5 else (c.h - c.h / 5) until c.h
@@ -275,15 +494,16 @@ object CarPhotoKit {
     fun cutOut(photo: Argb): Argb = picture(cutOf(photo))
 
     /** A zip of [entries] (a car pack once the pictures are encoded). */
-    /** Which photo picked is which, as indexes into the list picked ([sortShots]). */
-    data class Shots(val side: Int, val front: Int?, val back: Int?, val above: Int?)
+    /** Which photo picked is which, as indexes into the list picked ([sortShots]); [opened]: from above, doors open. */
+    data class Shots(val side: Int, val front: Int?, val back: Int?, val above: Int?, val opened: Int? = null)
 
     /**
      * Which of several photos picked at once is the side, the front, the back
-     * and the view from above: by file name first (in the launcher's
-     * languages), else by shape: a tall one is the view from above, the
-     * widest the side, and the others follow in the order picked. [aspects]
-     * are each photo's width over height.
+     * and the view from above (shut, and with its doors open): by file name
+     * first (in the launcher's languages), else by shape: a tall one is the
+     * view from above, the widest the side, and the others follow in the
+     * order picked, the fifth being the doors open. [aspects] are each
+     * photo's width over height.
      */
     fun sortShots(names: List<String>, aspects: List<Float>): Shots {
         require(names.isNotEmpty() && names.size == aspects.size) { "no photos" }
@@ -292,6 +512,7 @@ object CarPhotoKit {
             val n = names[i].lowercase()
             words.any { w -> Regex("(^|[^\\p{L}])$w($|[^\\p{L}])").containsMatchIn(n) }
         }?.also { left.remove(it) }
+        val opened = named(OPEN_WORDS)
         val above = named(ABOVE_WORDS)
         val side = named(SIDE_WORDS)
         val front = named(FRONT_WORDS)
@@ -299,8 +520,9 @@ object CarPhotoKit {
         val a = above ?: left.filter { aspects[it] < TALL }.minByOrNull { aspects[it] }?.takeIf { left.size > 1 }?.also { left.remove(it) }
         val s = side ?: left.maxByOrNull { aspects[it] }!!.also { left.remove(it) }
         val f = front ?: left.firstOrNull()?.also { left.remove(it) }
-        val b = back ?: left.firstOrNull()
-        return Shots(s, f, b, a)
+        val b = back ?: left.firstOrNull()?.also { left.remove(it) }
+        val o = opened ?: left.firstOrNull()?.takeIf { a != null }
+        return Shots(s, f, b, a, o)
     }
 
     /** A picture this much taller than wide is the car seen from above (nose up). */
@@ -310,6 +532,7 @@ object CarPhotoKit {
     private val SIDE_WORDS = listOf("side", "cote", "côté", "profil", "seite", "lateral", "lato", "lado", "zijkant", "zij", "bok")
     private val FRONT_WORDS = listOf("front", "avant", "face", "vorne", "delante", "frontal", "davanti", "frente", "voorkant", "voor", "przod", "przód")
     private val BACK_WORDS = listOf("back", "rear", "arriere", "arrière", "hinten", "heck", "detras", "detrás", "trasera", "dietro", "retro", "traseira", "achterkant", "achter", "tyl", "tył")
+    private val OPEN_WORDS = listOf("open", "opened", "ouvert", "ouverte", "ouvertes", "offen", "abierto", "abiertas", "aperto", "aperte", "aberto", "abertas", "geopend", "otwarte")
     private val ABOVE_WORDS = listOf("top", "above", "dessus", "haut", "oben", "draufsicht", "arriba", "encima", "sopra", "alto", "cima", "boven", "bovenaanzicht", "gora", "góra", "gory", "góry")
 
     fun zip(entries: Map<String, ByteArray>): ByteArray {

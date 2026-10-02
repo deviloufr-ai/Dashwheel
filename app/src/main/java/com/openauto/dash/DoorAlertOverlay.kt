@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -46,6 +47,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.openauto.dash.carphoto.CarPart
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -281,7 +283,8 @@ private fun DoorFullScreen(doors: McuReader.DoorState) {
  * The car seen from above, nose up, fitted into the space it's given: the
  * open doors swing out on their hinges (animated as they open and shut) and
  * glow in the warning colour, the tailgate and the bonnet lift away from the
- * body.
+ * body. The driver's own car when it has a view from above (MyCarLook.kt),
+ * its open parts fading in over it.
  */
 @Composable
 internal fun CarFromAbove(doors: McuReader.DoorState, modifier: Modifier = Modifier) {
@@ -300,6 +303,20 @@ internal fun CarFromAbove(doors: McuReader.DoorState, modifier: Modifier = Modif
     // Tinted from the outline, so the windows show on light and dark themes alike.
     val glass = edge.copy(alpha = 0.24f)
     val warn = DashColors.Warning
+    val mine by MyCarLook.shown.collectAsState()
+    val style by MyCarLook.style.collectAsState()
+    val own = mine?.top
+    if (own != null) {
+        val ink = DashColors.Accent
+        Canvas(modifier) {
+            val open = mapOf(
+                CarPart.FRONT_LEFT to fl, CarPart.FRONT_RIGHT to fr, CarPart.REAR_LEFT to rl, CarPart.REAR_RIGHT to rr,
+                CarPart.TAILGATE to tail, CarPart.BONNET to bonnet
+            )
+            drawCarView(own, style, fitCarOpen(own, Rect(Offset.Zero, size)), ink, warn, open = open)
+        }
+        return
+    }
     Canvas(modifier) {
         // Drawn in a 140 x 260 box (the car is 70 x 190 in its middle) scaled to fit.
         val s = min(size.width / VIEW_W, size.height / VIEW_H)

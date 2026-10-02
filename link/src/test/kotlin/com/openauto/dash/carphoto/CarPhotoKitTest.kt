@@ -219,6 +219,9 @@ class CarPhotoKitTest {
         assertEquals(CarPhotoKit.Shots(1, 2, 0, 3), CarPhotoKit.sortShots(listOf("car_back.png", "car_side.jpg", "car_front.png", "car_top.png"), listOf(1f, 1f, 1f, 1f)))
         // Not named: a tall one is the view from above, the widest the side, then the order picked.
         assertEquals(CarPhotoKit.Shots(1, 0, 3, 2), CarPhotoKit.sortShots(listOf("IMG_1.jpg", "IMG_2.jpg", "IMG_3.jpg", "IMG_4.jpg"), listOf(1.2f, 2.4f, 0.46f, 1.3f)))
+        // From above with the doors open: by name (before "top" counts), else the fifth photo.
+        assertEquals(CarPhotoKit.Shots(1, 2, 0, 3, 4), CarPhotoKit.sortShots(listOf("back.png", "side.jpg", "front.png", "top.png", "top_open.png"), listOf(1f, 1f, 1f, 0.5f, 0.8f)))
+        assertEquals(CarPhotoKit.Shots(1, 0, 3, 2, 4), CarPhotoKit.sortShots(listOf("IMG_1.jpg", "IMG_2.jpg", "IMG_3.jpg", "IMG_4.jpg", "IMG_5.jpg"), listOf(1.2f, 2.4f, 0.46f, 1.3f, 0.9f)))
         // "backup" or "frontier" are not the back or the front; only one photo: the side alone, even tall.
         assertEquals(CarPhotoKit.Shots(0, null, null, null), CarPhotoKit.sortShots(listOf("backup.jpg"), listOf(0.5f)))
     }
@@ -249,6 +252,50 @@ class CarPhotoKitTest {
         // wheelbase as on the model, within 3 % of the length
         val wheelbase = (rl.y - fl.y) * (top.tail.y - top.nose.y).let { 1 / it }
         assertEquals(2.73 / modelLength, wheelbase.toDouble(), 0.03)
+    }
+
+    /**
+     * The model rendered from above shut, then with the front left and rear
+     * right doors and the tailgate open, framed differently (as the Gemini
+     * app's redraw would be): each open part found on its own, in its place.
+     */
+    @Test
+    fun openPartsAreFoundOnTheViewFromAbove() {
+        val side = CarPhotoKit.side(onFlat(load("side.png"), 0xFF000000.toInt()))
+        for ((name, bg) in listOf("clear" to null, "white" to 0xFFFFFFFF.toInt())) {
+            val shut = load("top_render.png").let { if (bg == null) it else onFlat(it, bg) }
+            val open = load("top_open.png").let { if (bg == null) it else onFlat(it, bg) }
+            val top = CarPhotoKit.topFrom(shut, side)
+            val t0 = System.nanoTime()
+            val parts = CarPhotoKit.openParts(open, top)
+            val ms = (System.nanoTime() - t0) / 1_000_000
+            note("open parts ($name, $ms ms): " + parts.joinToString { p -> "${p.part} ${p.box.joinToString(",") { "%.2f".format(Locale.ROOT, it) }}" })
+            save(top.image, "open_${name}_shut.png")
+            parts.forEach { save(it.image, "open_${name}_${it.part.key}.png") }
+            assertEquals(setOf(CarPart.FRONT_LEFT, CarPart.REAR_RIGHT, CarPart.TAILGATE), parts.map { it.part }.toSet())
+            val fl = parts.first { it.part == CarPart.FRONT_LEFT }.box
+            val rr = parts.first { it.part == CarPart.REAR_RIGHT }.box
+            val tail = parts.first { it.part == CarPart.TAILGATE }.box
+            assertTrue("front left door out to the left", fl[0] < 0f && fl[2] < 0.5f)
+            assertTrue("rear right door out to the right", rr[2] > 1f && rr[0] > 0.5f)
+            assertTrue("front door ahead of the rear one", fl[1] < rr[1])
+            assertTrue("tailgate beyond the tail", tail[3] > top.tail.y + 0.05f)
+        }
+        // the whole pack, with its parts named in car.json (build/carphoto-out/open.dwcar, to import on a unit)
+        val r = CarPhotoKit.build(load("side.png"), load("front.png"), load("back.png"), above = load("top_render.png"), opened = load("top_open.png"))
+        val json = Json.parseToJsonElement(r.toCarJson()).jsonObject
+        val parts = json["parts"]!!.jsonObject["top"]!!.jsonObject
+        assertEquals(setOf("fl", "rr", "tailgate"), parts.keys)
+        val entries = r.packEntries()
+        assertTrue(parts.values.all { it.jsonObject["box"]!!.jsonArray.size == 4 })
+        assertTrue("top_fl.png" in entries && "top_tailgate.png" in entries)
+        File(out, "open.dwcar").writeBytes(CarPhotoKit.zip(LinkedHashMap<String, ByteArray>().apply {
+            put("car.json", r.toCarJson().toByteArray())
+            for ((n, a) in entries) put(n, png(a))
+        }))
+        // a picture with nothing open gives nothing
+        val shut = load("top_render.png")
+        assertTrue(CarPhotoKit.openParts(shut, CarPhotoKit.topFrom(shut, side)).isEmpty())
     }
 
     /** A picture from above drawn by the Gemini app, when one is put in build/carphoto-in/above.jpg (not kept in the repo). */

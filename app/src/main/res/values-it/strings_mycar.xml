@@ -18,6 +18,7 @@
     <string name="mycar_view_side">lato</string>
     <string name="mycar_view_top">dall\'alto</string>
     <string name="mycar_view_hero">tre quarti</string>
+    <string name="mycar_view_open">porte aperte</string>
     <string name="mycar_show_title">Mostra</string>
     <string name="mycar_show_drawn">Auto disegnata</string>
     <string name="mycar_show_mine">La mia auto</string>
@@ -31,6 +32,6 @@
     <string name="mycar_where">Visibile nei design Mappa gomme e Sagoma e nel riquadro La mia auto.</string>
     <string name="mycar_phone_hint">Dal telefono: nell\'app Dashwheel companion, Immagine dell\'auto, poi Scegli un file.</string>
     <string name="mycar_photos">3 foto</string>
-    <string name="mycar_photos_hint">Oppure scegli tre foto dell\'auto insieme: lato, davanti e dietro, più una dall\'alto se ce l\'hai. Se si chiamano lato, davanti, dietro e sopra, non si confondono mai.</string>
+    <string name="mycar_photos_hint">Oppure scegli le foto dell\'auto insieme: lato, davanti e dietro, più una dall\'alto e una dall\'alto con le porte aperte se le hai. Se si chiamano lato, davanti, dietro, sopra e aperto, non si confondono mai.</string>
     <string name="mycar_photos_no_car">Nessuna auto trovata in queste foto. Usane con l\'auto intera su uno sfondo uniforme.</string>
 </resources>

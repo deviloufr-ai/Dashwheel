@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.LocalGasStation
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -39,6 +40,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -76,6 +78,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import com.openauto.dash.carphoto.CarPart
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
@@ -939,6 +942,16 @@ private fun GaugeBank(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
 
 @Composable
 private fun CarTop(f: WidgetFace, look: FaceLook, m: FaceMetrics) = Split(f, look, m, 100f / 146f) {
+    // The driver's own car from above (MyCarLook.kt), its open parts laid on it.
+    val mine by MyCarLook.shown.collectAsState()
+    val style by MyCarLook.style.collectAsState()
+    val own = mine?.top
+    if (own != null) {
+        val d = f.doors ?: emptyList()
+        val open = DOOR_ORDER.withIndex().associate { (i, part) -> part to if (d.getOrElse(i) { false }) 1f else 0f }
+        Canvas(Modifier.fillMaxSize()) { drawCarView(own, style, fitCarOpen(own, Rect(Offset.Zero, size)), look.accent, look.warn, open = open) }
+        return@Split
+    }
     Vb(100f, 146f, y0 = -10f) {
         val d = f.doors ?: emptyList()
         fun open(i: Int) = d.getOrElse(i) { false }
@@ -959,6 +972,9 @@ private fun CarTop(f: WidgetFace, look: FaceLook, m: FaceMetrics) = Split(f, loo
         else drawLine(look.ink, Offset(38f, 10f), Offset(62f, 10f), 2f)
     }
 }
+
+/** The parts in [WidgetFace.doors]' order. */
+private val DOOR_ORDER = listOf(CarPart.FRONT_LEFT, CarPart.FRONT_RIGHT, CarPart.REAR_LEFT, CarPart.REAR_RIGHT, CarPart.TAILGATE, CarPart.BONNET)
 
 @Composable
 private fun DataRain(f: WidgetFace, look: FaceLook, m: FaceMetrics) {

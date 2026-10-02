@@ -25,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
@@ -184,7 +185,9 @@ private fun RadarPanel(radar: Radar) {
 /**
  * The car from above (doors shut) with an arc for each sensor it has: front
  * sensors above, rear below, left to right. An arc sits closer to the bumper
- * and turns red as its sensor's level drops towards 1 (closest).
+ * and turns red as its sensor's level drops towards 1 (closest). The driver's
+ * own car when it has a view from above (MyCarLook.kt), its bumpers where the
+ * drawn car's are.
  */
 @Composable
 internal fun RadarFromAbove(radar: Radar, modifier: Modifier = Modifier) {
@@ -195,11 +198,17 @@ internal fun RadarFromAbove(radar: Radar, modifier: Modifier = Modifier) {
     val warn = DashColors.Warning
     val front = radar.front.map { it to levelColor(it) }
     val rear = radar.rear.map { it to levelColor(it) }
+    val mine by MyCarLook.shown.collectAsState()
+    val style by MyCarLook.style.collectAsState()
+    val own = mine?.top
+    val ink = DashColors.Accent
     Canvas(modifier) {
         val s = min(size.width / VIEW_W, size.height / VIEW_H)
         translate((size.width - VIEW_W * s) / 2f, (size.height - VIEW_H * s) / 2f) {
+            // The own car is drawn at screen scale (sharp), on the drawn car's 70 x 190 body.
+            if (own != null) drawCarView(own, style, fitCarOn(own, Rect(35f * s, 35f * s, 105f * s, 225f * s)), ink, warn)
             withTransform({ scale(s, s, Offset.Zero) }) {
-                drawCar(body, glass, edge, warn, 0f, 0f, 0f, 0f, 0f, 0f)
+                if (own == null) drawCar(body, glass, edge, warn, 0f, 0f, 0f, 0f, 0f, 0f)
                 sensorArcs(front, center = Offset(70f, 100f), from = 215f, reach = 1f)
                 sensorArcs(rear, center = Offset(70f, 160f), from = 145f, reach = -1f)
             }

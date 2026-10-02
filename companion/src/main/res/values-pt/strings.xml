@@ -174,4 +174,8 @@
     <string name="car_photos_gemini">Desenhar a vista de cima no Gemini</string>
     <string name="car_photos_gemini_prompt">Com estas três fotos do meu carro (lado, frente e traseira), desenha o mesmo carro visto exatamente de cima: uma vista de cima plana sem perspetiva, a frente para cima, a mesma pintura, o mesmo tejadilho e as mesmas rodas, sobre um fundo branco liso, sem texto nem logótipo.</string>
     <string name="car_photos_prompt_copied">Pedido copiado: cole-o no Gemini se for preciso</string>
+    <string name="car_photos_opened">Portas abertas</string>
+    <string name="car_photos_opened_hint">Opcional: o Gemini abre-as na vista de cima</string>
+    <string name="car_photos_gemini_open">Abrir as portas no Gemini</string>
+    <string name="car_photos_gemini_open_prompt">Redesenha exatamente esta imagem do meu carro visto de cima, com o mesmo tamanho, posição, ângulo e cores, mas com as quatro portas bem abertas, a bagageira aberta e o capô aberto. Fundo branco liso, sem texto nem logótipo.</string>
 </resources>

@@ -174,4 +174,8 @@
     <string name="car_photos_gemini">Disegna la vista dall\'alto in Gemini</string>
     <string name="car_photos_gemini_prompt">Usando queste tre foto della mia auto (lato, davanti e dietro), disegna la stessa auto vista esattamente dall\'alto: una vista dall\'alto piatta senza prospettiva, il muso verso l\'alto, stessa vernice, stesso tetto e stesse ruote, su uno sfondo bianco uniforme, senza testo né logo.</string>
     <string name="car_photos_prompt_copied">Richiesta copiata: incollala in Gemini se serve</string>
+    <string name="car_photos_opened">Porte aperte</string>
+    <string name="car_photos_opened_hint">Facoltativa: Gemini le apre sulla vista dall\'alto</string>
+    <string name="car_photos_gemini_open">Apri le porte in Gemini</string>
+    <string name="car_photos_gemini_open_prompt">Ridisegna esattamente questa immagine della mia auto vista dall\'alto, con le stesse dimensioni, posizione, angolazione e colori, ma con tutte e quattro le porte spalancate, il portellone aperto e il cofano aperto. Sfondo bianco uniforme, senza testo né logo.</string>
 </resources>

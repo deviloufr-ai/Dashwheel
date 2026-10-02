@@ -174,4 +174,8 @@
     <string name="car_photos_gemini">Narysuj widok z góry w Gemini</string>
     <string name="car_photos_gemini_prompt">Na podstawie tych trzech zdjęć mojego samochodu (bok, przód i tył) narysuj ten sam samochód widziany dokładnie z góry: płaski widok z góry bez perspektywy, przodem do góry, ten sam lakier, dach i koła, na gładkim białym tle, bez tekstu i logo.</string>
     <string name="car_photos_prompt_copied">Prośba skopiowana: w razie potrzeby wklej ją w Gemini</string>
+    <string name="car_photos_opened">Drzwi otwarte</string>
+    <string name="car_photos_opened_hint">Opcjonalnie: Gemini otworzy je na widoku z góry</string>
+    <string name="car_photos_gemini_open">Otwórz drzwi w Gemini</string>
+    <string name="car_photos_gemini_open_prompt">Narysuj ponownie dokładnie ten obraz mojego auta widzianego z góry, w tym samym rozmiarze, położeniu, kącie i kolorach, ale z czterema drzwiami szeroko otwartymi, otwartą klapą bagażnika i otwartą maską. Gładkie białe tło, bez tekstu i logo.</string>
 </resources>

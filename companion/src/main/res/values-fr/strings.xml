@@ -174,4 +174,8 @@
     <string name="car_photos_gemini">Dessiner la vue de dessus dans Gemini</string>
     <string name="car_photos_gemini_prompt">À partir de ces trois photos de ma voiture (côté, avant et arrière), dessine la même voiture vue exactement du dessus : une vue de dessus à plat sans perspective, l\'avant vers le haut, même peinture, même toit et mêmes roues, sur un fond blanc uni, sans texte ni logo.</string>
     <string name="car_photos_prompt_copied">Demande copiée : collez-la dans Gemini si besoin</string>
+    <string name="car_photos_opened">Portes ouvertes</string>
+    <string name="car_photos_opened_hint">Facultatif : Gemini les ouvre sur la vue de dessus</string>
+    <string name="car_photos_gemini_open">Ouvrir les portes dans Gemini</string>
+    <string name="car_photos_gemini_open_prompt">Redessine exactement cette image de ma voiture vue du dessus, avec la même taille, la même position, le même angle et les mêmes couleurs, mais avec les quatre portes grandes ouvertes, le hayon ouvert et le capot ouvert. Fond blanc uni, sans texte ni logo.</string>
 </resources>

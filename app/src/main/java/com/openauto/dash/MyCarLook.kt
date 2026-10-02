@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import com.openauto.dash.carphoto.CarPart
 import com.openauto.dash.link.CarLookAck
 import com.openauto.dash.link.CarLookPart
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,6 +44,9 @@ import kotlin.math.sqrt
  * from its edges; both are kept in the app's own folder. The car tiles then
  * draw it in one of three styles ([CarLookStyle]), the live signals (a wheel
  * in trouble, an alert) staying drawn on top at the pack's anchor points.
+ * A pack may also carry, for the view from above, each door, the tailgate
+ * and the bonnet open (cut from a picture of the car with them open): the
+ * door alert and the reverse view lay them on the car as they open.
  */
 
 internal enum class CarLookStyle(@StringRes val titleRes: Int, @StringRes val hintRes: Int) {
@@ -51,20 +55,30 @@ internal enum class CarLookStyle(@StringRes val titleRes: Int, @StringRes val hi
     OUTLINE(R.string.mycar_style_outline, R.string.mycar_style_outline_hint)
 }
 
+/** A part of the car open ([CarPart]): its picture and outline, and where it goes on its view ([box], fractions, beyond 0..1 where it sticks out). */
+internal class CarLayer(val photo: ImageBitmap, val outline: ImageBitmap, val box: Rect)
+
 /**
  * One view of the car: the picture, its outline (white, the edges in its
  * alpha) and where things are on it, as fractions of its width and height.
  * [wheels]: from above front left, front right, rear left, rear right; from
  * the side front then rear. [nose] and [tail]: the bumpers' middles.
+ * [parts]: the parts that open, drawn open over the picture.
  */
 internal class CarView(
     val photo: ImageBitmap,
     val outline: ImageBitmap,
     val wheels: List<Offset> = emptyList(),
     val nose: Offset? = null,
-    val tail: Offset? = null
+    val tail: Offset? = null,
+    val parts: Map<CarPart, CarLayer> = emptyMap()
 ) {
     val aspect: Float get() = photo.width.toFloat() / photo.height
+
+    /** Everything that may be drawn, open parts included, as fractions of the picture. */
+    val reach: Rect = parts.values.fold(Rect(0f, 0f, 1f, 1f)) { r, p ->
+        Rect(min(r.left, p.box.left), min(r.top, p.box.top), max(r.right, p.box.right), max(r.bottom, p.box.bottom))
+    }
 }
 
 internal class CarLook(val name: String, val side: CarView?, val top: CarView?, val hero: CarView?) {
@@ -175,10 +189,24 @@ internal object MyCarLook {
             val prepared = prepare(raw) ?: continue
             File(next, "$view.png").outputStream().use { prepared.photo.compress(Bitmap.CompressFormat.PNG, 100, it) }
             File(next, "${view}_line.png").outputStream().use { prepared.outline.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            // The open parts: kept as they come (already cut out), placed on the trimmed picture.
+            val parts = JSONObject()
+            for ((key, part) in raw.parts) {
+                val photo = decodeSized(part.bytes) ?: continue
+                val outline = outlineOf(photo)
+                File(next, "${view}_$key.png").outputStream().use { photo.compress(Bitmap.CompressFormat.PNG, 100, it) }
+                File(next, "${view}_${key}_line.png").outputStream().use { outline.compress(Bitmap.CompressFormat.PNG, 100, it) }
+                val a = prepared.move(part.box.topLeft)
+                val b = prepared.move(part.box.bottomRight)
+                parts.put(key, JSONArray().put(a.x.toDouble()).put(a.y.toDouble()).put(b.x.toDouble()).put(b.y.toDouble()))
+                photo.recycle()
+                outline.recycle()
+            }
             manifest.put(view, JSONObject().apply {
                 put("wheels", JSONArray().apply { prepared.wheels.forEach { put(point(it)) } })
                 prepared.nose?.let { put("nose", point(it)) }
                 prepared.tail?.let { put("tail", point(it)) }
+                if (parts.length() > 0) put("parts", parts)
             })
             prepared.photo.recycle()
             prepared.outline.recycle()
@@ -192,13 +220,26 @@ internal object MyCarLook {
         return look
     }
 
-    private class RawView(val bytes: ByteArray, val wheels: List<Offset> = emptyList(), val nose: Offset? = null, val tail: Offset? = null)
+    private class RawPart(val bytes: ByteArray, val box: Rect)
 
-    private class Prepared(val photo: Bitmap, val outline: Bitmap, val wheels: List<Offset>, val nose: Offset?, val tail: Offset?)
+    private class RawView(
+        val bytes: ByteArray,
+        val wheels: List<Offset> = emptyList(),
+        val nose: Offset? = null,
+        val tail: Offset? = null,
+        val parts: Map<String, RawPart> = emptyMap()
+    )
+
+    /** [move]: a point of the picture as it came (fractions) to the same point of [photo]. */
+    private class Prepared(
+        val photo: Bitmap, val outline: Bitmap, val wheels: List<Offset>, val nose: Offset?, val tail: Offset?,
+        val move: (Offset) -> Offset
+    )
 
     /**
      * A car pack: car.json names each view's picture and its anchor points
-     * (fractions of that picture). Only the files car.json names are read,
+     * (fractions of that picture), and under "parts" the pictures of its open
+     * parts with their place on it. Only the files car.json names are read,
      * each at most [MAX_FILE] bytes.
      */
     private fun readPack(bytes: ByteArray): Pair<String, Map<String, RawView>> {
@@ -217,35 +258,49 @@ internal object MyCarLook {
         val json = JSONObject(files["car.json"]?.decodeToString() ?: error("no car.json"))
         val views = json.optJSONObject("views") ?: JSONObject()
         val anchors = json.optJSONObject("anchors") ?: JSONObject()
+        val allParts = json.optJSONObject("parts") ?: JSONObject()
         val out = LinkedHashMap<String, RawView>()
         for (view in VIEWS) {
             val file = views.optString(view).takeIf { it.isNotBlank() } ?: continue
             val data = files[file.substringAfterLast('/')] ?: continue
             val a = anchors.optJSONObject(view)
             val wheels = a?.optJSONArray("wheels")?.let { arr -> (0 until arr.length()).mapNotNull { offset(arr.optJSONArray(it)) } }.orEmpty()
-            out[view] = RawView(data, wheels, offset(a?.optJSONArray("nose")), offset(a?.optJSONArray("tail")))
+            val parts = LinkedHashMap<String, RawPart>()
+            allParts.optJSONObject(view)?.let { p ->
+                for (part in CarPart.entries) {
+                    val entry = p.optJSONObject(part.key) ?: continue
+                    val bytes = files[entry.optString("file").substringAfterLast('/')] ?: continue
+                    val box = rect(entry.optJSONArray("box")) ?: continue
+                    parts[part.key] = RawPart(bytes, box)
+                }
+            }
+            out[view] = RawView(data, wheels, offset(a?.optJSONArray("nose")), offset(a?.optJSONArray("tail")), parts)
         }
         val name = json.optString("name").ifBlank { CarProfileStore.current.name }
         return name to out
     }
 
-    /** Decoded small enough, trimmed to the car (its anchors moved along), and its outline drawn. */
-    private fun prepare(raw: RawView): Prepared? {
+    /** Decoded no longer than [MAX_SIDE] a side. */
+    private fun decodeSized(bytes: ByteArray): Bitmap? {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeByteArray(raw.bytes, 0, raw.bytes.size, bounds)
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
         if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
         var sample = 1
         while (max(bounds.outWidth, bounds.outHeight) / (sample * 2) >= MAX_SIDE) sample *= 2
-        val decoded = BitmapFactory.decodeByteArray(raw.bytes, 0, raw.bytes.size, BitmapFactory.Options().apply {
+        val decoded = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, BitmapFactory.Options().apply {
             inSampleSize = sample
             inPreferredConfig = Bitmap.Config.ARGB_8888
         }) ?: return null
         val scale = MAX_SIDE.toFloat() / max(decoded.width, decoded.height)
-        val sized = if (scale < 1f) {
+        return if (scale < 1f) {
             Bitmap.createScaledBitmap(decoded, (decoded.width * scale).roundToInt(), (decoded.height * scale).roundToInt(), true)
                 .also { if (it !== decoded) decoded.recycle() }
         } else decoded
+    }
 
+    /** Decoded small enough, trimmed to the car (its anchors moved along), and its outline drawn. */
+    private fun prepare(raw: RawView): Prepared? {
+        val sized = decodeSized(raw.bytes) ?: return null
         val w = sized.width
         val h = sized.height
         val px = IntArray(w * h)
@@ -254,7 +309,7 @@ internal object MyCarLook {
         val photo = Bitmap.createBitmap(sized, crop.left, crop.top, crop.width(), crop.height())
         if (photo !== sized) sized.recycle()
         fun moved(o: Offset) = Offset((o.x * w - crop.left) / crop.width(), (o.y * h - crop.top) / crop.height())
-        return Prepared(photo, outlineOf(photo), raw.wheels.map(::moved), raw.nose?.let(::moved), raw.tail?.let(::moved))
+        return Prepared(photo, outlineOf(photo), raw.wheels.map(::moved), raw.nose?.let(::moved), raw.tail?.let(::moved), ::moved)
     }
 
     /** The box around the car's own pixels, with a little room for the outline's glow; the whole picture without transparency. */
@@ -329,12 +384,29 @@ internal object MyCarLook {
             val photo = BitmapFactory.decodeFile(File(root, "$name.png").path) ?: return null
             val outline = BitmapFactory.decodeFile(File(root, "${name}_line.png").path) ?: return null
             val wheels = a.optJSONArray("wheels")?.let { arr -> (0 until arr.length()).mapNotNull { offset(arr.optJSONArray(it)) } }.orEmpty()
-            return CarView(photo.asImageBitmap(), outline.asImageBitmap(), wheels, offset(a.optJSONArray("nose")), offset(a.optJSONArray("tail")))
+            val parts = HashMap<CarPart, CarLayer>()
+            a.optJSONObject("parts")?.let { p ->
+                for (part in CarPart.entries) {
+                    val box = rect(p.optJSONArray(part.key)) ?: continue
+                    val partPhoto = BitmapFactory.decodeFile(File(root, "${name}_${part.key}.png").path) ?: continue
+                    val partLine = BitmapFactory.decodeFile(File(root, "${name}_${part.key}_line.png").path) ?: continue
+                    parts[part] = CarLayer(partPhoto.asImageBitmap(), partLine.asImageBitmap(), box)
+                }
+            }
+            return CarView(photo.asImageBitmap(), outline.asImageBitmap(), wheels, offset(a.optJSONArray("nose")), offset(a.optJSONArray("tail")), parts)
         }
         CarLook(manifest.optString("name"), view("side"), view("top"), view("hero")).takeIf { it.side != null || it.top != null || it.hero != null }
     }.getOrNull()
 
     private fun point(o: Offset) = JSONArray().put(o.x.toDouble()).put(o.y.toDouble())
+
+    /** Left, top, right, bottom. */
+    private fun rect(a: JSONArray?): Rect? {
+        if (a == null || a.length() < 4) return null
+        val v = (0 until 4).map { a.optDouble(it, Double.NaN).toFloat() }
+        if (v.any { it.isNaN() } || v[2] <= v[0] || v[3] <= v[1]) return null
+        return Rect(v[0], v[1], v[2], v[3])
+    }
 
     private fun offset(a: JSONArray?): Offset? {
         if (a == null || a.length() < 2) return null
@@ -414,25 +486,56 @@ internal fun fitCarOn(view: CarView, footprint: Rect): Rect {
     return Rect(Offset(footprint.center.x - w * nose.x, footprint.top - h * nose.y), Size(w, h))
 }
 
+/**
+ * Where [view] sits in [area] with room for its parts open ([CarView.reach]),
+ * so the car keeps its place and size as its doors open and shut.
+ */
+internal fun fitCarOpen(view: CarView, area: Rect): Rect {
+    val reach = view.reach
+    val aspect = view.aspect * reach.width / reach.height
+    val w = min(area.width, area.height * aspect)
+    val h = w / aspect
+    val pw = w / reach.width
+    val ph = h / reach.height
+    return Rect(Offset(area.center.x - w / 2f - reach.left * pw, area.center.y - h / 2f - reach.top * ph), Size(pw, ph))
+}
+
 /** A point of [view] (fractions) in the [placed] rectangle. */
 internal fun Rect.at(fraction: Offset): Offset = Offset(left + width * fraction.x, top + height * fraction.y)
 
 /**
  * The car in [style] in [dst]: [ink] is the line or tint colour (the look's
  * accent), [alert] turns it to [warn]: the outline over the photo, the tint
- * or the lines themselves.
+ * or the lines themselves. [open]: how far each part is open (0 shut, 1
+ * open); an open part the view has a picture of is drawn open over the car
+ * in [warn], one it hasn't turns the whole car to [warn].
  */
-internal fun DrawScope.drawCarView(view: CarView, style: CarLookStyle, dst: Rect, ink: Color, warn: Color, alert: Boolean = false) {
+internal fun DrawScope.drawCarView(
+    view: CarView, style: CarLookStyle, dst: Rect, ink: Color, warn: Color, alert: Boolean = false,
+    open: Map<CarPart, Float> = emptyMap()
+) {
+    val shown = open.filterValues { it > 0.01f }
+    val warned = alert || shown.keys.any { it !in view.parts }
+    drawPicture(view.photo, view.outline, style, dst, if (warned) warn else ink, warned, warn)
+    for ((part, amount) in shown) {
+        val layer = view.parts[part] ?: continue
+        drawPicture(layer.photo, layer.outline, style, Rect(dst.at(layer.box.topLeft), dst.at(layer.box.bottomRight)), warn, true, warn, amount.coerceAtMost(1f))
+    }
+}
+
+/** One picture in [style]: [alert] puts the outline in [warn] over the photo. */
+private fun DrawScope.drawPicture(
+    photo: ImageBitmap, outline: ImageBitmap, style: CarLookStyle, dst: Rect, tone: Color, alert: Boolean, warn: Color, alpha: Float = 1f
+) {
     val offset = IntOffset(dst.left.roundToInt(), dst.top.roundToInt())
     val size = IntSize(dst.width.roundToInt().coerceAtLeast(1), dst.height.roundToInt().coerceAtLeast(1))
-    val tone = if (alert) warn else ink
     when (style) {
         CarLookStyle.PHOTO -> {
-            drawImage(view.photo, dstOffset = offset, dstSize = size)
-            if (alert) drawImage(view.outline, dstOffset = offset, dstSize = size, colorFilter = ColorFilter.tint(warn, BlendMode.SrcIn))
+            drawImage(photo, dstOffset = offset, dstSize = size, alpha = alpha)
+            if (alert) drawImage(outline, dstOffset = offset, dstSize = size, alpha = alpha, colorFilter = ColorFilter.tint(warn, BlendMode.SrcIn))
         }
-        CarLookStyle.TINTED -> drawImage(view.photo, dstOffset = offset, dstSize = size, colorFilter = tintRamp(tone))
-        CarLookStyle.OUTLINE -> drawImage(view.outline, dstOffset = offset, dstSize = size, colorFilter = ColorFilter.tint(tone, BlendMode.SrcIn))
+        CarLookStyle.TINTED -> drawImage(photo, dstOffset = offset, dstSize = size, alpha = alpha, colorFilter = tintRamp(tone))
+        CarLookStyle.OUTLINE -> drawImage(outline, dstOffset = offset, dstSize = size, alpha = alpha, colorFilter = ColorFilter.tint(tone, BlendMode.SrcIn))
     }
 }
 

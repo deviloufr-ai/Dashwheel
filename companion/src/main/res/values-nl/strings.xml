@@ -174,4 +174,8 @@
     <string name="car_photos_gemini">Bovenaanzicht tekenen in Gemini</string>
     <string name="car_photos_gemini_prompt">Teken met deze drie foto\'s van mijn auto (zijkant, voorkant en achterkant) dezelfde auto recht van boven gezien: een plat bovenaanzicht zonder perspectief, de neus naar boven, dezelfde lak, hetzelfde dak en dezelfde wielen, op een effen witte achtergrond, zonder tekst of logo.</string>
     <string name="car_photos_prompt_copied">Vraag gekopieerd: plak hem zo nodig in Gemini</string>
+    <string name="car_photos_opened">Deuren open</string>
+    <string name="car_photos_opened_hint">Optioneel: Gemini zet ze open op het bovenaanzicht</string>
+    <string name="car_photos_gemini_open">Deuren openen in Gemini</string>
+    <string name="car_photos_gemini_open_prompt">Teken precies deze afbeelding van mijn auto van bovenaf opnieuw, met dezelfde grootte, positie, hoek en kleuren, maar met alle vier de deuren wijd open, de achterklep open en de motorkap open. Effen witte achtergrond, zonder tekst of logo.</string>
 </resources>

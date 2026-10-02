@@ -174,4 +174,8 @@
     <string name="car_photos_gemini">Dibujar la vista desde arriba en Gemini</string>
     <string name="car_photos_gemini_prompt">Con estas tres fotos de mi coche (lateral, delante y detrás), dibuja el mismo coche visto justo desde arriba: una vista superior plana sin perspectiva, el frontal hacia arriba, misma pintura, mismo techo y mismas ruedas, sobre un fondo blanco liso, sin texto ni logotipo.</string>
     <string name="car_photos_prompt_copied">Petición copiada: pégala en Gemini si hace falta</string>
+    <string name="car_photos_opened">Puertas abiertas</string>
+    <string name="car_photos_opened_hint">Opcional: Gemini las abre en la vista desde arriba</string>
+    <string name="car_photos_gemini_open">Abrir las puertas en Gemini</string>
+    <string name="car_photos_gemini_open_prompt">Vuelve a dibujar exactamente esta imagen de mi coche visto desde arriba, con el mismo tamaño, posición, ángulo y colores, pero con las cuatro puertas abiertas de par en par, el portón trasero abierto y el capó abierto. Fondo blanco liso, sin texto ni logotipo.</string>
 </resources>

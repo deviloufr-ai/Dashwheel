@@ -18,6 +18,7 @@
     <string name="mycar_view_side">profil</string>
     <string name="mycar_view_top">dessus</string>
     <string name="mycar_view_hero">trois-quarts</string>
+    <string name="mycar_view_open">portes ouvertes</string>
     <string name="mycar_show_title">Afficher</string>
     <string name="mycar_show_drawn">Voiture dessinée</string>
     <string name="mycar_show_mine">Ma voiture</string>
@@ -31,6 +32,6 @@
     <string name="mycar_where">Affichée sur les designs Carte des pneus et Silhouette et sur la tuile Ma voiture.</string>
     <string name="mycar_phone_hint">Depuis le téléphone : dans l\'appli compagnon Dashwheel, Photo de la voiture, puis Choisir un fichier.</string>
     <string name="mycar_photos">3 photos</string>
-    <string name="mycar_photos_hint">Ou choisissez trois photos de la voiture d\'un coup : côté, avant et arrière, plus une vue de dessus si vous en avez une. Nommées côté, avant, arrière et dessus, elles ne sont jamais confondues.</string>
+    <string name="mycar_photos_hint">Ou choisissez les photos de la voiture d\'un coup : côté, avant et arrière, plus une vue de dessus et une vue de dessus portes ouvertes si vous en avez. Nommées côté, avant, arrière, dessus et ouvert, elles ne sont jamais confondues.</string>
     <string name="mycar_photos_no_car">Aucune voiture trouvée sur ces photos. Prenez-en avec toute la voiture sur un fond uni.</string>
 </resources>

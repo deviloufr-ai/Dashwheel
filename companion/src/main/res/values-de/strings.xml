@@ -174,4 +174,8 @@
     <string name="car_photos_gemini">Ansicht von oben in Gemini zeichnen</string>
     <string name="car_photos_gemini_prompt">Zeichne aus diesen drei Fotos meines Autos (Seite, vorne und hinten) dasselbe Auto genau von oben gesehen: eine flache Draufsicht ohne Perspektive, Front nach oben, gleiche Farbe, gleiches Dach und gleiche Räder, auf schlichtem weißem Hintergrund, ohne Text oder Logo.</string>
     <string name="car_photos_prompt_copied">Anfrage kopiert: bei Bedarf in Gemini einfügen</string>
+    <string name="car_photos_opened">Türen offen</string>
+    <string name="car_photos_opened_hint">Optional: Gemini öffnet sie in der Ansicht von oben</string>
+    <string name="car_photos_gemini_open">Türen in Gemini öffnen</string>
+    <string name="car_photos_gemini_open_prompt">Zeichne genau dieses Bild meines Autos von oben neu, mit gleicher Größe, Position, gleichem Winkel und gleichen Farben, aber mit allen vier Türen weit geöffnet, offener Heckklappe und offener Motorhaube. Schlichter weißer Hintergrund, ohne Text oder Logo.</string>
 </resources>

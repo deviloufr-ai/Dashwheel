@@ -18,6 +18,7 @@
     <string name="mycar_view_side">Seite</string>
     <string name="mycar_view_top">von oben</string>
     <string name="mycar_view_hero">Dreiviertel</string>
+    <string name="mycar_view_open">Türen offen</string>
     <string name="mycar_show_title">Anzeigen</string>
     <string name="mycar_show_drawn">Gezeichnetes Auto</string>
     <string name="mycar_show_mine">Mein Auto</string>
@@ -31,6 +32,6 @@
     <string name="mycar_where">Zu sehen in den Designs Reifenkarte und Fahrzeugumriss und auf der Kachel Mein Auto.</string>
     <string name="mycar_phone_hint">Vom Handy: in der Dashwheel-Begleit-App Fahrzeugbild, dann Datei wählen.</string>
     <string name="mycar_photos">3 Fotos</string>
-    <string name="mycar_photos_hint">Oder wählen Sie drei Fotos des Autos auf einmal: Seite, vorne und hinten, dazu eins von oben, falls vorhanden. Heißen sie Seite, vorne, hinten und oben, werden sie nie verwechselt.</string>
+    <string name="mycar_photos_hint">Oder wählen Sie die Fotos des Autos auf einmal: Seite, vorne und hinten, dazu eins von oben und eins von oben mit offenen Türen, falls vorhanden. Heißen sie Seite, vorne, hinten, oben und offen, werden sie nie verwechselt.</string>
     <string name="mycar_photos_no_car">Kein Auto auf diesen Fotos gefunden. Nehmen Sie welche mit dem ganzen Auto vor einem schlichten Hintergrund.</string>
 </resources>
