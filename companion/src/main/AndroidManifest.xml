@@ -37,6 +37,9 @@
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
 
+    <!-- Installs its own updates from the GitHub release; Android still asks each time. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
     <!-- "On my way": the car asks the phone to text a contact its arrival time. -->
     <uses-permission android:name="android.permission.SEND_SMS" />
 

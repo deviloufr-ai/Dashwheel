@@ -3,4 +3,6 @@
     <cache-path name="car_logs" path="car_logs/" />
     <!-- Photos of the car taken for its picture (CarFromPhotos). -->
     <cache-path name="car_photos" path="car_photos/" />
+    <!-- The companion's own update, handed to Android's installer (CompanionUpdate). -->
+    <cache-path name="updates" path="updates/" />
 </paths>

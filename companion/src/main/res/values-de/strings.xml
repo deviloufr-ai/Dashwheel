@@ -87,9 +87,6 @@
     <string name="status_off_detail">Das Auto bekommt nichts von diesem Handy, bis du es wieder einschaltest.</string>
     <string name="status_waiting_detail">Schalte den Hotspot des Handys ein und verbinde das Autoradio damit.</string>
     <string name="status_connected_detail">Benachrichtigungen, Anrufe und Termine erscheinen auf dem Bildschirm im Auto.</string>
-    <string name="setup_all_done">Alles ist erlaubt</string>
-    <string name="setup_show">Anzeigen</string>
-    <string name="setup_hide">Ausblenden</string>
     <string name="pair_another">Weiteres Auto koppeln</string>
     <string name="permission_in_settings">Android fragt nicht mehr: erlaube es in App-Info unter Berechtigungen.</string>
     <string name="status_linked">Verbunden</string>
@@ -178,4 +175,28 @@
     <string name="car_photos_opened_hint">Optional: Gemini öffnet sie in der Ansicht von oben</string>
     <string name="car_photos_gemini_open">Türen in Gemini öffnen</string>
     <string name="car_photos_gemini_open_prompt">Zeichne genau dieses Bild meines Autos von oben neu, mit gleicher Größe, Position, gleichem Winkel und gleichen Farben, aber mit allen vier Türen weit geöffnet, offener Heckklappe und offener Motorhaube. Schlichter weißer Hintergrund, ohne Text oder Logo.</string>
+
+    <string name="tab_home">Start</string>
+    <string name="permissions_title">Berechtigungen</string>
+    <string name="tab_car">Auto</string>
+    <string name="update_section">Updates</string>
+    <string name="update_title">Neue Version</string>
+    <string name="update_available">Version %1$s ist da.</string>
+    <string name="update_downloading">Wird geladen, %1$d %%</string>
+    <string name="update_ready_title">Companion-Update bereit</string>
+    <string name="update_ready_text">Version %1$s ist bereit zur Installation.</string>
+    <string name="update_failed">Der Download ist fehlgeschlagen.</string>
+    <string name="update_download">Herunterladen</string>
+    <string name="update_install">Installieren</string>
+    <string name="update_retry">Erneut versuchen</string>
+    <string name="update_later">Später</string>
+    <string name="update_check">Nach Updates suchen</string>
+    <string name="update_installed">Version %1$s</string>
+    <string name="update_auto_detail">Aktuell. Neue Versionen laden im WLAN von selbst.</string>
+    <string name="update_allow_installs">Erlaube Installationen aus dieser App und tippe dann erneut auf Installieren.</string>
+    <string name="update_channel">Updates</string>
+    <plurals name="setup_left">
+        <item quantity="one">%d Freigabe fehlt noch</item>
+        <item quantity="other">%d Freigaben fehlen noch</item>
+    </plurals>
 </resources>

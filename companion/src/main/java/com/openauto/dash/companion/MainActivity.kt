@@ -85,6 +85,15 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SystemUpdate
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -100,6 +109,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -109,6 +119,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.NotificationManagerCompat
@@ -170,6 +181,7 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         resumes++
         LinkService.sync(this)
+        CompanionUpdate.check(this)
         // Back from the system settings, maybe with contacts or the calendar just allowed.
         PhoneLists.recheck()
     }
@@ -185,6 +197,12 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun takeOffer(intent: Intent?) {
+        // The "update ready" notification: straight to Android's installer.
+        if (intent?.getBooleanExtra(CompanionUpdate.EXTRA_INSTALL, false) == true) {
+            CompanionUpdate.installWhenReady(this)
+            setIntent(Intent(this, MainActivity::class.java))
+            return
+        }
         val data = intent?.data ?: return
         if (intent.action != Intent.ACTION_VIEW) return
         offer = PairingOffer.parse(data.toString())
@@ -216,7 +234,6 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
         )
     }
     val setup = rememberSetupChecks(resumes)
-    var setupOpen by rememberSaveable { mutableStateOf(false) }
     val paired = units.isNotEmpty()
     val connected = state is LinkState.Connected
     val carBluetooth by CarBluetooth.car.collectAsState()
@@ -240,66 +257,110 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
         return
     }
 
-    Scaffold(containerColor = CompanionColors.Background) { padding ->
+    // Paired, the screen splits in tabs; before that there is only pairing and setup.
+    var tab by rememberSaveable { mutableStateOf(Tab.HOME) }
+    val shown = if (paired) tab else Tab.HOME
+    val update by CompanionUpdate.status.collectAsState()
+    val hero: LazyListScope.() -> Unit = {
+        item {
+            HeroCard(
+                look = when {
+                    !paired -> StatusLook.NO_CAR
+                    !enabled -> StatusLook.OFF
+                    connected -> StatusLook.CONNECTED
+                    carBluetooth != null && !inCar -> StatusLook.ASLEEP
+                    state == LinkState.Unavailable -> StatusLook.UNAVAILABLE
+                    else -> StatusLook.WAITING
+                },
+                carName = (state as? LinkState.Connected)?.unitName?.takeIf { it.isNotBlank() } ?: units.firstOrNull()?.name,
+                carBluetooth = carBluetooth?.name,
+                onAuto = onAuto,
+                enabled = enabled,
+                canToggle = paired,
+                onToggle = {
+                    enabled = it
+                    PairedUnits.setEnabled(context, it)
+                    LinkService.sync(context)
+                },
+                onPair = startScan
+            )
+        }
+    }
+
+    Scaffold(
+        containerColor = CompanionColors.Background,
+        bottomBar = {
+            if (paired) {
+                NavigationBar(containerColor = CompanionColors.Surface) {
+                    Tab.entries.forEach { t ->
+                        // A dot where something waits: setup left to allow, an update to install.
+                        val flagged = t == Tab.SETUP && (setup.missing > 0 || update is CompanionUpdate.Status.Ready)
+                        NavigationBarItem(
+                            selected = shown == t,
+                            onClick = { tab = t },
+                            icon = {
+                                BadgedBox(badge = { if (flagged) Badge(containerColor = CompanionColors.Amber) }) {
+                                    Icon(t.icon, contentDescription = null)
+                                }
+                            },
+                            label = { Text(stringResource(t.label)) },
+                            colors = NavigationBarItemDefaults.colors(indicatorColor = CompanionColors.Blue.copy(alpha = 0.22f))
+                        )
+                    }
+                }
+            }
+        }
+    ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding).imePadding(),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 28.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            item {
-                HeroCard(
-                    look = when {
-                        !paired -> StatusLook.NO_CAR
-                        !enabled -> StatusLook.OFF
-                        connected -> StatusLook.CONNECTED
-                        carBluetooth != null && !inCar -> StatusLook.ASLEEP
-                        state == LinkState.Unavailable -> StatusLook.UNAVAILABLE
-                        else -> StatusLook.WAITING
-                    },
-                    carName = (state as? LinkState.Connected)?.unitName?.takeIf { it.isNotBlank() } ?: units.firstOrNull()?.name,
-                    carBluetooth = carBluetooth?.name,
-                    onAuto = onAuto,
-                    enabled = enabled,
-                    canToggle = paired,
-                    onToggle = {
-                        enabled = it
-                        PairedUnits.setEnabled(context, it)
-                        LinkService.sync(context)
-                    },
-                    onPair = startScan
-                )
-            }
-            if (paired && news.isNotEmpty()) item { CarNewsCard(news) }
-            if (connected) item { KeyboardCard() }
-            // Something still to allow comes before the drives: it is why the car shows less.
-            val setupFirst = setup.missing > 0 || !paired
-            if (setupFirst) setupSection(setup, open = true, onToggle = null)
-            if (paired) item { CarSpotCard() }
-            if (paired) {
-                item { SectionTitle(stringResource(R.string.drives_title)) }
-                val latest = drives.firstOrNull()
-                if (latest == null) {
-                    item { HintCard(stringResource(R.string.drives_none)) }
-                } else {
-                    item { WeekCard(drives) }
-                    item { MonthCard(drives, fills) }
-                    // "Under way" only while the car is linked: once it is gone, the drive it reported last is simply the last one.
-                    item { LatestDriveCard(latest, underWay = latest.ongoing && connected) }
-                    driveHistory(drives.drop(1).take(PAST_DRIVES_SHOWN))
-                }
-            }
-            if (!setupFirst) setupSection(setup, open = setupOpen, onToggle = { setupOpen = !setupOpen })
-            if (paired) {
-                item { SectionTitle(stringResource(R.string.cars_title)) }
-                item { ObdRelayCard(onPick = { pick(BluetoothPick.OBD) }) }
-                item { CarLookCard(connected, onFromPhotos = { fromPhotos = true }) }
-                items(units, key = { it.id }) { unit -> CarRow(unit, onRemove = { removing = unit }) }
-                item {
-                    TextButton(onClick = startScan, modifier = Modifier.fillMaxWidth()) {
-                        Icon(Icons.Filled.QrCodeScanner, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.pair_another))
+            when (shown) {
+                Tab.HOME -> {
+                    hero()
+                    updateCard(context, update)
+                    if (!paired) {
+                        item { SetupPanel(setup) }
+                    } else {
+                        if (setup.missing > 0) item { SetupNudge(setup.missing, onOpen = { tab = Tab.SETUP }) }
+                        if (news.isNotEmpty()) item { CarNewsCard(news) }
+                        if (connected) item { KeyboardCard() }
+                        item { CarSpotCard() }
                     }
+                }
+                Tab.DRIVES -> {
+                    item { SectionTitle(stringResource(R.string.drives_title), top = 2.dp) }
+                    val latest = drives.firstOrNull()
+                    if (latest == null) {
+                        item { HintCard(stringResource(R.string.drives_none)) }
+                    } else {
+                        // "Under way" only while the car is linked: once it is gone, the drive it reported last is simply the last one.
+                        item { LatestDriveCard(latest, underWay = latest.ongoing && connected) }
+                        item { WeekCard(drives) }
+                        item { MonthCard(drives, fills) }
+                        driveHistory(drives.drop(1).take(PAST_DRIVES_SHOWN))
+                    }
+                }
+                Tab.CAR -> {
+                    item { SectionTitle(stringResource(R.string.tab_car), top = 2.dp) }
+                    item { ObdRelayCard(onPick = { pick(BluetoothPick.OBD) }) }
+                    item { CarLookCard(connected, onFromPhotos = { fromPhotos = true }) }
+                    item { SectionTitle(stringResource(R.string.cars_title)) }
+                    items(units, key = { it.id }) { unit -> CarRow(unit, onRemove = { removing = unit }) }
+                    item {
+                        TextButton(onClick = startScan, modifier = Modifier.fillMaxWidth()) {
+                            Icon(Icons.Filled.QrCodeScanner, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.pair_another))
+                        }
+                    }
+                }
+                Tab.SETUP -> {
+                    item { SectionTitle(stringResource(R.string.setup_title), top = 2.dp) }
+                    item { SetupPanel(setup) }
+                    item { SectionTitle(stringResource(R.string.update_section)) }
+                    item { AppVersionCard(update) }
                 }
             }
         }
@@ -360,25 +421,91 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
     }
 }
 
-/**
- * The setup checklist: in full while something is left to allow; once all is
- * allowed, one line that opens it ([onToggle]), since there is nothing to do.
- */
-private fun LazyListScope.setupSection(setup: SetupChecks, open: Boolean, onToggle: (() -> Unit)?) {
-    if (!open && onToggle != null) {
-        item {
-            Panel(onClick = onToggle) {
-                Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = CompanionColors.Teal)
-                    Spacer(Modifier.width(12.dp))
-                    Text(stringResource(R.string.setup_all_done), fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-                    Text(stringResource(R.string.setup_show), color = CompanionColors.Blue, style = MaterialTheme.typography.labelLarge)
-                    Icon(Icons.Filled.ExpandMore, contentDescription = null, tint = CompanionColors.Blue)
+/** The screen's tabs, once a car is paired. */
+private enum class Tab(val label: Int, val icon: ImageVector) {
+    HOME(R.string.tab_home, Icons.Filled.Home),
+    DRIVES(R.string.drives_title, Icons.Filled.Route),
+    CAR(R.string.tab_car, Icons.Filled.DirectionsCar),
+    SETUP(R.string.setup_title, Icons.Filled.Settings)
+}
+
+/** Home's pointer to the Setup tab while something is left to allow. */
+@Composable
+private fun SetupNudge(missing: Int, onOpen: () -> Unit) {
+    Panel(onClick = onOpen) {
+        Row(Modifier.padding(start = 18.dp, end = 10.dp, top = 14.dp, bottom = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.weight(1f)) {
+                CardHeading(
+                    Icons.Filled.Settings, stringResource(R.string.setup_finish),
+                    pluralStringResource(R.plurals.setup_left, missing, missing), CompanionColors.Amber
+                )
+            }
+            Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = CompanionColors.Muted)
+        }
+    }
+}
+
+/** Home's card for a new companion build, unless "Later" was said to it. */
+private fun LazyListScope.updateCard(context: Context, update: CompanionUpdate.Status) {
+    if (update == CompanionUpdate.Status.None || CompanionUpdate.isDismissed(context, update)) return
+    item { UpdatePanel(update, canDismiss = true) }
+}
+
+/** The installed version, and the update on offer or a button to look for one. */
+@Composable
+private fun AppVersionCard(update: CompanionUpdate.Status) {
+    val context = LocalContext.current
+    if (update != CompanionUpdate.Status.None) {
+        UpdatePanel(update, canDismiss = false)
+        return
+    }
+    val version = remember { runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull().orEmpty() }
+    Panel {
+        Column(Modifier.padding(18.dp)) {
+            CardHeading(Icons.Filled.SystemUpdate, stringResource(R.string.update_installed, version), stringResource(R.string.update_auto_detail), CompanionColors.Teal)
+            OutlinedButton(onClick = { CompanionUpdate.check(context, force = true) }, modifier = Modifier.padding(top = 12.dp)) {
+                Text(stringResource(R.string.update_check))
+            }
+        }
+    }
+}
+
+/** A newer build: download it, follow the download, install it. */
+@Composable
+private fun UpdatePanel(update: CompanionUpdate.Status, canDismiss: Boolean) {
+    val context = LocalContext.current
+    var hidden by remember(update) { mutableStateOf(false) }
+    if (hidden) return
+    val line = when (update) {
+        is CompanionUpdate.Status.Available -> stringResource(R.string.update_available, update.release.name)
+        is CompanionUpdate.Status.Downloading -> stringResource(R.string.update_downloading, update.percent)
+        is CompanionUpdate.Status.Ready -> stringResource(R.string.update_ready_text, update.release.name)
+        is CompanionUpdate.Status.Failed -> stringResource(R.string.update_failed)
+        CompanionUpdate.Status.None -> return
+    }
+    val tint = if (update is CompanionUpdate.Status.Failed) CompanionColors.Amber else CompanionColors.Blue
+    Panel {
+        Column(Modifier.padding(18.dp)) {
+            CardHeading(Icons.Filled.SystemUpdate, stringResource(R.string.update_title), line, tint)
+            if (update is CompanionUpdate.Status.Downloading) {
+                LinearProgressIndicator(
+                    progress = { update.percent / 100f },
+                    modifier = Modifier.fillMaxWidth().padding(top = 14.dp).height(6.dp).clip(RoundedCornerShape(50)),
+                    color = CompanionColors.Blue, trackColor = CompanionColors.Line, drawStopIndicator = {}
+                )
+            } else {
+                Row(Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    when (update) {
+                        is CompanionUpdate.Status.Ready -> Button(onClick = { CompanionUpdate.install(context) }) { Text(stringResource(R.string.update_install)) }
+                        is CompanionUpdate.Status.Failed -> Button(onClick = { CompanionUpdate.download(context) }) { Text(stringResource(R.string.update_retry)) }
+                        else -> Button(onClick = { CompanionUpdate.download(context) }) { Text(stringResource(R.string.update_download)) }
+                    }
+                    if (canDismiss) {
+                        TextButton(onClick = { CompanionUpdate.dismiss(context); hidden = true }) { Text(stringResource(R.string.update_later)) }
+                    }
                 }
             }
         }
-    } else {
-        item { SetupPanel(setup, onHide = onToggle) }
     }
 }
 
@@ -827,10 +954,10 @@ private fun walkingDirections(s: CarSpotInfo): Uri =
     Uri.parse("https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}&travelmode=walking")
 
 @Composable
-private fun SectionTitle(text: String, modifier: Modifier = Modifier) {
+private fun SectionTitle(text: String, modifier: Modifier = Modifier, top: Dp = 14.dp) {
     Text(
         text, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold,
-        modifier = modifier.padding(start = 4.dp, top = 14.dp, bottom = 2.dp)
+        modifier = modifier.padding(start = 4.dp, top = top, bottom = 2.dp)
     )
 }
 
@@ -924,17 +1051,17 @@ private const val PERMISSION_PREFS = "permissions_asked"
 
 /**
  * The checklist in one card: how far along it is, then one slim row per
- * step, the ones left to do first. [onHide] folds it once all is allowed.
+ * step, the ones left to do first.
  */
 @Composable
-private fun SetupPanel(setup: SetupChecks, onHide: (() -> Unit)?) {
+private fun SetupPanel(setup: SetupChecks) {
     val context = LocalContext.current
     val done = setup.total - setup.missing
     Panel {
         Column(Modifier.padding(18.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    stringResource(if (setup.missing > 0) R.string.setup_finish else R.string.setup_title),
+                    stringResource(if (setup.missing > 0) R.string.setup_finish else R.string.permissions_title),
                     style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f)
                 )
                 Text(
@@ -977,12 +1104,6 @@ private fun SetupPanel(setup: SetupChecks, onHide: (() -> Unit)?) {
                             open(context, Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")))
                         }) { Text(stringResource(R.string.step_app_info)) }
                     }
-                }
-            }
-            if (onHide != null) {
-                TextButton(onClick = onHide, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.setup_hide))
-                    Icon(Icons.Filled.ExpandLess, contentDescription = null)
                 }
             }
         }

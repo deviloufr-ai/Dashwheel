@@ -87,9 +87,6 @@
     <string name="status_off_detail">Auto nie dostaje nic z tego telefonu, dopóki go nie włączysz.</string>
     <string name="status_waiting_detail">Włącz hotspot w telefonie i połącz z nim radio.</string>
     <string name="status_connected_detail">Powiadomienia, połączenia i kalendarz widać na ekranie auta.</string>
-    <string name="setup_all_done">Wszystko dozwolone</string>
-    <string name="setup_show">Pokaż</string>
-    <string name="setup_hide">Ukryj</string>
     <string name="pair_another">Sparuj kolejne auto</string>
     <string name="permission_in_settings">Android już nie pyta: zezwól w Informacjach o aplikacji → Uprawnienia.</string>
     <string name="status_linked">Połączono</string>
@@ -178,4 +175,30 @@
     <string name="car_photos_opened_hint">Opcjonalnie: Gemini otworzy je na widoku z góry</string>
     <string name="car_photos_gemini_open">Otwórz drzwi w Gemini</string>
     <string name="car_photos_gemini_open_prompt">Narysuj ponownie dokładnie ten obraz mojego auta widzianego z góry, w tym samym rozmiarze, położeniu, kącie i kolorach, ale z czterema drzwiami szeroko otwartymi, otwartą klapą bagażnika i otwartą maską. Gładkie białe tło, bez tekstu i logo.</string>
+
+    <string name="tab_home">Start</string>
+    <string name="permissions_title">Uprawnienia</string>
+    <string name="tab_car">Auto</string>
+    <string name="update_section">Aktualizacje</string>
+    <string name="update_title">Nowa wersja</string>
+    <string name="update_available">Jest już wersja %1$s.</string>
+    <string name="update_downloading">Pobieranie, %1$d %%</string>
+    <string name="update_ready_title">Aktualizacja aplikacji gotowa</string>
+    <string name="update_ready_text">Wersja %1$s jest gotowa do instalacji.</string>
+    <string name="update_failed">Pobieranie nie powiodło się.</string>
+    <string name="update_download">Pobierz</string>
+    <string name="update_install">Zainstaluj</string>
+    <string name="update_retry">Spróbuj ponownie</string>
+    <string name="update_later">Później</string>
+    <string name="update_check">Sprawdź aktualizacje</string>
+    <string name="update_installed">Wersja %1$s</string>
+    <string name="update_auto_detail">Aktualna. Nowe wersje pobierają się same przez Wi-Fi.</string>
+    <string name="update_allow_installs">Zezwól na instalowanie z tej aplikacji, a potem dotknij Zainstaluj ponownie.</string>
+    <string name="update_channel">Aktualizacje</string>
+    <plurals name="setup_left">
+        <item quantity="one">Brakuje %d zgody</item>
+        <item quantity="few">Brakuje %d zgód</item>
+        <item quantity="many">Brakuje %d zgód</item>
+        <item quantity="other">Brakuje %d zgody</item>
+    </plurals>
 </resources>

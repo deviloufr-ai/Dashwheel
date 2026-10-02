@@ -37,6 +37,8 @@ class LinkService : Service() {
         PhoneLists.start(this)
         PhoneMedia.start(this)
         PhoneBatteryWatch.start(this)
+        // The app is seldom opened once set up: sharing starting is the other time to look for a new build.
+        CompanionUpdate.check(this)
         scope.launch {
             LinkServer.state.collect { state ->
                 getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification(state))

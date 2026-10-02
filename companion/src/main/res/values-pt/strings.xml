@@ -87,9 +87,6 @@
     <string name="status_off_detail">O carro não recebe nada deste telemóvel até voltar a ativar.</string>
     <string name="status_waiting_detail">Ative o hotspot do telemóvel e ligue o autorrádio a ele.</string>
     <string name="status_connected_detail">Notificações, chamadas e agenda aparecem no ecrã do carro.</string>
-    <string name="setup_all_done">Está tudo permitido</string>
-    <string name="setup_show">Mostrar</string>
-    <string name="setup_hide">Ocultar</string>
     <string name="pair_another">Associar outro carro</string>
     <string name="permission_in_settings">O Android já não pergunta: permita em Info da app → Autorizações.</string>
     <string name="status_linked">Ligado</string>
@@ -178,4 +175,29 @@
     <string name="car_photos_opened_hint">Opcional: o Gemini abre-as na vista de cima</string>
     <string name="car_photos_gemini_open">Abrir as portas no Gemini</string>
     <string name="car_photos_gemini_open_prompt">Redesenha exatamente esta imagem do meu carro visto de cima, com o mesmo tamanho, posição, ângulo e cores, mas com as quatro portas bem abertas, a bagageira aberta e o capô aberto. Fundo branco liso, sem texto nem logótipo.</string>
+
+    <string name="tab_home">Início</string>
+    <string name="permissions_title">Autorizações</string>
+    <string name="tab_car">Carro</string>
+    <string name="update_section">Atualizações</string>
+    <string name="update_title">Nova versão</string>
+    <string name="update_available">A versão %1$s já saiu.</string>
+    <string name="update_downloading">A transferir, %1$d %%</string>
+    <string name="update_ready_title">Atualização do companheiro pronta</string>
+    <string name="update_ready_text">A versão %1$s está pronta para instalar.</string>
+    <string name="update_failed">A transferência falhou.</string>
+    <string name="update_download">Transferir</string>
+    <string name="update_install">Instalar</string>
+    <string name="update_retry">Tentar de novo</string>
+    <string name="update_later">Mais tarde</string>
+    <string name="update_check">Procurar atualizações</string>
+    <string name="update_installed">Versão %1$s</string>
+    <string name="update_auto_detail">Atualizada. As novas versões transferem-se sozinhas por Wi-Fi.</string>
+    <string name="update_allow_installs">Permita instalações a partir desta app e toque de novo em Instalar.</string>
+    <string name="update_channel">Atualizações</string>
+    <plurals name="setup_left">
+        <item quantity="one">Falta %d autorização</item>
+        <item quantity="many">Faltam %d autorizações</item>
+        <item quantity="other">Faltam %d autorizações</item>
+    </plurals>
 </resources>

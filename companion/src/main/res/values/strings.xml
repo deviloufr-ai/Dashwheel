@@ -88,9 +88,6 @@
     <string name="status_off_detail">The car gets nothing from this phone until you switch it back on.</string>
     <string name="status_waiting_detail">Turn on the phone\'s hotspot and connect the head unit to it.</string>
     <string name="status_connected_detail">Notifications, calls and your agenda show on the car\'s screen.</string>
-    <string name="setup_all_done">Everything is allowed</string>
-    <string name="setup_show">Show</string>
-    <string name="setup_hide">Hide</string>
     <string name="pair_another">Pair another car</string>
     <string name="permission_in_settings">Android no longer asks: allow it under Permissions in App info.</string>
     <string name="status_linked">Connected</string>
@@ -179,4 +176,29 @@
     <string name="car_photos_opened_hint">Optional: Gemini opens them on the view from above</string>
     <string name="car_photos_gemini_open">Open the doors in Gemini</string>
     <string name="car_photos_gemini_open_prompt">Redraw this exact picture of my car seen from directly above, keeping the same size, position, angle and colours, but with all four doors swung wide open, the tailgate open and the bonnet open. Plain white background, no text or logo.</string>
+
+    <!-- Tabs and the companion's own updates. -->
+    <string name="tab_home">Home</string>
+    <string name="permissions_title">Permissions</string>
+    <string name="tab_car">Car</string>
+    <string name="update_section">Updates</string>
+    <string name="update_title">New version</string>
+    <string name="update_available">Version %1$s is out.</string>
+    <string name="update_downloading">Downloading, %1$d %%</string>
+    <string name="update_ready_title">Companion update ready</string>
+    <string name="update_ready_text">Version %1$s is ready to install.</string>
+    <string name="update_failed">The download failed.</string>
+    <string name="update_download">Download</string>
+    <string name="update_install">Install</string>
+    <string name="update_retry">Try again</string>
+    <string name="update_later">Later</string>
+    <string name="update_check">Check for updates</string>
+    <string name="update_installed">Version %1$s</string>
+    <string name="update_auto_detail">Up to date. New versions download by themselves on Wi-Fi.</string>
+    <string name="update_allow_installs">Allow installs from this app, then tap Install again.</string>
+    <string name="update_channel">Updates</string>
+    <plurals name="setup_left">
+        <item quantity="one">%d thing left to allow</item>
+        <item quantity="other">%d things left to allow</item>
+    </plurals>
 </resources>
