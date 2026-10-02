@@ -345,26 +345,79 @@ object CarPhotoKit {
             parts.add(CarOpenPart(part, Argb(pw, ph, px), listOf(tx(x0.toFloat()) / tw, ty(y0.toFloat()) / th, tx(x1 + 1f) / tw, ty(y1 + 1f) / th)))
         }
 
-        // The doors: blobs sticking out beside the body, front or rear by their hinge.
-        val sides = BooleanArray(w * h)
+        // The doors. Their cores: what sticks out well clear of the body's side,
+        // which a thin strip along the sill (the redraw a little wider than
+        // the car) is not. Each is then grown over the picture back onto the
+        // body's edge where it comes nearest it, so it meets the car at its
+        // hinge rather than floating beside it, but no further along the car
+        // than its core's own rows, so two doors on one side stay two and the
+        // sill between them is left out. Front or rear by their hinge.
+        val clear = body.width * DOOR_CLEAR
+        val inward = body.width * DOOR_INWARD
+        val pad = max(1, (body.width * DOOR_PAD).roundToInt())
+        val cores = BooleanArray(w * h)
         for (y in 0 until h) {
             val a = along(y)
             if (a < 0.1f || a > 0.95f) continue
             for (x in 0 until w) {
                 val i = y * w + x
-                if (out[i] && (x < body.left + margin || x > bodyRight - margin)) sides[i] = true
+                if (out[i] && (x < body.left - clear || x > bodyRight + clear)) cores[i] = true
+            }
+        }
+        val b = blobs(cores, w, h)
+        val label = IntArray(w * h)
+        val queue = IntArray(w * h)
+        var qe = 0
+        for (i in label.indices) {
+            val k = b.label[i]
+            if (k > 0 && b.area[k] >= minArea / 2) { label[i] = k; queue[qe++] = i }
+        }
+        // where each core comes nearest the body: only there may it be grown onto it
+        val nearRow = IntArray(b.count + 1)
+        val nearX = IntArray(b.count + 1) { -1 }
+        for (i in 0 until qe) {
+            val k = label[queue[i]]
+            val x = queue[i] % w
+            val d = if (b.x1[k] < body.left) x else w - x
+            if (d > nearX[k]) { nearX[k] = d; nearRow[k] = queue[i] / w }
+        }
+        val hingePad = max(1, (body.width * DOOR_HINGE).roundToInt())
+        var qs = 0
+        while (qs < qe) {
+            val i = queue[qs++]
+            val k = label[i]
+            val left = b.x1[k] < body.left
+            val x = i % w
+            val y = i / w
+            for (j in intArrayOf(if (x > 0) i - 1 else -1, if (x < w - 1) i + 1 else -1, i - w, i + w)) {
+                if (j < 0 || j >= label.size || label[j] != 0 || !cut.m[j]) continue
+                val jx = j % w
+                val jy = j / w
+                if (jy < b.y0[k] - pad || jy > b.y1[k] + pad) continue
+                if (if (left) jx >= body.left + inward else jx <= bodyRight - inward) continue
+                val beside = if (left) jx >= body.left - clear else jx <= bodyRight + clear
+                if (beside && abs(jy - nearRow[k]) > hingePad) continue
+                label[j] = k
+                queue[qe++] = j
             }
         }
         val wheelFront = top.bodyWheels.getOrNull(0)?.y ?: 0.2f
         val wheelRear = top.bodyWheels.getOrNull(2)?.y ?: 0.8f
         // between the front door's hinge (just behind the front wheel) and the rear one's (about mid-wheelbase)
         val split = wheelFront + 0.35f * (wheelRear - wheelFront)
-        val b = blobs(sides, w, h)
+        // each door's hinge: its foremost row out beside the body
+        val hinge = IntArray(b.count + 1) { h }
+        for (i in label.indices) {
+            val k = label[i]
+            if (k == 0) continue
+            val x = i % w
+            if ((x < body.left || x >= bodyRight) && i / w < hinge[k]) hinge[k] = i / w
+        }
         val doors = LinkedHashMap<CarPart, BooleanArray>()
         for (k in 1..b.count) {
-            if (b.area[k] < minArea) continue
-            val left = (b.x0[k] + b.x1[k]) / 2f < body.left + body.width / 2f
-            val front = along(b.y0[k]) < split
+            if (hinge[k] == h) continue
+            val left = b.x1[k] < body.left
+            val front = along(hinge[k]) < split
             val part = when {
                 left && front -> CarPart.FRONT_LEFT
                 left -> CarPart.REAR_LEFT
@@ -372,7 +425,7 @@ object CarPhotoKit {
                 else -> CarPart.REAR_RIGHT
             }
             val m = doors.getOrPut(part) { BooleanArray(w * h) }
-            for (i in m.indices) if (b.label[i] == k) m[i] = true
+            for (i in m.indices) if (label[i] == k) m[i] = true
         }
         for (part in listOf(CarPart.FRONT_LEFT, CarPart.FRONT_RIGHT, CarPart.REAR_LEFT, CarPart.REAR_RIGHT)) doors[part]?.let { add(part, it) }
 
@@ -451,6 +504,18 @@ object CarPhotoKit {
         if (n + missing == 0) return false
         return missing > 0.15 * (n + missing) || (n > 0 && diff / n > END_DIFF)
     }
+
+    /** A door's core sticks out this far beside the body (a share of its width); a thin strip along the sill doesn't. */
+    private const val DOOR_CLEAR = 0.06f
+
+    /** A door is grown this far onto the body (a share of its width), to meet it at its hinge. */
+    private const val DOOR_INWARD = 0.03f
+
+    /** ...and no further along the car than its core's rows and this (a share of the body's width). */
+    private const val DOOR_PAD = 0.03f
+
+    /** ...and beside the body, only this near (a share of its width) to where its core comes closest: its hinge. */
+    private const val DOOR_HINGE = 0.1f
 
     /** An end of the car this much brighter or darker on average (0-255) than when shut is open. */
     private const val END_DIFF = 28.0

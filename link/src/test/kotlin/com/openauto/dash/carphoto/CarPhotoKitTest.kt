@@ -279,6 +279,7 @@ class CarPhotoKitTest {
             assertTrue("front left door out to the left", fl[0] < 0f && fl[2] < 0.5f)
             assertTrue("rear right door out to the right", rr[2] > 1f && rr[0] > 0.5f)
             assertTrue("front door ahead of the rear one", fl[1] < rr[1])
+            assertTrue("doors hinged on the body", fl[2] > top.bodyBox[0] && rr[0] < top.bodyBox[2])
             assertTrue("tailgate beyond the tail", tail[3] > top.tail.y + 0.05f)
         }
         // the whole pack, with its parts named in car.json (build/carphoto-out/open.dwcar, to import on a unit)
@@ -296,6 +297,28 @@ class CarPhotoKitTest {
         // a picture with nothing open gives nothing
         val shut = load("top_render.png")
         assertTrue(CarPhotoKit.openParts(shut, CarPhotoKit.topFrom(shut, side)).isEmpty())
+    }
+
+    /**
+     * Both doors on one side open, joined by a thin strip along the sill (a
+     * redraw a little wider than the car): two doors, each on its own and
+     * reaching the body at its hinge, the strip between them left out.
+     */
+    @Test
+    fun doorsOnOneSideAreTwoAndHingedOnTheBody() {
+        val side = CarPhotoKit.side(onFlat(load("side.png"), 0xFF000000.toInt()))
+        val top = CarPhotoKit.topFrom(load("top_render.png"), side)
+        val parts = CarPhotoKit.openParts(load("top_open_left.png"), top)
+        note("open parts (left side): " + parts.joinToString { p -> "${p.part} ${p.box.joinToString(",") { "%.2f".format(Locale.ROOT, it) }}" })
+        parts.forEach { save(it.image, "open_left_${it.part.key}.png") }
+        // (the tailgate is open in this picture too)
+        assertEquals(setOf(CarPart.FRONT_LEFT, CarPart.REAR_LEFT, CarPart.TAILGATE), parts.map { it.part }.toSet())
+        val fl = parts.first { it.part == CarPart.FRONT_LEFT }.box
+        val rl = parts.first { it.part == CarPart.REAR_LEFT }.box
+        val bodyLeft = top.bodyBox[0]
+        assertTrue("front door hinged on the body", fl[2] > bodyLeft)
+        assertTrue("rear door hinged on the body", rl[2] > bodyLeft)
+        assertTrue("the two doors apart, the sill between them left out", fl[3] < rl[1])
     }
 
     /** A picture from above drawn by the Gemini app, when one is put in build/carphoto-in/above.jpg (not kept in the repo). */
