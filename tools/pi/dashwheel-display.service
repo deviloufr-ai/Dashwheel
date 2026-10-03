@@ -8,6 +8,8 @@ Conflicts=getty@tty1.service
 [Service]
 # A black console behind the video: the picture may not fill a monitor of another shape.
 ExecStartPre=-/bin/sh -c 'printf "\033[2J\033[3J\033[H\033[?25l" > /dev/tty1'
+# Then the text console lets go of the screen: nothing printed later (cloud-init, the kernel) can show.
+ExecStartPre=-/bin/sh -c 'for c in /sys/class/vtconsole/vtcon*; do grep -q "frame buffer" $$c/name && echo 0 > $$c/bind; done'
 ExecStart=/opt/dashwheel-display/bin/dashwheel-display --config @CONFIG_DIR@
 # Root, to hold the screen through DRM/KMS without a desktop session.
 User=root
