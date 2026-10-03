@@ -61,6 +61,8 @@ ssh pi@dashwheel-display.local 'sudo reboot'
 
 Run the same commands again to update. Settings and the pairing are kept.
 
+**Another Wi-Fi network** (usually the phone's hotspot, if you set up the Pi on your home Wi-Fi): `ssh -t pi@dashwheel-display.local sudo ./pi/add-wifi.sh` asks for its name and password. The Pi then prefers it to the networks it already knows. The installer moves the Pi's Wi-Fi from NetworkManager to wpa_supplicant, which joins in seconds, so add networks with this script rather than `nmcli`.
+
 ## 5. Pair (once)
 
 1. After the reboot, the monitor shows a **QR code**.

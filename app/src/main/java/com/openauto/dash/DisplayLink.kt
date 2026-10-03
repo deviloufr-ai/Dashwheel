@@ -47,6 +47,8 @@ import java.io.IOException
 import java.net.Inet4Address
 import java.net.InetAddress
 import java.net.InetSocketAddress
+import java.net.InterfaceAddress
+import java.net.NetworkInterface
 import java.net.Socket
 import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentHashMap
@@ -81,8 +83,11 @@ object DisplayLink {
     private const val CONNECT_TIMEOUT_MS = 2_000
     private const val PROBE_TIMEOUT_MS = 350
     private const val PROBE_PARALLEL = 32
-    /** The whole hotspot is scanned at most this often (the display may simply be off). */
-    private const val PROBE_EVERY_MS = 60_000L
+    /**
+     * The whole hotspot is scanned at most this often while no display is linked: often
+     * enough to find one that joined after the last scan, rare enough for an empty car.
+     */
+    private const val PROBE_EVERY_MS = 15_000L
     private const val HANDSHAKE_TIMEOUT_MS = 10_000
     private const val READ_TIMEOUT_MS = 45_000
     private const val PING_EVERY_MS = 15_000L
@@ -319,13 +324,17 @@ object DisplayLink {
         @Suppress("DEPRECATION")
         val wifi = (listOfNotNull(cm.activeNetwork) + cm.allNetworks).distinct().firstOrNull {
             cm.getNetworkCapabilities(it)?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
-        } ?: return emptyList()
-        val props = cm.getLinkProperties(wifi) ?: return emptyList()
-        val own = props.linkAddresses.firstOrNull { it.address is Inet4Address } ?: return emptyList()
-        val gateway = props.routes.firstOrNull { it.isDefaultRoute && it.gateway is Inet4Address }?.gateway
-        val hosts = SecondScreenRules.hostsToProbe(
-            toInt(own.address), own.prefixLength, setOfNotNull(gateway?.let { toInt(it) })
-        )
+        }
+        val props = wifi?.let { cm.getLinkProperties(it) }
+        val own = props?.linkAddresses?.firstOrNull { it.address is Inet4Address }
+        val gateway = props?.routes?.firstOrNull { it.isDefaultRoute && it.gateway is Inet4Address }?.gateway
+        val hosts = if (own != null) {
+            SecondScreenRules.hostsToProbe(toInt(own.address), own.prefixLength, setOfNotNull(gateway?.let { toInt(it) }))
+        } else {
+            // This device hosts the hotspot itself: Android lists no Wi-Fi network for it.
+            val hosted = hostedHotspot() ?: return emptyList()
+            SecondScreenRules.hostsToProbe(toInt(hosted.address), hosted.networkPrefixLength.toInt())
+        }
         note("looking for the display on ${hosts.size} addresses")
         val gate = Semaphore(PROBE_PARALLEL)
         return kotlinx.coroutines.coroutineScope {
@@ -339,6 +348,16 @@ object DisplayLink {
             }.awaitAll().filterNotNull()
         }
     }
+
+    /** The address this device has on the hotspot it hosts, if it hosts one. */
+    private fun hostedHotspot(): InterfaceAddress? = runCatching {
+        NetworkInterface.getNetworkInterfaces().toList()
+            .filter { it.isUp && !it.isLoopback && HOTSPOT_INTERFACE.matches(it.name) }
+            .flatMap { it.interfaceAddresses }
+            .firstOrNull { it.address is Inet4Address && it.address.isSiteLocalAddress }
+    }.getOrNull()
+
+    private val HOTSPOT_INTERFACE = Regex("(swlan|ap|softap|wlan)\\d+")
 
     private fun portOpen(address: InetAddress): Boolean = try {
         Socket().use { it.connect(InetSocketAddress(address, DISPLAY_PORT), PROBE_TIMEOUT_MS) }
