@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Dashwheel
+Description=The Dashwheel logo while the second screen starts
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/dashwheel
+ScriptFile=/usr/share/plymouth/themes/dashwheel/dashwheel.script

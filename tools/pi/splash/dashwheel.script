@@ -1,0 +1,13 @@
+# The logo centred on the app's dark background, scaled down on small screens.
+Window.SetBackgroundTopColor(0.059, 0.067, 0.082);
+Window.SetBackgroundBottomColor(0.059, 0.067, 0.082);
+
+logo = Image("logo.png");
+w = Window.GetWidth();
+h = Window.GetHeight();
+scale = Math.Min(1, Math.Min(w * 0.5 / logo.GetWidth(), h * 0.6 / logo.GetHeight()));
+if (scale < 1)
+  logo = logo.Scale(logo.GetWidth() * scale, logo.GetHeight() * scale);
+sprite = Sprite(logo);
+sprite.SetX(Window.GetX() + (w - logo.GetWidth()) / 2);
+sprite.SetY(Window.GetY() + (h - logo.GetHeight()) / 2);

@@ -87,6 +87,8 @@ For keys to work while another app is in front, Dashwheel's accessibility servic
 
 `dashwheel/display.conf` on the boot partition: see `display.conf.example`. It sets the screen's name, overscan, a forced size for monitors that report none, and a custom GStreamer chain.
 
+**Boot picture:** the screen shows the Dashwheel logo from power-up until its first picture. To show your own instead, such as your car maker's logo, put a PNG named `splash.png` in `dashwheel/` on the boot partition and run the installer again. A transparent background works best, about 300 to 600 pixels wide.
+
 ## Troubleshooting
 
 - **Logs:** `journalctl -u dashwheel-display -f`

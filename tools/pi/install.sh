@@ -39,7 +39,8 @@ echo "== packages"
 apt-get update
 apt-get install -y --no-install-recommends \
   default-jre-headless fonts-dejavu-core avahi-daemon \
-  gstreamer1.0-tools gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad
+  gstreamer1.0-tools gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
+  plymouth plymouth-themes
 
 echo "== program"
 systemctl stop dashwheel-display 2>/dev/null || true
@@ -62,6 +63,19 @@ install -m 644 "$HERE/dashwheel-display.avahi.service" /etc/avahi/services/dashw
 systemctl daemon-reload
 systemctl enable avahi-daemon dashwheel-display
 systemctl disable getty@tty1 2>/dev/null || true
+
+echo "== boot picture"
+# A logo from power-up until the display service shows its first picture: the
+# driver's own (splash.png beside display.conf, e.g. the car maker's) or Dashwheel's.
+THEME=/usr/share/plymouth/themes/dashwheel
+mkdir -p "$THEME"
+install -m 644 "$HERE/splash/dashwheel.plymouth" "$HERE/splash/dashwheel.script" "$THEME/"
+if [ -f "$CONFIG_DIR/splash.png" ]; then
+  install -m 644 "$CONFIG_DIR/splash.png" "$THEME/logo.png"
+else
+  install -m 644 "$HERE/splash/logo.png" "$THEME/logo.png"
+fi
+plymouth-set-default-theme -R dashwheel
 
 echo "== boot settings"
 CFG="$BOOT/config.txt"
@@ -90,6 +104,7 @@ CMD="$BOOT/cmdline.txt"
 grep -q 'consoleblank=0' "$CMD" || sed -i '1 s/$/ consoleblank=0/' "$CMD"
 grep -q 'logo.nologo' "$CMD" || sed -i '1 s/$/ logo.nologo/' "$CMD"
 grep -q 'vt.global_cursor_default=0' "$CMD" || sed -i '1 s/$/ quiet loglevel=3 vt.global_cursor_default=0/' "$CMD"
+grep -q ' splash' "$CMD" || sed -i '1 s/$/ splash plymouth.ignore-serial-consoles/' "$CMD"
 
 if [ "$OVERLAY" -eq 1 ]; then
   echo "== read-only SD card"
