@@ -1069,7 +1069,10 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                             }
                             // Sideways along the middle row; from a page above or
                             // below the centre that means back to the row first.
-                            if (step != 0) {
+                            // With that option on, the second screen's cluster takes it.
+                            if (step != 0 && SecondScreenStore.config.value.barSwipeTurnsPages && SecondScreenController.showsCluster) {
+                                SecondScreenController.turnPage(step)
+                            } else if (step != 0) {
                                 if (columnState.currentPage != DashboardStore.COLUMN_HOME) {
                                     showPage(DashboardStore.CENTER)
                                 } else {

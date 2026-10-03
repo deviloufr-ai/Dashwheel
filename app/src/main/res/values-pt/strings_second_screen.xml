@@ -45,6 +45,8 @@
     <string name="second_screen_keys_clear">Esquecer os botões</string>
     <string name="second_screen_media_keys">Os botões multimédia mudam de página</string>
     <string name="second_screen_media_keys_detail">Um toque longo em seguinte ou anterior muda a página do quadrante.</string>
+    <string name="second_screen_bar_swipe">Deslizar a barra para mudar de página</string>
+    <string name="second_screen_bar_swipe_detail">Deslizar para o lado na barra do launcher muda a página do painel enquanto é mostrado.</string>
     <string name="second_screen_next_page">Página seguinte</string>
     <string name="second_screen_not_connected">Não ligado</string>
 </resources>

@@ -45,6 +45,8 @@
     <string name="second_screen_keys_clear">Oublier les touches</string>
     <string name="second_screen_media_keys">Les touches média tournent les pages</string>
     <string name="second_screen_media_keys_detail">Un appui long sur suivant ou précédent tourne la page du combiné.</string>
+    <string name="second_screen_bar_swipe">Balayer la barre pour changer de page</string>
+    <string name="second_screen_bar_swipe_detail">Un balayage latéral sur la barre du lanceur change la page du combiné quand il est affiché.</string>
     <string name="second_screen_next_page">Page suivante</string>
     <string name="second_screen_not_connected">Non connecté</string>
 </resources>

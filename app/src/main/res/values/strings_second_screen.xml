@@ -45,6 +45,8 @@
     <string name="second_screen_keys_clear">Forget the keys</string>
     <string name="second_screen_media_keys">Media keys turn pages</string>
     <string name="second_screen_media_keys_detail">A long press on next or previous turns the cluster\'s page.</string>
+    <string name="second_screen_bar_swipe">Swipe the bar to turn pages</string>
+    <string name="second_screen_bar_swipe_detail">A sideways swipe on the launcher\'s bar turns the cluster\'s page while it shows.</string>
     <string name="second_screen_next_page">Next page</string>
     <string name="second_screen_not_connected">Not connected</string>
 </resources>

@@ -45,6 +45,8 @@
     <string name="second_screen_keys_clear">Dimentica i tasti</string>
     <string name="second_screen_media_keys">I tasti multimediali cambiano pagina</string>
     <string name="second_screen_media_keys_detail">Una pressione lunga su avanti o indietro cambia la pagina del quadro.</string>
+    <string name="second_screen_bar_swipe">Scorri la barra per cambiare pagina</string>
+    <string name="second_screen_bar_swipe_detail">Uno scorrimento laterale sulla barra del launcher cambia la pagina del quadro mentre è mostrato.</string>
     <string name="second_screen_next_page">Pagina successiva</string>
     <string name="second_screen_not_connected">Non connesso</string>
 </resources>

@@ -36,7 +36,9 @@ data class SecondScreenConfig(
     /** Key codes learnt as "next page" (steering-wheel buttons). */
     val pageKeys: Set<Int> = emptySet(),
     /** A long press on media next / previous turns the page, while the cluster shows. */
-    val mediaKeysTurnPages: Boolean = false
+    val mediaKeysTurnPages: Boolean = false,
+    /** A sideways swipe on the launcher's bar turns the cluster's page instead of the launcher's. */
+    val barSwipeTurnsPages: Boolean = false
 )
 
 /** What the head unit actually sends the display. */

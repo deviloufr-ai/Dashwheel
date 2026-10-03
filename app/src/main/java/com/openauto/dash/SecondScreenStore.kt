@@ -26,7 +26,8 @@ object SecondScreenStore {
             bitrateKbps = p.getInt("bitrate", d.bitrateKbps).coerceIn(500, 8_000),
             rearSeat = p.getBoolean("rear_seat", d.rearSeat),
             pageKeys = SecondScreenCodec.decodeKeys(p.getString("page_keys", null)),
-            mediaKeysTurnPages = p.getBoolean("media_keys_pages", d.mediaKeysTurnPages)
+            mediaKeysTurnPages = p.getBoolean("media_keys_pages", d.mediaKeysTurnPages),
+            barSwipeTurnsPages = p.getBoolean("bar_swipe_pages", d.barSwipeTurnsPages)
         )
         loaded = true
         return _config.value
@@ -50,6 +51,7 @@ object SecondScreenStore {
             .putBoolean("rear_seat", c.rearSeat)
             .putString("page_keys", SecondScreenCodec.encodeKeys(c.pageKeys))
             .putBoolean("media_keys_pages", c.mediaKeysTurnPages)
+            .putBoolean("bar_swipe_pages", c.barSwipeTurnsPages)
             .apply()
     }
 

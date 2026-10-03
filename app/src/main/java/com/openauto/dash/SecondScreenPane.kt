@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.FileOpen
 import androidx.compose.material.icons.filled.HighQuality
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.Swipe
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
@@ -352,6 +353,10 @@ private fun SecondScreenKeysSection() {
         Icons.Filled.SkipNext, stringResource(R.string.second_screen_media_keys),
         stringResource(R.string.second_screen_media_keys_detail), config.mediaKeysTurnPages
     ) { on -> SecondScreenStore.update(context) { it.copy(mediaKeysTurnPages = on) } }
+    SettingsToggle(
+        Icons.Filled.Swipe, stringResource(R.string.second_screen_bar_swipe),
+        stringResource(R.string.second_screen_bar_swipe_detail), config.barSwipeTurnsPages
+    ) { on -> SecondScreenStore.update(context) { it.copy(barSwipeTurnsPages = on) } }
 
     if (learning) {
         DisposableEffect(Unit) {

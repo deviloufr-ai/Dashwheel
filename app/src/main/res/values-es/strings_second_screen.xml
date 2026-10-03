@@ -45,6 +45,8 @@
     <string name="second_screen_keys_clear">Olvidar los botones</string>
     <string name="second_screen_media_keys">Los botones multimedia cambian de página</string>
     <string name="second_screen_media_keys_detail">Una pulsación larga en siguiente o anterior cambia la página del cuadro.</string>
+    <string name="second_screen_bar_swipe">Deslizar la barra para pasar página</string>
+    <string name="second_screen_bar_swipe_detail">Deslizar de lado en la barra del lanzador pasa la página del cuadro mientras se muestra.</string>
     <string name="second_screen_next_page">Página siguiente</string>
     <string name="second_screen_not_connected">No conectada</string>
 </resources>

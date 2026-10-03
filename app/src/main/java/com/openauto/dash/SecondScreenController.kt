@@ -145,6 +145,10 @@ internal object SecondScreenController {
         }
     }
 
+    /** True while the second screen shows the cluster, whose page [turnPage] changes. */
+    val showsCluster: Boolean
+        get() = started && _status.value.output.let { it == SecondScreenOutput.VIDEO_CLUSTER || it == SecondScreenOutput.DATA }
+
     /** Next (or, with a negative [step], previous) cluster page; from the tile, Settings or a key. */
     fun turnPage(step: Int = 1) {
         val next = SecondScreenRules.nextPage(_pages.value, _page.value, step)
@@ -161,7 +165,7 @@ internal object SecondScreenController {
     /** A key from the dashboard or the accessibility service; true when it was the cluster's. */
     fun onKey(event: KeyEvent): Boolean {
         if (!started) return false
-        val showing = _status.value.output.let { it == SecondScreenOutput.VIDEO_CLUSTER || it == SecondScreenOutput.DATA }
+        val showing = showsCluster
         val decision = keys.onKey(event.keyCode, event.action == KeyEvent.ACTION_DOWN, event.repeatCount, SecondScreenStore.config.value, showing)
         when (decision.action) {
             ClusterKeyAction.NEXT_PAGE -> turnPage(1)

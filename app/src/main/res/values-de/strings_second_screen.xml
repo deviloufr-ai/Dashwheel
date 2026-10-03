@@ -45,6 +45,8 @@
     <string name="second_screen_keys_clear">Tasten vergessen</string>
     <string name="second_screen_media_keys">Medientasten wechseln Seiten</string>
     <string name="second_screen_media_keys_detail">Langes Drücken auf Weiter oder Zurück wechselt die Seite.</string>
+    <string name="second_screen_bar_swipe">Leiste wischen zum Blättern</string>
+    <string name="second_screen_bar_swipe_detail">Seitlich über die Leiste des Launchers wischen blättert im Kombiinstrument, solange es angezeigt wird.</string>
     <string name="second_screen_next_page">Nächste Seite</string>
     <string name="second_screen_not_connected">Nicht verbunden</string>
 </resources>

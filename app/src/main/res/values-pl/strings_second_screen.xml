@@ -45,6 +45,8 @@
     <string name="second_screen_keys_clear">Zapomnij przyciski</string>
     <string name="second_screen_media_keys">Przyciski multimediów zmieniają strony</string>
     <string name="second_screen_media_keys_detail">Długie naciśnięcie następny lub poprzedni zmienia stronę zegarów.</string>
+    <string name="second_screen_bar_swipe">Przesuń pasek, by zmienić stronę</string>
+    <string name="second_screen_bar_swipe_detail">Przesunięcie w bok po pasku launchera zmienia stronę zegarów, gdy są wyświetlane.</string>
     <string name="second_screen_next_page">Następna strona</string>
     <string name="second_screen_not_connected">Nie połączono</string>
 </resources>

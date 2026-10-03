@@ -45,6 +45,8 @@
     <string name="second_screen_keys_clear">Toetsen vergeten</string>
     <string name="second_screen_media_keys">Mediatoetsen slaan pagina\'s om</string>
     <string name="second_screen_media_keys_detail">Lang drukken op volgende of vorige slaat de pagina om.</string>
+    <string name="second_screen_bar_swipe">Over de balk vegen om te bladeren</string>
+    <string name="second_screen_bar_swipe_detail">Zijwaarts vegen over de balk van de launcher bladert door het dashboard zolang het getoond wordt.</string>
     <string name="second_screen_next_page">Volgende pagina</string>
     <string name="second_screen_not_connected">Niet verbonden</string>
 </resources>
