@@ -86,9 +86,10 @@ else
   sed -i 's/^dtoverlay=vc4-kms-v3d,composite$/dtoverlay=vc4-kms-v3d/' "$CFG"
 fi
 CMD="$BOOT/cmdline.txt"
-# No console blanking and no boot text on the car's screen.
+# No console blanking, no boot text and no cursor on the car's screen.
 grep -q 'consoleblank=0' "$CMD" || sed -i '1 s/$/ consoleblank=0/' "$CMD"
 grep -q 'logo.nologo' "$CMD" || sed -i '1 s/$/ logo.nologo/' "$CMD"
+grep -q 'vt.global_cursor_default=0' "$CMD" || sed -i '1 s/$/ quiet loglevel=3 vt.global_cursor_default=0/' "$CMD"
 
 if [ "$OVERLAY" -eq 1 ]; then
   echo "== read-only SD card"
