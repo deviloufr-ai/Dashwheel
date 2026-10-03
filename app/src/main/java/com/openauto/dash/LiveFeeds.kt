@@ -80,6 +80,8 @@ object LocationFeed {
     val freshSpeedKmh: StateFlow<Int?> = _freshSpeedKmh
 
     private const val FRESH_MS = 5_000L
+    /** A GPS fix this recent stands against a network fix. */
+    private const val GPS_KEPT_NS = 10_000_000_000L
     private val main = Handler(Looper.getMainLooper())
     private val expire = Runnable { _freshSpeedKmh.value = null }
 
@@ -189,16 +191,22 @@ object LocationFeed {
 
     private fun onFix(l: Location) {
         if (DemoMode.isOn) return
+        val gps = l.provider == LocationManager.GPS_PROVIDER
+        // The last GPS fix: a network one in between used to take its place, and
+        // the GPS step after it was then lost to the trip (one in five or so).
         val prev = lastFix
+        // A network fix is a guess from cells and Wi-Fi, hundreds of metres wide: it
+        // fills in where GPS has nothing, but not over a GPS position still fresh
+        // (the parking spot and the fuel stations are looked up from it).
+        if (!gps && prev != null && l.elapsedRealtimeNanos - prev.elapsedRealtimeNanos < GPS_KEPT_NS) return
         _location.value = l
         publishSpeed(l)
         val speedKmh = l.speed * 3.6f
         if (l.hasBearing() && speedKmh > 3f) _headingDeg.value = l.bearing
+        if (!gps) return
 
         // Only consecutive GPS fixes of decent accuracy count towards the trip.
-        if (prev != null && l.provider == LocationManager.GPS_PROVIDER &&
-            prev.provider == LocationManager.GPS_PROVIDER && l.accuracy <= 30f
-        ) {
+        if (prev != null && l.accuracy <= 30f) {
             val d = prev.distanceTo(l).toDouble()
             val dt = (l.time - prev.time).coerceIn(0L, 60_000L)
             tripStep(_trip.value, d, dt, speedKmh, System.currentTimeMillis())?.let { _trip.value = it }

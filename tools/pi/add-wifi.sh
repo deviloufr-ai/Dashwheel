@@ -7,6 +7,8 @@
 # It asks for the network's name and password; the password isn't shown. The
 # Pi joins it at its next start, or right away when the network it is on goes.
 set -euo pipefail
+# The file holds the networks' keys: what is written here is root's alone.
+umask 077
 
 [ "$(id -u)" -eq 0 ] || { echo "run as root (sudo)"; exit 1; }
 WPA=/etc/wpa_supplicant/wpa_supplicant-wlan0.conf
@@ -17,6 +19,10 @@ read -r -p "Hotspot name: " ssid
 read -r -s -p "Password: " pass
 echo
 [ ${#pass} -ge 8 ] || { echo "A Wi-Fi password has at least 8 characters"; exit 1; }
+# Made first, and aside: wpa_passphrase prints its complaint (a password or a
+# name too long) where the entry would be, and that text in the file left the
+# Pi without Wi-Fi at its next start.
+entry=$(printf '%s\n' "$pass" | wpa_passphrase "$ssid") || { echo "That name or password can't be used: $entry"; exit 1; }
 
 # The same name again replaces the older entry.
 if grep -qF "ssid=\"$ssid\"" "$WPA"; then
@@ -28,6 +34,6 @@ if grep -qF "ssid=\"$ssid\"" "$WPA"; then
   mv "$WPA.new" "$WPA"
 fi
 # The password is stored hashed, never as typed.
-printf '%s\n' "$pass" | wpa_passphrase "$ssid" | sed '/^\s*#/d; s/^}$/\tpriority=10\n}/' >> "$WPA"
+printf '%s\n' "$entry" | sed '/^\s*#/d; s/^}$/\tpriority=10\n}/' >> "$WPA"
 chmod 600 "$WPA"
 echo "Added \"$ssid\". The Pi prefers it from its next start."

@@ -441,7 +441,12 @@ private fun gForceFace(): WidgetFace {
         GForceFeed.acquire(context)
         onDispose { GForceFeed.release() }
     }
-    val g by GForceFeed.g.collectAsState()
+    // Off screen (the page beside the one shown stays composed) the face holds
+    // its last reading; the feed, and its peaks, go on. Live again as the page slides in.
+    val active = LocalPageActive.current
+    val g by remember(active) {
+        if (active) GForceFeed.g else kotlinx.coroutines.flow.MutableStateFlow(GForceFeed.g.value)
+    }.collectAsState()
     val total = sqrt(g.lateral * g.lateral + g.longitudinal * g.longitudinal)
     // Each axis formatted once and reused (caption and stats), ~15 times a second.
     val lateral = fmt("%+.2f", g.lateral)

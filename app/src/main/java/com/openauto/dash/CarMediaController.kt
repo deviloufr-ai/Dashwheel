@@ -112,6 +112,8 @@ class CarMediaController(private val context: Context) {
     fun stop() {
         HeadUnitMedia.removeListener(stockChanged)
         main.removeCallbacks(stockTick)
+        // Or the next start finds "already shown" and never ticks again: the radio's tile then stood still.
+        stockShown = null
         runCatching { sessionManager.removeOnActiveSessionsChangedListener(sessionsChangedListener) }
         boundControllers.forEach { runCatching { it.unregisterCallback(controllerCallback) } }
         boundControllers = emptyList()

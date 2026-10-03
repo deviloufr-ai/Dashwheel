@@ -16,7 +16,9 @@ import java.util.Base64
  */
 class VideoSink(
     private val start: () -> Sink,
-    private val requestKeyFrame: () -> Unit
+    private val requestKeyFrame: () -> Unit,
+    /** Milliseconds that only go forward. */
+    private val clock: () -> Long = { System.nanoTime() / 1_000_000 }
 ) {
     /** What the sink writes to: a [GstProcess] on the Pi, a fake in tests. */
     interface Sink {
@@ -45,20 +47,43 @@ class VideoSink(
         if (sink?.alive != true) running()
     }
 
-    private fun running(): Sink = sink?.takeIf { it.alive } ?: run {
+    private var startedAt = 0L
+    private var quickDeaths = 0
+    private var buried: Sink? = null
+
+    /**
+     * The decoder, started if need be; null while one that keeps dying at
+     * once is given a rest. Without it (no hardware decoder on this board, a
+     * pipeline that doesn't parse) a new process was started for every packet
+     * that came in, thirty times a second, for as long as the head unit streamed.
+     */
+    private fun running(): Sink? {
+        sink?.takeIf { it.alive }?.let { return it }
+        val dead = sink
+        val now = clock()
+        if (dead != null) {
+            if (dead !== buried) {
+                buried = dead
+                dead.stop()
+                quickDeaths = if (now - startedAt < HEALTHY_MS) quickDeaths + 1 else 0
+            }
+            if (now - startedAt < restartWait(quickDeaths)) return null
+        }
         // Not started yet, or the decoder died: start afresh from a key frame.
-        val restarted = sink != null
-        sink?.stop()
         waitingForKey = true
-        if (restarted) requestKeyFrame()
+        if (dead != null) requestKeyFrame()
         log("video: decoder starting")
-        start().also { sink = it }
+        startedAt = now
+        return start().also { sink = it }
     }
 
     @Synchronized
     fun feed(packet: VideoPacket) {
         bytes += packet.data.size
-        val running = running()
+        val running = running() ?: run {
+            dropped++
+            return
+        }
         if (waitingForKey) {
             if (!packet.keyFrame) {
                 // Joined mid-stream or lost a frame: ask rather than wait out the key-frame interval.
@@ -94,7 +119,22 @@ class VideoSink(
     fun stop() {
         sink?.stop()
         sink = null
+        buried = null
+        quickDeaths = 0
         waitingForKey = true
+    }
+
+    companion object {
+        /** A decoder that ran this long had started properly. */
+        const val HEALTHY_MS = 10_000L
+
+        /** How long after its start a decoder is started again: at once the first time it dies, then less and less often. */
+        fun restartWait(quickDeaths: Int): Long = when {
+            quickDeaths <= 1 -> 0L
+            quickDeaths == 2 -> 1_000L
+            quickDeaths == 3 -> 2_000L
+            else -> 5_000L
+        }
     }
 
     /** Frames handed to the decoder, frames dropped and bytes received since the last call. */

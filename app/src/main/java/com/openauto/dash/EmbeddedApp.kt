@@ -1449,7 +1449,10 @@ internal fun EmbeddedAppCard(packageName: String, label: String, modifier: Modif
 /** True when [view] shows one flat black, or nothing: no app is drawn on it. Main thread. */
 private fun pictureBlack(view: TextureView): Boolean {
     if (!view.isAvailable || view.width <= 0 || view.height <= 0) return false
-    val copy = runCatching { view.bitmap }.getOrNull() ?: return false
+    // A quarter of the size each way is plenty to tell a picture from none,
+    // and a sixteenth of the memory: full size, a map filling the screen cost
+    // some 7 MB on the main thread at every look (each closed dialog asks for one).
+    val copy = runCatching { view.getBitmap((view.width / 4).coerceAtLeast(1), (view.height / 4).coerceAtLeast(1)) }.getOrNull() ?: return false
     val pixels = IntArray(copy.width * copy.height)
     copy.getPixels(pixels, 0, copy.width, 0, 0, copy.width, copy.height)
     copy.recycle()

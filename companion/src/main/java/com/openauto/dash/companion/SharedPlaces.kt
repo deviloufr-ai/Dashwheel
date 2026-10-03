@@ -34,7 +34,8 @@ internal object SharedPlaces {
     private val HOST = Regex("""^[a-z][a-z0-9+.-]*://([^/?#:@]+)""", RegexOption.IGNORE_CASE)
     private val GOOGLE = Regex("""(www\.)?google\.[a-z.]+""")
     private val URL_IN_TEXT =Regex("""(?:https?://|geo:)\S+""", RegexOption.IGNORE_CASE)
-    private val LAT_LNG = Regex("""^\s*(-?\d{1,2}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)\s*$""")
+    /** A position typed or copied as text: both numbers with their decimals, or "12,5" and "19,99" (a French decimal, a price) were sent to the car as places. */
+    private val LAT_LNG = Regex("""^\s*(-?\d{1,2}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)\s*$""")
     /** A place's own position in a Google Maps link's data: `!3d<lat>!4d<lng>`. */
     private val PLACE_DATA = Regex("""!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)""")
     /** Where the map was centred: `/@<lat>,<lng>,<zoom>z`. Near the place, not always on it. */

@@ -757,9 +757,13 @@ object PipAnchor {
 
     /** Written on the main thread only. */
     @Volatile private var focusDeclined = false
+    /** The dashboard whose window carries the flag. */
+    @Volatile private var declinedOn: java.lang.ref.WeakReference<android.app.Activity>? = null
 
     private suspend fun setDashboardFocusable(context: Context, focusable: Boolean) {
         val activity = context.findActivity() ?: return
+        // A dashboard built anew (the language changed) has a window without the flag.
+        if (focusDeclined && declinedOn?.get() !== activity) focusDeclined = false
         if (focusable != focusDeclined) return // already so: no trip to the main thread (every poll asks)
         // Checked again, flipped and applied together on the main thread:
         // callers on several IO threads could otherwise apply their changes in
@@ -767,6 +771,7 @@ object PipAnchor {
         val changed = withContext(Dispatchers.Main) {
             if (focusable != focusDeclined) return@withContext false
             focusDeclined = !focusable
+            declinedOn = if (focusable) null else java.lang.ref.WeakReference(activity)
             val flag = android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
             if (focusable) activity.window.clearFlags(flag) else activity.window.addFlags(flag)
             true

@@ -13,6 +13,8 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameMillis
@@ -71,7 +73,9 @@ internal val LocalPageActive = compositionLocalOf { true }
 internal fun rememberWallClock(stepMs: Long): LongState {
     val now = remember { mutableLongStateOf(System.currentTimeMillis()) }
     val active = LocalPageActive.current
-    LaunchedEffect(stepMs, active) {
+    // The wait below stands still while the unit sleeps: read again at each switch-on.
+    val ignition by CarPower.ignition.collectAsState()
+    LaunchedEffect(stepMs, active, ignition) {
         if (!active) return@LaunchedEffect
         now.longValue = System.currentTimeMillis()
         while (true) {
@@ -246,6 +250,15 @@ internal fun rememberSpeedKmh(obdData: ObdData, connection: ObdConnectionState):
     UseLocationFeed()
     val gpsKmh by LocationFeed.freshSpeedKmh.collectAsState()
     return if (connection == ObdConnectionState.CONNECTED) obdData.speedKmh else gpsKmh
+}
+
+/** Whether [rememberSpeedKmh] has a speed to give, without following the speed itself (it changes at every reading). */
+@Composable
+internal fun rememberHasSpeed(connection: ObdConnectionState): Boolean {
+    UseLocationFeed()
+    val gps by remember { LocationFeed.freshSpeedKmh.map { it != null }.distinctUntilChanged() }
+        .collectAsState(initial = remember { LocationFeed.freshSpeedKmh.value != null })
+    return connection == ObdConnectionState.CONNECTED || gps
 }
 
 /** Weather at the car, refreshed the way the standard weather tile does it; null until the first fetch. */

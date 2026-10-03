@@ -249,9 +249,19 @@ internal object MyCarLook {
             while (true) {
                 val entry = zip.nextEntry ?: break
                 if (entry.isDirectory) continue
-                val data = zip.readBytes()
+                // Read up to what is still allowed, and no further: a small file
+                // can unpack to gigabytes, and all of it was read before being weighed.
+                val room = MAX_FILE * 3L - total
+                val out = java.io.ByteArrayOutputStream()
+                val buffer = ByteArray(64 * 1024)
+                while (true) {
+                    val n = zip.read(buffer)
+                    if (n < 0) break
+                    require(out.size() + n <= room) { "too big" }
+                    out.write(buffer, 0, n)
+                }
+                val data = out.toByteArray()
                 total += data.size
-                require(total <= MAX_FILE * 3L) { "too big" }
                 files[entry.name.substringAfterLast('/')] = data
             }
         }

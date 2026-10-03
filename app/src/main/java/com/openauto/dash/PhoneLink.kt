@@ -422,6 +422,10 @@ object PhoneLink {
     private fun connect(gateway: InetAddress, phone: PairedPhone): LinkSession {
         val socket = Socket()
         try {
+            // Out by the Wi-Fi the gateway was read from: with another network as
+            // the unit's main one (a SIM, a cable), the dial left by that one and
+            // never reached the phone. A network gone meanwhile: dialled as before.
+            hotspotNetwork?.let { runCatching { it.bindSocket(socket) } }
             socket.connect(InetSocketAddress(gateway, LINK_PORT), CONNECT_TIMEOUT_MS)
             socket.soTimeout = HANDSHAKE_TIMEOUT_MS
             socket.tcpNoDelay = true
@@ -636,8 +640,12 @@ object PhoneLink {
             cm.getLinkProperties(network)?.routes
                 ?.firstOrNull { it.isDefaultRoute && it.gateway is Inet4Address }
                 ?.gateway
+                ?.also { hotspotNetwork = network }
         }
     }
+
+    /** The Wi-Fi network [hotspotGateway] last found the phone on. */
+    @Volatile private var hotspotNetwork: android.net.Network? = null
 
     /** This head unit's name, as the phone and a display show it. */
     internal fun unitName(context: Context): String =

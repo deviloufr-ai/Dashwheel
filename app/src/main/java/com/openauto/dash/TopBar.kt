@@ -245,11 +245,12 @@ internal fun StandardTopBar(m: TopBarModel) {
                 // A cluster bar (Mistral) puts the speed in the middle, like the car's
                 // own central display, and moves the clock to the right; without a
                 // speed source it is the plain bar again.
-                val speed = if (DashColors.BarStyle == DashBarStyle.CLUSTER) rememberSpeedKmh(m.obdData, m.obdConnection) else null
-                val cluster = speed != null
+                // Whether there is a speed, not the speed: read here, every reading of
+                // the car recomposed the whole bar for the length of the drive.
+                val cluster = DashColors.BarStyle == DashBarStyle.CLUSTER && rememberHasSpeed(m.obdConnection)
                 Box(modifier = Modifier.padding(horizontal = 8.dp), contentAlignment = Alignment.Center) {
                     when {
-                        cluster -> ClusterReadout(speed ?: 0, m.obdData, m.obdConnection)
+                        cluster -> ClusterReadout(m)
                         // The head unit's status bar shows the time while it is up.
                         // A clock tile in sight already tells the time.
                         !m.merged && !ClockInSight.on.value -> BarClock(m.clock)
@@ -425,6 +426,12 @@ private fun BarClock(clock: String, style: TextStyle = MaterialTheme.typography.
  * and coolant as short segment bars on either side. Segments only, no
  * needles: the reading is the count of lit cells.
  */
+@Composable
+private fun ClusterReadout(m: TopBarModel) {
+    // The readings are read here, so they recompose the readout alone.
+    ClusterReadout(rememberSpeedKmh(m.obdData, m.obdConnection) ?: 0, m.obdData, m.obdConnection)
+}
+
 @Composable
 private fun ClusterReadout(speedKmh: Int, obd: ObdData, connection: ObdConnectionState) {
     val connected = connection == ObdConnectionState.CONNECTED

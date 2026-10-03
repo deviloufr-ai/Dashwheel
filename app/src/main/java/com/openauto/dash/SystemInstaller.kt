@@ -114,7 +114,11 @@ object SystemInstaller {
               mount -o remount,rw / 2>/dev/null
               mount -o remount,rw /system 2>/dev/null
               mkdir -p /system/priv-app/OpenAutoDash || exit 31
-              cp '$apk' /system/priv-app/OpenAutoDash/OpenAutoDash.apk || exit 32
+              # A full /system stops the copy half-way: no cut-off APK is left where the
+              # system would find it at the next start, nor /system writable.
+              cp '$apk' /system/priv-app/OpenAutoDash/OpenAutoDash.apk || {
+                rm -rf /system/priv-app/OpenAutoDash; sync; mount -o remount,ro /system 2>/dev/null; exit 32
+              }
               chmod 644 /system/priv-app/OpenAutoDash/OpenAutoDash.apk
               chcon u:object_r:system_file:s0 /system/priv-app/OpenAutoDash/OpenAutoDash.apk 2>/dev/null
               mkdir -p /system/etc/permissions

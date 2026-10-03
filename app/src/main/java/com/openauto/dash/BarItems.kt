@@ -239,7 +239,8 @@ internal fun BarReadouts(items: List<BarItem>, m: TopBarModel, modifier: Modifie
 @Composable
 private fun BarReadout(item: BarItem, m: TopBarModel) {
     val connected = m.obdConnection == ObdConnectionState.CONNECTED
-    val obd = m.obdData
+    // Read where a readout uses it: the clock or the phone's battery doesn't follow the car's readings.
+    val obd by m.obd
     val units = LocalUnits.current
     when (item) {
         BarItem.FUEL -> {

@@ -74,8 +74,19 @@ object SpeedVolume {
 
     /** Steps wanted for the current speed. */
     private var boost = 0
-    /** Volume steps (or key presses) actually added and not yet given back. */
-    private var applied = 0
+    /**
+     * Volume steps (or key presses) actually added and not yet given back, for
+     * the sound source playing now. The unit keeps a level for each (radio,
+     * media, aux): one count for all took from the media what it had added to
+     * the radio, which then stayed louder for good.
+     */
+    private var applied: Int
+        get() = appliedBy[source] ?: 0
+        set(value) {
+            if (value == 0) appliedBy.remove(source) else appliedBy[source] = value
+        }
+    private val appliedBy = HashMap<String, Int>()
+    private var source = ""
 
     fun start(context: Context) {
         if (started) return
@@ -160,6 +171,10 @@ object SpeedVolume {
         // In a call the keys would change the call's volume; muted, a raise would unmute.
         if (inCall(audio)) return
         if (!MediaVolume.byKeys.value && MediaVolume.isMuted(audio)) return
+        val playing = MediaVolume.unitSource()
+        // The unit's own call volume is the driver's: never moved by the speed.
+        if (playing == MediaVolume.UNIT_CALL_SOURCE) return
+        source = playing
         boost = target(speedKmh(), boost, _curve.value)
         when {
             applied < boost -> applied += nudge(app, up = true)
@@ -185,7 +200,8 @@ object SpeedVolume {
             if (moved == 0) break
             applied -= moved
         }
-        applied = 0
+        // The other sources keep what they got: their level can't be reached while they don't play.
+        appliedBy.clear()
         boost = 0
     }
 

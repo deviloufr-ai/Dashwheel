@@ -196,7 +196,11 @@ internal fun SignatureFace(face: WidgetFace, design: WidgetDesign, modifier: Mod
     val look = faceLook(FaceLookKind.THEME)
     FaceSurface(look, modifier.then(face.onClick?.let { Modifier.clickable(onClick = it) } ?: Modifier)) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-            val m = FaceMetrics(maxWidth.value, maxHeight.value, LocalDensity.current)
+            // The same one for as long as the tile keeps its size: made anew at
+            // every reading, each part of the face took it for a change and was
+            // drawn again, and the pictures "built once per size" were rebuilt.
+            val density = LocalDensity.current
+            val m = remember(maxWidth, maxHeight, density) { FaceMetrics(maxWidth.value, maxHeight.value, density) }
             val f = face
             when (design) {
                 WidgetDesign.THERMOMETER -> Thermometer(f, look, m)

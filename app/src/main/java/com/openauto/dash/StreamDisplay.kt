@@ -64,6 +64,7 @@ internal class StreamDisplay private constructor(
 
     companion object {
         private const val TAG = "StreamDisplay"
+        private const val KEY_FRAME_EVERY_MS = 1_000L
         private const val NAME = "Dashwheel second screen"
         private const val MIME = MediaFormat.MIMETYPE_VIDEO_AVC
         /** A key frame at least this often, so a display that lost one recovers even if the request is lost. */
@@ -91,25 +92,32 @@ internal class StreamDisplay private constructor(
         ): StreamDisplay? {
             val thread = HandlerThread("stream-display").apply { start() }
             var made: MediaCodec? = null
+            var madeDisplay: android.hardware.display.VirtualDisplay? = null
+            var madeSurface: android.view.Surface? = null
             try {
                 val codec = MediaCodec.createEncoderByType(MIME).also { made = it }
                 val stream = StreamDisplay(codec, thread, width, height, fps)
                 // Asynchronous mode: the callback goes in before configure().
                 val callbacks = stream.Callbacks(onConfig, onPacket, onFailed)
                 configure(codec, width, height, fps, bitrateKbps) { codec.setCallback(callbacks, Handler(thread.looper)) }
-                val surface = codec.createInputSurface()
+                val surface = codec.createInputSurface().also { madeSurface = it }
                 val dm = context.applicationContext.getSystemService(DisplayManager::class.java) ?: error("no display manager")
                 val virtual = dm.createVirtualDisplay(
                     NAME, width, height, dpi, surface,
                     DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY or DisplayManager.VIRTUAL_DISPLAY_FLAG_PRESENTATION
                 ) ?: error("virtual display refused")
+                madeDisplay = virtual
                 stream.display = virtual
                 codec.start()
                 Log.i(TAG, "streaming display ${virtual.display.displayId}: ${width}x$height @ $dpi dpi, $fps fps, $bitrateKbps kbit/s")
                 return stream
             } catch (e: Exception) {
                 Log.w(TAG, "no stream display", e)
+                // The encoder refused to start (taken by another app): its display and
+                // surface were made already, and each new try left another pair behind.
+                runCatching { madeDisplay?.release() }
                 runCatching { made?.release() }
+                runCatching { madeSurface?.release() }
                 thread.quitSafely()
                 return null
             }
@@ -160,10 +168,13 @@ internal class StreamDisplay private constructor(
             } catch (e: IllegalStateException) {
                 return
             }
+            // The buffer can go under the read: release() stops the encoder from another thread.
             val bytes = if (buffer != null && info.size > 0) {
-                buffer.position(info.offset)
-                buffer.limit(info.offset + info.size)
-                ByteArray(info.size).also { buffer.get(it) }
+                runCatching {
+                    buffer.position(info.offset)
+                    buffer.limit(info.offset + info.size)
+                    ByteArray(info.size).also { buffer.get(it) }
+                }.getOrNull()
             } else {
                 null
             }
@@ -174,9 +185,23 @@ internal class StreamDisplay private constructor(
                 return
             }
             val key = info.flags and MediaCodec.BUFFER_FLAG_KEY_FRAME != 0
-            if (waitingForKey && !key) return
+            if (waitingForKey && !key) return askForKey()
             waitingForKey = !onPacket(VideoPacket(key, info.presentationTimeUs, bytes))
-            if (waitingForKey) requestKeyFrame()
+            if (waitingForKey) askForKey()
+        }
+
+        private var askedForKeyAt = 0L
+
+        /**
+         * A key frame, at most one a second: on a link too slow for the stream
+         * each refused frame asked for one, the largest kind of frame there
+         * is, and the stream became nothing but those.
+         */
+        private fun askForKey() {
+            val now = android.os.SystemClock.elapsedRealtime()
+            if (now - askedForKeyAt < KEY_FRAME_EVERY_MS) return
+            askedForKeyAt = now
+            requestKeyFrame()
         }
 
         override fun onOutputFormatChanged(codec: MediaCodec, format: MediaFormat) {

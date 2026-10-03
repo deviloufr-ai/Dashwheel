@@ -581,8 +581,12 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     LaunchedEffect(barCovers) {
         if (barCovers) barState.visible.targetState = false else barState.reveal()
     }
-    val pageSwiping = pagerState.isScrollInProgress || columnState.isScrollInProgress
-    LaunchedEffect(pageSwiping) { PipAnchor.pageSwiping.value = pageSwiping }
+    // Followed from an effect, not read here: read in the dashboard's own
+    // body, each start and end of a swipe recomposed all of it.
+    LaunchedEffect(pagerState, columnState) {
+        snapshotFlow { pagerState.isScrollInProgress || columnState.isScrollInProgress }
+            .collect { PipAnchor.pageSwiping.value = it }
+    }
 
     /** Apps shown in a window by [items]' tiles. */
     fun tileWindowApps(items: List<DashboardItem>): Set<String> = items.mapNotNullTo(HashSet()) {
@@ -855,7 +859,10 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     // Restarted when the clock choice changes, so the bar switches at once.
     val units = LocalUnits.current
     var clock by remember { mutableStateOf(currentClock(units)) }
-    LaunchedEffect(units.clock24) {
+    // Started again at each switch-on: the wait below stands still while the
+    // unit sleeps, and the bar showed last night's time for up to a minute.
+    val ignition by CarPower.ignition.collectAsState()
+    LaunchedEffect(units.clock24, ignition) {
         while (true) {
             clock = currentClock(units)
             // The bar shows hours and minutes, so wake at the next minute boundary (+ a beat).
@@ -2183,13 +2190,17 @@ private fun BoxScope.PageEdgeSwipes(sideways: ((Boolean) -> Unit)?, upDown: ((Bo
     val edge = 20.dp
     @Composable
     fun Strip(align: Alignment, horizontal: Boolean, turn: (Boolean) -> Unit) {
+        // The gesture below is set up once and lives on: it has to call the
+        // turn of now, not the one from when the strip first appeared (which
+        // could say "not on the home row" for good, and the swipe did nothing).
+        val turnNow by rememberUpdatedState(turn)
         Box(
             Modifier.align(align)
                 .then(if (horizontal) Modifier.width(edge).fillMaxHeight() else Modifier.height(edge).fillMaxWidth())
                 .pointerInput(horizontal) {
                     var dragged = 0f
                     val threshold = 48.dp.toPx()
-                    val end = { if (abs(dragged) >= threshold) turn(dragged < 0f) }
+                    val end = { if (abs(dragged) >= threshold) turnNow(dragged < 0f) }
                     if (horizontal) {
                         detectHorizontalDragGestures(onDragStart = { dragged = 0f }, onDragEnd = end) { change, d ->
                             dragged += d

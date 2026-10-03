@@ -110,7 +110,11 @@ internal fun DesignedFace(face: WidgetFace, design: WidgetDesign, modifier: Modi
     val look = faceLook(design.look)
     FaceSurface(look, modifier.then(face.onClick?.let { Modifier.clickable(onClick = it) } ?: Modifier)) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-            val m = FaceMetrics(maxWidth.value, maxHeight.value, LocalDensity.current)
+            // The same one for as long as the tile keeps its size: made anew at
+            // every reading, each part of the face took it for a change and was
+            // drawn again, and the pictures "built once per size" were rebuilt.
+            val density = LocalDensity.current
+            val m = remember(maxWidth, maxHeight, density) { FaceMetrics(maxWidth.value, maxHeight.value, density) }
             when (design.layout ?: FaceLayout.HERO) {
                 FaceLayout.HERO -> HeroLayout(face, look, m)
                 FaceLayout.ARC -> ArcLayout(face, look, m)
@@ -314,7 +318,9 @@ internal fun FaceText(
         maxLines = maxLines,
         overflow = if (shrinking) TextOverflow.Clip else TextOverflow.Ellipsis,
         textAlign = align,
-        style = if (glow && halo != null) TextStyle(shadow = Shadow(halo, blurRadius = size.value * 0.6f)) else TextStyle.Default,
+        // Through softTextShadow: a blurred glow redone at every reading is what "effects reduced" is there to spare.
+        style = (if (glow && halo != null) softTextShadow(halo, blurRadius = size.value * 0.6f) else null)
+            ?.let { TextStyle(shadow = it) } ?: TextStyle.Default,
         onTextLayout = { if (shrinking && it.hasVisualOverflow) scale = (scale - 0.08f).coerceAtLeast(MIN_FIT_SCALE) }
     )
 }

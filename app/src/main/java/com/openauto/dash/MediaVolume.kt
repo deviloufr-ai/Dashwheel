@@ -242,6 +242,10 @@ object MediaVolume {
 
     private fun unitState(): UnitState = unitWanted.get() ?: UnitState(savedUnitLevel(), sysProp(UNIT_MUTE_PROP) == "true")
 
+    /** The sound source the unit's volume applies to now ("radio_type", "aux_type"...); "" on a unit with one volume for all. */
+    internal fun unitSource(): String = sysProp(UNIT_TYPE_PROP)
+    internal const val UNIT_CALL_SOURCE = "btcall_type"
+
     /** Where the firmware saves the current source's level (android.qf.os.VolumeManager). */
     private fun unitLevelProp(): String = when (sysProp(UNIT_TYPE_PROP)) {
         "radio_type" -> "sys.radio.vol"
