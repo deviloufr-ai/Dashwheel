@@ -157,6 +157,12 @@
     <string name="info_map_address_not_found">Adres niet gevonden</string>
     <string name="info_map_duration_hm">%1$d u %2$02d min</string>
     <string name="info_map_duration_min">%1$d min</string>
+    <string name="info_map_stop">Stoppen</string>
+    <string name="info_map_arrived">U bent aangekomen</string>
+    <string name="info_map_rerouting">Nieuwe route zoeken</string>
+    <string name="info_map_voice_on">Stem aan</string>
+    <string name="info_map_voice_off">Stem uit</string>
+    <string name="info_map_other_app">Navigeren in Google Maps of Waze</string>
     <string name="info_audio_by_keys">Volume via de volumetoetsen van de radio</string>
     <string name="info_audio_unavailable">Volume hier niet in te stellen: gebruik de knop</string>
 </resources>

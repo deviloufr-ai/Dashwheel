@@ -69,6 +69,8 @@ internal const val GOOGLE_MAPS_PACKAGE = "com.google.android.apps.maps"
 
 /** Opens the navigation app that is driving [nav] (or Google Maps) beside the dashboard. */
 internal fun openNavigationApp(context: Context, nav: NavState) {
+    // The dashboard's own guidance: its map is already the navigation app.
+    if (nav.packageName == context.packageName) return
     SplitLauncher.launchSplit(context, nav.packageName.ifEmpty { GOOGLE_MAPS_PACKAGE })
 }
 

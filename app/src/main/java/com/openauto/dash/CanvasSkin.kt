@@ -772,6 +772,8 @@ private fun rememberAgenda(context: Context, enabled: Boolean): List<AgendaEvent
 
 /** The navigation app that is guiding (or Google Maps), brought to the front. */
 private fun openNavApp(context: Context, packageName: String?) {
+    // The dashboard's own guidance runs on the map under this page.
+    if (packageName == context.packageName) return
     val pkg = packageName?.takeIf { it.isNotBlank() } ?: "com.google.android.apps.maps"
     context.packageManager.getLaunchIntentForPackage(pkg)?.let { context.launchSafely(it) }
 }

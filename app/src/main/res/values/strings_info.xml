@@ -157,6 +157,12 @@
     <string name="info_map_address_not_found">Address not found</string>
     <string name="info_map_duration_hm">%1$dh %2$02dmin</string>
     <string name="info_map_duration_min">%1$d min</string>
+    <string name="info_map_stop">Stop</string>
+    <string name="info_map_arrived">You have arrived</string>
+    <string name="info_map_rerouting">Finding a new route</string>
+    <string name="info_map_voice_on">Turn the voice on</string>
+    <string name="info_map_voice_off">Turn the voice off</string>
+    <string name="info_map_other_app">Guide in Google Maps or Waze</string>
     <string name="info_audio_by_keys">Volume set through the head unit\'s volume keys</string>
     <string name="info_audio_unavailable">Volume can\'t be changed from here: use the knob</string>
 </resources>

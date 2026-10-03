@@ -25,6 +25,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
@@ -120,10 +123,12 @@ private val OverlayBg = Color(0xE6141518)
  *  - type a destination (Nominatim geocoding) or tap the map,
  *  - home, work and the last destinations one tap away ([PlacesStore]),
  *  - route computed by a free Valhalla server, drawn on the map with ETA,
- *  - **Start** hands the destination to the navigation app ([NavHandoff]).
+ *  - **Start** guides there on this map ([InAppNav]): next turn, voice, a
+ *    new route when the car leaves it; or hands the destination to Google
+ *    Maps / Waze ([NavHandoff]) when there is no route of our own.
  *
- * As a [wallpaper] (the Canvas theme's page) it is only the map: no search,
- * no route panel, no gestures, a lower and steeper camera with the car in
+ * As a [wallpaper] (the Canvas theme's page) it is only the map and the
+ * guided route: no search, no route panel, no gestures, a lower and steeper camera with the car in
  * the lower part of the screen, and at most [WALLPAPER_FPS] frames a second.
  */
 @Composable
@@ -190,7 +195,7 @@ fun MapLibrePanel(modifier: Modifier = Modifier, wallpaper: Boolean = false) {
         error = null; loading = true
         scope.launch {
             val result = withContext(Dispatchers.IO) {
-                runCatching { valhallaRoute(origin, dest, Locale.getDefault().language) }
+                runCatching { valhallaRoute(origin, dest, InAppNav.locale(context).language) }
             }
             loading = false
             result.onSuccess { resp ->
@@ -241,12 +246,21 @@ fun MapLibrePanel(modifier: Modifier = Modifier, wallpaper: Boolean = false) {
         destinationName = place.name
     }
 
-    /** Start: guidance in the navigation app, and the destination kept among the last ones. */
-    fun startGuidance(dest: Point) {
+    /**
+     * Start: guidance on this map along the route shown, or in the navigation
+     * app ([inOtherApp], or no route of our own yet), and the destination
+     * kept among the last ones.
+     */
+    fun startGuidance(dest: Point, inOtherApp: Boolean = false) {
         val lat = dest.latitude()
         val lng = dest.longitude()
         val name = destinationName
-        if (!NavHandoff.start(context, lat, lng, name.orEmpty())) {
+        val shown = route
+        if (!inOtherApp && shown != null && hasLocationPerm(context)) {
+            InAppNav.start(context, shown, dest, name)
+            // Back to the car straight away, not after the preview's pause.
+            mapRef?.let { followVehicle(it.locationComponent, null, userZooms[it]) }
+        } else if (!NavHandoff.start(context, lat, lng, name.orEmpty())) {
             error = context.getString(R.string.places_no_nav_app)
             return
         }
@@ -336,6 +350,30 @@ fun MapLibrePanel(modifier: Modifier = Modifier, wallpaper: Boolean = false) {
             styleReady = true
         }
     }
+    // The guided route on every map, the tile's and the wallpaper's: drawn
+    // when it starts or changes (a new route after leaving it), with its
+    // travelled part and the next turn's arrow; gone when it ends.
+    val guidance by InAppNav.guidance.collectAsState()
+    val guidedRoute = guidance?.route
+    val navigation by InAppNav.navigation.collectAsState()
+    var wasGuiding by remember { mutableStateOf(false) }
+    LaunchedEffect(navRoute, guidedRoute) {
+        val line = navRoute ?: return@LaunchedEffect
+        if (guidedRoute != null) {
+            line.addRoute(guidedRoute)
+            wasGuiding = true
+        } else if (wasGuiding) {
+            wasGuiding = false
+            clearRoute()
+        }
+    }
+    DisposableEffect(navRoute, navigation) {
+        val line = navRoute
+        val nav = navigation
+        if (line != null && nav != null) runCatching { line.addProgressChangeListener(nav) }
+        onDispose { if (line != null && nav != null) runCatching { line.removeProgressChangeListener(nav) } }
+    }
+
     // Location puck: enabled once the style is up, and again if the permission
     // is granted later from the runtime prompt.
     LaunchedEffect(hasLocation, styleReady) {
@@ -360,7 +398,8 @@ fun MapLibrePanel(modifier: Modifier = Modifier, wallpaper: Boolean = false) {
             }
             val places by PlacesStore.places.collectAsState()
             LaunchedEffect(Unit) { PlacesStore.load(context) }
-            Column(
+            // While guiding, the turn banner has the top of the map.
+            if (guidance == null) Column(
                 modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth().padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -420,7 +459,12 @@ fun MapLibrePanel(modifier: Modifier = Modifier, wallpaper: Boolean = false) {
             if (destination == null) PlaceChips(places, onPick = { routeToPlace(it) })
             }
 
-            // Route info / error + Start (hands off to Google Maps navigation).
+            val guiding = guidance
+            if (guiding != null) {
+                GuidancePanel(guiding, modifier = Modifier.align(Alignment.BottomStart).padding(10.dp))
+                return@Box
+            }
+            // Route info / error + Start (on this map; or in Google Maps / Waze).
             val currentInfo = info
             val currentError = error
             val hasDest = destination != null
@@ -449,9 +493,57 @@ fun MapLibrePanel(modifier: Modifier = Modifier, wallpaper: Boolean = false) {
                                 Spacer(Modifier.width(6.dp))
                                 Text(stringResource(R.string.info_map_start))
                             }
+                            // The same trip in Google Maps or Waze instead.
+                            if (route != null) {
+                                IconButton(onClick = { destination?.let { startGuidance(it, inOtherApp = true) } }) {
+                                    Icon(Icons.Filled.OpenInNew, contentDescription = stringResource(R.string.info_map_other_app), tint = Color(0xFF9AA0A6))
+                                }
+                            }
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+/** Under the map while guiding: time, distance and arrival left, the voice switch and Stop. */
+@Composable
+private fun GuidancePanel(guidance: InAppNav.Guidance, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val voiceOn by InAppNav.voiceOn.collectAsState()
+    Surface(color = OverlayBg, shape = DashShape.Medium, modifier = modifier) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = when {
+                    guidance.arrived -> stringResource(R.string.info_map_arrived)
+                    guidance.rerouting -> stringResource(R.string.info_map_rerouting)
+                    else -> guidance.remaining.ifEmpty { stringResource(R.string.info_map_ready) }
+                },
+                color = Color.White
+            )
+            IconButton(
+                onClick = { InAppNav.setVoice(context, !voiceOn) },
+                modifier = Modifier.size(DashSize.TouchPrimary)
+            ) {
+                Icon(
+                    if (voiceOn) Icons.AutoMirrored.Filled.VolumeUp else Icons.AutoMirrored.Filled.VolumeOff,
+                    contentDescription = stringResource(if (voiceOn) R.string.info_map_voice_off else R.string.info_map_voice_on),
+                    tint = if (voiceOn) Accent else Color(0xFF9AA0A6)
+                )
+            }
+            Button(
+                onClick = { InAppNav.stop() },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2A2D33), contentColor = Color.White),
+                modifier = Modifier.heightIn(min = DashSize.TouchPrimary)
+            ) {
+                Icon(Icons.Filled.Close, contentDescription = null, modifier = Modifier.size(22.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(R.string.info_map_stop))
             }
         }
     }
@@ -621,7 +713,7 @@ private fun PlaceChips(places: Places, onPick: (Place) -> Unit) {
 }
 
 /** Fetches a driving route from a free Valhalla server (OSRM-format response). */
-private fun valhallaRoute(origin: Point, dest: Point, language: String): DirectionsResponse {
+internal fun valhallaRoute(origin: Point, dest: Point, language: String): DirectionsResponse {
     val body = mapOf(
         "format" to "osrm",
         "costing" to "auto",

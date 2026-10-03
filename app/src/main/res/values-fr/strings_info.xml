@@ -157,6 +157,12 @@
     <string name="info_map_address_not_found">Adresse introuvable</string>
     <string name="info_map_duration_hm">%1$d h %2$02d</string>
     <string name="info_map_duration_min">%1$d min</string>
+    <string name="info_map_stop">Arrêter</string>
+    <string name="info_map_arrived">Vous êtes arrivé</string>
+    <string name="info_map_rerouting">Recherche d\'un nouvel itinéraire</string>
+    <string name="info_map_voice_on">Activer la voix</string>
+    <string name="info_map_voice_off">Couper la voix</string>
+    <string name="info_map_other_app">Guider dans Google Maps ou Waze</string>
     <string name="info_audio_by_keys">Volume réglé par les touches de volume de l\'autoradio</string>
     <string name="info_audio_unavailable">Volume non réglable d\'ici : utilisez le bouton</string>
 </resources>

@@ -157,6 +157,12 @@
     <string name="info_map_address_not_found">Nie znaleziono adresu</string>
     <string name="info_map_duration_hm">%1$d godz. %2$02d min</string>
     <string name="info_map_duration_min">%1$d min</string>
+    <string name="info_map_stop">Zakończ</string>
+    <string name="info_map_arrived">Jesteś na miejscu</string>
+    <string name="info_map_rerouting">Szukam nowej trasy</string>
+    <string name="info_map_voice_on">Włącz głos</string>
+    <string name="info_map_voice_off">Wyłącz głos</string>
+    <string name="info_map_other_app">Prowadź w Mapach Google lub Waze</string>
     <string name="info_audio_by_keys">Głośność ustawiana klawiszami głośności radia</string>
     <string name="info_audio_unavailable">Głośności nie można tu zmienić: użyj pokrętła</string>
 </resources>

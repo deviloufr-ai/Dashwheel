@@ -157,6 +157,12 @@
     <string name="info_map_address_not_found">Dirección no encontrada</string>
     <string name="info_map_duration_hm">%1$d h %2$02d min</string>
     <string name="info_map_duration_min">%1$d min</string>
+    <string name="info_map_stop">Detener</string>
+    <string name="info_map_arrived">Ha llegado</string>
+    <string name="info_map_rerouting">Buscando una nueva ruta</string>
+    <string name="info_map_voice_on">Activar la voz</string>
+    <string name="info_map_voice_off">Silenciar la voz</string>
+    <string name="info_map_other_app">Guiar en Google Maps o Waze</string>
     <string name="info_audio_by_keys">Volumen ajustado con las teclas de volumen de la radio</string>
     <string name="info_audio_unavailable">El volumen no se puede cambiar desde aquí: use el mando</string>
 </resources>

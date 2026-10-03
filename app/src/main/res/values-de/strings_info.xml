@@ -157,6 +157,12 @@
     <string name="info_map_address_not_found">Adresse nicht gefunden</string>
     <string name="info_map_duration_hm">%1$d h %2$02d min</string>
     <string name="info_map_duration_min">%1$d min</string>
+    <string name="info_map_stop">Beenden</string>
+    <string name="info_map_arrived">Sie haben Ihr Ziel erreicht</string>
+    <string name="info_map_rerouting">Neue Route wird gesucht</string>
+    <string name="info_map_voice_on">Sprachansage an</string>
+    <string name="info_map_voice_off">Sprachansage aus</string>
+    <string name="info_map_other_app">In Google Maps oder Waze führen</string>
     <string name="info_audio_by_keys">Lautstärke über die Lautstärketasten des Radios</string>
     <string name="info_audio_unavailable">Lautstärke hier nicht einstellbar: Drehknopf benutzen</string>
 </resources>

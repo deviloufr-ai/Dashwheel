@@ -93,14 +93,24 @@ object NavDirections {
         _state.value = state
     }
 
+    /** The dashboard's own guidance ([InAppNav]): ahead of Google Maps' and Waze's turns while it runs. */
+    @Volatile
+    private var inApp: NavState? = null
+
     /** The demo is over: the real route back, as it is now (a route ended meanwhile stays ended). */
     internal fun endDemo() {
-        _state.value = real
+        _state.value = inApp ?: real
     }
 
     private fun publish(state: NavState) {
         real = state
-        if (!DemoMode.isOn) _state.value = state
+        if (!DemoMode.isOn && inApp == null) _state.value = state
+    }
+
+    /** [InAppNav]'s next turn; null when its guidance ends and the navigation app's turns come back. */
+    internal fun publishInApp(state: NavState?) {
+        inApp = state
+        if (!DemoMode.isOn) _state.value = state ?: real
     }
 
     fun onPosted(context: Context, sbn: StatusBarNotification) {
