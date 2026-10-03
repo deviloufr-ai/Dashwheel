@@ -86,7 +86,8 @@ object DisplayLink {
     private const val HANDSHAKE_TIMEOUT_MS = 10_000
     private const val READ_TIMEOUT_MS = 45_000
     private const val PING_EVERY_MS = 15_000L
-    private const val RETRY_MS = 5_000L
+    /** One dial at the known addresses: cheap, and the display is found soon after its Wi-Fi joins. */
+    private const val RETRY_MS = 2_000L
     /** Video frames queue here: about a second at 30 fps, then they are dropped (see [sendVideo]). */
     private const val OUTBOX_SIZE = 48
 

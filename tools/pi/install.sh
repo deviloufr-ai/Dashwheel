@@ -96,6 +96,20 @@ for unit in NetworkManager-wait-online.service e2scrub_reap.service rpi-eeprom-u
   apt-daily.timer apt-daily-upgrade.timer man-db.timer e2scrub_all.timer dpkg-db-backup.timer; do
   systemctl disable "$unit" 2>/dev/null || true
 done
+# Wi-Fi networks as NetworkManager's own files: with netplan's (what Raspberry Pi
+# Imager writes), NetworkManager reloads systemd several times at every start (~10 s).
+for run in /run/NetworkManager/system-connections/netplan-wlan0-*.nmconnection; do
+  [ -f "$run" ] || continue
+  name=$(basename "$run" .nmconnection); name=${name#netplan-wlan0-}
+  keep=/etc/NetworkManager/system-connections/$name.nmconnection
+  [ -f "$keep" ] && continue
+  sed -e "s/^id=netplan-wlan0-/id=/" -e "/^uuid=/d" -e "/^type=wifi/a uuid=$(cat /proc/sys/kernel/random/uuid)" "$run" > "$keep"
+  chmod 600 "$keep"
+done
+if ls /etc/NetworkManager/system-connections/*.nmconnection >/dev/null 2>&1 && ls /etc/netplan/*.yaml >/dev/null 2>&1; then
+  mkdir -p /root/netplan-backup && cp -a /etc/netplan/. /root/netplan-backup/
+  rm -f /etc/netplan/*.yaml
+fi
 # Swap in memory only: the swap file is resized at every start, and written to the card.
 [ -f /etc/rpi/swap.conf ] && sed -i 's/^#\?Mechanism=.*/Mechanism=zram/' /etc/rpi/swap.conf
 # The service's Java starts from a class archive made now (the card may be read-only later).
