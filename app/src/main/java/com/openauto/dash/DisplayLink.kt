@@ -134,6 +134,8 @@ object DisplayLink {
 
     /** Addresses the display announced itself on (DNS-SD, beacons). */
     private val announced = ConcurrentHashMap.newKeySet<String>()
+    /** The address a display's beacon came from last. */
+    @Volatile private var heardAt: String? = null
     private var lastProbeAt = 0L
     private var wifiLock: WifiManager.WifiLock? = null
 
@@ -231,9 +233,12 @@ object DisplayLink {
         }
     }
 
-    /** The address it last answered on, then those it announced. */
+    /**
+     * Where its beacon was last heard from (certainly current), then the address it last
+     * answered on, then those it announced: a stale address costs a whole connect timeout.
+     */
     private fun quickAddresses(context: Context): List<String> =
-        listOfNotNull(context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_LAST_ADDRESS, null)) +
+        listOfNotNull(heardAt, context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_LAST_ADDRESS, null)) +
             announced.toList()
 
     /** Tries each paired display at [address]; true once one linked (and that link has ended). */
@@ -444,7 +449,11 @@ object DisplayLink {
                     val id = text.removePrefix(DISPLAY_BEACON_PREFIX)
                     if (_displays.value.none { it.id == id }) continue
                     val address = (packet.address as? Inet4Address)?.hostAddress ?: continue
-                    if (announced.add(address)) wake.update { it + 1 }
+                    announced.add(address)
+                    if (heardAt != address) {
+                        heardAt = address
+                        wake.update { it + 1 }
+                    }
                 }
             }
         }
