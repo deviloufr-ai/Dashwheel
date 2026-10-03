@@ -30,6 +30,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.VerticalAlignTop
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.AcUnit
+import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Adjust
@@ -836,6 +837,7 @@ private fun AboutPane(m: TopBarModel) {
     Spacer(Modifier.height(20.dp))
     SettingsSection(stringResource(R.string.settings_section_about))
     UpdateRow(m)
+    SettingsRow(Icons.Filled.School, stringResource(R.string.tour_settings_row), stringResource(R.string.tour_settings_row_detail), m.onTour)
     SettingsRow(Icons.Filled.Favorite, stringResource(R.string.about_project), stringResource(R.string.about_project_detail)) {
         context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(PROJECT_URL)))
     }

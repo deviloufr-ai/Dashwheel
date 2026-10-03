@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- First-run tour (TourScreen.kt): six tips over the real dashboard -->
+    <string name="tour_welcome_kicker">Benvenuto in Dashwheel</string>
+    <string name="tour_welcome_title">Un giro veloce delle basi</string>
+    <string name="tour_welcome_body">Sei consigli brevi. Circa un minuto. Puoi fermarti quando vuoi.</string>
+    <string name="tour_topic_swipe">Cambia cruscotto</string>
+    <string name="tour_topic_arrange">Sposta e ingrandisci</string>
+    <string name="tour_topic_add">Aggiungi</string>
+    <string name="tour_topic_look">Cambia aspetto</string>
+    <string name="tour_topic_obd">Dati dell\'auto</string>
+    <string name="tour_topic_hands">Mani libere</string>
+    <string name="tour_show_me">Fammi vedere</string>
+    <string name="tour_not_now">Non ora</string>
+    <string name="tour_tip">Consiglio %1$d di %2$d</string>
+    <string name="tour_skip">Salta il giro</string>
+    <string name="tour_next">Avanti</string>
+    <string name="tour_back">Indietro</string>
+    <string name="tour_finish">Fine</string>
+    <string name="tour_read_aloud">Leggi ad alta voce</string>
+    <string name="tour_swipe_title">Scorri per cambiare cruscotto</string>
+    <string name="tour_swipe_body">Home è al centro. Scorri a sinistra o a destra per altri due, e in su o in giù da Home per altri quattro.</string>
+    <string name="tour_try_swipe">Prova: scorri lo schermo</string>
+    <string name="tour_arrange_title">Sposta e ingrandisci i riquadri</string>
+    <string name="tour_arrange_body">Tieni premuto un riquadro e trascinalo per spostarlo. Tira il suo angolo per ingrandirlo.</string>
+    <string name="tour_arrange_hint">Più tardi lo apri dal menu, Modifica cruscotti.</string>
+    <string name="tour_add_title">Aggiungi un widget o un\'app</string>
+    <string name="tour_add_body">Tocca Aggiungi per mettere musica, dati dell\'auto, meteo o un\'app su questo cruscotto.</string>
+    <string name="tour_add_hint">Di fretta? I modelli riempiono un cruscotto intero in un colpo.</string>
+    <string name="tour_look_title">Fallo tuo</string>
+    <string name="tour_look_body">Apri il menu, poi Impostazioni, poi Aspetto. Scegli un tema e i colori di giorno o di notte.</string>
+    <string name="tour_obd_title">Collega l\'adattatore OBD</string>
+    <string name="tour_obd_body">Va nella presa sotto il volante. Dashwheel lo trova e si ricollega da solo a ogni avvio.</string>
+    <string name="tour_obd_off">Non collegato</string>
+    <string name="tour_obd_looking">Ricerca</string>
+    <string name="tour_obd_connected">Collegato</string>
+    <string name="tour_hands_title">Occhi sulla strada</string>
+    <string name="tour_hands_body">I tasti al volante possono cambiare cruscotto, saltare brani o avviare l\'assistente vocale. Dashwheel parla da solo quando qualcosa conta.</string>
+    <string name="tour_hands_hint">Imposta i tasti in Impostazioni, Guida, Comandi al volante.</string>
+    <string name="tour_wheel_dashboard">Cruscotto successivo</string>
+    <string name="tour_wheel_music">Musica</string>
+    <string name="tour_wheel_voice">Assistente vocale</string>
+    <string name="tour_wheel_alerts">Avvisi vocali</string>
+    <string name="tour_done_title">Tutto pronto</string>
+    <string name="tour_done_body">Rivedi questo giro quando vuoi in Impostazioni, Informazioni.</string>
+    <string name="tour_start_driving">Si parte</string>
+    <string name="tour_settings_row">Giro delle basi</string>
+    <string name="tour_settings_row_detail">Sei consigli brevi sul cruscotto</string>
+</resources>

@@ -389,6 +389,7 @@ internal fun GridTile(
             }
             .zIndex(if (active) 1f else 0f)
             .padding(3.dp)
+            .then(if (index == 0) Modifier.tourTarget(TourTarget.TILE) else Modifier)
             .graphicsLayer {
                 if (active) { scaleX = 1.03f; scaleY = 1.03f; shadowElevation = 20f }
             }

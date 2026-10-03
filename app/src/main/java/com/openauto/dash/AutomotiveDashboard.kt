@@ -56,6 +56,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -82,6 +83,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -425,6 +427,16 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     var setupPillOff by remember { mutableStateOf(SetupStore.pillOff(context)) }
     var setupStep by remember { mutableStateOf(if (setupDone) null else SetupStep.CAR) }
     var showCarSettings by remember { mutableStateOf(false) }
+    // The tour of the basics (TourScreen.kt): its step while open. Offered once
+    // after the first setup, at most once per start, and only parked.
+    var tourStep by remember { mutableStateOf<TourStep?>(null) }
+    var tourOffered by remember { mutableStateOf(false) }
+    // Arranging was turned on by the tour, for its tips about the tiles.
+    var tourEditing by remember { mutableStateOf(false) }
+    fun closeTour() {
+        TourStore.markSeen(context)
+        tourStep = null
+    }
     // Bumped on every return to the launcher: an access granted in the system settings shows at once.
     var accessGeneration by remember { mutableIntStateOf(0) }
 
@@ -432,8 +444,9 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     // closes what is open, top-most first, then heads back to Home. Dialogs
     // are windows of their own and take Back themselves before this runs.
     val offHome = currentPage != (if (tabsMode) barTabs.firstOrNull()?.page ?: 0 else DashboardStore.CENTER)
-    BackHandler(enabled = setupStep != null || showAllApps || settingsTab != null || showAddSheet || tileOptions != null || editing || offHome) {
+    BackHandler(enabled = tourStep != null || setupStep != null || showAllApps || settingsTab != null || showAddSheet || tileOptions != null || editing || offHome) {
         when {
+            tourStep != null -> closeTour()
             setupStep != null -> {
                 SetupStore.markDone(context); setupDone = true
                 setupStep = null
@@ -484,6 +497,41 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             showSplitEnable = false
             showDevicePicker = false
             launchBarEditor = null
+            // Stopped, not seen: offered again at the next start.
+            tourStep = null
+        }
+    }
+    // The tour comes up by itself once the first setup has closed, parked.
+    LaunchedEffect(setupStep, moving) {
+        if (setupStep == null && !moving && !tourOffered && TourStore.isPending(context)) {
+            tourOffered = true
+            tourStep = TourStep.WELCOME
+        }
+    }
+    LaunchedEffect(tourStep) {
+        val step = tourStep
+        // Its tips about the tiles and the Add button show arranging; it ends as it began.
+        val wants = step?.wantsEditing == true
+        if (wants && !editing) {
+            editing = true
+            tourEditing = true
+        } else if (!wants && tourEditing) {
+            editing = false
+            tourEditing = false
+        }
+        when (step) {
+            // The first tile is lit up: on Home, where there is one.
+            TourStep.ARRANGE -> showHome()
+            // The menu and the OBD pill are on the bar, even one that hides itself.
+            TourStep.LOOK, TourStep.OBD -> barState.reveal()
+            // Trying the swipe moves the tour on.
+            TourStep.SWIPE -> {
+                val from = currentPage
+                snapshotFlow { currentPage }.first { it != from }
+                delay(TOUR_SWIPE_SETTLE_MS)
+                if (tourStep == TourStep.SWIPE) tourStep = TourStep.ARRANGE
+            }
+            else -> {}
         }
     }
     // The panel belongs to a tile of the page on screen, while arranging.
@@ -498,7 +546,9 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     // along at once, but the Maps dock beside the pages does not move with them
     // and stays put.
     val fullScreenSheet = showAllApps || settingsTab != null || showAddSheet || setupStep != null
-    LaunchedEffect(fullScreenSheet) { PipAnchor.steppedAside.value = fullScreenSheet }
+    // The tour dims the whole screen: windows step aside for it too.
+    val tourOn = tourStep != null
+    LaunchedEffect(fullScreenSheet, tourOn) { PipAnchor.steppedAside.value = fullScreenSheet || tourOn }
     // The floating bar would cover the bottom of the edit bar, Settings and the
     // app drawer: it steps down while they are open (a swipe up still brings
     // it), and comes back as they close, since it is what opened them.
@@ -1041,6 +1091,13 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                 editing = false
                 settingsTab = SettingsTab.CAR
             }
+        },
+        onTour = {
+            whenParked {
+                closeSheets()
+                editing = false
+                tourStep = TourStep.WELCOME
+            }
         }
     )
 
@@ -1142,6 +1199,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                 .then(if (barAutoHide && !canvas) Modifier.swipeUpRevealsBar(barState, barRevealTap) else Modifier)
                 // Docked app windows must stay inside this area (above the bar,
                 // unless it floats over the pages and they step aside for it).
+                .tourTarget(TourTarget.PAGES)
                 .onGloballyPositioned { coords ->
                     val b = coords.boundsInRoot()
                     pagesArea = b
@@ -1551,6 +1609,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                         SetupStore.markDone(context); setupDone = true
                         SetupStore.setPillOff(context, !finished); setupPillOff = !finished
                         setupStep = null
+                        TourStore.offer(context)
                     },
                     modifier = Modifier.fillMaxSize().padding(10.dp)
                 )
@@ -1612,6 +1671,14 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                 }
             }
         }
+    }
+    tourStep?.let { step ->
+        TourOverlay(
+            step = step,
+            obd = obdConnection.value,
+            onStep = { tourStep = it },
+            onClose = { closeTour() }
+        )
     }
     }
     }
@@ -2097,3 +2164,5 @@ private fun BoxScope.PageEdgeSwipes(sideways: (Boolean) -> Unit, upDown: ((Boole
 }
 
 private const val UPDATE_CHECK_EVERY_MS = 6 * 60 * 60_000L
+/** After a swipe during the tour, the new page shows for this long before the next tip. */
+private const val TOUR_SWIPE_SETTLE_MS = 700L

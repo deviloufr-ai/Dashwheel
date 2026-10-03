@@ -386,6 +386,7 @@ private fun ObdDot(state: ObdConnectionState, onConnect: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
+            .tourTarget(TourTarget.OBD)
             .heightIn(min = DashSize.Touch)
             .clip(RoundedCornerShape(10.dp))
             .clickable(enabled = state.isIdle) { tap(); onConnect() }

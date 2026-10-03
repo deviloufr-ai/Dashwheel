@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- First-run tour (TourScreen.kt): six tips over the real dashboard -->
+    <string name="tour_welcome_kicker">Bienvenido a Dashwheel</string>
+    <string name="tour_welcome_title">Un repaso rápido</string>
+    <string name="tour_welcome_body">Seis consejos cortos. Un minuto más o menos. Puedes parar cuando quieras.</string>
+    <string name="tour_topic_swipe">Cambiar de panel</string>
+    <string name="tour_topic_arrange">Mover y ampliar</string>
+    <string name="tour_topic_add">Añadir</string>
+    <string name="tour_topic_look">Cambiar el aspecto</string>
+    <string name="tour_topic_obd">Datos del coche</string>
+    <string name="tour_topic_hands">Manos libres</string>
+    <string name="tour_show_me">Muéstramelo</string>
+    <string name="tour_not_now">Ahora no</string>
+    <string name="tour_tip">Consejo %1$d de %2$d</string>
+    <string name="tour_skip">Saltar</string>
+    <string name="tour_next">Siguiente</string>
+    <string name="tour_back">Atrás</string>
+    <string name="tour_finish">Terminar</string>
+    <string name="tour_read_aloud">Leer en voz alta</string>
+    <string name="tour_swipe_title">Desliza para cambiar de panel</string>
+    <string name="tour_swipe_body">Inicio está en el centro. Desliza a izquierda o derecha para dos más, y arriba o abajo desde Inicio para cuatro más.</string>
+    <string name="tour_try_swipe">Pruébalo: desliza la pantalla</string>
+    <string name="tour_arrange_title">Mover y ampliar mosaicos</string>
+    <string name="tour_arrange_body">Mantén pulsado un mosaico y arrástralo para moverlo. Tira de su esquina para agrandarlo.</string>
+    <string name="tour_arrange_hint">Más tarde, ábrelo desde el menú, Editar paneles.</string>
+    <string name="tour_add_title">Añadir un widget o una app</string>
+    <string name="tour_add_body">Toca Añadir para poner música, datos del coche, el tiempo o cualquier app en este panel.</string>
+    <string name="tour_add_hint">¿Con prisa? Las plantillas llenan un panel entero de una vez.</string>
+    <string name="tour_look_title">A tu gusto</string>
+    <string name="tour_look_body">Abre el menú, luego Ajustes y luego Aspecto. Elige un tema y colores de día o de noche.</string>
+    <string name="tour_obd_title">Conecta el adaptador OBD</string>
+    <string name="tour_obd_body">Va en la toma bajo el volante. Dashwheel lo encuentra y se reconecta solo cada vez que arrancas.</string>
+    <string name="tour_obd_off">Sin conectar</string>
+    <string name="tour_obd_looking">Buscando</string>
+    <string name="tour_obd_connected">Conectado</string>
+    <string name="tour_hands_title">La vista en la carretera</string>
+    <string name="tour_hands_body">Los botones del volante pueden cambiar de panel, saltar canciones o abrir el asistente de voz. Dashwheel avisa solo cuando algo importa.</string>
+    <string name="tour_hands_hint">Configura los botones en Ajustes, Conducción, Botones del volante.</string>
+    <string name="tour_wheel_dashboard">Panel siguiente</string>
+    <string name="tour_wheel_music">Música</string>
+    <string name="tour_wheel_voice">Asistente de voz</string>
+    <string name="tour_wheel_alerts">Avisos hablados</string>
+    <string name="tour_done_title">Todo listo</string>
+    <string name="tour_done_body">Vuelve a ver este repaso en Ajustes, Acerca de.</string>
+    <string name="tour_start_driving">A conducir</string>
+    <string name="tour_settings_row">Repaso rápido</string>
+    <string name="tour_settings_row_detail">Seis consejos cortos sobre el panel</string>
+</resources>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- First-run tour (TourScreen.kt): six tips over the real dashboard -->
+    <string name="tour_welcome_kicker">Bienvenue dans Dashwheel</string>
+    <string name="tour_welcome_title">Petit tour des bases</string>
+    <string name="tour_welcome_body">Six conseils courts. Environ une minute. Vous pouvez arrêter à tout moment.</string>
+    <string name="tour_topic_swipe">Changer de tableau</string>
+    <string name="tour_topic_arrange">Déplacer et agrandir</string>
+    <string name="tour_topic_add">Ajouter</string>
+    <string name="tour_topic_look">Changer l\'apparence</string>
+    <string name="tour_topic_obd">Données de la voiture</string>
+    <string name="tour_topic_hands">Mains libres</string>
+    <string name="tour_show_me">Montrez-moi</string>
+    <string name="tour_not_now">Plus tard</string>
+    <string name="tour_tip">Conseil %1$d sur %2$d</string>
+    <string name="tour_skip">Passer le tour</string>
+    <string name="tour_next">Suivant</string>
+    <string name="tour_back">Retour</string>
+    <string name="tour_finish">Terminer</string>
+    <string name="tour_read_aloud">Lire à voix haute</string>
+    <string name="tour_swipe_title">Glissez pour changer de tableau</string>
+    <string name="tour_swipe_body">L\'accueil est au milieu. Glissez à gauche ou à droite pour deux autres, et en haut ou en bas depuis l\'accueil pour quatre de plus.</string>
+    <string name="tour_try_swipe">Essayez : glissez sur l\'écran</string>
+    <string name="tour_arrange_title">Déplacer et agrandir les tuiles</string>
+    <string name="tour_arrange_body">Maintenez une tuile, puis faites-la glisser pour la déplacer. Tirez son coin pour l\'agrandir.</string>
+    <string name="tour_arrange_hint">Plus tard, ouvrez ceci depuis le menu, Modifier les tableaux de bord.</string>
+    <string name="tour_add_title">Ajouter un widget ou une appli</string>
+    <string name="tour_add_body">Touchez Ajouter pour mettre la musique, les données de la voiture, la météo ou une appli sur ce tableau.</string>
+    <string name="tour_add_hint">Pressé ? Les modèles remplissent un tableau entier d\'un coup.</string>
+    <string name="tour_look_title">À votre goût</string>
+    <string name="tour_look_body">Ouvrez le menu, puis Réglages, puis Apparence. Choisissez un thème et les couleurs de jour ou de nuit.</string>
+    <string name="tour_obd_title">Branchez l\'adaptateur OBD</string>
+    <string name="tour_obd_body">Il se branche dans la prise sous le volant. Dashwheel le trouve et se reconnecte tout seul à chaque démarrage.</string>
+    <string name="tour_obd_off">Non branché</string>
+    <string name="tour_obd_looking">Recherche</string>
+    <string name="tour_obd_connected">Connecté</string>
+    <string name="tour_hands_title">Les yeux sur la route</string>
+    <string name="tour_hands_body">Les boutons du volant peuvent changer de tableau, passer un morceau ou lancer l\'assistant vocal. Dashwheel prend la parole tout seul quand c\'est important.</string>
+    <string name="tour_hands_hint">Réglez les boutons dans Réglages, Conduite, Commandes au volant.</string>
+    <string name="tour_wheel_dashboard">Tableau suivant</string>
+    <string name="tour_wheel_music">Musique</string>
+    <string name="tour_wheel_voice">Assistant vocal</string>
+    <string name="tour_wheel_alerts">Alertes parlées</string>
+    <string name="tour_done_title">Tout est prêt</string>
+    <string name="tour_done_body">Revoyez ce tour quand vous voulez dans Réglages, À propos.</string>
+    <string name="tour_start_driving">C\'est parti</string>
+    <string name="tour_settings_row">Tour des bases</string>
+    <string name="tour_settings_row_detail">Six conseils courts sur le tableau de bord</string>
+</resources>

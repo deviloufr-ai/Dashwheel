@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- First-run tour (TourScreen.kt): six tips over the real dashboard -->
+    <string name="tour_welcome_kicker">Welcome to Dashwheel</string>
+    <string name="tour_welcome_title">A quick tour of the basics</string>
+    <string name="tour_welcome_body">Six short tips. About one minute. You can stop at any time.</string>
+    <string name="tour_topic_swipe">Change dashboard</string>
+    <string name="tour_topic_arrange">Move and resize</string>
+    <string name="tour_topic_add">Add things</string>
+    <string name="tour_topic_look">Change the look</string>
+    <string name="tour_topic_obd">Car data</string>
+    <string name="tour_topic_hands">Hands-free</string>
+    <string name="tour_show_me">Show me</string>
+    <string name="tour_not_now">Not now</string>
+    <string name="tour_tip">Tip %1$d of %2$d</string>
+    <string name="tour_skip">Skip tour</string>
+    <string name="tour_next">Next</string>
+    <string name="tour_back">Back</string>
+    <string name="tour_finish">Finish</string>
+    <string name="tour_read_aloud">Read aloud</string>
+    <string name="tour_swipe_title">Swipe to change dashboard</string>
+    <string name="tour_swipe_body">Home is in the middle. Swipe left or right for two more, and up or down from Home for four more.</string>
+    <string name="tour_try_swipe">Try it: swipe the screen</string>
+    <string name="tour_arrange_title">Move and resize tiles</string>
+    <string name="tour_arrange_body">Hold a tile, then drag it to move it. Pull its corner to make it bigger.</string>
+    <string name="tour_arrange_hint">Later, open this from the menu, Edit dashboards.</string>
+    <string name="tour_add_title">Add a widget or an app</string>
+    <string name="tour_add_body">Tap Add to put music, car data, weather or any app on this dashboard.</string>
+    <string name="tour_add_hint">In a hurry? Templates fill a whole dashboard in one go.</string>
+    <string name="tour_look_title">Make it yours</string>
+    <string name="tour_look_body">Open the menu, then Settings, then Look. Pick a theme and day or night colours.</string>
+    <string name="tour_obd_title">Plug in the OBD adapter</string>
+    <string name="tour_obd_body">It goes in the socket under the steering wheel. Dashwheel finds it and reconnects by itself every time you start the car.</string>
+    <string name="tour_obd_off">Not plugged</string>
+    <string name="tour_obd_looking">Looking</string>
+    <string name="tour_obd_connected">Connected</string>
+    <string name="tour_hands_title">Keep your eyes on the road</string>
+    <string name="tour_hands_body">Your steering wheel buttons can change dashboard, skip songs or start the voice assistant. Dashwheel speaks up by itself when something matters.</string>
+    <string name="tour_hands_hint">Set the buttons in Settings, Driving, Steering wheel buttons.</string>
+    <string name="tour_wheel_dashboard">Next dashboard</string>
+    <string name="tour_wheel_music">Music</string>
+    <string name="tour_wheel_voice">Voice assistant</string>
+    <string name="tour_wheel_alerts">Spoken alerts</string>
+    <string name="tour_done_title">You are all set</string>
+    <string name="tour_done_body">Watch this tour again any time in Settings, About.</string>
+    <string name="tour_start_driving">Start driving</string>
+    <string name="tour_settings_row">Tour of the basics</string>
+    <string name="tour_settings_row_detail">Six short tips about the dashboard</string>
+</resources>

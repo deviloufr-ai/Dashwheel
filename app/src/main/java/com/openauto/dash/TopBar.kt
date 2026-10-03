@@ -167,7 +167,9 @@ internal data class TopBarModel(
     val lockWhileMoving: Boolean = true,
     val onLockWhileMoving: (Boolean) -> Unit = {},
     /** Opens the Settings screen (SettingsScreen.kt). */
-    val onSettings: () -> Unit = {}
+    val onSettings: () -> Unit = {},
+    /** Starts the tour of the basics (TourScreen.kt). */
+    val onTour: () -> Unit = {}
 ) {
     val obdData: ObdData get() = obd.value
     val obdConnection: ObdConnectionState get() = obdConnectionState.value
@@ -626,6 +628,7 @@ internal fun ObdPill(state: ObdConnectionState, onConnect: () -> Unit, modifier:
     if (help) PhoneAaHelpDialog(onConnect = { help = false; onConnect() }, onDismiss = { help = false })
     Box(
         modifier = modifier
+            .tourTarget(TourTarget.OBD)
             .heightIn(min = DashSize.TouchPrimary)
             .clip(shape)
             .clickable(enabled = idle, role = Role.Button) {
@@ -810,7 +813,7 @@ internal fun MorePicker(m: TopBarModel, geminiInBar: Boolean = false, anchor: @C
         }
     }
     val offered = m.update is UpdateStatus.Available || m.update is UpdateStatus.Ready
-    Box {
+    Box(Modifier.tourTarget(TourTarget.MENU)) {
         anchor { open = true }
         // A newer build waits behind the menu: a dot on its corner says so.
         if (offered) {
@@ -1123,7 +1126,7 @@ internal fun EditBar(
                     )
                 }
             }
-            EditAction(Icons.Filled.Add, stringResource(R.string.dash_add), narrow, onClick = onAdd)
+            Box(Modifier.tourTarget(TourTarget.ADD)) { EditAction(Icons.Filled.Add, stringResource(R.string.dash_add), narrow, onClick = onAdd) }
             EditAction(Icons.Filled.Undo, stringResource(R.string.dash_undo), narrow, enabled = canUndo, onClick = onUndo)
             EditAction(Icons.Filled.Dashboard, stringResource(R.string.templates_button), narrow, onClick = onTemplates)
             PageZoomButton(pageZoom, narrow, onPageZoom)

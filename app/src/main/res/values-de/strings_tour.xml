@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- First-run tour (TourScreen.kt): six tips over the real dashboard -->
+    <string name="tour_welcome_kicker">Willkommen bei Dashwheel</string>
+    <string name="tour_welcome_title">Eine kurze Tour</string>
+    <string name="tour_welcome_body">Sechs kurze Tipps. Etwa eine Minute. Du kannst jederzeit aufhören.</string>
+    <string name="tour_topic_swipe">Dashboard wechseln</string>
+    <string name="tour_topic_arrange">Verschieben, vergrößern</string>
+    <string name="tour_topic_add">Hinzufügen</string>
+    <string name="tour_topic_look">Aussehen ändern</string>
+    <string name="tour_topic_obd">Fahrzeugdaten</string>
+    <string name="tour_topic_hands">Freihändig</string>
+    <string name="tour_show_me">Zeig es mir</string>
+    <string name="tour_not_now">Später</string>
+    <string name="tour_tip">Tipp %1$d von %2$d</string>
+    <string name="tour_skip">Tour überspringen</string>
+    <string name="tour_next">Weiter</string>
+    <string name="tour_back">Zurück</string>
+    <string name="tour_finish">Fertig</string>
+    <string name="tour_read_aloud">Vorlesen</string>
+    <string name="tour_swipe_title">Wischen wechselt das Dashboard</string>
+    <string name="tour_swipe_body">Start ist in der Mitte. Wische nach links oder rechts für zwei weitere und von Start nach oben oder unten für vier weitere.</string>
+    <string name="tour_try_swipe">Probier es: wische über den Bildschirm</string>
+    <string name="tour_arrange_title">Kacheln verschieben und vergrößern</string>
+    <string name="tour_arrange_body">Halte eine Kachel und ziehe sie, um sie zu verschieben. Zieh an ihrer Ecke, um sie zu vergrößern.</string>
+    <string name="tour_arrange_hint">Später öffnest du das im Menü unter Dashboards bearbeiten.</string>
+    <string name="tour_add_title">Widget oder App hinzufügen</string>
+    <string name="tour_add_body">Tippe auf Hinzufügen für Musik, Fahrzeugdaten, Wetter oder eine App auf diesem Dashboard.</string>
+    <string name="tour_add_hint">Eilig? Vorlagen füllen ein ganzes Dashboard auf einmal.</string>
+    <string name="tour_look_title">Mach es zu deinem</string>
+    <string name="tour_look_body">Öffne das Menü, dann Einstellungen, dann Aussehen. Wähle ein Design und Tag- oder Nachtfarben.</string>
+    <string name="tour_obd_title">OBD-Adapter einstecken</string>
+    <string name="tour_obd_body">Er kommt in die Buchse unter dem Lenkrad. Dashwheel findet ihn und verbindet sich bei jedem Start von selbst.</string>
+    <string name="tour_obd_off">Nicht gesteckt</string>
+    <string name="tour_obd_looking">Suche</string>
+    <string name="tour_obd_connected">Verbunden</string>
+    <string name="tour_hands_title">Augen auf die Straße</string>
+    <string name="tour_hands_body">Die Lenkradtasten können das Dashboard wechseln, Titel überspringen oder den Sprachassistenten starten. Dashwheel meldet sich von selbst, wenn etwas wichtig ist.</string>
+    <string name="tour_hands_hint">Die Tasten stellst du unter Einstellungen, Fahren, Lenkradtasten ein.</string>
+    <string name="tour_wheel_dashboard">Nächstes Dashboard</string>
+    <string name="tour_wheel_music">Musik</string>
+    <string name="tour_wheel_voice">Sprachassistent</string>
+    <string name="tour_wheel_alerts">Gesprochene Hinweise</string>
+    <string name="tour_done_title">Alles bereit</string>
+    <string name="tour_done_body">Diese Tour findest du jederzeit unter Einstellungen, Über.</string>
+    <string name="tour_start_driving">Losfahren</string>
+    <string name="tour_settings_row">Kurze Tour</string>
+    <string name="tour_settings_row_detail">Sechs kurze Tipps zum Dashboard</string>
+</resources>

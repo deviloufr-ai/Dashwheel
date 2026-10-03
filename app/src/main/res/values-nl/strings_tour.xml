@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- First-run tour (TourScreen.kt): six tips over the real dashboard -->
+    <string name="tour_welcome_kicker">Welkom bij Dashwheel</string>
+    <string name="tour_welcome_title">Een korte rondleiding</string>
+    <string name="tour_welcome_body">Zes korte tips. Ongeveer een minuut. Je kunt altijd stoppen.</string>
+    <string name="tour_topic_swipe">Dashboard wisselen</string>
+    <string name="tour_topic_arrange">Verplaatsen, vergroten</string>
+    <string name="tour_topic_add">Toevoegen</string>
+    <string name="tour_topic_look">Uiterlijk wijzigen</string>
+    <string name="tour_topic_obd">Autogegevens</string>
+    <string name="tour_topic_hands">Handsfree</string>
+    <string name="tour_show_me">Laat zien</string>
+    <string name="tour_not_now">Niet nu</string>
+    <string name="tour_tip">Tip %1$d van %2$d</string>
+    <string name="tour_skip">Overslaan</string>
+    <string name="tour_next">Volgende</string>
+    <string name="tour_back">Terug</string>
+    <string name="tour_finish">Klaar</string>
+    <string name="tour_read_aloud">Voorlezen</string>
+    <string name="tour_swipe_title">Veeg om van dashboard te wisselen</string>
+    <string name="tour_swipe_body">Start staat in het midden. Veeg naar links of rechts voor nog twee, en vanaf Start omhoog of omlaag voor nog vier.</string>
+    <string name="tour_try_swipe">Probeer het: veeg over het scherm</string>
+    <string name="tour_arrange_title">Tegels verplaatsen en vergroten</string>
+    <string name="tour_arrange_body">Houd een tegel vast en sleep hem om te verplaatsen. Trek aan de hoek om hem groter te maken.</string>
+    <string name="tour_arrange_hint">Later open je dit via het menu, Dashboards bewerken.</string>
+    <string name="tour_add_title">Widget of app toevoegen</string>
+    <string name="tour_add_body">Tik op Toevoegen voor muziek, autogegevens, weer of een app op dit dashboard.</string>
+    <string name="tour_add_hint">Haast? Sjablonen vullen een heel dashboard in één keer.</string>
+    <string name="tour_look_title">Maak het van jou</string>
+    <string name="tour_look_body">Open het menu, dan Instellingen, dan Uiterlijk. Kies een thema en dag- of nachtkleuren.</string>
+    <string name="tour_obd_title">Steek de OBD-adapter in</string>
+    <string name="tour_obd_body">Hij gaat in de aansluiting onder het stuur. Dashwheel vindt hem en maakt bij elke start vanzelf weer verbinding.</string>
+    <string name="tour_obd_off">Niet ingestoken</string>
+    <string name="tour_obd_looking">Zoeken</string>
+    <string name="tour_obd_connected">Verbonden</string>
+    <string name="tour_hands_title">Ogen op de weg</string>
+    <string name="tour_hands_body">De stuurknoppen kunnen van dashboard wisselen, nummers overslaan of de spraakassistent starten. Dashwheel meldt zich vanzelf als iets belangrijk is.</string>
+    <string name="tour_hands_hint">Stel de knoppen in via Instellingen, Rijden, Stuurwielknoppen.</string>
+    <string name="tour_wheel_dashboard">Volgend dashboard</string>
+    <string name="tour_wheel_music">Muziek</string>
+    <string name="tour_wheel_voice">Spraakassistent</string>
+    <string name="tour_wheel_alerts">Gesproken meldingen</string>
+    <string name="tour_done_title">Alles klaar</string>
+    <string name="tour_done_body">Bekijk deze rondleiding altijd opnieuw via Instellingen, Over.</string>
+    <string name="tour_start_driving">Wegrijden</string>
+    <string name="tour_settings_row">Korte rondleiding</string>
+    <string name="tour_settings_row_detail">Zes korte tips over het dashboard</string>
+</resources>

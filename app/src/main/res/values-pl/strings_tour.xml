@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- First-run tour (TourScreen.kt): six tips over the real dashboard -->
+    <string name="tour_welcome_kicker">Witaj w Dashwheel</string>
+    <string name="tour_welcome_title">Krótki przegląd podstaw</string>
+    <string name="tour_welcome_body">Sześć krótkich porad. Około minuty. Możesz przerwać w każdej chwili.</string>
+    <string name="tour_topic_swipe">Zmiana pulpitu</string>
+    <string name="tour_topic_arrange">Przesuwanie</string>
+    <string name="tour_topic_add">Dodawanie</string>
+    <string name="tour_topic_look">Wygląd</string>
+    <string name="tour_topic_obd">Dane auta</string>
+    <string name="tour_topic_hands">Bez rąk</string>
+    <string name="tour_show_me">Pokaż</string>
+    <string name="tour_not_now">Nie teraz</string>
+    <string name="tour_tip">Porada %1$d z %2$d</string>
+    <string name="tour_skip">Pomiń</string>
+    <string name="tour_next">Dalej</string>
+    <string name="tour_back">Wstecz</string>
+    <string name="tour_finish">Zakończ</string>
+    <string name="tour_read_aloud">Czytaj na głos</string>
+    <string name="tour_swipe_title">Przesuń, aby zmienić pulpit</string>
+    <string name="tour_swipe_body">Start jest pośrodku. Przesuń w lewo lub w prawo, by zobaczyć dwa kolejne, a ze Startu w górę lub w dół jeszcze cztery.</string>
+    <string name="tour_try_swipe">Spróbuj: przesuń po ekranie</string>
+    <string name="tour_arrange_title">Przesuwaj i powiększaj kafelki</string>
+    <string name="tour_arrange_body">Przytrzymaj kafelek i przeciągnij go, aby przesunąć. Pociągnij za róg, aby go powiększyć.</string>
+    <string name="tour_arrange_hint">Później otworzysz to z menu, Edytuj pulpity.</string>
+    <string name="tour_add_title">Dodaj widżet lub aplikację</string>
+    <string name="tour_add_body">Dotknij Dodaj, aby umieścić muzykę, dane auta, pogodę lub aplikację na tym pulpicie.</string>
+    <string name="tour_add_hint">W pośpiechu? Szablony wypełniają cały pulpit za jednym razem.</string>
+    <string name="tour_look_title">Po swojemu</string>
+    <string name="tour_look_body">Otwórz menu, potem Ustawienia, potem Wygląd. Wybierz motyw i kolory dzienne lub nocne.</string>
+    <string name="tour_obd_title">Podłącz adapter OBD</string>
+    <string name="tour_obd_body">Wkłada się go do gniazda pod kierownicą. Dashwheel sam go znajduje i łączy się przy każdym uruchomieniu.</string>
+    <string name="tour_obd_off">Niepodłączony</string>
+    <string name="tour_obd_looking">Szukanie</string>
+    <string name="tour_obd_connected">Połączony</string>
+    <string name="tour_hands_title">Oczy na drodze</string>
+    <string name="tour_hands_body">Przyciski na kierownicy mogą zmieniać pulpit, przełączać utwory lub włączać asystenta głosowego. Dashwheel sam się odezwie, gdy coś jest ważne.</string>
+    <string name="tour_hands_hint">Ustaw przyciski w Ustawienia, Jazda, Przyciski na kierownicy.</string>
+    <string name="tour_wheel_dashboard">Następny pulpit</string>
+    <string name="tour_wheel_music">Muzyka</string>
+    <string name="tour_wheel_voice">Asystent głosowy</string>
+    <string name="tour_wheel_alerts">Komunikaty głosowe</string>
+    <string name="tour_done_title">Wszystko gotowe</string>
+    <string name="tour_done_body">Ten przegląd znajdziesz zawsze w Ustawienia, Informacje.</string>
+    <string name="tour_start_driving">Ruszamy</string>
+    <string name="tour_settings_row">Przegląd podstaw</string>
+    <string name="tour_settings_row_detail">Sześć krótkich porad o pulpicie</string>
+</resources>
