@@ -96,19 +96,50 @@ for unit in NetworkManager-wait-online.service e2scrub_reap.service rpi-eeprom-u
   apt-daily.timer apt-daily-upgrade.timer man-db.timer e2scrub_all.timer dpkg-db-backup.timer; do
   systemctl disable "$unit" 2>/dev/null || true
 done
-# Wi-Fi networks as NetworkManager's own files: with netplan's (what Raspberry Pi
-# Imager writes), NetworkManager reloads systemd several times at every start (~10 s).
-for run in /run/NetworkManager/system-connections/netplan-wlan0-*.nmconnection; do
-  [ -f "$run" ] || continue
-  name=$(basename "$run" .nmconnection); name=${name#netplan-wlan0-}
-  keep=/etc/NetworkManager/system-connections/$name.nmconnection
-  [ -f "$keep" ] && continue
-  sed -e "s/^id=netplan-wlan0-/id=/" -e "/^uuid=/d" -e "/^type=wifi/a uuid=$(cat /proc/sys/kernel/random/uuid)" "$run" > "$keep"
-  chmod 600 "$keep"
-done
-if ls /etc/NetworkManager/system-connections/*.nmconnection >/dev/null 2>&1 && ls /etc/netplan/*.yaml >/dev/null 2>&1; then
-  mkdir -p /root/netplan-backup && cp -a /etc/netplan/. /root/netplan-backup/
-  rm -f /etc/netplan/*.yaml
+# The Wi-Fi through wpa_supplicant and systemd-networkd, which join in a few
+# seconds: NetworkManager runs netplan at every start, reloads systemd several
+# times and can then stall for 10 s or more. Its saved networks are carried over.
+WPA=/etc/wpa_supplicant/wpa_supplicant-wlan0.conf
+if [ ! -f "$WPA" ]; then
+  country=$(sed -n 's/.*cfg80211.ieee80211_regdom=\([A-Z][A-Z]\).*/\1/p' "$BOOT/cmdline.txt")
+  {
+    echo "ctrl_interface=DIR=/run/wpa_supplicant GROUP=netdev"
+    echo "update_config=1"
+    [ -n "$country" ] && echo "country=$country"
+    seen=" "
+    for f in /etc/NetworkManager/system-connections/*.nmconnection \
+      /run/NetworkManager/system-connections/netplan-wlan0-*.nmconnection; do
+      [ -f "$f" ] || continue
+      ssid=$(sed -n 's/^ssid=//p' "$f" | head -1)
+      psk=$(sed -n 's/^psk=//p' "$f" | head -1)
+      [ -n "$ssid" ] || continue
+      case "$seen" in *" $ssid "*) continue ;; esac
+      seen="$seen$ssid "
+      printf 'network={\n\tssid="%s"\n' "$ssid"
+      if [ -z "$psk" ]; then printf '\tkey_mgmt=NONE\n'
+      elif printf '%s' "$psk" | grep -qE '^[0-9a-fA-F]{64}$'; then printf '\tpsk=%s\n' "$psk"
+      else printf '\tpsk="%s"\n' "$psk"; fi
+      printf '}\n'
+    done
+  } > "$WPA.new"
+  chmod 600 "$WPA.new"
+  if grep -q '^network=' "$WPA.new"; then mv "$WPA.new" "$WPA"; else rm -f "$WPA.new"; fi
+fi
+if [ -f "$WPA" ]; then
+  apt-get install -y --no-install-recommends systemd-resolved
+  mkdir -p /etc/systemd/resolved.conf.d
+  # Avahi answers .local names; resolved stays out of the way.
+  printf '[Resolve]\nMulticastDNS=no\nLLMNR=no\n' > /etc/systemd/resolved.conf.d/dashwheel.conf
+  printf '[Match]\nName=wlan0\n\n[Network]\nDHCP=ipv4\nIPv6AcceptRA=no\n' > /etc/systemd/network/30-wlan0.network
+  printf '[Match]\nName=eth0\n\n[Network]\nDHCP=ipv4\n' > /etc/systemd/network/20-eth0.network
+  systemctl disable NetworkManager.service NetworkManager-dispatcher.service wpa_supplicant.service 2>/dev/null || true
+  # Wi-Fi power saving holds packets back (the DHCP answer, video): off.
+  mkdir -p /etc/systemd/system/wpa_supplicant@wlan0.service.d
+  printf '[Service]\nExecStartPre=-/usr/sbin/iw dev wlan0 set power_save off\n' \
+    > /etc/systemd/system/wpa_supplicant@wlan0.service.d/dashwheel.conf
+  systemctl enable systemd-networkd.service systemd-resolved.service wpa_supplicant@wlan0.service
+  # Enabling networkd brings its wait-online along; nothing here waits for the network.
+  systemctl disable systemd-networkd-wait-online.service 2>/dev/null || true
 fi
 # Swap in memory only: the swap file is resized at every start, and written to the card.
 [ -f /etc/rpi/swap.conf ] && sed -i 's/^#\?Mechanism=.*/Mechanism=zram/' /etc/rpi/swap.conf
