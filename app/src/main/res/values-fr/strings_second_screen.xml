@@ -2,6 +2,7 @@
 <resources>
     <!-- The second screen: a Raspberry Pi display on the phone's hotspot (DisplayLink, SecondScreenSheet). -->
     <string name="settings_section_second_screen">Second écran</string>
+    <string name="second_screen_experimental">Expérimental : un Raspberry Pi affiche un second écran dans la voiture. Pas encore testé en voiture.</string>
     <string name="second_screen_status_unpaired">Aucun second écran associé</string>
     <string name="second_screen_status_unpaired_detail">Scannez le code affiché sur le second écran avec l\'application Dashwheel du téléphone, pendant que le téléphone est relié à cette voiture.</string>
     <string name="second_screen_status_searching">Recherche du second écran</string>

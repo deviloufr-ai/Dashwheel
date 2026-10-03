@@ -67,6 +67,7 @@ internal fun SecondScreenSheet(onDismiss: () -> Unit) {
         onDismiss = onDismiss,
         actions = { SheetButton(stringResource(R.string.ai_done), onClick = onDismiss) }
     ) {
+        Text(stringResource(R.string.second_screen_experimental), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
         SecondScreenSettings()
     }
 }
