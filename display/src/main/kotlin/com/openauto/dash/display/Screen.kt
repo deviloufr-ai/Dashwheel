@@ -20,12 +20,14 @@ class Screen(
         BootLogo.release()
         GstProcess.startOrNull(Pipelines.frames(config, w, h), capacity = 1)
     },
-    logo: java.awt.image.BufferedImage? = BootLogo.image
+    logo: java.awt.image.BufferedImage? = BootLogo.image,
+    private val showOnConsole: (java.awt.image.BufferedImage) -> Unit = ConsoleFrameBuffer::show
 ) {
     enum class Showing { IDLE, DATA, VIDEO }
 
     private val painter = Painter(mode.width, mode.height, config.overscanPct, logo)
-    private val video = VideoSink(start = { stopFrames(); startVideo() }, requestKeyFrame = requestKeyFrame)
+    // The last drawn picture stays up while the decoder starts (see ConsoleFrameBuffer).
+    private val video = VideoSink(start = { showOnConsole(painter.image); stopFrames(); startVideo() }, requestKeyFrame = requestKeyFrame)
     private var frames: GstProcess? = null
 
     @Volatile var showing = Showing.IDLE
@@ -105,6 +107,8 @@ class Screen(
         }
         val process = frames?.takeIf { it.alive } ?: run {
             frames?.stop()
+            // The same picture underneath until the new process shows its first.
+            showOnConsole(painter.image)
             startFrames(painter.width, painter.height).also { frames = it }
         } ?: return
         // Only the newest picture matters.

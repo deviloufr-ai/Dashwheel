@@ -36,6 +36,7 @@ class DisplayServer(
     private val timer = Executors.newSingleThreadScheduledExecutor { r -> Thread(r, "display-stats").apply { isDaemon = true } }
 
     fun run(server: ServerSocket = ServerSocket(config.port)) {
+        Beacon(pairing.offer.id) { current != null }.start()
         screen.start()
         timer.scheduleAtFixedRate(::sendStats, STATS_MS, STATS_MS, TimeUnit.MILLISECONDS)
         log("listening on port ${server.localPort}")

@@ -22,6 +22,17 @@ const val DISPLAY_PORT = 47811
 /** DNS-SD type a display announces itself under (avahi on the Pi, NsdManager on the head unit). */
 const val DISPLAY_SERVICE_TYPE = "_dashwheel-display._tcp"
 
+/**
+ * UDP port a display calls out on, once a second, while no head unit is linked:
+ * found within a second of its start, sooner than DNS-SD, and also on a phone's
+ * own hotspot, where Android neither scans nor resolves well. Only the pairing
+ * id goes out; the link itself is authenticated as ever.
+ */
+const val DISPLAY_BEACON_PORT = 47812
+
+/** A beacon's text: this, then the display's pairing id. */
+const val DISPLAY_BEACON_PREFIX = "dashwheel-display "
+
 /** Pi → head unit, first thing on the channel: the screen it drives. */
 @Serializable
 @SerialName("display_hello")

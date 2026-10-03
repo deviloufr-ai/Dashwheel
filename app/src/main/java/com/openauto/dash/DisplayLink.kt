@@ -8,6 +8,8 @@ import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
 import android.net.wifi.WifiManager
 import android.util.Log
+import com.openauto.dash.link.DISPLAY_BEACON_PORT
+import com.openauto.dash.link.DISPLAY_BEACON_PREFIX
 import com.openauto.dash.link.DISPLAY_PORT
 import com.openauto.dash.link.DISPLAY_SERVICE_TYPE
 import com.openauto.dash.link.DisplayCommand
@@ -44,6 +46,8 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withTimeoutOrNull
 import java.io.IOException
+import java.net.DatagramPacket
+import java.net.DatagramSocket
 import java.net.Inet4Address
 import java.net.InetAddress
 import java.net.InetSocketAddress
@@ -128,7 +132,7 @@ object DisplayLink {
     // One queue, one sender: a video config always reaches the display before the frames it describes.
     private val outbox = Channel<Pair<LinkSession, Out>>(OUTBOX_SIZE)
 
-    /** Addresses the display announced itself on (DNS-SD). */
+    /** Addresses the display announced itself on (DNS-SD, beacons). */
     private val announced = ConcurrentHashMap.newKeySet<String>()
     private var lastProbeAt = 0L
     private var wifiLock: WifiManager.WifiLock? = null
@@ -164,6 +168,7 @@ object DisplayLink {
             }
         }
         discover(app)
+        listenForBeacons()
         scope.launch { run(app) }
     }
 
@@ -410,6 +415,39 @@ object DisplayLink {
                 override fun onStopDiscoveryFailed(serviceType: String, errorCode: Int) = Unit
             })
         }.onFailure { Log.w(TAG, "DNS-SD unavailable", it) }
+    }
+
+    /**
+     * A paired display's call-out (see DISPLAY_BEACON_PORT): dialled within a
+     * second of it joining the hotspot, without waiting for DNS-SD or a scan.
+     */
+    private fun listenForBeacons() {
+        scope.launch(Dispatchers.IO) {
+            val socket = runCatching {
+                DatagramSocket(null).apply {
+                    reuseAddress = true
+                    broadcast = true
+                    bind(InetSocketAddress(DISPLAY_BEACON_PORT))
+                }
+            }.onFailure { Log.w(TAG, "no display beacons", it) }.getOrNull() ?: return@launch
+            val buffer = ByteArray(128)
+            socket.use {
+                while (isActive) {
+                    val packet = DatagramPacket(buffer, buffer.size)
+                    try {
+                        socket.receive(packet)
+                    } catch (e: IOException) {
+                        break
+                    }
+                    val text = String(packet.data, 0, packet.length, Charsets.US_ASCII)
+                    if (!text.startsWith(DISPLAY_BEACON_PREFIX)) continue
+                    val id = text.removePrefix(DISPLAY_BEACON_PREFIX)
+                    if (_displays.value.none { it.id == id }) continue
+                    val address = (packet.address as? Inet4Address)?.hostAddress ?: continue
+                    if (announced.add(address)) wake.update { it + 1 }
+                }
+            }
+        }
     }
 
     /** Wi-Fi power saving holds packets back for up to a beacon interval: not while streaming. */

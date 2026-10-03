@@ -50,7 +50,7 @@ class DisplayServerTest {
         val hello = DisplayHello("Test display", "dev", 1024, 600)
         val sink = FakeSink()
         val server = DisplayServer(config, pairing, hello) { request ->
-            Screen(config, ScreenMode(1024, 600), pairing, request, startVideo = { sink }, startFrames = { _, _ -> null })
+            Screen(config, ScreenMode(1024, 600), pairing, request, startVideo = { sink }, startFrames = { _, _ -> null }, showOnConsole = {})
         }
         val socket = ServerSocket(0, 1, InetAddress.getLoopbackAddress())
         Thread { server.run(socket) }.apply { isDaemon = true }.start()
