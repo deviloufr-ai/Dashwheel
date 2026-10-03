@@ -35,6 +35,16 @@ BOOT=/boot/firmware
 [ -f "$BOOT/config.txt" ] || BOOT=/boot
 CONFIG_DIR="$BOOT/dashwheel"
 
+# Nothing installed on a read-only card would survive the next start.
+if grep -q 'overlayroot=tmpfs' /proc/cmdline; then
+  echo "The card is read-only (--overlay). Turn that off first, then run this again:"
+  echo "  sudo raspi-config nonint do_overlayfs 1 && sudo reboot"
+  exit 1
+fi
+# Turning the overlay off can leave the boot partition read-only.
+sed -i "s|\(\s$BOOT\s\+vfat\s\+defaults\),ro\b|\1|" /etc/fstab
+mount -o remount,rw "$BOOT"
+
 echo "== packages"
 apt-get update
 apt-get install -y --no-install-recommends \
@@ -77,6 +87,23 @@ else
 fi
 plymouth-set-default-theme -R dashwheel
 
+echo "== faster start"
+# Nothing here is needed by a screen that only answers the head unit: first-boot
+# setup, waiting for the network, disk housekeeping, Bluetooth, timers.
+touch /etc/cloud/cloud-init.disabled
+for unit in NetworkManager-wait-online.service e2scrub_reap.service rpi-eeprom-update.service \
+  bluetooth.service udisks2.service keyboard-setup.service console-setup.service \
+  apt-daily.timer apt-daily-upgrade.timer man-db.timer e2scrub_all.timer dpkg-db-backup.timer; do
+  systemctl disable "$unit" 2>/dev/null || true
+done
+# Swap in memory only: the swap file is resized at every start, and written to the card.
+[ -f /etc/rpi/swap.conf ] && sed -i 's/^#\?Mechanism=.*/Mechanism=zram/' /etc/rpi/swap.conf
+# The service's Java starts from a class archive made now (the card may be read-only later).
+JSA=/opt/dashwheel-display/app.jsa
+rm -f "$JSA"
+JAVA_OPTS="-XX:TieredStopAtLevel=1 -XX:+AutoCreateSharedArchive -XX:SharedArchiveFile=$JSA" \
+  /opt/dashwheel-display/bin/dashwheel-display --config "$CONFIG_DIR" --print-pairing >/dev/null
+
 echo "== boot settings"
 CFG="$BOOT/config.txt"
 # Our block is rewritten each time, between these markers.
@@ -85,6 +112,11 @@ sed -i '/^# >>> dashwheel/,/^# <<< dashwheel/d' "$CFG"
   echo "# >>> dashwheel (tools/pi/install.sh)"
   echo "[all]"
   echo "disable_splash=1"
+  # Faster start: no wait, a quicker CPU while it boots, no Bluetooth, no camera probe.
+  echo "boot_delay=0"
+  echo "initial_turbo=60"
+  echo "dtoverlay=disable-bt"
+  echo "camera_auto_detect=0"
   if [ "$COMPOSITE" -eq 1 ]; then
     echo "enable_tvout=1"
   else

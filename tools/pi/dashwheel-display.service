@@ -2,7 +2,7 @@
 # It takes the console's screen (tty1), so the login prompt is kept off it.
 [Unit]
 Description=Dashwheel second screen
-After=network.target
+# No wait for the network: the server listens on every address, Wi-Fi joins later.
 # Takes the screen over from the boot logo (plymouth quit --retain-splash below).
 Before=plymouth-quit.service plymouth-quit-wait.service
 Conflicts=getty@tty1.service
@@ -13,6 +13,8 @@ Conflicts=getty@tty1.service
 ExecStartPre=-/bin/sh -c 'if plymouth --ping 2>/dev/null; then plymouth quit --retain-splash; else printf "\033[2J\033[3J\033[H\033[?25l" > /dev/tty1; fi'
 # Then the text console lets go of the screen: nothing printed later (cloud-init, the kernel) can show.
 ExecStartPre=-/bin/sh -c 'for c in /sys/class/vtconsole/vtcon*; do grep -q "frame buffer" $$c/name && echo 0 > $$c/bind; done'
+# Quicker Java start: the class archive the installer made, and the fast compiler only.
+Environment="JAVA_OPTS=-XX:TieredStopAtLevel=1 -XX:SharedArchiveFile=/opt/dashwheel-display/app.jsa"
 ExecStart=/opt/dashwheel-display/bin/dashwheel-display --config @CONFIG_DIR@
 # Root, to hold the screen through DRM/KMS without a desktop session.
 User=root
