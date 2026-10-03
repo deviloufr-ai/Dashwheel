@@ -71,10 +71,17 @@ internal object SystemUpkeep {
         else if (out.exit != 0) Log.w(TAG, "module copy not refreshed (${out.exit}): $result")
     }
 
-    /** The root script for [refreshModuleCopy]: nothing without the module, nothing when already the same. */
+    /**
+     * The root script for [refreshModuleCopy]: nothing without the module,
+     * nothing when already the same. The module's permission whitelist is kept
+     * to the current one on the way: an update can ask for a privileged
+     * permission the install of an older build never listed.
+     */
     fun refreshScript(apk: String, versionName: String, versionCode: Long): String = """
         A=$MODULE_APK
         [ -f "${'$'}A" ] || { echo NOMODULE; exit 0; }
+        X=$MODULE/system/etc/permissions/${SystemInstaller.PRIVAPP_XML_NAME}
+        [ "${'$'}(cat "${'$'}X" 2>/dev/null)" = '${SystemInstaller.PRIVAPP_XML}' ] || echo '${SystemInstaller.PRIVAPP_XML}' > "${'$'}X" 2>/dev/null
         cmp -s '$apk' "${'$'}A" && { echo SAME; exit 0; }
         CTX=${'$'}(ls -Z "${'$'}A" | cut -d' ' -f1)
         cp '$apk' "${'$'}A.new" || exit 41

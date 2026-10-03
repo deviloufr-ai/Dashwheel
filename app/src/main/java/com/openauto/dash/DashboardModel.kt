@@ -437,6 +437,42 @@ object DashboardStore {
     fun exists(context: Context, variant: String = ""): Boolean =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).contains(pagesKey(variant))
 
+    /** The app-widget ids on [pages]. */
+    fun widgetIds(pages: List<List<DashboardItem>>): Set<Int> =
+        pages.flatMapTo(HashSet()) { page -> page.filterIsInstance<DashboardItem.SystemWidget>().map { it.appWidgetId } }
+
+    /**
+     * The app-widget ids on every saved arrangement (full width, beside the
+     * Maps dock, Canvas, upright) and their backups: the arrangements are
+     * seeded from one another, so two of them can show the same widget, which
+     * is then still in use while one keeps it. Null when one can't be read:
+     * what is in use isn't known then.
+     */
+    fun savedWidgetIds(context: Context): Set<Int>? {
+        val saved = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).all
+        val ids = HashSet<Int>()
+        for ((key, value) in saved) {
+            if (!key.startsWith(KEY_PAGES) || value !is String) continue
+            ids += widgetIdsIn(value) ?: return null
+        }
+        return ids
+    }
+
+    /** The app-widget ids in a saved layout's text, either schema; null if it is not a layout. Changes nothing, unlike [parsePages]. */
+    internal fun widgetIdsIn(raw: String): Set<Int>? = runCatching<Set<Int>> {
+        val trimmed = raw.trim()
+        val pages = if (trimmed.startsWith("{")) JSONObject(trimmed).optJSONArray(KEY_PAGES) ?: JSONArray() else JSONArray(trimmed)
+        val ids = HashSet<Int>()
+        for (p in 0 until pages.length()) {
+            val page = pages.optJSONArray(p) ?: continue
+            for (i in 0 until page.length()) {
+                val tile = page.optJSONObject(i) ?: continue
+                if (tile.optString("t") == "widget") tile.optInt("id", -1).takeIf { it != -1 }?.let(ids::add)
+            }
+        }
+        ids
+    }.getOrNull()
+
     fun load(context: Context, variant: String = ""): List<List<DashboardItem>> {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val raw = prefs.getString(pagesKey(variant), null) ?: run { retained(variant).clear(); return defaultPagesFor(variant) }

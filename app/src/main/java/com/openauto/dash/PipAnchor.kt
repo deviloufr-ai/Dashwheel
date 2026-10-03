@@ -423,7 +423,10 @@ object PipAnchor {
      * closed by the driver, as before.
      */
     private suspend fun processGone(context: Context, packageName: String): Boolean =
-        runGuarded { DockShell.shell(context, "pidof $packageName") }
+        // "|| true": pidof finding nothing ends with an error code, which the
+        // root shell reports as a failed command. The answer wanted is its
+        // empty output, or a killed Maps counted as closed by the driver.
+        runGuarded { DockShell.shell(context, "pidof $packageName || true") }
             .map { out -> processGone(out, packageName) }
             .getOrDefault(false)
 

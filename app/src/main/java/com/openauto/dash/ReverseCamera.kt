@@ -17,6 +17,7 @@ import android.view.TextureView
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -75,9 +76,15 @@ internal object ReverseCamera {
     val state: StateFlow<State> = _state.asStateFlow()
 
     private var thread: HandlerThread? = null
-    private var device: CameraDevice? = null
-    private var session: CameraCaptureSession? = null
-    private var surface: Surface? = null
+    // Written on the camera's thread, let go of on the main one.
+    @Volatile private var device: CameraDevice? = null
+    @Volatile private var session: CameraCaptureSession? = null
+    @Volatile private var surface: Surface? = null
+    /**
+     * Counts the tries at the picture: [close] ends one, so an answer from the
+     * camera that comes back later (its surface gone with the view) is told apart.
+     */
+    @Volatile private var attempt = 0
     private var opening: Job? = null
     private var watchdog: Job? = null
     private var sampler: Job? = null
@@ -186,7 +193,11 @@ internal object ReverseCamera {
         val still = CarBox.reversing.value
         DockShell.shell(context, if (still) "setprop sys.qf.backcar_state true; echo 2 > $INPUT_SWITCH" else "true")
         still
-    }.onFailure { Log.w(TAG, "could not stop the car app's camera", it) }.getOrDefault(false)
+    }.onFailure {
+        // Reverse ended meanwhile: not a failure of this try.
+        if (it is CancellationException) throw it
+        Log.w(TAG, "could not stop the car app's camera", it)
+    }.getOrDefault(false)
 
     @SuppressLint("MissingPermission")
     private fun open(context: Context, texture: SurfaceTexture, retry: Boolean) {
@@ -197,6 +208,7 @@ internal object ReverseCamera {
         val t = thread ?: HandlerThread("ReverseCamera").also { it.start(); thread = it }
         val handler = Handler(t.looper)
         _state.value = State.OPENING
+        val mine = attempt
         watchdog?.cancel()
         watchdog = scope.launch {
             delay(FIRST_FRAME_MS)
@@ -205,56 +217,66 @@ internal object ReverseCamera {
         runCatching {
             manager.openCamera(id, object : CameraDevice.StateCallback() {
                 override fun onOpened(camera: CameraDevice) {
+                    // Reverse ended while the camera opened: its surface went with the view.
+                    if (mine != attempt) return camera.close()
                     device = camera
-                    val s = Surface(texture).also { surface = it }
                     runCatching {
+                        // Inside the guard: a surface let go of this very moment throws here.
+                        val s = Surface(texture).also { surface = it }
                         @Suppress("DEPRECATION")
                         camera.createCaptureSession(listOf(s), object : CameraCaptureSession.StateCallback() {
                             override fun onConfigured(cs: CameraCaptureSession) {
+                                if (mine != attempt) return cs.close()
                                 session = cs
                                 runCatching {
                                     val request = camera.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW).apply { addTarget(s) }.build()
                                     cs.setRepeatingRequest(request, null, handler)
-                                }.onFailure { scope.launch { fail(context, "preview refused: $it") } }
+                                }.onFailure { scope.launch { if (mine == attempt) fail(context, "preview refused: $it") } }
                             }
 
                             override fun onConfigureFailed(cs: CameraCaptureSession) {
-                                scope.launch { fail(context, "session failed") }
+                                scope.launch { if (mine == attempt) fail(context, "session failed") }
                             }
                         }, handler)
-                    }.onFailure { scope.launch { fail(context, "session refused: $it") } }
+                    }.onFailure { scope.launch { if (mine == attempt) fail(context, "session refused: $it") } }
+                    // Closed between the check and here: close() didn't see this camera.
+                    if (mine != attempt) {
+                        runCatching { camera.close() }
+                        if (device === camera) device = null
+                    }
                 }
 
                 override fun onDisconnected(camera: CameraDevice) {
                     camera.close()
-                    scope.launch { if (device === camera || device == null) fail(context, "camera taken back") }
+                    scope.launch { if (mine == attempt && (device === camera || device == null)) fail(context, "camera taken back") }
                 }
 
                 override fun onError(camera: CameraDevice, error: Int) {
                     camera.close()
                     scope.launch {
+                        if (mine != attempt) return@launch
                         val busy = error == CameraDevice.StateCallback.ERROR_CAMERA_IN_USE || error == CameraDevice.StateCallback.ERROR_MAX_CAMERAS_IN_USE
                         // The ROM app hadn't opened yet when it was stopped, and has since: once more.
-                        if (busy && retry && device == null) {
-                            if (stopRomCamera(context)) {
-                                withTimeoutOrNull(CLOSE_WAIT_MS) { _cameraFree.first { it } }
-                                open(context, texture, retry = false)
-                            } else fail(context, "the car app's camera could not be stopped")
-                        } else fail(context, "camera error $error")
+                        if (busy && retry && device == null) openAgain(context, texture, mine)
+                        else fail(context, "camera error $error")
                     }
                 }
             }, handler)
         }.onFailure { e ->
             // Refused at once: the ROM app opened the camera again in between. Once more.
             if (retry && e is android.hardware.camera2.CameraAccessException && e.reason == android.hardware.camera2.CameraAccessException.CAMERA_IN_USE) {
-                scope.launch {
-                    if (stopRomCamera(context)) {
-                        withTimeoutOrNull(CLOSE_WAIT_MS) { _cameraFree.first { it } }
-                        open(context, texture, retry = false)
-                    } else fail(context, "the car app's camera could not be stopped")
-                }
+                scope.launch { openAgain(context, texture, mine) }
             } else fail(context, "open refused: $e")
         }
+    }
+
+    /** The second and last try of [attempt] number [mine], unless reverse ended while the ROM app was stopped. */
+    private suspend fun openAgain(context: Context, texture: SurfaceTexture, mine: Int) {
+        val stopped = stopRomCamera(context)
+        if (mine != attempt) return
+        if (!stopped) return fail(context, "the car app's camera could not be stopped")
+        withTimeoutOrNull(CLOSE_WAIT_MS) { _cameraFree.first { it } }
+        if (mine == attempt) open(context, texture, retry = false)
     }
 
     /**
@@ -304,6 +326,7 @@ internal object ReverseCamera {
     }
 
     private fun close() {
+        attempt++
         sampler?.cancel()
         sampler = null
         opening?.cancel()

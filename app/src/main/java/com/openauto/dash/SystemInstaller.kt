@@ -70,13 +70,17 @@ object SystemInstaller {
     internal const val PRIVAPP_XML_NAME = "privapp-permissions-openautodash.xml"
 
     /**
-     * Every privileged permission the app asks for. A ROM that enforces the
-     * whitelist refuses to boot with a priv-app missing one. One line, no
-     * single quotes: it is echoed inside single quotes by the install scripts.
+     * Every privileged permission the app asks for (the manifest's
+     * "signature|privileged" ones). A ROM that enforces the whitelist refuses
+     * to boot with a priv-app missing one, so a permission added to the
+     * manifest is added here too. One line, no single quotes: it is echoed
+     * inside single quotes by the install scripts.
      */
     internal const val PRIVAPP_XML =
         "<permissions><privapp-permissions package=\"com.openauto.dash\">" +
             "<permission name=\"android.permission.BIND_APPWIDGET\"/>" +
+            "<permission name=\"android.permission.WRITE_SECURE_SETTINGS\"/>" +
+            "<permission name=\"android.permission.READ_LOGS\"/>" +
             "</privapp-permissions></permissions>"
 
     /**

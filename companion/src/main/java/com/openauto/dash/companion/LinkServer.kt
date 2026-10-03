@@ -144,6 +144,12 @@ object LinkServer {
                 break
             }
             val from = client.inetAddress?.hostAddress ?: "?"
+            // The head unit dials from the phone's hotspot; any other network is not listened to.
+            if (!HotspotGate.allows(context, client)) {
+                note("$from: not on the hotspot, turned away")
+                runCatching { client.close() }
+                continue
+            }
             // A flood of connections that never finish their handshake is turned away.
             if (!handshakes.tryAcquire()) {
                 note("$from: busy, turned away")

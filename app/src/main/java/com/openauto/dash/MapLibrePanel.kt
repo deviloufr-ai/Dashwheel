@@ -184,8 +184,10 @@ fun MapLibrePanel(modifier: Modifier = Modifier, wallpaper: Boolean = false) {
         destination = dest
         info = null
         val map = mapRef
+        // The component throws until it's switched on (style loaded, location
+        // allowed): a destination picked before that is "GPS not ready", not a crash.
         @SuppressLint("MissingPermission")
-        val loc = map?.locationComponent?.lastKnownLocation
+        val loc = runCatching { map?.locationComponent?.lastKnownLocation }.getOrNull()
         if (map == null || loc == null) {
             loading = false
             error = context.getString(R.string.info_map_gps_not_ready)

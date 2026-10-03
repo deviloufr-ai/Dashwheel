@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Environment
 import android.os.SystemClock
 import android.provider.Settings
+import android.util.Log
 import androidx.annotation.StringRes
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.CoroutineScope
@@ -19,6 +20,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONObject
@@ -207,8 +209,21 @@ class UpdateManager(private val context: Context) {
 
     /** Launches the system installer on a downloaded [file]. */
     fun install(file: File) {
+        val ready = _status.value as? UpdateStatus.Ready
+        // The update is on offer again, to try once more, or nothing is if it was lost.
+        fun offerAgain() {
+            _status.value = ready?.takeIf { it.file.exists() } ?: UpdateStatus.Idle
+        }
         _status.value = UpdateStatus.Installing
-        launchInstaller(file)
+        if (!launchInstaller(file)) return offerAgain()
+        // An install that goes through replaces the app and ends this process.
+        // Still here a while later: Android's own confirmation was cancelled, or
+        // the install refused. "Installing" used to stay for good then (the unit
+        // sleeps rather than restarts), with no further check and no way to retry.
+        scope.launch {
+            delay(INSTALL_WAIT_MS)
+            if (_status.value is UpdateStatus.Installing) offerAgain()
+        }
     }
 
     /**
@@ -236,18 +251,28 @@ class UpdateManager(private val context: Context) {
         withContext(Dispatchers.IO) { if (apkFile.exists()) apkFile.delete() }
         prefs.edit().remove(KEY_DOWNLOADED).apply()
 
-        val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         withContext(Dispatchers.IO) { forgetDownloads() }
-        val request = DownloadManager.Request(Uri.parse(info.apkUrl))
-            .setTitle("Dashwheel ${info.versionName}")
-            .setDescription(context.getString(R.string.sys_update_downloading))
-            .setMimeType("application/vnd.android.package-archive")
-            // The progress only: the dashboard itself says when it is ready.
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
-            .setDestinationInExternalFilesDir(context, Environment.DIRECTORY_DOWNLOADS, APK_NAME)
-
+        // A unit with the system's downloader switched off, or no storage to
+        // write to, refuses here: a failed download, not a crash of the launcher
+        // at every start while an update is on offer.
+        val downloadManager: DownloadManager
+        val downloadId: Long
+        try {
+            downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            val request = DownloadManager.Request(Uri.parse(info.apkUrl))
+                .setTitle("Dashwheel ${info.versionName}")
+                .setDescription(context.getString(R.string.sys_update_downloading))
+                .setMimeType("application/vnd.android.package-archive")
+                // The progress only: the dashboard itself says when it is ready.
+                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
+                .setDestinationInExternalFilesDir(context, Environment.DIRECTORY_DOWNLOADS, APK_NAME)
+            downloadId = downloadManager.enqueue(request)
+        } catch (e: RuntimeException) {
+            Log.w(TAG, "the download could not start", e)
+            _status.value = UpdateStatus.Error(R.string.sys_update_download_failed)
+            return false
+        }
         _status.value = UpdateStatus.Downloading(info, 0)
-        val downloadId = downloadManager.enqueue(request)
 
         var success = false
         try {
@@ -325,14 +350,15 @@ class UpdateManager(private val context: Context) {
         }
     }
 
-    private fun launchInstaller(apkFile: File) {
+    /** False when the system's installer could not be opened on [apkFile]. */
+    private fun launchInstaller(apkFile: File): Boolean = runCatching {
         val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", apkFile)
         val intent = Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(uri, "application/vnd.android.package-archive")
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         context.startActivity(intent)
-    }
+    }.onFailure { Log.w(TAG, "the installer could not be opened", it) }.isSuccess
 
     /**
      * "Later": the update on offer stops asking (no dot, no prompt) until a
@@ -357,7 +383,10 @@ class UpdateManager(private val context: Context) {
     }
 
     companion object {
+        private const val TAG = "UpdateManager"
         private const val PREFS = "updates"
+        /** Android's confirmation and the install itself, before an update still not installed is offered again. */
+        private const val INSTALL_WAIT_MS = 45_000L
         private const val KEY_DISMISSED = "dismissed_build"
         private const val KEY_DOWNLOADED = "downloaded_build"
 

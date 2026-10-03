@@ -80,6 +80,40 @@ object WidgetHostHolder {
     fun delete(context: Context, appWidgetId: Int) {
         runCatching { host(context).deleteAppWidgetId(appWidgetId) }
     }
+
+    private const val PREFS = "widget_host"
+    private const val KEY_RETIRED = "retired"
+
+    private fun retired(context: Context): Set<String> =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getStringSet(KEY_RETIRED, null).orEmpty()
+
+    /**
+     * A widget taken off a page: its id is let go of later, by [sweep], once
+     * nothing can show it again. Deleted on the spot, Undo brought the tile
+     * back as "Widget unavailable", and the same widget on the other
+     * arrangement (the pages beside the Maps dock) died with it. Written
+     * down, so an id still waiting when the launcher stops isn't left behind.
+     */
+    fun retire(context: Context, appWidgetId: Int) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putStringSet(KEY_RETIRED, retired(context) + appWidgetId.toString()).apply()
+    }
+
+    /**
+     * Lets go of the retired ids that are on no page any more: [inUse] is every
+     * id the pages shown, Undo's and the saved arrangements still hold, asked
+     * for only when an id is waiting; null (it can't be told) leaves them all.
+     */
+    fun sweep(context: Context, inUse: () -> Set<Int>?) {
+        val waiting = retired(context)
+        if (waiting.isEmpty()) return
+        val kept = inUse() ?: return
+        val gone = waiting.filter { it.toIntOrNull() !in kept }
+        if (gone.isEmpty()) return
+        gone.forEach { id -> id.toIntOrNull()?.let { delete(context, it) } }
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putStringSet(KEY_RETIRED, waiting - gone.toSet()).apply()
+    }
 }
 
 /**

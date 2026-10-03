@@ -249,6 +249,13 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     var otherLayoutWindows by remember { mutableStateOf<Set<String>?>(null) }
     // Layout snapshots for Undo while arranging (newest last, capped).
     var history by remember { mutableStateOf<List<List<List<DashboardItem>>>>(emptyList()) }
+    // A system widget taken off a page keeps its id while Undo, or another
+    // arrangement showing the same widget, can still bring it up.
+    LaunchedEffect(pages, history) {
+        WidgetHostHolder.sweep(context) {
+            DashboardStore.savedWidgetIds(context)?.plus(DashboardStore.widgetIds(pages + history.flatten()))
+        }
+    }
 
     // Switching to Canvas or away from it swaps in that theme's own pages,
     // and so does putting an app under it or taking it away (the tabs' pages).
@@ -365,7 +372,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     // The Home key: close whatever is open and come back to the middle of the cross.
     val homePressed by MainActivity.homePressed.collectAsState()
     LaunchedEffect(homePressed) {
-        if (homePressed > 0L) {
+        if (OneShot.fresh("home", homePressed)) {
             showAllApps = false
             closeSettings()
             editing = false
@@ -377,7 +384,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     val dashboardStep by MainActivity.dashboardStep.collectAsState()
     LaunchedEffect(dashboardStep) {
         val step = dashboardStep.second
-        if (dashboardStep.first == 0L || step == 0) return@LaunchedEffect
+        if (!OneShot.fresh("step", dashboardStep.first) || step == 0) return@LaunchedEffect
         if (tabsModeState.value) {
             val tabs = barTabsState.value
             val at = tabs.indexOfFirst { it.page == tabPage }.coerceAtLeast(0)
@@ -392,7 +399,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     val dashboardClimb by MainActivity.dashboardClimb.collectAsState()
     LaunchedEffect(dashboardClimb) {
         val step = dashboardClimb.second
-        if (dashboardClimb.first == 0L || step == 0) return@LaunchedEffect
+        if (!OneShot.fresh("climb", dashboardClimb.first) || step == 0) return@LaunchedEffect
         if (tabsModeState.value) {
             val tabs = barTabsState.value
             val at = tabs.indexOfFirst { it.page == tabPage }.coerceAtLeast(0)
@@ -406,7 +413,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     // Dashwheel's Gemini asking for one dashboard by its name (DashAssistant).
     val dashboardGoTo by MainActivity.dashboardGoTo.collectAsState()
     LaunchedEffect(dashboardGoTo) {
-        if (dashboardGoTo.first != 0L && dashboardGoTo.second >= 0) showPage(dashboardGoTo.second)
+        if (OneShot.fresh("goTo", dashboardGoTo.first) && dashboardGoTo.second >= 0) showPage(dashboardGoTo.second)
     }
     // What Gemini is told about the dashboards and the music (CarFacts).
     LaunchedEffect(barTabs) { LiveFacts.dashboards = barTabs.map { it.page to it.label(context) } }
@@ -414,7 +421,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     // A learned steering wheel button asking for the app drawer (SteeringWheelActions.kt).
     val openAppsRequested by MainActivity.openAppsRequested.collectAsState()
     LaunchedEffect(openAppsRequested) {
-        if (openAppsRequested > 0L) {
+        if (OneShot.fresh("apps", openAppsRequested)) {
             closeSettings()
             showAllApps = true
         }
@@ -694,7 +701,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
 
     fun removeAt(page: Int, index: Int) {
         val item = pages.getOrNull(page)?.getOrNull(index) ?: return
-        if (item is DashboardItem.SystemWidget) WidgetHostHolder.delete(context, item.appWidgetId)
+        if (item is DashboardItem.SystemWidget) WidgetHostHolder.retire(context, item.appWidgetId)
         mutatePage(page) { list -> list.filterIndexed { i, _ -> i != index } }
         releaseMapsAnchorIfGone()
     }
@@ -774,7 +781,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     /** Clears one page (releasing any hosted app-widgets); Undo brings it back. */
     fun resetPage(page: Int) {
         pages.getOrNull(page)?.filterIsInstance<DashboardItem.SystemWidget>()
-            ?.forEach { WidgetHostHolder.delete(context, it.appWidgetId) }
+            ?.forEach { WidgetHostHolder.retire(context, it.appWidgetId) }
         mutatePage(page) { emptyList() }
         releaseMapsAnchorIfGone()
     }
@@ -823,7 +830,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         val built = TemplatePlacer.pages(template, templateScreen(layout != DashLayout.GRID))
         if (replaceAll) {
             pages.flatten().filterIsInstance<DashboardItem.SystemWidget>()
-                .forEach { WidgetHostHolder.delete(context, it.appWidgetId) }
+                .forEach { WidgetHostHolder.retire(context, it.appWidgetId) }
         }
         mutateAll(pages.mapIndexed { p, old -> if (replaceAll || old.isEmpty()) built[p] else old })
         val other = otherVariant()
@@ -1808,7 +1815,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                 tileOptions = null
                 history = emptyList()
                 pages.getOrNull(gone.page)?.filterIsInstance<DashboardItem.SystemWidget>()
-                    ?.forEach { WidgetHostHolder.delete(context, it.appWidgetId) }
+                    ?.forEach { WidgetHostHolder.retire(context, it.appWidgetId) }
                 pages = pages.mapIndexed { i, l -> if (i == gone.page) emptyList() else l }
                 DashboardStore.save(context, pages, variant())
                 if (tabPage == gone.page) tabPage = left.firstOrNull()?.page ?: 0

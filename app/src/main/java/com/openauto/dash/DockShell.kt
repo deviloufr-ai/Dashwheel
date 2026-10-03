@@ -53,7 +53,7 @@ object DockShell {
         }
         var last = ""
         for (cmd in attempts) {
-            last = shell(context, cmd)
+            last = shellOrRefusal(context, cmd)
             if (!looksLikeError(last)) {
                 Log.d(TAG, "${win.mode} ${win.packageName} -> $bounds via `$cmd`")
                 return "${cmd.substringBefore(" $bounds")}: ok"
@@ -86,7 +86,7 @@ object DockShell {
      */
     suspend fun moveToDisplay(context: Context, win: FloatingWindow, displayId: Int): String {
         val cmd = "am display move-stack ${win.stackId} $displayId"
-        val out = shell(context, cmd)
+        val out = shellOrRefusal(context, cmd)
         if (out.contains(ALREADY_ON_DISPLAY)) {
             // Refused because the stack is on that display already (a listing a
             // moment old said otherwise): what was asked for is the case.
@@ -103,6 +103,25 @@ object DockShell {
 
     private fun looksLikeError(out: String): Boolean =
         out.contains("Error", ignoreCase = true) || out.contains("Exception") || out.contains("Unknown")
+
+    /**
+     * A command the root shell ran and that ended with an error code, with all
+     * it printed. The ADB shell has no such code: there a refusal is only read
+     * in the output ([looksLikeError]).
+     */
+    class Refused(val exit: Int, val output: String, why: String) : IllegalStateException("su exit $exit: $why".trim())
+
+    /**
+     * [shell], a refusal by the root shell given back as its output instead of
+     * thrown: for the callers that read what a command answered (the next
+     * command to try, "already there"), which the root shell's error code used
+     * to cut short while the ADB shell let them through.
+     */
+    private suspend fun shellOrRefusal(context: Context, cmd: String): String = try {
+        shell(context, cmd)
+    } catch (e: Refused) {
+        if (looksLikeError(e.output)) e.output else "Error (exit ${e.exit}): ${e.output}"
+    }
 
     /** How shell commands reach the system: root via Magisk, or the ADB socket. */
     private enum class Backend { SU, ADB }
@@ -170,7 +189,7 @@ object DockShell {
         if (res.exit != 0) {
             // "Permission denied", "not found"...: a failure, whatever it printed.
             val why = (res.err.ifBlank { res.out }).trim().lines().firstOrNull().orEmpty()
-            throw IllegalStateException("su exit ${res.exit}: $why".trim())
+            throw Refused(res.exit, res.all, why)
         }
         return res.all
     }
