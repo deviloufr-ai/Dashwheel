@@ -27,7 +27,8 @@ object SecondScreenStore {
             rearSeat = p.getBoolean("rear_seat", d.rearSeat),
             pageKeys = SecondScreenCodec.decodeKeys(p.getString("page_keys", null)),
             mediaKeysTurnPages = p.getBoolean("media_keys_pages", d.mediaKeysTurnPages),
-            barSwipeTurnsPages = p.getBoolean("bar_swipe_pages", d.barSwipeTurnsPages)
+            barSwipeTurnsPages = p.getBoolean("bar_swipe_pages", d.barSwipeTurnsPages),
+            layouts = SecondScreenCodec.decodeLayouts(p.getString("layouts", null))
         )
         loaded = true
         return _config.value
@@ -52,6 +53,7 @@ object SecondScreenStore {
             .putString("page_keys", SecondScreenCodec.encodeKeys(c.pageKeys))
             .putBoolean("media_keys_pages", c.mediaKeysTurnPages)
             .putBoolean("bar_swipe_pages", c.barSwipeTurnsPages)
+            .putString("layouts", SecondScreenCodec.encodeLayouts(c.layouts))
             .apply()
     }
 

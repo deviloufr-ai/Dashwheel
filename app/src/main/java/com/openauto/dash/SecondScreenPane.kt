@@ -58,7 +58,7 @@ import java.util.Date
 /*
  * Settings → Display → Second screen: the display's link, the paired
  * displays, what it shows (off, the cluster and its pages, or an app) and how
- * sharp.
+ * sharp. The cluster's pages are laid out on the board (SecondScreenBoard.kt).
  */
 
 @Composable
@@ -196,6 +196,8 @@ private fun SecondScreenSettings() {
                 Icons.Filled.HighQuality, stringResource(R.string.second_screen_video),
                 stringResource(R.string.second_screen_video_detail), config.video
             ) { on -> update { it.copy(video = on) } }
+            Spacer(Modifier.padding(top = 12.dp))
+            ClusterBoard()
         }
         SecondScreenMode.APP -> {
             if (!SecondScreenRules.appsMovable(android.os.Build.VERSION.SDK_INT)) {

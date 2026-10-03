@@ -38,8 +38,129 @@ data class SecondScreenConfig(
     /** A long press on media next / previous turns the page, while the cluster shows. */
     val mediaKeysTurnPages: Boolean = false,
     /** A sideways swipe on the launcher's bar turns the cluster's page instead of the launcher's. */
-    val barSwipeTurnsPages: Boolean = false
-)
+    val barSwipeTurnsPages: Boolean = false,
+    /** Pages the driver laid out on the board; the others keep [ClusterLayouts.default]. */
+    val layouts: Map<ClusterPage, ClusterLayout> = emptyMap()
+) {
+    /** What [page] shows: the driver's board, or the page as it comes. */
+    fun layoutFor(page: ClusterPage): ClusterLayout = layouts[page] ?: ClusterLayouts.default(page)
+}
+
+/** How a cluster page shares the screen between its widgets; [slots] is how many it holds. */
+enum class ClusterArrangement(val slots: Int) {
+    /** One widget, the whole screen. */
+    ONE(1),
+
+    /** A big widget, a smaller one beside it. */
+    BIG_SIDE(2),
+
+    /** A big widget, two stacked beside it. */
+    BIG_STACK(3),
+
+    /** Two widgets, half each. */
+    HALVES(2),
+
+    /** Three widgets side by side. */
+    THREE(3),
+
+    /** Four widgets, two by two. */
+    GRID(4)
+}
+
+/** One widget on a cluster page, in the design it is drawn in. */
+data class ClusterSlot(val kind: BuiltinKind, val design: WidgetDesign)
+
+/** A cluster page: its [arrangement] and as many [slots] as that holds, the big one first. */
+data class ClusterLayout(val arrangement: ClusterArrangement, val slots: List<ClusterSlot>)
+
+/** The cluster's pages as they come, and the rules for laying one out on the board. */
+object ClusterLayouts {
+
+    /**
+     * The widgets the cluster can show: every widget the dashboard redraws
+     * from its readings. Not the live views (map, windows), the bar or the
+     * favourites: they are things to touch, and the cluster can't be touched.
+     */
+    val KINDS: List<BuiltinKind> = BuiltinKind.entries - setOf(
+        BuiltinKind.NAVMAP, BuiltinKind.PIP_ANCHOR, BuiltinKind.MAPS_INSIDE, BuiltinKind.MY_CAR,
+        BuiltinKind.DASH_BAR, BuiltinKind.QUICK_DIAL
+    )
+
+    /** The designs [kind] can wear on the cluster, the ones made for it first. Not Standard: that is the dashboard's own tile, which the cluster doesn't draw. */
+    fun designsFor(kind: BuiltinKind): List<WidgetDesign> =
+        WidgetDesign.offeredFor(kind, framed = false).filter { it != WidgetDesign.STANDARD }
+
+    /** What a new slot of [kind] wears: the first design made for it, else Hero. */
+    fun defaultDesign(kind: BuiltinKind): WidgetDesign = designsFor(kind).firstOrNull { it.isSignature } ?: WidgetDesign.HERO
+
+    fun default(page: ClusterPage): ClusterLayout = when (page) {
+        ClusterPage.DRIVE -> ClusterLayout(
+            ClusterArrangement.BIG_STACK,
+            listOf(
+                ClusterSlot(BuiltinKind.SPEED_HUD, WidgetDesign.SPEED_TAPE),
+                ClusterSlot(BuiltinKind.CLOCK, WidgetDesign.HERO),
+                ClusterSlot(BuiltinKind.RANGE, WidgetDesign.FUEL_TANK)
+            )
+        )
+        ClusterPage.MEDIA -> ClusterLayout(
+            ClusterArrangement.BIG_STACK,
+            listOf(
+                ClusterSlot(BuiltinKind.MEDIA, WidgetDesign.COVER_ART),
+                ClusterSlot(BuiltinKind.SPEED_HUD, WidgetDesign.HERO),
+                ClusterSlot(BuiltinKind.CLOCK, WidgetDesign.HERO)
+            )
+        )
+        ClusterPage.NAV -> ClusterLayout(
+            ClusterArrangement.BIG_STACK,
+            listOf(
+                ClusterSlot(BuiltinKind.NAVIGATION, WidgetDesign.TURN_CARD),
+                ClusterSlot(BuiltinKind.SPEED_HUD, WidgetDesign.HERO),
+                ClusterSlot(BuiltinKind.CLOCK, WidgetDesign.HERO)
+            )
+        )
+        ClusterPage.OBD -> ClusterLayout(
+            ClusterArrangement.BIG_SIDE,
+            listOf(
+                ClusterSlot(BuiltinKind.TELEMETRY, WidgetDesign.TWIN_DIALS),
+                ClusterSlot(BuiltinKind.OBD_ALL, WidgetDesign.PAPER)
+            )
+        )
+    }
+
+    /** Widgets for a slot a bigger arrangement adds, in order, skipping those already on the page. */
+    private val FILLERS = listOf(BuiltinKind.SPEED_HUD, BuiltinKind.CLOCK, BuiltinKind.RANGE, BuiltinKind.MEDIA, BuiltinKind.NAVIGATION, BuiltinKind.TELEMETRY)
+
+    /**
+     * [layout] in [arrangement]: the widgets it had keep their place, the
+     * ones that no longer fit are dropped, new slots get the page's own
+     * widgets first, then common ones not on the page yet.
+     */
+    fun arrange(layout: ClusterLayout, arrangement: ClusterArrangement, page: ClusterPage): ClusterLayout {
+        val slots = layout.slots.take(arrangement.slots).toMutableList()
+        val candidates = default(page).slots + FILLERS.map { ClusterSlot(it, defaultDesign(it)) }
+        for (c in candidates) {
+            if (slots.size >= arrangement.slots) break
+            if (slots.none { it.kind == c.kind }) slots += c
+        }
+        while (slots.size < arrangement.slots) slots += ClusterSlot(BuiltinKind.CLOCK, WidgetDesign.HERO)
+        return ClusterLayout(arrangement, slots)
+    }
+
+    /** [layout] with slot [index] showing [kind] in [design], or in its first design when [design] doesn't suit it. */
+    fun withSlot(layout: ClusterLayout, index: Int, kind: BuiltinKind, design: WidgetDesign? = null): ClusterLayout {
+        if (index !in layout.slots.indices) return layout
+        val wear = design?.takeIf { it in designsFor(kind) } ?: defaultDesign(kind)
+        return layout.copy(slots = layout.slots.toMutableList().also { it[index] = ClusterSlot(kind, wear) })
+    }
+
+    /** [layout] made whole: as many slots as its arrangement holds, widgets the cluster shows, designs that suit them. */
+    fun sanitize(layout: ClusterLayout, page: ClusterPage): ClusterLayout {
+        val slots = layout.slots.filter { it.kind in KINDS }.map {
+            if (it.design in designsFor(it.kind)) it else it.copy(design = defaultDesign(it.kind))
+        }
+        return arrange(ClusterLayout(layout.arrangement, slots), layout.arrangement, page)
+    }
+}
 
 /** What the head unit actually sends the display. */
 enum class SecondScreenOutput {
@@ -173,6 +294,29 @@ object SecondScreenCodec {
 
     fun decodeKeys(raw: String?): Set<Int> =
         raw.orEmpty().split(',').mapNotNull { it.trim().toIntOrNull()?.takeIf { code -> code > 0 } }.toSet()
+
+    /** Board pages as "DRIVE=BIG_STACK:SPEED_HUD/SPEED_TAPE,CLOCK/HERO;MEDIA=...". */
+    fun encodeLayouts(layouts: Map<ClusterPage, ClusterLayout>): String =
+        layouts.entries.sortedBy { it.key.ordinal }.joinToString(";") { (page, layout) ->
+            page.name + "=" + layout.arrangement.name + ":" + layout.slots.joinToString(",") { it.kind.name + "/" + it.design.name }
+        }
+
+    /** A page that doesn't read back (unknown page or arrangement) keeps its original look; a widget that doesn't is replaced. */
+    fun decodeLayouts(raw: String?): Map<ClusterPage, ClusterLayout> {
+        if (raw.isNullOrBlank()) return emptyMap()
+        val out = linkedMapOf<ClusterPage, ClusterLayout>()
+        for (entry in raw.split(';')) {
+            val page = ClusterPage.entries.firstOrNull { it.name == entry.substringBefore('=').trim() } ?: continue
+            val body = entry.substringAfter('=', "")
+            val arrangement = ClusterArrangement.entries.firstOrNull { it.name == body.substringBefore(':').trim() } ?: continue
+            val slots = body.substringAfter(':', "").split(',').mapNotNull { s ->
+                val kind = BuiltinKind.entries.firstOrNull { it.name == s.substringBefore('/').trim() } ?: return@mapNotNull null
+                ClusterSlot(kind, WidgetDesign.fromName(s.substringAfter('/', "").trim()))
+            }
+            out[page] = ClusterLayouts.sanitize(ClusterLayout(arrangement, slots), page)
+        }
+        return out
+    }
 }
 
 /**

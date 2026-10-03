@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,7 +31,8 @@ import kotlinx.coroutines.flow.StateFlow
 
 /*
  * The second screen's cluster: a few of the dashboard's own widgets, big, one
- * page at a time, nothing to touch. Drawn in ClusterPresentation on the
+ * page at a time, nothing to touch. Each page is laid out on the board in
+ * Settings → Second screen (ClusterLayout), or as it comes. Drawn in ClusterPresentation on the
  * streamed display, so the Raspberry Pi shows exactly this.
  *
  * Its pages change only from outside (Settings, the tile, a steering-wheel
@@ -41,69 +42,17 @@ import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 internal fun ClusterScreen(page: StateFlow<ClusterPage>, pages: StateFlow<List<ClusterPage>>, overscanPct: Int) {
-    val context = LocalContext.current
-    val mediaController = remember { CarMediaController.shared(context) }
-    val obd = ObdBluetoothManager.data.collectAsState()
-    val obdConnection = ObdBluetoothManager.connectionState.collectAsState()
-    val demo = DemoMode.active.collectAsState()
-    val realMedia = mediaController.mediaState.collectAsState()
-    val demoMedia = DemoMode.media.collectAsState()
-    val media: State<MediaState> = remember { derivedStateOf { if (demo.value) demoMedia.value else realMedia.value } }
-    val env = SkinTileEnv(
-        editing = false,
-        appsByPackage = emptyMap(),
-        media = media,
-        mediaController = mediaController,
-        hasMediaAccess = remember { CarMediaController.hasNotificationAccess(context) },
-        context = context,
-        obd = obd,
-        obdConnectionState = obdConnection,
-        // Nothing on this screen can be touched.
-        onConnectObd = {},
-        onPickDevice = {},
-        onLaunchApp = {},
-        onEditLaunchBar = {}
-    )
+    val env = rememberClusterEnv()
+    val config by SecondScreenStore.config.collectAsState()
     val shown by page.collectAsState()
     val all by pages.collectAsState()
 
     BoxWithConstraints(Modifier.fillMaxSize().background(DashColors.Background)) {
         // A TV (composite) crops the edges it calls overscan.
         val inset: Dp = (minOf(maxWidth, maxHeight) * overscanPct / 100f) + 12.dp
-        val gap = 12.dp
         Box(Modifier.fillMaxSize().padding(inset)) {
             Crossfade(targetState = shown, animationSpec = tween(350), label = "cluster page") { p ->
-                Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(gap)) {
-                    when (p) {
-                        ClusterPage.DRIVE -> {
-                            Face(BuiltinKind.SPEED_HUD, WidgetDesign.ROAD_SIGN, env, 1.5f)
-                            Side(gap) {
-                                Face(BuiltinKind.CLOCK, WidgetDesign.HERO, env)
-                                Face(BuiltinKind.RANGE, WidgetDesign.FUEL_TANK, env)
-                            }
-                        }
-                        ClusterPage.MEDIA -> {
-                            Face(BuiltinKind.MEDIA, WidgetDesign.COVER_ART, env, 1.6f)
-                            Side(gap) {
-                                Face(BuiltinKind.SPEED_HUD, WidgetDesign.HERO, env)
-                                Face(BuiltinKind.CLOCK, WidgetDesign.HERO, env)
-                            }
-                        }
-                        ClusterPage.NAV -> {
-                            Face(BuiltinKind.NAVIGATION, WidgetDesign.TURN_CARD, env, 1.6f)
-                            Side(gap) {
-                                Face(BuiltinKind.SPEED_HUD, WidgetDesign.HERO, env)
-                                Face(BuiltinKind.CLOCK, WidgetDesign.HERO, env)
-                            }
-                        }
-                        ClusterPage.OBD -> {
-                            Face(BuiltinKind.TELEMETRY, WidgetDesign.TWIN_DIALS, env, 1.5f)
-                            Side(gap) {
-                                Face(BuiltinKind.OBD_ALL, WidgetDesign.PAPER, env)
-                            }
-                        }
-                    }
-                }
+                ClusterPageBody(config.layoutFor(p), env)
             }
         }
         if (all.size > 1) {
@@ -122,30 +71,86 @@ internal fun ClusterScreen(page: StateFlow<ClusterPage>, pages: StateFlow<List<C
     }
 }
 
+/** The feeds the cluster's widgets read, as the dashboard's tiles do, with nothing to press. */
 @Composable
-private fun RowScope.Face(kind: BuiltinKind, design: WidgetDesign, env: SkinTileEnv, weight: Float = 1f) {
+internal fun rememberClusterEnv(): SkinTileEnv {
+    val context = LocalContext.current
+    val mediaController = remember { CarMediaController.shared(context) }
+    val obd = ObdBluetoothManager.data.collectAsState()
+    val obdConnection = ObdBluetoothManager.connectionState.collectAsState()
+    val demo = DemoMode.active.collectAsState()
+    val realMedia = mediaController.mediaState.collectAsState()
+    val demoMedia = DemoMode.media.collectAsState()
+    val media: State<MediaState> = remember { derivedStateOf { if (demo.value) demoMedia.value else realMedia.value } }
+    return SkinTileEnv(
+        editing = false,
+        appsByPackage = emptyMap(),
+        media = media,
+        mediaController = mediaController,
+        hasMediaAccess = remember { CarMediaController.hasNotificationAccess(context) },
+        context = context,
+        obd = obd,
+        obdConnectionState = obdConnection,
+        // Nothing on this screen can be touched.
+        onConnectObd = {},
+        onPickDevice = {},
+        onLaunchApp = {},
+        onEditLaunchBar = {}
+    )
+}
+
+/**
+ * One cluster page laid out as [layout] says. [overlay] draws over slot
+ * [index] (the board's selection and taps); null on the second screen itself.
+ */
+@Composable
+internal fun ClusterPageBody(
+    layout: ClusterLayout,
+    env: SkinTileEnv,
+    modifier: Modifier = Modifier,
+    overlay: (@Composable BoxScope.(index: Int) -> Unit)? = null
+) {
+    val gap = 12.dp
+    val slots = layout.slots
+    @Composable
+    fun Slot(index: Int, m: Modifier) {
+        val slot = slots.getOrNull(index) ?: return
+        Box(m) {
+            Face(slot.kind, slot.design, env, Modifier.fillMaxSize())
+            overlay?.invoke(this, index)
+        }
+    }
+    val big = 1.55f
+    when (layout.arrangement) {
+        ClusterArrangement.ONE -> Slot(0, modifier.fillMaxSize())
+        ClusterArrangement.BIG_SIDE, ClusterArrangement.HALVES -> Row(modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(gap)) {
+            Slot(0, Modifier.weight(if (layout.arrangement == ClusterArrangement.BIG_SIDE) big else 1f).fillMaxHeight())
+            Slot(1, Modifier.weight(1f).fillMaxHeight())
+        }
+        ClusterArrangement.BIG_STACK -> Row(modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(gap)) {
+            Slot(0, Modifier.weight(big).fillMaxHeight())
+            Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(gap)) {
+                Slot(1, Modifier.weight(1f).fillMaxWidth())
+                Slot(2, Modifier.weight(1f).fillMaxWidth())
+            }
+        }
+        ClusterArrangement.THREE -> Row(modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(gap)) {
+            for (i in 0 until 3) Slot(i, Modifier.weight(1f).fillMaxHeight())
+        }
+        ClusterArrangement.GRID -> Column(modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(gap)) {
+            for (row in 0 until 2) {
+                Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(gap)) {
+                    Slot(row * 2, Modifier.weight(1f).fillMaxHeight())
+                    Slot(row * 2 + 1, Modifier.weight(1f).fillMaxHeight())
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun Face(kind: BuiltinKind, design: WidgetDesign, env: SkinTileEnv, modifier: Modifier) {
     val face = rememberWidgetFace(kind, env) ?: return
     // Actions are buttons on the dashboard; here nothing can be pressed.
-    DesignedFace(face.copy(actions = emptyList(), onClick = null), design, Modifier.weight(weight).fillMaxHeight())
-}
-
-@Composable
-private fun ColumnScopeFace(kind: BuiltinKind, design: WidgetDesign, env: SkinTileEnv, modifier: Modifier) {
-    val face = rememberWidgetFace(kind, env) ?: return
     DesignedFace(face.copy(actions = emptyList(), onClick = null), design, modifier)
-}
-
-/** The narrower column of a page, its faces stacked. */
-@Composable
-private fun RowScope.Side(gap: Dp, content: @Composable SideScope.() -> Unit) {
-    Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(gap)) {
-        SideScope(this).content()
-    }
-}
-
-internal class SideScope(private val column: androidx.compose.foundation.layout.ColumnScope) {
-    @Composable
-    fun Face(kind: BuiltinKind, design: WidgetDesign, env: SkinTileEnv) {
-        with(column) { ColumnScopeFace(kind, design, env, Modifier.weight(1f).fillMaxWidth()) }
-    }
 }

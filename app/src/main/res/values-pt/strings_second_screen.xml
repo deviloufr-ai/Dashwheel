@@ -50,4 +50,18 @@
     <string name="second_screen_bar_swipe_detail">Deslizar para o lado na barra do launcher muda a página do painel enquanto é mostrado.</string>
     <string name="second_screen_next_page">Página seguinte</string>
     <string name="second_screen_not_connected">Não ligado</string>
+    <string name="second_screen_board">Quadro de páginas</string>
+    <string name="second_screen_board_detail">Toque num widget para o mudar. O segundo ecrã mostra a página que edita.</string>
+    <string name="second_screen_board_no_video">O quadro organiza a imagem nítida. Sem ela, o ecrã desenha as suas próprias páginas, mais simples.</string>
+    <string name="second_screen_layout">Disposição</string>
+    <string name="second_screen_layout_one">Um</string>
+    <string name="second_screen_layout_big_side">Grande + 1</string>
+    <string name="second_screen_layout_big_stack">Grande + 2</string>
+    <string name="second_screen_layout_halves">Metades</string>
+    <string name="second_screen_layout_three">Três</string>
+    <string name="second_screen_layout_grid">Quatro</string>
+    <string name="second_screen_widget">Widget</string>
+    <string name="second_screen_widget_pick">Escolher um widget</string>
+    <string name="second_screen_design">Design</string>
+    <string name="second_screen_board_reset">Voltar à página original</string>
 </resources>

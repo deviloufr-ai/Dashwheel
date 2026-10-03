@@ -50,4 +50,18 @@
     <string name="second_screen_bar_swipe_detail">Un balayage latéral sur la barre du lanceur change la page du combiné quand il est affiché.</string>
     <string name="second_screen_next_page">Page suivante</string>
     <string name="second_screen_not_connected">Non connecté</string>
+    <string name="second_screen_board">Tableau des pages</string>
+    <string name="second_screen_board_detail">Touchez un widget pour le changer. Le second écran affiche la page en cours.</string>
+    <string name="second_screen_board_no_video">Le tableau règle l\'image nette. Sans elle, l\'écran dessine ses propres pages, plus simples.</string>
+    <string name="second_screen_layout">Disposition</string>
+    <string name="second_screen_layout_one">Un</string>
+    <string name="second_screen_layout_big_side">Grand + 1</string>
+    <string name="second_screen_layout_big_stack">Grand + 2</string>
+    <string name="second_screen_layout_halves">Moitiés</string>
+    <string name="second_screen_layout_three">Trois</string>
+    <string name="second_screen_layout_grid">Quatre</string>
+    <string name="second_screen_widget">Widget</string>
+    <string name="second_screen_widget_pick">Choisir un widget</string>
+    <string name="second_screen_design">Style</string>
+    <string name="second_screen_board_reset">Revenir à la page d\'origine</string>
 </resources>

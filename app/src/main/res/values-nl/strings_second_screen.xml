@@ -50,4 +50,18 @@
     <string name="second_screen_bar_swipe_detail">Zijwaarts vegen over de balk van de launcher bladert door het dashboard zolang het getoond wordt.</string>
     <string name="second_screen_next_page">Volgende pagina</string>
     <string name="second_screen_not_connected">Niet verbonden</string>
+    <string name="second_screen_board">Paginabord</string>
+    <string name="second_screen_board_detail">Tik op een widget om hem te wijzigen. Het tweede scherm toont de pagina die je bewerkt.</string>
+    <string name="second_screen_board_no_video">Het bord deelt het scherpe beeld in. Zonder tekent het scherm eigen, eenvoudigere pagina\'s.</string>
+    <string name="second_screen_layout">Indeling</string>
+    <string name="second_screen_layout_one">Eén</string>
+    <string name="second_screen_layout_big_side">Groot + 1</string>
+    <string name="second_screen_layout_big_stack">Groot + 2</string>
+    <string name="second_screen_layout_halves">Helften</string>
+    <string name="second_screen_layout_three">Drie</string>
+    <string name="second_screen_layout_grid">Vier</string>
+    <string name="second_screen_widget">Widget</string>
+    <string name="second_screen_widget_pick">Kies een widget</string>
+    <string name="second_screen_design">Ontwerp</string>
+    <string name="second_screen_board_reset">Terug naar de oorspronkelijke pagina</string>
 </resources>

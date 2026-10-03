@@ -50,4 +50,18 @@
     <string name="second_screen_bar_swipe_detail">Przesunięcie w bok po pasku launchera zmienia stronę zegarów, gdy są wyświetlane.</string>
     <string name="second_screen_next_page">Następna strona</string>
     <string name="second_screen_not_connected">Nie połączono</string>
+    <string name="second_screen_board">Tablica stron</string>
+    <string name="second_screen_board_detail">Dotknij widżetu, aby go zmienić. Drugi ekran pokazuje edytowaną stronę.</string>
+    <string name="second_screen_board_no_video">Tablica układa ostry obraz. Bez niego ekran rysuje własne, prostsze strony.</string>
+    <string name="second_screen_layout">Układ</string>
+    <string name="second_screen_layout_one">Jeden</string>
+    <string name="second_screen_layout_big_side">Duży + 1</string>
+    <string name="second_screen_layout_big_stack">Duży + 2</string>
+    <string name="second_screen_layout_halves">Połowy</string>
+    <string name="second_screen_layout_three">Trzy</string>
+    <string name="second_screen_layout_grid">Cztery</string>
+    <string name="second_screen_widget">Widżet</string>
+    <string name="second_screen_widget_pick">Wybierz widżet</string>
+    <string name="second_screen_design">Wygląd</string>
+    <string name="second_screen_board_reset">Przywróć oryginalną stronę</string>
 </resources>

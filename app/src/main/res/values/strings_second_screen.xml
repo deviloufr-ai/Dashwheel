@@ -50,4 +50,18 @@
     <string name="second_screen_bar_swipe_detail">A sideways swipe on the launcher\'s bar turns the cluster\'s page while it shows.</string>
     <string name="second_screen_next_page">Next page</string>
     <string name="second_screen_not_connected">Not connected</string>
+    <string name="second_screen_board">Page board</string>
+    <string name="second_screen_board_detail">Tap a widget to change it. The second screen turns to the page you edit.</string>
+    <string name="second_screen_board_no_video">The board lays out the sharp picture. With it off, the screen draws its own simpler pages.</string>
+    <string name="second_screen_layout">Layout</string>
+    <string name="second_screen_layout_one">One</string>
+    <string name="second_screen_layout_big_side">Big + 1</string>
+    <string name="second_screen_layout_big_stack">Big + 2</string>
+    <string name="second_screen_layout_halves">Halves</string>
+    <string name="second_screen_layout_three">Three</string>
+    <string name="second_screen_layout_grid">Four</string>
+    <string name="second_screen_widget">Widget</string>
+    <string name="second_screen_widget_pick">Choose a widget</string>
+    <string name="second_screen_design">Design</string>
+    <string name="second_screen_board_reset">Back to the original page</string>
 </resources>

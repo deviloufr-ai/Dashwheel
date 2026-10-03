@@ -50,4 +50,18 @@
     <string name="second_screen_bar_swipe_detail">Uno scorrimento laterale sulla barra del launcher cambia la pagina del quadro mentre è mostrato.</string>
     <string name="second_screen_next_page">Pagina successiva</string>
     <string name="second_screen_not_connected">Non connesso</string>
+    <string name="second_screen_board">Tabellone pagine</string>
+    <string name="second_screen_board_detail">Tocca un widget per cambiarlo. Il secondo schermo mostra la pagina che modifichi.</string>
+    <string name="second_screen_board_no_video">Il tabellone organizza l\'immagine nitida. Senza, lo schermo disegna pagine proprie, più semplici.</string>
+    <string name="second_screen_layout">Disposizione</string>
+    <string name="second_screen_layout_one">Uno</string>
+    <string name="second_screen_layout_big_side">Grande + 1</string>
+    <string name="second_screen_layout_big_stack">Grande + 2</string>
+    <string name="second_screen_layout_halves">Metà</string>
+    <string name="second_screen_layout_three">Tre</string>
+    <string name="second_screen_layout_grid">Quattro</string>
+    <string name="second_screen_widget">Widget</string>
+    <string name="second_screen_widget_pick">Scegli un widget</string>
+    <string name="second_screen_design">Stile</string>
+    <string name="second_screen_board_reset">Torna alla pagina originale</string>
 </resources>

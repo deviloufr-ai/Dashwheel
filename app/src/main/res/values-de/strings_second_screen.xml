@@ -50,4 +50,18 @@
     <string name="second_screen_bar_swipe_detail">Seitlich über die Leiste des Launchers wischen blättert im Kombiinstrument, solange es angezeigt wird.</string>
     <string name="second_screen_next_page">Nächste Seite</string>
     <string name="second_screen_not_connected">Nicht verbunden</string>
+    <string name="second_screen_board">Seitenboard</string>
+    <string name="second_screen_board_detail">Tippe auf ein Widget, um es zu ändern. Der zweite Bildschirm zeigt die bearbeitete Seite.</string>
+    <string name="second_screen_board_no_video">Das Board gestaltet das scharfe Bild. Ohne es zeichnet der Bildschirm eigene, einfachere Seiten.</string>
+    <string name="second_screen_layout">Anordnung</string>
+    <string name="second_screen_layout_one">Eins</string>
+    <string name="second_screen_layout_big_side">Groß + 1</string>
+    <string name="second_screen_layout_big_stack">Groß + 2</string>
+    <string name="second_screen_layout_halves">Hälften</string>
+    <string name="second_screen_layout_three">Drei</string>
+    <string name="second_screen_layout_grid">Vier</string>
+    <string name="second_screen_widget">Widget</string>
+    <string name="second_screen_widget_pick">Widget wählen</string>
+    <string name="second_screen_design">Design</string>
+    <string name="second_screen_board_reset">Zur ursprünglichen Seite</string>
 </resources>
