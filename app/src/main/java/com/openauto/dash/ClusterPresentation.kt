@@ -5,7 +5,12 @@ import android.content.Context
 import android.os.Bundle
 import android.view.Display
 import android.view.WindowManager
+import androidx.activity.compose.LocalActivityResultRegistryOwner
+import androidx.activity.result.ActivityResultRegistry
+import androidx.activity.result.ActivityResultRegistryOwner
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.core.app.ActivityOptionsCompat
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
@@ -51,7 +56,9 @@ internal class ClusterPresentation(
             setContent {
                 // The dashboard's widgets, sized as on a 600 dp tall screen, whatever the picture.
                 val density = Density(height / CLUSTER_HEIGHT_DP, fontScale = 1f)
-                CompositionLocalProvider(LocalDensity provides density) {
+                // The 3D map asks for the location through an activity, which a
+                // Presentation has none of: the dashboard asked already.
+                CompositionLocalProvider(LocalDensity provides density, LocalActivityResultRegistryOwner provides NoResults) {
                     val dashboard by dashboardShowing.collectAsState()
                     // With the dashboard stopped (an app in front), its palette
                     // stops following the time of day: the cluster takes over.
@@ -72,6 +79,13 @@ internal class ClusterPresentation(
 
     private companion object {
         const val CLUSTER_HEIGHT_DP = 600f
+
+        /** Asks for nothing: what the dashboard itself must ask is asked on the dashboard. */
+        val NoResults = object : ActivityResultRegistryOwner {
+            override val activityResultRegistry = object : ActivityResultRegistry() {
+                override fun <I, O> onLaunch(requestCode: Int, contract: ActivityResultContract<I, O>, input: I, options: ActivityOptionsCompat?) = Unit
+            }
+        }
     }
 }
 

@@ -156,7 +156,50 @@ internal object EmbeddedApp {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     fun host(context: Context, packageName: String): Host =
-        hosts.getOrPut(packageName) { Host(context.applicationContext, packageName) }
+        hosts.getOrPut(packageName) {
+            Host(context.applicationContext, packageName).also { host ->
+                copies[packageName]?.forEach { host.addCopy(it) }
+                _hosted.value = _hosted.value + packageName
+            }
+        }
+
+    private val _hosted = MutableStateFlow<Set<String>>(emptySet())
+    /** The apps inside a dashboard tile right now: those the second screen can show a copy of. */
+    val hosted: StateFlow<Set<String>> = _hosted.asStateFlow()
+
+    /** Copies of each app's picture asked for (the second screen's cluster), kept while its tile comes and goes. Main thread. */
+    private val copies = HashMap<String, MutableList<Surface>>()
+
+    /**
+     * [surface] shows a copy of [packageName]'s picture from now on, whenever
+     * it runs inside a tile, through a [PictureRelay]. Main thread.
+     */
+    fun showCopy(packageName: String, surface: Surface) {
+        val list = copies.getOrPut(packageName) { ArrayList() }
+        if (list.any { it === surface }) return
+        list += surface
+        hosts[packageName]?.addCopy(surface)
+    }
+
+    /**
+     * Whether the second screen's cluster shows a copy of [packageName]: its
+     * frames then go through a relay from the start (an app that isn't moving
+     * sends no frame when its picture changes hands later, and the copy would
+     * stay black).
+     */
+    internal fun copyWanted(packageName: String): Boolean = SecondScreenStore.config.value.let { c ->
+        c.mode == SecondScreenMode.CLUSTER &&
+            c.layouts.values.any { l -> l.slots.any { it.kind == BuiltinKind.MAPS_INSIDE && it.app == packageName } }
+    }
+
+    /** [surface] no longer shows the copy; it is let go of before this returns. Main thread. */
+    fun hideCopy(packageName: String, surface: Surface) {
+        copies[packageName]?.let { list ->
+            list.removeAll { it === surface }
+            if (list.isEmpty()) copies.remove(packageName)
+        }
+        hosts[packageName]?.removeCopy(surface)
+    }
 
     /** Apps with a display of their own right now; read from the window tiles' threads. */
     @Volatile
@@ -668,6 +711,7 @@ internal object EmbeddedApp {
     fun releaseUnless(keep: Set<String>) {
         val gone = hosts.keys - keep
         gone.forEach { hosts.remove(it)?.release() }
+        if (gone.isNotEmpty()) _hosted.value = hosts.keys.toSet()
     }
 
     /**
@@ -736,6 +780,65 @@ internal object EmbeddedApp {
         private var spareTexture: SurfaceTexture? = null
         private var spare: Surface? = null
 
+        /**
+         * Draws the app's frames on its tile and on copies of it (the second
+         * screen), while there are copies; null otherwise, and the display
+         * then draws straight on the tile, as it always did.
+         */
+        private var relay: PictureRelay? = null
+        private val copyList = ArrayList<Surface>()
+
+        /** What the display draws on while there is no tile to draw on: the relay's input when copies want the frames, else the [spare]. */
+        private fun idlePicture(width: Int, height: Int): Surface =
+            relay?.let { r -> r.setTile(null); r.input(width, height) } ?: spare(width, height)
+
+        /** What the display draws on to show [tile]: the relay's input, which passes the frames on to it, or the tile itself. */
+        private fun feed(vd: VirtualDisplay, tile: Surface, width: Int, height: Int) {
+            val input = relay?.input(width, height)
+            if (input == null) {
+                vd.surface = tile
+                return
+            }
+            // The display lets go of the tile's picture first; the relay takes it over after.
+            vd.surface = input
+            relay?.setTile(tile)
+        }
+
+        /** The relay, made when the app has none yet and the display not drawing through one; null where GL can't. */
+        private fun startRelay(): PictureRelay? {
+            relay?.let { return it }
+            val r = PictureRelay().takeIf { it.works } ?: return null
+            relay = r
+            val vd = display ?: return r
+            // Already drawing straight on the tile: through the relay from now on.
+            val tile = shownSurface
+            if (tile != null) feed(vd, tile, shownWidth, shownHeight) else vd.surface = idlePicture(shownWidth, shownHeight)
+            return r
+        }
+
+        /** [surface] shows a copy of the app's picture: the frames go through a relay from now on. Main thread. */
+        fun addCopy(surface: Surface) {
+            if (copyList.any { it === surface }) return
+            copyList += surface
+            startRelay()?.addCopy(surface)
+        }
+
+        /** [surface] no longer shows a copy; the last one gone, the display draws straight on the tile again. Main thread. */
+        fun removeCopy(surface: Surface) {
+            if (copyList.none { it === surface }) return
+            copyList.removeAll { it === surface }
+            val r = relay ?: return
+            r.removeCopy(surface)
+            // Kept while the cluster wants the copy (its page turned away for now): handing the picture back and forth blacks it out.
+            if (copyList.isNotEmpty() || copyWanted(packageName)) return
+            // Off the relay before it goes, so the app never has nothing to draw on.
+            display?.surface = spare(shownWidth, shownHeight)
+            r.release()
+            relay = null
+            val vd = display ?: return
+            shownSurface?.let { vd.surface = it }
+        }
+
         /** The spare picture, [width] x [height] pixels. Main thread. */
         private fun spare(width: Int, height: Int): Surface {
             val texture = spareTexture ?: SurfaceTexture(false).also { spareTexture = it }
@@ -799,7 +902,7 @@ internal object EmbeddedApp {
             if (t == null || surface == null) {
                 shownOn = null
                 shownSurface = null
-                display?.let { it.surface = spare(shownWidth, shownHeight) }
+                display?.let { it.surface = idlePicture(shownWidth, shownHeight) }
                 return
             }
             if (next == shownOn && surface === shownSurface &&
@@ -818,16 +921,17 @@ internal object EmbeddedApp {
             val vd = display
             if (vd != null) {
                 vd.resize(width, height, dpi)
-                vd.surface = surface
+                feed(vd, surface, width, height)
                 // Brought back to the front, started again if it was closed meanwhile,
                 // or opened now if it was installed since. A refusal stays refused.
                 if (_status.value != Status.BLOCKED) launch(vd)
                 return
             }
+            if (copyWanted(packageName)) startRelay()
             val made = runCatching {
                 val dm = context.getSystemService(DisplayManager::class.java)
                 dm.createVirtualDisplay(
-                    "Dashwheel:$packageName", width, height, dpi, surface,
+                    "Dashwheel:$packageName", width, height, dpi, relay?.input(width, height) ?: surface,
                     FLAG_PUBLIC or FLAG_OWN_CONTENT_ONLY or FLAG_DESTROY_CONTENT_ON_REMOVAL
                 )
             }.onFailure { Log.w(TAG, "no display for $packageName", it) }.getOrNull()
@@ -836,6 +940,7 @@ internal object EmbeddedApp {
                 return
             }
             display = made
+            relay?.setTile(surface)
             // The window tiles now leave this app and this display alone.
             WindowListing.embeddedDisplays = WindowListing.embeddedDisplays + made.display.displayId
             held = held + packageName
@@ -906,6 +1011,9 @@ internal object EmbeddedApp {
                 WindowListing.embeddedDisplays = WindowListing.embeddedDisplays - vd.display.displayId
                 vd.release()
             }
+            relay?.release()
+            relay = null
+            copyList.clear()
             spare?.release()
             spare = null
             spareTexture?.release()
@@ -1003,7 +1111,7 @@ internal object EmbeddedApp {
             val surface = shownSurface ?: return
             if (display !== vd) return
             vd.resize(shownWidth, shownHeight, shownDpi)
-            vd.surface = surface
+            feed(vd, surface, shownWidth, shownHeight)
         }
 
         /** Closes the app and opens it afresh on the tile, the way it gets there when the dashboard starts. */

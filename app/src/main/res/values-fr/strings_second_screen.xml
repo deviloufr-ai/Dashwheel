@@ -64,4 +64,10 @@
     <string name="second_screen_widget_pick">Choisir un widget</string>
     <string name="second_screen_design">Style</string>
     <string name="second_screen_board_reset">Revenir à la page d\'origine</string>
+    <string name="second_screen_copy_of">%1$s, comme sur l\'autoradio</string>
+    <string name="second_screen_copy_blurb">Une copie de sa tuile du tableau de bord. Vous l\'utilisez sur l\'autoradio.</string>
+    <string name="second_screen_copy_no_tile">Placez %1$s dans une tuile du tableau de bord pour le voir ici</string>
+    <string name="second_screen_copy_waits">%1$s attend l\'arrêt de la voiture</string>
+    <string name="second_screen_map_blurb">La carte 3D du tableau de bord, avec l\'itinéraire et la prochaine direction</string>
+    <string name="second_screen_picture_wifi">Une image animée utilise plus le Wi-Fi du téléphone qu\'un widget.</string>
 </resources>

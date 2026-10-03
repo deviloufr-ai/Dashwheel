@@ -78,6 +78,8 @@ internal object SecondScreenController {
 
     private val encoderFailed = MutableStateFlow(false)
     private val moving = MutableStateFlow(false)
+    /** Whether the car moves, by the second screen's own reckoning: video apps' copies wait for it to stop. */
+    val isMoving: StateFlow<Boolean> = moving
     private val applying = Mutex()
 
     private var stream: StreamDisplay? = null

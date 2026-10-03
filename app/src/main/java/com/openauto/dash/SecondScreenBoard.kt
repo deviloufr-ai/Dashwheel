@@ -104,7 +104,7 @@ internal fun ClusterBoard() {
                 .graphicsLayer { scaleX = scale; scaleY = scale }
                 .padding(12.dp)
         ) {
-            ClusterPageBody(layout, rememberClusterEnv()) { index ->
+            ClusterPageBody(layout, rememberClusterEnv(), preview = true) { index ->
                 val on = index == selected
                 Box(
                     Modifier.fillMaxSize()
@@ -151,17 +151,26 @@ internal fun ClusterBoard() {
     }
 
     SettingsRow(
-        Icons.Filled.Widgets, stringResource(R.string.second_screen_widget), stringResource(slot.kind.labelRes)
+        Icons.Filled.Widgets, stringResource(R.string.second_screen_widget), slotName(slot)
     ) { choosingWidget = true }
-    Text(
-        stringResource(R.string.second_screen_design), color = DashColors.TextSecondary,
-        style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(start = 12.dp, top = 8.dp)
-    )
-    ChoiceRow(
-        options = ClusterLayouts.designsFor(slot.kind).map { it to stringResource(it.titleRes) },
-        selected = { it == slot.design },
-        onPick = { d -> save { ClusterLayouts.withSlot(it, selected, slot.kind, d) } }
-    )
+    val designs = ClusterLayouts.designsFor(slot.kind)
+    if (designs.isEmpty()) {
+        // The live pictures: drawn as they are, and dearer on the Wi-Fi than a still widget.
+        Text(
+            stringResource(R.string.second_screen_picture_wifi), color = DashColors.TextSecondary,
+            style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+        )
+    } else {
+        Text(
+            stringResource(R.string.second_screen_design), color = DashColors.TextSecondary,
+            style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(start = 12.dp, top = 8.dp)
+        )
+        ChoiceRow(
+            options = designs.map { it to stringResource(it.titleRes) },
+            selected = { it == slot.design },
+            onPick = { d -> save { ClusterLayouts.withSlot(it, selected, slot.kind, d) } }
+        )
+    }
     if (editing in config.layouts) {
         SettingsRow(Icons.Filled.Restore, stringResource(R.string.second_screen_board_reset), null) {
             SecondScreenStore.update(context) { it.copy(layouts = it.layouts - editing) }
@@ -171,8 +180,8 @@ internal fun ClusterBoard() {
 
     if (choosingWidget) {
         WidgetChooserDialog(
-            current = slot.kind,
-            onPick = { kind -> save { ClusterLayouts.withSlot(it, selected, kind) }; choosingWidget = false },
+            current = slot,
+            onPick = { pick -> save { ClusterLayouts.withSlot(it, selected, pick.kind, app = pick.app) }; choosingWidget = false },
             onDismiss = { choosingWidget = false }
         )
     }
@@ -222,9 +231,35 @@ private fun ArrangementSketch(a: ClusterArrangement, color: androidx.compose.ui.
     }
 }
 
-/** The widgets the cluster can show, to pick the one a slot shows. */
+/** What a slot shows, by name: the widget's, or "Google Maps, as on the head unit" for an app's copy. */
 @Composable
-private fun WidgetChooserDialog(current: BuiltinKind, onPick: (BuiltinKind) -> Unit, onDismiss: () -> Unit) {
+private fun slotName(slot: ClusterSlot): String =
+    if (slot.kind == BuiltinKind.MAPS_INSIDE) stringResource(R.string.second_screen_copy_of, appName(LocalContext.current, slot.app ?: ClusterLayouts.DEFAULT_APP))
+    else stringResource(slot.kind.labelRes)
+
+private fun appName(context: android.content.Context, pkg: String): String =
+    runCatching { context.packageManager.run { getApplicationLabel(getApplicationInfo(pkg, 0)).toString() } }.getOrDefault(pkg)
+
+private fun installed(context: android.content.Context, pkg: String): Boolean =
+    runCatching { context.packageManager.getApplicationInfo(pkg, 0) }.isSuccess
+
+/**
+ * The widgets the cluster can show, to pick the one a slot shows: the 3D map,
+ * a copy of each app inside a dashboard tile (Google Maps always offered), then
+ * the widgets.
+ */
+@Composable
+private fun WidgetChooserDialog(current: ClusterSlot, onPick: (ClusterSlot) -> Unit, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    val hosted by EmbeddedApp.hosted.collectAsState()
+    val apps = remember(hosted) {
+        (listOf(ClusterLayouts.DEFAULT_APP).filter { installed(context, it) } + hosted.sorted()).distinct()
+    }
+    val choices = buildList {
+        add(ClusterSlot(BuiltinKind.NAVMAP, WidgetDesign.STANDARD))
+        apps.forEach { add(ClusterSlot(BuiltinKind.MAPS_INSIDE, WidgetDesign.STANDARD, it)) }
+        ClusterLayouts.KINDS.filter { it !in ClusterLayouts.PICTURES }.forEach { add(ClusterSlot(it, WidgetDesign.STANDARD)) }
+    }
     AlertDialog(
         modifier = Modifier.keepClearOfWindows(),
         onDismissRequest = onDismiss,
@@ -232,21 +267,26 @@ private fun WidgetChooserDialog(current: BuiltinKind, onPick: (BuiltinKind) -> U
         title = { Text(stringResource(R.string.second_screen_widget_pick), color = DashColors.TextPrimary) },
         text = {
             LazyColumn(Modifier.heightIn(max = 420.dp)) {
-                items(ClusterLayouts.KINDS, key = { it.name }) { kind ->
-                    val on = kind == current
+                items(choices, key = { it.kind.name + (it.app ?: "") }) { choice ->
+                    val on = choice.kind == current.kind && choice.app == current.app
+                    val blurb = when (choice.kind) {
+                        BuiltinKind.NAVMAP -> R.string.second_screen_map_blurb
+                        BuiltinKind.MAPS_INSIDE -> R.string.second_screen_copy_blurb
+                        else -> choice.kind.blurbRes
+                    }
                     Column(
                         Modifier.fillMaxWidth().heightIn(min = 56.dp).clip(DashShape.Medium)
                             .background(if (on) DashColors.CardHi else DashColors.Card)
-                            .clickable { onPick(kind) }
+                            .clickable { onPick(choice) }
                             .padding(horizontal = 12.dp, vertical = 8.dp),
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            stringResource(kind.labelRes),
+                            slotName(choice),
                             color = if (on) DashColors.Accent else DashColors.TextPrimary,
                             style = MaterialTheme.typography.bodyLarge
                         )
-                        Text(stringResource(kind.blurbRes), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall, maxLines = 2)
+                        Text(stringResource(blurb), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall, maxLines = 2)
                     }
                 }
             }

@@ -67,8 +67,13 @@ enum class ClusterArrangement(val slots: Int) {
     GRID(4)
 }
 
-/** One widget on a cluster page, in the design it is drawn in. */
-data class ClusterSlot(val kind: BuiltinKind, val design: WidgetDesign)
+/**
+ * One widget on a cluster page, in the design it is drawn in. The dashboard's
+ * 3D map ([BuiltinKind.NAVMAP]) is drawn afresh, and [BuiltinKind.MAPS_INSIDE]
+ * is a copy of [app]'s picture from its tile on the dashboard: both have no
+ * designs ([WidgetDesign.STANDARD]).
+ */
+data class ClusterSlot(val kind: BuiltinKind, val design: WidgetDesign, val app: String? = null)
 
 /** A cluster page: its [arrangement] and as many [slots] as that holds, the big one first. */
 data class ClusterLayout(val arrangement: ClusterArrangement, val slots: List<ClusterSlot>)
@@ -82,16 +87,26 @@ object ClusterLayouts {
      * favourites: they are things to touch, and the cluster can't be touched.
      */
     val KINDS: List<BuiltinKind> = BuiltinKind.entries - setOf(
-        BuiltinKind.NAVMAP, BuiltinKind.PIP_ANCHOR, BuiltinKind.MAPS_INSIDE, BuiltinKind.MY_CAR,
-        BuiltinKind.DASH_BAR, BuiltinKind.QUICK_DIAL
+        BuiltinKind.PIP_ANCHOR, BuiltinKind.MY_CAR, BuiltinKind.DASH_BAR, BuiltinKind.QUICK_DIAL
     )
+
+    /** The live pictures: the 3D map and an app's copy. Drawn as they are, without designs. */
+    val PICTURES = setOf(BuiltinKind.NAVMAP, BuiltinKind.MAPS_INSIDE)
+
+    /** The app whose picture a new [BuiltinKind.MAPS_INSIDE] slot copies. */
+    const val DEFAULT_APP = "com.google.android.apps.maps"
 
     /** The designs [kind] can wear on the cluster, the ones made for it first. Not Standard: that is the dashboard's own tile, which the cluster doesn't draw. */
     fun designsFor(kind: BuiltinKind): List<WidgetDesign> =
-        WidgetDesign.offeredFor(kind, framed = false).filter { it != WidgetDesign.STANDARD }
+        if (kind in PICTURES) emptyList() else WidgetDesign.offeredFor(kind, framed = false).filter { it != WidgetDesign.STANDARD }
 
-    /** What a new slot of [kind] wears: the first design made for it, else Hero. */
-    fun defaultDesign(kind: BuiltinKind): WidgetDesign = designsFor(kind).firstOrNull { it.isSignature } ?: WidgetDesign.HERO
+    /** What a new slot of [kind] wears: the first design made for it, else Hero; Standard for the pictures. */
+    fun defaultDesign(kind: BuiltinKind): WidgetDesign =
+        if (kind in PICTURES) WidgetDesign.STANDARD else designsFor(kind).firstOrNull { it.isSignature } ?: WidgetDesign.HERO
+
+    /** Whether [design] is one [kind] can wear here. */
+    private fun suits(kind: BuiltinKind, design: WidgetDesign): Boolean =
+        if (kind in PICTURES) design == WidgetDesign.STANDARD else design in designsFor(kind)
 
     fun default(page: ClusterPage): ClusterLayout = when (page) {
         ClusterPage.DRIVE -> ClusterLayout(
@@ -146,17 +161,23 @@ object ClusterLayouts {
         return ClusterLayout(arrangement, slots)
     }
 
-    /** [layout] with slot [index] showing [kind] in [design], or in its first design when [design] doesn't suit it. */
-    fun withSlot(layout: ClusterLayout, index: Int, kind: BuiltinKind, design: WidgetDesign? = null): ClusterLayout {
+    /**
+     * [layout] with slot [index] showing [kind] in [design], or in its first
+     * design when [design] doesn't suit it; [app] is the app an app picture
+     * copies ([DEFAULT_APP] when not given).
+     */
+    fun withSlot(layout: ClusterLayout, index: Int, kind: BuiltinKind, design: WidgetDesign? = null, app: String? = null): ClusterLayout {
         if (index !in layout.slots.indices) return layout
-        val wear = design?.takeIf { it in designsFor(kind) } ?: defaultDesign(kind)
-        return layout.copy(slots = layout.slots.toMutableList().also { it[index] = ClusterSlot(kind, wear) })
+        val wear = design?.takeIf { suits(kind, it) } ?: defaultDesign(kind)
+        val copied = if (kind == BuiltinKind.MAPS_INSIDE) app ?: DEFAULT_APP else null
+        return layout.copy(slots = layout.slots.toMutableList().also { it[index] = ClusterSlot(kind, wear, copied) })
     }
 
     /** [layout] made whole: as many slots as its arrangement holds, widgets the cluster shows, designs that suit them. */
     fun sanitize(layout: ClusterLayout, page: ClusterPage): ClusterLayout {
         val slots = layout.slots.filter { it.kind in KINDS }.map {
-            if (it.design in designsFor(it.kind)) it else it.copy(design = defaultDesign(it.kind))
+            val app = if (it.kind == BuiltinKind.MAPS_INSIDE) it.app?.takeIf(String::isNotBlank) ?: DEFAULT_APP else null
+            (if (suits(it.kind, it.design)) it else it.copy(design = defaultDesign(it.kind))).copy(app = app)
         }
         return arrange(ClusterLayout(layout.arrangement, slots), layout.arrangement, page)
     }
@@ -295,10 +316,12 @@ object SecondScreenCodec {
     fun decodeKeys(raw: String?): Set<Int> =
         raw.orEmpty().split(',').mapNotNull { it.trim().toIntOrNull()?.takeIf { code -> code > 0 } }.toSet()
 
-    /** Board pages as "DRIVE=BIG_STACK:SPEED_HUD/SPEED_TAPE,CLOCK/HERO;MEDIA=...". */
+    /** Board pages as "DRIVE=BIG_STACK:SPEED_HUD/SPEED_TAPE,MAPS_INSIDE/STANDARD/com.google.android.apps.maps;MEDIA=...". */
     fun encodeLayouts(layouts: Map<ClusterPage, ClusterLayout>): String =
         layouts.entries.sortedBy { it.key.ordinal }.joinToString(";") { (page, layout) ->
-            page.name + "=" + layout.arrangement.name + ":" + layout.slots.joinToString(",") { it.kind.name + "/" + it.design.name }
+            page.name + "=" + layout.arrangement.name + ":" + layout.slots.joinToString(",") { s ->
+                s.kind.name + "/" + s.design.name + (s.app?.let { "/$it" } ?: "")
+            }
         }
 
     /** A page that doesn't read back (unknown page or arrangement) keeps its original look; a widget that doesn't is replaced. */
@@ -310,8 +333,9 @@ object SecondScreenCodec {
             val body = entry.substringAfter('=', "")
             val arrangement = ClusterArrangement.entries.firstOrNull { it.name == body.substringBefore(':').trim() } ?: continue
             val slots = body.substringAfter(':', "").split(',').mapNotNull { s ->
-                val kind = BuiltinKind.entries.firstOrNull { it.name == s.substringBefore('/').trim() } ?: return@mapNotNull null
-                ClusterSlot(kind, WidgetDesign.fromName(s.substringAfter('/', "").trim()))
+                val parts = s.split('/').map { it.trim() }
+                val kind = BuiltinKind.entries.firstOrNull { it.name == parts[0] } ?: return@mapNotNull null
+                ClusterSlot(kind, WidgetDesign.fromName(parts.getOrNull(1)), parts.getOrNull(2))
             }
             out[page] = ClusterLayouts.sanitize(ClusterLayout(arrangement, slots), page)
         }

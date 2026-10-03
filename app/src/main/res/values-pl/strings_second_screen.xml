@@ -64,4 +64,10 @@
     <string name="second_screen_widget_pick">Wybierz widżet</string>
     <string name="second_screen_design">Wygląd</string>
     <string name="second_screen_board_reset">Przywróć oryginalną stronę</string>
+    <string name="second_screen_copy_of">%1$s, jak na radiu</string>
+    <string name="second_screen_copy_blurb">Kopia jego kafelka z pulpitu. Obsługujesz go na radiu.</string>
+    <string name="second_screen_copy_no_tile">Umieść %1$s w kafelku pulpitu, aby widzieć go tutaj</string>
+    <string name="second_screen_copy_waits">%1$s czeka, aż auto się zatrzyma</string>
+    <string name="second_screen_map_blurb">Mapa 3D z pulpitu, z trasą i następnym skrętem</string>
+    <string name="second_screen_picture_wifi">Ruchomy obraz zużywa więcej Wi-Fi telefonu niż widżet.</string>
 </resources>

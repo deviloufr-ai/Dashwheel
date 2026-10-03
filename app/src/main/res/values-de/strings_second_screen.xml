@@ -64,4 +64,10 @@
     <string name="second_screen_widget_pick">Widget wählen</string>
     <string name="second_screen_design">Design</string>
     <string name="second_screen_board_reset">Zur ursprünglichen Seite</string>
+    <string name="second_screen_copy_of">%1$s, wie auf dem Radio</string>
+    <string name="second_screen_copy_blurb">Eine Kopie seiner Kachel im Dashboard. Bedient wird es am Radio.</string>
+    <string name="second_screen_copy_no_tile">Lege %1$s in eine Dashboard-Kachel, um es hier zu sehen</string>
+    <string name="second_screen_copy_waits">%1$s wartet, bis das Auto steht</string>
+    <string name="second_screen_map_blurb">Die 3D-Karte des Dashboards mit Route und nächster Abbiegung</string>
+    <string name="second_screen_picture_wifi">Ein bewegtes Bild braucht mehr WLAN des Telefons als ein Widget.</string>
 </resources>

@@ -27,6 +27,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import android.graphics.SurfaceTexture
+import android.view.Surface
+import android.view.TextureView
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.Navigation
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.coroutines.flow.StateFlow
 
 /*
@@ -102,12 +115,15 @@ internal fun rememberClusterEnv(): SkinTileEnv {
 /**
  * One cluster page laid out as [layout] says. [overlay] draws over slot
  * [index] (the board's selection and taps); null on the second screen itself.
+ * On the board's [preview] the 3D map is only named: a second live map in
+ * Settings would cost as much as the one on the cluster.
  */
 @Composable
 internal fun ClusterPageBody(
     layout: ClusterLayout,
     env: SkinTileEnv,
     modifier: Modifier = Modifier,
+    preview: Boolean = false,
     overlay: (@Composable BoxScope.(index: Int) -> Unit)? = null
 ) {
     val gap = 12.dp
@@ -116,7 +132,11 @@ internal fun ClusterPageBody(
     fun Slot(index: Int, m: Modifier) {
         val slot = slots.getOrNull(index) ?: return
         Box(m) {
-            Face(slot.kind, slot.design, env, Modifier.fillMaxSize())
+            when (slot.kind) {
+                BuiltinKind.NAVMAP -> if (preview || isEmulator) PictureStandIn(Icons.Filled.Navigation, stringResource(BuiltinKind.NAVMAP.labelRes)) else ClusterMap()
+                BuiltinKind.MAPS_INSIDE -> AppCopy(slot.app ?: ClusterLayouts.DEFAULT_APP)
+                else -> Face(slot.kind, slot.design, env, Modifier.fillMaxSize())
+            }
             overlay?.invoke(this, index)
         }
     }
@@ -145,6 +165,96 @@ internal fun ClusterPageBody(
                 }
             }
         }
+    }
+}
+
+/**
+ * The dashboard's own 3D map, drawn afresh for the cluster: the car, the
+ * guided route and the next turn, nothing to touch (the map as a wallpaper).
+ */
+@Composable
+private fun ClusterMap() {
+    Box(Modifier.fillMaxSize().clip(DashShape.Medium).background(DashColors.Card)) {
+        MapLibrePanel(Modifier.fillMaxSize(), wallpaper = true)
+        val nav by NavDirections.state.collectAsState()
+        if (nav.active) {
+            DirectionsBanner(nav = nav, modifier = Modifier.align(Alignment.TopCenter).padding(10.dp))
+        }
+    }
+}
+
+/**
+ * A copy of [packageName]'s picture from its tile on the dashboard
+ * ([EmbeddedApp.showCopy]): the same app, seen in both places, used on the
+ * head unit. Says what is missing while there is nothing to copy, and keeps a
+ * video app's picture away from the driver while the car moves.
+ */
+@Composable
+private fun AppCopy(packageName: String) {
+    val context = LocalContext.current
+    val hosted by EmbeddedApp.hosted.collectAsState()
+    val config by SecondScreenStore.config.collectAsState()
+    val moving by SecondScreenController.isMoving.collectAsState()
+    val label = remember(packageName) {
+        runCatching { context.packageManager.run { getApplicationLabel(getApplicationInfo(packageName, 0)).toString() } }.getOrDefault(packageName)
+    }
+    val video = remember(packageName) {
+        val category = runCatching { context.packageManager.getApplicationInfo(packageName, 0).category }.getOrNull()
+        VideoApps.isVideo(packageName, category)
+    }
+    val held = packageName in hosted
+    val waits = video && moving && !config.rearSeat
+    Box(Modifier.fillMaxSize().clip(DashShape.Medium).background(DashColors.Card)) {
+        if (held && !waits) {
+            AndroidView(
+                modifier = Modifier.fillMaxSize(),
+                factory = { ctx ->
+                    TextureView(ctx).apply {
+                        var surface: Surface? = null
+                        surfaceTextureListener = object : TextureView.SurfaceTextureListener {
+                            override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
+                                texture.setDefaultBufferSize(width, height)
+                                surface = Surface(texture).also { EmbeddedApp.showCopy(packageName, it) }
+                            }
+
+                            override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) {
+                                texture.setDefaultBufferSize(width, height)
+                            }
+
+                            override fun onSurfaceTextureDestroyed(texture: SurfaceTexture): Boolean {
+                                // The relay lets go of the picture before it is freed.
+                                surface?.let { EmbeddedApp.hideCopy(packageName, it); it.release() }
+                                surface = null
+                                return true
+                            }
+
+                            override fun onSurfaceTextureUpdated(texture: SurfaceTexture) = Unit
+                        }
+                    }
+                }
+            )
+        } else {
+            PictureStandIn(
+                Icons.Filled.Apps,
+                stringResource(if (waits) R.string.second_screen_copy_waits else R.string.second_screen_copy_no_tile, label)
+            )
+        }
+    }
+}
+
+/** What a live picture's slot shows instead of it: an icon and a line. */
+@Composable
+private fun PictureStandIn(icon: ImageVector, text: String) {
+    Column(
+        Modifier.fillMaxSize().clip(DashShape.Medium).background(DashColors.Card).padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(icon, contentDescription = null, tint = DashColors.Accent, modifier = Modifier.size(56.dp))
+        Text(
+            text, color = DashColors.TextSecondary, textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 12.dp)
+        )
     }
 }
 

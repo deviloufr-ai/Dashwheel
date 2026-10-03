@@ -64,4 +64,10 @@
     <string name="second_screen_widget_pick">Scegli un widget</string>
     <string name="second_screen_design">Stile</string>
     <string name="second_screen_board_reset">Torna alla pagina originale</string>
+    <string name="second_screen_copy_of">%1$s, come sull\'autoradio</string>
+    <string name="second_screen_copy_blurb">Una copia del suo riquadro sulla dashboard. Si usa sull\'autoradio.</string>
+    <string name="second_screen_copy_no_tile">Metti %1$s in un riquadro della dashboard per vederlo qui</string>
+    <string name="second_screen_copy_waits">%1$s aspetta che l\'auto si fermi</string>
+    <string name="second_screen_map_blurb">La mappa 3D della dashboard, con il percorso e la prossima svolta</string>
+    <string name="second_screen_picture_wifi">Un\'immagine in movimento usa più Wi-Fi del telefono di un widget.</string>
 </resources>

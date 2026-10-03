@@ -64,4 +64,10 @@
     <string name="second_screen_widget_pick">Choose a widget</string>
     <string name="second_screen_design">Design</string>
     <string name="second_screen_board_reset">Back to the original page</string>
+    <string name="second_screen_copy_of">%1$s, as on the head unit</string>
+    <string name="second_screen_copy_blurb">A copy of its tile on the dashboard. You use it on the head unit.</string>
+    <string name="second_screen_copy_no_tile">Put %1$s inside a dashboard tile to see it here</string>
+    <string name="second_screen_copy_waits">%1$s waits until the car stops</string>
+    <string name="second_screen_map_blurb">The dashboard\'s 3D map, with the route and the next turn</string>
+    <string name="second_screen_picture_wifi">A moving picture uses more of the phone\'s Wi-Fi than a widget.</string>
 </resources>

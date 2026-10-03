@@ -64,4 +64,10 @@
     <string name="second_screen_widget_pick">Elegir un widget</string>
     <string name="second_screen_design">Diseño</string>
     <string name="second_screen_board_reset">Volver a la página original</string>
+    <string name="second_screen_copy_of">%1$s, como en la radio</string>
+    <string name="second_screen_copy_blurb">Una copia de su mosaico del panel. Se usa en la radio.</string>
+    <string name="second_screen_copy_no_tile">Pon %1$s dentro de un mosaico del panel para verlo aquí</string>
+    <string name="second_screen_copy_waits">%1$s espera a que el coche se detenga</string>
+    <string name="second_screen_map_blurb">El mapa 3D del panel, con la ruta y el próximo giro</string>
+    <string name="second_screen_picture_wifi">Una imagen en movimiento usa más Wi-Fi del teléfono que un widget.</string>
 </resources>
