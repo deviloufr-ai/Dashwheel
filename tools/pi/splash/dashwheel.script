@@ -1,6 +1,6 @@
-# The logo centred on the app's dark background, scaled down on small screens.
-Window.SetBackgroundTopColor(0.059, 0.067, 0.082);
-Window.SetBackgroundBottomColor(0.059, 0.067, 0.082);
+# The logo centred on the idle screen's background (Painter.BG_NIGHT, #0B0F14), scaled down on small screens.
+Window.SetBackgroundTopColor(0.043, 0.059, 0.078);
+Window.SetBackgroundBottomColor(0.043, 0.059, 0.078);
 
 logo = Image("logo.png");
 w = Window.GetWidth();

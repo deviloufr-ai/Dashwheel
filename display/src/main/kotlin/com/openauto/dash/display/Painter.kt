@@ -24,7 +24,7 @@ import kotlin.math.roundToInt
  * unit sends data instead of video. Big type, flat colours and strokes of at
  * least 2 px, so it stays legible on a composite (RCA) monitor too.
  */
-class Painter(val width: Int, val height: Int, private val overscanPct: Int) {
+class Painter(val width: Int, val height: Int, private val overscanPct: Int, private val logo: BufferedImage? = null) {
 
     /** TYPE_INT_RGB is 0x00RRGGBB per pixel: little-endian, the bytes are B,G,R,x (GStreamer's "bgrx"). */
     val image = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
@@ -37,6 +37,20 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int) {
     fun paintIdle(name: String, status: String, now: Long, pairingUri: String?) = draw { g ->
         g.color = BG_NIGHT
         g.fillRect(0, 0, width, height)
+        val logo = logo
+        if (pairingUri == null && logo != null) {
+            // The boot picture again, where Plymouth left it (same size, same background):
+            // the hand-over can't be seen, and it stays until the head unit sends its own.
+            val scale = min(1.0, min(width * 0.5 / logo.width, height * 0.6 / logo.height))
+            val w = (logo.width * scale).roundToInt()
+            val h = (logo.height * scale).roundToInt()
+            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
+            g.drawImage(logo, (width - w) / 2, (height - h) / 2, w, h, null)
+            g.color = MUTED
+            g.font = font(Font.PLAIN, 4.5f)
+            drawCentered(g, status, width / 2, height - inset - (8 * unit).roundToInt())
+            return@draw
+        }
         val left = inset + (6 * unit).roundToInt()
         g.color = TEXT
         g.font = font(Font.BOLD, 22f)

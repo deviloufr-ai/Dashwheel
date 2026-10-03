@@ -86,6 +86,9 @@ else
   install -m 644 "$HERE/splash/logo.png" "$THEME/logo.png"
 fi
 plymouth-set-default-theme -R dashwheel
+# The display service ends the boot logo itself, at its first picture: systemd's
+# own "quit" at the end of the start would leave the screen black in between.
+systemctl mask plymouth-quit.service plymouth-quit-wait.service
 
 echo "== faster start"
 # Nothing here is needed by a screen that only answers the head unit: first-boot

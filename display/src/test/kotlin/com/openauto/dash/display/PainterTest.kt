@@ -28,6 +28,22 @@ class PainterTest {
     }
 
     @Test
+    fun pairedIdleScreenShowsTheBootLogoWherePlymouthDrewIt() {
+        // A 300×200 red logo: on 1920×1080 it stays full size, centred.
+        val logo = java.awt.image.BufferedImage(300, 200, java.awt.image.BufferedImage.TYPE_INT_RGB)
+        logo.createGraphics().apply { color = java.awt.Color.RED; fillRect(0, 0, 300, 200); dispose() }
+        val image = Painter(1920, 1080, overscanPct = 0, logo = logo).paintIdle("Car", "Waiting", 0, pairingUri = null)
+        assertEquals(0xFF0000, image.getRGB(960, 540) and 0xFFFFFF)
+        assertEquals(0xFF0000, image.getRGB(960 - 149, 540 - 99) and 0xFFFFFF)
+        assertEquals(0x0B0F14, image.getRGB(960 - 152, 540) and 0xFFFFFF)
+
+        // Not paired yet: the pairing code comes first, not the logo.
+        val uri = PairingOffer.create("Car", kind = PairingOffer.Kind.DISPLAY).toUri()
+        val pairing = Painter(1920, 1080, overscanPct = 0, logo = logo).paintIdle("Car", "Waiting", 0, uri)
+        assertTrue(pairing.getRGB(960, 540) and 0xFFFFFF != 0xFF0000)
+    }
+
+    @Test
     fun everyClusterPageDrawsOnSmallAndLargeScreens() {
         val full = ClusterState(
             clock = 1_700_000_000_000, speedKmh = 87, rpm = 2100, coolantC = 90, fuelPct = 40, rangeKm = 310,

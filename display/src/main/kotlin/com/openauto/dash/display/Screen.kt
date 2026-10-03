@@ -15,12 +15,16 @@ class Screen(
     mode: ScreenMode,
     private val pairing: DisplayPairing,
     requestKeyFrame: () -> Unit,
-    private val startVideo: () -> VideoSink.Sink = { GstVideoSink.start(Pipelines.video(config)) },
-    private val startFrames: (Int, Int) -> GstProcess? = { w, h -> GstProcess.startOrNull(Pipelines.frames(config, w, h), capacity = 1) }
+    private val startVideo: () -> VideoSink.Sink = { BootLogo.release(); GstVideoSink.start(Pipelines.video(config)) },
+    private val startFrames: (Int, Int) -> GstProcess? = { w, h ->
+        BootLogo.release()
+        GstProcess.startOrNull(Pipelines.frames(config, w, h), capacity = 1)
+    },
+    logo: java.awt.image.BufferedImage? = BootLogo.image
 ) {
     enum class Showing { IDLE, DATA, VIDEO }
 
-    private val painter = Painter(mode.width, mode.height, config.overscanPct)
+    private val painter = Painter(mode.width, mode.height, config.overscanPct, logo)
     private val video = VideoSink(start = { stopFrames(); startVideo() }, requestKeyFrame = requestKeyFrame)
     private var frames: GstProcess? = null
 

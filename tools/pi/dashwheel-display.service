@@ -1,16 +1,15 @@
 # The Dashwheel second screen: answers the head unit and drives the monitor.
 # It takes the console's screen (tty1), so the login prompt is kept off it.
+# No wait for the network: the server listens on every address, Wi-Fi joins later.
 [Unit]
 Description=Dashwheel second screen
-# No wait for the network: the server listens on every address, Wi-Fi joins later.
-# Takes the screen over from the boot logo (plymouth quit --retain-splash below).
-Before=plymouth-quit.service plymouth-quit-wait.service
 Conflicts=getty@tty1.service
 
 [Service]
-# The boot logo stays up until the first picture; without it, a black console
-# behind the video (the picture may not fill a monitor of another shape).
-ExecStartPre=-/bin/sh -c 'if plymouth --ping 2>/dev/null; then plymouth quit --retain-splash; else printf "\033[2J\033[3J\033[H\033[?25l" > /dev/tty1; fi'
+# The boot logo, if any, stays up: the service quits it right before its first
+# picture (BootLogo). Without one, a black console behind the video (the picture
+# may not fill a monitor of another shape).
+ExecStartPre=-/bin/sh -c 'plymouth --ping 2>/dev/null || printf "\033[2J\033[3J\033[H\033[?25l" > /dev/tty1'
 # Then the text console lets go of the screen: nothing printed later (cloud-init, the kernel) can show.
 ExecStartPre=-/bin/sh -c 'for c in /sys/class/vtconsole/vtcon*; do grep -q "frame buffer" $$c/name && echo 0 > $$c/bind; done'
 # Quicker Java start: the class archive the installer made, and the fast compiler only.
