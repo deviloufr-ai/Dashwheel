@@ -143,6 +143,9 @@ if [ "$OVERLAY" -eq 1 ]; then
   raspi-config nonint do_overlayfs 0
 fi
 
+# Back on screen now; the boot settings above take effect at the next start.
+systemctl restart dashwheel-display
+
 echo
 echo "Done. Reboot, then scan the code on the screen with the Dashwheel phone app."
 echo "The head unit and this Pi must both be on the phone's hotspot."
