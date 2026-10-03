@@ -66,7 +66,10 @@ class Screen(
 
     @Synchronized
     fun video() {
+        if (showing == Showing.VIDEO) return
         showing = Showing.VIDEO
+        log("video: asked")
+        video.prepare()
     }
 
     fun configureVideo(config: VideoConfig) = video.configure(config)

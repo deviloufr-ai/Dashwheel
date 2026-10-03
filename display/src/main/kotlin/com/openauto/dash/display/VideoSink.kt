@@ -39,17 +39,26 @@ class VideoSink(
         waitingForKey = true
     }
 
+    /** Starts the decoder ahead of the first packet: it takes a couple of seconds on a Pi 3. */
+    @Synchronized
+    fun prepare() {
+        if (sink?.alive != true) running()
+    }
+
+    private fun running(): Sink = sink?.takeIf { it.alive } ?: run {
+        // Not started yet, or the decoder died: start afresh from a key frame.
+        val restarted = sink != null
+        sink?.stop()
+        waitingForKey = true
+        if (restarted) requestKeyFrame()
+        log("video: decoder starting")
+        start().also { sink = it }
+    }
+
     @Synchronized
     fun feed(packet: VideoPacket) {
         bytes += packet.data.size
-        val running = sink?.takeIf { it.alive } ?: run {
-            // Not started yet, or the decoder died: start afresh from a key frame.
-            val restarted = sink != null
-            sink?.stop()
-            waitingForKey = true
-            if (restarted) requestKeyFrame()
-            start().also { sink = it }
-        }
+        val running = running()
         if (waitingForKey) {
             if (!packet.keyFrame) {
                 // Joined mid-stream or lost a frame: ask rather than wait out the key-frame interval.
@@ -63,6 +72,7 @@ class VideoSink(
                 return
             }
             waitingForKey = false
+            log("video: key frame, decoding")
             shown++
             return
         }
