@@ -6,7 +6,9 @@
 
 **[Download the latest APK](https://github.com/deviloufr-ai/ACP/releases/latest)** · Android 10+ · made for 1280x720 head units (ROCO K706 / FYT / QF units), also works on upright screens and phones.
 
-Like it? [Buy me a coffee on Ko-fi](https://ko-fi.com/deviloufr).
+[![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/deviloufr)
+
+Dashwheel is free, with no ads. If it makes your drives nicer, a coffee on Ko-fi keeps it going.
 
 ## Screenshots
 
