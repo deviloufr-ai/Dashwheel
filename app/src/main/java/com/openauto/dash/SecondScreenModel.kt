@@ -57,29 +57,38 @@ enum class SecondScreenOutput {
 }
 
 /** Why the app asked for can't be shown (the display then shows the cluster from data). */
-enum class SecondScreenBlock { NONE, NO_APP_CHOSEN, NO_VIDEO, VIDEO_WHILE_MOVING }
+enum class SecondScreenBlock { NONE, NO_APP_CHOSEN, NO_VIDEO, VIDEO_WHILE_MOVING, APPS_NOT_SUPPORTED }
 
 object SecondScreenRules {
 
     val STREAM_HEIGHTS = listOf(480, 720, 1080)
 
     /**
+     * An app goes onto the second screen with `am display move-stack`, through the
+     * head unit's root shell. Android 12 dropped stacks and that command with them.
+     */
+    fun appsMovable(sdk: Int): Boolean = sdk <= 30
+
+    /**
      * What to send, and why the choice isn't what [config] asks for, if it isn't.
      * [canStream]: the display decodes H.264 and the encoder here is available.
      * [appIsVideo]: the chosen app plays video (films, YouTube), which the
      * driver must not see while [moving] unless the monitor is for the back seats.
+     * [canMoveApps]: this Android can move an app's window onto the streamed display ([appsMovable]).
      */
     fun output(
         config: SecondScreenConfig,
         connected: Boolean,
         canStream: Boolean,
         moving: Boolean,
-        appIsVideo: Boolean
+        appIsVideo: Boolean,
+        canMoveApps: Boolean = true
     ): Pair<SecondScreenOutput, SecondScreenBlock> {
         if (config.mode == SecondScreenMode.OFF || !connected) return SecondScreenOutput.NONE to SecondScreenBlock.NONE
         val cluster = if (config.video && canStream) SecondScreenOutput.VIDEO_CLUSTER else SecondScreenOutput.DATA
         if (config.mode == SecondScreenMode.CLUSTER) return cluster to SecondScreenBlock.NONE
         return when {
+            !canMoveApps -> cluster to SecondScreenBlock.APPS_NOT_SUPPORTED
             config.appPackage == null -> cluster to SecondScreenBlock.NO_APP_CHOSEN
             !canStream -> SecondScreenOutput.DATA to SecondScreenBlock.NO_VIDEO
             appIsVideo && moving && !config.rearSeat -> cluster to SecondScreenBlock.VIDEO_WHILE_MOVING

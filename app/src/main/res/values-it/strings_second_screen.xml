@@ -33,6 +33,7 @@
     <string name="second_screen_output_video">Immagine in streaming · %1$d kbit/s</string>
     <string name="second_screen_output_data">Invio delle letture; lo schermo disegna il quadro</string>
     <string name="second_screen_blocked_moving">Le app video attendono che l\'auto si fermi, tranne su uno schermo posteriore</string>
+    <string name="second_screen_blocked_apps">Le app sul secondo schermo richiedono un\'autoradio con root su Android 10 o 11. Al loro posto appare il quadro.</string>
     <string name="second_screen_blocked_no_video">Questo schermo può solo disegnare il quadro dalle letture</string>
     <string name="second_screen_blocked_no_app">Scegli l\'app da mostrare</string>
     <string name="second_screen_on_screen">Sul secondo schermo</string>

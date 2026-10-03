@@ -198,6 +198,13 @@ private fun SecondScreenSettings() {
             ) { on -> update { it.copy(video = on) } }
         }
         SecondScreenMode.APP -> {
+            if (!SecondScreenRules.appsMovable(android.os.Build.VERSION.SDK_INT)) {
+                Text(
+                    stringResource(R.string.second_screen_blocked_apps),
+                    color = DashColors.Warning, style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                )
+            }
             val appName = config.appPackage?.let { pkg -> remember(pkg) { appLabel(context, pkg) } }
             SettingsRow(Icons.Filled.Apps, stringResource(R.string.second_screen_app), appName ?: stringResource(R.string.second_screen_app_none)) {
                 choosingApp = true
@@ -249,6 +256,7 @@ private fun statusLine(status: SecondScreenStatus): String? {
         SecondScreenBlock.NO_APP_CHOSEN -> stringResource(R.string.second_screen_blocked_no_app)
         SecondScreenBlock.NO_VIDEO -> stringResource(R.string.second_screen_blocked_no_video)
         SecondScreenBlock.VIDEO_WHILE_MOVING -> stringResource(R.string.second_screen_blocked_moving)
+        SecondScreenBlock.APPS_NOT_SUPPORTED -> stringResource(R.string.second_screen_blocked_apps)
     }
     val output = when (status.output) {
         SecondScreenOutput.NONE -> null

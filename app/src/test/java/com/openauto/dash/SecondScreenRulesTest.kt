@@ -13,8 +13,17 @@ class SecondScreenRulesTest {
         connected: Boolean = true,
         canStream: Boolean = true,
         moving: Boolean = false,
-        appIsVideo: Boolean = false
-    ) = SecondScreenRules.output(config, connected, canStream, moving, appIsVideo)
+        appIsVideo: Boolean = false,
+        canMoveApps: Boolean = true
+    ) = SecondScreenRules.output(config, connected, canStream, moving, appIsVideo, canMoveApps)
+
+    @Test
+    fun appsNeedAnAndroidThatMovesThem() {
+        val app = SecondScreenConfig(mode = SecondScreenMode.APP, appPackage = "com.waze")
+        assertEquals(SecondScreenOutput.VIDEO_CLUSTER to SecondScreenBlock.APPS_NOT_SUPPORTED, output(app, canMoveApps = false))
+        assertTrue(SecondScreenRules.appsMovable(29))
+        assertFalse(SecondScreenRules.appsMovable(35))
+    }
 
     @Test
     fun offOrNoDisplaySendsNothing() {

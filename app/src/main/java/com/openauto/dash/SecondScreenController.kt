@@ -115,7 +115,8 @@ internal object SecondScreenController {
                 val canStream = display != null && com.openauto.dash.link.CODEC_H264 in display.decoders && !failed
                 val (output, block) = SecondScreenRules.output(
                     config, connected = display != null, canStream = canStream, moving = isMoving,
-                    appIsVideo = config.appPackage?.let(::isVideoApp) == true
+                    appIsVideo = config.appPackage?.let(::isVideoApp) == true,
+                    canMoveApps = SecondScreenRules.appsMovable(android.os.Build.VERSION.SDK_INT)
                 )
                 Wanted(output, block, config, display)
             }

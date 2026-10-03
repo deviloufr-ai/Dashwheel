@@ -33,6 +33,7 @@
     <string name="second_screen_output_video">Beeld wordt gestreamd · %1$d kbit/s</string>
     <string name="second_screen_output_data">Meetwaarden worden verstuurd; het scherm tekent de instrumenten</string>
     <string name="second_screen_blocked_moving">Video-apps wachten tot de auto stilstaat, behalve op een scherm voor achterin</string>
+    <string name="second_screen_blocked_apps">Apps op het tweede scherm vragen een geroote autoradio met Android 10 of 11. In plaats daarvan verschijnt het dashboard.</string>
     <string name="second_screen_blocked_no_video">Dit scherm kan alleen de instrumenten uit meetwaarden tekenen</string>
     <string name="second_screen_blocked_no_app">Kies de app die getoond wordt</string>
     <string name="second_screen_on_screen">Op het tweede scherm</string>

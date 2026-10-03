@@ -33,6 +33,7 @@
     <string name="second_screen_output_video">Image diffusée · %1$d kbit/s</string>
     <string name="second_screen_output_data">Envoi des mesures ; l\'écran dessine le combiné</string>
     <string name="second_screen_blocked_moving">Les applis vidéo attendent l\'arrêt de la voiture, sauf sur un écran pour l\'arrière</string>
+    <string name="second_screen_blocked_apps">Les applis sur le second écran demandent un autoradio rooté sous Android 10 ou 11. Le combiné s\'affiche à la place.</string>
     <string name="second_screen_blocked_no_video">Cet écran ne peut que dessiner le combiné à partir des mesures</string>
     <string name="second_screen_blocked_no_app">Choisissez l\'appli à afficher</string>
     <string name="second_screen_on_screen">Sur le second écran</string>

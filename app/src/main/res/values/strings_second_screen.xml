@@ -33,6 +33,7 @@
     <string name="second_screen_output_video">Streaming the picture · %1$d kbit/s</string>
     <string name="second_screen_output_data">Sending readings; the screen draws the cluster</string>
     <string name="second_screen_blocked_moving">Video apps wait until the car stops, unless it is a rear-seat screen</string>
+    <string name="second_screen_blocked_apps">Apps on the second screen need a rooted head unit on Android 10 or 11. The cluster shows instead.</string>
     <string name="second_screen_blocked_no_video">This screen can only draw the cluster from readings</string>
     <string name="second_screen_blocked_no_app">Choose the app to show</string>
     <string name="second_screen_on_screen">On the second screen</string>

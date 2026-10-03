@@ -33,6 +33,7 @@
     <string name="second_screen_output_video">Przesyłanie obrazu · %1$d kbit/s</string>
     <string name="second_screen_output_data">Wysyłanie odczytów; ekran rysuje zegary</string>
     <string name="second_screen_blocked_moving">Aplikacje wideo czekają na zatrzymanie auta, chyba że to ekran dla tylnych siedzeń</string>
+    <string name="second_screen_blocked_apps">Aplikacje na drugim ekranie wymagają radia z rootem na Androidzie 10 lub 11. Zamiast nich widać zegary.</string>
     <string name="second_screen_blocked_no_video">Ten ekran może tylko rysować zegary z odczytów</string>
     <string name="second_screen_blocked_no_app">Wybierz aplikację do wyświetlania</string>
     <string name="second_screen_on_screen">Na drugim ekranie</string>

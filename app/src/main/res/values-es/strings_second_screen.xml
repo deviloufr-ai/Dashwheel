@@ -33,6 +33,7 @@
     <string name="second_screen_output_video">Transmitiendo la imagen · %1$d kbit/s</string>
     <string name="second_screen_output_data">Enviando lecturas; la pantalla dibuja el cuadro</string>
     <string name="second_screen_blocked_moving">Las apps de vídeo esperan a que el coche se detenga, salvo en una pantalla trasera</string>
+    <string name="second_screen_blocked_apps">Las apps en la segunda pantalla necesitan una radio con root en Android 10 u 11. Se muestra el cuadro en su lugar.</string>
     <string name="second_screen_blocked_no_video">Esta pantalla solo puede dibujar el cuadro con las lecturas</string>
     <string name="second_screen_blocked_no_app">Elige la app que mostrar</string>
     <string name="second_screen_on_screen">En la segunda pantalla</string>
