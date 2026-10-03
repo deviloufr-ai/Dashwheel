@@ -183,6 +183,9 @@
     <string name="dash_update_later">Später</string>
     <string name="dash_reset_confirm_title">Diese Seite leeren?</string>
     <string name="dash_reset_confirm_body">Alle Kacheln darauf verschwinden. Rückgängig holt sie zurück.</string>
+    <string name="dash_dashboard_options">Dashboard-Optionen</string>
+    <string name="dash_remove_dashboard_title">%1$s entfernen?</string>
+    <string name="dash_remove_dashboard_body">Seine Kacheln verschwinden mit. Rückgängig holt sie zurück.</string>
     <string name="dash_clear">Leeren</string>
     <string name="dash_theme_show_all">Alle %1$d Designs zeigen</string>
     <string name="dash_theme_show_fewer">Weniger zeigen</string>

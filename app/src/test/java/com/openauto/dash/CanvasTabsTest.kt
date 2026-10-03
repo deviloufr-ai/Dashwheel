@@ -43,9 +43,13 @@ class CanvasTabsTest {
         // A cross: Home first, then the pages with tiles round it.
         val crossKey = CanvasTabs.keyFor("_canvas")
         assertEquals(listOf(1, 0, 4), CanvasTabs.tabsFor(crossKey, emptyMap(), pages).map { it.page })
-        // Saved ones win.
-        val saved = listOf(CanvasTab(5, name = "Mine"))
+        // Saved ones win, with Home and every page holding tiles kept in reach.
+        val saved = listOf(CanvasTab(1), CanvasTab(5, name = "Mine"), CanvasTab(0), CanvasTab(4))
         assertEquals(saved, CanvasTabs.tabsFor(crossKey, mapOf(crossKey to saved), pages))
+        val partial = listOf(CanvasTab(5, name = "Mine"))
+        assertEquals(listOf(1, 5, 0, 4), CanvasTabs.tabsFor(crossKey, mapOf(crossKey to partial), pages).map { it.page })
+        // The Canvas tabs are the driver's alone.
+        assertEquals(partial, CanvasTabs.tabsFor(tabsKey, mapOf(tabsKey to partial), pages))
         assertFalse(tabsKey == crossKey)
     }
 
@@ -108,5 +112,25 @@ class CanvasTabsTest {
             page.forEach { t -> assertTrue(t.x >= 0 && t.y >= 0 && t.x + t.w <= GRID_COLS && t.y + t.h <= GRID_ROWS) }
             page.forEachIndexed { i, a -> page.drop(i + 1).forEach { b -> assertFalse(a.overlaps(b)) } }
         }
+    }
+
+    @Test
+    fun onlyTheKeptDashboardsAreSwiped() {
+        // Home alone: one page each way, nothing to swipe.
+        val alone = DashboardStore.shownCross(emptyList())
+        assertEquals(listOf(DashboardStore.CENTER), alone.row)
+        assertEquals(listOf(DashboardStore.CENTER), alone.column)
+        assertEquals(DashboardStore.CENTER, alone.pageAt(0, 0))
+        // Left of Home and the one just below it.
+        val some = DashboardStore.shownCross(listOf(0, 5))
+        assertEquals(listOf(0, 1), some.row)
+        assertEquals(listOf(1, 5), some.column)
+        assertEquals(0, some.pageAt(0, 0))
+        assertEquals(5, some.pageAt(some.rowHome, 1))
+        assertTrue(5 in some)
+        assertFalse(2 in some)
+        // A page that went: the pagers start on Home.
+        assertEquals(some.rowHome, some.rowIndexOf(2))
+        assertEquals(some.columnHome, some.columnIndexOf(2))
     }
 }

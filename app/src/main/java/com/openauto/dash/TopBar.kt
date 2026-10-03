@@ -44,6 +44,7 @@ import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FormatSize
+import androidx.compose.material.icons.filled.LibraryAdd
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PhoneAndroid
@@ -1067,9 +1068,10 @@ internal fun DemoBadge(onStop: () -> Unit, modifier: Modifier = Modifier, compac
 
 /**
  * The bar while arranging, in the launcher bar's place: what to do, plus
- * Add / Undo / Templates / Text size / Reset / Done, each [DashSize.TouchPrimary]
- * tall. Changes save as they happen; Undo walks back through the last edits.
- * An upright screen keeps the page's name and shows the actions as icons.
+ * Add / Undo / Templates / Text size / Reset / New dashboard / Done, each
+ * [DashSize.TouchPrimary] tall. Changes save as they happen; Undo walks back
+ * through the last edits. The page's name opens its dashboard (name, place,
+ * remove). An upright screen keeps the page's name and shows the actions as icons.
  */
 @Composable
 internal fun EditBar(
@@ -1083,6 +1085,10 @@ internal fun EditBar(
     onTemplates: () -> Unit,
     /** Sets every tile on the page to this zoom. */
     onPageZoom: (Float) -> Unit,
+    /** Opens the page's dashboard sheet. */
+    onDashboard: () -> Unit,
+    /** Starts a new dashboard; null when every spot of the cross has one. */
+    onNewDashboard: (() -> Unit)?,
     onDone: () -> Unit
 ) {
     val glass = DashColors.Glass
@@ -1107,15 +1113,29 @@ internal fun EditBar(
                     .background(DashColors.Accent)
             )
             Spacer(Modifier.width(4.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    stringResource(R.string.dash_arranging_dashboard, pageName(page)),
-                    color = DashColors.TextPrimary,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.labelLarge
-                )
+            val dashboardLabel = stringResource(R.string.dash_dashboard_options)
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .heightIn(min = DashSize.TouchPrimary)
+                    .clip(DashShape.Small)
+                    .clickable(role = Role.Button, onClickLabel = dashboardLabel) { tap(); onDashboard() }
+                    .padding(horizontal = 6.dp),
+                verticalArrangement = Arrangement.Center
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        stringResource(R.string.dash_arranging_dashboard, pageName(page)),
+                        color = DashColors.TextPrimary,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.labelLarge,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Icon(Icons.Filled.Edit, contentDescription = dashboardLabel, tint = DashColors.Accent, modifier = Modifier.size(16.dp))
+                }
                 if (!narrow) {
                     Text(
                         stringResource(R.string.dash_arranging_hint),
@@ -1131,6 +1151,7 @@ internal fun EditBar(
             EditAction(Icons.Filled.Dashboard, stringResource(R.string.templates_button), narrow, onClick = onTemplates)
             PageZoomButton(pageZoom, narrow, onPageZoom)
             EditAction(Icons.Filled.RestartAlt, stringResource(R.string.dash_reset_page), narrow, ink = DashColors.Critical, onClick = onReset)
+            if (onNewDashboard != null) EditAction(Icons.Filled.LibraryAdd, stringResource(R.string.canvas_tab_new), narrow, onClick = onNewDashboard)
             Spacer(Modifier.width(4.dp))
             Button(
                 onClick = { tap(); onDone() },
@@ -1180,12 +1201,12 @@ private fun EditAction(
 
 /**
  * Floats over the pages for a few seconds after a page change, then fades:
- * the seven dashboards as the cross they form, the one on screen filled with
+ * the dashboards as the cross they form, the one on screen filled with
  * the accent, the rest hollow, and its name under it. It takes no room in the
  * layout and no touches.
  */
 @Composable
-internal fun PageIndicator(current: Int, modifier: Modifier = Modifier) {
+internal fun PageIndicator(current: Int, cross: ShownCross, modifier: Modifier = Modifier) {
     val cell = 12.dp
     val gap = 3.dp
     val accent = DashColors.Accent
@@ -1207,9 +1228,10 @@ internal fun PageIndicator(current: Int, modifier: Modifier = Modifier) {
                 if (page == current) drawRoundRect(accent, topLeft, Size(c, c), r)
                 else drawRoundRect(ink, topLeft, Size(c, c), r, style = Stroke(1.5.dp.toPx()))
             }
+            // Each dashboard at its spot of the full cross; the removed ones leave theirs empty.
             val centreCol = DashboardStore.ROW.indexOf(DashboardStore.CENTER)
-            DashboardStore.COLUMN.forEachIndexed { row, page -> draw(page, centreCol, row) }
-            DashboardStore.ROW.forEachIndexed { col, page -> if (page != DashboardStore.CENTER) draw(page, col, DashboardStore.COLUMN_HOME) }
+            DashboardStore.COLUMN.forEachIndexed { row, page -> if (page in cross) draw(page, centreCol, row) }
+            DashboardStore.ROW.forEachIndexed { col, page -> if (page != DashboardStore.CENTER && page in cross) draw(page, col, DashboardStore.COLUMN_HOME) }
         }
         Spacer(Modifier.height(8.dp))
         Text(

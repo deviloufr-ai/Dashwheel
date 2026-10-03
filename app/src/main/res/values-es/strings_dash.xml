@@ -183,6 +183,9 @@
     <string name="dash_update_later">Más tarde</string>
     <string name="dash_reset_confirm_title">¿Vaciar esta página?</string>
     <string name="dash_reset_confirm_body">Se quitan todas sus fichas. Deshacer las recupera.</string>
+    <string name="dash_dashboard_options">Opciones del panel</string>
+    <string name="dash_remove_dashboard_title">¿Quitar %1$s?</string>
+    <string name="dash_remove_dashboard_body">Sus fichas se van con él. Deshacer las recupera.</string>
     <string name="dash_clear">Vaciar</string>
     <string name="dash_theme_show_all">Ver los %1$d temas</string>
     <string name="dash_theme_show_fewer">Ver menos</string>

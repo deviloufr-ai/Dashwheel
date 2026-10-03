@@ -187,6 +187,9 @@
     <string name="dash_update_later">Più tardi</string>
     <string name="dash_reset_confirm_title">Svuotare questa pagina?</string>
     <string name="dash_reset_confirm_body">Tutte le sue tessere spariscono. Annulla le riporta.</string>
+    <string name="dash_dashboard_options">Opzioni della dashboard</string>
+    <string name="dash_remove_dashboard_title">Rimuovere %1$s?</string>
+    <string name="dash_remove_dashboard_body">Le sue tessere spariscono con lei. Annulla le riporta.</string>
     <string name="dash_clear">Svuota</string>
     <string name="dash_theme_show_all">Mostra tutti i %1$d temi</string>
     <string name="dash_theme_show_fewer">Mostra meno</string>

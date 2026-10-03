@@ -234,6 +234,29 @@ fun DashboardItem.overlaps(other: DashboardItem): Boolean =
     DashboardStore.rectanglesOverlap(x, y, w, h, other.x, other.y, other.w, other.h)
 
 /**
+ * The dashboards that are swiped: the pages of [DashboardStore.ROW] and
+ * [DashboardStore.COLUMN] the driver kept, in their order, Home in both.
+ * Only Home: nothing to swipe.
+ */
+internal data class ShownCross(val row: List<Int>, val column: List<Int>) {
+    /** Home's index in [row], and in [column]. */
+    val rowHome: Int get() = row.indexOf(DashboardStore.CENTER)
+    val columnHome: Int get() = column.indexOf(DashboardStore.CENTER)
+
+    operator fun contains(page: Int): Boolean = page in row || page in column
+
+    /** The page at these pager indices: the column's, when the row is on Home. */
+    fun pageAt(rowIndex: Int, columnIndex: Int): Int {
+        val inRow = row.getOrElse(rowIndex) { DashboardStore.CENTER }
+        return if (inRow == DashboardStore.CENTER) column.getOrElse(columnIndex) { DashboardStore.CENTER } else inRow
+    }
+
+    /** The pager indices that bring [page] on screen; Home's for a page not in the cross. */
+    fun rowIndexOf(page: Int): Int = row.indexOf(page).takeIf { it >= 0 } ?: rowHome
+    fun columnIndexOf(page: Int): Int = column.indexOf(page).takeIf { it >= 0 } ?: columnHome
+}
+
+/**
  * Persists the 3 swipeable dashboards (each an ordered list of [DashboardItem])
  * to SharedPreferences as JSON. The layout is the user's, so it survives restarts.
  *
@@ -258,6 +281,12 @@ object DashboardStore {
     /** The pages swiped up/down from [CENTER], top to bottom; [CENTER] sits at [COLUMN_HOME]. */
     val COLUMN = listOf(3, 4, CENTER, 5, 6)
     const val COLUMN_HOME = 2
+
+    /** The cross made of the [shown] pages alone; Home is always there. */
+    internal fun shownCross(shown: Collection<Int>): ShownCross = ShownCross(
+        row = ROW.filter { it == CENTER || it in shown },
+        column = COLUMN.filter { it == CENTER || it in shown }
+    )
 
     /** The page's place in the cross, for labels: Home, left of it, two above it... */
     @StringRes

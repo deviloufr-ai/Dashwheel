@@ -188,6 +188,9 @@
     <string name="dash_update_later">Later</string>
     <string name="dash_reset_confirm_title">Clear this page?</string>
     <string name="dash_reset_confirm_body">Every tile on it goes. Undo brings them back.</string>
+    <string name="dash_dashboard_options">Dashboard options</string>
+    <string name="dash_remove_dashboard_title">Remove %1$s?</string>
+    <string name="dash_remove_dashboard_body">Its tiles go with it. Undo brings them back.</string>
     <string name="dash_clear">Clear</string>
     <string name="dash_theme_show_all">Show all %1$d themes</string>
     <string name="dash_theme_show_fewer">Show fewer</string>

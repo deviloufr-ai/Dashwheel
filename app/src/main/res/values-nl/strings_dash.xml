@@ -183,6 +183,9 @@
     <string name="dash_update_later">Later</string>
     <string name="dash_reset_confirm_title">Deze pagina leegmaken?</string>
     <string name="dash_reset_confirm_body">Alle tegels erop verdwijnen. Ongedaan maken brengt ze terug.</string>
+    <string name="dash_dashboard_options">Dashboardopties</string>
+    <string name="dash_remove_dashboard_title">%1$s verwijderen?</string>
+    <string name="dash_remove_dashboard_body">De tegels gaan mee. Ongedaan maken brengt ze terug.</string>
     <string name="dash_clear">Leegmaken</string>
     <string name="dash_theme_show_all">Alle %1$d thema\'s tonen</string>
     <string name="dash_theme_show_fewer">Minder tonen</string>

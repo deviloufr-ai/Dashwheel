@@ -225,10 +225,23 @@ internal object CanvasTabs {
     /**
      * The dashboards for [key]: the saved ones, else the first ones. For the
      * Canvas tabs, [defaultTabs]; for a cross, its pages with tiles on them,
-     * Home first, each called by its place.
+     * Home first, each called by its place. A cross shows only its dashboards,
+     * so Home and every page holding tiles are always among them: nothing
+     * placed is ever out of reach, and an Undo brings a removed one back.
      */
     fun tabsFor(key: String, lists: Map<String, List<CanvasTab>>, pages: List<List<*>>): List<CanvasTab> =
-        lists[key] ?: if (key == TABS_KEY) defaultTabs() else crossTabs(pages)
+        if (key == TABS_KEY) lists[key] ?: defaultTabs() else withEveryPage(lists[key] ?: crossTabs(pages), pages)
+
+    /** [tabs] with Home first when it is missing, and the pages with tiles that have no dashboard after them. */
+    private fun withEveryPage(tabs: List<CanvasTab>, pages: List<List<*>>): List<CanvasTab> {
+        val missing = crossTabs(pages).filter { c -> tabs.none { it.page == c.page } }
+        if (missing.isEmpty()) return tabs
+        val home = missing.filter { it.page == DashboardStore.CENTER }
+        return home + tabs + (missing - home.toSet())
+    }
+
+    /** Whether [key] is a cross's (pages swiped), not the Canvas tabs. */
+    fun isCross(key: String): Boolean = key != TABS_KEY
 
     /** The pages of a cross with tiles on them, Home first then round the cross, unnamed. */
     fun crossTabs(pages: List<List<*>>): List<CanvasTab> =

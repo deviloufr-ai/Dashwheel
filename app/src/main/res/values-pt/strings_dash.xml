@@ -183,6 +183,9 @@
     <string name="dash_update_later">Mais tarde</string>
     <string name="dash_reset_confirm_title">Limpar esta página?</string>
     <string name="dash_reset_confirm_body">Todos os mosaicos desaparecem. Anular repõe-nos.</string>
+    <string name="dash_dashboard_options">Opções do painel</string>
+    <string name="dash_remove_dashboard_title">Remover %1$s?</string>
+    <string name="dash_remove_dashboard_body">Os mosaicos vão com ele. Anular repõe-nos.</string>
     <string name="dash_clear">Limpar</string>
     <string name="dash_theme_show_all">Ver os %1$d temas</string>
     <string name="dash_theme_show_fewer">Ver menos</string>

@@ -187,6 +187,9 @@
     <string name="dash_update_later">Plus tard</string>
     <string name="dash_reset_confirm_title">Vider cette page ?</string>
     <string name="dash_reset_confirm_body">Toutes ses tuiles disparaissent. Annuler les ramène.</string>
+    <string name="dash_dashboard_options">Options du tableau de bord</string>
+    <string name="dash_remove_dashboard_title">Supprimer %1$s ?</string>
+    <string name="dash_remove_dashboard_body">Ses tuiles partent avec lui. Annuler les ramène.</string>
     <string name="dash_clear">Vider</string>
     <string name="dash_theme_show_all">Voir les %1$d thèmes</string>
     <string name="dash_theme_show_fewer">Voir moins</string>

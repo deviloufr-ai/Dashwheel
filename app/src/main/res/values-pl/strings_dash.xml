@@ -183,6 +183,9 @@
     <string name="dash_update_later">Później</string>
     <string name="dash_reset_confirm_title">Wyczyścić tę stronę?</string>
     <string name="dash_reset_confirm_body">Wszystkie kafelki znikną. Cofnij je przywróci.</string>
+    <string name="dash_dashboard_options">Opcje pulpitu</string>
+    <string name="dash_remove_dashboard_title">Usunąć %1$s?</string>
+    <string name="dash_remove_dashboard_body">Jego kafelki znikną. Cofnij je przywróci.</string>
     <string name="dash_clear">Wyczyść</string>
     <string name="dash_theme_show_all">Pokaż wszystkie motywy: %1$d</string>
     <string name="dash_theme_show_fewer">Pokaż mniej</string>
