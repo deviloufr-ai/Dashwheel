@@ -348,8 +348,10 @@ object PhoneLink {
         while (scope.isActive) {
             handover.getAndSet(null)?.let { runSession(context, it.gateway, it.link, it.phone, isPending = true) }
             val pending = _pending.value
-            val candidates = listOfNotNull(pending?.let { PairedPhone(it.id, it.secret, "", 0) }) +
-                _phones.value.filter { !it.forgotten }
+            // The ones marked forgotten too: three refusals can be another driver's
+            // phone on three trips (its companion never saw this car), and the
+            // pairing was then dropped for good while its own phone still held it.
+            val candidates = listOfNotNull(pending?.let { PairedPhone(it.id, it.secret, "", 0) }) + _phones.value
             val gateway = if (candidates.isEmpty()) null else hotspotGateway(context)
             val answered = gateway != null && dial(context, gateway, candidates, pending?.id)
             if (gateway == null && candidates.isNotEmpty()) note("no Wi-Fi gateway: not on a phone hotspot")
@@ -522,8 +524,8 @@ object PhoneLink {
                     // It answered, so earlier refusals were some other phone's.
                     updatePhones(context) { phones ->
                         phones.map {
-                            if (it.id == phone.id && (it.name != message.deviceName || it.refusals != 0)) {
-                                it.copy(name = message.deviceName, refusals = 0, lastRefusalAt = 0)
+                            if (it.id == phone.id && (it.name != message.deviceName || it.refusals != 0 || it.forgotten)) {
+                                it.copy(name = message.deviceName, refusals = 0, lastRefusalAt = 0, forgotten = false)
                             } else {
                                 it
                             }

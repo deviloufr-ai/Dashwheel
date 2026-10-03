@@ -3,6 +3,7 @@ package com.openauto.dash
 import android.app.DownloadManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -11,6 +12,7 @@ import android.provider.Settings
 import android.util.Log
 import androidx.annotation.StringRes
 import androidx.core.content.FileProvider
+import androidx.core.content.pm.PackageInfoCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -215,16 +217,43 @@ class UpdateManager(private val context: Context) {
             _status.value = ready?.takeIf { it.file.exists() } ?: UpdateStatus.Idle
         }
         _status.value = UpdateStatus.Installing
-        if (!launchInstaller(file)) return offerAgain()
-        // An install that goes through replaces the app and ends this process.
-        // Still here a while later: Android's own confirmation was cancelled, or
-        // the install refused. "Installing" used to stay for good then (the unit
-        // sleeps rather than restarts), with no further check and no way to retry.
         scope.launch {
+            if (!withContext(Dispatchers.IO) { isOurUpdate(file) }) {
+                Log.w(TAG, "the downloaded file is not this app's update: dropped")
+                withContext(Dispatchers.IO) { runCatching { file.delete() } }
+                prefs.edit().remove(KEY_DOWNLOADED).apply()
+                _status.value = UpdateStatus.Error(R.string.sys_update_download_failed)
+                return@launch
+            }
+            if (!launchInstaller(file)) return@launch offerAgain()
+            // An install that goes through replaces the app and ends this process.
+            // Still here a while later: Android's own confirmation was cancelled, or
+            // the install refused. "Installing" used to stay for good then (the unit
+            // sleeps rather than restarts), with no further check and no way to retry.
             delay(INSTALL_WAIT_MS)
             if (_status.value is UpdateStatus.Installing) offerAgain()
         }
     }
+
+    /**
+     * Whether [apk] is this app, in a newer build, signed as this one is. The
+     * system's installer checks the signature too, but not on a unit where
+     * PMPatch switched that check off, and the download waits in a folder
+     * other apps can write to. A debug build, signed with another key than
+     * the releases, is let through to update to one as before.
+     */
+    @Suppress("DEPRECATION") // GET_SIGNATURES: the one flag Android 10 reads an APK file's signers with.
+    private fun isOurUpdate(apk: File): Boolean = runCatching {
+        val pm = context.packageManager
+        val info = pm.getPackageArchiveInfo(apk.path, PackageManager.GET_SIGNATURES) ?: return false
+        if (info.packageName != context.packageName) return false
+        if (PackageInfoCompat.getLongVersionCode(info) <= currentVersionCode) return false
+        val theirs = info.signatures?.map { it.toCharsString() }?.toSet().orEmpty()
+        // Not read (a system that doesn't tell): left to the installer's own check.
+        if (BuildConfig.DEBUG || theirs.isEmpty()) return true
+        val ours = pm.getPackageInfo(context.packageName, PackageManager.GET_SIGNATURES).signatures?.map { it.toCharsString() }?.toSet().orEmpty()
+        theirs == ours
+    }.getOrDefault(false)
 
     /**
      * Downloads [info]'s APK into the app's own downloads folder; [status]

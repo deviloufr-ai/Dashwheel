@@ -149,7 +149,10 @@ object LocationFeed {
 
     /** Publishes [l]'s speed if the fix is recent, and schedules it to expire. */
     private fun publishSpeed(l: Location?) {
-        val age = if (l == null) Long.MAX_VALUE else System.currentTimeMillis() - l.time
+        // By the time since start, on both sides: the fix's own time is the
+        // satellites', and the unit's clock a few seconds off it made every
+        // fix look stale (no GPS speed at all) or come from the future.
+        val age = if (l == null) Long.MAX_VALUE else (SystemClock.elapsedRealtimeNanos() - l.elapsedRealtimeNanos) / 1_000_000
         when (val reading = speedReading(l != null, l?.hasSpeed() == true, l?.speed ?: 0f, age)) {
             SpeedReading.Keep -> Unit
             SpeedReading.None -> {

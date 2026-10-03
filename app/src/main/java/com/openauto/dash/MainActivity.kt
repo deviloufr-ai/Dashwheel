@@ -309,8 +309,12 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onStop() {
-        EmbeddedApp.dashboardShown(null)
-        started.value = false
+        // A second dashboard closed by the home screen's ([onlyOne]) stops after
+        // that one started: its stop is not the dashboard leaving the screen.
+        if (EmbeddedApp.dashboardActivity().let { it == null || it === this }) {
+            EmbeddedApp.dashboardShown(null)
+            started.value = false
+        }
         super.onStop()
     }
 

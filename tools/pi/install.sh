@@ -93,7 +93,8 @@ systemctl mask plymouth-quit.service plymouth-quit-wait.service
 echo "== faster start"
 # Nothing here is needed by a screen that only answers the head unit: first-boot
 # setup, waiting for the network, disk housekeeping, Bluetooth, timers.
-touch /etc/cloud/cloud-init.disabled
+# (Only where cloud-init is installed: Bookworm's Lite image has none, and a missing folder stopped the install here.)
+[ -d /etc/cloud ] && touch /etc/cloud/cloud-init.disabled
 for unit in NetworkManager-wait-online.service e2scrub_reap.service rpi-eeprom-update.service \
   bluetooth.service udisks2.service keyboard-setup.service console-setup.service \
   apt-daily.timer apt-daily-upgrade.timer man-db.timer e2scrub_all.timer dpkg-db-backup.timer; do
@@ -149,8 +150,14 @@ fi
 # The service's Java starts from a class archive made now (the card may be read-only later).
 JSA=/opt/dashwheel-display/app.jsa
 rm -f "$JSA"
+# Java 19 and later make it by themselves; Bookworm's Java 17 refuses that
+# option and writes one as it exits instead. Without any, the display only
+# starts a little slower: no reason to stop the install half-way.
 JAVA_OPTS="-XX:TieredStopAtLevel=1 -XX:+AutoCreateSharedArchive -XX:SharedArchiveFile=$JSA" \
-  /opt/dashwheel-display/bin/dashwheel-display --config "$CONFIG_DIR" --print-pairing >/dev/null
+  /opt/dashwheel-display/bin/dashwheel-display --config "$CONFIG_DIR" --print-pairing >/dev/null 2>&1 ||
+JAVA_OPTS="-XX:TieredStopAtLevel=1 -XX:ArchiveClassesAtExit=$JSA" \
+  /opt/dashwheel-display/bin/dashwheel-display --config "$CONFIG_DIR" --print-pairing >/dev/null 2>&1 ||
+  echo "no class archive made: the display starts a little slower"
 
 echo "== boot settings"
 CFG="$BOOT/config.txt"

@@ -34,6 +34,7 @@ internal object LiveFacts {
 internal object CarFacts {
     /** Longest any one part is let be: a list that grew out of hand stays readable. */
     private const val PART_MAX = 1_500
+    private const val NOTIFICATION_CHARS = 200
 
     fun snapshot(context: Context): JSONObject {
         val o = JSONObject()
@@ -139,7 +140,8 @@ internal object CarFacts {
         put("phone_on_unit_bluetooth") { UnitSignals.phone.value }
         put("call") { PhoneCallOverlay.call.value?.let { "phase=${it.phase}, name=${it.name}, number=${it.number}" } }
         put("recent_notifications") {
-            NotificationFeed.items.value.take(5).map { "${it.appLabel}: ${it.title}, ${it.text}" }
+            // Other people's words, handed to the model: the start of each is enough to answer "what did it say".
+            NotificationFeed.items.value.take(5).map { "${it.appLabel}: ${it.title}, ${it.text}".take(NOTIFICATION_CHARS) }
         }
         put("phone_agenda") { PhoneLink.lists.value.agenda }
 

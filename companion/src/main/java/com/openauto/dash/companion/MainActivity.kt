@@ -1112,7 +1112,7 @@ private fun SetupPanel(setup: SetupChecks) {
                 add(StepInfo(Icons.Filled.Wifi, R.string.step_hotspot, R.string.step_hotspot_detail, null) {
                     if (!open(context, Intent("android.settings.TETHER_SETTINGS"))) open(context, Intent(Settings.ACTION_WIRELESS_SETTINGS))
                 })
-                if (context.packageManager.hasSystemFeature(PackageManager.FEATURE_TELEPHONY_MESSAGING)) {
+                if (TextSender.hasMessaging(context)) {
                     add(StepInfo(Icons.Filled.Sms, R.string.step_texts, R.string.step_texts_detail, setup.texts, optional = true, onFix = setup.askTexts))
                 }
             }.sortedBy { if (it.done == false && !it.optional) 0 else 1 }

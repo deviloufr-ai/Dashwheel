@@ -189,7 +189,8 @@ internal object CareRules {
         }
 
         // Revving a cold engine (0 °C = the car didn't say, so no judgement).
-        if (d.coolantTempC in 1 until car.coldC && d.rpm > car.coldRpmLimit + 300) {
+        // Below zero counts: a frosty start is when it matters most.
+        if (d.coolantTempC != 0 && d.coolantTempC < car.coldC && d.rpm > car.coldRpmLimit + 300) {
             val since = x.coldRevSince ?: now
             x = x.copy(coldRevSince = since)
             if (!x.coldRevWarned && now - since >= COLD_REV_MS) {

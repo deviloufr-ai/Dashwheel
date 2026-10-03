@@ -15,8 +15,18 @@ import androidx.core.content.ContextCompat
  * phone can ([com.openauto.dash.link.PhoneAbilities]).
  */
 object TextSender {
+    /**
+     * Whether this phone sends texts at all. Android names that feature from
+     * 13 on only: asked for by that name on Android 10 to 12, no phone had it,
+     * and "On my way" was never offered there.
+     */
+    fun hasMessaging(context: Context): Boolean = context.packageManager.hasSystemFeature(
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) PackageManager.FEATURE_TELEPHONY_MESSAGING
+        else PackageManager.FEATURE_TELEPHONY
+    )
+
     fun canSend(context: Context): Boolean =
-        context.packageManager.hasSystemFeature(PackageManager.FEATURE_TELEPHONY_MESSAGING) &&
+        hasMessaging(context) &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED
 
     /** Sends [text] to [number]; false when it can't be (no permission, no SIM, refused). */

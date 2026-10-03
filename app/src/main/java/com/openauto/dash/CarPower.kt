@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
 import android.provider.Settings
+import android.os.SystemClock
 import android.util.Log
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
@@ -158,6 +159,9 @@ object CarPower {
         DebugLog.note(context, "ignition on, off since ${offAt?.let { (System.currentTimeMillis() - it) / 60_000 }} min")
         // Quiet was asked for the drive that ended.
         CarVoice.quiet = false
+        // So was the guidance, if the car was parked short of its destination:
+        // a fuel stop carries on, the next morning doesn't start with yesterday's turns.
+        if (offAt != null && System.currentTimeMillis() - offAt >= GUIDANCE_KEPT_MS && InAppNav.guidance.value != null) InAppNav.stop()
         scope.launch {
             kotlinx.coroutines.delay(20_000)
             DebugLog.snapshot(context, "20 s after ignition on")
@@ -179,7 +183,13 @@ object CarPower {
         MediaResume.carStopped(context)
         // A conversation with Gemini doesn't go on, microphone open, while the car sleeps.
         scope.launch { GeminiLive.end(context) }
-        if (!DemoMode.isOn) parkingFix(context)?.takeIf { parkFixUsable(it.time, now) }?.let { ParkingStore.save(context, it) }
+        // The fix's age by the time since start, not the clock: a unit clock a
+        // little behind the satellites' made the fix "from the future", never saved.
+        if (!DemoMode.isOn) {
+            parkingFix(context)
+                ?.takeIf { parkFixUsable(it.elapsedRealtimeNanos / 1_000_000, SystemClock.elapsedRealtime()) }
+                ?.let { ParkingStore.save(context, it) }
+        }
         scope.launch { runCatching { ObdBluetoothManager.disconnect() } }
     }
 
@@ -213,6 +223,9 @@ internal fun briefOnIgnition(offAt: Long?, now: Long): Boolean =
  */
 internal fun startedBySwitchOn(ignitionOn: Boolean, offAt: Long, onAt: Long): Boolean =
     ignitionOn && offAt > 0 && offAt > onAt
+
+/** The in-app guidance goes on after a stop shorter than this (fuel, a meal), and ends after a longer one. */
+internal const val GUIDANCE_KEPT_MS = 2 * 60 * 60_000L
 
 /** A GPS fix older than this at switch-off isn't where the car stopped. */
 internal const val PARK_FIX_MAX_AGE_MS = 3 * 60_000L

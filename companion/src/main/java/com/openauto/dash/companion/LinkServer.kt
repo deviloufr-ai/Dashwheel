@@ -121,6 +121,8 @@ object LinkServer {
         server = null
         session?.close()
         session = null
+        // The session's own end no longer sees itself as the current one, and skips this.
+        ObdRelay.close()
         _state.value = LinkState.Off
     }
 

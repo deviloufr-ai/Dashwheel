@@ -48,8 +48,10 @@ object DockedNavBar {
         runCatching {
             if (docked.isEmpty()) {
                 if (!changed) return
-                val before = prefs.getString(KEY_BEFORE, "").orEmpty()
-                DockShell.shell(context, if (before.isEmpty()) "settings delete global $KEY" else "settings put global $KEY $before")
+                // What was saved goes into a root command: only a plain policy value
+                // does (the file can come from a setup restored from another unit).
+                val before = prefs.getString(KEY_BEFORE, "").orEmpty().takeIf(::isPlainPolicy).orEmpty()
+                DockShell.shell(context, if (before.isEmpty()) "settings delete global $KEY" else "settings put global $KEY '$before'")
                 prefs.edit().remove(KEY_BEFORE).apply()
                 Log.i(TAG, "navigation bar policy put back")
             } else {
@@ -65,6 +67,9 @@ object DockedNavBar {
         runCatching { Settings.Global.getString(context.contentResolver, KEY) }.getOrNull()
             ?.takeIf { it.isNotBlank() && it != "null" }.orEmpty()
 }
+
+/** A policy_control value as Android writes them ("immersive.full=apps,-com.example"): nothing a shell would read as more. */
+internal fun isPlainPolicy(value: String): Boolean = value.isNotEmpty() && value.all { it.isLetterOrDigit() || it in "._=,*:-" }
 
 /** Android 10's policy_control value hiding the navigation bar for [packages], in a stable order. */
 internal fun immersivePolicy(packages: Set<String>): String =

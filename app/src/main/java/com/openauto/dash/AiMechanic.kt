@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.content.res.Resources
+import android.os.SystemClock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -534,7 +535,7 @@ object AiMechanic {
         scope.launch {
             mutex.withLock {
                 val context = appContext ?: return@withLock
-                explain(context, codes, fresh = emptyList())
+                explain(context, codes, fresh = emptyList(), asked = true)
             }
         }
     }
@@ -577,8 +578,17 @@ object AiMechanic {
         CarVoice.announce(line.text(config.language.resources(context)), config.language.locale, urgent)
     }
 
-    /** Fills in the advice for [codes]; speaks only when some are [fresh] (new and to be announced). */
-    private suspend fun explain(context: Context, codes: List<String>, fresh: List<String>) {
+    // The last ask Google refused, and when (elapsed realtime): see [retryAfterMs].
+    private var refusedAsk: String? = null
+    private var refusedAt = 0L
+    private var refusal: Throwable? = null
+
+    /**
+     * Fills in the advice for [codes]; speaks only when some are [fresh] (new
+     * and to be announced). [asked]: the driver wants it now (Retry, a new
+     * key), so a refusal from a moment ago doesn't stand in for the answer.
+     */
+    private suspend fun explain(context: Context, codes: List<String>, fresh: List<String>, asked: Boolean = false) {
         val config = AiSettings.load(context)
         explainedIn = config.language
         val say: (String) -> Unit = { if (fresh.isNotEmpty() && config.speak) CarVoice.announce(it, config.language.locale) }
@@ -604,6 +614,17 @@ object AiMechanic {
             return
         }
 
+        // The same question with the same key, refused a moment ago (quota used
+        // up, key turned down): every scan, one at each reconnect of the adapter,
+        // used to send it again to each model in turn.
+        val ask = cacheKey + "|" + config.apiKey.hashCode()
+        val refused = refusal
+        if (!asked && refused != null && ask == refusedAsk && SystemClock.elapsedRealtime() - refusedAt < retryAfterMs(refused)) {
+            _state.value = State(codes = codes, note = Note.Unavailable(refused), canRetry = true)
+            say(offline)
+            return
+        }
+
         _state.value = State(codes = codes, thinking = true)
         val references = codes.mapNotNull { code -> ObdCodes.tableTitle(code)?.let { code to it } }.toMap()
         val prompt = MechanicPrompt.build(codes, car.promptDescription(), config.language, readings, references, car.currency)
@@ -611,14 +632,35 @@ object AiMechanic {
             .mapCatching { reply -> reply to (MechanicPrompt.parse(reply.text) ?: throw UnreadableAnswerException()) }
             .onSuccess { (reply, diagnosis) ->
                 DiagnosisCache.put(context, cacheKey, reply)
+                refusal = null
                 val d = bounded(diagnosis.copy(model = reply.model))
                 _state.value = State(codes = codes, diagnosis = d)
                 say(d.summary)
             }
             .onFailure {
+                if (retryAfterMs(it) > 0) {
+                    refusedAsk = ask
+                    refusedAt = SystemClock.elapsedRealtime()
+                    refusal = it
+                }
                 _state.value = State(codes = codes, note = Note.Unavailable(it), canRetry = true)
                 say(offline)
             }
+    }
+
+    /**
+     * How long a refused ask is left alone before a scan sends it again by
+     * itself: none for a broken connection (the next scan may get through),
+     * a while for what only time or another key cures.
+     */
+    internal fun retryAfterMs(error: Throwable): Long = when ((error as? GeminiException)?.status) {
+        // The free tier's quota: by the minute, and by the day.
+        429 -> 30 * 60_000L
+        // Google overloaded.
+        500, 503 -> 5 * 60_000L
+        // The key turned down: asked again with another key ([explain]'s ask carries it), or on Retry.
+        400, 401, 403 -> 6 * 60 * 60_000L
+        else -> 0L
     }
 
     /** [note] as shown on the tile, in [context]'s language. */

@@ -1,9 +1,11 @@
 package com.openauto.dash.companion
 
 import android.app.Notification
+import android.app.NotificationManager
 import android.app.RemoteInput
 import android.content.Intent
 import android.graphics.Bitmap
+import android.os.Build
 import android.os.Bundle
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
@@ -85,6 +87,22 @@ class PhoneNotificationListener : NotificationListenerService() {
     private fun find(key: String): StatusBarNotification? =
         runCatching { getActiveNotifications(arrayOf(key)) }.getOrNull()?.firstOrNull()
 
+    /**
+     * What the phone itself would not show on its lock screen (the app or
+     * the driver marked it secret), and what it shows nowhere but folded away
+     * in the shade (the lowest importance), is not for the car's screen
+     * either, where passengers read along.
+     */
+    private fun keptPrivate(sbn: StatusBarNotification): Boolean {
+        if (sbn.notification.visibility == Notification.VISIBILITY_SECRET) return true
+        val ranking = Ranking()
+        if (runCatching { currentRanking.getRanking(sbn.key, ranking) }.getOrDefault(false) != true) return false
+        // The driver's own choice for this app's channel; asked of the channel before Android 12.
+        val onLockScreen = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) ranking.lockscreenVisibilityOverride
+        else ranking.channel?.lockscreenVisibility
+        return onLockScreen == Notification.VISIBILITY_SECRET || ranking.importance == NotificationManager.IMPORTANCE_MIN
+    }
+
     private fun toPhoneNotification(sbn: StatusBarNotification): PhoneNotification? {
         if (sbn.packageName == packageName) return null
         val n = sbn.notification ?: return null
@@ -94,6 +112,7 @@ class PhoneNotificationListener : NotificationListenerService() {
         if (n.category == Notification.CATEGORY_TRANSPORT || n.category == Notification.CATEGORY_PROGRESS) return null
         // A call shows as a call (PhoneCalls), not in the notifications.
         if (CallNotification.isCall(n)) return null
+        if (keptPrivate(sbn)) return null
 
         val extras = n.extras
         val style = runCatching { NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(n) }.getOrNull()

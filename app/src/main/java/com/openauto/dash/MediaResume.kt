@@ -3,6 +3,7 @@ package com.openauto.dash
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.media.session.MediaController
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
 import android.os.SystemClock
@@ -42,9 +43,10 @@ internal object MediaResume {
     val on: StateFlow<Boolean> = _on
     private var loaded = false
 
-    // The app last seen playing, and when (elapsed realtime), from the media tile's controller.
+    // The app last seen playing, and when it was last known to (elapsed realtime), from the media tile's controller.
     @Volatile private var playingPackage: String? = null
     @Volatile private var playingAt = 0L
+    @Volatile private var stillPlaying = false
 
     fun load(context: Context) {
         if (loaded) return
@@ -59,15 +61,32 @@ internal object MediaResume {
 
     /** From [CarMediaController]: [packageName]'s session is (or isn't) playing. */
     fun note(packageName: String?, playing: Boolean) {
-        if (!playing || packageName == null || HeadUnitMedia.isStock(packageName)) return
-        playingPackage = packageName
-        playingAt = SystemClock.elapsedRealtime()
+        if (packageName == null || HeadUnitMedia.isStock(packageName)) return
+        if (playing) {
+            playingPackage = packageName
+            playingAt = SystemClock.elapsedRealtime()
+            stillPlaying = true
+        } else if (stillPlaying && packageName == playingPackage) {
+            // It stops now: this is when it was last playing, not its last word
+            // while it played (a player says nothing for the length of a track).
+            stillPlaying = false
+            playingAt = SystemClock.elapsedRealtime()
+        }
     }
 
     /** The car is switched off: the app to resume at the next start, or none. */
     fun carStopped(context: Context) {
         if (DemoMode.isOn) return
-        val pkg = playingPackage.takeIf { wasPlaying(playingAt, SystemClock.elapsedRealtime()) }
+        // Playing right now, whatever was last heard from it; else paused a
+        // moment ago, as the unit pauses the music when the key turns: by its
+        // player's own word, or as the media tile saw it.
+        val now = SystemClock.elapsedRealtime()
+        val players = sessions(context).filter { !HeadUnitMedia.isStock(it.packageName) }
+        val pkg = players.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING }?.packageName
+            ?: players.firstOrNull { player ->
+                player.playbackState?.let { it.state == PlaybackState.STATE_PAUSED && wasPlaying(it.lastPositionUpdateTime, now) } == true
+            }?.packageName
+            ?: playingPackage.takeIf { wasPlaying(playingAt, now) }
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_PACKAGE, pkg).apply()
     }
 
@@ -85,11 +104,14 @@ internal object MediaResume {
         }
     }
 
+    /** The media sessions open now; none without the notification access they are read through. */
+    private fun sessions(context: Context): List<MediaController> = runCatching {
+        val manager = context.getSystemService(Context.MEDIA_SESSION_SERVICE) as MediaSessionManager
+        manager.getActiveSessions(ComponentName(context, MediaNotificationListenerService::class.java))
+    }.getOrNull().orEmpty()
+
     private fun resume(context: Context, pkg: String) {
-        val sessions = runCatching {
-            val manager = context.getSystemService(Context.MEDIA_SESSION_SERVICE) as MediaSessionManager
-            manager.getActiveSessions(ComponentName(context, MediaNotificationListenerService::class.java))
-        }.getOrNull().orEmpty()
+        val sessions = sessions(context)
         // Something plays already (the unit's radio, the driver was quicker): left alone.
         if (sessions.any { it.playbackState?.state == PlaybackState.STATE_PLAYING }) return
         val session = sessions.firstOrNull { it.packageName == pkg }

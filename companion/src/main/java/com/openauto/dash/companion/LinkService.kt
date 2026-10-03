@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.IBinder
+import android.util.Log
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,13 +26,26 @@ import kotlinx.coroutines.launch
  */
 class LinkService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    /** The notification is up: the service may stay. */
+    private var foreground = false
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
         super.onCreate()
         createChannel()
-        startForeground(NOTIFICATION_ID, notification(LinkServer.state.value), ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE)
+        // Started again by the system after it was killed for memory, the app in the
+        // background and not yet let off battery saving: Android refuses the
+        // notification, and that used to end the whole app. The next open, or the
+        // car's Bluetooth, starts the sharing again.
+        try {
+            startForeground(NOTIFICATION_ID, notification(LinkServer.state.value), ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE)
+        } catch (e: RuntimeException) {
+            Log.w("LinkService", "could not start in the foreground", e)
+            stopSelf()
+            return
+        }
+        foreground = true
         LinkServer.start(this)
         PhoneCalls.start(this)
         PhoneLists.start(this)
@@ -47,7 +61,7 @@ class LinkService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (!shouldRun(this)) {
+        if (!foreground || !shouldRun(this)) {
             stopSelf()
             return START_NOT_STICKY
         }

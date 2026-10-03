@@ -880,6 +880,10 @@ object ObdBluetoothManager {
                 ?: return@withLock failure(R.string.vehicle_no_response)
             val r = raw.uppercase().trim()
             if (r.contains("44") || r.contains("OK")) {
+                // The lamp and the pending codes went with the stored ones; only a
+                // scan wrote them, so the tile kept "lamp on" until the next one.
+                _lamp.value = null
+                _pending.value = emptySet()
                 Result.success(Unit)
             } else {
                 // Common cause: ignition must be ON (engine off) to clear codes.

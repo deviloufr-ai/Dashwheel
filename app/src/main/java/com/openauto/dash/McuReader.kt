@@ -304,6 +304,11 @@ object McuReader {
         var backoff = RETRY_MIN_MS
         while (ctx.isActive) {
             val startedAt = System.currentTimeMillis()
+            // logcat first prints what it kept from before it was started. Those
+            // lines still say where things stand (a door, the fuel), but a wheel
+            // button pressed minutes ago is not pressed again: no [changes] for them.
+            val liveFrom = logStamp(startedAt)
+            var caughtUp = false
             // Started under the lock: a stop() can't slip in between and miss it.
             val p = synchronized(this) {
                 if (!ctx.isActive) return
@@ -313,7 +318,11 @@ object McuReader {
             if (p != null) {
                 try {
                     val reader = p.inputStream.bufferedReader()
-                    while (ctx.isActive) parse(reader.readLine() ?: break)
+                    while (ctx.isActive) {
+                        val line = reader.readLine() ?: break
+                        if (!caughtUp) caughtUp = !loggedBefore(line, liveFrom)
+                        parse(line, live = caughtUp)
+                    }
                 } catch (e: IOException) {
                     // Killed by stop(), or logcat went away: same as its end.
                 } finally {
@@ -337,7 +346,19 @@ object McuReader {
         runCatching { p.destroyForcibly() }
     }
 
-    private fun parse(line: String) {
+    /** logcat's stamp at the head of each line ("MM-dd HH:mm:ss.SSS") for the time [at]: text that sorts by time. */
+    internal fun logStamp(at: Long): String =
+        java.text.SimpleDateFormat("MM-dd HH:mm:ss.SSS", java.util.Locale.ROOT).format(java.util.Date(at))
+
+    /** Whether [line] was logged before [stamp] (see [logStamp]); a line without a stamp of that shape counts as new. */
+    internal fun loggedBefore(line: String, stamp: String): Boolean {
+        val n = stamp.length
+        if (line.length <= n || line[2] != '-' || line[5] != ' ' || line[8] != ':' || line[14] != '.') return false
+        return line.regionMatches(0, stamp, 0, n).not() && line.substring(0, n) < stamp
+    }
+
+    /** [live] false for a line from before the reader started: it sets the values, without counting as a change. */
+    private fun parse(line: String, live: Boolean = true) {
         val m = regex.find(line) ?: return
         val cmdId = m.groupValues[1].toIntOrNull() ?: return
         val bytes = m.groupValues[2].trim().split(whitespace)
@@ -361,7 +382,7 @@ object McuReader {
             val entry = Entry(key, cmdId, bytes, hex, System.currentTimeMillis())
             latest[key] = entry
             _entries.value = latest.values.toList()
-            _changes.tryEmit(Change(entry, prev?.hex))
+            if (live) _changes.tryEmit(Change(entry, prev?.hex))
         }
 
         // Fuel: the learned CANbox byte → percent, calibrated against a full tank.

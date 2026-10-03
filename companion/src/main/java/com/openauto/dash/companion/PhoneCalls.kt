@@ -70,11 +70,39 @@ object PhoneCalls {
         // A protected system broadcast: only the system can send it.
         ContextCompat.registerReceiver(app, r, IntentFilter(TelephonyManager.ACTION_PHONE_STATE_CHANGED), ContextCompat.RECEIVER_EXPORTED)
         receiver = r
+        seed(app)
     }
 
     fun stop(context: Context) {
         receiver?.let { runCatching { context.applicationContext.unregisterReceiver(it) } }
         receiver = null
+        // Nobody listens any more: a call under way now would never be heard to
+        // end, and the car was shown it, hours long, at the next drive.
+        synchronized(this) {
+            phone = CallState(CallState.Phase.IDLE)
+            publish()
+        }
+    }
+
+    /**
+     * A call already under way as the sharing starts (the driver gets in on
+     * the phone): no broadcast says so, they only tell of changes. Without
+     * the caller, which only the broadcast carries.
+     */
+    @SuppressLint("MissingPermission") // checked just before
+    @Suppress("DEPRECATION") // callState: all that is asked is ringing, in a call or neither.
+    private fun seed(context: Context) {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) return
+        val phase = when (runCatching { context.getSystemService(TelephonyManager::class.java)?.callState }.getOrNull()) {
+            TelephonyManager.CALL_STATE_RINGING -> CallState.Phase.RINGING
+            TelephonyManager.CALL_STATE_OFFHOOK -> CallState.Phase.ACTIVE
+            else -> return
+        }
+        synchronized(this) {
+            if (phone.phase != CallState.Phase.IDLE) return
+            phone = CallState(phase = phase, canControl = canControl(context))
+            publish()
+        }
     }
 
     /** The state to send now, its answered time brought up to date. */

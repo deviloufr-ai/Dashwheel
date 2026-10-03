@@ -162,6 +162,12 @@ object DockShell {
 
     /** Only from inside [io]'s lock. */
     private fun execute(context: Context, cmd: String): String {
+        // su can run out of time while the unit boots: ADB was taken then, for the
+        // life of the process, on a unit whose ADB may be off. Root found since is used.
+        if (backend == Backend.ADB && PrivilegedShell.access.value.root) {
+            backend = Backend.SU
+            Log.i(TAG, "shell backend: SU (root answered after all)")
+        }
         val chosen = backend ?: (if (SystemInstaller.isRootAvailable()) Backend.SU else Backend.ADB)
             .also { backend = it; Log.i(TAG, "shell backend: $it") }
         return when (chosen) {

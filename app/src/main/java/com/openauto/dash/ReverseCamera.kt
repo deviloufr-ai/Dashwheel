@@ -287,7 +287,10 @@ internal object ReverseCamera {
         if (_state.value == State.FAILED) return
         Log.w(TAG, "own picture given up: $why")
         close()
-        _state.value = State.FAILED
+        // Given up for this reverse. Once reverse is over (it ended while the
+        // camera was being taken) there is nothing to give up, and "failed"
+        // would only be met by the next reverse, which then didn't even try.
+        _state.value = if (CarBox.reversing.value) State.FAILED else State.OFF
         if (romStopped && CarBox.reversing.value) {
             romStopped = false
             scope.launch {
