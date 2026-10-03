@@ -17,10 +17,12 @@ object Pipelines {
     fun video(config: DisplayConfig): List<String> {
         config.videoPipeline?.let { return listOf(LAUNCH, "-q") + it.trim().split(Regex("\\s+")) }
         val chain = when (config.sink) {
-            DisplayConfig.Sink.KMS -> "h264parse ! v4l2h264dec ! ${config.sink.element}"
-            DisplayConfig.Sink.AUTO -> "h264parse ! avdec_h264 ! videoconvert ! ${config.sink.element}"
+            DisplayConfig.Sink.KMS -> "v4l2h264dec ! ${config.sink.element}"
+            DisplayConfig.Sink.AUTO -> "avdec_h264 ! videoconvert ! ${config.sink.element}"
         }
-        return launch("fdsrc fd=0 ! video/x-h264,stream-format=byte-stream,alignment=au ! $chain")
+        // The caps go after h264parse: fdsrc gives none, and GStreamer 1.26 (Trixie)
+        // refuses a filter there whose caps it can't fix.
+        return launch("fdsrc fd=0 ! h264parse ! video/x-h264,stream-format=byte-stream,alignment=au ! $chain")
     }
 
     /** Raw BGRx frames of [width] × [height] on stdin to the screen: the display's own pictures. */
