@@ -86,6 +86,7 @@ import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.location.LocationComponentActivationOptions
 import org.maplibre.android.location.LocationComponent
+import org.maplibre.android.location.LocationComponentOptions
 import org.maplibre.android.location.OnCameraTrackingChangedListener
 import org.maplibre.android.location.modes.CameraMode
 import org.maplibre.android.location.modes.RenderMode
@@ -469,9 +470,27 @@ private fun enableLocation(
     val lc = map.locationComponent
     runCatching {
         if (!lc.isLocationComponentActivated) {
+            // Tracking gestures management: a two-finger pinch zooms around the
+            // car and keeps following it, instead of counting as a pan.
             lc.activateLocationComponent(
-                LocationComponentActivationOptions.builder(context, style).build()
+                LocationComponentActivationOptions.builder(context, style)
+                    .locationComponentOptions(
+                        LocationComponentOptions.builder(context)
+                            .trackingGesturesManagement(true)
+                            .build()
+                    )
+                    .build()
             )
+            // The zoom the driver picks by hand is the one tracking comes back
+            // to; route previews and search hits don't change it.
+            var byGesture = false
+            map.addOnCameraMoveStartedListener { reason ->
+                byGesture = reason == MapLibreMap.OnCameraMoveStartedListener.REASON_API_GESTURE
+            }
+            map.addOnCameraIdleListener {
+                if (byGesture) userZooms[map] = map.cameraPosition.zoom
+                byGesture = false
+            }
             // Any gesture or programmatic camera move (route preview, search hit)
             // drops the component out of tracking mode. In a car the map has to
             // come back to the vehicle by itself, so tracking resumes a few
@@ -482,7 +501,7 @@ private fun enableLocation(
                     resume?.cancel()
                     resume = scope.launch {
                         delay(TRACKING_RESUME_MS)
-                        followVehicle(lc, wallpaper)
+                        followVehicle(lc, wallpaper, userZooms[map])
                     }
                 }
 
@@ -495,7 +514,7 @@ private fun enableLocation(
         // Directional puck; the camera follows position AND heading (map rotates
         // with the car) at a close zoom with pitch for the driving-nav look.
         lc.renderMode = RenderMode.COMPASS
-        followVehicle(lc, wallpaper)
+        followVehicle(lc, wallpaper, userZooms[map])
     }
     // TRACKING_GPS only re-centres on a FRESH fix; with only a last-known
     // location the camera stays at the default world view. Once any fix exists,
@@ -505,7 +524,7 @@ private fun enableLocation(
         repeat(15) {
             val loc = runCatching { lc.lastKnownLocation }.getOrNull()
             if (loc != null) {
-                followVehicle(lc, wallpaper)
+                followVehicle(lc, wallpaper, userZooms[map])
                 return@launch
             }
             delay(800)
@@ -516,16 +535,19 @@ private fun enableLocation(
 /** Seconds of free panning before the camera snaps back to the vehicle. */
 private const val TRACKING_RESUME_MS = 10_000L
 
+/** Zoom last set by a pinch on each map; tracking resumes at it instead of the default. */
+private val userZooms = java.util.WeakHashMap<MapLibreMap, Double>()
+
 /** Follow position and heading with the driving-nav zoom and pitch, keeping tracking on. */
-private fun followVehicle(lc: LocationComponent, wallpaper: MapView? = null) {
+private fun followVehicle(lc: LocationComponent, wallpaper: MapView? = null, zoom: Double? = null) {
     if (wallpaper == null) {
-        runCatching { lc.setCameraMode(CameraMode.TRACKING_GPS, 1000L, 16.5, null, 45.0, null) }
+        runCatching { lc.setCameraMode(CameraMode.TRACKING_GPS, 1000L, zoom ?: 16.5, null, 45.0, null) }
         return
     }
     // A wallpaper looks further ahead: steeper, a little closer, and the car
     // pushed down to the lower part of the screen, between the panels.
     runCatching {
-        lc.setCameraMode(CameraMode.TRACKING_GPS, 1000L, 17.0, null, 60.0, null)
+        lc.setCameraMode(CameraMode.TRACKING_GPS, 1000L, zoom ?: 17.0, null, 60.0, null)
         lc.paddingWhileTracking(doubleArrayOf(0.0, wallpaper.height * 0.42, 0.0, 0.0))
     }
 }
