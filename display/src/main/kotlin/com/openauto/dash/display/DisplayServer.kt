@@ -37,7 +37,9 @@ class DisplayServer(
 
     fun run(server: ServerSocket = ServerSocket(config.port)) {
         Beacon(pairing.offer.id) { current != null }.start()
-        screen.start()
+        // The first picture takes a few seconds on a Pi 3 (fonts, GStreamer): a head unit is
+        // let in meanwhile, and waits only where it needs the screen (its methods are locked).
+        Thread({ screen.start() }, "display-screen-start").apply { isDaemon = true }.start()
         timer.scheduleAtFixedRate(::sendStats, STATS_MS, STATS_MS, TimeUnit.MILLISECONDS)
         log("listening on port ${server.localPort}")
         server.use {

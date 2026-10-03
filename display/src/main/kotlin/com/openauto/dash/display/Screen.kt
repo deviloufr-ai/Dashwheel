@@ -39,6 +39,7 @@ class Screen(
 
     private val ticker = Thread({ tick() }, "screen-ticker").apply { isDaemon = true }
 
+    @Synchronized
     fun start() {
         redraw()
         ticker.start()
