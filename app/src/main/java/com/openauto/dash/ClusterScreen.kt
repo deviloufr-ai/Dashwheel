@@ -83,7 +83,7 @@ internal fun ClusterScreen(page: StateFlow<ClusterPage>, pages: StateFlow<List<C
                             }
                         }
                         ClusterPage.MEDIA -> {
-                            Face(BuiltinKind.MEDIA, WidgetDesign.HERO, env, 1.6f)
+                            Face(BuiltinKind.MEDIA, WidgetDesign.COVER_ART, env, 1.6f)
                             Side(gap) {
                                 Face(BuiltinKind.SPEED_HUD, WidgetDesign.HERO, env)
                                 Face(BuiltinKind.CLOCK, WidgetDesign.HERO, env)
