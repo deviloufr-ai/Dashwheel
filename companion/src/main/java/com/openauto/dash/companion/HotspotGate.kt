@@ -3,6 +3,8 @@ package com.openauto.dash.companion
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.os.Build
 import java.net.InetAddress
 import java.net.Socket
 
@@ -31,11 +33,19 @@ internal object HotspotGate {
     fun fromHotspot(dialled: InetAddress?, guestOn: Collection<InetAddress>): Boolean =
         dialled != null && !dialled.isLoopbackAddress && !dialled.isAnyLocalAddress && dialled !in guestOn
 
-    /** The phone's addresses on the networks it joined; null when the system can't be asked (then nothing is refused). */
+    /**
+     * The phone's addresses on the networks it joined; null when the system can't be asked (then nothing is refused).
+     * Only those that lead to the internet: Android 15 lists the phone's own hotspot too, as a local network,
+     * and counting it turned the car away on every dial.
+     */
     @Suppress("DEPRECATION") // allNetworks: every network, not only the default one.
     private fun guestAddresses(context: Context): Set<InetAddress>? = runCatching {
         val cm = context.getSystemService(ConnectivityManager::class.java) ?: return null
-        cm.allNetworks.flatMapTo(HashSet()) { network ->
+        cm.allNetworks.filter { network ->
+            val caps = cm.getNetworkCapabilities(network) ?: return@filter false
+            caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+                !(Build.VERSION.SDK_INT >= 35 && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_LOCAL_NETWORK))
+        }.flatMapTo(HashSet()) { network ->
             cm.getLinkProperties(network)?.linkAddresses?.map { it.address }.orEmpty()
         }
     }.getOrNull()
