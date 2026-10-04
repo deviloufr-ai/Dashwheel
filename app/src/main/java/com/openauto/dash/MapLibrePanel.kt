@@ -105,6 +105,7 @@ import org.maplibre.geojson.Point
 import org.maplibre.navigation.android.navigation.ui.v5.route.NavigationMapRoute
 import org.maplibre.navigation.core.models.DirectionsResponse
 import org.maplibre.navigation.core.models.DirectionsRoute
+import org.maplibre.navigation.core.models.RouteOptions
 import java.util.Locale
 
 // Free, no-key services: CARTO dark-matter / positron basemaps (vector styles +
@@ -258,8 +259,8 @@ fun MapLibrePanel(modifier: Modifier = Modifier, wallpaper: Boolean = false) {
         val lng = dest.longitude()
         val name = destinationName
         val shown = route
-        if (!inOtherApp && shown != null && hasLocationPerm(context)) {
-            InAppNav.start(context, shown, dest, name)
+        // A route the guidance refuses goes to the navigation app instead.
+        if (!inOtherApp && shown != null && hasLocationPerm(context) && InAppNav.start(context, shown, dest, name)) {
             // Back to the car straight away, not after the preview's pause.
             mapRef?.let { followVehicle(it.locationComponent, null, userZooms[it]) }
         } else if (!NavHandoff.start(context, lat, lng, name.orEmpty())) {
@@ -738,7 +739,21 @@ internal fun valhallaRoute(origin: Point, dest: Point, language: String): Direct
     Http.client.newCall(request).execute().use { resp ->
         if (!resp.isSuccessful) error("HTTP ${resp.code}")
         val rb = resp.body?.string() ?: error("Empty routing response")
-        return DirectionsResponse.fromJson(rb)
+        // Valhalla doesn't echo the request back, and the navigation refuses a
+        // route without it (its spoken turns need voice and banner instructions).
+        val options = RouteOptions(
+            baseUrl = VALHALLA_URL,
+            user = "valhalla",
+            profile = "auto",
+            coordinates = listOf(origin, dest),
+            language = language,
+            geometries = "polyline6",
+            steps = true,
+            voiceInstructions = true,
+            bannerInstructions = true
+        )
+        val parsed = DirectionsResponse.fromJson(rb)
+        return parsed.copy(routes = parsed.routes.map { it.copy(routeOptions = options) })
     }
 }
 

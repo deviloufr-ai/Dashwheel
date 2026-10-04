@@ -111,7 +111,7 @@ object InAppNav {
 
     /** Starts guiding along [route], a route Valhalla gave from where the car is to [destination]. */
     @SuppressLint("MissingPermission")
-    fun start(context: Context, route: DirectionsRoute, destination: Point, name: String?) {
+    fun start(context: Context, route: DirectionsRoute, destination: Point, name: String?): Boolean {
         stop()
         // One guide at a time: Google Maps' own guidance, if it runs, is asked to end.
         NavDirections.exitNavigation()
@@ -122,14 +122,20 @@ object InAppNav {
             AndroidMapLibreNavigation(app, MapLibreNavigationOptions(), MapLibreLocationEngine(app, Looper.getMainLooper()))
         }.getOrElse {
             Log.w("InAppNav", "navigation failed to start: ${it.message}")
-            return
+            return false
         }
         nav.addProgressChangeListener(progressListener)
         nav.addMilestoneEventListener(milestoneListener)
         nav.addOffRouteListener(offRouteListener)
         _guidance.value = Guidance(route, destination, name)
         _navigation.value = nav
-        nav.startNavigation(route)
+        // The library throws on a route it can't follow: no guidance, not a crash.
+        runCatching { nav.startNavigation(route) }.onFailure {
+            Log.w("InAppNav", "route refused: ${it.message}")
+            stop()
+            return false
+        }
+        return true
     }
 
     /** Ends the guidance; the turn banners go back to Google Maps' or Waze's, if they guide. */
@@ -249,7 +255,8 @@ object InAppNav {
                 return@launch
             }
             _guidance.value = current.copy(route = fresh, rerouting = false)
-            _navigation.value?.startNavigation(fresh)
+            runCatching { _navigation.value?.startNavigation(fresh) }
+                .onFailure { Log.w("InAppNav", "reroute refused: ${it.message}") }
         }
     }
 
