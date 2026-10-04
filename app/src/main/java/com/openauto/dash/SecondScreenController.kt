@@ -232,10 +232,10 @@ internal object SecondScreenController {
                 startVideo()
             }
             SecondScreenOutput.DATA -> {
-                DisplayLink.send(DisplayMode(DisplayMode.Mode.DATA))
+                DisplayLink.send(DisplayMode(DisplayMode.Mode.DATA, wanted.config.upsideDown))
                 startFeed()
             }
-            SecondScreenOutput.NONE -> if (connected) DisplayLink.send(DisplayMode(DisplayMode.Mode.IDLE))
+            SecondScreenOutput.NONE -> if (connected) DisplayLink.send(DisplayMode(DisplayMode.Mode.IDLE, wanted.config.upsideDown))
         }
         if (wanted.output != SecondScreenOutput.DATA) stopFeed()
         holdFeeds(wanted.output != SecondScreenOutput.NONE)
@@ -244,7 +244,7 @@ internal object SecondScreenController {
     /** Tells the display to play, with the stream's parameter sets and a fresh key frame (also after a reconnect). */
     private fun startVideo() {
         val s = stream ?: return
-        DisplayLink.send(DisplayMode(DisplayMode.Mode.VIDEO))
+        DisplayLink.send(DisplayMode(DisplayMode.Mode.VIDEO, SecondScreenStore.config.value.upsideDown))
         s.videoConfig?.let(DisplayLink::send)
         s.requestKeyFrame()
     }

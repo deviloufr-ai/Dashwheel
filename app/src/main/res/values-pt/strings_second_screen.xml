@@ -75,4 +75,12 @@
     <string name="second_screen_copy_waits">%1$s espera que o carro pare</string>
     <string name="second_screen_map_blurb">O mapa 3D do painel, com o percurso e a próxima mudança de direção</string>
     <string name="second_screen_picture_wifi">Uma imagem em movimento usa mais Wi-Fi do telemóvel do que um widget.</string>
+    <string name="second_screen_background">Fundo</string>
+    <string name="second_screen_background_black">Preto</string>
+    <string name="second_screen_background_dark">Escuro</string>
+    <string name="second_screen_background_light">Claro</string>
+    <string name="second_screen_day_night">Seguir o dia e a noite</string>
+    <string name="second_screen_day_night_detail">Claro de dia, o fundo escolhido à noite.</string>
+    <string name="second_screen_upside_down">Virar a imagem</string>
+    <string name="second_screen_upside_down_detail">Para um ecrã montado ao contrário.</string>
 </resources>

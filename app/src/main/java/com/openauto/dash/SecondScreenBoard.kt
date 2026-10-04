@@ -99,18 +99,23 @@ internal fun ClusterBoard() {
         val virtualH = CLUSTER_HEIGHT_DP.dp
         val virtualW = virtualH * ratio
         val scale = maxWidth / virtualW
-        Box(
-            Modifier.requiredSize(virtualW, virtualH)
-                .graphicsLayer { scaleX = scale; scaleY = scale }
-                .padding(12.dp)
-        ) {
-            ClusterPageBody(layout, rememberClusterEnv(), preview = true) { index ->
-                val on = index == selected
-                Box(
-                    Modifier.fillMaxSize()
-                        .border(if (on) 6.dp else 1.dp, if (on) DashColors.Accent else DashColors.Muted.copy(alpha = 0.4f), DashShape.Medium)
-                        .clickable { selected = index }
-                )
+        // In the second screen's own colours, as it will look there.
+        val look by SecondScreenStore.config.collectAsState()
+        ClusterLook(look) {
+            Box(
+                Modifier.requiredSize(virtualW, virtualH)
+                    .graphicsLayer { scaleX = scale; scaleY = scale }
+                    .background(LocalClusterPalette.current.Background)
+                    .padding(12.dp)
+            ) {
+                ClusterPageBody(layout, rememberClusterEnv(), preview = true) { index ->
+                    val on = index == selected
+                    Box(
+                        Modifier.fillMaxSize()
+                            .border(if (on) 6.dp else 1.dp, if (on) DashColors.Accent else DashColors.Muted.copy(alpha = 0.4f), DashShape.Medium)
+                            .clickable { selected = index }
+                    )
+                }
             }
         }
     }

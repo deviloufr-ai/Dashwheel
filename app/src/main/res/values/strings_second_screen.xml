@@ -75,4 +75,12 @@
     <string name="second_screen_copy_waits">%1$s waits until the car stops</string>
     <string name="second_screen_map_blurb">The dashboard\'s 3D map, with the route and the next turn</string>
     <string name="second_screen_picture_wifi">A moving picture uses more of the phone\'s Wi-Fi than a widget.</string>
+    <string name="second_screen_background">Background</string>
+    <string name="second_screen_background_black">Black</string>
+    <string name="second_screen_background_dark">Dark</string>
+    <string name="second_screen_background_light">Light</string>
+    <string name="second_screen_day_night">Follow day and night</string>
+    <string name="second_screen_day_night_detail">Light by day, the background above at night.</string>
+    <string name="second_screen_upside_down">Turn the picture upside down</string>
+    <string name="second_screen_upside_down_detail">For a screen mounted the other way up.</string>
 </resources>

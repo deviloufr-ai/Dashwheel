@@ -55,10 +55,14 @@ data class DisplayHello(
     val protocol: Int = PROTOCOL_VERSION
 ) : LinkMessage
 
-/** Head unit → Pi: what to show. The Pi shows its own idle screen for [Mode.IDLE]. */
+/**
+ * Head unit → Pi: what to show. The Pi shows its own idle screen for [Mode.IDLE].
+ * [rotate180]: the monitor is mounted upside down; the Pi turns every picture,
+ * and keeps the choice for its next start (logo and idle screen included).
+ */
 @Serializable
 @SerialName("display_mode")
-data class DisplayMode(val mode: Mode) : LinkMessage {
+data class DisplayMode(val mode: Mode, val rotate180: Boolean = false) : LinkMessage {
     @Serializable
     enum class Mode { IDLE, VIDEO, DATA }
 }

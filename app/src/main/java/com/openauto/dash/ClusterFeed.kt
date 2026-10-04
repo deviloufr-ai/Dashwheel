@@ -61,7 +61,8 @@ internal object ClusterFeed {
             speedUnit = units.speedUnit,
             fahrenheit = units.fahrenheit,
             clock12 = !units.clock24,
-            night = !DashColors.Light,
+            // The display draws in its own colours: the second screen's background, not the dashboard's look.
+            night = SecondScreenRules.background(SecondScreenStore.config.value, day = DashColors.Light) != ClusterBackground.LIGHT,
             accent = DashColors.Accent.toArgb().toLong() and 0xFFFFFFFFL,
             media = media.takeIf { it.hasMedia && it.title.isNotBlank() }?.let {
                 ClusterState.Media(

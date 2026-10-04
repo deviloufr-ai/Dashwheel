@@ -107,7 +107,7 @@ internal fun DesignedFace(face: WidgetFace, design: WidgetDesign, modifier: Modi
         SignatureFace(face, design, modifier)
         return
     }
-    val look = faceLook(design.look)
+    val look = (if (design.look == FaceLookKind.THEME) LocalThemeFaceLook.current else null) ?: faceLook(design.look)
     FaceSurface(look, modifier.then(face.onClick?.let { Modifier.clickable(onClick = it) } ?: Modifier)) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             // The same one for as long as the tile keeps its size: made anew at

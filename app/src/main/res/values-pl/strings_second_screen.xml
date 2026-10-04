@@ -75,4 +75,12 @@
     <string name="second_screen_copy_waits">%1$s czeka, aż auto się zatrzyma</string>
     <string name="second_screen_map_blurb">Mapa 3D z pulpitu, z trasą i następnym skrętem</string>
     <string name="second_screen_picture_wifi">Ruchomy obraz zużywa więcej Wi-Fi telefonu niż widżet.</string>
+    <string name="second_screen_background">Tło</string>
+    <string name="second_screen_background_black">Czarne</string>
+    <string name="second_screen_background_dark">Ciemne</string>
+    <string name="second_screen_background_light">Jasne</string>
+    <string name="second_screen_day_night">Zmieniaj w dzień i w nocy</string>
+    <string name="second_screen_day_night_detail">W dzień jasne, w nocy wybrane tło.</string>
+    <string name="second_screen_upside_down">Obróć obraz</string>
+    <string name="second_screen_upside_down_detail">Dla ekranu zamontowanego do góry nogami.</string>
 </resources>

@@ -26,6 +26,9 @@ import kotlin.math.roundToInt
  * least 2 px, so it stays legible on a composite (RCA) monitor too.
  */
 class Painter(val width: Int, val height: Int, private val overscanPct: Int, private val logo: BufferedImage? = null) {
+    /** Drawn turned 180° (Rotation). */
+    @Volatile var upsideDown = false
+
 
     /** TYPE_INT_RGB is 0x00RRGGBB per pixel: little-endian, the bytes are B,G,R,x (GStreamer's "bgrx"). */
     val image = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
@@ -218,6 +221,8 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
             g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
             g.stroke = BasicStroke(max(2f, unit / 2))
+            // A monitor mounted upside down: everything is drawn turned half a turn.
+            if (upsideDown) g.transform(java.awt.geom.AffineTransform(-1.0, 0.0, 0.0, -1.0, width.toDouble(), height.toDouble()))
             block(g)
         } finally {
             g.dispose()
@@ -240,7 +245,7 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
     }
 
     private companion object {
-        val BG_NIGHT = Color(0x0B0F14)
+        val BG_NIGHT = Color(0x000000)
         val BG_DAY = Color(0xEEF1F4)
         val TEXT = Color(0xF2F5F8)
         val TEXT_DAY = Color(0x111418)

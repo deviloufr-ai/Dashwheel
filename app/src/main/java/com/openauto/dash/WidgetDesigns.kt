@@ -325,6 +325,12 @@ private val Serif = FontFamily.Serif
 private val Sans = FontFamily.SansSerif
 
 /** The material for [kind]; THEME reads the live dashboard palette. */
+/**
+ * The theme look's stand-in where a screen keeps its own colours (the second
+ * screen's cluster, ClusterLook): the dashboard's day / night look then stays off it.
+ */
+internal val LocalThemeFaceLook = androidx.compose.runtime.staticCompositionLocalOf<FaceLook?> { null }
+
 internal fun faceLook(kind: FaceLookKind): FaceLook = when (kind) {
     FaceLookKind.THEME -> FaceLook(
         kind, background = null,

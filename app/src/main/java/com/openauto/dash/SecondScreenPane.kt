@@ -25,9 +25,11 @@ import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.EventSeat
+import androidx.compose.material.icons.filled.Brightness6
 import androidx.compose.material.icons.filled.FileOpen
 import androidx.compose.material.icons.filled.HighQuality
 import androidx.compose.material.icons.filled.Keyboard
+import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.Swipe
 import androidx.compose.material.icons.filled.Tv
@@ -193,6 +195,23 @@ private fun SecondScreenSettings() {
                     }
                 }
             )
+            Text(
+                stringResource(R.string.second_screen_background), color = DashColors.TextSecondary,
+                style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(start = 12.dp, top = 8.dp)
+            )
+            ChoiceRow(
+                options = listOf(
+                    ClusterBackground.BLACK to stringResource(R.string.second_screen_background_black),
+                    ClusterBackground.DARK to stringResource(R.string.second_screen_background_dark),
+                    ClusterBackground.LIGHT to stringResource(R.string.second_screen_background_light)
+                ),
+                selected = { it == config.background },
+                onPick = { bg -> update { it.copy(background = bg) } }
+            )
+            SettingsToggle(
+                Icons.Filled.Brightness6, stringResource(R.string.second_screen_day_night),
+                stringResource(R.string.second_screen_day_night_detail), config.followDayNight
+            ) { on -> update { it.copy(followDayNight = on) } }
             SettingsToggle(
                 Icons.Filled.HighQuality, stringResource(R.string.second_screen_video),
                 stringResource(R.string.second_screen_video_detail), config.video
@@ -221,6 +240,10 @@ private fun SecondScreenSettings() {
     }
 
     if (config.mode != SecondScreenMode.OFF) {
+        SettingsToggle(
+            Icons.Filled.ScreenRotation, stringResource(R.string.second_screen_upside_down),
+            stringResource(R.string.second_screen_upside_down_detail), config.upsideDown
+        ) { on -> update { it.copy(upsideDown = on) } }
         Text(
             stringResource(R.string.second_screen_quality) + " · " + stringResource(R.string.second_screen_quality_detail),
             color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium,

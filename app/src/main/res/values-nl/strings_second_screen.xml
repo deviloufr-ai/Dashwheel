@@ -75,4 +75,12 @@
     <string name="second_screen_copy_waits">%1$s wacht tot de auto stilstaat</string>
     <string name="second_screen_map_blurb">De 3D-kaart van het dashboard, met de route en de volgende afslag</string>
     <string name="second_screen_picture_wifi">Een bewegend beeld gebruikt meer wifi van de telefoon dan een widget.</string>
+    <string name="second_screen_background">Achtergrond</string>
+    <string name="second_screen_background_black">Zwart</string>
+    <string name="second_screen_background_dark">Donker</string>
+    <string name="second_screen_background_light">Licht</string>
+    <string name="second_screen_day_night">Dag en nacht volgen</string>
+    <string name="second_screen_day_night_detail">Overdag licht, \'s nachts de gekozen achtergrond.</string>
+    <string name="second_screen_upside_down">Beeld omdraaien</string>
+    <string name="second_screen_upside_down_detail">Voor een scherm dat ondersteboven zit.</string>
 </resources>

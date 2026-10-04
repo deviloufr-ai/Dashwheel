@@ -60,7 +60,13 @@ internal fun ClusterScreen(page: StateFlow<ClusterPage>, pages: StateFlow<List<C
     val shown by page.collectAsState()
     val all by pages.collectAsState()
 
-    BoxWithConstraints(Modifier.fillMaxSize().background(DashColors.Background)) {
+    ClusterLook(config) { ClusterFrame(config, shown, all, overscanPct, env) }
+}
+
+@Composable
+private fun ClusterFrame(config: SecondScreenConfig, shown: ClusterPage, all: List<ClusterPage>, overscanPct: Int, env: SkinTileEnv) {
+    val palette = LocalClusterPalette.current
+    BoxWithConstraints(Modifier.fillMaxSize().background(palette.Background)) {
         // A TV (composite) crops the edges it calls overscan.
         val inset: Dp = (minOf(maxWidth, maxHeight) * overscanPct / 100f) + 12.dp
         Box(Modifier.fillMaxSize().padding(inset)) {
@@ -76,7 +82,7 @@ internal fun ClusterScreen(page: StateFlow<ClusterPage>, pages: StateFlow<List<C
                 all.forEach {
                     Box(
                         Modifier.size(10.dp).clip(CircleShape)
-                            .background(if (it == shown) DashColors.Accent else DashColors.Muted.copy(alpha = 0.5f))
+                            .background(if (it == shown) palette.Accent else palette.Muted.copy(alpha = 0.5f))
                     )
                 }
             }
@@ -174,7 +180,7 @@ internal fun ClusterPageBody(
  */
 @Composable
 private fun ClusterMap() {
-    Box(Modifier.fillMaxSize().clip(DashShape.Medium).background(DashColors.Card)) {
+    Box(Modifier.fillMaxSize().clip(DashShape.Medium).background(LocalClusterPalette.current.Card)) {
         MapLibrePanel(Modifier.fillMaxSize(), wallpaper = true)
         val nav by NavDirections.state.collectAsState()
         if (nav.active) {
@@ -204,7 +210,7 @@ private fun AppCopy(packageName: String) {
     }
     val held = packageName in hosted
     val waits = video && moving && !config.rearSeat
-    Box(Modifier.fillMaxSize().clip(DashShape.Medium).background(DashColors.Card)) {
+    Box(Modifier.fillMaxSize().clip(DashShape.Medium).background(LocalClusterPalette.current.Card)) {
         if (held && !waits) {
             AndroidView(
                 modifier = Modifier.fillMaxSize(),
@@ -246,13 +252,13 @@ private fun AppCopy(packageName: String) {
 @Composable
 private fun PictureStandIn(icon: ImageVector, text: String) {
     Column(
-        Modifier.fillMaxSize().clip(DashShape.Medium).background(DashColors.Card).padding(24.dp),
+        Modifier.fillMaxSize().clip(DashShape.Medium).background(LocalClusterPalette.current.Card).padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(icon, contentDescription = null, tint = DashColors.Accent, modifier = Modifier.size(56.dp))
+        Icon(icon, contentDescription = null, tint = LocalClusterPalette.current.Accent, modifier = Modifier.size(56.dp))
         Text(
-            text, color = DashColors.TextSecondary, textAlign = TextAlign.Center,
+            text, color = LocalClusterPalette.current.TextSecondary, textAlign = TextAlign.Center,
             style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 12.dp)
         )
     }

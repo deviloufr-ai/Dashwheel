@@ -98,10 +98,13 @@ class DisplayServer(
 
     private fun handle(session: LinkSession, frame: Incoming.Message) {
         when (val message = frame.message) {
-            is DisplayMode -> when (message.mode) {
+            is DisplayMode -> {
+                screen.turn(message.rotate180)
+                when (message.mode) {
                 DisplayMode.Mode.IDLE -> screen.idle("Connected")
                 DisplayMode.Mode.DATA -> screen.data(null)
                 DisplayMode.Mode.VIDEO -> screen.video()
+                }
             }
             is VideoConfig -> screen.configureVideo(message)
             is ClusterState -> screen.data(message)

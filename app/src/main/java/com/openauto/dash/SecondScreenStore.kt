@@ -28,7 +28,10 @@ object SecondScreenStore {
             pageKeys = SecondScreenCodec.decodeKeys(p.getString("page_keys", null)),
             mediaKeysTurnPages = p.getBoolean("media_keys_pages", d.mediaKeysTurnPages),
             barSwipeTurnsPages = p.getBoolean("bar_swipe_pages", d.barSwipeTurnsPages),
-            layouts = SecondScreenCodec.decodeLayouts(p.getString("layouts", null))
+            layouts = SecondScreenCodec.decodeLayouts(p.getString("layouts", null)),
+            background = enumOr(p.getString("background", null), d.background),
+            followDayNight = p.getBoolean("follow_day_night", d.followDayNight),
+            upsideDown = p.getBoolean("upside_down", d.upsideDown)
         )
         loaded = true
         return _config.value
@@ -54,6 +57,9 @@ object SecondScreenStore {
             .putBoolean("media_keys_pages", c.mediaKeysTurnPages)
             .putBoolean("bar_swipe_pages", c.barSwipeTurnsPages)
             .putString("layouts", SecondScreenCodec.encodeLayouts(c.layouts))
+            .putString("background", c.background.name)
+            .putBoolean("follow_day_night", c.followDayNight)
+            .putBoolean("upside_down", c.upsideDown)
             .apply()
     }
 

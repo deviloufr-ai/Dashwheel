@@ -38,7 +38,7 @@ class PainterTest {
         val image = Painter(1920, 1080, overscanPct = 0, logo = logo).paintIdle("Car", "Waiting", 0, pairingUri = null)
         assertEquals(0xFF0000, image.getRGB(960, 540) and 0xFFFFFF)
         assertEquals(0xFF0000, image.getRGB(960 - 149, 540 - 99) and 0xFFFFFF)
-        assertEquals(0x0B0F14, image.getRGB(960 - 152, 540) and 0xFFFFFF)
+        assertEquals(0x000000, image.getRGB(960 - 152, 540) and 0xFFFFFF)
 
         // Not paired yet: the pairing code comes first, not the logo.
         val uri = PairingOffer.create("Car", kind = PairingOffer.Kind.DISPLAY).toUri()

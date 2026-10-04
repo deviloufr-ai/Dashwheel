@@ -75,4 +75,12 @@
     <string name="second_screen_copy_waits">%1$s aspetta che l\'auto si fermi</string>
     <string name="second_screen_map_blurb">La mappa 3D del cruscotto, con il percorso e la prossima svolta</string>
     <string name="second_screen_picture_wifi">Un\'immagine in movimento usa più Wi-Fi del telefono di un widget.</string>
+    <string name="second_screen_background">Sfondo</string>
+    <string name="second_screen_background_black">Nero</string>
+    <string name="second_screen_background_dark">Scuro</string>
+    <string name="second_screen_background_light">Chiaro</string>
+    <string name="second_screen_day_night">Segui giorno e notte</string>
+    <string name="second_screen_day_night_detail">Chiaro di giorno, lo sfondo scelto di notte.</string>
+    <string name="second_screen_upside_down">Capovolgi l\'immagine</string>
+    <string name="second_screen_upside_down_detail">Per uno schermo montato al contrario.</string>
 </resources>

@@ -19,7 +19,7 @@ class Screen(
     mode: ScreenMode,
     private val pairing: DisplayPairing,
     requestKeyFrame: () -> Unit,
-    private val startVideo: () -> VideoSink.Sink = { BootLogo.release(); GstVideoSink.start(Pipelines.video(config)) },
+    private val startVideo: () -> VideoSink.Sink = { BootLogo.release(); GstVideoSink.start(Pipelines.video(config, Rotation.upsideDown)) },
     private val startFrames: (Int, Int) -> GstProcess? = { w, h ->
         BootLogo.release()
         GstProcess.startOrNull(Pipelines.frames(config, w, h), capacity = 1)
@@ -31,7 +31,7 @@ class Screen(
 ) {
     enum class Showing { IDLE, DATA, VIDEO }
 
-    private val painter = Painter(mode.width, mode.height, config.overscanPct, logo)
+    private val painter = Painter(mode.width, mode.height, config.overscanPct, logo).also { it.upsideDown = Rotation.upsideDown }
     // The last drawn picture stays up while the decoder starts (see ConsoleFrameBuffer).
     private val video = VideoSink(start = { showOnConsole(painter.image); stopFrames(); startVideo() }, requestKeyFrame = requestKeyFrame)
     private var frames: GstProcess? = null
@@ -122,6 +122,21 @@ class Screen(
     }
 
     fun configureVideo(config: VideoConfig) = video.configure(config)
+
+    /** The head unit's "Turn the picture": kept for the next start, shown at once. */
+    @Synchronized
+    fun turn(upsideDown: Boolean) {
+        if (!Rotation.set(pairing.dir, upsideDown)) return
+        log("picture turned: ${if (upsideDown) "upside down" else "upright"}")
+        painter.upsideDown = upsideDown
+        if (showing == Showing.VIDEO) {
+            // The decoder's chain changes: started afresh, from the next key frame.
+            video.stop()
+            video.prepare()
+        } else {
+            redraw()
+        }
+    }
 
     // Under the screen's lock like everything else here, so the lock order is
     // always screen then decoder (starting the decoder stops the drawn pictures).

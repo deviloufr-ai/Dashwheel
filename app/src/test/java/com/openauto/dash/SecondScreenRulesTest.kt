@@ -167,4 +167,16 @@ class SecondScreenRulesTest {
         assertEquals(2000, SecondScreenRules.adaptBitrate(2000, 2500, 0, 0))
         assertEquals(1500, SecondScreenRules.adaptBitrate(2000, 1500, 75, 0))
     }
+
+    @Test
+    fun theClusterStaysBlackUnlessAskedToFollowDayAndNight() {
+        val plain = SecondScreenConfig()
+        assertEquals(ClusterBackground.BLACK, SecondScreenRules.background(plain, day = true))
+        assertEquals(ClusterBackground.BLACK, SecondScreenRules.background(plain, day = false))
+        val follows = plain.copy(followDayNight = true)
+        assertEquals(ClusterBackground.LIGHT, SecondScreenRules.background(follows, day = true))
+        assertEquals(ClusterBackground.BLACK, SecondScreenRules.background(follows, day = false))
+        // Light chosen and following: dark at night all the same.
+        assertEquals(ClusterBackground.DARK, SecondScreenRules.background(follows.copy(background = ClusterBackground.LIGHT), day = false))
+    }
 }

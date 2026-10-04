@@ -19,6 +19,8 @@ enum class SecondScreenMode {
 /** The cluster's pages, cycled from Settings, the tile or a steering-wheel key. */
 enum class ClusterPage { DRIVE, MEDIA, NAV, OBD }
 
+enum class ClusterBackground { BLACK, DARK, LIGHT }
+
 data class SecondScreenConfig(
     val mode: SecondScreenMode = SecondScreenMode.CLUSTER,
     /** The app shown in [SecondScreenMode.APP]. */
@@ -40,7 +42,13 @@ data class SecondScreenConfig(
     /** A sideways swipe on the launcher's bar turns the cluster's page instead of the launcher's. */
     val barSwipeTurnsPages: Boolean = false,
     /** Pages the driver laid out on the board; the others keep [ClusterLayouts.default]. */
-    val layouts: Map<ClusterPage, ClusterLayout> = emptyMap()
+    val layouts: Map<ClusterPage, ClusterLayout> = emptyMap(),
+    /** The cluster's background; it stays as chosen, day and night, unless [followDayNight]. */
+    val background: ClusterBackground = ClusterBackground.BLACK,
+    /** Light by day, [background] (or dark) by night, as the dashboard's automatic look. */
+    val followDayNight: Boolean = false,
+    /** The monitor is mounted upside down: the display turns every picture 180°. */
+    val upsideDown: Boolean = false
 ) {
     /** What [page] shows: the driver's board, or the page as it comes. */
     fun layoutFor(page: ClusterPage): ClusterLayout = layouts[page] ?: ClusterLayouts.default(page)
@@ -202,6 +210,14 @@ enum class SecondScreenOutput {
 enum class SecondScreenBlock { NONE, NO_APP_CHOSEN, NO_VIDEO, VIDEO_WHILE_MOVING, APPS_NOT_SUPPORTED }
 
 object SecondScreenRules {
+
+    /** The background the cluster shows now: the chosen one, or light by [day] when it follows day and night. */
+    fun background(config: SecondScreenConfig, day: Boolean): ClusterBackground = when {
+        !config.followDayNight -> config.background
+        day -> ClusterBackground.LIGHT
+        config.background == ClusterBackground.LIGHT -> ClusterBackground.DARK
+        else -> config.background
+    }
 
     val STREAM_HEIGHTS = listOf(480, 720, 1080)
 

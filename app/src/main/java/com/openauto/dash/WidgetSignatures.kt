@@ -193,7 +193,7 @@ private object Shapes {
 /** [face] drawn in the widget-specific [design] (one whose [WidgetDesign.kinds] is set). */
 @Composable
 internal fun SignatureFace(face: WidgetFace, design: WidgetDesign, modifier: Modifier = Modifier) {
-    val look = faceLook(FaceLookKind.THEME)
+    val look = LocalThemeFaceLook.current ?: faceLook(FaceLookKind.THEME)
     FaceSurface(look, modifier.then(face.onClick?.let { Modifier.clickable(onClick = it) } ?: Modifier)) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             // The same one for as long as the tile keeps its size: made anew at

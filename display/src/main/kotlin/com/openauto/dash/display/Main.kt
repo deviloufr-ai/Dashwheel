@@ -26,6 +26,7 @@ fun main(args: Array<String>) {
 
     val config = DisplayConfig.load(dir)
     val pairing = DisplayPairing(dir, config.name)
+    Rotation.load(dir)
     if (printPairing) {
         println(pairing.offer.toUri())
         return

@@ -75,4 +75,12 @@
     <string name="second_screen_copy_waits">%1$s wartet, bis das Auto steht</string>
     <string name="second_screen_map_blurb">Die 3D-Karte des Dashboards mit Route und nächster Abbiegung</string>
     <string name="second_screen_picture_wifi">Ein bewegtes Bild braucht mehr WLAN des Telefons als ein Widget.</string>
+    <string name="second_screen_background">Hintergrund</string>
+    <string name="second_screen_background_black">Schwarz</string>
+    <string name="second_screen_background_dark">Dunkel</string>
+    <string name="second_screen_background_light">Hell</string>
+    <string name="second_screen_day_night">Tag und Nacht folgen</string>
+    <string name="second_screen_day_night_detail">Tagsüber hell, nachts der gewählte Hintergrund.</string>
+    <string name="second_screen_upside_down">Bild auf den Kopf stellen</string>
+    <string name="second_screen_upside_down_detail">Für einen kopfüber montierten Bildschirm.</string>
 </resources>
