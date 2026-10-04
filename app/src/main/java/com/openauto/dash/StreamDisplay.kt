@@ -137,6 +137,9 @@ internal class StreamDisplay private constructor(
                 setLong(MediaFormat.KEY_REPEAT_PREVIOUS_FRAME_AFTER, repeatAfterUs(fps))
                 // Real time, not throughput.
                 setInteger(MediaFormat.KEY_PRIORITY, 0)
+                // No frames that refer to later ones: the display's decoder would hold
+                // pictures back to put them in order, a delay on every frame.
+                setInteger(MediaFormat.KEY_MAX_B_FRAMES, 0)
                 if (main) {
                     // Main profile compresses better than Baseline, and the Pi's decoder takes it.
                     setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileMain)

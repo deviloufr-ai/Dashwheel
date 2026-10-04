@@ -53,6 +53,9 @@ internal object SecondScreenController {
     private const val APP_LAUNCH_WAIT_MS = 1_500L
     private const val APP_LAUNCH_TRIES = 6
     private const val CLUSTER_FPS = 15
+
+    /** Cluster slots whose picture moves all the time. */
+    private val LIVE_KINDS = setOf(BuiltinKind.NAVMAP, BuiltinKind.MAPS_INSIDE)
     private const val APP_FPS = 30
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -208,7 +211,10 @@ internal object SecondScreenController {
             tearDown()
         } else {
             val (w, h) = SecondScreenRules.streamSize(display.width, display.height, wanted.config.maxHeight, display.maxWidth, display.maxHeight)
-            val fps = if (wanted.output == SecondScreenOutput.VIDEO_APP) APP_FPS else CLUSTER_FPS
+            // A page with a live map or an app's copy moves like video: smoother, and each frame waits less.
+            // Decided for all the pages at once, so turning one never restarts the stream.
+            val live = wanted.config.pages.any { p -> wanted.config.layoutFor(p).slots.any { it.kind in LIVE_KINDS } }
+            val fps = if (wanted.output == SecondScreenOutput.VIDEO_APP || live) APP_FPS else CLUSTER_FPS
             val shape = listOf(w, h, fps, wanted.config.bitrateKbps)
             if (streamShape != shape) {
                 tearDown()

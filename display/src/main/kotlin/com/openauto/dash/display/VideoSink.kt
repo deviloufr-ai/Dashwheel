@@ -149,12 +149,17 @@ class VideoSink(
 /** A [GstProcess] as a [VideoSink.Sink]. */
 class GstVideoSink private constructor(private val process: GstProcess?) : VideoSink.Sink {
     override val alive get() = process?.alive == true
-    override fun offer(chunk: ByteArray) = process?.offer(chunk) == true
+    // An access unit delimiter after each frame: h264parse only lets a frame go once it
+    // sees where the next one starts, so every frame used to wait one frame time.
+    override fun offer(chunk: ByteArray) = process?.offer(chunk + END_OF_FRAME) == true
     override fun stop() {
         process?.stop()
     }
 
     companion object {
+        /** An H.264 access unit delimiter (NAL type 9, any picture type). */
+        private val END_OF_FRAME = byteArrayOf(0, 0, 0, 1, 9, 0xF0.toByte())
+
         // A few frames, a quarter to a third of a second: a decoder that falls behind drops
         // frames (and gets a lower bitrate) instead of showing the road seconds late.
         fun start(command: List<String>) = GstVideoSink(GstProcess.startOrNull(command, capacity = 5))
