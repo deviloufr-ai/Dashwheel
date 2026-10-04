@@ -39,8 +39,8 @@ object CarVoice {
     private val queued = mutableListOf<Pair<String, Locale>>()
     private var focus: AudioFocusRequest? = null
     private var nextId = 0
-    // Utterances handed to the engine and not finished yet (main thread).
-    private var talking = 0
+    // What was handed to the engine and isn't finished yet, by utterance id, oldest first (main thread).
+    private val pending = LinkedHashMap<String, Said>()
     // What was asked to be said lately, newest last, so one feature doesn't repeat another.
     private val recent = ArrayDeque<Pair<Long, String>>()
     private const val RECENT_MS = 10 * 60_000L
@@ -70,12 +70,39 @@ object CarVoice {
 
     private fun setHold(change: () -> Unit) {
         main.post {
+            val wasReversing = reversing
             val before = reversing || onCall
             change()
-            if (!before || reversing || onCall) return@post
+            val now = reversing || onCall
+            if (now && (!before || reversing && !wasReversing)) interrupt()
+            if (!before || now) return@post
             val lines = linesToRelease(held.toList(), SystemClock.elapsedRealtime())
             held.clear()
-            lines.forEach { speakNow(it.text, it.locale, it.urgent) }
+            lines.forEach { speakNow(it.text, it.locale, it.urgent, it.guidance) }
+        }
+    }
+
+    /**
+     * A hold begins: the sentence being said stops there, and is said again,
+     * whole, with what waited behind it once the hold ends. A call never cuts
+     * what can't wait; a reverse does. Main thread.
+     */
+    private fun interrupt() {
+        if (pending.isEmpty() || !reversing && pending.values.any { it.urgent }) return
+        val at = SystemClock.elapsedRealtime()
+        held.addAll(0, pending.values.filter { !it.guidance }.map { HeldLine(it.text, it.locale, at, it.urgent) })
+        tts?.stop()
+    }
+
+    /**
+     * Stops talking at once: the sentence being said and those waiting behind
+     * it (the tour moved on, the driver asked for quiet). What a call or a
+     * reverse holds back is still said after.
+     */
+    fun stop() {
+        main.post {
+            queued.clear()
+            tts?.stop()
         }
     }
 
@@ -93,6 +120,8 @@ object CarVoice {
         get() = SystemClock.elapsedRealtime() < quietUntil
         set(on) {
             quietUntil = if (on) SystemClock.elapsedRealtime() + QUIET_MAX_MS else 0L
+            // Quiet means now: the sentence being said stops too, unless it can't wait.
+            if (on) main.post { if (pending.values.none { it.urgent }) tts?.stop() }
         }
 
     /**
@@ -110,7 +139,16 @@ object CarVoice {
      * door open on the move) is said ahead of anything being said or queued,
      * and during a call too.
      */
-    fun speak(text: String, locale: Locale, urgent: Boolean = false) {
+    fun speak(text: String, locale: Locale, urgent: Boolean = false) = ask(text, locale, urgent, guidance = false)
+
+    /**
+     * A turn instruction, which is only true for a few seconds: said ahead of
+     * what is being said or waiting (those waiting are said after it), and
+     * dropped rather than said late when a call or a reverse held it back.
+     */
+    fun guide(text: String, locale: Locale) = ask(text, locale, urgent = false, guidance = true)
+
+    private fun ask(text: String, locale: Locale, urgent: Boolean, guidance: Boolean) {
         // Noted when asked, not when spoken, so a check right after already sees it.
         val now = System.currentTimeMillis()
         synchronized(recent) {
@@ -120,22 +158,22 @@ object CarVoice {
         main.post {
             if (text.isBlank()) return@post
             if (reversing || onCall && !urgent) {
-                held.add(HeldLine(text, locale, SystemClock.elapsedRealtime(), urgent))
+                held.add(HeldLine(text, locale, SystemClock.elapsedRealtime(), urgent, guidance))
                 return@post
             }
-            speakNow(text, locale, urgent)
+            speakNow(text, locale, urgent, guidance)
         }
     }
 
     /** Main thread. */
-    private fun speakNow(text: String, locale: Locale, urgent: Boolean) {
+    private fun speakNow(text: String, locale: Locale, urgent: Boolean, guidance: Boolean = false) {
         val engine = engine() ?: return
         if (!ready) {
             // Still starting: what can't wait goes first.
-            if (urgent) queued.add(0, text to locale) else queued.add(text to locale)
+            if (urgent || guidance) queued.add(0, text to locale) else queued.add(text to locale)
             return
         }
-        say(engine, text, locale, urgent)
+        say(engine, text, locale, urgent, guidance)
     }
 
     /** What was asked to be said since [time] (the last ten minutes at most). */
@@ -183,21 +221,23 @@ object CarVoice {
         created.setAudioAttributes(attributes)
         created.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
             override fun onStart(utteranceId: String?) {
-                main.post { stillTalking() }
+                main.post {
+                    pending[utteranceId]?.started = true
+                    stillTalking()
+                }
             }
-            override fun onDone(utteranceId: String?) = releaseFocusWhenQuiet(finished = 1)
+            override fun onDone(utteranceId: String?) = releaseFocusWhenQuiet(utteranceId)
             @Deprecated("Deprecated in Java")
-            override fun onError(utteranceId: String?) = releaseFocusWhenQuiet(finished = 1)
+            override fun onError(utteranceId: String?) = releaseFocusWhenQuiet(utteranceId)
             // Flushed or stopped before its end: never gets onDone.
-            override fun onStop(utteranceId: String?, interrupted: Boolean) = releaseFocusWhenQuiet(finished = 1)
+            override fun onStop(utteranceId: String?, interrupted: Boolean) = releaseFocusWhenQuiet(utteranceId)
         })
         tts = created
         return created
     }
 
-    private fun say(engine: TextToSpeech, text: String, locale: Locale, urgent: Boolean = false) {
-        val voice = voiceFor(engine, locale)
-        if (voice == null || engine.setLanguage(voice) < TextToSpeech.LANG_AVAILABLE) {
+    private fun say(engine: TextToSpeech, text: String, locale: Locale, urgent: Boolean = false, guidance: Boolean = false) {
+        if (voiceFor(engine, locale) == null) {
             Log.w(TAG, "No ${locale.displayLanguage} voice installed; not speaking")
             return
         }
@@ -210,13 +250,22 @@ object CarVoice {
             return
         }
         // Urgent: what was being said or waiting is dropped (each gets its onStop).
-        val mode = if (urgent) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD
-        if (engine.speak(text, mode, null, "carvoice-${nextId++}") == TextToSpeech.SUCCESS) {
-            talking++
-            stillTalking()
-        } else {
-            releaseFocusWhenQuiet(finished = 0)
-        }
+        // A turn instruction cuts in the same way, except on what can't wait,
+        // and what was only waiting is said after it.
+        val cutsIn = urgent || guidance && pending.values.none { it.urgent }
+        val waiting = if (guidance && cutsIn) pending.values.filter { !it.started && !it.guidance } else emptyList()
+        utter(engine, Said(text, locale, urgent, guidance), if (cutsIn) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD)
+        waiting.forEach { utter(engine, Said(it.text, it.locale, it.urgent, guidance = false), TextToSpeech.QUEUE_ADD) }
+        stillTalking()
+        if (pending.isEmpty()) abandonFocus()
+    }
+
+    /** Hands [line] to the engine in its language; it is [pending] until the engine says it is over. */
+    private fun utter(engine: TextToSpeech, line: Said, mode: Int) {
+        val voice = voiceFor(engine, line.locale) ?: return
+        if (engine.setLanguage(voice) < TextToSpeech.LANG_AVAILABLE) return
+        val id = "carvoice-${nextId++}"
+        if (engine.speak(line.text, mode, null, id) == TextToSpeech.SUCCESS) pending[id] = line
     }
 
     private fun inCall(): Boolean {
@@ -238,23 +287,23 @@ object CarVoice {
     // If the engine dies mid-sentence no callback ever comes, and the music
     // would stay ducked: past [SILENCE_MS] without news, give the focus back.
     private val giveUp = Runnable {
-        talking = 0
+        pending.clear()
         abandonFocus()
     }
 
     /** The engine is (still) speaking: pushes back the give-up deadline. Main thread. */
     private fun stillTalking() {
         main.removeCallbacks(giveUp)
-        if (talking > 0) main.postDelayed(giveUp, SILENCE_MS)
+        if (pending.isNotEmpty()) main.postDelayed(giveUp, SILENCE_MS)
     }
 
     // Utterance callbacks arrive on a binder thread; hop to main and only let
     // the music back up once nothing else is queued.
-    private fun releaseFocusWhenQuiet(finished: Int) {
+    private fun releaseFocusWhenQuiet(finishedId: String?) {
         main.post {
-            talking = (talking - finished).coerceAtLeast(0)
+            pending.remove(finishedId)
             stillTalking()
-            if (talking == 0) abandonFocus()
+            if (pending.isEmpty()) abandonFocus()
         }
     }
 
@@ -265,12 +314,25 @@ object CarVoice {
     }
 }
 
-/** A sentence asked for while [CarVoice] was held, and when (elapsed realtime). */
-internal data class HeldLine(val text: String, val locale: Locale, val at: Long, val urgent: Boolean = false)
+/** A sentence handed to the engine; [started] once it is being said. */
+private class Said(val text: String, val locale: Locale, val urgent: Boolean, val guidance: Boolean, var started: Boolean = false)
+
+/** A sentence asked for while [CarVoice] was held, and when (elapsed realtime); [guidance]: a turn instruction. */
+internal data class HeldLine(val text: String, val locale: Locale, val at: Long, val urgent: Boolean = false, val guidance: Boolean = false)
 
 /** A held sentence older than this is dropped: by then it would be about something else. */
 internal const val HELD_MAX_MS = 2 * 60_000L
 
-/** What to say when a hold ends: in order, the stale ones dropped, each sentence once. */
-internal fun linesToRelease(held: List<HeldLine>, now: Long): List<HeldLine> =
-    held.filter { now - it.at <= HELD_MAX_MS }.distinctBy { it.text }
+/** A held turn instruction is only worth saying this long: after that the turn is behind the car. */
+internal const val HELD_GUIDANCE_MS = 10_000L
+
+/**
+ * What to say when a hold ends: in order, the stale ones dropped, each
+ * sentence once. Of the turn instructions only the last, if still fresh, and
+ * it goes first.
+ */
+internal fun linesToRelease(held: List<HeldLine>, now: Long): List<HeldLine> {
+    val fresh = held.filter { now - it.at <= if (it.guidance) HELD_GUIDANCE_MS else HELD_MAX_MS }
+    val turn = fresh.lastOrNull { it.guidance }
+    return (listOfNotNull(turn) + fresh.filter { !it.guidance }).distinctBy { it.text }
+}

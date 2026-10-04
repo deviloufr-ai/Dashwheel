@@ -56,7 +56,7 @@ object BeltAlertOverlay {
     val style: StateFlow<AlertStyle?> =
         combine(alert, AlertStyleStore.styles, UnitSignals.projectionOnScreen) { on, styles, projected ->
             if (!on) null else if (projected) AlertStyle.PILL else styles.of(AlertKind.BELT)
-        }.stateIn(scope, SharingStarted.Eagerly, null)
+        }.arbitrated(AlertKind.BELT).stateIn(scope, SharingStarted.Eagerly, null)
 
     fun start(context: Context) {
         if (started) return
@@ -87,7 +87,7 @@ object BeltAlertOverlay {
         }
         scope.launch {
             style.collect { style ->
-                val w = window ?: AlertWindow(app, "belt", AlertKind.BELT.cardAt.gravity).also { window = it }
+                val w = window ?: AlertWindow(app, "belt", AlertKind.BELT.cardAt.gravity, rank = AlertKind.BELT.rank).also { window = it }
                 if (style != null && w.canShow()) w.show(style) { BeltAlert(style) } else window?.hide()
             }
         }

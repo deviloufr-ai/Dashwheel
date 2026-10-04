@@ -203,7 +203,9 @@ internal fun UpkeepDialog(onDismiss: () -> Unit) {
             if (state.fetching) {
                 CircularProgressIndicator(color = DashColors.Accent, modifier = Modifier.size(22.dp))
             } else {
+                // Why the fetch the car made by itself failed, until one works.
                 val (ok, message) = fetchResult
+                    ?: state.fetchError?.takeIf { !state.planFromAi }?.let { false to stringResource(R.string.upkeep_fetch_failed, it) }
                     ?: (state.planFromAi to stringResource(if (state.planFromAi) R.string.upkeep_plan_ai else R.string.upkeep_plan_default))
                 Text(message, color = if (ok) DashColors.Good else DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
             }

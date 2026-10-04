@@ -97,7 +97,7 @@ object PhoneCallOverlay {
     val style: StateFlow<AlertStyle?> =
         combine(call, AlertStyleStore.styles, CarBox.reversing) { call, styles, reversing ->
             call?.let { callStyle(it, styles.of(AlertKind.CALL), reversing) }
-        }.stateIn(scope, SharingStarted.Eagerly, null)
+        }.arbitrated(AlertKind.CALL).stateIn(scope, SharingStarted.Eagerly, null)
 
     /**
      * The call a button acts on with no card to press (a learned steering
@@ -138,7 +138,7 @@ object PhoneCallOverlay {
             // Again when reverse is engaged: the same design then moves above the camera.
             combine(style, CarBox.reversing) { style, _ -> style }.collect { style ->
                 if (style != null && !Settings.canDrawOverlays(app)) PipAnchor.grantOverlayPermission(app)
-                val w = window ?: AlertWindow(app, "call", AlertKind.CALL.cardAt.gravity, aboveCamera = { CarBox.reversing.value }).also { window = it }
+                val w = window ?: AlertWindow(app, "call", AlertKind.CALL.cardAt.gravity, aboveCamera = { CarBox.reversing.value }, rank = AlertKind.CALL.rank).also { window = it }
                 if (style != null && w.canShow()) {
                     _showing.value = w.show(style) { CallAlertContent(style) }
                 } else {

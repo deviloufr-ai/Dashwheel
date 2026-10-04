@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.CallEnd
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -103,7 +104,8 @@ internal enum class SteeringWheelAction(
 
     // Names are saved with the learned buttons: new ones go last, whatever their group.
     ASK_MECHANIC(WheelActionGroup.CAR, R.string.ai_ask_wheel_action, Icons.Filled.QuestionAnswer),
-    GEMINI_LIVE(WheelActionGroup.CAR, R.string.ai_gemini_live, Icons.Filled.AutoAwesome);
+    GEMINI_LIVE(WheelActionGroup.CAR, R.string.ai_gemini_live, Icons.Filled.AutoAwesome),
+    STOP_GUIDANCE(WheelActionGroup.NAVIGATION, R.string.wheel_action_stop_guidance, Icons.Filled.Close);
 
     fun run(context: Context) {
         when (this) {
@@ -151,7 +153,15 @@ internal enum class SteeringWheelAction(
             // Asked out loud, answered out loud from the live readings; a second press sends.
             ASK_MECHANIC -> AskMechanic.listenHandsFree(context)
             GEMINI_LIVE -> GeminiLive.toggle(context)
+            STOP_GUIDANCE -> stopGuidance(context)
         }
+    }
+
+    /** Ends the guidance, the dashboard's own and Google Maps', and says which it was: stopped, or none to stop. */
+    private fun stopGuidance(context: Context) {
+        val own = InAppNav.endNow()
+        val maps = NavDirections.exitNavigation()
+        HandsFree.say(context, if (own || maps) R.string.voice_guidance_stopped else R.string.voice_guidance_none)
     }
 
     /**

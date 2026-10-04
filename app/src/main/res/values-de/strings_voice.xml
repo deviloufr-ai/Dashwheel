@@ -22,4 +22,6 @@
         <item quantity="one">Die günstigste Tankstelle in der Nähe ist %1$s, %2$d Kilometer entfernt.</item>
         <item quantity="other">Die günstigste Tankstelle in der Nähe ist %1$s, %2$d Kilometer entfernt.</item>
     </plurals>
+    <string name="voice_guidance_stopped">Navigation beendet.</string>
+    <string name="voice_guidance_none">Keine Navigation aktiv.</string>
 </resources>

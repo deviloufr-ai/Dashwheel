@@ -22,4 +22,6 @@
         <item quantity="one">Il distributore più economico nelle vicinanze è %1$s, a %2$d chilometro.</item>
         <item quantity="other">Il distributore più economico nelle vicinanze è %1$s, a %2$d chilometri.</item>
     </plurals>
+    <string name="voice_guidance_stopped">Navigazione fermata.</string>
+    <string name="voice_guidance_none">Nessuna navigazione in corso.</string>
 </resources>

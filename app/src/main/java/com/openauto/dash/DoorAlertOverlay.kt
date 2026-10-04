@@ -93,6 +93,7 @@ object DoorAlertOverlay {
             // Over CarPlay / Android Auto: the pill, so the projection stays usable.
             doors?.let { if (projected) AlertStyle.PILL else styles.of(AlertKind.DOORS) }
         }
+            .arbitrated(AlertKind.DOORS)
             .stateIn(scope, SharingStarted.Eagerly, null)
 
     private val _showing = MutableStateFlow(false)
@@ -111,7 +112,7 @@ object DoorAlertOverlay {
             style.collect { style ->
                 if (style != null && !Settings.canDrawOverlays(app)) PipAnchor.grantOverlayPermission(app)
                 if (style != null && Settings.canDrawOverlays(app)) {
-                    val w = window ?: AlertWindow(app, "doors", AlertKind.DOORS.cardAt.gravity).also { window = it }
+                    val w = window ?: AlertWindow(app, "doors", AlertKind.DOORS.cardAt.gravity, rank = AlertKind.DOORS.rank).also { window = it }
                     _showing.value = w.show(style) { DoorAlertContent(style) }
                 } else {
                     window?.hide()

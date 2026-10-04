@@ -111,4 +111,5 @@
     <string name="wheel_reset_title">Lenkradtasten zurücksetzen?</string>
     <string name="wheel_reset_body">Jede Taste verlässt die Karte und verliert ihre Aktion. Das Lenkrad tut wieder, was das Radio von selbst macht.</string>
     <string name="wheel_reset_confirm">Zurücksetzen</string>
+    <string name="wheel_action_stop_guidance">Navigation beenden</string>
 </resources>

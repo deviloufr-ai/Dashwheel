@@ -111,4 +111,5 @@
     <string name="wheel_reset_title">Réinitialiser les boutons du volant ?</string>
     <string name="wheel_reset_body">Chaque bouton quitte la carte et perd son action. Le volant revient à ce que fait l\'autoradio tout seul.</string>
     <string name="wheel_reset_confirm">Réinitialiser</string>
+    <string name="wheel_action_stop_guidance">Arrêter le guidage</string>
 </resources>

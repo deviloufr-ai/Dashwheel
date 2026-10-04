@@ -43,8 +43,11 @@ enum class UpkeepKind(@StringRes val labelRes: Int) {
 /** Every two years in France and most of Europe once the car is four years old. */
 private const val INSPECTION_MONTHS = 24
 
-/** How often [kind] is due; null = not known (no reminder on that count). */
-data class UpkeepInterval(val kind: UpkeepKind, val everyKm: Int? = null, val everyMonths: Int? = null) {
+/**
+ * How often [kind] is due; null = not known (no reminder on that count).
+ * [own]: the driver typed it, so the maker's intervals never replace it.
+ */
+data class UpkeepInterval(val kind: UpkeepKind, val everyKm: Int? = null, val everyMonths: Int? = null, val own: Boolean = false) {
     val known: Boolean get() = everyKm != null || everyMonths != null
 }
 
@@ -104,6 +107,12 @@ object UpkeepRules {
         }
         // Items the AI knows about that the defaults left out (a chain car with a belt-driven pump...).
         return merged + ai.filter { a -> a.known && merged.none { it.kind == a.kind } }
+    }
+
+    /** [fresh] (the defaults, or the maker's intervals) with the driver's own figures in [current] kept. */
+    fun keepOwn(fresh: List<UpkeepInterval>, current: List<UpkeepInterval>): List<UpkeepInterval> {
+        val own = current.filter { it.own }.associateBy { it.kind }
+        return fresh.map { own[it.kind] ?: it } + own.values.filter { o -> fresh.none { it.kind == o.kind } }
     }
 
     /** Where [interval] stands given the last time it was done and the mileage. */
@@ -236,6 +245,8 @@ object Maintenance {
     private val fetchMutex = Mutex()
     /** Which car's description the saved plan was fetched for. */
     private var planFor: Int = 0
+    /** The saved plan predates [UpkeepInterval.own] and never came from the AI: [onCar] works out the driver's figures. */
+    private var ownUnmarked = false
     private var spoken: Map<UpkeepKind, UpkeepStage> = emptyMap()
     private var drivenUnsaved = 0.0
 
@@ -249,9 +260,19 @@ object Maintenance {
     /** The plan follows the car: a new car gets the defaults and, given a key, the maker's intervals. */
     private fun onCar(car: CarProfile) {
         val hash = car.promptDescription().hashCode()
+        if (ownUnmarked) {
+            ownUnmarked = false
+            // Saved before the driver's figures were marked: on a plan the AI never filled, what differs from the defaults is theirs.
+            val defaults = UpkeepRules.defaultPlan(car).associateBy { it.kind }
+            _state.value = _state.value.copy(plan = _state.value.plan.map { it.copy(own = it.known && it != defaults[it.kind]) })
+            save()
+        }
         val s = _state.value
         if (s.plan.isEmpty() || (planFor != hash && s.planFromAi)) {
-            _state.value = s.copy(plan = UpkeepRules.defaultPlan(car), planFromAi = false)
+            // What the driver typed stays, for the items the car still has.
+            val fresh = UpkeepRules.defaultPlan(car)
+            val plan = UpkeepRules.keepOwn(fresh, s.plan).filter { kept -> fresh.any { it.kind == kept.kind } }
+            _state.value = s.copy(plan = plan, planFromAi = false)
             planFor = hash
             save()
         }
@@ -285,7 +306,8 @@ object Maintenance {
             _state.value = _state.value.copy(fetching = true, fetchError = null)
             val result = UpkeepPlan.fetch(context, car)
             result.onSuccess { ai ->
-                _state.value = _state.value.copy(plan = UpkeepRules.merge(UpkeepRules.defaultPlan(car), ai), planFromAi = true, fetching = false)
+                val plan = UpkeepRules.keepOwn(UpkeepRules.merge(UpkeepRules.defaultPlan(car), ai), _state.value.plan)
+                _state.value = _state.value.copy(plan = plan, planFromAi = true, fetching = false)
                 planFor = hash
                 save()
             }.onFailure {
@@ -313,9 +335,10 @@ object Maintenance {
         setOdometer(km)
     }
 
-    /** The driver's own interval for [kind]. */
+    /** The driver's own interval for its kind; emptied, the maker's may fill it in again. */
     fun setInterval(interval: UpkeepInterval) {
-        _state.value = _state.value.copy(plan = _state.value.plan.map { if (it.kind == interval.kind) interval else it })
+        val typed = interval.copy(own = interval.known)
+        _state.value = _state.value.copy(plan = _state.value.plan.map { if (it.kind == typed.kind) typed else it })
         save()
     }
 
@@ -358,9 +381,10 @@ object Maintenance {
                 (0 until a.length()).mapNotNull { i ->
                     val it = a.getJSONObject(i)
                     val kind = UpkeepKind.entries.firstOrNull { k -> k.name == it.optString("kind") } ?: return@mapNotNull null
-                    UpkeepInterval(kind, it.optInt("km").takeIf { v -> v > 0 }, it.optInt("months").takeIf { v -> v > 0 })
+                    UpkeepInterval(kind, it.optInt("km").takeIf { v -> v > 0 }, it.optInt("months").takeIf { v -> v > 0 }, it.optBoolean("own"))
                 }
             }.orEmpty()
+            ownUnmarked = !o.optBoolean("plan_ai") && o.optJSONArray("plan")?.optJSONObject(0)?.has("own") == false
             val done = o.optJSONObject("done")?.let { d ->
                 d.keys().asSequence().mapNotNull { key ->
                     val kind = UpkeepKind.entries.firstOrNull { k -> k.name == key } ?: return@mapNotNull null
@@ -385,7 +409,7 @@ object Maintenance {
         val o = JSONObject()
             .put("plan_for", planFor)
             .put("plan_ai", s.planFromAi)
-            .put("plan", JSONArray(s.plan.map { JSONObject().put("kind", it.kind.name).putOpt("km", it.everyKm).putOpt("months", it.everyMonths) }))
+            .put("plan", JSONArray(s.plan.map { JSONObject().put("kind", it.kind.name).putOpt("km", it.everyKm).putOpt("months", it.everyMonths).put("own", it.own) }))
             .put("done", JSONObject().apply { s.done.forEach { (k, d) -> put(k.name, JSONObject().putOpt("km", d.km).putOpt("at", d.at)) } })
             .putOpt("odometer", s.odometer?.let { JSONObject().put("km", it.km).put("at", it.readAt).put("driven", it.drivenSince) })
             .put("spoken", JSONObject().apply { spoken.forEach { (k, st) -> put(k.name, st.name) } })

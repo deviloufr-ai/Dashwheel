@@ -165,4 +165,6 @@
     <string name="info_map_other_app">Guide in Google Maps or Waze</string>
     <string name="info_audio_by_keys">Volume set through the head unit\'s volume keys</string>
     <string name="info_audio_unavailable">Volume can\'t be changed from here: use the knob</string>
+    <string name="info_map_stop_title">Stop the guidance?</string>
+    <string name="info_map_stop_body">The map stops giving directions. Start again from the map.</string>
 </resources>

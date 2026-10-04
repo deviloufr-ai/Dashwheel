@@ -165,4 +165,6 @@
     <string name="info_map_other_app">Guider dans Google Maps ou Waze</string>
     <string name="info_audio_by_keys">Volume réglé par les touches de volume de l\'autoradio</string>
     <string name="info_audio_unavailable">Volume non réglable d\'ici : utilisez le bouton</string>
+    <string name="info_map_stop_title">Arrêter le guidage ?</string>
+    <string name="info_map_stop_body">La carte n\'annonce plus les directions. Relancez depuis la carte.</string>
 </resources>

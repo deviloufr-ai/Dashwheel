@@ -75,6 +75,7 @@ object ClimateOverlay {
             // Over CarPlay / Android Auto: the pill, so the projection stays usable.
             climate?.let { if (projected) AlertStyle.PILL else styles.of(AlertKind.AC) }
         }
+            .arbitrated(AlertKind.AC)
             .stateIn(scope, SharingStarted.Eagerly, null)
 
     fun start(context: Context) {
@@ -100,7 +101,7 @@ object ClimateOverlay {
         scope.launch {
             style.collect { style ->
                 if (style != null) {
-                    val w = window ?: AlertWindow(app, "climate", AlertKind.AC.cardAt.gravity).also { window = it }
+                    val w = window ?: AlertWindow(app, "climate", AlertKind.AC.cardAt.gravity, rank = AlertKind.AC.rank).also { window = it }
                     if (w.canShow()) w.show(style) { ClimateAlertContent(style) }
                 } else {
                     window?.hide()

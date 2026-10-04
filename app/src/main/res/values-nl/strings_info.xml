@@ -165,4 +165,6 @@
     <string name="info_map_other_app">Navigeren in Google Maps of Waze</string>
     <string name="info_audio_by_keys">Volume via de volumetoetsen van de radio</string>
     <string name="info_audio_unavailable">Volume hier niet in te stellen: gebruik de knop</string>
+    <string name="info_map_stop_title">Navigatie stoppen?</string>
+    <string name="info_map_stop_body">De kaart geeft geen aanwijzingen meer. Opnieuw starten kan vanaf de kaart.</string>
 </resources>

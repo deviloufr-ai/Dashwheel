@@ -165,4 +165,6 @@
     <string name="info_map_other_app">Guiar en Google Maps o Waze</string>
     <string name="info_audio_by_keys">Volumen ajustado con las teclas de volumen de la radio</string>
     <string name="info_audio_unavailable">El volumen no se puede cambiar desde aquí: use el mando</string>
+    <string name="info_map_stop_title">¿Detener la navegación?</string>
+    <string name="info_map_stop_body">El mapa deja de dar indicaciones. Se reinicia desde el mapa.</string>
 </resources>

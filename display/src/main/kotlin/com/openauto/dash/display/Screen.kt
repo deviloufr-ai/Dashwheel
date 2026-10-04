@@ -9,6 +9,10 @@ import com.openauto.dash.link.VideoPacket
  * drawn from data, or its idle screen. Only one GStreamer process holds the
  * screen at a time, so switching between video and drawn pictures stops one
  * before starting the other (about a second of black).
+ *
+ * Readings and video are only shown while the head unit is heard: when it
+ * goes silent (the hotspot dropped, it froze) the last speed must not stay up
+ * as if it were live, so the screen says there is no signal until it is back.
  */
 class Screen(
     private val config: DisplayConfig,
@@ -21,7 +25,9 @@ class Screen(
         GstProcess.startOrNull(Pipelines.frames(config, w, h), capacity = 1)
     },
     logo: java.awt.image.BufferedImage? = BootLogo.image,
-    private val showOnConsole: (java.awt.image.BufferedImage) -> Unit = ConsoleFrameBuffer::show
+    private val showOnConsole: (java.awt.image.BufferedImage) -> Unit = ConsoleFrameBuffer::show,
+    /** Time that only moves forward: the Pi's wall clock jumps when the network sets it. */
+    private val uptimeMs: () -> Long = { System.nanoTime() / 1_000_000 }
 ) {
     enum class Showing { IDLE, DATA, VIDEO }
 
@@ -34,6 +40,18 @@ class Screen(
         private set
     private var status = WAITING
     private var cluster: ClusterState? = null
+    // When the head unit last sent readings, and when it last sent anything (uptime).
+    private var clusterAt = 0L
+    private var heardAt = 0L
+
+    /** The head unit went silent: "no signal" shows in place of its readings or its video. */
+    val signalLost: Boolean
+        @Synchronized get() = when (showing) {
+            Showing.IDLE -> false
+            Showing.DATA -> cluster != null && uptimeMs() - clusterAt > DATA_SILENT_MS
+            Showing.VIDEO -> videoLost
+        }
+    private var videoLost = false
     /** Head unit clock minus ours: the Pi has no clock of its own and may have no network time. */
     private var clockOffset = 0L
 
@@ -49,6 +67,9 @@ class Screen(
     fun idle(status: String = WAITING) {
         this.status = status
         if (showing == Showing.VIDEO) video.stop()
+        // The next session starts from its own readings, never the last one's.
+        cluster = null
+        videoLost = false
         showing = Showing.IDLE
         redraw()
     }
@@ -57,9 +78,11 @@ class Screen(
     fun data(state: ClusterState?) {
         if (state != null) {
             cluster = state
+            clusterAt = uptimeMs()
             clockOffset = state.clock - System.currentTimeMillis()
         }
         if (showing == Showing.VIDEO) video.stop()
+        videoLost = false
         showing = Showing.DATA
         redraw()
     }
@@ -68,8 +91,20 @@ class Screen(
     fun video() {
         if (showing == Showing.VIDEO) return
         showing = Showing.VIDEO
+        heardAt = uptimeMs()
         log("video: asked")
         video.prepare()
+    }
+
+    /** The head unit sent something, whatever it was: it is there. */
+    @Synchronized
+    fun heard() {
+        heardAt = uptimeMs()
+        if (videoLost && showing == Showing.VIDEO) {
+            videoLost = false
+            log("video: the head unit is back")
+            video.prepare()
+        }
     }
 
     fun configureVideo(config: VideoConfig) = video.configure(config)
@@ -96,18 +131,31 @@ class Screen(
             } catch (_: InterruptedException) {
                 return
             }
-            // The clock moves; the video draws its own.
-            synchronized(this) { if (showing != Showing.VIDEO) redraw() }
+            refresh()
         }
+    }
+
+    /**
+     * Once a second: the clock moves (the video draws its own), and a head
+     * unit that went silent stops being shown as if it were live.
+     */
+    @Synchronized
+    internal fun refresh() {
+        if (showing == Showing.VIDEO && !videoLost && uptimeMs() - heardAt > VIDEO_SILENT_MS) {
+            videoLost = true
+            log("video: the head unit went silent")
+            video.stop()
+        }
+        if (showing != Showing.VIDEO || videoLost) redraw()
     }
 
     private fun redraw() {
         val now = System.currentTimeMillis() + clockOffset
         when (showing) {
-            Showing.VIDEO -> return
+            Showing.VIDEO -> if (videoLost) painter.paintIdle(config.name, NO_SIGNAL, now, null) else return
             Showing.IDLE -> painter.paintIdle(config.name, status, now, pairing.offer.toUri().takeUnless { pairing.used })
-            Showing.DATA -> cluster?.let { painter.paintCluster(it, now) }
-                ?: painter.paintIdle(config.name, status, now, null)
+            Showing.DATA -> cluster?.takeIf { !signalLost }?.let { painter.paintCluster(it, now) }
+                ?: painter.paintIdle(config.name, if (signalLost) NO_SIGNAL else status, now, null)
         }
         val process = frames?.takeIf { it.alive } ?: run {
             frames?.stop()
@@ -127,5 +175,10 @@ class Screen(
 
     companion object {
         const val WAITING = "Waiting for Dashwheel…"
+        const val NO_SIGNAL = "No signal from Dashwheel"
+        /** The head unit sends its readings every 5 s at least: two missed and they are old. */
+        const val DATA_SILENT_MS = 12_000L
+        /** With a still picture only its ping is heard, every 15 s: one missed. */
+        const val VIDEO_SILENT_MS = 20_000L
     }
 }

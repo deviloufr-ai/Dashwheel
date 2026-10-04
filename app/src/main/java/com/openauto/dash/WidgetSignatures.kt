@@ -794,8 +794,7 @@ private fun Radar(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
 
 @Composable
 private fun Odometer(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
-    val ip = f.value.substringBefore('.').filter { it.isDigit() }.ifEmpty { "0" }
-    val dec = f.value.substringAfter('.', "").filter { it.isDigit() }.take(1)
+    val (ip, dec) = odometerDigits(f.value, java.text.DecimalFormatSymbols.getInstance(java.util.Locale.getDefault()).decimalSeparator)
     val digits = ip.padStart(5, '0') + dec
     Column(modifier = Modifier.fillMaxSize().padding(m.pad.dp), verticalArrangement = Arrangement.spacedBy(m.dp(2.4f))) {
         FaceHeader(f, look, m) { FaceActions(f, look, m, small = true) }

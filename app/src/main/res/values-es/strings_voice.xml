@@ -22,4 +22,6 @@
         <item quantity="one">La gasolinera más barata cerca es %1$s, a %2$d kilómetro.</item>
         <item quantity="other">La gasolinera más barata cerca es %1$s, a %2$d kilómetros.</item>
     </plurals>
+    <string name="voice_guidance_stopped">Navegación detenida.</string>
+    <string name="voice_guidance_none">No hay navegación en curso.</string>
 </resources>

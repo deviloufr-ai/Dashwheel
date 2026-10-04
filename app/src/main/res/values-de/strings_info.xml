@@ -165,4 +165,6 @@
     <string name="info_map_other_app">In Google Maps oder Waze führen</string>
     <string name="info_audio_by_keys">Lautstärke über die Lautstärketasten des Radios</string>
     <string name="info_audio_unavailable">Lautstärke hier nicht einstellbar: Drehknopf benutzen</string>
+    <string name="info_map_stop_title">Navigation beenden?</string>
+    <string name="info_map_stop_body">Die Karte sagt keine Abbiegungen mehr an. Neustart über die Karte.</string>
 </resources>

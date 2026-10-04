@@ -40,6 +40,19 @@ class ReverseAwareTest {
     }
 
     @Test
+    fun aHeldTurnIsSaidFirstOrNotAtAll() {
+        val fr = Locale.FRENCH
+        val held = listOf(
+            HeldLine("Turn left", fr, 100_000, guidance = true),
+            HeldLine("Service due", fr, 150_000),
+            HeldLine("Turn right", fr, 215_000, guidance = true)
+        )
+        // Only the last turn, while it is seconds old, and ahead of the rest.
+        assertEquals(listOf("Turn right", "Service due"), linesToRelease(held, now = 220_000).map { it.text })
+        assertEquals(listOf("Service due"), linesToRelease(held, now = 240_000).map { it.text })
+    }
+
+    @Test
     fun nothingHeldNothingSaid() {
         assertEquals(emptyList<HeldLine>(), linesToRelease(emptyList(), now = 1_000))
     }

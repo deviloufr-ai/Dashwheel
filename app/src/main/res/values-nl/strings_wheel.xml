@@ -111,4 +111,5 @@
     <string name="wheel_reset_title">Stuurknoppen terugzetten?</string>
     <string name="wheel_reset_body">Elke knop verdwijnt van de kaart en verliest zijn actie. Het stuur doet weer wat de radio zelf doet.</string>
     <string name="wheel_reset_confirm">Terugzetten</string>
+    <string name="wheel_action_stop_guidance">Navigatie stoppen</string>
 </resources>

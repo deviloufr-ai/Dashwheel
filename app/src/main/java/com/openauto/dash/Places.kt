@@ -196,6 +196,7 @@ internal object NavHandoff {
     /** Starts guidance to ([lat], [lng]); false when no app on the unit can. */
     fun start(context: Context, lat: Double, lng: Double, label: String = ""): Boolean {
         heading(label)
+        InAppNav.handOver()
         for (app in apps(context)) {
             val uri = if (app == WAZE) String.format(Locale.US, "waze://?ll=%.6f,%.6f&navigate=yes", lat, lng)
             else String.format(Locale.US, "google.navigation:q=%.6f,%.6f&mode=d", lat, lng)
@@ -218,6 +219,7 @@ internal object NavHandoff {
      */
     fun startQuery(context: Context, query: String): Boolean {
         heading(query)
+        InAppNav.handOver()
         for (app in apps(context)) {
             if (open(context, app, queryUri(app, query))) return true
         }

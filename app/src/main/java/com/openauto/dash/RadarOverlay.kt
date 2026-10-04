@@ -79,6 +79,7 @@ object RadarOverlay {
 
     val style: StateFlow<AlertStyle?> =
         combine(alert, AlertStyleStore.styles) { radar, styles -> radar?.let { styles.of(AlertKind.RADAR) } }
+            .arbitrated(AlertKind.RADAR)
             .stateIn(scope, SharingStarted.Eagerly, null)
 
     fun start(context: Context) {
@@ -89,7 +90,7 @@ object RadarOverlay {
             style.collect { style ->
                 if (style != null) {
                     hiding?.cancel()
-                    val w = window ?: AlertWindow(app, "radar", AlertKind.RADAR.cardAt.gravity, aboveCamera = { true }).also { window = it }
+                    val w = window ?: AlertWindow(app, "radar", AlertKind.RADAR.cardAt.gravity, aboveCamera = { true }, rank = AlertKind.RADAR.rank).also { window = it }
                     if (w.canShow()) w.show(style) { RadarAlertContent(style) }
                 } else if (hiding?.isActive != true) {
                     hiding = launch {

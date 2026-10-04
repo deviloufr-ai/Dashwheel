@@ -111,4 +111,5 @@
     <string name="wheel_reset_title">Ripristinare i tasti del volante?</string>
     <string name="wheel_reset_body">Ogni tasto lascia la mappa e perde la sua azione. Il volante torna a ciò che fa l\'autoradio da sola.</string>
     <string name="wheel_reset_confirm">Ripristina</string>
+    <string name="wheel_action_stop_guidance">Ferma la navigazione</string>
 </resources>

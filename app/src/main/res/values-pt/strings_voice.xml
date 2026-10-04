@@ -22,4 +22,6 @@
         <item quantity="one">O posto mais barato aqui perto é %1$s, a %2$d quilómetro.</item>
         <item quantity="other">O posto mais barato aqui perto é %1$s, a %2$d quilómetros.</item>
     </plurals>
+    <string name="voice_guidance_stopped">Navegação parada.</string>
+    <string name="voice_guidance_none">Nenhuma navegação em curso.</string>
 </resources>

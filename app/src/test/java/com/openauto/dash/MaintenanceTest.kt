@@ -122,6 +122,22 @@ class UpkeepPlanTest {
     }
 
     @Test
+    fun whatTheDriverTypedSurvivesTheMakersIntervals() {
+        val typed = UpkeepRules.defaultPlan(CarProfile.PRESET).map {
+            if (it.kind == UpkeepKind.OIL) it.copy(everyKm = 15_000, everyMonths = null, own = true) else it
+        } + UpkeepInterval(UpkeepKind.SPARK_PLUGS, everyKm = 45_000, own = true)
+        val ai = listOf(UpkeepInterval(UpkeepKind.OIL, 20_000, 24), UpkeepInterval(UpkeepKind.COOLANT, 120_000, 60))
+        val plan = UpkeepRules.keepOwn(UpkeepRules.merge(UpkeepRules.defaultPlan(CarProfile.PRESET), ai), typed)
+        val oil = plan.first { it.kind == UpkeepKind.OIL }
+        assertEquals(15_000, oil.everyKm)
+        assertNull(oil.everyMonths)
+        // The rest still takes the maker's figures, and an item only the driver has stays.
+        assertEquals(120_000, plan.first { it.kind == UpkeepKind.COOLANT }.everyKm)
+        assertEquals(45_000, plan.first { it.kind == UpkeepKind.SPARK_PLUGS }.everyKm)
+        assertEquals(plan.size, plan.distinctBy { it.kind }.size)
+    }
+
+    @Test
     fun thePromptAndSchemaNameEveryKind() {
         val prompt = UpkeepPlan.prompt("Citroën C4 Picasso")
         assertTrue(prompt.contains("Citroën C4 Picasso"))

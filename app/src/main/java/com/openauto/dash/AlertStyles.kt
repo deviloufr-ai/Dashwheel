@@ -51,8 +51,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.math.max
@@ -105,8 +109,53 @@ enum class AlertKind(
     BELT("belt", listOf(AlertStyle.PILL, AlertStyle.CARD, AlertStyle.BANNER), speakable = true, cardAt = CardAt.TOP),
     // Gemini Live's conversation (GeminiLive): its own screen in the card, the panel or full screen;
     // the icon, the bubble and the pill only say it listens.
-    GEMINI("gemini", listOf(AlertStyle.ICON, AlertStyle.BUBBLE, AlertStyle.PILL, AlertStyle.CARD, AlertStyle.PANEL, AlertStyle.FULL), speakable = false, cardAt = CardAt.TOP_END, default = AlertStyle.PANEL)
+    GEMINI("gemini", listOf(AlertStyle.ICON, AlertStyle.BUBBLE, AlertStyle.PILL, AlertStyle.CARD, AlertStyle.PANEL, AlertStyle.FULL), speakable = false, cardAt = CardAt.TOP_END, default = AlertStyle.PANEL);
+
+    /**
+     * Which comes first when several are up at once, the lowest ahead: what
+     * the driver must act on now (something behind the car, a call ringing,
+     * the belt) before what can be looked at later.
+     */
+    val rank: Int
+        get() = when (this) {
+            RADAR -> 0
+            CALL -> 1
+            BELT -> 2
+            DOORS -> 3
+            TYRES -> 4
+            AC -> 5
+            GEMINI -> 6
+        }
 }
+
+/**
+ * Several alerts at once. The one that matters most ([AlertKind.rank]) keeps
+ * its design; one behind it shrinks to the pill when either of the two would
+ * cover the other (the side panel, the full screen). The small designs that
+ * are left line up instead of sitting on one another ([AlertWindow]).
+ */
+internal object AlertArbiter {
+    private val _wanted = MutableStateFlow<Map<AlertKind, AlertStyle>>(emptyMap())
+    /** The alerts up now, each in the design it asked for. */
+    val wanted: StateFlow<Map<AlertKind, AlertStyle>> = _wanted
+
+    fun want(kind: AlertKind, style: AlertStyle?) = _wanted.update { if (style == null) it - kind else it + (kind to style) }
+}
+
+/** The designs that take a side or the whole of the screen. */
+private val COVERING = setOf(AlertStyle.PANEL, AlertStyle.FULL)
+
+/** The design [kind] shows in, having asked for [wanted], given the alerts [up] now. */
+internal fun arbitratedStyle(kind: AlertKind, wanted: AlertStyle, up: Map<AlertKind, AlertStyle>): AlertStyle {
+    val ahead = up.filterKeys { it.rank < kind.rank }
+    return if (ahead.isNotEmpty() && (wanted in COVERING || ahead.values.any { it in COVERING })) AlertStyle.PILL else wanted
+}
+
+/** [kind]'s design as the other alerts allow it ([AlertArbiter]); upstream is the design it asks for. */
+internal fun Flow<AlertStyle?>.arbitrated(kind: AlertKind): Flow<AlertStyle?> =
+    onEach { AlertArbiter.want(kind, it) }
+        .combine(AlertArbiter.wanted) { mine, up -> mine?.let { arbitratedStyle(kind, it, up) } }
+        .distinctUntilChanged()
 
 /**
  * Where an alert's card sits: the call at the top, the doors in the corner,
@@ -252,7 +301,9 @@ internal class AlertWindow(
      */
     private val aboveCamera: () -> Boolean = { false },
     /** The panel and full-screen designs stop above the dashboard's bar, so its buttons stay in reach. */
-    private val clearOfBar: Boolean = false
+    private val clearOfBar: Boolean = false,
+    /** Where it stands among the alerts up at once ([AlertKind.rank]); the reverse view is ahead of them all. */
+    val rank: Int = -1
 ) {
     /** The shown window is the accessibility service's. */
     private var above = false
@@ -261,6 +312,8 @@ internal class AlertWindow(
     private var owner: OverlayOwner? = null
     private var style: AlertStyle? = null
     private var visible: MutableTransitionState<Boolean>? = null
+    // The design's own distance from the top, before any lining up ([settleUnder]).
+    private var ownY = 0
 
     /** Shows [content] in [style]'s window (a new one when the design changed); false when it can't be added. */
     fun show(style: AlertStyle, content: @Composable () -> Unit): Boolean {
@@ -281,11 +334,13 @@ internal class AlertWindow(
         v.setViewTreeSavedStateRegistryOwner(o)
         v.setContent {
             OpenAutoDashTheme {
-                AlertMotion(style, state, onGone = { v.post { if (view === v) removeNow() } }, content = content)
+                // Asked back while it animated out: it stays.
+                AlertMotion(style, state, onGone = { v.post { if (view === v && visible?.targetState == false) removeNow() } }, content = content)
             }
         }
-        return runCatching { wm.addView(v, params(style, type)) }
-            .onSuccess { view = v; owner = o; this.style = style; visible = state; above = host != null }
+        v.addOnLayoutChangeListener { _, l, t, r, b, ol, ot, or, ob -> if (r - l != or - ol || b - t != ob - ot) AlertStack.settle() }
+        return runCatching { wm.addView(v, params(style, type).also { ownY = it.y }) }
+            .onSuccess { view = v; owner = o; this.style = style; visible = state; above = host != null; AlertStack.add(this) }
             .onFailure { Log.w(TAG, "could not add the $name window", it); o.destroy() }
             .isSuccess
     }
@@ -304,6 +359,32 @@ internal class AlertWindow(
         runCatching { wm.removeViewImmediate(v) }.onFailure { Log.w(TAG, "remove failed", it) }
         owner?.destroy()
         owner = null
+        AlertStack.remove(this)
+    }
+
+    /**
+     * Moves the window under those of the alerts in [taken] it would sit on,
+     * as close to its own place as they allow; where it is then, in pixels.
+     * Null for a window that doesn't line up: the side panel, the full
+     * screen, one away from the top, one not laid out yet.
+     */
+    fun settleUnder(taken: List<AlertSpot>): AlertSpot? {
+        val v = view ?: return null
+        val lp = v.layoutParams as? WindowManager.LayoutParams ?: return null
+        if (style == AlertStyle.PANEL || style == AlertStyle.FULL) return null
+        if (lp.gravity and Gravity.VERTICAL_GRAVITY_MASK != Gravity.TOP || v.width == 0 || v.height == 0) return null
+        val dm = context.resources.displayMetrics
+        val left = when (lp.gravity and Gravity.HORIZONTAL_GRAVITY_MASK) {
+            Gravity.CENTER_HORIZONTAL -> (dm.widthPixels - v.width) / 2
+            Gravity.RIGHT -> dm.widthPixels - lp.x - v.width
+            else -> lp.x
+        }
+        val top = stackedTop(ownY, v.height, left, left + v.width, taken, gap = (8 * dm.density).toInt())
+        if (lp.y != top) {
+            lp.y = top
+            runCatching { wm.updateViewLayout(v, lp) }.onFailure { Log.w(TAG, "could not move the $name window", it) }
+        }
+        return AlertSpot(left, top, left + v.width, top + v.height)
     }
 
     /** Whether [show] can put a window up at all: over other apps, or through the accessibility service. */
@@ -357,6 +438,44 @@ internal class AlertWindow(
     private companion object {
         const val TAG = "AlertWindow"
     }
+}
+
+/**
+ * The alert windows up at once. Those at the top of the screen line up
+ * instead of sitting on one another: the one that matters most
+ * ([AlertWindow.rank]) keeps its place, the others go under it.
+ */
+private object AlertStack {
+    private val up = mutableListOf<AlertWindow>()
+
+    fun add(window: AlertWindow) {
+        if (window !in up) up += window
+        settle()
+    }
+
+    fun remove(window: AlertWindow) {
+        if (up.remove(window)) settle()
+    }
+
+    fun settle() {
+        val taken = mutableListOf<AlertSpot>()
+        up.sortedBy { it.rank }.forEach { w -> w.settleUnder(taken)?.let { taken += it } }
+    }
+}
+
+/** Where an alert window is on the screen, in pixels. */
+internal data class AlertSpot(val left: Int, val top: Int, val right: Int, val bottom: Int)
+
+/**
+ * The top of a [height]-tall alert spanning [left]..[right] whose own place
+ * is [own]: there, unless one in [taken] is in the way; then under it, [gap] apart.
+ */
+internal fun stackedTop(own: Int, height: Int, left: Int, right: Int, taken: List<AlertSpot>, gap: Int): Int {
+    var top = own
+    taken.filter { it.left < right && left < it.right }.sortedBy { it.top }.forEach { r ->
+        if (top < r.bottom + gap && top + height + gap > r.top) top = r.bottom + gap
+    }
+    return top
 }
 
 /** The design's way in and out: panels slide from the side, strips from the top, cards pop. */

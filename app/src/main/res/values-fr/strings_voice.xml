@@ -22,4 +22,6 @@
         <item quantity="one">La station la moins chère près d\'ici est %1$s, à %2$d kilomètre.</item>
         <item quantity="other">La station la moins chère près d\'ici est %1$s, à %2$d kilomètres.</item>
     </plurals>
+    <string name="voice_guidance_stopped">Guidage arrêté.</string>
+    <string name="voice_guidance_none">Aucun guidage en cours.</string>
 </resources>

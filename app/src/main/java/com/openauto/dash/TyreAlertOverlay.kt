@@ -74,7 +74,7 @@ object TyreAlertOverlay {
     val style: StateFlow<AlertStyle?> =
         combine(alert, AlertStyleStore.styles, UnitSignals.projectionOnScreen) { tyres, styles, projected ->
             tyres?.let { if (projected) AlertStyle.PILL else styles.of(AlertKind.TYRES) }
-        }.stateIn(scope, SharingStarted.Eagerly, null)
+        }.arbitrated(AlertKind.TYRES).stateIn(scope, SharingStarted.Eagerly, null)
 
     fun start(context: Context) {
         if (started) return
@@ -95,7 +95,7 @@ object TyreAlertOverlay {
         }
         scope.launch {
             style.collect { style ->
-                val w = window ?: AlertWindow(app, "tyres", AlertKind.TYRES.cardAt.gravity).also { window = it }
+                val w = window ?: AlertWindow(app, "tyres", AlertKind.TYRES.cardAt.gravity, rank = AlertKind.TYRES.rank).also { window = it }
                 if (style != null && w.canShow()) w.show(style) { TyreAlertContent(style) } else window?.hide()
             }
         }

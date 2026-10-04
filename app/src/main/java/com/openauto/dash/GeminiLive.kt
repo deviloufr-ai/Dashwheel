@@ -173,6 +173,7 @@ internal object GeminiLive {
             PhoneCallOverlay.call.collect { if (talking(it) && _active.value) end(app) }
         }
         scope.launch { AlertStyleStore.styles.collect { render(app) } }
+        scope.launch { AlertArbiter.wanted.collect { render(app) } }
         scope.launch { AlertPreview.gemini.collect { render(app) } }
     }
 
@@ -315,11 +316,14 @@ internal object GeminiLive {
     private fun render(context: Context) {
         val chosen = AlertStyleStore.styles.value.of(AlertKind.GEMINI)
         val preview = AlertPreview.gemini.value && !_active.value
-        val style = when {
+        val wanted = when {
             preview -> chosen
             !_active.value || reversing -> null
             else -> design(chosen, moving, SystemClock.elapsedRealtime() - bigSince)
         }
+        // Behind every other alert: the pill while one of them needs the room ([AlertArbiter]).
+        AlertArbiter.want(AlertKind.GEMINI, wanted)
+        val style = wanted?.let { arbitratedStyle(AlertKind.GEMINI, it, AlertArbiter.wanted.value) }
         if (style == shown) return
         shown = style
         val w = window(context)
@@ -336,7 +340,7 @@ internal object GeminiLive {
     }
 
     private fun window(context: Context): AlertWindow =
-        window ?: AlertWindow(context.applicationContext, "gemini live", AlertKind.GEMINI.cardAt.gravity, clearOfBar = true)
+        window ?: AlertWindow(context.applicationContext, "gemini live", AlertKind.GEMINI.cardAt.gravity, clearOfBar = true, rank = AlertKind.GEMINI.rank)
             .also { window = it }
 
     /**

@@ -74,7 +74,9 @@ class DisplayServer(
             session.send(hello)
             screen.idle("Connected")
             while (true) {
-                when (val frame = session.receiveAny()) {
+                val frame = session.receiveAny()
+                if (frame != null) screen.heard()
+                when (frame) {
                     is Incoming.Binary -> VideoPacket.decode(frame.bytes)?.let(screen::feed)
                     is Incoming.Message -> handle(session, frame)
                     null -> Unit

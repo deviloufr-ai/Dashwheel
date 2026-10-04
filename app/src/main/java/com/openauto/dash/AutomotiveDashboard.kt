@@ -460,6 +460,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     var tourEditing by remember { mutableStateOf(false) }
     fun closeTour() {
         TourStore.markSeen(context)
+        CarVoice.stop()
         tourStep = null
     }
     // Bumped on every return to the launcher: an access granted in the system settings shows at once.
@@ -1907,6 +1908,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         releaseMapsAnchorIfGone()
     }
 
+    StopGuidancePrompt()
     layoutNotice?.let { notice ->
         AlertDialog(
             modifier = Modifier.keepClearOfWindows(),

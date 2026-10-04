@@ -69,9 +69,26 @@ internal const val GOOGLE_MAPS_PACKAGE = "com.google.android.apps.maps"
 
 /** Opens the navigation app that is driving [nav] (or Google Maps) beside the dashboard. */
 internal fun openNavigationApp(context: Context, nav: NavState) {
-    // The dashboard's own guidance: its map is already the navigation app.
-    if (nav.packageName == context.packageName) return
+    // The dashboard's own guidance has no app to open: the tap offers to stop it.
+    if (nav.packageName == context.packageName) return InAppNav.askToStop()
     SplitLauncher.launchSplit(context, nav.packageName.ifEmpty { GOOGLE_MAPS_PACKAGE })
+}
+
+/**
+ * Asked after a tap on the dashboard's own guidance, on any tile or banner
+ * ([InAppNav.askToStop]): the one way to stop it from a page without the map tile.
+ */
+@Composable
+internal fun StopGuidancePrompt() {
+    val asked by InAppNav.askStop.collectAsState()
+    if (!asked) return
+    ConfirmDialog(
+        title = stringResource(R.string.info_map_stop_title),
+        body = stringResource(R.string.info_map_stop_body),
+        action = stringResource(R.string.info_map_stop),
+        onConfirm = { InAppNav.answerStop(true) },
+        onDismiss = { InAppNav.answerStop(false) }
+    )
 }
 
 /**
@@ -122,6 +139,7 @@ internal fun DirectionsCard(
                     Spacer(Modifier.width(6.dp))
                     Text(
                         text = when {
+                            nav.active && nav.packageName == context.packageName -> stringResource(R.string.app_name)
                             nav.active && nav.packageName == "com.waze" -> "Waze"
                             nav.active -> "Google Maps"
                             else -> stringResource(R.string.info_directions_no_route)

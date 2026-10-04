@@ -1,6 +1,7 @@
 package com.openauto.dash
 
 import android.app.Notification
+import android.app.PendingIntent
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
@@ -74,6 +75,21 @@ object NavDirections {
     @Volatile
     private var currentKey: String? = null
 
+    /**
+     * Google Maps' "Exit navigation", the one button on its guidance
+     * notification, while it guides. Only taken when the notification has a
+     * single button: with more, which one exits can't be told.
+     */
+    @Volatile
+    private var exit: PendingIntent? = null
+
+    /** Asks the navigation app that guides to stop; false when none does, or it offers no way to. */
+    fun exitNavigation(): Boolean {
+        val intent = exit ?: return false
+        exit = null
+        return runCatching { intent.send() }.isSuccess
+    }
+
     /** The real route, kept up to date while the demo shows its own, and put back when it ends. */
     @Volatile
     private var real = NavState()
@@ -117,18 +133,21 @@ object NavDirections {
         if (sbn.packageName !in PACKAGES) return
         val parsed = parse(context, sbn) ?: return
         currentKey = sbn.key
+        exit = sbn.notification?.actions?.singleOrNull()?.actionIntent?.takeIf { sbn.packageName == NavHandoff.MAPS }
         publish(parsed)
     }
 
     fun onRemoved(sbn: StatusBarNotification) {
         if (sbn.key == currentKey) {
             currentKey = null
+            exit = null
             publish(NavState())
         }
     }
 
     fun clear() {
         currentKey = null
+        exit = null
         publish(NavState())
     }
 

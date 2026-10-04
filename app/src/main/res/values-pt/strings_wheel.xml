@@ -111,4 +111,5 @@
     <string name="wheel_reset_title">Repor os botões do volante?</string>
     <string name="wheel_reset_body">Cada botão sai do mapa e perde a sua ação. O volante volta ao que o rádio faz sozinho.</string>
     <string name="wheel_reset_confirm">Repor</string>
+    <string name="wheel_action_stop_guidance">Parar a navegação</string>
 </resources>

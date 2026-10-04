@@ -111,4 +111,5 @@
     <string name="wheel_reset_title">¿Restablecer los botones del volante?</string>
     <string name="wheel_reset_body">Cada botón sale del mapa y pierde su acción. El volante vuelve a lo que hace la radio por sí sola.</string>
     <string name="wheel_reset_confirm">Restablecer</string>
+    <string name="wheel_action_stop_guidance">Detener la navegación</string>
 </resources>

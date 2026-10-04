@@ -111,4 +111,5 @@
     <string name="wheel_reset_title">Reset the wheel buttons?</string>
     <string name="wheel_reset_body">Every button leaves the map and loses its action. The wheel goes back to what the unit does by itself.</string>
     <string name="wheel_reset_confirm">Reset</string>
+    <string name="wheel_action_stop_guidance">Stop the guidance</string>
 </resources>

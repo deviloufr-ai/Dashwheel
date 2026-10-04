@@ -209,6 +209,8 @@ internal fun TourOverlay(
     // Read aloud: the title and the body, in the app's language.
     val text = step.text
     LaunchedEffect(step, readAloud) {
+        // The tip before stops there: the voice never runs behind the screen.
+        CarVoice.stop()
         if (!readAloud) return@LaunchedEffect
         val res = AppLanguage.wrap(context.applicationContext).resources
         CarVoice.speak(res.getString(text.title) + ". " + res.getString(text.body), res.configuration.locales[0])

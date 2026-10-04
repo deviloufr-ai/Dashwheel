@@ -81,10 +81,40 @@ object InAppNav {
 
     val active: Boolean get() = _guidance.value != null
 
+    private val _askStop = MutableStateFlow(false)
+    /** A tile or a banner showing this guidance was tapped: the dashboard asks whether to stop it ([StopGuidancePrompt]). */
+    val askStop: StateFlow<Boolean> = _askStop
+
+    fun askToStop() {
+        if (active) _askStop.value = true
+    }
+
+    fun answerStop(stop: Boolean) {
+        _askStop.value = false
+        if (stop) stop()
+    }
+
+    /** Stops the guidance if it runs; whether it did. Main thread. */
+    fun endNow(): Boolean {
+        val was = active
+        if (was) stop()
+        return was
+    }
+
+    /**
+     * A navigation app is handed a destination: this guidance ends, or two
+     * voices would give two routes. From any thread.
+     */
+    fun handOver() {
+        if (active) scope.launch { stop() }
+    }
+
     /** Starts guiding along [route], a route Valhalla gave from where the car is to [destination]. */
     @SuppressLint("MissingPermission")
     fun start(context: Context, route: DirectionsRoute, destination: Point, name: String?) {
         stop()
+        // One guide at a time: Google Maps' own guidance, if it runs, is asked to end.
+        NavDirections.exitNavigation()
         val app = context.applicationContext
         appContext = app
         _voiceOn.value = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_VOICE, true)
@@ -117,6 +147,7 @@ object InAppNav {
         }
         _navigation.value = null
         _guidance.value = null
+        _askStop.value = false
         NavDirections.publishInApp(null)
     }
 
@@ -139,7 +170,7 @@ object InAppNav {
             if (milestone !is VoiceInstructionMilestone || !_voiceOn.value) return
             val context = appContext ?: return
             val text = milestone.announcement?.takeIf { it.isNotBlank() } ?: return
-            CarVoice.speak(text, locale(context))
+            CarVoice.guide(text, locale(context))
         }
     }
 

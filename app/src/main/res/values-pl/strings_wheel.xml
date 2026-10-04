@@ -115,4 +115,5 @@
     <string name="wheel_reset_title">Zresetować przyciski kierownicy?</string>
     <string name="wheel_reset_body">Każdy przycisk znika z mapy i traci swoją akcję. Kierownica wraca do tego, co radio robi samo.</string>
     <string name="wheel_reset_confirm">Resetuj</string>
+    <string name="wheel_action_stop_guidance">Zakończ nawigację</string>
 </resources>

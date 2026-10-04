@@ -165,4 +165,6 @@
     <string name="info_map_other_app">Guiar no Google Maps ou Waze</string>
     <string name="info_audio_by_keys">Volume ajustado pelas teclas de volume do autorrádio</string>
     <string name="info_audio_unavailable">O volume não pode ser alterado aqui: use o botão rotativo</string>
+    <string name="info_map_stop_title">Parar a navegação?</string>
+    <string name="info_map_stop_body">O mapa deixa de dar indicações. Recomeça-se a partir do mapa.</string>
 </resources>

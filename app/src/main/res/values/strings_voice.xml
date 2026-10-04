@@ -22,4 +22,6 @@
         <item quantity="one">The cheapest station nearby is %1$s, %2$d kilometre away.</item>
         <item quantity="other">The cheapest station nearby is %1$s, %2$d kilometres away.</item>
     </plurals>
+    <string name="voice_guidance_stopped">Guidance stopped.</string>
+    <string name="voice_guidance_none">No guidance to stop.</string>
 </resources>

@@ -22,4 +22,6 @@
         <item quantity="one">Het goedkoopste tankstation in de buurt is %1$s, op %2$d kilometer.</item>
         <item quantity="other">Het goedkoopste tankstation in de buurt is %1$s, op %2$d kilometer.</item>
     </plurals>
+    <string name="voice_guidance_stopped">Navigatie gestopt.</string>
+    <string name="voice_guidance_none">Er loopt geen navigatie.</string>
 </resources>

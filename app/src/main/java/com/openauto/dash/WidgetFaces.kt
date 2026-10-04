@@ -955,7 +955,7 @@ private fun FlapLayout(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
     Column(modifier = Modifier.fillMaxSize().padding(m.pad.dp), verticalArrangement = Arrangement.spacedBy(m.dp(2.4f))) {
         FaceHeader(f, look, m) { FaceActions(f, look, m, small = true) }
         BoxWithConstraints(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
-            val chars = f.value.uppercase(Locale.getDefault()).take(if (f.textValue) 10 else 6)
+            val chars = flapChars(f.value, f.textValue).uppercase(Locale.getDefault())
             val gap = max(m.u * 1.4f, 2f)
             val unitText = f.unit.uppercase(Locale.getDefault())
             var cellH = maxHeight.value * (if (f.textValue) 0.62f else 0.92f)
@@ -978,6 +978,24 @@ private fun FlapLayout(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
             }
         }
     }
+}
+
+/**
+ * What the board spells: a figure gives up its grouping spaces before any
+ * digit ("187 432" must never read "187 43"); the cells shrink to fit.
+ */
+internal fun flapChars(value: String, text: Boolean): String =
+    if (text) value.take(10) else value.filterNot { it.isWhitespace() }.take(9)
+
+/**
+ * The whole part and the tenths of a reading written with [decimal] as its
+ * decimal mark ("12,4", "187 432", "187.432"): only that mark splits the two,
+ * every other sign is grouping.
+ */
+internal fun odometerDigits(value: String, decimal: Char): Pair<String, String> {
+    val whole = value.substringBefore(decimal).filter { it.isDigit() }.ifEmpty { "0" }
+    val tenths = value.substringAfter(decimal, "").filter { it.isDigit() }.take(1)
+    return whole to tenths
 }
 
 @Composable
