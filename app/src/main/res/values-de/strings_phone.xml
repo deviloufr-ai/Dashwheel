@@ -49,6 +49,7 @@
     <string name="phone_quickdial_empty">Kopple dein Telefon, um seine Favoriten hier zu sehen</string>
     <string name="phone_agenda_empty">Kopple dein Telefon, um seine Termine hier zu sehen</string>
     <string name="phone_call_back">Rückruf: %1$s</string>
+    <string name="phone_calling">Anruf: %1$s</string>
     <string name="phone_dial_not_allowed">Um hier anzurufen, erlaube Anrufe in Dashwheel Begleiter.</string>
     <string name="phone_guidance_to">Route nach %1$s</string>
 </resources>

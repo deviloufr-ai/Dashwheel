@@ -16,6 +16,7 @@
     <string name="info_weather_loading">Weer laden…</string>
     <string name="info_weather_unavailable">Weer niet beschikbaar</string>
     <string name="info_weather_unavailable_detail">Weer niet beschikbaar (%1$s)</string>
+    <string name="info_as_of">Stand van %1$s</string>
 
     <!-- Weather conditions (WMO codes), also used by the skins -->
     <string name="info_wx_clear">Helder</string>

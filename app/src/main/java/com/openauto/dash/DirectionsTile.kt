@@ -16,10 +16,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Directions
 import androidx.compose.material.icons.filled.Navigation
@@ -106,136 +109,144 @@ internal fun DirectionsCard(
     val nav by NavDirections.state.collectAsState()
     val glow = DashColors.Glow
     val accent = DashColors.Accent
+    // "On my way" texts someone: said first, with three seconds to cancel.
+    val pending = rememberPendingAction()
 
     Card(modifier = modifier) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .clickable {
-                    if (hasAccess) openNavigationApp(context, nav)
-                    else CarMediaController.openNotificationAccessSettings(context)
-                }
-                .padding(DashSpace.Lg)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    stringResource(R.string.info_directions_title),
-                    color = DashColors.Accent,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.5.sp,
-                    style = MaterialTheme.typography.labelMedium
-                )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(if (nav.active) DashColors.Good else DashColors.Muted)
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        text = when {
-                            nav.active && nav.packageName == context.packageName -> stringResource(R.string.app_name)
-                            nav.active && nav.packageName == "com.waze" -> "Waze"
-                            nav.active -> "Google Maps"
-                            else -> stringResource(R.string.info_directions_no_route)
-                        },
-                        color = if (nav.active) DashColors.Good else DashColors.Muted,
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                }
-            }
-
-            when {
-                !hasAccess -> DirectionsEmpty(
-                    icon = Icons.Filled.Directions,
-                    title = stringResource(R.string.info_directions_access_title),
-                    hint = stringResource(R.string.info_directions_access_hint),
-                    action = stringResource(R.string.info_grant_access),
-                    onAction = { CarMediaController.openNotificationAccessSettings(context) }
-                )
-                !nav.active -> DirectionsEmpty(
-                    icon = Icons.Filled.Navigation,
-                    title = stringResource(R.string.info_directions_idle_title),
-                    hint = stringResource(R.string.info_directions_idle_hint),
-                    action = stringResource(R.string.info_directions_open_maps),
-                    onAction = { openNavigationApp(context, nav) }
-                )
-                else -> {
-                    Spacer(Modifier.height(6.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth().weight(1f),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        ManeuverIcon(nav = nav, size = 84.dp)
-                        Spacer(Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            val (value, unit) = nav.distanceParts
-                            if (value.isNotEmpty()) {
-                                Row(verticalAlignment = Alignment.Bottom) {
-                                    Text(
-                                        text = value,
-                                        color = if (glow > 0f) Color.Unspecified else DashColors.TextPrimary,
-                                        fontSize = 44.sp,
-                                        lineHeight = 44.sp,
-                                        fontWeight = FontWeight.ExtraBold,
-                                        letterSpacing = (-0.05).em,
-                                        maxLines = 1,
-                                        style = TextStyle(
-                                            brush = if (glow > 0f) Brush.verticalGradient(
-                                                listOf(DashColors.Bright, lerp(DashColors.Bright, accent, 0.45f))
-                                            ) else null,
-                                            shadow = if (glow > 0f) Shadow(accent.copy(alpha = 0.8f * glow), blurRadius = 30f) else null
-                                        )
-                                    )
-                                    if (unit.isNotEmpty()) {
-                                        Spacer(Modifier.width(6.dp))
-                                        Text(
-                                            text = unit.uppercase(),
-                                            color = DashColors.TextSecondary,
-                                            fontWeight = FontWeight.SemiBold,
-                                            letterSpacing = 0.2.em,
-                                            style = MaterialTheme.typography.labelLarge,
-                                            modifier = Modifier.padding(bottom = 8.dp)
-                                        )
-                                    }
-                                }
-                            }
-                            Text(
-                                text = nav.instruction,
-                                color = DashColors.TextPrimary,
-                                fontWeight = FontWeight.SemiBold,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                        }
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable {
+                        if (hasAccess) openNavigationApp(context, nav)
+                        else CarMediaController.openNotificationAccessSettings(context)
                     }
-                    val chips = nav.etaParts
-                    val texts by PhoneLink.textsOn.collectAsState()
-                    var picking by remember { mutableStateOf(false) }
-                    if (chips.isNotEmpty() || texts) {
-                        Spacer(Modifier.height(8.dp))
+                    .padding(DashSpace.Lg)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        stringResource(R.string.info_directions_title),
+                        color = DashColors.Accent,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.5.sp,
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(if (nav.active) DashColors.Good else DashColors.Muted)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            text = when {
+                                nav.active && nav.packageName == context.packageName -> stringResource(R.string.app_name)
+                                nav.active && nav.packageName == "com.waze" -> "Waze"
+                                nav.active -> "Google Maps"
+                                else -> stringResource(R.string.info_directions_no_route)
+                            },
+                            color = if (nav.active) DashColors.Good else DashColors.Muted,
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
+                }
+
+                when {
+                    !hasAccess -> DirectionsEmpty(
+                        icon = Icons.Filled.Directions,
+                        title = stringResource(R.string.info_directions_access_title),
+                        hint = stringResource(R.string.info_directions_access_hint),
+                        action = stringResource(R.string.info_grant_access),
+                        onAction = { CarMediaController.openNotificationAccessSettings(context) }
+                    )
+                    !nav.active -> DirectionsEmpty(
+                        icon = Icons.Filled.Navigation,
+                        title = stringResource(R.string.info_directions_idle_title),
+                        hint = stringResource(R.string.info_directions_idle_hint),
+                        action = stringResource(R.string.info_directions_open_maps),
+                        onAction = { openNavigationApp(context, nav) }
+                    )
+                    else -> {
+                        Spacer(Modifier.height(6.dp))
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth().weight(1f),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            chips.take(if (texts) 2 else 3).forEach { InfoPill(it) }
-                            // "On my way": the arrival time to a favourite, texted by the phone.
-                            if (texts) {
-                                Spacer(Modifier.weight(1f))
-                                OnMyWayPill { picking = true }
+                            ManeuverIcon(nav = nav, size = 84.dp)
+                            Spacer(Modifier.width(16.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                val (value, unit) = nav.distanceParts
+                                if (value.isNotEmpty()) {
+                                    Row(verticalAlignment = Alignment.Bottom) {
+                                        Text(
+                                            text = value,
+                                            color = if (glow > 0f) Color.Unspecified else DashColors.TextPrimary,
+                                            fontSize = 44.sp,
+                                            lineHeight = 44.sp,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            letterSpacing = (-0.05).em,
+                                            maxLines = 1,
+                                            style = TextStyle(
+                                                brush = if (glow > 0f) Brush.verticalGradient(
+                                                    listOf(DashColors.Bright, lerp(DashColors.Bright, accent, 0.45f))
+                                                ) else null,
+                                                shadow = if (glow > 0f) Shadow(accent.copy(alpha = 0.8f * glow), blurRadius = 30f) else null
+                                            )
+                                        )
+                                        if (unit.isNotEmpty()) {
+                                            Spacer(Modifier.width(6.dp))
+                                            Text(
+                                                text = unit.uppercase(),
+                                                color = DashColors.TextSecondary,
+                                                fontWeight = FontWeight.SemiBold,
+                                                letterSpacing = 0.2.em,
+                                                style = MaterialTheme.typography.labelLarge,
+                                                modifier = Modifier.padding(bottom = 8.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                                Text(
+                                    text = nav.instruction,
+                                    color = DashColors.TextPrimary,
+                                    fontWeight = FontWeight.SemiBold,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
+                                    style = MaterialTheme.typography.titleMedium
+                                )
                             }
                         }
+                        val chips = nav.etaParts
+                        val texts by PhoneLink.textsOn.collectAsState()
+                        var picking by remember { mutableStateOf(false) }
+                        if (chips.isNotEmpty() || texts) {
+                            Spacer(Modifier.height(8.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                chips.take(if (texts) 2 else 3).forEach { InfoPill(it) }
+                                // "On my way": the arrival time to a favourite, texted by the phone.
+                                if (texts) {
+                                    Spacer(Modifier.weight(1f))
+                                    OnMyWayPill { picking = true }
+                                }
+                            }
+                        }
+                        if (picking) OnMyWayDialog(
+                            onPick = { fav -> pending.arm(context.getString(R.string.onmyway_sending, fav.name)) { OnMyWay.send(context, fav) } },
+                            onDismiss = { picking = false }
+                        )
                     }
-                    if (picking) OnMyWayDialog(onDismiss = { picking = false })
                 }
             }
+            PendingActionStrip(pending, Modifier.align(Alignment.BottomCenter).padding(DashSpace.Sm))
         }
     }
 }
@@ -317,7 +328,7 @@ internal fun ManeuverIcon(nav: NavState, size: Dp) {
     }
 }
 
-/** The "On my way" button beside the ETA chips. */
+/** The "On my way" button beside the ETA chips, as tall as the other actions used at speed. */
 @Composable
 private fun OnMyWayPill(onClick: () -> Unit) {
     val shape = DashShape.Pill
@@ -327,6 +338,7 @@ private fun OnMyWayPill(onClick: () -> Unit) {
             .clip(shape)
             .background(DashColors.Accent)
             .clickable { tap(); onClick() }
+            .heightIn(min = DashSize.TouchPrimary)
             .padding(horizontal = 14.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -338,10 +350,11 @@ private fun OnMyWayPill(onClick: () -> Unit) {
 
 /**
  * Who gets the arrival time: the phone's favourites, the last one texted
- * first, and the text as it will go. One tap sends; the answer is spoken.
+ * first, and the text as it will go. One tap picks ([onPick] holds the text
+ * back for a moment, see [PendingActionStrip]); the answer is spoken.
  */
 @Composable
-private fun OnMyWayDialog(onDismiss: () -> Unit) {
+private fun OnMyWayDialog(onPick: (Favourite) -> Unit, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val contacts = remember { OnMyWay.contacts(context) }
     val preview = remember { OnMyWay.message(context) }
@@ -351,7 +364,7 @@ private fun OnMyWayDialog(onDismiss: () -> Unit) {
         containerColor = DashColors.Card,
         title = { Text(stringResource(R.string.onmyway_title), color = DashColors.TextPrimary) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("“$preview”", color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
                 if (contacts.isEmpty()) {
                     Text(stringResource(R.string.onmyway_no_contacts), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
@@ -360,9 +373,11 @@ private fun OnMyWayDialog(onDismiss: () -> Unit) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .heightIn(min = DashSize.MenuRow)
                             .clip(DashShape.Medium)
-                            .clickable { onDismiss(); OnMyWay.send(context, fav) }
-                            .padding(horizontal = 8.dp, vertical = 12.dp),
+                            .itemFill(if (DashColors.Glass) DashColors.haze(0.06f) else DashColors.CardHi, DashShape.Medium)
+                            .clickable { onDismiss(); onPick(fav) }
+                            .padding(horizontal = 12.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(Icons.Filled.Person, contentDescription = null, tint = DashColors.Accent)

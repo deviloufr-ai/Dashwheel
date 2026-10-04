@@ -5,11 +5,13 @@ import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -23,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -33,7 +36,8 @@ import kotlin.math.roundToInt
 
 /*
  * "Fuel nearby": the cheapest stations around the car for its fuel, one tap
- * to navigate there. Prices come from the French open data (FuelPrices.kt).
+ * to navigate there (said first, with three seconds to cancel: it replaces
+ * the route). Prices come from the French open data (FuelPrices.kt).
  */
 
 /** Hands the destination to the navigation app ([NavHandoff]), and says so when the unit has none. */
@@ -80,49 +84,71 @@ internal fun FuelPricesCard(modifier: Modifier = Modifier) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val perm = rememberPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     val error by FuelPriceRepo.error.collectAsState()
+    val fetchedAt by FuelPriceRepo.fetchedAt.collectAsState()
     val location by LocationFeed.location.collectAsState()
+    val now = rememberNow(60_000L)
+    val pending = rememberPendingAction()
     Card(modifier = modifier) {
         if (!perm.granted) {
-            NeedsAccess(Icons.Filled.LocalGasStation, stringResource(R.string.fuel_title), stringResource(R.string.fuel_allow_location), perm.request)
+            NeedsAccess(
+                Icons.Filled.LocalGasStation, stringResource(R.string.fuel_title),
+                stringResource(if (perm.blocked) R.string.dash_open_settings else R.string.fuel_allow_location), perm.request
+            )
             return@Card
         }
         val nearby = rememberFuelNearby()
-        Column(modifier = Modifier.fillMaxSize().padding(DashSpace.Lg), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            TileHeader(stringResource(R.string.fuel_title)) {
-                nearby?.let { Text(it.grade.label, color = DashColors.Muted, style = MaterialTheme.typography.labelSmall) }
-            }
-            when {
-                nearby == null && error != null -> Hint(stringResource(R.string.fuel_error))
-                nearby == null -> Hint(stringResource(if (location == null) R.string.info_waiting_gps else R.string.fuel_loading))
-                nearby.ranked.isEmpty() -> Hint(fuelNoneText())
-                else -> {
-                    val u = LocalUnits.current
-                    Text(
-                        pluralStringResource(
-                            if (u.imperial) R.plurals.units_fuel_stations_mi else R.plurals.fuel_stations,
-                            nearby.ranked.size, nearby.ranked.size, u.distance(FuelPrices.RADIUS_KM)
-                        ) +
-                            " · " + stringResource(R.string.fuel_navigate),
-                        color = DashColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.labelSmall
-                    )
-                    // As many whole stations as the tile holds, cheapest first: no half row, nothing to scroll.
-                    WholeRows(modifier = Modifier.fillMaxWidth().weight(1f), gap = 2.dp) {
-                        nearby.ranked.forEachIndexed { i, r ->
-                            StationRow(r, cheapest = i == 0) {
-                                navigateTo(context, r.station.lat, r.station.lng, r.station.label)
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize().padding(DashSpace.Lg), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                TileHeader(stringResource(R.string.fuel_title)) {
+                    nearby?.let { Text(it.grade.label, color = DashColors.Muted, style = MaterialTheme.typography.labelSmall) }
+                }
+                when {
+                    nearby == null && error != null -> Hint(stringResource(R.string.fuel_error))
+                    nearby == null -> Hint(stringResource(if (location == null) R.string.info_waiting_gps else R.string.fuel_loading))
+                    nearby.ranked.isEmpty() -> Hint(fuelNoneText())
+                    else -> {
+                        val u = LocalUnits.current
+                        // An old list, or a refresh that failed: its time and the reason take the count line.
+                        // Not in the demo, whose stations are made up once.
+                        if (!DemoMode.isOn && showsAge(fetchedAt, now.time, FuelPriceRepo.REFRESH_MS, failed = error != null)) AsOfLine(
+                            fetchedAt, if (error != null) stringResource(R.string.fuel_error) else null
+                        ) else Text(
+                            pluralStringResource(
+                                if (u.imperial) R.plurals.units_fuel_stations_mi else R.plurals.fuel_stations,
+                                nearby.ranked.size, nearby.ranked.size, u.distance(FuelPrices.RADIUS_KM)
+                            ) +
+                                " · " + stringResource(R.string.fuel_navigate),
+                            color = DashColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.labelSmall
+                        )
+                        // As many whole stations as the tile holds, cheapest first: no half row, nothing to scroll.
+                        WholeRows(modifier = Modifier.fillMaxWidth().weight(1f), gap = 6.dp) {
+                            nearby.ranked.forEachIndexed { i, r ->
+                                StationRow(r, cheapest = i == 0) {
+                                    pending.arm(context.getString(R.string.phone_guidance_to, r.station.name.ifBlank { r.station.town })) {
+                                        navigateTo(context, r.station.lat, r.station.lng, r.station.label)
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
+            PendingActionStrip(pending, Modifier.align(Alignment.BottomCenter).padding(DashSpace.Sm))
         }
     }
 }
 
+/** One station: a full driving-size row with a fill of its own, so each target shows where it ends. */
 @Composable
 private fun StationRow(r: RankedStation, cheapest: Boolean, onClick: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = DashSize.MenuRow)
+            .clip(DashShape.Small)
+            .itemFill(if (DashColors.Glass) DashColors.haze(0.06f) else DashColors.CardHi, DashShape.Small)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 10.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(verticalAlignment = Alignment.Bottom) {
@@ -162,7 +188,7 @@ private fun Hint(text: String) {
     Text(text, color = DashColors.Muted, maxLines = 3, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall)
 }
 
-/** Stacks its children top down and leaves out every one that would not fit whole. */
+/** Stacks its children top down and leaves out every one that would not fit whole; the first is always there, squeezed if it must be. */
 @Composable
 private fun WholeRows(modifier: Modifier = Modifier, gap: androidx.compose.ui.unit.Dp, content: @Composable () -> Unit) {
     androidx.compose.ui.layout.Layout(content, modifier) { measurables, constraints ->
@@ -173,7 +199,7 @@ private fun WholeRows(modifier: Modifier = Modifier, gap: androidx.compose.ui.un
         for (m in measurables) {
             val p = m.measure(loose)
             val needed = used + (if (placeables.isEmpty()) 0 else gapPx) + p.height
-            if (needed > constraints.maxHeight) break
+            if (needed > constraints.maxHeight && placeables.isNotEmpty()) break
             placeables += p
             used = needed
         }

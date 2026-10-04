@@ -52,6 +52,7 @@
     <string name="phone_quickdial_empty">Link your phone to see its favourites here</string>
     <string name="phone_agenda_empty">Link your phone to see its agenda here</string>
     <string name="phone_call_back">Call back %1$s</string>
+    <string name="phone_calling">Calling %1$s</string>
     <string name="phone_dial_not_allowed">To call from here, allow Calls in Dashwheel Companion.</string>
     <string name="phone_guidance_to">Guidance to %1$s</string>
 </resources>

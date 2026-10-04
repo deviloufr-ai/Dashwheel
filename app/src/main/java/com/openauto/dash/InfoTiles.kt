@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -88,12 +89,16 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -115,15 +120,39 @@ import kotlin.math.roundToInt
 
 // --- Permission helper ------------------------------------------------------------
 
-internal class PermissionState(val granted: Boolean, val request: () -> Unit)
+/** [blocked]: Android no longer shows its dialog for this one; [request] then leads to the app's page in the system settings. */
+internal class PermissionState(val granted: Boolean, val blocked: Boolean = false, val request: () -> Unit)
 
-/** Runtime permission as state, with a launcher to ask for it. */
+/**
+ * A request that came back denied without Android showing its dialog: no
+ * rationale was due before it nor after it, which is how a permanent denial
+ * looks. A rationale due before means the dialog was shown and the driver
+ * just chose; only the next tap is the dead one.
+ */
+internal fun deniedForGood(granted: Boolean, rationaleBefore: Boolean, rationaleAfter: Boolean): Boolean =
+    !granted && !rationaleBefore && !rationaleAfter
+
+/**
+ * Runtime permission as state, with a launcher to ask for it. After a
+ * permanent denial Android answers no without asking: the tap then opens the
+ * app's page in the system settings, so Allow never does nothing.
+ */
 @Composable
 internal fun rememberPermission(permission: String): PermissionState {
     val context = LocalContext.current
+    val activity = remember(context) { context.findActivity() }
     fun check() = ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+    fun rationale() = activity != null && ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
     var granted by remember { mutableStateOf(check()) }
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted = it }
+    var blocked by remember { mutableStateOf(false) }
+    var rationaleBefore by remember { mutableStateOf(false) }
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { answer ->
+        granted = answer
+        blocked = activity != null && deniedForGood(answer, rationaleBefore, rationale())
+        if (blocked) {
+            context.launchSafely(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null)))
+        }
+    }
     // Checked again on every return to the launcher: the permission may have
     // been granted (or taken back) in the system settings meanwhile.
     val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -134,7 +163,10 @@ internal fun rememberPermission(permission: String): PermissionState {
         lifecycle.addObserver(observer)
         onDispose { lifecycle.removeObserver(observer) }
     }
-    return PermissionState(granted) { launcher.launch(permission) }
+    return PermissionState(granted, blocked && !granted) {
+        rationaleBefore = rationale()
+        launcher.launch(permission)
+    }
 }
 
 /** Centered "needs X" state with a button, used by tiles gated on a permission. */
@@ -256,6 +288,7 @@ internal fun WeatherCard(modifier: Modifier = Modifier) {
     val location by LocationFeed.location.collectAsState()
     val weather by WeatherRepo.weather.collectAsState()
     val error by WeatherRepo.error.collectAsState()
+    val now = rememberNow(60_000L)
     LaunchedEffect(location?.latitude?.let { (it * 20).roundToInt() }, location?.longitude?.let { (it * 20).roundToInt() }) {
         val l = location ?: return@LaunchedEffect
         while (true) {
@@ -294,7 +327,17 @@ internal fun WeatherCard(modifier: Modifier = Modifier) {
                                 style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 8.dp))
                         }
                         Text(w.condition, color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleSmall)
-                        Text(
+                        // An old answer, or a refresh that failed (the button's included): its time
+                        // and the reason take the detail line. Not in the demo, whose weather is made up once.
+                        val err = error
+                        if (!DemoMode.isOn && showsAge(w.fetchedAt, now.time, WeatherRepo.REFRESH_MS, failed = err != null)) AsOfLine(
+                            w.fetchedAt,
+                            when {
+                                err == null -> null
+                                err.isBlank() -> stringResource(R.string.info_weather_unavailable)
+                                else -> stringResource(R.string.info_weather_unavailable_detail, err)
+                            }
+                        ) else Text(
                             if (!w.hiC.isNaN()) {
                                 stringResource(
                                     if (u.imperial) R.string.units_weather_details_range_mph else R.string.info_weather_details_range,
@@ -327,6 +370,24 @@ internal fun WeatherCard(modifier: Modifier = Modifier) {
             }
         }
     }
+}
+
+/**
+ * "As of 14:05" under an answer that is no longer fresh, on the driver's 12 or
+ * 24 hour clock, with [reason] (why there is no newer one) beside it.
+ */
+@Composable
+internal fun AsOfLine(fetchedAt: Long, reason: String?, modifier: Modifier = Modifier) {
+    val timeFmt = rememberTimeFormat()
+    val asOf = stringResource(R.string.info_as_of, timeFmt.format(Date(fetchedAt)))
+    Text(
+        buildAnnotatedString {
+            append(asOf)
+            if (reason != null) withStyle(SpanStyle(color = DashColors.Warning)) { append(" · $reason") }
+        },
+        color = DashColors.Muted, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis,
+        modifier = modifier
+    )
 }
 
 // --- Calendar ---------------------------------------------------------------------
@@ -438,7 +499,7 @@ internal fun CalendarCard(modifier: Modifier = Modifier) {
             when {
                 events.isEmpty() && !agenda.phoneSent && !agenda.access.granted -> NeedsAccess(
                     Icons.Filled.Event, stringResource(R.string.info_agenda_needs_access),
-                    stringResource(R.string.info_agenda_allow), agenda.access.request
+                    stringResource(if (agenda.access.blocked) R.string.dash_open_settings else R.string.info_agenda_allow), agenda.access.request
                 )
                 events.isEmpty() -> Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                     Text(stringResource(agenda.emptyText), color = DashColors.Muted, textAlign = TextAlign.Center)
@@ -559,6 +620,14 @@ internal fun rememberQuickDialSource(): QuickDialSource {
     return QuickDialSource(favourites, callBack(lists.calls, System.currentTimeMillis()), lists.favourites != null, perm)
 }
 
+/** The narrowest quick-dial column a finger is asked to hit at the wheel, and the gap between two. */
+private const val QUICK_DIAL_MIN_DP = 72f
+private const val QUICK_DIAL_GAP_DP = 8f
+
+/** How many of [favourites] fit side by side in [widthDp] with no column under [QUICK_DIAL_MIN_DP]: fewer faces rather than narrow ones. */
+internal fun quickDialColumns(widthDp: Float, favourites: Int): Int =
+    ((widthDp + QUICK_DIAL_GAP_DP) / (QUICK_DIAL_MIN_DP + QUICK_DIAL_GAP_DP)).toInt().coerceIn(1, favourites.coerceAtLeast(1))
+
 /**
  * Calls [number]: through the linked phone, which places the call itself (its
  * sound on the car's Bluetooth as any call), else this unit's dialer with the
@@ -570,7 +639,11 @@ internal fun dialNumber(context: Context, number: String) {
     context.launchSafely(Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", number, null)))
 }
 
-/** Starred contacts as big tap-to-call targets, from the driver's phone when linked. A missed call adds a Call back row. */
+/**
+ * Starred contacts as big tap-to-call targets, from the driver's phone when
+ * linked. A missed call adds a Call back row. A tap says who is about to be
+ * called and leaves three seconds to cancel ([PendingActionStrip]).
+ */
 @Composable
 internal fun QuickDialCard(modifier: Modifier = Modifier) {
     val context = LocalContext.current
@@ -578,83 +651,96 @@ internal fun QuickDialCard(modifier: Modifier = Modifier) {
     val perm = source.access
     val favourites = source.favourites
     val timeFmt = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
+    val pending = rememberPendingAction()
+    fun call(name: String, number: String) = pending.arm(context.getString(R.string.phone_calling, name)) { dialNumber(context, number) }
 
     Card(modifier = modifier) {
-        Column(modifier = Modifier.fillMaxSize().padding(DashSpace.Lg)) {
-            TileHeader(stringResource(R.string.info_quickdial_title)) {
-                TextButton(
-                    onClick = { context.launchSafely(Intent(Intent.ACTION_DIAL)) },
-                    modifier = Modifier.height(DashSize.Touch), contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp)
-                ) { Text(stringResource(R.string.info_quickdial_dialer), color = DashColors.Accent, style = MaterialTheme.typography.labelMedium) }
-            }
-            when {
-                favourites.isEmpty() && !source.phoneSent && !perm.granted -> NeedsAccess(
-                    Icons.Filled.Call, stringResource(R.string.info_quickdial_needs_access),
-                    stringResource(R.string.info_quickdial_allow), perm.request
-                )
-                favourites.isEmpty() -> Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    Text(stringResource(source.emptyText), color = DashColors.Muted, textAlign = TextAlign.Center)
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize().padding(DashSpace.Lg)) {
+                TileHeader(stringResource(R.string.info_quickdial_title)) {
+                    TextButton(
+                        onClick = { context.launchSafely(Intent(Intent.ACTION_DIAL)) },
+                        modifier = Modifier.height(DashSize.Touch), contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp)
+                    ) { Text(stringResource(R.string.info_quickdial_dialer), color = DashColors.Accent, style = MaterialTheme.typography.labelMedium) }
                 }
-                else -> BoxWithConstraints(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                    val avatar = min(maxHeight.value * 0.55f, 64f).coerceAtLeast(36f).dp
-                    Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
-                        favourites.forEach { f ->
-                            Column(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(DashShape.Medium)
-                                    .clickable(enabled = f.number != null) { f.number?.let { dialNumber(context, it) } }
-                                    .padding(vertical = 4.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Box(
+                when {
+                    favourites.isEmpty() && !source.phoneSent && !perm.granted -> NeedsAccess(
+                        Icons.Filled.Call, stringResource(R.string.info_quickdial_needs_access),
+                        stringResource(if (perm.blocked) R.string.dash_open_settings else R.string.info_quickdial_allow), perm.request
+                    )
+                    favourites.isEmpty() -> Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Text(stringResource(source.emptyText), color = DashColors.Muted, textAlign = TextAlign.Center)
+                    }
+                    else -> BoxWithConstraints(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                        val avatar = min(maxHeight.value * 0.55f, 64f).coerceAtLeast(36f).dp
+                        val shown = favourites.take(quickDialColumns(maxWidth.value, favourites.size))
+                        Row(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(QUICK_DIAL_GAP_DP.dp)
+                        ) {
+                            shown.forEach { f ->
+                                Column(
                                     modifier = Modifier
-                                        .size(avatar)
-                                        .clip(CircleShape)
-                                        .background(DashColors.AccentBrush)
-                                        .border(1.dp, Color.White.copy(alpha = 0.3f), CircleShape),
-                                    contentAlignment = Alignment.Center
+                                        .weight(1f)
+                                        .fillMaxHeight()
+                                        .clip(DashShape.Medium)
+                                        .clickable(enabled = f.number != null) { f.number?.let { call(f.name, it) } }
+                                        .padding(vertical = 4.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
                                 ) {
-                                    val bmp = f.photo
-                                    if (bmp != null) {
-                                        Image(bmp.asImageBitmap(), contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
-                                    } else {
-                                        Text(
-                                            f.name.split(' ').take(2).mapNotNull { it.firstOrNull()?.uppercase() }.joinToString(""),
-                                            color = DashColors.OnAccent, fontWeight = FontWeight.ExtraBold,
-                                            style = MaterialTheme.typography.titleMedium
-                                        )
+                                    Box(
+                                        modifier = Modifier
+                                            .size(avatar)
+                                            .clip(CircleShape)
+                                            .background(DashColors.AccentBrush)
+                                            .border(1.dp, Color.White.copy(alpha = 0.3f), CircleShape),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        val bmp = f.photo
+                                        if (bmp != null) {
+                                            Image(bmp.asImageBitmap(), contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                                        } else {
+                                            Text(
+                                                f.name.split(' ').take(2).mapNotNull { it.firstOrNull()?.uppercase() }.joinToString(""),
+                                                color = DashColors.OnAccent, fontWeight = FontWeight.ExtraBold,
+                                                style = MaterialTheme.typography.titleMedium
+                                            )
+                                        }
                                     }
+                                    Spacer(Modifier.height(4.dp))
+                                    Text(f.name.substringBefore(' '), color = DashColors.TextSecondary, style = MaterialTheme.typography.labelSmall,
+                                        maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 }
-                                Spacer(Modifier.height(4.dp))
-                                Text(f.name.substringBefore(' '), color = DashColors.TextSecondary, style = MaterialTheme.typography.labelSmall,
-                                    maxLines = 1, overflow = TextOverflow.Ellipsis)
                             }
                         }
                     }
                 }
-            }
-            source.callBack?.let { call ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = DashSize.Touch)
-                        .clip(DashShape.Small)
-                        .itemFill(if (DashColors.Glass) DashColors.haze(0.06f) else DashColors.CardHi, DashShape.Small)
-                        .clickable { dialNumber(context, call.number) }
-                        .padding(horizontal = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(Icons.Filled.PhoneMissed, contentDescription = null, tint = DashColors.Warning,modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        stringResource(R.string.phone_call_back, call.name ?: call.number), color = DashColors.TextPrimary,
-                        style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f)
-                    )
-                    Text(timeFmt.format(Date(call.at)), color = DashColors.Muted, style = MaterialTheme.typography.labelSmall)
+                source.callBack?.let { missed ->
+                    Spacer(Modifier.height(6.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = DashSize.MenuRow)
+                            .clip(DashShape.Small)
+                            .itemFill(if (DashColors.Glass) DashColors.haze(0.06f) else DashColors.CardHi, DashShape.Small)
+                            .clickable { call(missed.name ?: missed.number, missed.number) }
+                            .padding(horizontal = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Filled.PhoneMissed, contentDescription = null, tint = DashColors.Warning,modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            stringResource(R.string.phone_call_back, missed.name ?: missed.number), color = DashColors.TextPrimary,
+                            style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold,
+                            maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f)
+                        )
+                        Text(timeFmt.format(Date(missed.at)), color = DashColors.Muted, style = MaterialTheme.typography.labelSmall)
+                    }
                 }
             }
+            PendingActionStrip(pending, Modifier.align(Alignment.BottomCenter).padding(DashSpace.Sm))
         }
     }
 }

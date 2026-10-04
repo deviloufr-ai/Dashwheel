@@ -49,6 +49,7 @@
     <string name="phone_quickdial_empty">Koppel je telefoon om hier de favorieten te zien</string>
     <string name="phone_agenda_empty">Koppel je telefoon om hier de agenda te zien</string>
     <string name="phone_call_back">Bel %1$s terug</string>
+    <string name="phone_calling">%1$s bellen</string>
     <string name="phone_dial_not_allowed">Sta Oproepen toe in Dashwheel Companion om hier te bellen.</string>
     <string name="phone_guidance_to">Route naar %1$s</string>
 </resources>

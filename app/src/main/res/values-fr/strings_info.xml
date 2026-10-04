@@ -16,6 +16,7 @@
     <string name="info_weather_loading">Chargement de la météo…</string>
     <string name="info_weather_unavailable">Météo indisponible</string>
     <string name="info_weather_unavailable_detail">Météo indisponible (%1$s)</string>
+    <string name="info_as_of">Relevé à %1$s</string>
 
     <!-- Weather conditions (WMO codes), also used by the skins -->
     <string name="info_wx_clear">Dégagé</string>

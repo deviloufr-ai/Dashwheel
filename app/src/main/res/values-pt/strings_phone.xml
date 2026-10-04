@@ -49,6 +49,7 @@
     <string name="phone_quickdial_empty">Associe o telefone para ver aqui os favoritos</string>
     <string name="phone_agenda_empty">Associe o telefone para ver aqui a agenda</string>
     <string name="phone_call_back">Ligar a %1$s</string>
+    <string name="phone_calling">A ligar a %1$s</string>
     <string name="phone_dial_not_allowed">Para ligar daqui, permita Chamadas no Dashwheel Companheiro.</string>
     <string name="phone_guidance_to">Rota para %1$s</string>
 </resources>

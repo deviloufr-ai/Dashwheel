@@ -75,7 +75,8 @@ object WeatherRepo {
     @Volatile private var realWeather: Weather? = null
     @Volatile private var realError: String? = null
 
-    private const val REFRESH_MS = 15 * 60_000L
+    /** One refresh interval: an answer older than this is shown with its time. */
+    internal const val REFRESH_MS = 15 * 60_000L
     private const val MOVE_DEG = 0.05   // ~5 km: refresh sooner when the car has moved on
 
     /** [DemoMode]'s weather. */
@@ -149,6 +150,14 @@ object WeatherRepo {
         }
     }
 }
+
+/**
+ * Whether a tile must say how old its answer is ("As of 14:05"): once it is
+ * older than one refresh ([intervalMs]), or as soon as a refresh [failed],
+ * the one asked by hand included.
+ */
+internal fun showsAge(fetchedAt: Long, now: Long, intervalMs: Long, failed: Boolean): Boolean =
+    failed || now - fetchedAt > intervalMs
 
 /** How far ahead the forecast is searched for rain, in hours. */
 internal const val RAIN_HORIZON_H = 12

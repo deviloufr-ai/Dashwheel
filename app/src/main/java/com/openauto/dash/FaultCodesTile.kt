@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -87,7 +88,8 @@ import kotlinx.coroutines.launch
  * Fault codes (OBD Diagnostic Trouble Codes). Scans run by themselves when the
  * adapter connects (see [AiMechanic]); Scan / Clear are here for doing it by
  * hand. The tile is the overview (verdict, one card per code); a code opens
- * the AI mechanic's full explanation. Without a Gemini key each code shows
+ * the AI mechanic's full explanation. A short tile keeps to the verdict and
+ * the number of codes ([CompactFaults]) and opens the overview in a sheet. Without a Gemini key each code shows
  * the built-in table's description. The microphone by the title asks the
  * mechanic anything about the car, answered from the live readings.
  */
@@ -137,123 +139,168 @@ internal fun ObdDtcCard(
         }
     }
 
-    Card(modifier = modifier) {
-        Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    stringResource(R.string.vehicle_fault_codes_title),
-                    color = DashColors.Accent,
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier.weight(1f)
-                )
-                lamp?.let { LampChip(it) }
-                Spacer(Modifier.width(4.dp))
-                AskIconButton(ask, aiText, onClick = askAboutCar)
+    val scan: () -> Unit = {
+        busy = true; message = null
+        scope.launch {
+            val r = ObdBluetoothManager.readTroubleCodes()
+            busy = false
+            r.onSuccess { AiMechanic.report(it, announce = false) }
+                .onFailure { message = DtcMessage(it.message ?: scanFailed, failed = true) }
+        }
+    }
+    // A short tile shows the verdict alone; a tap on it opens the whole tile in a sheet.
+    var expanded by remember { mutableStateOf(false) }
+
+    // The title row, shared by the tile and the sheet ([onClose]: the sheet's).
+    val header: @Composable (onClose: (() -> Unit)?) -> Unit = { onClose ->
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                stringResource(R.string.vehicle_fault_codes_title),
+                color = DashColors.Accent,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.weight(1f)
+            )
+            lamp?.let { LampChip(it) }
+            Spacer(Modifier.width(4.dp))
+            AskIconButton(ask, aiText, onClick = askAboutCar)
+            if (onClose != null) {
+                IconButton(onClick = onClose) {
+                    Icon(Icons.Filled.Close, contentDescription = aiText.getString(R.string.ai_close), tint = DashColors.TextSecondary)
+                }
             }
+        }
+    }
+    // Everything under the title. It sits whole in one scroll area, so a tile
+    // too short for it clips nothing: the rest is a swipe away.
+    val body: @Composable () -> Unit = {
+        // A question about the car, asked here or hands-free; the detail sheet shows its own.
+        if (ask != AskMechanic.State.Idle && opened == null) {
+            AskPanel(ask, aiText, onReplay = { AskMechanic.replay(context) }, compact = true, onClose = AskMechanic::cancel)
             Spacer(Modifier.height(10.dp))
-            // A question about the car, asked here or hands-free; the detail sheet shows its own.
-            if (ask != AskMechanic.State.Idle && opened == null) {
-                AskPanel(ask, aiText, onReplay = { AskMechanic.replay(context) }, compact = true, onClose = AskMechanic::cancel)
-                Spacer(Modifier.height(10.dp))
-            }
+        }
 
-            if (!connected) {
-                ObdNotConnected(connection, onConnect, onPickDevice)
-            } else {
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Button(
-                        enabled = !busy,
-                        onClick = {
-                            busy = true; message = null
-                            scope.launch {
-                                val r = ObdBluetoothManager.readTroubleCodes()
-                                busy = false
-                                r.onSuccess { AiMechanic.report(it, announce = false) }
-                                    .onFailure { message = DtcMessage(it.message ?: scanFailed, failed = true) }
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = DashColors.Accent, contentColor = DashColors.Background)
-                    ) { Text(stringResource(R.string.vehicle_scan)) }
-                    Button(
-                        enabled = !busy && codes?.isNotEmpty() == true,
-                        onClick = clearCodes,
-                        colors = ButtonDefaults.buttonColors(containerColor = DashColors.CardHi, contentColor = DashColors.TextPrimary)
-                    ) { Text(stringResource(R.string.vehicle_clear)) }
+        if (!connected) {
+            ObdNotConnected(connection, onConnect, onPickDevice)
+        } else {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Button(
+                    enabled = !busy,
+                    onClick = scan,
+                    colors = ButtonDefaults.buttonColors(containerColor = DashColors.Accent, contentColor = DashColors.Background)
+                ) { Text(stringResource(R.string.vehicle_scan)) }
+                Button(
+                    enabled = !busy && codes?.isNotEmpty() == true,
+                    onClick = clearCodes,
+                    colors = ButtonDefaults.buttonColors(containerColor = DashColors.CardHi, contentColor = DashColors.TextPrimary)
+                ) { Text(stringResource(R.string.vehicle_clear)) }
+            }
+            if (busy) {
+                Spacer(Modifier.height(8.dp))
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), color = DashColors.Accent)
+            }
+            message?.let {
+                Spacer(Modifier.height(8.dp))
+                Text(it.text, color = if (it.failed) DashColors.Warning else DashColors.Good, style = MaterialTheme.typography.bodyMedium)
+            }
+            // Ignition on, engine off: every dashboard lamp is lit for its self-test,
+            // which the "lamp off" badge would otherwise seem to contradict.
+            if (engineOff) {
+                Spacer(Modifier.height(8.dp))
+                Row {
+                    Icon(Icons.Filled.Info, contentDescription = null, tint = DashColors.TextSecondary, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.vehicle_engine_off_hint), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
                 }
-                if (busy) {
-                    Spacer(Modifier.height(8.dp))
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), color = DashColors.Accent)
-                }
-                message?.let {
-                    Spacer(Modifier.height(8.dp))
-                    Text(it.text, color = if (it.failed) DashColors.Warning else DashColors.Good, style = MaterialTheme.typography.bodyMedium)
-                }
-                // Ignition on, engine off: every dashboard lamp is lit for its self-test,
-                // which the "lamp off" badge would otherwise seem to contradict.
-                if (engineOff) {
-                    Spacer(Modifier.height(8.dp))
-                    Row {
-                        Icon(Icons.Filled.Info, contentDescription = null, tint = DashColors.TextSecondary, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.vehicle_engine_off_hint), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+            }
+        }
+
+        // The alerts the bar showed lately, so one that came and went can still be read.
+        if (AlertCenter.history.isNotEmpty()) {
+            Spacer(Modifier.height(10.dp))
+            RecentAlerts()
+        }
+
+        // Results stay readable after the adapter drops (engine off, parked).
+        if (codes != null) {
+            Spacer(Modifier.height(12.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                if (codes.isEmpty() && lamp?.on == true) {
+                    // Never a green "no fault" while the engine computer says its lamp is on.
+                    Text(stringResource(R.string.vehicle_lamp_no_codes), color = DashColors.Warning, style = MaterialTheme.typography.bodyLarge)
+                } else if (codes.isEmpty()) {
+                    Text(stringResource(R.string.ai_no_codes), color = DashColors.Good, style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.vehicle_obd_scope), color = DashColors.Muted, style = MaterialTheme.typography.bodySmall)
+                } else {
+                    diagnosis?.let { VerdictBand(it, aiText) }
+                    if (ai.thinking) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            CircularProgressIndicator(color = DashColors.Accent, strokeWidth = 2.dp, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(10.dp))
+                            Text(stringResource(R.string.ai_thinking), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
+                        }
                     }
-                }
-            }
-
-            // The alerts the bar showed lately, so one that came and went can still be read.
-            if (AlertCenter.history.isNotEmpty()) {
-                Spacer(Modifier.height(10.dp))
-                RecentAlerts()
-            }
-
-            // Results stay readable after the adapter drops (engine off, parked).
-            if (codes != null) {
-                Spacer(Modifier.height(12.dp))
-                Column(
-                    modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    if (codes.isEmpty() && lamp?.on == true) {
-                        // Never a green "no fault" while the engine computer says its lamp is on.
-                        Text(stringResource(R.string.vehicle_lamp_no_codes), color = DashColors.Warning, style = MaterialTheme.typography.bodyLarge)
-                    } else if (codes.isEmpty()) {
-                        Text(stringResource(R.string.ai_no_codes), color = DashColors.Good, style = MaterialTheme.typography.titleMedium)
-                        Text(stringResource(R.string.vehicle_obd_scope), color = DashColors.Muted, style = MaterialTheme.typography.bodySmall)
-                    } else {
-                        diagnosis?.let { VerdictBand(it, aiText) }
-                        if (ai.thinking) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                CircularProgressIndicator(color = DashColors.Accent, strokeWidth = 2.dp, modifier = Modifier.size(18.dp))
-                                Spacer(Modifier.width(10.dp))
-                                Text(stringResource(R.string.ai_thinking), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
-                            }
-                        }
-                        ai.note?.let { note ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    AiMechanic.noteText(context, note),
-                                    color = DashColors.TextSecondary,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                if (ai.canRetry) {
-                                    TextButton(onClick = AiMechanic::refresh) { Text(stringResource(R.string.ai_retry), color = DashColors.Accent) }
-                                }
-                            }
-                        }
-                        codes.forEachIndexed { index, code ->
-                            val advice = adviceFor(diagnosis, codes, code, index)
-                            CodeCard(
-                                code = code,
-                                advice = advice,
-                                severity = diagnosis?.severity,
-                                pending = code in pending,
-                                aiText = aiText,
-                                onOpen = if (advice != null) ({ opened = code }) else null
+                    ai.note?.let { note ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                AiMechanic.noteText(context, note),
+                                color = DashColors.TextSecondary,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.weight(1f)
                             )
+                            if (ai.canRetry) {
+                                TextButton(onClick = AiMechanic::refresh) { Text(stringResource(R.string.ai_retry), color = DashColors.Accent) }
+                            }
                         }
                     }
+                    codes.forEachIndexed { index, code ->
+                        val advice = adviceFor(diagnosis, codes, code, index)
+                        CodeCard(
+                            code = code,
+                            advice = advice,
+                            severity = diagnosis?.severity,
+                            pending = code in pending,
+                            aiText = aiText,
+                            onOpen = if (advice != null) ({ opened = code }) else null
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    Card(modifier = modifier) {
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            // Under about 200 dp (the default 3x2 included) the title, the microphone
+            // and the buttons would leave no room for the results.
+            if (maxHeight < 200.dp) {
+                CompactFaults(
+                    codes = codes, diagnosis = diagnosis, thinking = ai.thinking, lamp = lamp,
+                    connected = connected, busy = busy, message = message, aiText = aiText,
+                    oneLine = maxHeight < 130.dp, onScan = scan, onOpen = { expanded = true }
+                )
+            } else {
+                Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+                    header(null)
+                    Spacer(Modifier.height(10.dp))
+                    Column(modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())) { body() }
+                }
+            }
+        }
+    }
+
+    if (expanded) {
+        Dialog(onDismissRequest = { expanded = false }, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
+            Surface(
+                shape = DashShape.Large,
+                color = DashColors.Card.copy(alpha = 1f),
+                // Docked app windows are drawn above dialogs on this unit; the ones under it step aside.
+                modifier = Modifier.widthIn(max = 720.dp).fillMaxWidth(0.94f).fillMaxHeight(0.94f).keepClearOfWindows()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    header { expanded = false }
+                    Spacer(Modifier.height(10.dp))
+                    Column(modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())) { body() }
                 }
             }
         }
@@ -264,6 +311,110 @@ internal fun ObdDtcCard(
         val advice = if (codes != null && index >= 0) adviceFor(diagnosis, codes, code, index) else null
         // A new scan can take the code away while the sheet is open: then it just closes.
         if (advice != null) FaultDetailSheet(code, advice, diagnosis, codes.orEmpty(), aiText, moving) { opened = null }
+    }
+}
+
+/**
+ * The tile at its short sizes: how many codes and the verdict, large, and one
+ * Scan button ([oneLine]: side by side, on a tile one row high). A tap
+ * anywhere else opens the whole tile in a sheet ([onOpen]).
+ */
+@Composable
+private fun CompactFaults(
+    codes: List<String>?,
+    diagnosis: Diagnosis?,
+    thinking: Boolean,
+    lamp: EngineLamp?,
+    connected: Boolean,
+    busy: Boolean,
+    message: DtcMessage?,
+    aiText: Resources,
+    oneLine: Boolean,
+    onScan: () -> Unit,
+    onOpen: () -> Unit
+) {
+    val lampOn = lamp?.on == true
+    val failed = message?.takeIf { it.failed }
+    // Never a green "no fault" while the engine computer says its lamp is on.
+    val colour = if (codes.isNullOrEmpty()) (if (lampOn) DashColors.Warning else DashColors.Good) else severityColor(diagnosis?.severity)
+    val verdict = when {
+        failed != null -> failed.text
+        codes == null -> if (connected) null else stringResource(R.string.vehicle_obd_not_connected)
+        codes.isEmpty() -> stringResource(if (lampOn) R.string.vehicle_lamp_on else R.string.ai_no_codes)
+        diagnosis != null -> aiText.getString(verdictRes(diagnosis.severity))
+        thinking -> stringResource(R.string.ai_thinking)
+        else -> ObdCodes.describe(codes.first()).localizedTitle()
+    }
+    val summary: @Composable (Modifier) -> Unit = { m ->
+        Row(modifier = m, verticalAlignment = Alignment.CenterVertically) {
+            if (codes != null) {
+                Text(codes.size.toString(), color = colour, fontWeight = FontWeight.ExtraBold, style = MaterialTheme.typography.displaySmall)
+                Spacer(Modifier.width(12.dp))
+            }
+            Column(Modifier.weight(1f)) {
+                if (verdict != null) {
+                    Text(
+                        verdict,
+                        color = if (failed != null) DashColors.Warning else DashColors.TextPrimary,
+                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                if (!codes.isNullOrEmpty()) {
+                    Text(
+                        codes.joinToString(" · "),
+                        color = DashColors.TextSecondary,
+                        fontFamily = FontFamily.Monospace,
+                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        }
+    }
+    // Scanning needs the adapter; without it the sheet has the way to connect.
+    val scanButton: @Composable (Modifier) -> Unit = { m ->
+        if (connected) {
+            Button(
+                enabled = !busy,
+                onClick = onScan,
+                colors = ButtonDefaults.buttonColors(containerColor = DashColors.Accent, contentColor = DashColors.Background),
+                modifier = m.height(DashSize.TouchPrimary)
+            ) { Text(stringResource(R.string.vehicle_scan), maxLines = 1) }
+        }
+    }
+    if (oneLine) {
+        Row(
+            modifier = Modifier.fillMaxSize().clickable(onClick = onOpen).padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            summary(Modifier.weight(1f))
+            Spacer(Modifier.width(10.dp))
+            scanButton(Modifier)
+        }
+    } else {
+        Column(modifier = Modifier.fillMaxSize().clickable(onClick = onOpen).padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    stringResource(R.string.vehicle_fault_codes_title),
+                    color = DashColors.Accent,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.labelMedium,
+                    maxLines = 1,
+                    modifier = Modifier.weight(1f)
+                )
+                lamp?.let { LampChip(it) }
+            }
+            summary(Modifier.weight(1f).fillMaxWidth())
+            if (busy) {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), color = DashColors.Accent)
+                Spacer(Modifier.height(6.dp))
+            }
+            scanButton(Modifier.fillMaxWidth())
+        }
     }
 }
 
@@ -333,6 +484,13 @@ private fun severityColor(severity: Severity?): Color = when (severity) {
     Severity.SOON, null -> DashColors.Warning
 }
 
+/** The AI's overall call in three words, the same on the band and on a short tile. */
+private fun verdictRes(severity: Severity): Int = when (severity) {
+    Severity.OK -> R.string.ai_verdict_ok
+    Severity.SOON -> R.string.ai_verdict_soon
+    Severity.STOP -> R.string.ai_verdict_stop
+}
+
 private fun severityIcon(severity: Severity): ImageVector = when (severity) {
     Severity.OK -> Icons.Filled.CheckCircle
     Severity.SOON -> Icons.Filled.Warning
@@ -363,13 +521,7 @@ private fun LampChip(lamp: EngineLamp) {
 @Composable
 private fun VerdictBand(d: Diagnosis, aiText: Resources) {
     val color = severityColor(d.severity)
-    val label = aiText.getString(
-        when (d.severity) {
-            Severity.OK -> R.string.ai_verdict_ok
-            Severity.SOON -> R.string.ai_verdict_soon
-            Severity.STOP -> R.string.ai_verdict_stop
-        }
-    )
+    val label = aiText.getString(verdictRes(d.severity))
     Surface(
         shape = DashShape.Medium,
         color = color.copy(alpha = 0.14f),

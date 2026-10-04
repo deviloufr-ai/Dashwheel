@@ -16,6 +16,7 @@
     <string name="info_weather_loading">Ładowanie pogody…</string>
     <string name="info_weather_unavailable">Pogoda niedostępna</string>
     <string name="info_weather_unavailable_detail">Pogoda niedostępna (%1$s)</string>
+    <string name="info_as_of">Aktualizacja: %1$s</string>
 
     <!-- Weather conditions (WMO codes), also used by the skins -->
     <string name="info_wx_clear">Bezchmurnie</string>

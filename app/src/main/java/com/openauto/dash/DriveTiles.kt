@@ -287,13 +287,15 @@ internal fun CompassCard(modifier: Modifier = Modifier) {
 @Composable
 private fun CompassFooter(locationState: State<Location?>) {
     val location = locationState.value
+    // From a fresh fix only: in a tunnel the footer reads "--", not the speed the car went in with.
+    val speedKmh by LocationFeed.freshSpeedKmh.collectAsState()
     val u = LocalUnits.current
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         StatBlock(stringResource(R.string.info_compass_altitude), location?.takeIf { it.hasAltitude() }?.let { "${it.altitude.roundToInt()} m" } ?: "--")
-        StatBlock(stringResource(R.string.info_compass_gps_speed), location?.let { u.speedText(it.speed * 3.6f) } ?: "--")
+        StatBlock(stringResource(R.string.info_compass_gps_speed), speedKmh?.let { u.speedText(it) } ?: "--")
         StatBlock(stringResource(R.string.info_compass_accuracy), location?.let { "±${it.accuracy.roundToInt()} m" } ?: "--")
     }
 }

@@ -16,6 +16,7 @@
     <string name="info_weather_loading">Wetter wird geladen…</string>
     <string name="info_weather_unavailable">Wetter nicht verfügbar</string>
     <string name="info_weather_unavailable_detail">Wetter nicht verfügbar (%1$s)</string>
+    <string name="info_as_of">Stand %1$s</string>
 
     <!-- Weather conditions (WMO codes), also used by the skins -->
     <string name="info_wx_clear">Klar</string>

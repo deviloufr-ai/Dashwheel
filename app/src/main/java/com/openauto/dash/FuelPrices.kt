@@ -193,6 +193,10 @@ object FuelPriceRepo {
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
+    private val _fetchedAt = MutableStateFlow(0L)
+    /** When the list shown was fetched: a failed refresh keeps the old list and its time. 0 before the first answer. */
+    val fetchedAt: StateFlow<Long> = _fetchedAt.asStateFlow()
+
     private val client by lazy {
         Http.client.newBuilder()
             .dns(Ipv4First)
@@ -209,29 +213,35 @@ object FuelPriceRepo {
     // The real answer, kept while the demo shows its own and put back when it ends.
     @Volatile private var realStations: List<FuelStation>? = null
     @Volatile private var realError: String? = null
+    @Volatile private var realFetchedAt = 0L
 
-    private const val REFRESH_MS = 30 * 60_000L
+    /** One refresh interval: a list older than this is shown with its time. */
+    internal const val REFRESH_MS = 30 * 60_000L
     private const val MOVE_DEG = 0.03   // ~3 km: the neighbourhood has changed
 
     /** [DemoMode]'s stations. */
     internal fun demoWrite(stations: List<FuelStation>?, error: String?) {
         _stations.value = stations
         _error.value = error
+        _fetchedAt.value = System.currentTimeMillis()
     }
 
     /** The demo is over: the real stations back, including an answer that came in meanwhile. */
     internal fun endDemo() {
         _stations.value = realStations
         _error.value = realError
+        _fetchedAt.value = realFetchedAt
     }
 
-    private fun publish(stations: List<FuelStation>?, error: String?) {
+    private fun publish(stations: List<FuelStation>?, error: String?, fetchedAt: Long = realFetchedAt) {
         realStations = stations
         realError = error
+        realFetchedAt = fetchedAt
         // A fetch that was already on its way when the demo started must not replace the demo's stations.
         if (DemoMode.isOn) return
         _stations.value = stations
         _error.value = error
+        _fetchedAt.value = fetchedAt
     }
 
     /** Station names by the government's id, blank for one OpenStreetMap doesn't name; kept for the run. */
@@ -288,7 +298,7 @@ object FuelPriceRepo {
                     FuelPrices.parse(resp.body?.string().orEmpty())
                 }
             }.onSuccess {
-                publish(it, null)
+                publish(it, null, fetchedAt = now)
                 // Prices first; the names follow when OpenStreetMap answers.
                 val named = withNames(it)
                 if (named != it && realStations === it) publish(named, null)
