@@ -61,7 +61,6 @@ import androidx.compose.material.icons.filled.HorizontalSplit
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -975,7 +974,8 @@ private fun DashMenu(open: Boolean, onDismiss: () -> Unit, content: @Composable 
         }
     }
     // Docked windows are drawn above the bar's pop-ups; one the menu overlaps steps aside meanwhile.
-    DropdownMenu(
+    // Kept inside the dashboard's window, clear of bars the head unit draws itself (WindowMenu.kt).
+    WindowMenu(
         expanded = open,
         onDismissRequest = onDismiss,
         modifier = Modifier.keepClearOfWindows(),
