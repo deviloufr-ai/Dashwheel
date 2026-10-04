@@ -2,7 +2,6 @@ package com.openauto.dash
 
 import android.content.Context
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +12,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.VolumeUp
@@ -48,8 +48,9 @@ import kotlinx.coroutines.launch
 /*
  * A message arriving on the phone, shown as well as said: a card at the top
  * with who it's from and its first lines, for a glance at a red light, and
- * the choice to hear it, answer it or put it away. It goes by itself after a
- * few seconds; the same switch as the spoken alert turns it on and off.
+ * a button each to hear it, answer it or put it away: the card itself does
+ * nothing, so a touch that misses a button opens no sheet. It goes by itself
+ * after a few seconds; the same switch as the spoken alert turns it on and off.
  */
 internal object MessageAlerts {
     private const val SHOW_MS = 8_000L
@@ -116,15 +117,9 @@ internal fun MessageAlertHost() {
     replying?.let { PhoneMessageSheet(it) { replying = null } }
     val n = item ?: return
     AlertPopup(AlertStyle.CARD, Alignment.TopCenter) {
-        AlertSurface(
-            AlertStyle.CARD,
-            Modifier.widthIn(min = 360.dp, max = 620.dp).clickable {
-                MessageAlerts.dismiss()
-                replying = n
-            }
-        ) {
+        AlertSurface(AlertStyle.CARD, Modifier.widthIn(min = 360.dp, max = 620.dp)) {
             Row(
-                modifier = Modifier.padding(start = 16.dp, end = 6.dp, top = 12.dp, bottom = 12.dp),
+                modifier = Modifier.padding(start = 16.dp, end = 10.dp, top = 12.dp, bottom = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 val icon = remember(n.icon) { n.icon?.asImageBitmap() }
@@ -145,11 +140,18 @@ internal fun MessageAlertHost() {
                     }
                     Text(n.appLabel, color = DashColors.Muted, style = MaterialTheme.typography.labelSmall, maxLines = 1)
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(0.dp)) {
-                    IconButton(onClick = { MessageAlerts.readOut(context, n); MessageAlerts.dismiss() }) {
+                Spacer(Modifier.width(DashSpace.Md))
+                Row(horizontalArrangement = Arrangement.spacedBy(DashSpace.Md)) {
+                    val button = Modifier.size(DashSize.TouchPrimary)
+                    IconButton(onClick = { MessageAlerts.readOut(context, n); MessageAlerts.dismiss() }, modifier = button) {
                         Icon(Icons.Filled.VolumeUp, contentDescription = stringResource(R.string.message_alert_read), tint = DashColors.Accent)
                     }
-                    IconButton(onClick = { MessageAlerts.dismiss() }) {
+                    if (n.canReply) {
+                        IconButton(onClick = { MessageAlerts.dismiss(); replying = n }, modifier = button) {
+                            Icon(Icons.AutoMirrored.Filled.Reply, contentDescription = stringResource(R.string.message_alert_reply), tint = DashColors.Accent)
+                        }
+                    }
+                    IconButton(onClick = { MessageAlerts.dismiss() }, modifier = button) {
                         Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.dash_close), tint = DashColors.TextSecondary)
                     }
                 }

@@ -54,6 +54,7 @@
     <string name="alert_try">Try it</string>
     <string name="alert_call_note">Side panel and full screen show while the phone rings. Once answered, the call shrinks to a slim bar.</string>
     <string name="alert_tap_to_hide">Tap to hide</string>
+    <string name="alert_enlarge">Show</string>
     <string name="alert_speak">Speak it</string>
     <string name="alert_show">Show this alert</string>
     <string name="alert_speak_call_detail">Says who is calling as the phone rings</string>

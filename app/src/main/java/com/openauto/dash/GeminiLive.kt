@@ -85,7 +85,9 @@ import kotlinx.coroutines.withTimeoutOrNull
  * display of its own (EmbeddedApp) drawn in the alert, so its captions and
  * buttons work there. While driving the bigger designs shrink to the pill
  * after a few seconds; reversing puts the alert aside and a phone call ends
- * the conversation. A second press, or the alert's close button, ends it.
+ * the conversation. Dashwheel's own Gemini ends when reverse is engaged too,
+ * and the car's voice waits while it talks ([CarVoice.holdForLive]). A second
+ * press, or the alert's close button, ends it.
  *
  * Live has no public way in: Gemini's home-screen widget opens it through an
  * activity of Gemini's that only the system or root may start, asking for
@@ -110,9 +112,6 @@ internal object GeminiLive {
     private const val CURTAIN_MAX_MS = 4_000L
     /** And stays a moment more, while the unit draws Gemini where it now is. */
     private const val CURTAIN_AFTER_MS = 200L
-    /** While driving, the card, panel or full screen shrinks to the pill after this long. */
-    private const val COLLAPSE_MS = 10_000L
-
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var started = false
     private var window: AlertWindow? = null
@@ -165,8 +164,13 @@ internal object GeminiLive {
         scope.launch {
             CarBox.reversing.collect {
                 reversing = it
-                render(app)
+                // Dashwheel's own Gemini would talk through the manoeuvre, its alert out of sight: it ends.
+                if (it && own) end(app) else render(app)
             }
+        }
+        scope.launch {
+            // It could not connect: what the car says about it is not held back.
+            DashAssistant.phase.collect { if (it == DashAssistant.Phase.FAILED) CarVoice.holdForLive(false) }
         }
         scope.launch {
             // The driver talks on the phone: the conversation with Gemini ends.
@@ -240,11 +244,15 @@ internal object GeminiLive {
             HandsFree.say(app, R.string.ai_ask_say_mic)
             return
         }
+        // Not while reversing: the driver listens for the parking sensors.
+        if (CarBox.reversing.value) return
         AlertPreview.stop()
         own = true
         _active.value = true
         bigSince = SystemClock.elapsedRealtime()
         render(app)
+        // The car's voice would talk over Gemini and into its microphone: it waits for the end.
+        CarVoice.holdForLive(true)
         DashAssistant.start(app)
         ticking = scope.launch {
             while (isActive) {
@@ -280,6 +288,7 @@ internal object GeminiLive {
             _active.value = false
             render(app)
             DashAssistant.stop(app)
+            CarVoice.holdForLive(false)
             return
         }
         starting?.cancel()
@@ -380,9 +389,9 @@ internal object GeminiLive {
     /** The designs that show Gemini's screen, shrunk to the pill while driving. */
     private val BIG = setOf(AlertStyle.CARD, AlertStyle.PANEL, AlertStyle.FULL)
 
-    /** The design shown for [chosen]: the pill once the car has moved a while with it big. */
+    /** The design shown for [chosen]: the pill once the car has moved a while with it big ([drivingStyle]). */
     internal fun design(chosen: AlertStyle, moving: Boolean, bigForMs: Long): AlertStyle =
-        if (chosen in BIG && moving && bigForMs > COLLAPSE_MS) AlertStyle.PILL else chosen
+        drivingStyle(chosen, moving, bigForMs, BIG)
 }
 
 /**

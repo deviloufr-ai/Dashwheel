@@ -21,6 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /*
@@ -60,7 +61,7 @@ object HeadUnitPhone {
     private val RESEND_MS = longArrayOf(400, 1_500, 4_000)
     /** At most this many signals per call, so nothing can make it loop. */
     private const val MAX_SIGNALS_PER_CALL = 8
-    /** A call-screen "start" this soon after our own signal is its echo, not news. */
+    /** A call-screen "start" or "end" this soon after our own signal is its echo, not news. */
     private const val ECHO_MS = 1_500L
     private const val PREFS = "head_unit_phone"
     /** Set while the ROM's pop-up is told to step aside, so a crash mid-call can't leave the seek keys as phone keys. */
@@ -71,7 +72,10 @@ object HeadUnitPhone {
     @Volatile private var binder: IBinder? = null
 
     private val _call = MutableStateFlow<PhoneCall?>(null)
-    /** The call on the head unit's Bluetooth, or null. */
+    /**
+     * The call on the head unit's Bluetooth, or null. It can be answered and
+     * hung up from here only while the Bluetooth app's service is bound.
+     */
     val call: StateFlow<PhoneCall?> = _call
 
     /** Whether this unit runs the QF Bluetooth app this talks to. */
@@ -111,7 +115,11 @@ object HeadUnitPhone {
                 // CarPlay / Android Auto is connected: those calls are theirs, and the
                 // Bluetooth app would answer the signal with another "call start".
                 ACTION_CALL_START -> if (!UnitSignals.projection.value && SystemClock.elapsedRealtime() - lastSignalAt > ECHO_MS) setAside(app)
-                ACTION_CALL_END -> if (!UnitSignals.projection.value) callOver(app)
+                ACTION_CALL_END -> if (!UnitSignals.projection.value) {
+                    // The call screen closing means the call is over, even when its "ended" state never came.
+                    if (SystemClock.elapsedRealtime() - lastSignalAt > ECHO_MS) _call.value = null
+                    callOver(app)
+                }
             }
         }
     }
@@ -123,14 +131,16 @@ object HeadUnitPhone {
             val name = intent.getStringExtra("callName")?.takeIf { it.isNotBlank() && it != number }
             val before = _call.value
             val now = SystemClock.elapsedRealtime()
+            // No buttons that do nothing: without the service the call is only shown.
+            val bound = binder != null
             _call.value = when (state) {
-                STATE_INCOMING -> PhoneCall(CallState.Phase.RINGING, number, name, null, now, canControl = true, viaHeadUnit = true)
-                STATE_OUTGOING -> PhoneCall(CallState.Phase.ACTIVE, number, name, null, now, canControl = true, viaHeadUnit = true, dialing = true)
+                STATE_INCOMING -> PhoneCall(CallState.Phase.RINGING, number, name, null, now, canControl = bound, viaHeadUnit = true)
+                STATE_OUTGOING -> PhoneCall(CallState.Phase.ACTIVE, number, name, null, now, canControl = bound, viaHeadUnit = true, dialing = true)
                 STATE_ACTIVE -> PhoneCall(
                     CallState.Phase.ACTIVE, number ?: before?.number, name ?: before?.name, null,
                     // Answered once: the duration keeps counting through repeated updates.
                     answeredAt = if (before?.phase == CallState.Phase.ACTIVE && before.dialing == false) before.answeredAt else now,
-                    canControl = true, viaHeadUnit = true
+                    canControl = bound, viaHeadUnit = true
                 )
                 STATE_ENDED -> null
                 else -> return
@@ -165,7 +175,6 @@ object HeadUnitPhone {
         if (RomPopups.Kind.CALL !in RomPopups.replaced.value || !Settings.canDrawOverlays(context)) return
         if (signals >= MAX_SIGNALS_PER_CALL) return
         signals++
-        lastSignalAt = SystemClock.elapsedRealtime()
         setRomAside(context, true)
     }
 
@@ -180,6 +189,7 @@ object HeadUnitPhone {
 
     /** Tells the Bluetooth app a phone-link app has the call ([ACTION_ZLINK]), or no longer. */
     private fun setRomAside(context: Context, aside: Boolean) {
+        lastSignalAt = SystemClock.elapsedRealtime()
         context.sendBroadcast(Intent(ACTION_ZLINK).putExtra("status", if (aside) "PHONE_CALL_ON" else "PHONE_CALL_OFF"))
         // Kept only to give the ROM its keys back after a run that ended mid-call ([start]).
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_ROM_ASIDE, aside).apply()
@@ -200,12 +210,14 @@ object HeadUnitPhone {
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             binder = service
+            _call.update { it?.copy(canControl = service != null) }
             Log.i(TAG, "Bluetooth service bound")
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
             // The system binds it again when the service comes back.
             binder = null
+            _call.update { it?.copy(canControl = false) }
         }
     }
 

@@ -12,8 +12,10 @@ import com.qf.vehicle.entity.RadarState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -38,6 +40,10 @@ object CarBox {
     private const val ACTION_STEERING = "com.qf.vehicle.action.swa"
     /** Steering wheel tenths of a degree, right positive; a new one each time its line picture changes (about 12°). */
     private const val EXTRA_STEERING = "extra_angle"
+    /** The ROM's own reverse flag, "true" while reverse is engaged. */
+    private const val REVERSE_FLAG = "sys.qf.backcar_state"
+    /** While reversing, the flag is read again this often ([watchReverse]). */
+    private const val REVERSE_REREAD_MS = 2_000L
 
     /** Body data older than this is stale (the car app sends it every two seconds while it changes). */
     private const val FRESH_MS = 6_000L
@@ -94,7 +100,9 @@ object CarBox {
         val app = context.applicationContext
         if (!isPackageInstalled(app, RomPopups.VEHICLE_PACKAGE)) return
         started = true
-        _reversing.value = systemProperty("sys.qf.backcar_state") == "true"
+        flagSeenOn = systemProperty(REVERSE_FLAG) == "true"
+        _reversing.value = flagSeenOn
+        watchReverse()
         lastSteering(app)
         val filter = IntentFilter().apply {
             addAction(ACTION_SHARE)
@@ -124,6 +132,31 @@ object CarBox {
                     "${me}KeyShareRadarState" to 1, "${me}KeyShareDoorWindow" to 1
                 )
             )
+        }
+    }
+
+    /** This unit's ROM does set its reverse flag: it was read on at least once. */
+    @Volatile private var flagSeenOn = false
+
+    /**
+     * Reverse ends on one broadcast only: missed, the voice would stay held,
+     * the alerts away and the reverse view up. So while reversing the ROM's
+     * flag is read again every few seconds, and ends it ([ReverseReads]).
+     */
+    private fun watchReverse() {
+        scope.launch {
+            _reversing.collectLatest { on ->
+                var reads = ReverseReads(seenOn = flagSeenOn)
+                while (on) {
+                    delay(REVERSE_REREAD_MS)
+                    reads = reads.next(systemProperty(REVERSE_FLAG) == "true")
+                    flagSeenOn = reads.seenOn
+                    if (reads.over) {
+                        Log.w(TAG, "reverse ended without its broadcast")
+                        _reversing.value = false
+                    }
+                }
+            }
         }
     }
 
@@ -207,6 +240,18 @@ object CarBox {
     private fun systemProperty(name: String): String? = runCatching {
         Class.forName("android.os.SystemProperties").getMethod("get", String::class.java).invoke(null, name) as String
     }.getOrNull()
+}
+
+/**
+ * What the ROM's reverse flag said each time it was read again during a
+ * reverse. Reverse is [over] once the flag, seen on before, has read off
+ * three times in a row: a unit that never sets it ends nothing, and neither
+ * do the moments Dashwheel clears it itself to take the camera ([ReverseCamera]).
+ */
+internal data class ReverseReads(val seenOn: Boolean = false, val offInARow: Int = 0) {
+    fun next(on: Boolean) = ReverseReads(seenOn || on, if (on) 0 else offInARow + 1)
+
+    val over: Boolean get() = seenOn && offInARow >= 3
 }
 
 /** The car app's radar object, in [Radar]'s terms: -1 is a sensor the car doesn't have. */

@@ -53,6 +53,7 @@
     <string name="alert_try">Essayer</string>
     <string name="alert_call_note">Le panneau latéral et le plein écran s\'affichent pendant la sonnerie. Une fois décroché, l\'appel se réduit à une fine barre.</string>
     <string name="alert_tap_to_hide">Touchez pour masquer</string>
+    <string name="alert_enlarge">Afficher</string>
     <string name="alert_speak">Le dire à voix haute</string>
     <string name="alert_show">Afficher cette alerte</string>
     <string name="alert_speak_call_detail">Dit qui appelle pendant la sonnerie</string>

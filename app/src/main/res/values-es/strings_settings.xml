@@ -53,6 +53,7 @@
     <string name="alert_try">Probar</string>
     <string name="alert_call_note">El panel lateral y la pantalla completa se muestran mientras suena. Al contestar, la llamada se reduce a una barra fina.</string>
     <string name="alert_tap_to_hide">Toca para ocultar</string>
+    <string name="alert_enlarge">Mostrar</string>
     <string name="alert_speak">Decirlo en voz alta</string>
     <string name="alert_show">Mostrar este aviso</string>
     <string name="alert_speak_call_detail">Dice quién llama mientras suena</string>

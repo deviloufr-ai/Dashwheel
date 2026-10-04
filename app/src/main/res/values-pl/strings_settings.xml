@@ -53,6 +53,7 @@
     <string name="alert_try">Wypróbuj</string>
     <string name="alert_call_note">Panel boczny i pełny ekran pokazują się, gdy telefon dzwoni. Po odebraniu połączenie zmienia się w wąski pasek.</string>
     <string name="alert_tap_to_hide">Dotknij, aby ukryć</string>
+    <string name="alert_enlarge">Pokaż</string>
     <string name="alert_speak">Mów na głos</string>
     <string name="alert_show">Pokazuj ten alert</string>
     <string name="alert_speak_call_detail">Mówi, kto dzwoni, gdy telefon dzwoni</string>

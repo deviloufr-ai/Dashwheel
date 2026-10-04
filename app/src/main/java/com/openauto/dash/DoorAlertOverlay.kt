@@ -67,7 +67,9 @@ import kotlin.math.sin
  * the design the driver chose ([AlertStyle]): the doors that are open, over
  * whatever app fills the screen, gone once they are all shut. The side panel
  * and the full screen draw the car from above with those doors swung open. A
- * tap hides it until another door opens. Without "display over other apps"
+ * tap hides it until another door opens. On the move those two shrink to the
+ * pill after a few seconds ([ShrinkOnTheMove]); a tap on that pill brings
+ * them back. Without "display over other apps"
  * it shows inside the launcher instead ([DoorAlertHost]).
  */
 
@@ -87,12 +89,18 @@ object DoorAlertOverlay {
             preview ?: doors.takeIf { RomPopups.Kind.DOORS in replaced && !reversing && open.isNotEmpty() && !hidden.containsAll(open) }
         }.stateIn(scope, SharingStarted.Eagerly, null)
 
+    private val onTheMove = ShrinkOnTheMove()
+    /** The pill shown is the chosen design shrunk for the drive: a tap brings it back. */
+    internal val shrunk: StateFlow<Boolean> get() = onTheMove.shrunk
+
     /** The design the alert shows in now: null when there's none. */
     val style: StateFlow<AlertStyle?> =
-        combine(alert, AlertStyleStore.styles, UnitSignals.projectionOnScreen) { doors, styles, projected ->
-            // Over CarPlay / Android Auto: the pill, so the projection stays usable.
-            doors?.let { if (projected) AlertStyle.PILL else styles.of(AlertKind.DOORS) }
-        }
+        onTheMove.styled(
+            combine(alert, AlertStyleStore.styles, UnitSignals.projectionOnScreen) { doors, styles, projected ->
+                // Over CarPlay / Android Auto: the pill, so the projection stays usable.
+                doors?.let { if (projected) AlertStyle.PILL else styles.of(AlertKind.DOORS) }
+            }
+        )
             .arbitrated(AlertKind.DOORS)
             .stateIn(scope, SharingStarted.Eagerly, null)
 
@@ -129,6 +137,8 @@ object DoorAlertOverlay {
         }
         dismissed.value = McuReader.doorState.value?.openNames().orEmpty()
     }
+
+    internal fun enlarge() = onTheMove.enlarge()
 }
 
 /** The doors in [style], following [DoorAlertOverlay.alert]; the last ones stay while it animates out. */
@@ -198,10 +208,18 @@ private fun DoorCard(doors: McuReader.DoorState) {
     }
 }
 
+/** The pill the drive shrank the chosen design to: a tap opens that design again. */
+@Composable
+private fun Modifier.showOnTap(): Modifier {
+    val tap = rememberTapFeedback()
+    return clickable(role = Role.Button, onClickLabel = stringResource(R.string.alert_enlarge)) { tap(); DoorAlertOverlay.enlarge() }
+}
+
 /** A capsule at the top: the least in the way. */
 @Composable
 private fun DoorPill(doors: McuReader.DoorState) {
-    AlertSurface(AlertStyle.PILL, Modifier.hideOnTap(), tone = DashColors.Warning) {
+    val shrunk by DoorAlertOverlay.shrunk.collectAsState()
+    AlertSurface(AlertStyle.PILL, if (shrunk) Modifier.showOnTap() else Modifier.hideOnTap(), tone = DashColors.Warning) {
         Row(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Filled.DirectionsCar, contentDescription = null, tint = DashColors.Warning, modifier = Modifier.size(22.dp))
             Spacer(Modifier.width(10.dp))

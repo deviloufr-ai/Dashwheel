@@ -53,6 +53,7 @@
     <string name="alert_try">Ausprobieren</string>
     <string name="alert_call_note">Seitenleiste und Vollbild erscheinen, solange es klingelt. Nach dem Annehmen wird der Anruf zu einer schmalen Leiste.</string>
     <string name="alert_tap_to_hide">Zum Ausblenden tippen</string>
+    <string name="alert_enlarge">Zeigen</string>
     <string name="alert_speak">Ansagen</string>
     <string name="alert_show">Diesen Hinweis zeigen</string>
     <string name="alert_speak_call_detail">Sagt beim Klingeln, wer anruft</string>

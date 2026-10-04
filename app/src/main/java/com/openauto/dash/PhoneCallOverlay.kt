@@ -6,6 +6,7 @@ import android.provider.Settings
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,6 +38,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -65,11 +67,12 @@ import kotlinx.coroutines.launch
  * ([AlertStyle]): who is calling with Answer / Decline, then the call's
  * duration and Hang up. The side panel and the full screen are for the
  * ringing only: an answered call shrinks to the card's slim bar, so a long
- * call never hides the map. While reversing it's the pill, above the
- * reversing camera. It is its own overlay window, so it shows over
- * whatever app fills the screen, and keeps running while the launcher is in
- * the background. Without "display over other apps" it falls back to a popup
- * inside the launcher ([PhoneCallHost]).
+ * call never hides the map, and so does one that can't be answered from
+ * here. A tap outside the full screen's card leaves the pill. While reversing
+ * it's the pill, above the reversing camera. It is its own overlay window, so
+ * it shows over whatever app fills the screen, and keeps running while the
+ * launcher is in the background. Without "display over other apps" it falls
+ * back to a popup inside the launcher ([PhoneCallHost]).
  */
 
 object PhoneCallOverlay {
@@ -88,16 +91,24 @@ object PhoneCallOverlay {
                 // CarPlay / Android Auto on screen shows the call itself: no second card over it.
                 projected -> null
                 link == null -> own
-                !link.canControl && own != null -> link.copy(canControl = true, viaHeadUnit = true)
+                !link.canControl && own?.canControl == true -> link.copy(canControl = true, viaHeadUnit = true)
                 else -> link
             }
         }.stateIn(scope, SharingStarted.Eagerly, null)
 
+    /** The driver tapped the full screen away: this call stays the pill. */
+    private val shrunk = MutableStateFlow(false)
+
     /** The design the call shows in now: null when there's no call. */
     val style: StateFlow<AlertStyle?> =
-        combine(call, AlertStyleStore.styles, CarBox.reversing) { call, styles, reversing ->
-            call?.let { callStyle(it, styles.of(AlertKind.CALL), reversing) }
+        combine(call, AlertStyleStore.styles, CarBox.reversing, shrunk) { call, styles, reversing, shrunk ->
+            call?.let { callStyle(it, styles.of(AlertKind.CALL), reversing, shrunk) }
         }.arbitrated(AlertKind.CALL).stateIn(scope, SharingStarted.Eagerly, null)
+
+    /** A tap outside the full screen's card: the call goes on as the pill, the screen back in reach. */
+    internal fun shrink() {
+        shrunk.value = true
+    }
 
     /**
      * The call a button acts on with no card to press (a learned steering
@@ -134,6 +145,8 @@ object PhoneCallOverlay {
         started = true
         // Strings in the language picked in the launcher, not the system's.
         val app = AppLanguage.wrap(context.applicationContext)
+        // The next call rings in the chosen design again.
+        scope.launch { call.collect { if (it == null) shrunk.value = false } }
         scope.launch {
             // Again when reverse is engaged: the same design then moves above the camera.
             combine(style, CarBox.reversing) { style, _ -> style }.collect { style ->
@@ -152,12 +165,15 @@ object PhoneCallOverlay {
 
 /**
  * The design a call shows in: the pill while reversing, so the camera stays
- * in view; the side panel and the full screen only while it rings, then the
- * slim bar.
+ * in view, and once the driver tapped the full screen away ([shrunk]); the
+ * side panel and the full screen only while it rings and can be answered
+ * from here (with no button they would cover the screen until the caller
+ * gives up), else the card.
  */
-internal fun callStyle(call: PhoneCall, chosen: AlertStyle, reversing: Boolean): AlertStyle = when {
-    reversing -> AlertStyle.PILL
-    call.phase == CallState.Phase.RINGING || chosen != AlertStyle.PANEL && chosen != AlertStyle.FULL -> chosen
+internal fun callStyle(call: PhoneCall, chosen: AlertStyle, reversing: Boolean, shrunk: Boolean = false): AlertStyle = when {
+    reversing || shrunk -> AlertStyle.PILL
+    chosen != AlertStyle.PANEL && chosen != AlertStyle.FULL -> chosen
+    call.phase == CallState.Phase.RINGING && call.canControl -> chosen
     else -> AlertStyle.CARD
 }
 
@@ -282,8 +298,9 @@ private fun CallStatusLine(call: PhoneCall, withNumber: Boolean = true, align: T
 
 @Composable
 private fun NoControlLine(call: PhoneCall, align: TextAlign? = null) {
-    // The Calls permission is for the phone's own calls; an app's call without buttons is just shown.
-    if (!call.canControl && call.app == null) {
+    // The Calls permission is for the phone's own calls; an app's call without buttons is just shown,
+    // and so is the head unit's own when its Bluetooth service can't be reached.
+    if (!call.canControl && call.app == null && !call.viaHeadUnit) {
         Text(stringResource(R.string.phone_call_no_control), color = DashColors.Warning, textAlign = align, style = MaterialTheme.typography.bodySmall)
     }
 }
@@ -317,20 +334,24 @@ internal fun CallCard(call: PhoneCall) {
     }
 }
 
-/** A capsule at the top: the least in the way. */
+/** A capsule at the top: the least in the way, and the one over the reversing camera. */
 @Composable
 private fun CallPill(call: PhoneCall) {
+    // Decline and Answer at full size take the avatar's room: the pill stays as narrow over the camera.
+    val twoButtons = call.ringing && call.canControl
     AlertSurface(AlertStyle.PILL) {
-        Row(Modifier.padding(start = 8.dp, end = 8.dp, top = 6.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-            CallerAvatar(call, 36.dp)
-            Spacer(Modifier.width(10.dp))
+        Row(Modifier.padding(start = if (twoButtons) 18.dp else 8.dp, end = 8.dp, top = 6.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+            if (!twoButtons) {
+                CallerAvatar(call, 36.dp)
+                Spacer(Modifier.width(10.dp))
+            }
             Column(Modifier.widthIn(max = 220.dp)) {
                 Text(callTitle(call), color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyLarge)
                 if (!call.ringing) CallStatusLine(call)
             }
             if (call.canControl) {
-                Spacer(Modifier.width(12.dp))
-                CallButtons(call, 40.dp, 8.dp)
+                Spacer(Modifier.width(16.dp))
+                CallButtons(call, DashSize.TouchPrimary, 16.dp)
             }
         }
     }
@@ -384,12 +405,18 @@ private fun CallPanel(call: PhoneCall) {
     }
 }
 
-/** The whole screen dimmed, the caller large in a card in the middle, until answered or declined. */
+/** The whole screen dimmed, the caller large in a card in the middle, until answered, declined or tapped away. */
 @Composable
 private fun CallFullScreen(call: PhoneCall) {
-    // Touches outside the card are held: nothing behind is pressed by mistake.
-    FullScreenModal(onTap = {}) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(horizontal = 48.dp, vertical = 32.dp)) {
+    val tap = rememberTapFeedback()
+    // A tap outside the card never reaches what's behind: it leaves the pill, the call still ringing.
+    FullScreenModal(onTap = { tap(); PhoneCallOverlay.shrink() }) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            // The card keeps its own taps: a near miss on a button must not shrink the call.
+            modifier = Modifier.fillMaxSize().pointerInput(Unit) { detectTapGestures { } }.padding(horizontal = 48.dp, vertical = 32.dp)
+        ) {
             CallerAvatar(call, 140.dp)
             Spacer(Modifier.height(20.dp))
             Text(

@@ -341,30 +341,17 @@ internal fun FollowTabTriggers(tabs: List<CanvasTab>, onTrigger: (TabTrigger) ->
     if (TabTrigger.PARKED in wanted || TabTrigger.DRIVING in wanted) {
         UseLocationFeed()
         LaunchedEffect(Unit) {
-            // null: between the two thresholds, no news.
             var movedYet = false
-            carSpeedKmh().map { speed ->
-                when {
-                    speed >= MOVING_KMH -> true
-                    speed <= STOPPED_KMH -> false
-                    else -> null
+            carSpeedKmh().setOffOrStopped().collectLatest { moving ->
+                if (moving) {
+                    movedYet = true
+                    fire(TabTrigger.DRIVING)
+                } else {
+                    // At power-up the car is parked already; after a drive, a stop must last.
+                    if (movedYet) delay(PARKED_HOLD_MS)
+                    fire(TabTrigger.PARKED)
                 }
             }
-                .distinctUntilChanged()
-                .collectLatest { moving ->
-                    when (moving) {
-                        true -> {
-                            movedYet = true
-                            fire(TabTrigger.DRIVING)
-                        }
-                        false -> {
-                            // At power-up the car is parked already; after a drive, a stop must last.
-                            if (movedYet) delay(PARKED_HOLD_MS)
-                            fire(TabTrigger.PARKED)
-                        }
-                        null -> Unit
-                    }
-                }
         }
     }
     if (TabTrigger.ENGINE_FAULT in wanted) {

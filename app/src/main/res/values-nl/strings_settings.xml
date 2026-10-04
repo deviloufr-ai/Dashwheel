@@ -53,6 +53,7 @@
     <string name="alert_try">Proberen</string>
     <string name="alert_call_note">Zijpaneel en volledig scherm verschijnen zolang het belt. Na opnemen krimpt de oproep tot een smalle balk.</string>
     <string name="alert_tap_to_hide">Tik om te verbergen</string>
+    <string name="alert_enlarge">Tonen</string>
     <string name="alert_speak">Uitspreken</string>
     <string name="alert_show">Deze melding tonen</string>
     <string name="alert_speak_call_detail">Zegt wie er belt terwijl het belt</string>

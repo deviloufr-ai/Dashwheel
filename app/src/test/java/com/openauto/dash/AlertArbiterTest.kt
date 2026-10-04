@@ -35,6 +35,25 @@ class AlertArbiterTest {
     }
 
     @Test
+    fun onTheMoveABigDesignShrinksToThePillAfterAFewSeconds() {
+        listOf(AlertStyle.PANEL, AlertStyle.FULL).forEach { big ->
+            assertEquals(big, drivingStyle(big, moving = true, bigForMs = SHRINK_AFTER_MS))
+            assertEquals(AlertStyle.PILL, drivingStyle(big, moving = true, bigForMs = SHRINK_AFTER_MS + 1))
+            // Parked, it stays as long as it likes.
+            assertEquals(big, drivingStyle(big, moving = false, bigForMs = 10 * 60_000L))
+        }
+    }
+
+    @Test
+    fun onTheMoveTheSmallDesignsStayAsChosen() {
+        listOf(AlertStyle.PILL, AlertStyle.CARD, AlertStyle.BANNER).forEach { small ->
+            assertEquals(small, drivingStyle(small, moving = true, bigForMs = 10 * 60_000L))
+        }
+        // Unless the alert counts it among its big ones (Gemini Live's card shows a whole screen).
+        assertEquals(AlertStyle.PILL, drivingStyle(AlertStyle.CARD, moving = true, bigForMs = 60_000L, big = setOf(AlertStyle.CARD)))
+    }
+
+    @Test
     fun alertsOnTheSameSpotLineUp() {
         // The door card took the corner: the tyre card, same place and size, goes under it.
         val doors = AlertSpot(left = 900, top = 24, right = 1256, bottom = 144)

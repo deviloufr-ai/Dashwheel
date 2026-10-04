@@ -47,7 +47,9 @@ import kotlinx.coroutines.launch
  * Tyre warnings in Dashwheel's design ([AlertStyle]), from the TPMS sensors
  * ([Tyres]): a leak, a pressure too low or too high, a tyre too hot. Up while
  * something is wrong; a tap hides it until something else goes wrong; said
- * out loud once per new problem when chosen. The TPMS app's own window can't
+ * out loud once per new problem when chosen. On the move the side panel and
+ * the full screen shrink to the pill after a few seconds ([ShrinkOnTheMove]),
+ * and a tap on that pill brings them back. The TPMS app's own window can't
  * be switched off from outside: its settings can ("show UI").
  */
 
@@ -71,10 +73,16 @@ object TyreAlertOverlay {
         }.combine(CarBox.reversing) { tyres, reversing -> tyres.takeIf { !reversing || AlertPreview.tyres.value != null } }
             .stateIn(scope, SharingStarted.Eagerly, null)
 
+    private val onTheMove = ShrinkOnTheMove()
+    /** The pill shown is the chosen design shrunk for the drive: a tap brings it back. */
+    internal val shrunk: StateFlow<Boolean> get() = onTheMove.shrunk
+
     val style: StateFlow<AlertStyle?> =
-        combine(alert, AlertStyleStore.styles, UnitSignals.projectionOnScreen) { tyres, styles, projected ->
-            tyres?.let { if (projected) AlertStyle.PILL else styles.of(AlertKind.TYRES) }
-        }.arbitrated(AlertKind.TYRES).stateIn(scope, SharingStarted.Eagerly, null)
+        onTheMove.styled(
+            combine(alert, AlertStyleStore.styles, UnitSignals.projectionOnScreen) { tyres, styles, projected ->
+                tyres?.let { if (projected) AlertStyle.PILL else styles.of(AlertKind.TYRES) }
+            }
+        ).arbitrated(AlertKind.TYRES).stateIn(scope, SharingStarted.Eagerly, null)
 
     fun start(context: Context) {
         if (started) return
@@ -105,6 +113,8 @@ object TyreAlertOverlay {
         if (AlertPreview.tyres.value != null) return AlertPreview.stop()
         dismissed.value = problems.value
     }
+
+    internal fun enlarge() = onTheMove.enlarge()
 }
 
 @Composable
@@ -122,8 +132,11 @@ private fun TyreAlert(tyres: Map<TyrePos, Tyre>, style: AlertStyle) {
     val hide = Modifier.clickable(role = Role.Button, onClickLabel = stringResource(R.string.dash_close)) { tap(); TyreAlertOverlay.dismiss() }
     val worst = problems.entries.minByOrNull { it.value.ordinal }?.toPair()
     val headline = worst?.let { (pos, p) -> "${stringResource(pos.labelRes)}: ${stringResource(p.labelRes)}" } ?: stringResource(R.string.car_tyres_alert)
+    val shrunk by TyreAlertOverlay.shrunk.collectAsState()
+    // The pill the drive shrank the chosen design to opens it again; the chosen pill hides as the others do.
+    val show = Modifier.clickable(role = Role.Button, onClickLabel = stringResource(R.string.alert_enlarge)) { tap(); TyreAlertOverlay.enlarge() }
     when (style) {
-        AlertStyle.PILL -> AlertSurface(AlertStyle.PILL, hide, tone = DashColors.Critical) {
+        AlertStyle.PILL -> AlertSurface(AlertStyle.PILL, if (shrunk) show else hide, tone = DashColors.Critical) {
             Row(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Filled.TireRepair, contentDescription = null, tint = DashColors.Critical, modifier = Modifier.size(22.dp))
                 Spacer(Modifier.width(10.dp))

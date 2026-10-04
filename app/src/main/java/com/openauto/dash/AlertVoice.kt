@@ -7,9 +7,11 @@ import com.openauto.dash.link.ConversationLine
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 
 /*
@@ -205,6 +207,20 @@ internal fun talking(call: PhoneCall?): Boolean =
 /** Moving from [MOVING_KMH] up, stopped again only at [STOPPED_KMH] or below, so traffic doesn't flicker it; unknown speed is stopped. */
 internal fun isMoving(kmh: Int?, wasMoving: Boolean): Boolean =
     kmh != null && (kmh >= MOVING_KMH || wasMoving && kmh > STOPPED_KMH)
+
+/**
+ * The car setting off (true) and coming to a stop (false) from its speeds,
+ * each told once. Between [STOPPED_KMH] and [MOVING_KMH] there is no news:
+ * slowing down in traffic and picking up again is not setting off twice.
+ */
+internal fun Flow<Int>.setOffOrStopped(): Flow<Boolean> =
+    mapNotNull { speed ->
+        when {
+            speed >= MOVING_KMH -> true
+            speed <= STOPPED_KMH -> false
+            else -> null
+        }
+    }.distinctUntilChanged()
 
 /**
  * The doors worth saying now, or null for silence: those that just opened

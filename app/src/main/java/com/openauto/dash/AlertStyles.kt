@@ -2,6 +2,7 @@ package com.openauto.dash
 
 import android.content.Context
 import android.graphics.PixelFormat
+import android.os.SystemClock
 import android.util.Log
 import android.view.Gravity
 import android.view.WindowManager
@@ -54,9 +55,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.math.max
@@ -156,6 +160,63 @@ internal fun Flow<AlertStyle?>.arbitrated(kind: AlertKind): Flow<AlertStyle?> =
     onEach { AlertArbiter.want(kind, it) }
         .combine(AlertArbiter.wanted) { mine, up -> mine?.let { arbitratedStyle(kind, it, up) } }
         .distinctUntilChanged()
+
+/** On the move, a design that covers the map shrinks to the pill after this long. */
+internal const val SHRINK_AFTER_MS = 8_000L
+
+/**
+ * The design shown for [chosen] while driving: one of the [big] ones (the
+ * side panel, the full screen) is the pill once the car moves and it has been
+ * up [bigForMs], so no alert stays over the map until it is tapped. Parked,
+ * the chosen design stays.
+ */
+internal fun drivingStyle(chosen: AlertStyle, moving: Boolean, bigForMs: Long, big: Set<AlertStyle> = COVERING): AlertStyle =
+    if (chosen in big && moving && bigForMs > SHRINK_AFTER_MS) AlertStyle.PILL else chosen
+
+/** Whether the car moves ([isMoving]), going by the speed the dashboard shows. */
+internal fun carMoving(): Flow<Boolean> =
+    carSpeedKmh().runningFold(false) { was, kmh -> isMoving(kmh, was) }.distinctUntilChanged()
+
+/**
+ * One alert's big design on the move ([drivingStyle]): it shrinks to the pill
+ * a few seconds after it came up, and a tap on that pill ([enlarge]) brings
+ * it back for as long again.
+ */
+internal class ShrinkOnTheMove {
+    private val enlargedAt = MutableStateFlow(0L)
+
+    private val _shrunk = MutableStateFlow(false)
+    /** The pill on screen is the big design shrunk: a tap brings it back instead of hiding the alert. */
+    val shrunk: StateFlow<Boolean> = _shrunk
+
+    fun enlarge() {
+        enlargedAt.value = SystemClock.elapsedRealtime()
+    }
+
+    /** [chosen] (null: no alert) as the drive allows it now. */
+    fun styled(chosen: Flow<AlertStyle?>): Flow<AlertStyle?> = channelFlow {
+        var up = false
+        // When the alert came up, or was last made big again from the pill (elapsedRealtime).
+        var bigSince = 0L
+        combine(chosen, carMoving(), enlargedAt) { style, moving, enlarged -> Triple(style, moving, enlarged) }
+            .collectLatest { (style, moving, enlarged) ->
+                val at = SystemClock.elapsedRealtime()
+                if (style != null && !up) bigSince = at
+                up = style != null
+                bigSince = maxOf(bigSince, enlarged)
+                val now = style?.let { drivingStyle(it, moving, at - bigSince) }
+                _shrunk.value = now != style
+                send(now)
+                // The shrink comes with time, not with an event.
+                val later = style?.let { drivingStyle(it, moving, SHRINK_AFTER_MS + 1) }
+                if (later != now) {
+                    delay(SHRINK_AFTER_MS + 1 - (at - bigSince))
+                    _shrunk.value = true
+                    send(later)
+                }
+            }
+    }
+}
 
 /**
  * Where an alert's card sits: the call at the top, the doors in the corner,

@@ -13,6 +13,7 @@
     <string name="onmyway_no_answer">Nessuna risposta dal telefono</string>
     <string name="phone_battery_percent">%1$d %%</string>
     <string name="message_alert_read">Leggilo ad alta voce</string>
+    <string name="message_alert_reply">Rispondi</string>
     <string name="message_alert_try">Prova</string>
     <string name="message_alert_sample">Sono in ritardo, ci vediamo alle 19.</string>
 </resources>

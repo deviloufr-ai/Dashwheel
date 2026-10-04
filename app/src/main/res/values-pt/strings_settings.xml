@@ -53,6 +53,7 @@
     <string name="alert_try">Experimentar</string>
     <string name="alert_call_note">O painel lateral e o ecrã inteiro aparecem enquanto toca. Depois de atender, a chamada reduz-se a uma barra fina.</string>
     <string name="alert_tap_to_hide">Toque para ocultar</string>
+    <string name="alert_enlarge">Mostrar</string>
     <string name="alert_speak">Dizer em voz alta</string>
     <string name="alert_show">Mostrar este alerta</string>
     <string name="alert_speak_call_detail">Diz quem está a ligar enquanto toca</string>

@@ -53,6 +53,7 @@
     <string name="alert_try">Prova</string>
     <string name="alert_call_note">Pannello laterale e schermo intero appaiono mentre squilla. Dopo la risposta, la chiamata diventa una barra sottile.</string>
     <string name="alert_tap_to_hide">Tocca per nascondere</string>
+    <string name="alert_enlarge">Mostra</string>
     <string name="alert_speak">Dillo ad alta voce</string>
     <string name="alert_show">Mostra questo avviso</string>
     <string name="alert_speak_call_detail">Dice chi chiama mentre squilla</string>

@@ -49,10 +49,12 @@ object CarVoice {
         appContext = context.applicationContext
     }
 
-    // Sentences asked for while the car reverses or the driver is on the
-    // phone, said once it's done ([hold], [holdForCall]). Main thread only.
+    // Sentences asked for while the car reverses, the driver is on the phone
+    // or talks with Dashwheel's Gemini, said once it's done ([hold],
+    // [holdForCall], [holdForLive]). Main thread only.
     private var reversing = false
     private var onCall = false
+    private var inLive = false
     private val held = mutableListOf<HeldLine>()
 
     /**
@@ -68,12 +70,18 @@ object CarVoice {
      */
     fun holdForCall(on: Boolean) = setHold { onCall = on }
 
+    /**
+     * And while the driver talks with Dashwheel's own Gemini ([GeminiLive]):
+     * the car's voice would speak over it, and into its open microphone.
+     */
+    fun holdForLive(on: Boolean) = setHold { inLive = on }
+
     private fun setHold(change: () -> Unit) {
         main.post {
             val wasReversing = reversing
-            val before = reversing || onCall
+            val before = reversing || onCall || inLive
             change()
-            val now = reversing || onCall
+            val now = reversing || onCall || inLive
             if (now && (!before || reversing && !wasReversing)) interrupt()
             if (!before || now) return@post
             val lines = linesToRelease(held.toList(), SystemClock.elapsedRealtime())
@@ -84,8 +92,8 @@ object CarVoice {
 
     /**
      * A hold begins: the sentence being said stops there, and is said again,
-     * whole, with what waited behind it once the hold ends. A call never cuts
-     * what can't wait; a reverse does. Main thread.
+     * whole, with what waited behind it once the hold ends. A call or a
+     * conversation never cuts what can't wait; a reverse does. Main thread.
      */
     private fun interrupt() {
         if (pending.isEmpty() || !reversing && pending.values.any { it.urgent }) return
@@ -96,8 +104,8 @@ object CarVoice {
 
     /**
      * Stops talking at once: the sentence being said and those waiting behind
-     * it (the tour moved on, the driver asked for quiet). What a call or a
-     * reverse holds back is still said after.
+     * it (the tour moved on, the driver asked for quiet). What a call, a
+     * conversation or a reverse holds back is still said after.
      */
     fun stop() {
         main.post {
@@ -157,7 +165,7 @@ object CarVoice {
         }
         main.post {
             if (text.isBlank()) return@post
-            if (reversing || onCall && !urgent) {
+            if (reversing || (onCall || inLive) && !urgent) {
                 held.add(HeldLine(text, locale, SystemClock.elapsedRealtime(), urgent, guidance))
                 return@post
             }

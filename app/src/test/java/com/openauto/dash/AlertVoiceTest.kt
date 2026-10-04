@@ -1,5 +1,8 @@
 package com.openauto.dash
 
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -33,6 +36,13 @@ class AlertVoiceTest {
     fun doorsShuttingSayNothing() {
         assertNull(doorsToSay(before = setOf("fl", "rr"), open = setOf("fl"), wasMoving = true, moving = true))
         assertNull(doorsToSay(before = setOf("fl"), open = emptySet(), wasMoving = false, moving = true))
+    }
+
+    @Test
+    fun slowingDownInTrafficIsNotSettingOffAgain() = runBlocking {
+        // 5 km/h is between the two thresholds: no news, so the second 30 is the same drive.
+        val speeds = flowOf(0, 30, 5, 30, 0, 5, 0, 50)
+        assertEquals(listOf(false, true, false, true), speeds.setOffOrStopped().toList())
     }
 
     @Test
