@@ -921,8 +921,11 @@ object ObdBluetoothManager {
             out.flush()
 
             val response = StringBuilder()
-            val deadline = System.currentTimeMillis() + timeoutMs
-            while (System.currentTimeMillis() < deadline) {
+            // On the clock that only goes forward: the unit's own is set by GPS
+            // mid-drive, which cut a wait short or, set back, held every other
+            // command up behind a silent adapter for the length of the jump.
+            val deadline = SystemClock.elapsedRealtime() + timeoutMs
+            while (SystemClock.elapsedRealtime() < deadline) {
                 if (input.available() > 0) {
                     val read = input.read(buffer)
                     if (read <= 0) break

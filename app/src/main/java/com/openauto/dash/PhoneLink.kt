@@ -463,7 +463,13 @@ object PhoneLink {
         try {
             while (true) {
                 val message = link.receive() ?: continue
-                handle(context, phone, isPending, message)
+                // One message this build can't make sense of is skipped: thrown out of
+                // here, it ended the launcher (nothing above catches it).
+                try {
+                    handle(context, phone, isPending, message)
+                } catch (e: RuntimeException) {
+                    Log.w(TAG, "message not handled: ${message::class.simpleName}", e)
+                }
             }
         } catch (e: IOException) {
             Log.i(TAG, "link ended: ${e.message}")

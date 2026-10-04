@@ -141,7 +141,7 @@ object PhoneCalls {
         val telecom = context.getSystemService(TelecomManager::class.java) ?: return false
         return try {
             telecom.placeCall(Uri.fromParts("tel", number, null), android.os.Bundle())
-            LinkServer.note("calling $number for the car")
+            LinkServer.note("calling $number for the car", logged = "calling a number for the car")
             true
         } catch (e: SecurityException) {
             Log.w(TAG, "call refused", e)
@@ -308,14 +308,14 @@ object PhoneCalls {
         current = next
         currentId = id
         if (next != before) {
-            LinkServer.note(describe(next, id))
+            LinkServer.note(describe(next, id), logged = describe(next, id, named = false))
             LinkServer.send(snapshot())
         }
     }
 
     /** One line for the companion's status: what the car is told of the call. */
-    private fun describe(state: CallState, id: String?): String {
-        val who = state.name ?: state.number ?: "?"
+    private fun describe(state: CallState, id: String?, named: Boolean = true): String {
+        val who = if (named) state.name ?: state.number ?: "?" else "someone"
         val from = if (id == PHONE) "phone" else "${state.app ?: "app"} notification"
         return when (state.phase) {
             CallState.Phase.IDLE -> "call ended"

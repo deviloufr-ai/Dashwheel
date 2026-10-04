@@ -137,7 +137,7 @@ internal fun rememberGear(): State<GearReading> {
         }.collect { (reversing, rpm, speed) ->
             val now = System.currentTimeMillis()
             var gear = GearEstimator.read(reversing, rpm, speed, table)
-            if (gear is Gear.Forward && rpm != null && speed != null) {
+            if (gear is Gear.Forward && rpm != null && speed != null && !DemoMode.isOn) {
                 table = GearEstimator.learn(table, gear.n, rpm, speed)
                 // Kept now and then, not at every reading.
                 if (++learned % 200 == 0) GearEstimator.save(context, table)

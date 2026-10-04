@@ -129,6 +129,9 @@ data class UnitSystem(
         else -> String.format(locale, "%.1f mi", m / 1000 / KM_PER_MILE)
     }
 
+    /** A height or a margin given in metres: "312 m", or "1024 ft" where distances are in miles. */
+    fun heightText(m: Double): String = if (imperial) "${(m / METRES_PER_FOOT).roundToInt()} ft" else "${m.roundToInt()} m"
+
     /** "14:05", or "2:05 PM" on a 12-hour clock. */
     fun timePattern(): String = if (clock24) "HH:mm" else "h:mm a"
 

@@ -34,8 +34,11 @@ jobs:
           distribution: temurin
           java-version: '21'
 
+      # The actions from outside GitHub run in the job that holds the signing
+      # key: each is pinned to the commit its tag named when it was last looked
+      # at (the tag is in the comment), so a tag moved later changes nothing here.
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3
         with:
           # Override the action's default ("tools platform-tools"); the obsolete
           # "tools" package was removed from the SDK repo and breaks the step.
@@ -44,7 +47,7 @@ jobs:
       # The committed wrapper pins Gradle 8.13 with a verified checksum; do not
       # regenerate it here, that would silently drop the verification.
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
 
       - name: Prepare signing key
         env:
@@ -111,7 +114,7 @@ jobs:
 
       - name: Publish GitHub Release
         if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           tag_name: v1.0.${{ github.run_number }}
           name: Dashwheel v1.0.${{ github.run_number }}
@@ -122,7 +125,7 @@ jobs:
 
       - name: Publish branch pre-release
         if: ${{ github.ref != 'refs/heads/main' && github.event_name == 'push' }}
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           tag_name: ${{ github.ref_name }}-v1.0.${{ github.run_number }}
           name: Dashwheel v1.0.${{ github.run_number }} (${{ github.ref_name }})

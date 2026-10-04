@@ -3,6 +3,11 @@ package com.openauto.dash
 import android.content.ActivityNotFoundException
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -38,15 +43,22 @@ internal fun SetupBackupRows() {
     val saved = stringResource(R.string.settings_backup_saved)
     val failed = stringResource(R.string.settings_backup_failed)
 
+    // Off the main thread: a slow USB stick, or the dozens of files a restore
+    // writes, froze the screen for seconds.
+    val scope = rememberCoroutineScope()
     val create = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(SetupBackup.MIME)) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
-        val ok = SetupBackup.save(context, uri).isSuccess
-        Toast.makeText(context, if (ok) saved else failed, Toast.LENGTH_SHORT).show()
+        scope.launch {
+            val ok = withContext(Dispatchers.IO) { SetupBackup.save(context, uri).isSuccess }
+            Toast.makeText(context, if (ok) saved else failed, Toast.LENGTH_SHORT).show()
+        }
     }
     val open = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
-        SetupBackup.load(context, uri).onSuccess { pending = it }
-            .onFailure { Toast.makeText(context, failed, Toast.LENGTH_SHORT).show() }
+        scope.launch {
+            withContext(Dispatchers.IO) { SetupBackup.load(context, uri) }.onSuccess { pending = it }
+                .onFailure { Toast.makeText(context, failed, Toast.LENGTH_SHORT).show() }
+        }
     }
 
     SettingsSection(stringResource(R.string.settings_backup_section))
@@ -82,9 +94,14 @@ internal fun SetupBackupRows() {
             confirmButton = {
                 TextButton(onClick = {
                     pending = null
-                    SetupBackup.restore(context, text)
-                        .onSuccess { SetupBackup.restart(context) }
-                        .onFailure { Toast.makeText(context, failed, Toast.LENGTH_SHORT).show() }
+                    scope.launch {
+                        // Seen through even if Settings is closed meanwhile: a setup put back without the restart is half a restore.
+                        withContext(NonCancellable) {
+                            withContext(Dispatchers.IO) { SetupBackup.restore(context, text) }
+                                .onSuccess { SetupBackup.restart(context) }
+                                .onFailure { Toast.makeText(context, failed, Toast.LENGTH_SHORT).show() }
+                        }
+                    }
                 }) { Text(stringResource(R.string.settings_backup_confirm), color = DashColors.Critical) }
             },
             dismissButton = {

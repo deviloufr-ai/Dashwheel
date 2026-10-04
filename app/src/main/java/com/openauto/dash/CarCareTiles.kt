@@ -538,7 +538,7 @@ internal fun carStatusRows(b: CarBody): List<Pair<String, String>> {
         b.trip1?.let { stringResource(R.string.car_status_trip) to "${decimal(u.distance(it.toDouble()), 1)} $km" },
         b.instantConsumption?.let {
             stringResource(R.string.car_status_consumption) to
-                if (u.economy == Economy.L_PER_100KM) "${decimal(it.toDouble(), 1)} L/100 $km"
+                if (u.economy == Economy.L_PER_100KM) "${decimal(it.toDouble(), 1)} L/100 ${stringResource(R.string.car_status_km)}"
                 else "${u.economy(it.toDouble())?.let { e -> decimal(e, 1) } ?: "--"} ${u.economyUnit}"
         },
         b.range?.let { stringResource(R.string.car_status_range) to "${u.distance(it.toDouble()).toInt()} $km" },

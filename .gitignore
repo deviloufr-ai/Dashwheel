@@ -12,6 +12,12 @@ app/build/
 # Local machine config (contains the local SDK path)
 local.properties
 
+# Signing keys: the repository is public
+*.jks
+*.keystore
+*.p12
+keystore.properties
+
 # IDE
 .idea/
 *.iml

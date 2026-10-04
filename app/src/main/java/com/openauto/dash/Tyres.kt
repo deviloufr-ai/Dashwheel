@@ -170,7 +170,8 @@ internal fun tyreProblem(t: Tyre, before: TyreProblem? = null, lowKpa: Int = TYR
     t.noSignal -> null
     t.leak -> TyreProblem.LEAK
     t.kPa in 1..lowKpa -> TyreProblem.LOW
-    before == TyreProblem.LOW && t.kPa in 1 until lowKpa + TYRE_CLEAR_KPA -> TyreProblem.LOW
+    // From 0: a tyre that was low and now reads nothing at all has gone flat, not well.
+    before == TyreProblem.LOW && t.kPa in 0 until lowKpa + TYRE_CLEAR_KPA -> TyreProblem.LOW
     t.kPa >= TYRE_HIGH_KPA -> TyreProblem.HIGH
     before == TyreProblem.HIGH && t.kPa > TYRE_HIGH_KPA - TYRE_CLEAR_KPA -> TyreProblem.HIGH
     t.celsius >= TYRE_HOT_C -> TyreProblem.HOT

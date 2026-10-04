@@ -405,9 +405,9 @@ private fun compassFace(): WidgetFace {
         fullCircle = true,
         compass = true,
         stats = listOf(
-            FaceStat(stringResource(R.string.info_compass_altitude), location?.takeIf { it.hasAltitude() }?.let { "${it.altitude.roundToInt()} m" } ?: "--"),
+            FaceStat(stringResource(R.string.info_compass_altitude), location?.takeIf { it.hasAltitude() }?.let { u.heightText(it.altitude) } ?: "--"),
             FaceStat(stringResource(R.string.info_compass_gps_speed), location?.let { u.speedText(it.speed * 3.6f) } ?: "--"),
-            FaceStat(stringResource(R.string.info_compass_accuracy), location?.let { "±${it.accuracy.roundToInt()} m" } ?: "--")
+            FaceStat(stringResource(R.string.info_compass_accuracy), location?.let { "±${u.heightText(it.accuracy.toDouble())}" } ?: "--")
         )
     )
 }
@@ -734,7 +734,8 @@ private fun agendaFace(): WidgetFace {
         else -> dayFmt.format(Date(e.begin))
     }
     val next = list.first()
-    val now = System.currentTimeMillis()
+    // Read each minute: taken once, the approach bar and "started" stood still until the events changed.
+    val now = rememberWallClock(60_000L).longValue
     val span = (next.begin - now).coerceAtLeast(0L)
     // Guidance to the next event's place, a tap away.
     val guide = next.takeIf { it.location.isNotBlank() }?.let { e ->

@@ -54,6 +54,22 @@ class ReviewFixesTest {
     }
 
     @Test
+    fun aTyreGoneFlatKeepsItsAlert() {
+        fun tyre(kPa: Int) = Tyre(kPa, celsius = 20, sensorBatteryLow = false, leak = false, noSignal = false, at = 0L)
+        assertEquals(TyreProblem.LOW, tyreProblem(tyre(60), before = TyreProblem.LOW))
+        // Low, then nothing at all: flat, not fine.
+        assertEquals(TyreProblem.LOW, tyreProblem(tyre(0), before = TyreProblem.LOW))
+        // Nothing read and nothing wrong before: a sensor that hasn't spoken yet.
+        assertEquals(null, tyreProblem(tyre(0)))
+    }
+
+    @Test
+    fun heightsAreInFeetWhereDistancesAreInMiles() {
+        assertEquals("312 m", UnitSystem().heightText(312.4))
+        assertEquals("1024 ft", UnitSystem(imperial = true).heightText(312.0))
+    }
+
+    @Test
     fun guidanceIsKeptOverAStopAndNotOverANight() {
         assertTrue(GUIDANCE_KEPT_MS in 60 * 60_000L..6 * 60 * 60_000L)
     }

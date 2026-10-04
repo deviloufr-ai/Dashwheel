@@ -391,9 +391,15 @@ internal object SteeringWheelStore {
             return true
         }
         val assignment = bound(key) ?: return false
-        if (press) run(context, key, assignment)
+        // Held down, Android sends the key again and again: for the volume each
+        // one is a step (paced by run()), as on the unit's own buttons.
+        val heldVolume = event.action == KeyEvent.ACTION_DOWN && event.repeatCount > 0 && assignment.isVolumeStep()
+        if (press || heldVolume) run(context, key, assignment)
         return true
     }
+
+    private fun WheelAssignment.isVolumeStep(): Boolean =
+        this is WheelAssignment.Preset && (action == SteeringWheelAction.VOLUME_UP || action == SteeringWheelAction.VOLUME_DOWN)
 
     /**
      * A key from the head unit's own key service ([HeadUnitKeys]): the

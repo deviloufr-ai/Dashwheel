@@ -81,10 +81,11 @@ object LinkServer {
     private val _lastEvent = MutableStateFlow<String?>(null)
     val lastEvent: StateFlow<String?> = _lastEvent
 
-    fun note(line: String) {
+    /** [logged]: what goes to the system log, when [line] names someone (logs get shared in bug reports). */
+    fun note(line: String, logged: String = line) {
         val time = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.ROOT).format(java.util.Date())
         _lastEvent.value = "$time  ${line.trim().take(140)}"
-        Log.i(TAG, line)
+        Log.i(TAG, logged)
     }
 
     private val main = Handler(Looper.getMainLooper())
@@ -211,7 +212,12 @@ object LinkServer {
         try {
             while (true) {
                 val message = link.receive() ?: continue
-                handle(context, link, message)
+                // One message that can't be handled is skipped, rather than ending the app.
+                try {
+                    handle(context, link, message)
+                } catch (e: RuntimeException) {
+                    Log.w(TAG, "message not handled: ${message::class.simpleName}", e)
+                }
             }
         } catch (e: IOException) {
             // Link gone: the head unit left the hotspot, stopped, or went quiet.

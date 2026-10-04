@@ -268,7 +268,10 @@ private fun PageCrossPicker(current: Int, onPick: (Int) -> Unit) {
 /** Over an app: the tabs with their icons, two to a row in the rail's order, the tile's own filled in. */
 @Composable
 private fun TabPicker(tabs: List<CanvasTab>, current: Int, onPick: (Int) -> Unit) {
-    Box(modifier = Modifier.size(width = PAGE_CELL * 3 + PAGE_GAP * 2, height = PAGE_CROSS_HEIGHT)) {
+    // Three rows fit where the cross does; a seventh tab makes a fourth, which ran over what is below.
+    val rows = (tabs.size + 1) / 2
+    val height = maxOf(PAGE_CROSS_HEIGHT, TAB_CELL * rows + PAGE_GAP * (rows - 1).coerceAtLeast(0))
+    Box(modifier = Modifier.size(width = PAGE_CELL * 3 + PAGE_GAP * 2, height = height)) {
         tabs.forEachIndexed { t, tab -> PageCell(tab.page, tab.page == current, t % 2, t / 2, TAB_CELL, tab.icon) { onPick(tab.page) } }
     }
 }
