@@ -144,6 +144,11 @@ if [ -f "$WPA" ]; then
   systemctl enable systemd-networkd.service systemd-resolved.service wpa_supplicant@wlan0.service
   # Enabling networkd brings its wait-online along; nothing here waits for the network.
   systemctl disable systemd-networkd-wait-online.service 2>/dev/null || true
+  # Joined at start-up on another network (the house's) before the hotspot showed: moved over once it does.
+  install -m 755 "$HERE/prefer-wifi.sh" /usr/local/sbin/dashwheel-prefer-wifi
+  install -m 644 "$HERE/dashwheel-prefer-wifi.service" "$HERE/dashwheel-prefer-wifi.timer" /etc/systemd/system/
+  systemctl daemon-reload
+  systemctl enable dashwheel-prefer-wifi.timer
 fi
 # Swap in memory only: the swap file is resized at every start, and written to the card.
 [ -f /etc/rpi/swap.conf ] && sed -i 's/^#\?Mechanism=.*/Mechanism=zram/' /etc/rpi/swap.conf

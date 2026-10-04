@@ -1,0 +1,10 @@
+[Unit]
+Description=Dashwheel display: look for the preferred Wi-Fi every 30 seconds
+
+[Timer]
+OnBootSec=20s
+OnUnitActiveSec=30s
+AccuracySec=5s
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,7 @@
+[Unit]
+Description=Dashwheel display: move to the preferred Wi-Fi (the phone's hotspot) when in range
+After=wpa_supplicant@wlan0.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/dashwheel-prefer-wifi
