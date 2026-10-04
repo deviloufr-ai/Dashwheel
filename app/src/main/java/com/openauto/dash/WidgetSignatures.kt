@@ -351,9 +351,37 @@ private fun Stack(
         if (foot != null) foot()
         else Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(m.dp(3f))) {
             FaceValue(f, look, m, min(m.h * 0.18f, m.w * 0.12f), Modifier.weight(1f, fill = false))
-            FaceCaption(f, look, m, Modifier.weight(1f), align = TextAlign.End)
+            Box(Modifier.weight(1f), contentAlignment = Alignment.BottomEnd) { FaceCaption(f, look, m, align = TextAlign.End) }
+            FootActions(f, look, m, beside = 2)
         }
     }
+}
+
+/**
+ * What a picture keeps under it whatever it draws: the caption (why there is
+ * no reading) and the tile's buttons (the one that fixes it, Scan, Clear),
+ * as WidgetFaceData.kt promises. Nothing when the face has neither.
+ */
+@Composable
+private fun FaceFoot(f: WidgetFace, look: FaceLook, m: FaceMetrics, caption: Boolean = true) {
+    val text = caption && f.caption.isNotEmpty()
+    if (!text && f.actions.isEmpty()) return
+    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(m.dp(3f))) {
+        Box(Modifier.weight(1f)) {
+            // Beside a button the line has the height for two: the reason is read whole.
+            if (text) FaceText(f.caption, look, m.caption, color = if (f.alert) look.warn else look.dim, maxLines = if (f.actions.isEmpty()) 1 else 2)
+        }
+        FootActions(f, look, m, beside = if (text) 1 else 0)
+    }
+}
+
+/** The footer's buttons at the driving size, as many as fit once [beside] button widths are left to the text, the main one kept. */
+@Composable
+private fun FootActions(f: WidgetFace, look: FaceLook, m: FaceMetrics, beside: Int) {
+    val each = DashSize.TouchPrimary.value
+    val gap = (m.u * 2.6f).coerceAtLeast(4f)
+    val n = actionsThatFit(m.w - m.pad * 2f - beside * each, each, gap)
+    FaceActions(f.copy(actions = keyActions(f.actions, n)), look, m, size = DashSize.TouchPrimary)
 }
 
 /** Hour of the day as a fraction (14.5 = 14:30), from the face's clock or now. */
@@ -403,7 +431,8 @@ private fun FuelTank(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
             val bot = 92f
             val fr = frac(f.fraction)
             val lv = bot - (bot - top) * fr
-            val low = fr < 0.15f
+            // An unknown level is not a low one: no red E while the tank waits for its reading.
+            val low = !f.idle && fr < 0.15f
             val body = Shapes.fuelTank
             fun wave(y: Float) = Path().apply {
                 moveTo(-4f, y); quadraticBezierTo(8f, y - 3f, 20f, y); quadraticBezierTo(32f, y + 3f, 44f, y); quadraticBezierTo(56f, y - 3f, 68f, y)
@@ -453,6 +482,8 @@ private fun Fader(f: WidgetFace, look: FaceLook, m: FaceMetrics) = Split(f, look
             if (f.alert) Brush.verticalGradient(listOf(look.warn, look.warn)) else Brush.verticalGradient(listOf(look.accent2, look.accent), startY = y, endY = bot),
             Offset(19f, y), Size(12f, bot - y), CornerRadius(6f)
         )
+        // No reading, no knob: at the bottom of its travel it would read as zero.
+        if (f.idle) return@Vb
         drawRoundRect(look.ink, Offset(10f, y - 5f), Size(30f, 10f), CornerRadius(3f))
         drawLine(look.accent, Offset(14f, y), Offset(36f, y), strokeWidth = 1.6f)
     }
@@ -463,10 +494,11 @@ private fun Fader(f: WidgetFace, look: FaceLook, m: FaceMetrics) = Split(f, look
 @Composable
 private fun SpeedTape(f: WidgetFace, look: FaceLook, m: FaceMetrics) = Split(f, look, m, 0.6f) {
     Vb(60f, 100f) { tm ->
-        val n = (f.number ?: f.value.toFloatOrNull() ?: 0f).roundToInt()
+        // No speed yet (adapter off, no GPS fix): a blank tape, not one stopped at 0.
+        val n = (f.number ?: f.value.toFloatOrNull())?.roundToInt()
         drawRoundRect(look.fill, Offset(2f, 2f), Size(54f, 96f), CornerRadius(6f))
-        var v = ((n - 40) / 5) * 5
-        while (v <= n + 40) {
+        var v = if (n == null) 0 else ((n - 40) / 5) * 5
+        while (n != null && v <= n + 40) {
             if (v >= 0) {
                 val y = 50f - (v - n) * 1.5f
                 val a = (1f - (abs(y - 50f) / 50f).pow(2)).coerceIn(0f, 1f)
@@ -480,7 +512,7 @@ private fun SpeedTape(f: WidgetFace, look: FaceLook, m: FaceMetrics) = Split(f, 
         val box = Shapes.speedBox
         drawPath(box, Color(0xFF111418))
         drawPath(box, look.accent, style = Stroke(1.4f))
-        label(tm, n.toString(), 24f, 55.5f, 15f, if (f.alert) look.warn else Color.White)
+        label(tm, n?.toString() ?: NO_READING, 24f, 55.5f, 15f, if (f.alert) look.warn else Color.White)
     }
 }
 
@@ -496,7 +528,7 @@ private fun RoadSign(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
                 label(tm, s, 50f, if (s.length > 2) 62f else 65f, if (s.length > 2) 32f else 42f, Color(0xFF111111), weight = FontWeight.ExtraBold, family = Condensed)
             }
         }
-        SignKind.DIRECTIONS -> Stack(f, look, m, foot = {}, header = false) {
+        SignKind.DIRECTIONS -> Stack(f, look, m, foot = { FaceFoot(f, look, m, caption = false) }, header = false) {
             Vb(200f, 96f) { tm ->
                 drawRoundRect(SignGreen, Offset(2f, 2f), Size(196f, 92f), CornerRadius(10f))
                 drawRoundRect(Color.White, Offset(7f, 7f), Size(186f, 82f), CornerRadius(7f), style = Stroke(2.5f))
@@ -534,11 +566,11 @@ private fun RoadSign(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
 }
 
 @Composable
-private fun TwinDials(f: WidgetFace, look: FaceLook, m: FaceMetrics) = Stack(f, look, m, foot = { FaceCaption(f, look, m) }) {
+private fun TwinDials(f: WidgetFace, look: FaceLook, m: FaceMetrics) = Stack(f, look, m, foot = { FaceFoot(f, look, m) }) {
     Vb(200f, 100f) { tm ->
-        f.gauges.take(2).forEachIndexed { i, g ->
+        // Adapter off: both dials stay, with "--" and no needle.
+        List(2) { f.gauges.getOrNull(it) }.forEachIndexed { i, g ->
             val c = Offset(50f + i * 100f, 50f)
-            val fr = frac(g.fraction)
             drawCircle(DialFace, 46f, c)
             drawCircle(look.dim, 46f, c, style = Stroke(1f))
             if (i == 1) arcDeg(look.warn, c, 38.5f, -135f + 270f * 0.78f, 135f, 3f, StrokeCap.Butt)
@@ -546,11 +578,13 @@ private fun TwinDials(f: WidgetFace, look: FaceLook, m: FaceMetrics) = Stack(f, 
                 val a = -135f + 270f * t / 20f
                 drawLine(Color(0xFFE8EAED), polarPoint(c, 40f, a), polarPoint(c, if (t % 5 != 0) 36.5f else 33f, a), strokeWidth = if (t % 5 != 0) 0.6f else 1.4f)
             }
-            val a = -135f + 270f * fr
-            drawLine(look.accent, polarPoint(c, 7f, a + 180f), polarPoint(c, 34f, a), strokeWidth = 2.4f, cap = StrokeCap.Round)
+            if (g != null) {
+                val a = -135f + 270f * frac(g.fraction)
+                drawLine(look.accent, polarPoint(c, 7f, a + 180f), polarPoint(c, 34f, a), strokeWidth = 2.4f, cap = StrokeCap.Round)
+            }
             drawCircle(Color(0xFFE8EAED), 3.8f, c)
-            label(tm, g.value, c.x, 79f, 13f, Color.White)
-            label(tm, g.unit.uppercase(Locale.getDefault()), c.x, 88f, 6f, Color(0xFF9AA0A6), weight = FontWeight.Normal)
+            label(tm, g?.value ?: NO_READING, c.x, 79f, 13f, Color.White)
+            label(tm, g?.unit.orEmpty().uppercase(Locale.getDefault()), c.x, 88f, 6f, Color(0xFF9AA0A6), weight = FontWeight.Normal)
         }
     }
 }
@@ -578,6 +612,8 @@ private fun ShiftLights(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
         Row(horizontalArrangement = Arrangement.spacedBy(m.dp(5f))) {
             others.forEach { FaceStatBlock(FaceStat(it.label, "${it.value} ${it.unit}".trim()), look, m, Modifier.weight(1f, fill = false)) }
         }
+        // While it drives the caption only repeats the revs; without a reading it says why, beside Connect.
+        if (f.idle || f.actions.isNotEmpty()) FaceFoot(f, look, m)
     }
 }
 
@@ -591,8 +627,12 @@ private fun HeadingTape(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
     ).map { stringResource(it) }
     Stack(f, look, m) {
         Vb(200f, 46f) { tm ->
-            val a = f.angle ?: 0f
             drawRoundRect(look.fill, Offset(0f, 2f), Size(200f, 40f), CornerRadius(6f))
+            // No heading yet: a blank tape, not one stopped on north.
+            val a = f.angle ?: run {
+                label(tm, NO_READING, 100f, 27f, 12f, look.dim)
+                return@Vb
+            }
             var d = (floor((a - 75f) / 5f) * 5f).toInt()
             while (d <= a + 75f) {
                 val x = 100f + (d - a) * 1.35f
@@ -619,21 +659,26 @@ private fun CompassRose(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
     Split(f, look, m, 1f) {
         Vb(100f, 100f) { tm ->
             val c = Offset(50f, 50f)
-            val a = f.angle ?: 0f
+            // No heading (or no way to the car) yet: the bare ring, with no north and no arrow to read.
+            val a = f.angle
             drawCircle(look.fill, 47f, c)
             drawCircle(look.dim, 47f, c, style = Stroke(0.8f))
-            rotate(if (toCar) 0f else -a, c) {
+            rotate(if (toCar || a == null) 0f else -a, c) {
                 for (d in 0 until 360 step 10) drawLine(look.ink, polarPoint(c, 44f, d.toFloat()), polarPoint(c, if (d % 30 != 0) 41f else 37.5f, d.toFloat()), strokeWidth = if (d % 30 != 0) 0.6f else 1.3f)
-                letters.forEachIndexed { i, l ->
-                    val p = polarPoint(c, 29f, i * 90f)
-                    rotate(i * 90f, p) { label(tm, l, p.x, p.y + 4f, 11f, if (i == 0) look.warn else look.ink, weight = FontWeight.ExtraBold) }
+                if (a != null) {
+                    letters.forEachIndexed { i, l ->
+                        val p = polarPoint(c, 29f, i * 90f)
+                        rotate(i * 90f, p) { label(tm, l, p.x, p.y + 4f, 11f, if (i == 0) look.warn else look.ink, weight = FontWeight.ExtraBold) }
+                    }
+                    drawPath(Shapes.roseNeedle, look.dim.copy(alpha = 0.45f))
                 }
-                drawPath(Shapes.roseNeedle, look.dim.copy(alpha = 0.45f))
             }
-            if (toCar) {
-                rotate(a, c) { drawPath(Shapes.roseToCar, look.accent) }
-            } else {
-                drawPath(Shapes.roseTop, look.accent)
+            if (a != null) {
+                if (toCar) {
+                    rotate(a, c) { drawPath(Shapes.roseToCar, look.accent) }
+                } else {
+                    drawPath(Shapes.roseTop, look.accent)
+                }
             }
             drawCircle(look.ink, 3f, c)
         }
@@ -644,8 +689,9 @@ private fun CompassRose(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
 private fun Pointer(f: WidgetFace, look: FaceLook, m: FaceMetrics) = Split(f, look, m, 1f) {
     Vb(100f, 100f) {
         val c = Offset(50f, 50f)
-        val a = f.angle ?: 0f
         drawCircle(look.track, 46f, c, style = Stroke(6f))
+        // No direction yet: the empty ring, not an arrow straight ahead.
+        val a = f.angle ?: return@Vb
         arcDeg(look.accent, c, 46f, a - 14f, a + 14f, 6f)
         rotate(a, c) {
             val arrow = Shapes.pointerArrow
@@ -724,7 +770,8 @@ private fun TurnCard(f: WidgetFace, look: FaceLook, m: FaceMetrics) = Split(f, l
         val art = f.art
         if (art != null) {
             drawImage(art, dstOffset = IntOffset(9, 26), dstSize = IntSize(48, 48), colorFilter = ColorFilter.tint(look.onAccent))
-        } else {
+        } else if (!f.idle) {
+            // Without guidance the card stays blank: an arrow would be a turn to take.
             drawPath(Shapes.turnArrow, look.onAccent)
         }
         // Distance left to the turn: the bar empties as the car gets there.
@@ -781,10 +828,12 @@ private fun Radar(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
             rotate(sweep, c) {
                 drawArc(beam, 225f, 45f, true, Offset(4f, 4f), Size(92f, 92f))
             }
-            val r = 8f + 36f * (1f - frac(f.fraction))
-            val p = polarPoint(c, r, f.angle ?: 0f)
-            drawCircle(look.accent.copy(alpha = 0.25f), 7f, p)
-            drawCircle(look.accent, 3.6f, p)
+            // The blip only once there is a spot and a way to it: none parked, nothing on the screen.
+            f.angle?.let { a ->
+                val p = polarPoint(c, 8f + 36f * (1f - frac(f.fraction)), a)
+                drawCircle(look.accent.copy(alpha = 0.25f), 7f, p)
+                drawCircle(look.accent, 3.6f, p)
+            }
             drawRoundRect(look.ink, Offset(47f, 45f), Size(6f, 10f), CornerRadius(2f))
         }
     }
@@ -868,6 +917,8 @@ private fun Printout(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
             FaceText("= ${f.value} ${f.unit}".trim(), paperLook, size * 1.2f, Modifier.fillMaxWidth(), weight = FontWeight.Bold, family = FontFamily.Monospace, align = TextAlign.End)
             FaceText(f.caption, paperLook, size, Modifier.fillMaxWidth(), family = FontFamily.Monospace, align = TextAlign.Center)
         }
+        // The caption is on the paper; the buttons (Scan, Clear) go under the tear.
+        if (f.actions.isNotEmpty()) Box(Modifier.padding(vertical = m.dp(2f).coerceAtLeast(4.dp))) { FaceFoot(f, look, m, caption = false) }
     }
 }
 
@@ -885,7 +936,7 @@ private fun DashedRule(color: Color) {
 private fun WarningLamp(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
     val level = f.level
     val lamp = if (level >= 2) LampRed else if (level == 1) LampAmber else Color(0xFF3A3F47)
-    val glyph = min(m.h * 0.46f, m.w * 0.40f)
+    val glyph = min(m.h * (if (f.actions.isEmpty()) 0.46f else 0.30f), m.w * 0.40f)
     Column(
         modifier = Modifier.fillMaxSize()
             .background(Brush.radialGradient(listOf(Color(0xFF1B1E24), Color(0xFF060708))))
@@ -901,6 +952,8 @@ private fun WarningLamp(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
         ) { Icon(f.icon, contentDescription = null, tint = lamp, modifier = Modifier.fillMaxSize()) }
         FaceText(f.title.uppercase(Locale.getDefault()), look, m.label, color = Color(0xFF8E97A8), weight = FontWeight.Bold, letterSpacing = 0.16.em)
         FaceText(f.caption, look, m.caption, color = if (level > 0) lamp else Color(0xFF8E97A8), align = TextAlign.Center)
+        // The lamp's plate is dark in every theme: the buttons are drawn for it.
+        FootActions(f, look.copy(ink = Color.White, fill = Color.White.copy(alpha = 0.14f)), m, beside = 0)
     }
 }
 
@@ -921,7 +974,8 @@ private fun TrafficLight(f: WidgetFace, look: FaceLook, m: FaceMetrics) = Split(
 
 @Composable
 private fun GaugeBank(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
-    val gauges = f.gauges.take(6)
+    // Adapter off: a row of unlit dials reading "--", over the reason and Connect.
+    val gauges = f.gauges.take(6).ifEmpty { List(3) { FaceGauge("", NO_READING, "", 0f) } }
     Column(modifier = Modifier.fillMaxSize().padding(m.pad.dp), verticalArrangement = Arrangement.spacedBy(m.dp(2f))) {
         FaceHeader(f, look, m)
         gauges.chunked(3).forEach { row ->
@@ -940,6 +994,7 @@ private fun GaugeBank(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
                 repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
             }
         }
+        if (f.gauges.isEmpty() || f.actions.isNotEmpty()) FaceFoot(f, look, m)
     }
 }
 
@@ -1093,7 +1148,7 @@ private fun Timeline(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
     val nowMs = rememberNow(60_000L).time
     val cal = remember(nowMs) { Calendar.getInstance().apply { timeInMillis = nowMs } }
     val nowH = cal.get(Calendar.HOUR_OF_DAY) + cal.get(Calendar.MINUTE) / 60f
-    Stack(f, look, m, foot = { FaceCaption(f, look, m) }) {
+    Stack(f, look, m, foot = { FaceFoot(f, look, m) }) {
         Vb(200f, 78f) { tm ->
             val start = floor(nowH) - 1f
             val end = start + 9f
@@ -1165,6 +1220,8 @@ private fun CardStack(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
             )
         }
         Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+            // No cards: the reason (access to grant, nothing new) where the pile would be.
+            if (rows.isEmpty()) FaceCaption(f, look, m)
             val shape = RoundedCornerShape(m.dp(3.4f))
             // Back cards first so the newest ends up on top; only their edges show.
             rows.indices.reversed().forEach { i ->

@@ -117,14 +117,31 @@ enum class WidgetDesign(
     /** Drawn by its own renderer for the widgets in [kinds] (see WidgetSignatures.kt). */
     internal val isSignature: Boolean get() = kinds != null
 
-    /** True when [kind] can wear this design: Standard always, generic ones on every redrawn widget, the rest on theirs. */
+    /**
+     * True when [kind] can wear this design: Standard always, the widget-specific
+     * ones on theirs, the generic ones on every redrawn widget they can show.
+     */
     internal fun appliesTo(kind: BuiltinKind): Boolean = when {
         this == STANDARD -> true
         kinds != null -> kind in kinds
+        layout == FaceLayout.TREND -> kind !in LIST_KINDS && kind !in UNCHARTED_KINDS
+        layout == FaceLayout.PULSE || layout == FaceLayout.CONTOUR -> kind !in LIST_KINDS
         else -> true
     }
 
     companion object {
+        /**
+         * Widgets that are a list to read or tap (contacts, messages, events,
+         * codes, stations). Trend, Pulse and Contour draw a headline over a
+         * chart and never the rows, so the list would be lost in them.
+         */
+        private val LIST_KINDS = setOf(
+            BuiltinKind.QUICK_DIAL, BuiltinKind.NOTIFICATIONS, BuiltinKind.CALENDAR, BuiltinKind.OBD_DTC, BuiltinKind.FUEL_PRICES
+        )
+
+        /** Time only goes up: charted over the last minutes it is a straight line. */
+        private val UNCHARTED_KINDS = setOf(BuiltinKind.CLOCK, BuiltinKind.BREAK_TIMER)
+
         /** The designs [kind] offers, in picker order: Standard, the ones made for it, then the generic ones. */
         internal fun offeredFor(kind: BuiltinKind, framed: Boolean): List<WidgetDesign> {
             val all = entries.filter { it.appliesTo(kind) && !(framed && it.isSignature) }
@@ -176,6 +193,9 @@ internal data class FaceRow(
 /** A small gauge: label, value, unit and how far round it goes (0..1). */
 @Immutable
 internal data class FaceGauge(val label: String, val value: String, val unit: String, val fraction: Float)
+
+/** The headline of a widget that has no reading yet. */
+internal const val NO_READING = "--"
 
 /** Something at a time of day: an agenda event ([endMs] set) or a notification (a moment). */
 @Immutable
@@ -255,6 +275,9 @@ internal data class WidgetFace(
 ) {
     /** [severity], or 2 / 0 from [alert]. */
     val level: Int get() = severity ?: if (alert) 2 else 0
+
+    /** Still waiting for its reading: a design then draws no needle, marker or chart point, only "--" and why. */
+    val idle: Boolean get() = value == NO_READING
 }
 
 // --- Materials ----------------------------------------------------------------

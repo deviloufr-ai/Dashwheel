@@ -391,12 +391,25 @@ internal fun controlShape(look: FaceLook): Shape = when {
     else -> CircleShape
 }
 
+/** Up to [n] of [all], kept round the primary one (media keeps play, then next) so a narrow spot still gets the main control. */
+internal fun keyActions(all: List<FaceAction>, n: Int): List<FaceAction> {
+    if (all.size <= n) return all
+    if (n <= 0) return emptyList()
+    val i = all.indexOfFirst { it.primary }.coerceAtLeast(0)
+    val start = (i - (n - 1) / 2).coerceIn(0, all.size - n)
+    return all.subList(start, start + n)
+}
+
+/** How many buttons of [each] dp, [gap] dp apart, fit side by side in [width] dp: one at least, [most] at most. */
+internal fun actionsThatFit(width: Float, each: Float, gap: Float, most: Int = 3): Int =
+    ((width + gap) / (each + gap)).toInt().coerceIn(1, most)
+
 @Composable
-internal fun FaceActions(f: WidgetFace, look: FaceLook, m: FaceMetrics, max: Int = 3, small: Boolean = false) {
+internal fun FaceActions(f: WidgetFace, look: FaceLook, m: FaceMetrics, max: Int = 3, small: Boolean = false, size: Dp? = null) {
     if (f.actions.isEmpty()) return
     // Never under the driving minimum, whatever the face's scale: these are
     // tapped at speed (play, next, connect).
-    val s = if (small) DashSize.Touch else m.dp(15f).coerceIn(DashSize.Touch, DashSize.TouchPrimary)
+    val s = size ?: if (small) DashSize.Touch else m.dp(15f).coerceIn(DashSize.Touch, DashSize.TouchPrimary)
     val shape = controlShape(look)
     Row(horizontalArrangement = Arrangement.spacedBy(m.dp(2.6f).coerceAtLeast(4.dp)), verticalAlignment = Alignment.CenterVertically) {
         f.actions.take(max).forEach { a ->
@@ -835,16 +848,38 @@ private fun TerminalLayout(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
                     modifier = r.onClick?.let { Modifier.clickable(onClick = it) } ?: Modifier)
             }
         }
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(m.dp(3f))) {
-            f.actions.take(3).forEach { a ->
-                FaceText(
-                    "[${a.label.uppercase(Locale.getDefault())}]", look, fs,
-                    Modifier.clip(RoundedCornerShape(3.dp)).clickable(enabled = a.enabled, role = Role.Button, onClick = a.onClick).padding(vertical = 8.dp),
-                    color = if (a.enabled) look.ink else look.dim, glow = true
-                )
-            }
-            Box(Modifier.width((fs.value * 0.6f).dp).height((fs.value * 1.1f).dp).drawBehind { if (cursorOn.value) drawRect(look.ink) })
+        val gap = m.u * 3f
+        val cursorW = fs.value * 0.6f
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(gap.dp)) {
+            // As many keys as the line holds, the main one first to be kept: Play, then Next.
+            val keys = actionsThatFit(m.w - m.pad * 2f - cursorW - gap, DashSize.TouchPrimary.value, gap)
+            keyActions(f.actions, keys).forEach { TerminalKey(it, look, m) }
+            Box(Modifier.width(cursorW.dp).height((fs.value * 1.1f).dp).drawBehind { if (cursorOn.value) drawRect(look.ink) })
         }
+    }
+}
+
+/**
+ * One key of the terminal: the control's icon between brackets, in a box big
+ * enough to hit from the driver's seat. A word was a sliver to aim at, and a
+ * long translation pushed the last key off the line.
+ */
+@Composable
+private fun TerminalKey(a: FaceAction, look: FaceLook, m: FaceMetrics) {
+    val color = if (a.enabled) look.ink else look.dim
+    val bracket = m.sp(24f)
+    Row(
+        modifier = Modifier
+            .size(DashSize.TouchPrimary)
+            .clip(RoundedCornerShape(3.dp))
+            .then(if (a.primary) Modifier.background(look.track) else Modifier)
+            .clickable(enabled = a.enabled, role = Role.Button, onClick = a.onClick),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        FaceText("[", look, bracket, color = color, glow = true)
+        Icon(a.icon, contentDescription = a.label, tint = color, modifier = Modifier.size(24.dp))
+        FaceText("]", look, bracket, color = color, glow = true)
     }
 }
 
@@ -930,8 +965,11 @@ private fun DialLayout(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
                         val u = measurer.measure(dialUnit, TextStyle(color = look.dim, fontFamily = look.font, fontSize = (r * 0.09f / density / fontScale).sp, letterSpacing = 0.1.em))
                         drawText(u, topLeft = Offset(c.x - u.size.width / 2f, c.y + r * 0.52f - u.size.height / 2f))
                     }
-                    val a = a0 + span * fraction01(f.fraction)
-                    drawLine(look.accent, polarPoint(c, r * 0.16f, a + 180f), polarPoint(c, r * 0.78f, a), strokeWidth = r * 0.04f, cap = StrokeCap.Round)
+                    // No reading, no needle: at rest on the first mark it would read as 0, or as due north.
+                    if (!f.idle) {
+                        val a = a0 + span * fraction01(f.fraction)
+                        drawLine(look.accent, polarPoint(c, r * 0.16f, a + 180f), polarPoint(c, r * 0.78f, a), strokeWidth = r * 0.04f, cap = StrokeCap.Round)
+                    }
                 }
                 drawCircle(if (chrome) Color(0xFFC9CED5) else look.ink, r * 0.065f, c)
             }

@@ -95,7 +95,9 @@ internal fun DesignShelf(
     val shelves = remember(offered) {
         listOf<DesignFamily?>(null) + DesignFamily.entries.filter { f -> offered.any { DesignFamily.of(it) == f } }
     }
-    var shelf by remember(kind) { mutableStateOf(DesignFamily.of(current)) }
+    // A saved design this widget no longer offers is drawn as Standard (DesignedTile): the shelf says so too.
+    val worn = if (current.appliesTo(kind)) current else WidgetDesign.STANDARD
+    var shelf by remember(kind) { mutableStateOf(DesignFamily.of(worn)) }
     val shown = offered.filter { DesignFamily.of(it) == shelf }
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(
@@ -113,7 +115,7 @@ internal fun DesignShelf(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(shown, key = { it.name }) { design ->
-                DesignThumb(design, design == current, aspect, onClick = { onPick(design) }) {
+                DesignThumb(design, design == worn, aspect, onClick = { onPick(design) }) {
                     when {
                         design == WidgetDesign.STANDARD -> standardPreview()
                         framed -> DesignFrame(design, kindIcon(kind), kind.label, Modifier.fillMaxSize()) { FramedPlaceholder(kind) }
@@ -125,9 +127,9 @@ internal fun DesignShelf(
         // The previews carry names only; the one in use says what it is.
         Text(
             buildAnnotatedString {
-                withStyle(SpanStyle(color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold)) { append(current.title) }
+                withStyle(SpanStyle(color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold)) { append(worn.title) }
                 append("  ")
-                append(current.description)
+                append(worn.description)
             },
             color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall,
             maxLines = 2, overflow = TextOverflow.Ellipsis

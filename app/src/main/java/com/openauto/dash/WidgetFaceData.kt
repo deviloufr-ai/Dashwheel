@@ -133,10 +133,12 @@ private fun idleFace(
     caption: String,
     unit: String = "",
     action: FaceAction? = null,
-    fullCircle: Boolean = false
+    fullCircle: Boolean = false,
+    /** The road sign the widget reads as, so the Road sign design keeps its own sign while it waits. */
+    sign: SignKind? = null
 ) = WidgetFace(
-    icon = icon, title = title, value = "--", unit = unit, caption = caption,
-    fraction = 0f, fullCircle = fullCircle, actions = listOfNotNull(action)
+    icon = icon, title = title, value = NO_READING, unit = unit, caption = caption,
+    fraction = 0f, fullCircle = fullCircle, actions = listOfNotNull(action), sign = sign
 )
 
 /** The adapter isn't connected: say so, and offer Connect (off while a connection is under way). */
@@ -482,7 +484,8 @@ private fun parkingFace(): WidgetFace {
         Icons.Filled.LocalParking, BuiltinKind.PARKING.label,
         stringResource(if (location != null) R.string.info_parking_prompt else R.string.info_waiting_gps),
         action = FaceAction(Icons.Filled.AddLocation, stringResource(R.string.info_parking_save), primary = true,
-            enabled = location != null, onClick = { location?.let { ParkingStore.save(context, it) } })
+            enabled = location != null, onClick = { location?.let { ParkingStore.save(context, it) } }),
+        sign = SignKind.PARKING
     )
     val here = location
     val (dist, bearing) = remember(here, s) {
@@ -519,13 +522,15 @@ private fun parkingFace(): WidgetFace {
 private fun directionsFace(env: SkinTileEnv): WidgetFace {
     val nav by NavDirections.state.collectAsState()
     if (!env.hasMediaAccess) {
-        return idleFace(Icons.Filled.TurnRight, BuiltinKind.NAVIGATION.label, stringResource(R.string.info_directions_access_title), action = grantAccessAction())
+        return idleFace(Icons.Filled.TurnRight, BuiltinKind.NAVIGATION.label, stringResource(R.string.info_directions_access_title), action = grantAccessAction(),
+            sign = SignKind.DIRECTIONS)
     }
     if (!nav.active) {
         return idleFace(
             Icons.Filled.TurnRight, BuiltinKind.NAVIGATION.label, stringResource(R.string.info_directions_idle_title),
             action = FaceAction(Icons.Filled.Navigation, stringResource(R.string.info_directions_open_maps), primary = true,
-                onClick = { openNavigationApp(env.context, nav) })
+                onClick = { openNavigationApp(env.context, nav) }),
+            sign = SignKind.DIRECTIONS
         )
     }
     val (value, unit) = nav.distanceParts

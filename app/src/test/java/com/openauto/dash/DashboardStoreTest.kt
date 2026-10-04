@@ -309,10 +309,23 @@ class DashboardStoreTest {
     }
 
     @Test
-    fun cabinSetReachesEveryWidget() {
+    fun cabinSetReachesEveryWidgetItCanShow() {
         val cabins = listOf(WidgetDesign.LANE_VIEW, WidgetDesign.TREND, WidgetDesign.PULSE, WidgetDesign.CONTOUR)
+        val charts = listOf(WidgetDesign.TREND, WidgetDesign.PULSE, WidgetDesign.CONTOUR)
         assertTrue(cabins.none { it.isSignature })
-        BuiltinKind.entries.forEach { kind -> assertTrue("$kind", WidgetDesign.offeredFor(kind, framed = false).containsAll(cabins)) }
+        // The three charts draw no rows: a list widget would show its headline and nothing to read or tap.
+        val lists = setOf(BuiltinKind.QUICK_DIAL, BuiltinKind.NOTIFICATIONS, BuiltinKind.CALENDAR, BuiltinKind.OBD_DTC, BuiltinKind.FUEL_PRICES)
+        // Time charted over the last minutes is a straight line.
+        val clocks = setOf(BuiltinKind.CLOCK, BuiltinKind.BREAK_TIMER)
+        BuiltinKind.entries.forEach { kind ->
+            val offered = WidgetDesign.offeredFor(kind, framed = false)
+            assertTrue("$kind", WidgetDesign.LANE_VIEW in offered)
+            charts.forEach { assertEquals("$kind $it", kind !in lists && !(it == WidgetDesign.TREND && kind in clocks), it in offered) }
+        }
+        // A tile saved with one of them before is still read back; it is drawn as Standard (DesignedTile).
+        assertEquals(WidgetDesign.TREND, WidgetDesign.fromName("TREND"))
+        assertFalse(WidgetDesign.TREND.appliesTo(BuiltinKind.OBD_DTC))
+        assertTrue(WidgetDesign.PULSE.appliesTo(BuiltinKind.CLOCK))
         cabins.forEach { assertEquals(it, WidgetDesign.fromName(it.name)) }
         // One cabin per material and per layout, all in their own picker family.
         assertEquals(cabins.size, cabins.map { it.look }.toSet().size)
@@ -327,9 +340,14 @@ class DashboardStoreTest {
     fun faceNumberReadsTheHeadline() {
         val face = WidgetFace(Icons.Filled.Speed, "t", "24,5", "km")
         assertEquals(24.5f, faceNumber(face)!!, 0.001f)
-        assertEquals(80f, faceNumber(face.copy(value = "--", fraction = 0.8f))!!, 0.001f)
+        assertEquals(80f, faceNumber(face.copy(value = "Song", textValue = true, fraction = 0.8f))!!, 0.001f)
         assertEquals(42f, faceNumber(face.copy(number = 42f))!!, 0.001f)
         assertNull(faceNumber(face.copy(value = "Song", textValue = true)))
+        // No reading yet: the "--" and its fraction of 0 are not a 0 for the chart.
+        assertTrue(face.copy(value = "--").idle)
+        assertFalse(face.idle)
+        assertNull(faceNumber(face.copy(value = "--", fraction = 0f)))
+        assertNull(faceNumber(face.copy(value = "--", fraction = 0.8f, number = 0f)))
     }
 
     @Test

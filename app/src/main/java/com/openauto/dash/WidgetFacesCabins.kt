@@ -83,8 +83,10 @@ import kotlin.math.sin
  * speedometer over the lane ahead), Trend (sage green: a trip computer's
  * chart of the last minutes), Pulse (carbon and crimson: a waveform lit
  * with the reading) and Contour (graphite and ice: one thin number over a
- * soft hill). Same [WidgetFace] as every generic design, so every widget
- * can wear them. Two widget-specific pictures come with them: the tyre map
+ * soft hill). Same [WidgetFace] as every generic design, so a widget with a
+ * reading can wear them; the last three draw no rows, so the list widgets
+ * are not offered them (WidgetDesign.appliesTo). Two widget-specific
+ * pictures come with them: the tyre map
  * (the car from above, a pressure by each wheel) and the car outline (the
  * car in profile, its readings beside it).
  */
@@ -102,8 +104,14 @@ private fun CabinHeader(f: WidgetFace, look: FaceLook, m: FaceMetrics, trailing:
     }
 }
 
-/** The headline as a number, for the charts: [WidgetFace.number], else the leading number of the value, else the fraction in percent. */
+/**
+ * The headline as a number, for the charts: [WidgetFace.number], else the
+ * leading number of the value, else the fraction in percent. Null while the
+ * widget waits for its reading: its "--" comes with a fraction of 0, which is
+ * not a 0 to chart.
+ */
 internal fun faceNumber(f: WidgetFace): Float? {
+    if (f.idle) return null
     f.number?.takeIf { it.isFinite() }?.let { return it }
     if (!f.textValue) {
         val lead = Regex("-?\\d+(?:[.,]\\d+)?").find(f.value.replace(" ", "").replace(" ", ""))?.value
@@ -144,15 +152,13 @@ internal fun LaneLayout(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
                         weight = FontWeight.Medium, letterSpacing = 0.14.em, align = TextAlign.Center)
                 }
             }
-            // Left of the lane, a round plate like a speed limit sign: the first detail.
-            val plate = f.stats.firstOrNull()?.value ?: f.gauges.getOrNull(1)?.let { "${it.value}" }
+            // Left of the lane, the first detail under its name and with its unit. Not a bare
+            // number in a ring: beside the speed, the coolant's 90 read as the speed limit.
+            // On a wide tile the details are all listed beside the picture already.
+            val detail = f.stats.firstOrNull() ?: f.gauges.getOrNull(1)?.let { FaceStat(it.label, "${it.value} ${it.unit}".trim()) }
             val r = 8f * s
-            if (plate != null && s >= 1.6f) {
-                Box(
-                    modifier = at(3f, 60f).size((r * 2f).dp).clip(CircleShape).background(look.fill)
-                        .border(1.5.dp, look.accent, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) { FaceText(plate.substringBefore(' ').take(4), look, m.sp(max(r * 0.62f, 9f)), weight = FontWeight.SemiBold, align = TextAlign.Center) }
+            if (detail != null && !side && s >= 1.6f) {
+                FaceStatBlock(detail, look, m, at(1f, 60f).width((24f * s).dp))
             }
             // Right of it, the main control, or the widget's own mark.
             val action = f.actions.firstOrNull { it.primary } ?: f.actions.firstOrNull()
@@ -336,15 +342,18 @@ internal fun TrendLayout(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
     }
     val points = remember(key) { FaceTrends.of(key) }
     val chart = m.h >= 120f
+    // Without a reading nothing is added to the chart, and the last point is no longer "now".
+    val live = latest.value != null
+    val captionOnTop = f.caption.isNotEmpty() && m.w >= 240f
+    val keysOnTop = ((m.w - 200f) / 56f).toInt().coerceIn(0, 2)
     Column(modifier = Modifier.fillMaxSize().padding(m.pad.dp), verticalArrangement = Arrangement.spacedBy(m.dp(2f))) {
         CabinHeader(f, look, m) {
-            if (f.caption.isNotEmpty() && m.w >= 240f) {
+            if (captionOnTop) {
                 FaceText(f.caption, look, m.label, Modifier.padding(start = 6.dp), color = if (f.alert) look.warn else look.dim)
             }
-            val n = ((m.w - 200f) / 56f).toInt().coerceIn(0, 2)
-            if (n > 0 && f.actions.isNotEmpty()) {
+            if (keysOnTop > 0 && f.actions.isNotEmpty()) {
                 Spacer(Modifier.width(6.dp))
-                FaceActions(f.copy(actions = f.actions.take(n)), look, m, small = true)
+                FaceActions(f.copy(actions = keyActions(f.actions, keysOnTop)), look, m, small = true)
             }
         }
         // The reading, then its details side by side, all on one baseline row.
@@ -365,16 +374,26 @@ internal fun TrendLayout(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
         }
         if (chart) {
             val alert = f.alert
-            Spacer(Modifier.weight(1f).fillMaxWidth().drawAreaChart(points, look, alert, m))
+            Spacer(Modifier.weight(1f).fillMaxWidth().drawAreaChart(points, look, alert, m, live))
+            // A narrow tile has no room on top for why the reading is missing, nor for the button that gets it.
+            if (f.idle && (!captionOnTop || keysOnTop == 0)) {
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(m.dp(3f))) {
+                    Box(Modifier.weight(1f)) { if (!captionOnTop) FaceCaption(f, look, m) }
+                    if (keysOnTop == 0) FaceActions(f.copy(actions = keyActions(f.actions, 1)), look, m, size = DashSize.TouchPrimary)
+                }
+            }
         } else {
             FaceCaption(f, look, m)
         }
     }
 }
 
-/** The area chart: a few gridlines with their values, the smoothed line and a soft fill under it, the last point ringed. */
+/**
+ * The area chart: a few gridlines with their values, the smoothed line and a
+ * soft fill under it, the last point ringed while it is the [live] reading.
+ */
 @Composable
-private fun Modifier.drawAreaChart(points: List<Float>, look: FaceLook, alert: Boolean, m: FaceMetrics): Modifier {
+private fun Modifier.drawAreaChart(points: List<Float>, look: FaceLook, alert: Boolean, m: FaceMetrics, live: Boolean): Modifier {
     val tm = rememberTextMeasurer(cacheSize = 8)
     val labelSize = max(m.u * 4.4f, 9f)
     return this.drawWithCache {
@@ -402,9 +421,12 @@ private fun Modifier.drawAreaChart(points: List<Float>, look: FaceLook, alert: B
             while (g <= hi + step * 0.01f) {
                 val gy = y(g)
                 drawLine(look.track, Offset(left, gy), Offset(w, gy), 1f)
-                val text = if (step >= 1f) g.roundToInt().toString() else String.format(Locale.getDefault(), "%.1f", g)
-                val layout = tm.measure(text, labelStyle)
-                if (gy - layout.size.height / 2f >= 0f) drawText(layout, topLeft = Offset(left - layout.size.width - 4.dp.toPx(), gy - layout.size.height / 2f))
+                // An empty chart keeps its lines but has no scale to put on them.
+                if (pts.isNotEmpty()) {
+                    val text = if (step >= 1f) g.roundToInt().toString() else String.format(Locale.getDefault(), "%.1f", g)
+                    val layout = tm.measure(text, labelStyle)
+                    if (gy - layout.size.height / 2f >= 0f) drawText(layout, topLeft = Offset(left - layout.size.width - 4.dp.toPx(), gy - layout.size.height / 2f))
+                }
                 g += step
             }
             // Ticks along the bottom, one a minute.
@@ -439,6 +461,7 @@ private fun Modifier.drawAreaChart(points: List<Float>, look: FaceLook, alert: B
             }
             drawPath(area, Brush.verticalGradient(listOf(color.copy(alpha = 0.55f), color.copy(alpha = 0.04f)), topY, bottom))
             drawPath(curve, Brush.horizontalGradient(listOf(color.copy(alpha = 0.6f), look.accent2), left, w), style = line)
+            if (!live) return@onDrawBehind
             val end = Offset(w - 4.dp.toPx(), y(pts.last()))
             drawCircle(color.copy(alpha = 0.3f), 6.dp.toPx(), end)
             drawCircle(look.ink, 3.dp.toPx(), end)
@@ -574,7 +597,8 @@ private fun CacheDrawScope.waveform(look: FaceLook, alert: Boolean, active: Bool
 
 @Composable
 internal fun ContourLayout(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
-    val fraction = rememberUpdatedState(f.fraction)
+    // Without a reading the hill keeps its resting shape, with no crest marked on it.
+    val fraction = rememberUpdatedState(f.fraction.takeIf { !f.idle })
     val alert = f.alert
     Box(modifier = Modifier.fillMaxSize()) {
         // The hill runs under everything, from the bottom-left corner up to the reading.

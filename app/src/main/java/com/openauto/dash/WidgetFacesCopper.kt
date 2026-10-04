@@ -63,15 +63,6 @@ private fun String.upper() = uppercase(Locale.getDefault())
 private fun Path.moveTo(p: Offset) = moveTo(p.x, p.y)
 private fun Path.lineTo(p: Offset) = lineTo(p.x, p.y)
 
-/** Up to [n] of [all], kept round the primary one (media keeps play, then next) so a narrow spot still gets the main control. */
-private fun keyActions(all: List<FaceAction>, n: Int): List<FaceAction> {
-    if (all.size <= n) return all
-    if (n <= 0) return emptyList()
-    val i = all.indexOfFirst { it.primary }.coerceAtLeast(0)
-    val start = (i - (n - 1) / 2).coerceIn(0, all.size - n)
-    return all.subList(start, start + n)
-}
-
 /** The set's header: a copper triangle mark, then the title in wide-spaced capitals. */
 @Composable
 private fun CopperHeader(f: WidgetFace, look: FaceLook, m: FaceMetrics, trailing: (@Composable RowScope.() -> Unit)? = null) {
@@ -113,7 +104,8 @@ internal fun CockpitLayout(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxHeight().aspectRatio(1f, matchHeightConstraintsFirst = true)) {
             val g = maxWidth.value
-            val fraction = rememberUpdatedState(f.fraction)
+            // Without a reading the band stays dark, with no marker at its first blade.
+            val fraction = rememberUpdatedState(f.fraction.takeIf { !f.idle })
             val alert = f.alert
             Spacer(Modifier.fillMaxSize().drawWithCache { bladeBand(look, alert, fraction) })
             Column(
