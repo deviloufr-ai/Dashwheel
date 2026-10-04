@@ -57,6 +57,8 @@
     <string name="dash_notice_no_space">Na tym pulpicie brakuje miejsca na ten kafelek. Usuń lub zmniejsz kafelki albo użyj innej strony.</string>
     <string name="dash_notice_no_room_to_move">Brak miejsca, by odsunąć pozostałe kafelki. Najpierw zwolnij trochę miejsca.</string>
     <string name="dash_notice_resize_overlap">Ten rozmiar nachodzi na inny kafelek. Zrób miejsce przed zmianą rozmiaru.</string>
+    <string name="dash_full_title">Ten pulpit jest pełny</string>
+    <string name="dash_full_body">Usuń kafelek lub zmniejsz jeden, aby dodać kolejny.</string>
 
     <!-- Add to dashboard -->
 

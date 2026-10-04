@@ -57,6 +57,8 @@
     <string name="dash_notice_no_space">This dashboard has no space for that tile. Remove, resize, or use another page.</string>
     <string name="dash_notice_no_room_to_move">No room to move the other tiles out of the way. Free some space first.</string>
     <string name="dash_notice_resize_overlap">That size overlaps another tile. Make room before resizing.</string>
+    <string name="dash_full_title">This dashboard is full</string>
+    <string name="dash_full_body">Remove a tile or make one smaller to add another.</string>
 
     <!-- Add to dashboard -->
 

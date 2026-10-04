@@ -33,11 +33,12 @@ import java.util.Locale
 
 /**
  * "My car": the car's name, a one-tap spec fetch from Gemini, and every spec
- * to check or correct. Nothing is kept until Save.
+ * to check or correct. Save keeps them, and so does leaving the sheet any
+ * other way (its back arrow, Back, another category, the car setting off), as
+ * in the AI sheet beside it; only Cancel throws the changes away.
  */
 @Composable
 internal fun CarSettingsDialog(onDismiss: () -> Unit) {
-    ParkedOnly(onDismiss)
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var draft by remember { mutableStateOf(CarProfileStore.current) }
@@ -66,12 +67,24 @@ internal fun CarSettingsDialog(onDismiss: () -> Unit) {
         edited = true
     }
 
+    // Set once the sheet is on its way out: the drive lock closes Settings and
+    // the sheet in the same breath, and the car is saved once.
+    var leaving by remember { mutableStateOf(false) }
+
     fun save() {
+        leaving = true
         CarProfileStore.save(if (edited) draft.copy(source = SpecSource.USER, updatedAt = System.currentTimeMillis()) else draft)
         // The mechanic's answers are about the car: redo them for the new one.
         AiMechanic.refresh()
         onDismiss()
     }
+
+    /** Leaving without Save or Cancel: what was changed is kept. */
+    fun leave() {
+        if (leaving) return
+        if (draft != CarProfileStore.current) save() else onDismiss()
+    }
+    ParkedOnly(::leave)
 
     fun fetch() {
         fetching = true
@@ -90,7 +103,7 @@ internal fun CarSettingsDialog(onDismiss: () -> Unit) {
 
     SettingsSheet(
         title = stringResource(R.string.car_my_car_title_dialog),
-        onDismiss = onDismiss,
+        onDismiss = ::leave,
         actions = {
             SheetButton(stringResource(R.string.apps_cancel), primary = false, onClick = onDismiss)
             SheetButton(stringResource(R.string.car_save), onClick = ::save)

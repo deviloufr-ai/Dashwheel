@@ -57,6 +57,8 @@
     <string name="dash_notice_no_space">Dit dashboard heeft geen ruimte voor die tegel. Verwijder of verklein tegels, of gebruik een andere pagina.</string>
     <string name="dash_notice_no_room_to_move">Geen ruimte om de andere tegels opzij te schuiven. Maak eerst wat ruimte vrij.</string>
     <string name="dash_notice_resize_overlap">Dit formaat overlapt een andere tegel. Maak eerst ruimte vrij.</string>
+    <string name="dash_full_title">Dit dashboard is vol</string>
+    <string name="dash_full_body">Verwijder een tegel of maak er een kleiner om er nog een toe te voegen.</string>
 
     <!-- Add to dashboard -->
 

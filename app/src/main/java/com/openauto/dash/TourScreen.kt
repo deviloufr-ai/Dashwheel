@@ -109,6 +109,9 @@ private val TourStep.target: TourTarget?
         else -> null
     }
 
+/** These tips light up something on the bottom bar: it must not hide itself under them (BarAutoHide.kt). */
+internal val TourStep.onBar: Boolean get() = target == TourTarget.MENU || target == TourTarget.OBD
+
 /** The tips between the welcome and the end. */
 private val TIPS = TourStep.entries.filter { it != TourStep.WELCOME && it != TourStep.DONE }
 
@@ -214,6 +217,12 @@ internal fun TourOverlay(
         if (!readAloud) return@LaunchedEffect
         val res = AppLanguage.wrap(context.applicationContext).resources
         CarVoice.speak(res.getString(text.title) + ". " + res.getString(text.body), res.configuration.locales[0])
+    }
+
+    // An auto-hiding bar stays up under the tips that point at it, and goes back to its wait after them.
+    DisposableEffect(step.onBar) {
+        BarAutoHide.heldByTour = step.onBar
+        onDispose { BarAutoHide.heldByTour = false }
     }
 
     val next = TourStep.entries.getOrNull(step.ordinal + 1)

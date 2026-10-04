@@ -57,6 +57,8 @@
     <string name="dash_notice_no_space">Este painel não tem espaço para esse bloco. Remover ou redimensionar blocos, ou usar outra página.</string>
     <string name="dash_notice_no_room_to_move">Não há espaço para afastar os outros blocos. Libertar algum espaço primeiro.</string>
     <string name="dash_notice_resize_overlap">Esse tamanho sobrepõe-se a outro bloco. Abrir espaço antes de redimensionar.</string>
+    <string name="dash_full_title">Este painel está cheio</string>
+    <string name="dash_full_body">Remover um bloco ou reduzir um para adicionar outro.</string>
 
     <!-- Add to dashboard -->
 

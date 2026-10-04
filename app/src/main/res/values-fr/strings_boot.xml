@@ -22,6 +22,8 @@
     <string name="boot_restored">L\'animation de démarrage d\'origine est rétablie.</string>
     <string name="boot_nothing_to_restore">Rien à restaurer : l\'animation de démarrage n\'a jamais été modifiée.</string>
     <string name="boot_restore_failed">Restauration impossible : %1$s</string>
+    <string name="boot_restore_confirm_title">Restaurer l\'original ?</string>
+    <string name="boot_restore_confirm_body">L\'animation de démarrage et le logo fixe d\'origine sont remis en place.</string>
     <string name="boot_play_failed">Lecture impossible : %1$s</string>
     <string name="boot_current">Logo de démarrage actuel : %1$s</string>
     <string name="boot_hint">Change ce qui s\'affiche au démarrage, avec le logo de cette marque : l\'animation Android, et le logo fixe s\'il est activé. Passe par l\'ADB root interne de l\'autoradio et ne touche jamais /system. Les originaux sont sauvegardés (aussi dans Dashwheel/boot_backup sur la mémoire interne) et Restaurer les remet. Logos issus du jeu de données libre car-logos-dataset.</string>
@@ -31,6 +33,8 @@
     <string name="boot_no_usb">Aucune clé USB trouvée. Branchez-en une et réessayez.</string>
     <string name="boot_still">Changer aussi le logo fixe</string>
     <string name="boot_still_detail">La première image, avant Android. Désactivé par défaut : écrit dans la partition du logo, sauvegardée avant et vérifiée après.</string>
+    <string name="boot_still_confirm_title">Changer le logo fixe ?</string>
+    <string name="boot_still_confirm_body">Le logo fixe est écrit dans la partition du logo, sauvegardée avant.</string>
     <string name="boot_still_done">Logo fixe mis à jour aussi.</string>
     <string name="boot_still_failed">Logo fixe non modifié : %1$s</string>
     <string name="boot_still_unsupported">cet autoradio n\'a pas d\'outil de logo fixe</string>

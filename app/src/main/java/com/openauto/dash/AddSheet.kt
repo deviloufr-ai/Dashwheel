@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Splitscreen
 import androidx.compose.material.icons.filled.Widgets
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -145,6 +146,36 @@ internal fun AddSheet(
             }
         }
     }
+}
+
+/**
+ * Add on a dashboard with no free cell (AddRoom.kt): said before the sheet
+ * opens, not after a tile was picked. [other], the nearest dashboard that
+ * still has room, is offered in one button under its own name.
+ */
+@Composable
+internal fun PageFullDialog(other: Int?, onAddTo: (Int) -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        modifier = Modifier.keepClearOfWindows(),
+        onDismissRequest = onDismiss,
+        containerColor = DashColors.Card,
+        title = { Text(stringResource(R.string.dash_full_title), color = DashColors.TextPrimary) },
+        text = { Text(stringResource(R.string.dash_full_body), color = DashColors.TextSecondary) },
+        confirmButton = {
+            if (other != null) {
+                TextButton(onClick = { onAddTo(other) }) {
+                    Text(stringResource(R.string.apps_add_title, pageName(other)), color = DashColors.Accent)
+                }
+            } else {
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.dash_got_it), color = DashColors.Accent) }
+            }
+        },
+        dismissButton = {
+            if (other != null) {
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.dash_cancel), color = DashColors.Muted) }
+            }
+        }
+    )
 }
 
 private fun List<AppEntry>.matching(q: String) = if (q.isEmpty()) this else filter { it.label.contains(q, ignoreCase = true) }

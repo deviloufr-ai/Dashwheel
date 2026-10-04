@@ -22,6 +22,8 @@
     <string name="boot_restored">L\'animazione di avvio originale è tornata.</string>
     <string name="boot_nothing_to_restore">Niente da ripristinare: l\'animazione di avvio non è mai stata cambiata.</string>
     <string name="boot_restore_failed">Ripristino non riuscito: %1$s</string>
+    <string name="boot_restore_confirm_title">Ripristinare l\'originale?</string>
+    <string name="boot_restore_confirm_body">L\'animazione di avvio e il logo fisso originali vengono ripristinati.</string>
     <string name="boot_play_failed">Riproduzione non riuscita: %1$s</string>
     <string name="boot_current">Logo di avvio attuale: %1$s</string>
     <string name="boot_hint">Cambia ciò che l\'autoradio mostra all\'avvio, con il logo di questa marca: l\'animazione di Android e, se attivo, il logo fisso. Usa l\'ADB root interno dell\'autoradio e non tocca mai /system. Gli originali vengono salvati (anche in Dashwheel/boot_backup nella memoria interna) e Ripristina li rimette. Loghi dal dataset libero car-logos-dataset.</string>
@@ -31,6 +33,8 @@
     <string name="boot_no_usb">Nessuna chiavetta USB trovata. Collegane una e riprova.</string>
     <string name="boot_still">Cambia anche il logo fisso</string>
     <string name="boot_still_detail">La prima immagine, prima di Android. Spento di default: viene scritto nella partizione del logo, con copia prima e verifica dopo.</string>
+    <string name="boot_still_confirm_title">Cambiare il logo fisso?</string>
+    <string name="boot_still_confirm_body">Il logo fisso viene scritto nella partizione del logo, con copia prima.</string>
     <string name="boot_still_done">Anche il logo fisso è aggiornato.</string>
     <string name="boot_still_failed">Logo fisso non cambiato: %1$s</string>
     <string name="boot_still_unsupported">questa autoradio non ha lo strumento del logo fisso</string>

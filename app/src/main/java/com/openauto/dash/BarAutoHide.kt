@@ -81,6 +81,12 @@ internal object BarAutoHide {
      * take the menu anchored on it along.
      */
     var openMenus by mutableIntStateOf(0)
+
+    /**
+     * The tour is lighting up something on the bar ([TourStep.onBar]). The bar
+     * stays under it: sliding away would leave the tip pointing at nothing.
+     */
+    var heldByTour by mutableStateOf(false)
 }
 
 /** Whether the bar is up, shared by the bar, the pages' swipe up and the pill. */
@@ -105,8 +111,9 @@ internal fun rememberBarAutoHideState(): BarAutoHideState = remember { BarAutoHi
 
 /**
  * The bottom bar ([bar]) floating over the pages, hiding itself after
- * [hideSeconds] unused seconds. A finger on the bar or a menu open from it
- * keeps it up; the wait starts again once they let go.
+ * [hideSeconds] unused seconds. A finger on the bar, a menu open from it or a
+ * tip of the tour pointing at it keeps it up; the wait starts again once they
+ * let go.
  *
  * The pages under it keep the whole height, so it slides in and out without
  * resizing anything. Docked app windows are drawn above everything on this
@@ -123,7 +130,7 @@ internal fun AutoHidingBar(
     var pressing by remember { mutableStateOf(false) }
     // Bumped when a finger leaves the bar: the wait starts over.
     var touches by remember { mutableIntStateOf(0) }
-    val hold = pressing || BarAutoHide.openMenus > 0
+    val hold = pressing || BarAutoHide.openMenus > 0 || BarAutoHide.heldByTour
 
     LaunchedEffect(hold, touches, hideSeconds, state.visible.targetState) {
         if (!hold && state.visible.targetState) {

@@ -22,6 +22,8 @@
     <string name="boot_restored">Die originale Startanimation ist zurück.</string>
     <string name="boot_nothing_to_restore">Nichts wiederherzustellen: Die Startanimation wurde nie geändert.</string>
     <string name="boot_restore_failed">Wiederherstellen fehlgeschlagen: %1$s</string>
+    <string name="boot_restore_confirm_title">Original wiederherstellen?</string>
+    <string name="boot_restore_confirm_body">Die originale Startanimation und das originale feste Logo werden zurückgeschrieben.</string>
     <string name="boot_play_failed">Abspielen fehlgeschlagen: %1$s</string>
     <string name="boot_current">Aktuelles Startlogo: %1$s</string>
     <string name="boot_hint">Ändert, was das Radio beim Start zeigt, mit dem Logo dieser Marke: die Android-Animation und, falls eingeschaltet, das feste Logo. Nutzt das interne Root-ADB des Radios und ändert nie /system. Originale werden gesichert (auch in Dashwheel/boot_backup im internen Speicher), Wiederherstellen setzt sie zurück. Logos aus dem freien car-logos-dataset.</string>
@@ -31,6 +33,8 @@
     <string name="boot_no_usb">Kein USB-Stick gefunden. Einen anstecken und erneut versuchen.</string>
     <string name="boot_still">Auch das feste Logo ändern</string>
     <string name="boot_still_detail">Das erste Bild, vor Android. Standardmäßig aus: wird in die Logo-Partition geschrieben, vorher gesichert und danach geprüft.</string>
+    <string name="boot_still_confirm_title">Festes Logo ändern?</string>
+    <string name="boot_still_confirm_body">Das feste Logo wird in die Logo-Partition geschrieben, die vorher gesichert wird.</string>
     <string name="boot_still_done">Festes Logo ebenfalls aktualisiert.</string>
     <string name="boot_still_failed">Festes Logo nicht geändert: %1$s</string>
     <string name="boot_still_unsupported">dieses Radio hat kein Werkzeug für das feste Logo</string>

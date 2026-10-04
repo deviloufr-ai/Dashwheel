@@ -98,6 +98,9 @@ internal fun BootLogoDialog(onDismiss: () -> Unit) {
     var light by remember { mutableStateOf(false) }
     var installed by remember { mutableStateOf(CarBrands.find(context, BootLogoPrefs.installed(context))) }
     var status by remember { mutableStateOf<BootStatus>(BootStatus.Idle) }
+    // Asked before the logo partition is written: the still logo's install, and the restore.
+    var confirmStill by remember { mutableStateOf(false) }
+    var confirmRestore by remember { mutableStateOf(false) }
     val screen = remember { BootAnimationMaker.screenSize(context) }
     val shown = remember(query) { CarBrands.search(brands, query) }
     val grid = rememberLazyGridState()
@@ -146,13 +149,14 @@ internal fun BootLogoDialog(onDismiss: () -> Unit) {
                             picture.recycle()
                             BootAnimationInstaller.installStillLogo(context, jpeg, pw, ph).getOrThrow()
                         }
+                        // Marked where the work ends: the car setting off closes Settings under it.
+                        BootLogoPrefs.setInstalled(context, brand.slug)
                         place to still
                     }
                     .also { zip.delete(); jpeg.delete() }
             }
             status = result.fold(
                 onSuccess = { (place, still) ->
-                    BootLogoPrefs.setInstalled(context, brand.slug)
                     installed = brand
                     val text = context.getString(R.string.boot_installed, place)
                     when {
@@ -201,10 +205,11 @@ internal fun BootLogoDialog(onDismiss: () -> Unit) {
     fun restore() {
         scope.launch {
             status = BootStatus.Busy(R.string.boot_restoring)
-            val result = withContext(Dispatchers.IO) { BootAnimationInstaller.restore(context) }
+            val result = withContext(Dispatchers.IO) {
+                BootAnimationInstaller.restore(context).onSuccess { BootLogoPrefs.setInstalled(context, null) }
+            }
             status = result.fold(
                 onSuccess = { changed ->
-                    BootLogoPrefs.setInstalled(context, null)
                     installed = null
                     BootStatus.Done(context.getString(if (changed) R.string.boot_restored else R.string.boot_nothing_to_restore))
                 },
@@ -224,7 +229,10 @@ internal fun BootLogoDialog(onDismiss: () -> Unit) {
         }
     }
 
-    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
+    // An install or a restore under way is seen through: its result shows here and nowhere else.
+    val busy = status is BootStatus.Busy
+    val close = { if (!busy) onDismiss() }
+    Dialog(onDismissRequest = close, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         Column(
             modifier = Modifier
                 .fillMaxWidth(0.94f)
@@ -238,7 +246,9 @@ internal fun BootLogoDialog(onDismiss: () -> Unit) {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.boot_title), color = DashColors.TextPrimary, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
-                TextButton(onClick = onDismiss) { Text(stringResource(R.string.boot_close), color = DashColors.Accent) }
+                TextButton(onClick = close, enabled = !busy) {
+                    Text(stringResource(R.string.boot_close), color = if (busy) DashColors.Muted else DashColors.Accent)
+                }
             }
             Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                 // The list of makes.
@@ -298,11 +308,10 @@ internal fun BootLogoDialog(onDismiss: () -> Unit) {
                     SwitchRow(stringResource(R.string.boot_show_name), stringResource(R.string.boot_show_name_detail), showName) { showName = it }
                     SwitchRow(stringResource(R.string.boot_still), stringResource(R.string.boot_still_detail), stillLogo) { stillLogo = it }
 
-                    val busy = status is BootStatus.Busy
                     val ready = logo != null && !busy
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(
-                            onClick = ::install,
+                            onClick = { if (stillLogo) confirmStill = true else install() },
                             enabled = ready,
                             modifier = Modifier.weight(1f),
                             colors = buttonColors(),
@@ -324,7 +333,7 @@ internal fun BootLogoDialog(onDismiss: () -> Unit) {
                         TextButton(onClick = ::play, enabled = installed != null && !busy) {
                             Text(stringResource(R.string.boot_play), color = if (installed != null && !busy) DashColors.Accent else DashColors.Muted)
                         }
-                        TextButton(onClick = ::restore, enabled = !busy) {
+                        TextButton(onClick = { confirmRestore = true }, enabled = !busy) {
                             Text(stringResource(R.string.boot_restore), color = if (!busy) DashColors.Accent else DashColors.Muted)
                         }
                     }
@@ -343,6 +352,25 @@ internal fun BootLogoDialog(onDismiss: () -> Unit) {
                 }
             }
         }
+    }
+
+    if (confirmStill) {
+        ConfirmDialog(
+            title = stringResource(R.string.boot_still_confirm_title),
+            body = stringResource(R.string.boot_still_confirm_body),
+            action = stringResource(R.string.boot_install),
+            onConfirm = { confirmStill = false; install() },
+            onDismiss = { confirmStill = false }
+        )
+    }
+    if (confirmRestore) {
+        ConfirmDialog(
+            title = stringResource(R.string.boot_restore_confirm_title),
+            body = stringResource(R.string.boot_restore_confirm_body),
+            action = stringResource(R.string.boot_restore),
+            onConfirm = { confirmRestore = false; restore() },
+            onDismiss = { confirmRestore = false }
+        )
     }
 }
 

@@ -57,6 +57,8 @@
     <string name="dash_notice_no_space">Este panel no tiene espacio para esa tarjeta. Quita o redimensiona tarjetas, o usa otra página.</string>
     <string name="dash_notice_no_room_to_move">No hay sitio para apartar las otras tarjetas. Libera espacio primero.</string>
     <string name="dash_notice_resize_overlap">Ese tamaño se superpone a otra tarjeta. Haz sitio antes de cambiar el tamaño.</string>
+    <string name="dash_full_title">Este panel está lleno</string>
+    <string name="dash_full_body">Quita una tarjeta o reduce una para añadir otra.</string>
 
     <!-- Add to dashboard -->
 

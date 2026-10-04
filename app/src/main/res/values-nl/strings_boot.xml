@@ -22,6 +22,8 @@
     <string name="boot_restored">De originele opstartanimatie is terug.</string>
     <string name="boot_nothing_to_restore">Niets terug te zetten: de opstartanimatie is nooit gewijzigd.</string>
     <string name="boot_restore_failed">Terugzetten mislukt: %1$s</string>
+    <string name="boot_restore_confirm_title">Origineel terugzetten?</string>
+    <string name="boot_restore_confirm_body">De originele opstartanimatie en het originele vaste logo worden teruggezet.</string>
     <string name="boot_play_failed">Afspelen mislukt: %1$s</string>
     <string name="boot_current">Huidig opstartlogo: %1$s</string>
     <string name="boot_hint">Wijzigt wat de radio bij het starten toont, met het logo van dit merk: de Android-animatie en, als het aan staat, het vaste logo. Gebruikt de interne root-ADB van de radio en komt nooit aan /system. Originelen worden bewaard (ook in Dashwheel/boot_backup in het interne geheugen) en Terugzetten zet ze terug. Logo\'s uit de vrije car-logos-dataset.</string>
@@ -31,6 +33,8 @@
     <string name="boot_no_usb">Geen USB-stick gevonden. Steek er een in en probeer opnieuw.</string>
     <string name="boot_still">Ook het vaste logo wijzigen</string>
     <string name="boot_still_detail">Het eerste beeld, vóór Android. Standaard uit: wordt in de logopartitie geschreven, eerst geback-upt en daarna gecontroleerd.</string>
+    <string name="boot_still_confirm_title">Het vaste logo wijzigen?</string>
+    <string name="boot_still_confirm_body">Het vaste logo wordt in de logopartitie geschreven, die eerst wordt geback-upt.</string>
     <string name="boot_still_done">Vast logo ook bijgewerkt.</string>
     <string name="boot_still_failed">Vast logo niet gewijzigd: %1$s</string>
     <string name="boot_still_unsupported">deze radio heeft geen gereedschap voor het vaste logo</string>

@@ -171,11 +171,13 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     // The Settings screen, on the tab it was opened to; null while closed. A
     // dashboard rebuilt by a turn of the screen made in Settings opens there again.
     var settingsTab by remember { mutableStateOf(if (ScreenShape.settingsWanted()) SettingsTab.DISPLAY else null) }
-    /** Closes Settings: its open sheet leaves first, and a screen direction on trial stays. */
+    /**
+     * Closes Settings: its open sheet leaves first. A screen direction on trial
+     * is still on trial: the dashboard goes on asking (KeepDirectionStrip).
+     */
     fun closeSettings() {
         if (settingsTab == null) return
         OpenSheet.dismiss()
-        ScreenShape.keep()
         settingsTab = null
     }
     DashColors.Sync(themeMode, appearance, effects)
@@ -435,6 +437,8 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     // "+" add flow: the page a tile is being added to, and the sheet that offers them (AddSheet.kt).
     var addTargetPage by remember { mutableIntStateOf(-1) }
     var showAddSheet by remember { mutableStateOf(false) }
+    // Add was tapped on a page with no free cell: said at once, before anything is picked.
+    var pageFull by remember { mutableStateOf<Int?>(null) }
     var layoutNotice by remember { mutableStateOf<String?>(null) }
     // (page, tile index) whose panel is open while arranging (TileOptions.kt),
     // where that tile is and where the pages are, in root coordinates.
@@ -452,6 +456,20 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     var setupPillOff by remember { mutableStateOf(SetupStore.pillOff(context)) }
     var setupStep by remember { mutableStateOf(if (setupDone) null else SetupStep.CAR) }
     var showCarSettings by remember { mutableStateOf(false) }
+    /**
+     * The one way out of the setup: it counts as seen, and the tour of the
+     * basics is offered next. [finished]: gone through to the end (true) or
+     * skipped (false), which rests the pill until the setup is run again;
+     * null when the driver just left it (Back, the bar) and the pill stays as it was.
+     */
+    fun closeSetup(finished: Boolean?) {
+        SetupStore.markDone(context); setupDone = true
+        if (finished != null) {
+            SetupStore.setPillOff(context, !finished); setupPillOff = !finished
+        }
+        setupStep = null
+        TourStore.offer(context)
+    }
     // The tour of the basics (TourScreen.kt): its step while open. Offered once
     // after the first setup, at most once per start, and only parked.
     var tourStep by remember { mutableStateOf<TourStep?>(null) }
@@ -473,10 +491,8 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     BackHandler(enabled = tourStep != null || setupStep != null || showAllApps || settingsTab != null || showAddSheet || tileOptions != null || editing || offHome) {
         when {
             tourStep != null -> closeTour()
-            setupStep != null -> {
-                SetupStore.markDone(context); setupDone = true
-                setupStep = null
-            }
+            // The setup takes Back itself, a step at a time (SetupScreen).
+            setupStep != null -> closeSetup(null)
             showAddSheet -> showAddSheet = false
             showAllApps -> showAllApps = false
             settingsTab != null -> closeSettings()
@@ -527,9 +543,12 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             tourStep = null
         }
     }
-    // The tour comes up by itself once the first setup has closed, parked.
-    LaunchedEffect(setupStep, moving) {
-        if (setupStep == null && !moving && !tourOffered && TourStore.isPending(context)) {
+    // The tour comes up by itself once the first setup has closed, parked, and
+    // so has whatever a bar button opened in the setup's place.
+    val tourCanStart = setupStep == null && !moving && !showAllApps && settingsTab == null && !editing &&
+        !showTemplates && !showSplitPicker && !showSplitEnable
+    LaunchedEffect(tourCanStart) {
+        if (tourCanStart && !tourOffered && TourStore.isPending(context)) {
             tourOffered = true
             tourStep = TourStep.WELCOME
         }
@@ -677,16 +696,13 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     /** Adds at the first free cell; returns the new tile's index, or -1 when the page is full. */
     fun addItemAt(page: Int, item: DashboardItem): Int {
         val list = pages.getOrNull(page) ?: return -1
-        val cell = DashboardStore.firstFreeCell(list, item.w, item.h)
-            ?: DashboardStore.firstFreeCell(list, item.minW(), item.minH())
-        if (cell == null) {
+        // Its own size where that fits, else the largest that does (AddRoom.kt).
+        val fit = largestFit(list, item.w, item.h, item.minW(), item.minH())
+        if (fit == null) {
             layoutNotice = context.getString(R.string.dash_notice_no_space)
             return -1
         }
-        val fits = DashboardStore.canPlace(list, null, cell.first, cell.second, item.w, item.h)
-        val placed = if (fits) item.withCell(cell.first, cell.second, item.w, item.h)
-            else item.withCell(cell.first, cell.second, item.minW(), item.minH())
-        mutatePage(page) { it + placed }
+        mutatePage(page) { it + item.withCell(fit.x, fit.y, fit.w, fit.h) }
         return list.size
     }
 
@@ -1025,7 +1041,8 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     val onAdd: (Int) -> Unit = { page ->
         whenParked {
             addTargetPage = page
-            showAddSheet = true
+            // A full page says so now, not after the tile was picked.
+            if (pageHasRoom(pages.getOrNull(page).orEmpty())) showAddSheet = true else pageFull = page
         }
     }
     // The bar stays in reach under the sheets that fill the pages (Settings,
@@ -1035,10 +1052,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         closeSettings()
         showAddSheet = false
         showAllApps = false
-        if (setupStep != null) {
-            SetupStore.markDone(context); setupDone = true
-            setupStep = null
-        }
+        if (setupStep != null) closeSetup(null)
     }
     // The bar's "Finish setting up" pill: a tile on some page still lacks
     // what it needs, the setup has been seen, and the driver has not skipped it.
@@ -1646,13 +1660,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                     theme = themeState,
                     onCarSettings = { showCarSettings = true },
                     onPickObd = onPickDevice,
-                    onClose = { finished ->
-                        // Seen either way; skipping also rests the pill until the setup is run again.
-                        SetupStore.markDone(context); setupDone = true
-                        SetupStore.setPillOff(context, !finished); setupPillOff = !finished
-                        setupStep = null
-                        TourStore.offer(context)
-                    },
+                    onClose = { finished -> closeSetup(finished) },
                     modifier = Modifier.fillMaxSize().padding(10.dp)
                 )
             }
@@ -1724,6 +1732,22 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             onClose = { closeTour() }
         )
     }
+    pageFull?.let { page ->
+        PageFullDialog(
+            // The nearest of the driver's dashboards that still has a free cell.
+            other = nearestPageWithRoom(pages, page, barTabs.map { it.page }, tabbed = tabsShown),
+            onAddTo = { other ->
+                pageFull = null
+                showPage(other)
+                onAdd(other)
+            },
+            onDismiss = { pageFull = null }
+        )
+    }
+    // A screen direction on trial, asked here while the Display settings are not on screen.
+    KeepDirectionStrip(
+        Modifier.align(Alignment.TopCenter).padding(top = with(density) { barOverlapPx.toDp() } + 8.dp, start = 12.dp, end = 12.dp)
+    )
     }
     }
 

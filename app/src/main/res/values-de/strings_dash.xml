@@ -57,6 +57,8 @@
     <string name="dash_notice_no_space">Auf diesem Dashboard ist kein Platz für diese Kachel. Kacheln entfernen, verkleinern oder eine andere Seite nutzen.</string>
     <string name="dash_notice_no_room_to_move">Kein Platz, um die anderen Kacheln beiseitezuschieben. Zuerst etwas Platz schaffen.</string>
     <string name="dash_notice_resize_overlap">Diese Größe überdeckt eine andere Kachel. Vor dem Ändern der Größe Platz schaffen.</string>
+    <string name="dash_full_title">Dieses Dashboard ist voll</string>
+    <string name="dash_full_body">Eine Kachel entfernen oder verkleinern, um eine weitere hinzuzufügen.</string>
 
     <!-- Add to dashboard -->
 

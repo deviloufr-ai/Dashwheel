@@ -114,4 +114,14 @@ class SetupAndAlertsTest {
         assertTrue(rest.drivingMs in 590_000L..600_000L)
         assertTrue(events.isEmpty())
     }
+
+    // --- The setup's steps ------------------------------------------------------------------------
+
+    @Test
+    fun backGoesAStepBackAndOutOnlyFromTheFirst() {
+        assertEquals(SetupStep.ACCESS, SetupStep.LOOK.previous())
+        assertEquals(SetupStep.CAR, SetupStep.ACCESS.previous())
+        // Nothing before the first step: Back leaves the setup there.
+        assertNull(SetupStep.CAR.previous())
+    }
 }

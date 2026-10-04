@@ -10,6 +10,7 @@ import android.net.Uri
 import android.content.Intent
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -24,6 +25,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -79,6 +81,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -94,6 +97,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -103,7 +107,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /*
@@ -172,6 +175,11 @@ internal fun SettingsScreen(
         onClose()
     }
     val back = { deep = null }
+    // A turn of the screen rebuilds the dashboard, which opens Settings again only if they were open.
+    DisposableEffect(Unit) {
+        ScreenShape.settingsShown(true)
+        onDispose { ScreenShape.settingsShown(false) }
+    }
 
     val pane: @Composable (Modifier) -> Unit = { paneModifier ->
         Box(modifier = paneModifier) {
@@ -540,9 +548,6 @@ private fun AlertsPane() {
     AlertStyleRows()
 }
 
-/** How long a new screen direction waits to be kept before it goes back. */
-private const val KEEP_SECONDS = 15
-
 /**
  * Which way the dashboard stands ([ScreenShape]). Auto reads it from the
  * screen and says what it found; the others turn the launcher, which rebuilds
@@ -554,9 +559,16 @@ private const val KEEP_SECONDS = 15
 private fun ScreenOrientationSetting() {
     val context = LocalContext.current
     val chosen by ScreenShape.choice.collectAsState()
-    val tryingFrom by ScreenShape.tryingFrom.collectAsState()
+    val keepLeft by ScreenShape.keepSecondsLeft.collectAsState()
     SettingsSection(stringResource(R.string.settings_screen_title))
-    if (tryingFrom != null && ScreenShape.turned) KeepDirection()
+    keepLeft?.let { left ->
+        // Asked here: the strip over the dashboard is not needed as well.
+        DisposableEffect(Unit) {
+            KeepDirectionAsk.inPane++
+            onDispose { KeepDirectionAsk.inPane-- }
+        }
+        KeepDirection(left, Modifier.fillMaxWidth().padding(bottom = 12.dp))
+    }
     SegmentedSwitch(
         options = ScreenOrientation.entries,
         chosen = chosen,
@@ -582,24 +594,24 @@ private fun ScreenOrientationSetting() {
     )
 }
 
-/** Asked once the screen has turned: keep it, or go back (which it does by itself after [KEEP_SECONDS]). */
+/** Where the keep-or-go-back question is being asked, so it shows once. */
+private object KeepDirectionAsk {
+    /** Display panes showing it (two for a moment, while a turn rebuilds the dashboard). */
+    var inPane by mutableIntStateOf(0)
+}
+
+/**
+ * Asked once the screen has turned: keep it, or go back, which it does by
+ * itself when [left] seconds run out ([ScreenShape] counts them, whatever is
+ * open). [solid] over the dashboard, where it must read on any page.
+ */
 @Composable
-private fun KeepDirection() {
-    val context = LocalContext.current
-    var left by remember { mutableIntStateOf(KEEP_SECONDS) }
-    LaunchedEffect(Unit) {
-        while (left > 0) {
-            delay(1_000)
-            left--
-        }
-        context.findActivity()?.let { ScreenShape.revert(it) }
-    }
+private fun KeepDirection(left: Int, modifier: Modifier = Modifier, solid: Boolean = false) {
     val shape = DashShape.Medium
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 12.dp)
+        modifier = modifier
             .clip(shape)
+            .then(if (solid) Modifier.background(DashColors.Card.copy(alpha = 1f)) else Modifier)
             .background(DashColors.Warning.copy(alpha = 0.12f))
             .border(1.dp, DashColors.Warning.copy(alpha = 0.6f), shape)
             .padding(horizontal = 16.dp, vertical = 12.dp),
@@ -611,12 +623,30 @@ private fun KeepDirection() {
             Text(stringResource(R.string.settings_screen_keep_detail, left), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
         }
         CompositionLocalProvider(LocalSheetInPane provides true) {
-            SheetButton(stringResource(R.string.settings_screen_revert), primary = false) {
-                context.findActivity()?.let { ScreenShape.revert(it) }
-            }
+            SheetButton(stringResource(R.string.settings_screen_revert), primary = false) { ScreenShape.revert() }
             SheetButton(stringResource(R.string.settings_screen_keep)) { ScreenShape.keep() }
         }
     }
+}
+
+/**
+ * The same question as a strip over the dashboard, for as long as a screen
+ * direction is on trial and the Display settings are not there asking it:
+ * Settings closed, or on another category. The wait runs on either way.
+ */
+@Composable
+internal fun KeepDirectionStrip(modifier: Modifier = Modifier) {
+    val left = ScreenShape.keepSecondsLeft.collectAsState().value ?: return
+    if (KeepDirectionAsk.inPane > 0) return
+    KeepDirection(
+        left,
+        modifier
+            .widthIn(max = 640.dp)
+            .keepClearOfWindows()
+            // A tap beside its buttons stays here rather than landing on a tile underneath.
+            .pointerInput(Unit) { detectTapGestures { } },
+        solid = true
+    )
 }
 
 @Composable

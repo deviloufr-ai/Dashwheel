@@ -22,6 +22,8 @@
     <string name="boot_restored">Se ha restaurado la animación de arranque original.</string>
     <string name="boot_nothing_to_restore">Nada que restaurar: la animación de arranque nunca se cambió.</string>
     <string name="boot_restore_failed">No se pudo restaurar: %1$s</string>
+    <string name="boot_restore_confirm_title">¿Restaurar el original?</string>
+    <string name="boot_restore_confirm_body">Se restauran la animación de arranque y el logo fijo originales.</string>
     <string name="boot_play_failed">No se pudo reproducir: %1$s</string>
     <string name="boot_current">Logo de arranque actual: %1$s</string>
     <string name="boot_hint">Cambia lo que muestra la radio al arrancar, con el logo de esta marca: la animación de Android y, si está activado, el logo fijo. Usa el ADB root interno de la radio y nunca toca /system. Los originales se guardan (también en Dashwheel/boot_backup en la memoria interna) y Restaurar los repone. Logos del conjunto libre car-logos-dataset.</string>
@@ -31,6 +33,8 @@
     <string name="boot_no_usb">No se encontró ninguna memoria USB. Conecta una y vuelve a intentarlo.</string>
     <string name="boot_still">Cambiar también el logo fijo</string>
     <string name="boot_still_detail">La primera imagen, antes de Android. Desactivado por defecto: se escribe en la partición del logo, con copia antes y comprobación después.</string>
+    <string name="boot_still_confirm_title">¿Cambiar el logo fijo?</string>
+    <string name="boot_still_confirm_body">El logo fijo se escribe en la partición del logo, con copia antes.</string>
     <string name="boot_still_done">Logo fijo actualizado también.</string>
     <string name="boot_still_failed">Logo fijo sin cambiar: %1$s</string>
     <string name="boot_still_unsupported">esta radio no tiene herramienta de logo fijo</string>

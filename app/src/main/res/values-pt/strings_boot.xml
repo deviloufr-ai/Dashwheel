@@ -22,6 +22,8 @@
     <string name="boot_restored">A animação de arranque original foi reposta.</string>
     <string name="boot_nothing_to_restore">Nada a repor: a animação de arranque nunca foi alterada.</string>
     <string name="boot_restore_failed">Não foi possível repor: %1$s</string>
+    <string name="boot_restore_confirm_title">Repor o original?</string>
+    <string name="boot_restore_confirm_body">A animação de arranque e o logótipo fixo originais são repostos.</string>
     <string name="boot_play_failed">Não foi possível reproduzir: %1$s</string>
     <string name="boot_current">Logótipo de arranque atual: %1$s</string>
     <string name="boot_hint">Muda o que o rádio mostra ao arrancar, com o logótipo desta marca: a animação do Android e, se ligado, o logótipo fixo. Usa o ADB root interno do rádio e nunca mexe em /system. Os originais são guardados (também em Dashwheel/boot_backup na memória interna) e Repor volta a colocá-los. Logótipos do conjunto livre car-logos-dataset.</string>
@@ -31,6 +33,8 @@
     <string name="boot_no_usb">Nenhuma pen USB encontrada. Ligue uma e tente de novo.</string>
     <string name="boot_still">Mudar também o logótipo fixo</string>
     <string name="boot_still_detail">A primeira imagem, antes do Android. Desligado por omissão: é escrito na partição do logótipo, com cópia antes e verificação depois.</string>
+    <string name="boot_still_confirm_title">Mudar o logótipo fixo?</string>
+    <string name="boot_still_confirm_body">O logótipo fixo é escrito na partição do logótipo, com cópia antes.</string>
     <string name="boot_still_done">Logótipo fixo também atualizado.</string>
     <string name="boot_still_failed">Logótipo fixo não alterado: %1$s</string>
     <string name="boot_still_unsupported">este rádio não tem ferramenta de logótipo fixo</string>

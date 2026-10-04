@@ -3,6 +3,7 @@ package com.openauto.dash
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -70,6 +71,9 @@ import androidx.lifecycle.LifecycleEventObserver
  */
 
 internal enum class SetupStep { CAR, ACCESS, LOOK }
+
+/** The step before this one, where the back arrow and the Back key lead; null on the first. */
+internal fun SetupStep.previous(): SetupStep? = SetupStep.entries.getOrNull(ordinal - 1)
 
 /** Whether the setup has been seen, and whether the driver asked the pill to stop. */
 object SetupStore {
@@ -139,7 +143,8 @@ internal enum class AccessNeed(val icon: ImageVector, @StringRes val titleRes: I
 /**
  * The three steps. [onCarSettings] opens the car profile sheet, [onPickObd]
  * the adapter picker (with its Bluetooth permission). [onClose] gets whether
- * the driver went through to the end (true) or skipped (false).
+ * the driver went through to the end (true) or skipped (false), or null when
+ * the Back key left from the first step.
  */
 @Composable
 internal fun SetupScreen(
@@ -147,23 +152,25 @@ internal fun SetupScreen(
     theme: ThemeState,
     onCarSettings: () -> Unit,
     onPickObd: () -> Unit,
-    onClose: (finished: Boolean) -> Unit,
+    onClose: (finished: Boolean?) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     var step by remember(initialStep) { mutableStateOf(initialStep) }
     val tap = rememberTapFeedback()
+    // The Back key does what the arrow does: a step back, and out only from the first.
+    BackHandler { step.previous()?.let { step = it } ?: onClose(null) }
     SolidCard(modifier = modifier) {
         Column(modifier = Modifier.fillMaxSize().padding(horizontal = 28.dp, vertical = 18.dp)) {
             // Header: where we are, and the way out.
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (step != SetupStep.CAR) {
+                step.previous()?.let { before ->
                     Box(
                         modifier = Modifier
                             .size(DashSize.TouchPrimary)
                             .clip(DashShape.Medium)
                             .background(DashColors.CardHi)
-                            .clickable { tap(); step = SetupStep.entries[step.ordinal - 1] },
+                            .clickable { tap(); step = before },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.setup_back), tint = DashColors.TextPrimary)
