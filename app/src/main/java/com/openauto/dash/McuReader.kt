@@ -210,7 +210,27 @@ object McuReader {
     @Volatile private var realFuel: Int? = null
     @Volatile private var realRange: Int? = null
 
+    // The car's own doors, before the learned ones ([LearnedSignals]) are laid over them.
+    @Volatile private var builtInDoors: DoorState? = null
+    @Volatile private var learnedDoors: Map<CarSignal, Boolean> = emptyMap()
+
     private fun setDoors(v: DoorState?) {
+        builtInDoors = v
+        publishDoors()
+    }
+
+    /** The car itself tells its doors (the car box or its app), learned ones aside. */
+    internal val ownDoorsKnown: Boolean get() = builtInDoors != null
+
+    /** The doors the Signal Finder learned ([LearnedSignals]), over the car's own. */
+    internal fun learnedDoorsWrite(learned: Map<CarSignal, Boolean>) {
+        learnedDoors = learned
+        publishDoors()
+    }
+
+    @Synchronized
+    private fun publishDoors() {
+        val v = mergeDoors(builtInDoors, learnedDoors)
         realDoors = v
         if (!DemoMode.isOn) _doorState.value = v
     }

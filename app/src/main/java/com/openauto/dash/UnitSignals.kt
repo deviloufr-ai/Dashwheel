@@ -35,6 +35,11 @@ object UnitSignals {
     private val _headlightsOn = MutableStateFlow(false)
     val headlightsOn: StateFlow<Boolean> = _headlightsOn
 
+    /** The headlights as the driver taught them ([LearnedSignals]). */
+    internal fun headlightsWrite(on: Boolean) {
+        _headlightsOn.value = on
+    }
+
     private val _phone = MutableStateFlow<UnitPhone?>(null)
     /** The phone connected to the unit for calls, or null. */
     val phone: StateFlow<UnitPhone?> = _phone

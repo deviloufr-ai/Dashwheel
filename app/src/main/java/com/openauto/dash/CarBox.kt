@@ -160,6 +160,11 @@ object CarBox {
         }
     }
 
+    /** Reverse as the driver taught it ([LearnedSignals]), for a car whose box or ROM doesn't say. */
+    internal fun reverseWrite(on: Boolean) {
+        _reversing.value = on
+    }
+
     /** The body data while it's current, else null. */
     fun freshBody(): CarBody? = _body.value?.takeIf { SystemClock.elapsedRealtime() - bodyAt <= FRESH_MS }
 
@@ -189,6 +194,7 @@ object CarBox {
     }
 
     private fun onShare(data: ByteArray?) {
+        SignalSources.shared(data)
         when (shareType(data)) {
             SHARE_BODY -> parseCarBody(data!!)?.let {
                 // McuReader keeps the real fuel and range through the demo by itself.

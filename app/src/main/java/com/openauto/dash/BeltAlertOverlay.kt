@@ -64,11 +64,12 @@ object BeltAlertOverlay {
         val app = AppLanguage.wrap(context.applicationContext)
         scope.launch {
             var wasMoving = false
-            CarBox.body.collect { body ->
+            CarBox.body.combine(LearnedSignals.state) { body, learned -> body to learned[CarSignal.DRIVER_BELT] }.collect { (body, learnedOpen) ->
                 // The car box's own speed: it comes with the belt, from the same frames.
                 val moving = isMoving(body?.speedKmh, wasMoving)
                 wasMoving = moving
-                _unbuckledMoving.value = beltReminder(body?.driverBeltUnfastened == true, moving)
+                // A belt the driver taught Dashwheel wins over the car box's.
+                _unbuckledMoving.value = beltReminder((learnedOpen ?: body?.driverBeltUnfastened) == true, moving)
             }
         }
         // The car box gone quiet mid-drive (its app stopped, the unit slept on):

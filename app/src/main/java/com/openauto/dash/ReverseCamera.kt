@@ -49,7 +49,9 @@ internal object ReverseCamera {
     private const val TAG = "ReverseCamera"
     private const val ROM_APP = "com.qf.backcar"
     /** The reversing camera: the ROM app's choice on the K706 (camera 0 is the other input). */
-    private const val CAMERA_ID = "1"
+    /** The car app's reversing camera on the K706; the driver may pick another ([LearnedSignals.cameraId]). */
+    private const val ROM_CAMERA_ID = "1"
+    private val CAMERA_ID: String get() = LearnedSignals.cameraId.value ?: ROM_CAMERA_ID
     /** The ROM app's 1080p stream (AHD_1080P25). */
     private const val WIDTH = 1920
     private const val HEIGHT = 1080

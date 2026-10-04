@@ -185,6 +185,8 @@ class MainActivity : ComponentActivity() {
                 DockedNavBar.start(this)
                 FreeformBar.start(this)
                 CarBox.start(this)
+                // What the driver taught Dashwheel with the Signal Finder, over the car's own data.
+                LearnedSignals.start(this)
                 // The accessibility service, on by itself where there is a privileged shell.
                 SplitAccessibilityService.autoTurnOn(this)
                 // Dashwheel as the default Home, and the system copy up to date, after an update.

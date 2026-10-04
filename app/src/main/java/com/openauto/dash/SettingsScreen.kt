@@ -50,6 +50,7 @@ import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Handyman
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.SettingsInputAntenna
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -131,7 +132,7 @@ internal enum class SettingsTab(@StringRes val titleRes: Int, val icon: ImageVec
 }
 
 /** The settings that open further into the pane. */
-private enum class Deep { CAR, CAR_LOOK, REVERSE, AI, UPKEEP, EXPLORER, WHEEL, PLACES, LANGUAGE, SECOND_SCREEN }
+private enum class Deep { CAR, CAR_LOOK, REVERSE, SIGNALS, AI, UPKEEP, EXPLORER, WHEEL, PLACES, LANGUAGE, SECOND_SCREEN }
 
 /** Under this width the categories go along the top: a rail would leave the settings half a screen. */
 private val NARROW_SETTINGS = 800.dp
@@ -188,6 +189,7 @@ internal fun SettingsScreen(
                     Deep.CAR -> CarSettingsDialog(onDismiss = back)
                     Deep.CAR_LOOK -> MyCarLookSheet(onDismiss = back)
                     Deep.REVERSE -> ReverseViewSheet(onDismiss = back)
+                    Deep.SIGNALS -> SignalFinderSheet(onDismiss = back)
                     Deep.AI -> AiSettingsDialog(onDismiss = back)
                     Deep.UPKEEP -> UpkeepDialog(onDismiss = back)
                     Deep.EXPLORER -> PidExplorerDialog(onDismiss = back)
@@ -370,6 +372,7 @@ private fun CarPane(open: (Deep) -> Unit, onPickObd: () -> Unit) {
     SettingsRow(Icons.Filled.DirectionsCar, stringResource(R.string.car_menu), car.name) { open(Deep.CAR) }
     SettingsRow(Icons.Filled.Image, stringResource(R.string.mycar_title), stringResource(R.string.mycar_settings_detail)) { open(Deep.CAR_LOOK) }
     SettingsRow(Icons.Filled.Videocam, stringResource(R.string.reverse_title), stringResource(R.string.reverse_settings_detail)) { open(Deep.REVERSE) }
+    SettingsRow(Icons.Filled.SettingsInputAntenna, stringResource(R.string.signals_title), stringResource(R.string.signals_settings_detail)) { open(Deep.SIGNALS) }
     ObdAdapterRow(onPickObd)
     ObdRouteSetting()
     SpeedCorrectionRow()
