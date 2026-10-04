@@ -138,9 +138,11 @@ internal object SecondScreenController {
                 // Too much for the Wi-Fi: lighter frames rather than frames lost.
                 val s = stream ?: return@collect
                 if (report == null) return@collect
-                val next = SecondScreenRules.adaptBitrate(bitrateKbps, SecondScreenStore.config.value.bitrateKbps, report.framesShown, report.framesDropped)
+                // Frames the link could not take on this side count as dropped too.
+                val dropped = report.framesDropped + DisplayLink.takeRefusedFrames()
+                val next = SecondScreenRules.adaptBitrate(bitrateKbps, SecondScreenStore.config.value.bitrateKbps, report.framesShown, dropped)
                 if (next != bitrateKbps) {
-                    Log.i(TAG, "bitrate $bitrateKbps -> $next kbit/s (${report.framesDropped} of ${report.framesShown + report.framesDropped} frames dropped)")
+                    Log.i(TAG, "bitrate $bitrateKbps -> $next kbit/s ($dropped of ${report.framesShown + dropped} frames dropped)")
                     bitrateKbps = next
                     s.setBitrate(next)
                 }

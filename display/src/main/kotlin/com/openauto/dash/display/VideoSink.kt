@@ -155,7 +155,8 @@ class GstVideoSink private constructor(private val process: GstProcess?) : Video
     }
 
     companion object {
-        // About a second of video at 30 fps: more than that and the picture would lag.
-        fun start(command: List<String>) = GstVideoSink(GstProcess.startOrNull(command, capacity = 30))
+        // A few frames, a quarter to a third of a second: a decoder that falls behind drops
+        // frames (and gets a lower bitrate) instead of showing the road seconds late.
+        fun start(command: List<String>) = GstVideoSink(GstProcess.startOrNull(command, capacity = 5))
     }
 }

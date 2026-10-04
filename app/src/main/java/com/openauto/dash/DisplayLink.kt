@@ -100,6 +100,9 @@ object DisplayLink {
     /** Video frames queue here: about a second at 30 fps, then they are dropped (see [sendVideo]). */
     private const val OUTBOX_SIZE = 48
 
+    /** Frames waiting to go at most: a third of a second at the cluster's 15 frames a second. */
+    private const val VIDEO_BACKLOG = 5
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var started = false
 
@@ -131,6 +134,20 @@ object DisplayLink {
 
     // One queue, one sender: a video config always reaches the display before the frames it describes.
     private val outbox = Channel<Pair<LinkSession, Out>>(OUTBOX_SIZE)
+
+    /**
+     * Video frames in the outbox, not yet sent. Over a phone's hotspot the
+     * link can fall a little behind the stream: frames then waited in the
+     * outbox and the socket by the second, and the screen ran five seconds
+     * late. Past [VIDEO_BACKLOG] a frame is refused instead: the encoder
+     * starts again from a key frame, and the display, seeing frames dropped,
+     * has the bitrate lowered until the link keeps up.
+     */
+    private val videoQueued = java.util.concurrent.atomic.AtomicInteger()
+    private val videoRefused = java.util.concurrent.atomic.AtomicInteger()
+
+    /** Frames refused since the last call ([VIDEO_BACKLOG]): the link fell behind, as the display's dropped ones say it did. */
+    fun takeRefusedFrames(): Int = videoRefused.getAndSet(0)
 
     /** Addresses the display announced itself on (DNS-SD, beacons). */
     private val announced = ConcurrentHashMap.newKeySet<String>()
@@ -165,6 +182,8 @@ object DisplayLink {
                 } catch (e: IOException) {
                     link.close()
                     false
+                } finally {
+                    if (out is Out.Raw) videoQueued.decrementAndGet()
                 }
                 if (!sent && out is Out.Raw) _keyFrameRequests.tryEmit(Unit)
             }
@@ -206,7 +225,14 @@ object DisplayLink {
     fun sendVideo(packet: VideoPacket): Boolean {
         val current = session ?: return false
         if (packet.data.size > VideoPacket.MAX_DATA) return false
-        return outbox.trySend(current to Out.Raw(packet.encode())).isSuccess
+        if (videoQueued.get() >= VIDEO_BACKLOG) {
+            videoRefused.incrementAndGet()
+            return false
+        }
+        videoQueued.incrementAndGet()
+        val queued = outbox.trySend(current to Out.Raw(packet.encode())).isSuccess
+        if (!queued) videoQueued.decrementAndGet()
+        return queued
     }
 
     private suspend fun run(context: Context) {
@@ -273,8 +299,8 @@ object DisplayLink {
             socket.connect(InetSocketAddress(address, DISPLAY_PORT), CONNECT_TIMEOUT_MS)
             socket.soTimeout = HANDSHAKE_TIMEOUT_MS
             socket.tcpNoDelay = true
-            // Room for a key frame or two in flight.
-            socket.sendBufferSize = 512 * 1024
+            // Room for a key frame in flight, not for seconds of video waiting (see [videoQueued]).
+            socket.sendBufferSize = 128 * 1024
             val link = SecureChannel.client(
                 socket.getInputStream(), socket.getOutputStream(), display.id, display.secret,
                 onClose = { runCatching { socket.close() } }
