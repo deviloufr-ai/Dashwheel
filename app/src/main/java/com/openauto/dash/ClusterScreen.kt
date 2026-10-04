@@ -70,7 +70,7 @@ private fun ClusterFrame(config: SecondScreenConfig, shown: ClusterPage, all: Li
         // A TV (composite) crops the edges it calls overscan.
         val inset: Dp = (minOf(maxWidth, maxHeight) * overscanPct / 100f) + 12.dp
         Box(Modifier.fillMaxSize().padding(inset)) {
-            Crossfade(targetState = shown, animationSpec = tween(350), label = "cluster page") { p ->
+            Crossfade(targetState = shown, animationSpec = tween(150), label = "cluster page") { p ->
                 ClusterPageBody(config.layoutFor(p), env)
             }
         }

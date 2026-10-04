@@ -69,8 +69,13 @@ internal class StreamDisplay private constructor(
         private const val MIME = MediaFormat.MIMETYPE_VIDEO_AVC
         /** A key frame at least this often, so a display that lost one recovers even if the request is lost. */
         private const val KEY_FRAME_SECONDS = 2
-        /** An unchanging picture is still sent this often: the display's decoder never waits long. */
-        private const val REPEAT_AFTER_US = 250_000L
+        /**
+         * An unchanging picture is still sent at the full frame rate: the Pi's decoder
+         * holds a few frames back before showing one, so after a change (a page turned)
+         * the last frames would wait for the next ones. Repeats of a still picture
+         * cost next to nothing on the Wi-Fi.
+         */
+        private fun repeatAfterUs(fps: Int): Long = 1_000_000L / fps.coerceAtLeast(1)
 
         /**
          * A display of [width] × [height] at [dpi] streaming at [fps] and about
@@ -129,7 +134,7 @@ internal class StreamDisplay private constructor(
                 setInteger(MediaFormat.KEY_BIT_RATE, bitrateKbps * 1000)
                 setInteger(MediaFormat.KEY_FRAME_RATE, fps)
                 setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, KEY_FRAME_SECONDS)
-                setLong(MediaFormat.KEY_REPEAT_PREVIOUS_FRAME_AFTER, REPEAT_AFTER_US)
+                setLong(MediaFormat.KEY_REPEAT_PREVIOUS_FRAME_AFTER, repeatAfterUs(fps))
                 // Real time, not throughput.
                 setInteger(MediaFormat.KEY_PRIORITY, 0)
                 if (main) {
