@@ -32,7 +32,7 @@ A head unit's USB port gives 0.5–1 A. A Pi 3 needs up to 2.5 A, and the monito
   - **Relay and signal:** power the converter through a **12 V delay-off relay module**. It is fed from yellow and triggered by red (ACC), and keeps power on for about 60 s after the ignition goes off. Also feed ACC through a **PC817 optocoupler** module to GPIO3 (pin 5) and ground (pin 6), wired so the opto pulls GPIO3 low while ACC is on. Install with `--acc-sense`: when ACC goes off, GPIO3 rises and the Pi shuts down before the relay cuts power.
   - **Ready-made board:** use an ignition-sense power HAT (e.g. Mausberry car switch), which does the same in one module.
   - **Signal alternative:** the blue/white **REMOTE** (amplifier turn-on) wire follows the head unit's own power, sleep included. It can be the sense signal instead of ACC, but it carries only 100–300 mA: never power anything from it.
-- **Read-only card.** With `--overlay` too, a sudden power cut can't damage the card.
+- **Read-only card.** The card turns read-only by itself once a head unit has paired (step 5), so a sudden power cut can't damage it.
 
 ## 2. Video output
 
@@ -68,11 +68,13 @@ Run the same commands again to update. Settings and the pairing are kept.
 1. After the reboot, the monitor shows a **QR code**.
 2. In the Dashwheel **phone app**, tap **Pair a car** and scan the code on the monitor (the phone's camera app works too). Confirm **Send to the car**. The phone passes the code to the head unit over the phone link, so the head unit must be linked to the phone at that moment.
 3. The head unit connects to the Pi within a few seconds. The QR code disappears from the idle screen once a head unit has used it.
-4. Only now, if you want a read-only card: `sudo ./pi/install.sh ./dashwheel-display --overlay` (plus the flags you used before).
+4. The Pi then saves the pairing and turns its card **read-only** from its next start: from then on, cutting the power (the ignition) can't damage it. Nothing to do. To keep the card writable, put `read_only=manual` in `display.conf` before pairing.
 
 **Pairing without the phone app:** the code is also in `dashwheel/pairing.txt` on the SD card's boot partition. Copy it to a USB stick and use **Import a pairing file** in the head unit's second-screen settings.
 
-**New pairing:** delete `dashwheel/pairing.txt` (and `dashwheel/paired`), reboot, and pair again.
+**New pairing:** put the SD card in a computer, delete `dashwheel/pairing.txt` and `dashwheel/paired` on its boot partition, put it back and start the Pi: it shows a new code, even on a read-only card.
+
+**Updating the Pi** on a read-only card: turn that off first (`sudo raspi-config nonint do_overlayfs 1`, then restart), run the installer: the Pi turns read-only again by itself the next time a head unit connects.
 
 ## 6. Use
 

@@ -18,6 +18,8 @@ import java.util.Properties
  * sink=kms
  * # The whole GStreamer chain for the video, when the default doesn't suit a board.
  * video_pipeline=...
+ * # The card turns read-only once paired; manual: only with install.sh --overlay.
+ * read_only=manual
  * ```
  */
 data class DisplayConfig(
@@ -27,6 +29,8 @@ data class DisplayConfig(
     val height: Int? = null,
     val sink: Sink = Sink.KMS,
     val videoPipeline: String? = null,
+    /** The card turns read-only once a head unit has paired; false: only by hand (install.sh --overlay). */
+    val readOnlyAfterPairing: Boolean = true,
     val port: Int = com.openauto.dash.link.DISPLAY_PORT
 ) {
     enum class Sink(val element: String) {
@@ -59,6 +63,7 @@ data class DisplayConfig(
                 height = int("height")?.takeIf { it in 120..4096 },
                 sink = text("sink")?.let { s -> Sink.entries.firstOrNull { it.name.equals(s, ignoreCase = true) } } ?: Sink.KMS,
                 videoPipeline = text("video_pipeline"),
+                readOnlyAfterPairing = !text("read_only").equals("manual", ignoreCase = true),
                 port = int("port")?.takeIf { it in 1024..65535 } ?: defaults.port
             )
         }

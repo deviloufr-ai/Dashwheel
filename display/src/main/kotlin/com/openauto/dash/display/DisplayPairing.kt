@@ -11,7 +11,7 @@ import java.io.File
  * come for a few minutes ([Screen.pairingShown]). Delete the file to pair
  * afresh: every head unit that knew the old one then has to pair again.
  */
-class DisplayPairing(private val dir: File, name: String) {
+class DisplayPairing(val dir: File, name: String) {
 
     val offer: PairingOffer = load() ?: create(name)
 
@@ -25,8 +25,7 @@ class DisplayPairing(private val dir: File, name: String) {
     fun markUsed() {
         if (used) return
         used = true
-        // A read-only card keeps showing the code; that only costs a corner of the idle screen.
-        runCatching { File(dir, USED).writeText("") }
+        ReadOnlyCard.write(dir) { File(dir, USED).writeText("") }
     }
 
     private fun load(): PairingOffer? =
@@ -36,11 +35,12 @@ class DisplayPairing(private val dir: File, name: String) {
 
     private fun create(name: String): PairingOffer {
         val offer = PairingOffer.create(name, kind = PairingOffer.Kind.DISPLAY)
-        runCatching {
+        // Kept even on a read-only card (pairing afresh after deleting the file from a computer).
+        ReadOnlyCard.write(dir) {
             dir.mkdirs()
             File(dir, FILE).writeText(offer.toUri() + "\n")
             File(dir, USED).delete()
-        }.onFailure { System.err.println("could not save the pairing in $dir: $it") }
+        }
         return offer
     }
 

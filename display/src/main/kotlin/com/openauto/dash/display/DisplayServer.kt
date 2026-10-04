@@ -70,6 +70,7 @@ class DisplayServer(
         }
         log("head unit connected from ${socket.inetAddress.hostAddress}")
         pairing.markUsed()
+        if (config.readOnlyAfterPairing) ReadOnlyCard.turnOnFromNextStart(pairing.dir.parentFile ?: pairing.dir)
         try {
             session.send(hello)
             // Here before it has said a word: the idle screen stops offering the pairing code.

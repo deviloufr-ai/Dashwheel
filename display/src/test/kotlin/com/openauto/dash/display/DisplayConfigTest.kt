@@ -25,6 +25,7 @@ class DisplayConfigTest {
             sink=auto
             port=48000
             video_pipeline=fdsrc ! h264parse ! fakesink
+            read_only=manual
             """.trimIndent()
         )
         assertEquals("Rear screen", c.name)
@@ -34,6 +35,8 @@ class DisplayConfigTest {
         assertEquals(DisplayConfig.Sink.AUTO, c.sink)
         assertEquals(48000, c.port)
         assertEquals("fdsrc ! h264parse ! fakesink", c.videoPipeline)
+        assertEquals(false, c.readOnlyAfterPairing)
+        assertEquals(true, parse("read_only=after_pairing").readOnlyAfterPairing)
     }
 
     @Test

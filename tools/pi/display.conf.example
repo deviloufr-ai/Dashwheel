@@ -18,3 +18,7 @@ name=Dashwheel display
 # The whole GStreamer chain for the video, reading H.264 on stdin, when the
 # default (h264parse ! v4l2h264dec ! kmssink) doesn't suit a board.
 #video_pipeline=fdsrc fd=0 ! h264parse ! v4l2h264dec ! kmssink sync=false
+
+# The card turns read-only by itself once a head unit has paired, so cutting the
+# power can't harm it. manual: keep it writable (install.sh --overlay does it by hand).
+#read_only=manual
