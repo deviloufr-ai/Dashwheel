@@ -36,6 +36,8 @@ fun main(args: Array<String>) {
     val mode = if (config.width != null && config.height != null) ScreenMode(config.width, config.height)
     else detected ?: ScreenMode.FALLBACK
     log("screen ${mode.width}x${mode.height}" + if (detected == null) " (none detected, assumed)" else "")
+    PixelShape.detect(mode.width, mode.height)
+    if (PixelShape.kms != (1 to 1)) log("the monitor reports a size that is not its shape: pixels taken for ${PixelShape.kms.first}/${PixelShape.kms.second}")
 
     val hello = DisplayHello(
         name = config.name,

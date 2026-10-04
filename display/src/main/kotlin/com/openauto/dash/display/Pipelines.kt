@@ -14,12 +14,14 @@ object Pipelines {
      * VideoCore's hardware decoder (bcm2835-codec), whose NV12/I420 output
      * kmssink puts on a plane as it is, scaled by the display hardware.
      */
-    fun video(config: DisplayConfig, upsideDown: Boolean = false): List<String> {
+    fun video(config: DisplayConfig, upsideDown: Boolean = false, pixelShape: Pair<Int, Int> = 1 to 1): List<String> {
         config.videoPipeline?.let { return listOf(LAUNCH, "-q") + it.trim().split(Regex("\\s+")) }
         // A monitor mounted upside down: the decoded picture is turned before it is shown.
         val turn = if (upsideDown) "videoflip video-direction=180 ! " else ""
+        // The pixel shape kmssink takes the monitor to have, given to the picture too: they cancel out ([PixelShape]).
+        val shape = if (pixelShape == (1 to 1)) "" else "capssetter caps=video/x-raw,pixel-aspect-ratio=(fraction)${pixelShape.first}/${pixelShape.second} ! "
         val chain = when (config.sink) {
-            DisplayConfig.Sink.KMS -> "v4l2h264dec ! $turn${config.sink.element}"
+            DisplayConfig.Sink.KMS -> "v4l2h264dec ! $turn$shape${config.sink.element}"
             DisplayConfig.Sink.AUTO -> "avdec_h264 ! videoconvert ! $turn${config.sink.element}"
         }
         // The caps go after h264parse: fdsrc gives none, and GStreamer 1.26 (Trixie)

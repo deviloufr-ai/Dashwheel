@@ -19,7 +19,7 @@ class Screen(
     mode: ScreenMode,
     private val pairing: DisplayPairing,
     requestKeyFrame: () -> Unit,
-    private val startVideo: () -> VideoSink.Sink = { BootLogo.release(); GstVideoSink.start(Pipelines.video(config, Rotation.upsideDown)) },
+    private val startVideo: () -> VideoSink.Sink = { BootLogo.release(); GstVideoSink.start(Pipelines.video(config, Rotation.upsideDown, PixelShape.forStream())) },
     private val startFrames: (Int, Int) -> GstProcess? = { w, h ->
         BootLogo.release()
         GstProcess.startOrNull(Pipelines.frames(config, w, h), capacity = 1)
@@ -121,7 +121,15 @@ class Screen(
         }
     }
 
-    fun configureVideo(config: VideoConfig) = video.configure(config)
+    fun configureVideo(config: VideoConfig) {
+        // A stream of another size than the decoder was started for: started again, filling the screen.
+        val reshaped = PixelShape.streamIs(config.width, config.height)
+        video.configure(config)
+        if (reshaped) {
+            log("video: ${config.width}x${config.height}, decoder started again to fill the screen")
+            video.stop()
+        }
+    }
 
     /** The head unit's "Turn the picture": kept for the next start, shown at once. */
     @Synchronized
