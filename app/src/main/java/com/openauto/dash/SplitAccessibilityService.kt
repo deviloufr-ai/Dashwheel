@@ -91,7 +91,10 @@ class SplitAccessibilityService : AccessibilityService() {
         event ?: return
         when (event.eventType) {
             AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED,
-            AccessibilityEvent.TYPE_WINDOWS_CHANGED -> updateOverlayForSplit()
+            AccessibilityEvent.TYPE_WINDOWS_CHANGED -> {
+                updateOverlayForSplit()
+                checkProjectionOnScreen()
+            }
             else -> Unit
         }
     }
@@ -155,6 +158,27 @@ class SplitAccessibilityService : AccessibilityService() {
     /** Show the floating swap button while split, hide it otherwise. */
     private fun updateOverlayForSplit() {
         if (isInSplitMode()) showSwapOverlay() else hideSwapOverlay()
+    }
+
+    /**
+     * zlink says when CarPlay / Android Auto comes on screen but not always when
+     * it goes: with no zlink window left, it is gone, and the alerts are free of
+     * the pill again ([UnitSignals.projectionOnScreen]).
+     */
+    private fun checkProjectionOnScreen() {
+        if (!UnitSignals.projectionOnScreen.value) return
+        val shown = runCatching {
+            val all = windows ?: return
+            try {
+                all.any { w ->
+                    w.type == AccessibilityWindowInfo.TYPE_APPLICATION &&
+                        w.root?.let { root -> (root.packageName == UnitSignals.ZLINK_PACKAGE).also { recycle(root) } } == true
+                }
+            } finally {
+                recycle(all)
+            }
+        }.getOrDefault(true)
+        if (!shown) UnitSignals.projectionLeftScreen()
     }
 
     private fun toggleSplitScreen(): Boolean =

@@ -47,6 +47,14 @@ object UnitSignals {
     /** …and its screen is the one in front. */
     val projectionOnScreen: StateFlow<Boolean> = _projectionOnScreen
 
+    /** The app that shows CarPlay and Android Auto on this firmware. */
+    const val ZLINK_PACKAGE = "com.zjinnova.zlink"
+
+    /** No zlink window is on screen any more, whatever zlink last said. */
+    fun projectionLeftScreen() {
+        _projectionOnScreen.value = false
+    }
+
     private val main = Handler(Looper.getMainLooper())
     private var appContext: Context? = null
 
