@@ -60,15 +60,18 @@ class CarPhotoKitTest {
     }
 
     /** [img] on a flat colour, the way the Gemini app hands a cut-out car. */
-    private fun onFlat(img: Argb, bg: Int, mirrored: Boolean = false): Argb {
+    private fun onFlat(img: Argb, bg: Int, mirrored: Boolean = false, bg2: Int = bg, square: Int = 16): Argb {
         val pad = 60
         val w = img.w + 2 * pad
         val h = img.h + 2 * pad
-        val px = IntArray(w * h) { bg }
+        // bg2: the second colour of a drawn "transparent" checkerboard
+        fun back(x: Int, y: Int) = if ((x / square + y / square) % 2 == 0) bg else bg2
+        val px = IntArray(w * h) { back(it % w, it / w) }
         for (y in 0 until img.h) for (x in 0 until img.w) {
             val p = img.px[y * img.w + (if (mirrored) img.w - 1 - x else x)]
             val a = (p ushr 24) / 255.0
-            fun mix(sh: Int) = (((p shr sh) and 255) * a + ((bg shr sh) and 255) * (1 - a)).roundToInt()
+            val under = back(x + pad, y + pad)
+            fun mix(sh: Int) = (((p shr sh) and 255) * a + ((under shr sh) and 255) * (1 - a)).roundToInt()
             px[(y + pad) * w + x + pad] = (0xFF shl 24) or (mix(16) shl 16) or (mix(8) shl 8) or mix(0)
         }
         return Argb(w, h, px)
@@ -170,6 +173,43 @@ class CarPhotoKitTest {
         val s = score(r.top!!, "keyed")
         note("keyed renders: IoU %.3f, wheel err %.2f %%".format(Locale.ROOT, s.iou, s.wheelErr))
         assertTrue("IoU ${s.iou}", s.iou >= 0.93)
+    }
+
+    @Test
+    fun drawnCheckerboardIsKeyedLikeWhite() {
+        val side = load("side.png")
+        val white = 0xFFFFFFFF.toInt()
+        val flat = CarPhotoKit.cutOut(onFlat(side, white))
+        val checker = CarPhotoKit.cutOut(onFlat(side, white, bg2 = 0xFFCCCCCC.toInt()))
+        save(checker, "cutout_checker.png")
+        // the grey squares go too: the same car, not a car with tiles around it
+        assertEquals(flat.w.toDouble(), checker.w.toDouble(), flat.w * 0.02)
+        assertEquals(flat.h.toDouble(), checker.h.toDouble(), flat.h * 0.02)
+        fun solid(a: Argb) = a.px.count { (it ushr 24) > 128 }
+        assertEquals(solid(flat).toDouble(), solid(checker).toDouble(), solid(flat) * 0.03)
+        // a plain two-tone border that is no checkerboard keeps one key
+        assertEquals(1, CarPhotoKit.backgroundKeys(onFlat(side, 0xFF000000.toInt())).size)
+    }
+
+    @Test
+    fun paleRimOnWhiteIsPeeled() {
+        val side = load("side.png")
+        val white = 0xFFFFFFFF.toInt()
+        val clean = onFlat(side, white)
+        // a soft pale halo a few pixels wide around the car, as Gemini draws on white
+        val w = clean.w
+        val h = clean.h
+        val car = BooleanArray(w * h)
+        val pad = 60
+        for (y in 0 until side.h) for (x in 0 until side.w) if ((side.px[y * side.w + x] ushr 24) > 128) car[(y + pad) * w + x + pad] = true
+        val halo = CarPhotoKit.dilate(car, w, h, 6, 6)
+        val rimmed = Argb(w, h, IntArray(w * h) { i -> if (halo[i] && !car[i]) 0xFFE4E4E6.toInt() else clean.px[i] })
+        val flat = CarPhotoKit.cutOut(clean)
+        val peeled = CarPhotoKit.cutOut(rimmed)
+        save(peeled, "cutout_rim.png")
+        fun solid(a: Argb) = a.px.count { (it ushr 24) > 128 }
+        assertEquals(solid(flat).toDouble(), solid(peeled).toDouble(), solid(flat) * 0.03)
+        assertEquals(flat.w.toDouble(), peeled.w.toDouble(), flat.w * 0.02)
     }
 
     @Test

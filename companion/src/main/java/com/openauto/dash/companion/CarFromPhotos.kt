@@ -160,7 +160,14 @@ internal fun CarFromPhotosScreen(connected: Boolean, onClose: () -> Unit) {
             val decoded = withContext(Dispatchers.IO) { runCatching { keep(context, shot, uri) }.getOrNull() }
             busy = false
             if (decoded == null) Toast.makeText(context, R.string.car_look_failed, Toast.LENGTH_SHORT).show()
-            else shots[shot] = decoded
+            else {
+                shots[shot] = decoded
+                // The doors-open picture is drawn from the view from above: a new view leaves it behind.
+                if (shot == CarShot.ABOVE && CarShot.OPENED in shots) {
+                    shots.remove(CarShot.OPENED)
+                    withContext(Dispatchers.IO) { keptFile(context, CarShot.OPENED).delete() }
+                }
+            }
         }
     }
 
@@ -428,10 +435,15 @@ private fun cameraUri(context: Context, shot: CarShot): Uri {
     return FileProvider.getUriForFile(context, "${context.packageName}.logs", File(dir, "${shot.name.lowercase()}.jpg"))
 }
 
-/** A slot's photo as a JPEG in the app's shared folder, to hand to another app. */
+/**
+ * A slot's photo as a JPEG in the app's shared folder, to hand to another app.
+ * A new name each time: under the same one, Gemini showed the photo it got before.
+ */
 private fun shareUri(context: Context, shot: CarShot, photo: Argb): Uri {
     val dir = File(context.cacheDir, "car_photos").apply { mkdirs() }
-    val file = File(dir, "share_${shot.name.lowercase()}.jpg")
+    val prefix = "share_${shot.name.lowercase()}"
+    dir.listFiles { f -> f.name.startsWith(prefix) }?.forEach { it.delete() }
+    val file = File(dir, "${prefix}_${System.currentTimeMillis()}.jpg")
     val bitmap = photo.toBitmap()
     file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.JPEG, 92, it) }
     bitmap.recycle()

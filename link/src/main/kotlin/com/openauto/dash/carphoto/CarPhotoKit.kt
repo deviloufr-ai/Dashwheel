@@ -168,6 +168,15 @@ object CarPhotoKit {
     /** A flat background: border-connected pixels this close to the border's colour (0-255 RGB). */
     private const val KEY_DIST = 38
 
+    /** A checkerboard background: two light greys, each at least this share of the border. */
+    private const val CHECKER_SHARE = 0.2
+    private const val CHECKER_TINT = 24
+    private const val CHECKER_LIGHT = 150
+
+    /** A light background's rim: this near its colour, at most this deep (share of the picture's side). */
+    private const val PEEL_DIST = 60
+    private const val PEEL_DEPTH = 0.015
+
     /** ...and at least this close, on a perfectly flat one. */
     private const val KEY_MIN = 12
 
@@ -656,11 +665,8 @@ object CarPhotoKit {
         var clear = 0
         for (p in img.px) if ((p ushr 24) < 128) clear++
         if (clear > w * h / 100) return Cut(w, h, img.px, m)
-        val bg = borderMedian(img)
-        val br = (bg shr 16) and 255
-        val bgG = (bg shr 8) and 255
-        val bb = bg and 255
-        val lo = keyLimit(img, br, bgG, bb).toDouble()
+        val keys = backgroundKeys(img)
+        val lo = keyLimit(img, keys).toDouble()
         val hi = lo + MATTE_RANGE
         val inner = erode(m, w, h, MATTE_BAND, MATTE_BAND)
         val px = img.px.copyOf()
@@ -668,6 +674,10 @@ object CarPhotoKit {
         for (i in 0 until w * h) {
             if (!m[i] || inner[i]) continue
             val p = px[i]
+            val bg = nearest(p, keys)
+            val br = (bg shr 16) and 255
+            val bgG = (bg shr 8) and 255
+            val bb = bg and 255
             val dr = ((p shr 16) and 255) - br
             val dg = ((p shr 8) and 255) - bgG
             val db = (p and 255) - bb
@@ -699,25 +709,16 @@ object CarPhotoKit {
             m = BooleanArray(n) { (img.px[it] ushr 24) > 128 }
             m = keepCar(m, w, h)
         } else {
-            val bg = borderMedian(img)
-            val br = (bg shr 16) and 255
-            val bgG = (bg shr 8) and 255
-            val bb = bg and 255
-            val lim = keyLimit(img, br, bgG, bb).let { it * it }
-            val near = BooleanArray(n)
-            for (i in 0 until n) {
-                val p = img.px[i]
-                val dr = ((p shr 16) and 255) - br
-                val dg = ((p shr 8) and 255) - bgG
-                val db = (p and 255) - bb
-                near[i] = dr * dr + dg * dg + db * db < lim
-            }
+            val keys = backgroundKeys(img)
+            val lim = keyLimit(img, keys).let { it * it }
+            val near = BooleanArray(n) { distance2(img.px[it], keys) < lim }
             val back = flood(near, w, h, true)
             m = BooleanArray(n) { !back[it] }
             m = dilate(erode(m, w, h, 1, 1), w, h, 1, 1)
             m = keepCar(m, w, h)
             val r = max(2, (max(w, h) * 0.004).roundToInt())
             m = erode(dilate(m, w, h, r, r), w, h, r, r)
+            peel(img, m, keys, lim)
         }
         fillHoles(m, w, h)
         return m
@@ -728,13 +729,10 @@ object CarPhotoKit {
      * a clean flat background (so near-black tyres on black stay), up to
      * [KEY_DIST] on a noisy one (a JPEG).
      */
-    private fun keyLimit(img: Argb, r: Int, g: Int, b: Int): Int {
+    private fun keyLimit(img: Argb, keys: IntArray): Int {
         val d = ArrayList<Int>()
         fun add(p: Int) {
-            val dr = ((p shr 16) and 255) - r
-            val dg = ((p shr 8) and 255) - g
-            val db = (p and 255) - b
-            d.add(sqrt((dr * dr + dg * dg + db * db).toDouble()).roundToInt())
+            d.add(sqrt(distance2(p, keys).toDouble()).roundToInt())
         }
         for (x in 0 until img.w) { add(img.px[x]); add(img.px[(img.h - 1) * img.w + x]) }
         for (y in 1 until img.h - 1) { add(img.px[y * img.w]); add(img.px[y * img.w + img.w - 1]) }
@@ -742,6 +740,103 @@ object CarPhotoKit {
         val noise = d[(d.size * 0.6).toInt().coerceAtMost(d.size - 1)]
         return (KEY_MIN + 3 * noise).coerceAtMost(KEY_DIST)
     }
+
+    /**
+     * The background's colours: the border's middle one, and with it the
+     * second colour of a "transparent" checkerboard an image AI drew instead of
+     * real transparency (white and grey squares), so both drop out.
+     */
+    internal fun backgroundKeys(img: Argb): IntArray {
+        val median = borderMedian(img)
+        // the border's colours in coarse bins, with each bin's mean
+        val count = IntArray(4096)
+        val sum = Array(3) { LongArray(4096) }
+        var total = 0
+        fun add(p: Int) {
+            val r = (p shr 16) and 255
+            val g = (p shr 8) and 255
+            val b = p and 255
+            val k = (r shr 4 shl 8) or (g shr 4 shl 4) or (b shr 4)
+            count[k]++; sum[0][k] += r.toLong(); sum[1][k] += g.toLong(); sum[2][k] += b.toLong()
+            total++
+        }
+        for (x in 0 until img.w) { add(img.px[x]); add(img.px[(img.h - 1) * img.w + x]) }
+        for (y in 1 until img.h - 1) { add(img.px[y * img.w]); add(img.px[y * img.w + img.w - 1]) }
+        fun mean(k: Int) = (0xFF shl 24) or
+            ((sum[0][k] / count[k]).toInt() shl 16) or ((sum[1][k] / count[k]).toInt() shl 8) or (sum[2][k] / count[k]).toInt()
+        fun grey(c: Int): Boolean {
+            val r = (c shr 16) and 255; val g = (c shr 8) and 255; val b = c and 255
+            return max(r, max(g, b)) - min(r, min(g, b)) <= CHECKER_TINT && (r + g + b) / 3 >= CHECKER_LIGHT
+        }
+        // the two biggest bins, each counted with the bins right around it (JPEG noise)
+        fun around(k: Int): Int {
+            var n = 0
+            for (dr in -1..1) for (dg in -1..1) for (db in -1..1) {
+                val r = (k shr 8) + dr; val g = ((k shr 4) and 15) + dg; val b = (k and 15) + db
+                if (r in 0..15 && g in 0..15 && b in 0..15) n += count[(r shl 8) or (g shl 4) or b]
+            }
+            return n
+        }
+        val first = count.indices.maxByOrNull { count[it] } ?: return intArrayOf(median)
+        fun far(k: Int) = abs((k shr 8) - (first shr 8)) > 1 || abs(((k shr 4) and 15) - ((first shr 4) and 15)) > 1 || abs((k and 15) - (first and 15)) > 1
+        val second = count.indices.filter { count[it] > 0 && far(it) }.maxByOrNull { count[it] } ?: return intArrayOf(median)
+        val a = mean(first)
+        val b = mean(second)
+        val checker = around(first) >= total * CHECKER_SHARE && around(second) >= total * CHECKER_SHARE && grey(a) && grey(b)
+        return if (checker) intArrayOf(a, b) else intArrayOf(median)
+    }
+
+    /**
+     * The rim left around a car drawn on a light background: its soft shadow,
+     * smoothing and JPEG blur are too far from the background's colour to key,
+     * so they stand as a ragged pale edge. Pixels still near the background
+     * (within [PEEL_DIST]) come off the outline layer by layer, up to
+     * [PEEL_DEPTH] of the picture, and stop at the car's own darker edge.
+     */
+    private fun peel(img: Argb, m: BooleanArray, keys: IntArray, keyed: Int) {
+        val w = img.w
+        val h = img.h
+        // only a light background has such a rim; on black the near-black tyres would go
+        val k = keys[0]
+        if ((((k shr 16) and 255) + ((k shr 8) and 255) + (k and 255)) / 3 < CHECKER_LIGHT) return
+        val lim = max(keyed, PEEL_DIST * PEEL_DIST)
+        val depth = max(2, (max(w, h) * PEEL_DEPTH).roundToInt())
+        var edge = ArrayList<Int>()
+        fun outside(i: Int, x: Int, y: Int) = x == 0 || y == 0 || x == w - 1 || y == h - 1 ||
+            !m[i - 1] || !m[i + 1] || !m[i - w] || !m[i + w]
+        for (y in 0 until h) for (x in 0 until w) {
+            val i = y * w + x
+            if (m[i] && outside(i, x, y) && distance2(img.px[i], keys) < lim) edge.add(i)
+        }
+        repeat(depth) {
+            if (edge.isEmpty()) return
+            for (i in edge) m[i] = false
+            val next = ArrayList<Int>()
+            for (i in edge) {
+                val x = i % w
+                for (j in intArrayOf(i - 1, i + 1, i - w, i + w)) {
+                    if (j < 0 || j >= w * h || abs(j % w - x) > 1 || !m[j]) continue
+                    if (distance2(img.px[j], keys) < lim) { m[j] = false; next.add(j) }
+                }
+            }
+            edge = next
+        }
+    }
+
+    /** The squared distance from [p] to the nearest of [keys]. */
+    private fun distance2(p: Int, keys: IntArray): Int {
+        var best = Int.MAX_VALUE
+        for (k in keys) {
+            val dr = ((p shr 16) and 255) - ((k shr 16) and 255)
+            val dg = ((p shr 8) and 255) - ((k shr 8) and 255)
+            val db = (p and 255) - (k and 255)
+            best = min(best, dr * dr + dg * dg + db * db)
+        }
+        return best
+    }
+
+    /** The one of [keys] nearest [p]. */
+    private fun nearest(p: Int, keys: IntArray): Int = keys.minByOrNull { distance2(p, intArrayOf(it)) } ?: keys[0]
 
     /** The middle colour of the picture's border, channel by channel. */
     private fun borderMedian(img: Argb): Int {
