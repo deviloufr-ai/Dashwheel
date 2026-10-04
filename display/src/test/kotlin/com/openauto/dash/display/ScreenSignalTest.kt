@@ -26,10 +26,10 @@ class ScreenSignalTest {
     private var now = 0L
     private val sinks = mutableListOf<FakeSink>()
 
-    private fun screen(): Screen {
+    private fun screen(pairing: DisplayPairing = DisplayPairing(tmp.root, "Test display")): Screen {
         val config = DisplayConfig(name = "Test display")
         return Screen(
-            config, ScreenMode(1024, 600), DisplayPairing(tmp.root, config.name), requestKeyFrame = {},
+            config, ScreenMode(1024, 600), pairing, requestKeyFrame = {},
             startVideo = { FakeSink().also { sinks += it } }, startFrames = { _, _ -> null }, logo = null, showOnConsole = {},
             uptimeMs = { now }
         )
@@ -87,5 +87,42 @@ class ScreenSignalTest {
             screen.refresh()
         }
         assertFalse(screen.signalLost)
+    }
+
+    @Test
+    fun aPairedDisplayOffersItsCodeAgainOnceNoHeadUnitComes() {
+        val pairing = DisplayPairing(tmp.root, "Test display")
+        val screen = screen(pairing)
+        // Never paired: the code is there from the start.
+        assertTrue(screen.pairingShown)
+        pairing.markUsed()
+        screen.heard()
+        screen.idle()
+        assertFalse(screen.pairingShown)
+        // The head unit is expected back: the logo stays alone.
+        now += Screen.PAIR_AGAIN_MS
+        screen.refresh()
+        assertFalse(screen.pairingShown)
+        // Forgotten there, or gone for good: the code comes back by itself.
+        now += 1
+        screen.refresh()
+        assertTrue(screen.pairingShown)
+        // A head unit that still knows the display takes it away again.
+        screen.heard()
+        assertFalse(screen.pairingShown)
+    }
+
+    @Test
+    fun aDisplayStartedWithoutItsHeadUnitWaitsBeforeOfferingItsCode() {
+        val pairing = DisplayPairing(tmp.root, "Test display").apply { markUsed() }
+        now = 5_000_000
+        val screen = screen(pairing)
+        now += Screen.PAIR_AGAIN_MS
+        assertFalse(screen.pairingShown)
+        now += 1
+        assertTrue(screen.pairingShown)
+        // Never over the head unit's readings.
+        screen.data(ClusterState(clock = 1, speedKmh = 30))
+        assertFalse(screen.pairingShown)
     }
 }

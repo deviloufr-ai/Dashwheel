@@ -15,6 +15,7 @@ import android.provider.Settings
 import android.text.format.DateUtils
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -148,7 +149,9 @@ class MainActivity : ComponentActivity() {
     private var offer by mutableStateOf<PairingOffer?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
+        // The companion is dark whatever the phone's theme: light icons on both bars.
+        val bars = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
+        enableEdgeToEdge(statusBarStyle = bars, navigationBarStyle = bars)
         super.onCreate(savedInstanceState)
         PairedUnits.load(this)
         CarSpot.load(this)
@@ -252,6 +255,9 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
         else ask(context, arrayOf(Manifest.permission.BLUETOOTH_CONNECT)) { askBluetooth.launch(it.single()) }
     }
     val onAuto: (Boolean) -> Unit = { on -> if (on) pick(BluetoothPick.CAR) else CarBluetooth.choose(context, null) }
+    // What "Type on the car" holds, kept here so a rotation, another tab or the link dropping
+    // doesn't empty it while the car's field still shows the text.
+    var typed by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
     // The car from three photos takes the whole screen while open.
     var fromPhotos by rememberSaveable { mutableStateOf(false) }
     if (fromPhotos) {
@@ -327,7 +333,7 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
                     } else {
                         if (setup.missing > 0) item { SetupNudge(setup.missing, onOpen = { tab = Tab.SETUP }) }
                         if (news.isNotEmpty()) item { CarNewsCard(news) }
-                        if (connected) item { KeyboardCard() }
+                        item { KeyboardCard(typed, onField = { typed = it }, connected = connected) }
                         item { CarSpotCard() }
                     }
                 }
@@ -482,10 +488,23 @@ private fun AppVersionCard(update: CompanionUpdate.Status) {
         return
     }
     val version = remember { runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull().orEmpty() }
+    // "Up to date" only once GitHub has answered; a check that failed says so.
+    val check by CompanionUpdate.checked.collectAsState()
+    val (line, tint) = when (val c = check) {
+        CompanionUpdate.Check.Never -> stringResource(R.string.update_auto_detail) to CompanionColors.Blue
+        CompanionUpdate.Check.Checking -> stringResource(R.string.update_checking) to CompanionColors.Blue
+        is CompanionUpdate.Check.Done ->
+            stringResource(R.string.update_checked_at, android.text.format.DateFormat.getTimeFormat(context).format(Date(c.at))) to CompanionColors.Teal
+        CompanionUpdate.Check.Failed -> stringResource(R.string.update_check_failed) to CompanionColors.Amber
+    }
     Panel {
         Column(Modifier.padding(18.dp)) {
-            CardHeading(Icons.Filled.SystemUpdate, stringResource(R.string.update_installed, version), stringResource(R.string.update_auto_detail), CompanionColors.Teal)
-            OutlinedButton(onClick = { CompanionUpdate.check(context, force = true) }, modifier = Modifier.padding(top = 12.dp)) {
+            CardHeading(Icons.Filled.SystemUpdate, stringResource(R.string.update_installed, version), line, tint)
+            OutlinedButton(
+                onClick = { CompanionUpdate.check(context, force = true) },
+                enabled = check != CompanionUpdate.Check.Checking,
+                modifier = Modifier.padding(top = 12.dp)
+            ) {
                 Text(stringResource(R.string.update_check))
             }
         }
@@ -663,16 +682,15 @@ private fun HeroCard(
  * the car's screen follows this one as it is typed, and Enter runs it there.
  */
 @Composable
-private fun KeyboardCard() {
+private fun KeyboardCard(field: TextFieldValue, onField: (TextFieldValue) -> Unit, connected: Boolean) {
     val context = LocalContext.current
-    var field by remember { mutableStateOf(TextFieldValue("")) }
     // Only the answers to what was sent from here: not a share from earlier.
-    var sentHere by remember { mutableStateOf(false) }
+    var sentHere by rememberSaveable { mutableStateOf(false) }
     val answer by CarKeyboard.answer.collectAsState()
 
     fun change(value: TextFieldValue) {
         val changed = value.text != field.text
-        field = value
+        onField(value)
         if (changed) {
             sentHere = true
             CarKeyboard.send(value.text, TypeText.Mode.REPLACE)
@@ -686,10 +704,16 @@ private fun KeyboardCard() {
 
     Panel {
         Column(Modifier.padding(18.dp)) {
-            CardHeading(Icons.Filled.Keyboard, stringResource(R.string.keyboard_title), stringResource(R.string.keyboard_detail))
+            // Without the car the card stays, greyed: what was typed is still on the car's field.
+            CardHeading(
+                Icons.Filled.Keyboard, stringResource(R.string.keyboard_title),
+                stringResource(if (connected) R.string.keyboard_detail else R.string.keyboard_not_connected),
+                if (connected) CompanionColors.Blue else CompanionColors.Muted
+            )
             OutlinedTextField(
                 value = field,
                 onValueChange = ::change,
+                enabled = connected,
                 modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
                 placeholder = { Text(stringResource(R.string.keyboard_hint)) },
                 shape = MaterialTheme.shapes.medium,
@@ -697,7 +721,7 @@ private fun KeyboardCard() {
                 keyboardActions = KeyboardActions(onGo = { enter() }),
                 maxLines = 4
             )
-            answer?.takeIf { sentHere }?.let { a ->
+            answer?.takeIf { sentHere && connected }?.let { a ->
                 val good = a.status == CarKeyboard.Status.TYPED || a.status == CarKeyboard.Status.TYPING_ON
                 Text(
                     stringResource(CarKeyboard.message(a.status)),
@@ -713,7 +737,7 @@ private fun KeyboardCard() {
                 }
             }
             Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = {
+                OutlinedButton(enabled = connected, onClick = {
                     // The phone's clipboard, at the cursor: the car's field follows.
                     val clip = context.getSystemService(ClipboardManager::class.java)?.primaryClip
                     val text = clip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(context)?.toString()
@@ -728,9 +752,9 @@ private fun KeyboardCard() {
                     Spacer(Modifier.width(8.dp))
                     Text(stringResource(R.string.keyboard_paste))
                 }
-                TextButton(onClick = { change(TextFieldValue("")) }) { Text(stringResource(R.string.keyboard_clear)) }
+                TextButton(onClick = { change(TextFieldValue("")) }, enabled = connected) { Text(stringResource(R.string.keyboard_clear)) }
                 Spacer(Modifier.weight(1f))
-                Button(onClick = ::enter) {
+                Button(onClick = ::enter, enabled = connected) {
                     Icon(Icons.AutoMirrored.Filled.KeyboardReturn, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
                     Text(stringResource(R.string.keyboard_enter))

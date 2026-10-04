@@ -166,6 +166,9 @@
     <string name="car_photos_change">Een foto wijzigen</string>
     <string name="car_photos_not_found">Geen auto gevonden op de foto %1$s. Gebruik er een met de hele auto op een effen achtergrond.</string>
     <string name="car_photos_close">Sluiten</string>
+    <string name="car_photos_discard_title">Deze foto\'s weggooien?</string>
+    <string name="car_photos_discard_body">De hier gekozen foto\'s worden niet bewaard.</string>
+    <string name="car_photos_discard">Weggooien</string>
     <string name="car_photos_above">Van boven</string>
     <string name="car_photos_above_hint">Optioneel: die Gemini tekent</string>
     <string name="car_photos_gemini">Bovenaanzicht tekenen in Gemini</string>
@@ -192,7 +195,10 @@
     <string name="update_later">Later</string>
     <string name="update_check">Zoeken naar updates</string>
     <string name="update_installed">Versie %1$s</string>
-    <string name="update_auto_detail">Bijgewerkt. Nieuwe versies downloaden vanzelf via wifi.</string>
+    <string name="update_auto_detail">Nieuwe versies downloaden vanzelf via wifi.</string>
+    <string name="update_checking">Zoeken naar updates…</string>
+    <string name="update_checked_at">Bijgewerkt. Gecontroleerd om %1$s.</string>
+    <string name="update_check_failed">Controleren lukte niet. Is de telefoon online?</string>
     <string name="update_allow_installs">Sta installaties vanuit deze app toe en tik dan opnieuw op Installeren.</string>
     <string name="update_channel">Updates</string>
     <plurals name="setup_left">

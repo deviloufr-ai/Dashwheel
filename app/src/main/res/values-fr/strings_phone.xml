@@ -14,6 +14,8 @@
     <string name="phone_unnamed">Téléphone</string>
     <string name="phone_forgotten">Retiré sur le téléphone : associez-le à nouveau</string>
     <string name="phone_forget">Oublier</string>
+    <string name="phone_forget_title">Oublier %1$s ?</string>
+    <string name="phone_forget_body">Ses messages et ses appels ne s\'afficheront plus ici. Il faudra un nouveau code pour l\'associer à nouveau.</string>
     <string name="phone_pair_title">Associer un téléphone</string>
     <string name="phone_pair_step1">1. Installez Dashwheel Compagnon sur le téléphone : scannez ce code avec son appareil photo.</string>
     <string name="phone_pair_step2">2. Activez le partage de connexion Wi-Fi du téléphone et connectez-y cet autoradio.</string>

@@ -129,12 +129,39 @@ data class ClusterState(
     val obdConnected: Boolean = false,
     /** Show miles and mph. */
     val imperial: Boolean = false,
+    /** The speed's unit as the head unit writes it, e.g. "km/h"; null from an older head unit. */
+    val speedUnit: String? = null,
+    /** Show the coolant in °F. */
+    val fahrenheit: Boolean = false,
+    /** Show the clock as "2:05 PM" rather than "14:05". */
+    val clock12: Boolean = false,
     val night: Boolean = false,
     /** The dashboard's accent colour, ARGB. */
     val accent: Long = 0xFF4FC3F7,
     val media: Media? = null,
-    val nav: Nav? = null
+    val nav: Nav? = null,
+    /** The cluster's own words in the head unit's language; null from an older head unit. */
+    val labels: Labels? = null
 ) : LinkMessage {
+    /**
+     * What the Pi prints around the figures, as the head unit would write it.
+     * Each one may be missing: the Pi then keeps its own English.
+     */
+    @Serializable
+    data class Labels(
+        /** The open doors' line, with %s where their names go, e.g. "Open: %s". */
+        val open: String? = null,
+        val nothingPlaying: String? = null,
+        val noRoute: String? = null,
+        /** The arrival line, with %s where the time goes, e.g. "Arrive %s". */
+        val arrive: String? = null,
+        val rpm: String? = null,
+        val coolant: String? = null,
+        val fuel: String? = null,
+        /** Under the range, its unit included, e.g. "km range". */
+        val range: String? = null
+    )
+
     @Serializable
     data class Media(
         val title: String,

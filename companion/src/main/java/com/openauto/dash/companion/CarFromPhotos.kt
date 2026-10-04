@@ -41,7 +41,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -51,13 +53,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -128,15 +133,31 @@ internal fun CarFromPhotosScreen(connected: Boolean, onClose: () -> Unit) {
     val shots = remember { mutableStateMapOf<CarShot, Shot>() }
     var built by remember { mutableStateOf<Built.Car?>(null) }
     var busy by remember { mutableStateOf(false) }
-    // The slot a camera or gallery answer is for.
-    var asking by remember { mutableStateOf<CarShot?>(null) }
+    // The slot a camera or gallery answer is for; saved, as turning the phone for the picture
+    // (or Android closing the app behind the camera) restarts this screen before the answer comes.
+    var asking by rememberSaveable { mutableStateOf<CarShot?>(null) }
     var menuFor by remember { mutableStateOf<CarShot?>(null) }
+    var discarding by rememberSaveable { mutableStateOf(false) }
+    // This car went to the car's screen: closing then loses nothing worth asking about.
+    var sent by rememberSaveable { mutableStateOf(false) }
     val status by CarLookSender.status.collectAsState()
+
+    // Back after such a restart: the photos already picked, from their kept files.
+    var restoring by remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) {
+        for (shot in CarShot.entries) {
+            if (shot in shots) continue
+            val kept = withContext(Dispatchers.IO) { runCatching { keptFile(context, shot).takeIf { it.exists() }?.let(::decode) }.getOrNull() }
+            // A photo picked meanwhile is the newer one.
+            if (kept != null && shot !in shots) shots[shot] = kept
+        }
+        restoring = false
+    }
 
     fun take(shot: CarShot, uri: Uri) {
         busy = true
         scope.launch {
-            val decoded = withContext(Dispatchers.IO) { runCatching { decode(context, uri) }.getOrNull() }
+            val decoded = withContext(Dispatchers.IO) { runCatching { keep(context, shot, uri) }.getOrNull() }
             busy = false
             if (decoded == null) Toast.makeText(context, R.string.car_look_failed, Toast.LENGTH_SHORT).show()
             else shots[shot] = decoded
@@ -211,7 +232,13 @@ internal fun CarFromPhotosScreen(connected: Boolean, onClose: () -> Unit) {
         }
     }
 
-    BackHandler(onBack = onClose)
+    val discard = {
+        CarShot.entries.forEach { keptFile(context, it).delete() }
+        onClose()
+    }
+    // Photos picked (or still coming back) and nothing sent: closing asks first.
+    val close = { if ((shots.isEmpty() && !restoring) || (sent && status == CarLookSender.Status.SENT)) discard() else discarding = true }
+    BackHandler(onBack = close)
     Surface(color = CompanionColors.Background, modifier = Modifier.fillMaxSize()) {
         Column(
             Modifier
@@ -227,7 +254,7 @@ internal fun CarFromPhotosScreen(connected: Boolean, onClose: () -> Unit) {
                     stringResource(if (built == null) R.string.car_photos_title else R.string.car_photos_result),
                     style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f)
                 )
-                IconButton(onClick = onClose) { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.car_photos_close)) }
+                IconButton(onClick = close) { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.car_photos_close)) }
             }
             val car = built
             if (car == null) {
@@ -252,17 +279,17 @@ internal fun CarFromPhotosScreen(connected: Boolean, onClose: () -> Unit) {
                 val photosIn = CarShot.entries.filter { it.needed }.all { it in shots }
                 OutlinedButton(
                     onClick = { askGemini(listOf(CarShot.SIDE, CarShot.FRONT, CarShot.BACK), R.string.car_photos_gemini_prompt) },
-                    enabled = !busy && photosIn,
+                    enabled = !busy && !restoring && photosIn,
                     modifier = Modifier.fillMaxWidth().padding(top = 16.dp).height(50.dp)
                 ) { Text(stringResource(R.string.car_photos_gemini)) }
                 OutlinedButton(
                     onClick = { askGemini(listOf(CarShot.ABOVE), R.string.car_photos_gemini_open_prompt) },
-                    enabled = !busy && CarShot.ABOVE in shots,
+                    enabled = !busy && !restoring && CarShot.ABOVE in shots,
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp).height(50.dp)
                 ) { Text(stringResource(R.string.car_photos_gemini_open)) }
                 Button(
                     onClick = { build() },
-                    enabled = !busy && photosIn,
+                    enabled = !busy && !restoring && photosIn,
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp).height(50.dp)
                 ) {
                     if (busy) {
@@ -301,6 +328,7 @@ internal fun CarFromPhotosScreen(connected: Boolean, onClose: () -> Unit) {
                 }
                 Button(
                     onClick = {
+                        sent = true
                         scope.launch {
                             val pack = withContext(Dispatchers.Default) { packOf(car.result) }
                             CarLookSender.send(pack)
@@ -315,6 +343,22 @@ internal fun CarFromPhotosScreen(connected: Boolean, onClose: () -> Unit) {
                 ) { Text(stringResource(R.string.car_photos_change)) }
             }
         }
+    }
+
+    if (discarding) {
+        AlertDialog(
+            onDismissRequest = { discarding = false },
+            containerColor = CompanionColors.SurfaceHigh,
+            title = { Text(stringResource(R.string.car_photos_discard_title)) },
+            text = { Text(stringResource(R.string.car_photos_discard_body)) },
+            confirmButton = {
+                Button(
+                    onClick = { discarding = false; discard() },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) { Text(stringResource(R.string.car_photos_discard)) }
+            },
+            dismissButton = { TextButton(onClick = { discarding = false }) { Text(stringResource(R.string.cancel)) } }
+        )
     }
 }
 
@@ -394,9 +438,31 @@ private fun shareUri(context: Context, shot: CarShot, photo: Argb): Uri {
     return FileProvider.getUriForFile(context, "${context.packageName}.logs", file)
 }
 
+/**
+ * A slot's photo as it was picked, kept until the builder is closed: the slots
+ * are filled from these again when Android restarts the screen (the phone
+ * turned for the picture, the app closed behind the camera).
+ */
+private fun keptFile(context: Context, shot: CarShot): File =
+    File(File(context.cacheDir, "car_photos").apply { mkdirs() }, "kept_${shot.name.lowercase()}")
+
+/** The photo at [uri] kept as its slot's file, then decoded; one that is no picture is not kept. */
+private fun keep(context: Context, shot: CarShot, uri: Uri): Shot {
+    val kept = keptFile(context, shot)
+    val incoming = File(kept.path + ".new")
+    try {
+        context.contentResolver.openInputStream(uri)!!.use { input -> incoming.outputStream().use { input.copyTo(it) } }
+        // Swapped in whole and before the slow decoding: a restart meanwhile finds the photo, never half of it.
+        check(incoming.renameTo(kept))
+    } finally {
+        incoming.delete()
+    }
+    return runCatching { decode(kept) }.onFailure { kept.delete() }.getOrThrow()
+}
+
 /** A photo decoded upright (camera rotation applied) and no bigger than needed. */
-private fun decode(context: Context, uri: Uri): Shot {
-    val source = ImageDecoder.createSource(context.contentResolver, uri)
+private fun decode(file: File): Shot {
+    val source = ImageDecoder.createSource(file)
     val bitmap = ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
         decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
         val longest = max(info.size.width, info.size.height)

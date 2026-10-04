@@ -167,6 +167,9 @@
     <string name="car_photos_change">Change a photo</string>
     <string name="car_photos_not_found">No car found in the %1$s photo. Use one with the whole car on a plain background.</string>
     <string name="car_photos_close">Close</string>
+    <string name="car_photos_discard_title">Discard these photos?</string>
+    <string name="car_photos_discard_body">The photos chosen here are not kept.</string>
+    <string name="car_photos_discard">Discard</string>
     <string name="car_photos_above">From above</string>
     <string name="car_photos_above_hint">Optional: the one Gemini draws</string>
     <string name="car_photos_gemini">Draw the view from above in Gemini</string>
@@ -194,7 +197,10 @@
     <string name="update_later">Later</string>
     <string name="update_check">Check for updates</string>
     <string name="update_installed">Version %1$s</string>
-    <string name="update_auto_detail">Up to date. New versions download by themselves on Wi-Fi.</string>
+    <string name="update_auto_detail">New versions download by themselves on Wi-Fi.</string>
+    <string name="update_checking">Checking for updates…</string>
+    <string name="update_checked_at">Up to date. Checked at %1$s.</string>
+    <string name="update_check_failed">Could not check. Is the phone online?</string>
     <string name="update_allow_installs">Allow installs from this app, then tap Install again.</string>
     <string name="update_channel">Updates</string>
     <plurals name="setup_left">

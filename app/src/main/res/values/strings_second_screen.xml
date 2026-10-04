@@ -13,6 +13,7 @@
     <string name="second_screen_import_detail">pairing.txt from the screen\'s SD card, copied to a USB stick</string>
     <string name="second_screen_import_failed">That file is not a second-screen pairing</string>
     <string name="second_screen_import_done">Paired with %1$s</string>
+    <string name="second_screen_forget_body">The screen shows its code again after about 3 minutes. Scan it to pair again.</string>
     <string name="second_screen_show">What it shows</string>
     <string name="second_screen_mode_off">Off</string>
     <string name="second_screen_mode_cluster">Cluster</string>
@@ -32,6 +33,10 @@
     <string name="second_screen_quality_detail">Lower is lighter on the phone\'s Wi-Fi.</string>
     <string name="second_screen_output_video">Streaming the picture · %1$d kbit/s</string>
     <string name="second_screen_output_data">Sending readings; the screen draws the cluster</string>
+    <string name="second_screen_label_open">Open: %1$s</string>
+    <string name="second_screen_label_arrive">Arrive %1$s</string>
+    <string name="second_screen_label_fuel">fuel</string>
+    <string name="second_screen_label_range">%1$s range</string>
     <string name="second_screen_blocked_moving">Video apps wait until the car stops, unless it is a rear-seat screen</string>
     <string name="second_screen_blocked_apps">Apps on the second screen need a rooted head unit on Android 10 or 11. The cluster shows instead.</string>
     <string name="second_screen_blocked_no_video">This screen can only draw the cluster from readings</string>

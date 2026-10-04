@@ -14,6 +14,8 @@
     <string name="phone_unnamed">Telefoon</string>
     <string name="phone_forgotten">Verwijderd op de telefoon: koppel opnieuw</string>
     <string name="phone_forget">Vergeten</string>
+    <string name="phone_forget_title">%1$s vergeten?</string>
+    <string name="phone_forget_body">Berichten en oproepen verschijnen hier niet meer. Opnieuw koppelen vraagt een nieuwe code.</string>
     <string name="phone_pair_title">Telefoon koppelen</string>
     <string name="phone_pair_step1">1. Installeer Dashwheel Companion op de telefoon: scan deze code met de camera.</string>
     <string name="phone_pair_step2">2. Zet de wifi-hotspot van de telefoon aan en verbind deze autoradio ermee.</string>

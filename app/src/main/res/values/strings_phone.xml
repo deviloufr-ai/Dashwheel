@@ -15,6 +15,8 @@
     <string name="phone_unnamed">Phone</string>
     <string name="phone_forgotten">Removed on the phone: pair it again</string>
     <string name="phone_forget">Forget</string>
+    <string name="phone_forget_title">Forget %1$s?</string>
+    <string name="phone_forget_body">Its messages and calls stop showing here. Pairing again needs a new code.</string>
     <string name="phone_pair_title">Pair a phone</string>
     <string name="phone_pair_step1">1. Install Dashwheel Companion on the phone: scan this code with its camera.</string>
     <string name="phone_pair_step2">2. Turn on the phone\'s Wi-Fi hotspot and connect this head unit to it.</string>

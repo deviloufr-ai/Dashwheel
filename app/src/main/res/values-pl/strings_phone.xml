@@ -14,6 +14,8 @@
     <string name="phone_unnamed">Telefon</string>
     <string name="phone_forgotten">Usunięto w telefonie: sparuj ponownie</string>
     <string name="phone_forget">Zapomnij</string>
+    <string name="phone_forget_title">Zapomnieć %1$s?</string>
+    <string name="phone_forget_body">Wiadomości i połączenia przestaną się tu pojawiać. Ponowne parowanie wymaga nowego kodu.</string>
     <string name="phone_pair_title">Sparuj telefon</string>
     <string name="phone_pair_step1">1. Zainstaluj Dashwheel Companion w telefonie: zeskanuj ten kod aparatem.</string>
     <string name="phone_pair_step2">2. Włącz hotspot Wi-Fi w telefonie i połącz z nim to radio.</string>

@@ -166,6 +166,9 @@
     <string name="car_photos_change">Cambiar una foto</string>
     <string name="car_photos_not_found">No se encuentra el coche en la foto %1$s. Usa una con el coche entero sobre un fondo liso.</string>
     <string name="car_photos_close">Cerrar</string>
+    <string name="car_photos_discard_title">¿Descartar estas fotos?</string>
+    <string name="car_photos_discard_body">Las fotos elegidas aquí no se conservan.</string>
+    <string name="car_photos_discard">Descartar</string>
     <string name="car_photos_above">Desde arriba</string>
     <string name="car_photos_above_hint">Opcional: la que dibuja Gemini</string>
     <string name="car_photos_gemini">Dibujar la vista desde arriba en Gemini</string>
@@ -192,7 +195,10 @@
     <string name="update_later">Más tarde</string>
     <string name="update_check">Buscar actualizaciones</string>
     <string name="update_installed">Versión %1$s</string>
-    <string name="update_auto_detail">Al día. Las nuevas versiones se descargan solas con Wi-Fi.</string>
+    <string name="update_auto_detail">Las nuevas versiones se descargan solas con Wi-Fi.</string>
+    <string name="update_checking">Buscando actualizaciones…</string>
+    <string name="update_checked_at">Al día. Comprobado a las %1$s.</string>
+    <string name="update_check_failed">No se pudo comprobar. ¿Tiene conexión el teléfono?</string>
     <string name="update_allow_installs">Permite instalar desde esta app y vuelve a tocar Instalar.</string>
     <string name="update_channel">Actualizaciones</string>
     <plurals name="setup_left">

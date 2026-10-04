@@ -40,9 +40,12 @@ class Screen(
         private set
     private var status = WAITING
     private var cluster: ClusterState? = null
-    // When the head unit last sent readings, and when it last sent anything (uptime).
+    // When the head unit last sent readings, and when it last sent anything (uptime);
+    // none heard yet counts from the start, which leaves it the time to boot and dial.
     private var clusterAt = 0L
-    private var heardAt = 0L
+    private var heardAt = uptimeMs()
+    // The clock as the head unit last asked for it, for the pictures drawn without its readings.
+    private var clock12 = false
 
     /** The head unit went silent: "no signal" shows in place of its readings or its video. */
     val signalLost: Boolean
@@ -52,6 +55,16 @@ class Screen(
             Showing.VIDEO -> videoLost
         }
     private var videoLost = false
+
+    /**
+     * The idle screen carries the pairing code until a head unit has used it,
+     * and again once none has come for a while: a display forgotten on the
+     * head unit can be paired again without pulling its SD card. Sooner than
+     * that the head unit is expected back, and the logo stays alone.
+     */
+    internal val pairingShown: Boolean
+        @Synchronized get() = showing == Showing.IDLE && (!pairing.used || uptimeMs() - heardAt > PAIR_AGAIN_MS)
+
     /** Head unit clock minus ours: the Pi has no clock of its own and may have no network time. */
     private var clockOffset = 0L
 
@@ -80,6 +93,7 @@ class Screen(
             cluster = state
             clusterAt = uptimeMs()
             clockOffset = state.clock - System.currentTimeMillis()
+            clock12 = state.clock12
         }
         if (showing == Showing.VIDEO) video.stop()
         videoLost = false
@@ -152,10 +166,10 @@ class Screen(
     private fun redraw() {
         val now = System.currentTimeMillis() + clockOffset
         when (showing) {
-            Showing.VIDEO -> if (videoLost) painter.paintIdle(config.name, NO_SIGNAL, now, null) else return
-            Showing.IDLE -> painter.paintIdle(config.name, status, now, pairing.offer.toUri().takeUnless { pairing.used })
+            Showing.VIDEO -> if (videoLost) painter.paintIdle(config.name, NO_SIGNAL, now, null, clock12) else return
+            Showing.IDLE -> painter.paintIdle(config.name, status, now, pairing.offer.toUri().takeIf { pairingShown }, clock12)
             Showing.DATA -> cluster?.takeIf { !signalLost }?.let { painter.paintCluster(it, now) }
-                ?: painter.paintIdle(config.name, if (signalLost) NO_SIGNAL else status, now, null)
+                ?: painter.paintIdle(config.name, if (signalLost) NO_SIGNAL else status, now, null, clock12)
         }
         val process = frames?.takeIf { it.alive } ?: run {
             frames?.stop()
@@ -180,5 +194,7 @@ class Screen(
         const val DATA_SILENT_MS = 12_000L
         /** With a still picture only its ping is heard, every 15 s: one missed. */
         const val VIDEO_SILENT_MS = 20_000L
+        /** No head unit for this long and the pairing code is offered again. */
+        const val PAIR_AGAIN_MS = 180_000L
     }
 }

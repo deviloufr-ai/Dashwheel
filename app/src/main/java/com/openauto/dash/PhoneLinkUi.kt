@@ -254,6 +254,7 @@ internal fun PhonePane() {
     val state by PhoneLink.state.collectAsState()
     val phones by PhoneLink.phones.collectAsState()
     var pairing by remember { mutableStateOf(false) }
+    var forgetting by remember { mutableStateOf<PairedPhone?>(null) }
 
     SettingsSection(stringResource(R.string.settings_section_phone))
     val (title, detail) = when (val s = state) {
@@ -299,7 +300,8 @@ internal fun PhonePane() {
                     style = MaterialTheme.typography.bodySmall
                 )
             }
-            TextButton(onClick = { PhoneLink.forget(context, phone.id) }) {
+            // Removed on the phone already: nothing is lost by forgetting it here.
+            TextButton(onClick = { if (phone.forgotten) PhoneLink.forget(context, phone.id) else forgetting = phone }) {
                 Text(stringResource(R.string.phone_forget), color = DashColors.Accent)
             }
         }
@@ -329,6 +331,15 @@ internal fun PhonePane() {
     }
 
     if (pairing) PhonePairingDialog(onDismiss = { pairing = false })
+    forgetting?.let { phone ->
+        ConfirmDialog(
+            title = stringResource(R.string.phone_forget_title, phone.name.ifEmpty { stringResource(R.string.phone_unnamed) }),
+            body = stringResource(R.string.phone_forget_body),
+            action = stringResource(R.string.phone_forget),
+            onConfirm = { PhoneLink.forget(context, phone.id); forgetting = null },
+            onDismiss = { forgetting = null }
+        )
+    }
 }
 
 /**

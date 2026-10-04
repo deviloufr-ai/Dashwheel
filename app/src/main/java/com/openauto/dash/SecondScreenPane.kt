@@ -96,6 +96,7 @@ private fun SecondScreenSettings() {
     val config by SecondScreenStore.config.collectAsState()
     val status by SecondScreenController.status.collectAsState()
     var choosingApp by remember { mutableStateOf(false) }
+    var forgetting by remember { mutableStateOf<PairedDisplay?>(null) }
     fun update(change: (SecondScreenConfig) -> SecondScreenConfig) = SecondScreenStore.update(context, change)
 
     // Pairing without the phone app: the display's pairing.txt, from a USB stick.
@@ -154,7 +155,7 @@ private fun SecondScreenSettings() {
                     color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall
                 )
             }
-            TextButton(onClick = { DisplayLink.forget(context, display.id) }) {
+            TextButton(onClick = { forgetting = display }) {
                 Text(stringResource(R.string.phone_forget), color = DashColors.Accent)
             }
         }
@@ -239,6 +240,15 @@ private fun SecondScreenSettings() {
         AppChooserDialog(
             onPick = { pkg -> update { it.copy(appPackage = pkg) }; choosingApp = false },
             onDismiss = { choosingApp = false }
+        )
+    }
+    forgetting?.let { display ->
+        ConfirmDialog(
+            title = stringResource(R.string.phone_forget_title, display.name),
+            body = stringResource(R.string.second_screen_forget_body),
+            action = stringResource(R.string.phone_forget),
+            onConfirm = { DisplayLink.forget(context, display.id); forgetting = null },
+            onDismiss = { forgetting = null }
         )
     }
 }

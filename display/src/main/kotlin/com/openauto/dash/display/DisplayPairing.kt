@@ -7,14 +7,15 @@ import java.io.File
  * The display's one pairing, kept as its QR text in `pairing.txt` in the
  * config folder. It is made once, the first time the service runs (the
  * installer runs it before the SD card is made read-only), and shown as a QR
- * code until a head unit has connected with it. Delete the file to pair
+ * code until a head unit has connected with it, then again whenever none has
+ * come for a few minutes ([Screen.pairingShown]). Delete the file to pair
  * afresh: every head unit that knew the old one then has to pair again.
  */
 class DisplayPairing(private val dir: File, name: String) {
 
     val offer: PairingOffer = load() ?: create(name)
 
-    /** True once a head unit has connected with it; the idle screen then drops the QR code. */
+    /** True once a head unit has connected with it; the idle screen then drops the QR code while that one is around. */
     var used: Boolean = File(dir, USED).exists()
         private set
 

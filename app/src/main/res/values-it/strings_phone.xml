@@ -14,6 +14,8 @@
     <string name="phone_unnamed">Telefono</string>
     <string name="phone_forgotten">Rimosso sul telefono: associalo di nuovo</string>
     <string name="phone_forget">Dimentica</string>
+    <string name="phone_forget_title">Dimenticare %1$s?</string>
+    <string name="phone_forget_body">I suoi messaggi e le sue chiamate non compariranno più qui. Per associarlo di nuovo serve un nuovo codice.</string>
     <string name="phone_pair_title">Associa un telefono</string>
     <string name="phone_pair_step1">1. Installa Dashwheel Companion sul telefono: scansiona questo codice con la fotocamera.</string>
     <string name="phone_pair_step2">2. Attiva l\'hotspot Wi-Fi del telefono e collega questa autoradio.</string>

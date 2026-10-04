@@ -14,6 +14,8 @@
     <string name="phone_unnamed">Teléfono</string>
     <string name="phone_forgotten">Quitado en el teléfono: vuelve a vincularlo</string>
     <string name="phone_forget">Olvidar</string>
+    <string name="phone_forget_title">¿Olvidar %1$s?</string>
+    <string name="phone_forget_body">Sus mensajes y llamadas dejarán de mostrarse aquí. Para volver a vincularlo hará falta un código nuevo.</string>
     <string name="phone_pair_title">Vincular un teléfono</string>
     <string name="phone_pair_step1">1. Instala Dashwheel Compañero en el teléfono: escanea este código con la cámara.</string>
     <string name="phone_pair_step2">2. Activa el punto de acceso Wi-Fi del teléfono y conecta esta radio.</string>

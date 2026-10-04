@@ -40,6 +40,29 @@ class DisplayMessagesTest {
     }
 
     @Test
+    fun unitsAndLabelsReachThePiAndAnOlderSideStillReads() {
+        roundTrip(
+            ClusterState(
+                clock = 1, speedKmh = 87, imperial = true, speedUnit = "mph", fahrenheit = true, clock12 = true,
+                labels = ClusterState.Labels(open = "Ouvert : %s", noRoute = "Aucun itinéraire", range = "mi d'autonomie")
+            )
+        )
+        // Metric, 24 h and no labels are left out: an older Pi gets the message it always got.
+        val json = LinkCodec.encode(ClusterState(clock = 1, speedKmh = 87)).decodeToString()
+        assertTrue(json, listOf("speedUnit", "fahrenheit", "clock12", "labels", "imperial").none { it in json })
+        // An older head unit says none of it: metric, 24 h, the Pi's own English.
+        val old = LinkCodec.decode("""{"t":"cluster_state","clock":5,"speedKmh":12}""".encodeToByteArray()) as ClusterState
+        assertEquals(false, old.imperial || old.fahrenheit || old.clock12)
+        assertNull(old.speedUnit)
+        assertNull(old.labels)
+        // A newer head unit's labels this Pi doesn't know are skipped, the known ones kept.
+        val newer = LinkCodec.decode(
+            """{"t":"cluster_state","clock":5,"labels":{"fuel":"carburant","oil":"huile"}}""".encodeToByteArray()
+        ) as ClusterState
+        assertEquals(ClusterState.Labels(fuel = "carburant"), newer.labels)
+    }
+
+    @Test
     fun videoPacketsRoundTrip() {
         val data = byteArrayOf(0, 0, 0, 1, 0x65, 1, 2, 3)
         val back = VideoPacket.decode(VideoPacket(true, 123_456_789L, data).encode())!!

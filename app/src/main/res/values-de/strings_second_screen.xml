@@ -13,6 +13,7 @@
     <string name="second_screen_import_detail">pairing.txt von der SD-Karte des Bildschirms, auf einen USB-Stick kopiert</string>
     <string name="second_screen_import_failed">Diese Datei ist keine Kopplung für einen zweiten Bildschirm</string>
     <string name="second_screen_import_done">Gekoppelt mit %1$s</string>
+    <string name="second_screen_forget_body">Der Bildschirm zeigt seinen Code nach etwa 3 Minuten wieder an. Zum erneuten Koppeln den Code scannen.</string>
     <string name="second_screen_show">Was er zeigt</string>
     <string name="second_screen_mode_off">Aus</string>
     <string name="second_screen_mode_cluster">Kombiinstrument</string>
@@ -32,6 +33,10 @@
     <string name="second_screen_quality_detail">Niedriger schont das WLAN des Handys.</string>
     <string name="second_screen_output_video">Bild wird gestreamt · %1$d kbit/s</string>
     <string name="second_screen_output_data">Messwerte werden gesendet; der Bildschirm zeichnet das Kombiinstrument</string>
+    <string name="second_screen_label_open">Offen: %1$s</string>
+    <string name="second_screen_label_arrive">Ankunft %1$s</string>
+    <string name="second_screen_label_fuel">tank</string>
+    <string name="second_screen_label_range">%1$s reichweite</string>
     <string name="second_screen_blocked_moving">Video-Apps warten, bis das Auto steht, außer auf einem Bildschirm für den Fond</string>
     <string name="second_screen_blocked_apps">Apps auf dem zweiten Bildschirm brauchen ein gerootetes Radio mit Android 10 oder 11. Stattdessen erscheint das Kombiinstrument.</string>
     <string name="second_screen_blocked_no_video">Dieser Bildschirm kann nur das Kombiinstrument aus Messwerten zeichnen</string>

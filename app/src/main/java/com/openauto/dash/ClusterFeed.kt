@@ -46,6 +46,7 @@ internal object ClusterFeed {
         val controller = CarMediaController.shared(context)
         val media = if (DemoMode.isOn) DemoMode.media.value else controller.mediaState.value
         val nav = NavDirections.state.value
+        val units = Units.current.value
         return ClusterState(
             clock = System.currentTimeMillis(),
             page = page.name,
@@ -56,6 +57,10 @@ internal object ClusterFeed {
             rangeKm = McuReader.rangeKm.value,
             open = open,
             obdConnected = obdLive,
+            imperial = units.imperial,
+            speedUnit = units.speedUnit,
+            fahrenheit = units.fahrenheit,
+            clock12 = !units.clock24,
             night = !DashColors.Light,
             accent = DashColors.Accent.toArgb().toLong() and 0xFFFFFFFFL,
             media = media.takeIf { it.hasMedia && it.title.isNotBlank() }?.let {
@@ -69,7 +74,21 @@ internal object ClusterFeed {
             },
             nav = nav.takeIf { it.active && it.instruction.isNotBlank() }?.let {
                 ClusterState.Nav(instruction = it.instruction, distance = it.distance, eta = it.eta)
-            }
+            },
+            labels = labels(context, units)
         )
     }
+
+    /** The words the display prints around these figures, in the driver's language like the door names above. */
+    private fun labels(context: Context, units: UnitSystem) = ClusterState.Labels(
+        // The display puts the names and the time where the %s is.
+        open = context.getString(R.string.second_screen_label_open, "%s"),
+        nothingPlaying = context.getString(R.string.info_nothing_playing),
+        noRoute = context.getString(R.string.info_directions_no_route),
+        arrive = context.getString(R.string.second_screen_label_arrive, "%s"),
+        rpm = context.getString(R.string.info_unit_rpm),
+        coolant = context.getString(R.string.orbit_sat_coolant),
+        fuel = context.getString(R.string.second_screen_label_fuel),
+        range = context.getString(R.string.second_screen_label_range, units.distanceUnit)
+    )
 }

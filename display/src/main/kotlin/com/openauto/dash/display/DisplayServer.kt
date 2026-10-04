@@ -72,6 +72,8 @@ class DisplayServer(
         pairing.markUsed()
         try {
             session.send(hello)
+            // Here before it has said a word: the idle screen stops offering the pairing code.
+            screen.heard()
             screen.idle("Connected")
             while (true) {
                 val frame = session.receiveAny()

@@ -51,6 +51,18 @@ object CompanionUpdate {
     private val _status = MutableStateFlow<Status>(Status.None)
     val status: StateFlow<Status> = _status.asStateFlow()
 
+    /** How the last look for a newer build went: "up to date" is only said after one that got its answer. */
+    sealed interface Check {
+        data object Never : Check
+        data object Checking : Check
+        /** GitHub answered at [at] (the phone's clock). */
+        data class Done(val at: Long) : Check
+        data object Failed : Check
+    }
+
+    private val _checked = MutableStateFlow<Check>(Check.Never)
+    val checked: StateFlow<Check> = _checked.asStateFlow()
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var checking: Job? = null
     private var downloading: Job? = null
@@ -68,8 +80,14 @@ object CompanionUpdate {
         val now = System.currentTimeMillis()
         if (!force && checkedAt != 0L && now - checkedAt < CHECK_EVERY_MS) return
         checking = scope.launch {
-            val release = withContext(Dispatchers.IO) { fetchLatest() } ?: return@launch
+            _checked.value = Check.Checking
+            val release = withContext(Dispatchers.IO) { fetchLatest() }
+            if (release == null) {
+                _checked.value = Check.Failed
+                return@launch
+            }
             checkedAt = now
+            _checked.value = Check.Done(System.currentTimeMillis())
             if (release.build <= installedBuild(app)) {
                 withContext(Dispatchers.IO) { apkFile(app).delete() }
                 _status.value = Status.None

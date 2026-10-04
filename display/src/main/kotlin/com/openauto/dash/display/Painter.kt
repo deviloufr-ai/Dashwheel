@@ -14,6 +14,7 @@ import java.awt.image.BufferedImage
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -31,10 +32,12 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
 
     private val inset = (min(width, height) * overscanPct / 100.0).roundToInt()
     private val unit = min(width, height) / 100f
-    private val clockFormat = DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault())
 
-    /** Nothing to show yet: the clock, a status line, and the pairing code while no head unit has used it. */
-    fun paintIdle(name: String, status: String, now: Long, pairingUri: String?) = draw { g ->
+    /**
+     * Nothing to show yet: the clock, a status line, and the pairing code while it is on offer.
+     * [clock12]: the clock as the head unit last asked for it.
+     */
+    fun paintIdle(name: String, status: String, now: Long, pairingUri: String?, clock12: Boolean = false) = draw { g ->
         g.color = BG_NIGHT
         g.fillRect(0, 0, width, height)
         val logo = logo
@@ -54,7 +57,7 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
         val left = inset + (6 * unit).roundToInt()
         g.color = TEXT
         g.font = font(Font.BOLD, 22f)
-        g.drawString(clockFormat.format(Instant.ofEpochMilli(now)), left, inset + (26 * unit).roundToInt())
+        g.drawString(clockText(now, clock12), left, inset + (26 * unit).roundToInt())
         g.color = MUTED
         g.font = font(Font.PLAIN, 6f)
         g.drawString(name, left, inset + (36 * unit).roundToInt())
@@ -76,6 +79,7 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
         val fg = if (state.night) TEXT else TEXT_DAY
         val muted = if (state.night) MUTED else MUTED_DAY
         val accent = Color(state.accent.toInt(), false)
+        val text = ClusterText(state)
         g.color = bg
         g.fillRect(0, 0, width, height)
         val left = inset + (5 * unit).roundToInt()
@@ -85,36 +89,33 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
         // Top line on every page: the clock, and what the car is warning about.
         g.color = muted
         g.font = font(Font.BOLD, 7f)
-        g.drawString(clockFormat.format(Instant.ofEpochMilli(now)), left, top + (6 * unit).roundToInt())
-        if (state.open.isNotEmpty()) {
-            g.color = WARN
-            drawRight(g, "Open: " + state.open.joinToString(", "), right, top + (6 * unit).roundToInt())
+        val clock = text.clock(now)
+        g.drawString(clock, left, top + (6 * unit).roundToInt())
+        text.open?.let { open ->
+            // A long list of doors is cut short of the clock, never drawn over it.
+            val room = right - left - g.fontMetrics.stringWidth(clock) - (4 * unit).roundToInt()
+            g.color = if (state.night) WARN else WARN_DAY
+            drawRight(g, clipped(g, open, room), right, top + (6 * unit).roundToInt())
         }
 
         when (state.page) {
-            "MEDIA" -> paintMedia(g, state, left, right, fg, muted, accent)
-            "NAV" -> paintNav(g, state, left, right, fg, muted, accent)
-            else -> paintDrive(g, state, left, right, fg, muted, accent)
+            "MEDIA" -> paintMedia(g, state, text, left, right, fg, muted, accent)
+            "NAV" -> paintNav(g, state, text, left, right, fg, muted, accent)
+            else -> paintDrive(g, state, text, left, right, fg, muted, accent)
         }
     }
 
-    private fun paintDrive(g: Graphics2D, s: ClusterState, left: Int, right: Int, fg: Color, muted: Color, accent: Color) {
-        val speed = s.speedKmh?.let { if (s.imperial) (it / 1.609).roundToInt() else it }
+    private fun paintDrive(g: Graphics2D, s: ClusterState, text: ClusterText, left: Int, right: Int, fg: Color, muted: Color, accent: Color) {
         val cx = width / 2
         g.color = fg
         g.font = font(Font.BOLD, 42f)
-        drawCentered(g, speed?.toString() ?: "--", cx, (height * 0.58).roundToInt())
+        drawCentered(g, text.speed, cx, (height * 0.58).roundToInt())
         g.color = muted
         g.font = font(Font.PLAIN, 7f)
-        drawCentered(g, if (s.imperial) "mph" else "km/h", cx, (height * 0.70).roundToInt())
+        drawCentered(g, text.speedUnit, cx, (height * 0.70).roundToInt())
 
         // Bottom row: whatever the car reports.
-        val readings = buildList {
-            s.rpm?.let { add("$it" to "rpm") }
-            s.coolantC?.let { add("$it°" to "coolant") }
-            s.fuelPct?.let { add("$it%" to "fuel") }
-            s.rangeKm?.let { add((if (s.imperial) (it / 1.609).roundToInt() else it).toString() to if (s.imperial) "mi range" else "km range") }
-        }
+        val readings = text.readings
         if (readings.isNotEmpty()) {
             val y = height - inset - (8 * unit).roundToInt()
             val slot = (right - left) / readings.size
@@ -131,12 +132,12 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
         s.fuelPct?.let { pct -> bar(g, left, (height * 0.76).roundToInt(), right - left, pct / 100f, accent, muted) }
     }
 
-    private fun paintMedia(g: Graphics2D, s: ClusterState, left: Int, right: Int, fg: Color, muted: Color, accent: Color) {
+    private fun paintMedia(g: Graphics2D, s: ClusterState, text: ClusterText, left: Int, right: Int, fg: Color, muted: Color, accent: Color) {
         val media = s.media
         val mid = height / 2
         g.color = fg
         g.font = font(Font.BOLD, 11f)
-        drawClipped(g, media?.title ?: "Nothing playing", left, mid, right - left)
+        drawClipped(g, media?.title ?: text.nothingPlaying, left, mid, right - left)
         if (media != null) {
             g.color = muted
             g.font = font(Font.PLAIN, 7f)
@@ -147,12 +148,12 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
         }
     }
 
-    private fun paintNav(g: Graphics2D, s: ClusterState, left: Int, right: Int, fg: Color, muted: Color, accent: Color) {
+    private fun paintNav(g: Graphics2D, s: ClusterState, text: ClusterText, left: Int, right: Int, fg: Color, muted: Color, accent: Color) {
         val nav = s.nav
         if (nav == null) {
             g.color = muted
             g.font = font(Font.PLAIN, 9f)
-            drawCentered(g, "No route", width / 2, height / 2)
+            drawCentered(g, text.noRoute, width / 2, height / 2)
             return
         }
         g.color = accent
@@ -164,7 +165,7 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
         g.color = muted
         g.font = font(Font.PLAIN, 7f)
         drawClipped(g, nav.street, left, (height * 0.70).roundToInt(), right - left)
-        if (nav.eta.isNotBlank()) drawRight(g, "Arrive ${nav.eta}", right, height - inset - (8 * unit).roundToInt())
+        if (nav.eta.isNotBlank()) drawRight(g, text.arrive(nav.eta), right, height - inset - (8 * unit).roundToInt())
     }
 
     private fun bar(g: Graphics2D, x: Int, y: Int, w: Int, fraction: Float, fill: Color, track: Color) {
@@ -198,10 +199,14 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
     private fun drawRight(g: Graphics2D, text: String, right: Int, baseline: Int) =
         g.drawString(text, right - g.fontMetrics.stringWidth(text), baseline)
 
-    private fun drawClipped(g: Graphics2D, text: String, x: Int, baseline: Int, maxWidth: Int) {
+    private fun drawClipped(g: Graphics2D, text: String, x: Int, baseline: Int, maxWidth: Int) =
+        g.drawString(clipped(g, text, maxWidth), x, baseline)
+
+    /** [text] cut to [maxWidth] in the current font, ending in an ellipsis when it was. */
+    private fun clipped(g: Graphics2D, text: String, maxWidth: Int): String {
         var shown = text
         while (shown.length > 1 && g.fontMetrics.stringWidth(shown) > maxWidth) shown = shown.dropLast(2) + "…"
-        g.drawString(shown, x, baseline)
+        return shown
     }
 
     /** Font size in hundredths of the screen's short side. */
@@ -242,5 +247,58 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
         val MUTED = Color(0x8A96A3)
         val MUTED_DAY = Color(0x5B6570)
         val WARN = Color(0xFFB300)
+        /** Amber is lost on the day palette's near-white: a burnt orange reads there. */
+        val WARN_DAY = Color(0xA84300)
     }
 }
+
+/**
+ * What the cluster prints from a [ClusterState]: the figures in the driver's
+ * units and the head unit's own words when it sent them, else metric, 24 h and
+ * English as before (an older head unit says none of it).
+ */
+internal class ClusterText(private val s: ClusterState) {
+    private val labels = s.labels
+
+    fun clock(now: Long, zone: ZoneId = ZoneId.systemDefault()): String = clockText(now, s.clock12, zone)
+
+    /** The doors' warning, or null with none open. */
+    val open: String?
+        get() = s.open.takeIf { it.isNotEmpty() }?.let { fill(labels?.open, "Open: %s", it.joinToString(", ")) }
+
+    val speed: String get() = s.speedKmh?.let { distance(it).toString() } ?: "--"
+
+    val speedUnit: String get() = s.speedUnit ?: if (s.imperial) "mph" else "km/h"
+
+    /** The bottom row: each figure the car reports, over its caption. */
+    val readings: List<Pair<String, String>>
+        get() = buildList {
+            s.rpm?.let { add("$it" to (labels?.rpm ?: "rpm")) }
+            s.coolantC?.let { add((if (s.fahrenheit) "${(it * 1.8 + 32).roundToInt()}°F" else "$it°") to (labels?.coolant ?: "coolant")) }
+            s.fuelPct?.let { add("$it%" to (labels?.fuel ?: "fuel")) }
+            s.rangeKm?.let { add(distance(it).toString() to (labels?.range ?: if (s.imperial) "mi range" else "km range")) }
+        }
+
+    val nothingPlaying: String get() = labels?.nothingPlaying ?: "Nothing playing"
+
+    val noRoute: String get() = labels?.noRoute ?: "No route"
+
+    fun arrive(eta: String): String = fill(labels?.arrive, "Arrive %s", eta)
+
+    private fun distance(km: Int): Int = if (s.imperial) (km / KM_PER_MILE).roundToInt() else km
+
+    /** [value] in the head unit's line; a line without its %s would lose the value, so English then. */
+    private fun fill(line: String?, english: String, value: String): String =
+        (line?.takeIf { "%s" in it } ?: english).replace("%s", value)
+
+    private companion object {
+        const val KM_PER_MILE = 1.609344
+    }
+}
+
+private val CLOCK_24 = DateTimeFormatter.ofPattern("HH:mm")
+private val CLOCK_12 = DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH)
+
+/** "14:05", or "2:05 PM" on a 12-hour clock. */
+internal fun clockText(now: Long, clock12: Boolean, zone: ZoneId = ZoneId.systemDefault()): String =
+    (if (clock12) CLOCK_12 else CLOCK_24).withZone(zone).format(Instant.ofEpochMilli(now))

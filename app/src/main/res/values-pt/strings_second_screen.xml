@@ -13,6 +13,7 @@
     <string name="second_screen_import_detail">pairing.txt do cartão SD do ecrã, copiado para uma pen USB</string>
     <string name="second_screen_import_failed">Esse ficheiro não é uma associação de segundo ecrã</string>
     <string name="second_screen_import_done">Associado a %1$s</string>
+    <string name="second_screen_forget_body">O ecrã volta a mostrar o código ao fim de cerca de 3 minutos. Leia-o para o associar de novo.</string>
     <string name="second_screen_show">O que mostra</string>
     <string name="second_screen_mode_off">Desligado</string>
     <string name="second_screen_mode_cluster">Quadrante</string>
@@ -32,6 +33,10 @@
     <string name="second_screen_quality_detail">Mais baixa é mais leve para o Wi-Fi do telemóvel.</string>
     <string name="second_screen_output_video">A transmitir a imagem · %1$d kbit/s</string>
     <string name="second_screen_output_data">A enviar leituras; o ecrã desenha o quadrante</string>
+    <string name="second_screen_label_open">Aberto: %1$s</string>
+    <string name="second_screen_label_arrive">Chegada %1$s</string>
+    <string name="second_screen_label_fuel">combustível</string>
+    <string name="second_screen_label_range">%1$s de autonomia</string>
     <string name="second_screen_blocked_moving">As apps de vídeo esperam que o carro pare, exceto num ecrã traseiro</string>
     <string name="second_screen_blocked_apps">As apps no segundo ecrã precisam de um rádio com root em Android 10 ou 11. Aparece o painel no seu lugar.</string>
     <string name="second_screen_blocked_no_video">Este ecrã só consegue desenhar o quadrante a partir das leituras</string>

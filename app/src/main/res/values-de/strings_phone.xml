@@ -14,6 +14,8 @@
     <string name="phone_unnamed">Telefon</string>
     <string name="phone_forgotten">Auf dem Telefon entfernt: erneut koppeln</string>
     <string name="phone_forget">Vergessen</string>
+    <string name="phone_forget_title">%1$s vergessen?</string>
+    <string name="phone_forget_body">Nachrichten und Anrufe erscheinen hier nicht mehr. Zum erneuten Koppeln braucht es einen neuen Code.</string>
     <string name="phone_pair_title">Telefon koppeln</string>
     <string name="phone_pair_step1">1. Installiere Dashwheel Begleiter auf dem Telefon: Scanne diesen Code mit der Kamera.</string>
     <string name="phone_pair_step2">2. Schalte den WLAN-Hotspot des Telefons ein und verbinde dieses Autoradio damit.</string>

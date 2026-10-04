@@ -13,6 +13,7 @@
     <string name="second_screen_import_detail">pairing.txt de la carte SD de l\'écran, copié sur une clé USB</string>
     <string name="second_screen_import_failed">Ce fichier n\'est pas une association de second écran</string>
     <string name="second_screen_import_done">Associé à %1$s</string>
+    <string name="second_screen_forget_body">L\'écran affiche à nouveau son code au bout d\'environ 3 minutes. Scannez-le pour l\'associer à nouveau.</string>
     <string name="second_screen_show">Ce qu\'il affiche</string>
     <string name="second_screen_mode_off">Éteint</string>
     <string name="second_screen_mode_cluster">Combiné</string>
@@ -32,6 +33,10 @@
     <string name="second_screen_quality_detail">Plus bas, c\'est plus léger pour le Wi-Fi du téléphone.</string>
     <string name="second_screen_output_video">Image diffusée · %1$d kbit/s</string>
     <string name="second_screen_output_data">Envoi des mesures ; l\'écran dessine le combiné</string>
+    <string name="second_screen_label_open">Ouvert : %1$s</string>
+    <string name="second_screen_label_arrive">Arrivée %1$s</string>
+    <string name="second_screen_label_fuel">carburant</string>
+    <string name="second_screen_label_range">%1$s d\'autonomie</string>
     <string name="second_screen_blocked_moving">Les applis vidéo attendent l\'arrêt de la voiture, sauf sur un écran pour l\'arrière</string>
     <string name="second_screen_blocked_apps">Les applis sur le second écran demandent un autoradio rooté sous Android 10 ou 11. Le combiné s\'affiche à la place.</string>
     <string name="second_screen_blocked_no_video">Cet écran ne peut que dessiner le combiné à partir des mesures</string>
