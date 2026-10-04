@@ -147,6 +147,7 @@
     <string name="bar_items_title">Bottom bar</string>
     <string name="bar_items_custom">Choose what the bar shows</string>
     <string name="bar_items_theme">Off: the bar as the theme draws it</string>
+    <string name="bar_items_skin">Readouts show with the standard bar only, not with a skin.</string>
     <string name="bar_items_custom_detail">Tap a readout to put it in the bar or take it out; the arrows set the order. What doesn\'t fit is left out.</string>
     <string name="bar_items_left">Earlier in the bar</string>
     <string name="bar_items_right">Later in the bar</string>

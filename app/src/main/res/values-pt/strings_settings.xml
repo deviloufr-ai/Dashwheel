@@ -145,6 +145,7 @@
     <string name="bar_items_title">Barra inferior</string>
     <string name="bar_items_custom">Escolher o que a barra mostra</string>
     <string name="bar_items_theme">Desativado: a barra do tema</string>
+    <string name="bar_items_skin">Os indicadores só aparecem com a barra padrão, não com uma skin.</string>
     <string name="bar_items_custom_detail">Toque num indicador para o pôr na barra ou tirar; as setas definem a ordem. O que não couber fica de fora.</string>
     <string name="bar_items_left">Mais cedo na barra</string>
     <string name="bar_items_right">Mais tarde na barra</string>

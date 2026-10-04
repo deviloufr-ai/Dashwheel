@@ -29,6 +29,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.BatteryAlert
@@ -87,6 +89,7 @@ import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
@@ -410,66 +413,80 @@ internal fun CockpitTopBar(m: TopBarModel) {
         contentAlignment = Alignment.Center
     ) {
         val narrow = maxWidth < NARROW_BAR
-        Row(
-            modifier = Modifier.align(Alignment.CenterStart),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            ChromePill(onClick = m.onApps, description = null) {
-                Icon(Icons.Filled.Apps, contentDescription = null, tint = EngraveInk, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(8.dp))
-                PillLabel(stringResource(R.string.cockpit_apps))
-            }
-            LayoutPicker(m) { open ->
-                ChromePill(onClick = open, description = stringResource(R.string.cockpit_screen_layout_desc, m.layout.title)) {
-                    LayoutIcon(m.layout, null, EngraveInk, Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
-                    PillLabel(stringResource(R.string.cockpit_layout))
+        val shared = barIsShared()
+        Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+            // Each side gets half of what the clock leaves, so the clock stays
+            // centred and nothing prints over it. An upright screen, or half of a
+            // split one, has no room for that: the pills go down to their icons
+            // and take only what they need, like the standard bar's.
+            Row(
+                modifier = if (narrow) Modifier else Modifier.weight(1f).wrapContentWidth(Alignment.Start, unbounded = true),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                ChromePill(onClick = m.onApps, description = if (narrow) stringResource(R.string.dash_all_apps) else null) {
+                    Icon(Icons.Filled.Apps, contentDescription = null, tint = EngraveInk, modifier = Modifier.size(18.dp))
+                    if (!narrow) {
+                        Spacer(Modifier.width(8.dp))
+                        PillLabel(stringResource(R.string.cockpit_apps))
+                    }
                 }
-            }
-        }
-
-        // The head unit's status bar shows the time while it is up. The pod is
-        // the dash's ornament; the digits are what is read at a glance.
-        if (!m.merged) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (!narrow) {
-                    ClockPod(m.clock)
-                    Spacer(Modifier.width(10.dp))
-                }
-                LcdPanel(Modifier.height(44.dp), corner = 8.dp) {
-                    val (digits, amPm) = splitClock(m.clock)
-                    Row(
-                        modifier = Modifier.align(Alignment.Center).padding(horizontal = 14.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(digits, style = lcd(26.sp, LcdInk), maxLines = 1)
-                        if (amPm != null) {
-                            Spacer(Modifier.width(6.dp))
-                            Text(amPm, style = lcd(13.sp, LcdInk.copy(alpha = 0.7f)), maxLines = 1)
+                LayoutPicker(m) { open ->
+                    ChromePill(onClick = open, description = stringResource(R.string.cockpit_screen_layout_desc, m.layout.title)) {
+                        LayoutIcon(m.layout, null, EngraveInk, Modifier.size(18.dp))
+                        if (!narrow) {
+                            Spacer(Modifier.width(8.dp))
+                            PillLabel(stringResource(R.string.cockpit_layout))
                         }
                     }
                 }
             }
-        }
 
-        Row(
-            modifier = Modifier.align(Alignment.CenterEnd),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (m.setupPending) {
-                SetupPill(onClick = { m.onSetup(false) }, modifier = Modifier.padding(end = 6.dp), compact = narrow)
+            // The head unit's status bar shows the time while it is up. The pod is
+            // the dash's ornament; the digits are what is read at a glance.
+            if (!m.merged) {
+                Row(modifier = Modifier.padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                    if (!narrow) {
+                        ClockPod(m.clock)
+                        Spacer(Modifier.width(10.dp))
+                    }
+                    LcdPanel(Modifier.height(44.dp), corner = 8.dp) {
+                        val (digits, amPm) = splitClock(m.clock)
+                        Row(
+                            modifier = Modifier.align(Alignment.Center).padding(horizontal = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(digits, style = lcd(26.sp, LcdInk), maxLines = 1)
+                            if (amPm != null) {
+                                Spacer(Modifier.width(6.dp))
+                                Text(amPm, style = lcd(13.sp, LcdInk.copy(alpha = 0.7f)), maxLines = 1)
+                            }
+                        }
+                    }
+                }
             }
-            VehicleAlerts(m.obdConnection, m.obd)
-            PhonePill()
-            // The page's weather tile says the same: dropped where the bar is tight.
-            if (!narrow) OutsideTempLcd()
-            Spacer(Modifier.width(8.dp))
-            ObdLamp(m.obdConnection, m.onConnectObd)
-            Spacer(Modifier.width(6.dp))
-            MorePicker(m) { open ->
-                ChromePill(onClick = open, description = stringResource(R.string.cockpit_more), modifier = Modifier.width(60.dp)) {
-                    Icon(Icons.Filled.MoreVert, contentDescription = null, tint = EngraveInk, modifier = Modifier.size(22.dp))
+
+            // ⋮ and the OBD lamp get their room first; what ranks last and no
+            // longer fits beside the clock is left out (the outside temperature
+            // first: the page's weather tile says the same).
+            BarEnd(modifier = Modifier.weight(1f)) {
+                if (m.setupPending) {
+                    Box(Modifier.layoutId(BarRank.SETUP).padding(end = 6.dp)) {
+                        SetupPill(onClick = { m.onSetup(false) }, compact = narrow || shared)
+                    }
+                }
+                Row(modifier = Modifier.layoutId(BarRank.ALERTS), verticalAlignment = Alignment.CenterVertically) {
+                    VehicleAlerts(m.obdConnection, m.obd)
+                }
+                Box(Modifier.layoutId(BarRank.PHONE)) { PhonePill() }
+                if (!narrow) Box(Modifier.layoutId(BarRank.TEMP)) { OutsideTempLcd() }
+                Box(Modifier.layoutId(BarRank.OBD).padding(start = 8.dp)) { ObdLamp(m.obdConnection, m.onConnectObd) }
+                Box(Modifier.layoutId(BarRank.MORE).padding(start = 6.dp)) {
+                    MorePicker(m) { open ->
+                        ChromePill(onClick = open, description = stringResource(R.string.cockpit_more), modifier = Modifier.width(60.dp)) {
+                            Icon(Icons.Filled.MoreVert, contentDescription = null, tint = EngraveInk, modifier = Modifier.size(22.dp))
+                        }
+                    }
                 }
             }
         }
@@ -609,10 +626,15 @@ private fun ClockPod(clock: String, modifier: Modifier = Modifier) {
     }
 }
 
-/** "OUT 20°C" LCD from the weather feed; the value stays dashed until the first fetch. */
+/**
+ * "OUT 20°C" LCD from the weather feed; the value stays dashed until the
+ * first fetch. Without a GPS fix or an answer it says so in a word, so the
+ * dashes are not taken for a fetch still on its way.
+ */
 @Composable
 private fun OutsideTempLcd() {
     val weather = rememberWeather()
+    val wait = rememberWeatherWait()
     val ink = LcdInk
     LcdPanel(Modifier.height(40.dp).widthIn(min = 124.dp), corner = 8.dp) {
         Row(
@@ -621,6 +643,14 @@ private fun OutsideTempLcd() {
                 .padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            if (weather == null && wait != WeatherWait.LOADING) {
+                Text(
+                    stringResource(if (wait == WeatherWait.NO_GPS) R.string.info_no_gps else R.string.orbit_offline).uppercase(),
+                    style = lcd(14.sp, ink.copy(alpha = 0.7f)),
+                    maxLines = 1
+                )
+                return@Row
+            }
             Text(stringResource(R.string.cockpit_out), style = lcd(14.sp, ink.copy(alpha = 0.7f)), maxLines = 1)
             Spacer(Modifier.width(8.dp))
             Text(
@@ -632,10 +662,9 @@ private fun OutsideTempLcd() {
     }
 }
 
-/** OBD tell-tale: a glossy lamp, green when linked, dim when off; tapping it while idle connects. */
+/** OBD tell-tale: a glossy lamp, green when linked, dim when off; what a tap does is the shared [ObdMark]'s. */
 @Composable
 private fun ObdLamp(state: ObdConnectionState, onConnect: () -> Unit) {
-    val idle = state.isIdle
     val color = when (state) {
         ObdConnectionState.CONNECTED -> DashColors.Good
         ObdConnectionState.CONNECTING -> DashColors.Secondary
@@ -644,37 +673,32 @@ private fun ObdLamp(state: ObdConnectionState, onConnect: () -> Unit) {
     }
     val lit = state != ObdConnectionState.DISCONNECTED
     val pulse = if (state == ObdConnectionState.CONNECTING) rememberLoop(900, reverse = true, status = true) else null
-    val statusLabel = obdStatusLabel(state)
-    Row(
-        modifier = Modifier
-            .heightIn(min = 48.dp)
-            .clickable(enabled = idle, onClickLabel = stringResource(R.string.cockpit_connect_obd), role = Role.Button, onClick = onConnect)
-            .semantics(mergeDescendants = true) { contentDescription = statusLabel }
-            .padding(horizontal = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            Modifier
-                .size(15.dp)
-                .cachedDraw(color, lit, pulse) {
-                    val r = size.minDimension / 2f
-                    // The pulse only fades both gradients, so they are built once and drawn at its alpha.
-                    val halo = Brush.radialGradient(listOf(color.copy(alpha = 0.55f * Halo), Color.Transparent), center, r * 2.2f)
-                    val glass = Brush.radialGradient(
-                        listOf(lerp(color, Color.White, if (lit) 0.65f else 0.25f), color, lerp(color, Color.Black, 0.5f)),
-                        center = center + Offset(-r * 0.3f, -r * 0.3f), radius = r * 1.3f
-                    )
-                    val rim = Stroke(1.dp.toPx())
-                    onDrawBehind {
-                        val a = pulse?.let { 0.35f + 0.65f * it.value } ?: 1f
-                        if (lit) drawCircle(halo, r * 2.2f, alpha = a)
-                        drawCircle(glass, r, alpha = if (lit) a else 1f)
-                        drawCircle(Color.Black.copy(alpha = 0.6f), r, style = rim)
+    ObdMark(state, onConnect, shape = RoundedCornerShape(12.dp), clickLabel = stringResource(R.string.cockpit_connect_obd)) {
+        // 10 dp each side: the lamp's halo stays inside the mark's clip.
+        Row(modifier = Modifier.padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier
+                    .size(15.dp)
+                    .cachedDraw(color, lit, pulse) {
+                        val r = size.minDimension / 2f
+                        // The pulse only fades both gradients, so they are built once and drawn at its alpha.
+                        val halo = Brush.radialGradient(listOf(color.copy(alpha = 0.55f * Halo), Color.Transparent), center, r * 2.2f)
+                        val glass = Brush.radialGradient(
+                            listOf(lerp(color, Color.White, if (lit) 0.65f else 0.25f), color, lerp(color, Color.Black, 0.5f)),
+                            center = center + Offset(-r * 0.3f, -r * 0.3f), radius = r * 1.3f
+                        )
+                        val rim = Stroke(1.dp.toPx())
+                        onDrawBehind {
+                            val a = pulse?.let { 0.35f + 0.65f * it.value } ?: 1f
+                            if (lit) drawCircle(halo, r * 2.2f, alpha = a)
+                            drawCircle(glass, r, alpha = if (lit) a else 1f)
+                            drawCircle(Color.Black.copy(alpha = 0.6f), r, style = rim)
+                        }
                     }
-                }
-        )
-        Spacer(Modifier.width(7.dp))
-        Text("OBD", style = engraved(15.sp), maxLines = 1)
+            )
+            Spacer(Modifier.width(7.dp))
+            Text("OBD", style = engraved(15.sp), maxLines = 1)
+        }
     }
 }
 
@@ -906,18 +930,19 @@ private fun tachFace(fuel: Boolean, compact: Boolean, w: DialWords) = DialFace(
 )
 
 /**
- * Speedometer, 0–240 km/h or 0–150 mph, read by its needle alone (no speed
- * readout in the dial): battery and engine-load sub-dials when [subs], and an
- * LCD for the revs when the dial stands in for the tachometer ([revs]).
+ * Speedometer, 0–240 km/h or 0–150 mph: battery and engine-load sub-dials
+ * when [subs], and an LCD [window] where the dial carries a readout (the revs
+ * when it stands in for the tachometer, the speed's digits when it is the
+ * whole speed tile); without one it is read by its needle alone.
  * Numbered every 20 km/h or every 10 mph (40 and 30 when compact), ticked
  * every 10 or 5.
  */
-private fun speedFace(subs: Boolean, compact: Boolean, revs: Boolean, w: DialWords, units: UnitSystem) = DialFace(
+private fun speedFace(subs: Boolean, compact: Boolean, window: Boolean, w: DialWords, units: UnitSystem) = DialFace(
     labels = (0..speedoTop(units) step if (units.imperial) (if (compact) 30 else 10) else (if (compact) 40 else 20)).map { it.toString() },
     minor = if (units.imperial) (if (compact) 3 else 2) else (if (compact) 4 else 2),
     numeral = if (compact) 30f else 23f,
     title = units.speedUnit,
-    lcd = if (revs) LcdCompact else null,
+    lcd = if (window) LcdCompact else null,
     subs = if (subs && !compact) {
         listOf(SubDial(147f, 247f, "8", "16", w.volt), SubDial(233f, 247f, "0", "100", w.load))
     } else emptyList(),
@@ -1053,8 +1078,9 @@ private fun Modifier.dialFace(face: DialFace, measurer: TextMeasurer, accent: Co
  * A chrome-ringed analog dial [side] wide: the cached face on its own layer,
  * sub-dial needles, the main needle turned only by layer rotation (with an
  * idle wobble while [live]), a chrome hub under glass, and the LCD [readout]
- * when the face has a window for it. [fraction] 0..1 places the needle; null
- * parks it at rest.
+ * when the face has a window for it, with [caption] under it where the
+ * window is big enough. [fraction] 0..1 places the needle; null parks it at
+ * rest.
  */
 @Composable
 private fun ChromeDial(
@@ -1066,6 +1092,7 @@ private fun ChromeDial(
     unit: String,
     lcdColor: Color,
     side: Dp,
+    caption: String? = null,
     extra: @Composable BoxScope.(unit: Dp) -> Unit = {}
 ) {
     val measurer = rememberTextMeasurer()
@@ -1165,7 +1192,11 @@ private fun ChromeDial(
             // title names the unit anyway).
             val mainSize = max(du.value * if (window == LcdCompact) 30f else 20f, 14f)
             val unitSize = max(mainSize * 0.55f, 14f)
-            val showUnit = unit.isNotEmpty() &&
+            // A caption goes under the readout, both at the small size, only where
+            // the window holds two such lines; a smaller dial keeps the readout alone.
+            val twoLines = caption != null &&
+                unitSize * 2.4f <= (du * window.h).value && lcdWidth(caption, unitSize.dp) <= du * window.w
+            val showUnit = !twoLines && unit.isNotEmpty() &&
                 lcdWidth(readout, mainSize.dp) + lcdWidth(" $unit", unitSize.dp) <= du * window.w
             Column(
                 modifier = Modifier
@@ -1183,10 +1214,13 @@ private fun ChromeDial(
                             }
                         }
                     },
-                    style = lcd(mainSize.dp.fixedSp(), lcdColor),
+                    style = lcd((if (twoLines) unitSize else mainSize).dp.fixedSp(), lcdColor),
                     maxLines = 1,
                     softWrap = false
                 )
+                if (twoLines && caption != null) {
+                    Text(caption, style = lcd(unitSize.dp.fixedSp(), ink.copy(alpha = 0.75f)), maxLines = 1, softWrap = false)
+                }
             }
         }
     }
@@ -1289,7 +1323,7 @@ private fun CockpitTelemetry(env: SkinTileEnv) {
         fun speedo(side: Dp, withRevs: Boolean) {
             val compact = side < 230.dp
             val revs = withRevs && !compact
-            val face = remember(compact, revs, words, units) { speedFace(subs = true, compact = compact, revs = revs, w = words, units = units) }
+            val face = remember(compact, revs, words, units) { speedFace(subs = true, compact = compact, window = revs, w = words, units = units) }
             ChromeDial(
                 face = face,
                 fraction = speed?.let { speedoFraction(it, units) },
@@ -1379,7 +1413,7 @@ private fun TelemetryTellTales(env: SkinTileEnv, speed: Int?, idle: Boolean, mod
     }
 }
 
-/** A single speedometer fed by OBD or GPS; wide tiles add a big LCD readout beside it. */
+/** A single speedometer fed by OBD or GPS, the digits in its LCD window; wide tiles put them on a big LCD beside it. */
 @Composable
 private fun CockpitSpeedHud(env: SkinTileEnv) {
     val speed = rememberSpeedKmh(env.obdData, env.obdConnection)
@@ -1398,25 +1432,28 @@ private fun CockpitSpeedHud(env: SkinTileEnv) {
             return@BoxWithConstraints
         }
 
-        // Needle only: the number is on the LCD beside the dial when the tile is wide.
+        // Alone, the dial carries the digits in its own LCD window, and "--"
+        // with the source while there is no speed: a resting needle alone would
+        // read as standing still. In a wide tile they are on the LCD beside it.
         @Composable
-        fun dial(side: Dp) {
+        fun dial(side: Dp, window: Boolean) {
             val compact = side < 230.dp
-            val face = remember(compact, words, units) { speedFace(subs = false, compact = compact, revs = false, w = words, units = units) }
+            val face = remember(compact, window, words, units) { speedFace(subs = false, compact = compact, window = window, w = words, units = units) }
             ChromeDial(
                 face = face,
                 fraction = speed?.let { speedoFraction(it, units) },
                 subFractions = emptyList(),
                 live = speed != null,
-                readout = null,
-                unit = "",
-                lcdColor = color,
-                side = side
+                readout = if (window) speed?.let { units.speed(it).toString() } ?: "--" else null,
+                unit = if (speed != null) source else "",
+                lcdColor = if (speed == null) LcdInk.copy(alpha = 0.4f) else color,
+                side = side,
+                caption = if (speed == null) source else null
             )
         }
         if (w >= h * 1.7f) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                dial(h)
+                dial(h, window = false)
                 Spacer(Modifier.width(12.dp))
                 SpeedLcd(
                     speed, if (speed == null) source else "$unitCaps · $source",
@@ -1426,7 +1463,7 @@ private fun CockpitSpeedHud(env: SkinTileEnv) {
                 )
             }
         } else {
-            dial(min(w, h))
+            dial(min(w, h), window = true)
         }
     }
 }
@@ -2079,6 +2116,7 @@ private fun DateLcd(modifier: Modifier) {
 @Composable
 private fun CockpitWeather() {
     val weather = rememberWeather()
+    val wait = rememberWeatherWait()
     val units = LocalUnits.current
     val ink = LcdInk
     val backlit = !DashColors.Light
@@ -2116,7 +2154,11 @@ private fun CockpitWeather() {
                         )
                     }
                     Text(
-                        weather?.condition?.uppercase() ?: stringResource(R.string.cockpit_loading),
+                        weather?.condition?.uppercase() ?: when (wait) {
+                            WeatherWait.LOADING -> stringResource(R.string.cockpit_loading)
+                            WeatherWait.NO_GPS -> stringResource(R.string.info_waiting_gps).uppercase()
+                            WeatherWait.UNAVAILABLE -> stringResource(R.string.info_weather_unavailable).uppercase()
+                        },
                         style = lcd(line.fixedSp(), ink.copy(alpha = 0.9f)),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis

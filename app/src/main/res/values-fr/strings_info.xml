@@ -2,6 +2,7 @@
 <resources>
     <!-- Shared -->
     <string name="info_waiting_gps">En attente du GPS…</string>
+    <string name="info_no_gps">Sans GPS</string>
     <string name="info_open">Ouvrir</string>
     <string name="info_clear">Effacer</string>
     <string name="info_reset">Réinitialiser</string>

@@ -78,6 +78,7 @@ import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
@@ -277,10 +278,10 @@ internal fun orbitBackground(): Modifier {
  * left-hand-drive car, the right edge when the car profile puts the driver on
  * the right, as the templates do with the main tiles. The pill holds Apps,
  * the layout picker, the OBD pill and the ⋮ menu, ⋮ nearest the screen edge;
- * the buttons are 56 dp targets with 26 dp icons, 8 dp apart. The setup pill
- * and the vehicle alert chips sit on the pill's inner side, only when
- * something needs attention. By day the pill is frosted white, lifted off the
- * page by a soft ink shadow.
+ * the buttons are 56 dp targets with 26 dp icons, 8 dp apart. The setup pill,
+ * the vehicle alert chips and the phone sit on the pill's inner side, only
+ * when there is something to show and only up to the clock ([BarEnd]). By day
+ * the pill is frosted white, lifted off the page by a soft ink shadow.
  */
 @Composable
 internal fun OrbitTopBar(m: TopBarModel) {
@@ -298,12 +299,12 @@ internal fun OrbitTopBar(m: TopBarModel) {
             .height(ORBIT_BAR)
             .ownLayer()
     ) {
-        // A narrow screen keeps the date clear of the pill by dropping it.
-        val showDate = maxWidth >= 640.dp
         val narrow = maxWidth < NARROW_BAR
-        // The head unit's status bar shows the time while it is up.
-        if (!m.merged) {
-            Row(modifier = Modifier.align(Alignment.Center), verticalAlignment = Alignment.CenterVertically) {
+        val shared = barIsShared()
+        // A narrow screen drops the date; a tight one gives its room to a chip or a pill.
+        val showDate = maxWidth >= 640.dp && !(narrow && (shared || m.setupPending))
+        val clock: @Composable () -> Unit = {
+            Row(modifier = Modifier.padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = m.clock,
                     modifier = Modifier.alignByBaseline(),
@@ -351,9 +352,29 @@ internal fun OrbitTopBar(m: TopBarModel) {
                 }
             }
         }
-        val setup: @Composable () -> Unit = {
-            if (m.setupPending) {
-                SetupPill(onClick = { m.onSetup(false) }, modifier = Modifier.padding(horizontal = 6.dp), compact = narrow)
+        // What sits on the island's inner side, by rank: the room up to the
+        // clock goes to the alerts first, and what no longer fits is left out,
+        // so nothing prints over the time.
+        val extras: @Composable (Modifier) -> Unit = { room ->
+            BarEnd(modifier = room, alignEnd = driverOnRight) {
+                val setup: @Composable () -> Unit = {
+                    if (m.setupPending) {
+                        Box(Modifier.layoutId(BarRank.SETUP).padding(horizontal = 6.dp)) {
+                            SetupPill(onClick = { m.onSetup(false) }, compact = narrow || shared)
+                        }
+                    }
+                }
+                val alerts: @Composable () -> Unit = {
+                    Row(modifier = Modifier.layoutId(BarRank.ALERTS), verticalAlignment = Alignment.CenterVertically) {
+                        VehicleAlerts(m.obdConnection, m.obd)
+                    }
+                }
+                val phone: @Composable () -> Unit = { Box(Modifier.layoutId(BarRank.PHONE)) { PhonePill() } }
+                if (driverOnRight) {
+                    phone(); alerts(); setup()
+                } else {
+                    setup(); alerts(); phone()
+                }
             }
         }
         val pill: @Composable () -> Unit = {
@@ -376,24 +397,35 @@ internal fun OrbitTopBar(m: TopBarModel) {
                 }
             }
         }
-        Row(
-            modifier = Modifier
-                .align(if (driverOnRight) Alignment.CenterEnd else Alignment.CenterStart)
-                .padding(horizontal = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        // The island and what goes with it, filling the room it is given.
+        val cluster: @Composable (Modifier) -> Unit = { room ->
+            Row(modifier = room.padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                if (driverOnRight) {
+                    extras(Modifier.weight(1f))
+                    Spacer(Modifier.width(10.dp))
+                    pill()
+                } else {
+                    pill()
+                    Spacer(Modifier.width(10.dp))
+                    extras(Modifier.weight(1f))
+                }
+            }
+        }
+        Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+            // The island's side and the empty one get half of what the clock
+            // leaves each, so the clock stays centred. An upright screen, or half
+            // of a split one, has no half wide enough for the island: there it
+            // takes all the room and the clock moves to the far edge. The head
+            // unit's status bar shows the time while it is up.
+            val far: @Composable () -> Unit = { if (!narrow) Spacer(Modifier.weight(1f)) }
             if (driverOnRight) {
-                PhonePill()
-                VehicleAlerts(m.obdConnection, m.obd)
-                setup()
-                Spacer(Modifier.width(10.dp))
-                pill()
+                far()
+                if (!m.merged) clock()
+                cluster(Modifier.weight(1f))
             } else {
-                pill()
-                Spacer(Modifier.width(10.dp))
-                setup()
-                VehicleAlerts(m.obdConnection, m.obd)
-                PhonePill()
+                cluster(Modifier.weight(1f))
+                if (!m.merged) clock()
+                far()
             }
         }
     }

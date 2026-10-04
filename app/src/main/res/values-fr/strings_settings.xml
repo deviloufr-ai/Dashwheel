@@ -145,6 +145,7 @@
     <string name="bar_items_title">Barre du bas</string>
     <string name="bar_items_custom">Choisir ce que montre la barre</string>
     <string name="bar_items_theme">Désactivé : la barre du thème</string>
+    <string name="bar_items_skin">Les indicateurs ne s\'affichent qu\'avec la barre standard, pas avec un skin.</string>
     <string name="bar_items_custom_detail">Touchez un indicateur pour l\'ajouter à la barre ou l\'en retirer ; les flèches règlent l\'ordre. Ce qui ne tient pas est laissé de côté.</string>
     <string name="bar_items_left">Plus tôt dans la barre</string>
     <string name="bar_items_right">Plus loin dans la barre</string>

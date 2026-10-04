@@ -758,45 +758,43 @@ private val HORIZON_BUTTON = 60.dp
 
 /**
  * OBD link: the letters OBD beside a mint dot with a glow when connected, a
- * hollow ring when off, so the mark says what it is; tap connects while idle.
+ * hollow ring when off, a dot that pulses while connecting and a "!" after
+ * the letters on error, so the mark reads without its colour. What a tap
+ * does is the shared [ObdMark]'s.
  */
 @Composable
 private fun HorizonObdDot(state: ObdConnectionState, onConnect: () -> Unit) {
     val color = obdStatusColor(state)
-    val label = obdStatusLabel(state)
-    val idle = state.isIdle
-    Row(
-        modifier = Modifier
-            .heightIn(min = HORIZON_BUTTON)
-            .clip(CircleShape)
-            .clickable(enabled = idle, role = Role.Button, onClick = onConnect)
-            .semantics(mergeDescendants = true) { contentDescription = label }
-            .padding(start = 6.dp, end = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            Modifier
-                .size(24.dp)
-                .drawWithCache {
-                    val r = 4.5.dp.toPx()
-                    val glow = Brush.radialGradient(listOf(color.copy(alpha = 0.55f), Color.Transparent), size.center, r * 2.6f)
-                    val ring = Stroke(1.5.dp.toPx())
-                    onDrawBehind {
-                        when (state) {
-                            ObdConnectionState.CONNECTED -> {
-                                drawCircle(glow, radius = r * 2.6f)
-                                drawCircle(color, radius = r)
+    val ink = if (state == ObdConnectionState.DISCONNECTED) DashColors.TextSecondary else color
+    val pulse = if (state == ObdConnectionState.CONNECTING) rememberLoop(900, reverse = true, status = true) else null
+    ObdMark(state, onConnect, modifier = Modifier.heightIn(min = HORIZON_BUTTON), shape = CircleShape) {
+        Row(modifier = Modifier.padding(start = 6.dp, end = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier
+                    .size(24.dp)
+                    .drawWithCache {
+                        val r = 4.5.dp.toPx()
+                        val glow = Brush.radialGradient(listOf(color.copy(alpha = 0.55f), Color.Transparent), size.center, r * 2.6f)
+                        val ring = Stroke(1.5.dp.toPx())
+                        onDrawBehind {
+                            when (state) {
+                                ObdConnectionState.CONNECTED -> {
+                                    drawCircle(glow, radius = r * 2.6f)
+                                    drawCircle(color, radius = r)
+                                }
+                                ObdConnectionState.DISCONNECTED -> drawCircle(color, radius = r, style = ring)
+                                ObdConnectionState.CONNECTING -> drawCircle(color, radius = r, alpha = 0.35f + 0.65f * (pulse?.value ?: 1f))
+                                ObdConnectionState.ERROR -> drawCircle(color, radius = r)
                             }
-                            ObdConnectionState.DISCONNECTED -> drawCircle(color, radius = r, style = ring)
-                            else -> drawCircle(color, radius = r)
                         }
                     }
-                }
-        )
-        SceneText(
-            stringResource(R.string.dash_obd_short),
-            ui(14f, if (state == ObdConnectionState.DISCONNECTED) DashColors.TextSecondary else color)
-        )
+            )
+            SceneText(stringResource(R.string.dash_obd_short), ui(14f, ink))
+            if (state == ObdConnectionState.ERROR) {
+                Spacer(Modifier.width(3.dp))
+                SceneText("!", ui(14f, ink, FontWeight.Black))
+            }
+        }
     }
 }
 
@@ -1287,8 +1285,15 @@ private fun HorizonClock(env: SkinTileEnv, side: Side) {
 @Composable
 private fun HorizonWeather(side: Side) {
     val w = rememberWeather()
+    val wait = rememberWeatherWait()
     if (w == null) {
-        SceneEmpty(stringResource(R.string.horizon_loading), stringResource(R.string.horizon_weather_at_car), side, null)
+        // Says why there is none, so "Loading" never stands for a whole drive without GPS or network.
+        val title = when (wait) {
+            WeatherWait.LOADING -> R.string.horizon_loading
+            WeatherWait.NO_GPS -> R.string.info_waiting_gps
+            WeatherWait.UNAVAILABLE -> R.string.info_weather_unavailable
+        }
+        SceneEmpty(stringResource(title), stringResource(R.string.horizon_weather_at_car), side, null)
         return
     }
     BoxWithConstraints(
@@ -1308,7 +1313,8 @@ private fun HorizonWeather(side: Side) {
             val lineStyle = ui(lineSp, DashColors.Muted)
             val feels = stringResource(R.string.horizon_feels, units.temp(w.feelsC))
             val wind = stringResource(if (units.imperial) R.string.units_horizon_wind_mph else R.string.horizon_wind, units.speed(w.windKmh))
-            val range = if (!w.hiC.isNaN()) "${units.temp(w.loC)}° / ${units.temp(w.hiC)}°" else null
+            // Either end can be missing from the forecast; rounding a NaN would throw.
+            val range = if (!w.hiC.isNaN() && !w.loC.isNaN()) "${units.temp(w.loC)}° / ${units.temp(w.hiC)}°" else null
             val line = firstFitting(
                 listOfNotNull(range?.let { "$feels$DOT$wind$DOT$it" }, "$feels$DOT$wind", feels),
                 lineStyle, maxW

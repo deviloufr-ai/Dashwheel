@@ -145,6 +145,7 @@
     <string name="bar_items_title">Onderbalk</string>
     <string name="bar_items_custom">Kies wat de balk toont</string>
     <string name="bar_items_theme">Uit: de balk van het thema</string>
+    <string name="bar_items_skin">De weergaven verschijnen alleen met de standaardbalk, niet met een skin.</string>
     <string name="bar_items_custom_detail">Tik op een weergave om hem in de balk te zetten of eruit te halen; de pijlen bepalen de volgorde. Wat niet past, valt weg.</string>
     <string name="bar_items_left">Eerder in de balk</string>
     <string name="bar_items_right">Later in de balk</string>

@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -74,6 +75,7 @@ import androidx.compose.ui.graphics.layer.CompositingStrategy
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -378,40 +380,59 @@ internal fun TapeDeckTopBar(m: TopBarModel) {
         // Narrow screens drop the logo so the pills never run into the clock.
         val showLogo = maxWidth >= 980.dp
         val narrow = maxWidth < NARROW_BAR
-        Row(modifier = Modifier.align(Alignment.CenterStart), verticalAlignment = Alignment.CenterVertically) {
-            if (showLogo) {
-                TapeLogo()
-                Spacer(Modifier.width(18.dp))
-            }
-            NeonPill(stringResource(R.string.tape_apps_caps), stringResource(R.string.tape_cd_all_apps), m.onApps) {
-                Icon(Icons.Filled.Apps, contentDescription = null, tint = legend, modifier = Modifier.size(16.dp))
-            }
-            Spacer(Modifier.width(6.dp))
-            LayoutPicker(m) { open ->
-                NeonPill(
-                    stringResource(R.string.tape_layout_caps),
-                    stringResource(R.string.tape_cd_screen_layout, m.layout.title),
-                    open
-                ) {
-                    LayoutIcon(m.layout, null, legend, Modifier.size(16.dp))
+        val shared = barIsShared()
+        Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+            // Each side gets half of what the clock leaves, so the clock stays
+            // centred and nothing prints over it. An upright screen, or half of a
+            // split one, has no room for that: the pills go down to their icons
+            // and take only what they need, like the standard bar's.
+            Row(
+                modifier = if (narrow) Modifier else Modifier.weight(1f).wrapContentWidth(Alignment.Start, unbounded = true),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (showLogo) {
+                    TapeLogo()
+                    Spacer(Modifier.width(18.dp))
+                }
+                NeonPill(if (narrow) null else stringResource(R.string.tape_apps_caps), stringResource(R.string.tape_cd_all_apps), m.onApps) {
+                    Icon(Icons.Filled.Apps, contentDescription = null, tint = legend, modifier = Modifier.size(16.dp))
+                }
+                Spacer(Modifier.width(6.dp))
+                LayoutPicker(m) { open ->
+                    NeonPill(
+                        if (narrow) null else stringResource(R.string.tape_layout_caps),
+                        stringResource(R.string.tape_cd_screen_layout, m.layout.title),
+                        open
+                    ) {
+                        LayoutIcon(m.layout, null, legend, Modifier.size(16.dp))
+                    }
                 }
             }
-        }
 
-        // The head unit's status bar shows the time while it is up.
-        if (!m.merged) VfdClock(m.clock)
+            // The head unit's status bar shows the time while it is up.
+            if (!m.merged) Box(Modifier.padding(horizontal = 10.dp)) { VfdClock(m.clock) }
 
-        Row(modifier = Modifier.align(Alignment.CenterEnd), verticalAlignment = Alignment.CenterVertically) {
-            if (m.setupPending) {
-                SetupPill(onClick = { m.onSetup(false) }, modifier = Modifier.padding(end = 6.dp), compact = narrow)
-            }
-            ObdLed(m.obdConnection, m.onConnectObd)
-            if (!narrow) OutsideTemp()
-            VehicleAlerts(m.obdConnection, m.obd)
-            PhonePill()
-            MorePicker(m) { open ->
-                NeonPill(null, stringResource(R.string.tape_cd_more), open) {
-                    Icon(Icons.Filled.MoreVert, contentDescription = null, tint = legend, modifier = Modifier.size(20.dp))
+            // ⋮ and the OBD LED get their room first; what ranks last and no
+            // longer fits beside the clock is left out (the outside temperature
+            // first: the page's weather tile says the same).
+            BarEnd(modifier = Modifier.weight(1f)) {
+                if (m.setupPending) {
+                    Box(Modifier.layoutId(BarRank.SETUP).padding(end = 6.dp)) {
+                        SetupPill(onClick = { m.onSetup(false) }, compact = narrow || shared)
+                    }
+                }
+                Box(Modifier.layoutId(BarRank.OBD)) { ObdLed(m.obdConnection, m.onConnectObd) }
+                if (!narrow) Box(Modifier.layoutId(BarRank.TEMP)) { OutsideTemp() }
+                Row(modifier = Modifier.layoutId(BarRank.ALERTS), verticalAlignment = Alignment.CenterVertically) {
+                    VehicleAlerts(m.obdConnection, m.obd)
+                }
+                Box(Modifier.layoutId(BarRank.PHONE)) { PhonePill() }
+                Box(Modifier.layoutId(BarRank.MORE)) {
+                    MorePicker(m) { open ->
+                        NeonPill(null, stringResource(R.string.tape_cd_more), open) {
+                            Icon(Icons.Filled.MoreVert, contentDescription = null, tint = legend, modifier = Modifier.size(20.dp))
+                        }
+                    }
                 }
             }
         }
@@ -986,38 +1007,30 @@ private fun VfdClock(clock: String) {
     }
 }
 
-/** OBD status LED and label; tapping connects while the link is idle. */
+/** OBD status LED and label; what a tap does is the shared [ObdMark]'s. */
 @Composable
 private fun ObdLed(state: ObdConnectionState, onConnect: () -> Unit) {
     val legend = TdLegend
     val color = obdStatusColor(state)
-    val label = obdStatusLabel(state)
-    val idle = state.isIdle
     val blink = if (state == ObdConnectionState.CONNECTING) rememberBlink(350L) else null
-    Row(
-        modifier = Modifier
-            .heightIn(min = 48.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .clickable(enabled = idle, role = Role.Button, onClick = onConnect)
-            .semantics(mergeDescendants = true) { contentDescription = label }
-            .padding(horizontal = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Spacer(
-            Modifier
-                .size(10.dp)
-                .cachedDraw(color, state, blink) {
-                    val r = size.minDimension * 1.3f
-                    val halo = Brush.radialGradient(listOf(color.copy(alpha = 0.6f), fadeOf(color)), center = size.center, radius = r)
-                    onDrawBehind {
-                        val on = blink?.value ?: true
-                        if (on && state != ObdConnectionState.DISCONNECTED) drawCircle(halo, radius = r)
-                        drawCircle(if (on) color else color.copy(alpha = 0.3f))
+    ObdMark(state, onConnect, shape = RoundedCornerShape(12.dp)) {
+        Row(modifier = Modifier.padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Spacer(
+                Modifier
+                    .size(10.dp)
+                    .cachedDraw(color, state, blink) {
+                        val r = size.minDimension * 1.3f
+                        val halo = Brush.radialGradient(listOf(color.copy(alpha = 0.6f), fadeOf(color)), center = size.center, radius = r)
+                        onDrawBehind {
+                            val on = blink?.value ?: true
+                            if (on && state != ObdConnectionState.DISCONNECTED) drawCircle(halo, radius = r)
+                            drawCircle(if (on) color else color.copy(alpha = 0.3f))
+                        }
                     }
-                }
-        )
-        Spacer(Modifier.width(8.dp))
-        Text("OBD", style = chromeText(legend, 14.sp), maxLines = 1)
+            )
+            Spacer(Modifier.width(8.dp))
+            Text("OBD", style = chromeText(legend, 14.sp), maxLines = 1)
+        }
     }
 }
 
@@ -2063,11 +2076,13 @@ private fun NeonIcon(icon: ImageVector, color: Color, size: Dp) {
 /**
  * Weather as a neon sign: the temperature in magenta tube letters (with the
  * odd flicker), the condition in cyan monospace, feels-like / wind / low-high
- * small. "LOADING" until the first fetch.
+ * small. "LOADING" until the first fetch, "NO GPS" or "OFFLINE" when that
+ * is why there is none.
  */
 @Composable
 private fun TapeWeather() {
     val weather = rememberWeather()
+    val wait = rememberWeatherWait()
     val cyan = DashColors.Accent
     val magenta = DashColors.Accent2
     val muted = DashColors.TextSecondary
@@ -2083,8 +2098,14 @@ private fun TapeWeather() {
         val w = weather
         if (w == null) {
             Row(verticalAlignment = Alignment.Bottom) {
-                Text(stringResource(R.string.tape_loading_caps), style = vfdText(cyan, 18.sp), maxLines = 1)
-                BlinkingText("_", vfdText(cyan, 18.sp), offAlpha = 0f)
+                val word = when (wait) {
+                    WeatherWait.LOADING -> stringResource(R.string.tape_loading_caps)
+                    WeatherWait.NO_GPS -> stringResource(R.string.info_no_gps).uppercase()
+                    WeatherWait.UNAVAILABLE -> stringResource(R.string.orbit_offline).uppercase()
+                }
+                Text(word, style = vfdText(cyan, 18.sp), maxLines = 1)
+                // The cursor blinks only while something is on its way.
+                if (wait == WeatherWait.LOADING) BlinkingText("_", vfdText(cyan, 18.sp), offAlpha = 0f)
             }
         } else {
             val wide = maxWidth > maxHeight * 1.9f

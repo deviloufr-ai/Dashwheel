@@ -145,6 +145,7 @@
     <string name="bar_items_title">Untere Leiste</string>
     <string name="bar_items_custom">Wählen, was die Leiste zeigt</string>
     <string name="bar_items_theme">Aus: die Leiste des Designs</string>
+    <string name="bar_items_skin">Die Anzeigen erscheinen nur mit der Standardleiste, nicht mit einem Skin.</string>
     <string name="bar_items_custom_detail">Tippen Sie auf eine Anzeige, um sie in die Leiste zu nehmen oder zu entfernen; die Pfeile legen die Reihenfolge fest. Was nicht passt, fällt weg.</string>
     <string name="bar_items_left">Weiter vorne in der Leiste</string>
     <string name="bar_items_right">Weiter hinten in der Leiste</string>

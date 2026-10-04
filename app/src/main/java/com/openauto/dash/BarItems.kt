@@ -50,6 +50,7 @@ import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -408,12 +409,24 @@ private fun Caption(text: String, modifier: Modifier = Modifier, color: Color = 
 
 /**
  * Settings, Display: the bar's readouts. Off: the theme's own bar. On: a list
- * of every readout, ticked or not, moved up and down into order.
+ * of every readout, ticked or not, moved up and down into order. A skin draws
+ * its own bar and shows none of them: under one the switch is greyed out and
+ * says why, so nobody orders readouts that never appear.
  */
 @Composable
 internal fun BarItemsSetting() {
     val chosen by BarItems.items.collectAsState()
     SettingsSection(stringResource(R.string.bar_items_title))
+    if (DashColors.Skin != DashSkin.STANDARD) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.bar_items_custom), color = DashColors.Muted)
+                Text(stringResource(R.string.bar_items_skin), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+            }
+            Switch(checked = chosen != null, onCheckedChange = null, enabled = false)
+        }
+        return
+    }
     SwitchRow(
         title = stringResource(R.string.bar_items_custom),
         detail = stringResource(if (chosen == null) R.string.bar_items_theme else R.string.bar_items_custom_detail),

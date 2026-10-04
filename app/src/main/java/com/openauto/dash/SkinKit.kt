@@ -277,6 +277,14 @@ internal fun rememberWeather(): Weather? {
     return weather
 }
 
+/** Why [rememberWeather] has nothing yet, so a skin says "no GPS" or "offline" in its own words and not "loading" all drive. */
+@Composable
+internal fun rememberWeatherWait(): WeatherWait {
+    val location by LocationFeed.location.collectAsState()
+    val error by WeatherRepo.error.collectAsState()
+    return weatherWait(location != null, error)
+}
+
 /**
  * Fuel from the CANbox when learned, else the OBD fuel PID, with the car's own
  * distance to empty when its CANbox signal is known; null when none of them is

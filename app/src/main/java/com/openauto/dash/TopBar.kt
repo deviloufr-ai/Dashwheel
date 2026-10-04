@@ -91,6 +91,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.Layout
@@ -335,15 +336,20 @@ internal object BarRank {
     const val DEMO = 4
     const val SETUP = 5
     const val PHONE = 6
+
+    /** A skin's outside temperature: the weather tile says the same, so it goes first. */
+    const val TEMP = 7
 }
 
 /**
  * The bar's end, right-aligned in the order written. Room is handed out by
  * [BarRank] (the child's layoutId), so a crowded bar never squeezes ⋮ or the
  * OBD pill: what comes last in rank and no longer fits is left out whole.
+ * [alignEnd] false starts from the left instead, for a cluster at the bar's
+ * start (Orbit's island on a left-hand-drive car).
  */
 @Composable
-internal fun BarEnd(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+internal fun BarEnd(modifier: Modifier = Modifier, alignEnd: Boolean = true, content: @Composable () -> Unit) {
     Layout(content = content, modifier = modifier) { measurables, constraints ->
         val placeables = arrayOfNulls<Placeable>(measurables.size)
         val maxHeight = constraints.maxHeight
@@ -361,7 +367,7 @@ internal fun BarEnd(modifier: Modifier = Modifier, content: @Composable () -> Un
         val width = if (constraints.hasBoundedWidth) constraints.maxWidth else constraints.maxWidth - left
         val height = (placeables.maxOfOrNull { it?.height ?: 0 } ?: 0).coerceIn(constraints.minHeight, maxHeight)
         layout(width, height) {
-            var x = left.coerceAtLeast(0)
+            var x = if (alignEnd) left.coerceAtLeast(0) else 0
             placeables.forEach { p ->
                 if (p != null) {
                     p.placeRelative(x, (height - p.height) / 2)
@@ -613,22 +619,26 @@ internal fun obdStatusLabelRes(state: ObdConnectionState): Int = when (state) {
 @Composable
 internal fun obdStatusLabel(state: ObdConnectionState): String = stringResource(obdStatusLabelRes(state))
 
+/** Whether a tap on the OBD mark opens the steps for the phone, not another try that would fail the same way. */
+internal fun obdTapOpensHelp(state: ObdConnectionState, phoneBlocking: Boolean): Boolean =
+    state == ObdConnectionState.ERROR && phoneBlocking
+
 /**
- * OBD link as a pill that reads without colour: a dot (hollow when off, lit
- * with a halo when live, pulsing while connecting, with a "!" on error) and
- * the letters OBD. 48 dp tall to tap; tapping while idle connects.
+ * What the OBD mark of every bar does, whatever a skin draws as [content]: a
+ * [DashSize.TouchPrimary] target with the tap feedback that connects while
+ * the link is idle, the steps for the phone when its Android Auto holds the
+ * adapter, and the spot the tour lights up.
  */
 @Composable
-internal fun ObdPill(state: ObdConnectionState, onConnect: () -> Unit, modifier: Modifier = Modifier) {
-    val color = obdStatusColor(state)
+internal fun ObdMark(
+    state: ObdConnectionState,
+    onConnect: () -> Unit,
+    modifier: Modifier = Modifier,
+    shape: Shape = DashShape.Pill,
+    clickLabel: String? = null,
+    content: @Composable () -> Unit
+) {
     val label = obdStatusLabel(state)
-    val idle = state.isIdle
-    val off = state == ObdConnectionState.DISCONNECTED
-    val connecting = state == ObdConnectionState.CONNECTING
-    val pulse = if (connecting) rememberLoop(900, reverse = true, status = true) else null
-    val halo = DashColors.Glow
-    val ink = if (off) DashColors.Muted else color
-    val shape = DashShape.Pill
     val tap = rememberTapFeedback()
     // The phone's Android Auto holding the radio: another try would fail the same way, the steps help.
     val phoneBlocking by ObdBluetoothManager.phoneBlocking.collectAsState()
@@ -638,17 +648,35 @@ internal fun ObdPill(state: ObdConnectionState, onConnect: () -> Unit, modifier:
         modifier = modifier
             .tourTarget(TourTarget.OBD)
             .heightIn(min = DashSize.TouchPrimary)
+            .widthIn(min = DashSize.TouchPrimary)
             .clip(shape)
-            .clickable(enabled = idle, role = Role.Button) {
+            .clickable(enabled = state.isIdle, onClickLabel = clickLabel, role = Role.Button) {
                 tap()
-                if (state == ObdConnectionState.ERROR && phoneBlocking) help = true else onConnect()
+                if (obdTapOpensHelp(state, phoneBlocking)) help = true else onConnect()
             }
-            .semantics(mergeDescendants = true) { contentDescription = label }
-            .padding(horizontal = 4.dp),
+            .semantics(mergeDescendants = true) { contentDescription = label },
         contentAlignment = Alignment.Center
-    ) {
+    ) { content() }
+}
+
+/**
+ * OBD link as a pill that reads without colour: a dot (hollow when off, lit
+ * with a halo when live, pulsing while connecting, with a "!" on error) and
+ * the letters OBD. What a tap does is [ObdMark]'s.
+ */
+@Composable
+internal fun ObdPill(state: ObdConnectionState, onConnect: () -> Unit, modifier: Modifier = Modifier) {
+    val color = obdStatusColor(state)
+    val off = state == ObdConnectionState.DISCONNECTED
+    val connecting = state == ObdConnectionState.CONNECTING
+    val pulse = if (connecting) rememberLoop(900, reverse = true, status = true) else null
+    val halo = DashColors.Glow
+    val ink = if (off) DashColors.Muted else color
+    val shape = DashShape.Pill
+    ObdMark(state, onConnect, modifier) {
         Row(
             modifier = Modifier
+                .padding(horizontal = 4.dp)
                 .height(40.dp)
                 .clip(shape)
                 .background(if (off) Color.Transparent else color.copy(alpha = 0.14f))
@@ -687,6 +715,32 @@ internal fun ObdPill(state: ObdConnectionState, onConnect: () -> Unit, modifier:
             }
         }
     }
+}
+
+/**
+ * Whether the phone's pill or an alert chip is on the bar: a skin's setup
+ * pill then goes short, so they all fit beside its clock.
+ */
+@Composable
+internal fun barIsShared(): Boolean {
+    val phone by UnitSignals.phone.collectAsState()
+    val link by PhoneLink.state.collectAsState()
+    return phone != null || link is PhoneLinkState.Connected ||
+        AlertCenter.critical.isNotEmpty() || AlertCenter.warnings.isNotEmpty()
+}
+
+/** Why there is no weather to show yet. */
+internal enum class WeatherWait { LOADING, NO_GPS, UNAVAILABLE }
+
+/**
+ * What a weather readout says while it has nothing, as the standard tile
+ * tells it: no position to ask about, an answer that failed ([error], the
+ * repo's, null while none did), or simply not there yet.
+ */
+internal fun weatherWait(hasLocation: Boolean, error: String?): WeatherWait = when {
+    !hasLocation -> WeatherWait.NO_GPS
+    error != null -> WeatherWait.UNAVAILABLE
+    else -> WeatherWait.LOADING
 }
 
 /**
@@ -1311,7 +1365,8 @@ internal fun SetupPill(onClick: () -> Unit, modifier: Modifier = Modifier, compa
                 color = DashColors.TextPrimary,
                 fontWeight = FontWeight.SemiBold,
                 style = MaterialTheme.typography.labelMedium,
-                maxLines = 1
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }
