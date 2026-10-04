@@ -9,6 +9,9 @@ object Pipelines {
 
     const val LAUNCH = "gst-launch-1.0"
 
+    /** DRM's plane rotation for a half turn (DRM_MODE_ROTATE_180). */
+    private const val ROTATE_180 = 4
+
     /**
      * H.264 Annex-B on stdin to the screen. On the Pi, `v4l2h264dec` is the
      * VideoCore's hardware decoder (bcm2835-codec), whose NV12/I420 output
@@ -16,12 +19,15 @@ object Pipelines {
      */
     fun video(config: DisplayConfig, upsideDown: Boolean = false, pixelShape: Pair<Int, Int> = 1 to 1): List<String> {
         config.videoPipeline?.let { return listOf(LAUNCH, "-q") + it.trim().split(Regex("\\s+")) }
-        // A monitor mounted upside down: the decoded picture is turned before it is shown.
+        // A monitor mounted upside down. On the screen itself the display plane turns the
+        // picture, for nothing; turning each frame in software (videoflip) took a whole
+        // core of the Pi 3 at 15 frames a second, and the picture fell seconds behind.
         val turn = if (upsideDown) "videoflip video-direction=180 ! " else ""
+        val planeTurn = if (upsideDown) " plane-properties=s,rotation=(int)$ROTATE_180" else ""
         // The pixel shape kmssink takes the monitor to have, given to the picture too: they cancel out ([PixelShape]).
         val shape = if (pixelShape == (1 to 1)) "" else "capssetter caps=video/x-raw,pixel-aspect-ratio=(fraction)${pixelShape.first}/${pixelShape.second} ! "
         val chain = when (config.sink) {
-            DisplayConfig.Sink.KMS -> "v4l2h264dec ! $turn$shape${config.sink.element}"
+            DisplayConfig.Sink.KMS -> "v4l2h264dec ! $shape${config.sink.element}$planeTurn"
             DisplayConfig.Sink.AUTO -> "avdec_h264 ! videoconvert ! $turn${config.sink.element}"
         }
         // The caps go after h264parse: fdsrc gives none, and GStreamer 1.26 (Trixie)

@@ -76,6 +76,9 @@ class PixelShapeTest {
         val plain = Pipelines.video(DisplayConfig()).joinToString(" ")
         assertFalse("capssetter" in plain)
         val given = Pipelines.video(DisplayConfig(), upsideDown = true, pixelShape = 16 to 15).joinToString(" ")
-        assertTrue(given, "videoflip video-direction=180 ! capssetter caps=video/x-raw,pixel-aspect-ratio=(fraction)16/15 ! kmssink" in given)
+        assertTrue(given, "capssetter caps=video/x-raw,pixel-aspect-ratio=(fraction)16/15 ! kmssink" in given)
+        // turned by the display plane, not frame by frame on the CPU
+        assertTrue(given, given.endsWith("plane-properties=s,rotation=(int)4"))
+        assertFalse(given, "videoflip" in given)
     }
 }
