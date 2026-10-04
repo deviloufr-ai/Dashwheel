@@ -369,7 +369,20 @@ internal object EmbeddedApp {
         scope.launch { forgetNaviToRestore(context) }
         mainScope.launch { watchFront(POWER_UP_WATCH_MS) }
         mainScope.launch { homeAfterPowerUp(context) }
+        scope.launch {
+            delay(WAKE_SETTLE_MS)
+            hosts.values.toList().forEach { it.checkAfterWake() }
+        }
     }
+
+    /** How long a tile's app is given to draw again after the ignition comes on, before it is looked at. */
+    private const val WAKE_SETTLE_MS = 6_000L
+
+    /** How long a picture has to stay exactly the same to count as not drawn. */
+    private const val STILL_PICTURE_MS = 3_000L
+
+    /** The share of one colour that makes a picture blank ([mostlyFlat]). */
+    private const val FLAT_SHARE = 0.8f
 
     /**
      * The unit wakes on the app that was in front at switch-off (any app, not
@@ -669,6 +682,25 @@ internal object EmbeddedApp {
         else -> Remedy.GIVE_UP
     }
 
+    /**
+     * True when most of a picture's [pixels] are one same colour: an app
+     * whose content is not drawn, only its bars and buttons (Google Maps
+     * woken on its tile: the search box over a blank map).
+     */
+    fun mostlyFlat(pixels: IntArray, share: Float = FLAT_SHARE): Boolean {
+        if (pixels.isEmpty()) return false
+        val counts = HashMap<Int, Int>()
+        var top = 0
+        for (p in pixels) {
+            // Colours a few steps apart count as one: a picture's compression and smoothing.
+            val key = (p shr 4) and 0x0F0F0F
+            val n = (counts[key] ?: 0) + 1
+            counts[key] = n
+            if (n > top) top = n
+        }
+        return top >= pixels.size * share
+    }
+
     /** True when a picture's [pixels] are one flat black, or nothing at all: no app is drawn there. */
     fun allBlack(pixels: IntArray): Boolean =
         pixels.isNotEmpty() && pixels.all { it == 0 || it == 0xFF000000.toInt() }
@@ -756,8 +788,11 @@ internal object EmbeddedApp {
             var height = 0
             var dpi = 0
             var onScreen = false
+            /** The tile's picture now, a quarter of its size each way; null when it has none. Main thread. */
+            var picture: () -> IntArray? = { null }
+
             /** Whether the tile's picture is all black right now. */
-            var black: () -> Boolean = { false }
+            fun black(): Boolean = picture()?.let(::allBlack) ?: false
         }
 
         private val tiles = LinkedHashMap<Any, Tile>()
@@ -846,10 +881,10 @@ internal object EmbeddedApp {
             return spare ?: Surface(texture).also { spare = it }
         }
 
-        /** [tile] shows [surface], [width] x [height] pixels at [dpi]; [black] tells whether its picture is all black. */
-        fun attach(tile: Any, surface: Surface, width: Int, height: Int, dpi: Int, black: () -> Boolean = { false }) {
+        /** [tile] shows [surface], [width] x [height] pixels at [dpi]; [picture] reads what it shows. */
+        fun attach(tile: Any, surface: Surface, width: Int, height: Int, dpi: Int, picture: () -> IntArray? = { null }) {
             val t = tiles.getOrPut(tile) { Tile() }
-            t.black = black
+            t.picture = picture
             t.surface = surface
             t.width = width
             t.height = height
@@ -1092,6 +1127,48 @@ internal object EmbeddedApp {
             return false
         }
 
+        /**
+         * After the unit slept (the ignition off and on), Google Maps on its
+         * tile came back with its search box over a white map, and stayed so
+         * until closed. So once the ignition is back, a tile whose picture is
+         * mostly one colour and does not move at all gets its picture again
+         * with the display's size nudged (drawn afresh), and if that is not
+         * enough the app is closed and opened afresh on its tile. A live map
+         * has detail, and its location dot moves.
+         */
+        suspend fun checkAfterWake() {
+            val vd = display ?: return
+            if (_status.value != Status.SHOWN || shownOn == null || dashboard?.get() == null) return
+            if (blankAndStill() != true) return
+            Log.w(TAG, "$packageName woke blank on its tile: drawn afresh")
+            withContext(Dispatchers.Main) { refresh(vd, nudge = true) }
+            delay(STILL_PICTURE_MS)
+            if (display !== vd || blankAndStill() != true) return
+            val now = SystemClock.elapsedRealtime()
+            if (reopenedAt != 0L && now - reopenedAt < REOPEN_EVERY_MS) return
+            if (settling?.isActive == true) return
+            Log.w(TAG, "$packageName still blank on its tile: opened afresh")
+            settling = scope.launch {
+                reopen(vd)
+                watch(vd)
+            }
+        }
+
+        /** Whether the tile on screen stays mostly one colour and unchanged for a few seconds; null when it can't be seen. */
+        private suspend fun blankAndStill(): Boolean? {
+            val first = withContext(Dispatchers.Main) { shownPicture() } ?: return null
+            if (!mostlyFlat(first)) return false
+            delay(STILL_PICTURE_MS)
+            val second = withContext(Dispatchers.Main) { shownPicture() } ?: return null
+            return second.contentEquals(first)
+        }
+
+        /** The picture of the tile on screen. Main thread. */
+        private fun shownPicture(): IntArray? {
+            val tile = shownOn?.let { tiles[it] } ?: return null
+            return if (tile.onScreen) tile.picture() else null
+        }
+
         /** Whether the tile on screen shows one flat black. Main thread. */
         private fun pictureBlack(): Boolean {
             val tile = shownOn?.let { tiles[it] } ?: return false
@@ -1103,9 +1180,11 @@ internal object EmbeddedApp {
          * again: the system draws the whole display afresh for it. Never no
          * picture at all, which switches the display off. Main thread.
          */
-        private suspend fun refresh(vd: VirtualDisplay) {
+        private suspend fun refresh(vd: VirtualDisplay, nudge: Boolean = false) {
             if (display !== vd || shownSurface == null) return
             vd.surface = spare(shownWidth, shownHeight)
+            // A size a pixel off makes the app lay itself out and draw everything again.
+            if (nudge && shownWidth > 1) vd.resize(shownWidth - 1, shownHeight, shownDpi)
             delay(REFRESH_MS)
             // The tile may have changed meanwhile, or gone: the display was seen to then.
             val surface = shownSurface ?: return
@@ -1386,13 +1465,13 @@ internal fun EmbeddedAppCard(packageName: String, label: String, modifier: Modif
                         override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
                             texture.setDefaultBufferSize(width, height)
                             val s = Surface(texture).also { surface = it }
-                            if (width > 0 && height > 0) host.attach(tile, s, width, height, dpi) { pictureBlack(this@apply) }
+                            if (width > 0 && height > 0) host.attach(tile, s, width, height, dpi) { picturePixels(this@apply) }
                         }
 
                         override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) {
                             texture.setDefaultBufferSize(width, height)
                             val s = surface ?: return
-                            if (width > 0 && height > 0) host.attach(tile, s, width, height, dpi) { pictureBlack(this@apply) }
+                            if (width > 0 && height > 0) host.attach(tile, s, width, height, dpi) { picturePixels(this@apply) }
                         }
 
                         override fun onSurfaceTextureDestroyed(texture: SurfaceTexture): Boolean {
@@ -1446,15 +1525,15 @@ internal fun EmbeddedAppCard(packageName: String, label: String, modifier: Modif
     }
 }
 
-/** True when [view] shows one flat black, or nothing: no app is drawn on it. Main thread. */
-private fun pictureBlack(view: TextureView): Boolean {
-    if (!view.isAvailable || view.width <= 0 || view.height <= 0) return false
+/** What [view] shows, a quarter of its size each way; null when it shows nothing yet. Main thread. */
+private fun picturePixels(view: TextureView): IntArray? {
+    if (!view.isAvailable || view.width <= 0 || view.height <= 0) return null
     // A quarter of the size each way is plenty to tell a picture from none,
     // and a sixteenth of the memory: full size, a map filling the screen cost
     // some 7 MB on the main thread at every look (each closed dialog asks for one).
-    val copy = runCatching { view.getBitmap((view.width / 4).coerceAtLeast(1), (view.height / 4).coerceAtLeast(1)) }.getOrNull() ?: return false
+    val copy = runCatching { view.getBitmap((view.width / 4).coerceAtLeast(1), (view.height / 4).coerceAtLeast(1)) }.getOrNull() ?: return null
     val pixels = IntArray(copy.width * copy.height)
     copy.getPixels(pixels, 0, copy.width, 0, 0, copy.width, copy.height)
     copy.recycle()
-    return EmbeddedApp.allBlack(pixels)
+    return pixels
 }

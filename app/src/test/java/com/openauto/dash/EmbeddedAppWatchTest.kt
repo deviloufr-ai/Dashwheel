@@ -64,4 +64,19 @@ class EmbeddedAppWatchTest {
         )
         assertEquals(listOf(WindowListing.AppStack(20, 0, "fullscreen")), WindowListing.appStacks(listing, "com.waze"))
     }
+
+    @Test
+    fun aMapWokenBlankIsMostlyOneColour() {
+        val white = 0xFFFFFFFF.toInt()
+        val bar = 0xFFE0E0E0.toInt()
+        // Maps woken on its tile: a grey band and a search box over a white map
+        val woken = IntArray(1000) { i -> if (i < 120) bar else if (i in 200..230) 0xFF5F6368.toInt() else white }
+        assertTrue(EmbeddedApp.mostlyFlat(woken))
+        // a compressed white, a step or two off, is the same white
+        assertTrue(EmbeddedApp.mostlyFlat(IntArray(1000) { i -> if (i % 2 == 0) white else 0xFFFDFEFC.toInt() }))
+        // a map: land, roads, parks, water, labels
+        val colours = intArrayOf(0xFFF2EFE9.toInt(), white, 0xFFC8E6C9.toInt(), 0xFFAADAFF.toInt(), 0xFFFFE082.toInt(), 0xFF5F6368.toInt())
+        assertFalse(EmbeddedApp.mostlyFlat(IntArray(1000) { i -> colours[(i * 7 + i / 13) % colours.size] }))
+        assertFalse(EmbeddedApp.mostlyFlat(IntArray(0)))
+    }
 }
