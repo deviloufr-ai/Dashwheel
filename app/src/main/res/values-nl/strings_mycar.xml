@@ -32,6 +32,6 @@
     <string name="mycar_where">Te zien in de ontwerpen Bandenkaart en Silhouet en op de tegel Mijn auto.</string>
     <string name="mycar_phone_hint">Vanaf de telefoon: in de Dashwheel companion-app, Autoafbeelding, dan Bestand kiezen.</string>
     <string name="mycar_photos">3 foto\'s</string>
-    <string name="mycar_photos_hint">Of kies de foto\'s van de auto tegelijk: zijkant, voorkant en achterkant, plus een van boven en een van boven met open deuren als u die hebt. Met de namen zijkant, voorkant, achterkant, boven en open raken ze nooit verwisseld.</string>
+    <string name="mycar_photos_hint">Of kies de foto\'s van de auto tegelijk: zijkant, voorkant en achterkant, plus een van boven en een van boven met open deuren als je die hebt. Met de namen zijkant, voorkant, achterkant, boven en open raken ze nooit verwisseld.</string>
     <string name="mycar_photos_no_car">Geen auto gevonden op die foto\'s. Gebruik foto\'s met de hele auto op een effen achtergrond.</string>
 </resources>

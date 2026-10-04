@@ -26,7 +26,7 @@
     <string name="canvas_tab_when_hint">Geparkt heißt: beim Start oder nach 2 Minuten Stillstand. Zum Abwählen erneut tippen.</string>
     <string name="canvas_map_title">Unter dem Dashboard</string>
     <string name="canvas_map_builtin">Eigene Karte</string>
-    <string name="canvas_map_builtin_hint">Die Karte von Dashwheel, mit Seiten zum Wischen.</string>
+    <string name="canvas_map_builtin_hint">Die Karte von Dashwheel, mit Dashboards zum Wischen.</string>
     <string name="canvas_map_app_hint">Die App läuft unter den Kacheln und bekommt jede Berührung, die sie nicht nehmen. Tabs in der Leiste ersetzen das Wischen: einen halten, um ihn zu benennen.</string>
     <string name="canvas_bar_add_title">Zur Leiste hinzufügen</string>
     <string name="canvas_bar_add_dashboard">Dashboard</string>

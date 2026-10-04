@@ -30,7 +30,7 @@
     <string name="dash_arranging_dashboard">Disposizione: %1$s</string>
     <string name="dash_arranging_hint">Tieni premuto un riquadro per spostarlo, trascina l\'angolo per ridimensionarlo.</string>
     <string name="dash_undo">Annulla</string>
-    <string name="dash_reset_page">Svuota pagina</string>
+    <string name="dash_reset_page">Svuota cruscotto</string>
 
     <!-- Update banner -->
     <string name="dash_update_downloading">Download aggiornamento… %1$d%%</string>
@@ -54,7 +54,7 @@
 
     <!-- Layout notices -->
     <string name="dash_notice_title">Spazio insufficiente</string>
-    <string name="dash_notice_no_space">Questo cruscotto non ha spazio per quel riquadro. Rimuovi o ridimensiona dei riquadri, oppure usa un\'altra pagina.</string>
+    <string name="dash_notice_no_space">Questo cruscotto non ha spazio per quel riquadro. Rimuovi o ridimensiona dei riquadri, oppure usa un altro cruscotto.</string>
     <string name="dash_notice_no_room_to_move">Non c\'è spazio per spostare gli altri riquadri. Libera prima un po\' di spazio.</string>
     <string name="dash_notice_resize_overlap">Questa dimensione si sovrappone a un altro riquadro. Fai spazio prima di ridimensionare.</string>
     <string name="dash_full_title">Questo cruscotto è pieno</string>
@@ -122,11 +122,11 @@
 
     <!-- Screen layouts (the enum names are what gets saved) -->
     <string name="dash_layout_grid">Solo cruscotti</string>
-    <string name="dash_layout_grid_desc">Pagine scorrevoli a tutto schermo</string>
+    <string name="dash_layout_grid_desc">Cruscotti scorrevoli a tutto schermo</string>
     <string name="dash_layout_maps_left">Mappa a sinistra</string>
-    <string name="dash_layout_maps_left_desc">Google Maps agganciato a sinistra, pagine scorrevoli a destra</string>
+    <string name="dash_layout_maps_left_desc">Google Maps agganciato a sinistra, cruscotti scorrevoli a destra</string>
     <string name="dash_layout_maps_right">Mappa a destra</string>
-    <string name="dash_layout_maps_right_desc">Google Maps agganciato a destra, pagine scorrevoli a sinistra</string>
+    <string name="dash_layout_maps_right_desc">Google Maps agganciato a destra, cruscotti scorrevoli a sinistra</string>
     <string name="dash_layout_maps_top">Mappa in alto</string>
     <string name="dash_layout_maps_bottom">Mappa in basso</string>
 
@@ -139,7 +139,7 @@
     <string name="dash_page_below">Sotto la Home</string>
     <string name="dash_page_below2">Due sotto la Home</string>
     <string name="dash_empty_title">Qui non c\'è ancora niente</string>
-    <string name="dash_empty_body">Aggiungi un riquadro o scegli un modello per tutte le pagine.</string>
+    <string name="dash_empty_body">Aggiungi un riquadro o scegli un modello per tutti i cruscotti.</string>
     <!-- Effetti (selettore del tema) -->
     <string name="dash_effects_title">Effetti</string>
     <string name="dash_effects_none">Nessuno</string>
@@ -150,7 +150,7 @@
     <string name="dash_effects_full_hint">Ogni tema con tutti i suoi aloni e il vetro</string>
     <string name="dash_bar_title">Barra inferiore</string>
     <string name="dash_bar_auto_hide">Nascondi la barra automaticamente</string>
-    <string name="dash_bar_auto_hide_detail">Si ritira quando non serve, per lasciare più spazio alle pagine</string>
+    <string name="dash_bar_auto_hide_detail">Si ritira quando non serve, per lasciare più spazio ai cruscotti</string>
     <string name="dash_bar_hide_after">Nascondi dopo %1$d s</string>
     <string name="dash_bar_hide_now">Nascondi subito</string>
     <string name="dash_bar_swipe_up_detail">Quando è nascosta, scorri verso l\'alto dal bordo inferiore per farla ricomparire</string>
@@ -187,15 +187,15 @@
     <string name="dash_update_ready_body">%1$s è scaricato. L\'installazione dura mezzo minuto e riavvia Dashwheel.</string>
     <string name="dash_update_now">Aggiorna ora</string>
     <string name="dash_update_later">Più tardi</string>
-    <string name="dash_reset_confirm_title">Svuotare questa pagina?</string>
+    <string name="dash_reset_confirm_title">Svuotare questo cruscotto?</string>
     <string name="dash_reset_confirm_body">Tutte le sue tessere spariscono. Annulla le riporta.</string>
-    <string name="dash_dashboard_options">Opzioni della dashboard</string>
+    <string name="dash_dashboard_options">Opzioni del cruscotto</string>
     <string name="dash_remove_dashboard_title">Rimuovere %1$s?</string>
-    <string name="dash_remove_dashboard_body">Le sue tessere spariscono con lei. Annulla le riporta.</string>
+    <string name="dash_remove_dashboard_body">Le sue tessere spariscono con lui. Annulla le riporta.</string>
     <string name="dash_clear">Svuota</string>
     <string name="dash_theme_show_all">Mostra tutti i %1$d temi</string>
     <string name="dash_theme_show_fewer">Mostra meno</string>
-    <string name="dash_tile_move">Sposta in un\'altra pagina</string>
+    <string name="dash_tile_move">Sposta in un altro cruscotto</string>
     <string name="dash_tile_remove">Rimuovi</string>
     <string name="dash_apps">App</string>
     <string name="dash_rootless_title">Serve l\'accesso root</string>

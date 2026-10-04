@@ -2,7 +2,7 @@
 <resources>
     <!-- Settings dialog (also the menu item) -->
     <string name="ai_title">KI-Mechaniker</string>
-    <string name="ai_explanation">Ein neuer Fehlercode wird von Gemini erklärt und vorgelesen. An Google gesendet werden Codes, Motorwerte, Automodell und Ihre Stimme, wenn Sie eine Frage laut stellen.</string>
+    <string name="ai_explanation">Ein neuer Fehlercode wird von Gemini erklärt und vorgelesen. An Google gesendet werden Codes, Motorwerte, Automodell und deine Stimme, wenn du eine Frage laut stellst.</string>
     <string name="ai_activation_code">Aktivierungscode</string>
     <string name="ai_activation_hint">Schaltet den integrierten Schlüssel frei</string>
     <string name="ai_activate">Aktivieren</string>
@@ -37,11 +37,11 @@
     <string name="ai_verdict_ok">Keine Dringlichkeit erkennbar</string>
     <string name="ai_verdict_soon">Bald prüfen lassen</string>
     <string name="ai_verdict_stop">Anhalten</string>
-    <string name="ai_rules_stop">Dieser Fehler kann den Motor beschädigen: Halten Sie an, sobald es sicher ist, und lassen Sie ihn prüfen, bevor Sie weiterfahren.</string>
-    <string name="ai_rules_soon">Dieser Fehler gehört in den nächsten Tagen in die Werkstatt: Fahren Sie bis dahin schonend.</string>
+    <string name="ai_rules_stop">Dieser Fehler kann den Motor beschädigen: Halte an, sobald es sicher ist, und lass ihn prüfen, bevor du weiterfährst.</string>
+    <string name="ai_rules_soon">Dieser Fehler gehört in den nächsten Tagen in die Werkstatt: Fahr bis dahin schonend.</string>
     <string name="ai_rules_raised">Von den eingebauten Sicherheitsregeln als ernster eingestuft als von der KI.</string>
-    <string name="ai_disclaimer">KI-Rat (%1$s): Er kann falsch sein. Lassen Sie ihn vor jeder Reparatur von einer Werkstatt bestätigen.</string>
-    <string name="ai_details_parked">Die Details gibt es im Stand. Ihre Frage können Sie weiterhin laut stellen.</string>
+    <string name="ai_disclaimer">KI-Rat (%1$s): Er kann falsch sein. Lass ihn vor jeder Reparatur von einer Werkstatt bestätigen.</string>
+    <string name="ai_details_parked">Die Details gibt es im Stand. Deine Frage kannst du weiterhin laut stellen.</string>
     <string name="ai_check_first">Zuerst prüfen: %1$s</string>
     <string name="ai_details">Details</string>
     <string name="ai_close">Schließen</string>
@@ -57,9 +57,9 @@
     <string name="ai_detail_driving">Kann man weiterfahren?</string>
     <string name="ai_ask">Frage stellen</string>
     <string name="ai_ask_send">Senden</string>
-    <string name="ai_ask_listening">Ich höre zu… stellen Sie Ihre Frage; sie wird gesendet, sobald Sie aufhören.</string>
+    <string name="ai_ask_listening">Ich höre zu… stell deine Frage; sie wird gesendet, sobald du aufhörst.</string>
     <string name="ai_ask_thinking">Der Mechaniker überlegt…</string>
-    <string name="ai_ask_you_asked">Ihre Frage: %1$s</string>
+    <string name="ai_ask_you_asked">Deine Frage: %1$s</string>
     <string name="ai_ask_nothing_heard">Ich habe keine Frage gehört. Tippen und noch einmal fragen.</string>
     <string name="ai_ask_mic_denied">Mikrofon erlauben, um per Sprache zu fragen.</string>
     <string name="ai_ask_mic_error">Das Mikrofon konnte nicht starten.</string>
@@ -96,8 +96,8 @@
     <!-- Spoken, in the mechanic's language -->
     <string name="ai_ask_say_listening">Ich höre zu.</string>
     <string name="ai_ask_say_nothing_heard">Ich habe keine Frage gehört.</string>
-    <string name="ai_ask_say_no_key">Der KI-Mechaniker braucht einen Gemini-Schlüssel. Fügen Sie ihn in den Auto-Einstellungen unter KI-Mechaniker hinzu.</string>
-    <string name="ai_ask_say_mic">Das Mikrofon ist noch nicht erlaubt. Tippen Sie einmal auf das Mikrofon der Kachel Fehlercodes, um es zu erlauben.</string>
+    <string name="ai_ask_say_no_key">Der KI-Mechaniker braucht einen Gemini-Schlüssel. Füge ihn in den Auto-Einstellungen unter KI-Mechaniker hinzu.</string>
+    <string name="ai_ask_say_mic">Das Mikrofon ist noch nicht erlaubt. Tippe einmal auf das Mikrofon der Kachel Fehlercodes, um es zu erlauben.</string>
     <string name="ai_gemini_live_missing">Gemini ist auf diesem Gerät nicht installiert.</string>
     <string name="ai_gemini_live_end">Beenden</string>
     <string name="ai_gemini_live_show">Gemini Live zeigen</string>
@@ -105,7 +105,7 @@
     <string name="ai_live_listening">Hört zu</string>
     <string name="ai_live_thinking">Denkt nach</string>
     <string name="ai_live_speaking">Spricht</string>
-    <string name="ai_live_failed">Gemini antwortet nicht. Prüfen Sie die Verbindung.</string>
+    <string name="ai_live_failed">Gemini antwortet nicht. Prüfe die Verbindung.</string>
     <string name="ai_live_own">Gemini, das das Auto kennt</string>
-    <string name="ai_live_own_detail">Nutzt Ihren Gemini-Schlüssel: liest Auto, Fahrt und Armaturenbrett und handelt danach. Aus: die Gemini-App von Google</string>
+    <string name="ai_live_own_detail">Nutzt deinen Gemini-Schlüssel: liest Auto, Fahrt und Armaturenbrett und handelt danach. Aus: die Gemini-App von Google</string>
 </resources>

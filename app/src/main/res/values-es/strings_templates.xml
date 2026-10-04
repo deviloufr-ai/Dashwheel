@@ -11,9 +11,9 @@
     <string name="templates_car_health_blurb">Datos del motor y códigos de avería en Inicio</string>
     <string name="templates_hint">Una plantilla llena los siete paneles, dispuestos para esta pantalla con las tarjetas principales del lado del conductor.</string>
     <string name="templates_no_obd">Aún no has elegido adaptador OBD, así que se omiten los widgets de datos del coche.</string>
-    <string name="templates_fill_empty">Llenar páginas vacías</string>
-    <string name="templates_replace_all">Reemplazar todas</string>
-    <string name="templates_replace_confirm_title">¿Reemplazar las siete páginas?</string>
+    <string name="templates_fill_empty">Llenar paneles vacíos</string>
+    <string name="templates_replace_all">Reemplazar todos</string>
+    <string name="templates_replace_confirm_title">¿Reemplazar los siete paneles?</string>
     <string name="templates_replace_confirm_body">Tu disposición se pierde. Deshacer la recupera.</string>
     <string name="templates_replace">Reemplazar</string>
 </resources>

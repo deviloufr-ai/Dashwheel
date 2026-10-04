@@ -30,7 +30,7 @@
     <string name="dash_arranging_dashboard">A organizar: %1$s</string>
     <string name="dash_arranging_hint">Prima um bloco para o mover, arraste o canto para o redimensionar.</string>
     <string name="dash_undo">Anular</string>
-    <string name="dash_reset_page">Limpar página</string>
+    <string name="dash_reset_page">Limpar painel</string>
 
     <!-- Update banner -->
     <string name="dash_update_downloading">A transferir atualização… %1$d%%</string>
@@ -54,7 +54,7 @@
 
     <!-- Layout notices -->
     <string name="dash_notice_title">Falta espaço</string>
-    <string name="dash_notice_no_space">Este painel não tem espaço para esse bloco. Remover ou redimensionar blocos, ou usar outra página.</string>
+    <string name="dash_notice_no_space">Este painel não tem espaço para esse bloco. Remover ou redimensionar blocos, ou usar outro painel.</string>
     <string name="dash_notice_no_room_to_move">Não há espaço para afastar os outros blocos. Libertar algum espaço primeiro.</string>
     <string name="dash_notice_resize_overlap">Esse tamanho sobrepõe-se a outro bloco. Abrir espaço antes de redimensionar.</string>
     <string name="dash_full_title">Este painel está cheio</string>
@@ -122,11 +122,11 @@
 
     <!-- Screen layouts (the enum names are what gets saved) -->
     <string name="dash_layout_grid">Só painéis</string>
-    <string name="dash_layout_grid_desc">Páginas deslizantes ocupam o ecrã</string>
+    <string name="dash_layout_grid_desc">Painéis deslizantes ocupam o ecrã</string>
     <string name="dash_layout_maps_left">Mapa à esquerda</string>
-    <string name="dash_layout_maps_left_desc">Google Maps fixo na metade esquerda, páginas deslizantes à direita</string>
+    <string name="dash_layout_maps_left_desc">Google Maps fixo na metade esquerda, painéis deslizantes à direita</string>
     <string name="dash_layout_maps_right">Mapa à direita</string>
-    <string name="dash_layout_maps_right_desc">Google Maps fixo na metade direita, páginas deslizantes à esquerda</string>
+    <string name="dash_layout_maps_right_desc">Google Maps fixo na metade direita, painéis deslizantes à esquerda</string>
     <string name="dash_layout_maps_top">Mapa em cima</string>
     <string name="dash_layout_maps_bottom">Mapa em baixo</string>
 
@@ -139,7 +139,7 @@
     <string name="dash_page_below">Abaixo do Início</string>
     <string name="dash_page_below2">Dois abaixo do Início</string>
     <string name="dash_empty_title">Ainda não há nada aqui</string>
-    <string name="dash_empty_body">Adicione um bloco ou escolha um modelo para todas as páginas.</string>
+    <string name="dash_empty_body">Adicione um bloco ou escolha um modelo para todos os painéis.</string>
     <string name="dash_effects_title">Efeitos</string>
     <string name="dash_effects_none">Nenhum</string>
     <string name="dash_effects_reduced">Reduzidos</string>
@@ -149,7 +149,7 @@
     <string name="dash_effects_full_hint">Cada tema com todo o seu brilho e vidro</string>
     <string name="dash_bar_title">Barra inferior</string>
     <string name="dash_bar_auto_hide">Ocultar a barra automaticamente</string>
-    <string name="dash_bar_auto_hide_detail">Recolhe-se quando não está em uso, para dar mais espaço às páginas</string>
+    <string name="dash_bar_auto_hide_detail">Recolhe-se quando não está em uso, para dar mais espaço aos painéis</string>
     <string name="dash_bar_hide_after">Ocultar após %1$d s</string>
     <string name="dash_bar_hide_now">Ocultar de imediato</string>
     <string name="dash_bar_swipe_up_detail">Quando estiver oculta, deslize para cima a partir da borda inferior para trazê-la de volta</string>
@@ -183,7 +183,7 @@
     <string name="dash_update_ready_body">A %1$s está transferida. Instalar demora meio minuto e reinicia o Dashwheel.</string>
     <string name="dash_update_now">Atualizar agora</string>
     <string name="dash_update_later">Mais tarde</string>
-    <string name="dash_reset_confirm_title">Limpar esta página?</string>
+    <string name="dash_reset_confirm_title">Limpar este painel?</string>
     <string name="dash_reset_confirm_body">Todos os mosaicos desaparecem. Anular repõe-nos.</string>
     <string name="dash_dashboard_options">Opções do painel</string>
     <string name="dash_remove_dashboard_title">Remover %1$s?</string>
@@ -191,7 +191,7 @@
     <string name="dash_clear">Limpar</string>
     <string name="dash_theme_show_all">Ver os %1$d temas</string>
     <string name="dash_theme_show_fewer">Ver menos</string>
-    <string name="dash_tile_move">Mover para outra página</string>
+    <string name="dash_tile_move">Mover para outro painel</string>
     <string name="dash_tile_remove">Remover</string>
     <string name="dash_apps">Apps</string>
     <string name="dash_rootless_title">Acesso root necessário</string>

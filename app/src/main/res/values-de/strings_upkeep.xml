@@ -19,9 +19,17 @@
     <string name="upkeep_needs_dates">Eintragen, wann jeder Punkt zuletzt gemacht wurde</string>
     <string name="upkeep_all_good">Nichts fällig</string>
     <string name="upkeep_next_km">%1$s in %2$s km</string>
-    <string name="upkeep_next_days">%1$s in %2$d Tagen</string>
+    <plurals name="upkeep_next_days">
+        <item quantity="one">%1$s in %2$d Tag</item>
+        <item quantity="other">%1$s in %2$d Tagen</item>
+    </plurals>
     <string name="upkeep_overdue_km">%1$s seit %2$s km überfällig</string>
-    <string name="upkeep_overdue_days">%1$s seit %2$d Tagen überfällig</string>
+    <plurals name="upkeep_overdue_days">
+        <item quantity="one">%1$s seit %2$d Tag überfällig</item>
+        <item quantity="other">%1$s seit %2$d Tagen überfällig</item>
+    </plurals>
+    <string name="upkeep_due_today">%1$s heute fällig</string>
+    <string name="upkeep_say_due_today">%1$s heute fällig.</string>
     <string name="upkeep_row_km">%1$s km</string>
     <string name="upkeep_row_days">%1$d T</string>
     <string name="upkeep_not_set">Nicht angegeben</string>
@@ -41,8 +49,20 @@
     <string name="upkeep_last_km">Zuletzt bei (km)</string>
     <string name="upkeep_last_date">Zuletzt am (JJJJ-MM)</string>
     <string name="upkeep_done_today">Heute gemacht</string>
-    <string name="upkeep_say_soon_km">%1$s in %2$d Kilometern fällig.</string>
-    <string name="upkeep_say_soon_days">%1$s in %2$d Tagen fällig.</string>
-    <string name="upkeep_say_overdue_km">%1$s seit %2$d Kilometern überfällig.</string>
-    <string name="upkeep_say_overdue_days">%1$s seit %2$d Tagen überfällig.</string>
+    <plurals name="upkeep_say_soon_km">
+        <item quantity="one">%1$s in %2$d Kilometer fällig.</item>
+        <item quantity="other">%1$s in %2$d Kilometern fällig.</item>
+    </plurals>
+    <plurals name="upkeep_say_soon_days">
+        <item quantity="one">%1$s in %2$d Tag fällig.</item>
+        <item quantity="other">%1$s in %2$d Tagen fällig.</item>
+    </plurals>
+    <plurals name="upkeep_say_overdue_km">
+        <item quantity="one">%1$s seit %2$d Kilometer überfällig.</item>
+        <item quantity="other">%1$s seit %2$d Kilometern überfällig.</item>
+    </plurals>
+    <plurals name="upkeep_say_overdue_days">
+        <item quantity="one">%1$s seit %2$d Tag überfällig.</item>
+        <item quantity="other">%1$s seit %2$d Tagen überfällig.</item>
+    </plurals>
 </resources>

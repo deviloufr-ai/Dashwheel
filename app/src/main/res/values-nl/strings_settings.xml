@@ -57,7 +57,7 @@
     <string name="alert_speak">Uitspreken</string>
     <string name="alert_show">Deze melding tonen</string>
     <string name="alert_speak_call_detail">Zegt wie er belt terwijl het belt</string>
-    <string name="alert_speak_doors_detail">Zegt welke deur open is als er een opengaat tijdens het rijden of u vertrekt met een open deur</string>
+    <string name="alert_speak_doors_detail">Zegt welke deur open is als er een opengaat tijdens het rijden of je vertrekt met een open deur</string>
     <string name="alert_with_voice">%1$s, uitgesproken</string>
     <string name="alert_say_call">Oproep van %1$s</string>
     <string name="alert_say_doors">Deur open: %1$s</string>
@@ -82,10 +82,10 @@
     <string name="alert_kind_tyres_title">Bandenmelding</string>
     <string name="alert_speak_tyres_detail">Zegt welke band en wat er mis is</string>
     <string name="alert_say_tyre">Band %1$s: %2$s</string>
-    <string name="settings_rom_belt_detail">Herinnert u eraan de gordel om te doen zodra de auto rijdt</string>
+    <string name="settings_rom_belt_detail">Herinnert je eraan de gordel om te doen zodra de auto rijdt</string>
     <string name="alert_kind_belt">Gordel</string>
     <string name="alert_kind_belt_title">Gordelmelding</string>
-    <string name="alert_speak_belt_detail">Vraagt u de gordel om te doen</string>
+    <string name="alert_speak_belt_detail">Vraagt je de gordel om te doen</string>
     <string name="settings_screen_title">Scherm</string>
     <string name="settings_screen_auto">Auto</string>
     <string name="settings_screen_horizontal">Liggend</string>

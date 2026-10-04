@@ -7,7 +7,7 @@
     <string name="setup_back">Zurück</string>
     <string name="setup_next">Weiter</string>
     <string name="setup_done">Fertig</string>
-    <string name="setup_car_title">Ihr Auto</string>
+    <string name="setup_car_title">Dein Auto</string>
     <string name="setup_car_body">Messwerte, Kraftstoff und Wartung richten sich nach diesem Profil.</string>
     <string name="setup_car_keep">Ja, das ist es</string>
     <string name="setup_car_change">Ein anderes wählen</string>
@@ -15,9 +15,9 @@
     <string name="setup_driver_left">Links</string>
     <string name="setup_driver_right">Rechts</string>
     <string name="setup_access_title">Was Dashwheel nutzen darf</string>
-    <string name="setup_access_body">Alles ist optional. Erlauben Sie es auf dem Bildschirm, der sich öffnet, und kommen Sie zurück.</string>
+    <string name="setup_access_body">Alles ist optional. Erlaube es auf dem Bildschirm, der sich öffnet, und komm zurück.</string>
     <string name="setup_access_notifications">Benachrichtigungen</string>
-    <string name="setup_access_notifications_detail">Musik, die nächste Abzweigung und Ihre Nachrichten kommen darüber</string>
+    <string name="setup_access_notifications_detail">Musik, die nächste Abzweigung und deine Nachrichten kommen darüber</string>
     <string name="setup_access_location">Standort</string>
     <string name="setup_access_location_detail">Karte, Wetter, Fahrt und Parkplatz</string>
     <string name="setup_access_contacts">Kontakte</string>

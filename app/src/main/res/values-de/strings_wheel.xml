@@ -8,7 +8,7 @@
         <item quantity="other">%1$d Tasten zugewiesen</item>
     </plurals>
     <string name="wheel_explanation">Drücke jede Taste am Lenkrad. Eine neue kommt auf die Karte, eine bekannte leuchtet grün. Tippe auf eine Taste, um sie zu benennen, zu platzieren und ihre Aktion zu wählen.</string>
-    <string name="wheel_confirm_detail">%1$s wurde erkannt. Noch einmal drücken, damit Dashwheel weiß, dass Sie es waren: ein Fahrzeugwert, der sich von selbst ändert, kommt nicht auf Kommando zurück.</string>
+    <string name="wheel_confirm_detail">%1$s wurde erkannt. Noch einmal drücken, damit Dashwheel weiß, dass du es warst: ein Fahrzeugwert, der sich von selbst ändert, kommt nicht auf Kommando zurück.</string>
     <string name="wheel_assign_prompt">Was soll %1$s tun?</string>
     <string name="wheel_choose_app">App starten…</string>
     <string name="wheel_raw_button">Taste #%1$d</string>

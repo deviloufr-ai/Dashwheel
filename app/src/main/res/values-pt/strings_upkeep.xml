@@ -19,9 +19,19 @@
     <string name="upkeep_needs_dates">Indique quando cada item foi feito</string>
     <string name="upkeep_all_good">Nada a vencer</string>
     <string name="upkeep_next_km">%1$s dentro de %2$s km</string>
-    <string name="upkeep_next_days">%1$s dentro de %2$d dias</string>
+    <plurals name="upkeep_next_days">
+        <item quantity="one">%1$s dentro de %2$d dia</item>
+        <item quantity="many">%1$s dentro de %2$d dias</item>
+        <item quantity="other">%1$s dentro de %2$d dias</item>
+    </plurals>
     <string name="upkeep_overdue_km">%1$s com %2$s km de atraso</string>
-    <string name="upkeep_overdue_days">%1$s com %2$d dias de atraso</string>
+    <plurals name="upkeep_overdue_days">
+        <item quantity="one">%1$s com %2$d dia de atraso</item>
+        <item quantity="many">%1$s com %2$d dias de atraso</item>
+        <item quantity="other">%1$s com %2$d dias de atraso</item>
+    </plurals>
+    <string name="upkeep_due_today">%1$s para hoje</string>
+    <string name="upkeep_say_due_today">%1$s para hoje.</string>
     <string name="upkeep_row_km">%1$s km</string>
     <string name="upkeep_row_days">%1$d d</string>
     <string name="upkeep_not_set">Não indicado</string>
@@ -41,8 +51,24 @@
     <string name="upkeep_last_km">Feito aos (km)</string>
     <string name="upkeep_last_date">Feito em (AAAA-MM)</string>
     <string name="upkeep_done_today">Feito hoje</string>
-    <string name="upkeep_say_soon_km">%1$s dentro de %2$d quilómetros.</string>
-    <string name="upkeep_say_soon_days">%1$s dentro de %2$d dias.</string>
-    <string name="upkeep_say_overdue_km">%1$s com %2$d quilómetros de atraso.</string>
-    <string name="upkeep_say_overdue_days">%1$s com %2$d dias de atraso.</string>
+    <plurals name="upkeep_say_soon_km">
+        <item quantity="one">%1$s dentro de %2$d quilómetro.</item>
+        <item quantity="many">%1$s dentro de %2$d quilómetros.</item>
+        <item quantity="other">%1$s dentro de %2$d quilómetros.</item>
+    </plurals>
+    <plurals name="upkeep_say_soon_days">
+        <item quantity="one">%1$s dentro de %2$d dia.</item>
+        <item quantity="many">%1$s dentro de %2$d dias.</item>
+        <item quantity="other">%1$s dentro de %2$d dias.</item>
+    </plurals>
+    <plurals name="upkeep_say_overdue_km">
+        <item quantity="one">%1$s com %2$d quilómetro de atraso.</item>
+        <item quantity="many">%1$s com %2$d quilómetros de atraso.</item>
+        <item quantity="other">%1$s com %2$d quilómetros de atraso.</item>
+    </plurals>
+    <plurals name="upkeep_say_overdue_days">
+        <item quantity="one">%1$s com %2$d dia de atraso.</item>
+        <item quantity="many">%1$s com %2$d dias de atraso.</item>
+        <item quantity="other">%1$s com %2$d dias de atraso.</item>
+    </plurals>
 </resources>

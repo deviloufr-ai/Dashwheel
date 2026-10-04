@@ -164,8 +164,8 @@
     <string name="car_say_filter_soot">Der Partikelfilter ist zu %1$d Prozent voll. Bald eine Fahrt von 20 Minuten auf einer Schnellstraße einplanen.</string>
     <string name="car_say_filter_soot_short">Die letzten %1$d Fahrten waren kurz und der Partikelfilter ist zu %2$d Prozent voll. Bald eine Fahrt von 20 Minuten auf einer Schnellstraße einplanen.</string>
     <string name="car_say_filter_additive">Das Additiv für den Partikelfilter ist niedrig, bei %1$d Prozent. Bei der nächsten Wartung auffüllen lassen.</string>
-    <string name="car_say_break">Sie fahren seit %1$s. Zeit für eine Pause.</string>
-    <string name="car_say_fuel_short">Ihre Reichweite von %1$d Kilometern reicht nicht bis zum Ziel in %2$d Kilometern. Bitte einen Tankstopp einplanen.</string>
+    <string name="car_say_break">Du fährst seit %1$s. Zeit für eine Pause.</string>
+    <string name="car_say_fuel_short">Deine Reichweite von %1$d Kilometern reicht nicht bis zum Ziel in %2$d Kilometern. Bitte einen Tankstopp einplanen.</string>
     <string name="car_hours_minutes">%1$s und %2$s</string>
     <plurals name="car_hours">
         <item quantity="one">%1$d Stunde</item>

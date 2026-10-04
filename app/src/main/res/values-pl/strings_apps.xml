@@ -113,7 +113,7 @@
     <string name="apps_category_all">Wszystko</string>
     <string name="apps_window_mode_single">W oknie</string>
     <string name="apps_window_mode_pair">Obok siebie</string>
-    <string name="apps_window_hint">Aplikacja pozostaje otwarta we własnym oknie na tej stronie.</string>
+    <string name="apps_window_hint">Aplikacja pozostaje otwarta we własnym oknie na tym pulpicie.</string>
     <string name="apps_window_mode_inside">W kafelku</string>
     <string name="apps_window_inside_hint">Aplikacja działa w kafelku i obsługuje się ją tam.</string>
     <string name="apps_embed_app_starting">Otwieranie %1$s</string>

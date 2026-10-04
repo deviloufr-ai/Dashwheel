@@ -11,9 +11,9 @@
     <string name="templates_car_health_blurb">Engine data and fault codes on Home</string>
     <string name="templates_hint">A template fills all seven dashboards, laid out for this screen with the main tiles on the driver\'s side.</string>
     <string name="templates_no_obd">No OBD adapter chosen yet, so the car-data widgets are left out.</string>
-    <string name="templates_fill_empty">Fill empty pages</string>
-    <string name="templates_replace_all">Replace all pages</string>
-    <string name="templates_replace_confirm_title">Replace all seven pages?</string>
+    <string name="templates_fill_empty">Fill empty dashboards</string>
+    <string name="templates_replace_all">Replace all dashboards</string>
+    <string name="templates_replace_confirm_title">Replace all seven dashboards?</string>
     <string name="templates_replace_confirm_body">Your arrangement goes. Undo brings it back.</string>
     <string name="templates_replace">Replace</string>
 </resources>

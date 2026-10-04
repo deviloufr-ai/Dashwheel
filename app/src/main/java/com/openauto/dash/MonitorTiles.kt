@@ -43,6 +43,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -133,7 +134,7 @@ internal fun HeadUnitCard(modifier: Modifier = Modifier) {
 private fun LargeMonitor(s: HeadUnitStats, openApps: (() -> Unit)?) {
     Column {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-            Ring(s.cpuPct, s.cpuPct?.let { "$it %" } ?: "--", stringResource(R.string.monitor_cpu), 132.dp, stringResource(R.string.monitor_cores, s.cores))
+            Ring(s.cpuPct, s.cpuPct?.let { "$it %" } ?: "--", stringResource(R.string.monitor_cpu), 132.dp, pluralStringResource(R.plurals.monitor_cores, s.cores, s.cores))
             Ring(s.ramPct, "${s.ramPct} %", stringResource(R.string.monitor_ram), 132.dp, gb(s.ramUsedMb / 1024f) + " / " + gb(s.ramTotalMb / 1024f) + " GB")
             Column(modifier = Modifier.weight(1f)) {
                 Text(stringResource(R.string.monitor_chip), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
@@ -186,7 +187,7 @@ private fun SmallMonitor(s: HeadUnitStats, openApps: (() -> Unit)?) {
             BigReading(stringResource(R.string.monitor_ram), s.ramPct.toString(), "%", loadColor(s.ramPct), 30)
         }
         Text(
-            listOfNotNull(s.tempC?.let { LocalUnits.current.tempText(it) }, s.appCount?.let { stringResource(R.string.monitor_apps_count, it) }).joinToString(" · "),
+            listOfNotNull(s.tempC?.let { LocalUnits.current.tempText(it) }, s.appCount?.let { pluralStringResource(R.plurals.monitor_apps_count, it, it) }).joinToString(" · "),
             color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium, maxLines = 1
         )
     }

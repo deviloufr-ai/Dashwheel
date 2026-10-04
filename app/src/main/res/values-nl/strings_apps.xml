@@ -111,7 +111,7 @@
     <string name="apps_category_all">Alles</string>
     <string name="apps_window_mode_single">In een venster</string>
     <string name="apps_window_mode_pair">Naast elkaar</string>
-    <string name="apps_window_hint">De app blijft open in een eigen venster op deze pagina.</string>
+    <string name="apps_window_hint">De app blijft open in een eigen venster op dit dashboard.</string>
     <string name="apps_window_mode_inside">In de tegel</string>
     <string name="apps_window_inside_hint">De app draait in de tegel en je bedient hem daar.</string>
     <string name="apps_embed_app_starting">%1$s wordt geopend</string>

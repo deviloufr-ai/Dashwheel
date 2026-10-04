@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -61,7 +62,7 @@ private val UpkeepStage.color: Color
         UpkeepStage.UNKNOWN -> DashColors.Muted
     }
 
-/** "Oil change in 800 km" / "Brake fluid overdue by 12 days" / the item's name when nothing is known. */
+/** "Oil change in 800 km" / "Brake fluid overdue by 12 days" / "Coolant due today" / the item's name when nothing is known. */
 @Composable
 internal fun upkeepLine(d: UpkeepDue): String {
     val name = stringResource(d.kind.labelRes)
@@ -69,13 +70,15 @@ internal fun upkeepLine(d: UpkeepDue): String {
     val days = d.daysLeft
     val u = LocalUnits.current
     return when {
-        d.stage == UpkeepStage.DUE && km != null && km <= 0 ->
+        d.stage == UpkeepStage.DUE && km != null && km < 0 ->
             stringResource(if (u.imperial) R.string.units_upkeep_overdue_mi else R.string.upkeep_overdue_km, name, formatKm(u.distance(-km)))
-        d.stage == UpkeepStage.DUE -> stringResource(R.string.upkeep_overdue_days, name, -(days ?: 0))
+        d.stage == UpkeepStage.DUE && days != null && days < 0 -> pluralStringResource(R.plurals.upkeep_overdue_days, -days, name, -days)
+        // Due with nothing to count yet: "overdue by 0 days" reads wrong.
+        d.stage == UpkeepStage.DUE -> stringResource(R.string.upkeep_due_today, name)
         d.stage == UpkeepStage.UNKNOWN -> name
         km != null && (days == null || km / 50 <= days) ->
             stringResource(if (u.imperial) R.string.units_upkeep_next_mi else R.string.upkeep_next_km, name, formatKm(u.distance(km)))
-        else -> stringResource(R.string.upkeep_next_days, name, days ?: 0)
+        else -> (days ?: 0).let { pluralStringResource(R.plurals.upkeep_next_days, it, name, it) }
     }
 }
 

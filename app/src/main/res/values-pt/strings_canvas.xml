@@ -26,7 +26,7 @@
     <string name="canvas_tab_when_hint">Estacionado: ao arrancar, ou parado há 2 minutos. Toque de novo numa opção para a retirar.</string>
     <string name="canvas_map_title">Sob o painel</string>
     <string name="canvas_map_builtin">Mapa próprio</string>
-    <string name="canvas_map_builtin_hint">O mapa do Dashwheel, com páginas para deslizar.</string>
+    <string name="canvas_map_builtin_hint">O mapa do Dashwheel, com painéis para deslizar.</string>
     <string name="canvas_map_app_hint">A app corre sob os mosaicos e recebe cada toque que eles não apanham. Os separadores da barra substituem o deslizar: mantenha um premido para lhe dar nome.</string>
     <string name="canvas_bar_add_title">Adicionar à barra</string>
     <string name="canvas_bar_add_dashboard">Painel</string>

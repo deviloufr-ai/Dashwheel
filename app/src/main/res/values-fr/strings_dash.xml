@@ -30,7 +30,7 @@
     <string name="dash_arranging_dashboard">Organisation : %1$s</string>
     <string name="dash_arranging_hint">Maintenez une tuile pour la déplacer, tirez son coin pour la redimensionner.</string>
     <string name="dash_undo">Annuler</string>
-    <string name="dash_reset_page">Vider la page</string>
+    <string name="dash_reset_page">Tout vider</string>
 
     <!-- Update banner -->
     <string name="dash_update_downloading">Téléchargement de la mise à jour… %1$d %%</string>
@@ -54,7 +54,7 @@
 
     <!-- Layout notices -->
     <string name="dash_notice_title">Place insuffisante</string>
-    <string name="dash_notice_no_space">Ce tableau de bord n\'a plus de place pour cette tuile. Retirez ou redimensionnez des tuiles, ou utilisez une autre page.</string>
+    <string name="dash_notice_no_space">Ce tableau de bord n\'a plus de place pour cette tuile. Retirez ou redimensionnez des tuiles, ou utilisez un autre tableau de bord.</string>
     <string name="dash_notice_no_room_to_move">Pas assez de place pour écarter les autres tuiles. Libérez d\'abord de l\'espace.</string>
     <string name="dash_notice_resize_overlap">Cette taille chevauche une autre tuile. Faites de la place avant de redimensionner.</string>
     <string name="dash_full_title">Ce tableau de bord est plein</string>
@@ -122,11 +122,11 @@
 
     <!-- Screen layouts (the enum names are what gets saved) -->
     <string name="dash_layout_grid">Tableaux de bord seuls</string>
-    <string name="dash_layout_grid_desc">Des pages à balayer occupent tout l\'écran</string>
+    <string name="dash_layout_grid_desc">Des tableaux de bord à balayer occupent tout l\'écran</string>
     <string name="dash_layout_maps_left">Carte à gauche</string>
-    <string name="dash_layout_maps_left_desc">Google Maps ancré sur la moitié gauche, pages à balayer à droite</string>
+    <string name="dash_layout_maps_left_desc">Google Maps ancré sur la moitié gauche, tableaux de bord à balayer à droite</string>
     <string name="dash_layout_maps_right">Carte à droite</string>
-    <string name="dash_layout_maps_right_desc">Google Maps ancré sur la moitié droite, pages à balayer à gauche</string>
+    <string name="dash_layout_maps_right_desc">Google Maps ancré sur la moitié droite, tableaux de bord à balayer à gauche</string>
     <string name="dash_layout_maps_top">Carte en haut</string>
     <string name="dash_layout_maps_bottom">Carte en bas</string>
 
@@ -139,7 +139,7 @@
     <string name="dash_page_below">Sous l\'accueil</string>
     <string name="dash_page_below2">Deux sous l\'accueil</string>
     <string name="dash_empty_title">Rien ici pour l\'instant</string>
-    <string name="dash_empty_body">Ajoutez une tuile, ou choisissez un modèle pour toutes les pages.</string>
+    <string name="dash_empty_body">Ajoutez une tuile, ou choisissez un modèle pour tous les tableaux de bord.</string>
     <!-- Effets (sélecteur de thème) -->
     <string name="dash_effects_title">Effets</string>
     <string name="dash_effects_none">Aucun</string>
@@ -150,7 +150,7 @@
     <string name="dash_effects_full_hint">Chaque thème avec tous ses halos et son verre</string>
     <string name="dash_bar_title">Barre du bas</string>
     <string name="dash_bar_auto_hide">Masquer la barre automatiquement</string>
-    <string name="dash_bar_auto_hide_detail">Se retire quand elle ne sert pas, pour laisser plus de place aux pages</string>
+    <string name="dash_bar_auto_hide_detail">Se retire quand elle ne sert pas, pour laisser plus de place aux tableaux de bord</string>
     <string name="dash_bar_hide_after">Masquer après %1$d s</string>
     <string name="dash_bar_hide_now">Masquer tout de suite</string>
     <string name="dash_bar_swipe_up_detail">Une fois masquée, glissez vers le haut depuis le bord inférieur pour la faire réapparaître</string>
@@ -187,7 +187,7 @@
     <string name="dash_update_ready_body">La %1$s est téléchargée. L\'installation prend une demi-minute et redémarre Dashwheel.</string>
     <string name="dash_update_now">Mettre à jour</string>
     <string name="dash_update_later">Plus tard</string>
-    <string name="dash_reset_confirm_title">Vider cette page ?</string>
+    <string name="dash_reset_confirm_title">Vider ce tableau de bord ?</string>
     <string name="dash_reset_confirm_body">Toutes ses tuiles disparaissent. Annuler les ramène.</string>
     <string name="dash_dashboard_options">Options du tableau de bord</string>
     <string name="dash_remove_dashboard_title">Supprimer %1$s ?</string>
@@ -195,7 +195,7 @@
     <string name="dash_clear">Vider</string>
     <string name="dash_theme_show_all">Voir les %1$d thèmes</string>
     <string name="dash_theme_show_fewer">Voir moins</string>
-    <string name="dash_tile_move">Déplacer vers une autre page</string>
+    <string name="dash_tile_move">Vers un autre tableau de bord</string>
     <string name="dash_tile_remove">Retirer</string>
     <string name="dash_apps">Applis</string>
     <string name="dash_rootless_title">Accès root nécessaire</string>

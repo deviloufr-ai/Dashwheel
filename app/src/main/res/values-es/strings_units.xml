@@ -46,6 +46,14 @@
     </plurals>
     <string name="units_car_say_fuel_short_mi">Tu autonomía de %1$d millas no llega al destino, a %2$d millas. Planea una parada para repostar.</string>
     <string name="units_car_say_filter_mph">Tus últimos %1$d trayectos han sido cortos. Cuando puedas, conduce de 15 a 20 minutos a más de 40 millas por hora para que el filtro de partículas se limpie.</string>
-    <string name="units_upkeep_say_overdue_mi">%1$s con %2$d millas de retraso.</string>
-    <string name="units_upkeep_say_soon_mi">%1$s en %2$d millas.</string>
+    <plurals name="units_upkeep_say_overdue_mi">
+        <item quantity="one">%1$s con %2$d milla de retraso.</item>
+        <item quantity="many">%1$s con %2$d millas de retraso.</item>
+        <item quantity="other">%1$s con %2$d millas de retraso.</item>
+    </plurals>
+    <plurals name="units_upkeep_say_soon_mi">
+        <item quantity="one">%1$s en %2$d milla.</item>
+        <item quantity="many">%1$s en %2$d millas.</item>
+        <item quantity="other">%1$s en %2$d millas.</item>
+    </plurals>
 </resources>

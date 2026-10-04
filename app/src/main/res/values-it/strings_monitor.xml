@@ -8,7 +8,11 @@
     <string name="monitor_storage">Memoria interna</string>
     <string name="monitor_up">Accesa da %1$s</string>
     <string name="monitor_apps_running">App in esecuzione</string>
-    <string name="monitor_apps_count">%1$d app</string>
+    <plurals name="monitor_apps_count">
+        <item quantity="one">%1$d app</item>
+        <item quantity="many">%1$d app</item>
+        <item quantity="other">%1$d app</item>
+    </plurals>
     <string name="monitor_busiest">La più attiva: %1$s</string>
     <string name="monitor_no_shell">CPU e app in esecuzione richiedono il root</string>
     <string name="monitor_reading">Lettura dell\'autoradio…</string>
@@ -27,5 +31,9 @@
     <string name="design_gear_gate_desc">Le marce in fila, quella inserita accesa</string>
     <string name="monitor_title">AUTORADIO</string>
     <string name="gear_title">MARCIA</string>
-    <string name="monitor_cores">%1$d core</string>
+    <plurals name="monitor_cores">
+        <item quantity="one">%1$d core</item>
+        <item quantity="many">%1$d core</item>
+        <item quantity="other">%1$d core</item>
+    </plurals>
 </resources>

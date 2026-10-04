@@ -26,7 +26,7 @@
     <string name="canvas_tab_when_hint">Aparcado: al arrancar, o parado 2 minutos. Toca otra vez una opción para quitarla.</string>
     <string name="canvas_map_title">Bajo el panel</string>
     <string name="canvas_map_builtin">Mapa propio</string>
-    <string name="canvas_map_builtin_hint">El mapa de Dashwheel, con páginas que se deslizan.</string>
+    <string name="canvas_map_builtin_hint">El mapa de Dashwheel, con paneles que se deslizan.</string>
     <string name="canvas_map_app_hint">La app va bajo los mosaicos y recibe cada toque que ellos no toman. Las pestañas de la barra sustituyen al deslizar: mantén una para ponerle nombre.</string>
     <string name="canvas_bar_add_title">Añadir a la barra</string>
     <string name="canvas_bar_add_dashboard">Panel</string>

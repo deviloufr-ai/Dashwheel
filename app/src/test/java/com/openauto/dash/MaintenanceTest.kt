@@ -78,18 +78,46 @@ class UpkeepRulesTest {
     @Test
     fun theSentenceNamesTheItemAndTheCount() {
         val km = UpkeepRules.line(UpkeepDue(UpkeepKind.OIL, 800, 200, UpkeepStage.SOON))
-        assertEquals(R.string.upkeep_say_soon_km, km.res)
+        assertEquals(R.plurals.upkeep_say_soon_km, km.res)
         assertEquals(800, km.args[1])
+        assertEquals(800, km.quantity)
         assertEquals(R.string.upkeep_oil, (km.args[0] as SpokenLine).res)
         val days = UpkeepRules.line(UpkeepDue(UpkeepKind.BRAKE_FLUID, null, 12, UpkeepStage.SOON))
-        assertEquals(R.string.upkeep_say_soon_days, days.res)
+        assertEquals(R.plurals.upkeep_say_soon_days, days.res)
         assertEquals(12, days.args[1])
         val overdue = UpkeepRules.line(UpkeepDue(UpkeepKind.OIL, -300, 100, UpkeepStage.DUE))
-        assertEquals(R.string.upkeep_say_overdue_km, overdue.res)
+        assertEquals(R.plurals.upkeep_say_overdue_km, overdue.res)
         assertEquals(300, overdue.args[1])
         val late = UpkeepRules.line(UpkeepDue(UpkeepKind.BRAKE_FLUID, 5_000, -20, UpkeepStage.DUE))
-        assertEquals(R.string.upkeep_say_overdue_days, late.res)
+        assertEquals(R.plurals.upkeep_say_overdue_days, late.res)
         assertEquals(20, late.args[1])
+        assertEquals(20, late.quantity)
+    }
+
+    @Test
+    fun aCountOfOneIsSaidInTheSingular() {
+        val day = UpkeepRules.line(UpkeepDue(UpkeepKind.BRAKE_FLUID, null, 1, UpkeepStage.SOON))
+        assertEquals(R.plurals.upkeep_say_soon_days, day.res)
+        assertEquals(1, day.quantity)
+        // 2 km is 1 mile: the count that is said picks the form.
+        val mile = UpkeepRules.line(UpkeepDue(UpkeepKind.OIL, 2, null, UpkeepStage.SOON), UnitSystem(imperial = true))
+        assertEquals(R.plurals.units_upkeep_say_soon_mi, mile.res)
+        assertEquals(1, mile.quantity)
+    }
+
+    @Test
+    fun dueTodayIsNotOverdueByNothing() {
+        val today = UpkeepRules.line(UpkeepDue(UpkeepKind.BRAKE_FLUID, null, 0, UpkeepStage.DUE))
+        assertEquals(R.string.upkeep_say_due_today, today.res)
+        assertEquals(1, today.args.size)
+        assertEquals(null, today.quantity)
+        // The mileage reached exactly, the date not yet: still nothing to count.
+        val reached = UpkeepRules.line(UpkeepDue(UpkeepKind.OIL, 0, 40, UpkeepStage.DUE))
+        assertEquals(R.string.upkeep_say_due_today, reached.res)
+        // The mileage reached exactly, the date long gone: the days are said.
+        val gone = UpkeepRules.line(UpkeepDue(UpkeepKind.OIL, 0, -20, UpkeepStage.DUE))
+        assertEquals(R.plurals.upkeep_say_overdue_days, gone.res)
+        assertEquals(20, gone.quantity)
     }
 
     @Test

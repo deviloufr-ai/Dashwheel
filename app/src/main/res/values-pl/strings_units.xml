@@ -48,6 +48,16 @@
     </plurals>
     <string name="units_car_say_fuel_short_mi">Twój zasięg to %1$d mil, a do celu zostało %2$d mil. Nie wystarczy, zaplanuj tankowanie.</string>
     <string name="units_car_say_filter_mph">Twoje ostatnie trasy były krótkie, już %1$d z rzędu. Gdy będzie okazja, jedź od 15 do 20 minut powyżej 40 mil na godzinę, żeby filtr cząstek stałych mógł się oczyścić.</string>
-    <string name="units_upkeep_say_overdue_mi">%1$s spóźnione o %2$d mil.</string>
-    <string name="units_upkeep_say_soon_mi">%1$s za %2$d mil.</string>
+    <plurals name="units_upkeep_say_overdue_mi">
+        <item quantity="one">%1$s spóźnione o %2$d milę.</item>
+        <item quantity="few">%1$s spóźnione o %2$d mile.</item>
+        <item quantity="many">%1$s spóźnione o %2$d mil.</item>
+        <item quantity="other">%1$s spóźnione o %2$d mili.</item>
+    </plurals>
+    <plurals name="units_upkeep_say_soon_mi">
+        <item quantity="one">%1$s za %2$d milę.</item>
+        <item quantity="few">%1$s za %2$d mile.</item>
+        <item quantity="many">%1$s za %2$d mil.</item>
+        <item quantity="other">%1$s za %2$d mili.</item>
+    </plurals>
 </resources>

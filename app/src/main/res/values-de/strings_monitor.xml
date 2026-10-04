@@ -8,7 +8,10 @@
     <string name="monitor_storage">Speicher</string>
     <string name="monitor_up">An seit %1$s</string>
     <string name="monitor_apps_running">Laufende Apps</string>
-    <string name="monitor_apps_count">%1$d Apps</string>
+    <plurals name="monitor_apps_count">
+        <item quantity="one">%1$d App</item>
+        <item quantity="other">%1$d Apps</item>
+    </plurals>
     <string name="monitor_busiest">Am aktivsten: %1$s</string>
     <string name="monitor_no_shell">CPU und laufende Apps brauchen Root</string>
     <string name="monitor_reading">Radio wird gelesen…</string>
@@ -27,5 +30,8 @@
     <string name="design_gear_gate_desc">Die Gänge in einer Reihe, der eingelegte leuchtet</string>
     <string name="monitor_title">RADIO</string>
     <string name="gear_title">GANG</string>
-    <string name="monitor_cores">%1$d Kerne</string>
+    <plurals name="monitor_cores">
+        <item quantity="one">%1$d Kern</item>
+        <item quantity="other">%1$d Kerne</item>
+    </plurals>
 </resources>

@@ -46,6 +46,14 @@
     </plurals>
     <string name="units_car_say_fuel_short_mi">Votre autonomie de %1$d miles ne suffira pas pour la destination, à %2$d miles. Prévoyez un arrêt carburant.</string>
     <string name="units_car_say_filter_mph">Vos %1$d derniers trajets étaient courts. Dès que possible, roulez 15 à 20 minutes au-dessus de 40 miles à l\'heure pour que le filtre à particules se nettoie.</string>
-    <string name="units_upkeep_say_overdue_mi">%1$s en retard de %2$d miles.</string>
-    <string name="units_upkeep_say_soon_mi">%1$s à prévoir dans %2$d miles.</string>
+    <plurals name="units_upkeep_say_overdue_mi">
+        <item quantity="one">%1$s en retard de %2$d mile.</item>
+        <item quantity="many">%1$s en retard de %2$d miles.</item>
+        <item quantity="other">%1$s en retard de %2$d miles.</item>
+    </plurals>
+    <plurals name="units_upkeep_say_soon_mi">
+        <item quantity="one">%1$s à prévoir dans %2$d mile.</item>
+        <item quantity="many">%1$s à prévoir dans %2$d miles.</item>
+        <item quantity="other">%1$s à prévoir dans %2$d miles.</item>
+    </plurals>
 </resources>

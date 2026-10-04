@@ -26,7 +26,7 @@
     <string name="canvas_tab_when_hint">Geparkeerd: bij het starten, of 2 minuten stil. Tik nogmaals op een keuze om die uit te zetten.</string>
     <string name="canvas_map_title">Onder het dashboard</string>
     <string name="canvas_map_builtin">Eigen kaart</string>
-    <string name="canvas_map_builtin_hint">De kaart van Dashwheel, met pagina\'s om te vegen.</string>
+    <string name="canvas_map_builtin_hint">De kaart van Dashwheel, met dashboards om te vegen.</string>
     <string name="canvas_map_app_hint">De app draait onder de tegels en krijgt elke aanraking die zij niet nemen. Tabs in de balk vervangen het vegen: houd er een vast om hem een naam te geven.</string>
     <string name="canvas_bar_add_title">Aan de balk toevoegen</string>
     <string name="canvas_bar_add_dashboard">Dashboard</string>

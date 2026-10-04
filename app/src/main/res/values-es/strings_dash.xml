@@ -30,7 +30,7 @@
     <string name="dash_arranging_dashboard">Organizando: %1$s</string>
     <string name="dash_arranging_hint">Mantén pulsada una tarjeta para moverla, arrastra su esquina para cambiar el tamaño.</string>
     <string name="dash_undo">Deshacer</string>
-    <string name="dash_reset_page">Vaciar página</string>
+    <string name="dash_reset_page">Vaciar panel</string>
 
     <!-- Update banner -->
     <string name="dash_update_downloading">Descargando actualización… %1$d %%</string>
@@ -54,7 +54,7 @@
 
     <!-- Layout notices -->
     <string name="dash_notice_title">Falta espacio</string>
-    <string name="dash_notice_no_space">Este panel no tiene espacio para esa tarjeta. Quita o redimensiona tarjetas, o usa otra página.</string>
+    <string name="dash_notice_no_space">Este panel no tiene espacio para esa tarjeta. Quita o redimensiona tarjetas, o usa otro panel.</string>
     <string name="dash_notice_no_room_to_move">No hay sitio para apartar las otras tarjetas. Libera espacio primero.</string>
     <string name="dash_notice_resize_overlap">Ese tamaño se superpone a otra tarjeta. Haz sitio antes de cambiar el tamaño.</string>
     <string name="dash_full_title">Este panel está lleno</string>
@@ -122,11 +122,11 @@
 
     <!-- Screen layouts (the enum names are what gets saved) -->
     <string name="dash_layout_grid">Solo paneles</string>
-    <string name="dash_layout_grid_desc">Páginas deslizables a pantalla completa</string>
+    <string name="dash_layout_grid_desc">Paneles deslizables a pantalla completa</string>
     <string name="dash_layout_maps_left">Mapa a la izquierda</string>
-    <string name="dash_layout_maps_left_desc">Google Maps fijo en la mitad izquierda, páginas deslizables a la derecha</string>
+    <string name="dash_layout_maps_left_desc">Google Maps fijo en la mitad izquierda, paneles deslizables a la derecha</string>
     <string name="dash_layout_maps_right">Mapa a la derecha</string>
-    <string name="dash_layout_maps_right_desc">Google Maps fijo en la mitad derecha, páginas deslizables a la izquierda</string>
+    <string name="dash_layout_maps_right_desc">Google Maps fijo en la mitad derecha, paneles deslizables a la izquierda</string>
     <string name="dash_layout_maps_top">Mapa arriba</string>
     <string name="dash_layout_maps_bottom">Mapa abajo</string>
 
@@ -139,7 +139,7 @@
     <string name="dash_page_below">Debajo de Inicio</string>
     <string name="dash_page_below2">Dos debajo de Inicio</string>
     <string name="dash_empty_title">Aún no hay nada aquí</string>
-    <string name="dash_empty_body">Añade una tarjeta o elige una plantilla para todas las páginas.</string>
+    <string name="dash_empty_body">Añade una tarjeta o elige una plantilla para todos los paneles.</string>
     <string name="dash_effects_title">Efectos</string>
     <string name="dash_effects_none">Ninguno</string>
     <string name="dash_effects_reduced">Reducidos</string>
@@ -149,7 +149,7 @@
     <string name="dash_effects_full_hint">Cada tema con todos sus halos y su cristal</string>
     <string name="dash_bar_title">Barra inferior</string>
     <string name="dash_bar_auto_hide">Ocultar la barra automáticamente</string>
-    <string name="dash_bar_auto_hide_detail">Se retira cuando no se usa, para dejar más espacio a las páginas</string>
+    <string name="dash_bar_auto_hide_detail">Se retira cuando no se usa, para dejar más espacio a los paneles</string>
     <string name="dash_bar_hide_after">Ocultar tras %1$d s</string>
     <string name="dash_bar_hide_now">Ocultar enseguida</string>
     <string name="dash_bar_swipe_up_detail">Cuando esté oculta, desliza hacia arriba desde el borde inferior para que vuelva</string>
@@ -183,7 +183,7 @@
     <string name="dash_update_ready_body">%1$s está descargada. Instalar tarda medio minuto y reinicia Dashwheel.</string>
     <string name="dash_update_now">Actualizar ahora</string>
     <string name="dash_update_later">Más tarde</string>
-    <string name="dash_reset_confirm_title">¿Vaciar esta página?</string>
+    <string name="dash_reset_confirm_title">¿Vaciar este panel?</string>
     <string name="dash_reset_confirm_body">Se quitan todas sus fichas. Deshacer las recupera.</string>
     <string name="dash_dashboard_options">Opciones del panel</string>
     <string name="dash_remove_dashboard_title">¿Quitar %1$s?</string>
@@ -191,7 +191,7 @@
     <string name="dash_clear">Vaciar</string>
     <string name="dash_theme_show_all">Ver los %1$d temas</string>
     <string name="dash_theme_show_fewer">Ver menos</string>
-    <string name="dash_tile_move">Mover a otra página</string>
+    <string name="dash_tile_move">Mover a otro panel</string>
     <string name="dash_tile_remove">Quitar</string>
     <string name="dash_apps">Apps</string>
     <string name="dash_rootless_title">Se necesita acceso root</string>

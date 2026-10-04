@@ -30,7 +30,7 @@
     <string name="dash_arranging_dashboard">%1$s indelen</string>
     <string name="dash_arranging_hint">Houd een tegel vast om te verplaatsen, sleep de hoek om te vergroten.</string>
     <string name="dash_undo">Ongedaan maken</string>
-    <string name="dash_reset_page">Pagina wissen</string>
+    <string name="dash_reset_page">Dashboard wissen</string>
 
     <!-- Update banner -->
     <string name="dash_update_downloading">Update downloaden… %1$d%%</string>
@@ -54,7 +54,7 @@
 
     <!-- Layout notices -->
     <string name="dash_notice_title">Onvoldoende ruimte</string>
-    <string name="dash_notice_no_space">Dit dashboard heeft geen ruimte voor die tegel. Verwijder of verklein tegels, of gebruik een andere pagina.</string>
+    <string name="dash_notice_no_space">Dit dashboard heeft geen ruimte voor die tegel. Verwijder of verklein tegels, of gebruik een ander dashboard.</string>
     <string name="dash_notice_no_room_to_move">Geen ruimte om de andere tegels opzij te schuiven. Maak eerst wat ruimte vrij.</string>
     <string name="dash_notice_resize_overlap">Dit formaat overlapt een andere tegel. Maak eerst ruimte vrij.</string>
     <string name="dash_full_title">Dit dashboard is vol</string>
@@ -122,11 +122,11 @@
 
     <!-- Screen layouts (the enum names are what gets saved) -->
     <string name="dash_layout_grid">Alleen dashboards</string>
-    <string name="dash_layout_grid_desc">Veegbare pagina\'s vullen het scherm</string>
+    <string name="dash_layout_grid_desc">Veegbare dashboards vullen het scherm</string>
     <string name="dash_layout_maps_left">Kaart links</string>
-    <string name="dash_layout_maps_left_desc">Google Maps vast op de linkerhelft, pagina\'s vegen rechts</string>
+    <string name="dash_layout_maps_left_desc">Google Maps vast op de linkerhelft, dashboards vegen rechts</string>
     <string name="dash_layout_maps_right">Kaart rechts</string>
-    <string name="dash_layout_maps_right_desc">Google Maps vast op de rechterhelft, pagina\'s vegen links</string>
+    <string name="dash_layout_maps_right_desc">Google Maps vast op de rechterhelft, dashboards vegen links</string>
     <string name="dash_layout_maps_top">Kaart boven</string>
     <string name="dash_layout_maps_bottom">Kaart onder</string>
 
@@ -139,7 +139,7 @@
     <string name="dash_page_below">Onder Start</string>
     <string name="dash_page_below2">Twee onder Start</string>
     <string name="dash_empty_title">Hier staat nog niets</string>
-    <string name="dash_empty_body">Voeg een tegel toe of kies een sjabloon voor alle pagina\'s.</string>
+    <string name="dash_empty_body">Voeg een tegel toe of kies een sjabloon voor alle dashboards.</string>
     <string name="dash_effects_title">Effecten</string>
     <string name="dash_effects_none">Geen</string>
     <string name="dash_effects_reduced">Beperkt</string>
@@ -149,7 +149,7 @@
     <string name="dash_effects_full_hint">Elk thema met al zijn gloed en glas</string>
     <string name="dash_bar_title">Onderste balk</string>
     <string name="dash_bar_auto_hide">Balk automatisch verbergen</string>
-    <string name="dash_bar_auto_hide_detail">Schuift weg als hij niet wordt gebruikt, voor meer ruimte op de pagina\'s</string>
+    <string name="dash_bar_auto_hide_detail">Schuift weg als hij niet wordt gebruikt, voor meer ruimte op de dashboards</string>
     <string name="dash_bar_hide_after">Verbergen na %1$d s</string>
     <string name="dash_bar_hide_now">Meteen verbergen</string>
     <string name="dash_bar_swipe_up_detail">Verborgen: veeg omhoog vanaf de onderrand om hem terug te halen</string>
@@ -183,15 +183,15 @@
     <string name="dash_update_ready_body">%1$s is gedownload. Installeren duurt een halve minuut en herstart Dashwheel.</string>
     <string name="dash_update_now">Nu bijwerken</string>
     <string name="dash_update_later">Later</string>
-    <string name="dash_reset_confirm_title">Deze pagina leegmaken?</string>
+    <string name="dash_reset_confirm_title">Dit dashboard wissen?</string>
     <string name="dash_reset_confirm_body">Alle tegels erop verdwijnen. Ongedaan maken brengt ze terug.</string>
     <string name="dash_dashboard_options">Dashboardopties</string>
     <string name="dash_remove_dashboard_title">%1$s verwijderen?</string>
     <string name="dash_remove_dashboard_body">De tegels gaan mee. Ongedaan maken brengt ze terug.</string>
-    <string name="dash_clear">Leegmaken</string>
+    <string name="dash_clear">Wissen</string>
     <string name="dash_theme_show_all">Alle %1$d thema\'s tonen</string>
     <string name="dash_theme_show_fewer">Minder tonen</string>
-    <string name="dash_tile_move">Naar een andere pagina</string>
+    <string name="dash_tile_move">Naar een ander dashboard</string>
     <string name="dash_tile_remove">Verwijderen</string>
     <string name="dash_apps">Apps</string>
     <string name="dash_rootless_title">Root-toegang nodig</string>

@@ -57,7 +57,7 @@
     <string name="alert_speak">Ansagen</string>
     <string name="alert_show">Diesen Hinweis zeigen</string>
     <string name="alert_speak_call_detail">Sagt beim Klingeln, wer anruft</string>
-    <string name="alert_speak_doors_detail">Sagt, welche Tür offen ist, wenn sie sich während der Fahrt öffnet oder Sie mit offener Tür losfahren</string>
+    <string name="alert_speak_doors_detail">Sagt, welche Tür offen ist, wenn sie sich während der Fahrt öffnet oder du mit offener Tür losfährst</string>
     <string name="alert_with_voice">%1$s, mit Ansage</string>
     <string name="alert_say_call">Anruf von %1$s</string>
     <string name="alert_say_doors">Tür offen: %1$s</string>
@@ -85,7 +85,7 @@
     <string name="settings_rom_belt_detail">Erinnert ans Anschnallen, sobald das Auto fährt</string>
     <string name="alert_kind_belt">Sicherheitsgurt</string>
     <string name="alert_kind_belt_title">Gurtwarnung</string>
-    <string name="alert_speak_belt_detail">Bittet Sie, sich anzuschnallen</string>
+    <string name="alert_speak_belt_detail">Bittet ums Anschnallen</string>
     <string name="settings_screen_title">Bildschirm</string>
     <string name="settings_screen_auto">Auto</string>
     <string name="settings_screen_horizontal">Quer</string>
@@ -146,7 +146,7 @@
     <string name="bar_items_custom">Wählen, was die Leiste zeigt</string>
     <string name="bar_items_theme">Aus: die Leiste des Designs</string>
     <string name="bar_items_skin">Die Anzeigen erscheinen nur mit der Standardleiste, nicht mit einem Skin.</string>
-    <string name="bar_items_custom_detail">Tippen Sie auf eine Anzeige, um sie in die Leiste zu nehmen oder zu entfernen; die Pfeile legen die Reihenfolge fest. Was nicht passt, fällt weg.</string>
+    <string name="bar_items_custom_detail">Tippe auf eine Anzeige, um sie in die Leiste zu nehmen oder zu entfernen; die Pfeile legen die Reihenfolge fest. Was nicht passt, fällt weg.</string>
     <string name="bar_items_left">Weiter vorne in der Leiste</string>
     <string name="bar_items_right">Weiter hinten in der Leiste</string>
     <string name="bar_items_reset">Zurück zur Startauswahl</string>
@@ -179,10 +179,10 @@
     <string name="settings_log_no_phone">Kein Handy hat geantwortet. Handy verbinden und die Companion-App aktualisieren</string>
     <!-- About tab -->
     <string name="about_author_section">Erstellt von</string>
-    <string name="about_description">Dashwheel ist ein Launcher für Android-Autoradios: Karte, Musik und Fahrzeugdaten auf einem ruhigen Bildschirm, mit Dashboards, die Sie selbst anordnen. Kostenlos und Open Source.</string>
+    <string name="about_description">Dashwheel ist ein Launcher für Android-Autoradios: Karte, Musik und Fahrzeugdaten auf einem ruhigen Bildschirm, mit Dashboards, die du selbst anordnest. Kostenlos und Open Source.</string>
     <string name="about_author_role">Entwickler</string>
     <string name="about_support_section">Dashwheel unterstützen</string>
-    <string name="about_support_text">Dashwheel ist kostenlos. Wenn es Ihnen gefällt, hilft ein Kaffee weiter.</string>
+    <string name="about_support_text">Dashwheel ist kostenlos. Wenn es dir gefällt, hilft ein Kaffee weiter.</string>
     <string name="about_kofi">Spendiere mir einen Kaffee auf Ko-fi</string>
     <string name="about_scan">Mit dem Handy scannen</string>
     <string name="about_project">Projektseite</string>

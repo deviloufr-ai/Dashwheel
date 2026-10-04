@@ -8,7 +8,12 @@
     <string name="monitor_storage">Pamięć</string>
     <string name="monitor_up">Włączone od %1$s</string>
     <string name="monitor_apps_running">Działające aplikacje</string>
-    <string name="monitor_apps_count">%1$d aplikacji</string>
+    <plurals name="monitor_apps_count">
+        <item quantity="one">%1$d aplikacja</item>
+        <item quantity="few">%1$d aplikacje</item>
+        <item quantity="many">%1$d aplikacji</item>
+        <item quantity="other">%1$d aplikacji</item>
+    </plurals>
     <string name="monitor_busiest">Najbardziej aktywna: %1$s</string>
     <string name="monitor_no_shell">CPU i działające aplikacje wymagają roota</string>
     <string name="monitor_reading">Odczyt radia…</string>
@@ -27,5 +32,10 @@
     <string name="design_gear_gate_desc">Biegi w rzędzie, włączony podświetlony</string>
     <string name="monitor_title">RADIO</string>
     <string name="gear_title">BIEG</string>
-    <string name="monitor_cores">%1$d rdzeni</string>
+    <plurals name="monitor_cores">
+        <item quantity="one">%1$d rdzeń</item>
+        <item quantity="few">%1$d rdzenie</item>
+        <item quantity="many">%1$d rdzeni</item>
+        <item quantity="other">%1$d rdzenia</item>
+    </plurals>
 </resources>

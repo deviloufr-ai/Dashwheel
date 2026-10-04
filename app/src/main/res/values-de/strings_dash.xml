@@ -30,7 +30,7 @@
     <string name="dash_arranging_dashboard">%1$s anordnen</string>
     <string name="dash_arranging_hint">Kachel halten zum Verschieben, an der Ecke ziehen zum Vergrößern.</string>
     <string name="dash_undo">Rückgängig</string>
-    <string name="dash_reset_page">Seite leeren</string>
+    <string name="dash_reset_page">Dashboard leeren</string>
 
     <!-- Update banner -->
     <string name="dash_update_downloading">Update wird geladen… %1$d %%</string>
@@ -54,7 +54,7 @@
 
     <!-- Layout notices -->
     <string name="dash_notice_title">Kein Platz frei</string>
-    <string name="dash_notice_no_space">Auf diesem Dashboard ist kein Platz für diese Kachel. Kacheln entfernen, verkleinern oder eine andere Seite nutzen.</string>
+    <string name="dash_notice_no_space">Auf diesem Dashboard ist kein Platz für diese Kachel. Kacheln entfernen, verkleinern oder ein anderes Dashboard nutzen.</string>
     <string name="dash_notice_no_room_to_move">Kein Platz, um die anderen Kacheln beiseitezuschieben. Zuerst etwas Platz schaffen.</string>
     <string name="dash_notice_resize_overlap">Diese Größe überdeckt eine andere Kachel. Vor dem Ändern der Größe Platz schaffen.</string>
     <string name="dash_full_title">Dieses Dashboard ist voll</string>
@@ -122,11 +122,11 @@
 
     <!-- Screen layouts (the enum names are what gets saved) -->
     <string name="dash_layout_grid">Nur Dashboards</string>
-    <string name="dash_layout_grid_desc">Wischbare Seiten füllen den Bildschirm</string>
+    <string name="dash_layout_grid_desc">Wischbare Dashboards füllen den Bildschirm</string>
     <string name="dash_layout_maps_left">Karte links</string>
-    <string name="dash_layout_maps_left_desc">Google Maps links angedockt, Seiten rechts wischen</string>
+    <string name="dash_layout_maps_left_desc">Google Maps links angedockt, Dashboards rechts wischen</string>
     <string name="dash_layout_maps_right">Karte rechts</string>
-    <string name="dash_layout_maps_right_desc">Google Maps rechts angedockt, Seiten links wischen</string>
+    <string name="dash_layout_maps_right_desc">Google Maps rechts angedockt, Dashboards links wischen</string>
     <string name="dash_layout_maps_top">Karte oben</string>
     <string name="dash_layout_maps_bottom">Karte unten</string>
 
@@ -139,7 +139,7 @@
     <string name="dash_page_below">Unter Start</string>
     <string name="dash_page_below2">Zwei unter Start</string>
     <string name="dash_empty_title">Hier ist noch nichts</string>
-    <string name="dash_empty_body">Kachel hinzufügen oder eine Vorlage für alle Seiten wählen.</string>
+    <string name="dash_empty_body">Kachel hinzufügen oder eine Vorlage für alle Dashboards wählen.</string>
     <string name="dash_effects_title">Effekte</string>
     <string name="dash_effects_none">Keine</string>
     <string name="dash_effects_reduced">Reduziert</string>
@@ -149,7 +149,7 @@
     <string name="dash_effects_full_hint">Jedes Design mit seinem vollen Leuchten und Glas</string>
     <string name="dash_bar_title">Untere Leiste</string>
     <string name="dash_bar_auto_hide">Leiste automatisch ausblenden</string>
-    <string name="dash_bar_auto_hide_detail">Verschwindet, wenn sie nicht gebraucht wird, für mehr Platz auf den Seiten</string>
+    <string name="dash_bar_auto_hide_detail">Verschwindet, wenn sie nicht gebraucht wird, für mehr Platz auf den Dashboards</string>
     <string name="dash_bar_hide_after">Nach %1$d s ausblenden</string>
     <string name="dash_bar_hide_now">Sofort ausblenden</string>
     <string name="dash_bar_swipe_up_detail">Ausgeblendet: vom unteren Rand nach oben wischen, um sie zurückzuholen</string>
@@ -183,7 +183,7 @@
     <string name="dash_update_ready_body">%1$s ist heruntergeladen. Die Installation dauert eine halbe Minute und startet Dashwheel neu.</string>
     <string name="dash_update_now">Jetzt aktualisieren</string>
     <string name="dash_update_later">Später</string>
-    <string name="dash_reset_confirm_title">Diese Seite leeren?</string>
+    <string name="dash_reset_confirm_title">Dieses Dashboard leeren?</string>
     <string name="dash_reset_confirm_body">Alle Kacheln darauf verschwinden. Rückgängig holt sie zurück.</string>
     <string name="dash_dashboard_options">Dashboard-Optionen</string>
     <string name="dash_remove_dashboard_title">%1$s entfernen?</string>
@@ -191,7 +191,7 @@
     <string name="dash_clear">Leeren</string>
     <string name="dash_theme_show_all">Alle %1$d Designs zeigen</string>
     <string name="dash_theme_show_fewer">Weniger zeigen</string>
-    <string name="dash_tile_move">Auf eine andere Seite</string>
+    <string name="dash_tile_move">Auf ein anderes Dashboard</string>
     <string name="dash_tile_remove">Entfernen</string>
     <string name="dash_apps">Apps</string>
     <string name="dash_rootless_title">Root-Zugriff nötig</string>

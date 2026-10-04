@@ -3,7 +3,7 @@
 <resources>
     <string name="onmyway_button">Unterwegs</string>
     <string name="onmyway_title">Ankunftszeit senden</string>
-    <string name="onmyway_no_contacts">Kein Favorit mit Nummer auf dem Handy. Markieren Sie einen Kontakt im Handy mit einem Stern.</string>
+    <string name="onmyway_no_contacts">Kein Favorit mit Nummer auf dem Handy. Markiere einen Kontakt im Handy mit einem Stern.</string>
     <string name="onmyway_text_to">Bin unterwegs nach %1$s, ich bin gegen %2$s da.</string>
     <string name="onmyway_text_eta">Bin unterwegs, ich bin gegen %1$s da.</string>
     <string name="onmyway_text_plain">Bin unterwegs.</string>

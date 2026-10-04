@@ -2,7 +2,7 @@
 <resources>
     <!-- Dashboard templates: ready-made widget sets for all 7 dashboards -->
     <string name="templates_button">Modelli</string>
-    <string name="templates_title">Modelli di dashboard</string>
+    <string name="templates_title">Modelli di cruscotti</string>
     <string name="templates_daily">Quotidiano</string>
     <string name="templates_daily_blurb">Mappa e musica in primo piano, l\'auto e la tua giornata a uno scorrimento</string>
     <string name="templates_road_trip">Viaggio</string>
@@ -11,9 +11,9 @@
     <string name="templates_car_health_blurb">Dati motore e codici guasto nella Home</string>
     <string name="templates_hint">Un modello riempie tutti e sette i cruscotti, disposti per questo schermo con i riquadri principali dal lato del guidatore.</string>
     <string name="templates_no_obd">Nessun adattatore OBD scelto: i widget dei dati auto sono esclusi.</string>
-    <string name="templates_fill_empty">Riempi pagine vuote</string>
-    <string name="templates_replace_all">Sostituisci tutte</string>
-    <string name="templates_replace_confirm_title">Sostituire tutte e sette le pagine?</string>
+    <string name="templates_fill_empty">Riempi cruscotti vuoti</string>
+    <string name="templates_replace_all">Sostituisci tutti</string>
+    <string name="templates_replace_confirm_title">Sostituire tutti e sette i cruscotti?</string>
     <string name="templates_replace_confirm_body">La tua disposizione sparisce. Annulla la riporta.</string>
     <string name="templates_replace">Sostituisci</string>
 </resources>

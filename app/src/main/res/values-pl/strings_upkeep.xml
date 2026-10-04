@@ -19,9 +19,21 @@
     <string name="upkeep_needs_dates">Podaj, kiedy każdy punkt był ostatnio wykonany</string>
     <string name="upkeep_all_good">Nic nie jest wymagane</string>
     <string name="upkeep_next_km">%1$s za %2$s km</string>
-    <string name="upkeep_next_days">%1$s za %2$d dni</string>
+    <plurals name="upkeep_next_days">
+        <item quantity="one">%1$s za %2$d dzień</item>
+        <item quantity="few">%1$s za %2$d dni</item>
+        <item quantity="many">%1$s za %2$d dni</item>
+        <item quantity="other">%1$s za %2$d dnia</item>
+    </plurals>
     <string name="upkeep_overdue_km">%1$s spóźnione o %2$s km</string>
-    <string name="upkeep_overdue_days">%1$s spóźnione o %2$d dni</string>
+    <plurals name="upkeep_overdue_days">
+        <item quantity="one">%1$s spóźnione o %2$d dzień</item>
+        <item quantity="few">%1$s spóźnione o %2$d dni</item>
+        <item quantity="many">%1$s spóźnione o %2$d dni</item>
+        <item quantity="other">%1$s spóźnione o %2$d dnia</item>
+    </plurals>
+    <string name="upkeep_due_today">%1$s na dzisiaj</string>
+    <string name="upkeep_say_due_today">%1$s na dzisiaj.</string>
     <string name="upkeep_row_km">%1$s km</string>
     <string name="upkeep_row_days">%1$d dn.</string>
     <string name="upkeep_not_set">Nie podano</string>
@@ -41,8 +53,28 @@
     <string name="upkeep_last_km">Wykonano przy (km)</string>
     <string name="upkeep_last_date">Wykonano (RRRR-MM)</string>
     <string name="upkeep_done_today">Wykonano dzisiaj</string>
-    <string name="upkeep_say_soon_km">%1$s za %2$d kilometrów.</string>
-    <string name="upkeep_say_soon_days">%1$s za %2$d dni.</string>
-    <string name="upkeep_say_overdue_km">%1$s spóźnione o %2$d kilometrów.</string>
-    <string name="upkeep_say_overdue_days">%1$s spóźnione o %2$d dni.</string>
+    <plurals name="upkeep_say_soon_km">
+        <item quantity="one">%1$s za %2$d kilometr.</item>
+        <item quantity="few">%1$s za %2$d kilometry.</item>
+        <item quantity="many">%1$s za %2$d kilometrów.</item>
+        <item quantity="other">%1$s za %2$d kilometra.</item>
+    </plurals>
+    <plurals name="upkeep_say_soon_days">
+        <item quantity="one">%1$s za %2$d dzień.</item>
+        <item quantity="few">%1$s za %2$d dni.</item>
+        <item quantity="many">%1$s za %2$d dni.</item>
+        <item quantity="other">%1$s za %2$d dnia.</item>
+    </plurals>
+    <plurals name="upkeep_say_overdue_km">
+        <item quantity="one">%1$s spóźnione o %2$d kilometr.</item>
+        <item quantity="few">%1$s spóźnione o %2$d kilometry.</item>
+        <item quantity="many">%1$s spóźnione o %2$d kilometrów.</item>
+        <item quantity="other">%1$s spóźnione o %2$d kilometra.</item>
+    </plurals>
+    <plurals name="upkeep_say_overdue_days">
+        <item quantity="one">%1$s spóźnione o %2$d dzień.</item>
+        <item quantity="few">%1$s spóźnione o %2$d dni.</item>
+        <item quantity="many">%1$s spóźnione o %2$d dni.</item>
+        <item quantity="other">%1$s spóźnione o %2$d dnia.</item>
+    </plurals>
 </resources>

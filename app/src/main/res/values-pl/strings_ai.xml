@@ -31,7 +31,7 @@
         <item quantity="many">%1$d nowych kodów błędów silnika: %2$s. Szczegóły na ekranie.</item>
         <item quantity="other">%1$d nowego kodu błędu silnika: %2$s. Szczegóły na ekranie.</item>
     </plurals>
-    <string name="ai_say_overheat">Uwaga, silnik się przegrzewa: %1$d stopni. Zatrzymaj się, gdy będzie bezpiecznie, i wyłącz silnik.</string>
+    <string name="ai_say_overheat">Uwaga, silnik się przegrzewa: temperatura doszła do %1$d stopni. Zatrzymaj się, gdy będzie bezpiecznie, i wyłącz silnik.</string>
     <string name="ai_say_not_charging">Akumulator nie jest ładowany: %1$s wolta przy pracującym silniku. Jedź do warsztatu i wyłącz zbędne odbiorniki.</string>
     <string name="ai_say_weak_battery">Akumulator jest słaby: %1$s wolta przy wyłączonym silniku. Warto go wkrótce sprawdzić.</string>
 

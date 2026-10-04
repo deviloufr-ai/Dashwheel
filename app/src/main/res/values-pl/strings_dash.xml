@@ -30,7 +30,7 @@
     <string name="dash_arranging_dashboard">Układanie: %1$s</string>
     <string name="dash_arranging_hint">Przytrzymaj kafelek, aby go przesunąć; przeciągnij róg, aby zmienić rozmiar.</string>
     <string name="dash_undo">Cofnij</string>
-    <string name="dash_reset_page">Wyczyść stronę</string>
+    <string name="dash_reset_page">Wyczyść pulpit</string>
 
     <!-- Update banner -->
     <string name="dash_update_downloading">Pobieranie aktualizacji… %1$d%%</string>
@@ -54,7 +54,7 @@
 
     <!-- Layout notices -->
     <string name="dash_notice_title">Brak miejsca</string>
-    <string name="dash_notice_no_space">Na tym pulpicie brakuje miejsca na ten kafelek. Usuń lub zmniejsz kafelki albo użyj innej strony.</string>
+    <string name="dash_notice_no_space">Na tym pulpicie brakuje miejsca na ten kafelek. Usuń lub zmniejsz kafelki albo użyj innego pulpitu.</string>
     <string name="dash_notice_no_room_to_move">Brak miejsca, by odsunąć pozostałe kafelki. Najpierw zwolnij trochę miejsca.</string>
     <string name="dash_notice_resize_overlap">Ten rozmiar nachodzi na inny kafelek. Zrób miejsce przed zmianą rozmiaru.</string>
     <string name="dash_full_title">Ten pulpit jest pełny</string>
@@ -122,11 +122,11 @@
 
     <!-- Screen layouts (the enum names are what gets saved) -->
     <string name="dash_layout_grid">Tylko pulpity</string>
-    <string name="dash_layout_grid_desc">Przesuwane strony na całym ekranie</string>
+    <string name="dash_layout_grid_desc">Przesuwane pulpity na całym ekranie</string>
     <string name="dash_layout_maps_left">Mapa po lewej</string>
-    <string name="dash_layout_maps_left_desc">Google Maps zadokowane po lewej, strony przesuwane po prawej</string>
+    <string name="dash_layout_maps_left_desc">Google Maps zadokowane po lewej, pulpity przesuwane po prawej</string>
     <string name="dash_layout_maps_right">Mapa po prawej</string>
-    <string name="dash_layout_maps_right_desc">Google Maps zadokowane po prawej, strony przesuwane po lewej</string>
+    <string name="dash_layout_maps_right_desc">Google Maps zadokowane po prawej, pulpity przesuwane po lewej</string>
     <string name="dash_layout_maps_top">Mapa u góry</string>
     <string name="dash_layout_maps_bottom">Mapa na dole</string>
 
@@ -139,7 +139,7 @@
     <string name="dash_page_below">Pod głównym</string>
     <string name="dash_page_below2">Dwa pod głównym</string>
     <string name="dash_empty_title">Tu jeszcze nic nie ma</string>
-    <string name="dash_empty_body">Dodaj kafelek albo wybierz szablon dla wszystkich stron.</string>
+    <string name="dash_empty_body">Dodaj kafelek albo wybierz szablon dla wszystkich pulpitów.</string>
     <string name="dash_effects_title">Efekty</string>
     <string name="dash_effects_none">Brak</string>
     <string name="dash_effects_reduced">Ograniczone</string>
@@ -149,7 +149,7 @@
     <string name="dash_effects_full_hint">Każdy motyw z pełną poświatą i szkłem</string>
     <string name="dash_bar_title">Dolny pasek</string>
     <string name="dash_bar_auto_hide">Automatycznie ukrywaj pasek</string>
-    <string name="dash_bar_auto_hide_detail">Chowa się, gdy nie jest używany, zostawiając stronom więcej miejsca</string>
+    <string name="dash_bar_auto_hide_detail">Chowa się, gdy nie jest używany, zostawiając pulpitom więcej miejsca</string>
     <string name="dash_bar_hide_after">Ukryj po %1$d s</string>
     <string name="dash_bar_hide_now">Ukryj od razu</string>
     <string name="dash_bar_swipe_up_detail">Gdy jest ukryty, przesuń w górę od dolnej krawędzi, aby go przywrócić</string>
@@ -183,7 +183,7 @@
     <string name="dash_update_ready_body">%1$s jest pobrana. Instalacja trwa pół minuty i uruchomi Dashwheel ponownie.</string>
     <string name="dash_update_now">Aktualizuj teraz</string>
     <string name="dash_update_later">Później</string>
-    <string name="dash_reset_confirm_title">Wyczyścić tę stronę?</string>
+    <string name="dash_reset_confirm_title">Wyczyścić ten pulpit?</string>
     <string name="dash_reset_confirm_body">Wszystkie kafelki znikną. Cofnij je przywróci.</string>
     <string name="dash_dashboard_options">Opcje pulpitu</string>
     <string name="dash_remove_dashboard_title">Usunąć %1$s?</string>
@@ -191,7 +191,7 @@
     <string name="dash_clear">Wyczyść</string>
     <string name="dash_theme_show_all">Pokaż wszystkie motywy: %1$d</string>
     <string name="dash_theme_show_fewer">Pokaż mniej</string>
-    <string name="dash_tile_move">Przenieś na inną stronę</string>
+    <string name="dash_tile_move">Przenieś na inny pulpit</string>
     <string name="dash_tile_remove">Usuń</string>
     <string name="dash_apps">Aplikacje</string>
     <string name="dash_rootless_title">Potrzebny dostęp root</string>

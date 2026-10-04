@@ -19,9 +19,17 @@
     <string name="upkeep_needs_dates">Geef aan wanneer elk punt voor het laatst is gedaan</string>
     <string name="upkeep_all_good">Niets nodig</string>
     <string name="upkeep_next_km">%1$s over %2$s km</string>
-    <string name="upkeep_next_days">%1$s over %2$d dagen</string>
+    <plurals name="upkeep_next_days">
+        <item quantity="one">%1$s over %2$d dag</item>
+        <item quantity="other">%1$s over %2$d dagen</item>
+    </plurals>
     <string name="upkeep_overdue_km">%1$s %2$s km te laat</string>
-    <string name="upkeep_overdue_days">%1$s %2$d dagen te laat</string>
+    <plurals name="upkeep_overdue_days">
+        <item quantity="one">%1$s %2$d dag te laat</item>
+        <item quantity="other">%1$s %2$d dagen te laat</item>
+    </plurals>
+    <string name="upkeep_due_today">%1$s vandaag aan de beurt</string>
+    <string name="upkeep_say_due_today">%1$s is vandaag aan de beurt.</string>
     <string name="upkeep_row_km">%1$s km</string>
     <string name="upkeep_row_days">%1$d d</string>
     <string name="upkeep_not_set">Niet ingesteld</string>
@@ -41,8 +49,20 @@
     <string name="upkeep_last_km">Gedaan bij (km)</string>
     <string name="upkeep_last_date">Gedaan op (JJJJ-MM)</string>
     <string name="upkeep_done_today">Vandaag gedaan</string>
-    <string name="upkeep_say_soon_km">%1$s over %2$d kilometer.</string>
-    <string name="upkeep_say_soon_days">%1$s over %2$d dagen.</string>
-    <string name="upkeep_say_overdue_km">%1$s is %2$d kilometer te laat.</string>
-    <string name="upkeep_say_overdue_days">%1$s is %2$d dagen te laat.</string>
+    <plurals name="upkeep_say_soon_km">
+        <item quantity="one">%1$s over %2$d kilometer.</item>
+        <item quantity="other">%1$s over %2$d kilometer.</item>
+    </plurals>
+    <plurals name="upkeep_say_soon_days">
+        <item quantity="one">%1$s over %2$d dag.</item>
+        <item quantity="other">%1$s over %2$d dagen.</item>
+    </plurals>
+    <plurals name="upkeep_say_overdue_km">
+        <item quantity="one">%1$s is %2$d kilometer te laat.</item>
+        <item quantity="other">%1$s is %2$d kilometer te laat.</item>
+    </plurals>
+    <plurals name="upkeep_say_overdue_days">
+        <item quantity="one">%1$s is %2$d dag te laat.</item>
+        <item quantity="other">%1$s is %2$d dagen te laat.</item>
+    </plurals>
 </resources>

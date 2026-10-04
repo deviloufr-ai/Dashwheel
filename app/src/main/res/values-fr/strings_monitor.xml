@@ -8,7 +8,11 @@
     <string name="monitor_storage">Stockage</string>
     <string name="monitor_up">Allumé depuis %1$s</string>
     <string name="monitor_apps_running">Applis en cours</string>
-    <string name="monitor_apps_count">%1$d applis</string>
+    <plurals name="monitor_apps_count">
+        <item quantity="one">%1$d appli</item>
+        <item quantity="many">%1$d applis</item>
+        <item quantity="other">%1$d applis</item>
+    </plurals>
     <string name="monitor_busiest">La plus active : %1$s</string>
     <string name="monitor_no_shell">Le processeur et les applis en cours demandent le root</string>
     <string name="monitor_reading">Lecture de l\'autoradio…</string>
@@ -27,5 +31,9 @@
     <string name="design_gear_gate_desc">Les rapports alignés, celui engagé allumé</string>
     <string name="monitor_title">AUTORADIO</string>
     <string name="gear_title">RAPPORT</string>
-    <string name="monitor_cores">%1$d cœurs</string>
+    <plurals name="monitor_cores">
+        <item quantity="one">%1$d cœur</item>
+        <item quantity="many">%1$d cœurs</item>
+        <item quantity="other">%1$d cœurs</item>
+    </plurals>
 </resources>

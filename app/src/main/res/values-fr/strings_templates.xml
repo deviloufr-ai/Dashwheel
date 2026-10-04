@@ -11,9 +11,9 @@
     <string name="templates_car_health_blurb">Données moteur et codes défaut sur l\'accueil</string>
     <string name="templates_hint">Un modèle remplit les sept tableaux de bord, disposés pour cet écran avec les tuiles principales côté conducteur.</string>
     <string name="templates_no_obd">Aucun adaptateur OBD choisi : les widgets de données voiture sont omis.</string>
-    <string name="templates_fill_empty">Remplir les pages vides</string>
-    <string name="templates_replace_all">Remplacer toutes les pages</string>
-    <string name="templates_replace_confirm_title">Remplacer les sept pages ?</string>
+    <string name="templates_fill_empty">Remplir les vides</string>
+    <string name="templates_replace_all">Tout remplacer</string>
+    <string name="templates_replace_confirm_title">Remplacer les sept tableaux de bord ?</string>
     <string name="templates_replace_confirm_body">Votre disposition disparaît. Annuler la ramène.</string>
     <string name="templates_replace">Remplacer</string>
 </resources>

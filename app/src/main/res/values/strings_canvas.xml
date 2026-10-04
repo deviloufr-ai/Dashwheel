@@ -27,7 +27,7 @@
     <string name="canvas_tab_when_hint">Parked means at start-up, or stopped for 2 minutes. Tap a chosen one again to turn it off.</string>
     <string name="canvas_map_title">Under the dashboard</string>
     <string name="canvas_map_builtin">Built-in map</string>
-    <string name="canvas_map_builtin_hint">Dashwheel\'s own map, with pages you swipe.</string>
+    <string name="canvas_map_builtin_hint">Dashwheel\'s own map, with dashboards you swipe.</string>
     <string name="canvas_map_app_hint">The app runs under the tiles and gets every touch they don\'t. Tabs in the rail replace swiping: hold one to name it.</string>
     <string name="canvas_bar_add_title">Add to the bar</string>
     <string name="canvas_bar_add_dashboard">Dashboard</string>

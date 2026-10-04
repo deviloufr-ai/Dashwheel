@@ -111,7 +111,7 @@
     <string name="apps_category_all">All</string>
     <string name="apps_window_mode_single">In a window</string>
     <string name="apps_window_mode_pair">Side by side</string>
-    <string name="apps_window_hint">The app stays open in its own window on this page.</string>
+    <string name="apps_window_hint">The app stays open in its own window on this dashboard.</string>
     <string name="apps_window_mode_inside">Inside the tile</string>
     <string name="apps_window_inside_hint">The app runs inside the tile, and you touch it there.</string>
     <string name="apps_embed_app_starting">Opening %1$s</string>

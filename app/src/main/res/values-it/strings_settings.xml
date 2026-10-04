@@ -131,14 +131,14 @@
     <string name="settings_obd_route_hint">Tramite il telefono quando la sua app compagna tiene l\'adattatore, altrimenti col Bluetooth dell\'autoradio. Scegli l\'adattatore nell\'app compagna.</string>
     <string name="settings_backup_section">La tua configurazione</string>
     <string name="settings_backup_save">Salva la configurazione</string>
-    <string name="settings_backup_save_detail">Plance, impostazioni e luoghi, in un file. Senza la chiave IA né i telefoni associati.</string>
+    <string name="settings_backup_save_detail">Cruscotti, impostazioni e luoghi, in un file. Senza la chiave IA né i telefoni associati.</string>
     <string name="settings_backup_restore">Ripristina una configurazione</string>
     <string name="settings_backup_restore_detail">Da un file salvato su questa unità o su un\'altra</string>
     <string name="settings_backup_saved">Configurazione salvata</string>
     <string name="settings_backup_saved_to">Configurazione salvata in %1$s</string>
     <string name="settings_backup_failed">Questo file non si può usare</string>
     <string name="settings_backup_confirm_title">Ripristinare questa configurazione?</string>
-    <string name="settings_backup_confirm_body">Plance e impostazioni vengono sostituite. Dashwheel si riavvia.</string>
+    <string name="settings_backup_confirm_body">Cruscotti e impostazioni vengono sostituiti. Dashwheel si riavvia.</string>
     <string name="settings_backup_confirm">Ripristina</string>
     <string name="settings_resume_music">Riprendi la musica all\'avvio</string>
     <string name="settings_resume_music_detail">L\'app che suonava allo spegnimento riprende. Lascia spento se l\'unità lo fa già.</string>
@@ -179,7 +179,7 @@
     <string name="settings_log_no_phone">Nessun telefono ha risposto. Collega il telefono e aggiorna la sua app companion</string>
     <!-- About tab -->
     <string name="about_author_section">Creato da</string>
-    <string name="about_description">Dashwheel è un launcher per autoradio Android: mappa, musica e dati dell\'auto su un unico schermo tranquillo, con dashboard che organizzi tu. Gratuito e open source.</string>
+    <string name="about_description">Dashwheel è un launcher per autoradio Android: mappa, musica e dati dell\'auto su un unico schermo tranquillo, con cruscotti che organizzi tu. Gratuito e open source.</string>
     <string name="about_author_role">Creatore e sviluppatore</string>
     <string name="about_support_section">Sostieni Dashwheel</string>
     <string name="about_support_text">Dashwheel è gratuito. Se ti piace, un caffè aiuta a mantenerlo.</string>

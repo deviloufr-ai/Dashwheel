@@ -47,6 +47,12 @@
     </plurals>
     <string name="units_car_say_fuel_short_mi">Your range of %1$d miles won\'t reach the destination, %2$d miles away. Plan a fuel stop.</string>
     <string name="units_car_say_filter_mph">Your last %1$d drives were short. When you can, drive 15 to 20 minutes above 40 miles per hour so the particle filter can clean itself.</string>
-    <string name="units_upkeep_say_overdue_mi">%1$s overdue by %2$d miles.</string>
-    <string name="units_upkeep_say_soon_mi">%1$s due in %2$d miles.</string>
+    <plurals name="units_upkeep_say_overdue_mi">
+        <item quantity="one">%1$s overdue by %2$d mile.</item>
+        <item quantity="other">%1$s overdue by %2$d miles.</item>
+    </plurals>
+    <plurals name="units_upkeep_say_soon_mi">
+        <item quantity="one">%1$s due in %2$d mile.</item>
+        <item quantity="other">%1$s due in %2$d miles.</item>
+    </plurals>
 </resources>

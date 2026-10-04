@@ -147,8 +147,8 @@
 
     <!-- Car picture from three photos (CarFromPhotos). -->
     <string name="car_photos_open">Maak met 3 foto\'s</string>
-    <string name="car_photos_title">Uw auto uit 3 foto\'s</string>
-    <string name="car_photos_detail">Drie foto\'s van uw auto maken zijn afbeelding en zijn bovenaanzicht.</string>
+    <string name="car_photos_title">Je auto uit 3 foto\'s</string>
+    <string name="car_photos_detail">Drie foto\'s van je auto maken zijn afbeelding en zijn bovenaanzicht.</string>
     <string name="car_photos_side">Zijkant</string>
     <string name="car_photos_front">Voorkant</string>
     <string name="car_photos_back">Achterkant</string>
@@ -158,8 +158,8 @@
     <string name="car_photos_choose">Foto kiezen</string>
     <string name="car_photos_tip">Ga recht voor elke kant staan, zo\'n 8 stappen ervandaan. Haal eerst de achtergrond weg in Gemini of de galerij voor strakkere randen.</string>
     <string name="car_photos_build">Mijn auto maken</string>
-    <string name="car_photos_building">Uw auto wordt gemaakt</string>
-    <string name="car_photos_result">Uw auto</string>
+    <string name="car_photos_building">Je auto wordt gemaakt</string>
+    <string name="car_photos_result">Je auto</string>
     <string name="car_photos_result_hint">De groene ringen tonen waar de band- en deurmeldingen komen.</string>
     <string name="car_photos_turned">Naar rechts gedraaid</string>
     <string name="car_photos_send">Naar de auto sturen</string>

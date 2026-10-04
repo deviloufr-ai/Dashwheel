@@ -213,5 +213,5 @@
     <string name="car_tyres_sensor_battery">Sensorbatterij bijna leeg</string>
     <string name="car_tyres_alert">Bandenmelding</string>
     <string name="car_tyres_ok">Alle banden goed</string>
-    <string name="car_belt_fasten">Doe uw gordel om</string>
+    <string name="car_belt_fasten">Doe je gordel om</string>
 </resources>

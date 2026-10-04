@@ -112,7 +112,7 @@
     <string name="apps_category_all">Tudo</string>
     <string name="apps_window_mode_single">Numa janela</string>
     <string name="apps_window_mode_pair">Lado a lado</string>
-    <string name="apps_window_hint">A app fica aberta na sua própria janela nesta página.</string>
+    <string name="apps_window_hint">A app fica aberta na sua própria janela neste painel.</string>
     <string name="apps_window_mode_inside">No mosaico</string>
     <string name="apps_window_inside_hint">A app corre dentro do mosaico e toca-se aí.</string>
     <string name="apps_embed_app_starting">A abrir %1$s</string>

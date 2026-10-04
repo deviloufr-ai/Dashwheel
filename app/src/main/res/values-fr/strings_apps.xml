@@ -112,7 +112,7 @@
     <string name="apps_category_all">Tout</string>
     <string name="apps_window_mode_single">Dans une fenêtre</string>
     <string name="apps_window_mode_pair">Côte à côte</string>
-    <string name="apps_window_hint">L\'appli reste ouverte dans sa propre fenêtre sur cette page.</string>
+    <string name="apps_window_hint">L\'appli reste ouverte dans sa propre fenêtre sur ce tableau de bord.</string>
     <string name="apps_window_mode_inside">Dans la tuile</string>
     <string name="apps_window_inside_hint">L\'appli tourne dans la tuile et se touche là.</string>
     <string name="apps_embed_app_starting">Ouverture de %1$s</string>
@@ -124,7 +124,7 @@
     <string name="apps_pair_change">Changer</string>
     <string name="apps_kind_maps_inside">Google Maps intégré</string>
     <string name="apps_kind_maps_inside_blurb">La vraie appli Google Maps, dans cette tuile</string>
-    <string name="apps_kind_dash_bar">Barre des tableaux</string>
+    <string name="apps_kind_dash_bar">Barre des tableaux de bord</string>
     <string name="apps_kind_dash_bar_blurb">Vos tableaux de bord et vos applis, en un toucher</string>
     <string name="apps_most_used">Les plus utilisées</string>
 </resources>

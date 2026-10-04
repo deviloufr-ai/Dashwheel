@@ -11,9 +11,9 @@
     <string name="templates_car_health_blurb">Motordaten und Fehlercodes auf der Startseite</string>
     <string name="templates_hint">Eine Vorlage füllt alle sieben Dashboards, für diesen Bildschirm angeordnet, die wichtigsten Kacheln auf der Fahrerseite.</string>
     <string name="templates_no_obd">Noch kein OBD-Adapter gewählt, daher fehlen die Fahrzeugdaten-Widgets.</string>
-    <string name="templates_fill_empty">Leere Seiten füllen</string>
-    <string name="templates_replace_all">Alle Seiten ersetzen</string>
-    <string name="templates_replace_confirm_title">Alle sieben Seiten ersetzen?</string>
-    <string name="templates_replace_confirm_body">Ihre Anordnung verschwindet. Rückgängig holt sie zurück.</string>
+    <string name="templates_fill_empty">Leere Dashboards füllen</string>
+    <string name="templates_replace_all">Alle Dashboards ersetzen</string>
+    <string name="templates_replace_confirm_title">Alle sieben Dashboards ersetzen?</string>
+    <string name="templates_replace_confirm_body">Deine Anordnung verschwindet. Rückgängig holt sie zurück.</string>
     <string name="templates_replace">Ersetzen</string>
 </resources>

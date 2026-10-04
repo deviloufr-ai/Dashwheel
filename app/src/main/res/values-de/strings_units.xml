@@ -42,8 +42,14 @@
         <item quantity="one">Die günstigste Tankstelle in der Nähe ist %1$s, %2$d Meile entfernt.</item>
         <item quantity="other">Die günstigste Tankstelle in der Nähe ist %1$s, %2$d Meilen entfernt.</item>
     </plurals>
-    <string name="units_car_say_fuel_short_mi">Ihre Reichweite von %1$d Meilen reicht nicht bis zum Ziel in %2$d Meilen. Bitte einen Tankstopp einplanen.</string>
+    <string name="units_car_say_fuel_short_mi">Deine Reichweite von %1$d Meilen reicht nicht bis zum Ziel in %2$d Meilen. Bitte einen Tankstopp einplanen.</string>
     <string name="units_car_say_filter_mph">Die letzten %1$d Fahrten waren kurz. Wenn möglich 15 bis 20 Minuten über 40 Meilen pro Stunde fahren, damit sich der Partikelfilter reinigen kann.</string>
-    <string name="units_upkeep_say_overdue_mi">%1$s seit %2$d Meilen überfällig.</string>
-    <string name="units_upkeep_say_soon_mi">%1$s in %2$d Meilen fällig.</string>
+    <plurals name="units_upkeep_say_overdue_mi">
+        <item quantity="one">%1$s seit %2$d Meile überfällig.</item>
+        <item quantity="other">%1$s seit %2$d Meilen überfällig.</item>
+    </plurals>
+    <plurals name="units_upkeep_say_soon_mi">
+        <item quantity="one">%1$s in %2$d Meile fällig.</item>
+        <item quantity="other">%1$s in %2$d Meilen fällig.</item>
+    </plurals>
 </resources>

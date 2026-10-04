@@ -30,7 +30,7 @@
     <string name="dash_arranging_dashboard">Arranging %1$s</string>
     <string name="dash_arranging_hint">Hold a tile to move it, drag its corner to resize it.</string>
     <string name="dash_undo">Undo</string>
-    <string name="dash_reset_page">Reset page</string>
+    <string name="dash_reset_page">Clear dashboard</string>
 
     <!-- Update banner -->
     <string name="dash_update_downloading">Downloading update… %1$d%%</string>
@@ -54,7 +54,7 @@
 
     <!-- Layout notices -->
     <string name="dash_notice_title">Layout needs room</string>
-    <string name="dash_notice_no_space">This dashboard has no space for that tile. Remove, resize, or use another page.</string>
+    <string name="dash_notice_no_space">This dashboard has no space for that tile. Remove, resize, or use another dashboard.</string>
     <string name="dash_notice_no_room_to_move">No room to move the other tiles out of the way. Free some space first.</string>
     <string name="dash_notice_resize_overlap">That size overlaps another tile. Make room before resizing.</string>
     <string name="dash_full_title">This dashboard is full</string>
@@ -104,7 +104,7 @@
     <string name="dash_effects_full_hint">Every theme with all its glow and glass</string>
     <string name="dash_bar_title">Bottom bar</string>
     <string name="dash_bar_auto_hide">Auto-hide the bar</string>
-    <string name="dash_bar_auto_hide_detail">Slides away when unused, for more room on the pages</string>
+    <string name="dash_bar_auto_hide_detail">Slides away when unused, for more room on the dashboards</string>
     <string name="dash_bar_hide_after">Hide after %1$d s</string>
     <string name="dash_bar_hide_now">Hide right away</string>
     <string name="dash_bar_swipe_up_detail">When it is hidden, swipe up from the bottom edge to bring it back</string>
@@ -162,11 +162,11 @@
 
     <!-- Screen layouts (the enum names are what gets saved) -->
     <string name="dash_layout_grid">Dashboards only</string>
-    <string name="dash_layout_grid_desc">Swipeable pages fill the screen</string>
+    <string name="dash_layout_grid_desc">Swipeable dashboards fill the screen</string>
     <string name="dash_layout_maps_left">Map on the left</string>
-    <string name="dash_layout_maps_left_desc">Google Maps docked on the left half, pages swipe on the right</string>
+    <string name="dash_layout_maps_left_desc">Google Maps docked on the left half, dashboards swipe on the right</string>
     <string name="dash_layout_maps_right">Map on the right</string>
-    <string name="dash_layout_maps_right_desc">Google Maps docked on the right half, pages swipe on the left</string>
+    <string name="dash_layout_maps_right_desc">Google Maps docked on the right half, dashboards swipe on the left</string>
     <string name="dash_layout_maps_top">Map on top</string>
     <string name="dash_layout_maps_bottom">Map at the bottom</string>
 
@@ -179,7 +179,7 @@
     <string name="dash_page_below">Below Home</string>
     <string name="dash_page_below2">Two below Home</string>
     <string name="dash_empty_title">Nothing here yet</string>
-    <string name="dash_empty_body">Add a tile, or pick a template for all the pages.</string>
+    <string name="dash_empty_body">Add a tile, or pick a template for all the dashboards.</string>
     <!-- Updates without a strip (⋮ dot, Settings row, ready prompt); edit-mode confirms; tile options; theme gallery -->
     <string name="dash_update_to">Update to %1$s</string>
     <string name="dash_update_available_detail">A newer build than v%1$s. Installing restarts Dashwheel.</string>
@@ -188,7 +188,7 @@
     <string name="dash_update_ready_body">%1$s is downloaded. Installing takes half a minute and restarts Dashwheel.</string>
     <string name="dash_update_now">Update now</string>
     <string name="dash_update_later">Later</string>
-    <string name="dash_reset_confirm_title">Clear this page?</string>
+    <string name="dash_reset_confirm_title">Clear this dashboard?</string>
     <string name="dash_reset_confirm_body">Every tile on it goes. Undo brings them back.</string>
     <string name="dash_dashboard_options">Dashboard options</string>
     <string name="dash_remove_dashboard_title">Remove %1$s?</string>
@@ -196,7 +196,7 @@
     <string name="dash_clear">Clear</string>
     <string name="dash_theme_show_all">Show all %1$d themes</string>
     <string name="dash_theme_show_fewer">Show fewer</string>
-    <string name="dash_tile_move">Move to another page</string>
+    <string name="dash_tile_move">Move to another dashboard</string>
     <string name="dash_tile_remove">Remove</string>
     <!-- The bar's Apps button, labelled -->
     <string name="dash_apps">Apps</string>

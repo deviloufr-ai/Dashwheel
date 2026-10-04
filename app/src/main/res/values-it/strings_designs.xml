@@ -2,7 +2,7 @@
 <resources>
     <!-- Tile designs (WidgetDesigns.kt) and the labels the designed tiles add -->
     <string name="design_standard">Standard</string>
-    <string name="design_standard_desc">Il widget di sempre; segue il tema della plancia.</string>
+    <string name="design_standard_desc">Il widget di sempre; segue il tema del cruscotto.</string>
     <string name="design_hero">Hero</string>
     <string name="design_hero_desc">Un numero enorme, tutto il resto in secondo piano.</string>
     <string name="design_lcd">LCD</string>

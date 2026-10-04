@@ -160,7 +160,7 @@
     <string name="info_map_duration_hm">%1$d h %2$02d min</string>
     <string name="info_map_duration_min">%1$d min</string>
     <string name="info_map_stop">Beenden</string>
-    <string name="info_map_arrived">Sie haben Ihr Ziel erreicht</string>
+    <string name="info_map_arrived">Du hast dein Ziel erreicht</string>
     <string name="info_map_rerouting">Neue Route wird gesucht</string>
     <string name="info_map_voice_on">Sprachansage an</string>
     <string name="info_map_voice_off">Sprachansage aus</string>

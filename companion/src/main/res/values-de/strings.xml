@@ -61,7 +61,7 @@
     <string name="drive_duration_hm">%1$d h %2$02d</string>
     <string name="drive_duration_m">%1$d min</string>
     <string name="keyboard_title">Im Auto tippen</string>
-    <string name="keyboard_detail">Wählen Sie ein Textfeld auf dem Autobildschirm und tippen Sie hier: Es folgt beim Tippen.</string>
+    <string name="keyboard_detail">Wähle ein Textfeld auf dem Autobildschirm und tippe hier: Es folgt beim Tippen.</string>
     <string name="keyboard_hint">Text für den Autobildschirm</string>
     <string name="keyboard_paste">Einfügen</string>
     <string name="keyboard_clear">Löschen</string>
@@ -69,13 +69,13 @@
     <string name="keyboard_typed">Auf dem Autobildschirm</string>
     <string name="keyboard_copied">Kein Feld auf dem Autobildschirm ausgewählt: Der Text liegt in seiner Zwischenablage.</string>
     <string name="keyboard_failed">Der Autobildschirm hat den Text nicht angenommen.</string>
-    <string name="keyboard_no_answer">Keine Antwort: Aktualisieren Sie Dashwheel im Auto.</string>
+    <string name="keyboard_no_answer">Keine Antwort: Aktualisiere Dashwheel im Auto.</string>
     <string name="keyboard_not_connected">Das Auto ist nicht verbunden.</string>
     <string name="keyboard_typing_off">Das Tippen in Felder ist im Auto aus.</string>
     <string name="keyboard_turn_on">Einschalten</string>
     <string name="keyboard_turning_on">Wird im Auto eingeschaltet…</string>
-    <string name="keyboard_typing_on">Tippen ist an: Wählen Sie ein Feld auf dem Autobildschirm und tippen Sie hier.</string>
-    <string name="keyboard_turn_on_failed">Das Auto konnte es nicht einschalten: Öffnen Sie im Auto Einstellungen, Bedienungshilfen, und schalten Sie Dashwheel ein.</string>
+    <string name="keyboard_typing_on">Tippen ist an: Wähle ein Feld auf dem Autobildschirm und tippe hier.</string>
+    <string name="keyboard_turn_on_failed">Das Auto konnte es nicht einschalten: Öffne im Auto Einstellungen, Bedienungshilfen, und schalte Dashwheel ein.</string>
     <string name="send_to_car">An Auto senden</string>
     <string name="sent_to_car">An den Autobildschirm gesendet</string>
     <string name="place_sent">Route ans Auto gesendet: %1$s</string>
@@ -102,10 +102,10 @@
     <string name="car_auto_title">Im Auto starten</string>
     <string name="car_auto_on">Wenn sich das Handy mit %1$s verbindet</string>
     <string name="car_auto_off">Aus: Teilen läuft die ganze Zeit</string>
-    <string name="car_auto_pick">Das Bluetooth Ihres Autos</string>
+    <string name="car_auto_pick">Das Bluetooth deines Autos</string>
     <string name="car_auto_pick_hint">Das Teilen startet, wenn sich das Handy damit verbindet, und stoppt beim Trennen.</string>
-    <string name="car_auto_none">Mit diesem Handy ist noch kein Bluetooth-Gerät gekoppelt. Koppeln Sie zuerst das Auto unter Bluetooth.</string>
-    <string name="car_auto_permission">Erlauben Sie Geräte in der Nähe, damit die App weiß, wann Sie einsteigen.</string>
+    <string name="car_auto_none">Mit diesem Handy ist noch kein Bluetooth-Gerät gekoppelt. Kopple zuerst das Auto unter Bluetooth.</string>
+    <string name="car_auto_permission">Erlaube Geräte in der Nähe, damit die App weiß, wann du einsteigst.</string>
     <string name="status_sleeping">Startet im Auto</string>
     <string name="status_sleeping_detail">Das Teilen startet von selbst, wenn sich das Handy mit %1$s verbindet.</string>
     <string name="obd_relay_title">OBD über dieses Handy</string>
@@ -117,12 +117,12 @@
     <string name="obd_relay_choose">Adapter wählen</string>
     <string name="obd_relay_change">Ändern</string>
     <string name="obd_relay_stop">Ausschalten</string>
-    <string name="obd_relay_pick">Ihr OBD-Adapter</string>
-    <string name="obd_relay_pick_hint">Koppeln Sie den Adapter zuerst unter Bluetooth mit diesem Handy (PIN 1234 oder 0000). Das Handy hält ihn dann für das Auto, Anrufe und Android Auto stören nicht mehr.</string>
-    <string name="news_title">Von Ihrem Auto</string>
+    <string name="obd_relay_pick">Dein OBD-Adapter</string>
+    <string name="obd_relay_pick_hint">Kopple den Adapter zuerst unter Bluetooth mit diesem Handy (PIN 1234 oder 0000). Das Handy hält ihn dann für das Auto, Anrufe und Android Auto stören nicht mehr.</string>
+    <string name="news_title">Von deinem Auto</string>
     <string name="news_channel">Auto-Erinnerungen</string>
     <string name="step_texts">Unterwegs-SMS</string>
-    <string name="step_texts_detail">Lässt das Auto einem Kontakt Ihre Ankunftszeit schicken, als normale SMS von diesem Handy.</string>
+    <string name="step_texts_detail">Lässt das Auto einem Kontakt deine Ankunftszeit schicken, als normale SMS von diesem Handy.</string>
     <string name="report_time">Fahrzeit</string>
     <string name="report_per100">L/100 km</string>
     <string name="report_estimated">Geschätzt aus dem üblichen Verbrauch: in diesem Monat kein Tanken erfasst.</string>
@@ -147,8 +147,8 @@
 
     <!-- Car picture from three photos (CarFromPhotos). -->
     <string name="car_photos_open">Aus 3 Fotos erstellen</string>
-    <string name="car_photos_title">Ihr Auto aus 3 Fotos</string>
-    <string name="car_photos_detail">Drei Fotos Ihres Autos ergeben sein Bild und seine Ansicht von oben.</string>
+    <string name="car_photos_title">Dein Auto aus 3 Fotos</string>
+    <string name="car_photos_detail">Drei Fotos deines Autos ergeben sein Bild und seine Ansicht von oben.</string>
     <string name="car_photos_side">Seite</string>
     <string name="car_photos_front">Vorne</string>
     <string name="car_photos_back">Hinten</string>
@@ -156,15 +156,15 @@
     <string name="car_photos_add">Foto aufnehmen oder wählen</string>
     <string name="car_photos_take">Foto aufnehmen</string>
     <string name="car_photos_choose">Foto wählen</string>
-    <string name="car_photos_tip">Stellen Sie sich gerade vor jede Seite, etwa 8 Schritte entfernt. Wenn Sie den Hintergrund vorher in Gemini oder der Galerie entfernen, werden die Ränder sauberer.</string>
+    <string name="car_photos_tip">Stell dich gerade vor jede Seite, etwa 8 Schritte entfernt. Wenn du den Hintergrund vorher in Gemini oder der Galerie entfernst, werden die Ränder sauberer.</string>
     <string name="car_photos_build">Mein Auto erstellen</string>
-    <string name="car_photos_building">Ihr Auto wird erstellt</string>
-    <string name="car_photos_result">Ihr Auto</string>
+    <string name="car_photos_building">Dein Auto wird erstellt</string>
+    <string name="car_photos_result">Dein Auto</string>
     <string name="car_photos_result_hint">Die grünen Ringe zeigen, wo die Reifen- und Türwarnungen erscheinen.</string>
     <string name="car_photos_turned">Nach rechts gedreht</string>
     <string name="car_photos_send">An das Auto senden</string>
     <string name="car_photos_change">Ein Foto ändern</string>
-    <string name="car_photos_not_found">Kein Auto auf dem Foto %1$s gefunden. Nehmen Sie eines mit dem ganzen Auto vor einem schlichten Hintergrund.</string>
+    <string name="car_photos_not_found">Kein Auto auf dem Foto %1$s gefunden. Nimm eines mit dem ganzen Auto vor einem schlichten Hintergrund.</string>
     <string name="car_photos_close">Schließen</string>
     <string name="car_photos_discard_title">Diese Fotos verwerfen?</string>
     <string name="car_photos_discard_body">Die hier gewählten Fotos werden nicht behalten.</string>

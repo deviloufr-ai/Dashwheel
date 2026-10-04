@@ -6,7 +6,7 @@
     <string name="news_upkeep_soon">%1$s bald fällig</string>
     <string name="news_upkeep_due">%1$s fällig</string>
     <string name="news_fault_title">Motor-Fehlercodes: %1$s</string>
-    <string name="news_fault_text">Öffnen Sie im Auto den KI-Mechaniker, um zu sehen, was sie bedeuten.</string>
+    <string name="news_fault_text">Öffne im Auto den KI-Mechaniker, um zu sehen, was sie bedeuten.</string>
     <string name="news_filter_title">Der Partikelfilter braucht eine lange Fahrt</string>
-    <string name="news_filter_text">%1$d Kurzstrecken hintereinander. Planen Sie bald 20 Minuten auf einer Schnellstraße ein.</string>
+    <string name="news_filter_text">%1$d Kurzstrecken hintereinander. Plane bald 20 Minuten auf einer Schnellstraße ein.</string>
 </resources>

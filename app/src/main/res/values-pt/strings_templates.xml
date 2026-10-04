@@ -11,9 +11,9 @@
     <string name="templates_car_health_blurb">Dados do motor e códigos de avaria no Início</string>
     <string name="templates_hint">Um modelo preenche os sete painéis, dispostos para este ecrã com os blocos principais do lado do condutor.</string>
     <string name="templates_no_obd">Ainda não escolheu um adaptador OBD, por isso os widgets de dados do carro ficam de fora.</string>
-    <string name="templates_fill_empty">Preencher páginas vazias</string>
-    <string name="templates_replace_all">Substituir todas</string>
-    <string name="templates_replace_confirm_title">Substituir as sete páginas?</string>
+    <string name="templates_fill_empty">Preencher painéis vazios</string>
+    <string name="templates_replace_all">Substituir todos</string>
+    <string name="templates_replace_confirm_title">Substituir os sete painéis?</string>
     <string name="templates_replace_confirm_body">A sua disposição desaparece. Anular repõe-na.</string>
     <string name="templates_replace">Substituir</string>
 </resources>

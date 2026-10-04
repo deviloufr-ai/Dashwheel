@@ -26,7 +26,7 @@
     <string name="canvas_tab_when_hint">Postój: przy uruchomieniu lub po 2 minutach bez ruchu. Stuknij wybór ponownie, aby go wyłączyć.</string>
     <string name="canvas_map_title">Pod pulpitem</string>
     <string name="canvas_map_builtin">Własna mapa</string>
-    <string name="canvas_map_builtin_hint">Mapa Dashwheel, ze stronami do przesuwania.</string>
+    <string name="canvas_map_builtin_hint">Mapa Dashwheel, z pulpitami do przesuwania.</string>
     <string name="canvas_map_app_hint">Aplikacja działa pod kafelkami i dostaje każdy dotyk, którego one nie biorą. Karty na pasku zastępują przesuwanie: przytrzymaj kartę, aby ją nazwać.</string>
     <string name="canvas_bar_add_title">Dodaj do paska</string>
     <string name="canvas_bar_add_dashboard">Pulpit</string>

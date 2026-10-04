@@ -44,6 +44,12 @@
     </plurals>
     <string name="units_car_say_fuel_short_mi">Je actieradius van %1$d mijl haalt de bestemming op %2$d mijl niet. Plan een tankstop.</string>
     <string name="units_car_say_filter_mph">Je laatste %1$d ritten waren kort. Rij als het kan 15 tot 20 minuten boven de 40 mijl per uur, zodat het roetfilter zichzelf kan reinigen.</string>
-    <string name="units_upkeep_say_overdue_mi">%1$s is %2$d mijl te laat.</string>
-    <string name="units_upkeep_say_soon_mi">%1$s over %2$d mijl.</string>
+    <plurals name="units_upkeep_say_overdue_mi">
+        <item quantity="one">%1$s is %2$d mijl te laat.</item>
+        <item quantity="other">%1$s is %2$d mijl te laat.</item>
+    </plurals>
+    <plurals name="units_upkeep_say_soon_mi">
+        <item quantity="one">%1$s over %2$d mijl.</item>
+        <item quantity="other">%1$s over %2$d mijl.</item>
+    </plurals>
 </resources>

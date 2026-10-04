@@ -158,12 +158,17 @@ object UpkeepRules {
         val days = d.daysLeft
         val mi = units.imperial
         return when {
-            d.stage == UpkeepStage.DUE && km != null && km <= 0 ->
-                SpokenLine(if (mi) R.string.units_upkeep_say_overdue_mi else R.string.upkeep_say_overdue_km, listOf(name, units.distance(-km)))
-            d.stage == UpkeepStage.DUE -> SpokenLine(R.string.upkeep_say_overdue_days, listOf(name, -(days ?: 0)))
-            km != null && km <= SOON_KM ->
-                SpokenLine(if (mi) R.string.units_upkeep_say_soon_mi else R.string.upkeep_say_soon_km, listOf(name, units.distance(km)))
-            else -> SpokenLine(R.string.upkeep_say_soon_days, listOf(name, days ?: 0))
+            d.stage == UpkeepStage.DUE && km != null && km < 0 -> units.distance(-km).let { over ->
+                SpokenLine(if (mi) R.plurals.units_upkeep_say_overdue_mi else R.plurals.upkeep_say_overdue_km, listOf(name, over), quantity = over)
+            }
+            d.stage == UpkeepStage.DUE && days != null && days < 0 ->
+                SpokenLine(R.plurals.upkeep_say_overdue_days, listOf(name, -days), quantity = -days)
+            // Due with nothing to count yet: "overdue by 0 days" reads wrong.
+            d.stage == UpkeepStage.DUE -> SpokenLine(R.string.upkeep_say_due_today, listOf(name))
+            km != null && km <= SOON_KM -> units.distance(km).let { left ->
+                SpokenLine(if (mi) R.plurals.units_upkeep_say_soon_mi else R.plurals.upkeep_say_soon_km, listOf(name, left), quantity = left)
+            }
+            else -> (days ?: 0).let { SpokenLine(R.plurals.upkeep_say_soon_days, listOf(name, it), quantity = it) }
         }
     }
 }

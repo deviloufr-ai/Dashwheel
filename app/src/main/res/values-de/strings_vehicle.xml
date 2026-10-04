@@ -213,9 +213,9 @@
     <string name="vehicle_phone_aa_fix">So beheben</string>
     <string name="vehicle_phone_aa_title">Android Auto blockiert OBD</string>
     <string name="vehicle_phone_aa_body">Handy und OBD-Adapter teilen sich das Bluetooth des Radios. Android Auto auf dem Handy versucht ständig, ohne Kabel zu starten, und belegt es.</string>
-    <string name="vehicle_phone_aa_step1">Öffnen Sie auf dem Handy Einstellungen, dann Apps, dann Android Auto.</string>
-    <string name="vehicle_phone_aa_step2">Tippen Sie auf Berechtigungen, dann Geräte in der Nähe, und wählen Sie Nicht zulassen.</string>
-    <string name="vehicle_phone_aa_step3">Schalten Sie die Zündung aus und wieder ein.</string>
+    <string name="vehicle_phone_aa_step1">Öffne auf dem Handy Einstellungen, dann Apps, dann Android Auto.</string>
+    <string name="vehicle_phone_aa_step2">Tippe auf Berechtigungen, dann Geräte in der Nähe, und wähle Nicht zulassen.</string>
+    <string name="vehicle_phone_aa_step3">Schalte die Zündung aus und wieder ein.</string>
     <string name="vehicle_phone_aa_note">Anrufe, Musik und Android Auto per USB-Kabel funktionieren weiter.</string>
     <string name="vehicle_phone_aa_say">Android Auto auf %1$s blockiert OBD. Die Schritte zur Lösung stehen auf dem Bildschirm.</string>
     <string name="vehicle_err_permission">Bluetooth-Berechtigung nicht erteilt</string>
