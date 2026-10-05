@@ -15,6 +15,8 @@ import com.openauto.dash.link.DISPLAY_SERVICE_TYPE
 import com.openauto.dash.link.DisplayCommand
 import com.openauto.dash.link.DisplayHello
 import com.openauto.dash.link.DisplayStats
+import com.openauto.dash.link.VideoAck
+import com.openauto.dash.link.VideoWindow
 import com.openauto.dash.link.Hello
 import com.openauto.dash.link.Incoming
 import com.openauto.dash.link.LinkMessage
@@ -146,6 +148,13 @@ object DisplayLink {
     private val videoQueued = java.util.concurrent.atomic.AtomicInteger()
     private val videoRefused = java.util.concurrent.atomic.AtomicInteger()
 
+    /**
+     * How far ahead of the display's confirmations ([VideoAck]) the video may
+     * run: with a film on a phone hotspot, the phone and the radios held
+     * seconds of it, out of reach of [videoQueued].
+     */
+    private val window = VideoWindow()
+
     /** Frames refused since the last call ([VIDEO_BACKLOG]): the link fell behind, as the display's dropped ones say it did. */
     fun takeRefusedFrames(): Int = videoRefused.getAndSet(0)
 
@@ -225,13 +234,13 @@ object DisplayLink {
     fun sendVideo(packet: VideoPacket): Boolean {
         val current = session ?: return false
         if (packet.data.size > VideoPacket.MAX_DATA) return false
-        if (videoQueued.get() >= VIDEO_BACKLOG) {
+        if (videoQueued.get() >= VIDEO_BACKLOG || !window.mayQueue()) {
             videoRefused.incrementAndGet()
             return false
         }
         videoQueued.incrementAndGet()
         val queued = outbox.trySend(current to Out.Raw(packet.encode())).isSuccess
-        if (!queued) videoQueued.decrementAndGet()
+        if (!queued) videoQueued.decrementAndGet() else window.queued(packet.ptsUs)
         return queued
     }
 
@@ -315,6 +324,7 @@ object DisplayLink {
 
     private fun runSession(context: Context, address: String, link: LinkSession, display: PairedDisplay) {
         if (!link.sendOrClose(Hello(PhoneLink.unitName(context), BuildConfig.VERSION_NAME))) return
+        window.reset()
         session = link
         holdWifi(context, true)
         val pinger = scope.launch {
@@ -335,6 +345,7 @@ object DisplayLink {
                     }
                     is DisplayCommand -> if (message.action == DisplayCommand.Action.KEYFRAME_PLEASE) _keyFrameRequests.tryEmit(Unit)
                     is DisplayStats -> _stats.value = message
+                    is VideoAck -> window.acked(message.ptsUs)
                     Ping -> send(Pong)
                     else -> Unit
                 }

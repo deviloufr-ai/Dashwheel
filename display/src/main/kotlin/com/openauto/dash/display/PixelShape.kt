@@ -27,6 +27,21 @@ object PixelShape {
         use(width, height, reportedSizeMm(drm)?.let { (w, h) -> deviceRatio(width, height, w, h) } ?: (1 to 1))
     }
 
+    /**
+     * Reads the monitor's reported size again, for the screen [detect] was
+     * given: a monitor that powered up after the Pi (the car's ignition) had
+     * none to read at start-up, and its picture came back narrowed.
+     */
+    fun refresh(drm: File = File("/sys/class/drm")) {
+        val (w, h) = screen
+        val size = reportedSizeMm(drm) ?: return
+        val shape = deviceRatio(w, h, size.first, size.second)
+        if (shape != kms) {
+            log("the monitor reports a size that is not its shape: pixels taken for ${shape.first}/${shape.second}")
+            kms = shape
+        }
+    }
+
     /** A [width] × [height] screen whose pixels kmssink takes for [kms]. */
     internal fun use(width: Int, height: Int, kms: Pair<Int, Int>) {
         screen = width to height

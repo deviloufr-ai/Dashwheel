@@ -82,6 +82,58 @@ data class VideoConfig(
     val csd: String
 ) : LinkMessage
 
+/**
+ * Pi → head unit, for each video frame as it arrives: its [VideoPacket.ptsUs].
+ * The head unit sends no further ahead of the last one confirmed than
+ * [VideoWindow] allows, so the network's own buffers (a phone hotspot
+ * relaying a film) can't hold seconds of video. A head unit that doesn't
+ * know it ignores it, and sends as before.
+ */
+@Serializable
+@SerialName("video_ack")
+data class VideoAck(val ptsUs: Long) : LinkMessage
+
+/**
+ * The head unit's side of [VideoAck]: how far ahead of the display it may be.
+ * Until the display has confirmed a first frame (an older one never does),
+ * nothing is held back.
+ */
+class VideoWindow(private val maxAheadUs: Long = DEFAULT_MAX_AHEAD_US) {
+    private var sent = Long.MIN_VALUE
+    private var acked = Long.MIN_VALUE
+    private var confirming = false
+
+    /** A new link: nothing in flight, the display not yet known to confirm. */
+    @Synchronized
+    fun reset() {
+        sent = Long.MIN_VALUE
+        acked = Long.MIN_VALUE
+        confirming = false
+    }
+
+    /** Whether one more frame may go now. */
+    @Synchronized
+    fun mayQueue(): Boolean = !confirming || sent == Long.MIN_VALUE || sent - acked <= maxAheadUs
+
+    @Synchronized
+    fun queued(ptsUs: Long) {
+        sent = ptsUs
+    }
+
+    @Synchronized
+    fun acked(ptsUs: Long) {
+        confirming = true
+        if (ptsUs > acked || acked - ptsUs > RESTART_US) acked = ptsUs
+    }
+
+    companion object {
+        /** A third of a second of video unconfirmed at most. */
+        const val DEFAULT_MAX_AHEAD_US = 300_000L
+        /** A confirmed frame this far behind the last one is a new stream (the encoder started again). */
+        private const val RESTART_US = 10_000_000L
+    }
+}
+
 /** Pi → head unit. */
 @Serializable
 @SerialName("display_cmd")

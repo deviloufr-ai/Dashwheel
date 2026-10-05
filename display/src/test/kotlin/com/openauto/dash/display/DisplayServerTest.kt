@@ -10,6 +10,7 @@ import com.openauto.dash.link.Pong
 import com.openauto.dash.link.SecureChannel
 import com.openauto.dash.link.UnknownPairingException
 import com.openauto.dash.link.VideoConfig
+import com.openauto.dash.link.VideoAck
 import com.openauto.dash.link.VideoPacket
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -84,8 +85,11 @@ class DisplayServerTest {
         unit.send(VideoConfig(width = 1024, height = 600, fps = 30, csd = Base64.getEncoder().encodeToString(csd)))
         // A delta frame first: dropped, and the display asks for a key frame.
         unit.sendBinary(VideoPacket(false, 0, byteArrayOf(0, 0, 0, 1, 0x41)).encode())
+        // Each frame is confirmed as it arrives (the head unit's VideoWindow), then the key frame asked for.
+        assertEquals(VideoAck(0), unit.receive())
         assertEquals(DisplayCommand(DisplayCommand.Action.KEYFRAME_PLEASE), unit.receive())
         unit.sendBinary(VideoPacket(true, 1, byteArrayOf(0, 0, 0, 1, 0x65)).encode())
+        assertEquals(VideoAck(1), unit.receive())
         waitFor("the key frame to reach the decoder") { sink.written.isNotEmpty() }
         assertArrayEquals(csd + byteArrayOf(0, 0, 0, 1, 0x65), sink.written.first())
         assertTrue(server.screen.showing == Screen.Showing.VIDEO)

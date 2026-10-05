@@ -12,6 +12,7 @@ import com.openauto.dash.link.Ping
 import com.openauto.dash.link.Pong
 import com.openauto.dash.link.SecureChannel
 import com.openauto.dash.link.VideoConfig
+import com.openauto.dash.link.VideoAck
 import com.openauto.dash.link.VideoPacket
 import java.io.IOException
 import java.net.ServerSocket
@@ -80,7 +81,11 @@ class DisplayServer(
                 val frame = session.receiveAny()
                 if (frame != null) screen.heard()
                 when (frame) {
-                    is Incoming.Binary -> VideoPacket.decode(frame.bytes)?.let(screen::feed)
+                    is Incoming.Binary -> VideoPacket.decode(frame.bytes)?.let { packet ->
+                        // Here: the head unit keeps no more than a moment of video unconfirmed (VideoWindow).
+                        session.sendOrClose(VideoAck(packet.ptsUs))
+                        screen.feed(packet)
+                    }
                     is Incoming.Message -> handle(session, frame)
                     null -> Unit
                 }

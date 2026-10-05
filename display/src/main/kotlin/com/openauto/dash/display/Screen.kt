@@ -19,7 +19,7 @@ class Screen(
     mode: ScreenMode,
     private val pairing: DisplayPairing,
     requestKeyFrame: () -> Unit,
-    private val startVideo: () -> VideoSink.Sink = { BootLogo.release(); GstVideoSink.start(Pipelines.video(config, Rotation.upsideDown, PixelShape.forStream())) },
+    private val startVideo: () -> VideoSink.Sink = { BootLogo.release(); PixelShape.refresh(); GstVideoSink.start(Pipelines.video(config, Rotation.upsideDown, PixelShape.forStream())) },
     private val startFrames: (Int, Int) -> GstProcess? = { w, h ->
         BootLogo.release()
         GstProcess.startOrNull(Pipelines.frames(config, w, h), capacity = 1)
