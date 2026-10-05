@@ -1,12 +1,15 @@
 package com.openauto.dash.companion
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
 import android.net.Uri
 import com.openauto.dash.link.CarLookAck
 import com.openauto.dash.link.CarLookPart
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.io.ByteArrayOutputStream
 import java.util.Base64
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -16,6 +19,8 @@ import java.util.concurrent.TimeUnit
  * tools/mycar/bake_car.py, or a picture of the car from the side) to the head
  * unit, which shows it in place of its drawn car. In [CarLookPart]s, as one
  * frame can't hold it; the head unit answers once it has it in ([CarLookAck]).
+ * A single picture is made small on the phone first: a camera photo straight
+ * from the gallery is many megabytes (or HEIC, which a head unit may not read).
  */
 object CarLookSender {
     enum class Status { IDLE, SENDING, SENT, TOO_BIG, FAILED }
@@ -25,6 +30,9 @@ object CarLookSender {
 
     /** How long the head unit gets to prepare the pictures once the last part is sent. */
     private const val ANSWER_WAIT_S = 90L
+
+    /** A single picture is sent at most this long a side: the head unit keeps it at 1400. */
+    private const val PICTURE_SIDE = 1600
 
     @Volatile private var waiting: Pair<Long, CountDownLatch>? = null
     @Volatile private var answer = false
@@ -44,9 +52,14 @@ object CarLookSender {
     }
 
     private fun sendNow(context: Context, uri: Uri): Status {
+        val pack = runCatching { isPack(context, uri) }.getOrNull() ?: return Status.FAILED
+        if (!pack) {
+            // A picture: decoded and made small here; a file that isn't one goes as it is.
+            picture(context, uri)?.let { return sendBytes(it) }
+        }
         val bytes = runCatching {
             context.contentResolver.openInputStream(uri)?.use { input ->
-                val out = java.io.ByteArrayOutputStream()
+                val out = ByteArrayOutputStream()
                 val buffer = ByteArray(64 * 1024)
                 while (true) {
                     val n = input.read(buffer)
@@ -60,6 +73,37 @@ object CarLookSender {
         return sendBytes(bytes)
     }
 
+    /** A car pack is a zip: it starts "PK". */
+    private fun isPack(context: Context, uri: Uri): Boolean =
+        context.contentResolver.openInputStream(uri)?.use { input ->
+            val head = ByteArray(2)
+            input.read(head) == 2 && head[0] == 'P'.code.toByte() && head[1] == 'K'.code.toByte()
+        } ?: error("unreadable")
+
+    /**
+     * The picture at [uri], turned upright and at most [PICTURE_SIDE] a side:
+     * PNG when it has see-through parts (a car already cut out), else JPEG.
+     * Null when it isn't a picture this phone can read.
+     */
+    private fun picture(context: Context, uri: Uri): ByteArray? = runCatching {
+        val source = ImageDecoder.createSource(context.contentResolver, uri)
+        val bitmap = ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
+            decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+            val w = info.size.width
+            val h = info.size.height
+            val scale = PICTURE_SIDE.toFloat() / maxOf(w, h)
+            if (scale < 1f) decoder.setTargetSize(maxOf(1, (w * scale).toInt()), maxOf(1, (h * scale).toInt()))
+        }
+        try {
+            val out = ByteArrayOutputStream()
+            if (bitmap.hasAlpha()) bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+            else bitmap.compress(Bitmap.CompressFormat.JPEG, 92, out)
+            out.toByteArray()
+        } finally {
+            bitmap.recycle()
+        }
+    }.getOrNull()
+
     private fun sendBytes(bytes: ByteArray): Status {
         if (bytes.isEmpty()) return Status.FAILED
         if (LinkServer.state.value !is LinkState.Connected) return Status.FAILED
@@ -70,14 +114,21 @@ object CarLookSender {
         waiting = id to latch
         val count = (bytes.size + CarLookPart.PART_BYTES - 1) / CarLookPart.PART_BYTES
         val encoder = Base64.getEncoder()
-        for (i in 0 until count) {
-            val from = i * CarLookPart.PART_BYTES
-            val to = minOf(bytes.size, from + CarLookPart.PART_BYTES)
-            LinkServer.send(CarLookPart(id, i, count, "car", encoder.encodeToString(bytes.copyOfRange(from, to))))
+        try {
+            // One part at a time, each written before the next: the answer's wait starts once
+            // the last one is out (a big pack takes a while over the hotspot), and a link that
+            // breaks halfway fails now rather than after the wait.
+            for (i in 0 until count) {
+                val from = i * CarLookPart.PART_BYTES
+                val to = minOf(bytes.size, from + CarLookPart.PART_BYTES)
+                val part = CarLookPart(id, i, count, "car", encoder.encodeToString(bytes.copyOfRange(from, to)))
+                if (!LinkServer.sendAndWait(part)) return Status.FAILED
+            }
+            val answered = latch.await(ANSWER_WAIT_S, TimeUnit.SECONDS)
+            return if (answered && answer) Status.SENT else Status.FAILED
+        } finally {
+            waiting = null
         }
-        val answered = latch.await(ANSWER_WAIT_S, TimeUnit.SECONDS)
-        waiting = null
-        return if (answered && answer) Status.SENT else Status.FAILED
     }
 
     /** The head unit's answer. */

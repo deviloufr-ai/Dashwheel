@@ -139,6 +139,15 @@ object LinkServer {
         sender.execute { current.sendOrClose(message) }
     }
 
+    /**
+     * Sends to the connected head unit and waits until it is written, in order
+     * with [send]. False when there is no link or it broke. Not from the main thread.
+     */
+    fun sendAndWait(message: LinkMessage): Boolean {
+        val current = session ?: return false
+        return runCatching { sender.submit<Boolean> { current.sendOrClose(message) }.get() }.getOrDefault(false)
+    }
+
     private fun acceptLoop(context: Context, socket: ServerSocket) {
         while (!socket.isClosed) {
             val client = try {
