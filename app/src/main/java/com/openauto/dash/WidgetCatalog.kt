@@ -17,6 +17,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Brightness6
+import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.filled.ToggleOn
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Radio
+import androidx.compose.material.icons.filled.NetworkWifi
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.GpsFixed
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Brightness7
+import androidx.compose.material.icons.filled.BluetoothConnected
 import androidx.compose.material.icons.filled.Adjust
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.BatteryChargingFull
@@ -119,4 +131,16 @@ internal fun kindIcon(kind: BuiltinKind): ImageVector = when (kind) {
     BuiltinKind.HEAD_UNIT -> Icons.Filled.Memory
     BuiltinKind.GEAR -> Icons.Filled.SettingsInputComponent
     BuiltinKind.SCREEN_LIGHT -> Icons.Filled.Brightness6
+    BuiltinKind.RADIOS -> Icons.Filled.Wifi
+    BuiltinKind.UNIT_LIGHT -> Icons.Filled.Brightness7
+    BuiltinKind.SPEED_CAMERAS -> Icons.Filled.CameraAlt
+    BuiltinKind.RADIO_PRESETS -> Icons.Filled.Radio
+    BuiltinKind.HOME_WORK -> Icons.Filled.Home
+    BuiltinKind.SHARE_ETA -> Icons.Filled.Send
+    BuiltinKind.VOICE_NOTES -> Icons.Filled.Mic
+    BuiltinKind.QUICK_SWITCHES -> Icons.Filled.ToggleOn
+    BuiltinKind.GPS_STATUS -> Icons.Filled.GpsFixed
+    BuiltinKind.PERF_TIMER -> Icons.Filled.Timer
+    BuiltinKind.WIFI_NETWORKS -> Icons.Filled.NetworkWifi
+    BuiltinKind.BT_DEVICES -> Icons.Filled.BluetoothConnected
 }

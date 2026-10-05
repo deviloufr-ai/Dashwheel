@@ -34,6 +34,16 @@
          streaming to the display, so frames aren't held back. -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <!-- The Wi-Fi switch tile (RadioSwitches.kt); Android 10 also wants the shell for it. -->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <!-- Do Not Disturb from the Quick switches tile, once the driver gives the access (QuickSwitches.kt). -->
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+    <!-- Joining and leaving Wi-Fi networks and connecting Bluetooth devices from their tiles
+         (NetworkLists.kt): system permissions, only held where PMPatch3 grants them. -->
+    <uses-permission android:name="android.permission.NETWORK_SETTINGS" tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.BLUETOOTH_PRIVILEGED" tools:ignore="ProtectedPermissions" />
+    <!-- The screen light tile writes the brightness itself when allowed (else through the shell). -->
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" tools:ignore="ProtectedPermissions" />
 
     <!-- The MapLibre navigation library posts its own guidance notification. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />

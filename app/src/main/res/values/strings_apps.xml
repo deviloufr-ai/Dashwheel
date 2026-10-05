@@ -128,4 +128,11 @@
     <string name="apps_most_used">Most used</string>
     <string name="apps_kind_screen_light">Second screen light</string>
     <string name="apps_kind_screen_light_blurb">The second screen\'s backlight, by day and at night</string>
+    <string name="apps_kind_radios">Wi-Fi and Bluetooth</string>
+    <string name="apps_kind_radios_blurb">Turn the head unit\'s Wi-Fi and Bluetooth on and off</string>
+    <string name="apps_radio_wifi">Wi-Fi</string>
+    <string name="apps_radio_bluetooth">Bluetooth</string>
+    <string name="apps_radio_on">On</string>
+    <string name="apps_radio_off">Off</string>
+    <string name="apps_radio_switching">Switching</string>
 </resources>

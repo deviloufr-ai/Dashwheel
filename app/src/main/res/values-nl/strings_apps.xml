@@ -128,4 +128,11 @@
     <string name="apps_most_used">Meest gebruikt</string>
     <string name="apps_kind_screen_light">Licht tweede scherm</string>
     <string name="apps_kind_screen_light_blurb">De achtergrondverlichting van het tweede scherm, overdag en \'s nachts</string>
+    <string name="apps_kind_radios">Wifi en Bluetooth</string>
+    <string name="apps_kind_radios_blurb">Zet de wifi en Bluetooth van de radio aan en uit</string>
+    <string name="apps_radio_wifi">Wifi</string>
+    <string name="apps_radio_bluetooth">Bluetooth</string>
+    <string name="apps_radio_on">Aan</string>
+    <string name="apps_radio_off">Uit</string>
+    <string name="apps_radio_switching">Bezig</string>
 </resources>

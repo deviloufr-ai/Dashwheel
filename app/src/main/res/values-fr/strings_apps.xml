@@ -129,4 +129,11 @@
     <string name="apps_most_used">Les plus utilisées</string>
     <string name="apps_kind_screen_light">Lumière du second écran</string>
     <string name="apps_kind_screen_light_blurb">Le rétroéclairage du second écran, de jour et de nuit</string>
+    <string name="apps_kind_radios">Wi-Fi et Bluetooth</string>
+    <string name="apps_kind_radios_blurb">Activer ou couper le Wi-Fi et le Bluetooth de l\'autoradio</string>
+    <string name="apps_radio_wifi">Wi-Fi</string>
+    <string name="apps_radio_bluetooth">Bluetooth</string>
+    <string name="apps_radio_on">Activé</string>
+    <string name="apps_radio_off">Coupé</string>
+    <string name="apps_radio_switching">Bascule</string>
 </resources>

@@ -129,6 +129,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     ReportDrawn()
     var themeMode by remember { mutableStateOf(DashThemeStore.load(context)) }
     var appearance by remember { mutableStateOf(DashThemeStore.loadAppearance(context)) }
+    LaunchedEffect(Unit) { DashThemeStore.appearanceAsked.collect { appearance = it } }
     var effects by remember { mutableStateOf(DashThemeStore.loadEffects(context)) }
     var barAutoHide by remember { mutableStateOf(DashThemeStore.loadBarAutoHide(context)) }
     var barHideSeconds by remember { mutableIntStateOf(DashThemeStore.loadBarHideSeconds(context)) }

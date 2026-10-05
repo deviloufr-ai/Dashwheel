@@ -129,4 +129,11 @@
     <string name="apps_most_used">As mais usadas</string>
     <string name="apps_kind_screen_light">Luz do segundo ecrã</string>
     <string name="apps_kind_screen_light_blurb">A retroiluminação do segundo ecrã, de dia e de noite</string>
+    <string name="apps_kind_radios">Wi-Fi e Bluetooth</string>
+    <string name="apps_kind_radios_blurb">Ligue e desligue o Wi-Fi e o Bluetooth do rádio</string>
+    <string name="apps_radio_wifi">Wi-Fi</string>
+    <string name="apps_radio_bluetooth">Bluetooth</string>
+    <string name="apps_radio_on">Ligado</string>
+    <string name="apps_radio_off">Desligado</string>
+    <string name="apps_radio_switching">A mudar</string>
 </resources>

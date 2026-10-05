@@ -502,6 +502,15 @@ object DashThemeStore {
             .putString(KEY_APPEARANCE, appearance.name).apply()
     }
 
+    private val _appearanceAsked = kotlinx.coroutines.flow.MutableSharedFlow<DashAppearance>(extraBufferCapacity = 1)
+    /** A look asked for from outside Settings (the Quick switches tile): the dashboard takes it up. */
+    val appearanceAsked: kotlinx.coroutines.flow.SharedFlow<DashAppearance> = _appearanceAsked
+
+    fun askAppearance(context: Context, appearance: DashAppearance) {
+        saveAppearance(context, appearance)
+        _appearanceAsked.tryEmit(appearance)
+    }
+
     fun loadEffects(context: Context): DashEffects = runCatching {
         DashEffects.valueOf(
             context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)

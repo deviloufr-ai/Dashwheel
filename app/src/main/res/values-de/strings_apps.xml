@@ -128,4 +128,11 @@
     <string name="apps_most_used">Am meisten genutzt</string>
     <string name="apps_kind_screen_light">Licht zweiter Bildschirm</string>
     <string name="apps_kind_screen_light_blurb">Die Hintergrundbeleuchtung des zweiten Bildschirms, bei Tag und bei Nacht</string>
+    <string name="apps_kind_radios">WLAN und Bluetooth</string>
+    <string name="apps_kind_radios_blurb">WLAN und Bluetooth des Radios ein- und ausschalten</string>
+    <string name="apps_radio_wifi">WLAN</string>
+    <string name="apps_radio_bluetooth">Bluetooth</string>
+    <string name="apps_radio_on">An</string>
+    <string name="apps_radio_off">Aus</string>
+    <string name="apps_radio_switching">Schaltet</string>
 </resources>

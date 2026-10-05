@@ -187,6 +187,9 @@ class MainActivity : ComponentActivity() {
                 CarBox.start(this)
                 // What the driver taught Dashwheel with the Signal Finder, over the car's own data.
                 LearnedSignals.start(this)
+                // The screen light following the headlights, and spoken camera warnings, when the driver turned them on.
+                UnitLight.start(this)
+                SpeedCameras.startIfSpeaking(this)
                 // The accessibility service, on by itself where there is a privileged shell.
                 SplitAccessibilityService.autoTurnOn(this)
                 // Dashwheel as the default Home, and the system copy up to date, after an update.

@@ -75,7 +75,21 @@ enum class BuiltinKind(
     // The gear engaged, from reverse and the revs against the speed (GearEstimator.kt).
     GEAR(R.string.gear_kind, WidgetCategory.DRIVING, R.string.gear_kind_blurb, 3, 2),
     // The second screen's backlight, day or night level, for a display wired to its buttons (SecondScreenBrightness.kt).
-    SCREEN_LIGHT(R.string.apps_kind_screen_light, WidgetCategory.INFO, R.string.apps_kind_screen_light_blurb, 3, 2)
+    SCREEN_LIGHT(R.string.apps_kind_screen_light, WidgetCategory.INFO, R.string.apps_kind_screen_light_blurb, 3, 2),
+    // The head unit's Wi-Fi and Bluetooth, on and off (RadioSwitches.kt).
+    RADIOS(R.string.apps_kind_radios, WidgetCategory.INFO, R.string.apps_kind_radios_blurb, 3, 2),
+    // The widgets of 2026-10-05, each in its own file (UnitLight.kt, SpeedCameras.kt, RadioPresets.kt, ...).
+    UNIT_LIGHT(R.string.widgets_light, WidgetCategory.INFO, R.string.widgets_light_blurb, 3, 2),
+    SPEED_CAMERAS(R.string.widgets_cam, WidgetCategory.DRIVING, R.string.widgets_cam_blurb, 3, 2),
+    RADIO_PRESETS(R.string.widgets_radio, WidgetCategory.APPS, R.string.widgets_radio_blurb, 4, 3),
+    HOME_WORK(R.string.widgets_hw, WidgetCategory.NAVIGATION, R.string.widgets_hw_blurb, 4, 2),
+    SHARE_ETA(R.string.widgets_eta, WidgetCategory.NAVIGATION, R.string.widgets_eta_blurb, 3, 3),
+    VOICE_NOTES(R.string.widgets_notes, WidgetCategory.INFO, R.string.widgets_notes_blurb, 3, 3),
+    QUICK_SWITCHES(R.string.widgets_switches, WidgetCategory.INFO, R.string.widgets_switches_blurb, 5, 2),
+    GPS_STATUS(R.string.widgets_gps, WidgetCategory.DRIVING, R.string.widgets_gps_blurb, 4, 2),
+    PERF_TIMER(R.string.widgets_perf, WidgetCategory.DRIVING, R.string.widgets_perf_blurb, 4, 2),
+    WIFI_NETWORKS(R.string.widgets_wifi, WidgetCategory.INFO, R.string.widgets_wifi_blurb, 4, 3),
+    BT_DEVICES(R.string.widgets_bt, WidgetCategory.INFO, R.string.widgets_bt_blurb, 4, 3)
 }
 
 /**
