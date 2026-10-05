@@ -212,4 +212,9 @@
     <string name="display_confirm_send">An das Auto senden</string>
     <string name="display_sent">An %1$s gesendet: Der Bildschirm verbindet sich in wenigen Sekunden.</string>
     <string name="display_needs_car">Verbinde dich zuerst mit dem Auto und scanne dann den Code des Bildschirms erneut.</string>
+    <string name="parking_channel">Parken</string>
+    <string name="parking_soon_title">Parkzeit endet bald</string>
+    <string name="parking_soon_text">Deine Parkzeit endet um %1$s.</string>
+    <string name="parking_over_title">Parkzeit abgelaufen</string>
+    <string name="parking_over_text">Deine Parkzeit endete um %1$s.</string>
 </resources>

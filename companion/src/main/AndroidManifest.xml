@@ -145,6 +145,11 @@
             </intent-filter>
         </receiver>
 
+        <!-- The parking reminders the car's Parking timer asked for (ParkingReminder.kt). -->
+        <receiver
+            android:name=".ParkingReminderReceiver"
+            android:exported="false" />
+
         <!-- System broadcasts, so exported; they only move sharing on or off for the chosen car. -->
         <receiver
             android:name=".CarBluetoothReceiver"

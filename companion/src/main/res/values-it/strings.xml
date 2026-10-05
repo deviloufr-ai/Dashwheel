@@ -213,4 +213,9 @@
     <string name="display_confirm_send">Invia all\'auto</string>
     <string name="display_sent">Inviato a %1$s: lo schermo si collega in pochi secondi.</string>
     <string name="display_needs_car">Collegati prima all\'auto, poi scansiona di nuovo il codice dello schermo.</string>
+    <string name="parking_channel">Parcheggio</string>
+    <string name="parking_soon_title">Il parcheggio sta per scadere</string>
+    <string name="parking_soon_text">Il tuo parcheggio scade alle %1$s.</string>
+    <string name="parking_over_title">Il parcheggio è scaduto</string>
+    <string name="parking_over_text">Il tuo parcheggio è scaduto alle %1$s.</string>
 </resources>

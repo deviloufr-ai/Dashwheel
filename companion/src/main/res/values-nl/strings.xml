@@ -212,4 +212,9 @@
     <string name="display_confirm_send">Naar de auto sturen</string>
     <string name="display_sent">Verstuurd naar %1$s: het scherm maakt binnen enkele seconden verbinding.</string>
     <string name="display_needs_car">Maak eerst verbinding met je auto en scan daarna de code van het scherm opnieuw.</string>
+    <string name="parking_channel">Parkeren</string>
+    <string name="parking_soon_title">Parkeertijd loopt bijna af</string>
+    <string name="parking_soon_text">Je parkeertijd loopt af om %1$s.</string>
+    <string name="parking_over_title">Parkeertijd is afgelopen</string>
+    <string name="parking_over_text">Je parkeertijd liep af om %1$s.</string>
 </resources>

@@ -214,4 +214,9 @@
     <string name="display_confirm_send">Wyślij do auta</string>
     <string name="display_sent">Wysłano do %1$s: ekran połączy się za kilka sekund.</string>
     <string name="display_needs_car">Najpierw połącz się z autem, potem zeskanuj ponownie kod ekranu.</string>
+    <string name="parking_channel">Parkowanie</string>
+    <string name="parking_soon_title">Parkowanie wkrótce się kończy</string>
+    <string name="parking_soon_text">Twoje parkowanie kończy się o %1$s.</string>
+    <string name="parking_over_title">Parkowanie się skończyło</string>
+    <string name="parking_over_text">Twoje parkowanie skończyło się o %1$s.</string>
 </resources>

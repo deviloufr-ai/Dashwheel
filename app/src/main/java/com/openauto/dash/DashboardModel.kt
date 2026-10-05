@@ -89,7 +89,14 @@ enum class BuiltinKind(
     GPS_STATUS(R.string.widgets_gps, WidgetCategory.DRIVING, R.string.widgets_gps_blurb, 4, 2),
     PERF_TIMER(R.string.widgets_perf, WidgetCategory.DRIVING, R.string.widgets_perf_blurb, 4, 2),
     WIFI_NETWORKS(R.string.widgets_wifi, WidgetCategory.INFO, R.string.widgets_wifi_blurb, 4, 3),
-    BT_DEVICES(R.string.widgets_bt, WidgetCategory.INFO, R.string.widgets_bt_blurb, 4, 3)
+    BT_DEVICES(R.string.widgets_bt, WidgetCategory.INFO, R.string.widgets_bt_blurb, 4, 3),
+    // The second batch of 2026-10-05 (SpeedLimit.kt, ParkingTimerTile.kt, FuelLogTile.kt, ...).
+    SPEED_LIMIT(R.string.widgets_limit, WidgetCategory.DRIVING, R.string.widgets_limit_blurb, 3, 2),
+    PARKING_TIMER(R.string.widgets_park, WidgetCategory.NAVIGATION, R.string.widgets_park_blurb, 3, 2),
+    FUEL_LOG(R.string.widgets_fuel, WidgetCategory.VEHICLE, R.string.widgets_fuel_blurb, 4, 3),
+    WEATHER_ALERTS(R.string.widgets_wx, WidgetCategory.INFO, R.string.widgets_wx_blurb, 4, 2),
+    ENGINE_TEMPS(R.string.widgets_temps, WidgetCategory.VEHICLE, R.string.widgets_temps_blurb, 4, 2),
+    COMMUTE(R.string.widgets_commute, WidgetCategory.NAVIGATION, R.string.widgets_commute_blurb, 4, 2)
 }
 
 /**

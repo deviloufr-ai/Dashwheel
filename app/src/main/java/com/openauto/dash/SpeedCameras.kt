@@ -126,7 +126,7 @@ internal object SpeedCameras {
     private fun fetch(lat: Double, lng: Double): List<SpeedCamera> {
         val query = "[out:json][timeout:20];node(around:$RADIUS_M,$lat,$lng)[highway=speed_camera];out;"
         val request = Request.Builder().url(OVERPASS)
-            .header("User-Agent", "Dashwheel (car launcher)")
+            .header("User-Agent", OVERPASS_AGENT)
             .post(FormBody.Builder().add("data", query).build()).build()
         Http.client.newCall(request).execute().use { resp ->
             if (!resp.isSuccessful) error("HTTP ${resp.code}")

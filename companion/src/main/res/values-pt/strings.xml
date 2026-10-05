@@ -213,4 +213,9 @@
     <string name="display_confirm_send">Enviar ao carro</string>
     <string name="display_sent">Enviado para %1$s: o ecrã liga-se em poucos segundos.</string>
     <string name="display_needs_car">Ligue-se primeiro ao carro e depois leia de novo o código do ecrã.</string>
+    <string name="parking_channel">Estacionamento</string>
+    <string name="parking_soon_title">O estacionamento termina em breve</string>
+    <string name="parking_soon_text">O seu estacionamento termina às %1$s.</string>
+    <string name="parking_over_title">O estacionamento terminou</string>
+    <string name="parking_over_text">O seu estacionamento terminou às %1$s.</string>
 </resources>

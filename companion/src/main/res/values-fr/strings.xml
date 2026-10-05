@@ -213,4 +213,9 @@
     <string name="display_confirm_send">Envoyer à la voiture</string>
     <string name="display_sent">Envoyé à %1$s : l\'écran se connecte dans quelques secondes.</string>
     <string name="display_needs_car">Connectez-vous d\'abord à votre voiture, puis scannez à nouveau le code de l\'écran.</string>
+    <string name="parking_channel">Stationnement</string>
+    <string name="parking_soon_title">Le stationnement se termine bientôt</string>
+    <string name="parking_soon_text">Votre stationnement se termine à %1$s.</string>
+    <string name="parking_over_title">Le stationnement est terminé</string>
+    <string name="parking_over_text">Votre stationnement s\'est terminé à %1$s.</string>
 </resources>

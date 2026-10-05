@@ -74,7 +74,8 @@ internal object DriveLogRules {
      */
     fun summary(
         trip: TripState, eco: Drive?, car: CarProfile, ongoing: Boolean,
-        use: Double = car.typicalUse, price: Double = car.fuelPrice
+        use: Double = car.typicalUse, price: Double = car.fuelPrice,
+        endLat: Double? = null, endLng: Double? = null
     ): DriveSummary {
         val km = trip.distanceM / 1000.0
         val liters = km * use / 100
@@ -92,7 +93,9 @@ internal object DriveLogRules {
             fuelLiters = liters,
             fuelCost = liters * price,
             currency = car.currency,
-            ongoing = ongoing
+            ongoing = ongoing,
+            endLat = endLat,
+            endLng = endLng
         )
     }
 }
@@ -221,10 +224,13 @@ internal object DriveLog {
 
     private fun summary(trip: TripState, ongoing: Boolean): DriveSummary {
         val car = CarProfileStore.current
+        // Where the car is when the drive closes: the commute history tells home and work by it.
+        val here = if (ongoing) null else LocationFeed.location.value
         return DriveLogRules.summary(
             trip, DriveLogRules.ecoFor(trip, CarCare.state.value), car, ongoing,
             use = FuelLog.litersPer100() ?: car.typicalUse,
-            price = FuelLog.lastPrice() ?: car.fuelPrice
+            price = FuelLog.lastPrice() ?: car.fuelPrice,
+            endLat = here?.latitude, endLng = here?.longitude
         )
     }
 

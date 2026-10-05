@@ -57,6 +57,7 @@ import androidx.compose.material.icons.filled.PictureInPicture
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.SensorDoor
 import androidx.compose.material.icons.filled.Sensors
+import androidx.compose.material.icons.filled.Commute
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Thermostat
 import androidx.compose.material.icons.filled.Timeline
@@ -143,4 +144,10 @@ internal fun kindIcon(kind: BuiltinKind): ImageVector = when (kind) {
     BuiltinKind.PERF_TIMER -> Icons.Filled.Timer
     BuiltinKind.WIFI_NETWORKS -> Icons.Filled.NetworkWifi
     BuiltinKind.BT_DEVICES -> Icons.Filled.BluetoothConnected
+    BuiltinKind.SPEED_LIMIT -> Icons.Filled.Speed
+    BuiltinKind.PARKING_TIMER -> Icons.Filled.LocalParking
+    BuiltinKind.FUEL_LOG -> Icons.Filled.LocalGasStation
+    BuiltinKind.WEATHER_ALERTS -> Icons.Filled.Warning
+    BuiltinKind.ENGINE_TEMPS -> Icons.Filled.Thermostat
+    BuiltinKind.COMMUTE -> Icons.Filled.Commute
 }

@@ -52,6 +52,14 @@ data object Pong : LinkMessage
 data class CarLocation(val lat: Double, val lng: Double, val at: Long, val saved: Boolean = false) : LinkMessage
 
 /**
+ * Head unit → phone: the parking paid until [endsAt] (0: the timer was
+ * stopped), for the phone to remind the driver [warnMs] before, wherever they are.
+ */
+@Serializable
+@SerialName("parking_timer")
+data class ParkingTimer(val endsAt: Long, val warnMs: Long = 10 * 60_000L, val label: String = "") : LinkMessage
+
+/**
  * Head unit → phone: the drives it logged (newest first; see [DriveSummary]),
  * sent when the link comes up, with the drive under way first when there is
  * one. The phone keeps them by their start time, so a drive already known is
@@ -537,7 +545,10 @@ data class DriveSummary(
     val fuelCost: Double? = null,
     val currency: String? = null,
     /** Still under way when sent; false once the drive is closed. */
-    val ongoing: Boolean = false
+    val ongoing: Boolean = false,
+    /** Where the drive ended, when known (the commute history tells home and work by it). */
+    val endLat: Double? = null,
+    val endLng: Double? = null
 ) {
     val elapsedMs: Long get() = (endedAt - startedAt).coerceAtLeast(0L)
     val avgSpeedKmh: Int get() = if (movingMs <= 0L) 0 else Math.round(distanceKm / (movingMs / 3_600_000.0)).toInt()

@@ -214,4 +214,9 @@
     <string name="display_confirm_send">Send to the car</string>
     <string name="display_sent">Sent to %1$s: the screen connects in a few seconds.</string>
     <string name="display_needs_car">Connect to your car first, then scan the screen\'s code again.</string>
+    <string name="parking_channel">Parking</string>
+    <string name="parking_soon_title">Parking ends soon</string>
+    <string name="parking_soon_text">Your parking ends at %1$s.</string>
+    <string name="parking_over_title">Parking has ended</string>
+    <string name="parking_over_text">Your parking ended at %1$s.</string>
 </resources>

@@ -139,6 +139,25 @@ internal object FuelLog {
             station = station?.first?.label,
             estimated = info.percentEstimated
         )
+        record(app, fill)
+    }
+
+    /** A refuel the driver typed in (the gauge missed it, or the price was not the station's). */
+    fun addManual(context: Context, liters: Double, pricePerL: Double?) {
+        val car = CarProfileStore.current
+        record(
+            context.applicationContext,
+            FuelFill(
+                at = System.currentTimeMillis(),
+                liters = liters,
+                pricePerL = pricePerL,
+                currency = car.currency,
+                odometerKm = Maintenance.state.value.odometer?.nowKm
+            )
+        )
+    }
+
+    private fun record(app: Context, fill: FuelFill) {
         _fills.value = FuelFills.merge(_fills.value, fill)
         prefs(app).edit().putString("fills", FuelFills.encode(_fills.value)).apply()
         reports.tryEmit(fill)

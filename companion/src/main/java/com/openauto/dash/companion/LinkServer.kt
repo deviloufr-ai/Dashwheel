@@ -9,6 +9,7 @@ import android.util.Log
 import com.openauto.dash.link.ActionResult
 import com.openauto.dash.link.CallCommand
 import com.openauto.dash.link.CarLocation
+import com.openauto.dash.link.ParkingTimer
 import com.openauto.dash.link.CarLog
 import com.openauto.dash.link.CarLogAck
 import com.openauto.dash.link.CarLookAck
@@ -265,6 +266,7 @@ object LinkServer {
                 }
             }
             is CarLocation -> CarSpot.update(context, message)
+            is ParkingTimer -> ParkingReminder.update(context, message)
             is CarLog -> send(CarLogAck(message.id, CarLogStore.receive(context, message)))
             is CarLookAck -> CarLookSender.acked(message)
             is DriveSync -> DriveJournal.sync(context, message.drives)

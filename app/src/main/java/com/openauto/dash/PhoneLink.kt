@@ -17,6 +17,7 @@ import android.util.Log
 import com.openauto.dash.link.ActionResult
 import com.openauto.dash.link.AgendaSync
 import com.openauto.dash.link.CallCommand
+import com.openauto.dash.link.ParkingTimer
 import com.openauto.dash.link.CallState
 import com.openauto.dash.link.Destination
 import com.openauto.dash.link.DialResult
@@ -460,6 +461,9 @@ object PhoneLink {
         // The refuels, and what the phone should remind the driver of.
         val fuel = scope.launch { FuelLog.report { send(it) } }
         val news = scope.launch { CarNews.report { send(it) } }
+        // A parking still running: the phone may have missed it, or lost its reminders to a restart.
+        ParkingClock.load(context)
+        ParkingClock.endsAt.value.takeIf { it > System.currentTimeMillis() }?.let { send(ParkingTimer(it)) }
         try {
             while (true) {
                 val message = link.receive() ?: continue
