@@ -86,4 +86,6 @@
     <string name="widgets_bt_none">No paired devices</string>
     <string name="widgets_bt_none_connected">None connected</string>
     <string name="widgets_bt_refused">Android keeps this to its settings: opening them</string>
+    <string name="widgets_bt_phone_none">No phone connected</string>
+    <string name="widgets_bt_phone_change">Connect</string>
 </resources>

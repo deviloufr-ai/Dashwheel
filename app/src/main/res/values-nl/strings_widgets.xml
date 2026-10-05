@@ -85,4 +85,6 @@
     <string name="widgets_bt_none">Geen gekoppelde apparaten</string>
     <string name="widgets_bt_none_connected">Geen verbonden</string>
     <string name="widgets_bt_refused">Android laat dit alleen via instellingen toe: openen</string>
+    <string name="widgets_bt_phone_none">Geen telefoon verbonden</string>
+    <string name="widgets_bt_phone_change">Verbinden</string>
 </resources>

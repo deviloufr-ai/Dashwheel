@@ -85,4 +85,6 @@
     <string name="widgets_bt_none">Nenhum dispositivo emparelhado</string>
     <string name="widgets_bt_none_connected">Nenhum ligado</string>
     <string name="widgets_bt_refused">O Android reserva isto às definições: a abrir</string>
+    <string name="widgets_bt_phone_none">Nenhum telemóvel ligado</string>
+    <string name="widgets_bt_phone_change">Ligar</string>
 </resources>

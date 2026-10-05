@@ -85,4 +85,6 @@
     <string name="widgets_bt_none">Keine gekoppelten Geräte</string>
     <string name="widgets_bt_none_connected">Keins verbunden</string>
     <string name="widgets_bt_refused">Android erlaubt das nur in den Einstellungen: werden geöffnet</string>
+    <string name="widgets_bt_phone_none">Kein Handy verbunden</string>
+    <string name="widgets_bt_phone_change">Verbinden</string>
 </resources>

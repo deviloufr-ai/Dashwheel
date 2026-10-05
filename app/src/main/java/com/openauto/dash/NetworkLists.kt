@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.BluetoothConnected
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Smartphone
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -161,6 +162,13 @@ private suspend fun proxyOf(context: Context, adapter: android.bluetooth.Bluetoo
     return kotlinx.coroutines.withTimeoutOrNull(3_000) { result.await() }
 }
 
+/** The unit's own Bluetooth app, where phones are paired, connected and changed. */
+private fun openCarBluetooth(context: Context) {
+    val intent = context.packageManager.getLaunchIntentForPackage(HeadUnitPhone.BT_PACKAGE)
+        ?: Intent(Settings.ACTION_BLUETOOTH_SETTINGS)
+    runCatching { context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+}
+
 private fun openSettings(context: Context, action: String) {
     runCatching { context.startActivity(Intent(action).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
 }
@@ -231,17 +239,34 @@ internal fun BluetoothDevicesCard(modifier: Modifier = Modifier) {
     }
     val refused = stringResource(R.string.widgets_bt_refused)
     val scope = androidx.compose.runtime.rememberCoroutineScope()
+    // The phone is on the unit's own Bluetooth chip, run by its Bluetooth app: shown from what
+    // that app tells (UnitSignals), and connected or changed in that app, the only one that can.
+    val carBluetooth = remember { HeadUnitPhone.available(context) }
+    val phone by UnitSignals.phone.collectAsState()
     ListCard(
         title = stringResource(R.string.widgets_bt),
         modifier = modifier,
         onSettings = { openSettings(context, Settings.ACTION_BLUETOOTH_SETTINGS) },
         empty = when {
+            carBluetooth -> null
             !bt.on -> stringResource(R.string.widgets_bt_off)
             entries.isEmpty() -> stringResource(R.string.widgets_bt_none)
             else -> null
         },
         onEmptyClick = { if (!bt.on) RadioSwitches.toggleBluetooth(context) }
     ) {
+        if (carBluetooth) {
+            val p = phone
+            ListRow(
+                icon = Icons.Filled.Smartphone,
+                name = p?.name ?: stringResource(R.string.widgets_bt_phone_none),
+                state = if (p != null) stringResource(R.string.widgets_list_connected) else stringResource(R.string.widgets_bt_phone_change),
+                on = p != null
+            ) { openCarBluetooth(context) }
+            if (!bt.on) {
+                ListRow(Icons.Filled.Bluetooth, stringResource(R.string.widgets_bt_off), "", false) { RadioSwitches.toggleBluetooth(context) }
+            }
+        }
         entries.take(8).forEach { e ->
             ListRow(
                 icon = if (e.connected) Icons.Filled.BluetoothConnected else Icons.Filled.Bluetooth,

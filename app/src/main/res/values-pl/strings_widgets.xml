@@ -85,4 +85,6 @@
     <string name="widgets_bt_none">Brak sparowanych urządzeń</string>
     <string name="widgets_bt_none_connected">Brak połączonych</string>
     <string name="widgets_bt_refused">Android pozwala na to tylko w ustawieniach: otwieram</string>
+    <string name="widgets_bt_phone_none">Brak połączonego telefonu</string>
+    <string name="widgets_bt_phone_change">Połącz</string>
 </resources>

@@ -85,4 +85,6 @@
     <string name="widgets_bt_none">Ningún dispositivo vinculado</string>
     <string name="widgets_bt_none_connected">Ninguno conectado</string>
     <string name="widgets_bt_refused">Android lo reserva a sus ajustes: abriéndolos</string>
+    <string name="widgets_bt_phone_none">Ningún móvil conectado</string>
+    <string name="widgets_bt_phone_change">Conectar</string>
 </resources>

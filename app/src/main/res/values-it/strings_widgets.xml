@@ -85,4 +85,6 @@
     <string name="widgets_bt_none">Nessun dispositivo associato</string>
     <string name="widgets_bt_none_connected">Nessuno connesso</string>
     <string name="widgets_bt_refused">Android lo riserva alle impostazioni: apertura</string>
+    <string name="widgets_bt_phone_none">Nessun telefono connesso</string>
+    <string name="widgets_bt_phone_change">Connetti</string>
 </resources>

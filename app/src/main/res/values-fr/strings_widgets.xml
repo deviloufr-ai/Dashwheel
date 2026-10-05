@@ -85,4 +85,6 @@
     <string name="widgets_bt_none">Aucun appareil appairé</string>
     <string name="widgets_bt_none_connected">Aucun connecté</string>
     <string name="widgets_bt_refused">Android réserve cela à ses réglages : ouverture</string>
+    <string name="widgets_bt_phone_none">Aucun téléphone connecté</string>
+    <string name="widgets_bt_phone_change">Connecter</string>
 </resources>
