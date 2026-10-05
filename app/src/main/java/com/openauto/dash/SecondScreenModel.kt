@@ -48,7 +48,12 @@ data class SecondScreenConfig(
     /** Light by day, [background] (or dark) by night, as the dashboard's automatic look. */
     val followDayNight: Boolean = false,
     /** The monitor is mounted upside down: the display turns every picture 180°. */
-    val upsideDown: Boolean = false
+    val upsideDown: Boolean = false,
+    /** The monitor's backlight by day and by night, 1..100, for a display wired to its buttons. */
+    val brightnessDay: Int = 100,
+    val brightnessNight: Int = 30,
+    /** The last display linked could set its brightness: the levels stay offered while it is away. */
+    val brightnessWired: Boolean = false
 ) {
     /** What [page] shows: the driver's board, or the page as it comes. */
     fun layoutFor(page: ClusterPage): ClusterLayout = layouts[page] ?: ClusterLayouts.default(page)
@@ -91,11 +96,11 @@ object ClusterLayouts {
 
     /**
      * The widgets the cluster can show: every widget the dashboard redraws
-     * from its readings. Not the live views (map, windows), the bar or the
-     * favourites: they are things to touch, and the cluster can't be touched.
+     * from its readings. Not the live views (map, windows), the bar, the
+     * favourites or the screen light: they are things to touch, and the cluster can't be touched.
      */
     val KINDS: List<BuiltinKind> = BuiltinKind.entries - setOf(
-        BuiltinKind.PIP_ANCHOR, BuiltinKind.MY_CAR, BuiltinKind.DASH_BAR, BuiltinKind.QUICK_DIAL
+        BuiltinKind.PIP_ANCHOR, BuiltinKind.MY_CAR, BuiltinKind.DASH_BAR, BuiltinKind.QUICK_DIAL, BuiltinKind.SCREEN_LIGHT
     )
 
     /** The live pictures: the 3D map and an app's copy. Drawn as they are, without designs. */
@@ -218,6 +223,9 @@ object SecondScreenRules {
         config.background == ClusterBackground.LIGHT -> ClusterBackground.DARK
         else -> config.background
     }
+
+    /** The monitor's backlight now: the day level or the night one. */
+    fun brightness(config: SecondScreenConfig, day: Boolean): Int = if (day) config.brightnessDay else config.brightnessNight
 
     val STREAM_HEIGHTS = listOf(480, 720, 1080)
 

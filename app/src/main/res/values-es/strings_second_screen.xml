@@ -83,4 +83,10 @@
     <string name="second_screen_day_night_detail">Claro de día, el fondo elegido de noche.</string>
     <string name="second_screen_upside_down">Girar la imagen</string>
     <string name="second_screen_upside_down_detail">Para una pantalla montada al revés.</string>
+    <string name="second_screen_brightness_day">Brillo de día</string>
+    <string name="second_screen_brightness_night">Brillo de noche</string>
+    <string name="second_screen_light_day">De día</string>
+    <string name="second_screen_light_night">De noche</string>
+    <string name="second_screen_light_down">Más oscuro</string>
+    <string name="second_screen_light_up">Más claro</string>
 </resources>

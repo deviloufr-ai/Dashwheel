@@ -52,6 +52,8 @@ data class DisplayHello(
     val overscanPct: Int = 0,
     /** Board, e.g. "Raspberry Pi 3 Model B Rev 1.2". */
     val model: String = "",
+    /** Wired to the monitor's brightness buttons: it follows [DisplayBrightness]. */
+    val brightness: Boolean = false,
     val protocol: Int = PROTOCOL_VERSION
 ) : LinkMessage
 
@@ -65,6 +67,21 @@ data class DisplayHello(
 data class DisplayMode(val mode: Mode, val rotate180: Boolean = false) : LinkMessage {
     @Serializable
     enum class Mode { IDLE, VIDEO, DATA }
+}
+
+/**
+ * Head unit → Pi: the monitor's backlight, 1..100, as its own brightness
+ * setting counts. Sent when the link comes up, at each day/night switch and
+ * when the driver changes a level. Only a Pi wired to the monitor's buttons
+ * ([DisplayHello.brightness]) acts on it.
+ */
+@Serializable
+@SerialName("display_brightness")
+data class DisplayBrightness(val level: Int) : LinkMessage {
+    companion object {
+        const val MIN = 1
+        const val MAX = 100
+    }
 }
 
 /**

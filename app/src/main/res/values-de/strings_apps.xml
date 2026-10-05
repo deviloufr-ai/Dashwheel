@@ -126,4 +126,6 @@
     <string name="apps_kind_dash_bar">Dashboard-Leiste</string>
     <string name="apps_kind_dash_bar_blurb">Deine Dashboards und Apps, mit einem Tipp</string>
     <string name="apps_most_used">Am meisten genutzt</string>
+    <string name="apps_kind_screen_light">Licht zweiter Bildschirm</string>
+    <string name="apps_kind_screen_light_blurb">Die Hintergrundbeleuchtung des zweiten Bildschirms, bei Tag und bei Nacht</string>
 </resources>

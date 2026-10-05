@@ -72,7 +72,7 @@ enum class WidgetDesign(
     THERMOMETER(R.string.design_thermometer, R.string.design_thermometer_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.WARMUP, BuiltinKind.WEATHER)),
     FUEL_TANK(R.string.design_fuel_tank, R.string.design_fuel_tank_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.RANGE, BuiltinKind.FUEL_TO_DEST, BuiltinKind.FUEL_PRICES)),
     BATTERY_CELL(R.string.design_battery_cell, R.string.design_battery_cell_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.BATTERY)),
-    FADER(R.string.design_fader, R.string.design_fader_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.AUDIO, BuiltinKind.BATTERY, BuiltinKind.WARMUP, BuiltinKind.RANGE, BuiltinKind.BREAK_TIMER)),
+    FADER(R.string.design_fader, R.string.design_fader_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.AUDIO, BuiltinKind.BATTERY, BuiltinKind.WARMUP, BuiltinKind.RANGE, BuiltinKind.BREAK_TIMER, BuiltinKind.SCREEN_LIGHT)),
     SPEED_TAPE(R.string.design_speed_tape, R.string.design_speed_tape_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.SPEED_HUD, BuiltinKind.TELEMETRY)),
     // Not the speed: a number in a red ring reads as the speed limit.
     ROAD_SIGN(R.string.design_road_sign, R.string.design_road_sign_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.PARKING, BuiltinKind.NAVIGATION, BuiltinKind.BREAK_TIMER, BuiltinKind.FUEL_TO_DEST, BuiltinKind.RANGE, BuiltinKind.FUEL_PRICES)),
@@ -105,7 +105,7 @@ enum class WidgetDesign(
     VINYL(R.string.design_vinyl, R.string.design_vinyl_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.MEDIA)),
     CASSETTE(R.string.design_cassette, R.string.design_cassette_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.MEDIA)),
     COVER_ART(R.string.design_cover_art, R.string.design_cover_art_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.MEDIA)),
-    VOLUME_KNOB(R.string.design_volume_knob, R.string.design_volume_knob_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.AUDIO)),
+    VOLUME_KNOB(R.string.design_volume_knob, R.string.design_volume_knob_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.AUDIO, BuiltinKind.SCREEN_LIGHT)),
     LEVEL_METER(R.string.design_level_meter, R.string.design_level_meter_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.AUDIO)),
     FILTER_CELLS(R.string.design_filter_cells, R.string.design_filter_cells_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.FILTER_CARE)),
     HOURGLASS(R.string.design_hourglass, R.string.design_hourglass_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.BREAK_TIMER)),

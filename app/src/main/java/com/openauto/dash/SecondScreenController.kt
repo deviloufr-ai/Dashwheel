@@ -114,6 +114,7 @@ internal object SecondScreenController {
             }
         }
         scope.launch { followSpeed() }
+        SecondScreenBrightness.start(scope, appContext)
         scope.launch {
             combine(SecondScreenStore.config, DisplayLink.state, moving, encoderFailed) { config, link, isMoving, failed ->
                 val display = (link as? DisplayLinkState.Connected)?.display

@@ -127,4 +127,6 @@
     <string name="apps_kind_dash_bar">Barra dei cruscotti</string>
     <string name="apps_kind_dash_bar_blurb">I tuoi cruscotti e app, con un tocco</string>
     <string name="apps_most_used">Le più usate</string>
+    <string name="apps_kind_screen_light">Luce del secondo schermo</string>
+    <string name="apps_kind_screen_light_blurb">La retroilluminazione del secondo schermo, di giorno e di notte</string>
 </resources>

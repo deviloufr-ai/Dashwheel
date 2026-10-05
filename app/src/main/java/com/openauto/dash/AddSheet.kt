@@ -244,6 +244,8 @@ private fun WidgetsTab(
             (kind != BuiltinKind.MAPS_INSIDE || EmbeddedApp.allowed(context)) &&
             // The Canvas rail over an app is that bar already.
             (kind != BuiltinKind.DASH_BAR || !CanvasTabs.railShown) &&
+            // Only once a second screen wired to its monitor's buttons has linked.
+            (kind != BuiltinKind.SCREEN_LIGHT || SecondScreenStore.config.value.brightnessWired) &&
             (category == null || kind.category == category) &&
             (query.isEmpty() || context.getString(kind.labelRes).contains(query, true) || context.getString(kind.blurbRes).contains(query, true))
     }

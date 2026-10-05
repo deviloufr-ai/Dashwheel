@@ -126,4 +126,6 @@
     <string name="apps_kind_dash_bar">Dashboard bar</string>
     <string name="apps_kind_dash_bar_blurb">Your dashboards and apps, one tap each</string>
     <string name="apps_most_used">Most used</string>
+    <string name="apps_kind_screen_light">Second screen light</string>
+    <string name="apps_kind_screen_light_blurb">The second screen\'s backlight, by day and at night</string>
 </resources>

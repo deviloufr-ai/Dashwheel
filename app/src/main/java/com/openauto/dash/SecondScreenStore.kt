@@ -1,6 +1,7 @@
 package com.openauto.dash
 
 import android.content.Context
+import com.openauto.dash.link.DisplayBrightness
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -31,7 +32,10 @@ object SecondScreenStore {
             layouts = SecondScreenCodec.decodeLayouts(p.getString("layouts", null)),
             background = enumOr(p.getString("background", null), d.background),
             followDayNight = p.getBoolean("follow_day_night", d.followDayNight),
-            upsideDown = p.getBoolean("upside_down", d.upsideDown)
+            upsideDown = p.getBoolean("upside_down", d.upsideDown),
+            brightnessDay = p.getInt("brightness_day", d.brightnessDay).coerceIn(BRIGHTNESS),
+            brightnessNight = p.getInt("brightness_night", d.brightnessNight).coerceIn(BRIGHTNESS),
+            brightnessWired = p.getBoolean("brightness_wired", d.brightnessWired)
         )
         loaded = true
         return _config.value
@@ -60,8 +64,13 @@ object SecondScreenStore {
             .putString("background", c.background.name)
             .putBoolean("follow_day_night", c.followDayNight)
             .putBoolean("upside_down", c.upsideDown)
+            .putInt("brightness_day", c.brightnessDay)
+            .putInt("brightness_night", c.brightnessNight)
+            .putBoolean("brightness_wired", c.brightnessWired)
             .apply()
     }
+
+    private val BRIGHTNESS = DisplayBrightness.MIN..DisplayBrightness.MAX
 
     private inline fun <reified E : Enum<E>> enumOr(name: String?, default: E): E =
         enumValues<E>().firstOrNull { it.name == name } ?: default

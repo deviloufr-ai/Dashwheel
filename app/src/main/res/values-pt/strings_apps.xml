@@ -127,4 +127,6 @@
     <string name="apps_kind_dash_bar">Barra de painéis</string>
     <string name="apps_kind_dash_bar_blurb">Os seus painéis e apps, com um toque</string>
     <string name="apps_most_used">As mais usadas</string>
+    <string name="apps_kind_screen_light">Luz do segundo ecrã</string>
+    <string name="apps_kind_screen_light_blurb">A retroiluminação do segundo ecrã, de dia e de noite</string>
 </resources>

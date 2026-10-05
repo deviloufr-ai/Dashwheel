@@ -83,4 +83,10 @@
     <string name="second_screen_day_night_detail">Chiaro di giorno, lo sfondo scelto di notte.</string>
     <string name="second_screen_upside_down">Capovolgi l\'immagine</string>
     <string name="second_screen_upside_down_detail">Per uno schermo montato al contrario.</string>
+    <string name="second_screen_brightness_day">Luminosità di giorno</string>
+    <string name="second_screen_brightness_night">Luminosità di notte</string>
+    <string name="second_screen_light_day">Di giorno</string>
+    <string name="second_screen_light_night">Di notte</string>
+    <string name="second_screen_light_down">Più scuro</string>
+    <string name="second_screen_light_up">Più chiaro</string>
 </resources>

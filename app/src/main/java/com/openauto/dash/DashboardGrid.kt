@@ -672,6 +672,7 @@ internal fun TileContent(
             BuiltinKind.QUICK_DIAL -> QuickDialCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.NOTIFICATIONS -> NotificationsCard(hasAccess = hasMediaAccess, modifier = Modifier.fillMaxSize())
             BuiltinKind.AUDIO -> AudioCard(modifier = Modifier.fillMaxSize())
+            BuiltinKind.SCREEN_LIGHT -> ScreenLightCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.FILTER_CARE -> FilterCareCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.WARMUP -> WarmupCard(obd.value, obdConnection.value == ObdConnectionState.CONNECTED, Modifier.fillMaxSize())
             BuiltinKind.BATTERY -> BatteryCard(obd.value, obdConnection.value == ObdConnectionState.CONNECTED, Modifier.fillMaxSize())

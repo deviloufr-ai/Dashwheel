@@ -73,7 +73,9 @@ enum class BuiltinKind(
     // The head unit's CPU, memory, temperature and busiest apps (HeadUnitMonitor.kt).
     HEAD_UNIT(R.string.monitor_kind, WidgetCategory.INFO, R.string.monitor_kind_blurb, 4, 3),
     // The gear engaged, from reverse and the revs against the speed (GearEstimator.kt).
-    GEAR(R.string.gear_kind, WidgetCategory.DRIVING, R.string.gear_kind_blurb, 3, 2)
+    GEAR(R.string.gear_kind, WidgetCategory.DRIVING, R.string.gear_kind_blurb, 3, 2),
+    // The second screen's backlight, day or night level, for a display wired to its buttons (SecondScreenBrightness.kt).
+    SCREEN_LIGHT(R.string.apps_kind_screen_light, WidgetCategory.INFO, R.string.apps_kind_screen_light_blurb, 3, 2)
 }
 
 /**

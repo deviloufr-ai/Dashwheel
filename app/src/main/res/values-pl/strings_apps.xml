@@ -128,4 +128,6 @@
     <string name="apps_kind_dash_bar">Pasek pulpitów</string>
     <string name="apps_kind_dash_bar_blurb">Twoje pulpity i aplikacje, jednym stuknięciem</string>
     <string name="apps_most_used">Najczęściej używane</string>
+    <string name="apps_kind_screen_light">Światło drugiego ekranu</string>
+    <string name="apps_kind_screen_light_blurb">Podświetlenie drugiego ekranu, w dzień i w nocy</string>
 </resources>

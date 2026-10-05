@@ -83,4 +83,10 @@
     <string name="second_screen_day_night_detail">Tagsüber hell, nachts der gewählte Hintergrund.</string>
     <string name="second_screen_upside_down">Bild auf den Kopf stellen</string>
     <string name="second_screen_upside_down_detail">Für einen kopfüber montierten Bildschirm.</string>
+    <string name="second_screen_brightness_day">Helligkeit bei Tag</string>
+    <string name="second_screen_brightness_night">Helligkeit bei Nacht</string>
+    <string name="second_screen_light_day">Bei Tag</string>
+    <string name="second_screen_light_night">Bei Nacht</string>
+    <string name="second_screen_light_down">Dunkler</string>
+    <string name="second_screen_light_up">Heller</string>
 </resources>

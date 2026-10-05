@@ -102,6 +102,7 @@ internal fun rememberWidgetFace(kind: BuiltinKind, env: SkinTileEnv): WidgetFace
     BuiltinKind.QUICK_DIAL -> quickDialFace()
     BuiltinKind.NOTIFICATIONS -> notificationsFace(env)
     BuiltinKind.AUDIO -> audioFace()
+    BuiltinKind.SCREEN_LIGHT -> screenLightFace()
     BuiltinKind.FILTER_CARE -> filterFace()
     BuiltinKind.WARMUP -> warmupFace(env)
     BuiltinKind.BATTERY -> batteryFace(env)

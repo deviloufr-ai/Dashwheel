@@ -20,6 +20,9 @@ import java.util.Properties
  * video_pipeline=...
  * # The card turns read-only once paired; manual: only with install.sh --overlay.
  * read_only=manual
+ * # GPIOs wired to the monitor's own brightness buttons (see BrightnessButtons).
+ * brightness_up_gpio=17
+ * brightness_down_gpio=27
  * ```
  */
 data class DisplayConfig(
@@ -31,6 +34,9 @@ data class DisplayConfig(
     val videoPipeline: String? = null,
     /** The card turns read-only once a head unit has paired; false: only by hand (install.sh --overlay). */
     val readOnlyAfterPairing: Boolean = true,
+    /** GPIOs wired to the monitor's `+` and `−` buttons; both or nothing. */
+    val brightnessUpGpio: Int? = null,
+    val brightnessDownGpio: Int? = null,
     val port: Int = com.openauto.dash.link.DISPLAY_PORT
 ) {
     enum class Sink(val element: String) {
@@ -56,6 +62,8 @@ data class DisplayConfig(
             fun int(key: String) = props.getProperty(key)?.trim()?.toIntOrNull()
             fun text(key: String) = props.getProperty(key)?.trim()?.takeIf { it.isNotEmpty() }
             val defaults = DisplayConfig()
+            val up = int("brightness_up_gpio")?.takeIf { it in 2..27 }
+            val down = int("brightness_down_gpio")?.takeIf { it in 2..27 && it != up }
             return DisplayConfig(
                 name = text("name")?.take(64) ?: defaults.name,
                 overscanPct = int("overscan")?.coerceIn(0, 15) ?: 0,
@@ -64,6 +72,8 @@ data class DisplayConfig(
                 sink = text("sink")?.let { s -> Sink.entries.firstOrNull { it.name.equals(s, ignoreCase = true) } } ?: Sink.KMS,
                 videoPipeline = text("video_pipeline"),
                 readOnlyAfterPairing = !text("read_only").equals("manual", ignoreCase = true),
+                brightnessUpGpio = up?.takeIf { down != null },
+                brightnessDownGpio = down?.takeIf { up != null },
                 port = int("port")?.takeIf { it in 1024..65535 } ?: defaults.port
             )
         }

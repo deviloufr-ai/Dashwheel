@@ -52,6 +52,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.openauto.dash.link.DisplayBrightness
+import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.text.DateFormat
@@ -244,6 +254,14 @@ private fun SecondScreenSettings() {
             Icons.Filled.ScreenRotation, stringResource(R.string.second_screen_upside_down),
             stringResource(R.string.second_screen_upside_down_detail), config.upsideDown
         ) { on -> update { it.copy(upsideDown = on) } }
+        if (config.brightnessWired) {
+            BrightnessRow(Icons.Filled.LightMode, stringResource(R.string.second_screen_brightness_day), config.brightnessDay) { level ->
+                update { it.copy(brightnessDay = level) }
+            }
+            BrightnessRow(Icons.Filled.DarkMode, stringResource(R.string.second_screen_brightness_night), config.brightnessNight) { level ->
+                update { it.copy(brightnessNight = level) }
+            }
+        }
         Text(
             stringResource(R.string.second_screen_quality) + " · " + stringResource(R.string.second_screen_quality_detail),
             color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium,
@@ -313,6 +331,42 @@ private fun DisplayAttemptLine() {
         style = MaterialTheme.typography.labelSmall.copy(fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace),
         maxLines = 2
     )
+}
+
+/** A backlight level, 1..100: follows the thumb, saved (and sent to the display) once it is let go. */
+@Composable
+private fun BrightnessRow(icon: ImageVector, title: String, level: Int, onSet: (Int) -> Unit) {
+    var value by remember(level) { mutableFloatStateOf(level.toFloat()) }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(icon, contentDescription = null, tint = DashColors.TextSecondary, modifier = Modifier.size(24.dp))
+        Spacer(Modifier.width(14.dp))
+        Text(
+            "$title  ${value.roundToInt()}",
+            color = DashColors.TextPrimary,
+            style = MaterialTheme.typography.bodyLarge,
+            maxLines = 1,
+            modifier = Modifier.widthIn(min = 170.dp)
+        )
+        Spacer(Modifier.width(12.dp))
+        Slider(
+            value = value,
+            onValueChange = { value = it },
+            onValueChangeFinished = { onSet(value.roundToInt()) },
+            valueRange = DisplayBrightness.MIN.toFloat()..DisplayBrightness.MAX.toFloat(),
+            colors = SliderDefaults.colors(
+                thumbColor = if (DashColors.Light) DashColors.Accent else Color.White,
+                activeTrackColor = DashColors.Accent,
+                inactiveTrackColor = DashColors.CardHi
+            ),
+            modifier = Modifier.weight(1f)
+        )
+    }
 }
 
 /** A row of choices, like the language list's options but side by side. */

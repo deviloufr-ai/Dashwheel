@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Brightness6
 import androidx.compose.material.icons.filled.Adjust
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.BatteryChargingFull
@@ -117,4 +118,5 @@ internal fun kindIcon(kind: BuiltinKind): ImageVector = when (kind) {
     BuiltinKind.DASH_BAR -> Icons.Filled.Dashboard
     BuiltinKind.HEAD_UNIT -> Icons.Filled.Memory
     BuiltinKind.GEAR -> Icons.Filled.SettingsInputComponent
+    BuiltinKind.SCREEN_LIGHT -> Icons.Filled.Brightness6
 }

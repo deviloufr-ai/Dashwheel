@@ -83,4 +83,10 @@
     <string name="second_screen_day_night_detail">W dzień jasne, w nocy wybrane tło.</string>
     <string name="second_screen_upside_down">Obróć obraz</string>
     <string name="second_screen_upside_down_detail">Dla ekranu zamontowanego do góry nogami.</string>
+    <string name="second_screen_brightness_day">Jasność w dzień</string>
+    <string name="second_screen_brightness_night">Jasność w nocy</string>
+    <string name="second_screen_light_day">W dzień</string>
+    <string name="second_screen_light_night">W nocy</string>
+    <string name="second_screen_light_down">Ciemniej</string>
+    <string name="second_screen_light_up">Jaśniej</string>
 </resources>

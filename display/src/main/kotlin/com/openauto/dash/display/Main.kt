@@ -46,9 +46,11 @@ fun main(args: Array<String>) {
         height = mode.height,
         refreshHz = mode.refreshHz,
         overscanPct = config.overscanPct,
-        model = runCatching { File("/proc/device-tree/model").readText().trim('\u0000', ' ', '\n') }.getOrDefault("")
+        model = runCatching { File("/proc/device-tree/model").readText().trim('\u0000', ' ', '\n') }.getOrDefault(""),
+        brightness = config.brightnessUpGpio != null
     )
-    val server = DisplayServer(config, pairing, hello)
+    val buttons = config.brightnessUpGpio?.let { up -> BrightnessButtons(up, config.brightnessDownGpio!!).apply { start() } }
+    val server = DisplayServer(config, pairing, hello, buttons)
     Runtime.getRuntime().addShutdownHook(Thread { server.screen.stop() })
     server.run()
 }

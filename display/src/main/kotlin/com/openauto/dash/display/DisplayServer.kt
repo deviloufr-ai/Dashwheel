@@ -1,6 +1,7 @@
 package com.openauto.dash.display
 
 import com.openauto.dash.link.ClusterState
+import com.openauto.dash.link.DisplayBrightness
 import com.openauto.dash.link.DisplayCommand
 import com.openauto.dash.link.DisplayHello
 import com.openauto.dash.link.DisplayMode
@@ -29,6 +30,8 @@ class DisplayServer(
     private val config: DisplayConfig,
     private val pairing: DisplayPairing,
     private val hello: DisplayHello,
+    /** The monitor's brightness buttons, when wired. */
+    private val buttons: BrightnessButtons? = null,
     private val screenFor: (requestKeyFrame: () -> Unit) -> Screen = { request -> Screen(config, ScreenMode(hello.width, hello.height), pairing, request) }
 ) {
     @Volatile private var current: LinkSession? = null
@@ -113,6 +116,7 @@ class DisplayServer(
             }
             is VideoConfig -> screen.configureVideo(message)
             is ClusterState -> screen.data(message)
+            is DisplayBrightness -> buttons?.set(message.level)
             is Ping -> session.sendOrClose(Pong)
             is Hello -> log("head unit: ${message.deviceName} ${message.appVersion}")
             else -> Unit

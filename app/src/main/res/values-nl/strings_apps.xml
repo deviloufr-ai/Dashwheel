@@ -126,4 +126,6 @@
     <string name="apps_kind_dash_bar">Dashboardbalk</string>
     <string name="apps_kind_dash_bar_blurb">Je dashboards en apps, met één tik</string>
     <string name="apps_most_used">Meest gebruikt</string>
+    <string name="apps_kind_screen_light">Licht tweede scherm</string>
+    <string name="apps_kind_screen_light_blurb">De achtergrondverlichting van het tweede scherm, overdag en \'s nachts</string>
 </resources>

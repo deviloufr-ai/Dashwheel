@@ -22,3 +22,9 @@ name=Dashwheel display
 # The card turns read-only by itself once a head unit has paired, so cutting the
 # power can't harm it. manual: keep it writable (install.sh --overlay does it by hand).
 #read_only=manual
+
+# The monitor's own brightness buttons, wired to these GPIOs through a divider
+# (the buttons sit at ~4.6 V: 220 ohm from the button, 14.7 kohm to ground).
+# The head unit then sets a day and a night level (Settings, Second screen).
+#brightness_up_gpio=17
+#brightness_down_gpio=27

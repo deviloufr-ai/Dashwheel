@@ -127,4 +127,6 @@
     <string name="apps_kind_dash_bar">Barre des tableaux de bord</string>
     <string name="apps_kind_dash_bar_blurb">Vos tableaux de bord et vos applis, en un toucher</string>
     <string name="apps_most_used">Les plus utilisées</string>
+    <string name="apps_kind_screen_light">Lumière du second écran</string>
+    <string name="apps_kind_screen_light_blurb">Le rétroéclairage du second écran, de jour et de nuit</string>
 </resources>
