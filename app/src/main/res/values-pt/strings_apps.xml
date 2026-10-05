@@ -11,7 +11,7 @@
     <string name="apps_kind_navmap">Mapa</string>
     <string name="apps_kind_navmap_blurb">Mapa 3D gratuito com pesquisa e percursos</string>
     <string name="apps_kind_navigation">Percurso</string>
-    <string name="apps_kind_navigation_blurb">Próxima viragem do Google Maps / Waze</string>
+    <string name="apps_kind_navigation_blurb">Próxima viragem do Google Maps / Waze / TomTom</string>
     <string name="apps_kind_pip_anchor">Janela do Maps</string>
     <string name="apps_kind_pip_anchor_blurb">Fixa aqui a janela flutuante do Maps</string>
     <string name="apps_kind_media">Leitor de música</string>

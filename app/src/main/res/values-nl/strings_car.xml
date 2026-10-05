@@ -76,7 +76,7 @@
     <!-- Fuel to destination -->
     <string name="car_fuel_dest_title">BRANDSTOF → BESTEMMING</string>
     <string name="car_fuel_dest_no_range">Actieradius nog onbekend: stel de tegel Brandstof &amp; actieradius in</string>
-    <string name="car_fuel_dest_no_nav">Resterende actieradius. Start navigatie in Maps of Waze om te vergelijken.</string>
+    <string name="car_fuel_dest_no_nav">Resterende actieradius. Start navigatie in Maps, Waze of TomTom om te vergelijken.</string>
     <string name="car_fuel_dest_spare_unit">km over</string>
     <string name="car_fuel_dest_enough">Genoeg brandstof</string>
     <string name="car_fuel_dest_tight">Krap: weinig marge</string>

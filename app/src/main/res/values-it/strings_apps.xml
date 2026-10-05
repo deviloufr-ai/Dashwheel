@@ -11,7 +11,7 @@
     <string name="apps_kind_navmap">Mappa</string>
     <string name="apps_kind_navmap_blurb">Mappa 3D gratuita con ricerca e percorsi</string>
     <string name="apps_kind_navigation">Percorso</string>
-    <string name="apps_kind_navigation_blurb">Prossima svolta da Google Maps / Waze</string>
+    <string name="apps_kind_navigation_blurb">Prossima svolta da Google Maps / Waze / TomTom</string>
     <string name="apps_kind_pip_anchor">Finestra Maps</string>
     <string name="apps_kind_pip_anchor_blurb">Aggancia qui la finestra mobile di Maps</string>
     <string name="apps_kind_media">Lettore musicale</string>

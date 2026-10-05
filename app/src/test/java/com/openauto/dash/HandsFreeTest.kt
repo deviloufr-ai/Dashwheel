@@ -61,12 +61,26 @@ class HandsFreeTest {
 
     @Test
     fun theDriversOwnNavigationAppIsAskedFirst() {
-        assertEquals(listOf(NavHandoff.WAZE, NavHandoff.MAPS), NavHandoff.order(NavHandoff.WAZE, mapsInstalled = true, wazeInstalled = true))
-        assertEquals(listOf(NavHandoff.MAPS, NavHandoff.WAZE), NavHandoff.order(null, mapsInstalled = true, wazeInstalled = true))
+        val both = setOf(NavHandoff.MAPS, NavHandoff.WAZE)
+        assertEquals(listOf(NavHandoff.WAZE, NavHandoff.MAPS), NavHandoff.order(listOf(NavHandoff.WAZE), both))
+        assertEquals(listOf(NavHandoff.MAPS, NavHandoff.WAZE), NavHandoff.order(listOf(null), both))
         // A NAVI key set to an app that takes no destination changes nothing.
-        assertEquals(listOf(NavHandoff.MAPS, NavHandoff.WAZE), NavHandoff.order("com.openauto.dash", mapsInstalled = true, wazeInstalled = true))
-        assertEquals(listOf(NavHandoff.WAZE), NavHandoff.order(NavHandoff.MAPS, mapsInstalled = false, wazeInstalled = true))
-        assertTrue(NavHandoff.order(null, mapsInstalled = false, wazeInstalled = false).isEmpty())
+        assertEquals(listOf(NavHandoff.MAPS, NavHandoff.WAZE), NavHandoff.order(listOf("com.openauto.dash"), both))
+        assertEquals(listOf(NavHandoff.WAZE), NavHandoff.order(listOf(NavHandoff.MAPS), setOf(NavHandoff.WAZE)))
+        assertTrue(NavHandoff.order(listOf(null), emptySet()).isEmpty())
+    }
+
+    @Test
+    fun tomTomTakesTheDestinationWhenTheDriverUsesIt() {
+        val all = setOf(NavHandoff.MAPS, NavHandoff.WAZE, NavHandoff.TOMTOM)
+        // Asked after Maps and Waze when the driver prefers none...
+        assertEquals(listOf(NavHandoff.MAPS, NavHandoff.WAZE, NavHandoff.TOMTOM), NavHandoff.order(listOf(null, null), all))
+        // ...first when the NAVI key opens it, or when it is the map behind the Canvas tiles.
+        assertEquals(NavHandoff.TOMTOM, NavHandoff.order(listOf(NavHandoff.TOMTOM, null), all).first())
+        assertEquals(NavHandoff.TOMTOM, NavHandoff.order(listOf(null, NavHandoff.TOMTOM), all).first())
+        // The NAVI key comes before the Canvas map.
+        assertEquals(listOf(NavHandoff.WAZE, NavHandoff.TOMTOM, NavHandoff.MAPS), NavHandoff.order(listOf(NavHandoff.WAZE, NavHandoff.TOMTOM), all))
+        assertEquals(listOf(NavHandoff.TOMTOM_AMIGO), NavHandoff.order(listOf(null), setOf(NavHandoff.TOMTOM_AMIGO)))
     }
 
     // --- The voice ------------------------------------------------------------

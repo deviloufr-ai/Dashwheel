@@ -146,8 +146,7 @@ internal fun DirectionsCard(
                         Text(
                             text = when {
                                 nav.active && nav.packageName == context.packageName -> stringResource(R.string.app_name)
-                                nav.active && nav.packageName == "com.waze" -> "Waze"
-                                nav.active -> "Google Maps"
+                                nav.active -> NavDirections.appName(nav.packageName)
                                 else -> stringResource(R.string.info_directions_no_route)
                             },
                             color = if (nav.active) DashColors.Good else DashColors.Muted,

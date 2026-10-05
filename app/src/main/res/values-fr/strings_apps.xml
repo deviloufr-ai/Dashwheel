@@ -11,7 +11,7 @@
     <string name="apps_kind_navmap">Carte</string>
     <string name="apps_kind_navmap_blurb">Carte 3D gratuite, recherche et itinéraires</string>
     <string name="apps_kind_navigation">Itinéraire</string>
-    <string name="apps_kind_navigation_blurb">Prochain virage de Google Maps / Waze</string>
+    <string name="apps_kind_navigation_blurb">Prochain virage de Google Maps / Waze / TomTom</string>
     <string name="apps_kind_pip_anchor">Fenêtre Maps</string>
     <string name="apps_kind_pip_anchor_blurb">Ancre ici la fenêtre flottante de Maps</string>
     <string name="apps_kind_media">Lecteur audio</string>

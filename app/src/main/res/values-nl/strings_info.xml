@@ -142,7 +142,7 @@
     <string name="info_directions_access_title">Meldingstoegang vereist</string>
     <string name="info_directions_access_hint">De route komt uit de navigatiemelding van Google Maps.</string>
     <string name="info_directions_idle_title">Geen actieve route</string>
-    <string name="info_directions_idle_hint">Start navigatie in Google Maps of Waze en de volgende afslag verschijnt hier.</string>
+    <string name="info_directions_idle_hint">Start navigatie in Google Maps, Waze of TomTom en de volgende afslag verschijnt hier.</string>
     <string name="info_directions_open_maps">Google Maps openen</string>
     <string name="info_nav_continue">Doorrijden</string>
 
@@ -164,7 +164,7 @@
     <string name="info_map_rerouting">Nieuwe route zoeken</string>
     <string name="info_map_voice_on">Stem aan</string>
     <string name="info_map_voice_off">Stem uit</string>
-    <string name="info_map_other_app">Navigeren in Google Maps of Waze</string>
+    <string name="info_map_other_app">Navigeren in Google Maps, Waze of TomTom</string>
     <string name="info_audio_by_keys">Volume via de volumetoetsen van de radio</string>
     <string name="info_audio_unavailable">Volume hier niet in te stellen: gebruik de knop</string>
     <string name="info_map_stop_title">Navigatie stoppen?</string>

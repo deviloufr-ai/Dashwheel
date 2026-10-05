@@ -280,7 +280,9 @@ private fun collectProviders(
     val priorityPackages = listOf(
         "com.google.android.apps.maps",
         "com.waze",
-        "com.google.android.apps.mapslite"
+        "com.google.android.apps.mapslite",
+        NavHandoff.TOMTOM,
+        NavHandoff.TOMTOM_AMIGO
     )
     for (pkg in priorityPackages) {
         runCatching { manager.getInstalledProvidersForPackage(pkg, null) }

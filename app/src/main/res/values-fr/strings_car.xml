@@ -76,7 +76,7 @@
     <!-- Fuel to destination -->
     <string name="car_fuel_dest_title">CARBURANT → ARRIVÉE</string>
     <string name="car_fuel_dest_no_range">Autonomie encore inconnue : configurez la tuile Carburant &amp; autonomie</string>
-    <string name="car_fuel_dest_no_nav">Autonomie restante. Lancez un guidage dans Maps ou Waze pour comparer.</string>
+    <string name="car_fuel_dest_no_nav">Autonomie restante. Lancez un guidage dans Maps, Waze ou TomTom pour comparer.</string>
     <string name="car_fuel_dest_spare_unit">km de marge</string>
     <string name="car_fuel_dest_enough">Assez de carburant</string>
     <string name="car_fuel_dest_tight">Juste : peu de marge</string>

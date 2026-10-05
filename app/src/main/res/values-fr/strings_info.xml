@@ -142,7 +142,7 @@
     <string name="info_directions_access_title">Accès aux notifications requis</string>
     <string name="info_directions_access_hint">L\'itinéraire provient de la notification de navigation de Google Maps.</string>
     <string name="info_directions_idle_title">Aucun itinéraire en cours</string>
-    <string name="info_directions_idle_hint">Lancez la navigation dans Google Maps ou Waze : la prochaine manœuvre s\'affichera ici.</string>
+    <string name="info_directions_idle_hint">Lancez la navigation dans Google Maps, Waze ou TomTom : la prochaine manœuvre s\'affichera ici.</string>
     <string name="info_directions_open_maps">Ouvrir Google Maps</string>
     <string name="info_nav_continue">Continuer</string>
 
@@ -164,7 +164,7 @@
     <string name="info_map_rerouting">Recherche d\'un nouvel itinéraire</string>
     <string name="info_map_voice_on">Activer la voix</string>
     <string name="info_map_voice_off">Couper la voix</string>
-    <string name="info_map_other_app">Guider dans Google Maps ou Waze</string>
+    <string name="info_map_other_app">Guider dans Google Maps, Waze ou TomTom</string>
     <string name="info_audio_by_keys">Volume réglé par les touches de volume de l\'autoradio</string>
     <string name="info_audio_unavailable">Volume non réglable d\'ici : utilisez le bouton</string>
     <string name="info_map_stop_title">Arrêter le guidage ?</string>

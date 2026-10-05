@@ -76,7 +76,7 @@
     <!-- Fuel to destination -->
     <string name="car_fuel_dest_title">FUEL TO DESTINATION</string>
     <string name="car_fuel_dest_no_range">Range not known yet: set up the Fuel &amp; range tile</string>
-    <string name="car_fuel_dest_no_nav">Range left. Start navigation in Maps or Waze to compare.</string>
+    <string name="car_fuel_dest_no_nav">Range left. Start navigation in Maps, Waze or TomTom to compare.</string>
     <string name="car_fuel_dest_spare_unit">km spare</string>
     <string name="car_fuel_dest_enough">Enough fuel</string>
     <string name="car_fuel_dest_tight">Tight: little to spare</string>

@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
 /**
  * The next manoeuvre of a running navigation app, as shown on the dashboard.
  *
- * Google Maps (and Waze) cannot be embedded on this unit, but while they
+ * Google Maps (and Waze, TomTom) cannot be embedded on this unit, but while they
  * navigate they post an ongoing notification carrying the turn icon, the
  * distance to the turn, the street and the ETA line. [NavDirections] reads that
  * notification and publishes it here for the Directions tile and the banner
@@ -62,8 +62,15 @@ data class NavState(
 }
 
 object NavDirections {
-    /** Navigation apps whose turn-by-turn notification we read. */
-    val PACKAGES = setOf("com.google.android.apps.maps", "com.waze")
+    /** Navigation apps whose turn-by-turn notification we read: the ones a destination is handed to. */
+    val PACKAGES = NavHandoff.APPS.toSet()
+
+    /** What to call [packageName]'s guidance on a tile, short. */
+    fun appName(packageName: String): String = when (packageName) {
+        NavHandoff.WAZE -> "Waze"
+        NavHandoff.TOMTOM, NavHandoff.TOMTOM_AMIGO -> "TomTom"
+        else -> "Google Maps"
+    }
 
     /** "In", "Dans", "En", "A", "À" (+ optional comma) at the start of an instruction. */
     private val LEADING_PREPOSITION = Regex("^(in|dans|en|a|à)\\s*,?\\s*", RegexOption.IGNORE_CASE)

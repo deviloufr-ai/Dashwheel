@@ -142,7 +142,7 @@
     <string name="info_directions_access_title">Benachrichtigungszugriff erforderlich</string>
     <string name="info_directions_access_hint">Die Route stammt aus der Navigationsbenachrichtigung von Google Maps.</string>
     <string name="info_directions_idle_title">Keine aktive Route</string>
-    <string name="info_directions_idle_hint">Navigation in Google Maps oder Waze starten: die nächste Abbiegung erscheint hier.</string>
+    <string name="info_directions_idle_hint">Navigation in Google Maps, Waze oder TomTom starten: die nächste Abbiegung erscheint hier.</string>
     <string name="info_directions_open_maps">Google Maps öffnen</string>
     <string name="info_nav_continue">Weiterfahren</string>
 
@@ -164,7 +164,7 @@
     <string name="info_map_rerouting">Neue Route wird gesucht</string>
     <string name="info_map_voice_on">Sprachansage an</string>
     <string name="info_map_voice_off">Sprachansage aus</string>
-    <string name="info_map_other_app">In Google Maps oder Waze führen</string>
+    <string name="info_map_other_app">In Google Maps, Waze oder TomTom führen</string>
     <string name="info_audio_by_keys">Lautstärke über die Lautstärketasten des Radios</string>
     <string name="info_audio_unavailable">Lautstärke hier nicht einstellbar: Drehknopf benutzen</string>
     <string name="info_map_stop_title">Navigation beenden?</string>

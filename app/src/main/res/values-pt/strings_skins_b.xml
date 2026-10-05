@@ -28,7 +28,7 @@
     <string name="horizon_unknown_artist">Artista desconhecido</string>
 
     <!-- Horizon skin: directions -->
-    <string name="horizon_start_navigation">Iniciar a navegação no Google Maps ou Waze</string>
+    <string name="horizon_start_navigation">Iniciar a navegação no Google Maps, Waze ou TomTom</string>
     <string name="horizon_open_navigation">Abrir navegação</string>
 
     <!-- Horizon skin: clock (a weather condition, lower case, set in the part of the day: "clear evening") -->

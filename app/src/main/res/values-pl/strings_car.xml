@@ -76,7 +76,7 @@
     <!-- Fuel to destination -->
     <string name="car_fuel_dest_title">PALIWO DO CELU</string>
     <string name="car_fuel_dest_no_range">Zasięg jeszcze nieznany: skonfiguruj kafelek Paliwo i zasięg</string>
-    <string name="car_fuel_dest_no_nav">Pozostały zasięg. Włącz nawigację w Maps lub Waze, aby porównać.</string>
+    <string name="car_fuel_dest_no_nav">Pozostały zasięg. Włącz nawigację w Maps, Waze lub TomTom, aby porównać.</string>
     <string name="car_fuel_dest_spare_unit">km zapasu</string>
     <string name="car_fuel_dest_enough">Paliwa wystarczy</string>
     <string name="car_fuel_dest_tight">Na styk: mały zapas</string>

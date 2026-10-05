@@ -292,6 +292,8 @@ object TemplatePlacer {
     val SUGGESTED_DOCK_APPS = listOf(
         "com.google.android.apps.maps",
         "com.waze",
+        NavHandoff.TOMTOM,
+        NavHandoff.TOMTOM_AMIGO,
         "com.spotify.music",
         "com.google.android.apps.youtube.music",
         "deezer.android.app",

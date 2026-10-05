@@ -142,7 +142,7 @@
     <string name="info_directions_access_title">Accesso alle notifiche necessario</string>
     <string name="info_directions_access_hint">Il percorso proviene dalla notifica di navigazione di Google Maps.</string>
     <string name="info_directions_idle_title">Nessun percorso attivo</string>
-    <string name="info_directions_idle_hint">Avvia la navigazione in Google Maps o Waze e qui comparirà la prossima svolta.</string>
+    <string name="info_directions_idle_hint">Avvia la navigazione in Google Maps, Waze o TomTom e qui comparirà la prossima svolta.</string>
     <string name="info_directions_open_maps">Apri Google Maps</string>
     <string name="info_nav_continue">Prosegui</string>
 
@@ -164,7 +164,7 @@
     <string name="info_map_rerouting">Ricerca di un nuovo percorso</string>
     <string name="info_map_voice_on">Attiva la voce</string>
     <string name="info_map_voice_off">Disattiva la voce</string>
-    <string name="info_map_other_app">Guida in Google Maps o Waze</string>
+    <string name="info_map_other_app">Guida in Google Maps, Waze o TomTom</string>
     <string name="info_audio_by_keys">Volume regolato con i tasti volume dell\'autoradio</string>
     <string name="info_audio_unavailable">Il volume non si può cambiare da qui: usa la manopola</string>
     <string name="info_map_stop_title">Fermare la navigazione?</string>

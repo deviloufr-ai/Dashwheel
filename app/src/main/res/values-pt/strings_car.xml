@@ -76,7 +76,7 @@
     <!-- Fuel to destination -->
     <string name="car_fuel_dest_title">COMBUSTÍVEL → DESTINO</string>
     <string name="car_fuel_dest_no_range">Autonomia ainda desconhecida: configure o bloco Combustível e autonomia</string>
-    <string name="car_fuel_dest_no_nav">Autonomia restante. Inicie a navegação no Maps ou no Waze para comparar.</string>
+    <string name="car_fuel_dest_no_nav">Autonomia restante. Inicie a navegação no Maps, no Waze ou no TomTom para comparar.</string>
     <string name="car_fuel_dest_spare_unit">km de margem</string>
     <string name="car_fuel_dest_enough">Combustível suficiente</string>
     <string name="car_fuel_dest_tight">À justa: pouca margem</string>

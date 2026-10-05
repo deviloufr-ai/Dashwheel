@@ -1745,7 +1745,7 @@ private fun TapeNavigation(env: SkinTileEnv) {
             }
             if (access && nav.active) {
                 Text(
-                    if (nav.packageName == "com.waze") "WAZE" else "MAPS",
+                    when (val app = NavDirections.appName(nav.packageName)) { "Google Maps" -> "MAPS"; else -> app.uppercase() },
                     style = phosphorText(14.sp, alpha = 0.6f),
                     maxLines = 1,
                     modifier = Modifier.align(Alignment.TopEnd)

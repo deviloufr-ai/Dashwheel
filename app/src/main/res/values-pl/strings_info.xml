@@ -142,7 +142,7 @@
     <string name="info_directions_access_title">Wymagany dostęp do powiadomień</string>
     <string name="info_directions_access_hint">Trasa pochodzi z powiadomienia nawigacji Google Maps.</string>
     <string name="info_directions_idle_title">Brak aktywnej trasy</string>
-    <string name="info_directions_idle_hint">Po uruchomieniu nawigacji w Google Maps lub Waze pojawi się tu następny manewr.</string>
+    <string name="info_directions_idle_hint">Po uruchomieniu nawigacji w Google Maps, Waze lub TomTom pojawi się tu następny manewr.</string>
     <string name="info_directions_open_maps">Otwórz Google Maps</string>
     <string name="info_nav_continue">Jedź dalej</string>
 
@@ -164,7 +164,7 @@
     <string name="info_map_rerouting">Szukam nowej trasy</string>
     <string name="info_map_voice_on">Włącz głos</string>
     <string name="info_map_voice_off">Wyłącz głos</string>
-    <string name="info_map_other_app">Prowadź w Mapach Google lub Waze</string>
+    <string name="info_map_other_app">Prowadź w Mapach Google, Waze lub TomTom</string>
     <string name="info_audio_by_keys">Głośność ustawiana klawiszami głośności radia</string>
     <string name="info_audio_unavailable">Głośności nie można tu zmienić: użyj pokrętła</string>
     <string name="info_map_stop_title">Zakończyć nawigację?</string>

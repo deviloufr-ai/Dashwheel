@@ -11,7 +11,7 @@
     <string name="apps_kind_navmap">Karte</string>
     <string name="apps_kind_navmap_blurb">Kostenlose 3D-Karte mit Suche und Routen</string>
     <string name="apps_kind_navigation">Route</string>
-    <string name="apps_kind_navigation_blurb">Nächste Abbiegung aus Google Maps / Waze</string>
+    <string name="apps_kind_navigation_blurb">Nächste Abbiegung aus Google Maps / Waze / TomTom</string>
     <string name="apps_kind_pip_anchor">Maps-Fenster</string>
     <string name="apps_kind_pip_anchor_blurb">Dockt das schwebende Maps-Fenster hier an</string>
     <string name="apps_kind_media">Musikplayer</string>

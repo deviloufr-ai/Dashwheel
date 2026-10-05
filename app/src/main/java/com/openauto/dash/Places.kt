@@ -168,18 +168,26 @@ internal object PlaceSearch {
 
 /**
  * Hands a destination to the navigation app, which does the guidance: the app
- * the driver uses (the one the unit's NAVI key opens, on the QF firmware), else
- * Google Maps, else Waze, else whatever map app answers. Free intents, no key.
+ * the driver uses (the one the unit's NAVI key opens, on the QF firmware, or the
+ * map behind the Canvas tiles), else Google Maps, else Waze, else TomTom, else
+ * whatever map app answers. Free intents, no key.
  */
 internal object NavHandoff {
     const val MAPS = "com.google.android.apps.maps"
     const val WAZE = "com.waze"
+    /** TomTom GO Navigation, and TomTom AmiGO: both take a geo: intent. */
+    const val TOMTOM = "com.tomtom.gplay.navapp"
+    const val TOMTOM_AMIGO = "com.tomtom.amigo"
 
-    /** Which of the two is asked first: [preferred] when it is one of them and installed, else Maps, else Waze. */
-    internal fun order(preferred: String?, mapsInstalled: Boolean, wazeInstalled: Boolean): List<String> {
-        val installed = listOfNotNull(MAPS.takeIf { mapsInstalled }, WAZE.takeIf { wazeInstalled })
-        return installed.sortedByDescending { it == preferred }
-    }
+    /** The navigation apps a destination can be handed to, in the order asked when the driver prefers none. */
+    val APPS = listOf(MAPS, WAZE, TOMTOM, TOMTOM_AMIGO)
+
+    /**
+     * Which of the [installed] ones of [APPS] are asked, in order: the first of
+     * [preferred] goes first, then the next, then the rest as [APPS] lists them.
+     */
+    internal fun order(preferred: List<String?>, installed: Set<String>): List<String> =
+        APPS.filter { it in installed }.sortedBy { app -> preferred.indexOf(app).takeIf { it >= 0 } ?: preferred.size }
 
     /**
      * Where guidance was last started from here, and when, for "On my way"
@@ -198,12 +206,17 @@ internal object NavHandoff {
         heading(label)
         InAppNav.handOver()
         for (app in apps(context)) {
-            val uri = if (app == WAZE) String.format(Locale.US, "waze://?ll=%.6f,%.6f&navigate=yes", lat, lng)
-            else String.format(Locale.US, "google.navigation:q=%.6f,%.6f&mode=d", lat, lng)
-            if (open(context, app, uri)) return true
+            if (open(context, app, pointUri(app, lat, lng, label))) return true
         }
-        val geo = Uri.parse(String.format(Locale.US, "geo:%.6f,%.6f?q=%.6f,%.6f(%s)", lat, lng, lat, lng, Uri.encode(label)))
-        return context.launchSafely(Intent(Intent.ACTION_VIEW, geo))
+        return context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(pointUri(null, lat, lng, label))))
+    }
+
+    /** How [app] (null: any map app) is asked to guide to ([lat], [lng]), called [label]. */
+    internal fun pointUri(app: String?, lat: Double, lng: Double, label: String): String = when (app) {
+        WAZE -> String.format(Locale.US, "waze://?ll=%.6f,%.6f&navigate=yes", lat, lng)
+        MAPS -> String.format(Locale.US, "google.navigation:q=%.6f,%.6f&mode=d", lat, lng)
+        // Uri.encode's form, as in queryUri; TomTom reads the label in brackets as the destination's name.
+        else -> String.format(Locale.US, "geo:%.6f,%.6f?q=%.6f,%.6f(%s)", lat, lng, lat, lng, encode(label))
     }
 
     /** Guidance to [place], which then heads the last destinations. */
@@ -228,14 +241,16 @@ internal object NavHandoff {
 
     /** How [app] (null: any map app) is asked to guide to [query]. */
     internal fun queryUri(app: String?, query: String): String {
-        // Uri.encode's form (%20, not +): each app reads it back the same way.
-        val q = URLEncoder.encode(query.trim(), "UTF-8").replace("+", "%20")
+        val q = encode(query.trim())
         return when (app) {
             WAZE -> "waze://?q=$q&navigate=yes"
             MAPS -> "google.navigation:q=$q&mode=d"
             else -> "geo:0,0?q=$q"
         }
     }
+
+    // Uri.encode's form (%20, not +): each app reads it back the same way. Pure, unlike Uri.encode, for the unit tests.
+    private fun encode(text: String): String = URLEncoder.encode(text, "UTF-8").replace("+", "%20")
 
     /**
      * Guidance to [name] and says so, as a steering wheel button would: to its
@@ -313,15 +328,17 @@ internal object NavHandoff {
 
     /**
      * The navigation apps to ask, in order, noting that the driver asked. One
-     * running inside a dashboard tile goes first: that's the map on screen.
+     * running inside a dashboard tile or docked in a window tile goes first:
+     * that's the map on screen. Then the NAVI key's app, then the map behind
+     * the Canvas tiles ([CanvasTabs.mapApp]).
      */
     private fun apps(context: Context): List<String> {
         KeyTargets.refresh()
-        val preferred = KeyTargets.targets.value[KeyTargets.Key.NAVI]
+        val preferred = listOf(KeyTargets.targets.value[KeyTargets.Key.NAVI], CanvasTabs.mapApp.value)
         // The driver asked for it: the app opening full screen is not the unit's doing (EmbeddedApp, PipAnchor).
         EmbeddedApp.userActed()
         PipAnchor.noteUserTouch()
-        val apps = order(preferred, isPackageInstalled(context, MAPS), isPackageInstalled(context, WAZE))
-        return apps.sortedByDescending { EmbeddedApp.holds(it) }
+        val apps = order(preferred, APPS.filter { isPackageInstalled(context, it) }.toSet())
+        return apps.sortedByDescending { EmbeddedApp.holds(it) || it in PipAnchor.dockedPackages.value }
     }
 }

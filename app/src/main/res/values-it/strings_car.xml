@@ -76,7 +76,7 @@
     <!-- Fuel to destination -->
     <string name="car_fuel_dest_title">CARBURANTE → META</string>
     <string name="car_fuel_dest_no_range">Autonomia ancora ignota: configura il riquadro Carburante e autonomia</string>
-    <string name="car_fuel_dest_no_nav">Autonomia residua. Avvia la navigazione in Maps o Waze per confrontare.</string>
+    <string name="car_fuel_dest_no_nav">Autonomia residua. Avvia la navigazione in Maps, Waze o TomTom per confrontare.</string>
     <string name="car_fuel_dest_spare_unit">km di margine</string>
     <string name="car_fuel_dest_enough">Carburante sufficiente</string>
     <string name="car_fuel_dest_tight">Al limite: poco margine</string>

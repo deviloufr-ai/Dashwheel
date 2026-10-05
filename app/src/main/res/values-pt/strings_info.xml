@@ -142,7 +142,7 @@
     <string name="info_directions_access_title">Acesso a notificações necessário</string>
     <string name="info_directions_access_hint">O percurso vem da notificação de navegação do Google Maps.</string>
     <string name="info_directions_idle_title">Sem percurso ativo</string>
-    <string name="info_directions_idle_hint">Com a navegação ativa no Google Maps ou no Waze, a próxima manobra aparece aqui.</string>
+    <string name="info_directions_idle_hint">Com a navegação ativa no Google Maps, no Waze ou no TomTom, a próxima manobra aparece aqui.</string>
     <string name="info_directions_open_maps">Abrir o Google Maps</string>
     <string name="info_nav_continue">Continuar</string>
 
@@ -164,7 +164,7 @@
     <string name="info_map_rerouting">A procurar uma nova rota</string>
     <string name="info_map_voice_on">Ativar a voz</string>
     <string name="info_map_voice_off">Desativar a voz</string>
-    <string name="info_map_other_app">Guiar no Google Maps ou Waze</string>
+    <string name="info_map_other_app">Guiar no Google Maps, Waze ou TomTom</string>
     <string name="info_audio_by_keys">Volume ajustado pelas teclas de volume do autorrádio</string>
     <string name="info_audio_unavailable">O volume não pode ser alterado aqui: use o botão rotativo</string>
     <string name="info_map_stop_title">Parar a navegação?</string>

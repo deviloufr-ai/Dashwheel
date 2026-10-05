@@ -142,7 +142,7 @@
     <string name="info_directions_access_title">Se necesita acceso a notificaciones</string>
     <string name="info_directions_access_hint">La ruta se obtiene de la notificación de navegación de Google Maps.</string>
     <string name="info_directions_idle_title">Sin ruta activa</string>
-    <string name="info_directions_idle_hint">Inicia la navegación en Google Maps o Waze y la próxima indicación aparecerá aquí.</string>
+    <string name="info_directions_idle_hint">Inicia la navegación en Google Maps, Waze o TomTom y la próxima indicación aparecerá aquí.</string>
     <string name="info_directions_open_maps">Abrir Google Maps</string>
     <string name="info_nav_continue">Continuar</string>
 
@@ -164,7 +164,7 @@
     <string name="info_map_rerouting">Buscando una nueva ruta</string>
     <string name="info_map_voice_on">Activar la voz</string>
     <string name="info_map_voice_off">Silenciar la voz</string>
-    <string name="info_map_other_app">Guiar en Google Maps o Waze</string>
+    <string name="info_map_other_app">Guiar en Google Maps, Waze o TomTom</string>
     <string name="info_audio_by_keys">Volumen ajustado con las teclas de volumen de la radio</string>
     <string name="info_audio_unavailable">El volumen no se puede cambiar desde aquí: use el mando</string>
     <string name="info_map_stop_title">¿Detener la navegación?</string>

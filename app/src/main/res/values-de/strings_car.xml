@@ -76,7 +76,7 @@
     <!-- Fuel to destination -->
     <string name="car_fuel_dest_title">KRAFTSTOFF BIS ZIEL</string>
     <string name="car_fuel_dest_no_range">Reichweite noch unbekannt: Kachel „Kraftstoff &amp; Reichweite“ einrichten</string>
-    <string name="car_fuel_dest_no_nav">Restreichweite. Navigation in Maps oder Waze starten, um zu vergleichen.</string>
+    <string name="car_fuel_dest_no_nav">Restreichweite. Navigation in Maps, Waze oder TomTom starten, um zu vergleichen.</string>
     <string name="car_fuel_dest_spare_unit">km Reserve</string>
     <string name="car_fuel_dest_enough">Kraftstoff reicht</string>
     <string name="car_fuel_dest_tight">Knapp: wenig Reserve</string>

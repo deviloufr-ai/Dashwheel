@@ -11,7 +11,7 @@
     <string name="apps_kind_navmap">Map</string>
     <string name="apps_kind_navmap_blurb">Free 3D map with search and routing</string>
     <string name="apps_kind_navigation">Directions</string>
-    <string name="apps_kind_navigation_blurb">Next turn from Google Maps / Waze</string>
+    <string name="apps_kind_navigation_blurb">Next turn from Google Maps / Waze / TomTom</string>
     <string name="apps_kind_pip_anchor">Maps window</string>
     <string name="apps_kind_pip_anchor_blurb">Docks the floating Maps window here</string>
     <string name="apps_kind_media">Music player</string>

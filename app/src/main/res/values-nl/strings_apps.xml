@@ -11,7 +11,7 @@
     <string name="apps_kind_navmap">Kaart</string>
     <string name="apps_kind_navmap_blurb">Gratis 3D-kaart met zoeken en routes</string>
     <string name="apps_kind_navigation">Route</string>
-    <string name="apps_kind_navigation_blurb">Volgende afslag uit Google Maps / Waze</string>
+    <string name="apps_kind_navigation_blurb">Volgende afslag uit Google Maps / Waze / TomTom</string>
     <string name="apps_kind_pip_anchor">Maps-venster</string>
     <string name="apps_kind_pip_anchor_blurb">Zet het zwevende Maps-venster hier vast</string>
     <string name="apps_kind_media">Muziekspeler</string>

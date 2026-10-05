@@ -74,4 +74,13 @@ class NavDirectionsTest {
         assertNull(NavDirections.fromLines(listOf("Google Maps is running"), null, "com.google.android.apps.maps"))
         assertNull(NavDirections.fromLines(emptyList(), null, "com.waze"))
     }
+
+    @Test
+    fun tomTomsTurnsAreReadAndNamed() {
+        assertTrue(NavHandoff.TOMTOM in NavDirections.PACKAGES && NavHandoff.TOMTOM_AMIGO in NavDirections.PACKAGES)
+        assertEquals("TomTom", NavDirections.appName(NavHandoff.TOMTOM))
+        assertEquals("TomTom", NavDirections.appName(NavHandoff.TOMTOM_AMIGO))
+        assertEquals("Waze", NavDirections.appName(NavHandoff.WAZE))
+        assertEquals("Google Maps", NavDirections.appName(NavHandoff.MAPS))
+    }
 }

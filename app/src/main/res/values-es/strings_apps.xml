@@ -11,7 +11,7 @@
     <string name="apps_kind_navmap">Mapa</string>
     <string name="apps_kind_navmap_blurb">Mapa 3D gratuito con búsqueda y rutas</string>
     <string name="apps_kind_navigation">Ruta</string>
-    <string name="apps_kind_navigation_blurb">Próximo giro de Google Maps / Waze</string>
+    <string name="apps_kind_navigation_blurb">Próximo giro de Google Maps / Waze / TomTom</string>
     <string name="apps_kind_pip_anchor">Ventana de Maps</string>
     <string name="apps_kind_pip_anchor_blurb">Ancla aquí la ventana flotante de Maps</string>
     <string name="apps_kind_media">Reproductor</string>

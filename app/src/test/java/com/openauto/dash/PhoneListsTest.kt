@@ -62,7 +62,16 @@ class PhoneListsTest {
         val q = "12 rue de Rivoli, Paris & co"
         assertEquals("google.navigation:q=12%20rue%20de%20Rivoli%2C%20Paris%20%26%20co&mode=d", NavHandoff.queryUri(NavHandoff.MAPS, q))
         assertEquals("waze://?q=12%20rue%20de%20Rivoli%2C%20Paris%20%26%20co&navigate=yes", NavHandoff.queryUri(NavHandoff.WAZE, q))
+        assertEquals("geo:0,0?q=12%20rue%20de%20Rivoli%2C%20Paris%20%26%20co", NavHandoff.queryUri(NavHandoff.TOMTOM, q))
         assertEquals("geo:0,0?q=Gare%20de%20Lyon", NavHandoff.queryUri(null, "  Gare de Lyon "))
         assertEquals("geo:0,0?q=Saint-%C3%89tienne", NavHandoff.queryUri(null, "Saint-Étienne"))
+    }
+
+    @Test
+    fun aDestinationByPositionForEachNavigationApp() {
+        assertEquals("google.navigation:q=48.856600,2.352200&mode=d", NavHandoff.pointUri(NavHandoff.MAPS, 48.8566, 2.3522, "Paris"))
+        assertEquals("waze://?ll=48.856600,2.352200&navigate=yes", NavHandoff.pointUri(NavHandoff.WAZE, 48.8566, 2.3522, "Paris"))
+        assertEquals("geo:48.856600,2.352200?q=48.856600,2.352200(H%C3%B4tel%20de%20Ville)", NavHandoff.pointUri(NavHandoff.TOMTOM, 48.8566, 2.3522, "Hôtel de Ville"))
+        assertEquals("geo:48.856600,2.352200?q=48.856600,2.352200()", NavHandoff.pointUri(null, 48.8566, 2.3522, ""))
     }
 }
