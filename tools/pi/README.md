@@ -39,16 +39,36 @@ A head unit's USB port gives 0.5–1 A. A Pi 3 needs up to 2.5 A, and the monito
 - **HDMI:** plug in the monitor. The installer keeps HDMI on even if the monitor powers up after the Pi.
 - **RCA (composite) monitor:** use the Pi's 3.5 mm jack with a TRRS-to-RCA cable, and install with `--composite`. The Pi puts video on the sleeve and ground on the second ring; many camcorder cables swap these, so if the picture doesn't show, try the red or white plug. `overscan=5` is then set in `display.conf`; adjust it to what the monitor crops off.
 
-## 3. The Pi's system
+## 3. The card, ready-made
+
+The easiest way: a card with everything already installed.
+
+1. Download **dashwheel-second-screen.img.xz** from the [second screen card release](https://github.com/deviloufr-ai/Dashwheel/releases/tag/second-screen-image).
+2. In **Raspberry Pi Imager**, pick the Raspberry Pi model, then **Choose OS → Use custom** and the downloaded file, then the SD card, and write it. If Imager offers OS customisation, say **No**: this card doesn't use it.
+3. Take the card out and put it back into the computer. Open the drive called **bootfs**, then the **dashwheel** folder, and open **wifi.txt** (Notepad works). After `wifi_name=` and `wifi_password=`, write the **phone's hotspot** name and password, and your country after `country=`. Save it.
+4. **Pi 3B only:** its Wi-Fi is 2.4 GHz only, so set the phone's hotspot to 2.4 GHz or dual band. A 3B+ also does 5 GHz, which leaves more room for the video.
+5. Put the card in the Pi, start the phone's hotspot, and power the Pi. The first start takes about a minute longer: the card grows to its full size. The monitor then shows a QR code: go to step 5.
+
+The Pi saves the Wi-Fi at its start and clears the password from `wifi.txt`. To add a network later, fill in the lines again. Once the card is read-only (after pairing), the password stays in the file and is read at every start.
+
+- **RCA (composite) monitor or ignition sense** (`--composite`, `--acc-sense`): install by hand (step 4) instead.
+- **Updating:** write the new image to the card. To keep the pairing, first copy the `dashwheel` folder from the card's **bootfs** drive to the computer, then copy it back onto the new card before its first start.
+- **SSH** (optional; the card has no login): put an empty file named `ssh` and a `userconf.txt` on **bootfs**. `userconf.txt` holds one line, `name:` followed by the output of `openssl passwd -6`.
+
+## 4. Or install by hand
+
+On a card of your own, for an RCA monitor, ignition sense, or to work on the Pi.
+
+### The Pi's system
 
 1. Write **Raspberry Pi OS Lite** (Bookworm or later) with Raspberry Pi Imager. In its settings:
    - Wi-Fi: the **phone's hotspot** name and password.
    - Hostname: `dashwheel-display`.
    - Enable SSH.
-2. **Pi 3B only:** its Wi-Fi is 2.4 GHz only, so set the phone's hotspot to 2.4 GHz or dual band. A 3B+ also does 5 GHz, which leaves more room for the video.
+2. **Pi 3B only:** set the phone's hotspot to 2.4 GHz or dual band (see above).
 3. Start the phone's hotspot and boot the Pi.
 
-## 4. Install
+### Install
 
 On a computer with this repository:
 
@@ -61,7 +81,9 @@ ssh pi@dashwheel-display.local 'sudo reboot'
 
 Run the same commands again to update. Settings and the pairing are kept.
 
-**Another Wi-Fi network** (usually the phone's hotspot, if you set up the Pi on your home Wi-Fi): `ssh -t pi@dashwheel-display.local sudo ./pi/add-wifi.sh` asks for its name and password. The Pi then prefers it to the networks it already knows. The installer moves the Pi's Wi-Fi from NetworkManager to wpa_supplicant, which joins in seconds, so add networks with this script rather than `nmcli`.
+**Another Wi-Fi network** (usually the phone's hotspot, if you set up the Pi on your home Wi-Fi): `ssh -t pi@dashwheel-display.local sudo ./pi/add-wifi.sh` asks for its name and password. The Pi then prefers it to the networks it already knows. The installer moves the Pi's Wi-Fi from NetworkManager to wpa_supplicant, which joins in seconds, so add networks with this script (or `wifi.txt`, see step 3) rather than `nmcli`.
+
+**Building the card image yourself:** on an arm64 Linux, `sudo tools/pi/build-image.sh display/build/install/dashwheel-display out.img.xz`. GitHub Actions does it for each change to the second screen (`.github/workflows/pi-image.yml`).
 
 ## 5. Pair (once)
 

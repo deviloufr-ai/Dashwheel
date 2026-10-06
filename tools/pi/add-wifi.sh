@@ -2,10 +2,11 @@
 # Adds a Wi-Fi network to the Dashwheel display, ahead of the ones it knows:
 # usually the phone's hotspot, which the head unit uses too.
 #
-#   On the Pi:   sudo ./pi/add-wifi.sh
+#   On the Pi:   sudo ./pi/add-wifi.sh [name]
 #
-# It asks for the network's name and password; the password isn't shown. The
-# Pi joins it at its next start, or right away when the network it is on goes.
+# It asks for the network's name and password; the password isn't shown (or
+# reads it from a pipe: wifi-from-card.sh does). The Pi joins it at its next
+# start, or right away when the network it is on goes.
 set -euo pipefail
 # The file holds the networks' keys: what is written here is root's alone.
 umask 077
@@ -14,10 +15,15 @@ umask 077
 WPA=/etc/wpa_supplicant/wpa_supplicant-wlan0.conf
 [ -f "$WPA" ] || { echo "$WPA is missing: run install.sh first"; exit 1; }
 
-read -r -p "Hotspot name: " ssid
+ssid="${1:-}"
+[ -n "$ssid" ] || read -r -p "Hotspot name: " ssid
 [ -n "$ssid" ] || exit 1
-read -r -s -p "Password: " pass
-echo
+if [ -t 0 ]; then
+  read -r -s -p "Password: " pass
+  echo
+else
+  IFS= read -r pass || [ -n "$pass" ]
+fi
 [ ${#pass} -ge 8 ] || { echo "A Wi-Fi password has at least 8 characters"; exit 1; }
 # Made first, and aside: wpa_passphrase prints its complaint (a password or a
 # name too long) where the entry would be, and that text in the file left the
@@ -34,6 +40,9 @@ if grep -qF "ssid=\"$ssid\"" "$WPA"; then
   mv "$WPA.new" "$WPA"
 fi
 # The password is stored hashed, never as typed.
-printf '%s\n' "$entry" | sed '/^\s*#/d; s/^}$/\tpriority=10\n}/' >> "$WPA"
+# Ahead of the networks known before: 10, or PRIORITY (wifi-from-card.sh puts wifi.txt's first one first).
+priority="${PRIORITY:-10}"
+case "$priority" in ''|*[!0-9]*) priority=10 ;; esac
+printf '%s\n' "$entry" | sed "/^\s*#/d; s/^}\$/\tpriority=$priority\n}/" >> "$WPA"
 chmod 600 "$WPA"
 echo "Added \"$ssid\". The Pi prefers it from its next start."

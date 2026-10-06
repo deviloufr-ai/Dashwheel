@@ -10,21 +10,24 @@
 #   --acc-sense   shut down cleanly when the ignition goes off (GPIO3 through an optocoupler, see README.md)
 #   --overlay     make the SD card read-only (overlay file system). Pair the head
 #                 unit FIRST: the pairing is kept on the boot partition.
+#   --image       prepare a ready-made card image instead of this Pi (build-image.sh,
+#                 in a chroot): no pairing made, nothing started, Wi-Fi from wifi.txt.
 #
 # Run it again to update; settings and the pairing are kept.
 set -euo pipefail
 
-usage() { sed -n '2,15p' "$0"; exit 2; }
+usage() { sed -n '2,17p' "$0"; exit 2; }
 
 [ "$(id -u)" -eq 0 ] || { echo "run as root (sudo)"; exit 1; }
 BUNDLE="${1:-}"; shift || true
 [ -n "$BUNDLE" ] && [ -x "$BUNDLE/bin/dashwheel-display" ] || usage
-COMPOSITE=0; ACC=0; OVERLAY=0
+COMPOSITE=0; ACC=0; OVERLAY=0; IMAGE=0
 for arg in "$@"; do
   case "$arg" in
     --composite) COMPOSITE=1 ;;
     --acc-sense) ACC=1 ;;
     --overlay) OVERLAY=1 ;;
+    --image) IMAGE=1 ;;
     *) usage ;;
   esac
 done
@@ -43,14 +46,14 @@ if grep -q 'overlayroot=tmpfs' /proc/cmdline; then
 fi
 # Turning the overlay off can leave the boot partition read-only.
 sed -i "s|\(\s$BOOT\s\+vfat\s\+defaults\),ro\b|\1|" /etc/fstab
-mount -o remount,rw "$BOOT"
+[ "$IMAGE" -eq 1 ] || mount -o remount,rw "$BOOT"
 
 echo "== packages"
 apt-get update
 apt-get install -y --no-install-recommends \
   default-jre-headless fonts-dejavu-core avahi-daemon \
   gstreamer1.0-tools gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
-  plymouth plymouth-themes
+  plymouth plymouth-themes overlayroot
 
 echo "== program"
 systemctl stop dashwheel-display 2>/dev/null || true
@@ -64,8 +67,21 @@ mkdir -p "$CONFIG_DIR"
 if [ "$COMPOSITE" -eq 1 ] && ! grep -q '^overscan=' "$CONFIG_DIR/display.conf"; then
   echo "overscan=5" >> "$CONFIG_DIR/display.conf"
 fi
-# Made now, while the card is still writable.
-echo "pairing: $(/opt/dashwheel-display/bin/dashwheel-display --config "$CONFIG_DIR" --print-pairing)"
+if [ "$IMAGE" -eq 1 ]; then
+  # Where the driver writes the phone's hotspot, from any computer.
+  [ -f "$CONFIG_DIR/wifi.txt" ] || cp "$HERE/wifi.txt.example" "$CONFIG_DIR/wifi.txt"
+  echo dashwheel-display > /etc/hostname
+  sed -i 's/^127\.0\.1\.1\s.*/127.0.1.1\tdashwheel-display/' /etc/hosts
+  # No login on the screen at the first start: the image has no user, and
+  # Raspberry Pi OS would ask for one there. A userconf.txt on the boot
+  # partition still makes one (with an ssh file, for SSH).
+  mkdir -p /etc/systemd/system/userconfig.service.d
+  printf '[Unit]\nConditionPathExists=|%s/userconf.txt\nConditionPathExists=|%s/userconf\n' "$BOOT" "$BOOT" \
+    > /etc/systemd/system/userconfig.service.d/dashwheel.conf
+else
+  # Made now, while the card is still writable.
+  echo "pairing: $(/opt/dashwheel-display/bin/dashwheel-display --config "$CONFIG_DIR" --print-pairing)"
+fi
 
 echo "== services"
 sed "s|@CONFIG_DIR@|$CONFIG_DIR|" "$HERE/dashwheel-display.service" > /etc/systemd/system/dashwheel-display.service
@@ -85,7 +101,13 @@ if [ -f "$CONFIG_DIR/splash.png" ]; then
 else
   install -m 644 "$HERE/splash/logo.png" "$THEME/logo.png"
 fi
-plymouth-set-default-theme -R dashwheel
+if [ "$IMAGE" -eq 1 ]; then
+  # In a chroot, -R would only remake the start-up image of the computer's own kernel version.
+  plymouth-set-default-theme dashwheel
+  update-initramfs -u -k all
+else
+  plymouth-set-default-theme -R dashwheel
+fi
 # The display service ends the boot logo itself, at its first picture: systemd's
 # own "quit" at the end of the start would leave the screen black in between.
 systemctl mask plymouth-quit.service plymouth-quit-wait.service
@@ -127,7 +149,8 @@ if [ ! -f "$WPA" ]; then
     done
   } > "$WPA.new"
   chmod 600 "$WPA.new"
-  if grep -q '^network=' "$WPA.new"; then mv "$WPA.new" "$WPA"; else rm -f "$WPA.new"; fi
+  # A card image knows no network yet: wifi.txt brings them at its first start.
+  if grep -q '^network=' "$WPA.new" || [ "$IMAGE" -eq 1 ]; then mv "$WPA.new" "$WPA"; else rm -f "$WPA.new"; fi
 fi
 if [ -f "$WPA" ]; then
   apt-get install -y --no-install-recommends systemd-resolved
@@ -147,8 +170,12 @@ if [ -f "$WPA" ]; then
   # Joined at start-up on another network (the house's) before the hotspot showed: moved over once it does.
   install -m 755 "$HERE/prefer-wifi.sh" /usr/local/sbin/dashwheel-prefer-wifi
   install -m 644 "$HERE/dashwheel-prefer-wifi.service" "$HERE/dashwheel-prefer-wifi.timer" /etc/systemd/system/
+  # Networks written in wifi.txt on the boot partition, from any computer: joined at the next start.
+  install -m 755 "$HERE/add-wifi.sh" /usr/local/sbin/dashwheel-add-wifi
+  install -m 755 "$HERE/wifi-from-card.sh" /usr/local/sbin/dashwheel-wifi-from-card
+  install -m 644 "$HERE/dashwheel-wifi.service" /etc/systemd/system/
   systemctl daemon-reload
-  systemctl enable dashwheel-prefer-wifi.timer
+  systemctl enable dashwheel-prefer-wifi.timer dashwheel-wifi.service
 fi
 # Swap in memory only: the swap file is resized at every start, and written to the card.
 [ -f /etc/rpi/swap.conf ] && sed -i 's/^#\?Mechanism=.*/Mechanism=zram/' /etc/rpi/swap.conf
@@ -163,6 +190,8 @@ JAVA_OPTS="-XX:TieredStopAtLevel=1 -XX:+AutoCreateSharedArchive -XX:SharedArchiv
 JAVA_OPTS="-XX:TieredStopAtLevel=1 -XX:ArchiveClassesAtExit=$JSA" \
   /opt/dashwheel-display/bin/dashwheel-display --config "$CONFIG_DIR" --print-pairing >/dev/null 2>&1 ||
   echo "no class archive made: the display starts a little slower"
+# Each card from an image makes its own pairing at its first start, never a shared one.
+[ "$IMAGE" -eq 0 ] || rm -f "$CONFIG_DIR/pairing.txt" "$CONFIG_DIR/paired"
 
 echo "== boot settings"
 CFG="$BOOT/config.txt"
@@ -202,6 +231,8 @@ if [ "$OVERLAY" -eq 1 ]; then
   echo "== read-only SD card"
   raspi-config nonint do_overlayfs 0
 fi
+
+[ "$IMAGE" -eq 0 ] || { echo "Card image prepared."; exit 0; }
 
 # Back on screen now; the boot settings above take effect at the next start.
 systemctl restart dashwheel-display

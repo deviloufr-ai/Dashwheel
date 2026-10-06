@@ -1,0 +1,15 @@
+# The Wi-Fi networks written in dashwheel/wifi.txt on the boot partition,
+# saved before the Wi-Fi comes up so this start already joins them.
+[Unit]
+Description=Dashwheel Wi-Fi from the SD card
+DefaultDependencies=no
+After=local-fs.target systemd-rfkill.service
+Before=wpa_supplicant@wlan0.service network-pre.target
+Wants=network-pre.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/dashwheel-wifi-from-card
+
+[Install]
+WantedBy=multi-user.target

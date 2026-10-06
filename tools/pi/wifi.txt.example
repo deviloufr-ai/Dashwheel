@@ -1,0 +1,15 @@
+# The Wi-Fi the second screen joins: your phone's hotspot, which the head unit
+# joins too. Write its name and password after the = signs, save this file,
+# and put the card back in the Pi. Names and passwords are case-sensitive.
+#
+# The Pi saves them at its next start, then clears the password from this file.
+# To add another network later, fill in the lines again.
+wifi_name=
+wifi_password=
+
+# Another network, for example your home Wi-Fi (optional).
+wifi_name=
+wifi_password=
+
+# Your country, in two letters (FR, DE, GB, US...): some Wi-Fi channels need it.
+country=
