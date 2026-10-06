@@ -228,7 +228,8 @@ object CarBox {
 
     /** For [AlertPreview]: made-up sensors and climate, shown the way the car's would be. */
     internal fun sampleRadar() = Radar(
-        front = List(6) { null },
+        // Front ones too: a car with sensors at both ends sees them both.
+        front = listOf(0, 0, 7, 4, 0, 0),
         rear = listOf(0, 5, 2, 6, 0, 0),
         left = List(4) { null },
         right = List(4) { null }

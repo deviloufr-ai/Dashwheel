@@ -185,8 +185,9 @@ private fun RadarPanel(radar: Radar) {
 
 /**
  * The car from above (doors shut) with an arc for each sensor it has: front
- * sensors above, rear below, left to right. An arc sits closer to the bumper
- * and turns red as its sensor's level drops towards 1 (closest). The driver's
+ * sensors above, rear below, left to right; side sensors as bars beside the
+ * doors, front to back. An arc or bar sits closer to the car and turns red as
+ * its sensor's level drops towards 1 (closest). The driver's
  * own car when it has a view from above (MyCarLook.kt), its bumpers where the
  * drawn car's are.
  */
@@ -199,6 +200,8 @@ internal fun RadarFromAbove(radar: Radar, modifier: Modifier = Modifier) {
     val warn = DashColors.Warning
     val front = radar.front.map { it to levelColor(it) }
     val rear = radar.rear.map { it to levelColor(it) }
+    val left = radar.left.map { it to levelColor(it) }
+    val right = radar.right.map { it to levelColor(it) }
     val mine by MyCarLook.shown.collectAsState()
     val style by MyCarLook.style.collectAsState()
     val own = mine?.top
@@ -212,6 +215,8 @@ internal fun RadarFromAbove(radar: Radar, modifier: Modifier = Modifier) {
                 if (own == null) drawCar(body, glass, edge, warn, 0f, 0f, 0f, 0f, 0f, 0f)
                 sensorArcs(front, center = Offset(70f, 100f), from = 215f, reach = 1f)
                 sensorArcs(rear, center = Offset(70f, 160f), from = 145f, reach = -1f)
+                sensorBars(left, bodyEdge = 35f, outward = -1f)
+                sensorBars(right, bodyEdge = 105f, outward = 1f)
             }
         }
     }
@@ -236,6 +241,28 @@ private fun DrawScope.sensorArcs(sensors: List<Pair<Int?, Color>>, center: Offse
             color, startAngle = start, sweepAngle = step - 3f, useCenter = false,
             topLeft = Offset(center.x - radius, center.y - radius), size = Size(radius * 2, radius * 2),
             style = Stroke(width = if (near) 9f else 5f)
+        )
+    }
+}
+
+/**
+ * One bar per side sensor beside the car's side at x [bodyEdge], front to
+ * back, away from it to the left ([outward] -1) or right (1). They run
+ * between the ends of the front and rear arcs, so neither covers the other.
+ */
+private fun DrawScope.sensorBars(sensors: List<Pair<Int?, Color>>, bodyEdge: Float, outward: Float) {
+    if (sensors.isEmpty()) return
+    val top = 72f
+    val step = (188f - top) / sensors.size
+    sensors.forEachIndexed { i, (level, color) ->
+        if (level == null) return@forEachIndexed
+        val near = level in 1..Radar.MAX_LEVEL
+        // Closest (1) hugs the door; far (10) and clear sit at the edge of the drawing.
+        val gap = if (near) 8f + (level - 1) * 2f else 28f
+        val x = bodyEdge + outward * gap
+        drawLine(
+            color, Offset(x, top + i * step + 2f), Offset(x, top + (i + 1) * step - 2f),
+            strokeWidth = if (near) 9f else 5f
         )
     }
 }
