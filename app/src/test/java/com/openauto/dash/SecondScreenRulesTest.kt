@@ -153,19 +153,81 @@ class SecondScreenRulesTest {
     }
 
     @Test
-    fun bitrateBacksOffWhenFramesAreLostAndRecoversSlowly() {
-        // 10 of 100 frames lost: a quarter down.
-        assertEquals(1875, SecondScreenRules.adaptBitrate(2500, 2500, shown = 90, dropped = 10))
+    fun bitrateBacksOffAndRemembersTheRateThatFailed() {
+        val start = SecondScreenRules.BitrateState(2500)
+        // 10 of 100 frames lost: a quarter down, and 2500 is the ceiling.
+        val cut = SecondScreenRules.adaptBitrate(start, 2500, shown = 90, dropped = 10, nowMs = 0)
+        assertEquals(SecondScreenRules.BitrateState(1875, ceilingKbps = 2500), cut)
         // Never below the floor.
-        assertEquals(SecondScreenRules.MIN_BITRATE_KBPS, SecondScreenRules.adaptBitrate(700, 2500, 50, 50))
-        // A clean period: a tenth of the target back, never past it.
-        assertEquals(2125, SecondScreenRules.adaptBitrate(1875, 2500, 75, 0))
-        assertEquals(2500, SecondScreenRules.adaptBitrate(2450, 2500, 75, 0))
-        // A frame or two lost: hold.
-        assertEquals(2000, SecondScreenRules.adaptBitrate(2000, 2500, 75, 1))
+        assertEquals(SecondScreenRules.MIN_BITRATE_KBPS, SecondScreenRules.adaptBitrate(SecondScreenRules.BitrateState(700), 2500, 50, 50, 0).kbps)
+        // A frame or two lost: hold, and the clean stretch starts over.
+        val held = SecondScreenRules.BitrateState(2000, 2500, cleanSinceMs = 5_000)
+        assertEquals(held.copy(cleanSinceMs = null), SecondScreenRules.adaptBitrate(held, 2500, 75, 1, 10_000))
         // Nothing played: hold; a lowered target applies at once.
-        assertEquals(2000, SecondScreenRules.adaptBitrate(2000, 2500, 0, 0))
-        assertEquals(1500, SecondScreenRules.adaptBitrate(2000, 1500, 75, 0))
+        assertEquals(2000, SecondScreenRules.adaptBitrate(SecondScreenRules.BitrateState(2000), 2500, 0, 0, 0).kbps)
+        assertEquals(1500, SecondScreenRules.adaptBitrate(SecondScreenRules.BitrateState(2000), 1500, 75, 0, 0).kbps)
+    }
+
+    @Test
+    fun bitrateClimbsBackOnlyToJustUnderTheCeiling() {
+        var s = SecondScreenRules.BitrateState(1875, ceilingKbps = 2500)
+        val seen = mutableListOf<Int>()
+        // Clean reports every 3 s for 50 s: up a tenth of the target at a time, then it holds at 2250.
+        for (t in 0..50_000L step 3_000) {
+            s = SecondScreenRules.adaptBitrate(s, 2500, 75, 0, t)
+            seen += s.kbps
+        }
+        assertEquals(listOf(2125, 2250, 2250), seen.take(3))
+        assertEquals(2250, s.kbps)
+        assertEquals(2500, s.ceilingKbps)
+    }
+
+    @Test
+    fun bitrateSettlesInsteadOfSawing() {
+        // A link that drops frames at 2000 kbit/s and above, clean below.
+        var s = SecondScreenRules.BitrateState(2500)
+        val rates = mutableListOf<Int>()
+        var t = 0L
+        repeat(200) {
+            val dropped = if (s.kbps >= 2000) 10 else 0
+            s = SecondScreenRules.adaptBitrate(s, 2500, 90, dropped, t)
+            rates += s.kbps
+            t += 3_000
+        }
+        // Over the last five minutes (100 reports) it fails at most a couple of times, one probe every few minutes,
+        // where the old rule failed every few reports.
+        val failures = rates.takeLast(100).zipWithNext().count { (a, b) -> b < a }
+        assertTrue("failed $failures times", failures <= 3)
+        assertTrue(rates.takeLast(100).all { it in 1500..2200 })
+    }
+
+    @Test
+    fun bitrateProbesAboveTheCeilingAfterACleanMinuteInSmallSteps() {
+        var s = SecondScreenRules.BitrateState(2250, ceilingKbps = 2500, cleanSinceMs = 0)
+        // Under a minute: stays put.
+        s = SecondScreenRules.adaptBitrate(s, 3000, 75, 0, 59_000)
+        assertEquals(2250, s.kbps)
+        // A clean minute: the ceiling lifts a twentieth of the target, the rate follows just under it.
+        s = SecondScreenRules.adaptBitrate(s, 3000, 75, 0, 60_000)
+        assertEquals(2650, s.ceilingKbps)
+        assertEquals(2385, s.kbps)
+        assertEquals(60_000L, s.cleanSinceMs)
+        // Next lift only a minute later.
+        s = SecondScreenRules.adaptBitrate(s, 3000, 75, 0, 90_000)
+        assertEquals(2650, s.ceilingKbps)
+        // Lifted past the target: the ceiling is gone and the rate goes back to the target.
+        var u = SecondScreenRules.BitrateState(2430, ceilingKbps = 2700, cleanSinceMs = 0)
+        u = SecondScreenRules.adaptBitrate(u, 2500, 75, 0, 60_000)
+        assertNull(u.ceilingKbps)
+        assertEquals(2500, u.kbps)
+    }
+
+    @Test
+    fun aNewStreamStartsJustUnderAKnownCeiling() {
+        assertEquals(SecondScreenRules.BitrateState(2500), SecondScreenRules.BitrateState(0).restart(2500))
+        assertEquals(SecondScreenRules.BitrateState(1800, 2000), SecondScreenRules.BitrateState(1500, 2000, 9_000).restart(2500))
+        // A ceiling above a lowered target no longer matters.
+        assertEquals(SecondScreenRules.BitrateState(1500), SecondScreenRules.BitrateState(1500, 2000).restart(1500))
     }
 
     @Test

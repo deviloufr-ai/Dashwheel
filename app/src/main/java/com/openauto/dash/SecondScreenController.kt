@@ -2,6 +2,7 @@ package com.openauto.dash
 
 import android.content.Context
 import android.content.Intent
+import android.os.SystemClock
 import android.util.Log
 import android.view.KeyEvent
 import com.openauto.dash.link.DisplayHello
@@ -86,8 +87,8 @@ internal object SecondScreenController {
     private val applying = Mutex()
 
     private var stream: StreamDisplay? = null
-    /** What the encoder is set to now: the configured rate, or less while the Wi-Fi struggles. */
-    private var bitrateKbps = 0
+    /** What the encoder is set to now: the configured rate, or less while the Wi-Fi struggles, and the rate that last failed. */
+    private var bitrate = SecondScreenRules.BitrateState(0)
     private var streamShape: List<Int>? = null
     private var presentation: ClusterPresentation? = null
     private var appShown: String? = null
@@ -131,7 +132,13 @@ internal object SecondScreenController {
                 .collect { wanted -> applying.withLock { apply(wanted) } }
         }
         // An encoder that failed gets another chance when the display comes back or the picture asked for changes.
-        scope.launch { DisplayLink.state.filterIsInstance<DisplayLinkState.Connected>().collect { encoderFailed.value = false } }
+        scope.launch {
+            DisplayLink.state.filterIsInstance<DisplayLinkState.Connected>().collect {
+                encoderFailed.value = false
+                // A new link may be a different Wi-Fi: the old ceiling no longer says anything.
+                bitrate = bitrate.copy(ceilingKbps = null, cleanSinceMs = null)
+            }
+        }
         scope.launch {
             SecondScreenStore.config.map { listOf(it.video, it.maxHeight, it.bitrateKbps, it.mode) }.distinctUntilChanged().collect { encoderFailed.value = false }
         }
@@ -144,12 +151,14 @@ internal object SecondScreenController {
                 if (report == null) return@collect
                 // Frames the link could not take on this side count as dropped too.
                 val dropped = report.framesDropped + DisplayLink.takeRefusedFrames()
-                val next = SecondScreenRules.adaptBitrate(bitrateKbps, SecondScreenStore.config.value.bitrateKbps, report.framesShown, dropped)
-                if (next != bitrateKbps) {
-                    Log.i(TAG, "bitrate $bitrateKbps -> $next kbit/s ($dropped of ${report.framesShown + dropped} frames dropped)")
-                    bitrateKbps = next
-                    s.setBitrate(next)
+                val next = SecondScreenRules.adaptBitrate(
+                    bitrate, SecondScreenStore.config.value.bitrateKbps, report.framesShown, dropped, SystemClock.elapsedRealtime()
+                )
+                if (next.kbps != bitrate.kbps || next.ceilingKbps != bitrate.ceilingKbps) {
+                    Log.i(TAG, "bitrate ${bitrate.kbps} -> ${next.kbps} kbit/s, ceiling ${next.ceilingKbps} ($dropped of ${report.framesShown + dropped} frames dropped)")
                 }
+                if (next.kbps != bitrate.kbps) s.setBitrate(next.kbps)
+                bitrate = next
             }
         }
     }
@@ -221,7 +230,8 @@ internal object SecondScreenController {
                 tearDown()
                 stream = makeStream(w, h, fps, wanted.config.bitrateKbps) ?: return
                 streamShape = shape
-                bitrateKbps = wanted.config.bitrateKbps
+                bitrate = bitrate.restart(wanted.config.bitrateKbps)
+                if (bitrate.kbps != wanted.config.bitrateKbps) stream?.setBitrate(bitrate.kbps)
             }
         }
 
