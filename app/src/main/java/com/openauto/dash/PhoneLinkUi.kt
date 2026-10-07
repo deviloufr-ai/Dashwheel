@@ -310,6 +310,21 @@ internal fun PhonePane() {
 
     SettingsRow(Icons.Filled.AddLink, stringResource(R.string.phone_pair), stringResource(R.string.phone_pair_detail)) { pairing = true }
 
+    // The phone's GPS in place of this unit's ([PhoneGps]).
+    if (phones.isNotEmpty()) {
+        val useGps by PhoneGps.enabled.collectAsState()
+        val gpsInUse = PhoneGps.inUse.collectAsState().value
+        val gpsRefused by PhoneGps.refused.collectAsState()
+        val gpsDetail = when {
+            !useGps -> stringResource(R.string.phone_gps_detail)
+            gpsRefused -> stringResource(R.string.phone_gps_refused)
+            gpsInUse != null -> stringResource(R.string.phone_gps_in_use, gpsInUse.used)
+            state is PhoneLinkState.Connected -> stringResource(R.string.phone_gps_waiting)
+            else -> stringResource(R.string.phone_gps_detail)
+        }
+        SwitchRow(stringResource(R.string.phone_gps), gpsDetail, useGps) { PhoneGps.setEnabled(context, it) }
+    }
+
     // Calls show in their own window over other apps; without that, only over the launcher.
     val scope = rememberCoroutineScope()
     var overlayAllowed by remember { mutableStateOf(Settings.canDrawOverlays(context)) }

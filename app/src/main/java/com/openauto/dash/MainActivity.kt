@@ -159,6 +159,7 @@ class MainActivity : ComponentActivity() {
                 window.setBackgroundDrawable(null)
                 // Dials the paired phone whenever its hotspot is around, and shows its calls.
                 PhoneLink.start(this)
+                PhoneGps.start(this)
                 PhoneCallOverlay.start(this)
                 // The second screen (a Raspberry Pi on the same hotspot), when one is paired.
                 DisplayLink.start(this)

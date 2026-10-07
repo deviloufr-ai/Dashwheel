@@ -64,6 +64,7 @@ import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.LocalParking
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.QrCodeScanner
@@ -1014,15 +1015,18 @@ private class SetupChecks(
     val post: Boolean?,
     val calls: Boolean,
     val agenda: Boolean,
+    /** The phone's GPS for the car: location allowed all the time ([PhoneGpsShare]). */
+    val location: Boolean,
     val battery: Boolean,
     /** "On my way" texts: optional, so not counted as left to do. */
     val texts: Boolean,
     val askPost: () -> Unit,
     val askCalls: () -> Unit,
     val askAgenda: () -> Unit,
+    val askLocation: () -> Unit,
     val askTexts: () -> Unit
 ) {
-    private val checks: List<Boolean> get() = listOfNotNull(listener, post, calls, agenda, battery)
+    private val checks: List<Boolean> get() = listOfNotNull(listener, post, calls, agenda, location, battery)
 
     /** The steps that can be checked from here and are not done (the hotspot can't be). */
     val missing: Int get() = checks.count { !it }
@@ -1058,17 +1062,36 @@ private fun rememberSetupChecks(resumes: Int): SetupChecks {
         agendaGranted = it
         PhoneLists.recheck()
     }
+    var locationGranted by remember(resumes) { mutableStateOf(PhoneGpsShare.allowed(context)) }
+    // "All the time" is a second step Android only offers once the plain location is given.
+    val askBackground = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        locationGranted = PhoneGpsShare.allowed(context)
+        PhoneGpsShare.recheck(context)
+    }
+    val askForeground = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+        if (PhoneGpsShare.allowedWhileInUse(context)) {
+            ask(context, arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION)) { askBackground.launch(it.single()) }
+        }
+    }
     return SetupChecks(
         listener = listener,
         post = if (Build.VERSION.SDK_INT >= 33) postGranted else null,
         calls = callsGranted,
         agenda = agendaGranted,
+        location = locationGranted,
         battery = battery,
         texts = textsGranted,
         askTexts = { ask(context, arrayOf(Manifest.permission.SEND_SMS)) { askTexts.launch(it.single()) } },
         askPost = { ask(context, arrayOf(Manifest.permission.POST_NOTIFICATIONS)) { askPost.launch(it.single()) } },
         askCalls = { ask(context, CALL_PERMISSIONS) { askCalls.launch(it) } },
-        askAgenda = { ask(context, arrayOf(Manifest.permission.READ_CALENDAR)) { askAgenda.launch(it.single()) } }
+        askAgenda = { ask(context, arrayOf(Manifest.permission.READ_CALENDAR)) { askAgenda.launch(it.single()) } },
+        askLocation = {
+            if (PhoneGpsShare.allowedWhileInUse(context)) {
+                ask(context, arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION)) { askBackground.launch(it.single()) }
+            } else {
+                ask(context, LOCATION_PERMISSIONS) { askForeground.launch(it) }
+            }
+        }
     )
 }
 
@@ -1130,6 +1153,7 @@ private fun SetupPanel(setup: SetupChecks) {
                 setup.post?.let { add(StepInfo(Icons.Filled.NotificationsActive, R.string.step_post, R.string.step_post_detail, it, onFix = setup.askPost)) }
                 add(StepInfo(Icons.Filled.Call, R.string.step_calls, R.string.step_calls_detail, setup.calls, onFix = setup.askCalls))
                 add(StepInfo(Icons.Filled.Event, R.string.step_agenda, R.string.step_agenda_detail, setup.agenda, onFix = setup.askAgenda))
+                add(StepInfo(Icons.Filled.MyLocation, R.string.step_location, R.string.step_location_detail, setup.location, onFix = setup.askLocation))
                 add(StepInfo(Icons.Filled.BatteryFull, R.string.step_battery, R.string.step_battery_detail, setup.battery) {
                     open(context, Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:${context.packageName}")))
                 })
@@ -1201,6 +1225,9 @@ private val CALL_PERMISSIONS = arrayOf(
     Manifest.permission.ANSWER_PHONE_CALLS,
     Manifest.permission.CALL_PHONE
 )
+
+/** The plain location, asked before "all the time" ([PhoneGpsShare]). */
+private val LOCATION_PERMISSIONS = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
 
 private fun granted(context: Context, permission: String): Boolean =
     ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED

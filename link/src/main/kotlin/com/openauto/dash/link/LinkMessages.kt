@@ -492,6 +492,26 @@ data class NowPlaying(
 @SerialName("battery")
 data class PhoneBattery(val percent: Int, val charging: Boolean = false) : LinkMessage
 
+/**
+ * Phone → head unit, about once a second while linked: the phone's own GPS
+ * fix, for the head unit to use in place of its weaker receiver. [ageMs] is
+ * how old the fix was when sent (the two clocks differ, so no timestamp);
+ * [satellites] are the ones used in the fix, [seen] all in view.
+ */
+@Serializable
+@SerialName("phone_fix")
+data class PhoneFix(
+    val lat: Double,
+    val lng: Double,
+    val accuracyM: Float,
+    val ageMs: Long = 0,
+    val speedMps: Float? = null,
+    val bearingDeg: Float? = null,
+    val altitudeM: Double? = null,
+    val satellites: Int = 0,
+    val seen: Int = 0
+) : LinkMessage
+
 /** Phone → head unit: whether the [SendText] with [id] went. */
 @Serializable
 @SerialName("text_sent")

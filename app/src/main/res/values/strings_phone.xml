@@ -11,6 +11,11 @@
     <string name="phone_status_unpaired_detail">Pair your phone to see its messages here and answer them.</string>
     <string name="phone_pair">Pair a phone</string>
     <string name="phone_pair_detail">Shows the code to scan with Dashwheel Companion</string>
+    <string name="phone_gps">Use the phone\'s GPS</string>
+    <string name="phone_gps_detail">When the phone is linked, its GPS stands in for this unit\'s: more satellites, a position in seconds</string>
+    <string name="phone_gps_in_use">In use: %1$d satellites from the phone</string>
+    <string name="phone_gps_waiting">No position from the phone yet. In its companion app, allow Position for the car</string>
+    <string name="phone_gps_refused">This unit would not allow it. It needs root or the unit\'s ADB</string>
     <string name="phone_paired_on">Paired on %1$s</string>
     <string name="phone_unnamed">Phone</string>
     <string name="phone_forgotten">Removed on the phone: pair it again</string>

@@ -82,6 +82,8 @@
     <string name="place_unknown">Dieser Link sagt nicht, wo der Ort ist.</string>
     <string name="step_agenda">Kalender</string>
     <string name="step_agenda_detail">Zeigt deine nächsten Termine auf dem Bildschirm des Autos, mit Route zum Ort.</string>
+    <string name="step_location">Position für das Auto</string>
+    <string name="step_location_detail">Das Auto nutzt das GPS dieses Telefons und findet seine Position in Sekunden. Wählen Sie Immer zulassen.</string>
     <string name="status_unavailable">Die Verbindung konnte nicht starten</string>
     <string name="status_unavailable_detail">Teilen aus- und wieder einschalten. Klappt es weiter nicht, das Handy neu starten.</string>
     <string name="status_off_detail">Das Auto bekommt nichts von diesem Handy, bis du es wieder einschaltest.</string>

@@ -10,6 +10,11 @@
     <string name="phone_status_unpaired_detail">Sparuj telefon, aby widzieć tu jego wiadomości i na nie odpowiadać.</string>
     <string name="phone_pair">Sparuj telefon</string>
     <string name="phone_pair_detail">Pokazuje kod do zeskanowania w Dashwheel Companion</string>
+    <string name="phone_gps">Użyj GPS telefonu</string>
+    <string name="phone_gps_detail">Gdy telefon jest połączony, jego GPS zastępuje GPS urządzenia: więcej satelitów, pozycja w kilka sekund</string>
+    <string name="phone_gps_in_use">W użyciu: %1$d satelitów z telefonu</string>
+    <string name="phone_gps_waiting">Brak pozycji z telefonu. W jego aplikacji towarzyszącej zezwól na Pozycja dla auta</string>
+    <string name="phone_gps_refused">Urządzenie na to nie pozwala. Potrzebny root lub ADB urządzenia</string>
     <string name="phone_paired_on">Sparowano %1$s</string>
     <string name="phone_unnamed">Telefon</string>
     <string name="phone_forgotten">Usunięto w telefonie: sparuj ponownie</string>

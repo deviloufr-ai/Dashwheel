@@ -61,6 +61,7 @@
     <string name="widgets_switch_dnd">Niet storen</string>
     <string name="widgets_gps_fix">Signaal</string>
     <string name="widgets_gps_no_fix">Geen signaal</string>
+    <string name="widgets_gps_phone">Telefoon</string>
     <string name="widgets_gps_sats">%1$d van %2$d satellieten</string>
     <string name="widgets_gps_accuracy">Nauwkeurigheid</string>
     <string name="widgets_gps_altitude">Hoogte</string>

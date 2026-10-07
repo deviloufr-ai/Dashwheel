@@ -82,6 +82,8 @@
     <string name="place_unknown">Ce lien n\'indique pas où se trouve le lieu.</string>
     <string name="step_agenda">Agenda</string>
     <string name="step_agenda_detail">Affiche vos prochains rendez-vous sur l\'écran de la voiture, avec le guidage jusqu\'au lieu.</string>
+    <string name="step_location">Position pour la voiture</string>
+    <string name="step_location_detail">La voiture utilise le GPS de ce téléphone : elle se situe en quelques secondes. Choisissez Toujours autoriser.</string>
     <string name="status_unavailable">La liaison n\'a pas pu démarrer</string>
     <string name="status_unavailable_detail">Désactivez puis réactivez le partage. Si cela continue, redémarrez le téléphone.</string>
     <string name="status_off_detail">La voiture ne reçoit rien de ce téléphone tant que le partage est coupé.</string>

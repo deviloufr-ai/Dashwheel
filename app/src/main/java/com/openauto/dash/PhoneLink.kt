@@ -38,6 +38,7 @@ import com.openauto.dash.link.ObdRx
 import com.openauto.dash.link.NowPlaying
 import com.openauto.dash.link.PhoneAbilities
 import com.openauto.dash.link.PhoneBattery
+import com.openauto.dash.link.PhoneFix
 import com.openauto.dash.link.SendText
 import com.openauto.dash.link.CarLog
 import com.openauto.dash.link.CarLogAck
@@ -496,6 +497,7 @@ object PhoneLink {
             _textsOn.value = false
             HeadUnitMedia.phoneGone()
             _battery.value = null
+            PhoneGps.linkDown()
         }
     }
 
@@ -581,6 +583,7 @@ object PhoneLink {
             is CarLookPart -> MyCarLook.receive(context, message) { send(it) }
             is NowPlaying -> HeadUnitMedia.fromPhone(message)
             is PhoneBattery -> _battery.value = message
+            is PhoneFix -> PhoneGps.feed(message)
             // The phone scanned a second-screen display's code for this car.
             is DisplayPair -> DisplayLink.pair(context, message.uri)
             else -> Unit

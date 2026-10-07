@@ -82,6 +82,8 @@
     <string name="place_unknown">Deze link zegt niet waar de plek is.</string>
     <string name="step_agenda">Agenda</string>
     <string name="step_agenda_detail">Toont je volgende afspraken op het scherm van de auto, met de route naar de plek.</string>
+    <string name="step_location">Positie voor de auto</string>
+    <string name="step_location_detail">De auto gebruikt de gps van deze telefoon en weet binnen seconden waar hij is. Kies Altijd toestaan.</string>
     <string name="status_unavailable">De verbinding kon niet starten</string>
     <string name="status_unavailable_detail">Zet delen uit en weer aan. Lukt het nog steeds niet, herstart dan de telefoon.</string>
     <string name="status_off_detail">De auto krijgt niets van deze telefoon tot je het weer aanzet.</string>

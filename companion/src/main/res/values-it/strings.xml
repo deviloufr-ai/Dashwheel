@@ -82,6 +82,8 @@
     <string name="place_unknown">Questo link non dice dove si trova il luogo.</string>
     <string name="step_agenda">Agenda</string>
     <string name="step_agenda_detail">Mostra i tuoi prossimi eventi sullo schermo dell\'auto, con la guida fino al luogo.</string>
+    <string name="step_location">Posizione per l\'auto</string>
+    <string name="step_location_detail">L\'auto usa il GPS di questo telefono: trova la posizione in pochi secondi. Scegli Consenti sempre.</string>
     <string name="status_unavailable">Il collegamento non è partito</string>
     <string name="status_unavailable_detail">Disattiva e riattiva la condivisione. Se non basta, riavvia il telefono.</string>
     <string name="status_off_detail">L\'auto non riceve nulla da questo telefono finché non la riattivi.</string>

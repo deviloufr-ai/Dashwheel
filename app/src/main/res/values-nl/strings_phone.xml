@@ -10,6 +10,11 @@
     <string name="phone_status_unpaired_detail">Koppel je telefoon om de berichten hier te zien en te beantwoorden.</string>
     <string name="phone_pair">Telefoon koppelen</string>
     <string name="phone_pair_detail">Toont de code om te scannen met Dashwheel Companion</string>
+    <string name="phone_gps">Gps van de telefoon gebruiken</string>
+    <string name="phone_gps_detail">Is de telefoon verbonden, dan vervangt zijn gps die van het toestel: meer satellieten, positie in seconden</string>
+    <string name="phone_gps_in_use">In gebruik: %1$d satellieten van de telefoon</string>
+    <string name="phone_gps_waiting">Nog geen positie van de telefoon. Sta in zijn companion-app Positie voor de auto toe</string>
+    <string name="phone_gps_refused">Het toestel staat het niet toe. Root of de ADB van het toestel nodig</string>
     <string name="phone_paired_on">Gekoppeld op %1$s</string>
     <string name="phone_unnamed">Telefoon</string>
     <string name="phone_forgotten">Verwijderd op de telefoon: koppel opnieuw</string>

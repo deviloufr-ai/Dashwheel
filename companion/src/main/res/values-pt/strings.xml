@@ -82,6 +82,8 @@
     <string name="place_unknown">Esta ligação não indica onde fica o local.</string>
     <string name="step_agenda">Agenda</string>
     <string name="step_agenda_detail">Mostra os seus próximos eventos no ecrã do carro, com a rota até ao local.</string>
+    <string name="step_location">Posição para o carro</string>
+    <string name="step_location_detail">O carro usa o GPS deste telemóvel: encontra a posição em segundos. Escolha Permitir sempre.</string>
     <string name="status_unavailable">Não foi possível iniciar a ligação</string>
     <string name="status_unavailable_detail">Desative e volte a ativar a partilha. Se continuar a falhar, reinicie o telemóvel.</string>
     <string name="status_off_detail">O carro não recebe nada deste telemóvel até voltar a ativar.</string>

@@ -61,6 +61,7 @@
     <string name="widgets_switch_dnd">No molestar</string>
     <string name="widgets_gps_fix">Señal</string>
     <string name="widgets_gps_no_fix">Sin señal</string>
+    <string name="widgets_gps_phone">Teléfono</string>
     <string name="widgets_gps_sats">%1$d de %2$d satélites</string>
     <string name="widgets_gps_accuracy">Precisión</string>
     <string name="widgets_gps_altitude">Altitud</string>

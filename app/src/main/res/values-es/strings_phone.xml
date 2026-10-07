@@ -10,6 +10,11 @@
     <string name="phone_status_unpaired_detail">Vincula tu teléfono para ver aquí sus mensajes y responderlos.</string>
     <string name="phone_pair">Vincular un teléfono</string>
     <string name="phone_pair_detail">Muestra el código para escanear con Dashwheel Compañero</string>
+    <string name="phone_gps">Usar el GPS del teléfono</string>
+    <string name="phone_gps_detail">Con el teléfono enlazado, su GPS sustituye al de la unidad: más satélites, posición en segundos</string>
+    <string name="phone_gps_in_use">En uso: %1$d satélites del teléfono</string>
+    <string name="phone_gps_waiting">Aún no hay posición del teléfono. En su app complementaria, permite Posición para el coche</string>
+    <string name="phone_gps_refused">La unidad no lo permite. Necesita root o el ADB de la unidad</string>
     <string name="phone_paired_on">Vinculado el %1$s</string>
     <string name="phone_unnamed">Teléfono</string>
     <string name="phone_forgotten">Quitado en el teléfono: vuelve a vincularlo</string>

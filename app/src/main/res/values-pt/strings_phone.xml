@@ -10,6 +10,11 @@
     <string name="phone_status_unpaired_detail">Associe o telefone para ver aqui as mensagens e responder.</string>
     <string name="phone_pair">Associar um telefone</string>
     <string name="phone_pair_detail">Mostra o código a ler com o Dashwheel Companheiro</string>
+    <string name="phone_gps">Usar o GPS do telemóvel</string>
+    <string name="phone_gps_detail">Com o telemóvel ligado, o seu GPS substitui o da unidade: mais satélites, posição em segundos</string>
+    <string name="phone_gps_in_use">Em uso: %1$d satélites do telemóvel</string>
+    <string name="phone_gps_waiting">Ainda sem posição do telemóvel. Na sua app companheira, permita Posição para o carro</string>
+    <string name="phone_gps_refused">A unidade não o permite. Precisa de root ou do ADB da unidade</string>
     <string name="phone_paired_on">Associado em %1$s</string>
     <string name="phone_unnamed">Telefone</string>
     <string name="phone_forgotten">Removido no telefone: associe-o novamente</string>

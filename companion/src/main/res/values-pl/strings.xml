@@ -82,6 +82,8 @@
     <string name="place_unknown">Ten link nie mówi, gdzie jest to miejsce.</string>
     <string name="step_agenda">Terminarz</string>
     <string name="step_agenda_detail">Pokazuje najbliższe wydarzenia na ekranie auta, z trasą do miejsca.</string>
+    <string name="step_location">Pozycja dla auta</string>
+    <string name="step_location_detail">Auto korzysta z GPS tego telefonu i ustala pozycję w kilka sekund. Wybierz Zezwalaj zawsze.</string>
     <string name="status_unavailable">Nie udało się uruchomić połączenia</string>
     <string name="status_unavailable_detail">Wyłącz i włącz udostępnianie. Jeśli dalej nie działa, uruchom telefon ponownie.</string>
     <string name="status_off_detail">Auto nie dostaje nic z tego telefonu, dopóki go nie włączysz.</string>

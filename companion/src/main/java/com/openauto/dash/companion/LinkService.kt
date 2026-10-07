@@ -22,7 +22,8 @@ import kotlinx.coroutines.launch
  * service with a quiet, permanent notification saying whether the car is
  * connected. Runs only while sharing is on and at least one car is paired.
  * Also follows the phone calls ([PhoneCalls]), and the favourites, call log
- * and calendar ([PhoneLists]), for as long as it runs.
+ * and calendar ([PhoneLists]), and shares the GPS with a linked car
+ * ([PhoneGpsShare]), for as long as it runs.
  */
 class LinkService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -51,6 +52,7 @@ class LinkService : Service() {
         PhoneLists.start(this)
         PhoneMedia.start(this)
         PhoneBatteryWatch.start(this)
+        PhoneGpsShare.start(this)
         // The app is seldom opened once set up: sharing starting is the other time to look for a new build.
         CompanionUpdate.check(this)
         scope.launch {
@@ -75,6 +77,7 @@ class LinkService : Service() {
         PhoneLists.stop(this)
         PhoneMedia.stop()
         PhoneBatteryWatch.stop()
+        PhoneGpsShare.stop()
         LinkServer.stop()
         super.onDestroy()
     }

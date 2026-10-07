@@ -52,6 +52,9 @@ private fun rememberSatellites(granted: Boolean): Pair<Int, Int> {
         if (granted) runCatching { lm?.registerGnssStatusCallback(callback, Handler(Looper.getMainLooper())) }
         onDispose { runCatching { lm?.unregisterGnssStatusCallback(callback) } }
     }
+    // The phone's GPS standing in ([PhoneGps]): its satellites, not this unit's idle receiver.
+    val phone by PhoneGps.inUse.collectAsState()
+    phone?.let { return it.seen to it.used }
     return seen to used
 }
 
@@ -70,8 +73,9 @@ internal fun GpsStatusCard(modifier: Modifier = Modifier) {
     Card(modifier = modifier) {
         Column(modifier = Modifier.fillMaxSize().padding(DashSpace.Lg), verticalArrangement = Arrangement.SpaceBetween) {
             TileHeader(stringResource(R.string.widgets_gps)) {
+                val fromPhone by PhoneGps.inUse.collectAsState()
                 Text(
-                    stringResource(if (fixed) R.string.widgets_gps_fix else R.string.widgets_gps_no_fix),
+                    stringResource(if (!fixed) R.string.widgets_gps_no_fix else if (fromPhone != null) R.string.widgets_gps_phone else R.string.widgets_gps_fix),
                     color = if (fixed) DashColors.Good else DashColors.Warning, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge
                 )
             }

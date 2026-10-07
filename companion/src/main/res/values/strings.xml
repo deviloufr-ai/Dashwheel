@@ -83,6 +83,8 @@
     <string name="place_unknown">This link does not say where the place is.</string>
     <string name="step_agenda">Agenda</string>
     <string name="step_agenda_detail">Shows your next events on the car\'s screen, with guidance to where they are.</string>
+    <string name="step_location">Position for the car</string>
+    <string name="step_location_detail">The car uses this phone\'s GPS: it finds its place in seconds. Choose Allow all the time.</string>
     <string name="status_unavailable">The link could not start</string>
     <string name="status_unavailable_detail">Turn sharing off and on again. If it keeps failing, restart the phone.</string>
     <string name="status_off_detail">The car gets nothing from this phone until you switch it back on.</string>

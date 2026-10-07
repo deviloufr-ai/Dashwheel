@@ -82,6 +82,8 @@
     <string name="place_unknown">Este enlace no indica dónde está el lugar.</string>
     <string name="step_agenda">Agenda</string>
     <string name="step_agenda_detail">Muestra tus próximos eventos en la pantalla del coche, con la ruta hasta el lugar.</string>
+    <string name="step_location">Posición para el coche</string>
+    <string name="step_location_detail">El coche usa el GPS de este teléfono: se ubica en segundos. Elige Permitir todo el tiempo.</string>
     <string name="status_unavailable">No se pudo iniciar la conexión</string>
     <string name="status_unavailable_detail">Desactiva y vuelve a activar el uso compartido. Si sigue fallando, reinicia el teléfono.</string>
     <string name="status_off_detail">El coche no recibe nada de este teléfono hasta que lo vuelvas a activar.</string>

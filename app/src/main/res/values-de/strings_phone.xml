@@ -10,6 +10,11 @@
     <string name="phone_status_unpaired_detail">Kopple dein Telefon, um seine Nachrichten hier zu sehen und zu beantworten.</string>
     <string name="phone_pair">Telefon koppeln</string>
     <string name="phone_pair_detail">Zeigt den Code zum Scannen mit Dashwheel Begleiter</string>
+    <string name="phone_gps">GPS des Telefons nutzen</string>
+    <string name="phone_gps_detail">Ist das Telefon verbunden, ersetzt sein GPS das des Geräts: mehr Satelliten, Position in Sekunden</string>
+    <string name="phone_gps_in_use">Aktiv: %1$d Satelliten vom Telefon</string>
+    <string name="phone_gps_waiting">Noch keine Position vom Telefon. In seiner Begleit-App Position für das Auto erlauben</string>
+    <string name="phone_gps_refused">Das Gerät erlaubt es nicht. Root oder das ADB des Geräts nötig</string>
     <string name="phone_paired_on">Gekoppelt am %1$s</string>
     <string name="phone_unnamed">Telefon</string>
     <string name="phone_forgotten">Auf dem Telefon entfernt: erneut koppeln</string>
