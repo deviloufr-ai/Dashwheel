@@ -27,8 +27,9 @@ import java.util.concurrent.TimeUnit
  *
  * The frames stay on the graphics chip (an external texture drawn into each
  * picture), so a copy costs a draw, not a copy through memory. The tile gets
- * the frame as it is; a copy of another shape gets it cropped to fill, from
- * the middle.
+ * the frame as it is; a copy of another shape gets all of it, fitted inside
+ * with black bars: cropped to fill, the second screen's Maps lost its next
+ * turn at the top and its arrival time at the bottom.
  *
  * Everything GL lives on the relay's own thread. The calls below come from the
  * main thread and wait for the relay to let go of a picture before they
@@ -54,8 +55,8 @@ internal class PictureRelay {
     @Volatile private var inputHeight = 0
     private val transform = FloatArray(16)
 
-    /** A picture drawn on: its window surface once connected, and whether the frame is cropped to fill it. */
-    private class Output(val surface: Surface, val crop: Boolean) {
+    /** A picture drawn on: its window surface once connected, and whether the frame is fitted inside it. */
+    private class Output(val surface: Surface, val fit: Boolean) {
         var egl: EGLSurface = EGL14.EGL_NO_SURFACE
     }
 
@@ -95,13 +96,13 @@ internal class PictureRelay {
         if (tile?.surface === surface) return
         onRelay {
             tile?.let { drop(it) }
-            tile = surface?.let { Output(it, crop = false) }
+            tile = surface?.let { Output(it, fit = false) }
             tile?.let { showLast(it) }
         }
     }
 
     fun addCopy(surface: Surface) = onRelay {
-        if (copies.none { it.surface === surface }) copies += Output(surface, crop = true).also { showLast(it) }
+        if (copies.none { it.surface === surface }) copies += Output(surface, fit = true).also { showLast(it) }
     }
 
     fun removeCopy(surface: Surface) = onRelay {
@@ -252,9 +253,12 @@ internal class PictureRelay {
         val (w, h) = size[0] to size[1]
         if (w <= 0 || h <= 0) return
         GLES20.glViewport(0, 0, w, h)
+        // The bars around a fitted frame.
+        GLES20.glClearColor(0f, 0f, 0f, 1f)
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
         GLES20.glUseProgram(program)
-        val (sx, sy) = if (out.crop) cropScale(inputWidth, inputHeight, w, h) else 1f to 1f
-        GLES20.glUniform2f(GLES20.glGetUniformLocation(program, "uScale"), sx, sy)
+        val (sx, sy) = if (out.fit) fitScale(inputWidth, inputHeight, w, h) else 1f to 1f
+        GLES20.glUniform2f(GLES20.glGetUniformLocation(program, "uFit"), sx, sy)
         GLES20.glUniformMatrix4fv(GLES20.glGetUniformLocation(program, "uST"), 1, false, transform, 0)
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, texture)
@@ -281,15 +285,15 @@ internal class PictureRelay {
         private const val TAG = "PictureRelay"
 
         /**
-         * How much of the frame a [outW] x [outH] picture shows, per axis, to
-         * be filled by a [inW] x [inH] frame cropped from the middle: 1 on one
-         * axis, less than 1 on the other.
+         * How much of a [outW] x [outH] picture a whole [inW] x [inH] frame
+         * covers, per axis, fitted in the middle: 1 on one axis, less than 1
+         * on the other, where the bars go.
          */
-        fun cropScale(inW: Int, inH: Int, outW: Int, outH: Int): Pair<Float, Float> {
+        fun fitScale(inW: Int, inH: Int, outW: Int, outH: Int): Pair<Float, Float> {
             if (inW <= 0 || inH <= 0 || outW <= 0 || outH <= 0) return 1f to 1f
             val frame = inW.toFloat() / inH
             val picture = outW.toFloat() / outH
-            return if (picture > frame) 1f to frame / picture else picture / frame to 1f
+            return if (picture > frame) frame / picture to 1f else 1f to picture / frame
         }
 
         private val QUAD: FloatBuffer = ByteBuffer.allocateDirect(8 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer().apply {
@@ -300,12 +304,12 @@ internal class PictureRelay {
         private const val VERTEX = """
             attribute vec2 aPos;
             uniform mat4 uST;
-            uniform vec2 uScale;
+            uniform vec2 uFit;
             varying vec2 vTex;
             void main() {
-                vec2 tex = (aPos * 0.5) * uScale + 0.5;
+                vec2 tex = aPos * 0.5 + 0.5;
                 vTex = (uST * vec4(tex, 0.0, 1.0)).xy;
-                gl_Position = vec4(aPos, 0.0, 1.0);
+                gl_Position = vec4(aPos * uFit, 0.0, 1.0);
             }
         """
 

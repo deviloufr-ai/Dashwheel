@@ -74,10 +74,10 @@ class ClusterLayoutsTest {
     }
 
     @Test
-    fun aCopyIsCroppedToFillItsSlot() {
-        // A wide slot shows the frame's full width and its middle band.
-        assertEquals(1f to 0.5f, PictureRelay.cropScale(800, 600, 1600, 600).let { it.first to Math.round(it.second * 100) / 100f })
-        assertEquals(0.5f to 1f, PictureRelay.cropScale(1600, 600, 800, 600))
-        assertEquals(1f to 1f, PictureRelay.cropScale(0, 0, 100, 100))
+    fun aCopyShowsTheWholeFrameInItsSlot() {
+        // A wide slot: the frame's full height, bars left and right; a narrow one: bars above and below.
+        assertEquals(0.5f to 1f, PictureRelay.fitScale(800, 600, 1600, 600))
+        assertEquals(1f to 0.5f, PictureRelay.fitScale(1600, 600, 800, 600))
+        assertEquals(1f to 1f, PictureRelay.fitScale(0, 0, 100, 100))
     }
 }
