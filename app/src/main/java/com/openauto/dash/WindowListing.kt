@@ -77,14 +77,14 @@ object WindowListing {
         return insideX && insideY && w / tw in 0.6f..1.4f
     }
 
-    internal fun parseFloatingWindow(output: String, selfPackage: String = "com.openauto.dash", packageName: String? = null): FloatingWindow? {
+    internal fun parseFloatingWindow(output: String, selfPackage: String = BuildConfig.APPLICATION_ID, packageName: String? = null): FloatingWindow? {
         val found = allFloatingWindows(output, selfPackage).filter { packageName == null || it.packageName == packageName }
         // A freeform window carries the full app UI; prefer it over a PiP.
         return found.firstOrNull { it.mode == "freeform" } ?: found.firstOrNull()
     }
 
     /** Every pinned or freeform window in the listing, front to back, ours excluded. */
-    internal fun allFloatingWindows(output: String, selfPackage: String = "com.openauto.dash"): List<FloatingWindow> {
+    internal fun allFloatingWindows(output: String, selfPackage: String = BuildConfig.APPLICATION_ID): List<FloatingWindow> {
         val found = mutableListOf<FloatingWindow>()
         // `am stack list` is ordered front to back: the dashboard's own stack
         // appearing before the window's means the dashboard is drawn over it.
@@ -138,7 +138,7 @@ object WindowListing {
      * still running. Null when the listing has no such stack (the Home stack
      * never counts: it only takes home activities).
      */
-    internal fun fullscreenStackId(output: String, selfPackage: String = "com.openauto.dash"): Int? {
+    internal fun fullscreenStackId(output: String, selfPackage: String = BuildConfig.APPLICATION_ID): Int? {
         val blocks = stackBlocks(output)
         val selfDisplay = blocks.firstOrNull { TASK.find(it)?.groupValues?.get(2) == selfPackage }
             ?.let { displayId(it) } ?: DEFAULT_DISPLAY
@@ -169,7 +169,7 @@ object WindowListing {
      * included; null otherwise. Floating windows above it do not count: they
      * never hide the dashboard.
      */
-    internal fun fullscreenInFront(output: String, packageName: String, selfPackage: String = "com.openauto.dash"): FloatingWindow? {
+    internal fun fullscreenInFront(output: String, packageName: String, selfPackage: String = BuildConfig.APPLICATION_ID): FloatingWindow? {
         val blocks = stackBlocks(output)
         val selfDisplay = blocks.firstOrNull { TASK.find(it)?.groupValues?.get(2) == selfPackage }
             ?.let { displayId(it) } ?: DEFAULT_DISPLAY

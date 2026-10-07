@@ -33,7 +33,7 @@ class ReviewFixesTest {
 
     @Test
     fun onlyAPlainPolicyReachesTheShell() {
-        assertTrue(isPlainPolicy("immersive.navigation=com.google.android.apps.maps,com.openauto.dash"))
+        assertTrue(isPlainPolicy("immersive.navigation=com.google.android.apps.maps,io.github.deviloufr.dashwheel"))
         assertTrue(isPlainPolicy("immersive.full=apps,-com.example.app"))
         assertTrue(isPlainPolicy("immersive.status=*"))
         assertFalse(isPlainPolicy(""))

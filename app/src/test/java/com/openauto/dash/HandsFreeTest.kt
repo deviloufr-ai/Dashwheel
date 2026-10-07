@@ -64,7 +64,7 @@ class HandsFreeTest {
         assertEquals(listOf(NavHandoff.WAZE, NavHandoff.MAPS), NavHandoff.order(NavHandoff.WAZE, mapsInstalled = true, wazeInstalled = true))
         assertEquals(listOf(NavHandoff.MAPS, NavHandoff.WAZE), NavHandoff.order(null, mapsInstalled = true, wazeInstalled = true))
         // A NAVI key set to an app that takes no destination changes nothing.
-        assertEquals(listOf(NavHandoff.MAPS, NavHandoff.WAZE), NavHandoff.order("com.openauto.dash", mapsInstalled = true, wazeInstalled = true))
+        assertEquals(listOf(NavHandoff.MAPS, NavHandoff.WAZE), NavHandoff.order("io.github.deviloufr.dashwheel", mapsInstalled = true, wazeInstalled = true))
         assertEquals(listOf(NavHandoff.WAZE), NavHandoff.order(NavHandoff.MAPS, mapsInstalled = false, wazeInstalled = true))
         assertTrue(NavHandoff.order(null, mapsInstalled = false, wazeInstalled = false).isEmpty())
     }

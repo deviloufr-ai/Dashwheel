@@ -137,7 +137,7 @@ class SecondScreenRulesTest {
         val listing = """
             Stack id=0 bounds=[0,0][1280,720] displayId=0 userId=0
              configuration={... mWindowingMode=fullscreen mActivityType=home ...}
-              taskId=2: com.openauto.dash/com.openauto.dash.MainActivity bounds=[0,0][1280,720] userId=0 visible=true
+              taskId=2: io.github.deviloufr.dashwheel/com.openauto.dash.MainActivity bounds=[0,0][1280,720] userId=0 visible=true
             Stack id=7 bounds=[640,80][1240,660] displayId=0 userId=0
              configuration={ winConfig={ mWindowingMode=freeform mActivityType=standard} }
               taskId=63: com.google.android.apps.maps/com.google.android.maps.MapsActivity bounds=[640,80][1240,660] userId=0 visible=true
@@ -149,7 +149,7 @@ class SecondScreenRulesTest {
         assertEquals(12 to 5, WindowListing.stackOf(listing, "com.spotify.music"))
         assertNull(WindowListing.stackOf(listing, "com.waze"))
         // The launcher's own home stack is never one to move.
-        assertNull(WindowListing.stackOf(listing, "com.openauto.dash"))
+        assertNull(WindowListing.stackOf(listing, "io.github.deviloufr.dashwheel"))
     }
 
     @Test

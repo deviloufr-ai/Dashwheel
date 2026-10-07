@@ -27,7 +27,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.openauto.dash"
+        applicationId = "io.github.deviloufr.dashwheel"
         minSdk = 29
         targetSdk = 35
         // Version is driven by CI (the Actions run number) so each build is

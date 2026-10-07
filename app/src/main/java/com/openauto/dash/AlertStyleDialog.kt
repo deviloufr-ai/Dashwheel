@@ -108,7 +108,7 @@ internal fun AlertStyleRows() {
 }
 
 /** One command from a PC that lets Dashwheel write the car app's settings without root. */
-private const val GRANT_COMMAND = "adb shell pm grant com.openauto.dash android.permission.WRITE_SECURE_SETTINGS"
+private const val GRANT_COMMAND = "adb shell pm grant ${BuildConfig.APPLICATION_ID} android.permission.WRITE_SECURE_SETTINGS"
 
 /** The switch that turns [this] alert on, in [RomPopups]; none for Gemini Live, opened by the driver. */
 private val AlertKind.romKind: RomPopups.Kind? get() = if (this == AlertKind.GEMINI) null else RomPopups.Kind.valueOf(name)

@@ -64,7 +64,7 @@
 
     <!-- The car app's switches in the global settings (RomPopups.writeGlobals)
          without root or the unit's ADB: granted once from a PC with
-         "adb shell pm grant com.openauto.dash android.permission.WRITE_SECURE_SETTINGS". -->
+         "adb shell pm grant io.github.deviloufr.dashwheel android.permission.WRITE_SECURE_SETTINGS". -->
     <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" tools:ignore="ProtectedPermissions" />
     <!-- The car app's log, where it writes the steering angle once its own guide lines are hidden (ReverseView). Granted through the root shell. -->
     <uses-permission android:name="android.permission.READ_LOGS" tools:ignore="ProtectedPermissions" />

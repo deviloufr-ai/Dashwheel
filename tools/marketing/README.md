@@ -19,7 +19,7 @@ An API 29 x86_64 AVD at 1280x720, 160 dpi (the head unit). Before capturing:
 ```bash
 adb -s emulator-5580 shell settings put secure immersive_mode_confirmations confirmed
 adb -s emulator-5580 root && adb -s emulator-5580 shell "date 092719052026.00"
-adb -s emulator-5580 shell appops set com.openauto.dash SYSTEM_ALERT_WINDOW allow
+adb -s emulator-5580 shell appops set io.github.deviloufr.dashwheel SYSTEM_ALERT_WINDOW allow
 ```
 
 ## 3. Captures

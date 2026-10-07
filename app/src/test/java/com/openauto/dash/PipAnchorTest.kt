@@ -12,7 +12,7 @@ class PipAnchorTest {
     private val android10 = """
         Stack id=1 bounds=[0,0][1280,720] displayId=0 userId=0
          configuration={1.0 ?mcc?mnc [fr_FR] ldltr sw720dp w1280dp h672dp 160dpi lrg long land finger -keyb/v/h -nav/h winConfig={ mBounds=Rect(0, 0 - 1280, 720) mAppBounds=Rect(0, 0 - 1280, 672) mWindowingMode=fullscreen mActivityType=standard} s.12}
-          taskId=41: com.openauto.dash/com.openauto.dash.MainActivity bounds=[0,0][1280,720] userId=0 visible=true topActivity=ComponentInfo{com.openauto.dash/com.openauto.dash.MainActivity}
+          taskId=41: io.github.deviloufr.dashwheel/com.openauto.dash.MainActivity bounds=[0,0][1280,720] userId=0 visible=true topActivity=ComponentInfo{io.github.deviloufr.dashwheel/com.openauto.dash.MainActivity}
         Stack id=3 bounds=[960,420][1264,608] displayId=0 userId=0
          configuration={1.0 ?mcc?mnc [fr_FR] ldltr sw720dp w1280dp h672dp 160dpi lrg long land finger -keyb/v/h -nav/h winConfig={ mBounds=Rect(960, 420 - 1264, 608) mAppBounds=Rect(960, 420 - 1264, 608) mWindowingMode=pinned mActivityType=standard} s.6}
           taskId=57: com.google.android.apps.maps/com.google.android.maps.MapsActivity bounds=[960,420][1264,608] userId=0 visible=true topActivity=ComponentInfo{com.google.android.apps.maps/com.google.android.maps.MapsActivity}
@@ -44,7 +44,7 @@ class PipAnchorTest {
         val freeform = """
             Stack id=1 bounds=[0,0][1280,720] displayId=0 userId=0
              configuration={ winConfig={ mWindowingMode=fullscreen mActivityType=standard} }
-              taskId=41: com.openauto.dash/com.openauto.dash.MainActivity bounds=[0,0][1280,720] userId=0 visible=true
+              taskId=41: io.github.deviloufr.dashwheel/com.openauto.dash.MainActivity bounds=[0,0][1280,720] userId=0 visible=true
             Stack id=7 bounds=[640,80][1240,660] displayId=0 userId=0
              configuration={ winConfig={ mWindowingMode=freeform mActivityType=standard} }
               taskId=63: com.google.android.apps.maps/com.google.android.maps.MapsActivity bounds=[640,80][1240,660] userId=0 visible=true
@@ -84,7 +84,7 @@ class PipAnchorTest {
         val hiddenOnly = """
             Stack id=0 bounds=[0,0][1280,720] displayId=0 userId=0
              configuration={... mWindowingMode=fullscreen mActivityType=home ...}
-              taskId=2: com.openauto.dash/com.openauto.dash.MainActivity bounds=[0,0][1280,720] userId=0 visible=true
+              taskId=2: io.github.deviloufr.dashwheel/com.openauto.dash.MainActivity bounds=[0,0][1280,720] userId=0 visible=true
             Stack id=9 bounds=[0,0][1280,720] displayId=3 userId=0
              configuration={ winConfig={ mWindowingMode=fullscreen mActivityType=standard} }
               taskId=70: com.android.chrome/com.google.android.apps.chrome.Main bounds=[0,0][1280,720] userId=0 visible=true
@@ -98,7 +98,7 @@ class PipAnchorTest {
         val listing = """
             Stack id=0 bounds=[0,0][1280,720] displayId=0 userId=0
              configuration={... mWindowingMode=fullscreen mActivityType=home ...}
-              taskId=2: com.openauto.dash/com.openauto.dash.MainActivity bounds=[0,0][1280,720] userId=0 visible=true
+              taskId=2: io.github.deviloufr.dashwheel/com.openauto.dash.MainActivity bounds=[0,0][1280,720] userId=0 visible=true
             Stack id=12 bounds=[0,0][640,560] displayId=5 userId=0
              configuration={ winConfig={ mWindowingMode=freeform mActivityType=standard} }
               taskId=80: com.google.android.apps.maps/com.google.android.maps.MapsActivity bounds=[0,0][640,560] userId=0 visible=true
@@ -119,7 +119,7 @@ class PipAnchorTest {
         val listing = """
             Stack id=0 bounds=[0,0][1280,720] displayId=0 userId=0
              configuration={... mWindowingMode=fullscreen mActivityType=home ...}
-              taskId=2: com.openauto.dash/com.openauto.dash.MainActivity bounds=[0,0][1280,720] userId=0 visible=true
+              taskId=2: io.github.deviloufr.dashwheel/com.openauto.dash.MainActivity bounds=[0,0][1280,720] userId=0 visible=true
             Stack id=7 bounds=[0,0][1280,720] displayId=0 userId=0
              configuration={ winConfig={ mWindowingMode=freeform mActivityType=standard} }
               taskId=63: com.google.android.apps.maps/com.google.android.maps.MapsActivity bounds=[20,80][640,760] userId=0 visible=true
@@ -160,7 +160,7 @@ class PipAnchorTest {
           taskId=80: com.google.android.apps.maps/com.google.android.maps.MapsActivity bounds=[0,0][1280,720] userId=0 visible=true
         Stack id=0 bounds=[0,0][1280,720] displayId=0 userId=0
          configuration={... mWindowingMode=fullscreen mActivityType=home ...}
-          taskId=2: com.openauto.dash/com.openauto.dash.MainActivity bounds=[0,0][1280,720] userId=0 visible=false
+          taskId=2: io.github.deviloufr.dashwheel/com.openauto.dash.MainActivity bounds=[0,0][1280,720] userId=0 visible=false
     """.trimIndent()
 
     @Test
@@ -178,7 +178,7 @@ class PipAnchorTest {
         val behind = """
             Stack id=0 bounds=[0,0][1280,720] displayId=0 userId=0
              configuration={... mWindowingMode=fullscreen mActivityType=home ...}
-              taskId=2: com.openauto.dash/com.openauto.dash.MainActivity bounds=[0,0][1280,720] userId=0 visible=true
+              taskId=2: io.github.deviloufr.dashwheel/com.openauto.dash.MainActivity bounds=[0,0][1280,720] userId=0 visible=true
             Stack id=12 bounds=[0,0][1280,720] displayId=0 userId=0
              configuration={ winConfig={ mWindowingMode=fullscreen mActivityType=standard} }
               taskId=80: com.google.android.apps.maps/com.google.android.maps.MapsActivity bounds=[0,0][1280,720] userId=0 visible=false
@@ -296,7 +296,7 @@ class PipAnchorTest {
         val dash = """
             Stack id=1 bounds=[0,0][1280,720] displayId=0 userId=0
              configuration={ winConfig={ mWindowingMode=fullscreen mActivityType=standard} }
-              taskId=41: com.openauto.dash/com.openauto.dash.MainActivity bounds=[0,0][1280,720] userId=0 visible=true
+              taskId=41: io.github.deviloufr.dashwheel/com.openauto.dash.MainActivity bounds=[0,0][1280,720] userId=0 visible=true
         """.trimIndent()
         val maps = """
             Stack id=7 bounds=[0,0][1280,720] displayId=0 userId=0
@@ -314,7 +314,7 @@ class PipAnchorTest {
         val listing = """
             Stack id=1 bounds=[0,0][1280,720] displayId=0 userId=0
              configuration={ winConfig={ mWindowingMode=fullscreen mActivityType=standard} }
-              taskId=41: com.openauto.dash/com.openauto.dash.MainActivity bounds=[0,0][1280,720] userId=0 visible=true
+              taskId=41: io.github.deviloufr.dashwheel/com.openauto.dash.MainActivity bounds=[0,0][1280,720] userId=0 visible=true
             Stack id=8 bounds=[0,0][1280,720] displayId=0 userId=0
              configuration={ winConfig={ mWindowingMode=freeform mActivityType=standard} }
               taskId=64: com.google.android.apps.youtube.music/.MusicActivity bounds=[640,80][1280,660] userId=0 visible=true

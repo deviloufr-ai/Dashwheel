@@ -18,8 +18,8 @@ class BeltAndNavBarTest {
     @Test
     fun navigationBarPolicyListsTheDockedAppsAndDashwheel() {
         assertEquals(
-            "immersive.navigation=com.google.android.apps.maps,com.openauto.dash",
-            immersivePolicy(setOf("com.openauto.dash", "com.google.android.apps.maps", ""))
+            "immersive.navigation=com.google.android.apps.maps,io.github.deviloufr.dashwheel",
+            immersivePolicy(setOf("io.github.deviloufr.dashwheel", "com.google.android.apps.maps", ""))
         )
     }
 }

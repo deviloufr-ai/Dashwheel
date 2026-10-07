@@ -22,7 +22,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.openauto.dash.companion"
+        applicationId = "io.github.deviloufr.dashwheel.companion"
         minSdk = 29
         targetSdk = 35
         versionCode = (System.getenv("VERSION_CODE") ?: "1").toInt()

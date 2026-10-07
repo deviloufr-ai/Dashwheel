@@ -77,7 +77,7 @@ object SystemInstaller {
      * inside single quotes by the install scripts.
      */
     internal const val PRIVAPP_XML =
-        "<permissions><privapp-permissions package=\"com.openauto.dash\">" +
+        "<permissions><privapp-permissions package=\"${BuildConfig.APPLICATION_ID}\">" +
             "<permission name=\"android.permission.BIND_APPWIDGET\"/>" +
             "<permission name=\"android.permission.WRITE_SECURE_SETTINGS\"/>" +
             "<permission name=\"android.permission.READ_LOGS\"/>" +
@@ -102,7 +102,7 @@ object SystemInstaller {
               chmod 644 $mod/system/priv-app/OpenAutoDash/OpenAutoDash.apk
               cat > $mod/module.prop <<'P'
             id=openautodash
-            name=OpenAuto Dash (priv-app)
+            name=Dashwheel (priv-app)
             version=v1
             versionCode=1
             author=OpenAutoDash
@@ -183,7 +183,7 @@ object SystemInstaller {
         }
     }
 
-    private const val APP_PACKAGE = "com.openauto.dash"
+    private const val APP_PACKAGE = BuildConfig.APPLICATION_ID
     private const val TAG = "SystemInstaller"
 }
 

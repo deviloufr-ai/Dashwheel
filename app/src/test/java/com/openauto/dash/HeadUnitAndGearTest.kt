@@ -15,7 +15,7 @@ class HeadUnitAndGearTest {
         800%cpu  23%user   0%nice  28%sys 464%idle   0%iow   0%irq   0%sirq   0%host
           PID %CPU   RES ARGS
          3120 38.0 412M com.google.android.apps.maps
-         2011 22.5 286M com.openauto.dash
+         2011 22.5 286M io.github.deviloufr.dashwheel
           512 20.0  98M surfaceflinger
          3300  4.0  60M com.google.android.apps.maps:location
          4410  1.0 5120 top -b -n 1
@@ -39,7 +39,7 @@ class HeadUnitAndGearTest {
 
     @Test
     fun appsAreGroupedAndTheRestIsTheSystem() {
-        val names = mapOf("com.google.android.apps.maps" to "Google Maps", "com.openauto.dash" to "Dashwheel")
+        val names = mapOf("com.google.android.apps.maps" to "Google Maps", "io.github.deviloufr.dashwheel" to "Dashwheel")
         val loads = HeadUnitMonitor.appLoads(HeadUnitMonitor.parseTopProcesses(top), { names[it] }, "System")
         assertEquals(listOf("Google Maps", "Dashwheel", "System"), loads.map { it.label })
         // Maps' :location process counts with Maps; top itself is left out.

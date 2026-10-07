@@ -5,7 +5,7 @@
 set -e
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ADB="${ADB:-adb} -s ${SERIAL:-emulator-5580}"
-P=com.openauto.dash
+P=io.github.deviloufr.dashwheel
 PREFS=/data/data/$P/shared_prefs
 put() { $ADB shell "run-as $P sh -c 'cat > $PREFS/$1'"; }
 
@@ -20,7 +20,7 @@ if [ "$4" = "-" ]; then
 elif [ -n "$4" ]; then
   python -c "import sys,html,json;d=open(sys.argv[1],encoding='utf-8').read();json.loads(d);print('<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\" ?>\n<map>\n<string name=\"pages\">'+html.escape(d)+'</string>\n</map>')" "$HERE/$4" | put dashboard_layout_prefs.xml
 fi
-$ADB shell am start -n $P/.MainActivity --ez mkt_demo true >/dev/null
+$ADB shell am start -n $P/com.openauto.dash.MainActivity --ez mkt_demo true >/dev/null
 sleep "${5:-22}"
 mkdir -p "$HERE/raw"
 $ADB exec-out screencap -p > "$HERE/raw/$1.png"
