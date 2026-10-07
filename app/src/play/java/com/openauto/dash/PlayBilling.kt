@@ -79,7 +79,7 @@ internal object PlayBilling : PurchasesUpdatedListener {
                 val offer = product.offer()
                 val item = BillingFlowParams.ProductDetailsParams.newBuilder().setProductDetails(product)
                 // Billing 8 lists a one-time product's offers; the flow names the one taken.
-                if (offer != null) item.setOfferToken(offer.offerToken)
+                offer?.offerToken?.let { item.setOfferToken(it) }
                 val params = BillingFlowParams.newBuilder()
                     .setProductDetailsParamsList(listOf(item.build()))
                     .build()
