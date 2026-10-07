@@ -81,7 +81,7 @@ ssh pi@dashwheel-display.local 'sudo reboot'
 
 Run the same commands again to update. Settings and the pairing are kept.
 
-**Another Wi-Fi network** (usually the phone's hotspot, if you set up the Pi on your home Wi-Fi): `ssh -t pi@dashwheel-display.local sudo ./pi/add-wifi.sh` asks for its name and password. The Pi then prefers it to the networks it already knows. The installer moves the Pi's Wi-Fi from NetworkManager to wpa_supplicant, which joins in seconds, so add networks with this script (or `wifi.txt`, see step 3) rather than `nmcli`.
+**Another Wi-Fi network** (usually the phone's hotspot, if you set up the Pi on your home Wi-Fi): `ssh -t pi@dashwheel-display.local sudo ./pi/add-wifi.sh` asks for its name and password. The Pi then prefers it to the networks it already knows, and moves to it when it comes in range (never while a head unit is linked). At home the head unit itself usually stays on the house Wi-Fi: to test the hotspot there, pick it in the head unit's Wi-Fi settings too. The installer moves the Pi's Wi-Fi from NetworkManager to wpa_supplicant, which joins in seconds, so add networks with this script (or `wifi.txt`, see step 3) rather than `nmcli`.
 
 **Building the card image yourself:** on an arm64 Linux, `sudo tools/pi/build-image.sh display/build/install/dashwheel-display out.img.xz`. GitHub Actions does it for each change to the second screen (`.github/workflows/pi-image.yml`).
 

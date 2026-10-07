@@ -4,9 +4,14 @@
 # in range. wpa_supplicant keeps the network it joined at start-up: at home the
 # Pi came up on the house Wi-Fi before the hotspot showed, and stayed there.
 # Does nothing on the preferred network or with none: the car is left alone.
+# Nor while a head unit is linked: the scan alone takes the radio off the
+# channel for seconds and cuts the picture, and that link is what the hotspot
+# was for (at home the head unit may well sit on the house Wi-Fi instead).
 IF=wlan0
+PORT=47811
 w() { wpa_cli -i "$IF" "$@" 2>/dev/null; }
 
+[ -z "$(ss -Htn state established "( sport = :$PORT )" 2>/dev/null)" ] || exit 0
 cur=$(w status | sed -n 's/^id=//p')
 [ -n "$cur" ] || exit 0
 best=$(w list_networks | tail -n +2 | cut -f1 | while read -r id; do
