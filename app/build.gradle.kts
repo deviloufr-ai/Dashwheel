@@ -37,7 +37,7 @@ android {
 
         // Where the in-app updater looks for new releases.
         buildConfigField("String", "GITHUB_OWNER", "\"deviloufr-ai\"")
-        buildConfigField("String", "GITHUB_REPO", "\"ACP\"")
+        buildConfigField("String", "GITHUB_REPO", "\"Dashwheel\"")
 
         vectorDrawables {
             useSupportLibrary = true
