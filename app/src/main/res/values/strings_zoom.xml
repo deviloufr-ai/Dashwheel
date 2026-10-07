@@ -7,4 +7,5 @@
     <string name="zoom_reset">Back to 100 %</string>
     <string name="zoom_page">Text size</string>
     <string name="zoom_percent">%1$d %%</string>
+    <string name="zoom_window_inside">The app runs inside the tile at any size but 100 %.</string>
 </resources>

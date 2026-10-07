@@ -217,11 +217,21 @@ fun zoomStep(zoom: Float, steps: Int): Float {
 }
 
 /**
- * Whether zooming changes anything: another app's window or a system widget
- * draws itself. An app inside its tile is drawn at the tile's density, so it does.
+ * Whether zooming changes anything: a system widget draws itself. An app
+ * inside its tile is drawn at the tile's density, so it does; a window tile
+ * too where apps can run inside ([insideAllowed]), see [runsInside].
  */
-fun DashboardItem.canZoom(): Boolean =
-    !(this is DashboardItem.AppWindow && !inside) && this !is DashboardItem.SystemWidget
+fun DashboardItem.canZoom(insideAllowed: Boolean = false): Boolean =
+    !(this is DashboardItem.AppWindow && !inside && !insideAllowed) && this !is DashboardItem.SystemWidget
+
+/**
+ * Whether this tile's app runs inside it: added that way, or a window tile
+ * zoomed where apps can run inside ([insideAllowed], EmbeddedApp.allowed).
+ * A floating window always has the whole screen's density, so an app gets a
+ * size of its own (Waze bigger) only on the tile's own display.
+ */
+fun DashboardItem.AppWindow.runsInside(insideAllowed: Boolean): Boolean =
+    inside || (insideAllowed && zoom != 1f)
 
 /** Returns a copy whose content is drawn at [zoom] (clamped to [ZOOM_MIN]..[ZOOM_MAX]). */
 fun DashboardItem.withZoom(zoom: Float): DashboardItem {

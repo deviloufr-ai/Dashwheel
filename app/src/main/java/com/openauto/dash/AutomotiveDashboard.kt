@@ -609,11 +609,13 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             .collect { PipAnchor.pageSwiping.value = it }
     }
 
+    val insideAllowed = rememberInsideAllowed()
+
     /** Apps shown in a window by [items]' tiles. */
     fun tileWindowApps(items: List<DashboardItem>): Set<String> = items.mapNotNullTo(HashSet()) {
         when {
             it is DashboardItem.BuiltinWidget && it.kind == BuiltinKind.PIP_ANCHOR -> PipAnchor.MAPS_PACKAGE
-            it is DashboardItem.AppWindow && !it.inside -> it.packageName
+            it is DashboardItem.AppWindow && !it.runsInside(insideAllowed) -> it.packageName
             else -> null
         }
     }
@@ -656,7 +658,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         fun insideApps(items: List<DashboardItem>) = items.mapNotNullTo(HashSet()) {
             when {
                 it is DashboardItem.BuiltinWidget && it.kind == BuiltinKind.MAPS_INSIDE -> EmbeddedApp.MAPS_PACKAGE
-                it is DashboardItem.AppWindow && it.inside -> it.packageName
+                it is DashboardItem.AppWindow && it.runsInside(insideAllowed) -> it.packageName
                 else -> null
             }
         }
@@ -1524,7 +1526,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                         title = when (tile) {
                             is DashboardItem.AppShortcut -> appsByPackage[tile.packageName]?.label
                             is DashboardItem.AppWindow -> appsByPackage[tile.packageName]?.label?.let {
-                                stringResource(if (tile.inside) R.string.dash_app_inside else R.string.dash_app_window, it)
+                                stringResource(if (tile.runsInside(insideAllowed)) R.string.dash_app_inside else R.string.dash_app_window, it)
                             }
                             else -> null
                         } ?: tile.describe(),
@@ -1699,12 +1701,13 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                     page = currentPage,
                     canUndo = history.isNotEmpty(),
                     // The page's text size: what its tiles share, or what most of them have.
-                    pageZoom = pageTiles.map { it.zoom }.groupingBy { it }.eachCount().maxByOrNull { it.value }?.key ?: 1f,
+                    pageZoom = pageTiles.filter { it.canZoom() }.map { it.zoom }.groupingBy { it }.eachCount().maxByOrNull { it.value }?.key ?: 1f,
                     onAdd = { onAdd(currentPage) },
                     onUndo = { undo() },
                     onReset = { confirmReset = true },
                     onTemplates = { showTemplates = true },
-                    onPageZoom = { zoom -> mutatePage(currentPage) { list -> list.map { it.withZoom(zoom) } } },
+                    // Not the floating windows: a size of their own would move them inside their tiles.
+                    onPageZoom = { zoom -> mutatePage(currentPage) { list -> list.map { if (it.canZoom()) it.withZoom(zoom) else it } } },
                     onDashboard = { barTabs.indexOfFirst { it.page == currentPage }.takeIf { it >= 0 }?.let { dashSheet = it } },
                     onNewDashboard = if (barModel.canAddDashboard) ({ dashSheet = -1 }) else null,
                     onDone = { editing = false }

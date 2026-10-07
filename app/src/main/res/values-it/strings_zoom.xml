@@ -6,4 +6,5 @@
     <string name="zoom_reset">Torna al 100 %</string>
     <string name="zoom_page">Dimensione testo</string>
     <string name="zoom_percent">%1$d %%</string>
+    <string name="zoom_window_inside">L\'app gira dentro il riquadro a ogni dimensione tranne 100 %.</string>
 </resources>

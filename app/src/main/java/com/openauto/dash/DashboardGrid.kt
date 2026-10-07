@@ -580,18 +580,19 @@ internal fun TileContent(
 
         is DashboardItem.AppWindow -> {
             val label = appsByPackage[item.packageName]?.label ?: item.packageName.substringAfterLast('.')
+            val inside = item.runsInside(rememberInsideAllowed())
             when {
                 // While arranging, the window would cover its own tile's handles.
                 editing -> EditPlaceholder(
                     icon = Icons.Filled.OpenInNew,
-                    label = stringResource(if (item.inside) R.string.dash_app_inside else R.string.dash_app_window, label)
+                    label = stringResource(if (inside) R.string.dash_app_inside else R.string.dash_app_window, label)
                 )
-                item.inside && underDashboard(item.packageName) -> EditPlaceholder(
+                inside && underDashboard(item.packageName) -> EditPlaceholder(
                     icon = Icons.Filled.OpenInNew,
                     label = label,
                     hint = stringResource(R.string.apps_embed_under_dashboard)
                 )
-                item.inside -> EmbeddedAppCard(item.packageName, label, modifier = Modifier.fillMaxSize())
+                inside -> EmbeddedAppCard(item.packageName, label, modifier = Modifier.fillMaxSize())
                 else -> PipAnchorCard(modifier = Modifier.fillMaxSize(), packageName = item.packageName, appLabel = label, onWindowBiggerThanTile = onFitToWindow)
             }
         }
@@ -763,7 +764,14 @@ internal fun DashboardItem.describe(): String = when (this) {
     is DashboardItem.LaunchBar -> stringResource(R.string.dash_describe_launch_bar)
     is DashboardItem.SystemWidget -> stringResource(R.string.dash_describe_widget)
     is DashboardItem.AppWindow ->
-        stringResource(if (inside) R.string.dash_app_inside else R.string.dash_app_window, packageName.substringAfterLast('.'))
+        stringResource(if (runsInside(rememberInsideAllowed())) R.string.dash_app_inside else R.string.dash_app_window, packageName.substringAfterLast('.'))
+}
+
+/** Whether apps can run inside their tile on this unit (EmbeddedApp.allowed); it only changes with a restart. */
+@Composable
+internal fun rememberInsideAllowed(): Boolean {
+    val context = LocalContext.current
+    return remember(context) { EmbeddedApp.allowed(context) }
 }
 
 /**

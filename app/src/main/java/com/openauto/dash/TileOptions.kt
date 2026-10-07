@@ -160,7 +160,7 @@ private fun ColumnScope.Controls(
     onRemove: () -> Unit,
     barActions: (@Composable () -> Unit)?
 ) {
-    if (item.canZoom()) {
+    if (item.canZoom(rememberInsideAllowed())) {
         if (stacked) {
             PanelLabel(stringResource(R.string.zoom_button))
             SizeStepper(item.zoom, onZoom)
@@ -170,6 +170,8 @@ private fun ColumnScope.Controls(
                 SizeStepper(item.zoom, onZoom)
             }
         }
+        // A window has the screen's own size: zoomed, the app moves inside the tile.
+        if (item is DashboardItem.AppWindow && !item.inside) PanelLabel(stringResource(R.string.zoom_window_inside))
     }
     if (barActions != null) {
         barActions()

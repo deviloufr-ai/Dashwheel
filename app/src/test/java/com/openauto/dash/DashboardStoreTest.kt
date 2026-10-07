@@ -272,6 +272,11 @@ class DashboardStoreTest {
         // Inside its tile an app is drawn at the tile's density, so zooming it works.
         assertTrue(DashboardItem.AppWindow("maps", inside = true).canZoom())
         assertTrue(zoomed.canZoom())
+        // Where apps can run inside, a zoomed window tile moves inside to get its own density.
+        assertTrue(DashboardItem.AppWindow("waze").canZoom(insideAllowed = true))
+        assertFalse(DashboardItem.AppWindow("waze").runsInside(insideAllowed = true))
+        assertTrue(DashboardItem.AppWindow("waze").withZoom(1.3f).let { it as DashboardItem.AppWindow }.runsInside(insideAllowed = true))
+        assertFalse(DashboardItem.AppWindow("waze").withZoom(1.3f).let { it as DashboardItem.AppWindow }.runsInside(insideAllowed = false))
     }
 
     @Test
