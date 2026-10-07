@@ -193,4 +193,14 @@
     <string name="alert_style_bubble_detail">Un badge rond dans le coin. Touchez-le pour terminer</string>
     <string name="alert_style_icon">Icône</string>
     <string name="alert_style_icon_detail">Seulement une icône animée dans le coin. Touchez-la pour terminer</string>
+    <string name="alert_kind_volume">Volume</string>
+    <string name="alert_kind_volume_title">Barre de volume</string>
+    <string name="settings_rom_volume_detail">Affiche le volume dans le style Dashwheel, à la place de la barre de l\'autoradio</string>
+    <string name="settings_rom_volume_next_start">Prend la main au prochain démarrage de l\'autoradio</string>
+    <string name="settings_rom_volume_needs_magisk">Demande Magisk</string>
+    <string name="alert_volume_muted">Muet</string>
+    <string name="alert_volume_media">Média</string>
+    <string name="alert_volume_radio">Radio</string>
+    <string name="alert_volume_call">Téléphone</string>
+    <string name="alert_volume_aux">AUX</string>
 </resources>

@@ -193,4 +193,14 @@
     <string name="alert_style_bubble_detail">Een rond badge in de hoek. Tik erop om te stoppen</string>
     <string name="alert_style_icon">Pictogram</string>
     <string name="alert_style_icon_detail">Alleen een bewegend pictogram in de hoek. Tik erop om te stoppen</string>
+    <string name="alert_kind_volume">Volume</string>
+    <string name="alert_kind_volume_title">Volumebalk</string>
+    <string name="settings_rom_volume_detail">Toont het volume in de stijl van Dashwheel, in plaats van de balk van de radio</string>
+    <string name="settings_rom_volume_next_start">Neemt het over bij de volgende start van de radio</string>
+    <string name="settings_rom_volume_needs_magisk">Vereist Magisk</string>
+    <string name="alert_volume_muted">Gedempt</string>
+    <string name="alert_volume_media">Media</string>
+    <string name="alert_volume_radio">Radio</string>
+    <string name="alert_volume_call">Telefoon</string>
+    <string name="alert_volume_aux">AUX</string>
 </resources>

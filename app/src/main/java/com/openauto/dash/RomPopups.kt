@@ -21,6 +21,8 @@ import kotlinx.coroutines.launch
  * ROCO K706 units (worked out from the firmware):
  *  - the Bluetooth call screen: the call card shows the call instead, and the
  *    ROM's window is set aside for each call ([HeadUnitPhone]);
+ *  - the firmware's volume bar (com.qf.framework): [VolumeOverlay] shows instead,
+ *    once [VolumeRomHide]'s Magisk module hides the firmware's at a start;
  *  - the car app's (com.qf.vehicle) door, parking radar and climate pop-ups:
  *    [DoorAlertOverlay], [RadarOverlay] and [ClimateOverlay] show instead.
  *    The car app skips its door and reversing radar pop-ups for any launcher
@@ -43,7 +45,7 @@ object RomPopups {
     private const val PREFS = "rom_popups"
     const val VEHICLE_PACKAGE = "com.qf.vehicle"
 
-    enum class Kind(val key: String) { CALL("call"), DOORS("doors"), RADAR("radar"), AC("ac"), TYRES("tyres"), BELT("belt") }
+    enum class Kind(val key: String) { CALL("call"), DOORS("doors"), RADAR("radar"), AC("ac"), TYRES("tyres"), BELT("belt"), VOLUME("volume") }
 
     private val _replaced = MutableStateFlow<Set<Kind>>(emptySet())
     /** The kinds whose ROM pop-up Dashwheel replaces (the Settings switches). */
@@ -62,16 +64,19 @@ object RomPopups {
         Kind.DOORS, Kind.RADAR, Kind.AC -> isPackageInstalled(context, VEHICLE_PACKAGE)
         Kind.TYRES -> isPackageInstalled(context, Tyres.TPMS_PACKAGE)
         Kind.BELT -> isPackageInstalled(context, VEHICLE_PACKAGE)
+        Kind.VOLUME -> isPackageInstalled(context, VolumeRomHide.FIRMWARE_PACKAGE)
     }
 
     /**
      * Whether [kind] can work with this access ([PrivilegedShell]): the car
      * app's door, climate and body data, and its radar switch, need its
-     * global settings written ([PrivilegedShell.Access.carSettings]).
+     * global settings written ([PrivilegedShell.Access.carSettings]); the
+     * volume bar a Magisk module, so root.
      */
     fun canWork(kind: Kind, access: PrivilegedShell.Access): Boolean = when (kind) {
         Kind.DOORS, Kind.RADAR, Kind.AC, Kind.BELT -> access.carSettings
         Kind.CALL, Kind.TYRES -> true
+        Kind.VOLUME -> access.root
     }
 
     fun start(context: Context) {
@@ -80,6 +85,7 @@ object RomPopups {
         val app = context.applicationContext
         val p = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         _replaced.value = Kind.entries.filter { p.getBoolean("replace_${it.key}", false) && available(app, it) }.toSet()
+        VolumeRomHide.refresh(app)
         if (Kind.DOORS in _replaced.value) McuReader.start()
         // Checked each start: cheap when already set, and put back if something cleared it.
         for (kind in _replaced.value - Kind.RADAR) apply(app, kind, hide = true)
@@ -120,6 +126,7 @@ object RomPopups {
             Kind.TYRES -> Unit
             // Dashwheel's own reminder; the car's chime is its own business.
             Kind.BELT -> Unit
+            Kind.VOLUME -> scope.launch { record(kind, hide, VolumeRomHide.apply(context, hide)) }
             // The car app's own switch for it; no root needed.
             Kind.AC -> context.sendBroadcast(
                 Intent("com.qf.vehicle.action.popup_enable")

@@ -199,6 +199,7 @@ class MainActivity : ComponentActivity() {
                 RadarOverlay.start(this)
                 ReverseView.start(this)
                 ClimateOverlay.start(this)
+                VolumeOverlay.start(this)
                 // A new version runs JIT-only until it is compiled ahead of time.
                 CompileAfterUpdate.schedule(this)
             }

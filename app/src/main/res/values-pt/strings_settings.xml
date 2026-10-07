@@ -193,4 +193,14 @@
     <string name="alert_style_bubble_detail">Um emblema redondo no canto. Toque para terminar</string>
     <string name="alert_style_icon">Ícone</string>
     <string name="alert_style_icon_detail">Só um ícone animado no canto. Toque para terminar</string>
+    <string name="alert_kind_volume">Volume</string>
+    <string name="alert_kind_volume_title">Barra de volume</string>
+    <string name="settings_rom_volume_detail">Mostra o volume no estilo do Dashwheel, em vez da barra do rádio</string>
+    <string name="settings_rom_volume_next_start">Assume no próximo arranque do rádio</string>
+    <string name="settings_rom_volume_needs_magisk">Precisa do Magisk</string>
+    <string name="alert_volume_muted">Sem som</string>
+    <string name="alert_volume_media">Multimédia</string>
+    <string name="alert_volume_radio">Rádio</string>
+    <string name="alert_volume_call">Telefone</string>
+    <string name="alert_volume_aux">AUX</string>
 </resources>

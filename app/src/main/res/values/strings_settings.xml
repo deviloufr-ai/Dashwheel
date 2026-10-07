@@ -196,4 +196,14 @@
     <string name="alert_style_bubble_detail">A round badge in the corner. Tap it to end</string>
     <string name="alert_style_icon">Icon</string>
     <string name="alert_style_icon_detail">Only an animated icon in the corner. Tap it to end</string>
+    <string name="alert_kind_volume">Volume</string>
+    <string name="alert_kind_volume_title">Volume bar</string>
+    <string name="settings_rom_volume_detail">Shows the volume in Dashwheel\'s design, in place of the unit\'s bar</string>
+    <string name="settings_rom_volume_next_start">Takes over at the next start of the head unit</string>
+    <string name="settings_rom_volume_needs_magisk">Needs Magisk</string>
+    <string name="alert_volume_muted">Muted</string>
+    <string name="alert_volume_media">Media</string>
+    <string name="alert_volume_radio">Radio</string>
+    <string name="alert_volume_call">Phone</string>
+    <string name="alert_volume_aux">AUX</string>
 </resources>

@@ -135,8 +135,13 @@ object MediaVolume {
         if (_way.value == VolumeWay.AUTO && !_onUnit.value && audio.isVolumeFixed) _byKeys.value = true
     }
 
-    /** Sets the level (the slider). Android's or the unit's volume only: the keys can't reach a given level. */
-    fun set(context: Context, level: Int) {
+    /**
+     * Sets the level (the slider). Android's or the unit's volume only: the keys can't reach a given level.
+     * [show]: Dashwheel's volume bar comes up for it ([VolumeOverlay]), as for a key the driver pressed;
+     * a tile, or the volume following the speed, shows nothing.
+     */
+    fun set(context: Context, level: Int, show: Boolean = false) {
+        VolumeOverlay.ownChange(show)
         if (_onUnit.value) {
             if (level > 0) lastAudible = level
             setUnit(context, UnitState(level.coerceIn(0, UNIT_MAX), muted = level == 0))
@@ -152,11 +157,18 @@ object MediaVolume {
         if (level != before && level(audio) == before && !audio.isStreamMute(STREAM)) useKeys()
     }
 
-    fun raise(context: Context) = step(context, AudioManager.ADJUST_RAISE, KeyEvent.KEYCODE_VOLUME_UP)
+    fun raise(context: Context, show: Boolean = false) {
+        VolumeOverlay.ownChange(show)
+        step(context, AudioManager.ADJUST_RAISE, KeyEvent.KEYCODE_VOLUME_UP)
+    }
 
-    fun lower(context: Context) = step(context, AudioManager.ADJUST_LOWER, KeyEvent.KEYCODE_VOLUME_DOWN)
+    fun lower(context: Context, show: Boolean = false) {
+        VolumeOverlay.ownChange(show)
+        step(context, AudioManager.ADJUST_LOWER, KeyEvent.KEYCODE_VOLUME_DOWN)
+    }
 
-    fun toggleMute(context: Context) {
+    fun toggleMute(context: Context, show: Boolean = false) {
+        VolumeOverlay.ownChange(show)
         if (_onUnit.value) {
             val now = unitState()
             if (now.muted || now.level == 0) {
@@ -241,6 +253,12 @@ object MediaVolume {
     private var unitWriter = false
 
     private fun unitState(): UnitState = unitWanted.get() ?: UnitState(savedUnitLevel(), sysProp(UNIT_MUTE_PROP) == "true")
+
+    /** The unit's volume as the firmware has it now (or as last asked), for [VolumeOverlay]. */
+    internal fun unitNow(): VolumeShown {
+        val state = unitState()
+        return VolumeShown(state.level, UNIT_MAX, state.muted, VolumeSource.of(unitSource()))
+    }
 
     /** The sound source the unit's volume applies to now ("radio_type", "aux_type"...); "" on a unit with one volume for all. */
     internal fun unitSource(): String = sysProp(UNIT_TYPE_PROP)

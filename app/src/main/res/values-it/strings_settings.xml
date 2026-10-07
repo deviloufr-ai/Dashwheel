@@ -193,4 +193,14 @@
     <string name="alert_style_bubble_detail">Un badge rotondo nell\'angolo. Toccalo per terminare</string>
     <string name="alert_style_icon">Icona</string>
     <string name="alert_style_icon_detail">Solo un\'icona animata nell\'angolo. Toccala per terminare</string>
+    <string name="alert_kind_volume">Volume</string>
+    <string name="alert_kind_volume_title">Barra del volume</string>
+    <string name="settings_rom_volume_detail">Mostra il volume nello stile di Dashwheel, al posto della barra dell\'autoradio</string>
+    <string name="settings_rom_volume_next_start">Subentra al prossimo avvio dell\'autoradio</string>
+    <string name="settings_rom_volume_needs_magisk">Richiede Magisk</string>
+    <string name="alert_volume_muted">Muto</string>
+    <string name="alert_volume_media">Media</string>
+    <string name="alert_volume_radio">Radio</string>
+    <string name="alert_volume_call">Telefono</string>
+    <string name="alert_volume_aux">AUX</string>
 </resources>

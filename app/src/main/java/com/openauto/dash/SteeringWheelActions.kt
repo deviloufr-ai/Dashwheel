@@ -112,9 +112,9 @@ internal enum class SteeringWheelAction(
             MEDIA_PLAY_PAUSE -> dispatchMediaKey(context, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)
             MEDIA_NEXT -> dispatchMediaKey(context, KeyEvent.KEYCODE_MEDIA_NEXT)
             MEDIA_PREVIOUS -> dispatchMediaKey(context, KeyEvent.KEYCODE_MEDIA_PREVIOUS)
-            VOLUME_UP -> MediaVolume.raise(context)
-            VOLUME_DOWN -> MediaVolume.lower(context)
-            VOLUME_MUTE -> MediaVolume.toggleMute(context)
+            VOLUME_UP -> MediaVolume.raise(context, show = true)
+            VOLUME_DOWN -> MediaVolume.lower(context, show = true)
+            VOLUME_MUTE -> MediaVolume.toggleMute(context, show = true)
             SAY_STATUS -> StartupBriefing.sayStatus(context)
             QUIET -> toggleQuiet(context)
             // Seen: the red chips, the door and tyre cards on screen go (a new problem comes back).

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Hides the K706 firmware's volume pop-up (com.qf.framework, VolumeView) so
+  Dashwheel's own shows alone. A resource overlay: the firmware still opens its
+  window, but its layout is replaced by one that is never drawn. Installed by
+  Dashwheel as a Magisk module under /system/app, the only place Android 10
+  lets an overlay change an app that declares no overlayable resources.
+  Static: on from boot, before the firmware first builds its window (it keeps
+  that one), so nothing has to switch it on; removing the module undoes it.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.openauto.dash.volumeoverlay"
+    android:versionCode="1"
+    android:versionName="1">
+    <overlay android:targetPackage="com.qf.framework" android:isStatic="true" android:priority="1" />
+    <application android:hasCode="false" android:label="Dashwheel volume" />
+</manifest>

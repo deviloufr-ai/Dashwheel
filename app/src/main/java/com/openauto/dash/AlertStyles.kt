@@ -113,7 +113,9 @@ enum class AlertKind(
     BELT("belt", listOf(AlertStyle.PILL, AlertStyle.CARD, AlertStyle.BANNER), speakable = true, cardAt = CardAt.TOP),
     // Gemini Live's conversation (GeminiLive): its own screen in the card, the panel or full screen;
     // the icon, the bubble and the pill only say it listens.
-    GEMINI("gemini", listOf(AlertStyle.ICON, AlertStyle.BUBBLE, AlertStyle.PILL, AlertStyle.CARD, AlertStyle.PANEL, AlertStyle.FULL), speakable = false, cardAt = CardAt.TOP_END, default = AlertStyle.PANEL);
+    GEMINI("gemini", listOf(AlertStyle.ICON, AlertStyle.BUBBLE, AlertStyle.PILL, AlertStyle.CARD, AlertStyle.PANEL, AlertStyle.FULL), speakable = false, cardAt = CardAt.TOP_END, default = AlertStyle.PANEL),
+    // Where the firmware's own volume bar was: top centre.
+    VOLUME("volume", listOf(AlertStyle.PILL, AlertStyle.CARD, AlertStyle.BANNER, AlertStyle.PANEL), speakable = false, cardAt = CardAt.TOP);
 
     /**
      * Which comes first when several are up at once, the lowest ahead: what
@@ -129,6 +131,7 @@ enum class AlertKind(
             TYRES -> 4
             AC -> 5
             GEMINI -> 6
+            VOLUME -> 7
         }
 }
 
@@ -290,6 +293,7 @@ object AlertPreview {
     val tyres = MutableStateFlow<Map<TyrePos, Tyre>?>(null)
     val belt = MutableStateFlow(false)
     val gemini = MutableStateFlow(false)
+    val volume = MutableStateFlow<VolumeShown?>(null)
 
     private const val SHOW_MS = 8_000L
 
@@ -318,6 +322,7 @@ object AlertPreview {
                 AlertVoice.sayBelt(context, force = true)
             }
             AlertKind.GEMINI -> gemini.value = true
+            AlertKind.VOLUME -> volume.value = VolumeShown(12, MediaVolume.UNIT_MAX, muted = false, VolumeSource.MEDIA)
         }
         job = scope.launch {
             delay(SHOW_MS)
@@ -339,6 +344,7 @@ object AlertPreview {
         tyres.value = null
         belt.value = false
         gemini.value = false
+        volume.value = null
     }
 }
 

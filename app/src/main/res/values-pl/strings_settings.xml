@@ -193,4 +193,14 @@
     <string name="alert_style_bubble_detail">Okrągła plakietka w rogu. Dotknij, aby zakończyć</string>
     <string name="alert_style_icon">Ikona</string>
     <string name="alert_style_icon_detail">Tylko animowana ikona w rogu. Dotknij, aby zakończyć</string>
+    <string name="alert_kind_volume">Głośność</string>
+    <string name="alert_kind_volume_title">Pasek głośności</string>
+    <string name="settings_rom_volume_detail">Pokazuje głośność w stylu Dashwheel zamiast paska radia</string>
+    <string name="settings_rom_volume_next_start">Działa od następnego uruchomienia radia</string>
+    <string name="settings_rom_volume_needs_magisk">Wymaga Magisk</string>
+    <string name="alert_volume_muted">Wyciszono</string>
+    <string name="alert_volume_media">Multimedia</string>
+    <string name="alert_volume_radio">Radio</string>
+    <string name="alert_volume_call">Telefon</string>
+    <string name="alert_volume_aux">AUX</string>
 </resources>

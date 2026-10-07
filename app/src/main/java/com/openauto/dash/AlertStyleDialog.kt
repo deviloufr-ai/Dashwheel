@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.SensorDoor
 import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.TireRepair
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -132,11 +133,14 @@ private fun AlertRow(kind: AlertKind, onOpen: () -> Unit) {
     val replaced by RomPopups.replaced.collectAsState()
     val failed by RomPopups.failed.collectAsState()
     val a11y by SplitAccessibilityService.connected.collectAsState()
+    val volumeHidden by VolumeRomHide.active.collectAsState()
     val hasSwitch = switchable(kind)
     val on = !hasSwitch || kind.romKind in replaced
     val style = stringResource(styles.of(kind).title)
     val detail = when {
+        on && kind == AlertKind.VOLUME && kind.romKind in failed -> stringResource(R.string.settings_rom_volume_needs_magisk)
         on && kind.romKind in failed -> stringResource(R.string.settings_rom_needs_root)
+        on && kind == AlertKind.VOLUME && !volumeHidden -> stringResource(R.string.settings_rom_volume_next_start)
         on && kind == AlertKind.RADAR && !a11y -> stringResource(R.string.settings_rom_radar_needs_access)
         on && kind.speakable && kind in spoken -> stringResource(R.string.alert_with_voice, style)
         on -> style
@@ -195,6 +199,7 @@ private val AlertKind.offDetail: Int
         AlertKind.TYRES -> R.string.settings_rom_tyres_detail
         AlertKind.BELT -> R.string.settings_rom_belt_detail
         AlertKind.GEMINI -> R.string.alert_gemini_detail
+        AlertKind.VOLUME -> R.string.settings_rom_volume_detail
     }
 
 private val AlertKind.icon: ImageVector
@@ -206,6 +211,7 @@ private val AlertKind.icon: ImageVector
         AlertKind.TYRES -> Icons.Filled.TireRepair
         AlertKind.BELT -> Icons.Filled.AirlineSeatReclineNormal
         AlertKind.GEMINI -> Icons.Filled.AutoAwesome
+        AlertKind.VOLUME -> Icons.Filled.VolumeUp
     }
 
 private val AlertKind.label: Int
@@ -217,6 +223,7 @@ private val AlertKind.label: Int
         AlertKind.TYRES -> R.string.alert_kind_tyres
         AlertKind.BELT -> R.string.alert_kind_belt
         AlertKind.GEMINI -> R.string.ai_gemini_live
+        AlertKind.VOLUME -> R.string.alert_kind_volume
     }
 
 private val AlertKind.dialogTitle: Int
@@ -228,6 +235,7 @@ private val AlertKind.dialogTitle: Int
         AlertKind.TYRES -> R.string.alert_kind_tyres_title
         AlertKind.BELT -> R.string.alert_kind_belt_title
         AlertKind.GEMINI -> R.string.alert_kind_gemini_title
+        AlertKind.VOLUME -> R.string.alert_kind_volume_title
     }
 
 /** The alert's colour in the picker's small screens. */

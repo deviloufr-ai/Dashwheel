@@ -5,6 +5,8 @@ app/build/
 
 # Android build outputs
 *.apk
+# The firmware volume overlay, built by tools/volume-overlay/build.sh and shipped in the app.
+!app/src/main/assets/volume_overlay.apk
 *.aab
 *.ap_
 *.dex

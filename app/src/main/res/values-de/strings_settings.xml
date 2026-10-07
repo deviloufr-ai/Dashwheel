@@ -193,4 +193,14 @@
     <string name="alert_style_bubble_detail">Ein rundes Abzeichen in der Ecke. Zum Beenden antippen</string>
     <string name="alert_style_icon">Symbol</string>
     <string name="alert_style_icon_detail">Nur ein animiertes Symbol in der Ecke. Zum Beenden antippen</string>
+    <string name="alert_kind_volume">Lautstärke</string>
+    <string name="alert_kind_volume_title">Lautstärkeleiste</string>
+    <string name="settings_rom_volume_detail">Zeigt die Lautstärke im Dashwheel-Design statt der Leiste des Radios</string>
+    <string name="settings_rom_volume_next_start">Übernimmt beim nächsten Start des Radios</string>
+    <string name="settings_rom_volume_needs_magisk">Braucht Magisk</string>
+    <string name="alert_volume_muted">Stumm</string>
+    <string name="alert_volume_media">Medien</string>
+    <string name="alert_volume_radio">Radio</string>
+    <string name="alert_volume_call">Telefon</string>
+    <string name="alert_volume_aux">AUX</string>
 </resources>

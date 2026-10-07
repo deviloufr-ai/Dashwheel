@@ -423,7 +423,7 @@ internal object AssistantTools {
         "open_app" -> openApp(context, args.optString("name"))
         "navigate_to" -> if (NavHandoff.startQuery(context, args.optString("destination"))) "guidance started" else "no navigation app could take it"
         "set_volume" -> {
-            MediaVolume.set(context, args.optInt("level"))
+            MediaVolume.set(context, args.optInt("level"), show = true)
             "volume set"
         }
         "end_conversation" -> {

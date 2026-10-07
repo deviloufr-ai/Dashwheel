@@ -1,0 +1,4 @@
+com.openauto.dash.volumeoverlay:id/iv_mute = 0x7f05000c
+com.openauto.dash.volumeoverlay:id/seekbar_volume = 0x7f050013
+com.openauto.dash.volumeoverlay:id/tv_volume = 0x7f05001b
+com.openauto.dash.volumeoverlay:layout/volume_layout = 0x7f060004

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The firmware looks these three views up by id and uses them (VolumeView.initView):
+  the same ids and classes, or it crashes. Gone, the window it opens is never shown
+  and takes no touch.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:visibility="gone">
+
+    <ImageView
+        android:id="@+id/iv_mute"
+        android:layout_width="0dp"
+        android:layout_height="0dp" />
+
+    <SeekBar
+        android:id="@+id/seekbar_volume"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:max="32" />
+
+    <TextView
+        android:id="@+id/tv_volume"
+        android:layout_width="0dp"
+        android:layout_height="0dp" />
+</FrameLayout>

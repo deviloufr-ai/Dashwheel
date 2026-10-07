@@ -193,4 +193,14 @@
     <string name="alert_style_bubble_detail">Una insignia redonda en la esquina. Tócala para terminar</string>
     <string name="alert_style_icon">Icono</string>
     <string name="alert_style_icon_detail">Solo un icono animado en la esquina. Tócalo para terminar</string>
+    <string name="alert_kind_volume">Volumen</string>
+    <string name="alert_kind_volume_title">Barra de volumen</string>
+    <string name="settings_rom_volume_detail">Muestra el volumen con el diseño de Dashwheel, en lugar de la barra de la radio</string>
+    <string name="settings_rom_volume_next_start">Se aplica en el próximo arranque de la radio</string>
+    <string name="settings_rom_volume_needs_magisk">Requiere Magisk</string>
+    <string name="alert_volume_muted">Silencio</string>
+    <string name="alert_volume_media">Multimedia</string>
+    <string name="alert_volume_radio">Radio</string>
+    <string name="alert_volume_call">Teléfono</string>
+    <string name="alert_volume_aux">AUX</string>
 </resources>
