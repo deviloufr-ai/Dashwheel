@@ -295,15 +295,30 @@ object SecondScreenRules {
     /** How long the stream must play clean at its held rate before it tries a little more, ms. */
     const val BITRATE_PROBE_AFTER_MS = 60_000L
 
+    /** How long a new stream's reports are ignored, ms: the display drops frames until its first key frame. */
+    const val BITRATE_SETTLE_MS = 8_000L
+
+    /** Fewest dropped frames in a report that count as the Wi-Fi failing: one lost frame of a still page isn't. */
+    const val MIN_DROPS_TO_CUT = 3
+
     /**
      * Where the stream's bitrate stands: [kbps] the encoder runs at, [ceilingKbps]
      * the rate that last lost frames (null when none has, or it was lifted past
-     * the target), [cleanSinceMs] since when every report came back clean.
+     * the target), [cleanSinceMs] since when every report came back clean,
+     * [settleUntilMs] until when a new stream's reports are ignored.
      */
-    data class BitrateState(val kbps: Int, val ceilingKbps: Int? = null, val cleanSinceMs: Long? = null) {
-        /** Where a new stream starts: the target, or just under a known ceiling; the ceiling is kept (same Wi-Fi). */
-        fun restart(targetKbps: Int): BitrateState =
-            BitrateState(minOf(targetKbps, holdKbps(ceilingKbps, targetKbps)), ceilingKbps.takeIf { holdKbps(it, targetKbps) < targetKbps })
+    data class BitrateState(
+        val kbps: Int,
+        val ceilingKbps: Int? = null,
+        val cleanSinceMs: Long? = null,
+        val settleUntilMs: Long = 0
+    ) {
+        /** Where a new stream started at [nowMs] begins: the target, or just under a known ceiling, which is kept (same Wi-Fi). */
+        fun restart(targetKbps: Int, nowMs: Long): BitrateState = BitrateState(
+            minOf(targetKbps, holdKbps(ceilingKbps, targetKbps)),
+            ceilingKbps.takeIf { holdKbps(it, targetKbps) < targetKbps },
+            settleUntilMs = nowMs + BITRATE_SETTLE_MS
+        )
     }
 
     /** Just under [ceilingKbps] (a tenth below), never under the floor nor over [targetKbps]. */
@@ -317,14 +332,15 @@ object SecondScreenRules {
      * clean report: a tenth of [targetKbps] back up, but only to just under the
      * ceiling. Only after [BITRATE_PROBE_AFTER_MS] of clean play there does the
      * ceiling lift, by a twentieth of the target, until it clears the target.
-     * A frame or two lost holds the rate and starts the clean stretch over.
+     * A frame or two lost holds the rate and starts the clean stretch over, and
+     * the first seconds of a new stream (frames dropped until a key frame) don't count.
      */
     fun adaptBitrate(state: BitrateState, targetKbps: Int, shown: Int, dropped: Int, nowMs: Long): BitrateState {
         val total = shown + dropped
         val current = state.kbps.coerceAtMost(targetKbps)
         return when {
-            total == 0 -> state.copy(kbps = current)
-            dropped * 20 > total -> BitrateState(maxOf(MIN_BITRATE_KBPS, current * 3 / 4), ceilingKbps = current)
+            total == 0 || nowMs < state.settleUntilMs -> state.copy(kbps = current)
+            dropped >= MIN_DROPS_TO_CUT && dropped * 20 > total -> BitrateState(maxOf(MIN_BITRATE_KBPS, current * 3 / 4), ceilingKbps = current)
             dropped > 0 -> state.copy(kbps = current, cleanSinceMs = null)
             else -> {
                 val since = state.cleanSinceMs ?: nowMs
@@ -338,7 +354,7 @@ object SecondScreenRules {
                 }
                 val top = holdKbps(ceiling, targetKbps)
                 val next = if (current < top) minOf(top, current + maxOf(100, targetKbps / 10)) else current
-                BitrateState(next, ceiling, cleanSince)
+                BitrateState(next, ceiling, cleanSince, state.settleUntilMs)
             }
         }
     }

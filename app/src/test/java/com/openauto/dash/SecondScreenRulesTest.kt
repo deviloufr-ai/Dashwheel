@@ -223,11 +223,28 @@ class SecondScreenRulesTest {
     }
 
     @Test
-    fun aNewStreamStartsJustUnderAKnownCeiling() {
-        assertEquals(SecondScreenRules.BitrateState(2500), SecondScreenRules.BitrateState(0).restart(2500))
-        assertEquals(SecondScreenRules.BitrateState(1800, 2000), SecondScreenRules.BitrateState(1500, 2000, 9_000).restart(2500))
+    fun aNewStreamStartsJustUnderAKnownCeilingAndSettlesFirst() {
+        assertEquals(SecondScreenRules.BitrateState(2500, settleUntilMs = 8_000), SecondScreenRules.BitrateState(0).restart(2500, 0))
+        assertEquals(
+            SecondScreenRules.BitrateState(1800, 2000, settleUntilMs = 108_000),
+            SecondScreenRules.BitrateState(1500, 2000, 9_000).restart(2500, 100_000)
+        )
         // A ceiling above a lowered target no longer matters.
-        assertEquals(SecondScreenRules.BitrateState(1500), SecondScreenRules.BitrateState(1500, 2000).restart(1500))
+        assertEquals(1500, SecondScreenRules.BitrateState(1500, 2000).restart(1500, 0).let { it.kbps })
+        assertNull(SecondScreenRules.BitrateState(1500, 2000).restart(1500, 0).ceilingKbps)
+        // Frames dropped while the display waits for its first key frame don't cut the rate nor set a ceiling.
+        val fresh = SecondScreenRules.BitrateState(0).restart(2500, 0)
+        assertEquals(fresh, SecondScreenRules.adaptBitrate(fresh, 2500, 0, 6, 5_000))
+        assertEquals(1875, SecondScreenRules.adaptBitrate(fresh, 2500, 0, 6, 9_000).kbps)
+    }
+
+    @Test
+    fun oneLostFrameOfAStillPageIsNotTheWifiFailing() {
+        // The cluster sends a frame now and then: 1 or 2 lost of 18 is over 1 in 20 but holds instead of cutting.
+        val s = SecondScreenRules.BitrateState(2500, cleanSinceMs = 0)
+        assertEquals(s.copy(cleanSinceMs = null), SecondScreenRules.adaptBitrate(s, 2500, 17, 1, 5_000))
+        assertEquals(s.copy(cleanSinceMs = null), SecondScreenRules.adaptBitrate(s, 2500, 16, 2, 5_000))
+        assertEquals(SecondScreenRules.BitrateState(1875, 2500), SecondScreenRules.adaptBitrate(s, 2500, 15, 3, 5_000))
     }
 
     @Test

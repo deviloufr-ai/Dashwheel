@@ -136,7 +136,7 @@ internal object SecondScreenController {
             DisplayLink.state.filterIsInstance<DisplayLinkState.Connected>().collect {
                 encoderFailed.value = false
                 // A new link may be a different Wi-Fi: the old ceiling no longer says anything.
-                bitrate = bitrate.copy(ceilingKbps = null, cleanSinceMs = null)
+                bitrate = bitrate.copy(ceilingKbps = null, cleanSinceMs = null, settleUntilMs = SystemClock.elapsedRealtime() + SecondScreenRules.BITRATE_SETTLE_MS)
             }
         }
         scope.launch {
@@ -230,7 +230,7 @@ internal object SecondScreenController {
                 tearDown()
                 stream = makeStream(w, h, fps, wanted.config.bitrateKbps) ?: return
                 streamShape = shape
-                bitrate = bitrate.restart(wanted.config.bitrateKbps)
+                bitrate = bitrate.restart(wanted.config.bitrateKbps, SystemClock.elapsedRealtime())
                 if (bitrate.kbps != wanted.config.bitrateKbps) stream?.setBitrate(bitrate.kbps)
             }
         }
