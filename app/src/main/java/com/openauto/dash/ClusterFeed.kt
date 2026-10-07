@@ -35,6 +35,7 @@ internal object ClusterFeed {
         // The OBD speed comes corrected already (ObdBluetoothManager), and the correction is for the car's
         // figure, not the GPS: corrected again here, a stopped car's 1 km/h of GPS drift read 9.
         val speed = if (obdLive) obd.speedKmh else LocationFeed.freshSpeedKmh.value
+        val fuel = carFuelInfo(McuReader.fuelPercent.value, if (obdLive) obd.fuelLevelPct else 0, McuReader.rangeKm.value)
         val doors = McuReader.doorState.value
         val open = if (doors == null) emptyList() else listOfNotNull(
             R.string.vehicle_door_front_left.takeIf { doors.frontLeft },
@@ -55,8 +56,10 @@ internal object ClusterFeed {
             speedKmh = speed,
             rpm = obd.rpm.takeIf { obdLive },
             coolantC = obd.coolantTempC.takeIf { obdLive && it != 0 },
-            fuelPct = McuReader.fuelPercent.value ?: obd.fuelLevelPct.takeIf { obdLive && it > 0 },
-            rangeKm = McuReader.rangeKm.value,
+            // As the dashboard's bar reads it (carFuelInfo): a car that sends 0 % with a range
+            // left sends no level at all, and the level is worked out from the range.
+            fuelPct = fuel?.percent,
+            rangeKm = fuel?.rangeKm ?: McuReader.rangeKm.value,
             open = open,
             obdConnected = obdLive,
             imperial = units.imperial,

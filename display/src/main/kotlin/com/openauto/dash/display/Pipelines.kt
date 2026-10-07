@@ -35,13 +35,19 @@ object Pipelines {
         return launch("fdsrc fd=0 ! h264parse ! video/x-h264,stream-format=byte-stream,alignment=au ! $chain")
     }
 
-    /** Raw BGRx frames of [width] × [height] on stdin to the screen: the display's own pictures. */
-    fun frames(config: DisplayConfig, width: Int, height: Int): List<String> =
-        launch(
+    /**
+     * Raw BGRx frames of [width] × [height] on stdin to the screen: the display's own pictures.
+     * [pixelShape] as for [video]: without it, on a monitor reporting a made-up size, the
+     * pictures came out narrowed and their right edge cut off.
+     */
+    fun frames(config: DisplayConfig, width: Int, height: Int, pixelShape: Pair<Int, Int> = 1 to 1): List<String> {
+        val shape = if (pixelShape == (1 to 1) || config.sink != DisplayConfig.Sink.KMS) "" else " pixel-aspect-ratio=${pixelShape.first}/${pixelShape.second}"
+        return launch(
             "fdsrc fd=0 blocksize=${width * height * 4} " +
-                "! rawvideoparse width=$width height=$height format=bgrx framerate=5/1 " +
+                "! rawvideoparse width=$width height=$height format=bgrx framerate=5/1$shape " +
                 "! videoconvert ! ${config.sink.element}"
         )
+    }
 
     private fun launch(chain: String) = listOf(LAUNCH, "-q") + chain.split(' ').filter { it.isNotEmpty() }
 }

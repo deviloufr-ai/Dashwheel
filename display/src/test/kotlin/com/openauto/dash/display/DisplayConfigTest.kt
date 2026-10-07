@@ -58,6 +58,9 @@ class DisplayConfigTest {
         assert("avdec_h264" in desktop && "autovideosink" in desktop)
         val frames = Pipelines.frames(DisplayConfig(), 1024, 600)
         assert("blocksize=${1024 * 600 * 4}" in frames && "format=bgrx" in frames)
+        // A monitor whose pixels kmssink takes for 16/15: the frames are given the same shape.
+        assert("pixel-aspect-ratio=16/15" in Pipelines.frames(DisplayConfig(), 1024, 600, 16 to 15))
+        assert(frames.none { it.startsWith("pixel-aspect-ratio") })
         assertEquals(
             listOf("gst-launch-1.0", "-q", "fdsrc", "!", "fakesink"),
             Pipelines.video(DisplayConfig(videoPipeline = " fdsrc  ! fakesink "))

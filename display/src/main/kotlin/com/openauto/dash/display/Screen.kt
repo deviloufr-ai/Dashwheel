@@ -22,7 +22,8 @@ class Screen(
     private val startVideo: () -> VideoSink.Sink = { BootLogo.release(); PixelShape.refresh(); GstVideoSink.start(Pipelines.video(config, Rotation.upsideDown, PixelShape.forStream())) },
     private val startFrames: (Int, Int) -> GstProcess? = { w, h ->
         BootLogo.release()
-        GstProcess.startOrNull(Pipelines.frames(config, w, h), capacity = 1)
+        PixelShape.refresh()
+        GstProcess.startOrNull(Pipelines.frames(config, w, h, PixelShape.forFrames(w, h)), capacity = 1)
     },
     logo: java.awt.image.BufferedImage? = BootLogo.image,
     private val showOnConsole: (java.awt.image.BufferedImage) -> Unit = ConsoleFrameBuffer::show,

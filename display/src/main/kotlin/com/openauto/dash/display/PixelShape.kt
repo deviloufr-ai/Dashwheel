@@ -73,6 +73,12 @@ object PixelShape {
         return align(w * scale) to align(h * scale)
     }
 
+    /** The shape to give the display's own [width] × [height] pictures so they fill the screen. */
+    fun forFrames(width: Int, height: Int): Pair<Int, Int> {
+        val (w, h) = screen
+        return fill(width, height, w, h, kms)
+    }
+
     /** The head unit sends [width] × [height]; true when that calls for another shape than the one in use. */
     fun streamIs(width: Int, height: Int): Boolean {
         val before = forStream()
