@@ -549,21 +549,13 @@ internal fun TileContent(
     onEditLaunchBar: () -> Unit,
     onModelTouch: (Boolean) -> Unit,
     /** Grid only: grow this tile to at least the given pixel size (a docked window's minimum). */
-    onFitToWindow: ((Int, Int) -> Unit)? = null,
-    /** A sample in the add sheet: a locked widget shows its real face there, under the sheet's own lock. */
-    preview: Boolean = false
+    onFitToWindow: ((Int, Int) -> Unit)? = null
 ) {
     val env = remember(editing, appsByPackage, media, mediaController, hasMediaAccess, context, obd, obdConnection, onConnectObd, onPickDevice, onLaunchApp, onEditLaunchBar) {
         SkinTileEnv(
             editing, appsByPackage, media, mediaController, hasMediaAccess, context,
             obd, obdConnection, onConnectObd, onPickDevice, onLaunchApp, onEditLaunchBar
         )
-    }
-    // A widget kept for Pro and not bought (Premium.kt): a tile placed before
-    // (a restored backup, a refund) shows the way to Pro in place of its reading.
-    if (!preview && item is DashboardItem.BuiltinWidget && lockedNow(item.kind)) {
-        LockedTile(item.kind)
-        return
     }
     // A tile's own design beats the skin; its standard look is this same
     // routing with the design cleared (the skin's tile under a skin).

@@ -1,8 +1,5 @@
 name: Build Android APK
 
-# The GitHub release: the launcher's "github" flavour (updates itself from
-# these releases, Ko-fi link, every skin and widget open) and the companion.
-# The Google Play build is a separate workflow, play.yml.
 on:
   push:
     # main publishes a release the in-app updater picks up; any other branch
@@ -45,7 +42,7 @@ jobs:
         with:
           # Override the action's default ("tools platform-tools"); the obsolete
           # "tools" package was removed from the SDK repo and breaks the step.
-          packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
 
       # The committed wrapper pins Gradle 8.13 with a verified checksum; do not
       # regenerate it here, that would silently drop the verification.
@@ -73,8 +70,7 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        # Only the GitHub flavour: a bare assembleRelease would build the Play one too.
-        run: ./gradlew :app:assembleGithubRelease :companion:assembleRelease --stacktrace
+        run: ./gradlew assembleRelease --stacktrace
 
       # The launcher ships as Dashwheel-<version>.apk (the in-app updater takes
       # any .apk but the companion). The phone companion app ships in the same
@@ -82,7 +78,7 @@ jobs:
       # updater skips).
       - name: Name APKs
         run: |
-          cp app/build/outputs/apk/github/release/app-github-release.apk Dashwheel-1.0.${{ github.run_number }}.apk
+          cp app/build/outputs/apk/release/app-release.apk Dashwheel-1.0.${{ github.run_number }}.apk
           cp companion/build/outputs/apk/release/companion-release.apk dashwheel-companion.apk
 
       - name: Upload APK artifact

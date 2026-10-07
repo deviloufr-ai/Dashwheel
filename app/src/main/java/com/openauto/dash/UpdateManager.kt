@@ -92,11 +92,6 @@ class UpdateManager(private val context: Context) {
 
     /** Queries GitHub for the latest release and updates [status]. */
     suspend fun checkForUpdate() {
-        // A Play build is updated by Play; it never fetches a release (nor could it install one).
-        if (!Edition.updatesFromGitHub) {
-            _status.value = UpdateStatus.Idle
-            return
-        }
         // A download under way or done keeps its state: the check is for news.
         val keep = _status.value
         if (keep is UpdateStatus.Downloading || keep is UpdateStatus.Ready || keep is UpdateStatus.Installing) return

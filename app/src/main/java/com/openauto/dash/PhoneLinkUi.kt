@@ -355,8 +355,9 @@ private fun PhonePairingDialog(onDismiss: () -> Unit) {
     DisposableEffect(offer) {
         onDispose { if (PhoneLink.pending.value?.id == offer.id) PhoneLink.cancelPairing() }
     }
-    // The release's APK, or the companion's Play listing for a Play build.
-    val download = remember { Edition.companionUrl }
+    val download = remember {
+        "https://github.com/${BuildConfig.GITHUB_OWNER}/${BuildConfig.GITHUB_REPO}/releases/latest/download/${UpdateManager.COMPANION_APK_NAME}"
+    }
 
     AlertDialog(
         modifier = Modifier.keepClearOfWindows(),

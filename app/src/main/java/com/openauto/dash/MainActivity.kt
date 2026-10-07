@@ -145,9 +145,6 @@ class MainActivity : ComponentActivity() {
         FeedbackStore.load(this)
         AlertStyleStore.load(this)
         Units.load(this)
-        // Which store this build is from, and whether Pro is bought (Premium.kt):
-        // read before the theme, so a bought skin shows from the first frame.
-        Edition.start(this)
         SecondScreenStore.load(this)
         // Rebuilt after a language change: the fault codes' advice follows it.
         AiMechanic.followLanguage(this)

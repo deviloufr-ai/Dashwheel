@@ -802,9 +802,7 @@ private fun AdvancedPane(m: TopBarModel, onBootLogo: () -> Unit, onPickObd: () -
     // Google Maps inside a tile needs permissions only the firmware's apps get
     // (EmbeddedApp): whether Android granted them, where they could be.
     val embed = EmbeddedApp.allowed(LocalContext.current)
-    // Getting them means downloading and flashing a Magisk module from outside
-    // the store, which a Play app may not do: the Play build only says they are on.
-    if (embed || (shell && !Edition.playStore)) SystemPermissionsRow(embed)
+    if (shell || embed) SystemPermissionsRow(embed)
     Spacer(Modifier.height(20.dp))
     // Only for a unit whose sound ignores Android's volume; on the QF firmware Automatic is the only way that works.
     if (MediaVolume.choiceOffered) {
@@ -818,13 +816,10 @@ private fun AdvancedPane(m: TopBarModel, onBootLogo: () -> Unit, onPickObd: () -
     SettingsRow(Icons.Filled.Checklist, stringResource(R.string.setup_again), stringResource(R.string.setup_again_detail)) { m.onSetup(true) }
 }
 
+private const val KOFI_URL = "https://ko-fi.com/deviloufr"
 private const val PROJECT_URL = "https://github.com/deviloufr-ai/Dashwheel"
 
-/**
- * Who made the app, what it is, the update check, and how to support it: the
- * GitHub build's Ko-fi link with its QR code, or Dashwheel Pro on Play, where
- * an outside payment link is not allowed (Edition.donationUrl, Premium.kt).
- */
+/** Who made the app, what it is, the update check, and a Ko-fi link with its QR code. */
 @Composable
 private fun AboutPane(m: TopBarModel) {
     val context = LocalContext.current
@@ -853,29 +848,24 @@ private fun AboutPane(m: TopBarModel) {
         Text(stringResource(R.string.about_author_role), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
     }
     Spacer(Modifier.height(20.dp))
-    val donation = Edition.donationUrl
-    if (donation != null) {
-        SettingsSection(stringResource(R.string.about_support_section))
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(Modifier.weight(1f)) {
-                Text(stringResource(R.string.about_support_text), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
-                Spacer(Modifier.height(12.dp))
-                SheetButton(stringResource(R.string.about_kofi)) {
-                    tap()
-                    context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(donation)))
-                }
-            }
-            Spacer(Modifier.width(16.dp))
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                QrCode(donation, Modifier.size(120.dp).clip(DashShape.Small))
-                Text(stringResource(R.string.about_scan), color = DashColors.TextSecondary, style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 4.dp))
+    SettingsSection(stringResource(R.string.about_support_section))
+    Row(
+        modifier = Modifier.padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(stringResource(R.string.about_support_text), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
+            Spacer(Modifier.height(12.dp))
+            SheetButton(stringResource(R.string.about_kofi)) {
+                tap()
+                context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(KOFI_URL)))
             }
         }
-    } else {
-        ProSection()
+        Spacer(Modifier.width(16.dp))
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            QrCode(KOFI_URL, Modifier.size(120.dp).clip(DashShape.Small))
+            Text(stringResource(R.string.about_scan), color = DashColors.TextSecondary, style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 4.dp))
+        }
     }
     Spacer(Modifier.height(20.dp))
     SettingsSection(stringResource(R.string.settings_section_about))
@@ -893,11 +883,6 @@ private fun AboutPane(m: TopBarModel) {
  */
 @Composable
 private fun UpdateRow(m: TopBarModel) {
-    // A Play build is updated by Play: the row points there instead.
-    if (!Edition.updatesFromGitHub) {
-        PlayUpdateRow()
-        return
-    }
     val status = m.update
     val info = status.updateInfo
     val title = when {

@@ -387,7 +387,7 @@ private fun AccessRow(need: AccessNeed, granted: Boolean, @StringRes actionRes: 
 private fun LookStep(theme: ThemeState, onDone: () -> Unit) {
     StepTitle(stringResource(R.string.setup_look_title), stringResource(R.string.setup_look_body))
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-        Premium.starterThemes(rememberUnlocked()).forEach { mode ->
+        StarterThemes.forEach { mode ->
             ThemeCard(mode, mode == theme.mode, Modifier.weight(1f)) { theme.onMode(mode) }
         }
     }

@@ -37,6 +37,4 @@
 
 <p>8 languages: English, French, German, Spanish, Italian, Portuguese, Dutch, Polish.</p>
 
-<p>Dashwheel Pro, a one-time purchase, adds the Cockpit, Horizon, Tape Deck and Canvas skins and 13 more widgets (performance timer, G-force, eco score, speed cameras, fuel log, engine temperatures and others). Everything else is free, and stays free.</p>
-
 <p>Free and open source under the GPL v3. No ads, no tracking.</p>
