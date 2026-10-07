@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -41,6 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 /*
@@ -52,6 +55,9 @@ import androidx.compose.ui.unit.dp
 
 /** Height the cluster is laid out at (ClusterPresentation), whatever the monitor. */
 private const val CLUSTER_HEIGHT_DP = 600f
+
+/** Narrower than this (a vertical screen) and the pages go back above the preview. */
+private val SIDE_PAGES_MIN_WIDTH = 560.dp
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -76,46 +82,62 @@ internal fun ClusterBoard() {
         style = MaterialTheme.typography.bodyMedium,
         modifier = Modifier.padding(horizontal = 12.dp)
     )
-    ChoiceRow(
-        options = ClusterPage.entries.map { it to stringResource(pageName(it)) },
-        selected = { it == editing },
-        onPick = { page ->
-            editing = page
-            selected = 0
-            // The second screen shows the page being edited, when it is one of its pages.
-            SecondScreenStore.update(context) { c -> if (page in c.pages) c.copy(page = page) else c }
-        }
-    )
+    fun pickPage(page: ClusterPage) {
+        editing = page
+        selected = 0
+        // The second screen shows the page being edited, when it is one of its pages.
+        SecondScreenStore.update(context) { c -> if (page in c.pages) c.copy(page = page) else c }
+    }
+    val pageOptions = ClusterPage.entries.map { it to stringResource(pageName(it)) }
 
     // The page as the monitor shows it: its shape, the cluster's own size, scaled down.
     val ratio = (state as? DisplayLinkState.Connected)?.display
         ?.let { d -> (d.width.toFloat() / d.height.coerceAtLeast(1)).takeIf { it in 1f..3f } } ?: (16f / 9f)
-    BoxWithConstraints(
-        Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
-            .aspectRatio(ratio).clip(DashShape.Medium)
-            .border(1.dp, DashColors.CardHi, DashShape.Medium)
-            .background(DashColors.Background)
-    ) {
-        val virtualH = CLUSTER_HEIGHT_DP.dp
-        val virtualW = virtualH * ratio
-        val scale = maxWidth / virtualW
-        // In the second screen's own colours, as it will look there.
-        val look by SecondScreenStore.config.collectAsState()
-        ClusterLook(look) {
-            Box(
-                Modifier.requiredSize(virtualW, virtualH)
-                    .graphicsLayer { scaleX = scale; scaleY = scale }
-                    .background(LocalClusterPalette.current.Background)
-                    .padding(12.dp)
-            ) {
-                ClusterPageBody(layout, rememberClusterEnv(), preview = true) { index ->
-                    val on = index == selected
-                    Box(
-                        Modifier.fillMaxSize()
-                            .border(if (on) 6.dp else 1.dp, if (on) DashColors.Accent else DashColors.Muted.copy(alpha = 0.4f), DashShape.Medium)
-                            .clickable { selected = index }
-                    )
+    val preview: @Composable (Modifier) -> Unit = { modifier ->
+        BoxWithConstraints(
+            modifier.aspectRatio(ratio).clip(DashShape.Medium)
+                .border(1.dp, DashColors.CardHi, DashShape.Medium)
+                .background(DashColors.Background)
+        ) {
+            val virtualH = CLUSTER_HEIGHT_DP.dp
+            val virtualW = virtualH * ratio
+            val scale = maxWidth / virtualW
+            // In the second screen's own colours, as it will look there.
+            val look by SecondScreenStore.config.collectAsState()
+            ClusterLook(look) {
+                Box(
+                    Modifier.requiredSize(virtualW, virtualH)
+                        .graphicsLayer { scaleX = scale; scaleY = scale }
+                        .background(LocalClusterPalette.current.Background)
+                        .padding(12.dp)
+                ) {
+                    ClusterPageBody(layout, rememberClusterEnv(), preview = true) { index ->
+                        val on = index == selected
+                        Box(
+                            Modifier.fillMaxSize()
+                                .border(if (on) 6.dp else 1.dp, if (on) DashColors.Accent else DashColors.Muted.copy(alpha = 0.4f), DashShape.Medium)
+                                .clickable { selected = index }
+                        )
+                    }
                 }
+            }
+        }
+    }
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        if (maxWidth >= SIDE_PAGES_MIN_WIDTH) {
+            // Pages stacked beside the preview: the board fits on a landscape screen at once.
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                preview(Modifier.weight(1f))
+                PageColumn(pageOptions, selected = { it == editing }, onPick = ::pickPage)
+            }
+        } else {
+            Column {
+                ChoiceRow(options = pageOptions, selected = { it == editing }, onPick = ::pickPage)
+                preview(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp))
             }
         }
     }
@@ -189,6 +211,35 @@ internal fun ClusterBoard() {
             onPick = { pick -> save { ClusterLayouts.withSlot(it, selected, pick.kind, app = pick.app) }; choosingWidget = false },
             onDismiss = { choosingWidget = false }
         )
+    }
+}
+
+/** The board's pages, one under the other, all as wide as the longest name. */
+@Composable
+private fun PageColumn(options: List<Pair<ClusterPage, String>>, selected: (ClusterPage) -> Boolean, onPick: (ClusterPage) -> Unit) {
+    val tap = rememberTapFeedback()
+    Column(
+        Modifier.width(IntrinsicSize.Max).widthIn(max = 200.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        options.forEach { (value, label) ->
+            val on = selected(value)
+            val shape = DashShape.Medium
+            Text(
+                label,
+                color = if (on) DashColors.TextPrimary else DashColors.TextSecondary,
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp)
+                    .border(if (on) 2.dp else 1.dp, if (on) DashColors.Accent else DashColors.CardHi, shape)
+                    .background(DashColors.CardHi.copy(alpha = DashColors.CardHi.alpha * if (on) 0.65f else 0.35f), shape)
+                    .clickable { tap(); onPick(value) }
+                    .padding(horizontal = 18.dp, vertical = 12.dp)
+            )
+        }
     }
 }
 
