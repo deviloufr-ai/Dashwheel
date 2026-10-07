@@ -185,11 +185,14 @@ rm -f "$JSA"
 # Java 19 and later make it by themselves; Bookworm's Java 17 refuses that
 # option and writes one as it exits instead. Without any, the display only
 # starts a little slower: no reason to stop the install half-way.
+JAVA_LOG=$(mktemp)
 JAVA_OPTS="-XX:TieredStopAtLevel=1 -XX:+AutoCreateSharedArchive -XX:SharedArchiveFile=$JSA" \
-  /opt/dashwheel-display/bin/dashwheel-display --config "$CONFIG_DIR" --print-pairing >/dev/null 2>&1 ||
+  /opt/dashwheel-display/bin/dashwheel-display --config "$CONFIG_DIR" --print-pairing >"$JAVA_LOG" 2>&1 ||
 JAVA_OPTS="-XX:TieredStopAtLevel=1 -XX:ArchiveClassesAtExit=$JSA" \
-  /opt/dashwheel-display/bin/dashwheel-display --config "$CONFIG_DIR" --print-pairing >/dev/null 2>&1 ||
-  echo "no class archive made: the display starts a little slower"
+  /opt/dashwheel-display/bin/dashwheel-display --config "$CONFIG_DIR" --print-pairing >"$JAVA_LOG" 2>&1 ||
+  { echo "no class archive made: the display starts a little slower"; grep -v '://' "$JAVA_LOG" | tail -5; }
+[ -f "$JSA" ] || echo "no class archive file"
+rm -f "$JAVA_LOG"
 # Each card from an image makes its own pairing at its first start, never a shared one.
 [ "$IMAGE" -eq 0 ] || rm -f "$CONFIG_DIR/pairing.txt" "$CONFIG_DIR/paired"
 
