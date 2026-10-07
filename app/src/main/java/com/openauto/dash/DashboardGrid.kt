@@ -9,6 +9,11 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerInputScope
+import androidx.compose.material3.TextButton
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.BorderStroke
@@ -137,10 +142,14 @@ internal fun DashboardPage(
     onSelectedBounds: (Rect) -> Unit = {},
     /** A tap on the page between tiles while arranging: closes the panel. */
     onTapEmpty: () -> Unit = {},
-    /** Opens the template chooser (offered by an empty page). */
+    /** Opens the template chooser for every dashboard (offered by an empty page). */
     onTemplates: () -> Unit = {},
+    /** Fills this one page from a template (an empty page's first offer). */
+    onFillPage: () -> Unit = {},
     /** An empty page offers to fill it; not a tab over an app, whose empty page is the map alone. */
-    emptyPrompt: Boolean = true
+    emptyPrompt: Boolean = true,
+    /** A long press on the page while not arranging (between tiles, or on a tile's body): the second door into arranging. Null: none. */
+    onHoldPage: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
@@ -210,11 +219,25 @@ internal fun DashboardPage(
 
     // Free placement on a GRID_COLS x GRID_ROWS grid: each tile sits at its own
     // cell rectangle and can be dragged to any cell and resized by its handle.
+    val haptics = LocalHapticFeedback.current
+    val holdPage by rememberUpdatedState(onHoldPage)
+    val itemsNow by rememberUpdatedState(pageItems)
     BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(6.dp)) {
         val cellW = maxWidth / GRID_COLS
         val cellH = maxHeight / GRID_ROWS
         val cellWpx = with(density) { cellW.toPx() }
         val cellHpx = with(density) { cellH.toPx() }
+        // Held, the page starts arranging (the menu's Edit dashboards is the other door).
+        if (!editing && onHoldPage != null) {
+            Box(
+                Modifier.fillMaxSize().pointerInput(cellWpx, cellHpx) {
+                    detectPageHold({ itemsNow }, cellWpx, cellHpx) {
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        holdPage?.invoke()
+                    }
+                }
+            )
+        }
 
         // While a tile is dragged / resized, [preview] holds the cell rectangle
         // (x, y, w, h) it will snap to, drawn as a highlighted ghost.
@@ -315,9 +338,53 @@ internal fun DashboardPage(
         // while arranging, the edit bar has the same two, so nothing ever
         // sits on top of a tile's corner.
         if (pageItems.isEmpty() && emptyPrompt) {
-            EmptyPage(onAdd = onAdd, onTemplates = onTemplates, modifier = Modifier.align(Alignment.Center))
+            EmptyPage(onFill = onFillPage, onAdd = onAdd, onTemplates = onTemplates, modifier = Modifier.align(Alignment.Center))
         }
     }
+}
+
+/**
+ * A long press on the page while not arranging: between tiles, or on a
+ * tile's own body, never on one whose app takes its touches (a map, an app
+ * in a window or inside its tile, a system widget). Watched in the initial
+ * pass, before the tiles' own buttons see the touch; a finger that moves or
+ * lifts first, or a touch a tile consumes, is left alone. Once the hold
+ * fires, the rest of the touch is swallowed so no button under the finger
+ * goes off on release.
+ */
+private suspend fun PointerInputScope.detectPageHold(items: () -> List<DashboardItem>, cellW: Float, cellH: Float, onHold: () -> Unit) {
+    awaitEachGesture {
+        val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+        val col = (down.position.x / cellW).toInt()
+        val row = (down.position.y / cellH).toInt()
+        val under = items().firstOrNull { col in it.x until it.x + it.w && row in it.y until it.y + it.h }
+        if (under != null && under.takesEveryTouch()) return@awaitEachGesture
+        val slop = viewConfiguration.touchSlop
+        val ended = withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) {
+            var over = false
+            while (!over) {
+                val event = awaitPointerEvent(PointerEventPass.Initial)
+                val change = event.changes.firstOrNull { it.id == down.id }
+                over = change == null || !change.pressed || change.isConsumed || event.changes.size > 1 ||
+                    (change.position - down.position).getDistance() > slop
+            }
+            true
+        }
+        if (ended != null) return@awaitEachGesture
+        onHold()
+        while (true) {
+            val event = awaitPointerEvent(PointerEventPass.Initial)
+            event.changes.forEach { it.consume() }
+            if (event.changes.none { it.pressed }) break
+        }
+    }
+}
+
+/** A tile whose content takes every touch (an app, a map, a system widget): a hold on it is the app's. */
+private fun DashboardItem.takesEveryTouch(): Boolean = when (this) {
+    is DashboardItem.AppWindow, is DashboardItem.SystemWidget -> true
+    is DashboardItem.BuiltinWidget -> kind == BuiltinKind.NAVMAP || kind == BuiltinKind.MAPS_INSIDE || kind == BuiltinKind.PIP_ANCHOR
+    else -> false
 }
 
 /**
@@ -716,9 +783,9 @@ internal fun TileContent(
     }
 }
 
-/** What an empty dashboard shows: one line, and the two ways to fill it. */
+/** What an empty dashboard shows: one line, then filling it from a template first, a tile at a time, or every dashboard. */
 @Composable
-internal fun EmptyPage(onAdd: () -> Unit, onTemplates: () -> Unit, modifier: Modifier = Modifier) {
+internal fun EmptyPage(onFill: () -> Unit, onAdd: () -> Unit, onTemplates: () -> Unit, modifier: Modifier = Modifier) {
     Column(modifier = modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             stringResource(R.string.dash_empty_title),
@@ -734,23 +801,26 @@ internal fun EmptyPage(onAdd: () -> Unit, onTemplates: () -> Unit, modifier: Mod
             style = MaterialTheme.typography.bodyMedium
         )
         Spacer(Modifier.height(16.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Button(
-                onClick = onAdd,
+                onClick = onFill,
                 colors = ButtonDefaults.buttonColors(containerColor = DashColors.Accent, contentColor = DashColors.OnAccent),
                 shape = DashShape.Small
             ) {
-                Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(6.dp))
-                Text(stringResource(R.string.dash_add))
+                Text(stringResource(R.string.templates_fill_this))
             }
             OutlinedButton(
-                onClick = onTemplates,
+                onClick = onAdd,
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = DashColors.TextPrimary),
                 border = BorderStroke(1.dp, DashColors.Line),
                 shape = DashShape.Small
             ) {
-                Text(stringResource(R.string.templates_button))
+                Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(R.string.dash_add_tile))
+            }
+            TextButton(onClick = onTemplates) {
+                Text(stringResource(R.string.templates_all_dashboards), color = DashColors.TextSecondary)
             }
         }
     }

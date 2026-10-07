@@ -15,7 +15,7 @@
     <string name="vehicle_capture_b">Capture B</string>
 
     <!-- Telemetry tile -->
-    <string name="vehicle_telemetry_title">TÉLÉMÉTRIE</string>
+    <string name="vehicle_telemetry_title">JAUGES MOTEUR</string>
     <string name="vehicle_live">En direct</string>
     <string name="vehicle_speed_caps">VITESSE</string>
     <string name="vehicle_rpm_caps">TR/MIN</string>
@@ -24,10 +24,10 @@
     <!-- Fault codes tile -->
     <string name="vehicle_fault_codes_title">CODES DÉFAUT</string>
     <string name="vehicle_scan">Lire</string>
-    <string name="vehicle_clear">Effacer</string>
+    <string name="vehicle_clear">Effacer les codes</string>
 
     <!-- OBD data tile -->
-    <string name="vehicle_obd_data_title">DONNÉES OBD</string>
+    <string name="vehicle_obd_data_title">DONNÉES VOITURE</string>
     <string name="vehicle_intake_air">Air d\'admission</string>
     <string name="vehicle_throttle">Papillon</string>
     <string name="vehicle_engine_load">Charge moteur</string>
@@ -35,9 +35,9 @@
 
     <!-- Fuel & range tile -->
     <string name="vehicle_fuel_range_title">CARBURANT &amp; AUTONOMIE</string>
-    <string name="vehicle_via_canbox">via CANbox</string>
+    <string name="vehicle_via_canbox">via boîtier CAN</string>
     <string name="vehicle_via_obd">via OBD</string>
-    <string name="vehicle_fuel_no_obd">L\'OBD de cette voiture n\'indique pas le carburant. Apprenez-le plutôt depuis la CANbox : root requis.</string>
+    <string name="vehicle_fuel_no_obd">L\'OBD de cette voiture n\'indique pas le carburant. Apprenez-le plutôt depuis le boîtier CAN : root requis.</string>
     <string name="vehicle_fuel_none">Pas encore de niveau de carburant. Connectez l\'adaptateur OBD : toutes les voitures ne l\'indiquent pas.</string>
     <string name="vehicle_find_fuel_signal">Trouver le signal carburant</string>
     <string name="vehicle_try_obd_fuel_pid">Essayer le PID carburant OBD</string>
@@ -45,19 +45,19 @@
     <string name="vehicle_range_approx">≈ autonomie</string>
     <string name="vehicle_in_tank">Réservoir</string>
     <string name="vehicle_avg_use">Conso moy.</string>
-    <string name="vehicle_learn_fuel">Apprendre le carburant via CANbox</string>
+    <string name="vehicle_learn_fuel">Apprendre le carburant via le boîtier CAN</string>
     <string name="vehicle_recalibrate_fuel">Recalibrer le carburant</string>
-    <string name="vehicle_find_range_signal">Lire l\'autonomie via CANbox</string>
-    <string name="vehicle_learn_range">Autonomie via CANbox</string>
+    <string name="vehicle_find_range_signal">Lire l\'autonomie via le boîtier CAN</string>
+    <string name="vehicle_learn_range">Autonomie via le boîtier CAN</string>
     <string name="vehicle_change_range">Changer le signal d\'autonomie</string>
     <string name="vehicle_range_from_car">ordinateur de bord</string>
 
     <!-- Fuel signal finder dialog -->
     <string name="vehicle_finder_help">Réglez le niveau indiqué par la jauge, touchez Capture A, puis fermez et utilisez la voiture normalement. Quelques jours plus tard, quand la jauge a un peu baissé, rouvrez, réglez la nouvelle valeur et touchez Capture B. Capture A est conservée après un redémarrage. Seuls les octets qui ont suivi le carburant sont proposés.</string>
     <string name="vehicle_dash_reads">La jauge indique</string>
-    <string name="vehicle_waiting_canbox">En attente des données CANbox… (root requis)</string>
+    <string name="vehicle_waiting_canbox">En attente des données du boîtier CAN : root requis</string>
     <string name="vehicle_finder_step_a">Réglez le niveau de carburant affiché, puis touchez Capture A.</string>
-    <string name="vehicle_finder_step_b">A capturé à %1$d%% (enregistré). Vous pouvez fermer et rouler normalement, revenez quand la jauge a baissé de quelques %%, réglez la nouvelle valeur, puis Capture B.</string>
+    <string name="vehicle_finder_step_b">A capturé à %1$d %%, enregistré. Vous pouvez fermer et rouler normalement, revenez quand la jauge a baissé de quelques %%, réglez la nouvelle valeur, puis Capture B.</string>
     <string name="vehicle_finder_same">A et B sont au même niveau. Faites la Capture B à un autre niveau de carburant.</string>
     <string name="vehicle_finder_none">Aucun octet n\'a suivi la variation. Refaites B après une baisse plus importante.</string>
     <string name="vehicle_finder_candidates">Octets qui ont suivi le carburant</string>
@@ -92,7 +92,7 @@
 
     <!-- Doors tile -->
     <string name="vehicle_doors_title">PORTES</string>
-    <string name="vehicle_waiting_mcu">En attente des données MCU… (root requis)</string>
+    <string name="vehicle_waiting_mcu">En attente des données du boîtier CAN : root requis</string>
     <string name="vehicle_door_front_left">Avant gauche</string>
     <string name="vehicle_door_front_right">Avant droite</string>
     <string name="vehicle_door_rear_left">Arrière gauche</string>
@@ -193,18 +193,18 @@
 
     <!-- Why the adapter is not connected -->
     <string name="vehicle_obd_connecting_to">Connexion à %1$s…</string>
-    <string name="vehicle_obd_pairing_pin">Appairage : saisissez le code de l\'adaptateur dans la fenêtre (souvent 1234 ou 0000)</string>
+    <string name="vehicle_obd_pairing_pin">Appairage : saisissez le code de l\'adaptateur dans la fenêtre</string>
     <string name="vehicle_obd_switching_bt_on">Allumage du Bluetooth de l\'autoradio…</string>
     <string name="vehicle_obd_adapter">Adaptateur : %1$s</string>
     <string name="vehicle_choose_adapter">Choisir l\'adaptateur</string>
     <string name="vehicle_err_bt_off">Le Bluetooth de l\'autoradio est éteint</string>
     <string name="vehicle_err_not_paired">%1$s n\'est pas appairé avec l\'autoradio : touchez OBD pour l\'appairer à nouveau</string>
-    <string name="vehicle_err_pairing_failed">L\'appairage avec %1$s n\'a pas abouti : touchez OBD et saisissez son code (souvent 1234 ou 0000)</string>
+    <string name="vehicle_err_pairing_failed">L\'appairage avec %1$s n\'a pas abouti : touchez OBD et saisissez son code</string>
     <string name="vehicle_err_bt_still_off">Le Bluetooth de l\'autoradio est éteint et ne se rallume pas : redémarrez l\'autoradio, puis touchez OBD</string>
     <string name="vehicle_err_bt_stuck">Le Bluetooth Android de l\'autoradio est bloqué : redémarrez l\'autoradio, puis touchez OBD</string>
     <string name="vehicle_err_refused">%1$s a refusé la connexion : pris par un téléphone ou une autre appli, sans alimentation, ou hors de portée</string>
     <string name="vehicle_err_silent">%1$s s\'est connecté mais n\'a jamais répondu : mettez le contact, puis touchez OBD</string>
-    <string name="vehicle_err_phone_not_linked">L\'OBD passe par le téléphone : reliez d\'abord le téléphone</string>
+    <string name="vehicle_err_phone_not_linked">L\'OBD passe par le téléphone : connectez d\'abord le téléphone</string>
     <string name="vehicle_err_phone_no_adapter">L\'OBD passe par le téléphone : choisissez l\'adaptateur dans le compagnon</string>
     <string name="vehicle_obd_asking_phone">Demande de l\'adaptateur au téléphone</string>
     <string name="vehicle_err_phone_relay">Le téléphone n\'a pas pu joindre %1$s : vérifiez qu\'il est branché et associé au téléphone</string>

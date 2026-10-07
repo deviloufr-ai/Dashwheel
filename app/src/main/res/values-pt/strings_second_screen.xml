@@ -68,7 +68,7 @@
     <string name="second_screen_widget">Widget</string>
     <string name="second_screen_widget_pick">Escolher um widget</string>
     <string name="second_screen_design">Design</string>
-    <string name="second_screen_board_reset">Voltar à página original</string>
+    <string name="second_screen_board_reset">Repor a página original</string>
     <string name="second_screen_copy_of">%1$s, como no autorrádio</string>
     <string name="second_screen_copy_blurb">Uma cópia do seu mosaico no painel. Usa-se no autorrádio.</string>
     <string name="second_screen_copy_no_tile">Ponha %1$s dentro de um mosaico do painel para o ver aqui</string>

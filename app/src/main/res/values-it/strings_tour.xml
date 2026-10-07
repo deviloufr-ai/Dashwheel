@@ -19,10 +19,10 @@
     <string name="tour_finish">Fine</string>
     <string name="tour_read_aloud">Leggi ad alta voce</string>
     <string name="tour_swipe_title">Scorri per cambiare cruscotto</string>
-    <string name="tour_swipe_body">Home è al centro. Scorri a sinistra o a destra per altri due, e in su o in giù da Home per altri quattro.</string>
+    <string name="tour_swipe_body">La Home è al centro. Scorri a sinistra o a destra per i due accanto. Altri pannelli possono stare sopra e sotto.</string>
     <string name="tour_try_swipe">Prova: scorri lo schermo</string>
     <string name="tour_arrange_title">Sposta e ingrandisci i riquadri</string>
-    <string name="tour_arrange_body">Tieni premuto un riquadro e trascinalo per spostarlo. Tira il suo angolo per ingrandirlo.</string>
+    <string name="tour_arrange_body">Tocca un riquadro per le opzioni, tieni premuto per spostarlo, trascina l\'angolo per ridimensionarlo. Tenere premuto il pannello stesso avvia anche la disposizione.</string>
     <string name="tour_arrange_hint">Più tardi lo apri dal menu, Modifica cruscotti.</string>
     <string name="tour_add_title">Aggiungi un widget o un\'app</string>
     <string name="tour_add_body">Tocca Aggiungi per mettere musica, dati dell\'auto, meteo o un\'app su questo cruscotto.</string>

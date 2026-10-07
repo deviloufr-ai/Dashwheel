@@ -15,7 +15,7 @@
     <string name="vehicle_capture_b">Opname B</string>
 
     <!-- Telemetry tile -->
-    <string name="vehicle_telemetry_title">TELEMETRIE</string>
+    <string name="vehicle_telemetry_title">MOTORMETERS</string>
     <string name="vehicle_live">Live</string>
     <string name="vehicle_speed_caps">SNELHEID</string>
     <string name="vehicle_rpm_caps">TPM</string>
@@ -24,10 +24,10 @@
     <!-- Fault codes tile -->
     <string name="vehicle_fault_codes_title">FOUTCODES</string>
     <string name="vehicle_scan">Uitlezen</string>
-    <string name="vehicle_clear">Wissen</string>
+    <string name="vehicle_clear">Codes wissen</string>
 
     <!-- OBD data tile -->
-    <string name="vehicle_obd_data_title">OBD-GEGEVENS</string>
+    <string name="vehicle_obd_data_title">AUTOGEGEVENS</string>
     <string name="vehicle_intake_air">Inlaatlucht</string>
     <string name="vehicle_throttle">Gasklep</string>
     <string name="vehicle_engine_load">Motorbelasting</string>
@@ -35,9 +35,9 @@
 
     <!-- Fuel & range tile -->
     <string name="vehicle_fuel_range_title">BRANDSTOF &amp; ACTIERADIUS</string>
-    <string name="vehicle_via_canbox">via CANbox</string>
+    <string name="vehicle_via_canbox">via CAN-box</string>
     <string name="vehicle_via_obd">via OBD</string>
-    <string name="vehicle_fuel_no_obd">De OBD van deze auto geeft geen brandstof door. Leer het in plaats daarvan van de CANbox: root vereist.</string>
+    <string name="vehicle_fuel_no_obd">De OBD van deze auto geeft geen brandstof door. Leer het in plaats daarvan van de CAN-box: root vereist.</string>
     <string name="vehicle_fuel_none">Nog geen brandstofniveau. Sluit de OBD-adapter aan: niet elke auto geeft het door.</string>
     <string name="vehicle_find_fuel_signal">Brandstofsignaal zoeken</string>
     <string name="vehicle_try_obd_fuel_pid">OBD-brandstof-PID proberen</string>
@@ -45,19 +45,19 @@
     <string name="vehicle_range_approx">≈ actieradius</string>
     <string name="vehicle_in_tank">In tank</string>
     <string name="vehicle_avg_use">Gem. verbruik</string>
-    <string name="vehicle_learn_fuel">Brandstof leren van CANbox</string>
+    <string name="vehicle_learn_fuel">Brandstof leren van de CAN-box</string>
     <string name="vehicle_recalibrate_fuel">Brandstof herkalibreren</string>
-    <string name="vehicle_find_range_signal">Actieradius van CANbox lezen</string>
-    <string name="vehicle_learn_range">Actieradius van CANbox</string>
+    <string name="vehicle_find_range_signal">Actieradius van de CAN-box lezen</string>
+    <string name="vehicle_learn_range">Actieradius van de CAN-box</string>
     <string name="vehicle_change_range">Actieradiussignaal wijzigen</string>
     <string name="vehicle_range_from_car">boordcomputer</string>
 
     <!-- Fuel signal finder dialog -->
     <string name="vehicle_finder_help">Stel het niveau van je brandstofmeter in en tik op Opname A, sluit dit daarna en gebruik de auto normaal. Dagen later, als de meter wat gezakt is, open je dit opnieuw, stel je de nieuwe waarde in en tik je op Opname B. Opname A blijft bewaard na herstarten. Alleen bytes die met de brandstof meebewogen worden aangeboden.</string>
     <string name="vehicle_dash_reads">Meter geeft aan</string>
-    <string name="vehicle_waiting_canbox">Wachten op CANbox-gegevens… (root vereist)</string>
+    <string name="vehicle_waiting_canbox">Wachten op gegevens van de CAN-box: root vereist</string>
     <string name="vehicle_finder_step_a">Stel het getoonde brandstofniveau in en tik op Opname A.</string>
-    <string name="vehicle_finder_step_b">A vastgelegd op %1$d%% (bewaard). Je kunt dit sluiten en normaal rijden, kom terug als de meter een paar %% gezakt is, stel de nieuwe waarde in en dan Opname B.</string>
+    <string name="vehicle_finder_step_b">A vastgelegd op %1$d %%, bewaard. Je kunt dit sluiten en normaal rijden, kom terug als de meter een paar %% gezakt is, stel de nieuwe waarde in en dan Opname B.</string>
     <string name="vehicle_finder_same">A en B staan op hetzelfde niveau. Doe Opname B bij een ander brandstofniveau.</string>
     <string name="vehicle_finder_none">Geen byte volgde de verandering. Neem B opnieuw op na een grotere daling.</string>
     <string name="vehicle_finder_candidates">Bytes die met de brandstof meebewogen</string>
@@ -92,7 +92,7 @@
 
     <!-- Doors tile -->
     <string name="vehicle_doors_title">PORTIEREN</string>
-    <string name="vehicle_waiting_mcu">Wachten op MCU-gegevens… (root vereist)</string>
+    <string name="vehicle_waiting_mcu">Wachten op gegevens van de CAN-box: root vereist</string>
     <string name="vehicle_door_front_left">Linksvoor</string>
     <string name="vehicle_door_front_right">Rechtsvoor</string>
     <string name="vehicle_door_rear_left">Linksachter</string>
@@ -193,13 +193,13 @@
 
     <!-- Why the adapter is not connected -->
     <string name="vehicle_obd_connecting_to">Verbinden met %1$s…</string>
-    <string name="vehicle_obd_pairing_pin">Koppelen: voer de pincode van de adapter in het venster in (vaak 1234 of 0000)</string>
+    <string name="vehicle_obd_pairing_pin">Koppelen: voer de pincode van de adapter in het venster in</string>
     <string name="vehicle_obd_switching_bt_on">Bluetooth van de autoradio wordt aangezet…</string>
     <string name="vehicle_obd_adapter">Adapter: %1$s</string>
     <string name="vehicle_choose_adapter">Adapter kiezen</string>
     <string name="vehicle_err_bt_off">Bluetooth van de radio staat uit</string>
     <string name="vehicle_err_not_paired">%1$s is niet gekoppeld met de autoradio: tik op OBD om opnieuw te koppelen</string>
-    <string name="vehicle_err_pairing_failed">Koppelen met %1$s is niet gelukt: tik op OBD en voer de pincode in (vaak 1234 of 0000)</string>
+    <string name="vehicle_err_pairing_failed">Koppelen met %1$s is niet gelukt: tik op OBD en voer de pincode in</string>
     <string name="vehicle_err_bt_still_off">De bluetooth van de autoradio staat uit en gaat niet aan: herstart de autoradio en tik dan op OBD</string>
     <string name="vehicle_err_bt_stuck">De Android-bluetooth van de autoradio hangt: herstart de autoradio en tik dan op OBD</string>
     <string name="vehicle_err_refused">%1$s weigerde de verbinding: in gebruik door een telefoon of andere app, zonder stroom, of buiten bereik</string>

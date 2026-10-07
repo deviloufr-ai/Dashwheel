@@ -15,7 +15,7 @@
     <string name="vehicle_capture_b">Aufnahme B</string>
 
     <!-- Telemetry tile -->
-    <string name="vehicle_telemetry_title">TELEMETRIE</string>
+    <string name="vehicle_telemetry_title">MOTORANZEIGEN</string>
     <string name="vehicle_live">Live</string>
     <string name="vehicle_speed_caps">TEMPO</string>
     <string name="vehicle_rpm_caps">U/MIN</string>
@@ -24,10 +24,10 @@
     <!-- Fault codes tile -->
     <string name="vehicle_fault_codes_title">FEHLERCODES</string>
     <string name="vehicle_scan">Auslesen</string>
-    <string name="vehicle_clear">Löschen</string>
+    <string name="vehicle_clear">Codes löschen</string>
 
     <!-- OBD data tile -->
-    <string name="vehicle_obd_data_title">OBD-DATEN</string>
+    <string name="vehicle_obd_data_title">FAHRZEUGDATEN</string>
     <string name="vehicle_intake_air">Ansaugluft</string>
     <string name="vehicle_throttle">Drosselklappe</string>
     <string name="vehicle_engine_load">Motorlast</string>
@@ -35,9 +35,9 @@
 
     <!-- Fuel & range tile -->
     <string name="vehicle_fuel_range_title">KRAFTSTOFF &amp; REICHWEITE</string>
-    <string name="vehicle_via_canbox">über CANbox</string>
+    <string name="vehicle_via_canbox">über CAN-Box</string>
     <string name="vehicle_via_obd">über OBD</string>
-    <string name="vehicle_fuel_no_obd">Das OBD dieses Autos meldet keinen Kraftstoffstand. Stattdessen von der CANbox lernen: Root erforderlich.</string>
+    <string name="vehicle_fuel_no_obd">Das OBD dieses Autos meldet keinen Kraftstoffstand. Stattdessen von der CAN-Box lernen: Root erforderlich.</string>
     <string name="vehicle_fuel_none">Noch kein Kraftstoffstand. OBD-Adapter verbinden: nicht jedes Auto meldet ihn.</string>
     <string name="vehicle_find_fuel_signal">Kraftstoffsignal suchen</string>
     <string name="vehicle_try_obd_fuel_pid">OBD-Kraftstoff-PID testen</string>
@@ -45,19 +45,19 @@
     <string name="vehicle_range_approx">≈ Reichweite</string>
     <string name="vehicle_in_tank">Im Tank</string>
     <string name="vehicle_avg_use">Ø Verbrauch</string>
-    <string name="vehicle_learn_fuel">Kraftstoff von CANbox lernen</string>
+    <string name="vehicle_learn_fuel">Kraftstoff von der CAN-Box lernen</string>
     <string name="vehicle_recalibrate_fuel">Kraftstoff neu kalibrieren</string>
-    <string name="vehicle_find_range_signal">Reichweite vom CANbox lesen</string>
-    <string name="vehicle_learn_range">Reichweite vom CANbox</string>
+    <string name="vehicle_find_range_signal">Reichweite von der CAN-Box lesen</string>
+    <string name="vehicle_learn_range">Reichweite von der CAN-Box</string>
     <string name="vehicle_change_range">Reichweitensignal ändern</string>
     <string name="vehicle_range_from_car">Bordcomputer</string>
 
     <!-- Fuel signal finder dialog -->
     <string name="vehicle_finder_help">Den Stand der Tankanzeige einstellen, Aufnahme A tippen, dann schließen und das Auto normal nutzen. Tage später, wenn die Anzeige etwas gesunken ist, erneut öffnen, den neuen Wert einstellen und Aufnahme B tippen. Aufnahme A bleibt nach Neustarts gespeichert. Nur Bytes, die sich mit dem Kraftstoff bewegt haben, werden angeboten.</string>
     <string name="vehicle_dash_reads">Anzeige zeigt</string>
-    <string name="vehicle_waiting_canbox">Warte auf CANbox-Daten… (Root nötig)</string>
+    <string name="vehicle_waiting_canbox">Warte auf Daten der CAN-Box: Root nötig</string>
     <string name="vehicle_finder_step_a">Angezeigten Kraftstoffstand einstellen, dann Aufnahme A tippen.</string>
-    <string name="vehicle_finder_step_b">A bei %1$d%% erfasst (gespeichert). Schließen und normal fahren, wiederkommen, wenn die Anzeige um ein paar %% gesunken ist, neuen Wert einstellen, dann Aufnahme B.</string>
+    <string name="vehicle_finder_step_b">A bei %1$d %% erfasst und gespeichert. Schließen und normal fahren, wiederkommen, wenn die Anzeige um ein paar %% gesunken ist, neuen Wert einstellen, dann Aufnahme B.</string>
     <string name="vehicle_finder_same">A und B haben denselben Stand. Aufnahme B bei anderem Kraftstoffstand machen.</string>
     <string name="vehicle_finder_none">Kein Byte ist der Änderung gefolgt. B nach größerem Abfall neu aufnehmen.</string>
     <string name="vehicle_finder_candidates">Bytes, die dem Kraftstoff folgten</string>
@@ -92,7 +92,7 @@
 
     <!-- Doors tile -->
     <string name="vehicle_doors_title">TÜREN</string>
-    <string name="vehicle_waiting_mcu">Warte auf MCU-Daten… (Root nötig)</string>
+    <string name="vehicle_waiting_mcu">Warte auf Daten der CAN-Box: Root nötig</string>
     <string name="vehicle_door_front_left">Vorne links</string>
     <string name="vehicle_door_front_right">Vorne rechts</string>
     <string name="vehicle_door_rear_left">Hinten links</string>
@@ -193,13 +193,13 @@
 
     <!-- Why the adapter is not connected -->
     <string name="vehicle_obd_connecting_to">Verbinde mit %1$s…</string>
-    <string name="vehicle_obd_pairing_pin">Kopplung: PIN des Adapters im Dialog eingeben (oft 1234 oder 0000)</string>
+    <string name="vehicle_obd_pairing_pin">Kopplung: PIN des Adapters im Dialog eingeben</string>
     <string name="vehicle_obd_switching_bt_on">Bluetooth des Autoradios wird eingeschaltet…</string>
     <string name="vehicle_obd_adapter">Adapter: %1$s</string>
     <string name="vehicle_choose_adapter">Adapter wählen</string>
     <string name="vehicle_err_bt_off">Bluetooth des Radios ist aus</string>
     <string name="vehicle_err_not_paired">%1$s ist nicht mit dem Autoradio gekoppelt: OBD antippen, um es erneut zu koppeln</string>
-    <string name="vehicle_err_pairing_failed">Kopplung mit %1$s nicht abgeschlossen: OBD antippen und die PIN eingeben (oft 1234 oder 0000)</string>
+    <string name="vehicle_err_pairing_failed">Kopplung mit %1$s nicht abgeschlossen: OBD antippen und die PIN eingeben</string>
     <string name="vehicle_err_bt_still_off">Das Bluetooth des Autoradios ist aus und lässt sich nicht einschalten: Autoradio neu starten, dann OBD antippen</string>
     <string name="vehicle_err_bt_stuck">Das Android-Bluetooth des Autoradios hängt: Autoradio neu starten, dann OBD antippen</string>
     <string name="vehicle_err_refused">%1$s hat die Verbindung abgelehnt: von einem Handy oder einer anderen App belegt, ohne Strom oder außer Reichweite</string>

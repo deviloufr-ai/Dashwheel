@@ -8,12 +8,19 @@
     <string name="templates_road_trip">Viaggio</string>
     <string name="templates_road_trip_blurb">Mappa grande, autonomia, meteo e soste per i lunghi viaggi</string>
     <string name="templates_car_health">Salute auto</string>
-    <string name="templates_car_health_blurb">Dati motore e codici guasto nella Home</string>
-    <string name="templates_hint">Un modello riempie tutti e sette i cruscotti, disposti per questo schermo con i riquadri principali dal lato del guidatore.</string>
+    <string name="templates_car_health_blurb">Dati dell\'auto e codici guasto nella Home</string>
+    <string name="templates_hint">Un modello riempie la Home e i due pannelli accanto, disposti per questo schermo con i riquadri principali dal lato del guidatore.</string>
     <string name="templates_no_obd">Nessun adattatore OBD scelto: i widget dei dati auto sono esclusi.</string>
     <string name="templates_fill_empty">Riempi cruscotti vuoti</string>
-    <string name="templates_replace_all">Sostituisci tutti</string>
-    <string name="templates_replace_confirm_title">Sostituire tutti e sette i cruscotti?</string>
+    <string name="templates_replace_all">Sostituisci questi pannelli</string>
+    <string name="templates_replace_confirm_title">Sostituire questi pannelli?</string>
     <string name="templates_replace_confirm_body">La tua disposizione sparisce. Annulla la riporta.</string>
     <string name="templates_replace">Sostituisci</string>
+    <string name="templates_column">Riempi anche i pannelli sopra e sotto</string>
+    <string name="templates_column_detail">Altri quattro pannelli, scorrendo su e giù dalla Home</string>
+    <string name="templates_fill_this">Riempi questo pannello</string>
+    <string name="templates_fill_this_hint">Solo la pagina del modello per %1$s vi è collocata.</string>
+    <string name="templates_fill">Riempi</string>
+    <string name="templates_all_dashboards">Tutti i pannelli…</string>
+    <string name="templates_none_empty">Nessun pannello vuoto negli scorrimenti</string>
 </resources>

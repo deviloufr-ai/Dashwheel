@@ -2,7 +2,7 @@
 <resources>
     <!-- What the car says by itself: Settings -> Alerts -> Voice (HandsFreeSettings.kt) -->
     <string name="voice_section">Lo que dice el coche</string>
-    <string name="voice_warnings">Avisos y consejos del coche</string>
+    <string name="voice_warnings">Avisos y consejos hablados</string>
     <string name="voice_warnings_detail">Motor, batería, filtro de partículas, descansos, combustible, calor de la radio</string>
     <string name="voice_messages">Mensajes</string>
     <string name="voice_messages_detail">Muestra y dice de quién es un mensaje.</string>

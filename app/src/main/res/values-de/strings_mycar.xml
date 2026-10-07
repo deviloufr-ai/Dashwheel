@@ -7,7 +7,7 @@
     <string name="mycar_empty">Noch kein Bild. Wähle eine Datei oder sende eine aus der Handy-App.</string>
     <string name="mycar_working">Wird vorbereitet</string>
     <string name="mycar_ready">Das Bild deines Autos ist da</string>
-    <string name="mycar_failed">Die Datei konnte nicht gelesen werden</string>
+    <string name="mycar_failed">Das Bild konnte nicht gelesen werden. Versuche ein JPG oder PNG.</string>
     <string name="mycar_no_picker">Keine Dateiauswahl auf diesem Gerät. Lege die Datei hier ab: %1$s</string>
     <string name="mycar_pick">Datei wählen</string>
     <string name="mycar_remove">Entfernen</string>

@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -209,7 +210,7 @@ internal fun voiceNotesFace(): WidgetFace {
         title = BuiltinKind.VOICE_NOTES.label,
         value = notes.size.toString(),
         alert = since != null,
-        caption = stringResource(if (since != null) R.string.widgets_notes_recording else R.string.widgets_notes_count),
+        caption = if (since != null) stringResource(R.string.widgets_notes_recording) else pluralStringResource(R.plurals.widgets_notes_count, notes.size),
         actions = listOf(
             FaceAction(
                 if (since != null) Icons.Filled.Stop else Icons.Filled.Mic,

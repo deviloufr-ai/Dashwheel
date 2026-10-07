@@ -2,7 +2,7 @@
 <resources>
     <!-- Horizon skin: top bar -->
     <string name="horizon_cd_all_apps">All apps</string>
-    <string name="horizon_cd_screen_layout">Screen layout: %1$s</string>
+    <string name="horizon_cd_screen_layout">Google Maps position: %1$s</string>
     <string name="horizon_cd_more">More</string>
 
     <!-- Horizon skin: telemetry and speed -->
@@ -12,7 +12,7 @@
     <string name="horizon_obd_tap_connect">Tap to connect OBD</string>
     <string name="horizon_rpm_value">%1$s rpm</string>
     <string name="horizon_coolant_value">%1$d° coolant</string>
-    <string name="horizon_load_value">%1$d%% load</string>
+    <string name="horizon_load_value">%1$d %% load</string>
 
     <!-- Horizon skin: music -->
     <string name="horizon_cd_previous_track">Previous track</string>
@@ -43,7 +43,7 @@
     <string name="horizon_weather_at_car">Weather at the car</string>
     <string name="horizon_feels">feels %1$d°</string>
     <string name="horizon_wind">wind %1$d km/h</string>
-    <string name="horizon_range_fuel">range · %1$d%% fuel</string>
+    <string name="horizon_range_fuel">range · %1$d %% fuel</string>
 
     <!-- Horizon skin: apps and launch bar -->
     <string name="horizon_open_app">Open %1$s</string>
@@ -54,7 +54,7 @@
     <string name="tape_apps_caps">APPS</string>
     <string name="tape_cd_all_apps">All apps</string>
     <string name="tape_layout_caps">LAYOUT</string>
-    <string name="tape_cd_screen_layout">Screen layout: %1$s</string>
+    <string name="tape_cd_screen_layout">Google Maps position: %1$s</string>
     <string name="tape_cd_more">More</string>
 
     <!-- Tape Deck skin: telemetry and speed -->

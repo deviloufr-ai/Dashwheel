@@ -7,7 +7,8 @@
         <item quantity="one">%1$d knop toegewezen</item>
         <item quantity="other">%1$d knoppen toegewezen</item>
     </plurals>
-    <string name="wheel_explanation">Druk op elke knop van het stuur. Een nieuwe komt op de kaart, een bekende licht groen op. Tik op een knop om hem een naam en plaats te geven en te kiezen wat hij doet.</string>
+    <string name="wheel_explanation">Druk op elke knop van het stuur: een nieuwe komt op de kaart, een bekende licht groen op.</string>
+    <string name="wheel_explanation_tap">Tik op een knop om hem een naam en plaats te geven en te kiezen wat hij doet.</string>
     <string name="wheel_confirm_detail">%1$s is gezien. Druk er nog eens op zodat Dashwheel weet dat jij het was: een autowaarde die vanzelf verandert, komt niet op commando terug.</string>
     <string name="wheel_assign_prompt">Wat moet %1$s doen?</string>
     <string name="wheel_choose_app">Een app openen…</string>
@@ -33,7 +34,7 @@
     <string name="wheel_action_quick_settings">Snelle instellingen</string>
     <string name="wheel_action_toggle_split">Gesplitst scherm aan / uit</string>
     <string name="wheel_action_screenshot">Screenshot</string>
-    <string name="wheel_action_play_pause">Afspelen / Pauzeren</string>
+    <string name="wheel_action_play_pause">Afspelen/pauzeren</string>
     <string name="wheel_action_next">Volgend nummer</string>
     <string name="wheel_action_previous">Vorig nummer</string>
     <string name="wheel_action_volume_up">Volume omhoog</string>

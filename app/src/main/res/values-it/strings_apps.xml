@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Add-widget catalogue: section headings -->
-    <string name="apps_category_driving">GUIDA</string>
-    <string name="apps_category_navigation">NAVIGAZIONE</string>
-    <string name="apps_category_vehicle">VEICOLO</string>
-    <string name="apps_category_info">INFO E COMUNICAZIONI</string>
-    <string name="apps_category_apps">MEDIA E APP</string>
+    <string name="apps_category_driving">Guida</string>
+    <string name="apps_category_navigation">Navigazione</string>
+    <string name="apps_category_vehicle">Veicolo</string>
+    <string name="apps_category_info">Info e comunicazioni</string>
+    <string name="apps_category_apps">Media</string>
 
     <!-- Add-widget catalogue: built-in tiles (name, then one-line description) -->
     <string name="apps_kind_navmap">Mappa</string>
@@ -16,16 +16,16 @@
     <string name="apps_kind_pip_anchor_blurb">Aggancia qui la finestra mobile di Maps</string>
     <string name="apps_kind_media">Lettore musicale</string>
     <string name="apps_kind_media_blurb">In riproduzione, con comandi</string>
-    <string name="apps_kind_telemetry">Telemetria</string>
+    <string name="apps_kind_telemetry">Strumenti motore</string>
     <string name="apps_kind_telemetry_blurb">Velocità, giri, refrigerante, carico, batteria</string>
     <string name="apps_kind_obd_dtc">Codici guasto</string>
     <string name="apps_kind_obd_dtc_blurb">Leggi e cancella i codici guasto OBD</string>
-    <string name="apps_kind_obd_all">Tutti i dati OBD</string>
+    <string name="apps_kind_obd_all">Tutti i dati dell\'auto</string>
     <string name="apps_kind_obd_all_blurb">Tutti i valori OBD in tempo reale</string>
     <string name="apps_kind_range">Carburante e autonomia</string>
     <string name="apps_kind_range_blurb">Livello serbatoio e km residui</string>
     <string name="apps_kind_doors">Porte</string>
-    <string name="apps_kind_doors_blurb">Stato di porte e bagagliaio (MCU)</string>
+    <string name="apps_kind_doors_blurb">Stato di porte e bagagliaio dall\'auto</string>
     <string name="apps_kind_can_mon">Monitor CAN</string>
     <string name="apps_kind_can_mon_blurb">Frame CAN grezzi, per trovare i segnali</string>
     <string name="apps_kind_speed_hud">Velocità</string>
@@ -107,17 +107,11 @@
     <string name="apps_add_title">Aggiungi a %1$s</string>
     <string name="apps_tab_widgets">Widget</string>
     <string name="apps_tab_apps">App</string>
-    <string name="apps_tab_windows">Finestre</string>
     <string name="apps_search">Cerca</string>
     <string name="apps_category_all">Tutti</string>
-    <string name="apps_window_mode_single">In una finestra</string>
-    <string name="apps_window_mode_pair">Affiancate</string>
-    <string name="apps_window_hint">L\'app resta aperta in una finestra sua su questo cruscotto.</string>
-    <string name="apps_window_mode_inside">Nel riquadro</string>
-    <string name="apps_window_inside_hint">L\'app gira nel riquadro e si tocca lì.</string>
     <string name="apps_embed_app_starting">Apertura di %1$s</string>
     <string name="apps_embed_app_missing">%1$s non è installata</string>
-    <string name="apps_embed_app_blocked">Android non ha lasciato aprire %1$s qui</string>
+    <string name="apps_embed_app_blocked">%1$s non funziona in un riquadro su questa unità. Aggiungilo come finestra.</string>
     <string name="apps_embed_under_dashboard">Già sotto il cruscotto</string>
     <string name="apps_pair_pick_first">Tocca l\'app per il lato sinistro.</string>
     <string name="apps_pair_pick_second">%1$s a sinistra. Ora tocca l\'app per il lato destro.</string>
@@ -125,9 +119,9 @@
     <string name="apps_kind_maps_inside">Google Maps integrato</string>
     <string name="apps_kind_maps_inside_blurb">La vera app Google Maps, in questo riquadro</string>
     <string name="apps_kind_dash_bar">Barra dei cruscotti</string>
-    <string name="apps_kind_dash_bar_blurb">I tuoi cruscotti e app, con un tocco</string>
+    <string name="apps_kind_dash_bar_blurb">I tuoi pannelli e app, un tocco ciascuno, su questo pannello</string>
     <string name="apps_most_used">Le più usate</string>
-    <string name="apps_kind_screen_light">Luce del secondo schermo</string>
+    <string name="apps_kind_screen_light">Luminosità schermo Pi</string>
     <string name="apps_kind_screen_light_blurb">La retroilluminazione del secondo schermo, di giorno e di notte</string>
     <string name="apps_kind_radios">Wi-Fi e Bluetooth</string>
     <string name="apps_kind_radios_blurb">Accendi e spegni Wi-Fi e Bluetooth dell\'autoradio</string>
@@ -143,4 +137,11 @@
     <string name="apps_needs_root">Serve il root</string>
     <string name="apps_needs_carbox">Serve la centralina dell\'auto</string>
     <string name="apps_on_dashboard">Già su un cruscotto</string>
+    <string name="apps_as_icon">Icona</string>
+    <string name="apps_as_icon_detail">Apre l\'app</string>
+    <string name="apps_in_tile">In un riquadro</string>
+    <string name="apps_in_tile_inside">Funziona dentro il riquadro, su questo pannello</string>
+    <string name="apps_in_tile_window">Resta aperta in una finestra grande quanto il riquadro</string>
+    <string name="apps_side_by_side">Fianco a fianco</string>
+    <string name="apps_side_by_side_detail">Due app insieme, a schermo diviso</string>
 </resources>

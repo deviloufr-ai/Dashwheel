@@ -42,6 +42,10 @@
         <item quantity="one">Die günstigste Tankstelle in der Nähe ist %1$s, %2$d Meile entfernt.</item>
         <item quantity="other">Die günstigste Tankstelle in der Nähe ist %1$s, %2$d Meilen entfernt.</item>
     </plurals>
+    <plurals name="units_lpg_voice_low_mi">
+        <item quantity="one">Gas knapp: noch etwa %1$d Meile.</item>
+        <item quantity="other">Gas knapp: noch etwa %1$d Meilen.</item>
+    </plurals>
     <string name="units_car_say_fuel_short_mi">Deine Reichweite von %1$d Meilen reicht nicht bis zum Ziel in %2$d Meilen. Bitte einen Tankstopp einplanen.</string>
     <string name="units_car_say_filter_mph">Die letzten %1$d Fahrten waren kurz. Wenn möglich 15 bis 20 Minuten über 40 Meilen pro Stunde fahren, damit sich der Partikelfilter reinigen kann.</string>
     <plurals name="units_upkeep_say_overdue_mi">

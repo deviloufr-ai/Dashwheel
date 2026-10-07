@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Dashwheel Companion</string>
-    <string name="service_channel">Car link</string>
+    <string name="service_channel">Car connection</string>
     <string name="status_off">Sharing is off</string>
     <string name="status_waiting">Waiting for the car on your hotspot</string>
     <string name="status_connected">Connected to %1$s</string>
@@ -13,9 +13,9 @@
     <string name="step_notifications_restricted">Greyed out? Open App info, then ⋮ → Allow restricted settings, and try again.</string>
     <string name="step_app_info">App info</string>
     <string name="step_post">Status notification</string>
-    <string name="step_post_detail">Shows that the link with the car is running.</string>
+    <string name="step_post_detail">Shows that the connection to the car is running.</string>
     <string name="step_battery">Battery optimisation</string>
-    <string name="step_battery_detail">Keeps the link alive during long drives.</string>
+    <string name="step_battery_detail">Keeps the connection alive during long drives.</string>
     <string name="step_hotspot">Wi-Fi hotspot</string>
     <string name="step_hotspot_detail">Turn it on and connect the head unit to it.</string>
     <string name="step_open_settings">Open</string>
@@ -39,26 +39,26 @@
     <string name="car_spot_title">Where\'s my car</string>
     <string name="car_spot_left">Left here: %1$s</string>
     <string name="car_spot_saved">Saved in the car: %1$s</string>
-    <string name="car_spot_none">Once the car is linked, the place where it stops shows up here.</string>
+    <string name="car_spot_none">Once the car is paired, the place where it stops shows up here.</string>
     <string name="car_spot_map">Map</string>
     <string name="car_spot_walk">Walk there</string>
     <string name="drives_title">Drives</string>
-    <string name="drives_none">Once the car is linked, each drive shows up here with its distance, time and eco-driving score.</string>
+    <string name="drives_none">Once the car is paired, each drive shows up here with its distance, time and eco-driving score.</string>
     <string name="drive_under_way">Drive under way</string>
     <string name="drive_last">Last drive</string>
     <string name="drive_km">km</string>
     <string name="drive_time">Time</string>
     <string name="drive_average">Average km/h</string>
     <string name="drive_top">Top km/h</string>
-    <string name="drive_eco_none">Eco-driving: no score (under 1 km, or no engine data)</string>
+    <string name="drive_eco_none">No eco-driving score: under 1 km or no engine data</string>
     <string name="drive_eco_smooth">Smooth driving</string>
     <string name="drive_eco_fair">Fair: a bit abrupt</string>
     <string name="drive_eco_harsh">Harsh: ease off</string>
-    <string name="drive_hard">Hard accel. / braking: %1$d / %2$d</string>
+    <string name="drive_hard">Hard acceleration / braking: %1$d / %2$d</string>
     <string name="drive_band">Revs in the relaxed band: %1$d %%</string>
-    <string name="drive_clutch">Held on the throttle: %1$d</string>
+    <string name="drive_clutch">Held on a hill with the accelerator: %1$d</string>
     <string name="drive_fuel">Fuel ≈ %1$s L · %2$s %3$s</string>
-    <string name="drive_duration_hm">%1$d h %2$02d</string>
+    <string name="drive_duration_hm">%1$d h %2$02d min</string>
     <string name="drive_duration_m">%1$d min</string>
     <!-- The phone as the car's keyboard (CarKeyboard, SendToCarActivity). -->
     <string name="keyboard_title">Type on the car</string>
@@ -85,7 +85,7 @@
     <string name="step_agenda_detail">Shows your next events on the car\'s screen, with guidance to where they are.</string>
     <string name="step_location">Position for the car</string>
     <string name="step_location_detail">The car uses this phone\'s GPS: it finds its place in seconds. Choose Allow all the time.</string>
-    <string name="status_unavailable">The link could not start</string>
+    <string name="status_unavailable">The connection could not start</string>
     <string name="status_unavailable_detail">Turn sharing off and on again. If it keeps failing, restart the phone.</string>
     <string name="status_off_detail">The car gets nothing from this phone until you switch it back on.</string>
     <string name="status_waiting_detail">Turn on the phone\'s hotspot and connect the head unit to it.</string>
@@ -121,15 +121,15 @@
     <string name="obd_relay_change">Change</string>
     <string name="obd_relay_stop">Turn off</string>
     <string name="obd_relay_pick">Your OBD adapter</string>
-    <string name="obd_relay_pick_hint">Pair the adapter with this phone in Bluetooth first (PIN 1234 or 0000). The phone then holds it for the car, so calls and Android Auto no longer get in the way.</string>
+    <string name="obd_relay_pick_hint">Pair the adapter with this phone in Bluetooth first, PIN 1234 or 0000. The phone then holds it for the car, so calls and Android Auto no longer get in the way.</string>
     <string name="news_title">From your car</string>
     <string name="news_channel">Car reminders</string>
     <string name="step_texts">On my way texts</string>
     <string name="step_texts_detail">Lets the car text a contact your arrival time, as a normal SMS from this phone.</string>
     <string name="report_time">Driving time</string>
     <string name="report_per100">L/100 km</string>
-    <string name="report_estimated">Estimated from the usual consumption: no refuel logged this month.</string>
-    <string name="report_last_fill">Last refuel: %1$s L · %2$s</string>
+    <string name="report_estimated">Estimated from the usual consumption: no fill-up logged this month.</string>
+    <string name="report_last_fill">Last fill-up: %1$s L · %2$s</string>
     <string name="report_share">Share</string>
     <string name="report_share_subject">Car report: %1$s</string>
     <string name="report_earlier">Earlier month</string>
@@ -212,7 +212,7 @@
 
     <!-- A second-screen display's code, scanned here and passed to the car (DisplayPair). -->
     <string name="display_confirm_title">Add the screen %1$s to your car?</string>
-    <string name="display_confirm_body">Your phone passes this screen\'s code to the car it is linked to.</string>
+    <string name="display_confirm_body">Your phone passes this screen\'s code to the car it is paired with.</string>
     <string name="display_confirm_send">Send to the car</string>
     <string name="display_sent">Sent to %1$s: the screen connects in a few seconds.</string>
     <string name="display_needs_car">Connect to your car first, then scan the screen\'s code again.</string>

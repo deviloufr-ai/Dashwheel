@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Dashwheel Compañero</string>
-    <string name="service_channel">Enlace con el coche</string>
+    <string name="service_channel">Conexión con el coche</string>
     <string name="status_off">Compartir está desactivado</string>
     <string name="status_waiting">Esperando al coche en tu punto de acceso</string>
     <string name="status_connected">Conectado a %1$s</string>
@@ -13,9 +13,9 @@
     <string name="step_notifications_restricted">¿Aparece en gris? Abre Información de la app, luego ⋮ → Permitir ajustes restringidos, y vuelve a intentarlo.</string>
     <string name="step_app_info">Info de la app</string>
     <string name="step_post">Notificación de estado</string>
-    <string name="step_post_detail">Indica que el enlace con el coche está activo.</string>
+    <string name="step_post_detail">Indica que la conexión con el coche está activa.</string>
     <string name="step_battery">Optimización de batería</string>
-    <string name="step_battery_detail">Mantiene el enlace activo en viajes largos.</string>
+    <string name="step_battery_detail">Mantiene la conexión activa en viajes largos.</string>
     <string name="step_hotspot">Punto de acceso Wi-Fi</string>
     <string name="step_hotspot_detail">Actívalo y conecta la radio del coche.</string>
     <string name="step_open_settings">Abrir</string>
@@ -39,26 +39,26 @@
     <string name="car_spot_title">Dónde está mi coche</string>
     <string name="car_spot_left">Dejado aquí: %1$s</string>
     <string name="car_spot_saved">Guardado en el coche: %1$s</string>
-    <string name="car_spot_none">Con el coche conectado, aquí aparece dónde se detiene.</string>
+    <string name="car_spot_none">Con el coche vinculado, aquí aparece dónde se detiene.</string>
     <string name="car_spot_map">Mapa</string>
     <string name="car_spot_walk">Ir a pie</string>
     <string name="drives_title">Trayectos</string>
-    <string name="drives_none">Una vez conectado el coche, cada trayecto aparece aquí con su distancia, duración y nota de conducción eficiente.</string>
+    <string name="drives_none">Una vez vinculado el coche, cada trayecto aparece aquí con su distancia, duración y nota de conducción eficiente.</string>
     <string name="drive_under_way">Trayecto en curso</string>
     <string name="drive_last">Último trayecto</string>
     <string name="drive_km">km</string>
     <string name="drive_time">Duración</string>
     <string name="drive_average">Media km/h</string>
     <string name="drive_top">Máx. km/h</string>
-    <string name="drive_eco_none">Conducción eficiente: sin nota (menos de 1 km o sin datos del motor)</string>
+    <string name="drive_eco_none">Sin nota de conducción eficiente: menos de 1 km o sin datos del motor</string>
     <string name="drive_eco_smooth">Conducción suave</string>
     <string name="drive_eco_fair">Regular: algo brusca</string>
     <string name="drive_eco_harsh">Brusca: más suave</string>
-    <string name="drive_hard">Aceler. / frenadas bruscas: %1$d / %2$d</string>
+    <string name="drive_hard">Aceleraciones / frenadas bruscas: %1$d / %2$d</string>
     <string name="drive_band">Revoluciones en la zona tranquila: %1$d %%</string>
-    <string name="drive_clutch">Sujeto con acelerador: %1$d</string>
+    <string name="drive_clutch">Sujeto en cuesta con el acelerador: %1$d</string>
     <string name="drive_fuel">Combustible ≈ %1$s L · %2$s %3$s</string>
-    <string name="drive_duration_hm">%1$d h %2$02d</string>
+    <string name="drive_duration_hm">%1$d h %2$02d min</string>
     <string name="drive_duration_m">%1$d min</string>
     <string name="keyboard_title">Escribir en el coche</string>
     <string name="keyboard_detail">Selecciona un campo de texto en la pantalla del coche y escribe aquí: sigue lo que escribes.</string>
@@ -120,7 +120,7 @@
     <string name="obd_relay_change">Cambiar</string>
     <string name="obd_relay_stop">Desactivar</string>
     <string name="obd_relay_pick">Tu adaptador OBD</string>
-    <string name="obd_relay_pick_hint">Vincula primero el adaptador con este teléfono en Bluetooth (PIN 1234 o 0000). El teléfono lo mantiene para el coche y las llamadas y Android Auto ya no molestan.</string>
+    <string name="obd_relay_pick_hint">Vincula primero el adaptador con este teléfono en Bluetooth, PIN 1234 o 0000. El teléfono lo mantiene para el coche y las llamadas y Android Auto ya no molestan.</string>
     <string name="news_title">De tu coche</string>
     <string name="news_channel">Recordatorios del coche</string>
     <string name="step_texts">SMS de camino</string>
@@ -211,7 +211,7 @@
 
     <!-- A second-screen display's code, scanned here and passed to the car (DisplayPair). -->
     <string name="display_confirm_title">¿Añadir la pantalla %1$s a tu coche?</string>
-    <string name="display_confirm_body">Tu teléfono pasa el código de esta pantalla al coche al que está conectado.</string>
+    <string name="display_confirm_body">Tu teléfono pasa el código de esta pantalla al coche con el que está vinculado.</string>
     <string name="display_confirm_send">Enviar al coche</string>
     <string name="display_sent">Enviado a %1$s: la pantalla se conecta en unos segundos.</string>
     <string name="display_needs_car">Conéctate primero al coche y vuelve a escanear el código de la pantalla.</string>

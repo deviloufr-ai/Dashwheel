@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Dashwheel Compagnon</string>
-    <string name="service_channel">Lien avec la voiture</string>
+    <string name="service_channel">Connexion à la voiture</string>
     <string name="status_off">Partage désactivé</string>
     <string name="status_waiting">En attente de la voiture sur votre partage de connexion</string>
     <string name="status_connected">Connecté à %1$s</string>
@@ -13,9 +13,9 @@
     <string name="step_notifications_restricted">Option grisée ? Ouvrez Infos de l\'appli, puis ⋮ → Autoriser les paramètres restreints, et réessayez.</string>
     <string name="step_app_info">Infos de l\'appli</string>
     <string name="step_post">Notification d\'état</string>
-    <string name="step_post_detail">Indique que le lien avec la voiture est actif.</string>
+    <string name="step_post_detail">Indique que la connexion à la voiture est active.</string>
     <string name="step_battery">Optimisation de la batterie</string>
-    <string name="step_battery_detail">Garde le lien actif pendant les longs trajets.</string>
+    <string name="step_battery_detail">Garde la connexion active pendant les longs trajets.</string>
     <string name="step_hotspot">Partage de connexion Wi-Fi</string>
     <string name="step_hotspot_detail">Activez-le et connectez-y l\'autoradio.</string>
     <string name="step_open_settings">Ouvrir</string>
@@ -39,26 +39,26 @@
     <string name="car_spot_title">Où est ma voiture</string>
     <string name="car_spot_left">Laissée ici : %1$s</string>
     <string name="car_spot_saved">Enregistrée dans la voiture : %1$s</string>
-    <string name="car_spot_none">Une fois la voiture reliée, l\'endroit où elle s\'arrête s\'affiche ici.</string>
+    <string name="car_spot_none">Une fois la voiture associée, l\'endroit où elle s\'arrête s\'affiche ici.</string>
     <string name="car_spot_map">Carte</string>
     <string name="car_spot_walk">Y aller à pied</string>
     <string name="drives_title">Trajets</string>
-    <string name="drives_none">Une fois la voiture reliée, chaque trajet s\'affiche ici avec sa distance, sa durée et sa note d\'éco-conduite.</string>
+    <string name="drives_none">Une fois la voiture associée, chaque trajet s\'affiche ici avec sa distance, sa durée et sa note d\'éco-conduite.</string>
     <string name="drive_under_way">Trajet en cours</string>
     <string name="drive_last">Dernier trajet</string>
     <string name="drive_km">km</string>
     <string name="drive_time">Durée</string>
     <string name="drive_average">Moyenne km/h</string>
     <string name="drive_top">Maxi km/h</string>
-    <string name="drive_eco_none">Éco-conduite : pas de note (moins d\'1 km, ou pas de données moteur)</string>
+    <string name="drive_eco_none">Pas de note d\'éco-conduite : moins d\'1 km ou pas de données moteur</string>
     <string name="drive_eco_smooth">Conduite souple</string>
     <string name="drive_eco_fair">Correct : un peu brusque</string>
     <string name="drive_eco_harsh">Brusque : levez le pied</string>
-    <string name="drive_hard">Accél. / freinages brusques : %1$d / %2$d</string>
+    <string name="drive_hard">Accélérations / freinages brusques : %1$d / %2$d</string>
     <string name="drive_band">Régime dans la plage souple : %1$d %%</string>
-    <string name="drive_clutch">Retenue à l\'accélérateur : %1$d</string>
+    <string name="drive_clutch">Retenue en côte à l\'accélérateur : %1$d</string>
     <string name="drive_fuel">Carburant ≈ %1$s L · %2$s %3$s</string>
-    <string name="drive_duration_hm">%1$d h %2$02d</string>
+    <string name="drive_duration_hm">%1$d h %2$02d min</string>
     <string name="drive_duration_m">%1$d min</string>
     <string name="keyboard_title">Taper sur la voiture</string>
     <string name="keyboard_detail">Sélectionnez un champ de texte sur l\'écran de la voiture, puis tapez ici : il suit à mesure.</string>
@@ -84,7 +84,7 @@
     <string name="step_agenda_detail">Affiche vos prochains rendez-vous sur l\'écran de la voiture, avec le guidage jusqu\'au lieu.</string>
     <string name="step_location">Position pour la voiture</string>
     <string name="step_location_detail">La voiture utilise le GPS de ce téléphone : elle se situe en quelques secondes. Choisissez Toujours autoriser.</string>
-    <string name="status_unavailable">La liaison n\'a pas pu démarrer</string>
+    <string name="status_unavailable">La connexion n\'a pas pu démarrer</string>
     <string name="status_unavailable_detail">Désactivez puis réactivez le partage. Si cela continue, redémarrez le téléphone.</string>
     <string name="status_off_detail">La voiture ne reçoit rien de ce téléphone tant que le partage est coupé.</string>
     <string name="status_waiting_detail">Activez le partage de connexion du téléphone et connectez-y l\'autoradio.</string>
@@ -120,7 +120,7 @@
     <string name="obd_relay_change">Changer</string>
     <string name="obd_relay_stop">Désactiver</string>
     <string name="obd_relay_pick">Votre adaptateur OBD</string>
-    <string name="obd_relay_pick_hint">Associez d\'abord l\'adaptateur à ce téléphone dans Bluetooth (code 1234 ou 0000). Le téléphone le tient alors pour la voiture : les appels et Android Auto ne le gênent plus.</string>
+    <string name="obd_relay_pick_hint">Associez d\'abord l\'adaptateur à ce téléphone dans Bluetooth, code 1234 ou 0000. Le téléphone le tient alors pour la voiture : les appels et Android Auto ne le gênent plus.</string>
     <string name="news_title">De votre voiture</string>
     <string name="news_channel">Rappels de la voiture</string>
     <string name="step_texts">SMS « J\'arrive »</string>
@@ -211,7 +211,7 @@
 
     <!-- A second-screen display's code, scanned here and passed to the car (DisplayPair). -->
     <string name="display_confirm_title">Ajouter l\'écran %1$s à votre voiture ?</string>
-    <string name="display_confirm_body">Votre téléphone transmet le code de cet écran à la voiture à laquelle il est relié.</string>
+    <string name="display_confirm_body">Votre téléphone transmet le code de cet écran à la voiture à laquelle il est associé.</string>
     <string name="display_confirm_send">Envoyer à la voiture</string>
     <string name="display_sent">Envoyé à %1$s : l\'écran se connecte dans quelques secondes.</string>
     <string name="display_needs_car">Connectez-vous d\'abord à votre voiture, puis scannez à nouveau le code de l\'écran.</string>

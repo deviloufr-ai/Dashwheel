@@ -54,7 +54,10 @@
     <string name="design_car_outline">Silhouette</string>
     <string name="design_car_outline_desc">La voiture de profil, ses mesures à côté.</string>
     <string name="design_change">Changer le style de %1$s</string>
-    <string name="design_codes_unit">codes</string>
+    <plurals name="design_codes_unit">
+        <item quantity="one">code</item>
+        <item quantity="other">codes</item>
+    </plurals>
     <string name="design_engine_lamp">Voyant moteur</string>
     <string name="design_on">Allumé</string>
     <string name="design_off">Éteint</string>

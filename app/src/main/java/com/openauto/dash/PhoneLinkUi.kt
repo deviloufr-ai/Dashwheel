@@ -378,7 +378,7 @@ internal fun PhonePairingDialog(onDismiss: () -> Unit) {
         modifier = Modifier.keepClearOfWindows(),
         onDismissRequest = onDismiss,
         containerColor = DashColors.Card,
-        title = { Text(stringResource(R.string.phone_pair_title), color = DashColors.TextPrimary) },
+        title = { TitleWithHelp(stringResource(R.string.phone_pair_title), WikiPage.PHONE_COMPANION) },
         text = {
             if (paired != null) {
                 Row(verticalAlignment = Alignment.CenterVertically) {

@@ -8,12 +8,19 @@
     <string name="templates_road_trip">Roadtrip</string>
     <string name="templates_road_trip_blurb">Große Karte, Reichweite, Wetter und Stopps für lange Fahrten</string>
     <string name="templates_car_health">Fahrzeugzustand</string>
-    <string name="templates_car_health_blurb">Motordaten und Fehlercodes auf der Startseite</string>
-    <string name="templates_hint">Eine Vorlage füllt alle sieben Dashboards, für diesen Bildschirm angeordnet, die wichtigsten Kacheln auf der Fahrerseite.</string>
+    <string name="templates_car_health_blurb">Fahrzeugdaten und Fehlercodes auf der Startseite</string>
+    <string name="templates_hint">Eine Vorlage füllt Start und die beiden Dashboards daneben, für diesen Bildschirm angeordnet, die wichtigsten Kacheln auf der Fahrerseite.</string>
     <string name="templates_no_obd">Noch kein OBD-Adapter gewählt, daher fehlen die Fahrzeugdaten-Widgets.</string>
     <string name="templates_fill_empty">Leere Dashboards füllen</string>
-    <string name="templates_replace_all">Alle Dashboards ersetzen</string>
-    <string name="templates_replace_confirm_title">Alle sieben Dashboards ersetzen?</string>
+    <string name="templates_replace_all">Diese Dashboards ersetzen</string>
+    <string name="templates_replace_confirm_title">Diese Dashboards ersetzen?</string>
     <string name="templates_replace_confirm_body">Deine Anordnung verschwindet. Rückgängig holt sie zurück.</string>
     <string name="templates_replace">Ersetzen</string>
+    <string name="templates_column">Auch die Dashboards darüber und darunter füllen</string>
+    <string name="templates_column_detail">Vier weitere Dashboards, von Start aus nach oben und unten gewischt</string>
+    <string name="templates_fill_this">Dieses Dashboard füllen</string>
+    <string name="templates_fill_this_hint">Nur die Vorlagenseite für %1$s kommt darauf.</string>
+    <string name="templates_fill">Füllen</string>
+    <string name="templates_all_dashboards">Alle Dashboards…</string>
+    <string name="templates_none_empty">Kein leeres Dashboard im Wischen</string>
 </resources>

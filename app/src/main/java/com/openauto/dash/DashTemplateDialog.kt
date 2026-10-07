@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -36,19 +38,27 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 
+/** What the templates dialog settled on: the template, the pages it lays out, and whether those are replaced (else only the empty ones among them are filled). */
+internal data class TemplateChoice(val template: DashTemplate, val pages: Set<Int>, val replace: Boolean)
+
 /**
  * Picks a [DashTemplate]. Each card previews the template as it will really
  * be placed on [screen] (this layout, this adapter, this driver's side),
- * drawn as the cross of seven dashboards. [onApply] gets the template and
- * whether to replace every page (true) or only fill the empty ones.
+ * drawn as the cross of seven dashboards: the row of three by default, the
+ * column above and below too when asked. With [onlyPage] (an empty page's
+ * own Fill) the template goes on that page alone. [onApply] gets the
+ * [TemplateChoice].
  */
 @Composable
 internal fun DashTemplateDialog(
     screen: TemplateScreen,
-    onApply: (DashTemplate, Boolean) -> Unit,
-    onDismiss: () -> Unit
+    onApply: (TemplateChoice) -> Unit,
+    onDismiss: () -> Unit,
+    onlyPage: Int? = null
 ) {
     var chosen by remember { mutableStateOf(DashTemplate.DAILY) }
+    var column by remember { mutableStateOf(false) }
+    val pages = onlyPage?.let { setOf(it) } ?: if (column) TemplatePlacer.ALL_PAGES else TemplatePlacer.ROW_PAGES
     AlertDialog(
         modifier = Modifier.fillMaxWidth(0.92f).keepClearOfWindows(),
         properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
@@ -62,14 +72,24 @@ internal fun DashTemplateDialog(
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     DashTemplate.entries.forEach { template ->
-                        TemplateCard(template, screen, template == chosen, Modifier.weight(1f)) { chosen = template }
+                        // One page's own fill previews the whole template, with that page framed.
+                        TemplateCard(template, screen, if (onlyPage == null) pages else null, onlyPage ?: DashboardStore.CENTER, template == chosen, Modifier.weight(1f)) { chosen = template }
                     }
                 }
                 Text(
-                    stringResource(R.string.templates_hint),
+                    if (onlyPage != null) stringResource(R.string.templates_fill_this_hint, pageName(onlyPage)) else stringResource(R.string.templates_hint),
                     color = DashColors.TextSecondary,
                     style = MaterialTheme.typography.bodySmall
                 )
+                if (onlyPage == null) {
+                    SettingsToggle(
+                        icon = Icons.Filled.SwapVert,
+                        title = stringResource(R.string.templates_column),
+                        detail = stringResource(R.string.templates_column_detail),
+                        checked = column,
+                        onChange = { column = it }
+                    )
+                }
                 if (!screen.obdPaired) {
                     Text(
                         stringResource(R.string.templates_no_obd),
@@ -84,31 +104,36 @@ internal fun DashTemplateDialog(
         },
         confirmButton = {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = { onApply(chosen, false) }) {
-                    Text(stringResource(R.string.templates_fill_empty), color = DashColors.Accent)
+                if (onlyPage == null) {
+                    TextButton(onClick = { onApply(TemplateChoice(chosen, pages, replace = false)) }) {
+                        Text(stringResource(R.string.templates_fill_empty), color = DashColors.Accent)
+                    }
                 }
                 Button(
-                    onClick = { onApply(chosen, true) },
+                    onClick = { onApply(TemplateChoice(chosen, pages, replace = true)) },
                     colors = ButtonDefaults.buttonColors(containerColor = DashColors.Accent, contentColor = DashColors.OnAccent),
                     shape = DashShape.Small
                 ) {
-                    Text(stringResource(R.string.templates_replace_all))
+                    Text(stringResource(if (onlyPage != null) R.string.templates_fill else R.string.templates_replace_all))
                 }
             }
         }
     )
 }
 
+/** [only]: the pages the template will lay out (the rest drawn empty); [framed] is the page outlined in the preview. */
 @Composable
 private fun TemplateCard(
     template: DashTemplate,
     screen: TemplateScreen,
+    only: Set<Int>?,
+    framed: Int,
     selected: Boolean,
     modifier: Modifier,
     onClick: () -> Unit
 ) {
     val shape = DashShape.Medium
-    val pages = remember(template, screen) { TemplatePlacer.pages(template, screen) }
+    val pages = remember(template, screen, only) { TemplatePlacer.pages(template, screen, only) }
     Column(
         modifier = modifier
             .border(if (selected) 2.dp else 1.dp, if (selected) DashColors.Accent else DashColors.CardHi, shape)
@@ -130,16 +155,16 @@ private fun TemplateCard(
             overflow = TextOverflow.Ellipsis,
             style = MaterialTheme.typography.bodySmall
         )
-        TemplatePreview(pages, screen, Modifier.fillMaxWidth().padding(top = 4.dp))
+        TemplatePreview(pages, screen, framed, Modifier.fillMaxWidth().padding(top = 4.dp))
     }
 }
 
 /** Where each page sits in the cross preview, as (column, row) of a 3 x 5 grid. */
 private val CROSS_CELL = mapOf(3 to (1 to 0), 4 to (1 to 1), 0 to (0 to 2), 1 to (1 to 2), 2 to (2 to 2), 5 to (1 to 3), 6 to (1 to 4))
 
-/** The seven pages drawn as the cross they form, each tile a block in its category's colour. */
+/** The seven pages drawn as the cross they form, each tile a block in its category's colour; [framed] gets the accent frame. */
 @Composable
-private fun TemplatePreview(pages: List<List<DashboardItem>>, screen: TemplateScreen, modifier: Modifier) {
+private fun TemplatePreview(pages: List<List<DashboardItem>>, screen: TemplateScreen, framed: Int, modifier: Modifier) {
     val pageAspect = (screen.cellAspect * GRID_COLS / GRID_ROWS).toFloat().coerceIn(0.4f, 4f)
     val gapRatio = 0.08f
     // Width / height of the whole cross, in page widths.
@@ -155,7 +180,7 @@ private fun TemplatePreview(pages: List<List<DashboardItem>>, screen: TemplateSc
         CROSS_CELL.forEach { (page, cell) ->
             val origin = Offset(cell.first * (pw + gap), cell.second * (ph + gap))
             drawRoundRect(pageBg, origin, Size(pw, ph), CornerRadius(4f))
-            if (page == DashboardStore.CENTER) {
+            if (page == framed) {
                 drawRoundRect(home, origin, Size(pw, ph), CornerRadius(4f), style = Stroke(width = 2f))
             }
             pages.getOrNull(page).orEmpty().forEach { drawTile(it, origin, pw, ph, colors) }

@@ -16,8 +16,8 @@
     <string name="ai_done">Listo</string>
 
     <!-- Settings dialog: test results -->
-    <string name="ai_test_ok">Gemini funciona (%1$s).</string>
-    <string name="ai_test_activated_ok">Activado. Gemini funciona (%1$s).</string>
+    <string name="ai_test_ok">Gemini funciona: %1$s</string>
+    <string name="ai_test_activated_ok">Activado. Gemini funciona: %1$s</string>
     <string name="ai_test_failed">No ha funcionado: %1$s</string>
     <string name="ai_test_activated_unreachable">Activado. Gemini aún no responde: %1$s</string>
     <string name="ai_test_waiting">Contactando con Google… %1$d s</string>

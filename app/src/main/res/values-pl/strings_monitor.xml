@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="monitor_kind">Radio</string>
+    <string name="monitor_kind">Monitor radia</string>
     <string name="monitor_kind_blurb">Procesor, pamięć, temperatura i najbardziej aktywne aplikacje</string>
     <string name="monitor_cpu">CPU</string>
     <string name="monitor_ram">RAM</string>
@@ -30,7 +30,7 @@
     <string name="gear_needs_data">Wymaga adaptera OBD lub skrzynki CAN</string>
     <string name="design_gear_gate">Kulisa biegów</string>
     <string name="design_gear_gate_desc">Biegi w rzędzie, włączony podświetlony</string>
-    <string name="monitor_title">RADIO</string>
+    <string name="monitor_title">MONITOR RADIA</string>
     <string name="gear_title">BIEG</string>
     <plurals name="monitor_cores">
         <item quantity="one">%1$d rdzeń</item>

@@ -11,7 +11,7 @@
 
     <!-- Top bar -->
     <string name="dash_all_apps">Tutte le app</string>
-    <string name="dash_screen_layout">Layout schermo: %1$s</string>
+    <string name="dash_screen_layout">Posizione di Google Maps: %1$s</string>
     <string name="dash_more">Altro</string>
     <string name="dash_obd_connected">OBD connesso</string>
     <string name="dash_obd_connecting">Connessione OBD…</string>
@@ -24,20 +24,19 @@
     <string name="dash_menu_edit_dashboards">Modifica cruscotti</string>
     <string name="dash_menu_done_editing">Fine modifica</string>
     <string name="dash_menu_theme">Tema</string>
-    <string name="dash_menu_split_screen">Schermo diviso con un\'app</string>
 
     <!-- Edit bar (arranging a dashboard) -->
     <string name="dash_arranging_dashboard">Disposizione: %1$s</string>
-    <string name="dash_arranging_hint">Tieni premuto un riquadro per spostarlo, trascina l\'angolo per ridimensionarlo.</string>
+    <string name="dash_arranging_hint">Tocca un riquadro per le opzioni, tieni premuto per spostarlo, trascina l\'angolo per ridimensionarlo.</string>
     <string name="dash_undo">Annulla</string>
-    <string name="dash_reset_page">Svuota cruscotto</string>
+    <string name="dash_reset_page">Rimuovi pannello…</string>
 
     <!-- Update banner -->
-    <string name="dash_update_downloading">Download aggiornamento… %1$d%%</string>
+    <string name="dash_update_downloading">Download aggiornamento… %1$d %%</string>
     <string name="dash_update_installing">Avvio dell\'installazione…</string>
     <string name="dash_menu_check_updates">Cerca aggiornamenti</string>
     <string name="dash_update_checking">Ricerca di aggiornamenti…</string>
-    <string name="dash_update_up_to_date">Dashwheel è aggiornato (v%1$s)</string>
+    <string name="dash_update_up_to_date">Dashwheel è aggiornato, v%1$s</string>
     <string name="dash_update">Aggiorna</string>
 
     <!-- Tiles while arranging -->
@@ -71,7 +70,7 @@
 
     <!-- System app install (root) -->
     <string name="dash_system_app_title">App di sistema</string>
-    <string name="dash_system_app_body">Installa Dashwheel come app di sistema: i widget Android si aggiungono senza chiedere ogni volta. Serve il root, o l\'ADB interno sulla porta %1$d. Poi riavvia.</string>
+    <string name="dash_system_app_body">Installa Dashwheel come app di sistema: i widget Android si aggiungono senza chiedere ogni volta. Serve il root o l\'ADB interno sulla porta %1$d, poi un riavvio.</string>
     <string name="dash_root_checking">Verifica root…</string>
     <string name="dash_root_available">Root disponibile. Con Magisk si installa come modulo Magisk.</string>
     <string name="dash_root_missing">Nessun root. Proverà l\'ADB interno sulla porta %1$d.</string>
@@ -81,7 +80,7 @@
     <string name="dash_system_failed">Non riuscito: %1$s</string>
 
     <!-- System app-widget picker -->
-    <string name="dash_widget_unavailable">Widget non disponibile</string>
+    <string name="dash_widget_unavailable">Widget mancante. La sua app è stata rimossa o modificata.</string>
     <string name="dash_choose_widget">Scegli un widget</string>
     <string name="dash_no_widgets_found">Nessun widget trovato.</string>
 
@@ -123,12 +122,16 @@
     <!-- Screen layouts (the enum names are what gets saved) -->
     <string name="dash_layout_grid">Solo cruscotti</string>
     <string name="dash_layout_grid_desc">Cruscotti scorrevoli a tutto schermo</string>
-    <string name="dash_layout_maps_left">Mappa a sinistra</string>
+    <string name="dash_layout_maps_left">Google Maps a sinistra</string>
     <string name="dash_layout_maps_left_desc">Google Maps agganciato a sinistra, cruscotti scorrevoli a destra</string>
-    <string name="dash_layout_maps_right">Mappa a destra</string>
+    <string name="dash_layout_maps_right">Google Maps a destra</string>
     <string name="dash_layout_maps_right_desc">Google Maps agganciato a destra, cruscotti scorrevoli a sinistra</string>
-    <string name="dash_layout_maps_top">Mappa in alto</string>
-    <string name="dash_layout_maps_bottom">Mappa in basso</string>
+    <string name="dash_layout_maps_top">Google Maps in alto</string>
+    <string name="dash_layout_maps_bottom">Google Maps in basso</string>
+    <string name="dash_layout_button">Disposizione</string>
+    <string name="dash_layout_another_app">Un\'altra app accanto ai cruscotti…</string>
+    <string name="dash_update_dot_hint">Un aggiornamento attende nel menu</string>
+    <string name="dash_update_dot_menu">Il punto sul pulsante del menu è questo aggiornamento</string>
 
     <!-- The pages' places in the cross, and an empty page -->
     <string name="dash_page_home">Home</string>
@@ -139,13 +142,13 @@
     <string name="dash_page_below">Sotto la Home</string>
     <string name="dash_page_below2">Due sotto la Home</string>
     <string name="dash_empty_title">Qui non c\'è ancora niente</string>
-    <string name="dash_empty_body">Aggiungi un riquadro o scegli un modello per tutti i cruscotti.</string>
+    <string name="dash_empty_body">Riempilo da un modello, o aggiungi i riquadri uno alla volta.</string>
     <!-- Effetti (selettore del tema) -->
-    <string name="dash_effects_title">Effetti</string>
-    <string name="dash_effects_none">Nessuno</string>
-    <string name="dash_effects_reduced">Ridotti</string>
-    <string name="dash_effects_full">Completi</string>
-    <string name="dash_effects_none_hint">Alta leggibilità: schede opache, cifre nette, senza alone</string>
+    <string name="dash_effects_title">Leggibilità</string>
+    <string name="dash_effects_none">Essenziale, per il sole</string>
+    <string name="dash_effects_reduced">Morbido</string>
+    <string name="dash_effects_full">Bagliore pieno</string>
+    <string name="dash_effects_none_hint">Schede opache, cifre essenziali, niente bagliore: si legge in pieno sole</string>
     <string name="dash_effects_reduced_hint">Aloni attenuati, vetro mantenuto</string>
     <string name="dash_effects_full_hint">Ogni tema con tutti i suoi aloni e il vetro</string>
     <string name="dash_bar_title">Barra inferiore</string>
@@ -173,7 +176,7 @@
     <string name="dash_theme_nordic">Nordico minimal</string>
     <string name="dash_theme_nordic_desc">Grafite e blu ghiaccio, linee sottili, niente di chiassoso</string>
     <string name="dash_theme_canvas">Canvas</string>
-    <string name="dash_theme_canvas_desc">La mappa riempie lo schermo, il viaggio su una linea, pannelli di vetro sopra</string>
+    <string name="dash_theme_canvas_desc">La mappa riempie lo schermo, il viaggio su una riga. Barra laterale di default; si cambia in Schermo.</string>
     <string name="dash_theme_group_recommended">Consigliati</string>
     <string name="dash_theme_group_colours">Temi</string>
     <string name="dash_theme_group_skins">Skin</string>
@@ -188,12 +191,9 @@
     <string name="dash_update_now">Aggiorna ora</string>
     <string name="dash_update_not_this_version">Non questa versione</string>
     <string name="dash_update_allow_installs">Consenti a Dashwheel di installare gli aggiornamenti, poi tocca di nuovo Aggiorna</string>
-    <string name="dash_reset_confirm_title">Svuotare questo cruscotto?</string>
-    <string name="dash_reset_confirm_body">Tutte le sue tessere spariscono. Annulla le riporta.</string>
     <string name="dash_dashboard_options">Opzioni del cruscotto</string>
     <string name="dash_remove_dashboard_title">Rimuovere %1$s?</string>
-    <string name="dash_remove_dashboard_body">Le sue tessere spariscono con lui. Annulla le riporta.</string>
-    <string name="dash_clear">Svuota</string>
+    <string name="dash_remove_dashboard_body">Svuotalo, o toglilo dagli scorrimenti con i suoi riquadri. Annulla li riporta.</string>
     <string name="dash_theme_show_all">Mostra tutti i %1$d temi</string>
     <string name="dash_theme_show_fewer">Mostra meno</string>
     <string name="dash_tile_move">Sposta in un altro cruscotto</string>
@@ -205,9 +205,22 @@
         <item quantity="many">%1$s richiedono l\'accesso root, che Dashwheel non ha su questa autoradio. I riquadri verranno tolti dal cruscotto.</item>
         <item quantity="other">%1$s richiedono l\'accesso root, che Dashwheel non ha su questa autoradio. I riquadri verranno tolti dal cruscotto.</item>
     </plurals>
+    <!-- The bar's position chip (PagePosition.kt) -->
+    <string name="dash_position_chip">Pannello: %1$s</string>
+    <string name="dash_position_title">Vai a un pannello</string>
     <!-- Every dashboard at once, with + and - (DashboardsOverview.kt) -->
     <string name="dash_dashboards">Cruscotti</string>
     <string name="dash_dashboards_hint">Toccane uno per aprirlo</string>
     <string name="dash_dashboard_add">Aggiungi un cruscotto qui</string>
     <string name="dash_dashboard_removed">%1$s rimosso</string>
+    <string name="dash_remove_empty">Svuotalo</string>
+    <string name="dash_remove_take_out">Toglilo dagli scorrimenti</string>
+    <string name="dash_bring_back_title">Ripristinare %1$s?</string>
+    <string name="dash_bring_back_body">Il riquadro va lì e il pannello torna negli scorrimenti.</string>
+    <string name="dash_bring_back">Ripristina</string>
+    <string name="dash_moved_to">Spostato in %1$s</string>
+    <string name="dash_page_removed">%1$s, fuori dagli scorrimenti</string>
+    <string name="dash_way_home_up">Scorri in alto per la Home</string>
+    <string name="dash_way_home_down">Scorri in basso per la Home</string>
+    <string name="dash_add_tile">Aggiungi un riquadro</string>
 </resources>

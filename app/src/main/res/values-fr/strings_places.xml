@@ -12,7 +12,7 @@
     <string name="places_here">La voiture y est</string>
     <string name="places_forget">Oublier</string>
     <string name="places_recent">Dernières destinations</string>
-    <string name="places_forget_recent">Les oublier</string>
+    <string name="places_forget_recent">Vider la liste</string>
     <string name="places_offline">Pas de connexion</string>
     <string name="places_no_nav_app">Aucune appli de navigation sur cet autoradio</string>
     <!-- Spoken when a steering wheel button asks for a place that isn't set -->

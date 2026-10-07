@@ -19,10 +19,10 @@
     <string name="tour_finish">Terminar</string>
     <string name="tour_read_aloud">Leer en voz alta</string>
     <string name="tour_swipe_title">Desliza para cambiar de panel</string>
-    <string name="tour_swipe_body">Inicio está en el centro. Desliza a izquierda o derecha para dos más, y arriba o abajo desde Inicio para cuatro más.</string>
+    <string name="tour_swipe_body">Inicio está en el centro. Desliza a izquierda o derecha para los dos de al lado. Puede haber más paneles arriba y abajo.</string>
     <string name="tour_try_swipe">Pruébalo: desliza la pantalla</string>
     <string name="tour_arrange_title">Mover y ampliar mosaicos</string>
-    <string name="tour_arrange_body">Mantén pulsado un mosaico y arrástralo para moverlo. Tira de su esquina para agrandarlo.</string>
+    <string name="tour_arrange_body">Toca una ficha para sus opciones, mantén para moverla, arrastra su esquina para cambiar el tamaño. Mantener el propio panel también inicia la organización.</string>
     <string name="tour_arrange_hint">Más tarde, ábrelo desde el menú, Editar paneles.</string>
     <string name="tour_add_title">Añadir un widget o una app</string>
     <string name="tour_add_body">Toca Añadir para poner música, datos del coche, el tiempo o cualquier app en este panel.</string>

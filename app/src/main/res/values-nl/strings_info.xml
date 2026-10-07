@@ -41,7 +41,7 @@
     <string name="info_agenda_needs_access">Toon komende afspraken uit je agenda</string>
     <string name="info_agenda_allow">Agenda toestaan</string>
     <string name="info_agenda_empty">Niets in de komende 36 uur</string>
-    <string name="info_agenda_no_title">(Geen titel)</string>
+    <string name="info_agenda_no_title">Zonder titel</string>
     <string name="info_agenda_all_day">Hele dag</string>
 
     <!-- Quick dial tile -->
@@ -97,7 +97,7 @@
     <string name="info_gforce_title">G-KRACHT</string>
     <string name="info_gforce_reset_peaks">Pieken resetten</string>
     <string name="info_gforce_lateral">Zijdelings</string>
-    <string name="info_gforce_accel_brake">Gas / rem</string>
+    <string name="info_gforce_accel_brake">Optrekken / remmen</string>
     <string name="info_gforce_peaks">Pieken</string>
 
     <!-- Parking tile -->
@@ -113,7 +113,7 @@
     <string name="info_parking_map_label">Geparkeerde auto</string>
     <string name="info_ago_just_now">zojuist</string>
     <string name="info_ago_minutes">%1$d min geleden</string>
-    <string name="info_ago_hours">%1$d u %2$d min geleden</string>
+    <string name="info_ago_hours">%1$d u %2$02d min geleden</string>
     <string name="info_ago_days">%1$d d geleden</string>
 
     <!-- Media tile (both the current and the Original theme) -->
@@ -123,12 +123,12 @@
     <string name="info_media_access_needed">Mediatoegang vereist</string>
     <string name="info_media_tap_to_enable">Tik om in te schakelen</string>
     <string name="info_media_previous">Vorige</string>
-    <string name="info_media_play_pause">Afspelen/Pauzeren</string>
+    <string name="info_media_play_pause">Afspelen/pauzeren</string>
     <string name="info_media_next">Volgende</string>
     <string name="info_media_grant_access">Mediatoegang geven</string>
 
     <!-- Original theme telemetry tile -->
-    <string name="info_telemetry_title">TELEMETRIE</string>
+    <string name="info_telemetry_title">MOTORMETERS</string>
     <string name="info_obd_live">Live</string>
     <string name="info_gauge_rpm">TPM</string>
     <string name="info_unit_rpm">tpm</string>

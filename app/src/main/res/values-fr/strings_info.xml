@@ -41,7 +41,7 @@
     <string name="info_agenda_needs_access">Afficher les prochains événements de votre agenda</string>
     <string name="info_agenda_allow">Autoriser l\'agenda</string>
     <string name="info_agenda_empty">Rien dans les 36 prochaines heures</string>
-    <string name="info_agenda_no_title">(Sans titre)</string>
+    <string name="info_agenda_no_title">Sans titre</string>
     <string name="info_agenda_all_day">Toute la journée</string>
 
     <!-- Quick dial tile -->
@@ -97,7 +97,7 @@
     <string name="info_gforce_title">FORCE G</string>
     <string name="info_gforce_reset_peaks">Réinit. pics</string>
     <string name="info_gforce_lateral">Latéral</string>
-    <string name="info_gforce_accel_brake">Accél. / frein</string>
+    <string name="info_gforce_accel_brake">Accélération / freinage</string>
     <string name="info_gforce_peaks">Pics</string>
 
     <!-- Parking tile -->
@@ -113,7 +113,7 @@
     <string name="info_parking_map_label">Voiture garée</string>
     <string name="info_ago_just_now">à l\'instant</string>
     <string name="info_ago_minutes">il y a %1$d min</string>
-    <string name="info_ago_hours">il y a %1$d h %2$d min</string>
+    <string name="info_ago_hours">il y a %1$d h %2$02d min</string>
     <string name="info_ago_days">il y a %1$d j</string>
 
     <!-- Media tile (both the current and the Original theme) -->
@@ -123,12 +123,12 @@
     <string name="info_media_access_needed">Accès aux médias</string>
     <string name="info_media_tap_to_enable">Touchez pour activer</string>
     <string name="info_media_previous">Précédent</string>
-    <string name="info_media_play_pause">Lecture/Pause</string>
+    <string name="info_media_play_pause">Lecture/pause</string>
     <string name="info_media_next">Suivant</string>
     <string name="info_media_grant_access">Autoriser l\'accès aux médias</string>
 
     <!-- Original theme telemetry tile -->
-    <string name="info_telemetry_title">TÉLÉMÉTRIE</string>
+    <string name="info_telemetry_title">JAUGES MOTEUR</string>
     <string name="info_obd_live">En direct</string>
     <string name="info_gauge_rpm">TR/MIN</string>
     <string name="info_unit_rpm">tr/min</string>
@@ -157,16 +157,16 @@
     <string name="info_map_routing_failed">Échec du calcul d\'itinéraire</string>
     <string name="info_map_routing_failed_detail">Échec du calcul d\'itinéraire (%1$s)</string>
     <string name="info_map_address_not_found">Adresse introuvable</string>
-    <string name="info_map_duration_hm">%1$d h %2$02d</string>
+    <string name="info_map_duration_hm">%1$d h %2$02d min</string>
     <string name="info_map_duration_min">%1$d min</string>
     <string name="info_map_stop">Arrêter</string>
     <string name="info_map_arrived">Vous êtes arrivé</string>
     <string name="info_map_rerouting">Recherche d\'un nouvel itinéraire</string>
     <string name="info_map_voice_on">Activer la voix</string>
     <string name="info_map_voice_off">Couper la voix</string>
-    <string name="info_map_other_app">Guider dans Google Maps ou Waze</string>
+    <string name="info_map_other_app">Naviguer dans Google Maps ou Waze</string>
     <string name="info_audio_by_keys">Volume réglé par les touches de volume de l\'autoradio</string>
     <string name="info_audio_unavailable">Volume non réglable d\'ici : utilisez le bouton</string>
-    <string name="info_map_stop_title">Arrêter le guidage ?</string>
+    <string name="info_map_stop_title">Arrêter la navigation ?</string>
     <string name="info_map_stop_body">La carte n\'annonce plus les directions. Relancez depuis la carte.</string>
 </resources>

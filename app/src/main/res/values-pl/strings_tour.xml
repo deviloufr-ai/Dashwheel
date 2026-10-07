@@ -19,10 +19,10 @@
     <string name="tour_finish">Zakończ</string>
     <string name="tour_read_aloud">Czytaj na głos</string>
     <string name="tour_swipe_title">Przesuń, aby zmienić pulpit</string>
-    <string name="tour_swipe_body">Start jest pośrodku. Przesuń w lewo lub w prawo, by zobaczyć dwa kolejne, a ze Startu w górę lub w dół jeszcze cztery.</string>
+    <string name="tour_swipe_body">Start jest pośrodku. Przesuń w lewo lub w prawo do dwóch sąsiednich. Kolejne pulpity mogą być powyżej i poniżej.</string>
     <string name="tour_try_swipe">Spróbuj: przesuń po ekranie</string>
     <string name="tour_arrange_title">Przesuwaj i powiększaj kafelki</string>
-    <string name="tour_arrange_body">Przytrzymaj kafelek i przeciągnij go, aby przesunąć. Pociągnij za róg, aby go powiększyć.</string>
+    <string name="tour_arrange_body">Dotknij kafelka, by zobaczyć opcje; przytrzymaj, by przesunąć; przeciągnij róg, by zmienić rozmiar. Przytrzymanie samego pulpitu też rozpoczyna układanie.</string>
     <string name="tour_arrange_hint">Później otworzysz to z menu, Edytuj pulpity.</string>
     <string name="tour_add_title">Dodaj widżet lub aplikację</string>
     <string name="tour_add_body">Dotknij Dodaj, aby umieścić muzykę, dane auta, pogodę lub aplikację na tym pulpicie.</string>

@@ -36,26 +36,36 @@ class CanvasTabsTest {
     }
 
     @Test
-    fun theCanvasTabsAndACrossStartDifferently() {
+    fun theCrossStartsWithItsPagesAndKeepsThemInReach() {
         val pages = listOf(listOf("a"), emptyList(), emptyList(), emptyList(), listOf("b"), emptyList(), emptyList())
-        val tabsKey = CanvasTabs.keyFor(DashboardStore.TABS_VARIANT)
-        assertEquals(CanvasTabs.defaultTabs(), CanvasTabs.tabsFor(tabsKey, emptyMap(), pages))
-        // A cross: Home first, then the pages with tiles round it.
-        val crossKey = CanvasTabs.keyFor("_canvas")
-        assertEquals(listOf(1, 0, 4), CanvasTabs.tabsFor(crossKey, emptyMap(), pages).map { it.page })
+        // One list per screen direction, nothing else.
+        val wide = CanvasTabs.keyFor("")
+        val upright = CanvasTabs.keyFor("_v")
+        assertFalse(wide == upright)
+        // Home first, then the pages with tiles round it.
+        assertEquals(listOf(1, 0, 4), CanvasTabs.tabsFor(wide, emptyMap(), pages).map { it.page })
         // Saved ones win, with Home and every page holding tiles kept in reach.
         val saved = listOf(CanvasTab(1), CanvasTab(5, name = "Mine"), CanvasTab(0), CanvasTab(4))
-        assertEquals(saved, CanvasTabs.tabsFor(crossKey, mapOf(crossKey to saved), pages))
+        assertEquals(saved, CanvasTabs.tabsFor(wide, mapOf(wide to saved), pages))
         val partial = listOf(CanvasTab(5, name = "Mine"))
-        assertEquals(listOf(1, 5, 0, 4), CanvasTabs.tabsFor(crossKey, mapOf(crossKey to partial), pages).map { it.page })
-        // The Canvas tabs are the driver's alone.
-        assertEquals(partial, CanvasTabs.tabsFor(tabsKey, mapOf(tabsKey to partial), pages))
-        assertFalse(tabsKey == crossKey)
+        assertEquals(listOf(1, 5, 0, 4), CanvasTabs.tabsFor(wide, mapOf(wide to partial), pages).map { it.page })
+    }
+
+    @Test
+    fun aTemplateNamesThePageItFills_andLeavesTheRestAlone() {
+        val tabs = listOf(CanvasTab(1), CanvasTab(0, name = "Mine"))
+        // A page already in the bar takes the template's name; one typed by the driver goes with the old tiles.
+        val named = CanvasTabs.named(tabs, 0, TabPreset.MEDIA)
+        assertEquals(CanvasTab(0, TabPreset.MEDIA), named[1])
+        // A page not yet in the bar joins it, named.
+        assertEquals(CanvasTab(2, TabPreset.CAR), CanvasTabs.named(tabs, 2, TabPreset.CAR).last())
+        // Home keeps its name: the templates pass null for it.
+        assertEquals(tabs, CanvasTabs.named(tabs, 1, null))
     }
 
     @Test
     fun aTriggerBelongsToOneDashboard() {
-        val tabs = CanvasTabs.defaultTabs()
+        val tabs = CanvasTabs.legacyTabs()
         val placed = CanvasTabs.placed(tabs, tabs[1].copy(trigger = TabTrigger.ENGINE_FAULT), 1)
         assertEquals(1, CanvasTabs.tabFor(placed, TabTrigger.ENGINE_FAULT)?.page)
         assertNull(placed.first { it.page == 2 }.trigger)
@@ -64,7 +74,7 @@ class CanvasTabsTest {
 
     @Test
     fun aDashboardGoesWhereItIsPlaced() {
-        val tabs = CanvasTabs.defaultTabs()
+        val tabs = CanvasTabs.legacyTabs()
         // Car moved first.
         assertEquals(listOf(2, 0, 1, 3), CanvasTabs.placed(tabs, tabs[2], 0).map { it.page })
         // A new one at the end.
@@ -99,19 +109,6 @@ class CanvasTabsTest {
         assertEquals(0, CanvasTabs.stepped(3, 1, 4))
         assertEquals(3, CanvasTabs.stepped(0, -1, 4))
         assertEquals(0, CanvasTabs.stepped(2, 1, 0))
-    }
-
-    @Test
-    fun theTabsFirstPagesFitTheGridAndMatchTheTabs() {
-        val pages = DashboardStore.tabsPages()
-        assertEquals(DashboardStore.PAGE_COUNT, pages.size)
-        // The Map tab is the map alone; the others have tiles.
-        assertTrue(pages[0].isEmpty())
-        CanvasTabs.defaultTabs().drop(1).forEach { assertTrue(pages[it.page].isNotEmpty()) }
-        pages.forEach { page ->
-            page.forEach { t -> assertTrue(t.x >= 0 && t.y >= 0 && t.x + t.w <= GRID_COLS && t.y + t.h <= GRID_ROWS) }
-            page.forEachIndexed { i, a -> page.drop(i + 1).forEach { b -> assertFalse(a.overlaps(b)) } }
-        }
     }
 
     @Test

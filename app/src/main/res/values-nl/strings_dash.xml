@@ -11,7 +11,7 @@
 
     <!-- Top bar -->
     <string name="dash_all_apps">Alle apps</string>
-    <string name="dash_screen_layout">Schermindeling: %1$s</string>
+    <string name="dash_screen_layout">Positie van Google Maps: %1$s</string>
     <string name="dash_more">Meer</string>
     <string name="dash_obd_connected">OBD verbonden</string>
     <string name="dash_obd_connecting">OBD maakt verbinding</string>
@@ -24,20 +24,19 @@
     <string name="dash_menu_edit_dashboards">Dashboards bewerken</string>
     <string name="dash_menu_done_editing">Klaar met bewerken</string>
     <string name="dash_menu_theme">Thema</string>
-    <string name="dash_menu_split_screen">Gesplitst scherm met een app</string>
 
     <!-- Edit bar (arranging a dashboard) -->
     <string name="dash_arranging_dashboard">%1$s indelen</string>
-    <string name="dash_arranging_hint">Houd een tegel vast om te verplaatsen, sleep de hoek om te vergroten.</string>
+    <string name="dash_arranging_hint">Tik op een tegel voor de opties, houd vast om te verplaatsen, sleep de hoek om de grootte te wijzigen.</string>
     <string name="dash_undo">Ongedaan maken</string>
-    <string name="dash_reset_page">Dashboard wissen</string>
+    <string name="dash_reset_page">Dashboard verwijderen…</string>
 
     <!-- Update banner -->
-    <string name="dash_update_downloading">Update downloaden… %1$d%%</string>
+    <string name="dash_update_downloading">Update downloaden… %1$d %%</string>
     <string name="dash_update_installing">Installatie starten…</string>
     <string name="dash_menu_check_updates">Zoeken naar updates</string>
     <string name="dash_update_checking">Zoeken naar updates…</string>
-    <string name="dash_update_up_to_date">Dashwheel is up-to-date (v%1$s)</string>
+    <string name="dash_update_up_to_date">Dashwheel is up-to-date, v%1$s</string>
     <string name="dash_update">Bijwerken</string>
 
     <!-- Tiles while arranging -->
@@ -71,7 +70,7 @@
 
     <!-- System app install (root) -->
     <string name="dash_system_app_title">Systeem-app</string>
-    <string name="dash_system_app_body">Installeert Dashwheel als systeem-app: Android-widgets worden toegevoegd zonder elke keer toestemming. Vereist root, of de interne ADB op poort %1$d. Start daarna opnieuw.</string>
+    <string name="dash_system_app_body">Installeert Dashwheel als systeem-app: Android-widgets worden toegevoegd zonder elke keer toestemming. Vereist root of de interne ADB op poort %1$d, daarna opnieuw starten.</string>
     <string name="dash_root_checking">Root controleren…</string>
     <string name="dash_root_available">Root beschikbaar. Installeert als Magisk-module wanneer Magisk aanwezig is.</string>
     <string name="dash_root_missing">Geen root. Probeert de interne ADB op poort %1$d.</string>
@@ -81,7 +80,7 @@
     <string name="dash_system_failed">Mislukt: %1$s</string>
 
     <!-- System app-widget picker -->
-    <string name="dash_widget_unavailable">Widget niet beschikbaar</string>
+    <string name="dash_widget_unavailable">Widget ontbreekt. De app ervan is verwijderd of gewijzigd.</string>
     <string name="dash_choose_widget">Kies een widget</string>
     <string name="dash_no_widgets_found">Geen widgets gevonden.</string>
 
@@ -123,12 +122,16 @@
     <!-- Screen layouts (the enum names are what gets saved) -->
     <string name="dash_layout_grid">Alleen dashboards</string>
     <string name="dash_layout_grid_desc">Veegbare dashboards vullen het scherm</string>
-    <string name="dash_layout_maps_left">Kaart links</string>
+    <string name="dash_layout_maps_left">Google Maps links</string>
     <string name="dash_layout_maps_left_desc">Google Maps vast op de linkerhelft, dashboards vegen rechts</string>
-    <string name="dash_layout_maps_right">Kaart rechts</string>
+    <string name="dash_layout_maps_right">Google Maps rechts</string>
     <string name="dash_layout_maps_right_desc">Google Maps vast op de rechterhelft, dashboards vegen links</string>
-    <string name="dash_layout_maps_top">Kaart boven</string>
-    <string name="dash_layout_maps_bottom">Kaart onder</string>
+    <string name="dash_layout_maps_top">Google Maps bovenaan</string>
+    <string name="dash_layout_maps_bottom">Google Maps onderaan</string>
+    <string name="dash_layout_button">Indeling</string>
+    <string name="dash_layout_another_app">Een andere app naast de dashboards…</string>
+    <string name="dash_update_dot_hint">Er wacht een update in het menu</string>
+    <string name="dash_update_dot_menu">De stip op de menuknop is deze update</string>
 
     <!-- The pages' places in the cross, and an empty page -->
     <string name="dash_page_home">Start</string>
@@ -139,12 +142,12 @@
     <string name="dash_page_below">Onder Start</string>
     <string name="dash_page_below2">Twee onder Start</string>
     <string name="dash_empty_title">Hier staat nog niets</string>
-    <string name="dash_empty_body">Voeg een tegel toe of kies een sjabloon voor alle dashboards.</string>
-    <string name="dash_effects_title">Effecten</string>
-    <string name="dash_effects_none">Geen</string>
-    <string name="dash_effects_reduced">Beperkt</string>
-    <string name="dash_effects_full">Volledig</string>
-    <string name="dash_effects_none_hint">Beste leesbaarheid: dekkende kaarten, scherpe cijfers, geen gloed</string>
+    <string name="dash_empty_body">Vul het vanuit een sjabloon, of voeg tegels een voor een toe.</string>
+    <string name="dash_effects_title">Leesbaarheid</string>
+    <string name="dash_effects_none">Sober, voor zonlicht</string>
+    <string name="dash_effects_reduced">Zacht</string>
+    <string name="dash_effects_full">Volle gloed</string>
+    <string name="dash_effects_none_hint">Dekkende kaarten, sobere cijfers, geen gloed: leesbaar in volle zon</string>
     <string name="dash_effects_reduced_hint">Zachtere gloed, glas blijft</string>
     <string name="dash_effects_full_hint">Elk thema met al zijn gloed en glas</string>
     <string name="dash_bar_title">Onderste balk</string>
@@ -174,7 +177,7 @@
     <string name="dash_theme_nordic">Noords minimaal</string>
     <string name="dash_theme_nordic_desc">Grafiet en ijsblauw, dunne lijnen, niets schreeuwerigs</string>
     <string name="dash_theme_canvas">Canvas</string>
-    <string name="dash_theme_canvas_desc">De kaart vult het scherm, de rit op één lijn, glazen panelen erboven</string>
+    <string name="dash_theme_canvas_desc">De kaart vult het scherm, je rit op één regel. Standaard met zijbalk; te wijzigen bij Weergave.</string>
     <!-- Updates without a strip (⋮ dot, Settings row, ready prompt); edit-mode confirms; tile options; theme gallery -->
     <string name="dash_update_to">Bijwerken naar %1$s</string>
     <string name="dash_update_available_detail">Nieuwer dan v%1$s. Installeren herstart Dashwheel.</string>
@@ -184,12 +187,9 @@
     <string name="dash_update_now">Nu bijwerken</string>
     <string name="dash_update_not_this_version">Niet deze versie</string>
     <string name="dash_update_allow_installs">Sta Dashwheel toe updates te installeren en tik dan opnieuw op Bijwerken</string>
-    <string name="dash_reset_confirm_title">Dit dashboard wissen?</string>
-    <string name="dash_reset_confirm_body">Alle tegels erop verdwijnen. Ongedaan maken brengt ze terug.</string>
     <string name="dash_dashboard_options">Dashboardopties</string>
     <string name="dash_remove_dashboard_title">%1$s verwijderen?</string>
-    <string name="dash_remove_dashboard_body">De tegels gaan mee. Ongedaan maken brengt ze terug.</string>
-    <string name="dash_clear">Wissen</string>
+    <string name="dash_remove_dashboard_body">Leegmaken, of uit het vegen halen met de tegels. Ongedaan maken brengt ze terug.</string>
     <string name="dash_theme_show_all">Alle %1$d thema\'s tonen</string>
     <string name="dash_theme_show_fewer">Minder tonen</string>
     <string name="dash_tile_move">Naar een ander dashboard</string>
@@ -200,9 +200,22 @@
         <item quantity="one">%1$s heeft root-toegang nodig, die Dashwheel op deze radio niet heeft. De tegel wordt van het dashboard verwijderd.</item>
         <item quantity="other">%1$s hebben root-toegang nodig, die Dashwheel op deze radio niet heeft. De tegels worden van het dashboard verwijderd.</item>
     </plurals>
+    <!-- The bar's position chip (PagePosition.kt) -->
+    <string name="dash_position_chip">Dashboard: %1$s</string>
+    <string name="dash_position_title">Naar een dashboard gaan</string>
     <!-- Every dashboard at once, with + and - (DashboardsOverview.kt) -->
     <string name="dash_dashboards">Dashboards</string>
     <string name="dash_dashboards_hint">Tik erop om te openen</string>
     <string name="dash_dashboard_add">Hier een dashboard toevoegen</string>
     <string name="dash_dashboard_removed">%1$s verwijderd</string>
+    <string name="dash_remove_empty">Leegmaken</string>
+    <string name="dash_remove_take_out">Uit het vegen halen</string>
+    <string name="dash_bring_back_title">%1$s terughalen?</string>
+    <string name="dash_bring_back_body">De tegel gaat erheen en het dashboard doet weer mee met vegen.</string>
+    <string name="dash_bring_back">Terughalen</string>
+    <string name="dash_moved_to">Verplaatst naar %1$s</string>
+    <string name="dash_page_removed">%1$s, buiten het vegen</string>
+    <string name="dash_way_home_up">Veeg omhoog voor Start</string>
+    <string name="dash_way_home_down">Veeg omlaag voor Start</string>
+    <string name="dash_add_tile">Tegel toevoegen</string>
 </resources>

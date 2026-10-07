@@ -40,4 +40,11 @@
     <string name="canvas_tab_where">Waar het komt</string>
     <string name="canvas_tab_create">Maken</string>
     <string name="canvas_bar_app_remove">Uit de balk halen</string>
+    <string name="canvas_tab_engine">Motor</string>
+    <string name="canvas_tab_checks">Controles</string>
+    <string name="canvas_tab_eco">Eco</string>
+    <string name="canvas_when_taken">%1$s: nu op %2$s</string>
+    <string name="canvas_when_take_title">%1$s van %2$s overnemen?</string>
+    <string name="canvas_when_take_body">Het verschijnt daar niet meer vanzelf.</string>
+    <string name="canvas_when_take">Overnemen</string>
 </resources>

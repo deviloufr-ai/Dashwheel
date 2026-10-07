@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Add-widget catalogue: section headings -->
-    <string name="apps_category_driving">JAZDA</string>
-    <string name="apps_category_navigation">NAWIGACJA</string>
-    <string name="apps_category_vehicle">POJAZD</string>
-    <string name="apps_category_info">INFO I KOMUNIKACJA</string>
-    <string name="apps_category_apps">MULTIMEDIA I APLIKACJE</string>
+    <string name="apps_category_driving">Jazda</string>
+    <string name="apps_category_navigation">Nawigacja</string>
+    <string name="apps_category_vehicle">Pojazd</string>
+    <string name="apps_category_info">Informacje i łączność</string>
+    <string name="apps_category_apps">Media</string>
 
     <!-- Add-widget catalogue: built-in tiles (name, then one-line description) -->
     <string name="apps_kind_navmap">Mapa</string>
@@ -16,16 +16,16 @@
     <string name="apps_kind_pip_anchor_blurb">Przypina tu pływające okno Maps</string>
     <string name="apps_kind_media">Odtwarzacz</string>
     <string name="apps_kind_media_blurb">Teraz odtwarzane, ze sterowaniem</string>
-    <string name="apps_kind_telemetry">Telemetria</string>
+    <string name="apps_kind_telemetry">Wskaźniki silnika</string>
     <string name="apps_kind_telemetry_blurb">Prędkość, obroty, płyn chłodn., obciążenie, akumulator</string>
     <string name="apps_kind_obd_dtc">Kody błędów</string>
     <string name="apps_kind_obd_dtc_blurb">Odczyt i kasowanie kodów błędów OBD</string>
-    <string name="apps_kind_obd_all">Wszystkie dane OBD</string>
+    <string name="apps_kind_obd_all">Wszystkie dane samochodu</string>
     <string name="apps_kind_obd_all_blurb">Wszystkie wartości OBD na żywo</string>
     <string name="apps_kind_range">Paliwo i zasięg</string>
     <string name="apps_kind_range_blurb">Poziom w baku i pozostałe km</string>
     <string name="apps_kind_doors">Drzwi</string>
-    <string name="apps_kind_doors_blurb">Stan drzwi i bagażnika (MCU)</string>
+    <string name="apps_kind_doors_blurb">Stan drzwi i bagażnika z samochodu</string>
     <string name="apps_kind_can_mon">Monitor CAN</string>
     <string name="apps_kind_can_mon_blurb">Surowe ramki CAN, do szukania sygnałów</string>
     <string name="apps_kind_speed_hud">Prędkość</string>
@@ -108,17 +108,11 @@
     <string name="apps_add_title">Dodaj do: %1$s</string>
     <string name="apps_tab_widgets">Widżety</string>
     <string name="apps_tab_apps">Aplikacje</string>
-    <string name="apps_tab_windows">Okna</string>
     <string name="apps_search">Szukaj</string>
     <string name="apps_category_all">Wszystko</string>
-    <string name="apps_window_mode_single">W oknie</string>
-    <string name="apps_window_mode_pair">Obok siebie</string>
-    <string name="apps_window_hint">Aplikacja pozostaje otwarta we własnym oknie na tym pulpicie.</string>
-    <string name="apps_window_mode_inside">W kafelku</string>
-    <string name="apps_window_inside_hint">Aplikacja działa w kafelku i obsługuje się ją tam.</string>
     <string name="apps_embed_app_starting">Otwieranie %1$s</string>
     <string name="apps_embed_app_missing">%1$s nie jest zainstalowana</string>
-    <string name="apps_embed_app_blocked">Android nie pozwolił otworzyć tu %1$s</string>
+    <string name="apps_embed_app_blocked">%1$s nie działa w kafelku na tym urządzeniu. Dodaj go jako okno.</string>
     <string name="apps_embed_under_dashboard">Już pod pulpitem</string>
     <string name="apps_pair_pick_first">Wybierz aplikację na lewą stronę.</string>
     <string name="apps_pair_pick_second">%1$s po lewej. Teraz wybierz aplikację na prawą stronę.</string>
@@ -126,9 +120,9 @@
     <string name="apps_kind_maps_inside">Google Maps w kafelku</string>
     <string name="apps_kind_maps_inside_blurb">Prawdziwa aplikacja Google Maps w tym kafelku</string>
     <string name="apps_kind_dash_bar">Pasek pulpitów</string>
-    <string name="apps_kind_dash_bar_blurb">Twoje pulpity i aplikacje, jednym stuknięciem</string>
+    <string name="apps_kind_dash_bar_blurb">Twoje pulpity i aplikacje, jedno dotknięcie każde, na tym pulpicie</string>
     <string name="apps_most_used">Najczęściej używane</string>
-    <string name="apps_kind_screen_light">Światło drugiego ekranu</string>
+    <string name="apps_kind_screen_light">Jasność ekranu Pi</string>
     <string name="apps_kind_screen_light_blurb">Podświetlenie drugiego ekranu, w dzień i w nocy</string>
     <string name="apps_kind_radios">Wi-Fi i Bluetooth</string>
     <string name="apps_kind_radios_blurb">Włączaj i wyłączaj Wi-Fi i Bluetooth radia</string>
@@ -144,4 +138,11 @@
     <string name="apps_needs_root">Wymaga roota</string>
     <string name="apps_needs_carbox">Wymaga modułu auta</string>
     <string name="apps_on_dashboard">Już na pulpicie</string>
+    <string name="apps_as_icon">Ikona</string>
+    <string name="apps_as_icon_detail">Otwiera aplikację</string>
+    <string name="apps_in_tile">W kafelku</string>
+    <string name="apps_in_tile_inside">Działa w kafelku, na tym pulpicie</string>
+    <string name="apps_in_tile_window">Pozostaje otwarta w oknie wielkości kafelka</string>
+    <string name="apps_side_by_side">Obok siebie</string>
+    <string name="apps_side_by_side_detail">Dwie aplikacje naraz, na podzielonym ekranie</string>
 </resources>

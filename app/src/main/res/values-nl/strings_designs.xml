@@ -54,7 +54,10 @@
     <string name="design_car_outline">Silhouet</string>
     <string name="design_car_outline_desc">De auto in profiel, met de metingen ernaast.</string>
     <string name="design_change">Ontwerp van %1$s wijzigen</string>
-    <string name="design_codes_unit">codes</string>
+    <plurals name="design_codes_unit">
+        <item quantity="one">code</item>
+        <item quantity="other">codes</item>
+    </plurals>
     <string name="design_engine_lamp">Motorlampje</string>
     <string name="design_on">Aan</string>
     <string name="design_off">Uit</string>

@@ -3,7 +3,7 @@
     <string name="zoom_button">Taille du texte et des icônes</string>
     <string name="zoom_out">Plus petit</string>
     <string name="zoom_in">Plus grand</string>
-    <string name="zoom_reset">Revenir à 100 %</string>
+    <string name="zoom_reset">Réinitialiser à 100 %</string>
     <string name="zoom_page">Taille du texte</string>
     <string name="zoom_percent">%1$d %%</string>
     <string name="zoom_window_inside">L\'appli tourne dans la tuile à toute taille autre que 100 %.</string>

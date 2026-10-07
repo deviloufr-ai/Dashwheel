@@ -19,10 +19,10 @@
     <string name="tour_finish">Finish</string>
     <string name="tour_read_aloud">Read aloud</string>
     <string name="tour_swipe_title">Swipe to change dashboard</string>
-    <string name="tour_swipe_body">Home is in the middle. Swipe left or right for two more, and up or down from Home for four more.</string>
+    <string name="tour_swipe_body">Home is in the middle. Swipe left or right for the two beside it. More dashboards can go above and below.</string>
     <string name="tour_try_swipe">Try it: swipe the screen</string>
     <string name="tour_arrange_title">Move and resize tiles</string>
-    <string name="tour_arrange_body">Hold a tile, then drag it to move it. Pull its corner to make it bigger.</string>
+    <string name="tour_arrange_body">Tap a tile for its options, hold to move it, drag its corner to resize it. Holding the dashboard itself starts arranging too.</string>
     <string name="tour_arrange_hint">Later, open this from the menu, Edit dashboards.</string>
     <string name="tour_add_title">Add a widget or an app</string>
     <string name="tour_add_body">Tap Add to put music, car data, weather or any app on this dashboard.</string>

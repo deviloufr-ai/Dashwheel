@@ -40,4 +40,11 @@
     <string name="canvas_tab_where">Gdzie</string>
     <string name="canvas_tab_create">Utwórz</string>
     <string name="canvas_bar_app_remove">Usuń z paska</string>
+    <string name="canvas_tab_engine">Silnik</string>
+    <string name="canvas_tab_checks">Kontrole</string>
+    <string name="canvas_tab_eco">Eko</string>
+    <string name="canvas_when_taken">%1$s: teraz na %2$s</string>
+    <string name="canvas_when_take_title">Odebrać %1$s pulpitowi %2$s?</string>
+    <string name="canvas_when_take_body">Nie będzie się już tam pokazywać samo.</string>
+    <string name="canvas_when_take">Odbierz</string>
 </resources>

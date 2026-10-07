@@ -251,7 +251,13 @@ private fun MapStatus(waiting: WheelButton?, candidate: WheelKey?) {
             tint = if (highlight) DashColors.Accent else DashColors.TextSecondary, modifier = Modifier.size(22.dp)
         )
         Spacer(Modifier.width(10.dp))
-        Text(text, color = DashColors.TextPrimary, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text, color = DashColors.TextPrimary, style = MaterialTheme.typography.bodyMedium)
+            // Idle: the second step on its own line, so neither sentence runs long.
+            if (!highlight) {
+                Text(stringResource(R.string.wheel_explanation_tap), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+            }
+        }
         if (waiting != null) {
             TextButton(onClick = { SteeringWheelStore.listenFor(null) }) { Text(stringResource(R.string.dash_cancel)) }
         }

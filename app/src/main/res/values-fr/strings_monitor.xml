@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="monitor_kind">Autoradio</string>
+    <string name="monitor_kind">Moniteur de l\'autoradio</string>
     <string name="monitor_kind_blurb">Processeur, mémoire, température et applis les plus actives</string>
     <string name="monitor_cpu">Processeur</string>
     <string name="monitor_ram">Mémoire</string>
@@ -29,7 +29,7 @@
     <string name="gear_needs_data">Demande l\'adaptateur OBD ou le boîtier CAN</string>
     <string name="design_gear_gate">Grille de vitesses</string>
     <string name="design_gear_gate_desc">Les rapports alignés, celui engagé allumé</string>
-    <string name="monitor_title">AUTORADIO</string>
+    <string name="monitor_title">MONITEUR AUTORADIO</string>
     <string name="gear_title">RAPPORT</string>
     <plurals name="monitor_cores">
         <item quantity="one">%1$d cœur</item>

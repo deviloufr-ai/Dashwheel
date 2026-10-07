@@ -4,8 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.widget.Toast
 import androidx.annotation.StringRes
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material3.Text
@@ -21,7 +19,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -82,21 +79,29 @@ object KeyTargets {
 }
 
 /**
- * Settings, Driving: which app the unit's NAVI, voice and custom keys open.
- * Only on the QF firmware and with a privileged shell to write it.
+ * Settings, Driving, under Buttons: which app the unit's NAVI, voice and
+ * custom keys open. Only the QF firmware has the keys and only a privileged
+ * shell can write the choice; without either the row stays in sight, greyed,
+ * and says which one is missing.
  */
 @Composable
 internal fun KeyTargetRows() {
     val context = LocalContext.current
-    if (!remember { KeyTargets.available() } || !shellAccess().shell) return
+    val available = remember { KeyTargets.available() }
+    if (!available) {
+        GatedRow(Icons.Filled.Keyboard, stringResource(R.string.keys_section), stringResource(R.string.settings_needs_qf))
+        return
+    }
+    if (!shellAccess().shell) {
+        GatedRow(Icons.Filled.Keyboard, stringResource(R.string.keys_section), stringResource(R.string.settings_rom_needs_root))
+        return
+    }
     LaunchedEffect(Unit) { KeyTargets.refresh() }
     val targets by KeyTargets.targets.collectAsState()
     var picking by remember { mutableStateOf<KeyTargets.Key?>(null) }
     val scope = rememberCoroutineScope()
     val unitChoice = stringResource(R.string.keys_unit_choice)
 
-    Spacer(Modifier.height(20.dp))
-    SettingsSection(stringResource(R.string.keys_section))
     KeyTargets.Key.entries.forEach { key ->
         val pkg = targets[key]
         val label = pkg?.let { appLabel(context, it) } ?: unitChoice

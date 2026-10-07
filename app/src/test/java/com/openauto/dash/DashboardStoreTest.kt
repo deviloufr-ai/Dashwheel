@@ -427,10 +427,90 @@ class DashboardStoreTest {
     fun variantsGetTheirOwnKeysAndBackups() {
         assertEquals("pages", DashboardStore.pagesKey(""))
         assertEquals("pages_backup", DashboardStore.backupKey(""))
-        assertEquals("pages_half", DashboardStore.pagesKey("_half"))
-        assertEquals("pages_backup_half", DashboardStore.backupKey("_half"))
+        assertEquals("pages_v", DashboardStore.pagesKey("_v"))
+        assertEquals("pages_backup_v", DashboardStore.backupKey("_v"))
+        // The legacy copies' keys, read once by the merge.
+        assertEquals("pages_half", DashboardStore.pagesKey(DashboardStore.LEGACY_HALF))
         // A variant's backup must never collide with another variant's main key.
-        assertFalse(DashboardStore.backupKey("") == DashboardStore.pagesKey("_half"))
+        assertFalse(DashboardStore.backupKey("") == DashboardStore.pagesKey("_v"))
+    }
+
+    // --- one arrangement per screen direction --------------------------------
+
+    @Test
+    fun theMergeKeepsTheArrangementLastUsed_whenItDiffersFromTheBase() {
+        // The copy the user was on, edited: it becomes the one arrangement.
+        assertEquals("half", DashboardStore.chooseKept(base = "base", lastUsed = "half"))
+        // A copy never edited (still the base's twin), or none at all: the base stays.
+        assertEquals("base", DashboardStore.chooseKept(base = "base", lastUsed = "base"))
+        assertEquals("base", DashboardStore.chooseKept(base = "base", lastUsed = null))
+        // Only ever used the copy: it is kept.
+        assertEquals("canvas", DashboardStore.chooseKept<String>(base = null, lastUsed = "canvas"))
+        assertNull(DashboardStore.chooseKept<String>(base = null, lastUsed = null))
+    }
+
+    @Test
+    fun theLegacySuffixFollowsTheLayoutAndTheme() {
+        assertEquals("", DashboardStore.legacySuffix(canvas = false, overApp = false, docked = false))
+        assertEquals("_half", DashboardStore.legacySuffix(canvas = false, overApp = false, docked = true))
+        assertEquals("_canvas", DashboardStore.legacySuffix(canvas = true, overApp = false, docked = false))
+        assertEquals("_canvas_half", DashboardStore.legacySuffix(canvas = true, overApp = false, docked = true))
+        assertEquals("_tabs", DashboardStore.legacySuffix(canvas = true, overApp = true, docked = true))
+        // An app under the dashboards only counted with Canvas.
+        assertEquals("_half", DashboardStore.legacySuffix(canvas = false, overApp = true, docked = true))
+    }
+
+    @Test
+    fun turningTheScreenReflowsEveryTileIntoTheNewGrid_droppingNone() {
+        // The Daily template on a wide screen (12 x 7), on every page.
+        val wide = TemplatePlacer.pages(
+            DashTemplate.DAILY,
+            TemplateScreen.of(1280f, 576f, obdPaired = true, driverOnRight = false, mapsDocked = false, dockApps = listOf("a.b", "c.d"))
+        )
+        val before = wide.sumOf { it.size }
+        ScreenShape.vertical = true
+        try {
+            // Upright the grid is 7 x 12: every tile finds a place, in bounds, apart from the others.
+            val upright = DashboardStore.reflow(wide)
+            assertEquals(DashboardStore.PAGE_COUNT, upright.size)
+            assertEquals(before, upright.sumOf { it.size })
+            upright.forEach { page ->
+                page.forEach { t ->
+                    assertTrue("$t out of the 7x12 grid", t.x >= 0 && t.y >= 0 && t.x + t.w <= GRID_COLS && t.y + t.h <= GRID_ROWS)
+                    assertTrue("$t under its minimum", t.w >= t.minW() && t.h >= t.minH())
+                }
+                noOverlaps(page)
+            }
+            // A tile keeps its page when its page has room; the Home page's kinds are still Home's.
+            val homeKinds = { pages: List<List<DashboardItem>> -> pages[DashboardStore.CENTER].filterIsInstance<DashboardItem.BuiltinWidget>().map { it.kind }.toSet() }
+            assertEquals(homeKinds(wide), homeKinds(upright))
+            // The dock keeps its apps.
+            assertEquals(listOf("a.b", "c.d"), upright[DashboardStore.CENTER].filterIsInstance<DashboardItem.LaunchBar>().single().packages)
+        } finally {
+            ScreenShape.vertical = false
+        }
+    }
+
+    @Test
+    fun reflowSendsATileWithNoRoomLeftToTheNearestPage() {
+        // A page packed with 1x1 tiles beyond what the grid holds the other way up cannot happen,
+        // but a page of wide tiles can: twelve 12x1 strips on a wide screen are too many for 7 rows... as 7x1 strips they need 12 rows.
+        // Here: eight full-width strips of a kind whose minimum is 2x1 become 7-wide strips; 12 rows hold them all on their page.
+        val strips = List(8) { i -> DashboardItem.BuiltinWidget(BuiltinKind.AUDIO, 0, i.coerceAtMost(GRID_ROWS - 1), GRID_COLS, 1) }
+        val pages = List(DashboardStore.PAGE_COUNT) { if (it == 0) strips else emptyList() }
+        ScreenShape.vertical = true
+        try {
+            val out = DashboardStore.reflow(pages)
+            assertEquals(8, out.sumOf { it.size })
+            // Fourteen tall 1x7 columns on the wide grid: upright (7 across) only seven fit at full height, and the
+            // placer shrinks the rest to what fits rather than losing one; none ends up dropped.
+            val columns = List(14) { i -> DashboardItem.BuiltinWidget(BuiltinKind.AUDIO, i.coerceAtMost(GRID_COLS - 1), 0, 1, 7) }
+            val tall = DashboardStore.reflow(List(DashboardStore.PAGE_COUNT) { if (it == 2) columns else emptyList() })
+            assertEquals(14, tall.sumOf { it.size })
+            tall.forEach(::noOverlaps)
+        } finally {
+            ScreenShape.vertical = false
+        }
     }
 
     @Test

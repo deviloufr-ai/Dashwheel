@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Dashwheel Companion</string>
-    <string name="service_channel">Koppeling met de auto</string>
+    <string name="service_channel">Verbinding met de auto</string>
     <string name="status_off">Delen staat uit</string>
     <string name="status_waiting">Wachten op de auto via je hotspot</string>
     <string name="status_connected">Verbonden met %1$s</string>
@@ -13,9 +13,9 @@
     <string name="step_notifications_restricted">Grijs? Open App-info, dan ⋮ → Beperkte instellingen toestaan, en probeer opnieuw.</string>
     <string name="step_app_info">App-info</string>
     <string name="step_post">Statusmelding</string>
-    <string name="step_post_detail">Toont dat de koppeling met de auto actief is.</string>
+    <string name="step_post_detail">Toont dat de verbinding met de auto actief is.</string>
     <string name="step_battery">Batterijoptimalisatie</string>
-    <string name="step_battery_detail">Houdt de koppeling actief tijdens lange ritten.</string>
+    <string name="step_battery_detail">Houdt de verbinding actief tijdens lange ritten.</string>
     <string name="step_hotspot">Wifi-hotspot</string>
     <string name="step_hotspot_detail">Zet hem aan en verbind de autoradio ermee.</string>
     <string name="step_open_settings">Openen</string>
@@ -39,26 +39,26 @@
     <string name="car_spot_title">Waar staat mijn auto</string>
     <string name="car_spot_left">Hier achtergelaten: %1$s</string>
     <string name="car_spot_saved">Opgeslagen in de auto: %1$s</string>
-    <string name="car_spot_none">Zodra de auto verbonden is, zie je hier waar hij stopt.</string>
+    <string name="car_spot_none">Zodra de auto gekoppeld is, zie je hier waar hij stopt.</string>
     <string name="car_spot_map">Kaart</string>
     <string name="car_spot_walk">Lopend erheen</string>
     <string name="drives_title">Ritten</string>
-    <string name="drives_none">Zodra de auto verbonden is, verschijnt elke rit hier met afstand, duur en eco-rijscore.</string>
+    <string name="drives_none">Zodra de auto gekoppeld is, verschijnt elke rit hier met afstand, duur en eco-rijscore.</string>
     <string name="drive_under_way">Rit bezig</string>
     <string name="drive_last">Laatste rit</string>
     <string name="drive_km">km</string>
     <string name="drive_time">Duur</string>
     <string name="drive_average">Gemiddeld km/h</string>
     <string name="drive_top">Max. km/h</string>
-    <string name="drive_eco_none">Eco-rijden: geen score (minder dan 1 km of geen motorgegevens)</string>
+    <string name="drive_eco_none">Geen eco-rijscore: minder dan 1 km of geen motorgegevens</string>
     <string name="drive_eco_smooth">Soepel gereden</string>
     <string name="drive_eco_fair">Redelijk: wat abrupt</string>
     <string name="drive_eco_harsh">Ruw: rustiger aan</string>
     <string name="drive_hard">Hard optrekken / remmen: %1$d / %2$d</string>
     <string name="drive_band">Toerental in het rustige bereik: %1$d %%</string>
-    <string name="drive_clutch">Met gas vastgehouden: %1$d</string>
+    <string name="drive_clutch">Op een helling met gas vastgehouden: %1$d</string>
     <string name="drive_fuel">Brandstof ≈ %1$s L · %2$s %3$s</string>
-    <string name="drive_duration_hm">%1$d u %2$02d</string>
+    <string name="drive_duration_hm">%1$d u %2$02d min</string>
     <string name="drive_duration_m">%1$d min</string>
     <string name="keyboard_title">Typen in de auto</string>
     <string name="keyboard_detail">Kies een tekstveld op het autoscherm en typ hier: het volgt terwijl je typt.</string>
@@ -120,7 +120,7 @@
     <string name="obd_relay_change">Wijzigen</string>
     <string name="obd_relay_stop">Uitzetten</string>
     <string name="obd_relay_pick">Je OBD-adapter</string>
-    <string name="obd_relay_pick_hint">Koppel de adapter eerst via Bluetooth met deze telefoon (pincode 1234 of 0000). De telefoon houdt hem dan vast voor de auto, zodat bellen en Android Auto niet meer in de weg zitten.</string>
+    <string name="obd_relay_pick_hint">Koppel de adapter eerst via Bluetooth met deze telefoon, pincode 1234 of 0000. De telefoon houdt hem dan vast voor de auto, zodat bellen en Android Auto niet meer in de weg zitten.</string>
     <string name="news_title">Van je auto</string>
     <string name="news_channel">Autoherinneringen</string>
     <string name="step_texts">Onderweg-sms</string>
@@ -210,7 +210,7 @@
 
     <!-- A second-screen display's code, scanned here and passed to the car (DisplayPair). -->
     <string name="display_confirm_title">Scherm %1$s aan je auto toevoegen?</string>
-    <string name="display_confirm_body">Je telefoon geeft de code van dit scherm door aan de auto waarmee hij verbonden is.</string>
+    <string name="display_confirm_body">Je telefoon geeft de code van dit scherm door aan de auto waarmee hij gekoppeld is.</string>
     <string name="display_confirm_send">Naar de auto sturen</string>
     <string name="display_sent">Verstuurd naar %1$s: het scherm maakt binnen enkele seconden verbinding.</string>
     <string name="display_needs_car">Maak eerst verbinding met je auto en scan daarna de code van het scherm opnieuw.</string>

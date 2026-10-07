@@ -41,7 +41,7 @@
     <string name="info_agenda_needs_access">Mostrar os próximos eventos do calendário</string>
     <string name="info_agenda_allow">Permitir calendário</string>
     <string name="info_agenda_empty">Nada nas próximas 36 horas</string>
-    <string name="info_agenda_no_title">(Sem título)</string>
+    <string name="info_agenda_no_title">Sem título</string>
     <string name="info_agenda_all_day">Todo o dia</string>
 
     <!-- Quick dial tile -->
@@ -97,7 +97,7 @@
     <string name="info_gforce_title">FORÇA G</string>
     <string name="info_gforce_reset_peaks">Repor picos</string>
     <string name="info_gforce_lateral">Lateral</string>
-    <string name="info_gforce_accel_brake">Acel. / travão</string>
+    <string name="info_gforce_accel_brake">Aceleração / travagem</string>
     <string name="info_gforce_peaks">Picos</string>
 
     <!-- Parking tile -->
@@ -113,7 +113,7 @@
     <string name="info_parking_map_label">Carro estacionado</string>
     <string name="info_ago_just_now">agora mesmo</string>
     <string name="info_ago_minutes">há %1$d min</string>
-    <string name="info_ago_hours">há %1$d h %2$d min</string>
+    <string name="info_ago_hours">há %1$d h %2$02d min</string>
     <string name="info_ago_days">há %1$d d</string>
 
     <!-- Media tile (both the current and the Original theme) -->
@@ -123,12 +123,12 @@
     <string name="info_media_access_needed">Acesso multimédia</string>
     <string name="info_media_tap_to_enable">Tocar para ativar</string>
     <string name="info_media_previous">Anterior</string>
-    <string name="info_media_play_pause">Reproduzir/Pausa</string>
+    <string name="info_media_play_pause">Reproduzir/pausa</string>
     <string name="info_media_next">Seguinte</string>
     <string name="info_media_grant_access">Conceder acesso a multimédia</string>
 
     <!-- Original theme telemetry tile -->
-    <string name="info_telemetry_title">TELEMETRIA</string>
+    <string name="info_telemetry_title">INDICADORES DO MOTOR</string>
     <string name="info_obd_live">Em direto</string>
     <string name="info_gauge_rpm">RPM</string>
     <string name="info_unit_rpm">rpm</string>
@@ -164,7 +164,7 @@
     <string name="info_map_rerouting">A procurar uma nova rota</string>
     <string name="info_map_voice_on">Ativar a voz</string>
     <string name="info_map_voice_off">Desativar a voz</string>
-    <string name="info_map_other_app">Guiar no Google Maps ou Waze</string>
+    <string name="info_map_other_app">Navegar no Google Maps ou Waze</string>
     <string name="info_audio_by_keys">Volume ajustado pelas teclas de volume do autorrádio</string>
     <string name="info_audio_unavailable">O volume não pode ser alterado aqui: use o botão rotativo</string>
     <string name="info_map_stop_title">Parar a navegação?</string>

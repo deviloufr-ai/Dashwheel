@@ -3,7 +3,7 @@
     <string name="zoom_button">Text- und Symbolgröße</string>
     <string name="zoom_out">Kleiner</string>
     <string name="zoom_in">Größer</string>
-    <string name="zoom_reset">Zurück auf 100 %</string>
+    <string name="zoom_reset">Auf 100 % zurücksetzen</string>
     <string name="zoom_page">Textgröße</string>
     <string name="zoom_percent">%1$d %%</string>
     <string name="zoom_window_inside">Die App läuft in der Kachel bei jeder Größe außer 100 %.</string>

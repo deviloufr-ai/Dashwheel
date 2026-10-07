@@ -3,7 +3,7 @@
     <string name="zoom_button">Tamaño de texto e iconos</string>
     <string name="zoom_out">Más pequeño</string>
     <string name="zoom_in">Más grande</string>
-    <string name="zoom_reset">Volver al 100 %</string>
+    <string name="zoom_reset">Restablecer al 100 %</string>
     <string name="zoom_page">Tamaño del texto</string>
     <string name="zoom_percent">%1$d %%</string>
     <string name="zoom_window_inside">La app se ejecuta dentro de la tarjeta con cualquier tamaño salvo 100 %.</string>

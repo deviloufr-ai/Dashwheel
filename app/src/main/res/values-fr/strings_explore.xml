@@ -16,7 +16,7 @@
     <string name="explore_verified">Mesures confirmées</string>
     <string name="explore_none_verified">Aucune pour l\'instant. Connectez l\'adaptateur moteur tournant et lancez la recherche.</string>
     <string name="explore_results">Essayées</string>
-    <string name="explore_forget">Tout oublier</string>
+    <string name="explore_forget">Tout réinitialiser</string>
     <string name="explore_v_no_answer">pas de réponse</string>
     <string name="explore_v_refused">refusée</string>
     <string name="explore_v_unreadable">illisible</string>

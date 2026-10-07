@@ -3,7 +3,7 @@
     <!-- Cockpit skin: top bar -->
     <string name="cockpit_apps">APPS</string>
     <string name="cockpit_layout">ECRÃ</string>
-    <string name="cockpit_screen_layout_desc">Esquema do ecrã: %1$s</string>
+    <string name="cockpit_screen_layout_desc">Posição do Google Maps: %1$s</string>
     <string name="cockpit_more">Mais</string>
     <string name="cockpit_time_desc">Hora %1$s</string>
     <string name="cockpit_out">EXT</string>
@@ -57,7 +57,7 @@
 
     <!-- Orbit skin: top bar -->
     <string name="orbit_all_apps">Todas as apps</string>
-    <string name="orbit_screen_layout_desc">Esquema do ecrã: %1$s</string>
+    <string name="orbit_screen_layout_desc">Posição do Google Maps: %1$s</string>
     <string name="orbit_more">Mais</string>
 
     <!-- Orbit skin: speed dial and satellite bubbles -->
@@ -96,7 +96,7 @@
     <string name="orbit_via_source">via %1$s</string>
     <string name="orbit_tap_to_recalibrate">tocar para recalibrar</string>
     <string name="orbit_recalibrate_fuel">Recalibrar combustível</string>
-    <string name="orbit_fuel_percent">comb. %1$d%%</string>
+    <string name="orbit_fuel_percent">comb. %1$d %%</string>
 
     <!-- Orbit skin: launch bar -->
     <string name="orbit_launch_bar_empty">Barra de apps: tocar no lápis para adicionar apps</string>

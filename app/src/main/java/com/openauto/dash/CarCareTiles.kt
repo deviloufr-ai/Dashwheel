@@ -32,6 +32,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -226,7 +227,7 @@ internal fun FilterCareCard(modifier: Modifier = Modifier) {
         }
         val streak = care.filter.shortStreak
         val call = filterCall(streak, LocalUnits.current.imperial)
-        Reading(streak.toString(), stringResource(R.string.car_filter_short_unit))
+        Reading(streak.toString(), pluralStringResource(R.plurals.car_filter_short_unit, streak))
         Status(stringResource(call.text), call.tone)
         // The real soot load, when the experimental reading finder got the car to give it up.
         val extra by PidExplorer.readings.collectAsState()

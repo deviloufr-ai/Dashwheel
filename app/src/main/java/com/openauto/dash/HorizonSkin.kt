@@ -96,6 +96,8 @@ import java.util.Locale
 import kotlin.math.min
 import kotlin.math.sin
 import kotlin.random.Random
+import androidx.compose.ui.layout.layoutId
+import androidx.compose.foundation.layout.widthIn
 
 /*
  * Horizon skin: no widgets and no boxes. The page is a living scene (in dark
@@ -697,9 +699,12 @@ private fun sceneModifier(look: SkyLook, scene: HorizonScene, time: State<Float>
 // --- Top bar ----------------------------------------------------------------------
 
 /**
- * Transparent bar: a serif clock with the date beside it on the left; on the
- * right the setup pill and any vehicle alerts, then bare icon buttons in the
- * text colour (all apps, layout, the OBD link and the ⋮ menu), 60 dp each.
+ * Transparent bar in the same order as every other look: on the left bare
+ * icon buttons in the text colour for all apps and the layout, their words
+ * in the scene's small sans beside them where the bar is wide enough; the
+ * serif clock with the date and the dashboard's position in the middle; on
+ * the right the setup pill, any vehicle alerts and the phone, then the OBD
+ * link and the ⋮ menu, 60 dp each.
  */
 @Composable
 internal fun HorizonTopBar(m: TopBarModel) {
@@ -711,12 +716,31 @@ internal fun HorizonTopBar(m: TopBarModel) {
     val soft = DashColors.TextSecondary
     BoxWithConstraints(modifier = Modifier.fillMaxWidth().height(64.dp).graphicsLayer()) {
         val narrow = maxWidth < NARROW_BAR
+        val labels = maxWidth >= LABELLED_BAR
         Row(
-            modifier = Modifier.fillMaxSize().padding(start = 22.dp, end = 8.dp),
+            modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(modifier = Modifier.weight(1f)) {
-                // The head unit's status bar shows the time while it is up.
+            Row(modifier = if (narrow) Modifier else Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                HorizonBarButton(
+                    onClick = m.onApps,
+                    label = if (labels) stringResource(R.string.dash_apps) else null,
+                    description = stringResource(R.string.horizon_cd_all_apps)
+                ) {
+                    Icon(Icons.Filled.Apps, contentDescription = null, tint = ink, modifier = Modifier.size(28.dp))
+                }
+                LayoutPicker(m) { open ->
+                    HorizonBarButton(
+                        onClick = open,
+                        label = if (labels) stringResource(R.string.dash_layout_button) else null,
+                        description = stringResource(R.string.horizon_cd_screen_layout, m.layout.title)
+                    ) {
+                        LayoutIcon(m.layout, null, soft, Modifier.size(28.dp))
+                    }
+                }
+            }
+            // The head unit's status bar shows the time while it is up.
+            Row(modifier = Modifier.padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                 if (!m.merged) {
                     val (digits, amPm) = splitClock(m.clock)
                     SceneText(digits, display(40f), Modifier.alignByBaseline(), overflow = TextOverflow.Clip)
@@ -729,25 +753,26 @@ internal fun HorizonTopBar(m: TopBarModel) {
                         SceneText(date, ui(15f, soft), Modifier.alignByBaseline())
                     }
                 }
+                PagePositionChip(Modifier.padding(start = 10.dp))
             }
-            if (m.setupPending) {
-                SetupPill(onClick = { m.onSetup(false) }, modifier = Modifier.padding(end = 6.dp), compact = narrow)
-            }
-            VehicleAlerts(m.obdConnection, m.obd)
-            PhonePill()
-            val button = Modifier.size(HORIZON_BUTTON)
-            IconButton(onClick = m.onApps, modifier = button) {
-                Icon(Icons.Filled.Apps, contentDescription = stringResource(R.string.horizon_cd_all_apps), tint = ink, modifier = Modifier.size(28.dp))
-            }
-            LayoutPicker(m) { open ->
-                IconButton(onClick = open, modifier = button) {
-                    LayoutIcon(m.layout, stringResource(R.string.horizon_cd_screen_layout, m.layout.title), soft, Modifier.size(28.dp))
+            // ⋮ and the OBD link get their room first; the rest only where it fits.
+            BarEnd(modifier = Modifier.weight(1f)) {
+                if (m.setupPending) {
+                    Box(Modifier.layoutId(BarRank.SETUP).padding(end = 6.dp)) {
+                        SetupPill(onClick = { m.onSetup(false) }, compact = narrow)
+                    }
                 }
-            }
-            HorizonObdDot(m.obdConnection, m.onConnectObd)
-            MorePicker(m) { open ->
-                IconButton(onClick = open, modifier = button) {
-                    Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.horizon_cd_more), tint = soft, modifier = Modifier.size(28.dp))
+                Row(modifier = Modifier.layoutId(BarRank.ALERTS), verticalAlignment = Alignment.CenterVertically) {
+                    VehicleAlerts(m.obdConnection, m.obd)
+                }
+                Box(Modifier.layoutId(BarRank.PHONE)) { PhonePill() }
+                Box(Modifier.layoutId(BarRank.OBD)) { HorizonObdDot(m.obdConnection, m.onConnectObd) }
+                Box(Modifier.layoutId(BarRank.MORE)) {
+                    MorePicker(m) { open ->
+                        HorizonBarButton(onClick = open, description = stringResource(R.string.horizon_cd_more)) {
+                            Icon(Icons.Filled.MoreVert, contentDescription = null, tint = soft, modifier = Modifier.size(28.dp))
+                        }
+                    }
                 }
             }
         }
@@ -755,6 +780,28 @@ internal fun HorizonTopBar(m: TopBarModel) {
 }
 
 private val HORIZON_BUTTON = 60.dp
+
+/** A bare button of the bar: the icon alone in a 60 dp circle, or with its word beside it in the scene's small sans. */
+@Composable
+private fun HorizonBarButton(onClick: () -> Unit, description: String, label: String? = null, icon: @Composable () -> Unit) {
+    Row(
+        modifier = Modifier
+            .height(HORIZON_BUTTON)
+            .widthIn(min = HORIZON_BUTTON)
+            .clip(CircleShape)
+            .clickable(role = Role.Button, onClickLabel = description, onClick = onClick)
+            .semantics(mergeDescendants = true) { contentDescription = description }
+            .padding(horizontal = if (label != null) 16.dp else 0.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        icon()
+        if (label != null) {
+            Spacer(Modifier.width(8.dp))
+            SceneText(label, ui(16f, DashColors.TextPrimary, FontWeight.Medium))
+        }
+    }
+}
 
 /**
  * OBD link: the letters OBD beside a mint dot with a glow when connected, a

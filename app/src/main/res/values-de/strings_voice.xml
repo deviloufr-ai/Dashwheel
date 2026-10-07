@@ -2,7 +2,7 @@
 <resources>
     <!-- What the car says by itself: Settings -> Alerts -> Voice (HandsFreeSettings.kt) -->
     <string name="voice_section">Was das Auto sagt</string>
-    <string name="voice_warnings">Warnungen und Tipps zum Auto</string>
+    <string name="voice_warnings">Gesprochene Hinweise und Tipps</string>
     <string name="voice_warnings_detail">Motor, Batterie, Partikelfilter, Pausen, Kraftstoff, Hitze im Radio</string>
     <string name="voice_messages">Nachrichten</string>
     <string name="voice_messages_detail">Zeigt und sagt, von wem eine Nachricht kommt.</string>
@@ -23,7 +23,7 @@
     <string name="voice_status_range">Kraftstoff für etwa %1$d Kilometer.</string>
     <string name="voice_status_no_faults">Kein Fehlercode.</string>
     <string name="voice_status_nothing">Nichts zu melden.</string>
-    <string name="voice_quiet_on">Ruhe bis zum nächsten Start. Dringende Warnungen werden weiter gesagt.</string>
+    <string name="voice_quiet_on">Ruhe bis zum nächsten Start. Dringende Hinweise werden weiter gesagt.</string>
     <string name="voice_quiet_off">Die Stimme ist wieder an.</string>
     <string name="voice_no_position">Die Position ist noch nicht bekannt.</string>
     <string name="voice_no_fuel_prices">Keine Kraftstoffpreise in dieser Gegend.</string>

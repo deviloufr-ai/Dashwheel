@@ -251,19 +251,23 @@ private val PAGE_CROSS_HEIGHT = PAGE_CELL * 5 + PAGE_GAP * 4
 
 /**
  * The seven pages as the cross they make (the page indicator's shape): the
- * tile's own page filled in, a tap on another sends the tile there.
+ * tile's own page filled in, a tap on another sends the tile there. The
+ * dashboards taken out of the swipes are dotted: a tap on one still works,
+ * the caller asks whether to bring it back first.
  */
 @Composable
-private fun PageCrossPicker(current: Int, onPick: (Int) -> Unit) {
-    LocalDashboards.current?.takeIf { it.tabbed }?.let { dashboards ->
+internal fun PageCrossPicker(current: Int, onPick: (Int) -> Unit) {
+    val dashboards = LocalDashboards.current
+    if (dashboards?.tabbed == true) {
         TabPicker(dashboards.tabs, current, onPick)
         return
     }
+    val shown = dashboards?.let { d -> DashboardStore.shownCross(d.tabs.map { it.page }) }
     val centreCol = DashboardStore.ROW.indexOf(DashboardStore.CENTER)
     val cells = DashboardStore.COLUMN.mapIndexed { row, p -> Triple(p, centreCol, row) } +
         DashboardStore.ROW.mapIndexedNotNull { col, p -> if (p == DashboardStore.CENTER) null else Triple(p, col, DashboardStore.COLUMN_HOME) }
     Box(modifier = Modifier.size(width = PAGE_CELL * 3 + PAGE_GAP * 2, height = PAGE_CROSS_HEIGHT)) {
-        cells.forEach { (p, col, row) -> PageCell(p, p == current, col, row) { onPick(p) } }
+        cells.forEach { (p, col, row) -> PageCell(p, p == current, col, row, dotted = shown != null && p !in shown) { onPick(p) } }
     }
 }
 
@@ -281,11 +285,12 @@ private fun TabPicker(tabs: List<CanvasTab>, current: Int, onPick: (Int) -> Unit
 /** A tab's cell: room for its icon. Two to a row and three rows fit where the cross does. */
 private val TAB_CELL = 36.dp
 
+/** One spot of the cross; [dotted] is a dashboard out of the swipes (a faint frame with a dot in it). */
 @Composable
-private fun PageCell(page: Int, here: Boolean, col: Int, row: Int, cell: Dp = PAGE_CELL, icon: ImageVector? = null, onClick: () -> Unit) {
+private fun PageCell(page: Int, here: Boolean, col: Int, row: Int, cell: Dp = PAGE_CELL, icon: ImageVector? = null, dotted: Boolean = false, onClick: () -> Unit) {
     val tap = rememberTapFeedback()
     val shape = RoundedCornerShape(6.dp)
-    val name = pageName(page)
+    val name = if (dotted) stringResource(R.string.dash_page_removed, pageName(page)) else pageName(page)
     Box(
         modifier = Modifier
             .offset(x = (cell + PAGE_GAP) * col, y = (cell + PAGE_GAP) * row)
@@ -294,7 +299,7 @@ private fun PageCell(page: Int, here: Boolean, col: Int, row: Int, cell: Dp = PA
             .then(
                 if (here) Modifier.background(DashColors.Accent).semantics { contentDescription = name }
                 else Modifier
-                    .border(1.5.dp, DashColors.TextSecondary, shape)
+                    .border(1.5.dp, if (dotted) DashColors.Muted.copy(alpha = 0.5f) else DashColors.TextSecondary, shape)
                     .clickable(role = Role.Button, onClickLabel = name) { tap(); onClick() }
                     .semantics { contentDescription = name }
             ),
@@ -302,6 +307,8 @@ private fun PageCell(page: Int, here: Boolean, col: Int, row: Int, cell: Dp = PA
     ) {
         if (icon != null) {
             Icon(icon, contentDescription = null, tint = if (here) DashColors.OnAccent else DashColors.TextSecondary, modifier = Modifier.size(20.dp))
+        } else if (dotted) {
+            Box(Modifier.size(5.dp).clip(RoundedCornerShape(50)).background(DashColors.Muted.copy(alpha = 0.6f)))
         }
     }
 }

@@ -24,11 +24,13 @@
     <string name="lpg_tank_size">Zbiornik, L</string>
     <string name="lpg_use_setting">Spalanie, L/100 km</string>
     <string name="lpg_price">Cena za litr</string>
-    <string name="lpg_numbers_detail">Zbiornik: ile wchodzi przy pełnym tankowaniu, bo zbiornik LPG napełnia się tylko do 80 procent. Spalanie: zostaw puste, aby zacząć od spalania auta; litry z każdego tankowania je poprawią. Cena: zostaw puste, aby brać cenę najbliższej stacji.</string>
+    <string name="lpg_tank_hint">Ile wchodzi przy pełnym tankowaniu: zbiornik LPG napełnia się tylko do 80 procent.</string>
+    <string name="lpg_use_hint">Zostaw puste, aby zacząć od spalania auta; każde tankowanie je poprawia.</string>
+    <string name="lpg_price_hint">Zostaw puste, aby brać cenę najbliższej stacji.</string>
     <string name="lpg_mode_label">Kiedy auto jedzie na gazie</string>
     <string name="lpg_mode_auto">Po rozgrzaniu</string>
     <string name="lpg_mode_always">Zawsze</string>
-    <string name="lpg_mode_manual">Mój przełącznik</string>
+    <string name="lpg_mode_manual">Gdy przełączę</string>
     <string name="lpg_mode_auto_detail">Większość instalacji startuje na benzynie. Gaz liczy się, gdy płyn chłodzący osiągnie temperaturę przełączenia, a bez adaptera OBD po pierwszym kilometrze.</string>
     <string name="lpg_mode_manual_detail">Przełączaj gaz i benzynę na kafelku lub przyciskiem na kierownicy.</string>
     <string name="lpg_switch_temp">Temperatura przełączenia, %1$s</string>
@@ -37,7 +39,12 @@
     <string name="lpg_last_fill">Ostatnio do pełna %1$s</string>
     <string name="lpg_full_now">Pełny teraz</string>
     <string name="lpg_settings_detail">Drugi zbiornik, poziom wyliczony z drogi</string>
-    <string name="lpg_voice_low">Mało LPG: zostało około %1$d %2$s.</string>
+    <plurals name="lpg_voice_low">
+        <item quantity="one">Mało LPG: został około %1$d kilometr.</item>
+        <item quantity="few">Mało LPG: zostały około %1$d kilometry.</item>
+        <item quantity="many">Mało LPG: zostało około %1$d kilometrów.</item>
+        <item quantity="other">Mało LPG: zostało około %1$d kilometra.</item>
+    </plurals>
     <string name="lpg_voice_full">Zbiornik LPG pełny.</string>
     <string name="lpg_voice_off">Zbiornik LPG nie jest skonfigurowany.</string>
     <string name="lpg_voice_on_lpg">Na gazie.</string>

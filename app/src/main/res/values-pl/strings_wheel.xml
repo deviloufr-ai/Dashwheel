@@ -9,7 +9,8 @@
         <item quantity="many">%1$d przycisków przypisanych</item>
         <item quantity="other">%1$d przycisku przypisanego</item>
     </plurals>
-    <string name="wheel_explanation">Naciśnij każdy przycisk na kierownicy. Nowy trafia na mapę, znany świeci na zielono. Dotknij przycisku, aby go nazwać, umieścić i wybrać, co robi.</string>
+    <string name="wheel_explanation">Naciśnij każdy przycisk na kierownicy: nowy trafia na mapę, znany świeci na zielono.</string>
+    <string name="wheel_explanation_tap">Dotknij przycisku, aby go nazwać, umieścić i wybrać, co robi.</string>
     <string name="wheel_confirm_detail">Wykryto %1$s. Naciśnij go ponownie, aby Dashwheel wiedział, że to Ty: wartość z samochodu, która zmienia się sama, nie powtórzy się na zawołanie.</string>
     <string name="wheel_assign_prompt">Co ma robić %1$s?</string>
     <string name="wheel_choose_app">Uruchom aplikację…</string>
@@ -35,7 +36,7 @@
     <string name="wheel_action_quick_settings">Szybkie ustawienia</string>
     <string name="wheel_action_toggle_split">Podzielony ekran wł. / wył.</string>
     <string name="wheel_action_screenshot">Zrzut ekranu</string>
-    <string name="wheel_action_play_pause">Odtwórz / Pauza</string>
+    <string name="wheel_action_play_pause">Odtwórz/pauza</string>
     <string name="wheel_action_next">Następny utwór</string>
     <string name="wheel_action_previous">Poprzedni utwór</string>
     <string name="wheel_action_volume_up">Głośniej</string>

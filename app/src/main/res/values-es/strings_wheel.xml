@@ -7,7 +7,8 @@
         <item quantity="one">%1$d botón asignado</item>
         <item quantity="other">%1$d botones asignados</item>
     </plurals>
-    <string name="wheel_explanation">Pulsa cada botón del volante. Uno nuevo se añade al mapa, uno conocido se ilumina en verde. Toca un botón para nombrarlo, colocarlo y elegir qué hace.</string>
+    <string name="wheel_explanation">Pulsa cada botón del volante: uno nuevo se añade al mapa, uno conocido se ilumina en verde.</string>
+    <string name="wheel_explanation_tap">Toca un botón para nombrarlo, colocarlo y elegir qué hace.</string>
     <string name="wheel_confirm_detail">Se ha detectado %1$s. Púlsalo una vez más para que Dashwheel sepa que has sido tú: un dato del coche que cambia solo no vuelve a aparecer a la orden.</string>
     <string name="wheel_assign_prompt">¿Qué debe hacer %1$s?</string>
     <string name="wheel_choose_app">Abrir una app…</string>
@@ -33,7 +34,7 @@
     <string name="wheel_action_quick_settings">Ajustes rápidos</string>
     <string name="wheel_action_toggle_split">Pantalla dividida sí / no</string>
     <string name="wheel_action_screenshot">Captura de pantalla</string>
-    <string name="wheel_action_play_pause">Reproducir / Pausa</string>
+    <string name="wheel_action_play_pause">Reproducir/pausa</string>
     <string name="wheel_action_next">Pista siguiente</string>
     <string name="wheel_action_previous">Pista anterior</string>
     <string name="wheel_action_volume_up">Subir volumen</string>

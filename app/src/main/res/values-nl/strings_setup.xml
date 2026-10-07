@@ -29,7 +29,7 @@
     <string name="setup_access_calendar">Agenda</string>
     <string name="setup_access_calendar_detail">De afspraken van vandaag in de agenda</string>
     <string name="setup_access_obd">OBD-adapter</string>
-    <string name="setup_access_obd_detail">Motordata, brandstof en foutcodes via Bluetooth</string>
+    <string name="setup_access_obd_detail">Motorwaarden, brandstof en foutcodes via Bluetooth</string>
     <string name="setup_access_phone">Telefoon</string>
     <string name="setup_access_phone_detail">Berichten, oproepen en je agenda van je telefoon</string>
     <string name="setup_allow">Toestaan</string>

@@ -16,8 +16,8 @@
     <string name="ai_done">Done</string>
 
     <!-- Settings dialog: test results -->
-    <string name="ai_test_ok">Gemini works (%1$s).</string>
-    <string name="ai_test_activated_ok">Activated. Gemini works (%1$s).</string>
+    <string name="ai_test_ok">Gemini works: %1$s</string>
+    <string name="ai_test_activated_ok">Activated. Gemini works: %1$s</string>
     <string name="ai_test_failed">Didn\'t work: %1$s</string>
     <string name="ai_test_activated_unreachable">Activated. Gemini not reachable yet: %1$s</string>
     <string name="ai_test_waiting">Contacting Google… %1$d s</string>
@@ -75,9 +75,9 @@
 
     <!-- Fault codes tile: status -->
     <string name="ai_no_codes">No fault codes</string>
-    <string name="ai_cleared">Cleared</string>
+    <string name="ai_cleared">Erased</string>
     <string name="ai_scan_failed">Scan failed</string>
-    <string name="ai_clear_failed">Clear failed</string>
+    <string name="ai_clear_failed">Erase failed</string>
     <string name="ai_thinking">Asking the AI mechanic…</string>
     <string name="ai_retry">Retry</string>
     <string name="ai_note_no_key">Add a free Gemini key in Settings → Car → AI mechanic for plain-language advice.</string>

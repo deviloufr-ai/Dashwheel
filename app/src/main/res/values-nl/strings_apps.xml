@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Add-widget catalogue: section headings -->
-    <string name="apps_category_driving">RIJDEN</string>
-    <string name="apps_category_navigation">NAVIGATIE</string>
-    <string name="apps_category_vehicle">VOERTUIG</string>
-    <string name="apps_category_info">INFO &amp; COMMUNICATIE</string>
-    <string name="apps_category_apps">MEDIA &amp; APPS</string>
+    <string name="apps_category_driving">Rijden</string>
+    <string name="apps_category_navigation">Navigatie</string>
+    <string name="apps_category_vehicle">Voertuig</string>
+    <string name="apps_category_info">Info &amp; communicatie</string>
+    <string name="apps_category_apps">Media</string>
 
     <!-- Add-widget catalogue: built-in tiles (name, then one-line description) -->
     <string name="apps_kind_navmap">Kaart</string>
@@ -16,16 +16,16 @@
     <string name="apps_kind_pip_anchor_blurb">Zet het zwevende Maps-venster hier vast</string>
     <string name="apps_kind_media">Muziekspeler</string>
     <string name="apps_kind_media_blurb">Speelt nu, met bediening</string>
-    <string name="apps_kind_telemetry">Telemetrie</string>
+    <string name="apps_kind_telemetry">Motormeters</string>
     <string name="apps_kind_telemetry_blurb">Snelheid, toerental, koelvloeistof, belasting, accu</string>
     <string name="apps_kind_obd_dtc">Foutcodes</string>
     <string name="apps_kind_obd_dtc_blurb">OBD-foutcodes lezen en wissen</string>
-    <string name="apps_kind_obd_all">Alle OBD-gegevens</string>
+    <string name="apps_kind_obd_all">Alle autogegevens</string>
     <string name="apps_kind_obd_all_blurb">Alle live OBD-waarden</string>
     <string name="apps_kind_range">Brandstof &amp; actieradius</string>
     <string name="apps_kind_range_blurb">Tankniveau en resterende km</string>
     <string name="apps_kind_doors">Portieren</string>
-    <string name="apps_kind_doors_blurb">Status van portieren en kofferbak (MCU)</string>
+    <string name="apps_kind_doors_blurb">Status van portieren en kofferbak van de auto</string>
     <string name="apps_kind_can_mon">CAN-monitor</string>
     <string name="apps_kind_can_mon_blurb">Ruwe CAN-frames, om signalen te vinden</string>
     <string name="apps_kind_speed_hud">Snelheid</string>
@@ -106,17 +106,11 @@
     <string name="apps_add_title">Toevoegen aan %1$s</string>
     <string name="apps_tab_widgets">Widgets</string>
     <string name="apps_tab_apps">Apps</string>
-    <string name="apps_tab_windows">Vensters</string>
     <string name="apps_search">Zoeken</string>
     <string name="apps_category_all">Alles</string>
-    <string name="apps_window_mode_single">In een venster</string>
-    <string name="apps_window_mode_pair">Naast elkaar</string>
-    <string name="apps_window_hint">De app blijft open in een eigen venster op dit dashboard.</string>
-    <string name="apps_window_mode_inside">In de tegel</string>
-    <string name="apps_window_inside_hint">De app draait in de tegel en je bedient hem daar.</string>
     <string name="apps_embed_app_starting">%1$s wordt geopend</string>
     <string name="apps_embed_app_missing">%1$s is niet geïnstalleerd</string>
-    <string name="apps_embed_app_blocked">Android liet %1$s hier niet openen</string>
+    <string name="apps_embed_app_blocked">%1$s draait niet in een tegel op dit toestel. Voeg het toe als venster.</string>
     <string name="apps_embed_under_dashboard">Al onder het dashboard</string>
     <string name="apps_pair_pick_first">Tik op de app voor de linkerkant.</string>
     <string name="apps_pair_pick_second">%1$s links. Tik nu op de app voor de rechterkant.</string>
@@ -124,9 +118,9 @@
     <string name="apps_kind_maps_inside">Google Maps ingebouwd</string>
     <string name="apps_kind_maps_inside_blurb">De echte Google Maps-app, in deze tegel</string>
     <string name="apps_kind_dash_bar">Dashboardbalk</string>
-    <string name="apps_kind_dash_bar_blurb">Je dashboards en apps, met één tik</string>
+    <string name="apps_kind_dash_bar_blurb">Je dashboards en apps, elk één tik, op dit dashboard</string>
     <string name="apps_most_used">Meest gebruikt</string>
-    <string name="apps_kind_screen_light">Licht tweede scherm</string>
+    <string name="apps_kind_screen_light">Helderheid Pi-scherm</string>
     <string name="apps_kind_screen_light_blurb">De achtergrondverlichting van het tweede scherm, overdag en \'s nachts</string>
     <string name="apps_kind_radios">Wifi en Bluetooth</string>
     <string name="apps_kind_radios_blurb">Zet de wifi en Bluetooth van de radio aan en uit</string>
@@ -142,4 +136,11 @@
     <string name="apps_needs_root">Heeft root nodig</string>
     <string name="apps_needs_carbox">Heeft de autobox nodig</string>
     <string name="apps_on_dashboard">Al op een dashboard</string>
+    <string name="apps_as_icon">Pictogram</string>
+    <string name="apps_as_icon_detail">Opent de app</string>
+    <string name="apps_in_tile">In een tegel</string>
+    <string name="apps_in_tile_inside">Draait in de tegel, op dit dashboard</string>
+    <string name="apps_in_tile_window">Blijft open in een venster zo groot als de tegel</string>
+    <string name="apps_side_by_side">Naast elkaar</string>
+    <string name="apps_side_by_side_detail">Twee apps tegelijk, in gesplitst scherm</string>
 </resources>

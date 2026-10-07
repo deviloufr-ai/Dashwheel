@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -180,10 +181,9 @@ internal fun CarSettingsDialog(onDismiss: () -> Unit) {
             NumSpec(stringResource(R.string.car_spec_oil_capacity), draft.oilCapacityL, version, Modifier.weight(1f), decimals = true) { edit(draft.copy(oilCapacityL = it)) }
             TextSpec(stringResource(R.string.car_spec_oil_spec), draft.oilSpec, Modifier.weight(2f)) { edit(draft.copy(oilSpec = it)) }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            NumSpec(stringResource(R.string.car_spec_service_km), draft.serviceKm, version, Modifier.weight(1f)) { edit(draft.copy(serviceKm = it?.toInt())) }
-            NumSpec(stringResource(R.string.car_spec_service_months), draft.serviceMonths, version, Modifier.weight(1f)) { edit(draft.copy(serviceMonths = it?.toInt())) }
-        }
+        // The service interval is edited in Servicing alone (MaintenanceTiles.kt), where
+        // every other interval is; here it is only read, so there is one place to change it.
+        ServiceIntervalLine()
         TextSpec(stringResource(R.string.car_spec_timing), draft.timing) { edit(draft.copy(timing = it)) }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             TextSpec(stringResource(R.string.car_spec_tyre_size), draft.tyreSize, Modifier.weight(2f)) { edit(draft.copy(tyreSize = it)) }
@@ -213,6 +213,23 @@ internal fun CarSettingsDialog(onDismiss: () -> Unit) {
             result = null
         }) { Text(stringResource(R.string.car_reset_preset), color = DashColors.Muted) }
     }
+}
+
+/** The oil service interval as Servicing has it, and where to change it. */
+@Composable
+private fun ServiceIntervalLine() {
+    val upkeep by Maintenance.state.collectAsState()
+    val oil = upkeep.plan.firstOrNull { it.kind == UpkeepKind.OIL }
+    val km = oil?.everyKm
+    val months = oil?.everyMonths
+    val line = when {
+        km != null && months != null -> stringResource(R.string.car_service_interval, formatKm(km), months)
+        km != null -> stringResource(R.string.car_service_interval_km, formatKm(km))
+        months != null -> stringResource(R.string.car_service_interval_months, months)
+        else -> stringResource(R.string.car_service_interval_unknown)
+    }
+    Text(line, color = DashColors.TextPrimary, style = MaterialTheme.typography.bodyMedium)
+    Text(stringResource(R.string.car_service_from_servicing), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
 }
 
 @Composable

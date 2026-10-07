@@ -339,10 +339,11 @@ internal fun tapeDeckBackground(): Modifier {
 }
 
 /**
- * Chrome strip top bar: the gradient DASHWHEEL logo, APPS and LAYOUT pills on
- * the left, a VFD clock in the centre, the setup pill, the OBD LED, outside
- * temperature, alert chips and the ⋮ pill on the right, over a glowing magenta rule. By day the
- * strip is brushed aluminium with dark ink legends.
+ * Chrome strip top bar in the same order as every other look: APPS and LAYOUT
+ * pills on the left (the gradient DASHWHEEL logo after them on a wide screen),
+ * a VFD clock and the dashboard's position in the centre, the setup pill, alert
+ * chips, outside temperature, the OBD LED and the ⋮ pill on the right, over a
+ * glowing magenta rule. By day the strip is brushed aluminium with dark ink legends.
  */
 @Composable
 internal fun TapeDeckTopBar(m: TopBarModel) {
@@ -380,6 +381,8 @@ internal fun TapeDeckTopBar(m: TopBarModel) {
         // Narrow screens drop the logo so the pills never run into the clock.
         val showLogo = maxWidth >= 980.dp
         val narrow = maxWidth < NARROW_BAR
+        // The same two words as every other look's bar, in the pills' legend where there is room.
+        val labels = maxWidth >= LABELLED_BAR
         val shared = barIsShared()
         Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
             // Each side gets half of what the clock leaves, so the clock stays
@@ -390,43 +393,48 @@ internal fun TapeDeckTopBar(m: TopBarModel) {
                 modifier = if (narrow) Modifier else Modifier.weight(1f).wrapContentWidth(Alignment.Start, unbounded = true),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (showLogo) {
-                    TapeLogo()
-                    Spacer(Modifier.width(18.dp))
-                }
-                NeonPill(if (narrow) null else stringResource(R.string.tape_apps_caps), stringResource(R.string.tape_cd_all_apps), m.onApps) {
+                // Apps first, at the screen's edge, as in every bar; the logo is an ornament after the controls.
+                NeonPill(if (labels) stringResource(R.string.tape_apps_caps) else null, stringResource(R.string.tape_cd_all_apps), m.onApps) {
                     Icon(Icons.Filled.Apps, contentDescription = null, tint = legend, modifier = Modifier.size(16.dp))
                 }
                 Spacer(Modifier.width(6.dp))
                 LayoutPicker(m) { open ->
                     NeonPill(
-                        if (narrow) null else stringResource(R.string.tape_layout_caps),
+                        if (labels) stringResource(R.string.tape_layout_caps) else null,
                         stringResource(R.string.tape_cd_screen_layout, m.layout.title),
                         open
                     ) {
                         LayoutIcon(m.layout, null, legend, Modifier.size(16.dp))
                     }
                 }
+                if (showLogo) {
+                    Spacer(Modifier.width(18.dp))
+                    TapeLogo()
+                }
             }
 
-            // The head unit's status bar shows the time while it is up.
-            if (!m.merged) Box(Modifier.padding(horizontal = 10.dp)) { VfdClock(m.clock) }
+            // The head unit's status bar shows the time while it is up; the dashboard's position beside it.
+            Row(modifier = Modifier.padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                if (!m.merged) VfdClock(m.clock)
+                PagePositionChip(Modifier.padding(start = 10.dp))
+            }
 
-            // ⋮ and the OBD LED get their room first; what ranks last and no
-            // longer fits beside the clock is left out (the outside temperature
-            // first: the page's weather tile says the same).
+            // ⋮ and the OBD LED get their room first and sit together at the
+            // end, as in every bar; what ranks last and no longer fits beside
+            // the clock is left out (the outside temperature first: the page's
+            // weather tile says the same).
             BarEnd(modifier = Modifier.weight(1f)) {
                 if (m.setupPending) {
                     Box(Modifier.layoutId(BarRank.SETUP).padding(end = 6.dp)) {
                         SetupPill(onClick = { m.onSetup(false) }, compact = narrow || shared)
                     }
                 }
-                Box(Modifier.layoutId(BarRank.OBD)) { ObdLed(m.obdConnection, m.onConnectObd) }
-                if (!narrow) Box(Modifier.layoutId(BarRank.TEMP)) { OutsideTemp() }
                 Row(modifier = Modifier.layoutId(BarRank.ALERTS), verticalAlignment = Alignment.CenterVertically) {
                     VehicleAlerts(m.obdConnection, m.obd)
                 }
                 Box(Modifier.layoutId(BarRank.PHONE)) { PhonePill() }
+                if (!narrow) Box(Modifier.layoutId(BarRank.TEMP)) { OutsideTemp() }
+                Box(Modifier.layoutId(BarRank.OBD)) { ObdLed(m.obdConnection, m.onConnectObd) }
                 Box(Modifier.layoutId(BarRank.MORE)) {
                     MorePicker(m) { open ->
                         NeonPill(null, stringResource(R.string.tape_cd_more), open) {

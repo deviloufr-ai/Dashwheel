@@ -15,7 +15,7 @@
     <string name="vehicle_capture_b">Zapis B</string>
 
     <!-- Telemetry tile -->
-    <string name="vehicle_telemetry_title">TELEMETRIA</string>
+    <string name="vehicle_telemetry_title">WSKAŹNIKI SILNIKA</string>
     <string name="vehicle_live">Na żywo</string>
     <string name="vehicle_speed_caps">PRĘDKOŚĆ</string>
     <string name="vehicle_rpm_caps">OBR/MIN</string>
@@ -24,10 +24,10 @@
     <!-- Fault codes tile -->
     <string name="vehicle_fault_codes_title">KODY BŁĘDÓW</string>
     <string name="vehicle_scan">Skanuj</string>
-    <string name="vehicle_clear">Wyczyść</string>
+    <string name="vehicle_clear">Skasuj kody</string>
 
     <!-- OBD data tile -->
-    <string name="vehicle_obd_data_title">DANE OBD</string>
+    <string name="vehicle_obd_data_title">DANE AUTA</string>
     <string name="vehicle_intake_air">Powietrze dolotowe</string>
     <string name="vehicle_throttle">Przepustnica</string>
     <string name="vehicle_engine_load">Obciążenie silnika</string>
@@ -35,9 +35,9 @@
 
     <!-- Fuel & range tile -->
     <string name="vehicle_fuel_range_title">PALIWO I ZASIĘG</string>
-    <string name="vehicle_via_canbox">z CANbox</string>
+    <string name="vehicle_via_canbox">ze skrzynki CAN</string>
     <string name="vehicle_via_obd">z OBD</string>
-    <string name="vehicle_fuel_no_obd">OBD tego auta nie podaje poziomu paliwa. Można go odczytać z CANbox: wymaga roota.</string>
+    <string name="vehicle_fuel_no_obd">OBD tego auta nie podaje poziomu paliwa. Można go odczytać ze skrzynki CAN: wymaga roota.</string>
     <string name="vehicle_fuel_none">Brak jeszcze poziomu paliwa. Podłącz adapter OBD: nie każde auto go podaje.</string>
     <string name="vehicle_find_fuel_signal">Znajdź sygnał paliwa</string>
     <string name="vehicle_try_obd_fuel_pid">Spróbuj PID paliwa OBD</string>
@@ -45,19 +45,19 @@
     <string name="vehicle_range_approx">≈ zasięg</string>
     <string name="vehicle_in_tank">W baku</string>
     <string name="vehicle_avg_use">Śr. zużycie</string>
-    <string name="vehicle_learn_fuel">Odczytaj paliwo z CANbox</string>
+    <string name="vehicle_learn_fuel">Odczytaj paliwo ze skrzynki CAN</string>
     <string name="vehicle_recalibrate_fuel">Ponownie skalibruj paliwo</string>
-    <string name="vehicle_find_range_signal">Odczytaj zasięg z CANbox</string>
-    <string name="vehicle_learn_range">Zasięg z CANbox</string>
+    <string name="vehicle_find_range_signal">Odczytaj zasięg ze skrzynki CAN</string>
+    <string name="vehicle_learn_range">Zasięg ze skrzynki CAN</string>
     <string name="vehicle_change_range">Zmień sygnał zasięgu</string>
     <string name="vehicle_range_from_car">komputer pokładowy</string>
 
     <!-- Fuel signal finder dialog -->
     <string name="vehicle_finder_help">Ustaw poziom wskazywany na desce rozdzielczej i dotknij Zapis A, potem zamknij i używaj auta normalnie. Po kilku dniach, gdy wskazanie nieco spadnie, otwórz ponownie, ustaw nową wartość i dotknij Zapis B. Zapis A jest zachowywany po restarcie. Proponowane są tylko bajty, które zmieniały się razem z paliwem.</string>
     <string name="vehicle_dash_reads">Wskazanie</string>
-    <string name="vehicle_waiting_canbox">Oczekiwanie na dane CANbox… (wymaga roota)</string>
+    <string name="vehicle_waiting_canbox">Oczekiwanie na dane ze skrzynki CAN: wymaga roota</string>
     <string name="vehicle_finder_step_a">Ustaw wskazywany poziom paliwa, a potem dotknij Zapis A.</string>
-    <string name="vehicle_finder_step_b">Zapis A przy %1$d%% (zachowany). Można zamknąć i jeździć normalnie, wróć, gdy wskazanie spadnie o kilka %%, ustaw nową wartość, a potem Zapis B.</string>
+    <string name="vehicle_finder_step_b">Zapis A przy %1$d %%, zachowany. Można zamknąć i jeździć normalnie, wróć, gdy wskazanie spadnie o kilka %%, ustaw nową wartość, a potem Zapis B.</string>
     <string name="vehicle_finder_same">A i B mają ten sam poziom. Wykonaj Zapis B przy innym poziomie paliwa.</string>
     <string name="vehicle_finder_none">Żaden bajt nie podążył za zmianą. Powtórz B po większym spadku.</string>
     <string name="vehicle_finder_candidates">Bajty zmieniające się z paliwem</string>
@@ -92,7 +92,7 @@
 
     <!-- Doors tile -->
     <string name="vehicle_doors_title">DRZWI</string>
-    <string name="vehicle_waiting_mcu">Oczekiwanie na dane MCU… (wymaga roota)</string>
+    <string name="vehicle_waiting_mcu">Oczekiwanie na dane ze skrzynki CAN: wymaga roota</string>
     <string name="vehicle_door_front_left">Przednie lewe</string>
     <string name="vehicle_door_front_right">Przednie prawe</string>
     <string name="vehicle_door_rear_left">Tylne lewe</string>
@@ -193,13 +193,13 @@
 
     <!-- Why the adapter is not connected -->
     <string name="vehicle_obd_connecting_to">Łączenie z %1$s…</string>
-    <string name="vehicle_obd_pairing_pin">Parowanie: wpisz PIN adaptera w oknie (często 1234 lub 0000)</string>
+    <string name="vehicle_obd_pairing_pin">Parowanie: wpisz PIN adaptera w oknie</string>
     <string name="vehicle_obd_switching_bt_on">Włączanie Bluetooth radia…</string>
     <string name="vehicle_obd_adapter">Adapter: %1$s</string>
     <string name="vehicle_choose_adapter">Wybierz adapter</string>
     <string name="vehicle_err_bt_off">Bluetooth radia jest wyłączony</string>
     <string name="vehicle_err_not_paired">%1$s nie jest sparowany z radiem: dotknij OBD, aby sparować ponownie</string>
-    <string name="vehicle_err_pairing_failed">Parowanie z %1$s nie powiodło się: dotknij OBD i wpisz PIN (często 1234 lub 0000)</string>
+    <string name="vehicle_err_pairing_failed">Parowanie z %1$s nie powiodło się: dotknij OBD i wpisz PIN</string>
     <string name="vehicle_err_bt_still_off">Bluetooth radia jest wyłączony i nie daje się włączyć: uruchom ponownie radio, potem dotknij OBD</string>
     <string name="vehicle_err_bt_stuck">Bluetooth Androida w radiu się zawiesił: uruchom ponownie radio, potem dotknij OBD</string>
     <string name="vehicle_err_refused">%1$s odrzucił połączenie: zajęty przez telefon lub inną aplikację, bez zasilania albo poza zasięgiem</string>

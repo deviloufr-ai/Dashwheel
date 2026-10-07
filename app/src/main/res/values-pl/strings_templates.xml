@@ -8,12 +8,19 @@
     <string name="templates_road_trip">Podróż</string>
     <string name="templates_road_trip_blurb">Duża mapa, zasięg, pogoda i postoje na długie trasy</string>
     <string name="templates_car_health">Stan auta</string>
-    <string name="templates_car_health_blurb">Dane silnika i kody błędów na ekranie głównym</string>
-    <string name="templates_hint">Szablon wypełnia wszystkie siedem pulpitów, ułożonych pod ten ekran z głównymi kafelkami po stronie kierowcy.</string>
+    <string name="templates_car_health_blurb">Dane samochodu i kody błędów na ekranie głównym</string>
+    <string name="templates_hint">Szablon wypełnia Start i dwa pulpity obok, rozmieszczone pod ten ekran z głównymi kafelkami po stronie kierowcy.</string>
     <string name="templates_no_obd">Nie wybrano jeszcze adaptera OBD, więc widżety danych auta są pominięte.</string>
     <string name="templates_fill_empty">Wypełnij puste pulpity</string>
-    <string name="templates_replace_all">Zastąp wszystkie pulpity</string>
-    <string name="templates_replace_confirm_title">Zastąpić wszystkie siedem pulpitów?</string>
+    <string name="templates_replace_all">Zastąp te pulpity</string>
+    <string name="templates_replace_confirm_title">Zastąpić te pulpity?</string>
     <string name="templates_replace_confirm_body">Twój układ zniknie. Cofnij go przywróci.</string>
     <string name="templates_replace">Zastąp</string>
+    <string name="templates_column">Wypełnij też pulpity powyżej i poniżej</string>
+    <string name="templates_column_detail">Cztery kolejne pulpity, przesuwane w górę i w dół ze Startu</string>
+    <string name="templates_fill_this">Wypełnij ten pulpit</string>
+    <string name="templates_fill_this_hint">Trafia na niego tylko strona szablonu dla %1$s.</string>
+    <string name="templates_fill">Wypełnij</string>
+    <string name="templates_all_dashboards">Wszystkie pulpity…</string>
+    <string name="templates_none_empty">Brak pustego pulpitu w przesuwaniu</string>
 </resources>

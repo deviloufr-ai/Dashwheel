@@ -41,4 +41,11 @@
     <string name="canvas_tab_where">Where it goes</string>
     <string name="canvas_tab_create">Create</string>
     <string name="canvas_bar_app_remove">Remove from the bar</string>
+    <string name="canvas_tab_engine">Engine</string>
+    <string name="canvas_tab_checks">Checks</string>
+    <string name="canvas_tab_eco">Eco</string>
+    <string name="canvas_when_taken">%1$s: now on %2$s</string>
+    <string name="canvas_when_take_title">Take %1$s from %2$s?</string>
+    <string name="canvas_when_take_body">It will no longer show by itself there.</string>
+    <string name="canvas_when_take">Take it</string>
 </resources>

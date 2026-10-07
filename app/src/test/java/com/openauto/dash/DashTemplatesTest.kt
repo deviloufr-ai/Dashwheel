@@ -28,6 +28,20 @@ class DashTemplatesTest {
     }
 
     @Test
+    fun aTemplateFillsTheRowByDefault_andTheColumnOnRequest() {
+        val row = TemplatePlacer.pages(DashTemplate.DAILY, full, TemplatePlacer.ROW_PAGES)
+        DashboardStore.ROW.forEach { assertTrue("page $it", row[it].isNotEmpty()) }
+        (DashboardStore.COLUMN - DashboardStore.CENTER).forEach { assertTrue("page $it", row[it].isEmpty()) }
+        val all = TemplatePlacer.pages(DashTemplate.DAILY, full, TemplatePlacer.ALL_PAGES)
+        all.forEach { assertTrue(it.isNotEmpty()) }
+        assertEquals(TemplatePlacer.pages(DashTemplate.DAILY, full), all)
+        // Every page but Home has a name for the bar.
+        for (template in DashTemplate.entries) {
+            template.pages.forEach { (page, tp) -> if (page != DashboardStore.CENTER) assertTrue("$template $page", tp.preset != null) }
+        }
+    }
+
+    @Test
     fun everyTemplateTilesEveryPage_fullAndHalf() {
         for (template in DashTemplate.entries) for (screen in listOf(full, half, full.copy(obdPaired = false))) {
             val pages = TemplatePlacer.pages(template, screen)

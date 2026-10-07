@@ -16,7 +16,7 @@
     <string name="explore_verified">Potwierdzone odczyty</string>
     <string name="explore_none_verified">Jeszcze żadnych. Podłącz adapter przy pracującym silniku i szukaj.</string>
     <string name="explore_results">Wypróbowane</string>
-    <string name="explore_forget">Zapomnij wszystko</string>
+    <string name="explore_forget">Wyzeruj wszystko</string>
     <string name="explore_v_no_answer">brak odpowiedzi</string>
     <string name="explore_v_refused">odrzucone</string>
     <string name="explore_v_unreadable">nieczytelne</string>

@@ -68,7 +68,7 @@
     <string name="second_screen_widget">Widget</string>
     <string name="second_screen_widget_pick">Scegli un widget</string>
     <string name="second_screen_design">Stile</string>
-    <string name="second_screen_board_reset">Torna alla pagina originale</string>
+    <string name="second_screen_board_reset">Ripristina la pagina originale</string>
     <string name="second_screen_copy_of">%1$s, come sull\'autoradio</string>
     <string name="second_screen_copy_blurb">Una copia del suo riquadro sul cruscotto. Si usa sull\'autoradio.</string>
     <string name="second_screen_copy_no_tile">Metti %1$s in un riquadro del cruscotto per vederlo qui</string>

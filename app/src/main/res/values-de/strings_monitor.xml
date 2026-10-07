@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="monitor_kind">Radio</string>
+    <string name="monitor_kind">Radio-Monitor</string>
     <string name="monitor_kind_blurb">Prozessor, Speicher, Temperatur und die aktivsten Apps</string>
     <string name="monitor_cpu">CPU</string>
     <string name="monitor_ram">RAM</string>
@@ -28,7 +28,7 @@
     <string name="gear_needs_data">Braucht den OBD-Adapter oder die CAN-Box</string>
     <string name="design_gear_gate">Schaltkulisse</string>
     <string name="design_gear_gate_desc">Die Gänge in einer Reihe, der eingelegte leuchtet</string>
-    <string name="monitor_title">RADIO</string>
+    <string name="monitor_title">RADIO-MONITOR</string>
     <string name="gear_title">GANG</string>
     <plurals name="monitor_cores">
         <item quantity="one">%1$d Kern</item>

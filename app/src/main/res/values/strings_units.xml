@@ -4,7 +4,7 @@
     <string name="units_title">Units</string>
     <string name="units_speed">Speed and distance</string>
     <string name="units_temp">Temperature</string>
-    <string name="units_economy">Fuel economy</string>
+    <string name="units_economy">Fuel consumption</string>
     <string name="units_clock">Clock</string>
     <string name="units_auto">Auto</string>
     <string name="units_auto_hint">Auto follows the head unit\'s settings: %1$s</string>
@@ -44,6 +44,10 @@
     <plurals name="units_voice_fuel_station_mi">
         <item quantity="one">The cheapest station nearby is %1$s, %2$d mile away.</item>
         <item quantity="other">The cheapest station nearby is %1$s, %2$d miles away.</item>
+    </plurals>
+    <plurals name="units_lpg_voice_low_mi">
+        <item quantity="one">LPG low: about %1$d mile left.</item>
+        <item quantity="other">LPG low: about %1$d miles left.</item>
     </plurals>
     <string name="units_car_say_fuel_short_mi">Your range of %1$d miles won\'t reach the destination, %2$d miles away. Plan a fuel stop.</string>
     <string name="units_car_say_filter_mph">Your last %1$d drives were short. When you can, drive 15 to 20 minutes above 40 miles per hour so the particle filter can clean itself.</string>

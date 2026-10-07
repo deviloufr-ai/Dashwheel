@@ -400,8 +400,8 @@ internal fun cockpitBackground(): Modifier = Modifier.drawWithCache {
 
 /**
  * The dash top: chrome APPS / LAYOUT pills on the left, a chrome clock pod
- * with the time in LCD digits beside it in the middle, and on the right the setup pill, warning pills, the
- * outside-temperature LCD, the OBD lamp and a chrome ⋮ button.
+ * with the time in LCD digits beside it and the dashboard's position in the middle, and on the right the setup pill, warning pills, the
+ * outside-temperature LCD, the OBD lamp and a chrome ⋮ button. The same order as every other look's bar.
  */
 @Composable
 internal fun CockpitTopBar(m: TopBarModel) {
@@ -413,6 +413,8 @@ internal fun CockpitTopBar(m: TopBarModel) {
         contentAlignment = Alignment.Center
     ) {
         val narrow = maxWidth < NARROW_BAR
+        // The same two words as every other look's bar, engraved on the pills where there is room.
+        val labels = maxWidth >= LABELLED_BAR
         val shared = barIsShared()
         Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
             // Each side gets half of what the clock leaves, so the clock stays
@@ -424,9 +426,9 @@ internal fun CockpitTopBar(m: TopBarModel) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                ChromePill(onClick = m.onApps, description = if (narrow) stringResource(R.string.dash_all_apps) else null) {
+                ChromePill(onClick = m.onApps, description = if (labels) null else stringResource(R.string.dash_all_apps)) {
                     Icon(Icons.Filled.Apps, contentDescription = null, tint = EngraveInk, modifier = Modifier.size(18.dp))
-                    if (!narrow) {
+                    if (labels) {
                         Spacer(Modifier.width(8.dp))
                         PillLabel(stringResource(R.string.cockpit_apps))
                     }
@@ -434,7 +436,7 @@ internal fun CockpitTopBar(m: TopBarModel) {
                 LayoutPicker(m) { open ->
                     ChromePill(onClick = open, description = stringResource(R.string.cockpit_screen_layout_desc, m.layout.title)) {
                         LayoutIcon(m.layout, null, EngraveInk, Modifier.size(18.dp))
-                        if (!narrow) {
+                        if (labels) {
                             Spacer(Modifier.width(8.dp))
                             PillLabel(stringResource(R.string.cockpit_layout))
                         }
@@ -444,8 +446,8 @@ internal fun CockpitTopBar(m: TopBarModel) {
 
             // The head unit's status bar shows the time while it is up. The pod is
             // the dash's ornament; the digits are what is read at a glance.
-            if (!m.merged) {
-                Row(modifier = Modifier.padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(modifier = Modifier.padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                if (!m.merged) {
                     if (!narrow) {
                         ClockPod(m.clock)
                         Spacer(Modifier.width(10.dp))
@@ -464,6 +466,8 @@ internal fun CockpitTopBar(m: TopBarModel) {
                         }
                     }
                 }
+                // Which dashboard is on screen, beside the time, as in every bar.
+                PagePositionChip(Modifier.padding(start = 10.dp))
             }
 
             // ⋮ and the OBD lamp get their room first; what ranks last and no

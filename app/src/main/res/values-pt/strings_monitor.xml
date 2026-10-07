@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="monitor_kind">Autorrádio</string>
+    <string name="monitor_kind">Monitor do autorrádio</string>
     <string name="monitor_kind_blurb">Processador, memória, temperatura e as apps mais ativas</string>
     <string name="monitor_cpu">CPU</string>
     <string name="monitor_ram">RAM</string>
@@ -29,7 +29,7 @@
     <string name="gear_needs_data">Precisa do adaptador OBD ou da caixa CAN</string>
     <string name="design_gear_gate">Grelha de mudanças</string>
     <string name="design_gear_gate_desc">As mudanças em fila, a engrenada acesa</string>
-    <string name="monitor_title">AUTORRÁDIO</string>
+    <string name="monitor_title">MONITOR DO AUTORRÁDIO</string>
     <string name="gear_title">MUDANÇA</string>
     <plurals name="monitor_cores">
         <item quantity="one">%1$d núcleo</item>

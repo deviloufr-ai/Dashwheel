@@ -54,7 +54,12 @@
     <string name="design_car_outline">Sylwetka</string>
     <string name="design_car_outline_desc">Auto z profilu, odczyty obok.</string>
     <string name="design_change">Zmień wygląd: %1$s</string>
-    <string name="design_codes_unit">kody</string>
+    <plurals name="design_codes_unit">
+        <item quantity="one">kod</item>
+        <item quantity="few">kody</item>
+        <item quantity="many">kodów</item>
+        <item quantity="other">kodu</item>
+    </plurals>
     <string name="design_engine_lamp">Kontrolka silnika</string>
     <string name="design_on">Wł.</string>
     <string name="design_off">Wył.</string>

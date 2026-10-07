@@ -16,7 +16,7 @@
     <string name="explore_verified">Bevestigde metingen</string>
     <string name="explore_none_verified">Nog geen. Verbind de adapter met draaiende motor en zoek.</string>
     <string name="explore_results">Geprobeerd</string>
-    <string name="explore_forget">Alles vergeten</string>
+    <string name="explore_forget">Alles terugzetten</string>
     <string name="explore_v_no_answer">geen antwoord</string>
     <string name="explore_v_refused">geweigerd</string>
     <string name="explore_v_unreadable">onleesbaar</string>

@@ -37,11 +37,16 @@ import kotlin.math.floor
 import kotlin.math.ln
 import kotlin.math.roundToInt
 
-/** One page of a [DashTemplate]: its widgets, most important first, and whether it ends in an app dock. */
-data class TemplatePage(val kinds: List<BuiltinKind>, val dock: Boolean = false)
+/**
+ * One page of a [DashTemplate]: its widgets, most important first, whether
+ * it ends in an app dock, and the name it gets in the bar ([preset], null
+ * for Home, which keeps its name).
+ */
+data class TemplatePage(val kinds: List<BuiltinKind>, val dock: Boolean = false, val preset: TabPreset? = null)
 
 /**
- * Ready-made sets of widgets for all seven dashboards. A template only says
+ * Ready-made sets of widgets for the seven dashboards (the row of three by
+ * default, the column too on request). A template only says
  * which widgets go on each page, most important first; [TemplatePlacer] works
  * out where they go for the screen at hand, so one template fits the
  * full-width dashboard and the narrow one beside a Maps dock alike.
@@ -57,34 +62,34 @@ enum class DashTemplate(@StringRes val titleRes: Int, @StringRes val blurbRes: I
     DAILY(
         R.string.templates_daily, R.string.templates_daily_blurb, mapOf(
             1 to TemplatePage(listOf(NAVMAP, NAVIGATION, SPEED_HUD, MEDIA), dock = true),
-            0 to TemplatePage(listOf(MEDIA, AUDIO, NOTIFICATIONS)),
-            2 to TemplatePage(listOf(RANGE, OBD_DTC, SERVICE, BATTERY)),
-            4 to TemplatePage(listOf(WEATHER, CALENDAR, CLOCK)),
-            5 to TemplatePage(listOf(TRIP, ECO_DRIVE, BREAK_TIMER)),
-            3 to TemplatePage(listOf(TELEMETRY, WARMUP, FILTER_CARE)),
-            6 to TemplatePage(listOf(TYRES, CAR_STATUS, FUEL_PRICES))
+            0 to TemplatePage(listOf(MEDIA, AUDIO, NOTIFICATIONS), preset = TabPreset.MEDIA),
+            2 to TemplatePage(listOf(RANGE, OBD_DTC, SERVICE, BATTERY), preset = TabPreset.CAR),
+            4 to TemplatePage(listOf(WEATHER, CALENDAR, CLOCK), preset = TabPreset.INFO),
+            5 to TemplatePage(listOf(TRIP, ECO_DRIVE, BREAK_TIMER), preset = TabPreset.TRIP),
+            3 to TemplatePage(listOf(TELEMETRY, WARMUP, FILTER_CARE), preset = TabPreset.ENGINE),
+            6 to TemplatePage(listOf(TYRES, CAR_STATUS, FUEL_PRICES), preset = TabPreset.CHECKS)
         )
     ),
     ROAD_TRIP(
         R.string.templates_road_trip, R.string.templates_road_trip_blurb, mapOf(
             1 to TemplatePage(listOf(NAVMAP, NAVIGATION, FUEL_TO_DEST, SPEED_HUD), dock = true),
-            0 to TemplatePage(listOf(MEDIA, AUDIO, NOTIFICATIONS)),
-            2 to TemplatePage(listOf(FUEL_PRICES, RANGE, BREAK_TIMER, WEATHER)),
-            4 to TemplatePage(listOf(CALENDAR, CLOCK)),
-            5 to TemplatePage(listOf(TRIP, ECO_DRIVE)),
-            3 to TemplatePage(listOf(OBD_DTC, TYRES, BATTERY, WARMUP)),
-            6 to TemplatePage(listOf(SERVICE, CAR_STATUS))
+            0 to TemplatePage(listOf(MEDIA, AUDIO, NOTIFICATIONS), preset = TabPreset.MEDIA),
+            2 to TemplatePage(listOf(FUEL_PRICES, RANGE, BREAK_TIMER, WEATHER), preset = TabPreset.TRIP),
+            4 to TemplatePage(listOf(CALENDAR, CLOCK), preset = TabPreset.INFO),
+            5 to TemplatePage(listOf(TRIP, ECO_DRIVE), preset = TabPreset.ECO),
+            3 to TemplatePage(listOf(OBD_DTC, TYRES, BATTERY, WARMUP), preset = TabPreset.ENGINE),
+            6 to TemplatePage(listOf(SERVICE, CAR_STATUS), preset = TabPreset.CHECKS)
         )
     ),
     CAR_HEALTH(
         R.string.templates_car_health, R.string.templates_car_health_blurb, mapOf(
             1 to TemplatePage(listOf(TELEMETRY, OBD_DTC, BATTERY, WARMUP), dock = true),
-            0 to TemplatePage(listOf(NAVMAP, NAVIGATION, MEDIA)),
-            2 to TemplatePage(listOf(FILTER_CARE, SERVICE, TYRES, RANGE)),
-            4 to TemplatePage(listOf(ECO_DRIVE, BREAK_TIMER, TRIP)),
-            3 to TemplatePage(listOf(CAR_STATUS, DOORS)),
-            5 to TemplatePage(listOf(WEATHER, CALENDAR, CLOCK)),
-            6 to TemplatePage(listOf(NOTIFICATIONS, AUDIO))
+            0 to TemplatePage(listOf(NAVMAP, NAVIGATION, MEDIA), preset = TabPreset.MAP),
+            2 to TemplatePage(listOf(FILTER_CARE, SERVICE, TYRES, RANGE), preset = TabPreset.SERVICE),
+            4 to TemplatePage(listOf(ECO_DRIVE, BREAK_TIMER, TRIP), preset = TabPreset.ECO),
+            3 to TemplatePage(listOf(CAR_STATUS, DOORS), preset = TabPreset.CHECKS),
+            5 to TemplatePage(listOf(WEATHER, CALENDAR, CLOCK), preset = TabPreset.INFO),
+            6 to TemplatePage(listOf(NOTIFICATIONS, AUDIO), preset = TabPreset.MEDIA)
         )
     )
 }
@@ -196,9 +201,18 @@ object TemplatePlacer {
     /** Fuel and range: from the CAN box, else the adapter's fuel reading on cars that give one. */
     private val NEEDS_FUEL = setOf(RANGE, FUEL_TO_DEST)
 
-    /** Every page of [template] laid out for [screen]; pages the template leaves out stay empty. */
-    fun pages(template: DashTemplate, screen: TemplateScreen): List<List<DashboardItem>> =
-        List(DashboardStore.PAGE_COUNT) { p -> template.pages[p]?.let { page(it, screen) } ?: emptyList() }
+    /**
+     * Every page of [template] laid out for [screen], or [only] those pages;
+     * pages the template leaves out, and the ones not asked for, stay empty.
+     */
+    fun pages(template: DashTemplate, screen: TemplateScreen, only: Set<Int>? = null): List<List<DashboardItem>> =
+        List(DashboardStore.PAGE_COUNT) { p ->
+            if (only != null && p !in only) emptyList() else template.pages[p]?.let { page(it, screen) } ?: emptyList()
+        }
+
+    /** The row of the cross (Home, left and right of it), and the column above and below it: what a template fills by default, and on request. */
+    val ROW_PAGES: Set<Int> = DashboardStore.ROW.toSet()
+    val ALL_PAGES: Set<Int> = (0 until DashboardStore.PAGE_COUNT).toSet()
 
     /** The widgets of [page] that make sense on [screen], in order of importance. */
     fun kindsFor(page: TemplatePage, screen: TemplateScreen): List<BuiltinKind> {

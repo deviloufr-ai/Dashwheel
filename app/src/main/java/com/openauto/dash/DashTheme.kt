@@ -474,6 +474,8 @@ object DashThemeStore {
     private const val KEY_EFFECTS = "effects"
     private const val KEY_BAR_AUTO_HIDE = "bar_auto_hide"
     private const val KEY_BAR_HIDE_SECONDS = "bar_hide_seconds"
+    private const val KEY_RAIL = "side_rail"
+    private const val KEY_TABS = "tabs_instead_of_swiping"
 
     /** Seconds the bottom bar waits before hiding, until the driver picks another delay. */
     const val DEFAULT_BAR_HIDE_SECONDS = 5
@@ -540,6 +542,31 @@ object DashThemeStore {
     fun saveBarHideSeconds(context: Context, seconds: Int) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
             .putInt(KEY_BAR_HIDE_SECONDS, seconds.coerceIn(0, MAX_BAR_HIDE_SECONDS)).apply()
+    }
+
+    /**
+     * The side rail in the bottom bar's place (Settings, Display, Navigation):
+     * the driver's choice, or null while they have not made one, when it
+     * follows the theme (on with Canvas, as it always was there), see [railOn].
+     */
+    fun loadRail(context: Context): Boolean? {
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        return if (prefs.contains(KEY_RAIL)) prefs.getBoolean(KEY_RAIL, false) else null
+    }
+
+    fun saveRail(context: Context, on: Boolean) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_RAIL, on).apply()
+    }
+
+    /** Whether the rail shows: the choice made, else the theme's own habit. */
+    fun railOn(choice: Boolean?, mode: DashThemeMode): Boolean = choice ?: (mode == DashThemeMode.CANVAS)
+
+    /** Tabs in the rail instead of swiping, asked for; off by default (a map app under the dashboards turns them on by itself). */
+    fun loadTabs(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_TABS, false)
+
+    fun saveTabs(context: Context, on: Boolean) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_TABS, on).apply()
     }
 }
 

@@ -281,7 +281,11 @@ internal object LpgTank {
         val app = appContext ?: return
         if (!SpokenEvents.isOn(app, SpokenEvent.LPG)) return
         val units = Units.current.value
-        val text = AppLanguage.wrap(app).getString(R.string.lpg_voice_low, units.distance(r.rangeKm).roundToInt(), units.distanceUnit)
+        // Said aloud, so the unit is a full word in the right number, never "km".
+        val left = units.distance(r.rangeKm).roundToInt()
+        val text = AppLanguage.wrap(app).resources.getQuantityString(
+            if (units.imperial) R.plurals.units_lpg_voice_low_mi else R.plurals.lpg_voice_low, left, left
+        )
         CarVoice.announce(text, InAppNav.locale(app))
     }
 

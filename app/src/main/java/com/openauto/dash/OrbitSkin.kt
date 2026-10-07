@@ -95,6 +95,9 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
 import kotlin.math.sqrt
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 
 /*
  * Orbit skin: everything round. A navy page with a coral and a violet glow,
@@ -273,15 +276,15 @@ internal fun orbitBackground(): Modifier {
 // --- Top bar -------------------------------------------------------------------------
 
 /**
- * The clock with a short date centred in the bar, and a floating frosted pill
- * ("dynamic island") at the driver's end of the screen: the left edge for a
- * left-hand-drive car, the right edge when the car profile puts the driver on
- * the right, as the templates do with the main tiles. The pill holds Apps,
- * the layout picker, the OBD pill and the ⋮ menu, ⋮ nearest the screen edge;
- * the buttons are 56 dp targets with 26 dp icons, 8 dp apart. The setup pill,
- * the vehicle alert chips and the phone sit on the pill's inner side, only
- * when there is something to show and only up to the clock ([BarEnd]). By day
- * the pill is frosted white, lifted off the page by a soft ink shadow.
+ * The same bar as every other look, in Orbit's frosted glass: an island on
+ * the left with Apps and Layout (their words beside the icons where the bar
+ * is wide enough), the clock with a short date and the dashboard's position
+ * centred, and an island on the right with the OBD pill and the ⋮ menu, ⋮
+ * nearest the screen edge. The setup pill, the vehicle alert chips and the
+ * phone sit between the clock and the right island, only when there is
+ * something to show and only where they fit ([BarEnd]). The buttons are 56 dp
+ * targets with 26 dp icons, 8 dp apart. By day the islands are frosted
+ * white, lifted off the page by a soft ink shadow.
  */
 @Composable
 internal fun OrbitTopBar(m: TopBarModel) {
@@ -290,8 +293,6 @@ internal fun OrbitTopBar(m: TopBarModel) {
     val shape = RoundedCornerShape(32.dp)
     val light = DashColors.Light
     val ink = DashColors.TextPrimary
-    val profile by CarProfileStore.profile.collectAsState()
-    val driverOnRight = profile.driverOnRight
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
@@ -300,84 +301,11 @@ internal fun OrbitTopBar(m: TopBarModel) {
             .ownLayer()
     ) {
         val narrow = maxWidth < NARROW_BAR
+        val labels = maxWidth >= LABELLED_BAR
         val shared = barIsShared()
         // A narrow screen drops the date; a tight one gives its room to a chip or a pill.
         val showDate = maxWidth >= 640.dp && !(narrow && (shared || m.setupPending))
-        val clock: @Composable () -> Unit = {
-            Row(modifier = Modifier.padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = m.clock,
-                    modifier = Modifier.alignByBaseline(),
-                    color = DashColors.TextPrimary,
-                    fontSize = fixedSp(24f),
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.SemiBold,
-                    letterSpacing = (-0.02).em,
-                    maxLines = 1
-                )
-                if (showDate) {
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = dateFmt.format(now),
-                        modifier = Modifier.alignByBaseline(),
-                        color = DashColors.Muted,
-                        fontSize = fixedSp(14f),
-                        fontFamily = FontFamily.SansSerif,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-        }
-        val apps: @Composable () -> Unit = {
-            OrbitBarButton(onClick = m.onApps, filled = true) {
-                Icon(Icons.Filled.Apps, contentDescription = stringResource(R.string.orbit_all_apps), tint = DashColors.TextPrimary, modifier = Modifier.size(26.dp))
-            }
-        }
-        val layout: @Composable () -> Unit = {
-            LayoutPicker(m) { open ->
-                OrbitBarButton(onClick = open) {
-                    LayoutIcon(
-                        m.layout, stringResource(R.string.orbit_screen_layout_desc, m.layout.title),
-                        DashColors.TextSecondary, Modifier.size(26.dp)
-                    )
-                }
-            }
-        }
-        val obd: @Composable () -> Unit = { ObdPill(m.obdConnection, m.onConnectObd) }
-        val more: @Composable () -> Unit = {
-            MorePicker(m) { open ->
-                OrbitBarButton(onClick = open) {
-                    Icon(Icons.Filled.MoreVert, stringResource(R.string.orbit_more), tint = DashColors.TextSecondary, modifier = Modifier.size(26.dp))
-                }
-            }
-        }
-        // What sits on the island's inner side, by rank: the room up to the
-        // clock goes to the alerts first, and what no longer fits is left out,
-        // so nothing prints over the time.
-        val extras: @Composable (Modifier) -> Unit = { room ->
-            BarEnd(modifier = room, alignEnd = driverOnRight) {
-                val setup: @Composable () -> Unit = {
-                    if (m.setupPending) {
-                        Box(Modifier.layoutId(BarRank.SETUP).padding(horizontal = 6.dp)) {
-                            SetupPill(onClick = { m.onSetup(false) }, compact = narrow || shared)
-                        }
-                    }
-                }
-                val alerts: @Composable () -> Unit = {
-                    Row(modifier = Modifier.layoutId(BarRank.ALERTS), verticalAlignment = Alignment.CenterVertically) {
-                        VehicleAlerts(m.obdConnection, m.obd)
-                    }
-                }
-                val phone: @Composable () -> Unit = { Box(Modifier.layoutId(BarRank.PHONE)) { PhonePill() } }
-                if (driverOnRight) {
-                    phone(); alerts(); setup()
-                } else {
-                    setup(); alerts(); phone()
-                }
-            }
-        }
-        val pill: @Composable () -> Unit = {
+        val island: @Composable (content: @Composable RowScope.() -> Unit) -> Unit = { content ->
             Row(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -387,45 +315,83 @@ internal fun OrbitTopBar(m: TopBarModel) {
                     .border(1.dp, mist(0.10f), shape)
                     .padding(horizontal = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Mirrored for a right-hand-drive car, so ⋮ stays nearest the screen edge.
-                if (driverOnRight) {
-                    apps(); layout(); obd(); more()
-                } else {
-                    more(); obd(); layout(); apps()
+                verticalAlignment = Alignment.CenterVertically,
+                content = content
+            )
+        }
+        Row(modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            // Each side gets half of what the clock leaves, so the clock stays
+            // centred; an upright screen, or half of a split one, has no half wide
+            // enough for that, so the islands take only what they need.
+            Row(modifier = if (narrow) Modifier else Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                island {
+                    OrbitBarButton(
+                        onClick = m.onApps, filled = true,
+                        label = if (labels) stringResource(R.string.dash_apps) else null,
+                        description = stringResource(R.string.orbit_all_apps)
+                    ) {
+                        Icon(Icons.Filled.Apps, contentDescription = null, tint = DashColors.TextPrimary, modifier = Modifier.size(26.dp))
+                    }
+                    LayoutPicker(m) { open ->
+                        OrbitBarButton(
+                            onClick = open,
+                            label = if (labels) stringResource(R.string.dash_layout_button) else null,
+                            description = stringResource(R.string.orbit_screen_layout_desc, m.layout.title)
+                        ) {
+                            LayoutIcon(m.layout, null, DashColors.TextSecondary, Modifier.size(26.dp))
+                        }
+                    }
                 }
             }
-        }
-        // The island and what goes with it, filling the room it is given.
-        val cluster: @Composable (Modifier) -> Unit = { room ->
-            Row(modifier = room.padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                if (driverOnRight) {
-                    extras(Modifier.weight(1f))
-                    Spacer(Modifier.width(10.dp))
-                    pill()
-                } else {
-                    pill()
-                    Spacer(Modifier.width(10.dp))
-                    extras(Modifier.weight(1f))
+            // The head unit's status bar shows the time while it is up.
+            Row(modifier = Modifier.padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                if (!m.merged) {
+                    Text(
+                        text = m.clock,
+                        modifier = Modifier.alignByBaseline(),
+                        color = DashColors.TextPrimary,
+                        fontSize = fixedSp(24f),
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = (-0.02).em,
+                        maxLines = 1
+                    )
+                    if (showDate) {
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = dateFmt.format(now),
+                            modifier = Modifier.alignByBaseline(),
+                            color = DashColors.Muted,
+                            fontSize = fixedSp(14f),
+                            fontFamily = FontFamily.SansSerif,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
+                PagePositionChip(Modifier.padding(start = 10.dp))
             }
-        }
-        Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
-            // The island's side and the empty one get half of what the clock
-            // leaves each, so the clock stays centred. An upright screen, or half
-            // of a split one, has no half wide enough for the island: there it
-            // takes all the room and the clock moves to the far edge. The head
-            // unit's status bar shows the time while it is up.
-            val far: @Composable () -> Unit = { if (!narrow) Spacer(Modifier.weight(1f)) }
-            if (driverOnRight) {
-                far()
-                if (!m.merged) clock()
-                cluster(Modifier.weight(1f))
-            } else {
-                cluster(Modifier.weight(1f))
-                if (!m.merged) clock()
-                far()
+            // The right island gets its room first; the badges before it only where they fit.
+            BarEnd(modifier = Modifier.weight(1f)) {
+                if (m.setupPending) {
+                    Box(Modifier.layoutId(BarRank.SETUP).padding(end = 6.dp)) {
+                        SetupPill(onClick = { m.onSetup(false) }, compact = narrow || shared)
+                    }
+                }
+                Row(modifier = Modifier.layoutId(BarRank.ALERTS), verticalAlignment = Alignment.CenterVertically) {
+                    VehicleAlerts(m.obdConnection, m.obd)
+                }
+                Box(Modifier.layoutId(BarRank.PHONE).padding(end = 10.dp)) { PhonePill() }
+                Box(Modifier.layoutId(BarRank.OBD).fillMaxHeight()) {
+                    island {
+                        ObdPill(m.obdConnection, m.onConnectObd)
+                        MorePicker(m) { open ->
+                            OrbitBarButton(onClick = open, description = stringResource(R.string.orbit_more)) {
+                                Icon(Icons.Filled.MoreVert, contentDescription = null, tint = DashColors.TextSecondary, modifier = Modifier.size(26.dp))
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -434,17 +400,43 @@ internal fun OrbitTopBar(m: TopBarModel) {
 /** The island's height: its buttons and 4 dp around them. */
 private val ORBIT_BAR = 64.dp
 
-/** 56 dp round button inside the island; [filled] gives it the faint disc of the Apps button (white at night, ink by day). */
+/**
+ * 56 dp round button inside an island, a pill once it carries a [label];
+ * [filled] gives it the faint disc of the Apps button (white at night, ink by day).
+ */
 @Composable
-private fun OrbitBarButton(onClick: () -> Unit, filled: Boolean = false, content: @Composable () -> Unit) {
-    Box(
+private fun OrbitBarButton(
+    onClick: () -> Unit,
+    description: String,
+    filled: Boolean = false,
+    label: String? = null,
+    content: @Composable () -> Unit
+) {
+    Row(
         modifier = Modifier
-            .size(DashSize.TouchPrimary)
+            .height(DashSize.TouchPrimary)
+            .widthIn(min = DashSize.TouchPrimary)
             .clip(CircleShape)
             .background(if (filled) mist(0.08f) else Color.Transparent)
-            .clickable(role = Role.Button, onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) { content() }
+            .clickable(role = Role.Button, onClickLabel = description, onClick = onClick)
+            .semantics(mergeDescendants = true) { contentDescription = description }
+            .padding(horizontal = if (label != null) 16.dp else 0.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        content()
+        if (label != null) {
+            Spacer(Modifier.width(8.dp))
+            Text(
+                label,
+                color = DashColors.TextPrimary,
+                fontSize = fixedSp(16f),
+                fontFamily = FontFamily.SansSerif,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1
+            )
+        }
+    }
 }
 
 // --- Tiles ---------------------------------------------------------------------------

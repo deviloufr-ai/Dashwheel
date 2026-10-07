@@ -54,7 +54,10 @@
     <string name="design_car_outline">Car outline</string>
     <string name="design_car_outline_desc">The car in profile with its readings beside it.</string>
     <string name="design_change">Change the design of %1$s</string>
-    <string name="design_codes_unit">codes</string>
+    <plurals name="design_codes_unit">
+        <item quantity="one">code</item>
+        <item quantity="other">codes</item>
+    </plurals>
     <string name="design_engine_lamp">Engine lamp</string>
     <string name="design_on">On</string>
     <string name="design_off">Off</string>
@@ -104,7 +107,7 @@
     <string name="design_friction_circle">Friction circle</string>
     <string name="design_friction_circle_desc">The dot is where the grip goes; the ring is your peak.</string>
     <string name="design_g_bars">G bars</string>
-    <string name="design_g_bars_desc">Cornering and accel/brake as two crossing bars.</string>
+    <string name="design_g_bars_desc">Cornering and acceleration / braking as two crossing bars.</string>
     <string name="design_spirit_level">Spirit level</string>
     <string name="design_spirit_level_desc">A bubble that slides with the forces.</string>
     <string name="design_turn_card">Turn card</string>

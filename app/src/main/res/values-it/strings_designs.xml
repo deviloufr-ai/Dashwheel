@@ -54,7 +54,10 @@
     <string name="design_car_outline">Sagoma</string>
     <string name="design_car_outline_desc">L\'auto di profilo, con le letture accanto.</string>
     <string name="design_change">Cambia lo stile di %1$s</string>
-    <string name="design_codes_unit">codici</string>
+    <plurals name="design_codes_unit">
+        <item quantity="one">codice</item>
+        <item quantity="other">codici</item>
+    </plurals>
     <string name="design_engine_lamp">Spia motore</string>
     <string name="design_on">Accesa</string>
     <string name="design_off">Spenta</string>

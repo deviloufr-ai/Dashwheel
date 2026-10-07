@@ -24,11 +24,13 @@
     <string name="lpg_tank_size">Tank, L</string>
     <string name="lpg_use_setting">Verbruik, L/100 km</string>
     <string name="lpg_price">Prijs per liter</string>
-    <string name="lpg_numbers_detail">Tank: wat een volle tankbeurt neemt, want een LPG-tank wordt maar tot 80 procent gevuld. Verbruik: leeg laten om met het verbruik van de auto te beginnen; de getankte liters corrigeren het. Prijs: leeg laten voor die van het dichtstbijzijnde station.</string>
+    <string name="lpg_tank_hint">Wat een volle tankbeurt neemt: een LPG-tank wordt maar tot 80 procent gevuld.</string>
+    <string name="lpg_use_hint">Leeg laten om met het verbruik van de auto te beginnen; elke tankbeurt corrigeert het.</string>
+    <string name="lpg_price_hint">Leeg laten voor de prijs van het dichtstbijzijnde station.</string>
     <string name="lpg_mode_label">Wanneer de auto op LPG rijdt</string>
     <string name="lpg_mode_auto">Als warm</string>
     <string name="lpg_mode_always">Altijd</string>
-    <string name="lpg_mode_manual">Mijn schakelaar</string>
+    <string name="lpg_mode_manual">Als ik omschakel</string>
     <string name="lpg_mode_auto_detail">De meeste systemen starten op benzine. LPG telt zodra de koelvloeistof de omschakeltemperatuur haalt, of zonder OBD-adapter na de eerste kilometer.</string>
     <string name="lpg_mode_manual_detail">Wissel tussen LPG en benzine op de tegel of met een stuurknop.</string>
     <string name="lpg_switch_temp">Omschakeltemperatuur, %1$s</string>
@@ -37,7 +39,10 @@
     <string name="lpg_last_fill">Laatst vol op %1$s</string>
     <string name="lpg_full_now">Nu vol</string>
     <string name="lpg_settings_detail">Tweede tank, niveau berekend uit de afstand</string>
-    <string name="lpg_voice_low">LPG laag: nog ongeveer %1$d %2$s.</string>
+    <plurals name="lpg_voice_low">
+        <item quantity="one">LPG laag: nog ongeveer %1$d kilometer.</item>
+        <item quantity="other">LPG laag: nog ongeveer %1$d kilometer.</item>
+    </plurals>
     <string name="lpg_voice_full">LPG-tank vol.</string>
     <string name="lpg_voice_off">De LPG-tank is niet ingesteld.</string>
     <string name="lpg_voice_on_lpg">Op LPG.</string>

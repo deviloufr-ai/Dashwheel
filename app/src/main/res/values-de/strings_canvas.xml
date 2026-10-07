@@ -40,4 +40,11 @@
     <string name="canvas_tab_where">Wohin</string>
     <string name="canvas_tab_create">Anlegen</string>
     <string name="canvas_bar_app_remove">Aus der Leiste nehmen</string>
+    <string name="canvas_tab_engine">Motor</string>
+    <string name="canvas_tab_checks">Checks</string>
+    <string name="canvas_tab_eco">Eco</string>
+    <string name="canvas_when_taken">%1$s: jetzt bei %2$s</string>
+    <string name="canvas_when_take_title">%1$s von %2$s übernehmen?</string>
+    <string name="canvas_when_take_body">Es erscheint dort nicht mehr von selbst.</string>
+    <string name="canvas_when_take">Übernehmen</string>
 </resources>

@@ -54,7 +54,10 @@
     <string name="design_car_outline">Silueta</string>
     <string name="design_car_outline_desc">El coche de perfil, con sus lecturas al lado.</string>
     <string name="design_change">Cambiar el diseño de %1$s</string>
-    <string name="design_codes_unit">códigos</string>
+    <plurals name="design_codes_unit">
+        <item quantity="one">código</item>
+        <item quantity="other">códigos</item>
+    </plurals>
     <string name="design_engine_lamp">Testigo del motor</string>
     <string name="design_on">Encendido</string>
     <string name="design_off">Apagado</string>

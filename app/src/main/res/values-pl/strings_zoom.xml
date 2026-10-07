@@ -3,7 +3,7 @@
     <string name="zoom_button">Rozmiar tekstu i ikon</string>
     <string name="zoom_out">Mniejszy</string>
     <string name="zoom_in">Większy</string>
-    <string name="zoom_reset">Wróć do 100 %</string>
+    <string name="zoom_reset">Przywróć 100 %</string>
     <string name="zoom_page">Rozmiar tekstu</string>
     <string name="zoom_percent">%1$d %%</string>
     <string name="zoom_window_inside">Aplikacja działa wewnątrz kafelka przy każdym rozmiarze poza 100 %.</string>

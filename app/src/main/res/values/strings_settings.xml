@@ -15,13 +15,16 @@
     <string name="settings_tap_sound_detail">A short beep on each tap, for a screen that cannot vibrate</string>
     <string name="settings_section_driving">Driving</string>
     <string name="settings_section_sound">Sound</string>
+    <string name="settings_section_buttons">Buttons</string>
+    <string name="settings_section_diagnostics">Diagnostics</string>
+    <string name="settings_section_apps_in_tiles">Apps in tiles</string>
     <!-- Volume follows speed (SpeedVolume.kt), Settings → Driving -->
     <string name="speed_volume_title">Volume follows speed</string>
     <string name="speed_volume_detail">Covers road noise: louder as you speed up, back down as you slow. Your own volume changes are kept.</string>
     <string name="speed_volume_start">Starts at</string>
     <string name="speed_volume_start_detail">Below this speed nothing is added</string>
-    <string name="speed_volume_steps">Most added</string>
-    <string name="speed_volume_steps_detail">In volume steps, as clicks of the knob</string>
+    <string name="speed_volume_steps">Extra volume at speed</string>
+    <string name="speed_volume_steps_detail">Up to this many volume steps, like clicks of the knob</string>
     <string name="speed_volume_full">Loudest at</string>
     <string name="speed_volume_full_detail">The steps spread evenly up to this speed</string>
     <string name="speed_volume_less">Less</string>
@@ -34,9 +37,11 @@
     <string name="volume_way_auto_hint">Android\'s volume, or the head unit\'s own volume or volume keys where it ignores Android\'s</string>
     <string name="volume_way_android_hint">Android\'s media volume, as on a phone</string>
     <string name="volume_way_keys_hint">Presses the volume keys like the wheel buttons and the knob. Needs root or the head unit\'s ADB</string>
+    <string name="volume_way_keys_locked">Volume keys need root or the head unit\'s ADB</string>
     <string name="settings_rom_call_detail">Bluetooth calls show only in Dashwheel\'s card, with answer and hang up</string>
     <string name="settings_rom_doors_detail">Shows which door is open over any app, in place of the unit\'s own alert</string>
     <string name="settings_rom_needs_root">Needs root or the head unit\'s ADB</string>
+    <string name="settings_needs_qf">Needs the QF firmware</string>
     <string name="alert_section">Alerts</string>
     <string name="alert_kind_call">Calls</string>
     <string name="alert_kind_doors">Doors</string>
@@ -101,16 +106,21 @@
     <string name="settings_section_display">Display</string>
     <string name="settings_appearance_title">Day and night</string>
     <string name="alert_style_section">Pop-ups in Dashwheel\'s look</string>
-    <string name="alert_more_with_permission">More car alerts with root, or after this command from a PC: %1$s</string>
+    <string name="alert_more_with_permission">More car alerts need root, or a one-time command from a PC: see the wiki, Car settings permission.</string>
+    <string name="alert_copy_command">Copy the command</string>
+    <string name="alert_command_copied">Command copied</string>
     <string name="settings_section_about">About</string>
     <string name="settings_screen_keep_title">Keep this screen direction?</string>
     <string name="settings_screen_keep_detail">Goes back in %1$d s</string>
     <string name="settings_screen_keep">Keep</string>
     <string name="settings_screen_revert">Go back</string>
-    <string name="settings_system_perms">Apps inside tiles</string>
-    <string name="settings_system_perms_on">Granted. Google Maps can run inside a tile.</string>
-    <string name="settings_system_perms_off">Not granted. Tap to get them through PMPatch3.</string>
-    <string name="settings_pmpatch_body">PMPatch3 is a Magisk module that lets Android give Dashwheel these permissions. It also turns off signature checks for every app on this unit.</string>
+    <string name="settings_system_perms">Google Maps inside a tile</string>
+    <string name="settings_system_perms_on">Set up. Google Maps can run inside a tile.</string>
+    <string name="settings_system_perms_off">Not set up. Tap to set it up: installs the PMPatch3 module, needs Magisk and a restart.</string>
+    <string name="settings_pmpatch_body">Google Maps runs inside a tile once Android grants Dashwheel the system permissions.</string>
+    <string name="settings_pmpatch_cost">The cost: PMPatch3 turns off signature checks for every app on this unit.</string>
+    <string name="settings_pmpatch_steps">Three steps: install, restart, reinstall Dashwheel.</string>
+    <string name="settings_pmpatch_step">Step %1$d of %2$d</string>
     <string name="settings_pmpatch_checking">Checking Magisk…</string>
     <string name="settings_pmpatch_no_magisk">Magisk isn\'t installed on this unit.</string>
     <string name="settings_pmpatch_old_magisk">Magisk 24 or newer is needed.</string>
@@ -122,7 +132,7 @@
     <string name="settings_pmpatch_no_root">The unit\'s ADB didn\'t switch to root.</string>
     <string name="settings_unit_bar_title">The head unit\'s top bar</string>
     <string name="settings_unit_bar_hide">Hide it over app windows</string>
-    <string name="settings_unit_bar_hide_detail">On some units the windows then show lower than their tiles.</string>
+    <string name="settings_unit_bar_hide_detail">More room for the app. If the window ends up shifted down on your unit, turn this off.</string>
     <string name="settings_obd_title">OBD adapter</string>
     <string name="settings_obd_saved">%1$s. Tap to pick another.</string>
     <string name="settings_obd_none">None chosen. Tap to pick yours.</string>
@@ -130,9 +140,11 @@
     <string name="settings_obd_route_auto">Automatic</string>
     <string name="settings_obd_route_unit">This unit</string>
     <string name="settings_obd_route_phone">Phone</string>
+    <string name="settings_obd_route_label">OBD reached through</string>
     <string name="settings_obd_route_offered">The phone holds %1$s and passes it on: calls and Android Auto no longer get in the way.</string>
     <string name="settings_obd_route_unit_hint">The adapter is reached with this unit\'s own Bluetooth.</string>
     <string name="settings_obd_route_hint">Through the phone when its companion holds the adapter, else with this unit\'s Bluetooth. Choose the adapter in the companion.</string>
+    <string name="settings_speed_fix_detail">Added to the speed the car reports, to match its speedometer. While driving, adjust it from the Engine gauges tile.</string>
     <string name="settings_backup_section">Your setup</string>
     <string name="settings_backup_save">Save my setup</string>
     <string name="settings_backup_save_detail">Dashboards, settings and places, to a file. Not the AI key or paired phones.</string>
@@ -140,7 +152,7 @@
     <string name="settings_backup_restore_detail">From a file saved on this unit or another one</string>
     <string name="settings_backup_saved">Setup saved</string>
     <string name="settings_backup_saved_to">Setup saved to %1$s</string>
-    <string name="settings_backup_failed">This file can\'t be used</string>
+    <string name="settings_backup_failed">This isn\'t a Dashwheel setup file. Pick a file saved with Save my setup.</string>
     <string name="settings_backup_confirm_title">Restore this setup?</string>
     <string name="settings_backup_confirm_body">Your dashboards and settings are replaced. Dashwheel restarts.</string>
     <string name="settings_backup_confirm">Restore</string>
@@ -153,7 +165,7 @@
     <string name="bar_items_custom_detail">Tap a readout to put it in the bar or take it out; the arrows set the order. What doesn\'t fit is left out.</string>
     <string name="bar_items_left">Earlier in the bar</string>
     <string name="bar_items_right">Later in the bar</string>
-    <string name="bar_items_reset">Back to the starting set</string>
+    <string name="bar_items_reset">Reset to the starting set</string>
     <string name="bar_item_fuel">Fuel</string>
     <string name="bar_item_speed">Speed</string>
     <string name="bar_item_revs">Revs</string>
@@ -173,14 +185,14 @@
     <string name="bar_look_minimal_hint">No captions: a small icon in front of each gauge.</string>
     <string name="settings_sleep_title">Deep sleep</string>
     <string name="settings_sleep_none">No lost deep sleep recorded</string>
-    <string name="settings_sleep_lost">Lost %1$d times. Tap to show or hide the details.\n%2$s</string>
+    <string name="settings_sleep_lost">Lost %1$d times.\n%2$s</string>
     <string name="settings_log_title">Unit log</string>
     <string name="settings_log_detail">Gives this unit\'s log to the phone, to share as a bug report</string>
     <string name="settings_log_detail_last">Log saved at %1$s. Tap to send it to the phone</string>
     <string name="settings_log_sending">Sending the log to the phone</string>
     <string name="settings_log_sent">Saved on the phone. Open its notification to share it</string>
     <string name="settings_log_failed">The phone did not take the log</string>
-    <string name="settings_log_no_phone">No phone answered. Link the phone and update its companion app</string>
+    <string name="settings_log_no_phone">No phone answered. Connect the phone and update its companion app</string>
     <!-- About tab -->
     <string name="about_author_section">Made by</string>
     <string name="about_description">Dashwheel is a launcher for Android car head units: a map, music and live car data on one calm screen, with dashboards you arrange yourself. Free and open source.</string>
@@ -192,6 +204,10 @@
     <string name="about_scan">Scan with your phone</string>
     <string name="about_project">Project page</string>
     <string name="about_project_detail">Source code, releases and bug reports</string>
+    <string name="help_title">Help</string>
+    <string name="help_row_detail">Every feature explained, on the wiki</string>
+    <string name="help_detail">Every feature explained on the wiki. Scan it with your phone or open it here.</string>
+    <string name="help_open_here">Open on this screen</string>
     <string name="alert_kind_gemini_title">How Gemini Live shows</string>
     <string name="alert_gemini_detail">Opens from the bar, the menu or a steering wheel button. While driving it shrinks to a pill after a few seconds</string>
     <string name="alert_style_bubble">Bubble</string>
@@ -208,4 +224,9 @@
     <string name="alert_volume_radio">Radio</string>
     <string name="alert_volume_call">Phone</string>
     <string name="alert_volume_aux">AUX</string>
+    <string name="settings_navigation_title">Navigation</string>
+    <string name="settings_side_rail">Side rail instead of the bottom bar</string>
+    <string name="settings_side_rail_detail">The bar\'s buttons stand at the driver\'s side, down the screen</string>
+    <string name="settings_tabs_nav">Tabs instead of swiping</string>
+    <string name="settings_tabs_nav_detail">Dashboards are tapped in the rail; needs the rail. Shows by itself when a map app is under the dashboards.</string>
 </resources>

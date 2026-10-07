@@ -29,7 +29,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.CropFree
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Splitscreen
@@ -63,26 +62,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /*
- * Adding to a page: one full-width sheet with three tabs (widgets, apps,
- * windows) in place of the "what kind of thing?" dialog that led to four
- * different pickers. Widgets are shown as they will look on the page: each
- * card holds the live tile at its starting proportions, in the current theme
- * and skin, with its name and blurb underneath, filtered by category chip or
- * search; apps are their icons; windows are an app kept open in its own
- * window, or two side by side.
+ * Adding to a page: one full-width sheet with two tabs, widgets and apps.
+ * Widgets are shown as they will look on the page: each card holds the live
+ * tile at its starting proportions, in the current theme and skin, with its
+ * name and blurb underneath, filtered by category chip or search. An app is
+ * its icon; tapped, it offers to go on the page as an icon that opens it, or
+ * in a tile that keeps it running there (inside the tile where the unit
+ * allows it, else in a window the size of the tile: chosen for the driver,
+ * not asked), or side by side with a second app.
  */
-
-/** How the windows tab shows the app picked: in a window, inside the tile, or beside another app. */
-private enum class WindowMode(@StringRes val titleRes: Int, val icon: ImageVector) {
-    SINGLE(R.string.apps_window_mode_single, Icons.Filled.OpenInNew),
-    INSIDE(R.string.apps_window_mode_inside, Icons.Filled.CropFree),
-    PAIR(R.string.apps_window_mode_pair, Icons.Filled.Splitscreen)
-}
 
 private enum class AddTab(@StringRes val titleRes: Int, val icon: ImageVector) {
     WIDGETS(R.string.apps_tab_widgets, Icons.Filled.Widgets),
-    APPS(R.string.apps_tab_apps, Icons.Filled.Apps),
-    WINDOWS(R.string.apps_tab_windows, Icons.Filled.OpenInNew)
+    APPS(R.string.apps_tab_apps, Icons.Filled.Apps)
 }
 
 @Composable
@@ -127,7 +119,7 @@ internal fun AddSheet(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
                 )
-                Box(Modifier.width(420.dp)) {
+                Box(Modifier.width(300.dp)) {
                     SegmentedSwitch(
                         options = AddTab.entries,
                         chosen = tab,
@@ -143,8 +135,7 @@ internal fun AddSheet(
             val q = query.trim()
             when (tab) {
                 AddTab.WIDGETS -> WidgetsTab(q, apps, previewTile, onPickBuiltin, onPickLaunchBar, onPickSystemWidget)
-                AddTab.APPS -> AppGrid(apps.matching(q), onPick = onPickApp)
-                AddTab.WINDOWS -> WindowsTab(apps.matching(q), onPickWindow, onPickPair)
+                AddTab.APPS -> AppsTab(apps.matching(q), onPickApp, onPickWindow, onPickPair)
             }
         }
     }
@@ -458,64 +449,71 @@ private fun AppGrid(apps: List<AppEntry>, onPick: (AppEntry) -> Unit, header: (@
 }
 
 /**
- * An app in its own window on the page, inside the tile itself, or two apps
- * opened side by side. A window of its own is placed through the privileged
- * shell ([DockShell]), so without one ([PrivilegedShell]) only the pair,
- * which the accessibility service opens, is offered. Inside the tile needs
- * the firmware's system permissions too ([EmbeddedApp.allowed]).
+ * The apps as their icons. A tap on one asks how it goes on the page: as an
+ * icon that opens it, in a tile that keeps it running there, or side by side
+ * with a second app. The tile's hosting is decided here, not asked: inside
+ * the tile where Android lets Dashwheel open an app on its own display
+ * ([EmbeddedApp.allowed]), else in a window the size of the tile, which the
+ * privileged shell places ([DockShell]); without that shell ([PrivilegedShell])
+ * the tile is not offered, and the pair (which the accessibility service
+ * opens) is the way to keep an app in sight.
  */
 @Composable
-private fun WindowsTab(apps: List<AppEntry>, onPickWindow: (AppEntry, Boolean) -> Unit, onPickPair: (String, String) -> Unit) {
+private fun AppsTab(apps: List<AppEntry>, onPickApp: (AppEntry) -> Unit, onPickWindow: (AppEntry, Boolean) -> Unit, onPickPair: (String, String) -> Unit) {
     val shell = shellAccess().shell
     val canInside = shell && EmbeddedApp.allowed(LocalContext.current)
-    val modes = buildList {
-        if (shell) add(WindowMode.SINGLE)
-        if (canInside) add(WindowMode.INSIDE)
-        add(WindowMode.PAIR)
-    }
-    var chosen by rememberSaveable { mutableStateOf(if (shell) WindowMode.SINGLE else WindowMode.PAIR) }
-    val mode = chosen.takeIf { it in modes } ?: WindowMode.PAIR
-    val pair = mode == WindowMode.PAIR
+    // The app tapped, while asked how it goes on the page.
+    var asking by remember { mutableStateOf<AppEntry?>(null) }
+    // The first app of a pair, while the second is picked.
     var first by rememberSaveable { mutableStateOf<String?>(null) }
     val firstApp = first?.let { pkg -> apps.firstOrNull { it.packageName == pkg } }
-    if (modes.size > 1) {
-        Box(Modifier.width(if (modes.size > 2) 560.dp else 420.dp)) {
-            SegmentedSwitch(
-                options = modes,
-                chosen = mode,
-                icon = { it.icon },
-                title = { stringResource(it.titleRes) },
-                onChoose = { chosen = it; first = null }
-            )
-        }
-        Spacer(Modifier.height(8.dp))
-    }
     AppGrid(
         apps = apps,
-        onPick = { app ->
-            when {
-                !pair -> onPickWindow(app, mode == WindowMode.INSIDE)
-                first == null -> first = app.packageName
-                else -> onPickPair(first!!, app.packageName)
-            }
-        },
-        header = {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 4.dp)) {
-                Text(
-                    when {
-                        mode == WindowMode.INSIDE -> stringResource(R.string.apps_window_inside_hint)
-                        !pair -> stringResource(R.string.apps_window_hint)
-                        firstApp == null -> stringResource(R.string.apps_pair_pick_first)
-                        else -> stringResource(R.string.apps_pair_pick_second, firstApp.label)
-                    },
-                    color = DashColors.TextSecondary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.weight(1f)
-                )
-                if (pair && first != null) {
+        onPick = { app -> if (first == null) asking = app else onPickPair(first!!, app.packageName) },
+        header = if (first == null) null else {
+            {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 4.dp)) {
+                    Text(
+                        if (firstApp == null) stringResource(R.string.apps_pair_pick_first) else stringResource(R.string.apps_pair_pick_second, firstApp.label),
+                        color = DashColors.TextSecondary,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f)
+                    )
                     TextButton(onClick = { first = null }) { Text(stringResource(R.string.apps_pair_change), color = DashColors.Accent) }
                 }
             }
         }
     )
+    asking?.let { app ->
+        AlertDialog(
+            modifier = Modifier.keepClearOfWindows(),
+            onDismissRequest = { asking = null },
+            containerColor = DashColors.Card,
+            title = { Text(app.label, color = DashColors.TextPrimary) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ChooserRow(Icons.Filled.Apps, stringResource(R.string.apps_as_icon), stringResource(R.string.apps_as_icon_detail)) {
+                        asking = null
+                        onPickApp(app)
+                    }
+                    if (shell) {
+                        ChooserRow(
+                            Icons.Filled.OpenInNew, stringResource(R.string.apps_in_tile),
+                            stringResource(if (canInside) R.string.apps_in_tile_inside else R.string.apps_in_tile_window)
+                        ) {
+                            asking = null
+                            onPickWindow(app, canInside)
+                        }
+                    }
+                    ChooserRow(Icons.Filled.Splitscreen, stringResource(R.string.apps_side_by_side), stringResource(R.string.apps_side_by_side_detail)) {
+                        asking = null
+                        first = app.packageName
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { asking = null }) { Text(stringResource(R.string.dash_cancel), color = DashColors.Muted) }
+            }
+        )
+    }
 }

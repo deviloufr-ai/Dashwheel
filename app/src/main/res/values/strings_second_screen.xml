@@ -4,7 +4,7 @@
     <string name="settings_section_second_screen">Second screen</string>
     <string name="second_screen_experimental">Experimental: a Raspberry Pi drives a second screen in the car. Not yet tested in a car.</string>
     <string name="second_screen_status_unpaired">No second screen paired</string>
-    <string name="second_screen_status_unpaired_detail">Scan the code on the second screen with the Dashwheel phone app while the phone is linked to this car.</string>
+    <string name="second_screen_status_unpaired_detail">Scan the code on the second screen with the Dashwheel phone app while the phone is connected to this car.</string>
     <string name="second_screen_status_searching">Looking for the second screen</string>
     <string name="second_screen_status_searching_detail">The screen and this head unit must both be on the phone\'s hotspot.</string>
     <string name="second_screen_status_connected">Connected to %1$s</string>
@@ -68,7 +68,7 @@
     <string name="second_screen_widget">Widget</string>
     <string name="second_screen_widget_pick">Choose a widget</string>
     <string name="second_screen_design">Design</string>
-    <string name="second_screen_board_reset">Back to the original page</string>
+    <string name="second_screen_board_reset">Reset to the original page</string>
     <string name="second_screen_copy_of">%1$s, as on the head unit</string>
     <string name="second_screen_copy_blurb">A copy of its tile on the dashboard. You use it on the head unit.</string>
     <string name="second_screen_copy_no_tile">Put %1$s inside a dashboard tile to see it here</string>

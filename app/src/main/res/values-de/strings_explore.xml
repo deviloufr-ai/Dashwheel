@@ -16,7 +16,7 @@
     <string name="explore_verified">Bestätigte Messwerte</string>
     <string name="explore_none_verified">Noch keine. Adapter bei laufendem Motor verbinden und suchen.</string>
     <string name="explore_results">Ausprobiert</string>
-    <string name="explore_forget">Alles vergessen</string>
+    <string name="explore_forget">Alles zurücksetzen</string>
     <string name="explore_v_no_answer">keine Antwort</string>
     <string name="explore_v_refused">abgelehnt</string>
     <string name="explore_v_unreadable">unlesbar</string>

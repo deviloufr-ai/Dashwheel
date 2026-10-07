@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="monitor_kind">Radio</string>
+    <string name="monitor_kind">Monitor de la radio</string>
     <string name="monitor_kind_blurb">Procesador, memoria, temperatura y las apps más activas</string>
     <string name="monitor_cpu">CPU</string>
     <string name="monitor_ram">RAM</string>
@@ -29,7 +29,7 @@
     <string name="gear_needs_data">Necesita el adaptador OBD o la caja CAN</string>
     <string name="design_gear_gate">Rejilla de marchas</string>
     <string name="design_gear_gate_desc">Las marchas en fila, la metida encendida</string>
-    <string name="monitor_title">RADIO</string>
+    <string name="monitor_title">MONITOR DE LA RADIO</string>
     <string name="gear_title">MARCHA</string>
     <plurals name="monitor_cores">
         <item quantity="one">%1$d núcleo</item>

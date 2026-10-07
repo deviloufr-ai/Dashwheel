@@ -16,7 +16,7 @@
     <string name="explore_verified">Letture confermate</string>
     <string name="explore_none_verified">Nessuna per ora. Collega l\'adattatore a motore acceso e cerca.</string>
     <string name="explore_results">Provate</string>
-    <string name="explore_forget">Dimentica tutto</string>
+    <string name="explore_forget">Ripristina tutto</string>
     <string name="explore_v_no_answer">nessuna risposta</string>
     <string name="explore_v_refused">rifiutata</string>
     <string name="explore_v_unreadable">illeggibile</string>

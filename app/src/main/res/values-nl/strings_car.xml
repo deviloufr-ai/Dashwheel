@@ -28,7 +28,10 @@
     <!-- Particle filter -->
     <string name="car_filter_title">ROETFILTER</string>
     <string name="car_filter_none">Deze auto heeft geen roetfilter. Wijzig dit via Instellingen → Auto → Mijn auto.</string>
-    <string name="car_filter_short_unit">korte ritten op rij</string>
+    <plurals name="car_filter_short_unit">
+        <item quantity="one">korte rit</item>
+        <item quantity="other">korte ritten op rij</item>
+    </plurals>
     <string name="car_filter_ok">Filter reinigt normaal</string>
     <string name="car_filter_needs_drive">Plan 20 min boven 60 km/u</string>
     <string name="car_filter_needs_drive_now">Filter heeft snel een lange rit nodig</string>
@@ -69,7 +72,7 @@
     <string name="car_eco_band">Toerental %1$d–%2$d tpm</string>
     <string name="car_eco_hard">Hard optrekken / remmen</string>
     <string name="car_eco_hard_value">%1$d / %2$d</string>
-    <string name="car_eco_clutch">Met gas vastgehouden</string>
+    <string name="car_eco_clutch">Op een helling met gas vastgehouden</string>
     <string name="car_eco_fuel">Brandstof voor %1$s km</string>
     <string name="car_eco_fuel_value">≈ %1$s L · %2$s %3$s</string>
 
@@ -144,15 +147,18 @@
     <string name="car_spec_consumption">Normaal verbruik (L/100 km)</string>
     <string name="car_spec_oil_capacity">Olie (L)</string>
     <string name="car_spec_oil_spec">Oliesoort</string>
-    <string name="car_spec_service_km">Onderhoud elke (km)</string>
-    <string name="car_spec_service_months">of (maanden)</string>
+    <string name="car_service_interval">Onderhoud elke %1$s km of %2$d maanden</string>
+    <string name="car_service_interval_km">Onderhoud elke %1$s km</string>
+    <string name="car_service_interval_months">Onderhoud elke %1$d maanden</string>
+    <string name="car_service_interval_unknown">Onderhoudsinterval niet ingesteld</string>
+    <string name="car_service_from_servicing">Wijzig het onder Onderhoud</string>
     <string name="car_spec_timing">Distributieriem / -ketting</string>
     <string name="car_spec_tyre_size">Bandenmaat</string>
     <string name="car_spec_tyre_front">Voor (bar)</string>
     <string name="car_spec_tyre_rear">Achter (bar)</string>
     <string name="car_spec_fuel_price">Prijs per liter</string>
     <string name="car_spec_currency">Valuta</string>
-    <string name="car_reset_preset">Terug naar standaard (C4 Picasso 1.6 HDi BMP6)</string>
+    <string name="car_reset_preset">Terug naar standaard: C4 Picasso 1.6 HDi BMP6</string>
     <string name="car_save">Opslaan</string>
 
     <!-- AI mechanic settings -->
@@ -184,9 +190,9 @@
     <string name="car_spec_driver_side">Bestuurder rechts</string>
     <string name="car_spec_driver_side_detail">Rechts gestuurd: sjablonen zetten de belangrijkste tegels rechts</string>
     <string name="car_battery_trip_range">Deze rit: %1$s tot %2$s V</string>
-    <string name="car_kind_status">Autostatus</string>
+    <string name="car_kind_status">Verlichting en kilometerstand</string>
     <string name="car_kind_status_blurb">Verlichting, kilometerstand, rit en verbruik van de auto</string>
-    <string name="car_status_title">AUTOSTATUS</string>
+    <string name="car_status_title">VERLICHTING EN KILOMETERSTAND</string>
     <string name="car_status_waiting">Wachten op de gegevens van de auto</string>
     <string name="car_status_lights">Verlichting</string>
     <string name="car_status_lights_off">Uit</string>

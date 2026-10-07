@@ -54,7 +54,10 @@
     <string name="design_car_outline">Fahrzeugumriss</string>
     <string name="design_car_outline_desc">Das Auto im Profil, seine Werte daneben.</string>
     <string name="design_change">Design von %1$s ändern</string>
-    <string name="design_codes_unit">Codes</string>
+    <plurals name="design_codes_unit">
+        <item quantity="one">Code</item>
+        <item quantity="other">Codes</item>
+    </plurals>
     <string name="design_engine_lamp">Motorleuchte</string>
     <string name="design_on">An</string>
     <string name="design_off">Aus</string>

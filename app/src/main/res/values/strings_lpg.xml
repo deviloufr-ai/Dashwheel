@@ -17,18 +17,20 @@
     <string name="lpg_skip">Skip</string>
     <string name="lpg_use">%1$s, estimated</string>
     <string name="lpg_use_learned">%1$s, measured at the pump</string>
-    <string name="lpg_use_label">Use</string>
+    <string name="lpg_use_label">Consumption</string>
     <string name="lpg_explanation">The car\'s gauge only knows the petrol tank. The LPG level is worked out from the kilometres driven on LPG, so tap Full after each fill.</string>
     <string name="lpg_enable">Follow an LPG tank</string>
     <string name="lpg_enable_detail">Shows its level on the LPG tile and says when it runs low</string>
     <string name="lpg_tank_size">Tank, L</string>
-    <string name="lpg_use_setting">Use, L/100 km</string>
+    <string name="lpg_use_setting">Consumption, L/100 km</string>
     <string name="lpg_price">Price per litre</string>
-    <string name="lpg_numbers_detail">Tank: what a full fill takes, as an LPG tank is only filled to 80 percent. Use: leave blank to start from the car\'s consumption; the litres pumped at each fill then correct it. Price: leave blank to take the nearest station\'s.</string>
+    <string name="lpg_tank_hint">What a full fill takes: an LPG tank only fills to 80 percent.</string>
+    <string name="lpg_use_hint">Leave blank to start from the car\'s consumption; each fill corrects it.</string>
+    <string name="lpg_price_hint">Leave blank to take the nearest station\'s price.</string>
     <string name="lpg_mode_label">When the car runs on LPG</string>
     <string name="lpg_mode_auto">Once warm</string>
     <string name="lpg_mode_always">Always</string>
-    <string name="lpg_mode_manual">My switch</string>
+    <string name="lpg_mode_manual">When I switch it</string>
     <string name="lpg_mode_auto_detail">Most systems start on petrol. LPG counts once the coolant reaches the switch temperature, or after the first kilometre of a drive without an OBD adapter.</string>
     <string name="lpg_mode_manual_detail">Switch between LPG and petrol on the tile or with a steering wheel button.</string>
     <string name="lpg_switch_temp">Switch temperature, %1$s</string>
@@ -37,7 +39,10 @@
     <string name="lpg_last_fill">Last full fill on %1$s</string>
     <string name="lpg_full_now">Tank full now</string>
     <string name="lpg_settings_detail">Second tank, level worked out from the distance</string>
-    <string name="lpg_voice_low">LPG low: about %1$d %2$s left.</string>
+    <plurals name="lpg_voice_low">
+        <item quantity="one">LPG low: about %1$d kilometre left.</item>
+        <item quantity="other">LPG low: about %1$d kilometres left.</item>
+    </plurals>
     <string name="lpg_voice_full">LPG tank full.</string>
     <string name="lpg_voice_off">The LPG tank is not set up.</string>
     <string name="lpg_voice_on_lpg">On LPG.</string>

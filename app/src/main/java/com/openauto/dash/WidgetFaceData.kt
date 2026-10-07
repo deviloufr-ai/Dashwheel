@@ -57,6 +57,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -309,7 +310,7 @@ private fun faultCodesFace(env: SkinTileEnv): WidgetFace {
         icon = Icons.Filled.Warning,
         title = BuiltinKind.OBD_DTC.label,
         value = codes.size.toString(),
-        unit = stringResource(R.string.design_codes_unit),
+        unit = pluralStringResource(R.plurals.design_codes_unit, codes.size),
         caption = when {
             codes.isNotEmpty() -> "${codes.first()} · ${titles.first()}"
             lampOn -> stringResource(R.string.vehicle_lamp_on)
@@ -901,7 +902,7 @@ private fun filterFace(): WidgetFace {
         icon = kindIcon(BuiltinKind.FILTER_CARE),
         title = BuiltinKind.FILTER_CARE.label,
         value = streak.toString(),
-        unit = stringResource(R.string.car_filter_short_unit),
+        unit = pluralStringResource(R.plurals.car_filter_short_unit, streak),
         stats = listOfNotNull(
             soot?.let { FaceStat(stringResource(R.string.explore_soot_load), extraValueText(ExtraReading.SOOT_LOAD, it)) },
             extra[ExtraReading.DPF_TEMP]?.let { FaceStat(stringResource(R.string.explore_dpf_temp), extraValueText(ExtraReading.DPF_TEMP, it.value)) },

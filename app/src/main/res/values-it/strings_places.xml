@@ -12,7 +12,7 @@
     <string name="places_here">L\'auto è qui</string>
     <string name="places_forget">Dimentica</string>
     <string name="places_recent">Ultime destinazioni</string>
-    <string name="places_forget_recent">Dimenticale</string>
+    <string name="places_forget_recent">Svuota l\'elenco</string>
     <string name="places_offline">Nessuna connessione</string>
     <string name="places_no_nav_app">Nessuna app di navigazione su questa unità</string>
     <!-- Spoken when a steering wheel button asks for a place that isn't set -->

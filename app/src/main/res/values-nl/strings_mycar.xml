@@ -7,7 +7,7 @@
     <string name="mycar_empty">Nog geen afbeelding. Kies een bestand of stuur er een vanuit de telefoon-app.</string>
     <string name="mycar_working">Wordt klaargemaakt</string>
     <string name="mycar_ready">De afbeelding van je auto staat erin</string>
-    <string name="mycar_failed">Dat bestand kon niet worden gelezen</string>
+    <string name="mycar_failed">Die afbeelding kon niet worden gelezen. Probeer een JPG of PNG.</string>
     <string name="mycar_no_picker">Geen bestandskiezer op dit toestel. Zet het bestand hier: %1$s</string>
     <string name="mycar_pick">Bestand kiezen</string>
     <string name="mycar_remove">Verwijderen</string>

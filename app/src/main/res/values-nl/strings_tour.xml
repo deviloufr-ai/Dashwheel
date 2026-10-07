@@ -19,10 +19,10 @@
     <string name="tour_finish">Klaar</string>
     <string name="tour_read_aloud">Voorlezen</string>
     <string name="tour_swipe_title">Veeg om van dashboard te wisselen</string>
-    <string name="tour_swipe_body">Start staat in het midden. Veeg naar links of rechts voor nog twee, en vanaf Start omhoog of omlaag voor nog vier.</string>
+    <string name="tour_swipe_body">Start staat in het midden. Veeg naar links of rechts voor de twee ernaast. Meer dashboards kunnen erboven en eronder.</string>
     <string name="tour_try_swipe">Probeer het: veeg over het scherm</string>
     <string name="tour_arrange_title">Tegels verplaatsen en vergroten</string>
-    <string name="tour_arrange_body">Houd een tegel vast en sleep hem om te verplaatsen. Trek aan de hoek om hem groter te maken.</string>
+    <string name="tour_arrange_body">Tik op een tegel voor de opties, houd vast om te verplaatsen, sleep de hoek om de grootte te wijzigen. Het dashboard zelf vasthouden start het indelen ook.</string>
     <string name="tour_arrange_hint">Later open je dit via het menu, Dashboards bewerken.</string>
     <string name="tour_add_title">Widget of app toevoegen</string>
     <string name="tour_add_body">Tik op Toevoegen voor muziek, autogegevens, weer of een app op dit dashboard.</string>

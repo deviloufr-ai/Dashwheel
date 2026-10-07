@@ -28,7 +28,10 @@
     <!-- Particle filter -->
     <string name="car_filter_title">FILTRO PARTÍCULAS</string>
     <string name="car_filter_none">Este carro não tem filtro de partículas. Altere em Definições → Carro → O meu carro.</string>
-    <string name="car_filter_short_unit">viagens curtas seguidas</string>
+    <plurals name="car_filter_short_unit">
+        <item quantity="one">viagem curta</item>
+        <item quantity="other">viagens curtas seguidas</item>
+    </plurals>
     <string name="car_filter_ok">Filtro a limpar normalmente</string>
     <string name="car_filter_needs_drive">Faça 20 min acima de 60 km/h</string>
     <string name="car_filter_needs_drive_now">O filtro precisa de uma viagem longa</string>
@@ -67,9 +70,9 @@
     <string name="car_eco_fair">Razoável: algo brusca</string>
     <string name="car_eco_harsh">Brusca: abrande</string>
     <string name="car_eco_band">Regime %1$d–%2$d rpm</string>
-    <string name="car_eco_hard">Acel. / travagens bruscas</string>
+    <string name="car_eco_hard">Acelerações / travagens bruscas</string>
     <string name="car_eco_hard_value">%1$d / %2$d</string>
-    <string name="car_eco_clutch">Retido no acelerador</string>
+    <string name="car_eco_clutch">Retido na subida com o acelerador</string>
     <string name="car_eco_fuel">Combustível em %1$s km</string>
     <string name="car_eco_fuel_value">≈ %1$s L · %2$s %3$s</string>
 
@@ -144,15 +147,18 @@
     <string name="car_spec_consumption">Consumo médio (L/100 km)</string>
     <string name="car_spec_oil_capacity">Óleo (L)</string>
     <string name="car_spec_oil_spec">Tipo de óleo</string>
-    <string name="car_spec_service_km">Revisão a cada (km)</string>
-    <string name="car_spec_service_months">ou (meses)</string>
+    <string name="car_service_interval">Revisão a cada %1$s km ou %2$d meses</string>
+    <string name="car_service_interval_km">Revisão a cada %1$s km</string>
+    <string name="car_service_interval_months">Revisão a cada %1$d meses</string>
+    <string name="car_service_interval_unknown">Intervalo de revisão por definir</string>
+    <string name="car_service_from_servicing">Altere-o em Manutenção</string>
     <string name="car_spec_timing">Correia / corrente de distribuição</string>
     <string name="car_spec_tyre_size">Medida dos pneus</string>
     <string name="car_spec_tyre_front">Frente (bar)</string>
     <string name="car_spec_tyre_rear">Trás (bar)</string>
     <string name="car_spec_fuel_price">Preço por litro</string>
     <string name="car_spec_currency">Moeda</string>
-    <string name="car_reset_preset">Voltar ao predefinido (C4 Picasso 1.6 HDi BMP6)</string>
+    <string name="car_reset_preset">Repor o predefinido: C4 Picasso 1.6 HDi BMP6</string>
     <string name="car_save">Guardar</string>
 
     <!-- AI mechanic settings -->
@@ -186,9 +192,9 @@
     <string name="car_spec_driver_side">Condutor à direita</string>
     <string name="car_spec_driver_side_detail">Volante à direita: os modelos põem os blocos principais à direita</string>
     <string name="car_battery_trip_range">Esta viagem: de %1$s a %2$s V</string>
-    <string name="car_kind_status">Estado do carro</string>
+    <string name="car_kind_status">Luzes e quilometragem</string>
     <string name="car_kind_status_blurb">Luzes, quilometragem, viagem e consumo do carro</string>
-    <string name="car_status_title">ESTADO DO CARRO</string>
+    <string name="car_status_title">LUZES E QUILOMETRAGEM</string>
     <string name="car_status_waiting">À espera dos dados do carro</string>
     <string name="car_status_lights">Luzes</string>
     <string name="car_status_lights_off">Desligadas</string>

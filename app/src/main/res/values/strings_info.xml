@@ -41,7 +41,7 @@
     <string name="info_agenda_needs_access">Show upcoming events from your calendar</string>
     <string name="info_agenda_allow">Allow calendar</string>
     <string name="info_agenda_empty">Nothing in the next 36 hours</string>
-    <string name="info_agenda_no_title">(No title)</string>
+    <string name="info_agenda_no_title">Untitled</string>
     <string name="info_agenda_all_day">All day</string>
 
     <!-- Quick dial tile -->
@@ -97,7 +97,7 @@
     <string name="info_gforce_title">G-FORCE</string>
     <string name="info_gforce_reset_peaks">Reset peaks</string>
     <string name="info_gforce_lateral">Lateral</string>
-    <string name="info_gforce_accel_brake">Accel / brake</string>
+    <string name="info_gforce_accel_brake">Acceleration / braking</string>
     <string name="info_gforce_peaks">Peaks</string>
 
     <!-- Parking tile -->
@@ -112,9 +112,9 @@
     <string name="info_parking_walk">Walk there</string>
     <string name="info_parking_map_label">Parked car</string>
     <string name="info_ago_just_now">just now</string>
-    <string name="info_ago_minutes">%1$dm ago</string>
-    <string name="info_ago_hours">%1$dh %2$dm ago</string>
-    <string name="info_ago_days">%1$dd ago</string>
+    <string name="info_ago_minutes">%1$d min ago</string>
+    <string name="info_ago_hours">%1$d h %2$02d min ago</string>
+    <string name="info_ago_days">%1$d d ago</string>
 
     <!-- Media tile (both the current and the Original theme) -->
     <string name="info_now_playing">NOW PLAYING</string>
@@ -123,12 +123,12 @@
     <string name="info_media_access_needed">Media access needed</string>
     <string name="info_media_tap_to_enable">Tap to enable</string>
     <string name="info_media_previous">Previous</string>
-    <string name="info_media_play_pause">Play/Pause</string>
+    <string name="info_media_play_pause">Play/pause</string>
     <string name="info_media_next">Next</string>
     <string name="info_media_grant_access">Grant Media Access</string>
 
     <!-- Original theme telemetry tile -->
-    <string name="info_telemetry_title">TELEMETRY</string>
+    <string name="info_telemetry_title">ENGINE GAUGES</string>
     <string name="info_obd_live">Live</string>
     <string name="info_gauge_rpm">RPM</string>
     <string name="info_unit_rpm">rpm</string>
@@ -157,16 +157,16 @@
     <string name="info_map_routing_failed">Routing failed</string>
     <string name="info_map_routing_failed_detail">Routing failed (%1$s)</string>
     <string name="info_map_address_not_found">Address not found</string>
-    <string name="info_map_duration_hm">%1$dh %2$02dmin</string>
+    <string name="info_map_duration_hm">%1$d h %2$02d min</string>
     <string name="info_map_duration_min">%1$d min</string>
     <string name="info_map_stop">Stop</string>
     <string name="info_map_arrived">You have arrived</string>
     <string name="info_map_rerouting">Finding a new route</string>
     <string name="info_map_voice_on">Turn the voice on</string>
     <string name="info_map_voice_off">Turn the voice off</string>
-    <string name="info_map_other_app">Guide in Google Maps or Waze</string>
+    <string name="info_map_other_app">Navigate in Google Maps or Waze</string>
     <string name="info_audio_by_keys">Volume set through the head unit\'s volume keys</string>
     <string name="info_audio_unavailable">Volume can\'t be changed from here: use the knob</string>
-    <string name="info_map_stop_title">Stop the guidance?</string>
+    <string name="info_map_stop_title">Stop navigating?</string>
     <string name="info_map_stop_body">The map stops giving directions. Start again from the map.</string>
 </resources>

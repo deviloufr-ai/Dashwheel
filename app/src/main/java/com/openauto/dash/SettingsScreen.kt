@@ -47,6 +47,9 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ConnectedTv
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Handyman
 import androidx.compose.material.icons.filled.Image
@@ -94,6 +97,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.material.icons.filled.Tab
+import androidx.compose.material.icons.filled.ViewSidebar
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -117,7 +123,9 @@ import kotlinx.coroutines.launch
  * and the deep ones (car profile, AI, servicing, readings, wheel buttons,
  * language, second screen) one tap further in the same pane, with a back arrow
  * (SettingsSheet.kt). One subject, one place: every alert under Alerts, what
- * the screen does under Display, what it looks like under Look.
+ * the screen does under Display, what it looks like under Look, every
+ * physical button under Driving. A setting this unit cannot have stays in
+ * sight, greyed, with the reason in one line ([GatedRow]).
  */
 
 internal enum class SettingsTab(@StringRes val titleRes: Int, val icon: ImageVector) {
@@ -149,7 +157,12 @@ internal data class ThemeState(
     val barAutoHide: Boolean,
     val barHideSeconds: Int,
     val onBarAutoHide: (Boolean) -> Unit,
-    val onBarHideSeconds: (Int) -> Unit
+    val onBarHideSeconds: (Int) -> Unit,
+    /** The side rail in the bar's place, and tabs in it instead of swiping (Display, Navigation). */
+    val rail: Boolean = false,
+    val tabs: Boolean = false,
+    val onRail: (Boolean) -> Unit = {},
+    val onTabs: (Boolean) -> Unit = {}
 )
 
 @Composable
@@ -217,7 +230,7 @@ internal fun SettingsScreen(
                         SettingsTab.ALERTS -> AlertsPane()
                         SettingsTab.DRIVING -> DrivingPane(m, onWheelButtons = { deep = Deep.WHEEL }, onPlaces = { deep = Deep.PLACES })
                         SettingsTab.PHONE -> PhonePane()
-                        SettingsTab.ADVANCED -> AdvancedPane(m, onBootLogo = { bootLogo = true }, onPickObd = onPickObd, onClose = onClose)
+                        SettingsTab.ADVANCED -> AdvancedPane(m, onBootLogo = { bootLogo = true }, onPickObd = onPickObd)
                         SettingsTab.ABOUT -> AboutPane(m)
                     }
                 }
@@ -376,7 +389,8 @@ private fun CarPane(open: (Deep) -> Unit, onPickObd: () -> Unit) {
     SettingsRow(Icons.Filled.SettingsInputAntenna, stringResource(R.string.signals_title), stringResource(R.string.signals_settings_detail)) { open(Deep.SIGNALS) }
     ObdAdapterRow(onPickObd)
     ObdRouteSetting()
-    SpeedCorrectionRow()
+    // Settings is parked-only; the Telemetry tile's tuning button opens the same row on the move.
+    SpeedCorrectionRow(detail = stringResource(R.string.settings_speed_fix_detail))
     SettingsRow(Icons.Filled.AutoAwesome, stringResource(R.string.ai_title), stringResource(R.string.settings_ai_detail)) { open(Deep.AI) }
     SettingsRow(Icons.Filled.Handyman, stringResource(R.string.upkeep_dialog_title), stringResource(R.string.upkeep_settings_detail)) { open(Deep.UPKEEP) }
     LpgSettingsRow { open(Deep.LPG) }
@@ -439,6 +453,14 @@ private fun ObdRouteSetting() {
     val scope = rememberCoroutineScope()
     var chosen by remember { mutableStateOf(ObdBluetoothManager.route()) }
     val offered by PhoneObd.offer.collectAsState()
+    // What the three segments choose between: the Bluetooth path to the adapter.
+    Text(
+        stringResource(R.string.settings_obd_route_label),
+        color = DashColors.TextSecondary,
+        fontWeight = FontWeight.SemiBold,
+        style = MaterialTheme.typography.labelLarge,
+        modifier = Modifier.padding(start = 12.dp, top = 10.dp, bottom = 8.dp)
+    )
     SegmentedSwitch(
         options = ObdRoute.entries,
         chosen = chosen,
@@ -487,26 +509,53 @@ private fun LookPane(theme: ThemeState) {
     EffectsSetting(theme)
 }
 
-/** What the screen does: which way it stands, its bottom bar, its language, the second screen. */
+/** What the screen does: its language first, which way it stands, its bottom bar, the second screen. */
 @Composable
 private fun DisplayPane(theme: ThemeState, onLanguage: () -> Unit, onSecondScreen: () -> Unit) {
     val context = LocalContext.current
+    SettingsSection(stringResource(R.string.language_title))
+    SettingsRow(Icons.Filled.Language, stringResource(R.string.language_title), languageName(AppLanguage.current(context)), onLanguage)
+    Spacer(Modifier.height(20.dp))
     ScreenOrientationSetting()
     Spacer(Modifier.height(20.dp))
     UnitsSetting()
+    // One "Bottom bar": its auto-hide, then its readouts under the same heading.
     BarAutoHideSetting(theme)
-    Spacer(Modifier.height(20.dp))
     BarItemsSetting()
+    Spacer(Modifier.height(20.dp))
+    NavigationSetting(theme)
     Spacer(Modifier.height(20.dp))
     if (FreeformBar.supported) {
         UnitBarSetting()
         Spacer(Modifier.height(20.dp))
     }
-    SettingsSection(stringResource(R.string.language_title))
-    SettingsRow(Icons.Filled.Language, stringResource(R.string.language_title), languageName(AppLanguage.current(context)), onLanguage)
-    Spacer(Modifier.height(20.dp))
     SettingsSection(stringResource(R.string.settings_section_second_screen))
     SettingsRow(Icons.Filled.ConnectedTv, stringResource(R.string.settings_section_second_screen), secondScreenSummary(), onSecondScreen)
+}
+
+/**
+ * How the dashboards are reached: the side rail in the bottom bar's place
+ * (what the Canvas theme always did), and tabs in that rail instead of
+ * swiping, which a map app under the dashboards brings on by itself.
+ */
+@Composable
+private fun NavigationSetting(theme: ThemeState) {
+    SettingsSection(stringResource(R.string.settings_navigation_title))
+    SettingsToggle(
+        icon = Icons.Filled.ViewSidebar,
+        title = stringResource(R.string.settings_side_rail),
+        detail = stringResource(R.string.settings_side_rail_detail),
+        checked = theme.rail,
+        onChange = theme.onRail
+    )
+    SettingsToggle(
+        icon = Icons.Filled.Tab,
+        title = stringResource(R.string.settings_tabs_nav),
+        detail = stringResource(R.string.settings_tabs_nav_detail),
+        checked = theme.rail && theme.tabs,
+        enabled = theme.rail,
+        onChange = theme.onTabs
+    )
 }
 
 /**
@@ -661,12 +710,22 @@ private fun DrivingPane(m: TopBarModel, onWheelButtons: () -> Unit, onPlaces: ()
     SettingsSection(stringResource(R.string.settings_section_driving))
     SettingsToggle(
         Icons.Filled.DirectionsCar, stringResource(R.string.settings_drive_lock),
-        stringResource(R.string.settings_drive_lock_detail), m.lockWhileMoving, m.onLockWhileMoving
+        stringResource(R.string.settings_drive_lock_detail), m.lockWhileMoving, onChange = m.onLockWhileMoving
     )
     SettingsToggle(
         Icons.Filled.VolumeUp, stringResource(R.string.settings_tap_sound),
         stringResource(R.string.settings_tap_sound_detail), FeedbackStore.sound
     ) { FeedbackStore.save(context, it) }
+    PlacesRow(onPlaces)
+    val resume by MediaResume.on.collectAsState()
+    LaunchedEffect(Unit) { MediaResume.load(context) }
+    SettingsToggle(
+        Icons.Filled.PlayCircle, stringResource(R.string.settings_resume_music),
+        stringResource(R.string.settings_resume_music_detail), resume
+    ) { MediaResume.save(context, it) }
+    // Every physical button together: what the wheel's do, then what the unit's own keys open.
+    Spacer(Modifier.height(20.dp))
+    SettingsSection(stringResource(R.string.settings_section_buttons))
     if (SteeringWheelStore.AVAILABLE) SettingsRow(
         Icons.Filled.SettingsRemote, stringResource(R.string.wheel_title),
         wheelButtons.count { it.assignment != null }.let { assigned ->
@@ -678,28 +737,11 @@ private fun DrivingPane(m: TopBarModel, onWheelButtons: () -> Unit, onPlaces: ()
         },
         onWheelButtons
     )
-    PlacesRow(onPlaces)
-    val resume by MediaResume.on.collectAsState()
-    LaunchedEffect(Unit) { MediaResume.load(context) }
-    SettingsToggle(
-        Icons.Filled.PlayCircle, stringResource(R.string.settings_resume_music),
-        stringResource(R.string.settings_resume_music_detail), resume
-    ) { MediaResume.save(context, it) }
-    if (CarPower.available) {
-        val lost = remember { CarPower.sleepLost(context) }
-        var open by remember { mutableStateOf(false) }
-        SettingsRow(
-            Icons.Filled.DirectionsCar, stringResource(R.string.settings_sleep_title),
-            if (lost.isEmpty()) stringResource(R.string.settings_sleep_none)
-            else stringResource(R.string.settings_sleep_lost, lost.size, if (open) lost.joinToString("\n") else lost.first())
-        ) { open = !open }
-    }
-    SendLogRow()
+    KeyTargetRows()
     Spacer(Modifier.height(20.dp))
     SettingsSection(stringResource(R.string.settings_section_sound))
     VolumeAlertRow()
     SpeedVolumeSetting()
-    KeyTargetRows()
 }
 
 /**
@@ -712,11 +754,11 @@ private fun VolumeWaySetting() {
     val context = LocalContext.current
     val saved by MediaVolume.way.collectAsState()
     val shell = shellAccess().shell
-    val options = if (shell) VolumeWay.entries else VolumeWay.entries.filter { it != VolumeWay.KEYS }
-    val way = if (saved in options) saved else VolumeWay.AUTO
+    // The keys way stays in sight without a shell, greyed, with the reason under the switch.
+    val way = if (shell || saved != VolumeWay.KEYS) saved else VolumeWay.AUTO
     SettingsSection(stringResource(R.string.volume_way_title))
     SegmentedSwitch(
-        options = options,
+        options = VolumeWay.entries,
         chosen = way,
         icon = { option ->
             when (option) {
@@ -726,9 +768,10 @@ private fun VolumeWaySetting() {
             }
         },
         title = { stringResource(it.titleRes) },
+        enabled = { shell || it != VolumeWay.KEYS },
         onChoose = { MediaVolume.saveWay(context, it) }
     )
-    SwitchHint(stringResource(way.hintRes))
+    SwitchHint(stringResource(if (!shell) R.string.volume_way_keys_locked else way.hintRes))
 }
 
 /**
@@ -782,31 +825,30 @@ private fun SpeedVolumeSetting() {
 }
 
 @Composable
-private fun AdvancedPane(m: TopBarModel, onBootLogo: () -> Unit, onPickObd: () -> Unit, onClose: () -> Unit) {
-    SettingsSection(stringResource(R.string.settings_section_advanced))
-    SettingsToggle(
-        Icons.Filled.PlayCircle, stringResource(R.string.demo_menu_start),
-        stringResource(R.string.demo_settings_detail), m.demo
-    ) { on ->
-        m.onDemo()
-        // Straight to the dashboard it fills; the badge there stops it.
-        if (on) onClose()
-    }
+private fun AdvancedPane(m: TopBarModel, onBootLogo: () -> Unit, onPickObd: () -> Unit) {
+    val context = LocalContext.current
     // The boot logo and the system-app install write to /system: only with a
     // privileged shell (root or the unit's ADB, see PrivilegedShell) can they
-    // do anything, so without one they are not offered.
+    // do anything. Without one the rows stay in sight, greyed, and say why.
     val shell = shellAccess().shell
+    val needsRoot = stringResource(R.string.settings_rom_needs_root)
+    SettingsSection(stringResource(R.string.settings_section_advanced))
     // Only on the QF001 / K706 firmware the feature was built for.
-    if (shell && BootLogoSupport.available) {
-        SettingsRow(Icons.Filled.PowerSettingsNew, stringResource(R.string.boot_menu), null, onBootLogo)
+    when {
+        !BootLogoSupport.available -> GatedRow(Icons.Filled.PowerSettingsNew, stringResource(R.string.boot_menu), stringResource(R.string.settings_needs_qf))
+        !shell -> GatedRow(Icons.Filled.PowerSettingsNew, stringResource(R.string.boot_menu), needsRoot)
+        else -> SettingsRow(Icons.Filled.PowerSettingsNew, stringResource(R.string.boot_menu), null, onBootLogo)
     }
-    if (shell) {
-        SettingsRow(Icons.Filled.Build, stringResource(R.string.dash_system_app_title), stringResource(R.string.settings_system_detail), m.onSystem)
-    }
-    // Google Maps inside a tile needs permissions only the firmware's apps get
-    // (EmbeddedApp): whether Android granted them, where they could be.
-    val embed = EmbeddedApp.allowed(LocalContext.current)
+    Spacer(Modifier.height(20.dp))
+    // Apps running inside tiles: Google Maps needs permissions only the
+    // firmware's apps get (EmbeddedApp), through PMPatch3; Android widgets
+    // need Dashwheel installed as a system app.
+    SettingsSection(stringResource(R.string.settings_section_apps_in_tiles))
+    val embed = EmbeddedApp.allowed(context)
     if (shell || embed) SystemPermissionsRow(embed)
+    else GatedRow(Icons.Filled.VerifiedUser, stringResource(R.string.settings_system_perms), needsRoot)
+    if (shell) SettingsRow(Icons.Filled.Build, stringResource(R.string.dash_system_app_title), stringResource(R.string.settings_system_detail), m.onSystem)
+    else GatedRow(Icons.Filled.Build, stringResource(R.string.dash_system_app_title), needsRoot)
     Spacer(Modifier.height(20.dp))
     // Only for a unit whose sound ignores Android's volume; on the QF firmware Automatic is the only way that works.
     if (MediaVolume.choiceOffered) {
@@ -817,7 +859,27 @@ private fun AdvancedPane(m: TopBarModel, onBootLogo: () -> Unit, onPickObd: () -
     // What is allowed and what is not, without running the setup again.
     SettingsSection(stringResource(R.string.setup_access_title))
     Column(modifier = Modifier.padding(horizontal = 12.dp)) { AccessRows(onPickObd) }
+    // The demo stays here once turned on: the dashboard's badge stops it, and so does this switch.
+    SettingsToggle(
+        Icons.Filled.PlayCircle, stringResource(R.string.demo_menu_start),
+        stringResource(R.string.demo_settings_detail), m.demo
+    ) { m.onDemo() }
     SettingsRow(Icons.Filled.Checklist, stringResource(R.string.setup_again), stringResource(R.string.setup_again_detail)) { m.onSetup(true) }
+    // Counters and logs, for a bug report rather than for a setting.
+    Spacer(Modifier.height(20.dp))
+    SettingsSection(stringResource(R.string.settings_section_diagnostics))
+    if (CarPower.available) {
+        val lost = remember { CarPower.sleepLost(context) }
+        var open by remember { mutableStateOf(false) }
+        ExpandRow(
+            Icons.Filled.DirectionsCar, stringResource(R.string.settings_sleep_title),
+            if (lost.isEmpty()) stringResource(R.string.settings_sleep_none)
+            else stringResource(R.string.settings_sleep_lost, lost.size, if (open) lost.joinToString("\n") else lost.first()),
+            open = open,
+            canOpen = lost.size > 1
+        ) { open = !open }
+    }
+    SendLogRow()
 }
 
 private const val KOFI_URL = "https://ko-fi.com/deviloufr"
@@ -875,6 +937,10 @@ private fun AboutPane(m: TopBarModel) {
     SettingsSection(stringResource(R.string.settings_section_about))
     UpdateRow(m)
     SettingsRow(Icons.Filled.School, stringResource(R.string.tour_settings_row), stringResource(R.string.tour_settings_row_detail), m.onTour)
+    // The wiki, as a QR code for the phone and a button for this screen (WikiHelp.kt).
+    var help by remember { mutableStateOf(false) }
+    SettingsRow(Icons.AutoMirrored.Filled.HelpOutline, stringResource(R.string.help_title), stringResource(R.string.help_row_detail)) { help = true }
+    if (help) WikiHelpDialog(WikiPage.HOME) { help = false }
     SettingsRow(Icons.Filled.Favorite, stringResource(R.string.about_project), stringResource(R.string.about_project_detail)) {
         context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(PROJECT_URL)))
     }
@@ -921,8 +987,9 @@ internal fun SettingsSection(title: String) {
 }
 
 /**
- * Whether Android granted Dashwheel the system permissions. While they aren't,
- * a tap gets them through PMPatch3 ([PmPatchDialog]).
+ * Google Maps inside a tile: whether Android granted Dashwheel the system
+ * permissions it takes. While it hasn't, a tap sets it up through PMPatch3
+ * ([PmPatchDialog]); once it has, the row is done and reads dimmed.
  */
 @Composable
 private fun SystemPermissionsRow(granted: Boolean) {
@@ -940,17 +1007,76 @@ private fun SystemPermissionsRow(granted: Boolean) {
     ) {
         Icon(
             Icons.Filled.VerifiedUser, contentDescription = null,
-            tint = if (granted) DashColors.Good else DashColors.TextSecondary,
+            tint = if (granted) DashColors.Good.copy(alpha = 0.7f) else DashColors.TextSecondary,
             modifier = Modifier.size(24.dp)
         )
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f)) {
-            Text(stringResource(R.string.settings_system_perms), color = DashColors.TextPrimary, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                stringResource(R.string.settings_system_perms),
+                color = if (granted) DashColors.TextSecondary else DashColors.TextPrimary,
+                style = MaterialTheme.typography.bodyLarge
+            )
             Text(
                 stringResource(if (granted) R.string.settings_system_perms_on else R.string.settings_system_perms_off),
-                color = if (granted) DashColors.Good else DashColors.TextSecondary,
+                color = if (granted) DashColors.Muted else DashColors.TextSecondary,
                 style = MaterialTheme.typography.bodySmall
             )
+        }
+        if (!granted) Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = DashColors.Muted)
+    }
+    HorizontalDivider(color = DashColors.Line, modifier = Modifier.padding(horizontal = 12.dp))
+}
+
+/**
+ * A setting this unit cannot have yet, kept in sight: greyed, no chevron,
+ * and [reason] in one line (needs root, needs the QF firmware). One policy
+ * for every gated row, like the alerts' held-back note.
+ */
+@Composable
+internal fun GatedRow(icon: ImageVector, title: String, reason: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = DashSize.Bar)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(icon, contentDescription = null, tint = DashColors.Muted, modifier = Modifier.size(24.dp))
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
+            Text(title, color = DashColors.Muted, style = MaterialTheme.typography.bodyLarge)
+            Text(reason, color = DashColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall)
+        }
+    }
+    HorizontalDivider(color = DashColors.Line, modifier = Modifier.padding(horizontal = 12.dp))
+}
+
+/**
+ * A row that opens in place rather than further in: an expand arrow instead
+ * of the chevron, turned over while [open]. Without more to show ([canOpen]
+ * false) the arrow is left out and the row is plain text.
+ */
+@Composable
+private fun ExpandRow(icon: ImageVector, title: String, detail: String, open: Boolean, canOpen: Boolean, onToggle: () -> Unit) {
+    val tap = rememberTapFeedback()
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = DashSize.Bar)
+            .clip(DashShape.Medium)
+            .clickable(enabled = canOpen) { tap(); onToggle() }
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(icon, contentDescription = null, tint = DashColors.TextSecondary, modifier = Modifier.size(24.dp))
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
+            Text(title, color = DashColors.TextPrimary, style = MaterialTheme.typography.bodyLarge)
+            Text(detail, color = DashColors.TextSecondary, maxLines = if (open) Int.MAX_VALUE else 2, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall)
+        }
+        if (canOpen) {
+            Icon(if (open) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore, contentDescription = null, tint = DashColors.Muted)
         }
     }
     HorizontalDivider(color = DashColors.Line, modifier = Modifier.padding(horizontal = 12.dp))
@@ -995,11 +1121,11 @@ internal fun SettingsRow(icon: ImageVector, title: String, detail: String?, onCl
  * opens on the move for that reason.
  */
 @Composable
-internal fun SpeedCorrectionRow() {
+internal fun SpeedCorrectionRow(detail: String = stringResource(R.string.vehicle_speed_fix_detail)) {
     val context = LocalContext.current
     val offset by SpeedCorrection.offsetKmh.collectAsState()
     StepperRow(
-        Icons.Filled.Speed, stringResource(R.string.vehicle_speed_fix), stringResource(R.string.vehicle_speed_fix_detail),
+        Icons.Filled.Speed, stringResource(R.string.vehicle_speed_fix), detail,
         value = speedOffsetText(offset, LocalUnits.current),
         valueColor = if (offset == 0) DashColors.TextSecondary else DashColors.Accent,
         less = stringResource(R.string.vehicle_speed_fix_less), more = stringResource(R.string.vehicle_speed_fix_more),
@@ -1078,14 +1204,15 @@ private fun StepButton(icon: ImageVector, description: String, enabled: Boolean,
 
 /** One on/off setting: icon, name, what it does, and a switch; the whole row toggles it. */
 @Composable
-internal fun SettingsToggle(icon: ImageVector, title: String, detail: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+internal fun SettingsToggle(icon: ImageVector, title: String, detail: String, checked: Boolean, enabled: Boolean = true, onChange: (Boolean) -> Unit) {
     val tap = rememberTapFeedback()
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = DashSize.Bar)
             .clip(DashShape.Medium)
-            .clickable(role = Role.Switch) { tap(); onChange(!checked) }
+            .clickable(enabled = enabled, role = Role.Switch) { tap(); onChange(!checked) }
+            .alpha(if (enabled) 1f else 0.45f)
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -1099,6 +1226,7 @@ internal fun SettingsToggle(icon: ImageVector, title: String, detail: String, ch
         Switch(
             checked = checked,
             onCheckedChange = null,
+            enabled = enabled,
             colors = SwitchDefaults.colors(
                 checkedThumbColor = DashColors.OnAccent,
                 checkedTrackColor = DashColors.Accent,

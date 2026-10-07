@@ -7,7 +7,8 @@
         <item quantity="one">%1$d button assigned</item>
         <item quantity="other">%1$d buttons assigned</item>
     </plurals>
-    <string name="wheel_explanation">Press each button on the wheel. A new one joins the map, a known one lights up green. Tap a button to name it, place it and choose what it does.</string>
+    <string name="wheel_explanation">Press each button on the wheel: a new one joins the map, a known one lights up green.</string>
+    <string name="wheel_explanation_tap">Tap a button to name it, place it and choose what it does.</string>
     <string name="wheel_confirm_detail">%1$s was seen. Press it once more so Dashwheel knows it was you: a car value that changes on its own won\'t come back on cue.</string>
     <string name="wheel_assign_prompt">What should %1$s do?</string>
     <string name="wheel_choose_app">Launch an app…</string>
@@ -33,7 +34,7 @@
     <string name="wheel_action_quick_settings">Quick settings</string>
     <string name="wheel_action_toggle_split">Split screen on / off</string>
     <string name="wheel_action_screenshot">Screenshot</string>
-    <string name="wheel_action_play_pause">Play / Pause</string>
+    <string name="wheel_action_play_pause">Play/pause</string>
     <string name="wheel_action_next">Next track</string>
     <string name="wheel_action_previous">Previous track</string>
     <string name="wheel_action_volume_up">Volume up</string>
@@ -96,7 +97,7 @@
     <string name="wheel_signal">Heard as %1$s</string>
     <string name="wheel_silent_title">The unit gets no signal from this button.</string>
     <string name="wheel_silent_tip_monitor">Tap Listen for it, press the button and open What the unit sees. If a line appears, tap it.</string>
-    <string name="wheel_silent_tip_canbox">Check the car model in the unit\'s CAN box settings. With the wrong model, some buttons are left out.</string>
+    <string name="wheel_silent_tip_canbox">Check the car model in the unit\'s car box settings. With the wrong model, some buttons are left out.</string>
     <string name="wheel_silent_tip_car">Some buttons stay inside the car, like cruise control, and never reach the head unit.</string>
     <string name="wheel_silent_tip_other">Give its job to a button that works.</string>
     <string name="wheel_listen_again">Learn its signal again</string>
@@ -111,5 +112,5 @@
     <string name="wheel_reset_title">Reset the wheel buttons?</string>
     <string name="wheel_reset_body">Every button leaves the map and loses its action. The wheel goes back to what the unit does by itself.</string>
     <string name="wheel_reset_confirm">Reset</string>
-    <string name="wheel_action_stop_guidance">Stop the guidance</string>
+    <string name="wheel_action_stop_guidance">Stop navigation</string>
 </resources>

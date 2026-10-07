@@ -56,10 +56,10 @@
     <!-- Text typed on the phone, for the field selected on the car screen (PhoneKeyboard). -->
     <string name="phone_text_copied">Text from your phone copied: hold a text field to paste it</string>
     <!-- Quick dial and Agenda from the phone, and places sent from it (PhoneLink, InfoTiles, NavHandoff). -->
-    <string name="phone_quickdial_empty">Link your phone to see its favourites here</string>
-    <string name="phone_agenda_empty">Link your phone to see its agenda here</string>
+    <string name="phone_quickdial_empty">Pair your phone in Settings, Phone, to see its favourites here</string>
+    <string name="phone_agenda_empty">Pair your phone in Settings, Phone, to see its agenda here</string>
     <string name="phone_call_back">Call back %1$s</string>
     <string name="phone_calling">Calling %1$s</string>
     <string name="phone_dial_not_allowed">To call from here, allow Calls in Dashwheel Companion.</string>
-    <string name="phone_guidance_to">Guidance to %1$s</string>
+    <string name="phone_guidance_to">Directions to %1$s</string>
 </resources>

@@ -39,26 +39,26 @@
     <string name="car_spot_title">Wo ist mein Auto</string>
     <string name="car_spot_left">Hier abgestellt: %1$s</string>
     <string name="car_spot_saved">Im Auto gespeichert: %1$s</string>
-    <string name="car_spot_none">Sobald das Auto verbunden ist, steht hier, wo es angehalten hat.</string>
+    <string name="car_spot_none">Sobald das Auto gekoppelt ist, steht hier, wo es angehalten hat.</string>
     <string name="car_spot_map">Karte</string>
     <string name="car_spot_walk">Zu Fuß hin</string>
     <string name="drives_title">Fahrten</string>
-    <string name="drives_none">Sobald das Auto verbunden ist, erscheint hier jede Fahrt mit Strecke, Dauer und Öko-Fahrwert.</string>
+    <string name="drives_none">Sobald das Auto gekoppelt ist, erscheint hier jede Fahrt mit Strecke, Dauer und Öko-Fahrwert.</string>
     <string name="drive_under_way">Fahrt läuft</string>
     <string name="drive_last">Letzte Fahrt</string>
     <string name="drive_km">km</string>
     <string name="drive_time">Dauer</string>
     <string name="drive_average">Schnitt km/h</string>
     <string name="drive_top">Max. km/h</string>
-    <string name="drive_eco_none">Öko-Fahrwert: keine Wertung (unter 1 km oder keine Motordaten)</string>
+    <string name="drive_eco_none">Kein Öko-Fahrwert: unter 1 km oder keine Motordaten</string>
     <string name="drive_eco_smooth">Ruhige Fahrweise</string>
     <string name="drive_eco_fair">Mittel: etwas ruppig</string>
     <string name="drive_eco_harsh">Ruppig: sanfter fahren</string>
-    <string name="drive_hard">Starkes Gas / Bremsen: %1$d / %2$d</string>
+    <string name="drive_hard">Starkes Beschleunigen / Bremsen: %1$d / %2$d</string>
     <string name="drive_band">Drehzahl im ruhigen Bereich: %1$d %%</string>
-    <string name="drive_clutch">Mit Gas gehalten: %1$d</string>
+    <string name="drive_clutch">Am Hang mit Gas gehalten: %1$d</string>
     <string name="drive_fuel">Kraftstoff ≈ %1$s L · %2$s %3$s</string>
-    <string name="drive_duration_hm">%1$d h %2$02d</string>
+    <string name="drive_duration_hm">%1$d h %2$02d min</string>
     <string name="drive_duration_m">%1$d min</string>
     <string name="keyboard_title">Im Auto tippen</string>
     <string name="keyboard_detail">Wähle ein Textfeld auf dem Autobildschirm und tippe hier: Es folgt beim Tippen.</string>
@@ -120,7 +120,7 @@
     <string name="obd_relay_change">Ändern</string>
     <string name="obd_relay_stop">Ausschalten</string>
     <string name="obd_relay_pick">Dein OBD-Adapter</string>
-    <string name="obd_relay_pick_hint">Kopple den Adapter zuerst unter Bluetooth mit diesem Handy (PIN 1234 oder 0000). Das Handy hält ihn dann für das Auto, Anrufe und Android Auto stören nicht mehr.</string>
+    <string name="obd_relay_pick_hint">Kopple den Adapter zuerst unter Bluetooth mit diesem Handy, PIN 1234 oder 0000. Das Handy hält ihn dann für das Auto, Anrufe und Android Auto stören nicht mehr.</string>
     <string name="news_title">Von deinem Auto</string>
     <string name="news_channel">Auto-Erinnerungen</string>
     <string name="step_texts">Unterwegs-SMS</string>
@@ -210,7 +210,7 @@
 
     <!-- A second-screen display's code, scanned here and passed to the car (DisplayPair). -->
     <string name="display_confirm_title">Bildschirm %1$s zum Auto hinzufügen?</string>
-    <string name="display_confirm_body">Dein Handy gibt den Code dieses Bildschirms an das verbundene Auto weiter.</string>
+    <string name="display_confirm_body">Dein Handy gibt den Code dieses Bildschirms an das gekoppelte Auto weiter.</string>
     <string name="display_confirm_send">An das Auto senden</string>
     <string name="display_sent">An %1$s gesendet: Der Bildschirm verbindet sich in wenigen Sekunden.</string>
     <string name="display_needs_car">Verbinde dich zuerst mit dem Auto und scanne dann den Code des Bildschirms erneut.</string>

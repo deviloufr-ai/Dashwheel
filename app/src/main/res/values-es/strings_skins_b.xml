@@ -2,7 +2,7 @@
 <resources>
     <!-- Horizon skin: top bar -->
     <string name="horizon_cd_all_apps">Todas las apps</string>
-    <string name="horizon_cd_screen_layout">Diseño de pantalla: %1$s</string>
+    <string name="horizon_cd_screen_layout">Posición de Google Maps: %1$s</string>
     <string name="horizon_cd_more">Más</string>
 
     <!-- Horizon skin: telemetry and speed -->
@@ -54,7 +54,7 @@
     <string name="tape_apps_caps">APPS</string>
     <string name="tape_cd_all_apps">Todas las apps</string>
     <string name="tape_layout_caps">DISEÑO</string>
-    <string name="tape_cd_screen_layout">Diseño de pantalla: %1$s</string>
+    <string name="tape_cd_screen_layout">Posición de Google Maps: %1$s</string>
     <string name="tape_cd_more">Más</string>
 
     <!-- Tape Deck skin: telemetry and speed -->

@@ -11,7 +11,7 @@
 
     <!-- Top bar -->
     <string name="dash_all_apps">Toutes les applis</string>
-    <string name="dash_screen_layout">Disposition de l\'écran : %1$s</string>
+    <string name="dash_screen_layout">Position de Google Maps : %1$s</string>
     <string name="dash_more">Plus</string>
     <string name="dash_obd_connected">OBD connecté</string>
     <string name="dash_obd_connecting">Connexion OBD…</string>
@@ -24,20 +24,19 @@
     <string name="dash_menu_edit_dashboards">Modifier les tableaux de bord</string>
     <string name="dash_menu_done_editing">Terminer la modification</string>
     <string name="dash_menu_theme">Thème</string>
-    <string name="dash_menu_split_screen">Écran partagé avec une appli</string>
 
     <!-- Edit bar (arranging a dashboard) -->
     <string name="dash_arranging_dashboard">Organisation : %1$s</string>
-    <string name="dash_arranging_hint">Maintenez une tuile pour la déplacer, tirez son coin pour la redimensionner.</string>
+    <string name="dash_arranging_hint">Touchez une tuile pour ses options, maintenez pour la déplacer, tirez son coin pour la redimensionner.</string>
     <string name="dash_undo">Annuler</string>
-    <string name="dash_reset_page">Tout vider</string>
+    <string name="dash_reset_page">Retirer le tableau de bord…</string>
 
     <!-- Update banner -->
     <string name="dash_update_downloading">Téléchargement de la mise à jour… %1$d %%</string>
     <string name="dash_update_installing">Lancement de l\'installation…</string>
     <string name="dash_menu_check_updates">Rechercher des mises à jour</string>
     <string name="dash_update_checking">Recherche de mises à jour…</string>
-    <string name="dash_update_up_to_date">Dashwheel est à jour (v%1$s)</string>
+    <string name="dash_update_up_to_date">Dashwheel est à jour, v%1$s</string>
     <string name="dash_update">Mettre à jour</string>
 
     <!-- Tiles while arranging -->
@@ -71,7 +70,7 @@
 
     <!-- System app install (root) -->
     <string name="dash_system_app_title">Application système</string>
-    <string name="dash_system_app_body">Installe Dashwheel comme appli système : les widgets Android s\'ajoutent sans demande à chaque fois. Nécessite le root, ou l\'ADB interne sur le port %1$d. Redémarrez ensuite.</string>
+    <string name="dash_system_app_body">Installe Dashwheel comme appli système : les widgets Android s\'ajoutent sans demande à chaque fois. Nécessite le root ou l\'ADB interne sur le port %1$d, puis un redémarrage.</string>
     <string name="dash_root_checking">Vérification du root…</string>
     <string name="dash_root_available">Root disponible. S\'installe en module Magisk si Magisk est présent.</string>
     <string name="dash_root_missing">Pas de root. Essai via l\'ADB interne sur le port %1$d.</string>
@@ -81,7 +80,7 @@
     <string name="dash_system_failed">Échec : %1$s</string>
 
     <!-- System app-widget picker -->
-    <string name="dash_widget_unavailable">Widget indisponible</string>
+    <string name="dash_widget_unavailable">Widget manquant. Son appli a été retirée ou modifiée.</string>
     <string name="dash_choose_widget">Choisir un widget</string>
     <string name="dash_no_widgets_found">Aucun widget trouvé.</string>
 
@@ -123,12 +122,16 @@
     <!-- Screen layouts (the enum names are what gets saved) -->
     <string name="dash_layout_grid">Tableaux de bord seuls</string>
     <string name="dash_layout_grid_desc">Des tableaux de bord à balayer occupent tout l\'écran</string>
-    <string name="dash_layout_maps_left">Carte à gauche</string>
+    <string name="dash_layout_maps_left">Google Maps à gauche</string>
     <string name="dash_layout_maps_left_desc">Google Maps ancré sur la moitié gauche, tableaux de bord à balayer à droite</string>
-    <string name="dash_layout_maps_right">Carte à droite</string>
+    <string name="dash_layout_maps_right">Google Maps à droite</string>
     <string name="dash_layout_maps_right_desc">Google Maps ancré sur la moitié droite, tableaux de bord à balayer à gauche</string>
-    <string name="dash_layout_maps_top">Carte en haut</string>
-    <string name="dash_layout_maps_bottom">Carte en bas</string>
+    <string name="dash_layout_maps_top">Google Maps en haut</string>
+    <string name="dash_layout_maps_bottom">Google Maps en bas</string>
+    <string name="dash_layout_button">Disposition</string>
+    <string name="dash_layout_another_app">Une autre appli à côté des tableaux de bord…</string>
+    <string name="dash_update_dot_hint">Une mise à jour attend dans le menu</string>
+    <string name="dash_update_dot_menu">Le point sur le bouton du menu, c\'est cette mise à jour</string>
 
     <!-- The pages' places in the cross, and an empty page -->
     <string name="dash_page_home">Accueil</string>
@@ -139,13 +142,13 @@
     <string name="dash_page_below">Sous l\'accueil</string>
     <string name="dash_page_below2">Deux sous l\'accueil</string>
     <string name="dash_empty_title">Rien ici pour l\'instant</string>
-    <string name="dash_empty_body">Ajoutez une tuile, ou choisissez un modèle pour tous les tableaux de bord.</string>
+    <string name="dash_empty_body">Remplissez-le depuis un modèle, ou ajoutez des tuiles une à une.</string>
     <!-- Effets (sélecteur de thème) -->
-    <string name="dash_effects_title">Effets</string>
-    <string name="dash_effects_none">Aucun</string>
-    <string name="dash_effects_reduced">Réduits</string>
-    <string name="dash_effects_full">Complets</string>
-    <string name="dash_effects_none_hint">Haute lisibilité : cartes opaques, chiffres nets, sans halo</string>
+    <string name="dash_effects_title">Lisibilité</string>
+    <string name="dash_effects_none">Sobre, pour le soleil</string>
+    <string name="dash_effects_reduced">Doux</string>
+    <string name="dash_effects_full">Pleine lueur</string>
+    <string name="dash_effects_none_hint">Cartes opaques, chiffres sobres, sans lueur : lisible en plein soleil</string>
     <string name="dash_effects_reduced_hint">Halos atténués, verre conservé</string>
     <string name="dash_effects_full_hint">Chaque thème avec tous ses halos et son verre</string>
     <string name="dash_bar_title">Barre du bas</string>
@@ -173,7 +176,7 @@
     <string name="dash_theme_nordic">Nordique minimal</string>
     <string name="dash_theme_nordic_desc">Graphite et bleu glacier, traits fins, rien de criard</string>
     <string name="dash_theme_canvas">Canvas</string>
-    <string name="dash_theme_canvas_desc">La carte en plein écran, le trajet sur une ligne, des panneaux en verre par-dessus</string>
+    <string name="dash_theme_canvas_desc">La carte remplit l\'écran, votre trajet sur une ligne. Barre latérale par défaut ; à changer dans Affichage.</string>
     <string name="dash_theme_group_recommended">Recommandés</string>
     <string name="dash_theme_group_colours">Thèmes</string>
     <string name="dash_theme_group_skins">Skins</string>
@@ -188,12 +191,9 @@
     <string name="dash_update_now">Mettre à jour</string>
     <string name="dash_update_not_this_version">Pas cette version</string>
     <string name="dash_update_allow_installs">Autorisez Dashwheel à installer les mises à jour, puis touchez à nouveau Mettre à jour</string>
-    <string name="dash_reset_confirm_title">Vider ce tableau de bord ?</string>
-    <string name="dash_reset_confirm_body">Toutes ses tuiles disparaissent. Annuler les ramène.</string>
     <string name="dash_dashboard_options">Options du tableau de bord</string>
     <string name="dash_remove_dashboard_title">Supprimer %1$s ?</string>
-    <string name="dash_remove_dashboard_body">Ses tuiles partent avec lui. Annuler les ramène.</string>
-    <string name="dash_clear">Vider</string>
+    <string name="dash_remove_dashboard_body">Le vider, ou le retirer des balayages avec ses tuiles. Annuler les ramène.</string>
     <string name="dash_theme_show_all">Voir les %1$d thèmes</string>
     <string name="dash_theme_show_fewer">Voir moins</string>
     <string name="dash_tile_move">Vers un autre tableau de bord</string>
@@ -205,9 +205,22 @@
         <item quantity="many">%1$s ont besoin de l\'accès root, que Dashwheel n\'a pas sur cet autoradio. Ces tuiles vont être retirées du tableau de bord.</item>
         <item quantity="other">%1$s ont besoin de l\'accès root, que Dashwheel n\'a pas sur cet autoradio. Ces tuiles vont être retirées du tableau de bord.</item>
     </plurals>
+    <!-- The bar's position chip (PagePosition.kt) -->
+    <string name="dash_position_chip">Tableau de bord : %1$s</string>
+    <string name="dash_position_title">Aller à un tableau de bord</string>
     <!-- Every dashboard at once, with + and - (DashboardsOverview.kt) -->
     <string name="dash_dashboards">Tableaux de bord</string>
     <string name="dash_dashboards_hint">Touchez-en un pour l\'ouvrir</string>
     <string name="dash_dashboard_add">Ajouter un tableau de bord ici</string>
     <string name="dash_dashboard_removed">%1$s supprimé</string>
+    <string name="dash_remove_empty">Le vider</string>
+    <string name="dash_remove_take_out">Le retirer des balayages</string>
+    <string name="dash_bring_back_title">Rétablir %1$s ?</string>
+    <string name="dash_bring_back_body">La tuile y va et le tableau de bord revient dans les balayages.</string>
+    <string name="dash_bring_back">Rétablir</string>
+    <string name="dash_moved_to">Déplacé vers %1$s</string>
+    <string name="dash_page_removed">%1$s, hors des balayages</string>
+    <string name="dash_way_home_up">Balayez vers le haut pour l\'Accueil</string>
+    <string name="dash_way_home_down">Balayez vers le bas pour l\'Accueil</string>
+    <string name="dash_add_tile">Ajouter une tuile</string>
 </resources>

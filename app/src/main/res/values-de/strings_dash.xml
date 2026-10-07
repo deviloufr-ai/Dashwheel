@@ -11,7 +11,7 @@
 
     <!-- Top bar -->
     <string name="dash_all_apps">Alle Apps</string>
-    <string name="dash_screen_layout">Bildschirmaufteilung: %1$s</string>
+    <string name="dash_screen_layout">Position von Google Maps: %1$s</string>
     <string name="dash_more">Mehr</string>
     <string name="dash_obd_connected">OBD verbunden</string>
     <string name="dash_obd_connecting">OBD wird verbunden</string>
@@ -24,20 +24,19 @@
     <string name="dash_menu_edit_dashboards">Dashboards bearbeiten</string>
     <string name="dash_menu_done_editing">Bearbeiten beenden</string>
     <string name="dash_menu_theme">Design</string>
-    <string name="dash_menu_split_screen">Geteilter Bildschirm mit App</string>
 
     <!-- Edit bar (arranging a dashboard) -->
     <string name="dash_arranging_dashboard">%1$s anordnen</string>
-    <string name="dash_arranging_hint">Kachel halten zum Verschieben, an der Ecke ziehen zum Vergrößern.</string>
+    <string name="dash_arranging_hint">Kachel antippen für ihre Optionen, halten zum Verschieben, an der Ecke ziehen für die Größe.</string>
     <string name="dash_undo">Rückgängig</string>
-    <string name="dash_reset_page">Dashboard leeren</string>
+    <string name="dash_reset_page">Dashboard entfernen…</string>
 
     <!-- Update banner -->
     <string name="dash_update_downloading">Update wird geladen… %1$d %%</string>
     <string name="dash_update_installing">Installation wird gestartet…</string>
     <string name="dash_menu_check_updates">Nach Updates suchen</string>
     <string name="dash_update_checking">Suche nach Updates…</string>
-    <string name="dash_update_up_to_date">Dashwheel ist aktuell (v%1$s)</string>
+    <string name="dash_update_up_to_date">Dashwheel ist aktuell, v%1$s</string>
     <string name="dash_update">Aktualisieren</string>
 
     <!-- Tiles while arranging -->
@@ -71,7 +70,7 @@
 
     <!-- System app install (root) -->
     <string name="dash_system_app_title">System-App</string>
-    <string name="dash_system_app_body">Installiert Dashwheel als System-App: Android-Widgets lassen sich dann ohne Rückfrage hinzufügen. Benötigt Root oder das interne ADB auf Port %1$d. Danach neu starten.</string>
+    <string name="dash_system_app_body">Installiert Dashwheel als System-App: Android-Widgets lassen sich dann ohne Rückfrage hinzufügen. Benötigt Root oder das interne ADB auf Port %1$d, danach einen Neustart.</string>
     <string name="dash_root_checking">Root wird geprüft…</string>
     <string name="dash_root_available">Root verfügbar. Mit Magisk wird als Magisk-Modul installiert.</string>
     <string name="dash_root_missing">Kein Root. Versucht das interne ADB auf Port %1$d.</string>
@@ -81,7 +80,7 @@
     <string name="dash_system_failed">Fehlgeschlagen: %1$s</string>
 
     <!-- System app-widget picker -->
-    <string name="dash_widget_unavailable">Widget nicht verfügbar</string>
+    <string name="dash_widget_unavailable">Widget fehlt. Seine App wurde entfernt oder geändert.</string>
     <string name="dash_choose_widget">Widget auswählen</string>
     <string name="dash_no_widgets_found">Keine Widgets gefunden.</string>
 
@@ -123,12 +122,16 @@
     <!-- Screen layouts (the enum names are what gets saved) -->
     <string name="dash_layout_grid">Nur Dashboards</string>
     <string name="dash_layout_grid_desc">Wischbare Dashboards füllen den Bildschirm</string>
-    <string name="dash_layout_maps_left">Karte links</string>
+    <string name="dash_layout_maps_left">Google Maps links</string>
     <string name="dash_layout_maps_left_desc">Google Maps links angedockt, Dashboards rechts wischen</string>
-    <string name="dash_layout_maps_right">Karte rechts</string>
+    <string name="dash_layout_maps_right">Google Maps rechts</string>
     <string name="dash_layout_maps_right_desc">Google Maps rechts angedockt, Dashboards links wischen</string>
-    <string name="dash_layout_maps_top">Karte oben</string>
-    <string name="dash_layout_maps_bottom">Karte unten</string>
+    <string name="dash_layout_maps_top">Google Maps oben</string>
+    <string name="dash_layout_maps_bottom">Google Maps unten</string>
+    <string name="dash_layout_button">Layout</string>
+    <string name="dash_layout_another_app">Eine andere App neben den Dashboards…</string>
+    <string name="dash_update_dot_hint">Ein Update wartet im Menü</string>
+    <string name="dash_update_dot_menu">Der Punkt auf der Menütaste steht für dieses Update</string>
 
     <!-- The pages' places in the cross, and an empty page -->
     <string name="dash_page_home">Start</string>
@@ -139,12 +142,12 @@
     <string name="dash_page_below">Unter Start</string>
     <string name="dash_page_below2">Zwei unter Start</string>
     <string name="dash_empty_title">Hier ist noch nichts</string>
-    <string name="dash_empty_body">Kachel hinzufügen oder eine Vorlage für alle Dashboards wählen.</string>
-    <string name="dash_effects_title">Effekte</string>
-    <string name="dash_effects_none">Keine</string>
-    <string name="dash_effects_reduced">Reduziert</string>
-    <string name="dash_effects_full">Voll</string>
-    <string name="dash_effects_none_hint">Beste Lesbarkeit: deckende Karten, klare Ziffern, kein Leuchten</string>
+    <string name="dash_empty_body">Aus einer Vorlage füllen, oder Kacheln einzeln hinzufügen.</string>
+    <string name="dash_effects_title">Lesbarkeit</string>
+    <string name="dash_effects_none">Schlicht, für Sonnenlicht</string>
+    <string name="dash_effects_reduced">Sanft</string>
+    <string name="dash_effects_full">Volles Leuchten</string>
+    <string name="dash_effects_none_hint">Deckende Karten, schlichte Ziffern, kein Leuchten: lesbar in voller Sonne</string>
     <string name="dash_effects_reduced_hint">Sanfteres Leuchten, Glas bleibt</string>
     <string name="dash_effects_full_hint">Jedes Design mit seinem vollen Leuchten und Glas</string>
     <string name="dash_bar_title">Untere Leiste</string>
@@ -174,7 +177,7 @@
     <string name="dash_theme_nordic">Nordisch minimal</string>
     <string name="dash_theme_nordic_desc">Graphit und Eisblau, feine Linien, nichts Lautes</string>
     <string name="dash_theme_canvas">Canvas</string>
-    <string name="dash_theme_canvas_desc">Die Karte füllt den Bildschirm, die Fahrt auf einer Linie, Glasflächen darüber</string>
+    <string name="dash_theme_canvas_desc">Die Karte füllt den Bildschirm, die Fahrt auf einer Zeile. Standardmäßig mit Seitenleiste; in Anzeige änderbar.</string>
     <!-- Updates without a strip (⋮ dot, Settings row, ready prompt); edit-mode confirms; tile options; theme gallery -->
     <string name="dash_update_to">Auf %1$s aktualisieren</string>
     <string name="dash_update_available_detail">Neuer als v%1$s. Die Installation startet Dashwheel neu.</string>
@@ -184,12 +187,9 @@
     <string name="dash_update_now">Jetzt aktualisieren</string>
     <string name="dash_update_not_this_version">Nicht diese Version</string>
     <string name="dash_update_allow_installs">Erlaube Dashwheel, Updates zu installieren, und tippe dann erneut auf Aktualisieren</string>
-    <string name="dash_reset_confirm_title">Dieses Dashboard leeren?</string>
-    <string name="dash_reset_confirm_body">Alle Kacheln darauf verschwinden. Rückgängig holt sie zurück.</string>
     <string name="dash_dashboard_options">Dashboard-Optionen</string>
     <string name="dash_remove_dashboard_title">%1$s entfernen?</string>
-    <string name="dash_remove_dashboard_body">Seine Kacheln verschwinden mit. Rückgängig holt sie zurück.</string>
-    <string name="dash_clear">Leeren</string>
+    <string name="dash_remove_dashboard_body">Leeren, oder mit seinen Kacheln aus dem Wischen nehmen. Rückgängig holt sie zurück.</string>
     <string name="dash_theme_show_all">Alle %1$d Designs zeigen</string>
     <string name="dash_theme_show_fewer">Weniger zeigen</string>
     <string name="dash_tile_move">Auf ein anderes Dashboard</string>
@@ -200,9 +200,22 @@
         <item quantity="one">%1$s braucht Root-Zugriff, den Dashwheel auf diesem Radio nicht hat. Die Kachel wird vom Dashboard entfernt.</item>
         <item quantity="other">%1$s brauchen Root-Zugriff, den Dashwheel auf diesem Radio nicht hat. Die Kacheln werden vom Dashboard entfernt.</item>
     </plurals>
+    <!-- The bar's position chip (PagePosition.kt) -->
+    <string name="dash_position_chip">Dashboard: %1$s</string>
+    <string name="dash_position_title">Zu einem Dashboard wechseln</string>
     <!-- Every dashboard at once, with + and - (DashboardsOverview.kt) -->
     <string name="dash_dashboards">Dashboards</string>
     <string name="dash_dashboards_hint">Zum Öffnen antippen</string>
     <string name="dash_dashboard_add">Hier ein Dashboard hinzufügen</string>
     <string name="dash_dashboard_removed">%1$s entfernt</string>
+    <string name="dash_remove_empty">Leeren</string>
+    <string name="dash_remove_take_out">Aus dem Wischen nehmen</string>
+    <string name="dash_bring_back_title">%1$s zurückholen?</string>
+    <string name="dash_bring_back_body">Die Kachel kommt dorthin und das Dashboard ist wieder im Wischen.</string>
+    <string name="dash_bring_back">Zurückholen</string>
+    <string name="dash_moved_to">Verschoben nach %1$s</string>
+    <string name="dash_page_removed">%1$s, nicht im Wischen</string>
+    <string name="dash_way_home_up">Nach oben wischen für Start</string>
+    <string name="dash_way_home_down">Nach unten wischen für Start</string>
+    <string name="dash_add_tile">Kachel hinzufügen</string>
 </resources>

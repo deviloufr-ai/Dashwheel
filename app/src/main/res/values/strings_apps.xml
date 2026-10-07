@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Add-widget catalogue: section headings -->
-    <string name="apps_category_driving">DRIVING</string>
-    <string name="apps_category_navigation">NAVIGATION</string>
-    <string name="apps_category_vehicle">VEHICLE</string>
-    <string name="apps_category_info">INFO &amp; COMMS</string>
-    <string name="apps_category_apps">MEDIA &amp; APPS</string>
+    <string name="apps_category_driving">Driving</string>
+    <string name="apps_category_navigation">Navigation</string>
+    <string name="apps_category_vehicle">Vehicle</string>
+    <string name="apps_category_info">Info &amp; comms</string>
+    <string name="apps_category_apps">Media</string>
 
     <!-- Add-widget catalogue: built-in tiles (name, then one-line description) -->
     <string name="apps_kind_navmap">Map</string>
@@ -16,16 +16,16 @@
     <string name="apps_kind_pip_anchor_blurb">Docks the floating Maps window here</string>
     <string name="apps_kind_media">Music player</string>
     <string name="apps_kind_media_blurb">Now playing with controls</string>
-    <string name="apps_kind_telemetry">Telemetry</string>
+    <string name="apps_kind_telemetry">Engine gauges</string>
     <string name="apps_kind_telemetry_blurb">Speed gauge, revs, coolant, load, battery</string>
     <string name="apps_kind_obd_dtc">Fault codes</string>
     <string name="apps_kind_obd_dtc_blurb">Read and clear OBD trouble codes</string>
-    <string name="apps_kind_obd_all">All OBD data</string>
+    <string name="apps_kind_obd_all">All car data</string>
     <string name="apps_kind_obd_all_blurb">Every live OBD value</string>
     <string name="apps_kind_range">Fuel &amp; range</string>
     <string name="apps_kind_range_blurb">Tank level and km to empty</string>
     <string name="apps_kind_doors">Doors</string>
-    <string name="apps_kind_doors_blurb">Door and boot status from the MCU</string>
+    <string name="apps_kind_doors_blurb">Door and boot status from the car</string>
     <string name="apps_kind_can_mon">CAN monitor</string>
     <string name="apps_kind_can_mon_blurb">Raw CAN frames, for finding signals</string>
     <string name="apps_kind_speed_hud">Speed</string>
@@ -88,7 +88,7 @@
     <string name="apps_window_gave_up">The system keeps %1$s where it is</string>
     <string name="apps_window_moving">Moving %1$s here…</string>
     <string name="apps_window_opening">Opening %1$s here…</string>
-    <string name="apps_window_maps_hint">Google Maps docks here.\nOpen it below, or start guidance and press Home.</string>
+    <string name="apps_window_maps_hint">Google Maps docks here.\nOpen it below, or start navigation and press Home.</string>
     <string name="apps_window_app_hint">%1$s runs here, in a window the size of this tile.</string>
     <string name="apps_window_open">Open %1$s here</string>
     <string name="apps_window_open_full">Open full %1$s here</string>
@@ -106,17 +106,11 @@
     <string name="apps_add_title">Add to %1$s</string>
     <string name="apps_tab_widgets">Widgets</string>
     <string name="apps_tab_apps">Apps</string>
-    <string name="apps_tab_windows">Windows</string>
     <string name="apps_search">Search</string>
     <string name="apps_category_all">All</string>
-    <string name="apps_window_mode_single">In a window</string>
-    <string name="apps_window_mode_pair">Side by side</string>
-    <string name="apps_window_hint">The app stays open in its own window on this dashboard.</string>
-    <string name="apps_window_mode_inside">Inside the tile</string>
-    <string name="apps_window_inside_hint">The app runs inside the tile, and you touch it there.</string>
     <string name="apps_embed_app_starting">Opening %1$s</string>
     <string name="apps_embed_app_missing">%1$s is not installed</string>
-    <string name="apps_embed_app_blocked">Android did not let %1$s open here</string>
+    <string name="apps_embed_app_blocked">%1$s won\'t run inside a tile on this unit. Add it as a window instead.</string>
     <string name="apps_embed_under_dashboard">Already under the dashboard</string>
     <string name="apps_pair_pick_first">Tap the app for the left side.</string>
     <string name="apps_pair_pick_second">%1$s on the left. Now tap the app for the right side.</string>
@@ -124,9 +118,9 @@
     <string name="apps_kind_maps_inside">Google Maps inside</string>
     <string name="apps_kind_maps_inside_blurb">The real Google Maps app, running in this tile</string>
     <string name="apps_kind_dash_bar">Dashboard bar</string>
-    <string name="apps_kind_dash_bar_blurb">Your dashboards and apps, one tap each</string>
+    <string name="apps_kind_dash_bar_blurb">Your dashboards and apps, one tap each, on this dashboard</string>
     <string name="apps_most_used">Most used</string>
-    <string name="apps_kind_screen_light">Second screen light</string>
+    <string name="apps_kind_screen_light">Pi screen brightness</string>
     <string name="apps_kind_screen_light_blurb">The second screen\'s backlight, by day and at night</string>
     <string name="apps_kind_radios">Wi-Fi and Bluetooth</string>
     <string name="apps_kind_radios_blurb">Turn the head unit\'s Wi-Fi and Bluetooth on and off</string>
@@ -143,4 +137,11 @@
     <string name="apps_needs_root">Needs root</string>
     <string name="apps_needs_carbox">Needs the car box</string>
     <string name="apps_on_dashboard">On a dashboard</string>
+    <string name="apps_as_icon">Icon</string>
+    <string name="apps_as_icon_detail">Opens the app</string>
+    <string name="apps_in_tile">In a tile</string>
+    <string name="apps_in_tile_inside">Runs inside the tile, on this dashboard</string>
+    <string name="apps_in_tile_window">Stays open in a window the size of the tile</string>
+    <string name="apps_side_by_side">Side by side</string>
+    <string name="apps_side_by_side_detail">Two apps at once, in split screen</string>
 </resources>

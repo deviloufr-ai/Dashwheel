@@ -41,7 +41,7 @@
     <string name="info_agenda_needs_access">Anstehende Termine aus dem Kalender anzeigen</string>
     <string name="info_agenda_allow">Kalender erlauben</string>
     <string name="info_agenda_empty">Nichts in den nächsten 36 Stunden</string>
-    <string name="info_agenda_no_title">(Kein Titel)</string>
+    <string name="info_agenda_no_title">Ohne Titel</string>
     <string name="info_agenda_all_day">Ganztägig</string>
 
     <!-- Quick dial tile -->
@@ -97,7 +97,7 @@
     <string name="info_gforce_title">G-KRAFT</string>
     <string name="info_gforce_reset_peaks">Spitzen zurücksetzen</string>
     <string name="info_gforce_lateral">Quer</string>
-    <string name="info_gforce_accel_brake">Beschl. / Bremse</string>
+    <string name="info_gforce_accel_brake">Beschleunigung / Bremsen</string>
     <string name="info_gforce_peaks">Spitzen</string>
 
     <!-- Parking tile -->
@@ -113,7 +113,7 @@
     <string name="info_parking_map_label">Geparktes Auto</string>
     <string name="info_ago_just_now">gerade eben</string>
     <string name="info_ago_minutes">vor %1$d Min.</string>
-    <string name="info_ago_hours">vor %1$d Std. %2$d Min.</string>
+    <string name="info_ago_hours">vor %1$d Std. %2$02d Min.</string>
     <string name="info_ago_days">vor %1$d Tg.</string>
 
     <!-- Media tile (both the current and the Original theme) -->
@@ -128,7 +128,7 @@
     <string name="info_media_grant_access">Medienzugriff erlauben</string>
 
     <!-- Original theme telemetry tile -->
-    <string name="info_telemetry_title">TELEMETRIE</string>
+    <string name="info_telemetry_title">MOTORANZEIGEN</string>
     <string name="info_obd_live">Live</string>
     <string name="info_gauge_rpm">U/MIN</string>
     <string name="info_unit_rpm">U/min</string>
@@ -164,7 +164,7 @@
     <string name="info_map_rerouting">Neue Route wird gesucht</string>
     <string name="info_map_voice_on">Sprachansage an</string>
     <string name="info_map_voice_off">Sprachansage aus</string>
-    <string name="info_map_other_app">In Google Maps oder Waze führen</string>
+    <string name="info_map_other_app">In Google Maps oder Waze navigieren</string>
     <string name="info_audio_by_keys">Lautstärke über die Lautstärketasten des Radios</string>
     <string name="info_audio_unavailable">Lautstärke hier nicht einstellbar: Drehknopf benutzen</string>
     <string name="info_map_stop_title">Navigation beenden?</string>

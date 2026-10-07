@@ -1,5 +1,6 @@
 package com.openauto.dash
 
+import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,6 +12,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -18,15 +20,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Settings → Advanced → System permissions, while they aren't granted: gets
- * PMPatch3 onto the unit ([PmPatch]) in one tap, then the restart, then, if
- * Android still holds the permissions back, Dashwheel's reinstall.
+ * Settings → Advanced → Google Maps inside a tile, while it isn't set up:
+ * gets PMPatch3 onto the unit ([PmPatch]) in one tap, then the restart, then,
+ * if Android still holds the permissions back, Dashwheel's reinstall. Three
+ * steps over as many sessions, so the dialog says which one this is and
+ * keeps the furthest step reached across starts ([PmPatchSteps]).
  */
 @Composable
 internal fun PmPatchDialog(onDismiss: () -> Unit) {
@@ -36,10 +41,15 @@ internal fun PmPatchDialog(onDismiss: () -> Unit) {
     var state by remember { mutableStateOf<PmPatch.State?>(null) }
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    // The step shown: the furthest reached so far, moved on by what the unit says.
+    var step by remember { mutableIntStateOf(PmPatchSteps.load(context)) }
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) { PmPatch.state(context) }
-            .onSuccess { state = it }
+            .onSuccess {
+                state = it
+                PmPatchSteps.stepOf(it)?.let { s -> step = PmPatchSteps.reached(context, s) }
+            }
             .onFailure { error = it.message.orEmpty() }
     }
 
@@ -49,8 +59,12 @@ internal fun PmPatchDialog(onDismiss: () -> Unit) {
         scope.launch {
             val res = withContext(Dispatchers.IO) { action() }
             busy = false
-            res.onSuccess { if (then != null) state = then }
-                .onFailure { error = context.getString(R.string.dash_system_failed, it.message.orEmpty()) }
+            res.onSuccess {
+                if (then != null) {
+                    state = then
+                    PmPatchSteps.stepOf(then)?.let { s -> step = PmPatchSteps.reached(context, s) }
+                }
+            }.onFailure { error = context.getString(R.string.dash_system_failed, it.message.orEmpty()) }
         }
     }
 
@@ -58,13 +72,18 @@ internal fun PmPatchDialog(onDismiss: () -> Unit) {
         modifier = Modifier.keepClearOfWindows(),
         onDismissRequest = { if (!busy) onDismiss() },
         containerColor = DashColors.Card,
-        title = { Text(stringResource(R.string.settings_system_perms), color = DashColors.TextPrimary) },
+        title = { TitleWithHelp(stringResource(R.string.settings_system_perms), WikiPage.ROOT_PMPATCH) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                // The outcome, then the cost in its own sentence, then the way there.
+                Text(stringResource(R.string.settings_pmpatch_body), color = DashColors.TextPrimary, style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.settings_pmpatch_cost), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.settings_pmpatch_steps), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
                 Text(
-                    stringResource(R.string.settings_pmpatch_body),
-                    color = DashColors.TextSecondary,
-                    style = MaterialTheme.typography.bodyMedium
+                    stringResource(R.string.settings_pmpatch_step, step, PmPatchSteps.COUNT),
+                    color = DashColors.Accent,
+                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.labelLarge
                 )
                 val status = when (state) {
                     null -> if (error == null) stringResource(R.string.settings_pmpatch_checking) else null
@@ -108,4 +127,33 @@ internal fun PmPatchDialog(onDismiss: () -> Unit) {
             }
         }
     )
+}
+
+/**
+ * Which of the three steps (install, restart, reinstall) the setup stands
+ * at, kept across starts: the unit's state says where it is whenever it can
+ * be read, and the kept step shows meanwhile (the dialog opens before the
+ * check answers, or without a shell at that moment).
+ */
+internal object PmPatchSteps {
+    const val COUNT = 3
+    private const val PREFS = "pmpatch_steps"
+    private const val KEY_STEP = "step"
+
+    /** The step [state] stands at; null when the unit cannot take the setup at all. */
+    fun stepOf(state: PmPatch.State): Int? = when (state) {
+        PmPatch.State.ABSENT -> 1
+        PmPatch.State.RESTART -> 2
+        PmPatch.State.RUNNING -> 3
+        PmPatch.State.NO_MAGISK, PmPatch.State.OLD_MAGISK -> null
+    }
+
+    fun load(context: Context): Int =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getInt(KEY_STEP, 1).coerceIn(1, COUNT)
+
+    /** Keeps [step] as the one reached and returns it. */
+    fun reached(context: Context, step: Int): Int {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putInt(KEY_STEP, step).apply()
+        return step
+    }
 }

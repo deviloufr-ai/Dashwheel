@@ -2,7 +2,7 @@
 <resources>
     <!-- What the car says by itself: Settings -> Alerts -> Voice (HandsFreeSettings.kt) -->
     <string name="voice_section">Wat de auto zegt</string>
-    <string name="voice_warnings">Waarschuwingen en tips over de auto</string>
+    <string name="voice_warnings">Gesproken meldingen en tips</string>
     <string name="voice_warnings_detail">Motor, accu, roetfilter, pauzes, brandstof, hitte in de radio</string>
     <string name="voice_messages">Berichten</string>
     <string name="voice_messages_detail">Toont en zegt van wie een bericht is.</string>
@@ -23,7 +23,7 @@
     <string name="voice_status_range">Nog brandstof voor ongeveer %1$d kilometer.</string>
     <string name="voice_status_no_faults">Geen foutcode.</string>
     <string name="voice_status_nothing">Niets te melden.</string>
-    <string name="voice_quiet_on">Stil tot de volgende start. Dringende waarschuwingen worden nog gezegd.</string>
+    <string name="voice_quiet_on">Stil tot de volgende start. Dringende meldingen worden nog gezegd.</string>
     <string name="voice_quiet_off">De stem is weer aan.</string>
     <string name="voice_no_position">De positie is nog niet bekend.</string>
     <string name="voice_no_fuel_prices">Geen brandstofprijzen in deze buurt.</string>

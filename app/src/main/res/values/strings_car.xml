@@ -28,7 +28,10 @@
     <!-- Particle filter -->
     <string name="car_filter_title">PARTICLE FILTER</string>
     <string name="car_filter_none">This car has no particle filter. Change it in Settings → Car → My car.</string>
-    <string name="car_filter_short_unit">short drives in a row</string>
+    <plurals name="car_filter_short_unit">
+        <item quantity="one">short drive</item>
+        <item quantity="other">short drives in a row</item>
+    </plurals>
     <string name="car_filter_ok">Filter cleaning normally</string>
     <string name="car_filter_needs_drive">Plan a 20 min drive above 60 km/h</string>
     <string name="car_filter_needs_drive_now">Filter needs a long drive soon</string>
@@ -67,9 +70,9 @@
     <string name="car_eco_fair">Fair: a bit abrupt</string>
     <string name="car_eco_harsh">Harsh: ease off</string>
     <string name="car_eco_band">Revs in %1$d–%2$d rpm</string>
-    <string name="car_eco_hard">Hard accel. / braking</string>
+    <string name="car_eco_hard">Hard acceleration / braking</string>
     <string name="car_eco_hard_value">%1$d / %2$d</string>
-    <string name="car_eco_clutch">Held on the throttle</string>
+    <string name="car_eco_clutch">Held on a hill with the accelerator</string>
     <string name="car_eco_fuel">Fuel for %1$s km</string>
     <string name="car_eco_fuel_value">≈ %1$s L · %2$s %3$s</string>
 
@@ -125,7 +128,7 @@
     <string name="car_fetch_needs_key">Add a Gemini key in Settings, Car, AI mechanic to fill the specs</string>
     <string name="car_section_engine">Engine</string>
     <string name="car_section_gearbox">Gearbox</string>
-    <string name="car_section_upkeep">Upkeep</string>
+    <string name="car_section_upkeep">Servicing</string>
     <string name="car_section_fuel_price">Fuel price</string>
     <string name="car_section_notes">Known weak points</string>
     <string name="car_spec_power">Power (hp)</string>
@@ -141,18 +144,21 @@
     <string name="car_spec_gearbox_name">Gearbox name</string>
     <string name="car_spec_gears">Gears</string>
     <string name="car_spec_tank">Tank (L)</string>
-    <string name="car_spec_consumption">Usual use (L/100 km)</string>
+    <string name="car_spec_consumption">Usual consumption (L/100 km)</string>
     <string name="car_spec_oil_capacity">Oil (L)</string>
     <string name="car_spec_oil_spec">Oil grade</string>
-    <string name="car_spec_service_km">Service every (km)</string>
-    <string name="car_spec_service_months">or (months)</string>
+    <string name="car_service_interval">Service every %1$s km or %2$d months</string>
+    <string name="car_service_interval_km">Service every %1$s km</string>
+    <string name="car_service_interval_months">Service every %1$d months</string>
+    <string name="car_service_interval_unknown">Service interval not set</string>
+    <string name="car_service_from_servicing">Change it in Servicing</string>
     <string name="car_spec_timing">Timing belt / chain</string>
     <string name="car_spec_tyre_size">Tyre size</string>
     <string name="car_spec_tyre_front">Front (bar)</string>
     <string name="car_spec_tyre_rear">Rear (bar)</string>
     <string name="car_spec_fuel_price">Price per litre</string>
     <string name="car_spec_currency">Currency</string>
-    <string name="car_reset_preset">Back to the preset (C4 Picasso 1.6 HDi BMP6)</string>
+    <string name="car_reset_preset">Reset to the preset: C4 Picasso 1.6 HDi BMP6</string>
     <string name="car_save">Save</string>
 
     <!-- AI mechanic settings -->
@@ -160,9 +166,9 @@
     <string name="car_ai_car_detail">%1$s. Change it in Settings → Car → My car.</string>
 
     <!-- Spoken by CarCare, in the mechanic's language -->
-    <string name="car_say_cold_revs">The engine is still cold. Keep it under %1$d rpm for a few more minutes.</string>
+    <string name="car_say_cold_revs">The engine is still cold. Keep it under %1$d revs for a few more minutes.</string>
     <string name="car_say_clutch_hold">Hold the car with the brake, not the accelerator. It wears the clutch of this gearbox.</string>
-    <string name="car_say_filter">Your last %1$d drives were short. When you can, drive 15 to 20 minutes above 60 km/h so the particle filter can clean itself.</string>
+    <string name="car_say_filter">Your last %1$d drives were short. When you can, drive 15 to 20 minutes above 60 kilometres an hour so the particle filter can clean itself.</string>
     <string name="car_say_filter_regen">The particle filter is cleaning itself. If you can, keep driving for about 10 more minutes at a steady speed.</string>
     <string name="car_say_filter_regen_standing">The particle filter is still cleaning. If you can, drive a few more minutes before switching off.</string>
     <string name="car_say_filter_soot">The particle filter is %1$d percent full. Try to plan a 20-minute drive on a fast road soon.</string>
@@ -184,9 +190,9 @@
     <string name="car_spec_driver_side">Driver on the right</string>
     <string name="car_spec_driver_side_detail">Right-hand drive: templates put the main tiles on the right</string>
     <string name="car_battery_trip_range">This trip: %1$s to %2$s V</string>
-    <string name="car_kind_status">Car status</string>
+    <string name="car_kind_status">Car lights and odometer</string>
     <string name="car_kind_status_blurb">Lights, mileage, trip and consumption from the car</string>
-    <string name="car_status_title">CAR STATUS</string>
+    <string name="car_status_title">LIGHTS AND ODOMETER</string>
     <string name="car_status_waiting">Waiting for the car\'s data</string>
     <string name="car_status_lights">Lights</string>
     <string name="car_status_lights_off">Off</string>

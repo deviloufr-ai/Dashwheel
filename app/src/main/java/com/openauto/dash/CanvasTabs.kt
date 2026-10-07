@@ -35,6 +35,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Checklist
+import androidx.compose.material.icons.filled.Eco
+import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Home
@@ -98,7 +101,7 @@ import org.json.JSONObject
  */
 
 /** A tab's suggested name, with its icon. */
-internal enum class TabPreset(@StringRes val labelRes: Int, val icon: ImageVector) {
+enum class TabPreset(@StringRes val labelRes: Int, val icon: ImageVector) {
     MAP(R.string.canvas_tab_map, Icons.Filled.Map),
     MEDIA(R.string.canvas_tab_media, Icons.Filled.MusicNote),
     CAR(R.string.canvas_tab_car, Icons.Filled.DirectionsCar),
@@ -106,7 +109,10 @@ internal enum class TabPreset(@StringRes val labelRes: Int, val icon: ImageVecto
     TRIP(R.string.canvas_tab_trip, Icons.Filled.Place),
     PHONE(R.string.canvas_tab_phone, Icons.Filled.Phone),
     WEATHER(R.string.canvas_tab_weather, Icons.Filled.Cloud),
-    SERVICE(R.string.canvas_tab_service, Icons.Filled.Build)
+    SERVICE(R.string.canvas_tab_service, Icons.Filled.Build),
+    ENGINE(R.string.canvas_tab_engine, Icons.Filled.Speed),
+    CHECKS(R.string.canvas_tab_checks, Icons.Filled.Checklist),
+    ECO(R.string.canvas_tab_eco, Icons.Filled.Eco)
 }
 
 /** When a tab comes up by itself. One tab per moment. */
@@ -156,9 +162,10 @@ internal fun pageName(page: Int): String {
 internal const val PARKED_HOLD_MS = 2 * 60_000L
 
 /**
- * The dashboard bar's content: its dashboards, one list per layout (the
- * Canvas tabs over an app, or the named pages of a cross), and its apps,
+ * The dashboard bar's content: its dashboards, the named pages of the cross
+ * (one list per screen direction, as the pages themselves), and its apps,
  * the same everywhere. Shown by the Canvas rail and the Dashboard bar widget.
+ * Over an app the same dashboards are tabs in the rail instead of swipes.
  */
 internal object CanvasTabs {
 
@@ -166,6 +173,7 @@ internal object CanvasTabs {
     private const val PREFS = "canvas_tabs"
     private const val KEY_APP = "map_app"
     private const val KEY_APPS = "apps"
+    /** The Canvas tabs' own list until 2026-10, when they kept their own pages; read once by [mergeLegacy]. */
     private const val TABS_KEY = "tabs"
     private const val BAR_KEY = "bar"
 
@@ -218,19 +226,46 @@ internal object CanvasTabs {
         prefs?.edit()?.putString(KEY_APPS, apps.joinToString(","))?.apply()
     }
 
-    /** Where a layout variant's dashboards are kept: the Canvas tabs keep the key they always had. */
-    fun keyFor(variant: String): String =
-        if (variant.contains(DashboardStore.TABS_VARIANT)) TABS_KEY else BAR_KEY + variant
+    /** Where a screen direction's dashboards are kept ([variant] is DashboardStore's: "" or "_v"). */
+    fun keyFor(variant: String): String = BAR_KEY + variant
 
     /**
-     * The dashboards for [key]: the saved ones, else the first ones. For the
-     * Canvas tabs, [defaultTabs]; for a cross, its pages with tiles on them,
-     * Home first, each called by its place. A cross shows only its dashboards,
-     * so Home and every page holding tiles are always among them: nothing
-     * placed is ever out of reach, and an Undo brings a removed one back.
+     * The dashboards for [key]: the saved ones, else the pages with tiles on
+     * them, Home first, each called by its place. The cross shows only its
+     * dashboards, so Home and every page holding tiles are always among them:
+     * nothing placed is ever out of reach, and an Undo brings a removed one back.
      */
     fun tabsFor(key: String, lists: Map<String, List<CanvasTab>>, pages: List<List<*>>): List<CanvasTab> =
-        if (key == TABS_KEY) lists[key] ?: defaultTabs() else withEveryPage(lists[key] ?: crossTabs(pages), pages)
+        withEveryPage(lists[key] ?: crossTabs(pages), pages)
+
+    /**
+     * The legacy lists folded into the one per direction, with the pages
+     * (DashboardStore.mergeLegacyVariants): for each direction whose pages
+     * came from the copy the user last used ([suffix]), that copy's names
+     * come too: the Canvas tabs' own list (or their first names) over an app,
+     * else the list kept beside that copy. The legacy lists then go.
+     */
+    fun mergeLegacy(suffix: String, directions: Set<String>) {
+        val p = prefs ?: return
+        val edit = p.edit()
+        for (direction in directions) {
+            val legacy = if (suffix == DashboardStore.LEGACY_TABS) _lists.value[TABS_KEY] ?: legacyTabs()
+                else _lists.value[BAR_KEY + direction + suffix] ?: continue
+            edit.putString(keyFor(direction), serialize(legacy))
+            _lists.value = _lists.value + (keyFor(direction) to legacy)
+        }
+        val gone = _lists.value.keys.filter { it == TABS_KEY || it.endsWith(DashboardStore.LEGACY_HALF) || it.endsWith(DashboardStore.LEGACY_CANVAS) || it.endsWith(DashboardStore.LEGACY_TABS) }
+        gone.forEach { edit.remove(it) }
+        _lists.value = _lists.value - gone.toSet()
+        edit.apply()
+    }
+
+    /** [tabs] with the dashboard of [page] called by [preset] (a template's name for it); a name the driver typed goes with the old tiles. */
+    fun named(tabs: List<CanvasTab>, page: Int, preset: TabPreset?): List<CanvasTab> {
+        if (preset == null) return tabs
+        val at = tabs.indexOfFirst { it.page == page }
+        return if (at < 0) tabs + CanvasTab(page, preset) else tabs.mapIndexed { i, t -> if (i == at) t.copy(preset = preset, name = null) else t }
+    }
 
     /** [tabs] with Home first when it is missing, and the pages with tiles that have no dashboard after them. */
     private fun withEveryPage(tabs: List<CanvasTab>, pages: List<List<*>>): List<CanvasTab> {
@@ -240,9 +275,6 @@ internal object CanvasTabs {
         return home + tabs + (missing - home.toSet())
     }
 
-    /** Whether [key] is a cross's (pages swiped), not the Canvas tabs. */
-    fun isCross(key: String): Boolean = key != TABS_KEY
-
     /** The pages of a cross with tiles on them, Home first then round the cross, unnamed. */
     fun crossTabs(pages: List<List<*>>): List<CanvasTab> =
         CROSS_ORDER.filter { it == DashboardStore.CENTER || pages.getOrNull(it)?.isNotEmpty() == true }.map { CanvasTab(it) }
@@ -250,8 +282,8 @@ internal object CanvasTabs {
     /** Home, then left and right of it, then above and below. */
     private val CROSS_ORDER = listOf(DashboardStore.CENTER, 0, 2, 4, 3, 5, 6)
 
-    /** The first tabs, matching [DashboardStore.tabsPages]; a new fault brings up Car. */
-    fun defaultTabs(): List<CanvasTab> = listOf(
+    /** The Canvas tabs' first names until 2026-10 (their pages 0 to 3), for [mergeLegacy] when none were saved. */
+    internal fun legacyTabs(): List<CanvasTab> = listOf(
         CanvasTab(0, TabPreset.MAP),
         CanvasTab(1, TabPreset.MEDIA),
         CanvasTab(2, TabPreset.CAR, trigger = TabTrigger.ENGINE_FAULT),
@@ -388,8 +420,9 @@ internal val LocalDashBar = compositionLocalOf<DashBarModel?> { null }
 
 /**
  * The bar's dashboards, then its apps after a line, in a column or a row
- * ([vertical]), scrolling when they overflow. A tap shows a dashboard or
- * opens an app; held (or tapped while [editing]) it opens its sheet.
+ * ([vertical]), scrolling when they overflow. A tap shows a dashboard, in
+ * every mode, or opens an app; held (an app also tapped while [editing]) it
+ * opens its sheet.
  * [trailing] ends the list (the rail's + while arranging).
  */
 @Composable
@@ -412,7 +445,8 @@ private fun DashBarItems(
                 label = tab.label(context),
                 width = tabWidth,
                 active = tab.page == m.currentPage,
-                onTap = { tap(); if (editing) m.onOpenTab(index) else m.onSelect(tab) },
+                // A tap shows it, arranging or not; held, its sheet.
+                onTap = { tap(); m.onSelect(tab) },
                 onHold = { tap(); m.onOpenTab(index) }
             )
         }
@@ -595,8 +629,9 @@ internal fun DashBarAddChooser(canAddDashboard: Boolean, onDashboard: () -> Unit
     }
 }
 
+/** One choice in a sheet: an icon on a disc, its name and a line about it. */
 @Composable
-private fun ChooserRow(icon: ImageVector, title: String, detail: String, onClick: () -> Unit) {
+internal fun ChooserRow(icon: ImageVector, title: String, detail: String, onClick: () -> Unit) {
     val tap = rememberTapFeedback()
     Row(
         modifier = Modifier
@@ -696,12 +731,32 @@ internal fun DashboardSheet(
         }
         Spacer(Modifier.height(4.dp))
         Text(stringResource(R.string.canvas_tab_when), color = DashColors.TextSecondary, style = MaterialTheme.typography.labelLarge)
+        // A moment another dashboard already has says so on its chip, and is asked for before it changes hands.
+        var takeFrom by remember { mutableStateOf<Pair<TabTrigger, CanvasTab>?>(null) }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             TabTrigger.entries.forEach { t ->
-                SheetChip(stringResource(t.labelRes), null, selected = t == trigger) { trigger = if (trigger == t) null else t }
+                val holder = others.firstOrNull { it.trigger == t }
+                val text = if (holder != null && t != trigger) stringResource(R.string.canvas_when_taken, stringResource(t.labelRes), holder.label(context))
+                    else stringResource(t.labelRes)
+                SheetChip(text, null, selected = t == trigger) {
+                    when {
+                        trigger == t -> trigger = null
+                        holder != null -> takeFrom = t to holder
+                        else -> trigger = t
+                    }
+                }
             }
         }
         Text(stringResource(R.string.canvas_tab_when_hint), color = DashColors.Muted, style = MaterialTheme.typography.bodySmall)
+        takeFrom?.let { (t, holder) ->
+            ConfirmDialog(
+                title = stringResource(R.string.canvas_when_take_title, stringResource(t.labelRes), holder.label(context)),
+                body = stringResource(R.string.canvas_when_take_body),
+                action = stringResource(R.string.canvas_when_take),
+                onConfirm = { trigger = t; takeFrom = null },
+                onDismiss = { takeFrom = null }
+            )
+        }
     }
 }
 

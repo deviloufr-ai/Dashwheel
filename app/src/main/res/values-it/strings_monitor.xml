@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="monitor_kind">Autoradio</string>
+    <string name="monitor_kind">Monitor autoradio</string>
     <string name="monitor_kind_blurb">Processore, memoria, temperatura e le app più attive</string>
     <string name="monitor_cpu">CPU</string>
     <string name="monitor_ram">RAM</string>
@@ -29,7 +29,7 @@
     <string name="gear_needs_data">Serve l\'adattatore OBD o la centralina CAN</string>
     <string name="design_gear_gate">Griglia marce</string>
     <string name="design_gear_gate_desc">Le marce in fila, quella inserita accesa</string>
-    <string name="monitor_title">AUTORADIO</string>
+    <string name="monitor_title">MONITOR AUTORADIO</string>
     <string name="gear_title">MARCIA</string>
     <plurals name="monitor_cores">
         <item quantity="one">%1$d core</item>

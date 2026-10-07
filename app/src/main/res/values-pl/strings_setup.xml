@@ -29,7 +29,7 @@
     <string name="setup_access_calendar">Kalendarz</string>
     <string name="setup_access_calendar_detail">Dzisiejsze spotkania w agendzie</string>
     <string name="setup_access_obd">Adapter OBD</string>
-    <string name="setup_access_obd_detail">Dane silnika, paliwo i kody usterek przez Bluetooth</string>
+    <string name="setup_access_obd_detail">Odczyty silnika, paliwo i kody usterek przez Bluetooth</string>
     <string name="setup_access_phone">Telefon</string>
     <string name="setup_access_phone_detail">Wiadomości, połączenia i kalendarz z telefonu</string>
     <string name="setup_allow">Zezwól</string>

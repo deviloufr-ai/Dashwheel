@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Add-widget catalogue: section headings -->
-    <string name="apps_category_driving">CONDUÇÃO</string>
-    <string name="apps_category_navigation">NAVEGAÇÃO</string>
-    <string name="apps_category_vehicle">VEÍCULO</string>
-    <string name="apps_category_info">INFO E COMUNICAÇÃO</string>
-    <string name="apps_category_apps">MULTIMÉDIA E APPS</string>
+    <string name="apps_category_driving">Condução</string>
+    <string name="apps_category_navigation">Navegação</string>
+    <string name="apps_category_vehicle">Veículo</string>
+    <string name="apps_category_info">Info e comunicações</string>
+    <string name="apps_category_apps">Media</string>
 
     <!-- Add-widget catalogue: built-in tiles (name, then one-line description) -->
     <string name="apps_kind_navmap">Mapa</string>
@@ -16,16 +16,16 @@
     <string name="apps_kind_pip_anchor_blurb">Fixa aqui a janela flutuante do Maps</string>
     <string name="apps_kind_media">Leitor de música</string>
     <string name="apps_kind_media_blurb">A reproduzir, com controlos</string>
-    <string name="apps_kind_telemetry">Telemetria</string>
+    <string name="apps_kind_telemetry">Mostradores do motor</string>
     <string name="apps_kind_telemetry_blurb">Velocidade, rotações, líquido refrig., carga, bateria</string>
     <string name="apps_kind_obd_dtc">Códigos de avaria</string>
     <string name="apps_kind_obd_dtc_blurb">Ler e apagar códigos de avaria OBD</string>
-    <string name="apps_kind_obd_all">Todos os dados OBD</string>
+    <string name="apps_kind_obd_all">Todos os dados do carro</string>
     <string name="apps_kind_obd_all_blurb">Todos os valores OBD em tempo real</string>
     <string name="apps_kind_range">Combustível e autonomia</string>
     <string name="apps_kind_range_blurb">Nível do depósito e km restantes</string>
     <string name="apps_kind_doors">Portas</string>
-    <string name="apps_kind_doors_blurb">Estado das portas e da mala (MCU)</string>
+    <string name="apps_kind_doors_blurb">Estado das portas e da mala, do carro</string>
     <string name="apps_kind_can_mon">Monitor CAN</string>
     <string name="apps_kind_can_mon_blurb">Tramas CAN em bruto, para encontrar sinais</string>
     <string name="apps_kind_speed_hud">Velocidade</string>
@@ -107,17 +107,11 @@
     <string name="apps_add_title">Adicionar a %1$s</string>
     <string name="apps_tab_widgets">Widgets</string>
     <string name="apps_tab_apps">Apps</string>
-    <string name="apps_tab_windows">Janelas</string>
     <string name="apps_search">Procurar</string>
     <string name="apps_category_all">Tudo</string>
-    <string name="apps_window_mode_single">Numa janela</string>
-    <string name="apps_window_mode_pair">Lado a lado</string>
-    <string name="apps_window_hint">A app fica aberta na sua própria janela neste painel.</string>
-    <string name="apps_window_mode_inside">No mosaico</string>
-    <string name="apps_window_inside_hint">A app corre dentro do mosaico e toca-se aí.</string>
     <string name="apps_embed_app_starting">A abrir %1$s</string>
     <string name="apps_embed_app_missing">%1$s não está instalada</string>
-    <string name="apps_embed_app_blocked">O Android não deixou abrir %1$s aqui</string>
+    <string name="apps_embed_app_blocked">%1$s não corre dentro de um mosaico nesta unidade. Adicione-o como janela.</string>
     <string name="apps_embed_under_dashboard">Já está sob o painel</string>
     <string name="apps_pair_pick_first">Toque na app para o lado esquerdo.</string>
     <string name="apps_pair_pick_second">%1$s à esquerda. Agora toque na app para o lado direito.</string>
@@ -125,9 +119,9 @@
     <string name="apps_kind_maps_inside">Google Maps integrado</string>
     <string name="apps_kind_maps_inside_blurb">A verdadeira app Google Maps, neste bloco</string>
     <string name="apps_kind_dash_bar">Barra de painéis</string>
-    <string name="apps_kind_dash_bar_blurb">Os seus painéis e apps, com um toque</string>
+    <string name="apps_kind_dash_bar_blurb">Os seus painéis e aplicações, um toque cada, neste painel</string>
     <string name="apps_most_used">As mais usadas</string>
-    <string name="apps_kind_screen_light">Luz do segundo ecrã</string>
+    <string name="apps_kind_screen_light">Brilho do ecrã Pi</string>
     <string name="apps_kind_screen_light_blurb">A retroiluminação do segundo ecrã, de dia e de noite</string>
     <string name="apps_kind_radios">Wi-Fi e Bluetooth</string>
     <string name="apps_kind_radios_blurb">Ligue e desligue o Wi-Fi e o Bluetooth do rádio</string>
@@ -143,4 +137,11 @@
     <string name="apps_needs_root">Precisa de root</string>
     <string name="apps_needs_carbox">Precisa da caixa do carro</string>
     <string name="apps_on_dashboard">Já num painel</string>
+    <string name="apps_as_icon">Ícone</string>
+    <string name="apps_as_icon_detail">Abre a aplicação</string>
+    <string name="apps_in_tile">Num mosaico</string>
+    <string name="apps_in_tile_inside">Corre dentro do mosaico, neste painel</string>
+    <string name="apps_in_tile_window">Fica aberta numa janela do tamanho do mosaico</string>
+    <string name="apps_side_by_side">Lado a lado</string>
+    <string name="apps_side_by_side_detail">Duas aplicações ao mesmo tempo, em ecrã dividido</string>
 </resources>

@@ -2,7 +2,7 @@
 <resources>
     <!-- What the car says by itself: Settings -> Alerts -> Voice (HandsFreeSettings.kt) -->
     <string name="voice_section">Cosa dice l\'auto</string>
-    <string name="voice_warnings">Avvisi e consigli dell\'auto</string>
+    <string name="voice_warnings">Avvisi e consigli vocali</string>
     <string name="voice_warnings_detail">Motore, batteria, filtro antiparticolato, pause, carburante, calore dell\'autoradio</string>
     <string name="voice_messages">Messaggi</string>
     <string name="voice_messages_detail">Mostra e dice da chi arriva un messaggio.</string>

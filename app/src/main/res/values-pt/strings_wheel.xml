@@ -7,7 +7,8 @@
         <item quantity="one">%1$d botão atribuído</item>
         <item quantity="other">%1$d botões atribuídos</item>
     </plurals>
-    <string name="wheel_explanation">Prima cada botão do volante. Um novo entra no mapa, um conhecido acende a verde. Toque num botão para lhe dar nome, posição e escolher o que faz.</string>
+    <string name="wheel_explanation">Prima cada botão do volante: um novo entra no mapa, um conhecido acende a verde.</string>
+    <string name="wheel_explanation_tap">Toque num botão para lhe dar nome, posição e escolher o que faz.</string>
     <string name="wheel_confirm_detail">%1$s foi detetado. Prima-o mais uma vez para o Dashwheel saber que foi você: um valor do carro que muda sozinho não volta a aparecer quando pedido.</string>
     <string name="wheel_assign_prompt">O que deve fazer %1$s?</string>
     <string name="wheel_choose_app">Abrir uma app…</string>
@@ -33,7 +34,7 @@
     <string name="wheel_action_quick_settings">Definições rápidas</string>
     <string name="wheel_action_toggle_split">Ecrã dividido sim / não</string>
     <string name="wheel_action_screenshot">Captura de ecrã</string>
-    <string name="wheel_action_play_pause">Reproduzir / Pausa</string>
+    <string name="wheel_action_play_pause">Reproduzir/pausa</string>
     <string name="wheel_action_next">Faixa seguinte</string>
     <string name="wheel_action_previous">Faixa anterior</string>
     <string name="wheel_action_volume_up">Aumentar volume</string>

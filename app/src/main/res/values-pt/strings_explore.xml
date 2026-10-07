@@ -16,7 +16,7 @@
     <string name="explore_verified">Leituras confirmadas</string>
     <string name="explore_none_verified">Nenhuma ainda. Ligue o adaptador com o motor a trabalhar e procure.</string>
     <string name="explore_results">Testadas</string>
-    <string name="explore_forget">Esquecer tudo</string>
+    <string name="explore_forget">Repor tudo</string>
     <string name="explore_v_no_answer">sem resposta</string>
     <string name="explore_v_refused">recusado</string>
     <string name="explore_v_unreadable">ilegível</string>

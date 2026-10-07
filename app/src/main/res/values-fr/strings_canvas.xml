@@ -40,4 +40,11 @@
     <string name="canvas_tab_where">Emplacement</string>
     <string name="canvas_tab_create">Créer</string>
     <string name="canvas_bar_app_remove">Retirer de la barre</string>
+    <string name="canvas_tab_engine">Moteur</string>
+    <string name="canvas_tab_checks">Contrôles</string>
+    <string name="canvas_tab_eco">Éco</string>
+    <string name="canvas_when_taken">%1$s : actuellement sur %2$s</string>
+    <string name="canvas_when_take_title">Retirer %1$s à %2$s ?</string>
+    <string name="canvas_when_take_body">Il ne s\'affichera plus tout seul là-bas.</string>
+    <string name="canvas_when_take">Retirer</string>
 </resources>

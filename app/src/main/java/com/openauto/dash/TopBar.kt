@@ -49,7 +49,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.RestartAlt
+import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SpaceDashboard
 import androidx.compose.material.icons.filled.Splitscreen
@@ -84,6 +84,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
@@ -209,19 +210,25 @@ internal fun StandardTopBar(m: TopBarModel) {
             // An upright screen, or half of a split one: no room to keep the
             // clock centred, so the left side takes only what its buttons need.
             val narrow = maxWidth < NARROW_BAR
+            // The same two words under every look: Apps and Layout, wherever the bar is wide enough.
+            val labels = maxWidth >= LABELLED_BAR
             // The driver's own readouts (Settings, Display) replace the theme's middle and end.
             val chosen by BarItems.items.collectAsState()
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Row(modifier = if (narrow || chosen != null) Modifier else Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
                     BarButton(
                         onClick = m.onApps,
-                        label = if (narrow) null else stringResource(R.string.dash_apps),
+                        label = if (labels) stringResource(R.string.dash_apps) else null,
                         description = stringResource(R.string.dash_all_apps)
                     ) {
                         Icon(Icons.Filled.Apps, contentDescription = null, tint = DashColors.TextPrimary, modifier = Modifier.size(28.dp))
                     }
                     LayoutPicker(m) { open ->
-                        BarButton(onClick = open, description = stringResource(R.string.dash_screen_layout, m.layout.title)) {
+                        BarButton(
+                            onClick = open,
+                            label = if (labels) stringResource(R.string.dash_layout_button) else null,
+                            description = stringResource(R.string.dash_screen_layout, m.layout.title)
+                        ) {
                             LayoutIcon(m.layout, null, DashColors.TextSecondary, Modifier.size(28.dp))
                         }
                     }
@@ -229,7 +236,9 @@ internal fun StandardTopBar(m: TopBarModel) {
                 }
 
                 chosen?.let { items ->
-                    // The readouts take all the room the end leaves them; what doesn't fit is left out.
+                    // Where the dashboards stand, then the readouts, which take all the
+                    // room the end leaves them; what doesn't fit is left out.
+                    PagePositionChip(Modifier.padding(start = 8.dp))
                     BarReadouts(items, m, Modifier.weight(1f).padding(horizontal = 8.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         if (m.demo) Box(Modifier.padding(end = 6.dp)) { DemoBadge(onStop = m.onDemo, compact = true) }
@@ -250,13 +259,15 @@ internal fun StandardTopBar(m: TopBarModel) {
                 // Whether there is a speed, not the speed: read here, every reading of
                 // the car recomposed the whole bar for the length of the drive.
                 val cluster = DashColors.BarStyle == DashBarStyle.CLUSTER && rememberHasSpeed(m.obdConnection)
-                Box(modifier = Modifier.padding(horizontal = 8.dp), contentAlignment = Alignment.Center) {
+                Row(modifier = Modifier.padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     when {
                         cluster -> ClusterReadout(m)
                         // The head unit's status bar shows the time while it is up.
                         // A clock tile in sight already tells the time.
                         !m.merged && !ClockInSight.on.value -> BarClock(m.clock)
                     }
+                    // Which dashboard is on screen, beside the time: the one cue the fading cross leaves behind.
+                    PagePositionChip(Modifier.padding(start = 10.dp))
                 }
 
                 // ⋮ and the OBD pill get their room first, whatever else is on
@@ -327,6 +338,9 @@ private fun GeminiBarButton() {
 
 /** Under this width a bar stops centring its clock and shortens its badges. */
 internal val NARROW_BAR = 900.dp
+
+/** From this width every look's bar writes "Apps" and "Layout" beside their icons. */
+internal val LABELLED_BAR = 720.dp
 
 /** Who gets room first at the bar's end ([BarEnd]); lowest first. */
 internal object BarRank {
@@ -551,8 +565,11 @@ private fun SegmentBar(label: String, fraction: Float, hot: Boolean, value: Stri
 }
 
 /**
- * Layout picker around any [anchor] a skin draws: the anchor gets an `open`
- * callback, the menu offers all three layouts with the current one checked.
+ * The Layout menu around any [anchor] a skin draws: the anchor gets an `open`
+ * callback, the menu offers the three ways of sharing the screen with Google
+ * Maps, the current one checked, and under them the system's split screen
+ * with any other app. One door for both: the bar's button is the only place
+ * the screen is divided from.
  */
 @Composable
 internal fun LayoutPicker(m: TopBarModel, anchor: @Composable (open: () -> Unit) -> Unit) {
@@ -573,6 +590,15 @@ internal fun LayoutPicker(m: TopBarModel, anchor: @Composable (open: () -> Unit)
                     }
                 )
             }
+            HorizontalDivider(color = DashColors.Line, modifier = Modifier.padding(vertical = 4.dp))
+            DashMenuItem(
+                text = stringResource(R.string.dash_layout_another_app),
+                leading = { MenuIcon(Icons.Filled.Splitscreen) },
+                onClick = {
+                    open = false
+                    m.onSplit()
+                }
+            )
         }
     }
 }
@@ -876,9 +902,15 @@ internal fun MorePicker(m: TopBarModel, geminiInBar: Boolean = false, anchor: @C
         }
     }
     val offered = m.update is UpdateStatus.Available || m.update is UpdateStatus.Ready
+    val context = LocalContext.current
     Box(Modifier.tourTarget(TourTarget.MENU)) {
-        anchor { open = true }
-        // A newer build waits behind the menu: a dot on its corner says so.
+        anchor {
+            // Opening the menu shows what the dot meant: the hint has done its job.
+            if (offered) BarHints.updateDotExplained(context)
+            open = true
+        }
+        // A newer build waits behind the menu: a dot on its corner says so, and
+        // the first time, a line over the button says what the dot means.
         if (offered) {
             Box(
                 modifier = Modifier
@@ -889,6 +921,7 @@ internal fun MorePicker(m: TopBarModel, geminiInBar: Boolean = false, anchor: @C
                     .background(DashColors.Accent)
                     .semantics { contentDescription = "" }
             )
+            UpdateDotHint()
         }
         DashMenu(open, onDismiss = { open = false }) {
             if (m.moving) DriveLockRow()
@@ -901,9 +934,8 @@ internal fun MorePicker(m: TopBarModel, geminiInBar: Boolean = false, anchor: @C
                 onClick = pick(m.onToggleEdit)
             )
             DashMenuItem(stringResource(R.string.templates_button), leading = { MenuIcon(Icons.Filled.Dashboard, parked) }, enabled = parked, onClick = pick(m.onTemplates))
-            DashMenuItem(stringResource(R.string.dash_menu_split_screen), leading = { MenuIcon(Icons.Filled.Splitscreen) }, onClick = pick(m.onSplit))
+            // Splitting the screen with an app is in the bar's Layout menu, with Google Maps' dock.
             // Spoken, so offered while driving too; here only when the look's bar has no button for it.
-            val context = LocalContext.current
             if (!geminiInBar && GeminiLive.available(context)) {
                 DashMenuItem(stringResource(R.string.ai_gemini_live), leading = { MenuIcon(Icons.Filled.AutoAwesome) }, onClick = pick { GeminiLive.toggle(context) })
             }
@@ -926,6 +958,78 @@ internal fun MorePicker(m: TopBarModel, geminiInBar: Boolean = false, anchor: @C
                     onClick = pick(m.onDemo)
                 )
             }
+        }
+    }
+}
+
+/** One-time hints of the bar, remembered across starts. */
+internal object BarHints {
+    private const val PREFS = "bar_hints"
+    private const val KEY_UPDATE_DOT = "update_dot_explained"
+
+    /** Whether the line over ⋮ saying what its dot means has been shown (or the menu opened with the dot on). */
+    fun isUpdateDotExplained(context: android.content.Context): Boolean =
+        context.getSharedPreferences(PREFS, android.content.Context.MODE_PRIVATE).getBoolean(KEY_UPDATE_DOT, false)
+
+    fun updateDotExplained(context: android.content.Context) {
+        context.getSharedPreferences(PREFS, android.content.Context.MODE_PRIVATE).edit().putBoolean(KEY_UPDATE_DOT, true).apply()
+    }
+}
+
+/** How long the line over ⋮ explaining its dot stays, the first time the dot shows. */
+internal const val UPDATE_DOT_HINT_MS = 8_000L
+
+/**
+ * Over the ⋮ button, the first time its dot appears: one line saying what
+ * it means (an update waits in the menu). Goes by itself after
+ * [UPDATE_DOT_HINT_MS], and never comes back once seen or once the menu
+ * has been opened with the dot on ([BarHints]).
+ */
+@Composable
+private fun UpdateDotHint() {
+    val context = LocalContext.current
+    var show by remember { mutableStateOf(!BarHints.isUpdateDotExplained(context)) }
+    if (!show) return
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(UPDATE_DOT_HINT_MS)
+        BarHints.updateDotExplained(context)
+        show = false
+    }
+    val gap = with(androidx.compose.ui.platform.LocalDensity.current) { 8.dp.roundToPx() }
+    // Above the button, its end on the button's end, kept inside the window.
+    val above = remember(gap) {
+        object : androidx.compose.ui.window.PopupPositionProvider {
+            override fun calculatePosition(
+                anchorBounds: androidx.compose.ui.unit.IntRect,
+                windowSize: androidx.compose.ui.unit.IntSize,
+                layoutDirection: androidx.compose.ui.unit.LayoutDirection,
+                popupContentSize: androidx.compose.ui.unit.IntSize
+            ): androidx.compose.ui.unit.IntOffset {
+                val x = (anchorBounds.right - popupContentSize.width).coerceIn(0, (windowSize.width - popupContentSize.width).coerceAtLeast(0))
+                val y = (anchorBounds.top - popupContentSize.height - gap).coerceAtLeast(0)
+                return androidx.compose.ui.unit.IntOffset(x, y)
+            }
+        }
+    }
+    androidx.compose.ui.window.Popup(popupPositionProvider = above) {
+        val shape = DashShape.Pill
+        Row(
+            modifier = Modifier
+                .clip(shape)
+                .background(DashColors.Card.copy(alpha = 1f))
+                .border(1.dp, DashColors.Accent.copy(alpha = 0.6f), shape)
+                .padding(horizontal = 14.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(Modifier.size(8.dp).clip(CircleShape).background(DashColors.Accent))
+            Spacer(Modifier.width(8.dp))
+            Text(
+                stringResource(R.string.dash_update_dot_hint),
+                color = DashColors.TextPrimary,
+                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.labelMedium,
+                maxLines = 1
+            )
         }
     }
 }
@@ -1007,22 +1111,29 @@ private fun DashMenuItem(
     enabled: Boolean = true,
     /** In the accent colour without being a choice (no check mark): the update on offer. */
     highlighted: Boolean = false,
+    /** A second, smaller line under [text]. */
+    detail: String? = null,
     onClick: () -> Unit
 ) {
     DropdownMenuItem(
         // Rows a finger finds in a moving car, not a phone menu's.
         modifier = Modifier.heightIn(min = DashSize.MenuRow),
         text = {
-            Text(
-                text,
-                color = when {
-                    !enabled -> DashColors.Muted
-                    selected || highlighted -> DashColors.Accent
-                    else -> DashColors.TextPrimary
-                },
-                fontWeight = if (selected || highlighted) FontWeight.SemiBold else FontWeight.Normal,
-                style = MaterialTheme.typography.bodyLarge
-            )
+            Column {
+                Text(
+                    text,
+                    color = when {
+                        !enabled -> DashColors.Muted
+                        selected || highlighted -> DashColors.Accent
+                        else -> DashColors.TextPrimary
+                    },
+                    fontWeight = if (selected || highlighted) FontWeight.SemiBold else FontWeight.Normal,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                if (detail != null) {
+                    Text(detail, color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall, maxLines = 1)
+                }
+            }
         },
         leadingIcon = leading,
         trailingIcon = if (selected) {
@@ -1225,7 +1336,7 @@ internal fun EditBar(
             EditAction(Icons.Filled.Undo, stringResource(R.string.dash_undo), narrow, enabled = canUndo, onClick = onUndo)
             EditAction(Icons.Filled.Dashboard, stringResource(R.string.templates_button), narrow, onClick = onTemplates)
             PageZoomButton(pageZoom, narrow, onPageZoom)
-            EditAction(Icons.Filled.RestartAlt, stringResource(R.string.dash_reset_page), narrow, ink = DashColors.Critical, onClick = onReset)
+            EditAction(Icons.Outlined.DeleteOutline, stringResource(R.string.dash_reset_page), narrow, onClick = onReset)
             if (onNewDashboard != null) EditAction(Icons.Filled.LibraryAdd, stringResource(R.string.canvas_tab_new), narrow, onClick = onNewDashboard)
             if (onDashboards != null) EditAction(Icons.Filled.LibraryAdd, stringResource(R.string.dash_dashboards), narrow, onClick = onDashboards)
             Spacer(Modifier.width(4.dp))
@@ -1278,15 +1389,19 @@ private fun EditAction(
 /**
  * Floats over the pages for a few seconds after a page change, then fades:
  * the dashboards as the cross they form, the one on screen filled with
- * the accent, the rest hollow, and its name under it. It takes no room in the
- * layout and no touches.
+ * the accent, the rest hollow, and its name under it. With [wayHome] (a
+ * sideways swipe above or below Home, where there is nothing beside the
+ * page) Home is lit too, with an arrow towards it and the swipe that gets
+ * there. It takes no room in the layout and no touches.
  */
 @Composable
-internal fun PageIndicator(current: Int, cross: ShownCross, modifier: Modifier = Modifier) {
+internal fun PageIndicator(current: Int, cross: ShownCross, modifier: Modifier = Modifier, wayHome: Boolean = false) {
     val cell = 12.dp
     val gap = 3.dp
     val accent = DashColors.Accent
     val ink = DashColors.TextSecondary
+    // Above Home, the swipe up brings the page below (Home); below it, the swipe down.
+    val homeBelow = DashboardStore.COLUMN.indexOf(current).let { it in 0 until DashboardStore.COLUMN_HOME }
     Column(
         modifier = modifier
             .clip(DashShape.Medium)
@@ -1301,8 +1416,25 @@ internal fun PageIndicator(current: Int, cross: ShownCross, modifier: Modifier =
             val r = CornerRadius(3.dp.toPx())
             fun draw(page: Int, col: Int, row: Int) {
                 val topLeft = Offset(col * step, row * step)
-                if (page == current) drawRoundRect(accent, topLeft, Size(c, c), r)
-                else drawRoundRect(ink, topLeft, Size(c, c), r, style = Stroke(1.5.dp.toPx()))
+                when {
+                    page == current -> drawRoundRect(accent, topLeft, Size(c, c), r)
+                    wayHome && page == DashboardStore.CENTER -> {
+                        drawRoundRect(accent.copy(alpha = 0.3f), topLeft, Size(c, c), r)
+                        drawRoundRect(accent, topLeft, Size(c, c), r, style = Stroke(2.dp.toPx()))
+                        // The arrow points at Home from the page on screen.
+                        val cx = topLeft.x + c / 2
+                        val cy = topLeft.y + c / 2
+                        val tip = if (homeBelow) c * 0.28f else -c * 0.28f
+                        val arrow = Path().apply {
+                            moveTo(cx - c * 0.3f, cy - tip * 0.5f)
+                            lineTo(cx + c * 0.3f, cy - tip * 0.5f)
+                            lineTo(cx, cy + tip)
+                            close()
+                        }
+                        drawPath(arrow, accent)
+                    }
+                    else -> drawRoundRect(ink, topLeft, Size(c, c), r, style = Stroke(1.5.dp.toPx()))
+                }
             }
             // Each dashboard at its spot of the full cross; the removed ones leave theirs empty.
             val centreCol = DashboardStore.ROW.indexOf(DashboardStore.CENTER)
@@ -1317,6 +1449,14 @@ internal fun PageIndicator(current: Int, cross: ShownCross, modifier: Modifier =
             style = MaterialTheme.typography.labelMedium,
             maxLines = 1
         )
+        if (wayHome) {
+            Text(
+                stringResource(if (homeBelow) R.string.dash_way_home_up else R.string.dash_way_home_down),
+                color = DashColors.Accent,
+                style = MaterialTheme.typography.labelSmall,
+                maxLines = 1
+            )
+        }
     }
 }
 
@@ -1343,6 +1483,8 @@ private fun UpdateMenuRow(status: UpdateStatus, parked: Boolean, onUpdate: () ->
         leading = { MenuIcon(Icons.Filled.SystemUpdate, enabled) },
         highlighted = status !is UpdateStatus.Downloading,
         enabled = enabled,
+        // The same line as the hint over ⋮: the dot on the button is this row.
+        detail = stringResource(R.string.dash_update_dot_menu),
         onClick = onUpdate
     )
     HorizontalDivider(color = DashColors.Line, modifier = Modifier.padding(vertical = 4.dp))

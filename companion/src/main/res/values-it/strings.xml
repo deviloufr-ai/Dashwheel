@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Dashwheel Companion</string>
-    <string name="service_channel">Collegamento con l\'auto</string>
+    <string name="service_channel">Connessione con l\'auto</string>
     <string name="status_off">Condivisione disattivata</string>
     <string name="status_waiting">In attesa dell\'auto sull\'hotspot</string>
     <string name="status_connected">Connesso a %1$s</string>
@@ -13,9 +13,9 @@
     <string name="step_notifications_restricted">Opzione disattivata? Apri Info app, poi ⋮ → Consenti impostazioni con limitazioni, e riprova.</string>
     <string name="step_app_info">Info app</string>
     <string name="step_post">Notifica di stato</string>
-    <string name="step_post_detail">Indica che il collegamento con l\'auto è attivo.</string>
+    <string name="step_post_detail">Indica che la connessione con l\'auto è attiva.</string>
     <string name="step_battery">Ottimizzazione batteria</string>
-    <string name="step_battery_detail">Mantiene attivo il collegamento nei viaggi lunghi.</string>
+    <string name="step_battery_detail">Mantiene attiva la connessione nei viaggi lunghi.</string>
     <string name="step_hotspot">Hotspot Wi-Fi</string>
     <string name="step_hotspot_detail">Attivalo e collega l\'autoradio.</string>
     <string name="step_open_settings">Apri</string>
@@ -39,26 +39,26 @@
     <string name="car_spot_title">Dov\'è la mia auto</string>
     <string name="car_spot_left">Lasciata qui: %1$s</string>
     <string name="car_spot_saved">Salvata nell\'auto: %1$s</string>
-    <string name="car_spot_none">Con l\'auto collegata, qui compare il punto in cui si ferma.</string>
+    <string name="car_spot_none">Con l\'auto associata, qui compare il punto in cui si ferma.</string>
     <string name="car_spot_map">Mappa</string>
     <string name="car_spot_walk">Vai a piedi</string>
     <string name="drives_title">Viaggi</string>
-    <string name="drives_none">Una volta collegata l\'auto, ogni viaggio compare qui con distanza, durata e punteggio di guida ecologica.</string>
+    <string name="drives_none">Una volta associata l\'auto, ogni viaggio compare qui con distanza, durata e punteggio di guida ecologica.</string>
     <string name="drive_under_way">Viaggio in corso</string>
     <string name="drive_last">Ultimo viaggio</string>
     <string name="drive_km">km</string>
     <string name="drive_time">Durata</string>
     <string name="drive_average">Media km/h</string>
     <string name="drive_top">Max km/h</string>
-    <string name="drive_eco_none">Guida ecologica: nessun punteggio (meno di 1 km o nessun dato motore)</string>
+    <string name="drive_eco_none">Nessun punteggio di guida ecologica: meno di 1 km o nessun dato motore</string>
     <string name="drive_eco_smooth">Guida fluida</string>
     <string name="drive_eco_fair">Discreta: un po\' brusca</string>
     <string name="drive_eco_harsh">Brusca: rallenta</string>
-    <string name="drive_hard">Accel. / frenate brusche: %1$d / %2$d</string>
+    <string name="drive_hard">Accelerazioni / frenate brusche: %1$d / %2$d</string>
     <string name="drive_band">Giri nella fascia rilassata: %1$d %%</string>
-    <string name="drive_clutch">Tenuta con l\'acceleratore: %1$d</string>
+    <string name="drive_clutch">Tenuta in salita con l\'acceleratore: %1$d</string>
     <string name="drive_fuel">Carburante ≈ %1$s L · %2$s %3$s</string>
-    <string name="drive_duration_hm">%1$d h %2$02d</string>
+    <string name="drive_duration_hm">%1$d h %2$02d min</string>
     <string name="drive_duration_m">%1$d min</string>
     <string name="keyboard_title">Scrivi sull\'auto</string>
     <string name="keyboard_detail">Seleziona un campo di testo sullo schermo dell\'auto, poi scrivi qui: segue mentre scrivi.</string>
@@ -84,7 +84,7 @@
     <string name="step_agenda_detail">Mostra i tuoi prossimi eventi sullo schermo dell\'auto, con la guida fino al luogo.</string>
     <string name="step_location">Posizione per l\'auto</string>
     <string name="step_location_detail">L\'auto usa il GPS di questo telefono: trova la posizione in pochi secondi. Scegli Consenti sempre.</string>
-    <string name="status_unavailable">Il collegamento non è partito</string>
+    <string name="status_unavailable">La connessione non è partita</string>
     <string name="status_unavailable_detail">Disattiva e riattiva la condivisione. Se non basta, riavvia il telefono.</string>
     <string name="status_off_detail">L\'auto non riceve nulla da questo telefono finché non la riattivi.</string>
     <string name="status_waiting_detail">Attiva l\'hotspot del telefono e collega l\'autoradio.</string>
@@ -120,7 +120,7 @@
     <string name="obd_relay_change">Cambia</string>
     <string name="obd_relay_stop">Disattiva</string>
     <string name="obd_relay_pick">Il tuo adattatore OBD</string>
-    <string name="obd_relay_pick_hint">Associa prima l\'adattatore a questo telefono in Bluetooth (PIN 1234 o 0000). Il telefono lo tiene per l\'auto, così chiamate e Android Auto non danno più fastidio.</string>
+    <string name="obd_relay_pick_hint">Associa prima l\'adattatore a questo telefono in Bluetooth, PIN 1234 o 0000. Il telefono lo tiene per l\'auto, così chiamate e Android Auto non danno più fastidio.</string>
     <string name="news_title">Dalla tua auto</string>
     <string name="news_channel">Promemoria dell\'auto</string>
     <string name="step_texts">SMS sto arrivando</string>
@@ -211,7 +211,7 @@
 
     <!-- A second-screen display's code, scanned here and passed to the car (DisplayPair). -->
     <string name="display_confirm_title">Aggiungere lo schermo %1$s alla tua auto?</string>
-    <string name="display_confirm_body">Il telefono passa il codice di questo schermo all\'auto a cui è collegato.</string>
+    <string name="display_confirm_body">Il telefono passa il codice di questo schermo all\'auto a cui è associato.</string>
     <string name="display_confirm_send">Invia all\'auto</string>
     <string name="display_sent">Inviato a %1$s: lo schermo si collega in pochi secondi.</string>
     <string name="display_needs_car">Collegati prima all\'auto, poi scansiona di nuovo il codice dello schermo.</string>

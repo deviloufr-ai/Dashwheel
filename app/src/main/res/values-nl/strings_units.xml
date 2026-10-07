@@ -42,6 +42,10 @@
         <item quantity="one">Het goedkoopste tankstation in de buurt is %1$s, op %2$d mijl.</item>
         <item quantity="other">Het goedkoopste tankstation in de buurt is %1$s, op %2$d mijl.</item>
     </plurals>
+    <plurals name="units_lpg_voice_low_mi">
+        <item quantity="one">LPG laag: nog ongeveer %1$d mijl.</item>
+        <item quantity="other">LPG laag: nog ongeveer %1$d mijl.</item>
+    </plurals>
     <string name="units_car_say_fuel_short_mi">Je actieradius van %1$d mijl haalt de bestemming op %2$d mijl niet. Plan een tankstop.</string>
     <string name="units_car_say_filter_mph">Je laatste %1$d ritten waren kort. Rij als het kan 15 tot 20 minuten boven de 40 mijl per uur, zodat het roetfilter zichzelf kan reinigen.</string>
     <plurals name="units_upkeep_say_overdue_mi">

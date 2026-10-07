@@ -44,6 +44,10 @@
         <item quantity="many">Il distributore più economico nelle vicinanze è %1$s, a %2$d miglia.</item>
         <item quantity="other">Il distributore più economico nelle vicinanze è %1$s, a %2$d miglia.</item>
     </plurals>
+    <plurals name="units_lpg_voice_low_mi">
+        <item quantity="one">GPL in riserva: circa %1$d miglio di autonomia.</item>
+        <item quantity="other">GPL in riserva: circa %1$d miglia di autonomia.</item>
+    </plurals>
     <string name="units_car_say_fuel_short_mi">La tua autonomia di %1$d miglia non basta per la destinazione, a %2$d miglia. Pianifica un rifornimento.</string>
     <string name="units_car_say_filter_mph">Gli ultimi %1$d viaggi sono stati brevi. Appena puoi, guida da 15 a 20 minuti sopra le 40 miglia orarie, così il filtro antiparticolato si pulisce.</string>
     <plurals name="units_upkeep_say_overdue_mi">

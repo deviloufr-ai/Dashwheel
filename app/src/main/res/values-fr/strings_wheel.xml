@@ -7,7 +7,8 @@
         <item quantity="one">%1$d bouton attribué</item>
         <item quantity="other">%1$d boutons attribués</item>
     </plurals>
-    <string name="wheel_explanation">Appuyez sur chaque bouton du volant. Un nouveau rejoint la carte, un bouton connu s\'allume en vert. Touchez un bouton pour le nommer, le placer et choisir son action.</string>
+    <string name="wheel_explanation">Appuyez sur chaque bouton du volant : un nouveau rejoint la carte, un bouton connu s\'allume en vert.</string>
+    <string name="wheel_explanation_tap">Touchez un bouton pour le nommer, le placer et choisir son action.</string>
     <string name="wheel_confirm_detail">%1$s a été détecté. Appuyez une seconde fois pour que Dashwheel sache que c\'est bien vous : une donnée de la voiture qui change toute seule ne revient pas sur commande.</string>
     <string name="wheel_assign_prompt">Que doit faire %1$s ?</string>
     <string name="wheel_choose_app">Lancer une appli…</string>
@@ -33,7 +34,7 @@
     <string name="wheel_action_quick_settings">Réglages rapides</string>
     <string name="wheel_action_toggle_split">Écran partagé oui / non</string>
     <string name="wheel_action_screenshot">Capture d\'écran</string>
-    <string name="wheel_action_play_pause">Lecture / Pause</string>
+    <string name="wheel_action_play_pause">Lecture/pause</string>
     <string name="wheel_action_next">Piste suivante</string>
     <string name="wheel_action_previous">Piste précédente</string>
     <string name="wheel_action_volume_up">Monter le volume</string>
@@ -111,5 +112,5 @@
     <string name="wheel_reset_title">Réinitialiser les boutons du volant ?</string>
     <string name="wheel_reset_body">Chaque bouton quitte la carte et perd son action. Le volant revient à ce que fait l\'autoradio tout seul.</string>
     <string name="wheel_reset_confirm">Réinitialiser</string>
-    <string name="wheel_action_stop_guidance">Arrêter le guidage</string>
+    <string name="wheel_action_stop_guidance">Arrêter la navigation</string>
 </resources>

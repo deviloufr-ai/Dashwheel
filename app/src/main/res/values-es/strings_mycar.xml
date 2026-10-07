@@ -7,7 +7,7 @@
     <string name="mycar_empty">Aún no hay imagen. Elige un archivo o envía uno desde la app del móvil.</string>
     <string name="mycar_working">Preparándola</string>
     <string name="mycar_ready">La imagen de tu coche está lista</string>
-    <string name="mycar_failed">No se pudo leer ese archivo</string>
+    <string name="mycar_failed">No se pudo leer esa imagen. Prueba con un JPG o PNG.</string>
     <string name="mycar_no_picker">No hay selector de archivos en esta unidad. Pon el archivo aquí: %1$s</string>
     <string name="mycar_pick">Elegir archivo</string>
     <string name="mycar_remove">Quitar</string>

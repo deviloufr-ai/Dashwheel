@@ -8,12 +8,19 @@
     <string name="templates_road_trip">Road trip</string>
     <string name="templates_road_trip_blurb">A big map, range, weather and stops for long drives</string>
     <string name="templates_car_health">Car health</string>
-    <string name="templates_car_health_blurb">Engine data and fault codes on Home</string>
-    <string name="templates_hint">A template fills all seven dashboards, laid out for this screen with the main tiles on the driver\'s side.</string>
+    <string name="templates_car_health_blurb">Car data and fault codes on Home</string>
+    <string name="templates_hint">A template fills Home and the two dashboards beside it, laid out for this screen with the main tiles on the driver\'s side.</string>
     <string name="templates_no_obd">No OBD adapter chosen yet, so the car-data widgets are left out.</string>
     <string name="templates_fill_empty">Fill empty dashboards</string>
-    <string name="templates_replace_all">Replace all dashboards</string>
-    <string name="templates_replace_confirm_title">Replace all seven dashboards?</string>
+    <string name="templates_replace_all">Replace these dashboards</string>
+    <string name="templates_replace_confirm_title">Replace these dashboards?</string>
     <string name="templates_replace_confirm_body">Your arrangement goes. Undo brings it back.</string>
     <string name="templates_replace">Replace</string>
+    <string name="templates_column">Also fill the dashboards above and below</string>
+    <string name="templates_column_detail">Four more dashboards, swiped up and down from Home</string>
+    <string name="templates_fill_this">Fill this dashboard</string>
+    <string name="templates_fill_this_hint">The template\'s page for %1$s goes on it alone.</string>
+    <string name="templates_fill">Fill</string>
+    <string name="templates_all_dashboards">All dashboards…</string>
+    <string name="templates_none_empty">No empty dashboard in the swipes</string>
 </resources>

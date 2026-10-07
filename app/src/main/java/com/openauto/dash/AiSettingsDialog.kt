@@ -131,6 +131,7 @@ internal fun AiSettingsDialog(onDismiss: () -> Unit) {
     SettingsSheet(
         title = stringResource(R.string.ai_title),
         onDismiss = ::close,
+        help = WikiPage.AI_MECHANIC,
         actions = { SheetButton(stringResource(R.string.ai_done), onClick = ::close) }
     ) {
         Text(

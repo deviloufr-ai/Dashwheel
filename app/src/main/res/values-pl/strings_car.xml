@@ -28,7 +28,12 @@
     <!-- Particle filter -->
     <string name="car_filter_title">FILTR DPF</string>
     <string name="car_filter_none">To auto nie ma filtra cząstek stałych. Zmień to w Ustawienia → Samochód → Mój samochód.</string>
-    <string name="car_filter_short_unit">krótkie trasy z rzędu</string>
+    <plurals name="car_filter_short_unit">
+        <item quantity="one">krótka trasa</item>
+        <item quantity="few">krótkie trasy z rzędu</item>
+        <item quantity="many">krótkich tras z rzędu</item>
+        <item quantity="other">krótkiej trasy z rzędu</item>
+    </plurals>
     <string name="car_filter_ok">Filtr czyści się normalnie</string>
     <string name="car_filter_needs_drive">Zaplanuj 20 min powyżej 60 km/h</string>
     <string name="car_filter_needs_drive_now">Filtr wkrótce potrzebuje długiej trasy</string>
@@ -67,9 +72,9 @@
     <string name="car_eco_fair">Średnio: trochę gwałtownie</string>
     <string name="car_eco_harsh">Gwałtownie: zwolnij</string>
     <string name="car_eco_band">Obroty %1$d–%2$d obr./min</string>
-    <string name="car_eco_hard">Ostre przysp. / hamowania</string>
+    <string name="car_eco_hard">Ostre przyspieszanie / hamowanie</string>
     <string name="car_eco_hard_value">%1$d / %2$d</string>
-    <string name="car_eco_clutch">Trzymanie na gazie</string>
+    <string name="car_eco_clutch">Trzymanie na wzniesieniu gazem</string>
     <string name="car_eco_fuel">Paliwo na %1$s km</string>
     <string name="car_eco_fuel_value">≈ %1$s L · %2$s %3$s</string>
 
@@ -125,7 +130,7 @@
     <string name="car_fetch_needs_key">Dodaj klucz Gemini w Ustawienia, Samochód, Mechanik AI, aby uzupełnić dane</string>
     <string name="car_section_engine">Silnik</string>
     <string name="car_section_gearbox">Skrzynia biegów</string>
-    <string name="car_section_upkeep">Obsługa</string>
+    <string name="car_section_upkeep">Serwis</string>
     <string name="car_section_fuel_price">Cena paliwa</string>
     <string name="car_section_notes">Znane słabe punkty</string>
     <string name="car_spec_power">Moc (KM)</string>
@@ -144,15 +149,18 @@
     <string name="car_spec_consumption">Typowe spalanie (L/100 km)</string>
     <string name="car_spec_oil_capacity">Olej (L)</string>
     <string name="car_spec_oil_spec">Specyfikacja oleju</string>
-    <string name="car_spec_service_km">Serwis co (km)</string>
-    <string name="car_spec_service_months">lub (miesiące)</string>
+    <string name="car_service_interval">Przegląd co %1$s km lub %2$d miesięcy</string>
+    <string name="car_service_interval_km">Przegląd co %1$s km</string>
+    <string name="car_service_interval_months">Przegląd co %1$d miesięcy</string>
+    <string name="car_service_interval_unknown">Nie ustawiono okresu przeglądu</string>
+    <string name="car_service_from_servicing">Zmień to w Serwis</string>
     <string name="car_spec_timing">Pasek / łańcuch rozrządu</string>
     <string name="car_spec_tyre_size">Rozmiar opon</string>
     <string name="car_spec_tyre_front">Przód (bar)</string>
     <string name="car_spec_tyre_rear">Tył (bar)</string>
     <string name="car_spec_fuel_price">Cena za litr</string>
     <string name="car_spec_currency">Waluta</string>
-    <string name="car_reset_preset">Przywróć domyślne (C4 Picasso 1.6 HDi BMP6)</string>
+    <string name="car_reset_preset">Przywróć domyślne: C4 Picasso 1.6 HDi BMP6</string>
     <string name="car_save">Zapisz</string>
 
     <!-- AI mechanic settings -->
@@ -189,9 +197,9 @@
     <string name="car_spec_driver_side">Kierowca po prawej</string>
     <string name="car_spec_driver_side_detail">Kierownica po prawej: szablony umieszczają główne kafelki po prawej</string>
     <string name="car_battery_trip_range">Ta jazda: od %1$s do %2$s V</string>
-    <string name="car_kind_status">Stan auta</string>
+    <string name="car_kind_status">Światła i przebieg</string>
     <string name="car_kind_status_blurb">Światła, przebieg, trasa i spalanie z auta</string>
-    <string name="car_status_title">STAN AUTA</string>
+    <string name="car_status_title">ŚWIATŁA I PRZEBIEG</string>
     <string name="car_status_waiting">Czekam na dane z auta</string>
     <string name="car_status_lights">Światła</string>
     <string name="car_status_lights_off">Wyłączone</string>

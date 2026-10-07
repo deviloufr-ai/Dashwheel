@@ -40,4 +40,11 @@
     <string name="canvas_tab_where">Dove va</string>
     <string name="canvas_tab_create">Crea</string>
     <string name="canvas_bar_app_remove">Togli dalla barra</string>
+    <string name="canvas_tab_engine">Motore</string>
+    <string name="canvas_tab_checks">Controlli</string>
+    <string name="canvas_tab_eco">Eco</string>
+    <string name="canvas_when_taken">%1$s: ora su %2$s</string>
+    <string name="canvas_when_take_title">Togliere %1$s a %2$s?</string>
+    <string name="canvas_when_take_body">Non comparirà più da solo lì.</string>
+    <string name="canvas_when_take">Togli</string>
 </resources>

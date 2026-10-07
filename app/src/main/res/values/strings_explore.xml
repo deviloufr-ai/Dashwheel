@@ -16,7 +16,7 @@
     <string name="explore_verified">Confirmed readings</string>
     <string name="explore_none_verified">None yet. Connect the adapter with the engine running and search.</string>
     <string name="explore_results">Tried</string>
-    <string name="explore_forget">Forget all</string>
+    <string name="explore_forget">Reset all</string>
     <string name="explore_v_no_answer">no answer</string>
     <string name="explore_v_refused">refused</string>
     <string name="explore_v_unreadable">unreadable</string>

@@ -29,7 +29,7 @@
     <string name="setup_access_calendar">Calendario</string>
     <string name="setup_access_calendar_detail">Las citas de hoy en la agenda</string>
     <string name="setup_access_obd">Adaptador OBD</string>
-    <string name="setup_access_obd_detail">Datos del motor, combustible y códigos de avería por Bluetooth</string>
+    <string name="setup_access_obd_detail">Lecturas del motor, combustible y códigos de avería por Bluetooth</string>
     <string name="setup_access_phone">Teléfono</string>
     <string name="setup_access_phone_detail">Mensajes, llamadas y tu agenda desde el teléfono</string>
     <string name="setup_allow">Permitir</string>

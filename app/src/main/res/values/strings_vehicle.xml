@@ -15,7 +15,7 @@
     <string name="vehicle_capture_b">Capture B</string>
 
     <!-- Telemetry tile -->
-    <string name="vehicle_telemetry_title">TELEMETRY</string>
+    <string name="vehicle_telemetry_title">ENGINE GAUGES</string>
     <string name="vehicle_live">Live</string>
     <string name="vehicle_speed_caps">SPEED</string>
     <string name="vehicle_rpm_caps">RPM</string>
@@ -24,10 +24,10 @@
     <!-- Fault codes tile -->
     <string name="vehicle_fault_codes_title">FAULT CODES</string>
     <string name="vehicle_scan">Scan</string>
-    <string name="vehicle_clear">Clear</string>
+    <string name="vehicle_clear">Erase codes</string>
 
     <!-- OBD data tile -->
-    <string name="vehicle_obd_data_title">OBD DATA</string>
+    <string name="vehicle_obd_data_title">CAR DATA</string>
     <string name="vehicle_intake_air">Intake air</string>
     <string name="vehicle_throttle">Throttle</string>
     <string name="vehicle_engine_load">Engine load</string>
@@ -35,29 +35,29 @@
 
     <!-- Fuel & range tile -->
     <string name="vehicle_fuel_range_title">FUEL &amp; RANGE</string>
-    <string name="vehicle_via_canbox">via CANbox</string>
+    <string name="vehicle_via_canbox">via car box</string>
     <string name="vehicle_via_obd">via OBD</string>
-    <string name="vehicle_fuel_no_obd">This car\'s OBD doesn\'t report fuel. Learn it from the CANbox instead: needs root.</string>
+    <string name="vehicle_fuel_no_obd">This car\'s OBD doesn\'t report fuel. Learn it from the car box instead: needs root.</string>
     <string name="vehicle_fuel_none">No fuel level yet. Connect the OBD adapter: not every car reports it.</string>
     <string name="vehicle_find_fuel_signal">Find fuel signal</string>
     <string name="vehicle_try_obd_fuel_pid">Try OBD fuel PID</string>
     <string name="vehicle_km_to_empty">KM TO EMPTY</string>
     <string name="vehicle_range_approx">≈ range</string>
     <string name="vehicle_in_tank">In tank</string>
-    <string name="vehicle_avg_use">Avg use</string>
-    <string name="vehicle_learn_fuel">Learn fuel from CANbox</string>
+    <string name="vehicle_avg_use">Avg consumption</string>
+    <string name="vehicle_learn_fuel">Learn fuel from the car box</string>
     <string name="vehicle_recalibrate_fuel">Recalibrate fuel</string>
-    <string name="vehicle_find_range_signal">Read range from CANbox</string>
-    <string name="vehicle_learn_range">Range from CANbox</string>
+    <string name="vehicle_find_range_signal">Read range from the car box</string>
+    <string name="vehicle_learn_range">Range from the car box</string>
     <string name="vehicle_change_range">Change range signal</string>
     <string name="vehicle_range_from_car">trip computer</string>
 
     <!-- Fuel signal finder dialog -->
     <string name="vehicle_finder_help">Set the level your dash gauge shows, tap Capture A, then close this and use the car normally. Days later, once the gauge has dropped a little, reopen, set the new value and tap Capture B. Capture A is saved across restarts. Only bytes that moved with the fuel are offered.</string>
     <string name="vehicle_dash_reads">Dash reads</string>
-    <string name="vehicle_waiting_canbox">Waiting for CANbox data… (needs root)</string>
+    <string name="vehicle_waiting_canbox">Waiting for car box data: needs root</string>
     <string name="vehicle_finder_step_a">Set the fuel level your dash shows, then tap Capture A.</string>
-    <string name="vehicle_finder_step_b">Captured A at %1$d%% (saved). You can close this and drive normally, come back once the gauge drops a few %%, set the new value, then Capture B.</string>
+    <string name="vehicle_finder_step_b">Captured A at %1$d %%, saved. You can close this and drive normally, come back once the gauge drops a few %%, set the new value, then Capture B.</string>
     <string name="vehicle_finder_same">A and B are at the same level. Capture B at a different fuel level.</string>
     <string name="vehicle_finder_none">No byte tracked the change. Recapture B after a bigger drop.</string>
     <string name="vehicle_finder_candidates">Bytes that moved with the fuel</string>
@@ -92,7 +92,7 @@
 
     <!-- Doors tile -->
     <string name="vehicle_doors_title">DOORS</string>
-    <string name="vehicle_waiting_mcu">Waiting for MCU data… (needs root)</string>
+    <string name="vehicle_waiting_mcu">Waiting for car box data: needs root</string>
     <string name="vehicle_door_front_left">Front left</string>
     <string name="vehicle_door_front_right">Front right</string>
     <string name="vehicle_door_rear_left">Rear left</string>
@@ -175,7 +175,7 @@
     <!-- Fault codes not in the table: described from the code's structure -->
     <string name="vehicle_dtc_unknown_code">Unknown code</string>
     <string name="vehicle_dtc_fallback_title">%1$s %2$s fault: %3$s</string>
-    <string name="vehicle_dtc_fallback_fix">No stored description. Scan for related codes, check the affected circuit\'s sensor/wiring, and search \"%1$s Citroën C4 Picasso\" for model-specific guidance.</string>
+    <string name="vehicle_dtc_fallback_fix">No stored description. Scan for related codes, check the affected circuit\'s sensor/wiring, and search \"%1$s Citroën C4 Picasso\" for model-specific advice.</string>
     <string name="vehicle_dtc_system_powertrain">Powertrain</string>
     <string name="vehicle_dtc_system_chassis">Chassis</string>
     <string name="vehicle_dtc_system_body">Body</string>
@@ -193,18 +193,18 @@
 
     <!-- Why the adapter is not connected -->
     <string name="vehicle_obd_connecting_to">Connecting to %1$s…</string>
-    <string name="vehicle_obd_pairing_pin">Pairing: enter the adapter\'s PIN in the dialog (often 1234 or 0000)</string>
+    <string name="vehicle_obd_pairing_pin">Pairing: enter the adapter\'s PIN in the dialog</string>
     <string name="vehicle_obd_switching_bt_on">Switching on the head unit\'s Bluetooth…</string>
     <string name="vehicle_obd_adapter">Adapter: %1$s</string>
     <string name="vehicle_choose_adapter">Choose adapter</string>
     <string name="vehicle_err_bt_off">Bluetooth is off on the head unit</string>
     <string name="vehicle_err_not_paired">%1$s is not paired with the head unit: tap OBD to pair it again</string>
-    <string name="vehicle_err_pairing_failed">Pairing with %1$s did not finish: tap OBD and enter its PIN (often 1234 or 0000)</string>
+    <string name="vehicle_err_pairing_failed">Pairing with %1$s did not finish: tap OBD and enter its PIN</string>
     <string name="vehicle_err_bt_still_off">The head unit\'s Bluetooth is off and won\'t switch on: restart the head unit, then tap OBD</string>
     <string name="vehicle_err_bt_stuck">Android\'s Bluetooth on the head unit is stuck: restart the head unit, then tap OBD</string>
     <string name="vehicle_err_refused">%1$s refused the connection: taken by a phone or another app, unpowered, or out of range</string>
     <string name="vehicle_err_silent">%1$s connected but never answered: switch the ignition on, then tap OBD</string>
-    <string name="vehicle_err_phone_not_linked">OBD goes through the phone: link the phone first</string>
+    <string name="vehicle_err_phone_not_linked">OBD goes through the phone: connect the phone first</string>
     <string name="vehicle_err_phone_no_adapter">OBD goes through the phone: choose the adapter in the companion</string>
     <string name="vehicle_obd_asking_phone">Asking the phone for the adapter</string>
     <string name="vehicle_err_phone_relay">The phone could not reach %1$s: check it is plugged in and paired with the phone</string>
@@ -227,6 +227,6 @@
     <string name="vehicle_speed_fix_more">Raise the correction</string>
     <string name="vehicle_speed_fix_now">Speed now: %1$d km/h. Adjust until it matches your speedometer.</string>
     <string name="vehicle_speed_fix_not_connected">Connect the OBD adapter to see the corrected speed live.</string>
-    <string name="vehicle_clear_confirm_title">Clear the fault codes?</string>
+    <string name="vehicle_clear_confirm_title">Erase the fault codes?</string>
     <string name="vehicle_clear_confirm_body">They are erased from the car for good. A garage needs them to find a fault.</string>
 </resources>

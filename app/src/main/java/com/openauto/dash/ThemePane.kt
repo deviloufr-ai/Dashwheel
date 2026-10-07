@@ -24,7 +24,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Tonality
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -102,8 +102,9 @@ internal fun AppearanceSetting(theme: ThemeState) {
 }
 
 /**
- * Effects: how much halo and glass a theme draws. Off is the
- * high-legibility setting for a dim screen in full sun.
+ * Legibility: how much halo and glass a theme draws, named for what the
+ * driver gets. Plain is the setting for a dim screen in full sun; the
+ * stored values (none, reduced, full) are unchanged.
  */
 @Composable
 internal fun EffectsSetting(theme: ThemeState) {
@@ -113,7 +114,7 @@ internal fun EffectsSetting(theme: ThemeState) {
         chosen = theme.effects,
         icon = { option ->
             when (option) {
-                DashEffects.NONE -> Icons.Filled.VisibilityOff
+                DashEffects.NONE -> Icons.Filled.WbSunny
                 DashEffects.REDUCED -> Icons.Filled.Tonality
                 DashEffects.FULL -> Icons.Filled.AutoAwesome
             }
@@ -401,13 +402,17 @@ internal fun SwitchHint(text: String) {
     )
 }
 
-/** Segmented switch over [options]; the chosen segment wears the accent gradient. */
+/**
+ * Segmented switch over [options]; the chosen segment wears the accent
+ * gradient. A segment [enabled] false stays in sight, greyed, and takes no tap.
+ */
 @Composable
 internal fun <T> SegmentedSwitch(
     options: List<T>,
     chosen: T,
     icon: (T) -> ImageVector,
     title: @Composable (T) -> String,
+    enabled: (T) -> Boolean = { true },
     onChoose: (T) -> Unit
 ) {
     val shape = DashShape.Medium
@@ -422,15 +427,20 @@ internal fun <T> SegmentedSwitch(
     ) {
         options.forEach { option ->
             val picked = option == chosen
+            val on = enabled(option)
             val segment = DashShape.Small
-            val ink = if (picked) DashColors.OnAccent else DashColors.TextPrimary
+            val ink = when {
+                !on -> DashColors.Muted
+                picked -> DashColors.OnAccent
+                else -> DashColors.TextPrimary
+            }
             Row(
                 modifier = Modifier
                     .weight(1f)
                     .heightIn(min = DashSize.TouchPrimary)
                     .clip(segment)
                     .then(if (picked) Modifier.background(DashColors.AccentBrush, segment) else Modifier)
-                    .clickable { tap(); onChoose(option) }
+                    .clickable(enabled = on) { tap(); onChoose(option) }
                     .padding(horizontal = 6.dp, vertical = 10.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically

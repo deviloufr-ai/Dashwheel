@@ -24,11 +24,13 @@
     <string name="lpg_tank_size">Depósito, L</string>
     <string name="lpg_use_setting">Consumo, L/100 km</string>
     <string name="lpg_price">Precio por litro</string>
-    <string name="lpg_numbers_detail">Depósito: lo que admite un lleno, ya que un depósito de GLP solo se llena al 80 por ciento. Consumo: déjalo vacío para partir del consumo del coche; los litros repostados lo corrigen. Precio: déjalo vacío para usar el de la gasolinera más cercana.</string>
+    <string name="lpg_tank_hint">Lo que admite un lleno: un depósito de GLP solo se llena al 80 por ciento.</string>
+    <string name="lpg_use_hint">Déjalo vacío para partir del consumo del coche; cada lleno lo corrige.</string>
+    <string name="lpg_price_hint">Déjalo vacío para usar el precio de la gasolinera más cercana.</string>
     <string name="lpg_mode_label">Cuándo va el coche con GLP</string>
     <string name="lpg_mode_auto">En caliente</string>
     <string name="lpg_mode_always">Siempre</string>
-    <string name="lpg_mode_manual">Mi interruptor</string>
+    <string name="lpg_mode_manual">Cuando yo cambio</string>
     <string name="lpg_mode_auto_detail">La mayoría de sistemas arrancan con gasolina. El GLP cuenta cuando el refrigerante llega a la temperatura de cambio, o tras el primer km sin adaptador OBD.</string>
     <string name="lpg_mode_manual_detail">Cambia entre GLP y gasolina en el panel o con un botón del volante.</string>
     <string name="lpg_switch_temp">Temperatura de cambio, %1$s</string>
@@ -37,7 +39,10 @@
     <string name="lpg_last_fill">Último lleno el %1$s</string>
     <string name="lpg_full_now">Lleno ahora</string>
     <string name="lpg_settings_detail">Segundo depósito, nivel calculado con la distancia</string>
-    <string name="lpg_voice_low">GLP bajo: quedan unos %1$d %2$s.</string>
+    <plurals name="lpg_voice_low">
+        <item quantity="one">GLP bajo: queda alrededor de %1$d kilómetro.</item>
+        <item quantity="other">GLP bajo: quedan unos %1$d kilómetros.</item>
+    </plurals>
     <string name="lpg_voice_full">Depósito de GLP lleno.</string>
     <string name="lpg_voice_off">El depósito de GLP no está configurado.</string>
     <string name="lpg_voice_on_lpg">Con GLP.</string>

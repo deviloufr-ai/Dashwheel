@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="widgets_light">Schermlicht</string>
+    <string name="widgets_light">Helderheid</string>
     <string name="widgets_light_blurb">De helderheid van de radio, overdag en \'s nachts</string>
     <string name="widgets_cam">Flitspalen</string>
     <string name="widgets_cam_blurb">De volgende vaste flitspaal op je weg, uit OpenStreetMap</string>
@@ -29,8 +29,8 @@
     <string name="widgets_light_night">Nacht: %1$d %%</string>
     <string name="widgets_light_manual">%1$d %%</string>
     <string name="widgets_cam_none">Geen in zicht</string>
-    <string name="widgets_cam_speak">Gesproken waarschuwingen</string>
-    <string name="widgets_cam_speaking">Gesproken waarschuwingen aan</string>
+    <string name="widgets_cam_speak">Gesproken meldingen</string>
+    <string name="widgets_cam_speaking">Gesproken meldingen aan</string>
     <string name="widgets_cam_silent">In sommige landen verboden, waaronder Frankrijk</string>
     <string name="widgets_cam_say">Flitspaal voor je.</string>
     <string name="widgets_cam_say_limit">Flitspaal voor je, limiet %1$d.</string>
@@ -51,12 +51,15 @@
     <string name="widgets_eta_failed">De telefoon kon het niet versturen</string>
     <string name="widgets_eta_no_phone">De telefoon is niet verbonden</string>
     <string name="widgets_notes_record">Notitie opnemen</string>
-    <string name="widgets_notes_stop">Stop  %1$d s</string>
+    <string name="widgets_notes_stop">Stop %1$d s</string>
     <string name="widgets_notes_empty">Nog geen notities</string>
     <string name="widgets_notes_play">Afspelen</string>
     <string name="widgets_notes_delete">Verwijderen</string>
     <string name="widgets_notes_recording">Opname</string>
-    <string name="widgets_notes_count">notities</string>
+    <plurals name="widgets_notes_count">
+        <item quantity="one">notitie</item>
+        <item quantity="other">notities</item>
+    </plurals>
     <string name="widgets_switch_mute">Stil</string>
     <string name="widgets_switch_dnd">Niet storen</string>
     <string name="widgets_gps_fix">Signaal</string>
@@ -73,19 +76,19 @@
     <string name="widgets_perf_running">Meting loopt</string>
     <string name="widgets_perf_done">Klaar</string>
     <string name="widgets_perf_best">Beste %1$s</string>
-    <string name="widgets_perf_reset">Beste tijden wissen</string>
+    <string name="widgets_perf_reset">Beste tijden terugzetten</string>
     <string name="widgets_list_connected">Verbonden</string>
     <string name="widgets_list_settings">Instellingen</string>
     <string name="widgets_wifi_saved">Opgeslagen</string>
     <string name="widgets_wifi_off">Wifi staat uit: tik om aan te zetten</string>
     <string name="widgets_wifi_location">Sta locatie toe om netwerken te zien</string>
     <string name="widgets_wifi_none">Geen netwerken gevonden</string>
-    <string name="widgets_wifi_refused">Android laat dit alleen via instellingen toe: openen</string>
+    <string name="widgets_wifi_refused">Android staat dit alleen toe vanuit zijn eigen instellingen. Ze worden nu geopend.</string>
     <string name="widgets_bt_paired">Gekoppeld</string>
     <string name="widgets_bt_off">Bluetooth staat uit: tik om aan te zetten</string>
     <string name="widgets_bt_none">Geen gekoppelde apparaten</string>
     <string name="widgets_bt_none_connected">Geen verbonden</string>
-    <string name="widgets_bt_refused">Android laat dit alleen via instellingen toe: openen</string>
+    <string name="widgets_bt_refused">Android staat dit alleen toe vanuit zijn eigen instellingen. Ze worden nu geopend.</string>
     <string name="widgets_bt_phone_none">Geen telefoon verbonden</string>
     <string name="widgets_bt_phone_change">Verbinden</string>
     <string name="widgets_limit">Snelheidslimiet</string>
@@ -115,7 +118,7 @@
     <string name="widgets_wx_ahead">Op je bestemming</string>
     <string name="widgets_wx_red">Rood</string>
     <string name="widgets_wx_orange">Oranje</string>
-    <string name="widgets_wx_say">Code %1$s, %2$s, %3$s</string>
+    <string name="widgets_wx_say">Code %1$s voor %2$s in %3$s.</string>
     <string name="widgets_wx_h_wind">Wind</string>
     <string name="widgets_wx_h_snow">Sneeuw en ijzel</string>
     <string name="widgets_wx_h_storm">Onweer</string>

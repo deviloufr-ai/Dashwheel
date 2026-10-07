@@ -68,7 +68,7 @@
     <string name="second_screen_widget">Widget</string>
     <string name="second_screen_widget_pick">Widget wählen</string>
     <string name="second_screen_design">Design</string>
-    <string name="second_screen_board_reset">Zur ursprünglichen Seite</string>
+    <string name="second_screen_board_reset">Auf die ursprüngliche Seite zurücksetzen</string>
     <string name="second_screen_copy_of">%1$s, wie auf dem Radio</string>
     <string name="second_screen_copy_blurb">Eine Kopie seiner Kachel im Dashboard. Bedient wird es am Radio.</string>
     <string name="second_screen_copy_no_tile">Lege %1$s in eine Dashboard-Kachel, um es hier zu sehen</string>

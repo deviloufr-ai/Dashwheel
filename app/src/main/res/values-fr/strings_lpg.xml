@@ -24,11 +24,13 @@
     <string name="lpg_tank_size">Réservoir, L</string>
     <string name="lpg_use_setting">Conso, L/100 km</string>
     <string name="lpg_price">Prix au litre</string>
-    <string name="lpg_numbers_detail">Réservoir : ce que prend un plein, car un réservoir GPL n\'est rempli qu\'à 80 pour cent. Conso : laissez vide pour partir de celle de la voiture ; les litres pompés à chaque plein la corrigent. Prix : laissez vide pour prendre celui de la station la plus proche.</string>
+    <string name="lpg_tank_hint">Ce que prend un plein : un réservoir GPL ne se remplit qu\'à 80 pour cent.</string>
+    <string name="lpg_use_hint">Laissez vide pour partir de la consommation de la voiture ; chaque plein la corrige.</string>
+    <string name="lpg_price_hint">Laissez vide pour prendre le prix de la station la plus proche.</string>
     <string name="lpg_mode_label">Quand la voiture roule au GPL</string>
     <string name="lpg_mode_auto">Moteur chaud</string>
     <string name="lpg_mode_always">Toujours</string>
-    <string name="lpg_mode_manual">Mon interrupteur</string>
+    <string name="lpg_mode_manual">Quand je bascule</string>
     <string name="lpg_mode_auto_detail">La plupart des systèmes démarrent à l\'essence. Le GPL compte dès que le liquide de refroidissement atteint la température de bascule, ou après le premier km sans adaptateur OBD.</string>
     <string name="lpg_mode_manual_detail">Passez du GPL à l\'essence sur la tuile ou avec un bouton au volant.</string>
     <string name="lpg_switch_temp">Température de bascule, %1$s</string>
@@ -37,7 +39,10 @@
     <string name="lpg_last_fill">Dernier plein le %1$s</string>
     <string name="lpg_full_now">Plein fait</string>
     <string name="lpg_settings_detail">Second réservoir, niveau calculé selon la distance</string>
-    <string name="lpg_voice_low">GPL bas : environ %1$d %2$s d\'autonomie.</string>
+    <plurals name="lpg_voice_low">
+        <item quantity="one">GPL bas : environ %1$d kilomètre d\'autonomie.</item>
+        <item quantity="other">GPL bas : environ %1$d kilomètres d\'autonomie.</item>
+    </plurals>
     <string name="lpg_voice_full">Réservoir GPL plein.</string>
     <string name="lpg_voice_off">Le réservoir GPL n\'est pas configuré.</string>
     <string name="lpg_voice_on_lpg">Au GPL.</string>

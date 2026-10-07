@@ -68,7 +68,7 @@
     <string name="second_screen_widget">Widget</string>
     <string name="second_screen_widget_pick">Kies een widget</string>
     <string name="second_screen_design">Ontwerp</string>
-    <string name="second_screen_board_reset">Terug naar de oorspronkelijke pagina</string>
+    <string name="second_screen_board_reset">Oorspronkelijke pagina terugzetten</string>
     <string name="second_screen_copy_of">%1$s, zoals op de radio</string>
     <string name="second_screen_copy_blurb">Een kopie van zijn tegel op het dashboard. Je bedient het op de radio.</string>
     <string name="second_screen_copy_no_tile">Zet %1$s in een dashboardtegel om het hier te zien</string>

@@ -1,5 +1,7 @@
 package com.openauto.dash
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -58,6 +60,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -96,15 +99,32 @@ internal fun AlertStyleRows() {
     }
     SettingsSection(stringResource(R.string.alert_style_section))
     kinds.forEach { kind -> AlertRow(kind) { picking = kind } }
-    if (held && access != PrivilegedShell.Access.UNKNOWN) {
-        Text(
-            stringResource(R.string.alert_more_with_permission, GRANT_COMMAND),
-            color = DashColors.TextSecondary,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-        )
-    }
+    if (held && access != PrivilegedShell.Access.UNKNOWN) GrantHint()
     picking?.let { kind -> AlertStyleDialog(kind) { picking = null } }
+}
+
+/**
+ * The alerts held back for want of the car settings permission: a plain line
+ * pointing at the wiki, and the adb command itself only once asked for, copied
+ * to the clipboard so it never has to be read off the car screen.
+ */
+@Composable
+private fun GrantHint() {
+    val context = LocalContext.current
+    var copied by remember { mutableStateOf(false) }
+    Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+        Text(stringResource(R.string.alert_more_with_permission), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+        TextButton(onClick = {
+            context.getSystemService(ClipboardManager::class.java)
+                ?.setPrimaryClip(ClipData.newPlainText("adb", GRANT_COMMAND))
+            copied = true
+        }) {
+            Text(stringResource(if (copied) R.string.alert_command_copied else R.string.alert_copy_command))
+        }
+        if (copied) {
+            Text(GRANT_COMMAND, color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall, fontFamily = FontFamily.Monospace)
+        }
+    }
 }
 
 /** Whether [kind] can work on this unit, so its row is offered. */

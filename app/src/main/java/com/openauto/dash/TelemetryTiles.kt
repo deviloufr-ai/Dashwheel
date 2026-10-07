@@ -1292,7 +1292,7 @@ internal fun DevicePickerDialog(
         modifier = Modifier.keepClearOfWindows(),
         onDismissRequest = onDismiss,
         containerColor = DashColors.Card,
-        title = { Text(stringResource(R.string.vehicle_select_adapter), color = DashColors.TextPrimary) },
+        title = { TitleWithHelp(stringResource(R.string.vehicle_select_adapter), WikiPage.OBD_ADAPTER) },
         text = {
             Column {
                 if (devices.isEmpty()) {

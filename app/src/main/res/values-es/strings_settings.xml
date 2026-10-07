@@ -10,6 +10,9 @@
     <string name="settings_system_detail">Los widgets de Android se añaden sin preguntar cada vez. Necesita root.</string>
     <string name="settings_section_driving">Conducción</string>
     <string name="settings_section_sound">Sonido</string>
+    <string name="settings_section_buttons">Botones</string>
+    <string name="settings_section_diagnostics">Diagnóstico</string>
+    <string name="settings_section_apps_in_tiles">Apps en mosaicos</string>
     <string name="settings_drive_lock">Cambios solo con el coche parado</string>
     <string name="settings_drive_lock_detail">La edición, los ajustes y la cuadrícula de apps esperan a que el coche se detenga</string>
     <string name="settings_tap_sound">Sonido al tocar</string>
@@ -19,8 +22,8 @@
     <string name="speed_volume_detail">Compensa el ruido de la carretera: más alto al acelerar, más bajo al frenar. Tus propios cambios de volumen se mantienen.</string>
     <string name="speed_volume_start">Empieza a</string>
     <string name="speed_volume_start_detail">Por debajo no se añade nada</string>
-    <string name="speed_volume_steps">Máximo añadido</string>
-    <string name="speed_volume_steps_detail">En pasos de volumen, como los clics del mando</string>
+    <string name="speed_volume_steps">Volumen extra con la velocidad</string>
+    <string name="speed_volume_steps_detail">Hasta este número de pasos de volumen, como los clics del mando</string>
     <string name="speed_volume_full">Máximo a</string>
     <string name="speed_volume_full_detail">Los pasos se reparten hasta esta velocidad</string>
     <string name="speed_volume_less">Menos</string>
@@ -33,9 +36,11 @@
     <string name="volume_way_auto_hint">El volumen de Android, o el volumen propio de la radio o sus teclas de volumen donde lo ignora</string>
     <string name="volume_way_android_hint">El volumen multimedia de Android, como en un teléfono</string>
     <string name="volume_way_keys_hint">Pulsa las teclas de volumen como los mandos del volante y la rueda. Requiere root o el ADB de la radio</string>
+    <string name="volume_way_keys_locked">Las teclas de volumen requieren root o el ADB de la radio</string>
     <string name="settings_rom_call_detail">Las llamadas Bluetooth solo aparecen en la tarjeta de Dashwheel, con contestar y colgar</string>
     <string name="settings_rom_doors_detail">Indica qué puerta está abierta sobre cualquier app, en lugar del aviso de la radio</string>
     <string name="settings_rom_needs_root">Requiere root o el ADB de la radio</string>
+    <string name="settings_needs_qf">Requiere el firmware QF</string>
     <string name="alert_section">Avisos</string>
     <string name="alert_kind_call">Llamadas</string>
     <string name="alert_kind_doors">Puertas</string>
@@ -99,16 +104,21 @@
     <string name="settings_section_display">Visualización</string>
     <string name="settings_appearance_title">Día y noche</string>
     <string name="alert_style_section">Avisos emergentes al estilo de Dashwheel</string>
-    <string name="alert_more_with_permission">Más avisos del coche con root, o tras este comando desde un PC: %1$s</string>
+    <string name="alert_more_with_permission">Más avisos del coche necesitan root, o un comando único desde un PC: ver la wiki, Car settings permission.</string>
+    <string name="alert_copy_command">Copiar el comando</string>
+    <string name="alert_command_copied">Comando copiado</string>
     <string name="settings_section_about">Acerca de</string>
     <string name="settings_screen_keep_title">¿Mantener esta orientación?</string>
     <string name="settings_screen_keep_detail">Vuelve atrás en %1$d s</string>
     <string name="settings_screen_keep">Mantener</string>
     <string name="settings_screen_revert">Volver</string>
-    <string name="settings_system_perms">Apps dentro de las tarjetas</string>
-    <string name="settings_system_perms_on">Concedidos. Google Maps puede funcionar dentro de una tarjeta.</string>
-    <string name="settings_system_perms_off">No concedidos. Toca para obtenerlos con PMPatch3.</string>
-    <string name="settings_pmpatch_body">PMPatch3 es un módulo de Magisk que permite a Android dar estos permisos a Dashwheel. También desactiva la comprobación de firmas de todas las apps de esta unidad.</string>
+    <string name="settings_system_perms">Google Maps dentro de un mosaico</string>
+    <string name="settings_system_perms_on">Configurado. Google Maps puede funcionar dentro de un mosaico.</string>
+    <string name="settings_system_perms_off">Sin configurar. Toca para hacerlo: instala el módulo PMPatch3, necesita Magisk y un reinicio.</string>
+    <string name="settings_pmpatch_body">Google Maps funciona dentro de un mosaico en cuanto Android concede a Dashwheel los permisos de sistema.</string>
+    <string name="settings_pmpatch_cost">El precio: PMPatch3 desactiva la comprobación de firmas para todas las apps de esta radio.</string>
+    <string name="settings_pmpatch_steps">Tres pasos: instalar, reiniciar, reinstalar Dashwheel.</string>
+    <string name="settings_pmpatch_step">Paso %1$d de %2$d</string>
     <string name="settings_pmpatch_checking">Comprobando Magisk…</string>
     <string name="settings_pmpatch_no_magisk">Magisk no está instalado en esta unidad.</string>
     <string name="settings_pmpatch_old_magisk">Se necesita Magisk 24 o posterior.</string>
@@ -120,7 +130,7 @@
     <string name="settings_pmpatch_no_root">El ADB de la unidad no pasó a root.</string>
     <string name="settings_unit_bar_title">Barra superior de la radio</string>
     <string name="settings_unit_bar_hide">Ocultarla con ventanas de apps</string>
-    <string name="settings_unit_bar_hide_detail">En algunas radios, las ventanas quedan entonces más abajo que su mosaico.</string>
+    <string name="settings_unit_bar_hide_detail">Más sitio para la app. Si la ventana acaba desplazada hacia abajo en tu radio, desactívalo.</string>
     <string name="settings_obd_title">Adaptador OBD</string>
     <string name="settings_obd_saved">%1$s. Toca para elegir otro.</string>
     <string name="settings_obd_none">Ninguno elegido. Toca para elegir el tuyo.</string>
@@ -128,9 +138,11 @@
     <string name="settings_obd_route_auto">Automático</string>
     <string name="settings_obd_route_unit">Esta radio</string>
     <string name="settings_obd_route_phone">Teléfono</string>
+    <string name="settings_obd_route_label">OBD a través de</string>
     <string name="settings_obd_route_offered">El teléfono mantiene %1$s y lo transmite: las llamadas y Android Auto ya no molestan.</string>
     <string name="settings_obd_route_unit_hint">Se llega al adaptador con el Bluetooth de esta radio.</string>
     <string name="settings_obd_route_hint">Por el teléfono cuando su app acompañante tiene el adaptador; si no, por el Bluetooth de la radio. Elige el adaptador en la app acompañante.</string>
+    <string name="settings_speed_fix_detail">Se suma a la velocidad que informa el coche, para igualar el velocímetro. En marcha, ajústalo desde el mosaico Indicadores del motor.</string>
     <string name="settings_backup_section">Tu configuración</string>
     <string name="settings_backup_save">Guardar mi configuración</string>
     <string name="settings_backup_save_detail">Paneles, ajustes y lugares, en un archivo. Sin la clave de IA ni los teléfonos vinculados.</string>
@@ -138,7 +150,7 @@
     <string name="settings_backup_restore_detail">Desde un archivo guardado en este equipo u otro</string>
     <string name="settings_backup_saved">Configuración guardada</string>
     <string name="settings_backup_saved_to">Configuración guardada en %1$s</string>
-    <string name="settings_backup_failed">Este archivo no se puede usar</string>
+    <string name="settings_backup_failed">Esto no es un archivo de configuración de Dashwheel. Elige un archivo guardado con Guardar mi configuración.</string>
     <string name="settings_backup_confirm_title">¿Restaurar esta configuración?</string>
     <string name="settings_backup_confirm_body">Se sustituyen tus paneles y ajustes. Dashwheel se reinicia.</string>
     <string name="settings_backup_confirm">Restaurar</string>
@@ -151,7 +163,7 @@
     <string name="bar_items_custom_detail">Toca un indicador para ponerlo en la barra o quitarlo; las flechas fijan el orden. Lo que no cabe se queda fuera.</string>
     <string name="bar_items_left">Antes en la barra</string>
     <string name="bar_items_right">Después en la barra</string>
-    <string name="bar_items_reset">Volver a la selección inicial</string>
+    <string name="bar_items_reset">Restablecer la selección inicial</string>
     <string name="bar_item_fuel">Combustible</string>
     <string name="bar_item_speed">Velocidad</string>
     <string name="bar_item_revs">Revoluciones</string>
@@ -171,14 +183,14 @@
     <string name="bar_look_minimal_hint">Sin texto: un icono pequeño delante de cada indicador.</string>
     <string name="settings_sleep_title">Suspensión profunda</string>
     <string name="settings_sleep_none">No hay suspensiones profundas perdidas registradas</string>
-    <string name="settings_sleep_lost">Perdida %1$d veces. Toca para mostrar u ocultar el detalle.\n%2$s</string>
+    <string name="settings_sleep_lost">Perdida %1$d veces.\n%2$s</string>
     <string name="settings_log_title">Registro de la unidad</string>
     <string name="settings_log_detail">Da el registro de esta unidad al móvil, para compartirlo como informe de error</string>
     <string name="settings_log_detail_last">Registro guardado a las %1$s. Toque para enviarlo al móvil</string>
     <string name="settings_log_sending">Enviando el registro al móvil</string>
     <string name="settings_log_sent">Guardado en el móvil. Abra su notificación para compartirlo</string>
     <string name="settings_log_failed">El móvil no aceptó el registro</string>
-    <string name="settings_log_no_phone">Ningún móvil respondió. Vincule el móvil y actualice su app complementaria</string>
+    <string name="settings_log_no_phone">Ningún móvil respondió. Conecte el móvil y actualice su app complementaria</string>
     <!-- About tab -->
     <string name="about_author_section">Creado por</string>
     <string name="about_description">Dashwheel es un launcher para autorradios Android: mapa, música y datos del coche en una pantalla tranquila, con paneles que organizas tú mismo. Gratis y de código abierto.</string>
@@ -189,6 +201,10 @@
     <string name="about_scan">Escanea con el móvil</string>
     <string name="about_project">Página del proyecto</string>
     <string name="about_project_detail">Código fuente, versiones y avisos de errores</string>
+    <string name="help_title">Ayuda</string>
+    <string name="help_row_detail">Cada función explicada, en la wiki</string>
+    <string name="help_detail">Cada función explicada en la wiki. Escanéala con el teléfono o ábrela aquí.</string>
+    <string name="help_open_here">Abrir en esta pantalla</string>
     <string name="alert_kind_gemini_title">Cómo se muestra Gemini Live</string>
     <string name="alert_gemini_detail">Se abre desde la barra, el menú o un botón del volante. Al conducir se reduce a una píldora tras unos segundos</string>
     <string name="alert_style_bubble">Burbuja</string>
@@ -205,4 +221,9 @@
     <string name="alert_volume_radio">Radio</string>
     <string name="alert_volume_call">Teléfono</string>
     <string name="alert_volume_aux">AUX</string>
+    <string name="settings_navigation_title">Navegación</string>
+    <string name="settings_side_rail">Barra lateral en lugar de la barra inferior</string>
+    <string name="settings_side_rail_detail">Los botones de la barra quedan del lado del conductor, a lo largo de la pantalla</string>
+    <string name="settings_tabs_nav">Pestañas en lugar de deslizar</string>
+    <string name="settings_tabs_nav_detail">Los paneles se tocan en la barra lateral; necesita la barra. Se activa solo cuando una app de mapas está bajo los paneles.</string>
 </resources>

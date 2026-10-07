@@ -213,12 +213,21 @@ internal fun LpgTankSheet(onDismiss: () -> Unit) {
         SwitchRow(stringResource(R.string.lpg_enable), stringResource(R.string.lpg_enable_detail), draft.enabled) { edit(draft.copy(enabled = it)) }
         if (!draft.enabled) return@SettingsSheet
 
+        // Each number with its own one-line hint underneath, not one paragraph for the three.
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            LpgNumber(stringResource(R.string.lpg_tank_size), draft.tankL, Modifier.weight(1f)) { it?.takeIf { v -> v >= 1 }?.let { v -> edit(draft.copy(tankL = v)) } }
-            LpgNumber(stringResource(R.string.lpg_use_setting), draft.useL100, Modifier.weight(1f)) { edit(draft.copy(useL100 = it?.takeIf { v -> v > 0 })) }
-            LpgNumber(stringResource(R.string.lpg_price), draft.pricePerL, Modifier.weight(1f)) { edit(draft.copy(pricePerL = it?.takeIf { v -> v > 0 })) }
+            Column(Modifier.weight(1f)) {
+                LpgNumber(stringResource(R.string.lpg_tank_size), draft.tankL, Modifier.fillMaxWidth()) { it?.takeIf { v -> v >= 1 }?.let { v -> edit(draft.copy(tankL = v)) } }
+                Text(stringResource(R.string.lpg_tank_hint), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+            }
+            Column(Modifier.weight(1f)) {
+                LpgNumber(stringResource(R.string.lpg_use_setting), draft.useL100, Modifier.fillMaxWidth()) { edit(draft.copy(useL100 = it?.takeIf { v -> v > 0 })) }
+                Text(stringResource(R.string.lpg_use_hint), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+            }
+            Column(Modifier.weight(1f)) {
+                LpgNumber(stringResource(R.string.lpg_price), draft.pricePerL, Modifier.fillMaxWidth()) { edit(draft.copy(pricePerL = it?.takeIf { v -> v > 0 })) }
+                Text(stringResource(R.string.lpg_price_hint), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+            }
         }
-        Text(stringResource(R.string.lpg_numbers_detail), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
 
         Label(stringResource(R.string.lpg_mode_label))
         ChoiceRow(LpgMode.entries, draft.mode, {

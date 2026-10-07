@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Add-widget catalogue: section headings -->
-    <string name="apps_category_driving">FAHREN</string>
-    <string name="apps_category_navigation">NAVIGATION</string>
-    <string name="apps_category_vehicle">FAHRZEUG</string>
-    <string name="apps_category_info">INFO &amp; KOMMUNIKATION</string>
-    <string name="apps_category_apps">MEDIEN &amp; APPS</string>
+    <string name="apps_category_driving">Fahren</string>
+    <string name="apps_category_navigation">Navigation</string>
+    <string name="apps_category_vehicle">Fahrzeug</string>
+    <string name="apps_category_info">Info &amp; Kommunikation</string>
+    <string name="apps_category_apps">Medien</string>
 
     <!-- Add-widget catalogue: built-in tiles (name, then one-line description) -->
     <string name="apps_kind_navmap">Karte</string>
@@ -16,16 +16,16 @@
     <string name="apps_kind_pip_anchor_blurb">Dockt das schwebende Maps-Fenster hier an</string>
     <string name="apps_kind_media">Musikplayer</string>
     <string name="apps_kind_media_blurb">Aktuelle Wiedergabe mit Steuerung</string>
-    <string name="apps_kind_telemetry">Telemetrie</string>
+    <string name="apps_kind_telemetry">Motoranzeigen</string>
     <string name="apps_kind_telemetry_blurb">Tacho, Drehzahl, Kühlmittel, Last, Batterie</string>
     <string name="apps_kind_obd_dtc">Fehlercodes</string>
     <string name="apps_kind_obd_dtc_blurb">OBD-Fehlercodes lesen und löschen</string>
-    <string name="apps_kind_obd_all">Alle OBD-Daten</string>
+    <string name="apps_kind_obd_all">Alle Fahrzeugdaten</string>
     <string name="apps_kind_obd_all_blurb">Alle OBD-Live-Werte</string>
     <string name="apps_kind_range">Kraftstoff &amp; Reichweite</string>
     <string name="apps_kind_range_blurb">Tankfüllung und Rest-km</string>
     <string name="apps_kind_doors">Türen</string>
-    <string name="apps_kind_doors_blurb">Tür- und Kofferraumstatus von der MCU</string>
+    <string name="apps_kind_doors_blurb">Tür- und Kofferraumstatus vom Auto</string>
     <string name="apps_kind_can_mon">CAN-Monitor</string>
     <string name="apps_kind_can_mon_blurb">Rohe CAN-Frames, zum Finden von Signalen</string>
     <string name="apps_kind_speed_hud">Tempo</string>
@@ -88,7 +88,7 @@
     <string name="apps_window_gave_up">Das System lässt %1$s, wo es ist</string>
     <string name="apps_window_moving">%1$s wird hierher verschoben…</string>
     <string name="apps_window_opening">%1$s wird hier geöffnet…</string>
-    <string name="apps_window_maps_hint">Google Maps dockt hier an.\nUnten öffnen oder Zielführung starten und Home drücken.</string>
+    <string name="apps_window_maps_hint">Google Maps dockt hier an.\nUnten öffnen oder die Navigation starten und Home drücken.</string>
     <string name="apps_window_app_hint">%1$s läuft hier, in einem Fenster in Kachelgröße.</string>
     <string name="apps_window_open">%1$s hier öffnen</string>
     <string name="apps_window_open_full">%1$s komplett hier öffnen</string>
@@ -106,17 +106,11 @@
     <string name="apps_add_title">Zu %1$s hinzufügen</string>
     <string name="apps_tab_widgets">Widgets</string>
     <string name="apps_tab_apps">Apps</string>
-    <string name="apps_tab_windows">Fenster</string>
     <string name="apps_search">Suchen</string>
     <string name="apps_category_all">Alle</string>
-    <string name="apps_window_mode_single">In einem Fenster</string>
-    <string name="apps_window_mode_pair">Nebeneinander</string>
-    <string name="apps_window_hint">Die App bleibt in einem eigenen Fenster auf diesem Dashboard offen.</string>
-    <string name="apps_window_mode_inside">In der Kachel</string>
-    <string name="apps_window_inside_hint">Die App läuft in der Kachel und wird dort bedient.</string>
     <string name="apps_embed_app_starting">%1$s wird geöffnet</string>
     <string name="apps_embed_app_missing">%1$s ist nicht installiert</string>
-    <string name="apps_embed_app_blocked">Android hat %1$s hier nicht geöffnet</string>
+    <string name="apps_embed_app_blocked">%1$s läuft auf diesem Gerät nicht in einer Kachel. Füge es stattdessen als Fenster hinzu.</string>
     <string name="apps_embed_under_dashboard">Schon unter dem Dashboard</string>
     <string name="apps_pair_pick_first">Tippe auf die App für die linke Seite.</string>
     <string name="apps_pair_pick_second">%1$s links. Jetzt die App für die rechte Seite antippen.</string>
@@ -124,9 +118,9 @@
     <string name="apps_kind_maps_inside">Google Maps eingebettet</string>
     <string name="apps_kind_maps_inside_blurb">Die echte Google-Maps-App in dieser Kachel</string>
     <string name="apps_kind_dash_bar">Dashboard-Leiste</string>
-    <string name="apps_kind_dash_bar_blurb">Deine Dashboards und Apps, mit einem Tipp</string>
+    <string name="apps_kind_dash_bar_blurb">Deine Dashboards und Apps, je ein Tipp, auf diesem Dashboard</string>
     <string name="apps_most_used">Am meisten genutzt</string>
-    <string name="apps_kind_screen_light">Licht zweiter Bildschirm</string>
+    <string name="apps_kind_screen_light">Helligkeit Pi-Bildschirm</string>
     <string name="apps_kind_screen_light_blurb">Die Hintergrundbeleuchtung des zweiten Bildschirms, bei Tag und bei Nacht</string>
     <string name="apps_kind_radios">WLAN und Bluetooth</string>
     <string name="apps_kind_radios_blurb">WLAN und Bluetooth des Radios ein- und ausschalten</string>
@@ -142,4 +136,11 @@
     <string name="apps_needs_root">Braucht Root</string>
     <string name="apps_needs_carbox">Braucht die Fahrzeugbox</string>
     <string name="apps_on_dashboard">Schon auf einem Dashboard</string>
+    <string name="apps_as_icon">Symbol</string>
+    <string name="apps_as_icon_detail">Öffnet die App</string>
+    <string name="apps_in_tile">In einer Kachel</string>
+    <string name="apps_in_tile_inside">Läuft in der Kachel, auf diesem Dashboard</string>
+    <string name="apps_in_tile_window">Bleibt in einem Fenster von Kachelgröße offen</string>
+    <string name="apps_side_by_side">Nebeneinander</string>
+    <string name="apps_side_by_side_detail">Zwei Apps zugleich, im geteilten Bildschirm</string>
 </resources>

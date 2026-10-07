@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="monitor_kind">Radio</string>
+    <string name="monitor_kind">Radiomonitor</string>
     <string name="monitor_kind_blurb">Processor, geheugen, temperatuur en de drukste apps</string>
     <string name="monitor_cpu">CPU</string>
     <string name="monitor_ram">RAM</string>
@@ -28,7 +28,7 @@
     <string name="gear_needs_data">Heeft de OBD-adapter of de CAN-box nodig</string>
     <string name="design_gear_gate">Schakelpatroon</string>
     <string name="design_gear_gate_desc">De versnellingen op een rij, de ingeschakelde verlicht</string>
-    <string name="monitor_title">RADIO</string>
+    <string name="monitor_title">RADIOMONITOR</string>
     <string name="gear_title">VERSNELLING</string>
     <plurals name="monitor_cores">
         <item quantity="one">%1$d kern</item>

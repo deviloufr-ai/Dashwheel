@@ -4,7 +4,7 @@
     <string name="settings_section_second_screen">Second écran</string>
     <string name="second_screen_experimental">Expérimental : un Raspberry Pi affiche un second écran dans la voiture. Pas encore testé en voiture.</string>
     <string name="second_screen_status_unpaired">Aucun second écran associé</string>
-    <string name="second_screen_status_unpaired_detail">Scannez le code affiché sur le second écran avec l\'application Dashwheel du téléphone, pendant que le téléphone est relié à cette voiture.</string>
+    <string name="second_screen_status_unpaired_detail">Scannez le code affiché sur le second écran avec l\'application Dashwheel du téléphone, pendant que le téléphone est connecté à cette voiture.</string>
     <string name="second_screen_status_searching">Recherche du second écran</string>
     <string name="second_screen_status_searching_detail">L\'écran et cet autoradio doivent être tous deux sur le point d\'accès du téléphone.</string>
     <string name="second_screen_status_connected">Connecté à %1$s</string>
@@ -68,7 +68,7 @@
     <string name="second_screen_widget">Widget</string>
     <string name="second_screen_widget_pick">Choisir un widget</string>
     <string name="second_screen_design">Style</string>
-    <string name="second_screen_board_reset">Revenir à la page d\'origine</string>
+    <string name="second_screen_board_reset">Réinitialiser la page d\'origine</string>
     <string name="second_screen_copy_of">%1$s, comme sur l\'autoradio</string>
     <string name="second_screen_copy_blurb">Une copie de sa tuile du tableau de bord. Vous l\'utilisez sur l\'autoradio.</string>
     <string name="second_screen_copy_no_tile">Placez %1$s dans une tuile du tableau de bord pour le voir ici</string>

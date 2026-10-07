@@ -19,10 +19,10 @@
     <string name="tour_finish">Fertig</string>
     <string name="tour_read_aloud">Vorlesen</string>
     <string name="tour_swipe_title">Wischen wechselt das Dashboard</string>
-    <string name="tour_swipe_body">Start ist in der Mitte. Wische nach links oder rechts für zwei weitere und von Start nach oben oder unten für vier weitere.</string>
+    <string name="tour_swipe_body">Start ist in der Mitte. Nach links oder rechts wischen für die beiden daneben. Weitere Dashboards können darüber und darunter liegen.</string>
     <string name="tour_try_swipe">Probier es: wische über den Bildschirm</string>
     <string name="tour_arrange_title">Kacheln verschieben und vergrößern</string>
-    <string name="tour_arrange_body">Halte eine Kachel und ziehe sie, um sie zu verschieben. Zieh an ihrer Ecke, um sie zu vergrößern.</string>
+    <string name="tour_arrange_body">Kachel antippen für ihre Optionen, halten zum Verschieben, an der Ecke ziehen für die Größe. Das Dashboard selbst zu halten startet das Anordnen ebenfalls.</string>
     <string name="tour_arrange_hint">Später öffnest du das im Menü unter Dashboards bearbeiten.</string>
     <string name="tour_add_title">Widget oder App hinzufügen</string>
     <string name="tour_add_body">Tippe auf Hinzufügen für Musik, Fahrzeugdaten, Wetter oder eine App auf diesem Dashboard.</string>

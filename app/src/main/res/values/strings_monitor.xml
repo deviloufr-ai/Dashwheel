@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="monitor_kind">Head unit</string>
+    <string name="monitor_kind">Unit monitor</string>
     <string name="monitor_kind_blurb">CPU, memory, temperature and the busiest apps</string>
     <string name="monitor_cpu">CPU</string>
     <string name="monitor_ram">RAM</string>
@@ -22,13 +22,13 @@
     <string name="gear_kind">Gear</string>
     <string name="gear_kind_blurb">The gear engaged, and reverse</string>
     <string name="gear_reverse">Reverse</string>
-    <string name="gear_free">Rolling free</string>
+    <string name="gear_free">Coasting</string>
     <string name="gear_stopped">Stopped</string>
     <string name="gear_nth">Gear %1$d</string>
     <string name="gear_needs_data">Needs the OBD adapter or the car box</string>
     <string name="design_gear_gate">Gear gate</string>
     <string name="design_gear_gate_desc">The gears in a row, the one engaged lit</string>
-    <string name="monitor_title">HEAD UNIT</string>
+    <string name="monitor_title">UNIT MONITOR</string>
     <string name="gear_title">GEAR</string>
     <plurals name="monitor_cores">
         <item quantity="one">%1$d core</item>

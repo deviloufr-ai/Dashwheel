@@ -7,7 +7,8 @@
         <item quantity="one">%1$d tasto assegnato</item>
         <item quantity="other">%1$d tasti assegnati</item>
     </plurals>
-    <string name="wheel_explanation">Premi ogni tasto del volante. Uno nuovo entra nella mappa, uno già noto si accende di verde. Tocca un tasto per dargli un nome, posizionarlo e scegliere cosa fa.</string>
+    <string name="wheel_explanation">Premi ogni tasto del volante: uno nuovo entra nella mappa, uno già noto si accende di verde.</string>
+    <string name="wheel_explanation_tap">Tocca un tasto per dargli un nome, posizionarlo e scegliere cosa fa.</string>
     <string name="wheel_confirm_detail">È stato rilevato %1$s. Premilo un\'altra volta perché Dashwheel sappia che sei stato tu: un dato dell\'auto che cambia da solo non si ripete a comando.</string>
     <string name="wheel_assign_prompt">Cosa deve fare %1$s?</string>
     <string name="wheel_choose_app">Avvia un\'app…</string>
@@ -33,7 +34,7 @@
     <string name="wheel_action_quick_settings">Impostazioni rapide</string>
     <string name="wheel_action_toggle_split">Schermo diviso sì / no</string>
     <string name="wheel_action_screenshot">Screenshot</string>
-    <string name="wheel_action_play_pause">Riproduci / Pausa</string>
+    <string name="wheel_action_play_pause">Riproduci/pausa</string>
     <string name="wheel_action_next">Brano successivo</string>
     <string name="wheel_action_previous">Brano precedente</string>
     <string name="wheel_action_volume_up">Alza il volume</string>

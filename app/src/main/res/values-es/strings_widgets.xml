@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="widgets_light">Brillo de pantalla</string>
+    <string name="widgets_light">Brillo</string>
     <string name="widgets_light_blurb">El brillo de la radio, de día y de noche</string>
     <string name="widgets_cam">Radares</string>
     <string name="widgets_cam_blurb">El próximo radar fijo en el camino, de OpenStreetMap</string>
@@ -51,12 +51,15 @@
     <string name="widgets_eta_failed">El móvil no pudo enviarlo</string>
     <string name="widgets_eta_no_phone">El móvil no está conectado</string>
     <string name="widgets_notes_record">Grabar una nota</string>
-    <string name="widgets_notes_stop">Parar  %1$d s</string>
+    <string name="widgets_notes_stop">Parar %1$d s</string>
     <string name="widgets_notes_empty">Aún no hay notas</string>
     <string name="widgets_notes_play">Reproducir</string>
-    <string name="widgets_notes_delete">Eliminar</string>
+    <string name="widgets_notes_delete">Quitar</string>
     <string name="widgets_notes_recording">Grabando</string>
-    <string name="widgets_notes_count">notas</string>
+    <plurals name="widgets_notes_count">
+        <item quantity="one">nota</item>
+        <item quantity="other">notas</item>
+    </plurals>
     <string name="widgets_switch_mute">Silencio</string>
     <string name="widgets_switch_dnd">No molestar</string>
     <string name="widgets_gps_fix">Señal</string>
@@ -73,19 +76,19 @@
     <string name="widgets_perf_running">Cronometrando</string>
     <string name="widgets_perf_done">Hecho</string>
     <string name="widgets_perf_best">Mejor %1$s</string>
-    <string name="widgets_perf_reset">Olvidar los mejores tiempos</string>
+    <string name="widgets_perf_reset">Restablecer los mejores tiempos</string>
     <string name="widgets_list_connected">Conectado</string>
     <string name="widgets_list_settings">Ajustes</string>
     <string name="widgets_wifi_saved">Guardada</string>
     <string name="widgets_wifi_off">Wi-Fi apagado: toca para encenderlo</string>
     <string name="widgets_wifi_location">Permite la ubicación para ver las redes</string>
     <string name="widgets_wifi_none">No se encontraron redes</string>
-    <string name="widgets_wifi_refused">Android lo reserva a sus ajustes: abriéndolos</string>
+    <string name="widgets_wifi_refused">Android solo lo permite desde sus propios ajustes. Abriéndolos ahora.</string>
     <string name="widgets_bt_paired">Vinculado</string>
     <string name="widgets_bt_off">Bluetooth apagado: toca para encenderlo</string>
     <string name="widgets_bt_none">Ningún dispositivo vinculado</string>
     <string name="widgets_bt_none_connected">Ninguno conectado</string>
-    <string name="widgets_bt_refused">Android lo reserva a sus ajustes: abriéndolos</string>
+    <string name="widgets_bt_refused">Android solo lo permite desde sus propios ajustes. Abriéndolos ahora.</string>
     <string name="widgets_bt_phone_none">Ningún móvil conectado</string>
     <string name="widgets_bt_phone_change">Conectar</string>
     <string name="widgets_limit">Límite de velocidad</string>
@@ -115,7 +118,7 @@
     <string name="widgets_wx_ahead">En el destino</string>
     <string name="widgets_wx_red">Rojo</string>
     <string name="widgets_wx_orange">Naranja</string>
-    <string name="widgets_wx_say">Aviso %1$s, %2$s, %3$s</string>
+    <string name="widgets_wx_say">Aviso %1$s por %2$s en %3$s.</string>
     <string name="widgets_wx_h_wind">Viento</string>
     <string name="widgets_wx_h_snow">Nieve y hielo</string>
     <string name="widgets_wx_h_storm">Tormentas</string>

@@ -7,7 +7,7 @@
     <string name="mycar_empty">Brak obrazu. Wybierz plik albo wyślij go z aplikacji w telefonie.</string>
     <string name="mycar_working">Przygotowywanie</string>
     <string name="mycar_ready">Obraz twojego auta jest gotowy</string>
-    <string name="mycar_failed">Nie udało się odczytać pliku</string>
+    <string name="mycar_failed">Nie udało się odczytać obrazu. Spróbuj JPG lub PNG.</string>
     <string name="mycar_no_picker">Brak wyboru plików w tym urządzeniu. Umieść plik tutaj: %1$s</string>
     <string name="mycar_pick">Wybierz plik</string>
     <string name="mycar_remove">Usuń</string>

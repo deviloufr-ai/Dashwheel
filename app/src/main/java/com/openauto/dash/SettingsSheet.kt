@@ -85,6 +85,7 @@ private val SHEET_WIDTH = 760.dp
 /**
  * @param onDismiss leaves the sheet: the back arrow, the Back key, a tap beside the dialog
  * @param onStepBack a step back inside the sheet, while it is on an inner screen
+ * @param help the wiki page a "?" beside the title opens (WikiHelp.kt); none without one
  * @param actions its buttons ([SheetButton]), the main one last
  */
 @Composable
@@ -92,6 +93,7 @@ internal fun SettingsSheet(
     title: String,
     onDismiss: () -> Unit,
     onStepBack: (() -> Unit)? = null,
+    help: WikiPage? = null,
     actions: @Composable RowScope.() -> Unit,
     content: @Composable ColumnScope.() -> Unit
 ) {
@@ -108,7 +110,11 @@ internal fun SettingsSheet(
                         }
                         Spacer(Modifier.width(4.dp))
                     }
-                    Text(title, color = DashColors.TextPrimary)
+                    Text(title, color = DashColors.TextPrimary, modifier = Modifier.weight(1f, fill = false))
+                    if (help != null) {
+                        Spacer(Modifier.width(8.dp))
+                        HelpButton(help)
+                    }
                 }
             },
             text = {
@@ -158,8 +164,13 @@ internal fun SettingsSheet(
                 style = MaterialTheme.typography.titleLarge,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f, fill = false)
             )
+            if (help != null) {
+                Spacer(Modifier.width(4.dp))
+                HelpButton(help)
+            }
+            Spacer(Modifier.weight(1f))
             Spacer(Modifier.width(12.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically, content = actions)
         }

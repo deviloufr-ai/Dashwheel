@@ -408,7 +408,8 @@ private fun Caption(text: String, modifier: Modifier = Modifier, color: Color = 
 }
 
 /**
- * Settings, Display: the bar's readouts. Off: the theme's own bar. On: a list
+ * Settings, Display, under the one "Bottom bar" heading (with its auto-hide,
+ * ThemePane.kt): the bar's readouts. Off: the theme's own bar. On: a list
  * of every readout, ticked or not, moved up and down into order. A skin draws
  * its own bar and shows none of them: under one the switch is greyed out and
  * says why, so nobody orders readouts that never appear.
@@ -416,9 +417,8 @@ private fun Caption(text: String, modifier: Modifier = Modifier, color: Color = 
 @Composable
 internal fun BarItemsSetting() {
     val chosen by BarItems.items.collectAsState()
-    SettingsSection(stringResource(R.string.bar_items_title))
     if (DashColors.Skin != DashSkin.STANDARD) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
             Column(Modifier.weight(1f)) {
                 Text(stringResource(R.string.bar_items_custom), color = DashColors.Muted)
                 Text(stringResource(R.string.bar_items_skin), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)

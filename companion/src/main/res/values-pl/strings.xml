@@ -39,26 +39,26 @@
     <string name="car_spot_title">Gdzie jest mój samochód</string>
     <string name="car_spot_left">Zostawiony tutaj: %1$s</string>
     <string name="car_spot_saved">Zapisany w samochodzie: %1$s</string>
-    <string name="car_spot_none">Gdy samochód jest połączony, tutaj pojawi się miejsce, w którym się zatrzymał.</string>
+    <string name="car_spot_none">Gdy samochód jest sparowany, tutaj pojawi się miejsce, w którym się zatrzymał.</string>
     <string name="car_spot_map">Mapa</string>
     <string name="car_spot_walk">Idź pieszo</string>
     <string name="drives_title">Jazdy</string>
-    <string name="drives_none">Gdy samochód będzie połączony, każda jazda pojawi się tutaj z dystansem, czasem i oceną eko-jazdy.</string>
+    <string name="drives_none">Gdy samochód będzie sparowany, każda jazda pojawi się tutaj z dystansem, czasem i oceną eko-jazdy.</string>
     <string name="drive_under_way">Jazda w toku</string>
     <string name="drive_last">Ostatnia jazda</string>
     <string name="drive_km">km</string>
     <string name="drive_time">Czas</string>
     <string name="drive_average">Średnia km/h</string>
     <string name="drive_top">Maks. km/h</string>
-    <string name="drive_eco_none">Eko-jazda: brak oceny (poniżej 1 km lub brak danych silnika)</string>
+    <string name="drive_eco_none">Brak oceny eko-jazdy: poniżej 1 km lub brak danych silnika</string>
     <string name="drive_eco_smooth">Płynna jazda</string>
     <string name="drive_eco_fair">Średnio: trochę gwałtownie</string>
     <string name="drive_eco_harsh">Gwałtownie: zwolnij</string>
-    <string name="drive_hard">Ostre przysp. / hamowania: %1$d / %2$d</string>
+    <string name="drive_hard">Ostre przyspieszanie / hamowanie: %1$d / %2$d</string>
     <string name="drive_band">Obroty w spokojnym zakresie: %1$d %%</string>
-    <string name="drive_clutch">Trzymanie na gazie: %1$d</string>
+    <string name="drive_clutch">Trzymanie na wzniesieniu gazem: %1$d</string>
     <string name="drive_fuel">Paliwo ≈ %1$s L · %2$s %3$s</string>
-    <string name="drive_duration_hm">%1$d h %2$02d</string>
+    <string name="drive_duration_hm">%1$d h %2$02d min</string>
     <string name="drive_duration_m">%1$d min</string>
     <string name="keyboard_title">Pisz w aucie</string>
     <string name="keyboard_detail">Zaznacz pole tekstowe na ekranie auta, a potem pisz tutaj: tekst pojawia się na bieżąco.</string>
@@ -120,7 +120,7 @@
     <string name="obd_relay_change">Zmień</string>
     <string name="obd_relay_stop">Wyłącz</string>
     <string name="obd_relay_pick">Twój adapter OBD</string>
-    <string name="obd_relay_pick_hint">Najpierw sparuj adapter z tym telefonem w Bluetooth (PIN 1234 lub 0000). Telefon trzyma go wtedy dla samochodu, więc rozmowy i Android Auto już nie przeszkadzają.</string>
+    <string name="obd_relay_pick_hint">Najpierw sparuj adapter z tym telefonem w Bluetooth, PIN 1234 lub 0000. Telefon trzyma go wtedy dla samochodu, więc rozmowy i Android Auto już nie przeszkadzają.</string>
     <string name="news_title">Z Twojego auta</string>
     <string name="news_channel">Przypomnienia z auta</string>
     <string name="step_texts">SMS-y w drodze</string>
@@ -212,7 +212,7 @@
 
     <!-- A second-screen display's code, scanned here and passed to the car (DisplayPair). -->
     <string name="display_confirm_title">Dodać ekran %1$s do auta?</string>
-    <string name="display_confirm_body">Telefon przekaże kod tego ekranu do połączonego auta.</string>
+    <string name="display_confirm_body">Telefon przekaże kod tego ekranu do sparowanego auta.</string>
     <string name="display_confirm_send">Wyślij do auta</string>
     <string name="display_sent">Wysłano do %1$s: ekran połączy się za kilka sekund.</string>
     <string name="display_needs_car">Najpierw połącz się z autem, potem zeskanuj ponownie kod ekranu.</string>

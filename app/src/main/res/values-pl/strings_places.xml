@@ -12,7 +12,7 @@
     <string name="places_here">Auto stoi tutaj</string>
     <string name="places_forget">Zapomnij</string>
     <string name="places_recent">Ostatnie cele</string>
-    <string name="places_forget_recent">Zapomnij je</string>
+    <string name="places_forget_recent">Wyczyść listę</string>
     <string name="places_offline">Brak połączenia</string>
     <string name="places_no_nav_app">Brak aplikacji do nawigacji w tym radiu</string>
     <!-- Spoken when a steering wheel button asks for a place that isn't set -->

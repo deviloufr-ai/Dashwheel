@@ -2,7 +2,7 @@
 <resources>
     <!-- Horizon skin: top bar -->
     <string name="horizon_cd_all_apps">Alle apps</string>
-    <string name="horizon_cd_screen_layout">Schermindeling: %1$s</string>
+    <string name="horizon_cd_screen_layout">Positie van Google Maps: %1$s</string>
     <string name="horizon_cd_more">Meer</string>
 
     <!-- Horizon skin: telemetry and speed -->
@@ -12,7 +12,7 @@
     <string name="horizon_obd_tap_connect">Tik om OBD te verbinden</string>
     <string name="horizon_rpm_value">%1$s tpm</string>
     <string name="horizon_coolant_value">%1$d° koelvloeistof</string>
-    <string name="horizon_load_value">%1$d%% belasting</string>
+    <string name="horizon_load_value">%1$d %% belasting</string>
 
     <!-- Horizon skin: music -->
     <string name="horizon_cd_previous_track">Vorig nummer</string>
@@ -43,7 +43,7 @@
     <string name="horizon_weather_at_car">Weer bij de auto</string>
     <string name="horizon_feels">voelt als %1$d°</string>
     <string name="horizon_wind">wind %1$d km/u</string>
-    <string name="horizon_range_fuel">actieradius · %1$d%% brandstof</string>
+    <string name="horizon_range_fuel">actieradius · %1$d %% brandstof</string>
 
     <!-- Horizon skin: apps and launch bar -->
     <string name="horizon_open_app">%1$s openen</string>
@@ -54,7 +54,7 @@
     <string name="tape_apps_caps">APPS</string>
     <string name="tape_cd_all_apps">Alle apps</string>
     <string name="tape_layout_caps">INDELING</string>
-    <string name="tape_cd_screen_layout">Schermindeling: %1$s</string>
+    <string name="tape_cd_screen_layout">Positie van Google Maps: %1$s</string>
     <string name="tape_cd_more">Meer</string>
 
     <!-- Tape Deck skin: telemetry and speed -->

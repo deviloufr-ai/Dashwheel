@@ -19,10 +19,10 @@
     <string name="tour_finish">Terminar</string>
     <string name="tour_read_aloud">Ler em voz alta</string>
     <string name="tour_swipe_title">Deslize para mudar de painel</string>
-    <string name="tour_swipe_body">O início está no meio. Deslize para a esquerda ou direita para mais dois, e para cima ou baixo a partir do início para mais quatro.</string>
+    <string name="tour_swipe_body">O Início está no meio. Deslize para a esquerda ou direita para os dois ao lado. Mais painéis podem ficar acima e abaixo.</string>
     <string name="tour_try_swipe">Experimente: deslize o ecrã</string>
     <string name="tour_arrange_title">Mover e aumentar mosaicos</string>
-    <string name="tour_arrange_body">Mantenha um mosaico premido e arraste-o para o mover. Puxe o canto para o aumentar.</string>
+    <string name="tour_arrange_body">Toque num mosaico para as opções, mantenha para o mover, arraste o canto para o redimensionar. Manter o próprio painel também inicia a organização.</string>
     <string name="tour_arrange_hint">Mais tarde, abra isto no menu, Editar painéis.</string>
     <string name="tour_add_title">Adicionar um widget ou uma app</string>
     <string name="tour_add_body">Toque em Adicionar para pôr música, dados do carro, meteorologia ou uma app neste painel.</string>

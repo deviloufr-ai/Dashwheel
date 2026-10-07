@@ -10,7 +10,7 @@ import org.junit.Test
 import java.util.Calendar
 import java.util.TimeZone
 
-/** The Canvas theme: reading the route, the rain ahead, sunset and its home arrangement. */
+/** The Canvas theme: reading the route, the rain ahead and sunset. */
 class CanvasTest {
 
     private fun today(hour: Int, minute: Int): Long = Calendar.getInstance().apply {
@@ -66,21 +66,5 @@ class CanvasTest {
         // About 19:58 UTC.
         assertTrue("$sunset", sunset!! in (at(19) + 45 * 60_000L)..(at(20) + 15 * 60_000L))
         assertNull(nextSunset(at(8), at(12), 48.8566, 2.3522))
-    }
-
-    @Test
-    fun theCanvasHomeFitsTheGridAndOnlyReplacesTheMiddlePage() {
-        val home = DashboardStore.canvasHome()
-        home.forEach { t -> assertTrue("$t", t.x >= 0 && t.y >= 0 && t.x + t.w <= GRID_COLS && t.y + t.h <= GRID_ROWS) }
-        for (i in home.indices) for (j in i + 1 until home.size) {
-            val a = home[i]
-            val b = home[j]
-            val apart = a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y
-            assertTrue("$a overlaps $b", apart)
-        }
-        val own = List(7) { page -> listOf<DashboardItem>(DashboardItem.BuiltinWidget(BuiltinKind.CLOCK, x = page)) }
-        val seeded = DashboardStore.withCanvasHome(own)
-        assertEquals(home, seeded[DashboardStore.CENTER])
-        seeded.forEachIndexed { i, page -> if (i != DashboardStore.CENTER) assertEquals(own[i], page) }
     }
 }

@@ -3,7 +3,7 @@
     <!-- Cockpit skin: top bar -->
     <string name="cockpit_apps">APPLIS</string>
     <string name="cockpit_layout">ÉCRAN</string>
-    <string name="cockpit_screen_layout_desc">Disposition de l\'écran : %1$s</string>
+    <string name="cockpit_screen_layout_desc">Position de Google Maps : %1$s</string>
     <string name="cockpit_more">Plus</string>
     <string name="cockpit_time_desc">Heure %1$s</string>
     <string name="cockpit_out">EXT</string>
@@ -57,7 +57,7 @@
 
     <!-- Orbit skin: top bar -->
     <string name="orbit_all_apps">Toutes les applis</string>
-    <string name="orbit_screen_layout_desc">Disposition de l\'écran : %1$s</string>
+    <string name="orbit_screen_layout_desc">Position de Google Maps : %1$s</string>
     <string name="orbit_more">Plus</string>
 
     <!-- Orbit skin: speed dial and satellite bubbles -->

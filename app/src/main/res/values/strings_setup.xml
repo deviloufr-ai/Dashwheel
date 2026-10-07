@@ -29,7 +29,7 @@
     <string name="setup_access_calendar">Calendar</string>
     <string name="setup_access_calendar_detail">Today\'s appointments on the agenda</string>
     <string name="setup_access_obd">OBD adapter</string>
-    <string name="setup_access_obd_detail">Engine data, fuel and fault codes over Bluetooth</string>
+    <string name="setup_access_obd_detail">Engine readings, fuel and fault codes over Bluetooth</string>
     <string name="setup_access_phone">Phone</string>
     <string name="setup_access_phone_detail">Messages, calls and your agenda from your phone</string>
     <string name="setup_allow">Allow</string>

@@ -8,12 +8,19 @@
     <string name="templates_road_trip">Road trip</string>
     <string name="templates_road_trip_blurb">Grande carte, autonomie, météo et arrêts pour les longs trajets</string>
     <string name="templates_car_health">Santé de la voiture</string>
-    <string name="templates_car_health_blurb">Données moteur et codes défaut sur l\'accueil</string>
-    <string name="templates_hint">Un modèle remplit les sept tableaux de bord, disposés pour cet écran avec les tuiles principales côté conducteur.</string>
+    <string name="templates_car_health_blurb">Données de la voiture et codes défaut sur l\'accueil</string>
+    <string name="templates_hint">Un modèle remplit l\'Accueil et les deux tableaux de bord à côté, disposés pour cet écran avec les tuiles principales côté conducteur.</string>
     <string name="templates_no_obd">Aucun adaptateur OBD choisi : les widgets de données voiture sont omis.</string>
     <string name="templates_fill_empty">Remplir les vides</string>
-    <string name="templates_replace_all">Tout remplacer</string>
-    <string name="templates_replace_confirm_title">Remplacer les sept tableaux de bord ?</string>
+    <string name="templates_replace_all">Remplacer ces tableaux de bord</string>
+    <string name="templates_replace_confirm_title">Remplacer ces tableaux de bord ?</string>
     <string name="templates_replace_confirm_body">Votre disposition disparaît. Annuler la ramène.</string>
     <string name="templates_replace">Remplacer</string>
+    <string name="templates_column">Remplir aussi les tableaux de bord au-dessus et en dessous</string>
+    <string name="templates_column_detail">Quatre tableaux de bord de plus, balayés vers le haut et le bas depuis l\'Accueil</string>
+    <string name="templates_fill_this">Remplir ce tableau de bord</string>
+    <string name="templates_fill_this_hint">Seule la page du modèle pour %1$s y est placée.</string>
+    <string name="templates_fill">Remplir</string>
+    <string name="templates_all_dashboards">Tous les tableaux de bord…</string>
+    <string name="templates_none_empty">Aucun tableau de bord vide dans les balayages</string>
 </resources>

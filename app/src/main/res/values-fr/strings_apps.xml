@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Add-widget catalogue: section headings -->
-    <string name="apps_category_driving">CONDUITE</string>
-    <string name="apps_category_navigation">NAVIGATION</string>
-    <string name="apps_category_vehicle">VÉHICULE</string>
-    <string name="apps_category_info">INFOS &amp; COMMUNICATION</string>
-    <string name="apps_category_apps">MÉDIAS &amp; APPLIS</string>
+    <string name="apps_category_driving">Conduite</string>
+    <string name="apps_category_navigation">Navigation</string>
+    <string name="apps_category_vehicle">Véhicule</string>
+    <string name="apps_category_info">Infos &amp; comms</string>
+    <string name="apps_category_apps">Médias</string>
 
     <!-- Add-widget catalogue: built-in tiles (name, then one-line description) -->
     <string name="apps_kind_navmap">Carte</string>
@@ -16,16 +16,16 @@
     <string name="apps_kind_pip_anchor_blurb">Ancre ici la fenêtre flottante de Maps</string>
     <string name="apps_kind_media">Lecteur audio</string>
     <string name="apps_kind_media_blurb">En cours de lecture, avec commandes</string>
-    <string name="apps_kind_telemetry">Télémétrie</string>
+    <string name="apps_kind_telemetry">Cadrans moteur</string>
     <string name="apps_kind_telemetry_blurb">Vitesse, régime, liquide de refroid., charge, batterie</string>
     <string name="apps_kind_obd_dtc">Codes défaut</string>
     <string name="apps_kind_obd_dtc_blurb">Lire et effacer les codes défaut OBD</string>
-    <string name="apps_kind_obd_all">Toutes les données OBD</string>
+    <string name="apps_kind_obd_all">Toutes les données de la voiture</string>
     <string name="apps_kind_obd_all_blurb">Toutes les valeurs OBD en direct</string>
     <string name="apps_kind_range">Carburant &amp; autonomie</string>
     <string name="apps_kind_range_blurb">Niveau du réservoir et km restants</string>
     <string name="apps_kind_doors">Portes</string>
-    <string name="apps_kind_doors_blurb">État des portes et du coffre (MCU)</string>
+    <string name="apps_kind_doors_blurb">État des portes et du coffre, depuis la voiture</string>
     <string name="apps_kind_can_mon">Moniteur CAN</string>
     <string name="apps_kind_can_mon_blurb">Trames CAN brutes, pour trouver des signaux</string>
     <string name="apps_kind_speed_hud">Vitesse</string>
@@ -89,7 +89,7 @@
     <string name="apps_window_gave_up">Le système maintient %1$s à sa place</string>
     <string name="apps_window_moving">Déplacement de %1$s ici…</string>
     <string name="apps_window_opening">Ouverture de %1$s ici…</string>
-    <string name="apps_window_maps_hint">Google Maps s\'ancre ici.\nOuvrez-le ci-dessous, ou lancez le guidage et appuyez sur Accueil.</string>
+    <string name="apps_window_maps_hint">Google Maps s\'ancre ici.\nOuvrez-le ci-dessous, ou lancez la navigation et appuyez sur Accueil.</string>
     <string name="apps_window_app_hint">%1$s s\'affiche ici, dans une fenêtre de la taille de cette tuile.</string>
     <string name="apps_window_open">Ouvrir %1$s ici</string>
     <string name="apps_window_open_full">Ouvrir %1$s en entier ici</string>
@@ -107,17 +107,11 @@
     <string name="apps_add_title">Ajouter à %1$s</string>
     <string name="apps_tab_widgets">Widgets</string>
     <string name="apps_tab_apps">Applis</string>
-    <string name="apps_tab_windows">Fenêtres</string>
     <string name="apps_search">Rechercher</string>
     <string name="apps_category_all">Tout</string>
-    <string name="apps_window_mode_single">Dans une fenêtre</string>
-    <string name="apps_window_mode_pair">Côte à côte</string>
-    <string name="apps_window_hint">L\'appli reste ouverte dans sa propre fenêtre sur ce tableau de bord.</string>
-    <string name="apps_window_mode_inside">Dans la tuile</string>
-    <string name="apps_window_inside_hint">L\'appli tourne dans la tuile et se touche là.</string>
     <string name="apps_embed_app_starting">Ouverture de %1$s</string>
     <string name="apps_embed_app_missing">%1$s n\'est pas installé</string>
-    <string name="apps_embed_app_blocked">Android n\'a pas laissé %1$s s\'ouvrir ici</string>
+    <string name="apps_embed_app_blocked">%1$s ne tourne pas dans une tuile sur cet appareil. Ajoutez-le en fenêtre.</string>
     <string name="apps_embed_under_dashboard">Déjà sous le tableau de bord</string>
     <string name="apps_pair_pick_first">Touchez l\'appli pour le côté gauche.</string>
     <string name="apps_pair_pick_second">%1$s à gauche. Touchez maintenant l\'appli pour le côté droit.</string>
@@ -125,9 +119,9 @@
     <string name="apps_kind_maps_inside">Google Maps intégré</string>
     <string name="apps_kind_maps_inside_blurb">La vraie appli Google Maps, dans cette tuile</string>
     <string name="apps_kind_dash_bar">Barre des tableaux de bord</string>
-    <string name="apps_kind_dash_bar_blurb">Vos tableaux de bord et vos applis, en un toucher</string>
+    <string name="apps_kind_dash_bar_blurb">Vos tableaux de bord et applis, un toucher chacun, sur ce tableau de bord</string>
     <string name="apps_most_used">Les plus utilisées</string>
-    <string name="apps_kind_screen_light">Lumière du second écran</string>
+    <string name="apps_kind_screen_light">Luminosité de l\'écran Pi</string>
     <string name="apps_kind_screen_light_blurb">Le rétroéclairage du second écran, de jour et de nuit</string>
     <string name="apps_kind_radios">Wi-Fi et Bluetooth</string>
     <string name="apps_kind_radios_blurb">Activer ou couper le Wi-Fi et le Bluetooth de l\'autoradio</string>
@@ -143,4 +137,11 @@
     <string name="apps_needs_root">Il faut le root</string>
     <string name="apps_needs_carbox">Il faut le boîtier de la voiture</string>
     <string name="apps_on_dashboard">Déjà sur un tableau de bord</string>
+    <string name="apps_as_icon">Icône</string>
+    <string name="apps_as_icon_detail">Ouvre l\'application</string>
+    <string name="apps_in_tile">Dans une tuile</string>
+    <string name="apps_in_tile_inside">Tourne dans la tuile, sur ce tableau de bord</string>
+    <string name="apps_in_tile_window">Reste ouverte dans une fenêtre de la taille de la tuile</string>
+    <string name="apps_side_by_side">Côte à côte</string>
+    <string name="apps_side_by_side_detail">Deux applications à la fois, en écran partagé</string>
 </resources>

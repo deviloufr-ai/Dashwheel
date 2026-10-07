@@ -326,8 +326,8 @@ internal data class ShownCross(val row: List<Int>, val column: List<Int>) {
 }
 
 /**
- * Persists the 3 swipeable dashboards (each an ordered list of [DashboardItem])
- * to SharedPreferences as JSON. The layout is the user's, so it survives restarts.
+ * Persists the seven dashboards (each an ordered list of [DashboardItem])
+ * to SharedPreferences as JSON, one arrangement per screen direction. The layout is the user's, so it survives restarts.
  *
  * All grid rules live here so add, drag, resize, load-time repair and the
  * edit-mode ghost preview share one definition of "fits".
@@ -394,7 +394,7 @@ object DashboardStore {
      * newer version, seen after a downgrade) are carried through untouched, per
      * page, and written back on the next save instead of being silently
      * dropped. Held here because the in-memory model has no slot for them.
-     * Kept per layout variant: loading the other arrangement must not swap
+     * Kept per screen direction: loading the other arrangement must not swap
      * its unknown tiles into this one's next save.
      */
     private val retainedByVariant = HashMap<String, HashMap<Int, MutableList<JSONObject>>>()
@@ -408,12 +408,15 @@ object DashboardStore {
     private val lastGoodDoc = HashMap<String, String>()
 
     /**
-     * Default layout when nothing is saved yet: the Daily template, laid out
-     * for the head unit's 1280x720 screen ([half]: beside a Maps dock). Car
-     * tiles only once an adapter can be dialled (a fresh install has none,
-     * and tiles with nothing to show would fill four pages; choosing one
-     * later offers to add them, see TemplatePlacer.addCarTiles); the CANbox
-     * ones only under root ([PrivilegedShell]), where they can show something.
+     * Default layout when nothing is saved yet: the Daily template on the
+     * three dashboards of the row (Home, left and right of it), laid out for
+     * the head unit's 1280x720 screen ([half]: beside a Maps dock). The four
+     * dashboards above and below start empty and out of the swipes; the
+     * templates dialog fills them on request. Car tiles only once an adapter
+     * can be dialled (a fresh install has none, and tiles with nothing to
+     * show would fill the pages; choosing one later offers to add them, see
+     * TemplatePlacer.addCarTiles); the CANbox ones only under root
+     * ([PrivilegedShell]), where they can show something.
      */
     private fun defaultPages(half: Boolean = false): List<List<DashboardItem>> = TemplatePlacer.pages(
         DashTemplate.DAILY,
@@ -427,79 +430,138 @@ object DashboardStore {
             dockApps = emptyList(),
             canbox = PrivilegedShell.access.value.root,
             tyres = Tyres.available
-        )
-    )
-
-    /** Default pages for [variant]: the Canvas theme's own ones put its home in the middle. */
-    private fun defaultPagesFor(variant: String): List<List<DashboardItem>> {
-        if (variant.contains(TABS_VARIANT)) return tabsPages()
-        val pages = defaultPages(variant.endsWith("_half"))
-        return if (variant.contains(CANVAS_VARIANT)) withCanvasHome(pages) else pages
-    }
-
-    /**
-     * The Canvas theme keeps its own arrangement (variant suffix): its home is
-     * the map with the trip across the top, so switching to it or away from it
-     * never disturbs the other themes' pages.
-     */
-    const val CANVAS_VARIANT = "_canvas"
-
-    /**
-     * The Canvas home: the trip strip across the top, the speed on the left,
-     * the car on the right, music at the foot, and the middle left open for
-     * the map and the car on it (CanvasSkin.kt).
-     */
-    internal fun canvasHome(): List<DashboardItem> = if (ScreenShape.vertical) listOf(
-        DashboardItem.BuiltinWidget(BuiltinKind.NAVIGATION, x = 0, y = 0, w = 7, h = 2),
-        DashboardItem.BuiltinWidget(BuiltinKind.SPEED_HUD, x = 0, y = 2, w = 3, h = 3),
-        DashboardItem.BuiltinWidget(BuiltinKind.TELEMETRY, x = 4, y = 2, w = 3, h = 3),
-        DashboardItem.BuiltinWidget(BuiltinKind.MEDIA, x = 0, y = 10, w = 7, h = 2)
-    ) else listOf(
-        DashboardItem.BuiltinWidget(BuiltinKind.NAVIGATION, x = 0, y = 0, w = 12, h = 2),
-        DashboardItem.BuiltinWidget(BuiltinKind.SPEED_HUD, x = 0, y = 2, w = 3, h = 3),
-        DashboardItem.BuiltinWidget(BuiltinKind.TELEMETRY, x = 9, y = 2, w = 3, h = 3),
-        DashboardItem.BuiltinWidget(BuiltinKind.MEDIA, x = 3, y = 5, w = 6, h = 2)
+        ),
+        only = ROW.toSet()
     )
 
     /**
-     * Canvas over an app (Google Maps as the wallpaper) keeps its own
-     * arrangement too: one page per tab of the rail (CanvasTabs.kt), none of
-     * them swiped.
+     * One arrangement per screen direction: the variant is "" on a wide
+     * screen and "_v" upright ([ScreenShape.layoutPrefix]), nothing else.
+     * Until 2026-10 the Maps dock ([LEGACY_HALF]), the Canvas theme
+     * ([LEGACY_CANVAS]) and Canvas over an app ([LEGACY_TABS]) each kept a
+     * copy of the pages, seeded once and never receiving later edits; a tap
+     * on the bar's layout button forked the arrangement. [mergeLegacyVariants]
+     * folds those copies into the one arrangement on the first start after
+     * the update.
      */
-    const val TABS_VARIANT = "_tabs"
+    const val LEGACY_HALF = "_half"
+    const val LEGACY_CANVAS = "_canvas"
+    const val LEGACY_TABS = "_tabs"
+
+    /** The two arrangements kept: wide and upright. */
+    private val DIRECTIONS = listOf("", "_v")
+
+    private const val KEY_MERGED = "variants_merged"
 
     /**
-     * The tabs' first pages, matching [CanvasTabs.defaultTabs]: the map alone,
-     * then music, the car and the day. The tiles keep to the side away from
-     * the map app's own turn card and arrival time (a column on the right, a
-     * band at the foot upright).
+     * The legacy suffix in use before the update, from the layout and theme
+     * prefs: Canvas over an app, else the Canvas theme and the Maps dock.
+     * "" when the user was on the base arrangement.
      */
-    internal fun tabsPages(): List<List<DashboardItem>> {
-        fun w(kind: BuiltinKind, x: Int, y: Int, width: Int, height: Int) = DashboardItem.BuiltinWidget(kind, x = x, y = y, w = width, h = height)
-        val tabs = if (ScreenShape.vertical) listOf(
-            emptyList(),
-            listOf(w(BuiltinKind.MEDIA, 0, 9, 7, 3)),
-            listOf(w(BuiltinKind.SPEED_HUD, 0, 9, 3, 3), w(BuiltinKind.TELEMETRY, 3, 9, 4, 3)),
-            listOf(w(BuiltinKind.WEATHER, 0, 9, 3, 3), w(BuiltinKind.CALENDAR, 3, 9, 4, 3))
-        ) else listOf(
-            emptyList(),
-            listOf(w(BuiltinKind.MEDIA, 8, 0, 4, 3)),
-            listOf(w(BuiltinKind.SPEED_HUD, 9, 0, 3, 2), w(BuiltinKind.TELEMETRY, 8, 2, 4, 3), w(BuiltinKind.OBD_DTC, 8, 5, 4, 2)),
-            listOf(w(BuiltinKind.WEATHER, 8, 0, 4, 2), w(BuiltinKind.CALENDAR, 8, 2, 4, 3), w(BuiltinKind.SERVICE, 8, 5, 4, 2))
-        )
-        return List(PAGE_COUNT) { tabs.getOrElse(it) { emptyList() } }
+    fun legacySuffix(canvas: Boolean, overApp: Boolean, docked: Boolean): String = when {
+        canvas && overApp -> LEGACY_TABS
+        else -> (if (canvas) LEGACY_CANVAS else "") + (if (docked) LEGACY_HALF else "")
     }
 
-    /** [pages] with the Canvas home in the middle; the other pages come along as they are. */
-    internal fun withCanvasHome(pages: List<List<DashboardItem>>): List<List<DashboardItem>> =
-        pages.mapIndexed { i, page -> if (i == CENTER) canvasHome() else page }
+    /**
+     * Which of two saved arrangements becomes the one kept: the one the user
+     * was [lastUsed] when it differs from the [base] (their edits live there),
+     * else the base. Null when neither was saved.
+     */
+    internal fun <T> chooseKept(base: T?, lastUsed: T?): T? = when {
+        lastUsed != null && lastUsed != base -> lastUsed
+        else -> base
+    }
 
     /**
-     * Layout variants keep separate arrangements: the full-width dashboard and
-     * the half-width one beside a Maps dock cannot share tile positions. The
-     * default variant is "", the docked layouts share "_half"; an upright
-     * screen's are "_v" and "_v_half" ([ScreenShape.layoutPrefix]).
+     * Folds the legacy per-layout copies into the one arrangement per
+     * direction, once ([KEY_MERGED]): for each direction, the copy the user
+     * last used ([suffix], see [legacySuffix]) replaces the base when it
+     * differs from it, so nobody loses the dashboards they were looking at.
+     * The copies are then removed. Returns the directions whose arrangement
+     * came from the copy, so the bar's dashboards can follow
+     * (CanvasTabs.mergeLegacy); null when it had run already.
      */
+    fun mergeLegacyVariants(context: Context, suffix: String): Set<String>? {
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        if (prefs.getBoolean(KEY_MERGED, false)) return null
+        val edit = prefs.edit()
+        val fromCopy = HashSet<String>()
+        for (direction in DIRECTIONS) {
+            val base = prefs.getString(pagesKey(direction), null)
+            val used = if (suffix.isEmpty()) null else prefs.getString(pagesKey(direction + suffix), null)
+            val kept = chooseKept(base, used)
+            if (kept != null && kept != base) {
+                edit.putString(pagesKey(direction), kept)
+                // The base arrangement stays as the fallback, where there was one.
+                (base ?: prefs.getString(backupKey(direction + suffix), null))?.let { edit.putString(backupKey(direction), it) }
+                fromCopy += direction
+                Log.i(TAG, "Kept the $suffix arrangement as the one for '$direction'")
+            }
+        }
+        // The copies go: they are never read again, and an app-widget only they held would stay in use for good.
+        for (key in prefs.all.keys) {
+            if ((key.startsWith(KEY_PAGES) || key.startsWith(KEY_PAGES_BACKUP)) && LEGACY_SUFFIXES.any { key.endsWith(it) }) edit.remove(key)
+        }
+        edit.putBoolean(KEY_MERGED, true).apply()
+        return fromCopy
+    }
+
+    private val LEGACY_SUFFIXES = listOf(LEGACY_HALF, LEGACY_CANVAS, LEGACY_TABS, LEGACY_CANVAS + LEGACY_HALF)
+
+    /**
+     * [pages] laid out again for the grid of the current screen direction
+     * (the other one's tiles were placed on a 12x7 grid, this one is 7x12,
+     * or the reverse): each tile at its own span where that fits, else the
+     * largest that does down to its kind's minimum, nearest its old place;
+     * one with no room left on its page goes to the nearest page with room,
+     * so no tile is dropped. Pages keep their order.
+     */
+    fun reflow(pages: List<List<DashboardItem>>): List<List<DashboardItem>> {
+        val out = MutableList(PAGE_COUNT) { mutableListOf<DashboardItem>() }
+        val homeless = mutableListOf<Pair<Int, DashboardItem>>()
+        pages.take(PAGE_COUNT).forEachIndexed { p, page ->
+            // Reading order, so the tiles keep roughly their places relative to each other.
+            for (item in page.sortedWith(compareBy({ it.y }, { it.x }))) {
+                val placed = fitNear(out[p], item)
+                if (placed != null) out[p] += placed else homeless += p to item
+            }
+        }
+        for ((from, item) in homeless) {
+            val target = CROSS_NEAR.sortedBy { crossDistance(from, it) }.firstOrNull { fitNear(out[it], item) != null } ?: continue
+            out[target] += fitNear(out[target], item)!!
+        }
+        return out
+    }
+
+    /** Home, then the rest of the cross; the order [reflow] tries pages in, nearest first. */
+    private val CROSS_NEAR = listOf(CENTER) + (ROW - CENTER) + (COLUMN - CENTER)
+
+    /** Swipes between two pages of the cross: along the row or the column, else through Home. */
+    private fun crossDistance(a: Int, b: Int): Int {
+        fun toHome(page: Int) = if (page in ROW) abs(ROW.indexOf(page) - ROW.indexOf(CENTER)) else abs(COLUMN.indexOf(page) - COLUMN_HOME)
+        return when {
+            a in ROW && b in ROW -> abs(ROW.indexOf(a) - ROW.indexOf(b))
+            a in COLUMN && b in COLUMN -> abs(COLUMN.indexOf(a) - COLUMN.indexOf(b))
+            else -> toHome(a) + toHome(b)
+        }
+    }
+
+    /**
+     * [item] placed among [placed] on this grid: its own span, or the largest
+     * that fits down to its kind's minimum (then one cell), at the free spot
+     * nearest its old cell. Null when the page has no room at all.
+     */
+    private fun fitNear(placed: List<DashboardItem>, item: DashboardItem): DashboardItem? {
+        val w = item.w.coerceIn(1, GRID_COLS)
+        val h = item.h.coerceIn(1, GRID_ROWS)
+        val minW = (if (item is DashboardItem.BuiltinWidget) item.kind.minSize().first else 1).coerceAtMost(w)
+        val minH = (if (item is DashboardItem.BuiltinWidget) item.kind.minSize().second else 1).coerceAtMost(h)
+        val fit = largestFit(placed, w, h, minW, minH) ?: largestFit(placed, w, h, 1, 1) ?: return null
+        val cell = nearestFreeCell(placed, fit.w, fit.h, item.x.coerceIn(0, GRID_COLS - 1), item.y.coerceIn(0, GRID_ROWS - 1)) ?: (fit.x to fit.y)
+        return item.withCell(cell.first, cell.second, fit.w, fit.h)
+    }
+
     /** Preference keys for a layout variant; pure so the naming is testable. */
     internal fun pagesKey(variant: String) = KEY_PAGES + variant
     internal fun backupKey(variant: String) = KEY_PAGES_BACKUP + variant
@@ -512,10 +574,9 @@ object DashboardStore {
         pages.flatMapTo(HashSet()) { page -> page.filterIsInstance<DashboardItem.SystemWidget>().map { it.appWidgetId } }
 
     /**
-     * The app-widget ids on every saved arrangement (full width, beside the
-     * Maps dock, Canvas, upright) and their backups: the arrangements are
-     * seeded from one another, so two of them can show the same widget, which
-     * is then still in use while one keeps it. Null when one can't be read:
+     * The app-widget ids on every saved arrangement (wide and upright) and
+     * their backups: the upright one is laid out from the wide one, so both
+     * can show the same widget, which is then still in use while one keeps it. Null when one can't be read:
      * what is in use isn't known then.
      */
     fun savedWidgetIds(context: Context): Set<Int>? {
@@ -545,7 +606,14 @@ object DashboardStore {
 
     fun load(context: Context, variant: String = ""): List<List<DashboardItem>> {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val raw = prefs.getString(pagesKey(variant), null) ?: run { retained(variant).clear(); return defaultPagesFor(variant).also(::notePlaced) }
+        val raw = prefs.getString(pagesKey(variant), null) ?: run {
+            retained(variant).clear()
+            // The first time this way up: the other direction's dashboards, laid out again for this grid.
+            val other = DIRECTIONS.firstOrNull { it != variant && prefs.contains(pagesKey(it)) }
+            val pages = other?.let { o -> prefs.getString(pagesKey(o), null)?.let { parsePages(it, o) } }?.let(::reflow)
+                ?: defaultPages(DashLayoutStore.load(context) != DashLayout.GRID)
+            return pages.also(::notePlaced)
+        }
 
         // A corrupt primary value falls back to the last good layout rather
         // than to the defaults; only when both are unreadable does the user
@@ -559,7 +627,7 @@ object DashboardStore {
                 Log.e(TAG, "Saved layout and its backup are both unreadable; using defaults")
                 retained(variant).clear()
                 lastGoodDoc.remove(variant)
-                return defaultPagesFor(variant).also(::notePlaced)
+                return defaultPages(DashLayoutStore.load(context) != DashLayout.GRID).also(::notePlaced)
             }
 
         // Always return exactly PAGE_COUNT pages. Tiles that predate grid
