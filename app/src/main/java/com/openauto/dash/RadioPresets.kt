@@ -42,6 +42,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
@@ -52,6 +53,9 @@ import kotlinx.coroutines.withContext
 import java.util.Locale
 
 /** A stored station: [freq] in hundredths of a MHz (9850 = 98.5 MHz). */
+/** An FM frequency in the radio's 10 kHz units (64 to 108 MHz, Eastern Europe's band included); AM ones are in kHz. */
+internal fun isFm(freq: Int): Boolean = freq in 6_000..11_000
+
 internal data class RadioStation(val freq: Int, val name: String) {
     val mhz: String get() = String.format(Locale.ROOT, "%.1f", freq / 100.0)
 }
@@ -68,12 +72,16 @@ internal object RadioPresets {
     private val ACTIVITY = ComponentName(PACKAGE, "com.android.fmradio.FmMainActivity")
     private val STATIONS = Uri.parse("content://$PACKAGE/station")
     private const val UPDATE = "com.qf.radio.update_action"
-    private const val SET_FREQ = "ailit.set.radio.frequency"
-    // Tunes to the MHz string in TUNE_EXTRA with no region check. SET_FREQ (the voice
-    // command) checks the frequency against band FM1 of the unit's radio region and says
-    // "Invalid frequency, please reset" for good stations (Eastern Europe FM1 is 65-74 MHz,
-    // the US region only takes odd tenths).
+    // Tunes to the MHz string in TUNE_EXTRA on the band the radio is on, with no region
+    // check. The voice command ("ailit.set.radio.frequency") checks the frequency against
+    // band FM1 of the unit's radio region and says "Invalid frequency, please reset" for
+    // good stations (Eastern Europe FM1 is 65-74 MHz, the US region only takes odd tenths).
     private const val TUNE = "/customize/radio/station"
+    /** Steps the radio to its next band (FM1, FM2, FM3, AM1, AM2, then FM1 again). */
+    private const val BAND = "/customize/radio/band"
+    /** At most this many steps from AM back to FM, each awaited this long. */
+    private const val BAND_STEPS = 4
+    private const val BAND_WAIT_MS = 1_500L
     private const val TUNE_EXTRA = "com.qf.radio.update_action_key"
     private const val AM_BAND = 3
     private const val NEXT = "/customize/radio/next"
@@ -100,7 +108,7 @@ internal object RadioPresets {
             val name = intent.getStringExtra("${UPDATE}_name_key").orEmpty().trim()
             _playing.value = RadioStation(freq, name.ifEmpty { names(context).getString(freq.toString(), null).orEmpty() })
             // The radio keeps its station names to itself: remember the one it announces.
-            if (name.isNotEmpty() && band in 0 until AM_BAND && !intent.getBooleanExtra("${UPDATE}_searching_key", false)) learn(context, freq, name)
+            if (name.isNotEmpty() && band in 0 until AM_BAND && isFm(freq) && !intent.getBooleanExtra("${UPDATE}_searching_key", false)) learn(context, freq, name)
         }
     }
 
@@ -137,12 +145,11 @@ internal object RadioPresets {
             val ps = c.getColumnIndex("program_service")
             val p = c.getColumnIndex("preset")
             val fav = c.getColumnIndex("is_favorite")
-            val band = c.getColumnIndex("radio_band")
             while (c.moveToNext()) {
                 if (f < 0) break
-                // FM1, FM2 and FM3 are pages of the same FM band; 3 is AM.
-                if (band >= 0 && c.getInt(band) !in 0 until AM_BAND) continue
-                val freq = c.getInt(f).takeIf { it > 0 } ?: continue
+                // FM only, told by its frequency: the table's band numbers are not the broadcast's,
+                // and the AM presets (522 to 1620 kHz) showed as "5.2" to "16.2" and tuned AM.
+                val freq = c.getInt(f).takeIf { isFm(it) } ?: continue
                 val name = listOf(n, ps).firstNotNullOfOrNull { i -> if (i >= 0) c.getString(i)?.trim()?.takeIf { it.isNotEmpty() } else null }
                     ?: learned.getString(freq.toString(), null).orEmpty()
                 out += Triple(RadioStation(freq, name), if (p >= 0) c.getInt(p) else 0, fav >= 0 && c.getInt(fav) != 0)
@@ -152,10 +159,16 @@ internal object RadioPresets {
             .map { it.first }.distinctBy { it.freq }.take(SHOWN)
     }.onFailure { Log.w(TAG, "stations unread: ${it.message}") }.getOrDefault(emptyList())
 
-    fun tune(context: Context, station: RadioStation) = command(context) {
-        // On AM the radio would read the MHz string as kHz: let the voice command switch to FM.
-        if (band >= AM_BAND) it.sendBroadcast(Intent(SET_FREQ).putExtra("band", "fm").putExtra("freq", station.freq / 100f))
-        else it.sendBroadcast(Intent(TUNE).putExtra(TUNE_EXTRA, station.mhz))
+    fun tune(context: Context, station: RadioStation) = command(context) { app ->
+        // The radio tunes the string on the band it is on ("10.0" became 999 kHz on AM):
+        // stepped to FM first, each step awaited in its own broadcast.
+        var steps = 0
+        while (band >= AM_BAND && steps++ < BAND_STEPS) {
+            val before = band
+            app.sendBroadcast(Intent(BAND))
+            withTimeoutOrNull(BAND_WAIT_MS) { while (band == before) delay(100) }
+        }
+        app.sendBroadcast(Intent(TUNE).putExtra(TUNE_EXTRA, station.mhz))
         _playing.value = station
     }
 
@@ -163,7 +176,7 @@ internal object RadioPresets {
     fun previous(context: Context) = command(context) { it.sendBroadcast(Intent(PREVIOUS)) }
 
     /** [send] once the radio's screen is alive: started first when it isn't, and the dashboard brought back over it. */
-    private fun command(context: Context, send: (Context) -> Unit) {
+    private fun command(context: Context, send: suspend (Context) -> Unit) {
         val app = context.applicationContext
         scope.launch {
             if (systemProperty("sys.qf.radio.status") != "true") {
