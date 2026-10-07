@@ -69,6 +69,13 @@ internal object RadioPresets {
     private val STATIONS = Uri.parse("content://$PACKAGE/station")
     private const val UPDATE = "com.qf.radio.update_action"
     private const val SET_FREQ = "ailit.set.radio.frequency"
+    // Tunes to the MHz string in TUNE_EXTRA with no region check. SET_FREQ (the voice
+    // command) checks the frequency against band FM1 of the unit's radio region and says
+    // "Invalid frequency, please reset" for good stations (Eastern Europe FM1 is 65-74 MHz,
+    // the US region only takes odd tenths).
+    private const val TUNE = "/customize/radio/station"
+    private const val TUNE_EXTRA = "com.qf.radio.update_action_key"
+    private const val AM_BAND = 3
     private const val NEXT = "/customize/radio/next"
     private const val PREVIOUS = "/customize/radio/pre"
     private const val START_WAIT_MS = 1_800L
@@ -81,14 +88,19 @@ internal object RadioPresets {
     val stations: StateFlow<List<RadioStation>> = _stations
     private val _playing = MutableStateFlow<RadioStation?>(null)
     val playing: StateFlow<RadioStation?> = _playing
+    /** The radio's band from its last broadcast: 0..2 FM1..FM3, 3 AM, -1 not heard yet. */
+    @Volatile private var band = -1
 
     fun installed(context: Context): Boolean = isPackageInstalled(context, PACKAGE)
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val freq = intent.getIntExtra("${UPDATE}_freq_key", 0).takeIf { it > 0 } ?: return
+            band = intent.getIntExtra("${UPDATE}_band_key", -1)
             val name = intent.getStringExtra("${UPDATE}_name_key").orEmpty().trim()
-            _playing.value = RadioStation(freq, name)
+            _playing.value = RadioStation(freq, name.ifEmpty { names(context).getString(freq.toString(), null).orEmpty() })
+            // The radio keeps its station names to itself: remember the one it announces.
+            if (name.isNotEmpty() && band in 0 until AM_BAND && !intent.getBooleanExtra("${UPDATE}_searching_key", false)) learn(context, freq, name)
         }
     }
 
@@ -106,8 +118,18 @@ internal object RadioPresets {
         runCatching { context.applicationContext.unregisterReceiver(receiver) }
     }
 
+    private fun names(context: Context) = context.applicationContext.getSharedPreferences("radio_names", Context.MODE_PRIVATE)
+
+    private fun learn(context: Context, freq: Int, name: String) {
+        val prefs = names(context)
+        if (prefs.getString(freq.toString(), null) == name) return
+        prefs.edit().putString(freq.toString(), name).apply()
+        _stations.value = _stations.value.map { if (it.freq == freq) it.copy(name = name) else it }
+    }
+
     /** The stored stations, favourites and presets first, at most [SHOWN]. */
     private fun read(context: Context): List<RadioStation> = runCatching {
+        val learned = names(context)
         val out = ArrayList<Triple<RadioStation, Int, Boolean>>()
         context.contentResolver.query(STATIONS, null, null, null, null)?.use { c ->
             val f = c.getColumnIndex("frequency")
@@ -118,9 +140,11 @@ internal object RadioPresets {
             val band = c.getColumnIndex("radio_band")
             while (c.moveToNext()) {
                 if (f < 0) break
-                if (band >= 0 && c.getInt(band) != 0) continue
+                // FM1, FM2 and FM3 are pages of the same FM band; 3 is AM.
+                if (band >= 0 && c.getInt(band) !in 0 until AM_BAND) continue
                 val freq = c.getInt(f).takeIf { it > 0 } ?: continue
-                val name = listOf(n, ps).firstNotNullOfOrNull { i -> if (i >= 0) c.getString(i)?.trim()?.takeIf { it.isNotEmpty() } else null }.orEmpty()
+                val name = listOf(n, ps).firstNotNullOfOrNull { i -> if (i >= 0) c.getString(i)?.trim()?.takeIf { it.isNotEmpty() } else null }
+                    ?: learned.getString(freq.toString(), null).orEmpty()
                 out += Triple(RadioStation(freq, name), if (p >= 0) c.getInt(p) else 0, fav >= 0 && c.getInt(fav) != 0)
             }
         }
@@ -129,7 +153,9 @@ internal object RadioPresets {
     }.onFailure { Log.w(TAG, "stations unread: ${it.message}") }.getOrDefault(emptyList())
 
     fun tune(context: Context, station: RadioStation) = command(context) {
-        it.sendBroadcast(Intent(SET_FREQ).putExtra("band", "fm").putExtra("freq", station.freq / 100f))
+        // On AM the radio would read the MHz string as kHz: let the voice command switch to FM.
+        if (band >= AM_BAND) it.sendBroadcast(Intent(SET_FREQ).putExtra("band", "fm").putExtra("freq", station.freq / 100f))
+        else it.sendBroadcast(Intent(TUNE).putExtra(TUNE_EXTRA, station.mhz))
         _playing.value = station
     }
 
@@ -175,7 +201,7 @@ internal fun RadioPresetsCard(modifier: Modifier = Modifier) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Filled.Radio, contentDescription = null, tint = DashColors.Accent)
                 Text(
-                    "  " + (playing?.let { p -> listOf(p.mhz, p.name).filter { it.isNotEmpty() }.joinToString("  ") } ?: stringResource(R.string.widgets_radio)),
+                    "  " + (playing?.let { p -> listOf(p.name, p.mhz).filter { it.isNotEmpty() }.joinToString("  ") } ?: stringResource(R.string.widgets_radio)),
                     color = DashColors.TextPrimary, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f)
                 )
@@ -206,12 +232,13 @@ internal fun RadioPresetsCard(modifier: Modifier = Modifier) {
                                     .clickable(role = Role.Button) { tap(); RadioPresets.tune(context, s) },
                                 contentAlignment = Alignment.Center
                             ) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(s.mhz, color = DashColors.TextPrimary, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-                                    if (s.name.isNotEmpty()) Text(
-                                        s.name, color = DashColors.TextSecondary, style = MaterialTheme.typography.labelSmall,
+                                // The name when the radio has told us one, the frequency under it.
+                                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(horizontal = DashSpace.Xs)) {
+                                    Text(
+                                        s.name.ifEmpty { s.mhz }, color = DashColors.TextPrimary, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium,
                                         maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center
                                     )
+                                    if (s.name.isNotEmpty()) Text(s.mhz, color = DashColors.TextSecondary, style = MaterialTheme.typography.labelSmall, maxLines = 1)
                                 }
                             }
                         }
