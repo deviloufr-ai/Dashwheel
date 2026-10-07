@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.openauto.dash"
-    compileSdk = 35
+    compileSdk = 36
 
     // Release signing key, supplied by CI via env vars. Local builds may fall
     // back to the debug key; CI must not, because a debug-signed release can
@@ -29,18 +29,39 @@ android {
     defaultConfig {
         applicationId = "com.openauto.dash"
         minSdk = 29
-        targetSdk = 35
+        targetSdk = 36
         // Version is driven by CI (the Actions run number) so each build is
         // newer than the last; defaults keep local builds working.
         versionCode = (System.getenv("VERSION_CODE") ?: "1").toInt()
         versionName = System.getenv("VERSION_NAME") ?: "1.0"
 
-        // Where the in-app updater looks for new releases.
+        // Where the in-app updater looks for new releases (GitHub build only).
         buildConfigField("String", "GITHUB_OWNER", "\"deviloufr-ai\"")
-        buildConfigField("String", "GITHUB_REPO", "\"ACP\"")
+        buildConfigField("String", "GITHUB_REPO", "\"Dashwheel\"")
 
         vectorDrawables {
             useSupportLibrary = true
+        }
+    }
+
+    // Where the build is installed from. The two differ in Edition.kt
+    // (src/github and src/play): the GitHub APK updates itself from GitHub
+    // Releases, links Ko-fi and has every skin and widget open; the Play
+    // build updates through Google Play, has no donation link (Play's billing
+    // is the only way to pay inside a Play app), and keeps a few skins and
+    // widgets for the Dashwheel Pro purchase (Premium.kt). Same package name
+    // and, with the release key enrolled as the Play signing key, the same
+    // signature, so one build installs over the other.
+    flavorDimensions += "store"
+    productFlavors {
+        create("github") {
+            dimension = "store"
+            isDefault = true
+        }
+        create("play") {
+            dimension = "store"
+            // Tells the two apart in Settings → About and in a bug report.
+            versionNameSuffix = "-play"
         }
     }
 
@@ -173,6 +194,10 @@ dependencies {
     // Phone link: the protocol shared with the companion app, and the pairing QR code.
     implementation(project(":link"))
     implementation("com.google.zxing:core:3.5.3")
+
+    // The Play build's one in-app product, Dashwheel Pro (src/play/.../PlayBilling.kt).
+    // Play requires Billing Library 7 or newer for new apps; 8 is the current line.
+    "playImplementation"("com.android.billingclient:billing:8.0.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 

@@ -137,7 +137,8 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     val barRevealTap = rememberTapFeedback()
     val themeState = ThemeState(
         mode = themeMode, appearance = appearance, effects = effects,
-        onMode = { themeMode = it; DashThemeStore.save(context, it) },
+        // A locked skin never becomes the theme: its card opens the unlock dialog instead (Premium.kt).
+        onMode = { if (!Premium.locked(it)) { themeMode = it; DashThemeStore.save(context, it) } },
         onAppearance = { appearance = it; DashThemeStore.saveAppearance(context, it) },
         onEffects = { effects = it; DashThemeStore.saveEffects(context, it) },
         barAutoHide = barAutoHide, barHideSeconds = barHideSeconds,
@@ -840,7 +841,8 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         mapsDocked = half,
         dockApps = TemplatePlacer.dockApps(pages, appsByPackage.keys),
         canbox = shellAccess.root,
-        tyres = Tyres.available
+        tyres = Tyres.available,
+        locked = Premium.lockedKinds()
     )
 
     /**
@@ -946,7 +948,9 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     // The unit sleeps at ignition off rather than restarting, often for days: a
     // check at start alone missed every release after it. So also at each
     // ignition on, and every six hours awake.
+    // A Play build updates through Play: nothing to look for.
     LaunchedEffect(Unit) {
+        if (!Edition.updatesFromGitHub) return@LaunchedEffect
         launch { CarPower.ignition.drop(1).filter { it == true }.collect { updateManager.checkForUpdate() } }
         while (true) {
             updateManager.checkForUpdate()
@@ -1619,12 +1623,13 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                             media = media, mediaController = mediaController, hasMediaAccess = mediaAccess,
                             context = context, obd = obd, obdConnection = obdConnection, onConnectObd = onConnectObd,
                             onPickDevice = onPickDevice, onLaunchApp = onLaunchApp, onLaunchSplitPair = onLaunchSplitPair,
-                            onEditLaunchBar = {}, onModelTouch = {}
+                            onEditLaunchBar = {}, onModelTouch = {}, preview = true
                         )
                     },
                     onPickBuiltin = { kind ->
                         showAddSheet = false
-                        if (addTargetPage >= 0) addItem(addTargetPage, DashboardItem.BuiltinWidget(kind, w = kind.defaultW, h = kind.defaultH))
+                        // The sheet opens the unlock dialog for a locked kind; this is the belt to its braces.
+                        if (addTargetPage >= 0 && !Premium.locked(kind)) addItem(addTargetPage, DashboardItem.BuiltinWidget(kind, w = kind.defaultW, h = kind.defaultH))
                     },
                     onPickLaunchBar = {
                         showAddSheet = false

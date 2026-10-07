@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.openauto.dash.companion"
-    compileSdk = 35
+    compileSdk = 36
 
     // Same release key as the launcher (see app/build.gradle.kts), supplied by CI.
     val keystorePath = providers.environmentVariable("KEYSTORE_FILE").orNull
@@ -24,7 +24,7 @@ android {
     defaultConfig {
         applicationId = "com.openauto.dash.companion"
         minSdk = 29
-        targetSdk = 35
+        targetSdk = 36
         versionCode = (System.getenv("VERSION_CODE") ?: "1").toInt()
         versionName = System.getenv("VERSION_NAME") ?: "1.0"
     }

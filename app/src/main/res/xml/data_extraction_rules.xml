@@ -11,6 +11,7 @@
         <exclude domain="sharedpref" path="display_link.xml" />
         <exclude domain="sharedpref" path="ai_prefs.xml" />
         <exclude domain="sharedpref" path="compile_after_update.xml" />
+        <exclude domain="sharedpref" path="play_billing.xml" />
         <exclude domain="file" path="adb" />
     </cloud-backup>
     <device-transfer>
@@ -22,6 +23,7 @@
         <exclude domain="sharedpref" path="display_link.xml" />
         <exclude domain="sharedpref" path="ai_prefs.xml" />
         <exclude domain="sharedpref" path="compile_after_update.xml" />
+        <exclude domain="sharedpref" path="play_billing.xml" />
         <exclude domain="file" path="adb" />
     </device-transfer>
 </data-extraction-rules>

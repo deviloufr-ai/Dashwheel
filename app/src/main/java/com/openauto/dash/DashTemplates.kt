@@ -109,7 +109,9 @@ data class TemplateScreen(
     /** The CANbox stream can be read (root, see [PrivilegedShell]): the door and CAN tiles have something to show. */
     val canbox: Boolean = true,
     /** The head unit has the TPMS app that reports the tyres ([Tyres.available]). */
-    val tyres: Boolean = true
+    val tyres: Boolean = true,
+    /** The widgets kept for Pro and not bought ([Premium.lockedKinds]): left off, nothing stands in for them. */
+    val locked: Set<BuiltinKind> = emptySet()
 ) {
     companion object {
         /** Widgets never get narrower than their resize minimum. */
@@ -131,7 +133,8 @@ data class TemplateScreen(
             mapsDocked: Boolean,
             dockApps: List<String>,
             canbox: Boolean = true,
-            tyres: Boolean = true
+            tyres: Boolean = true,
+            locked: Set<BuiltinKind> = emptySet()
         ): TemplateScreen {
             val cellW = (pageWidthDp / GRID_COLS).coerceAtLeast(1f)
             val cellH = (pageHeightDp / GRID_ROWS).coerceAtLeast(1f)
@@ -143,7 +146,8 @@ data class TemplateScreen(
                 mapsDocked = mapsDocked,
                 dockApps = dockApps,
                 canbox = canbox,
-                tyres = tyres
+                tyres = tyres,
+                locked = locked
             )
         }
     }
@@ -202,6 +206,7 @@ object TemplatePlacer {
         val out = mutableListOf<BuiltinKind>()
         for (kind in page.kinds) {
             val use = when {
+                kind in screen.locked -> null
                 screen.mapsDocked && kind == NAVMAP -> null
                 !screen.canbox && kind in NEEDS_CANBOX -> null
                 !screen.canbox && !screen.obdPaired && kind in NEEDS_FUEL -> null

@@ -30,23 +30,27 @@ jobs:
         with:
           # Override the action's default ("tools platform-tools"); the obsolete
           # "tools" package was removed from the SDK repo and breaks the step.
-          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
 
       # The committed wrapper pins Gradle 8.13 with a verified checksum; do not
       # regenerate it here, that would silently drop the verification.
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
 
+      # Both of the launcher's flavours (GitHub and Play): each has its own
+      # Edition.kt and manifest, so each is linted and tested on its own.
       - name: Android Lint
-        run: ./gradlew lintDebug --stacktrace
+        run: ./gradlew :app:lintGithubDebug :app:lintPlayDebug :companion:lintDebug --stacktrace
 
       - name: Unit tests
-        run: ./gradlew testDebugUnitTest :link:test :display:test --stacktrace
+        run: ./gradlew :app:testGithubDebugUnitTest :app:testPlayDebugUnitTest :companion:testDebugUnitTest :link:test :display:test --stacktrace
 
       - name: Upload lint report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: lint-report
-          path: app/build/reports/lint-results-debug.html
+          path: |
+            app/build/reports/lint-results-githubDebug.html
+            app/build/reports/lint-results-playDebug.html
           if-no-files-found: ignore

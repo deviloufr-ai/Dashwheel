@@ -478,12 +478,15 @@ object DashThemeStore {
     /** Seconds the bottom bar waits before hiding, until the driver picks another delay. */
     const val DEFAULT_BAR_HIDE_SECONDS = 5
 
-    fun load(context: Context): DashThemeMode = runCatching {
-        DashThemeMode.valueOf(
-            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                .getString(KEY, DashThemeMode.AUTO.name) ?: DashThemeMode.AUTO.name
-        )
-    }.getOrDefault(DashThemeMode.AUTO)
+    /** The chosen theme; a skin kept for Pro (Premium.kt) and not bought shows as the default instead. */
+    fun load(context: Context): DashThemeMode = Premium.allowed(
+        runCatching {
+            DashThemeMode.valueOf(
+                context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                    .getString(KEY, DashThemeMode.AUTO.name) ?: DashThemeMode.AUTO.name
+            )
+        }.getOrDefault(DashThemeMode.AUTO)
+    )
 
     fun save(context: Context, mode: DashThemeMode) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()

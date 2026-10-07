@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -127,7 +128,8 @@ internal fun EffectsSetting(theme: ThemeState) {
 /** The themes: three up front (the one in use first), the rest behind one tap. */
 @Composable
 internal fun ThemeGallery(theme: ThemeState) {
-    val lead = (listOf(theme.mode) + StarterThemes).distinct().take(3)
+    val unlocked = rememberUnlocked()
+    val lead = (listOf(theme.mode) + Premium.starterThemes(unlocked)).distinct().take(3)
     var showAll by remember { mutableStateOf(false) }
     ThemeGroup(stringResource(R.string.dash_theme_picker_title), lead, theme)
     val tap = rememberTapFeedback()
@@ -232,22 +234,29 @@ private fun ThemeGroup(title: String, modes: List<DashThemeMode>, theme: ThemeSt
  * One theme: a stamp of its dashboard in the version (day or night) on
  * screen now, its name and its one-line description. The stamp is drawn
  * by hand per skin (Orbit's ring, Cockpit's dial, Horizon's sky, Tape Deck's
- * cassette), so the cards can be told apart at arm's length.
+ * cassette), so the cards can be told apart at arm's length. A skin kept for
+ * Pro (Premium.kt) wears a lock and opens the unlock dialog instead of taking.
  */
 @Composable
 internal fun ThemeCard(mode: DashThemeMode, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
     val shape = DashShape.Medium
     val tap = rememberTapFeedback()
     val palette = paletteFor(mode, light = DashColors.Light)
+    val locked = lockedNow(mode)
+    var unlock by remember { mutableStateOf(false) }
+    if (unlock) UnlockDialog { unlock = false }
     Column(
         modifier = modifier
             .clip(shape)
             .border(if (selected) 2.dp else 1.dp, if (selected) DashColors.Accent else DashColors.Line, shape)
             .background(DashColors.CardHi.copy(alpha = DashColors.CardHi.alpha * if (selected) 0.65f else 0.3f))
-            .clickable(role = Role.Button) { tap(); onClick() }
+            .clickable(role = Role.Button) { tap(); if (locked) unlock = true else onClick() }
             .padding(8.dp)
     ) {
-        ThemeStamp(palette, Modifier.fillMaxWidth().aspectRatio(2f).clip(DashShape.Small))
+        Box(Modifier.fillMaxWidth().aspectRatio(2f).clip(DashShape.Small)) {
+            ThemeStamp(palette, Modifier.fillMaxSize())
+            if (locked) LockBadge(Modifier.align(Alignment.TopEnd).padding(6.dp))
+        }
         Spacer(Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(

@@ -250,6 +250,9 @@ private fun WidgetsTab(
             (query.isEmpty() || context.getString(kind.labelRes).contains(query, true) || context.getString(kind.blurbRes).contains(query, true))
     }
     val extras = (category == null || category == WidgetCategory.APPS) && query.isEmpty()
+    // A widget kept for Pro (Premium.kt) is still shown, with a lock: its card opens the unlock dialog.
+    var unlock by remember { mutableStateOf(false) }
+    if (unlock) UnlockDialog { unlock = false }
     // The launch bar's preview holds a few of the installed apps, so it reads as a bar and not an empty strip.
     val sampleBar = remember(apps) { DashboardItem.LaunchBar(packages = apps.take(5).map { it.packageName }) }
     LazyVerticalGrid(
@@ -261,7 +264,11 @@ private fun WidgetsTab(
     ) {
         val kindCards: (List<BuiltinKind>) -> Unit = { list ->
             items(list, key = { it.name }) { kind ->
-                WidgetCard(kind.label, kind.blurb, tileAspect(kind.defaultW, kind.defaultH), onClick = { onPickBuiltin(kind) }) {
+                val locked = lockedNow(kind)
+                WidgetCard(
+                    kind.label, kind.blurb, tileAspect(kind.defaultW, kind.defaultH), locked = locked,
+                    onClick = { if (locked) unlock = true else onPickBuiltin(kind) }
+                ) {
                     previewTile(DashboardItem.BuiltinWidget(kind, w = kind.defaultW, h = kind.defaultH))
                 }
             }
@@ -343,9 +350,10 @@ internal fun CategoryChip(label: String, selected: Boolean, onClick: () -> Unit)
  * One widget as it will look on the page: the live tile over the page
  * background at [aspect], then its name and the whole two-line blurb. The
  * card is a single button; taps never reach the preview's own controls.
+ * [locked]: kept for Pro, so the preview wears a lock.
  */
 @Composable
-private fun WidgetCard(label: String, blurb: String, aspect: Float, onClick: () -> Unit, preview: @Composable () -> Unit) {
+private fun WidgetCard(label: String, blurb: String, aspect: Float, onClick: () -> Unit, locked: Boolean = false, preview: @Composable () -> Unit) {
     val tap = rememberTapFeedback()
     val shape = DashShape.Medium
     Column(
@@ -370,6 +378,7 @@ private fun WidgetCard(label: String, blurb: String, aspect: Float, onClick: () 
             // Sits over the preview and takes every touch, without consuming it,
             // so the card's own click gets the tap and the tile's buttons never do.
             Box(Modifier.fillMaxSize().pointerInput(Unit) { awaitPointerEventScope { while (true) awaitPointerEvent() } })
+            if (locked) LockBadge(Modifier.align(Alignment.TopEnd).padding(6.dp))
         }
         Column(modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)) {
             Text(label, color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)

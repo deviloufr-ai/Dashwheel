@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dashwheel Pro, the Google Play build's one in-app purchase (Premium.kt) -->
+    <string name="pro_tile_hint">Teil von Dashwheel Pro. Zum Freischalten antippen</string>
+    <string name="pro_dialog_title">Dashwheel Pro freischalten</string>
+    <string name="pro_dialog_body">Ein Kauf, für immer: die Skins Cockpit, Horizon, Tape Deck und Canvas sowie %1$d weitere Widgets (Beschleunigungsmesser, G-Kraft, Öko-Wertung, Blitzer, Tankbuch, Motortemperaturen und andere). Alles andere in Dashwheel bleibt kostenlos.</string>
+    <string name="pro_dialog_buy">Für %1$s freischalten</string>
+    <string name="pro_dialog_buy_no_price">Freischalten</string>
+    <string name="pro_dialog_later">Jetzt nicht</string>
+    <string name="pro_dialog_pending">Dein Kauf wartet noch auf die Zahlung. Pro wird freigeschaltet, sobald sie durch ist.</string>
+    <string name="pro_dialog_unavailable">Google Play ist nicht erreichbar. Prüfe, ob das Radio online und bei Google Play angemeldet ist.</string>
+    <string name="pro_dialog_failed">Der Kauf ist nicht zustande gekommen. Du kannst es noch einmal versuchen.</string>
+    <string name="pro_settings_unlocked">Freigeschaltet. Danke, dass du Dashwheel unterstützt</string>
+    <string name="pro_settings_locked_detail">Vier komplette Skins und %1$d weitere Widgets, mit einem Kauf</string>
+    <string name="pro_settings_row">Dashwheel Pro freischalten</string>
+    <string name="about_play_updates">Updates kommen von Google Play</string>
+    <string name="about_play_updates_detail">Dashwheel bei Google Play öffnen</string>
+</resources>

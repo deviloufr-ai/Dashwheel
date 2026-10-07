@@ -6,6 +6,8 @@
 
 **[Download the latest release](https://github.com/deviloufr-ai/Dashwheel/releases/latest)** · Android 10+ · made for 1280×720 head units (ROCO K706 / FYT / QF), also works on upright screens and phones.
 
+Two builds of the same app: the **GitHub release** above (everything open, updates itself from GitHub Releases) and the **Google Play** build (updated by Play, with four skins and 13 extra widgets in a one-time *Dashwheel Pro* purchase; everything else is the same). The source is the same for both, under the GPL.
+
 📖 **[Read the wiki](https://github.com/deviloufr-ai/Dashwheel/wiki)** for every feature, setup guides, what works with or without root, and tested hardware.
 
 [![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/deviloufr)
@@ -35,7 +37,7 @@ Dashwheel is free, with no ads. If it makes your drives nicer, a coffee on Ko-fi
 - **Your own alerts and reverse view** instead of the head unit's pop-ups
 - **Hands-free**: spoken alerts, steering-wheel buttons, volume that follows speed
 - **Second screen** (experimental): a Raspberry Pi drives a second monitor in the car
-- **8 languages**, day and night themes, updates from GitHub Releases
+- **8 languages**, day and night themes, updates from GitHub Releases (or from Google Play)
 - **Root is optional**: extra features appear only when the unit allows them ([what needs what](https://github.com/deviloufr-ai/Dashwheel/wiki/Root-and-PMPatch3))
 
 ## Get started
@@ -48,7 +50,9 @@ Details: [Installation and updates](https://github.com/deviloufr-ai/Dashwheel/wi
 
 ## Build from source
 
-Android Studio with a Gradle JDK of 17–21, then `./gradlew assembleDebug`. Toolchain, modules, CI and release signing: [Building from source](https://github.com/deviloufr-ai/Dashwheel/wiki/Building-from-Source).
+Android Studio with a Gradle JDK of 17–21, then `./gradlew assembleGithubDebug`. Toolchain, modules, CI and release signing: [Building from source](https://github.com/deviloufr-ai/Dashwheel/wiki/Building-from-Source).
+
+The launcher has two product flavours, `github` (the default) and `play`; they differ only in `app/src/github` and `app/src/play` (`Edition.kt`, the Play billing client, the Play manifest) and in what `Premium.kt` keeps for the Pro purchase. The Play bundle is built by the *Google Play bundle* workflow (`.github/workflows/play.yml`, run by hand) and uploaded in the Play Console; the GitHub release by *Build Android APK*.
 
 ## License
 

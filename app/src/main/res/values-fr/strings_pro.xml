@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dashwheel Pro, the Google Play build's one in-app purchase (Premium.kt) -->
+    <string name="pro_tile_hint">Inclus dans Dashwheel Pro. Touchez pour débloquer</string>
+    <string name="pro_dialog_title">Débloquer Dashwheel Pro</string>
+    <string name="pro_dialog_body">Un seul achat, pour toujours : les skins Cockpit, Horizon, Tape Deck et Canvas, et %1$d widgets de plus (chrono de performance, force G, score éco, radars, carnet de carburant, températures moteur et d\'autres). Tout le reste de Dashwheel reste gratuit.</string>
+    <string name="pro_dialog_buy">Débloquer pour %1$s</string>
+    <string name="pro_dialog_buy_no_price">Débloquer</string>
+    <string name="pro_dialog_later">Pas maintenant</string>
+    <string name="pro_dialog_pending">Votre achat attend que le paiement soit validé. Pro s\'ouvrira dès que ce sera fait.</string>
+    <string name="pro_dialog_unavailable">Google Play est injoignable. Vérifiez que l\'autoradio est en ligne et connecté à Google Play.</string>
+    <string name="pro_dialog_failed">L\'achat n\'a pas abouti. Vous pouvez réessayer.</string>
+    <string name="pro_settings_unlocked">Débloqué. Merci de soutenir Dashwheel</string>
+    <string name="pro_settings_locked_detail">Quatre skins complets et %1$d widgets de plus, en un seul achat</string>
+    <string name="pro_settings_row">Débloquer Dashwheel Pro</string>
+    <string name="about_play_updates">Les mises à jour viennent de Google Play</string>
+    <string name="about_play_updates_detail">Ouvrir Dashwheel sur Google Play</string>
+</resources>

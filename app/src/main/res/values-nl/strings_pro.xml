@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dashwheel Pro, the Google Play build's one in-app purchase (Premium.kt) -->
+    <string name="pro_tile_hint">Onderdeel van Dashwheel Pro. Tik om te ontgrendelen</string>
+    <string name="pro_dialog_title">Dashwheel Pro ontgrendelen</string>
+    <string name="pro_dialog_body">Eén aankoop, voor altijd: de skins Cockpit, Horizon, Tape Deck en Canvas, plus %1$d extra widgets (acceleratietimer, G-kracht, ecoscore, flitsers, tanklogboek, motortemperaturen en meer). Al het andere in Dashwheel blijft gratis.</string>
+    <string name="pro_dialog_buy">Ontgrendelen voor %1$s</string>
+    <string name="pro_dialog_buy_no_price">Ontgrendelen</string>
+    <string name="pro_dialog_later">Niet nu</string>
+    <string name="pro_dialog_pending">Je aankoop wacht tot de betaling is verwerkt. Pro gaat open zodra dat gebeurd is.</string>
+    <string name="pro_dialog_unavailable">Google Play is niet bereikbaar. Controleer of de autoradio online is en is aangemeld bij Google Play.</string>
+    <string name="pro_dialog_failed">De aankoop is niet gelukt. Je kunt het opnieuw proberen.</string>
+    <string name="pro_settings_unlocked">Ontgrendeld. Bedankt dat je Dashwheel steunt</string>
+    <string name="pro_settings_locked_detail">Vier volledige skins en %1$d extra widgets, in één aankoop</string>
+    <string name="pro_settings_row">Dashwheel Pro ontgrendelen</string>
+    <string name="about_play_updates">Updates komen via Google Play</string>
+    <string name="about_play_updates_detail">Dashwheel openen in Google Play</string>
+</resources>
