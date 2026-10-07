@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The LPG tank (LpgTank.kt, LpgTankTile.kt) -->
+    <string name="lpg_kind">Serbatoio GPL</string>
+    <string name="lpg_kind_blurb">Quanto resta nel serbatoio GPL, calcolato dalla distanza percorsa</string>
+    <string name="lpg_title">GPL</string>
+    <string name="lpg_off">Configura il serbatoio GPL per seguirne il livello.</string>
+    <string name="lpg_set_up">Configura</string>
+    <string name="lpg_first">Fai il pieno fino all\'orlo, poi tocca Pieno.</string>
+    <string name="lpg_full">Pieno</string>
+    <string name="lpg_left">Restano %1$s L</string>
+    <string name="lpg_range">%1$d %2$s di autonomia</string>
+    <string name="lpg_on_lpg">A GPL</string>
+    <string name="lpg_on_petrol">A benzina</string>
+    <string name="lpg_pumped">Litri erogati?</string>
+    <string name="lpg_save">Salva</string>
+    <string name="lpg_skip">Salta</string>
+    <string name="lpg_use">%1$s, stimato</string>
+    <string name="lpg_use_learned">%1$s, misurato alla pompa</string>
+    <string name="lpg_use_label">Consumo</string>
+    <string name="lpg_explanation">L\'indicatore dell\'auto conosce solo la benzina. Il livello del GPL è calcolato dai chilometri fatti a GPL, quindi tocca Pieno dopo ogni rifornimento.</string>
+    <string name="lpg_enable">Segui un serbatoio GPL</string>
+    <string name="lpg_enable_detail">Mostra il livello sul riquadro GPL e avvisa quando scende</string>
+    <string name="lpg_tank_size">Serbatoio, L</string>
+    <string name="lpg_use_setting">Consumo, L/100 km</string>
+    <string name="lpg_price">Prezzo al litro</string>
+    <string name="lpg_numbers_detail">Serbatoio: quanto prende un pieno, perché un serbatoio GPL si riempie solo all\'80 per cento. Consumo: lascia vuoto per partire da quello dell\'auto; i litri erogati a ogni pieno lo correggono. Prezzo: lascia vuoto per usare quello del distributore più vicino.</string>
+    <string name="lpg_mode_label">Quando l\'auto va a GPL</string>
+    <string name="lpg_mode_auto">A motore caldo</string>
+    <string name="lpg_mode_always">Sempre</string>
+    <string name="lpg_mode_manual">Il mio interruttore</string>
+    <string name="lpg_mode_auto_detail">Quasi tutti gli impianti partono a benzina. Il GPL conta quando il liquido di raffreddamento raggiunge la temperatura di commutazione, o dopo il primo km senza adattatore OBD.</string>
+    <string name="lpg_mode_manual_detail">Passa da GPL a benzina sul riquadro o con un tasto al volante.</string>
+    <string name="lpg_switch_temp">Temperatura di commutazione, %1$s</string>
+    <string name="lpg_level">Livello</string>
+    <string name="lpg_never_filled">Ancora nessun pieno</string>
+    <string name="lpg_last_fill">Ultimo pieno il %1$s</string>
+    <string name="lpg_full_now">Pieno fatto</string>
+    <string name="lpg_settings_detail">Secondo serbatoio, livello calcolato dalla distanza</string>
+    <string name="lpg_voice_low">GPL in riserva: circa %1$d %2$s di autonomia.</string>
+    <string name="lpg_voice_full">Serbatoio GPL pieno.</string>
+    <string name="lpg_voice_off">Il serbatoio GPL non è configurato.</string>
+    <string name="lpg_voice_on_lpg">A GPL.</string>
+    <string name="lpg_voice_on_petrol">A benzina.</string>
+    <string name="lpg_wheel_full">Pieno di GPL</string>
+    <string name="lpg_wheel_switch">GPL o benzina</string>
+</resources>

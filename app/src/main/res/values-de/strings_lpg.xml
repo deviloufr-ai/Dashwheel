@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The LPG tank (LpgTank.kt, LpgTankTile.kt) -->
+    <string name="lpg_kind">Autogastank</string>
+    <string name="lpg_kind_blurb">Was im Autogastank übrig ist, berechnet aus der gefahrenen Strecke</string>
+    <string name="lpg_title">LPG</string>
+    <string name="lpg_off">Richte den Autogastank ein, um seinen Stand zu verfolgen.</string>
+    <string name="lpg_set_up">Einrichten</string>
+    <string name="lpg_first">Tank randvoll füllen, dann Voll tippen.</string>
+    <string name="lpg_full">Voll</string>
+    <string name="lpg_left">Noch %1$s L</string>
+    <string name="lpg_range">%1$d %2$s Reichweite</string>
+    <string name="lpg_on_lpg">Auf Gas</string>
+    <string name="lpg_on_petrol">Auf Benzin</string>
+    <string name="lpg_pumped">Getankte Liter?</string>
+    <string name="lpg_save">Speichern</string>
+    <string name="lpg_skip">Überspringen</string>
+    <string name="lpg_use">%1$s, geschätzt</string>
+    <string name="lpg_use_learned">%1$s, an der Säule gemessen</string>
+    <string name="lpg_use_label">Verbrauch</string>
+    <string name="lpg_explanation">Die Tankanzeige kennt nur den Benzintank. Der Gasstand wird aus den mit Gas gefahrenen Kilometern berechnet, also nach jedem Tanken Voll tippen.</string>
+    <string name="lpg_enable">Autogastank verfolgen</string>
+    <string name="lpg_enable_detail">Zeigt den Stand auf der LPG-Kachel und sagt, wenn er knapp wird</string>
+    <string name="lpg_tank_size">Tank, L</string>
+    <string name="lpg_use_setting">Verbrauch, L/100 km</string>
+    <string name="lpg_price">Preis pro Liter</string>
+    <string name="lpg_numbers_detail">Tank: was eine volle Füllung fasst, denn ein Gastank wird nur zu 80 Prozent gefüllt. Verbrauch: leer lassen, um mit dem Verbrauch des Autos zu beginnen; die getankten Liter korrigieren ihn. Preis: leer lassen für den der nächsten Tankstelle.</string>
+    <string name="lpg_mode_label">Wann das Auto mit Gas fährt</string>
+    <string name="lpg_mode_auto">Wenn warm</string>
+    <string name="lpg_mode_always">Immer</string>
+    <string name="lpg_mode_manual">Mein Schalter</string>
+    <string name="lpg_mode_auto_detail">Die meisten Anlagen starten mit Benzin. Gas zählt, sobald das Kühlmittel die Umschalttemperatur erreicht, ohne OBD-Adapter nach dem ersten Kilometer.</string>
+    <string name="lpg_mode_manual_detail">Wechsle zwischen Gas und Benzin auf der Kachel oder mit einer Lenkradtaste.</string>
+    <string name="lpg_switch_temp">Umschalttemperatur, %1$s</string>
+    <string name="lpg_level">Stand</string>
+    <string name="lpg_never_filled">Noch nicht vollgetankt</string>
+    <string name="lpg_last_fill">Zuletzt voll am %1$s</string>
+    <string name="lpg_full_now">Jetzt voll</string>
+    <string name="lpg_settings_detail">Zweiter Tank, Stand aus der Strecke berechnet</string>
+    <string name="lpg_voice_low">Gas knapp: noch etwa %1$d %2$s.</string>
+    <string name="lpg_voice_full">Gastank voll.</string>
+    <string name="lpg_voice_off">Der Autogastank ist nicht eingerichtet.</string>
+    <string name="lpg_voice_on_lpg">Auf Gas.</string>
+    <string name="lpg_voice_on_petrol">Auf Benzin.</string>
+    <string name="lpg_wheel_full">Gastank voll</string>
+    <string name="lpg_wheel_switch">Gas oder Benzin</string>
+</resources>

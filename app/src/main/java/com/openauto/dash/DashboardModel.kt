@@ -96,7 +96,9 @@ enum class BuiltinKind(
     FUEL_LOG(R.string.widgets_fuel, WidgetCategory.VEHICLE, R.string.widgets_fuel_blurb, 4, 3),
     WEATHER_ALERTS(R.string.widgets_wx, WidgetCategory.INFO, R.string.widgets_wx_blurb, 4, 2),
     ENGINE_TEMPS(R.string.widgets_temps, WidgetCategory.VEHICLE, R.string.widgets_temps_blurb, 4, 2),
-    COMMUTE(R.string.widgets_commute, WidgetCategory.NAVIGATION, R.string.widgets_commute_blurb, 4, 2)
+    COMMUTE(R.string.widgets_commute, WidgetCategory.NAVIGATION, R.string.widgets_commute_blurb, 4, 2),
+    // The second tank of an LPG car, its level worked out (LpgTank.kt).
+    LPG_TANK(R.string.lpg_kind, WidgetCategory.VEHICLE, R.string.lpg_kind_blurb, 4, 3)
 }
 
 /**

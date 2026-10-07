@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The LPG tank (LpgTank.kt, LpgTankTile.kt) -->
+    <string name="lpg_kind">Depósito de GLP</string>
+    <string name="lpg_kind_blurb">Lo que queda en el depósito de GLP, calculado con la distancia recorrida</string>
+    <string name="lpg_title">GLP</string>
+    <string name="lpg_off">Configura el depósito de GLP para seguir su nivel.</string>
+    <string name="lpg_set_up">Configurar</string>
+    <string name="lpg_first">Llena el depósito hasta arriba y toca Lleno.</string>
+    <string name="lpg_full">Lleno</string>
+    <string name="lpg_left">Quedan %1$s L</string>
+    <string name="lpg_range">%1$d %2$s de autonomía</string>
+    <string name="lpg_on_lpg">Con GLP</string>
+    <string name="lpg_on_petrol">Con gasolina</string>
+    <string name="lpg_pumped">¿Litros repostados?</string>
+    <string name="lpg_save">Guardar</string>
+    <string name="lpg_skip">Omitir</string>
+    <string name="lpg_use">%1$s, estimado</string>
+    <string name="lpg_use_learned">%1$s, medido en el surtidor</string>
+    <string name="lpg_use_label">Consumo</string>
+    <string name="lpg_explanation">El indicador del coche solo conoce la gasolina. El nivel de GLP se calcula con los kilómetros hechos con GLP, así que toca Lleno tras cada repostaje.</string>
+    <string name="lpg_enable">Seguir un depósito de GLP</string>
+    <string name="lpg_enable_detail">Muestra su nivel en el panel de GLP y avisa cuando baja</string>
+    <string name="lpg_tank_size">Depósito, L</string>
+    <string name="lpg_use_setting">Consumo, L/100 km</string>
+    <string name="lpg_price">Precio por litro</string>
+    <string name="lpg_numbers_detail">Depósito: lo que admite un lleno, ya que un depósito de GLP solo se llena al 80 por ciento. Consumo: déjalo vacío para partir del consumo del coche; los litros repostados lo corrigen. Precio: déjalo vacío para usar el de la gasolinera más cercana.</string>
+    <string name="lpg_mode_label">Cuándo va el coche con GLP</string>
+    <string name="lpg_mode_auto">En caliente</string>
+    <string name="lpg_mode_always">Siempre</string>
+    <string name="lpg_mode_manual">Mi interruptor</string>
+    <string name="lpg_mode_auto_detail">La mayoría de sistemas arrancan con gasolina. El GLP cuenta cuando el refrigerante llega a la temperatura de cambio, o tras el primer km sin adaptador OBD.</string>
+    <string name="lpg_mode_manual_detail">Cambia entre GLP y gasolina en el panel o con un botón del volante.</string>
+    <string name="lpg_switch_temp">Temperatura de cambio, %1$s</string>
+    <string name="lpg_level">Nivel</string>
+    <string name="lpg_never_filled">Aún sin lleno</string>
+    <string name="lpg_last_fill">Último lleno el %1$s</string>
+    <string name="lpg_full_now">Lleno ahora</string>
+    <string name="lpg_settings_detail">Segundo depósito, nivel calculado con la distancia</string>
+    <string name="lpg_voice_low">GLP bajo: quedan unos %1$d %2$s.</string>
+    <string name="lpg_voice_full">Depósito de GLP lleno.</string>
+    <string name="lpg_voice_off">El depósito de GLP no está configurado.</string>
+    <string name="lpg_voice_on_lpg">Con GLP.</string>
+    <string name="lpg_voice_on_petrol">Con gasolina.</string>
+    <string name="lpg_wheel_full">Lleno de GLP</string>
+    <string name="lpg_wheel_switch">GLP o gasolina</string>
+</resources>

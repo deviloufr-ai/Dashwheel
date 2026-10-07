@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The LPG tank (LpgTank.kt, LpgTankTile.kt) -->
+    <string name="lpg_kind">Réservoir GPL</string>
+    <string name="lpg_kind_blurb">Ce qu\'il reste dans le réservoir GPL, calculé selon la distance parcourue</string>
+    <string name="lpg_title">GPL</string>
+    <string name="lpg_off">Configurez le réservoir GPL pour suivre son niveau.</string>
+    <string name="lpg_set_up">Configurer</string>
+    <string name="lpg_first">Faites le plein à ras bord, puis touchez Plein.</string>
+    <string name="lpg_full">Plein</string>
+    <string name="lpg_left">Reste %1$s L</string>
+    <string name="lpg_range">%1$d %2$s d\'autonomie</string>
+    <string name="lpg_on_lpg">Au GPL</string>
+    <string name="lpg_on_petrol">À l\'essence</string>
+    <string name="lpg_pumped">Litres pompés ?</string>
+    <string name="lpg_save">Enregistrer</string>
+    <string name="lpg_skip">Passer</string>
+    <string name="lpg_use">%1$s, estimé</string>
+    <string name="lpg_use_learned">%1$s, mesuré à la pompe</string>
+    <string name="lpg_use_label">Conso</string>
+    <string name="lpg_explanation">La jauge de la voiture ne connaît que l\'essence. Le niveau GPL est calculé selon les kilomètres roulés au GPL : touchez Plein après chaque plein.</string>
+    <string name="lpg_enable">Suivre un réservoir GPL</string>
+    <string name="lpg_enable_detail">Affiche son niveau sur la tuile GPL et prévient quand il baisse</string>
+    <string name="lpg_tank_size">Réservoir, L</string>
+    <string name="lpg_use_setting">Conso, L/100 km</string>
+    <string name="lpg_price">Prix au litre</string>
+    <string name="lpg_numbers_detail">Réservoir : ce que prend un plein, car un réservoir GPL n\'est rempli qu\'à 80 pour cent. Conso : laissez vide pour partir de celle de la voiture ; les litres pompés à chaque plein la corrigent. Prix : laissez vide pour prendre celui de la station la plus proche.</string>
+    <string name="lpg_mode_label">Quand la voiture roule au GPL</string>
+    <string name="lpg_mode_auto">Moteur chaud</string>
+    <string name="lpg_mode_always">Toujours</string>
+    <string name="lpg_mode_manual">Mon interrupteur</string>
+    <string name="lpg_mode_auto_detail">La plupart des systèmes démarrent à l\'essence. Le GPL compte dès que le liquide de refroidissement atteint la température de bascule, ou après le premier km sans adaptateur OBD.</string>
+    <string name="lpg_mode_manual_detail">Passez du GPL à l\'essence sur la tuile ou avec un bouton au volant.</string>
+    <string name="lpg_switch_temp">Température de bascule, %1$s</string>
+    <string name="lpg_level">Niveau</string>
+    <string name="lpg_never_filled">Pas encore de plein</string>
+    <string name="lpg_last_fill">Dernier plein le %1$s</string>
+    <string name="lpg_full_now">Plein fait</string>
+    <string name="lpg_settings_detail">Second réservoir, niveau calculé selon la distance</string>
+    <string name="lpg_voice_low">GPL bas : environ %1$d %2$s d\'autonomie.</string>
+    <string name="lpg_voice_full">Réservoir GPL plein.</string>
+    <string name="lpg_voice_off">Le réservoir GPL n\'est pas configuré.</string>
+    <string name="lpg_voice_on_lpg">Au GPL.</string>
+    <string name="lpg_voice_on_petrol">À l\'essence.</string>
+    <string name="lpg_wheel_full">Plein de GPL</string>
+    <string name="lpg_wheel_switch">GPL ou essence</string>
+</resources>

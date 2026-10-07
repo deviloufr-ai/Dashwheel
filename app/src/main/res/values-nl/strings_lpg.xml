@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The LPG tank (LpgTank.kt, LpgTankTile.kt) -->
+    <string name="lpg_kind">LPG-tank</string>
+    <string name="lpg_kind_blurb">Wat er in de LPG-tank over is, berekend uit de gereden afstand</string>
+    <string name="lpg_title">LPG</string>
+    <string name="lpg_off">Stel de LPG-tank in om het niveau te volgen.</string>
+    <string name="lpg_set_up">Instellen</string>
+    <string name="lpg_first">Tank helemaal vol, tik dan op Vol.</string>
+    <string name="lpg_full">Vol</string>
+    <string name="lpg_left">Nog %1$s L</string>
+    <string name="lpg_range">%1$d %2$s actieradius</string>
+    <string name="lpg_on_lpg">Op LPG</string>
+    <string name="lpg_on_petrol">Op benzine</string>
+    <string name="lpg_pumped">Getankte liters?</string>
+    <string name="lpg_save">Opslaan</string>
+    <string name="lpg_skip">Overslaan</string>
+    <string name="lpg_use">%1$s, geschat</string>
+    <string name="lpg_use_learned">%1$s, gemeten aan de pomp</string>
+    <string name="lpg_use_label">Verbruik</string>
+    <string name="lpg_explanation">De meter van de auto kent alleen de benzinetank. Het LPG-niveau wordt berekend uit de kilometers op LPG, dus tik na elke tankbeurt op Vol.</string>
+    <string name="lpg_enable">LPG-tank volgen</string>
+    <string name="lpg_enable_detail">Toont het niveau op de LPG-tegel en meldt wanneer het laag is</string>
+    <string name="lpg_tank_size">Tank, L</string>
+    <string name="lpg_use_setting">Verbruik, L/100 km</string>
+    <string name="lpg_price">Prijs per liter</string>
+    <string name="lpg_numbers_detail">Tank: wat een volle tankbeurt neemt, want een LPG-tank wordt maar tot 80 procent gevuld. Verbruik: leeg laten om met het verbruik van de auto te beginnen; de getankte liters corrigeren het. Prijs: leeg laten voor die van het dichtstbijzijnde station.</string>
+    <string name="lpg_mode_label">Wanneer de auto op LPG rijdt</string>
+    <string name="lpg_mode_auto">Als warm</string>
+    <string name="lpg_mode_always">Altijd</string>
+    <string name="lpg_mode_manual">Mijn schakelaar</string>
+    <string name="lpg_mode_auto_detail">De meeste systemen starten op benzine. LPG telt zodra de koelvloeistof de omschakeltemperatuur haalt, of zonder OBD-adapter na de eerste kilometer.</string>
+    <string name="lpg_mode_manual_detail">Wissel tussen LPG en benzine op de tegel of met een stuurknop.</string>
+    <string name="lpg_switch_temp">Omschakeltemperatuur, %1$s</string>
+    <string name="lpg_level">Niveau</string>
+    <string name="lpg_never_filled">Nog niet volgetankt</string>
+    <string name="lpg_last_fill">Laatst vol op %1$s</string>
+    <string name="lpg_full_now">Nu vol</string>
+    <string name="lpg_settings_detail">Tweede tank, niveau berekend uit de afstand</string>
+    <string name="lpg_voice_low">LPG laag: nog ongeveer %1$d %2$s.</string>
+    <string name="lpg_voice_full">LPG-tank vol.</string>
+    <string name="lpg_voice_off">De LPG-tank is niet ingesteld.</string>
+    <string name="lpg_voice_on_lpg">Op LPG.</string>
+    <string name="lpg_voice_on_petrol">Op benzine.</string>
+    <string name="lpg_wheel_full">LPG-tank vol</string>
+    <string name="lpg_wheel_switch">LPG of benzine</string>
+</resources>

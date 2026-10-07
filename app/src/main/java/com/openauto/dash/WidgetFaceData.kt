@@ -121,6 +121,7 @@ internal fun rememberWidgetFace(kind: BuiltinKind, env: SkinTileEnv): WidgetFace
     BuiltinKind.WEATHER_ALERTS -> weatherAlertsFace()
     BuiltinKind.ENGINE_TEMPS -> engineTempsFace()
     BuiltinKind.COMMUTE -> commuteFace()
+    BuiltinKind.LPG_TANK -> lpgTankFace()
     BuiltinKind.FILTER_CARE -> filterFace()
     BuiltinKind.WARMUP -> warmupFace(env)
     BuiltinKind.BATTERY -> batteryFace(env)

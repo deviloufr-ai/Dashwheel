@@ -132,7 +132,7 @@ internal enum class SettingsTab(@StringRes val titleRes: Int, val icon: ImageVec
 }
 
 /** The settings that open further into the pane. */
-private enum class Deep { CAR, CAR_LOOK, REVERSE, SIGNALS, AI, UPKEEP, EXPLORER, WHEEL, PLACES, LANGUAGE, SECOND_SCREEN }
+private enum class Deep { CAR, CAR_LOOK, REVERSE, SIGNALS, AI, UPKEEP, EXPLORER, WHEEL, PLACES, LANGUAGE, SECOND_SCREEN, LPG }
 
 /** Under this width the categories go along the top: a rail would leave the settings half a screen. */
 private val NARROW_SETTINGS = 800.dp
@@ -197,6 +197,7 @@ internal fun SettingsScreen(
                     Deep.PLACES -> PlacesSheet(onDismiss = back)
                     Deep.LANGUAGE -> LanguageSheet(onDismiss = back)
                     Deep.SECOND_SCREEN -> SecondScreenSheet(onDismiss = back)
+                    Deep.LPG -> LpgTankSheet(onDismiss = back)
                     null -> Unit
                 }
             }
@@ -378,6 +379,7 @@ private fun CarPane(open: (Deep) -> Unit, onPickObd: () -> Unit) {
     SpeedCorrectionRow()
     SettingsRow(Icons.Filled.AutoAwesome, stringResource(R.string.ai_title), stringResource(R.string.settings_ai_detail)) { open(Deep.AI) }
     SettingsRow(Icons.Filled.Handyman, stringResource(R.string.upkeep_dialog_title), stringResource(R.string.upkeep_settings_detail)) { open(Deep.UPKEEP) }
+    LpgSettingsRow { open(Deep.LPG) }
     SettingsRow(Icons.Filled.Science, stringResource(R.string.explore_title), stringResource(R.string.explore_settings_detail)) { open(Deep.EXPLORER) }
 }
 

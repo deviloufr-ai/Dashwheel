@@ -909,6 +909,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         Maintenance.setContext(context)
         DriveLog.start(context)
         FuelLog.start(context)
+        LpgTank.start(context)
         BarItems.setContext(context)
         Radios.start(context)
         MessageAlerts.start()

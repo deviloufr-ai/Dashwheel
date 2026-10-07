@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.PropaneTank
 import androidx.compose.material.icons.filled.QuestionAnswer
 import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.Screenshot
@@ -105,7 +106,9 @@ internal enum class SteeringWheelAction(
     // Names are saved with the learned buttons: new ones go last, whatever their group.
     ASK_MECHANIC(WheelActionGroup.CAR, R.string.ai_ask_wheel_action, Icons.Filled.QuestionAnswer),
     GEMINI_LIVE(WheelActionGroup.CAR, R.string.ai_gemini_live, Icons.Filled.AutoAwesome),
-    STOP_GUIDANCE(WheelActionGroup.NAVIGATION, R.string.wheel_action_stop_guidance, Icons.Filled.Close);
+    STOP_GUIDANCE(WheelActionGroup.NAVIGATION, R.string.wheel_action_stop_guidance, Icons.Filled.Close),
+    LPG_FULL(WheelActionGroup.CAR, R.string.lpg_wheel_full, Icons.Filled.PropaneTank),
+    LPG_SWITCH(WheelActionGroup.CAR, R.string.lpg_wheel_switch, Icons.Filled.SwapHoriz);
 
     fun run(context: Context) {
         when (this) {
@@ -154,6 +157,8 @@ internal enum class SteeringWheelAction(
             ASK_MECHANIC -> AskMechanic.listenHandsFree(context)
             GEMINI_LIVE -> GeminiLive.toggle(context)
             STOP_GUIDANCE -> stopGuidance(context)
+            LPG_FULL -> LpgTank.fillUpHandsFree(context)
+            LPG_SWITCH -> LpgTank.switchHandsFree(context)
         }
     }
 

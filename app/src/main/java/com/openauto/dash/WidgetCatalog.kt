@@ -54,6 +54,7 @@ import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PictureInPicture
+import androidx.compose.material.icons.filled.PropaneTank
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.SensorDoor
 import androidx.compose.material.icons.filled.Sensors
@@ -150,4 +151,5 @@ internal fun kindIcon(kind: BuiltinKind): ImageVector = when (kind) {
     BuiltinKind.WEATHER_ALERTS -> Icons.Filled.Warning
     BuiltinKind.ENGINE_TEMPS -> Icons.Filled.Thermostat
     BuiltinKind.COMMUTE -> Icons.Filled.Commute
+    BuiltinKind.LPG_TANK -> Icons.Filled.PropaneTank
 }
