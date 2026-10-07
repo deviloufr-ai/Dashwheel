@@ -1,12 +1,14 @@
 # Dashwheel
 
-**The car launcher for Android head units.** Map, music and live car data on one calm screen: up to seven dashboards you arrange yourself, 30+ widgets, whole-design skins, an AI mechanic that explains warning lights, and your phone's calls and messages on the big screen. Free and open source (GPL v3).
+**The free, open-source car launcher for Android head units (FYT / UIS7862 and similar).** Map, music and live car data on one calm screen: up to seven dashboards you arrange yourself, 30+ widgets, whole-design skins, an AI mechanic that explains warning lights, and your phone's calls and messages on the big screen. No ads, no trial, no account.
 
 ![Dashwheel: map, speed, weather and music on one screen](docs/screenshots/01_hero.jpg)
 
 **[Download the latest release](https://github.com/deviloufr-ai/Dashwheel/releases/latest)** · Android 10+ · made for 1280×720 head units (ROCO K706 / FYT / QF), also works on upright screens and phones.
 
-📖 **[Read the wiki](https://github.com/deviloufr-ai/Dashwheel/wiki)** for every feature, setup guides, what works with or without root, and tested hardware.
+📖 **[Read the wiki](https://github.com/deviloufr-ai/Dashwheel/wiki)** for every feature, setup guides and what works with or without root.
+
+**Will it work on my unit?** See [Tested hardware](https://github.com/deviloufr-ai/Dashwheel/wiki/Tested-Hardware). Root is not needed.
 
 [![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/deviloufr)
 
@@ -46,12 +48,24 @@ Dashwheel is free, with no ads. If it makes your drives nicer, a coffee on Ko-fi
 
 Details: [Installation and updates](https://github.com/deviloufr-ai/Dashwheel/wiki/Installation-and-Updates) · [Troubleshooting](https://github.com/deviloufr-ai/Dashwheel/wiki/Troubleshooting)
 
+## Feedback and support
+
+- Something broken, or a unit that isn't listed? [Open an issue](https://github.com/deviloufr-ai/Dashwheel/issues) and say which head unit you have.
+- If Dashwheel is useful to you, a ⭐ on this repo helps other drivers find it.
+- [Ko-fi](https://ko-fi.com/deviloufr) pays for test hardware.
+
+## Branded builds and commercial licences
+
+Installers and resellers: custom or branded builds, and licences for closed distribution, are available. [Get in touch](https://deviloufr-ai.github.io/alexandreleblanc.github.io/).
+
 ## Build from source
 
 Android Studio with a Gradle JDK of 17–21, then `./gradlew assembleDebug`. Toolchain, modules, CI and release signing: [Building from source](https://github.com/deviloufr-ai/Dashwheel/wiki/Building-from-Source).
 
 ## License
 
-Copyright (C) 2026 deviloufr-ai
+Copyright (C) 2026 Alexandre Leblanc (deviloufr-ai)
 
 Dashwheel (the launcher and the Companion app) is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. It is distributed WITHOUT ANY WARRANTY; see the [LICENSE](LICENSE) file for the full text.
+
+The Dashwheel name and logo are not covered by the GPL: forks must use a different name and logo.
