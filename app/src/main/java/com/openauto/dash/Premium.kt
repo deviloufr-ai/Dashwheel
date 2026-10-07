@@ -2,7 +2,6 @@ package com.openauto.dash
 
 import android.app.Activity
 import android.content.Context
-import android.content.ContextWrapper
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
@@ -144,13 +143,6 @@ internal fun lockedNow(mode: DashThemeMode): Boolean = mode in Premium.LOCKED_TH
 
 @Composable
 internal fun lockedNow(kind: BuiltinKind): Boolean = kind in Premium.LOCKED_KINDS && !rememberUnlocked()
-
-/** The activity behind a Compose context, for the store's purchase screen. */
-internal tailrec fun Context.activity(): Activity? = when (this) {
-    is Activity -> this
-    is ContextWrapper -> baseContext.activity()
-    else -> null
-}
 
 /** The "Pro" mark on a locked card: a small pill with a lock. */
 @Composable

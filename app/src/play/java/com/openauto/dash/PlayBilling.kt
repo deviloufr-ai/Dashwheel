@@ -76,10 +76,12 @@ internal object PlayBilling : PurchasesUpdatedListener {
                     _purchase.value = PurchaseState.UNAVAILABLE
                     return@withDetails
                 }
+                val offer = product.offer()
+                val item = BillingFlowParams.ProductDetailsParams.newBuilder().setProductDetails(product)
+                // Billing 8 lists a one-time product's offers; the flow names the one taken.
+                if (offer != null) item.setOfferToken(offer.offerToken)
                 val params = BillingFlowParams.newBuilder()
-                    .setProductDetailsParamsList(
-                        listOf(BillingFlowParams.ProductDetailsParams.newBuilder().setProductDetails(product).build())
-                    )
+                    .setProductDetailsParamsList(listOf(item.build()))
                     .build()
                 val result = client?.launchBillingFlow(activity, params)
                 when (result?.responseCode) {
@@ -167,7 +169,7 @@ internal object PlayBilling : PurchasesUpdatedListener {
             val product = found.productDetailsList.firstOrNull { it.productId == PRODUCT_ID }
             if (product == null) Log.w(TAG, "$PRODUCT_ID is not a product of this app on Play")
             details = product
-            _price.value = product?.oneTimePurchaseOfferDetails?.formattedPrice
+            _price.value = product?.offer()?.formattedPrice
             then(product)
         }
     }
@@ -192,6 +194,10 @@ internal object PlayBilling : PurchasesUpdatedListener {
             fromStore -> setOwned(false)
         }
     }
+
+    /** The product's one offer (its base price): Billing 8 lists them, a plain one-time product has one. */
+    private fun ProductDetails.offer(): ProductDetails.OneTimePurchaseOfferDetails? =
+        oneTimePurchaseOfferDetailsList?.firstOrNull()
 
     private fun acknowledge(purchase: Purchase) {
         val params = AcknowledgePurchaseParams.newBuilder().setPurchaseToken(purchase.purchaseToken).build()
