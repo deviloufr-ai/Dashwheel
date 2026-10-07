@@ -182,12 +182,18 @@ object LocationFeed {
      * Pure decision behind [publishSpeed]. A network fix carries no speed and
      * used to be published as 0 km/h, so the readout blinked "0" every few
      * seconds on GPS-only driving; such a fix now leaves the speed alone.
+     * Below [STILL_KMH] the car is taken as stopped: a parked car's GPS drifts
+     * a few km/h (it read 1 in a garage, and the second screen 9 with the
+     * speed correction added to it).
      */
     internal fun speedReading(hasFix: Boolean, hasSpeed: Boolean, speedMps: Float, ageMs: Long): SpeedReading = when {
         !hasFix || ageMs >= FRESH_MS -> SpeedReading.None
         !hasSpeed -> SpeedReading.Keep
-        else -> SpeedReading.Kmh(Math.round(speedMps * 3.6f))
+        else -> SpeedReading.Kmh(Math.round(speedMps * 3.6f).takeIf { it >= STILL_KMH } ?: 0)
     }
+
+    /** The GPS speed under which the car counts as stopped, as for the trip ([tripStep]). */
+    internal const val STILL_KMH = 3
 
     private fun onFix(l: Location) {
         if (DemoMode.isOn) return

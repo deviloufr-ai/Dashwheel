@@ -32,7 +32,9 @@ internal object ClusterFeed {
     private fun snapshot(context: Context, page: ClusterPage): ClusterState {
         val obdLive = ObdBluetoothManager.connectionState.value == ObdConnectionState.CONNECTED || DemoMode.isOn
         val obd = ObdBluetoothManager.data.value
-        val speed = (if (obdLive) obd.speedKmh else LocationFeed.freshSpeedKmh.value)?.let(SpeedCorrection::corrected)
+        // The OBD speed comes corrected already (ObdBluetoothManager), and the correction is for the car's
+        // figure, not the GPS: corrected again here, a stopped car's 1 km/h of GPS drift read 9.
+        val speed = if (obdLive) obd.speedKmh else LocationFeed.freshSpeedKmh.value
         val doors = McuReader.doorState.value
         val open = if (doors == null) emptyList() else listOfNotNull(
             R.string.vehicle_door_front_left.takeIf { doors.frontLeft },

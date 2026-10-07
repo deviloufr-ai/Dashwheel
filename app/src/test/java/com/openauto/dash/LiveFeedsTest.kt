@@ -11,6 +11,10 @@ class LiveFeedsTest {
     fun gpsFixPublishesItsSpeedInKmh() {
         assertEquals(SpeedReading.Kmh(90), LocationFeed.speedReading(hasFix = true, hasSpeed = true, speedMps = 25f, ageMs = 0L))
         assertEquals(SpeedReading.Kmh(0), LocationFeed.speedReading(hasFix = true, hasSpeed = true, speedMps = 0f, ageMs = 1_000L))
+        // A parked car's GPS drift is no speed; walking pace and up is.
+        assertEquals(SpeedReading.Kmh(0), LocationFeed.speedReading(hasFix = true, hasSpeed = true, speedMps = 0.4f, ageMs = 0L))
+        assertEquals(SpeedReading.Kmh(0), LocationFeed.speedReading(hasFix = true, hasSpeed = true, speedMps = 0.6f, ageMs = 0L))
+        assertEquals(SpeedReading.Kmh(4), LocationFeed.speedReading(hasFix = true, hasSpeed = true, speedMps = 1.1f, ageMs = 0L))
     }
 
     @Test
