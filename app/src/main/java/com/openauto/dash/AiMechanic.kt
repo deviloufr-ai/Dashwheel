@@ -61,15 +61,16 @@ data class AiConfig(
     val apiKey: String = "",
     /** The key was unlocked with the activation code, so it isn't shown on screen. */
     val keyFromCode: Boolean = false,
-    /** The driver's pick; null follows the launcher's language. */
+    /** The driver's pick for Gemini's written answers; null follows the launcher's language. */
     val languageChoice: AiLanguage? = null,
-    val speak: Boolean = true,
-    /** Say the start-up briefing when the car starts. */
-    val briefing: Boolean = true,
     /** Gemini Live is Dashwheel's own (DashAssistant, knows the car), not Google's Gemini app. */
     val ownLive: Boolean = true
 ) {
-    /** The language actually used: the pick, else the launcher's current one. */
+    /**
+     * The language Gemini writes in: the pick, else the launcher's current one.
+     * The voice is the launcher's whatever this says ([InAppNav.locale]); what
+     * the car says by itself is switched in [SpokenEvents].
+     */
     val language: AiLanguage get() = languageChoice ?: AiLanguage.of(Locale.getDefault())
 }
 
@@ -82,8 +83,6 @@ object AiSettings {
             apiKey = p.getString("api_key", "").orEmpty(),
             keyFromCode = p.getBoolean("key_from_code", false),
             languageChoice = p.getString("language", null)?.let { runCatching { AiLanguage.valueOf(it) }.getOrNull() },
-            speak = p.getBoolean("speak", true),
-            briefing = p.getBoolean("briefing", true),
             ownLive = p.getBoolean("own_live", true)
         )
     }
@@ -93,8 +92,6 @@ object AiSettings {
             .putString("api_key", config.apiKey.trim())
             .putBoolean("key_from_code", config.keyFromCode)
             .apply { config.languageChoice?.let { putString("language", it.name) } ?: remove("language") }
-            .putBoolean("speak", config.speak)
-            .putBoolean("briefing", config.briefing)
             .putBoolean("own_live", config.ownLive)
             .apply()
     }
@@ -403,11 +400,15 @@ internal class RescanAfterStart {
 /** Sentences the car says without the AI (offline, no key, or live-reading warnings). */
 internal object MechanicLines {
 
-    fun newCodes(codes: List<String>): SpokenLine {
-        // Spaced out so the voice reads "P 0 1 2 8", not "P one hundred twenty-eight".
-        val spoken = codes.joinToString(", ") { it.toCharArray().joinToString(" ") }
-        return SpokenLine(R.plurals.ai_say_new_codes, listOf(codes.size, spoken), quantity = codes.size)
-    }
+    /**
+     * "Two new engine faults: catalyst efficiency, particle filter": the
+     * count and the faults by name ([spokenFaultTitles]), never the codes'
+     * letters, which no voice reads well. Without a name for any of them,
+     * the count alone.
+     */
+    fun newCodes(codes: List<String>, titles: List<String>): SpokenLine =
+        if (titles.isEmpty()) SpokenLine(R.plurals.ai_say_new_codes_untitled, listOf(codes.size), quantity = codes.size)
+        else SpokenLine(R.plurals.ai_say_new_codes, listOf(codes.size, titles.joinToString(", ")), quantity = codes.size)
 
     /** The rules' own sentence when they rate a fault more serious than the AI did ([SeverityFloor]). */
     fun ruleVerdict(severity: Severity): SpokenLine =
@@ -425,6 +426,25 @@ internal object MechanicLines {
         }
     }
 }
+
+/**
+ * The faults in [codes] by name, for the voice: the built-in table's titles
+ * ([ObdCodes]) in the voice's language, trimmed of what is written for the
+ * eye (a bank in brackets, a slash); codes the table doesn't know are left
+ * out, since a guess from the code's structure is nothing to say.
+ */
+internal fun spokenFaultTitles(resources: Resources, codes: List<String>): List<String> =
+    codes.filter { ObdCodes.tableTitle(it) != null }
+        .map { spokenFaultTitle(resources.getString(ObdCodes.describe(it).titleRes)) }
+        .filter { it.isNotBlank() }
+
+/** [title] as the voice says it: no brackets, "or" for a slash, lower case mid-sentence. */
+internal fun spokenFaultTitle(title: String): String =
+    title.replace(Regex("""\s*\([^)]*\)"""), "")
+        .replace("/", " or ")
+        .replace(Regex("""\s+"""), " ")
+        .trim()
+        .replaceFirstChar { it.lowercase() }
 
 /** Gemini answered, but not in the requested shape. */
 internal class UnreadableAnswerException : Exception("Gemini's answer was unreadable")
@@ -570,12 +590,12 @@ object AiMechanic {
             // Also for the phone: the driver is about to walk away from a car that may not start next time.
             CarNews.weakBattery(data.voltage)
         }
-        val config = AiSettings.load(context)
-        if (!config.speak) return
-        val line = MechanicLines.alert(alert, data, config.language)
+        if (!SpokenEvents.isOn(context, SpokenEvent.CAR_TIPS)) return
+        val locale = InAppNav.locale(context)
+        val line = MechanicLines.alert(alert, data, AiLanguage.of(locale))
         // Overheating or no longer charging can't wait behind a briefing; a weak battery at rest can.
         val urgent = alert != LiveWatch.Alert.WEAK_BATTERY
-        CarVoice.announce(line.text(config.language.resources(context)), config.language.locale, urgent)
+        CarVoice.announce(line.text(AppLanguage.wrap(context).resources), locale, urgent)
     }
 
     // The last ask Google refused, and when (elapsed realtime): see [retryAfterMs].
@@ -591,9 +611,15 @@ object AiMechanic {
     private suspend fun explain(context: Context, codes: List<String>, fresh: List<String>, asked: Boolean = false) {
         val config = AiSettings.load(context)
         explainedIn = config.language
-        val say: (String) -> Unit = { if (fresh.isNotEmpty() && config.speak) CarVoice.announce(it, config.language.locale) }
+        // Said in the launcher's voice; Gemini's sentence only when it wrote in that language.
+        val locale = InAppNav.locale(context)
+        val voiceResources = AppLanguage.wrap(context).resources
+        val offline = MechanicLines.newCodes(fresh, spokenFaultTitles(voiceResources, fresh)).text(voiceResources)
+        val speaks = fresh.isNotEmpty() && SpokenEvents.isOn(context, SpokenEvent.FAULT_CODES)
+        val say: (String) -> Unit = { summary ->
+            if (speaks) CarVoice.announce(if (config.language.locale.language == locale.language) summary else offline, locale)
+        }
         val resources = config.language.resources(context)
-        val offline = MechanicLines.newCodes(fresh).text(resources)
         val car = CarProfileStore.current
         val readings = ObdBluetoothManager.data.value
         // The car's own rules have the last word on how serious it is (MechanicVerdict.kt).

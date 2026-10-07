@@ -3,7 +3,7 @@
     <!-- First-run tour (TourScreen.kt): six tips over the real dashboard -->
     <string name="tour_welcome_kicker">Bem-vindo ao Dashwheel</string>
     <string name="tour_welcome_title">Uma visita rápida</string>
-    <string name="tour_welcome_body">Seis dicas curtas. Cerca de um minuto. Pode parar quando quiser.</string>
+    <string name="tour_welcome_body">Algumas dicas curtas. Cerca de um minuto. Pode parar quando quiser.</string>
     <string name="tour_topic_swipe">Mudar de painel</string>
     <string name="tour_topic_arrange">Mover e aumentar</string>
     <string name="tour_topic_add">Adicionar</string>
@@ -30,7 +30,7 @@
     <string name="tour_look_title">Ao seu gosto</string>
     <string name="tour_look_body">Abra o menu, depois Definições e depois Aspeto. Escolha um tema e cores de dia ou de noite.</string>
     <string name="tour_obd_title">Ligue o adaptador OBD</string>
-    <string name="tour_obd_body">Vai na tomada debaixo do volante. O Dashwheel encontra-o e volta a ligar-se sozinho sempre que arranca.</string>
+    <string name="tour_obd_body">Vai na tomada debaixo do volante. Emparelhe-o uma vez nas definições Bluetooth do Android e o Dashwheel volta a ligar-se sozinho.</string>
     <string name="tour_obd_off">Desligado</string>
     <string name="tour_obd_looking">A procurar</string>
     <string name="tour_obd_connected">Ligado</string>

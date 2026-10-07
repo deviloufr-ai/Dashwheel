@@ -5,15 +5,17 @@
     <string name="briefing_setting_detail">Au démarrage : carburant bas, verglas, défauts moteur et prochain rendez-vous</string>
 
     <!-- Spoken when the car starts, in the mechanic's language -->
-    <string name="briefing_morning">Bonjour.</string>
-    <string name="briefing_afternoon">Bonjour.</string>
-    <string name="briefing_evening">Bonsoir.</string>
     <string name="briefing_ice">Attention au verglas.</string>
     <string name="briefing_fuel_low">Réservoir presque vide : environ %1$d kilomètres, prévoyez un plein.</string>
     <plurals name="briefing_faults">
-        <item quantity="one">%1$d code défaut moteur enregistré, détails à l\'écran.</item>
-        <item quantity="many">%1$d codes défaut moteur enregistrés, détails à l\'écran.</item>
-        <item quantity="other">%1$d codes défaut moteur enregistrés, détails à l\'écran.</item>
+        <item quantity="one">%1$d défaut moteur enregistré : %2$s. Regardez la tuile Codes défaut à l\'arrêt.</item>
+        <item quantity="many">%1$d défauts moteur enregistrés : %2$s. Regardez la tuile Codes défaut à l\'arrêt.</item>
+        <item quantity="other">%1$d défauts moteur enregistrés : %2$s. Regardez la tuile Codes défaut à l\'arrêt.</item>
+    </plurals>
+    <plurals name="briefing_faults_untitled">
+        <item quantity="one">%1$d défaut moteur enregistré. Regardez la tuile Codes défaut à l\'arrêt.</item>
+        <item quantity="many">%1$d défauts moteur enregistrés. Regardez la tuile Codes défaut à l\'arrêt.</item>
+        <item quantity="other">%1$d défauts moteur enregistrés. Regardez la tuile Codes défaut à l\'arrêt.</item>
     </plurals>
     <string name="briefing_event">Prochain rendez-vous : %1$s à %2$s.</string>
 </resources>

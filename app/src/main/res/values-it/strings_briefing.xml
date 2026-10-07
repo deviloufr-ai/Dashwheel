@@ -5,15 +5,17 @@
     <string name="briefing_setting_detail">All\'avvio: carburante basso, ghiaccio, guasti del motore e il prossimo appuntamento</string>
 
     <!-- Spoken when the car starts, in the mechanic's language -->
-    <string name="briefing_morning">Buongiorno.</string>
-    <string name="briefing_afternoon">Buon pomeriggio.</string>
-    <string name="briefing_evening">Buonasera.</string>
     <string name="briefing_ice">Attenzione al ghiaccio sulla strada.</string>
     <string name="briefing_fuel_low">Carburante in esaurimento: circa %1$d chilometri, prevedi un rifornimento.</string>
     <plurals name="briefing_faults">
-        <item quantity="one">%1$d codice guasto del motore memorizzato, dettagli sullo schermo.</item>
-        <item quantity="many">%1$d codici guasto del motore memorizzati, dettagli sullo schermo.</item>
-        <item quantity="other">%1$d codici guasto del motore memorizzati, dettagli sullo schermo.</item>
+        <item quantity="one">%1$d guasto motore memorizzato: %2$s. Guarda il riquadro Codici guasto da fermo.</item>
+        <item quantity="many">%1$d guasti motore memorizzati: %2$s. Guarda il riquadro Codici guasto da fermo.</item>
+        <item quantity="other">%1$d guasti motore memorizzati: %2$s. Guarda il riquadro Codici guasto da fermo.</item>
+    </plurals>
+    <plurals name="briefing_faults_untitled">
+        <item quantity="one">%1$d guasto motore memorizzato. Guarda il riquadro Codici guasto da fermo.</item>
+        <item quantity="many">%1$d guasti motore memorizzati. Guarda il riquadro Codici guasto da fermo.</item>
+        <item quantity="other">%1$d guasti motore memorizzati. Guarda il riquadro Codici guasto da fermo.</item>
     </plurals>
     <string name="briefing_event">Prossimo appuntamento: %1$s alle %2$s.</string>
 </resources>

@@ -9,6 +9,7 @@
     <string name="settings_ai_detail">Legt foutcodes uit en spreekt waarschuwingen uit</string>
     <string name="settings_system_detail">Android-widgets toevoegen zonder elke keer toestemming. Vereist root.</string>
     <string name="settings_section_driving">Rijden</string>
+    <string name="settings_section_sound">Geluid</string>
     <string name="settings_drive_lock">Wijzigen alleen bij stilstand</string>
     <string name="settings_drive_lock_detail">Bewerken, instellingen en het app-raster wachten tot de auto stilstaat</string>
     <string name="settings_tap_sound">Tikgeluid</string>
@@ -55,6 +56,7 @@
     <string name="alert_tap_to_hide">Tik om te verbergen</string>
     <string name="alert_enlarge">Tonen</string>
     <string name="alert_speak">Uitspreken</string>
+    <string name="alert_also_spoken">Ook uitgesproken</string>
     <string name="alert_show">Deze melding tonen</string>
     <string name="alert_speak_call_detail">Zegt wie er belt terwijl het belt</string>
     <string name="alert_speak_doors_detail">Zegt welke deur open is als er een opengaat tijdens het rijden of je vertrekt met een open deur</string>
@@ -96,7 +98,7 @@
     <string name="settings_screen_vertical_hint">Zet het dashboard staand met een eigen indeling, als het toestel dat toelaat</string>
     <string name="settings_section_display">Weergave</string>
     <string name="settings_appearance_title">Dag en nacht</string>
-    <string name="alert_style_section">Meldingen van Dashwheel</string>
+    <string name="alert_style_section">Pop-ups in de stijl van Dashwheel</string>
     <string name="alert_more_with_permission">Meer automeldingen met root, of na deze opdracht vanaf een pc: %1$s</string>
     <string name="settings_section_about">Over</string>
     <string name="settings_screen_keep_title">Deze richting behouden?</string>

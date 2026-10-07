@@ -5,14 +5,15 @@
     <string name="briefing_setting_detail">Beim Start: wenig Kraftstoff, Glätte, Motorfehler und der nächste Termin</string>
 
     <!-- Spoken when the car starts, in the mechanic's language -->
-    <string name="briefing_morning">Guten Morgen.</string>
-    <string name="briefing_afternoon">Guten Tag.</string>
-    <string name="briefing_evening">Guten Abend.</string>
     <string name="briefing_ice">Vorsicht, Glättegefahr.</string>
     <string name="briefing_fuel_low">Wenig Kraftstoff: noch etwa %1$d Kilometer, bald tanken.</string>
     <plurals name="briefing_faults">
-        <item quantity="one">%1$d Motorfehlercode gespeichert, Details auf dem Bildschirm.</item>
-        <item quantity="other">%1$d Motorfehlercodes gespeichert, Details auf dem Bildschirm.</item>
+        <item quantity="one">%1$d Motorfehler gespeichert: %2$s. Sehen Sie im Stand auf die Kachel Fehlercodes.</item>
+        <item quantity="other">%1$d Motorfehler gespeichert: %2$s. Sehen Sie im Stand auf die Kachel Fehlercodes.</item>
+    </plurals>
+    <plurals name="briefing_faults_untitled">
+        <item quantity="one">%1$d Motorfehler gespeichert. Sehen Sie im Stand auf die Kachel Fehlercodes.</item>
+        <item quantity="other">%1$d Motorfehler gespeichert. Sehen Sie im Stand auf die Kachel Fehlercodes.</item>
     </plurals>
     <string name="briefing_event">Als Nächstes: %1$s um %2$s.</string>
 </resources>

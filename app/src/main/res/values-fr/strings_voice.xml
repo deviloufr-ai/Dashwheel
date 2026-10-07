@@ -1,11 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- What the car says by itself: Settings -> Alerts -> Voice (HandsFreeSettings.kt) -->
-    <string name="voice_section">Voix</string>
-    <string name="voice_warnings">Alertes et conseils</string>
-    <string name="voice_warnings_detail">Surchauffe, batterie, nouveaux codes défaut, carburant bas, pauses, conseils de conduite</string>
+    <string name="voice_section">Ce que dit la voiture</string>
+    <string name="voice_warnings">Alertes et conseils de la voiture</string>
+    <string name="voice_warnings_detail">Moteur, batterie, filtre à particules, pauses, carburant, chaleur de l\'autoradio</string>
     <string name="voice_messages">Messages</string>
     <string name="voice_messages_detail">Affiche et annonce de qui vient un message.</string>
+    <string name="voice_faults">Nouveaux codes défaut</string>
+    <string name="voice_faults_detail">Dits par leur nom quand l\'analyse les trouve, une fois</string>
+    <string name="voice_limit_detail">Dit quand vous restez au-dessus de la limite, une fois par limite</string>
+    <string name="voice_weather">Alertes météo</string>
+    <string name="voice_weather_detail">Vigilances orange et rouge là où vous êtes et où vous allez</string>
+    <string name="voice_lpg">GPL bas</string>
+    <string name="voice_lpg_detail">Dit quand le second réservoir est presque vide</string>
+    <string name="voice_menu_quiet">Silence</string>
+    <string name="voice_menu_back">Voix de retour</string>
     <string name="voice_where">Ce que la voiture dit d\'elle-même se règle dans Réglages, Alertes.</string>
 
     <!-- Spoken -->

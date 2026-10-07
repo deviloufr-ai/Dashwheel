@@ -187,7 +187,8 @@
     <string name="dash_update_ready_title">Update ready</string>
     <string name="dash_update_ready_body">%1$s is downloaded. Installing takes half a minute and restarts Dashwheel.</string>
     <string name="dash_update_now">Update now</string>
-    <string name="dash_update_later">Later</string>
+    <string name="dash_update_not_this_version">Not this version</string>
+    <string name="dash_update_allow_installs">Allow Dashwheel to install updates, then tap Update again</string>
     <string name="dash_reset_confirm_title">Clear this dashboard?</string>
     <string name="dash_reset_confirm_body">Every tile on it goes. Undo brings them back.</string>
     <string name="dash_dashboard_options">Dashboard options</string>

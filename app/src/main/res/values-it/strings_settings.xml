@@ -13,6 +13,7 @@
     <string name="settings_tap_sound">Suono dei tocchi</string>
     <string name="settings_tap_sound_detail">Un breve bip a ogni tocco, per uno schermo che non vibra</string>
     <string name="settings_section_driving">Guida</string>
+    <string name="settings_section_sound">Audio</string>
     <!-- Volume follows speed (SpeedVolume.kt), Settings → Driving -->
     <string name="speed_volume_title">Volume in base alla velocità</string>
     <string name="speed_volume_detail">Copre il rumore della strada: più alto quando acceleri, più basso quando rallenti. Le tue modifiche al volume restano.</string>
@@ -55,6 +56,7 @@
     <string name="alert_tap_to_hide">Tocca per nascondere</string>
     <string name="alert_enlarge">Mostra</string>
     <string name="alert_speak">Dillo ad alta voce</string>
+    <string name="alert_also_spoken">Detto anche a voce</string>
     <string name="alert_show">Mostra questo avviso</string>
     <string name="alert_speak_call_detail">Dice chi chiama mentre squilla</string>
     <string name="alert_speak_doors_detail">Dice quale porta è aperta se si apre in marcia o se parti con una aperta</string>
@@ -96,7 +98,7 @@
     <string name="settings_screen_vertical_hint">Mette il cruscotto in verticale con una disposizione propria, se l\'unità lo consente</string>
     <string name="settings_section_display">Display</string>
     <string name="settings_appearance_title">Giorno e notte</string>
-    <string name="alert_style_section">Avvisi mostrati da Dashwheel</string>
+    <string name="alert_style_section">Pop-up nello stile di Dashwheel</string>
     <string name="alert_more_with_permission">Più avvisi dell\'auto con root, o dopo questo comando da un PC: %1$s</string>
     <string name="settings_section_about">Informazioni</string>
     <string name="settings_screen_keep_title">Mantenere questo orientamento?</string>

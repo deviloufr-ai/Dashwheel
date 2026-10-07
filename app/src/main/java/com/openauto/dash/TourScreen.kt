@@ -112,8 +112,15 @@ private val TourStep.target: TourTarget?
 /** These tips light up something on the bottom bar: it must not hide itself under them (BarAutoHide.kt). */
 internal val TourStep.onBar: Boolean get() = target == TourTarget.MENU || target == TourTarget.OBD
 
+/**
+ * The steps in order. Right after the setup ([afterSetup]) the look tip is
+ * left out: the setup's last step just asked for a look.
+ */
+private fun tourOrder(afterSetup: Boolean): List<TourStep> =
+    TourStep.entries.filter { !(afterSetup && it == TourStep.LOOK) }
+
 /** The tips between the welcome and the end. */
-private val TIPS = TourStep.entries.filter { it != TourStep.WELCOME && it != TourStep.DONE }
+private fun List<TourStep>.tips(): List<TourStep> = filter { it != TourStep.WELCOME && it != TourStep.DONE }
 
 /** Arranging is shown while these tips are up: they are about the edit bar and the tiles in it. */
 internal val TourStep.wantsEditing: Boolean get() = this == TourStep.ARRANGE || this == TourStep.ADD
@@ -123,6 +130,7 @@ object TourStore {
     private const val KEY_PENDING = "pending"
     private const val KEY_SEEN = "seen"
     private const val KEY_SPEAK = "speak"
+    private const val KEY_DECLINED = "declined"
 
     /** True from the end of the first setup until the tour is finished or skipped. */
     fun isPending(context: Context): Boolean =
@@ -137,6 +145,13 @@ object TourStore {
     /** Finished or skipped: not offered again (Settings, About still starts it). */
     fun markSeen(context: Context) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_PENDING, false).putBoolean(KEY_SEEN, true).apply()
+    }
+
+    /** "Not now" on the welcome: still pending, so the next parked start offers it once more; a second "Not now" counts as seen. */
+    fun notNow(context: Context) {
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val declined = prefs.getInt(KEY_DECLINED, 0) + 1
+        if (declined >= 2) markSeen(context) else prefs.edit().putInt(KEY_DECLINED, declined).apply()
     }
 
     fun readAloud(context: Context): Boolean =
@@ -199,9 +214,12 @@ internal fun TourOverlay(
     onStep: (TourStep) -> Unit,
     /** [finished]: the last card was reached, rather than skipped. */
     onClose: (finished: Boolean) -> Unit,
+    /** Offered by itself after the first setup, rather than replayed from Settings. */
+    afterSetup: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val order = remember(afterSetup) { tourOrder(afterSetup) }
     val density = LocalDensity.current
     var readAloud by remember { mutableStateOf(TourStore.readAloud(context)) }
     var origin by remember { mutableStateOf(Offset.Zero) }
@@ -225,8 +243,9 @@ internal fun TourOverlay(
         onDispose { BarAutoHide.heldByTour = false }
     }
 
-    val next = TourStep.entries.getOrNull(step.ordinal + 1)
-    val prev = TourStep.entries.getOrNull(step.ordinal - 1)?.takeIf { it != TourStep.WELCOME }
+    val at = order.indexOf(step)
+    val next = order.getOrNull(at + 1)
+    val prev = order.getOrNull(at - 1)?.takeIf { it != TourStep.WELCOME }
 
     BoxWithConstraints(modifier = modifier.fillMaxSize().onGloballyPositioned { origin = it.positionInRoot() }) {
         val w = constraints.maxWidth.toFloat()
@@ -242,6 +261,7 @@ internal fun TourOverlay(
         CardPlacer(hole) {
             TourCard(
                 step = step,
+                tips = order.tips(),
                 readAloud = readAloud,
                 onReadAloud = {
                     readAloud = !readAloud
@@ -398,6 +418,7 @@ private fun CardPlacer(hole: Rect?, content: @Composable () -> Unit) {
 @Composable
 private fun TourCard(
     step: TourStep,
+    tips: List<TourStep>,
     readAloud: Boolean,
     onReadAloud: () -> Unit,
     obd: ObdConnectionState,
@@ -418,7 +439,7 @@ private fun TourCard(
             .pointerInput(Unit) { detectTapGestures { } }
             .padding(horizontal = 26.dp, vertical = 22.dp)
     ) {
-        CardHead(step, readAloud, onReadAloud)
+        CardHead(step, tips, readAloud, onReadAloud)
         if (step == TourStep.DONE) {
             Box(
                 Modifier
@@ -440,7 +461,7 @@ private fun TourCard(
         )
         Text(stringResource(text.body), color = DashColors.TextSecondary, fontSize = 19.sp, lineHeight = 27.sp)
         when (step) {
-            TourStep.WELCOME -> Topics()
+            TourStep.WELCOME -> Topics(tips)
             TourStep.OBD -> ObdStates(obd)
             TourStep.HANDS_FREE -> WheelJobs()
             else -> {}
@@ -458,19 +479,19 @@ private fun TourCard(
 }
 
 @Composable
-private fun CardHead(step: TourStep, readAloud: Boolean, onReadAloud: () -> Unit) {
+private fun CardHead(step: TourStep, tips: List<TourStep>, readAloud: Boolean, onReadAloud: () -> Unit) {
     val tap = rememberTapFeedback()
     Row(verticalAlignment = Alignment.CenterVertically) {
-        val tip = TIPS.indexOf(step)
+        val tip = tips.indexOf(step)
         val kicker = when {
             step == TourStep.WELCOME -> stringResource(R.string.tour_welcome_kicker)
-            tip >= 0 -> stringResource(R.string.tour_tip, tip + 1, TIPS.size)
+            tip >= 0 -> stringResource(R.string.tour_tip, tip + 1, tips.size)
             else -> ""
         }
         Text(kicker.uppercase(), color = DashColors.Accent, fontWeight = FontWeight.Bold, fontSize = 13.sp, letterSpacing = 2.sp)
         if (tip >= 0) {
             Spacer(Modifier.width(10.dp))
-            TIPS.forEachIndexed { i, _ ->
+            tips.forEachIndexed { i, _ ->
                 Box(
                     Modifier
                         .padding(end = 6.dp)
@@ -564,17 +585,20 @@ private fun CardFoot(step: TourStep, onNext: () -> Unit, onBack: (() -> Unit)?, 
     }
 }
 
-/** The welcome card's list of what is coming. */
+/** The welcome card's list of what is coming: one chip per tip in [tips]. */
 @Composable
-private fun Topics() {
-    val topics = listOf(
-        Icons.Filled.SwapHoriz to R.string.tour_topic_swipe,
-        Icons.Filled.OpenWith to R.string.tour_topic_arrange,
-        Icons.Filled.Add to R.string.tour_topic_add,
-        Icons.Filled.Palette to R.string.tour_topic_look,
-        Icons.Filled.DirectionsCar to R.string.tour_topic_obd,
-        Icons.Filled.Mic to R.string.tour_topic_hands
-    )
+private fun Topics(tips: List<TourStep>) {
+    val topics = tips.mapNotNull { tip ->
+        when (tip) {
+            TourStep.SWIPE -> Icons.Filled.SwapHoriz to R.string.tour_topic_swipe
+            TourStep.ARRANGE -> Icons.Filled.OpenWith to R.string.tour_topic_arrange
+            TourStep.ADD -> Icons.Filled.Add to R.string.tour_topic_add
+            TourStep.LOOK -> Icons.Filled.Palette to R.string.tour_topic_look
+            TourStep.OBD -> Icons.Filled.DirectionsCar to R.string.tour_topic_obd
+            TourStep.HANDS_FREE -> Icons.Filled.Mic to R.string.tour_topic_hands
+            else -> null
+        }
+    }
     Column(Modifier.padding(top = 18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         topics.chunked(3).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {

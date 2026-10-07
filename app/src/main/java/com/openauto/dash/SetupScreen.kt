@@ -6,7 +6,6 @@ import android.content.pm.PackageManager
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -30,19 +30,21 @@ import androidx.compose.material.icons.filled.AirlineSeatReclineNormal
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Contacts
-import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,6 +58,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
@@ -63,11 +66,14 @@ import androidx.lifecycle.LifecycleEventObserver
 
 /*
  * The first-run setup: three steps done once, parked, in place of a
- * "grant access" button on every tile. The car (a preset to confirm), what
- * the launcher may use (each one optional, with a check once allowed) and
- * the look (three to start with). Settings → Advanced runs it again, and the
- * bar's "Finish setting up" pill reopens the access step while a tile on
- * some page still lacks what it needs.
+ * "grant access" button on every tile. The car (make, model and year, or
+ * later), what the launcher may use (each one optional, with a check once
+ * allowed; the phone and the OBD adapter among them) and the look (three to
+ * start with). Settings → Advanced runs it again, and the bar's "Finish
+ * setting up" pill reopens the access step while a tile on some page still
+ * lacks what it needs; "Don't remind me" on that step is what turns the pill
+ * off, Skip only leaves. Closed by the drive lock before it was done, it
+ * comes back at the step it was on once the car is parked again.
  */
 
 internal enum class SetupStep { CAR, ACCESS, LOOK }
@@ -75,11 +81,12 @@ internal enum class SetupStep { CAR, ACCESS, LOOK }
 /** The step before this one, where the back arrow and the Back key lead; null on the first. */
 internal fun SetupStep.previous(): SetupStep? = SetupStep.entries.getOrNull(ordinal - 1)
 
-/** Whether the setup has been seen, and whether the driver asked the pill to stop. */
+/** Whether the setup has been seen, whether the driver asked the pill to stop, and whether there is no adapter to wait for. */
 object SetupStore {
     private const val PREFS = "setup"
     private const val KEY_DONE = "done"
     private const val KEY_PILL_OFF = "pill_off"
+    private const val KEY_NO_OBD = "no_obd"
 
     fun isDone(context: Context): Boolean =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_DONE, false)
@@ -88,12 +95,20 @@ object SetupStore {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_DONE, true).apply()
     }
 
-    /** True once the driver skipped the access step: the pill stays away until the setup is run again. */
+    /** True once the driver tapped "Don't remind me" on the access step: the pill stays away. */
     fun pillOff(context: Context): Boolean =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_PILL_OFF, false)
 
     fun setPillOff(context: Context, off: Boolean) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_PILL_OFF, off).apply()
+    }
+
+    /** The driver has no OBD adapter: the car tiles are not something left to set up. */
+    fun noObd(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_NO_OBD, false)
+
+    fun setNoObd(context: Context, none: Boolean) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_NO_OBD, none).apply()
     }
 }
 
@@ -110,7 +125,8 @@ internal enum class AccessNeed(val icon: ImageVector, @StringRes val titleRes: I
         LOCATION -> has(context, Manifest.permission.ACCESS_FINE_LOCATION)
         CONTACTS -> has(context, Manifest.permission.READ_CONTACTS)
         CALENDAR -> has(context, Manifest.permission.READ_CALENDAR)
-        OBD -> ObdBluetoothManager.savedDeviceAddress() != null
+        // An adapter to dial, here or through the phone, or none to wait for.
+        OBD -> ObdBluetoothManager.canDial() || SetupStore.noObd(context)
     }
 
     private fun has(context: Context, permission: String) =
@@ -141,25 +157,31 @@ internal enum class AccessNeed(val icon: ImageVector, @StringRes val titleRes: I
 }
 
 /**
- * The three steps. [onCarSettings] opens the car profile sheet, [onPickObd]
- * the adapter picker (with its Bluetooth permission). [onClose] gets whether
- * the driver went through to the end (true) or skipped (false), or null when
- * the Back key left from the first step.
+ * The three steps. [onPickObd] opens the adapter picker (with its Bluetooth
+ * permission). [onAccessChanged] says something the pill looks at changed
+ * here (no adapter, a phone paired); [onPillOff] is "Don't remind me".
+ * [onStep] follows the step on screen, so the drive lock can bring the setup
+ * back where it was. [onClose] is every way out: Done, Skip, or the Back key
+ * from the first step.
  */
 @Composable
 internal fun SetupScreen(
     initialStep: SetupStep,
     theme: ThemeState,
-    onCarSettings: () -> Unit,
     onPickObd: () -> Unit,
-    onClose: (finished: Boolean?) -> Unit,
+    onAccessChanged: () -> Unit,
+    pillOff: Boolean,
+    onPillOff: () -> Unit,
+    onStep: (SetupStep) -> Unit,
+    onClose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     var step by remember(initialStep) { mutableStateOf(initialStep) }
+    LaunchedEffect(step) { onStep(step) }
     val tap = rememberTapFeedback()
     // The Back key does what the arrow does: a step back, and out only from the first.
-    BackHandler { step.previous()?.let { step = it } ?: onClose(null) }
+    BackHandler { step.previous()?.let { step = it } ?: onClose() }
     SolidCard(modifier = modifier) {
         Column(modifier = Modifier.fillMaxSize().padding(horizontal = 28.dp, vertical = 18.dp)) {
             // Header: where we are, and the way out.
@@ -192,7 +214,7 @@ internal fun SetupScreen(
                 }
                 StepDots(step)
                 Spacer(Modifier.width(16.dp))
-                TextButton(onClick = { tap(); onClose(false) }, modifier = Modifier.heightIn(min = DashSize.Touch)) {
+                TextButton(onClick = { tap(); onClose() }, modifier = Modifier.heightIn(min = DashSize.Touch)) {
                     Text(stringResource(R.string.setup_skip), color = DashColors.TextSecondary)
                 }
             }
@@ -204,11 +226,14 @@ internal fun SetupScreen(
                     .verticalScroll(rememberScrollState())
             ) {
                 when (step) {
-                    SetupStep.CAR -> CarStep(onCarSettings = onCarSettings, onNext = { step = SetupStep.ACCESS })
-                    SetupStep.ACCESS -> AccessStep(onPickObd = onPickObd, onNext = { step = SetupStep.LOOK })
+                    SetupStep.CAR -> CarStep(onNext = { step = SetupStep.ACCESS })
+                    SetupStep.ACCESS -> AccessStep(
+                        onPickObd = onPickObd, onAccessChanged = onAccessChanged, pillOff = pillOff, onPillOff = onPillOff,
+                        onNext = { step = SetupStep.LOOK }
+                    )
                     SetupStep.LOOK -> LookStep(theme = theme, onDone = {
                         SetupStore.markDone(context)
-                        onClose(true)
+                        onClose()
                     })
                 }
             }
@@ -249,66 +274,124 @@ private fun PrimaryButton(text: String, onClick: () -> Unit) {
     ) { Text(text, style = MaterialTheme.typography.bodyLarge) }
 }
 
+/**
+ * Step 1: the car in a few words. Make, model and year (the spec sheet in
+ * Settings, Car has everything else), the fuel and gearbox the tiles read,
+ * and which side the driver sits. Later leaves it all for another time.
+ */
 @Composable
-private fun SecondaryButton(text: String, onClick: () -> Unit) {
+private fun CarStep(onNext: () -> Unit) {
+    val context = LocalContext.current
+    val saved by CarProfileStore.profile.collectAsState()
+    var make by remember { mutableStateOf(saved.make) }
+    var model by remember { mutableStateOf(saved.model) }
+    var year by remember { mutableStateOf(saved.year?.toString().orEmpty()) }
+    var fuel by remember { mutableStateOf(saved.fuel) }
+    var gearbox by remember { mutableStateOf(saved.gearbox) }
+    var driverOnRight by remember { mutableStateOf(saved.driverOnRight) }
     val tap = rememberTapFeedback()
-    OutlinedButton(
-        onClick = { tap(); onClick() },
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = DashColors.TextPrimary),
-        border = androidx.compose.foundation.BorderStroke(1.dp, DashColors.Line),
-        shape = DashShape.Small,
-        modifier = Modifier.heightIn(min = DashSize.TouchPrimary)
-    ) { Text(text, style = MaterialTheme.typography.bodyLarge) }
-}
 
-/** Step 1: the car on file, to keep or change, and which side the driver sits. */
-@Composable
-private fun CarStep(onCarSettings: () -> Unit, onNext: () -> Unit) {
-    val car by CarProfileStore.profile.collectAsState()
-    StepTitle(stringResource(R.string.setup_car_title), stringResource(R.string.setup_car_body))
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(DashShape.Medium)
-            .background(DashColors.CardHi.copy(alpha = DashColors.CardHi.alpha * 0.5f))
-            .padding(20.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(Icons.Filled.DirectionsCar, contentDescription = null, tint = DashColors.Accent, modifier = Modifier.size(44.dp))
-        Spacer(Modifier.width(18.dp))
-        Text(car.name, color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+    /** Keeps what was typed; the free name follows make, model and year until the sheet gives it another. */
+    fun save() {
+        val y = year.trim().toIntOrNull()
+        val carChanged = make.trim() != saved.make || model.trim() != saved.model || y != saved.year
+        val name = if (carChanged || saved.name.isBlank()) CarProfile.composeName(make, model, y).ifBlank { saved.name } else saved.name
+        val next = saved.copy(name = name, make = make.trim(), model = model.trim(), year = y, fuel = fuel, gearbox = gearbox, driverOnRight = driverOnRight)
+        if (next != saved) {
+            CarProfileStore.save(next.copy(source = SpecSource.USER, updatedAt = System.currentTimeMillis()))
+            // The mechanic's answers are about the car: redo them for the new one.
+            AiMechanic.refresh()
+        }
     }
-    Spacer(Modifier.height(20.dp))
-    Text(stringResource(R.string.setup_driver_side), color = DashColors.TextPrimary, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(bottom = 8.dp))
+
+    StepTitle(stringResource(R.string.setup_car_title), stringResource(R.string.setup_car_body))
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+        CarField(make, stringResource(R.string.setup_car_make), Modifier.weight(1f)) { make = it }
+        CarField(model, stringResource(R.string.setup_car_model), Modifier.weight(1f)) { model = it }
+        CarField(year, stringResource(R.string.setup_car_year), Modifier.weight(0.5f), number = true) { year = it.filter(Char::isDigit).take(4) }
+    }
+    Spacer(Modifier.height(16.dp))
+    Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.weight(3f)) {
+            FieldTitle(stringResource(R.string.setup_car_fuel))
+            ChoiceRow(FuelType.entries, fuel, { context.getString(it.labelRes) }) { fuel = it }
+        }
+        Column(Modifier.weight(2f)) {
+            FieldTitle(stringResource(R.string.setup_car_gearbox))
+            // Two chips: manual, or any kind of automatic (the sheet tells them apart).
+            ChoiceRow(
+                listOf(false, true), gearbox != GearboxType.MANUAL,
+                { automatic -> context.getString(if (automatic) R.string.car_gearbox_automatic else R.string.car_gearbox_manual) }
+            ) { automatic ->
+                gearbox = when {
+                    !automatic -> GearboxType.MANUAL
+                    gearbox == GearboxType.MANUAL -> GearboxType.AUTOMATIC
+                    else -> gearbox
+                }
+            }
+        }
+    }
+    Spacer(Modifier.height(16.dp))
+    FieldTitle(stringResource(R.string.setup_driver_side))
     SegmentedSwitch(
         options = listOf(false, true),
-        chosen = car.driverOnRight,
+        chosen = driverOnRight,
         icon = { Icons.Filled.AirlineSeatReclineNormal },
         title = { right -> stringResource(if (right) R.string.setup_driver_right else R.string.setup_driver_left) },
-        onChoose = { right -> if (right != car.driverOnRight) CarProfileStore.save(car.copy(driverOnRight = right)) }
+        onChoose = { driverOnRight = it }
     )
     Spacer(Modifier.height(24.dp))
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        PrimaryButton(stringResource(R.string.setup_car_keep), onNext)
-        SecondaryButton(stringResource(R.string.setup_car_change), onCarSettings)
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+        PrimaryButton(stringResource(R.string.setup_next)) { save(); onNext() }
+        TextButton(onClick = { tap(); onNext() }, modifier = Modifier.heightIn(min = DashSize.TouchPrimary)) {
+            Text(stringResource(R.string.setup_later), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyLarge)
+        }
     }
 }
 
-/** Step 2: one row per thing the launcher can use, a check once allowed. */
 @Composable
-private fun AccessStep(onPickObd: () -> Unit, onNext: () -> Unit) {
+private fun FieldTitle(text: String) {
+    Text(text, color = DashColors.TextPrimary, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(bottom = 8.dp))
+}
+
+@Composable
+private fun CarField(value: String, label: String, modifier: Modifier, number: Boolean = false, onChange: (String) -> Unit) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onChange,
+        label = { Text(label, maxLines = 1) },
+        singleLine = true,
+        keyboardOptions = if (number) KeyboardOptions(keyboardType = KeyboardType.Number) else KeyboardOptions.Default,
+        modifier = modifier,
+        colors = fieldColors()
+    )
+}
+
+/** Step 2: one row per thing the launcher can use, a check once allowed; "Don't remind me" rests the bar's pill. */
+@Composable
+private fun AccessStep(onPickObd: () -> Unit, onAccessChanged: () -> Unit, pillOff: Boolean, onPillOff: () -> Unit, onNext: () -> Unit) {
+    val tap = rememberTapFeedback()
     StepTitle(stringResource(R.string.setup_access_title), stringResource(R.string.setup_access_body))
-    AccessRows(onPickObd)
+    AccessRows(onPickObd, onAccessChanged)
     Spacer(Modifier.height(20.dp))
-    PrimaryButton(stringResource(R.string.setup_next), onNext)
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+        PrimaryButton(stringResource(R.string.setup_next), onNext)
+        if (!pillOff) {
+            TextButton(onClick = { tap(); onPillOff() }, modifier = Modifier.heightIn(min = DashSize.TouchPrimary)) {
+                Text(stringResource(R.string.setup_no_reminder), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyLarge)
+            }
+        }
+    }
 }
 
 /**
  * What the launcher may use, one row each: allowed, or the button that asks.
- * In the setup and in Settings, where it can be looked up at any time.
+ * The OBD row also takes "I don't have one", the phone row pairs the
+ * companion. In the setup and in Settings, where it can be looked up at any
+ * time. [onChanged]: something the bar's pill looks at was settled here.
  */
 @Composable
-internal fun AccessRows(onPickObd: () -> Unit) {
+internal fun AccessRows(onPickObd: () -> Unit, onChanged: () -> Unit = {}) {
     val context = LocalContext.current
     // The system screens grant on their side: read again each time the launcher comes back.
     var generation by remember { mutableStateOf(0) }
@@ -319,6 +402,9 @@ internal fun AccessRows(onPickObd: () -> Unit) {
         onDispose { lifecycle.removeObserver(observer) }
     }
     val obdConnection by ObdBluetoothManager.connectionState.collectAsState()
+    // Read again when the link changes too: a pick in the adapter dialog starts a connection.
+    val obdUsable = obdConnection == ObdConnectionState.CONNECTED || remember(generation, obdConnection) { ObdBluetoothManager.canDial() }
+    var noObd by remember { mutableStateOf(SetupStore.noObd(context)) }
     val location = rememberPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     val contacts = rememberPermission(Manifest.permission.READ_CONTACTS)
     val calendar = rememberPermission(Manifest.permission.READ_CALENDAR)
@@ -327,11 +413,13 @@ internal fun AccessRows(onPickObd: () -> Unit) {
             AccessNeed.LOCATION -> location.granted
             AccessNeed.CONTACTS -> contacts.granted
             AccessNeed.CALENDAR -> calendar.granted
-            AccessNeed.OBD -> obdConnection == ObdConnectionState.CONNECTED || remember(generation) { need.granted(context) }
+            AccessNeed.OBD -> obdUsable
             AccessNeed.NOTIFICATIONS -> remember(generation) { need.granted(context) }
         }
         AccessRow(
-            need = need,
+            icon = need.icon,
+            title = stringResource(need.titleRes),
+            detail = stringResource(need.detailRes),
             granted = granted,
             actionRes = if (need == AccessNeed.OBD) R.string.setup_choose else R.string.setup_allow,
             onAction = {
@@ -342,13 +430,48 @@ internal fun AccessRows(onPickObd: () -> Unit) {
                     AccessNeed.CALENDAR -> calendar.request()
                     AccessNeed.OBD -> onPickObd()
                 }
-            }
+            },
+            // No adapter: said once, and the car tiles stop counting as left to set up.
+            note = if (need == AccessNeed.OBD && noObd) stringResource(R.string.setup_obd_no_adapter) else null,
+            secondary = if (need == AccessNeed.OBD && !noObd) R.string.setup_obd_none to {
+                SetupStore.setNoObd(context, true)
+                noObd = true
+                onChanged()
+            } else null
         )
     }
+    // The phone: messages, calls and the agenda come over its link, not from an Android permission.
+    val phones by PhoneLink.phones.collectAsState()
+    var pairing by remember { mutableStateOf(false) }
+    AccessRow(
+        icon = Icons.Filled.PhoneAndroid,
+        title = stringResource(R.string.setup_access_phone),
+        detail = stringResource(R.string.setup_access_phone_detail),
+        granted = phones.any { !it.forgotten },
+        grantedRes = R.string.setup_paired,
+        actionRes = R.string.setup_pair,
+        onAction = { pairing = true }
+    )
+    if (pairing) PhonePairingDialog(onDismiss = { pairing = false; onChanged() })
 }
 
+/**
+ * One row: what it is, then the check once [granted], or the button that
+ * asks. [note] stands in for the check when there is nothing to grant;
+ * [secondary] is a text button under the main one.
+ */
 @Composable
-private fun AccessRow(need: AccessNeed, granted: Boolean, @StringRes actionRes: Int, onAction: () -> Unit) {
+private fun AccessRow(
+    icon: ImageVector,
+    title: String,
+    detail: String,
+    granted: Boolean,
+    @StringRes actionRes: Int,
+    onAction: () -> Unit,
+    @StringRes grantedRes: Int = R.string.setup_allowed,
+    note: String? = null,
+    secondary: Pair<Int, () -> Unit>? = null
+) {
     val tap = rememberTapFeedback()
     Row(
         modifier = Modifier
@@ -357,27 +480,38 @@ private fun AccessRow(need: AccessNeed, granted: Boolean, @StringRes actionRes: 
             .padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(need.icon, contentDescription = null, tint = if (granted) DashColors.Good else DashColors.TextSecondary, modifier = Modifier.size(28.dp))
+        Icon(icon, contentDescription = null, tint = if (granted) DashColors.Good else DashColors.TextSecondary, modifier = Modifier.size(28.dp))
         Spacer(Modifier.width(16.dp))
         Column(Modifier.weight(1f)) {
-            Text(stringResource(need.titleRes), color = DashColors.TextPrimary, style = MaterialTheme.typography.bodyLarge)
-            Text(stringResource(need.detailRes), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+            Text(title, color = DashColors.TextPrimary, style = MaterialTheme.typography.bodyLarge)
+            Text(detail, color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
         }
         Spacer(Modifier.width(12.dp))
         if (granted) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.widthIn(min = 120.dp)) {
                 Icon(Icons.Filled.Check, contentDescription = null, tint = DashColors.Good, modifier = Modifier.size(22.dp))
                 Spacer(Modifier.width(6.dp))
-                Text(stringResource(R.string.setup_allowed), color = DashColors.Good, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(grantedRes), color = DashColors.Good, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
             }
         } else {
-            OutlinedButton(
-                onClick = { tap(); onAction() },
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = DashColors.Accent),
-                border = androidx.compose.foundation.BorderStroke(1.dp, DashColors.Accent.copy(alpha = 0.6f)),
-                shape = DashShape.Small,
-                modifier = Modifier.heightIn(min = DashSize.Touch).widthIn(min = 120.dp)
-            ) { Text(stringResource(actionRes)) }
+            if (note != null) {
+                Text(note, color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
+                Spacer(Modifier.width(12.dp))
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                OutlinedButton(
+                    onClick = { tap(); onAction() },
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = DashColors.Accent),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, DashColors.Accent.copy(alpha = 0.6f)),
+                    shape = DashShape.Small,
+                    modifier = Modifier.heightIn(min = DashSize.Touch).widthIn(min = 120.dp)
+                ) { Text(stringResource(actionRes)) }
+                secondary?.let { (labelRes, onSecondary) ->
+                    TextButton(onClick = { tap(); onSecondary() }, modifier = Modifier.heightIn(min = DashSize.Touch)) {
+                        Text(stringResource(labelRes), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
         }
     }
 }

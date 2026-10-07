@@ -1,11 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- What the car says by itself: Settings -> Alerts -> Voice (HandsFreeSettings.kt) -->
-    <string name="voice_section">Voice</string>
-    <string name="voice_warnings">Warnings and tips</string>
-    <string name="voice_warnings_detail">Overheating, battery, new fault codes, low fuel, breaks, driving tips</string>
+    <!-- What the car says by itself: Settings -> Alerts -> What the car says (HandsFreeSettings.kt, SpokenEvents.kt) -->
+    <string name="voice_section">What the car says</string>
+    <string name="voice_warnings">Car warnings and tips</string>
+    <string name="voice_warnings_detail">Engine, battery, particle filter, breaks, fuel, head unit heat</string>
     <string name="voice_messages">Messages</string>
     <string name="voice_messages_detail">Shows and says who a message is from.</string>
+    <string name="voice_faults">New fault codes</string>
+    <string name="voice_faults_detail">Said by name as the scan finds them, once</string>
+    <string name="voice_limit_detail">Says when you stay over the limit, once per limit</string>
+    <string name="voice_weather">Weather warnings</string>
+    <string name="voice_weather_detail">Orange and red warnings where you are and where you are going</string>
+    <string name="voice_lpg">Low LPG</string>
+    <string name="voice_lpg_detail">Says when the second tank runs low</string>
+    <string name="voice_menu_quiet">Quiet</string>
+    <string name="voice_menu_back">Voice back on</string>
     <string name="voice_where">What the car says by itself is switched in Settings, Alerts.</string>
 
     <!-- Spoken -->

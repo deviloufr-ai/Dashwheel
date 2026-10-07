@@ -128,10 +128,11 @@ internal object HeadUnitMonitor {
     }
 
     /**
-     * Says once, in the AI mechanic's language and only if it speaks, that the
-     * head unit is running hot, when the chip stays at [HOT_C] or above for two
-     * looks in a row; again only after it has cooled under [COOL_C]. Reads the
-     * thermal zones directly (no shell): where Android hides them, it stays quiet.
+     * Says once, when car warnings are spoken ([SpokenEvent.CAR_TIPS]), that
+     * the head unit is running hot, when the chip stays at [HOT_C] or above
+     * for two looks in a row; again only after it has cooled under [COOL_C].
+     * Reads the thermal zones directly (no shell): where Android hides them,
+     * it stays quiet.
      */
     suspend fun watchHeat(context: Context) {
         var hotLooks = 0
@@ -146,10 +147,9 @@ internal object HeadUnitMonitor {
             }
             if (hotLooks >= 2 && !announced && !DemoMode.isOn) {
                 announced = true
-                val config = AiSettings.load(context)
-                if (config.speak) {
-                    val line = config.language.resources(context).getString(R.string.monitor_hot_alert, Units.current.value.temp(t))
-                    CarVoice.speak(line, config.language.locale)
+                if (SpokenEvents.isOn(context, SpokenEvent.CAR_TIPS)) {
+                    val line = AppLanguage.wrap(context).getString(R.string.monitor_hot_alert, Units.current.value.temp(t))
+                    CarVoice.announce(line, InAppNav.locale(context))
                 }
             }
             delay(HEAT_WATCH_MS)

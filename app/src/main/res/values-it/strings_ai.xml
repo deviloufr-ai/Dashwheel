@@ -9,8 +9,9 @@
     <string name="ai_own_key">Oppure la tua chiave API Gemini</string>
     <string name="ai_key">Chiave API Gemini</string>
     <string name="ai_key_hint">Gratis su aistudio.google.com → Get API key</string>
-    <string name="ai_language">Lingua</string>
+    <string name="ai_language">Lingua delle risposte</string>
     <string name="ai_language_auto">Come l\'app</string>
+    <string name="ai_language_detail">Per le risposte scritte di Gemini</string>
     <string name="ai_test">Prova</string>
     <string name="ai_done">Fine</string>
 
@@ -26,9 +27,14 @@
     <!-- Spoken by the car, in the mechanic's language (resolved with the AI language, not the screen's) -->
     <string name="ai_say_ready">Il meccanico IA è pronto.</string>
     <plurals name="ai_say_new_codes">
-        <item quantity="one">%1$d nuovo codice guasto motore: %2$s. Dettagli sullo schermo.</item>
-        <item quantity="many">%1$d nuovi codici guasto motore: %2$s. Dettagli sullo schermo.</item>
-        <item quantity="other">%1$d nuovi codici guasto motore: %2$s. Dettagli sullo schermo.</item>
+        <item quantity="one">%1$d nuovo guasto motore: %2$s. Guarda il riquadro Codici guasto da fermo.</item>
+        <item quantity="many">%1$d nuovi guasti motore: %2$s. Guarda il riquadro Codici guasto da fermo.</item>
+        <item quantity="other">%1$d nuovi guasti motore: %2$s. Guarda il riquadro Codici guasto da fermo.</item>
+    </plurals>
+    <plurals name="ai_say_new_codes_untitled">
+        <item quantity="one">%1$d nuovo guasto motore. Guarda il riquadro Codici guasto da fermo.</item>
+        <item quantity="many">%1$d nuovi guasti motore. Guarda il riquadro Codici guasto da fermo.</item>
+        <item quantity="other">%1$d nuovi guasti motore. Guarda il riquadro Codici guasto da fermo.</item>
     </plurals>
     <string name="ai_say_overheat">Attenzione, il motore si sta surriscaldando: %1$d gradi. Accosta appena possibile e spegni il motore.</string>
     <string name="ai_say_not_charging">La batteria non si carica: %1$s volt a motore acceso. Raggiungi un\'officina e spegni ciò che non serve.</string>

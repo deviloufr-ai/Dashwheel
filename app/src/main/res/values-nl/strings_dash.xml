@@ -182,7 +182,8 @@
     <string name="dash_update_ready_title">Update klaar</string>
     <string name="dash_update_ready_body">%1$s is gedownload. Installeren duurt een halve minuut en herstart Dashwheel.</string>
     <string name="dash_update_now">Nu bijwerken</string>
-    <string name="dash_update_later">Later</string>
+    <string name="dash_update_not_this_version">Niet deze versie</string>
+    <string name="dash_update_allow_installs">Sta Dashwheel toe updates te installeren en tik dan opnieuw op Bijwerken</string>
     <string name="dash_reset_confirm_title">Dit dashboard wissen?</string>
     <string name="dash_reset_confirm_body">Alle tegels erop verdwijnen. Ongedaan maken brengt ze terug.</string>
     <string name="dash_dashboard_options">Dashboardopties</string>

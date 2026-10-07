@@ -166,4 +166,9 @@
     <string name="design_family_copper">Miedź</string>
     <string name="design_family_cabins">Wnętrza</string>
     <string name="design_label_value">%1$s: %2$s</string>
+
+    <string name="design_parked_looks">Wyglądy na postój</string>
+    <string name="design_parked_looks_note">Ładne, ale wolniej się je czyta w jeździe</string>
+    <string name="design_alert_hot">Gorąco</string>
+    <string name="design_alert_low">Mało</string>
 </resources>

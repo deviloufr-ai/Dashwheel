@@ -3,7 +3,7 @@
     <!-- First-run tour (TourScreen.kt): six tips over the real dashboard -->
     <string name="tour_welcome_kicker">Benvenuto in Dashwheel</string>
     <string name="tour_welcome_title">Un giro veloce delle basi</string>
-    <string name="tour_welcome_body">Sei consigli brevi. Circa un minuto. Puoi fermarti quando vuoi.</string>
+    <string name="tour_welcome_body">Qualche consiglio breve. Circa un minuto. Puoi fermarti quando vuoi.</string>
     <string name="tour_topic_swipe">Cambia cruscotto</string>
     <string name="tour_topic_arrange">Sposta e ingrandisci</string>
     <string name="tour_topic_add">Aggiungi</string>
@@ -30,7 +30,7 @@
     <string name="tour_look_title">Fallo tuo</string>
     <string name="tour_look_body">Apri il menu, poi Impostazioni, poi Aspetto. Scegli un tema e i colori di giorno o di notte.</string>
     <string name="tour_obd_title">Collega l\'adattatore OBD</string>
-    <string name="tour_obd_body">Va nella presa sotto il volante. Dashwheel lo trova e si ricollega da solo a ogni avvio.</string>
+    <string name="tour_obd_body">Va nella presa sotto il volante. Associalo una volta nelle impostazioni Bluetooth di Android, poi Dashwheel si ricollega da solo.</string>
     <string name="tour_obd_off">Non collegato</string>
     <string name="tour_obd_looking">Ricerca</string>
     <string name="tour_obd_connected">Collegato</string>

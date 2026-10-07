@@ -9,8 +9,9 @@
     <string name="ai_own_key">Ou uma chave API Gemini própria</string>
     <string name="ai_key">Chave API Gemini</string>
     <string name="ai_key_hint">Grátis em aistudio.google.com → Get API key</string>
-    <string name="ai_language">Idioma</string>
+    <string name="ai_language">Idioma das respostas</string>
     <string name="ai_language_auto">Como a app</string>
+    <string name="ai_language_detail">Para as respostas escritas do Gemini</string>
     <string name="ai_test">Testar</string>
     <string name="ai_done">Concluído</string>
 
@@ -26,9 +27,14 @@
     <!-- Spoken by the car, in the mechanic's language (resolved with the AI language, not the screen's) -->
     <string name="ai_say_ready">O mecânico IA está pronto.</string>
     <plurals name="ai_say_new_codes">
-        <item quantity="one">%1$d novo código de avaria do motor: %2$s. Detalhes no ecrã.</item>
-        <item quantity="many">%1$d novos códigos de avaria do motor: %2$s. Detalhes no ecrã.</item>
-        <item quantity="other">%1$d novos códigos de avaria do motor: %2$s. Detalhes no ecrã.</item>
+        <item quantity="one">%1$d nova avaria do motor: %2$s. Veja o mosaico Códigos de avaria quando estiver parado.</item>
+        <item quantity="many">%1$d novas avarias do motor: %2$s. Veja o mosaico Códigos de avaria quando estiver parado.</item>
+        <item quantity="other">%1$d novas avarias do motor: %2$s. Veja o mosaico Códigos de avaria quando estiver parado.</item>
+    </plurals>
+    <plurals name="ai_say_new_codes_untitled">
+        <item quantity="one">%1$d nova avaria do motor. Veja o mosaico Códigos de avaria quando estiver parado.</item>
+        <item quantity="many">%1$d novas avarias do motor. Veja o mosaico Códigos de avaria quando estiver parado.</item>
+        <item quantity="other">%1$d novas avarias do motor. Veja o mosaico Códigos de avaria quando estiver parado.</item>
     </plurals>
     <string name="ai_say_overheat">Atenção, o motor está a sobreaquecer: %1$d graus. Pare quando for seguro e desligue o motor.</string>
     <string name="ai_say_not_charging">A bateria não está a carregar: %1$s volts com o motor a trabalhar. Siga para uma oficina e desligue o que não for necessário.</string>

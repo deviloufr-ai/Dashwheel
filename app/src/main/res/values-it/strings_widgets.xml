@@ -89,8 +89,8 @@
     <string name="widgets_bt_phone_none">Nessun telefono connesso</string>
     <string name="widgets_bt_phone_change">Connetti</string>
     <string name="widgets_limit">Limite di velocità</string>
-    <string name="widgets_limit_blurb">Il limite della strada su cui sei, detto a voce se lo superi</string>
-    <string name="widgets_limit_say">Limite %1$d</string>
+    <string name="widgets_limit_blurb">Il limite della strada su cui sei, detto a voce se lo superi, se vuoi</string>
+    <string name="widgets_limit_say">Oltre il limite, %1$d.</string>
     <string name="widgets_limit_unknown">Nessun limite noto qui</string>
     <string name="widgets_limit_over">Oltre il limite</string>
     <string name="widgets_limit_ok">Entro il limite</string>
@@ -100,6 +100,8 @@
     <string name="widgets_park_stop">Ferma</string>
     <string name="widgets_park_until">fino alle %1$s</string>
     <string name="widgets_park_none">Scegli la durata pagata</string>
+    <string name="widgets_park_no_phone">Associa il telefono per il promemoria lontano dall\'auto</string>
+    <string name="widgets_park_say_ten">Il parcheggio finisce tra dieci minuti.</string>
     <string name="widgets_fuel">Registro carburante</string>
     <string name="widgets_fuel_blurb">I tuoi rifornimenti, il consumo reale e il costo ogni 100 km</string>
     <string name="widgets_fuel_add">Aggiungi rifornimento</string>
@@ -134,4 +136,6 @@
     <string name="widgets_commute_blurb">Quanto durano i viaggi verso casa e il lavoro, giorno per giorno</string>
     <string name="widgets_commute_none">Ancora nessun viaggio qui</string>
     <string name="widgets_commute_stats">media %1$d min, migliore %2$d min</string>
+
+    <string name="widgets_switch_look">Aspetto</string>
 </resources>

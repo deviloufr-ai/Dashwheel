@@ -3,6 +3,7 @@ package com.openauto.dash
 import android.Manifest
 import android.content.ContentUris
 import android.content.Context
+import android.content.res.Resources
 import android.content.pm.PackageManager
 import android.os.SystemClock
 import android.provider.CalendarContract
@@ -23,6 +24,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import java.text.DateFormat
 import java.util.Calendar
 import java.util.Date
+import java.util.Locale
 import kotlin.math.roundToInt
 
 /** An appointment worth mentioning: its title and start time, already formatted. */
@@ -35,6 +37,8 @@ internal data class BriefingFacts(
     val fuel: FuelInfo? = null,
     /** Stored fault codes from this start's scan; null when the engine wasn't checked. */
     val faults: List<String>? = null,
+    /** The names of [faults] the built-in table knows, as the voice says them ([spokenFaultTitles]). */
+    val faultTitles: List<String> = emptyList(),
     /** The AI mechanic's sentence about [faults], when it has one. */
     val faultSummary: String? = null,
     /** The mechanic already announced these faults moments ago. */
@@ -51,32 +55,37 @@ internal object BriefingLines {
 
     const val LOW_FUEL_PCT = 15
     const val ICE_BELOW_C = 3
+    /** A briefing is a few words, not a report: what comes after this many lines waits for the status button. */
+    const val MAX_LINES = 3
 
     /**
-     * In speaking order; empty, so the start stays silent, unless something
-     * needs saying: ice, low fuel, a fault, an appointment coming up. Fine
-     * weather, a full tank and a clean engine go without saying.
+     * In speaking order, [MAX_LINES] at most and no greeting; empty, so the
+     * start stays silent, unless something needs saying: ice, low fuel, the
+     * appointment coming up, a fault, servicing due. Fine weather, a full tank
+     * and a clean engine go without saying.
      */
-    fun compose(f: BriefingFacts): List<SpokenLine> {
-        val body = buildList {
-            f.weather?.let { w ->
-                if (w.tempC.roundToInt() <= ICE_BELOW_C || w.code in FREEZING_CODES) add(SpokenLine(R.string.briefing_ice, emptyList()))
-            }
-            f.fuel?.let {
-                if (it.percent <= LOW_FUEL_PCT) add(CarCare.fuelLowLine(it.rangeKm, f.units))
-            }
-            f.faults?.let { codes ->
-                when {
-                    codes.isEmpty() || f.faultsJustSaid -> Unit
-                    f.faultSummary != null -> add(SpokenLine(R.string.briefing_verbatim, listOf(f.faultSummary)))
-                    else -> add(SpokenLine(R.plurals.briefing_faults, listOf(codes.size), quantity = codes.size))
-                }
-            }
-            f.upkeep.forEach { add(UpkeepRules.line(it, f.units)) }
-            f.event?.let { add(SpokenLine(R.string.briefing_event, listOf(it.title, it.time))) }
+    fun compose(f: BriefingFacts): List<SpokenLine> = buildList {
+        f.weather?.let { w ->
+            if (w.tempC.roundToInt() <= ICE_BELOW_C || w.code in FREEZING_CODES) add(SpokenLine(R.string.briefing_ice, emptyList()))
         }
-        return if (body.isEmpty()) emptyList() else listOf(greeting(f.hour)) + body
-    }
+        f.fuel?.let {
+            if (it.percent <= LOW_FUEL_PCT) add(CarCare.fuelLowLine(it.rangeKm, f.units))
+        }
+        f.event?.let { add(SpokenLine(R.string.briefing_event, listOf(it.title, it.time))) }
+        f.faults?.let { codes ->
+            when {
+                codes.isEmpty() || f.faultsJustSaid -> Unit
+                f.faultSummary != null -> add(SpokenLine(R.string.briefing_verbatim, listOf(f.faultSummary)))
+                else -> add(faultsLine(codes, f.faultTitles))
+            }
+        }
+        f.upkeep.forEach { add(UpkeepRules.line(it, f.units)) }
+    }.take(MAX_LINES)
+
+    /** "Two engine faults stored: catalyst efficiency, particle filter": by name, never the codes' letters. */
+    private fun faultsLine(codes: List<String>, titles: List<String>): SpokenLine =
+        if (titles.isEmpty()) SpokenLine(R.plurals.briefing_faults_untitled, listOf(codes.size), quantity = codes.size)
+        else SpokenLine(R.plurals.briefing_faults, listOf(codes.size, titles.joinToString(", ")), quantity = codes.size)
 
     /**
      * The car's state when the driver asks for it (a learned wheel button).
@@ -98,22 +107,13 @@ internal object BriefingLines {
             when {
                 codes.isEmpty() -> add(SpokenLine(R.string.voice_status_no_faults, emptyList()))
                 f.faultSummary != null -> add(SpokenLine(R.string.briefing_verbatim, listOf(f.faultSummary)))
-                else -> add(SpokenLine(R.plurals.briefing_faults, listOf(codes.size), quantity = codes.size))
+                else -> add(faultsLine(codes, f.faultTitles))
             }
         }
         f.upkeep.forEach { add(UpkeepRules.line(it, f.units)) }
         f.event?.let { add(SpokenLine(R.string.briefing_event, listOf(it.title, it.time))) }
         if (isEmpty()) add(SpokenLine(R.string.voice_status_nothing, emptyList()))
     }
-
-    private fun greeting(hour: Int) = SpokenLine(
-        when (hour) {
-            in 5..11 -> R.string.briefing_morning
-            in 12..17 -> R.string.briefing_afternoon
-            else -> R.string.briefing_evening
-        },
-        emptyList()
-    )
 
     // Freezing drizzle / rain and snow: slippery whatever the thermometer says.
     private val FREEZING_CODES = setOf(56, 57, 66, 67, 71, 73, 75, 77, 85, 86)
@@ -158,9 +158,11 @@ object StartupBriefing {
 
     private const val TICK_MS = 20_000L
     private const val SAVE_MS = 5 * 60_000L
-    // How long to wait for the OBD scan, a GPS fix, the CANbox fuel reading.
-    private const val WAIT_MS = 25_000L
-    private const val SETTLE_MS = 12_000L
+    // How long to wait for the OBD scan, a GPS fix, the CANbox fuel reading: the
+    // briefing must be over before the car rolls, so what is known is said first
+    // and the engine's result follows on its own when it lands.
+    private const val WAIT_MS = 12_000L
+    private const val SETTLE_MS = 6_000L
     // A scan finished this recently counts as this start's.
     private const val FRESH_SCAN_MS = 90_000L
     private const val EVENT_WINDOW_MS = 2 * 3_600_000L
@@ -218,14 +220,31 @@ object StartupBriefing {
         val now = System.currentTimeMillis()
         if (now - briefedAt in 0 until CarStart.OFF_GAP_MS) return
         briefedAt = now
-        val config = AiSettings.load(context)
-        if (!config.briefing) return
-        val facts = gather(context, config.language, System.currentTimeMillis())
+        if (!SpokenEvents.isOn(context, SpokenEvent.BRIEFING)) return
+        val startedAt = System.currentTimeMillis()
+        val locale = InAppNav.locale(context)
+        val resources = AppLanguage.wrap(context).resources
+        // What the dashboard knows, or learns within seconds, first.
+        val facts = gather(context, locale, startedAt)
         val lines = BriefingLines.compose(facts)
-        if (lines.isEmpty()) return
-        val resources = config.language.resources(context)
-        CarVoice.announce(lines.joinToString(" ") { it.text(resources) }, config.language.locale)
-        Maintenance.markSpoken(facts.upkeep)
+        if (lines.isNotEmpty()) {
+            CarVoice.announce(lines.joinToString(" ") { it.text(resources) }, locale)
+            // Only the servicing that made it into the three lines counts as said.
+            Maintenance.markSpoken(facts.upkeep.filter { UpkeepRules.line(it, facts.units) in lines })
+        }
+        // Then the engine, as a sentence of its own when its scan lands.
+        val engine = engine(startedAt) ?: return
+        val codes = engine.codes ?: return
+        val about = BriefingFacts(
+            hour = facts.hour,
+            faults = codes,
+            faultTitles = spokenFaultTitles(resources, codes),
+            faultSummary = engine.diagnosis?.summary,
+            faultsJustSaid = justSaid(codes, engine.diagnosis?.summary, spokenFaultTitles(resources, codes), resources, startedAt),
+            units = facts.units
+        )
+        val said = BriefingLines.compose(about)
+        if (said.isNotEmpty()) CarVoice.announce(said.joinToString(" ") { it.text(resources) }, locale)
     }
 
     /**
@@ -235,7 +254,8 @@ object StartupBriefing {
     fun sayStatus(context: Context) {
         val app = context.applicationContext
         scope.launch {
-            val config = AiSettings.load(app)
+            val locale = InAppNav.locale(app)
+            val resources = AppLanguage.wrap(app).resources
             val now = System.currentTimeMillis()
             val engine = AiMechanic.state.value
             val facts = BriefingFacts(
@@ -243,32 +263,27 @@ object StartupBriefing {
                 weather = WeatherRepo.weather.value?.takeIf { now - it.fetchedAt < 3 * 3_600_000L },
                 fuel = carFuelInfo(McuReader.fuelPercent.value, ObdBluetoothManager.data.value.fuelLevelPct, McuReader.rangeKm.value),
                 faults = engine.codes,
+                faultTitles = engine.codes?.let { spokenFaultTitles(resources, it) }.orEmpty(),
                 faultSummary = engine.diagnosis?.summary,
-                event = withContext(Dispatchers.IO) { nextEvent(app, config.language) },
+                event = withContext(Dispatchers.IO) { nextEvent(app, locale) },
                 upkeep = Maintenance.state.value.statuses(now).filter { it.stage == UpkeepStage.SOON || it.stage == UpkeepStage.DUE },
                 units = Units.current.value
             )
-            val resources = config.language.resources(app)
             CarVoice.setContext(app)
             // Asked for: said whatever the switches for what the car says by itself.
-            CarVoice.speak(BriefingLines.status(facts).joinToString(" ") { it.text(resources) }, config.language.locale)
+            CarVoice.speak(BriefingLines.status(facts).joinToString(" ") { it.text(resources) }, locale)
         }
     }
 
-    private suspend fun gather(context: Context, language: AiLanguage, startedAt: Long): BriefingFacts = coroutineScope {
+    /** What is known without the engine: the weather, the fuel, the diary, the servicing. */
+    private suspend fun gather(context: Context, locale: Locale, startedAt: Long): BriefingFacts = coroutineScope {
         val weather = async { weather(context) }
         val fuel = async { fuel() }
-        val engine = async { engine(startedAt) }
-        val state = engine.await()
-        val codes = state?.codes
         BriefingFacts(
             hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY),
             weather = weather.await(),
             fuel = fuel.await(),
-            faults = codes,
-            faultSummary = state?.diagnosis?.summary,
-            faultsJustSaid = codes != null && justSaid(codes, state.diagnosis?.summary, startedAt),
-            event = withContext(Dispatchers.IO) { nextEvent(context, language) },
+            event = withContext(Dispatchers.IO) { nextEvent(context, locale) },
             upkeep = Maintenance.dueForBriefing(startedAt),
             units = Units.current.value
         )
@@ -323,16 +338,17 @@ object StartupBriefing {
         } ?: AiMechanic.state.value.takeIf { it.codes != null }
     }
 
-    /** Whether the mechanic has just announced these codes itself, so the briefing doesn't repeat it. */
-    private fun justSaid(codes: List<String>, summary: String?, since: Long): Boolean {
+    /** Whether the mechanic has just announced these codes itself (by Gemini's sentence or by name), so the briefing doesn't repeat it. */
+    private fun justSaid(codes: List<String>, summary: String?, titles: List<String>, resources: Resources, since: Long): Boolean {
         val said = CarVoice.saidSince(since - FRESH_SCAN_MS)
+        val byName = MechanicLines.newCodes(codes, titles).text(resources)
         return said.any { text ->
-            (summary != null && text.contains(summary)) || codes.any { text.contains(it.toCharArray().joinToString(" ")) }
+            (summary != null && text.contains(summary)) || titles.any { text.contains(it) } || text == byName
         }
     }
 
     /** The next timed appointment in the coming hours, if calendars may be read. */
-    private fun nextEvent(context: Context, language: AiLanguage): UpcomingEvent? {
+    private fun nextEvent(context: Context, locale: Locale): UpcomingEvent? {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
             return null
         }
@@ -349,7 +365,7 @@ object StartupBriefing {
                     val title = c.getString(0).orEmpty().trim()
                     val begin = c.getLong(1)
                     if (title.isEmpty() || c.getInt(2) == 1 || begin < now) continue
-                    return@use UpcomingEvent(title, DateFormat.getTimeInstance(DateFormat.SHORT, language.locale).format(Date(begin)))
+                    return@use UpcomingEvent(title, DateFormat.getTimeInstance(DateFormat.SHORT, locale).format(Date(begin)))
                 }
                 null
             }

@@ -182,7 +182,8 @@
     <string name="dash_update_ready_title">Actualización lista</string>
     <string name="dash_update_ready_body">%1$s está descargada. Instalar tarda medio minuto y reinicia Dashwheel.</string>
     <string name="dash_update_now">Actualizar ahora</string>
-    <string name="dash_update_later">Más tarde</string>
+    <string name="dash_update_not_this_version">Esta versión no</string>
+    <string name="dash_update_allow_installs">Permite que Dashwheel instale actualizaciones y vuelve a tocar Actualizar</string>
     <string name="dash_reset_confirm_title">¿Vaciar este panel?</string>
     <string name="dash_reset_confirm_body">Se quitan todas sus fichas. Deshacer las recupera.</string>
     <string name="dash_dashboard_options">Opciones del panel</string>

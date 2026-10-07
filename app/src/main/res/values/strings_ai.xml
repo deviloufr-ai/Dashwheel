@@ -9,8 +9,9 @@
     <string name="ai_own_key">Or your own Gemini API key</string>
     <string name="ai_key">Gemini API key</string>
     <string name="ai_key_hint">Free at aistudio.google.com → Get API key</string>
-    <string name="ai_language">Language</string>
+    <string name="ai_language">Answers language</string>
     <string name="ai_language_auto">Same as app</string>
+    <string name="ai_language_detail">For written answers from Gemini</string>
     <string name="ai_test">Test</string>
     <string name="ai_done">Done</string>
 
@@ -23,11 +24,15 @@
     <string name="ai_wrong_code">Wrong activation code</string>
     <string name="ai_no_voice">No %1$s voice on this unit: add one in Android Settings → Text-to-speech.</string>
 
-    <!-- Spoken by the car, in the mechanic's language (resolved with the AI language, not the screen's) -->
+    <!-- Spoken by the car, in the launcher's language -->
     <string name="ai_say_ready">The AI mechanic is ready.</string>
     <plurals name="ai_say_new_codes">
-        <item quantity="one">%1$d new engine fault code: %2$s. Details are on screen.</item>
-        <item quantity="other">%1$d new engine fault codes: %2$s. Details are on screen.</item>
+        <item quantity="one">%1$d new engine fault: %2$s. Look at the Fault codes tile when parked.</item>
+        <item quantity="other">%1$d new engine faults: %2$s. Look at the Fault codes tile when parked.</item>
+    </plurals>
+    <plurals name="ai_say_new_codes_untitled">
+        <item quantity="one">%1$d new engine fault. Look at the Fault codes tile when parked.</item>
+        <item quantity="other">%1$d new engine faults. Look at the Fault codes tile when parked.</item>
     </plurals>
     <string name="ai_say_overheat">Warning, the engine is overheating: %1$d degrees. Pull over when it\'s safe and switch the engine off.</string>
     <string name="ai_say_not_charging">The battery isn\'t charging: %1$s volts with the engine running. Head to a garage and switch off what you don\'t need.</string>

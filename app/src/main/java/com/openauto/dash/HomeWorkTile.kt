@@ -72,6 +72,13 @@ internal fun HomeWorkCard(modifier: Modifier = Modifier) {
             delay(REFRESH_MS)
         }
     }
+    // Guidance starts after the held step ("Guidance to Home", Cancel, three
+    // seconds), as on every tile that changes the route: a finger that meant
+    // the other button, or nothing, takes it back.
+    val pending = rememberPendingAction()
+    val homeName = stringResource(R.string.widgets_hw_home)
+    val workName = stringResource(R.string.widgets_hw_work)
+    fun go(name: String, place: Place) = pending.arm(context.getString(R.string.phone_guidance_to, name)) { NavHandoff.start(context, place) }
     Card(modifier = modifier) {
         if (places.home == null && places.work == null) {
             Box(Modifier.fillMaxSize().padding(DashSpace.Lg), contentAlignment = Alignment.Center) {
@@ -79,9 +86,12 @@ internal fun HomeWorkCard(modifier: Modifier = Modifier) {
             }
             return@Card
         }
-        Row(modifier = Modifier.fillMaxSize().padding(DashSpace.Md), horizontalArrangement = Arrangement.spacedBy(DashSpace.Md)) {
-            places.home?.let { PlaceButton(Icons.Filled.Home, stringResource(R.string.widgets_hw_home), homeMin, Modifier.weight(1f)) { NavHandoff.start(context, it) } }
-            places.work?.let { PlaceButton(Icons.Filled.Work, stringResource(R.string.widgets_hw_work), workMin, Modifier.weight(1f)) { NavHandoff.start(context, it) } }
+        Box(Modifier.fillMaxSize()) {
+            Row(modifier = Modifier.fillMaxSize().padding(DashSpace.Md), horizontalArrangement = Arrangement.spacedBy(DashSpace.Md)) {
+                places.home?.let { PlaceButton(Icons.Filled.Home, homeName, homeMin, Modifier.weight(1f)) { go(homeName, it) } }
+                places.work?.let { PlaceButton(Icons.Filled.Work, workName, workMin, Modifier.weight(1f)) { go(workName, it) } }
+            }
+            PendingActionStrip(pending, Modifier.align(Alignment.BottomCenter).padding(DashSpace.Sm))
         }
     }
 }
@@ -115,15 +125,20 @@ internal fun homeWorkFace(): WidgetFace {
     val places by PlacesStore.places.collectAsState()
     val home = places.home
     val work = places.work
+    val homeName = stringResource(R.string.widgets_hw_home)
+    val workName = stringResource(R.string.widgets_hw_work)
+    // The same held step as the standard card, in the designed tile's strip.
+    val pending = LocalPendingAction.current
+    fun go(name: String, place: Place) = pending.arm(context.getString(R.string.phone_guidance_to, name)) { NavHandoff.start(context, place) }
     return WidgetFace(
         icon = Icons.Filled.Home,
         title = BuiltinKind.HOME_WORK.label,
-        value = stringResource(R.string.widgets_hw_home),
+        value = homeName,
         textValue = true,
         caption = if (home == null && work == null) stringResource(R.string.widgets_hw_empty) else "",
         actions = listOfNotNull(
-            home?.let { FaceAction(Icons.Filled.Home, stringResource(R.string.widgets_hw_home), onClick = { NavHandoff.start(context, it) }, primary = true) },
-            work?.let { FaceAction(Icons.Filled.Work, stringResource(R.string.widgets_hw_work), onClick = { NavHandoff.start(context, it) }) }
+            home?.let { FaceAction(Icons.Filled.Home, homeName, onClick = { go(homeName, it) }, primary = true) },
+            work?.let { FaceAction(Icons.Filled.Work, workName, onClick = { go(workName, it) }) }
         )
     )
 }

@@ -86,16 +86,16 @@ internal fun AiSettingsDialog(onDismiss: () -> Unit) {
             val reply = online.exceptionOrNull()?.let { Result.failure(it) }
                 ?: GeminiClient.generate(config.apiKey.trim(), "Reply with the single word OK.", budgetMs = TEST_BUDGET_MS)
             testing = false
-            val language = config.language
+            // The voice is the launcher's, whatever language Gemini writes its answers in.
+            val voiceLocale = InAppNav.locale(context)
             reply.onSuccess {
                 val works = context.getString(if (activated) R.string.ai_test_activated_ok else R.string.ai_test_ok, it.model)
                 // The missing voice is named in the screen's language ("allemand" on a French screen).
-                val voice = if (CarVoice.canSpeak(language.locale) == false) {
-                    " " + context.getString(R.string.ai_no_voice, language.locale.getDisplayLanguage(Locale.getDefault()))
+                val voice = if (CarVoice.canSpeak(voiceLocale) == false) {
+                    " " + context.getString(R.string.ai_no_voice, voiceLocale.getDisplayLanguage(Locale.getDefault()))
                 } else ""
                 result = true to works + voice
-                // Said in the mechanic's language, whatever the screen's.
-                CarVoice.speak(language.resources(context).getString(R.string.ai_say_ready), language.locale)
+                CarVoice.speak(AppLanguage.wrap(context).getString(R.string.ai_say_ready), voiceLocale)
             }.onFailure {
                 // Google answered the quick check, so the link is fine: Gemini itself is slow.
                 val why = if (online.isSuccess && it is InterruptedIOException) {
@@ -174,12 +174,17 @@ internal fun AiSettingsDialog(onDismiss: () -> Unit) {
         // The mechanic answers for the car set in "My car".
         Label(stringResource(R.string.car_ai_car))
         Text(
-            stringResource(R.string.car_ai_car_detail, CarProfileStore.current.name),
+            stringResource(R.string.car_ai_car_detail, CarProfileStore.current.displayName(LocalContext.current)),
             color = DashColors.TextSecondary,
             style = MaterialTheme.typography.bodySmall
         )
 
         Label(stringResource(R.string.ai_language))
+        Text(
+            stringResource(R.string.ai_language_detail),
+            color = DashColors.TextSecondary,
+            style = MaterialTheme.typography.bodySmall
+        )
         // "Same as app" (null) first, then every language by its own name.
         val sameAsApp = stringResource(R.string.ai_language_auto)
         ChoiceRow(

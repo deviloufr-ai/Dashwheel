@@ -182,7 +182,8 @@
     <string name="dash_update_ready_title">Update bereit</string>
     <string name="dash_update_ready_body">%1$s ist heruntergeladen. Die Installation dauert eine halbe Minute und startet Dashwheel neu.</string>
     <string name="dash_update_now">Jetzt aktualisieren</string>
-    <string name="dash_update_later">Später</string>
+    <string name="dash_update_not_this_version">Nicht diese Version</string>
+    <string name="dash_update_allow_installs">Erlaube Dashwheel, Updates zu installieren, und tippe dann erneut auf Aktualisieren</string>
     <string name="dash_reset_confirm_title">Dieses Dashboard leeren?</string>
     <string name="dash_reset_confirm_body">Alle Kacheln darauf verschwinden. Rückgängig holt sie zurück.</string>
     <string name="dash_dashboard_options">Dashboard-Optionen</string>

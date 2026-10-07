@@ -5,16 +5,19 @@
     <string name="briefing_setting_detail">Przy starcie: mało paliwa, lód, usterki silnika i najbliższe spotkanie</string>
 
     <!-- Spoken when the car starts, in the mechanic's language -->
-    <string name="briefing_morning">Dzień dobry.</string>
-    <string name="briefing_afternoon">Dzień dobry.</string>
-    <string name="briefing_evening">Dobry wieczór.</string>
     <string name="briefing_ice">Uwaga na gołoledź.</string>
     <string name="briefing_fuel_low">Mało paliwa: około %1$d kilometrów, warto zatankować.</string>
     <plurals name="briefing_faults">
-        <item quantity="one">%1$d kod błędu silnika zapisany, szczegóły na ekranie.</item>
-        <item quantity="few">%1$d kody błędów silnika zapisane, szczegóły na ekranie.</item>
-        <item quantity="many">%1$d kodów błędów silnika zapisanych, szczegóły na ekranie.</item>
-        <item quantity="other">%1$d kodu błędu silnika zapisanego, szczegóły na ekranie.</item>
+        <item quantity="one">%1$d usterka silnika zapisana: %2$s. Spójrz na kafelek Kody błędów na postoju.</item>
+        <item quantity="few">%1$d usterki silnika zapisane: %2$s. Spójrz na kafelek Kody błędów na postoju.</item>
+        <item quantity="many">%1$d usterek silnika zapisanych: %2$s. Spójrz na kafelek Kody błędów na postoju.</item>
+        <item quantity="other">%1$d usterek silnika zapisanych: %2$s. Spójrz na kafelek Kody błędów na postoju.</item>
+    </plurals>
+    <plurals name="briefing_faults_untitled">
+        <item quantity="one">%1$d usterka silnika zapisana. Spójrz na kafelek Kody błędów na postoju.</item>
+        <item quantity="few">%1$d usterki silnika zapisane. Spójrz na kafelek Kody błędów na postoju.</item>
+        <item quantity="many">%1$d usterek silnika zapisanych. Spójrz na kafelek Kody błędów na postoju.</item>
+        <item quantity="other">%1$d usterek silnika zapisanych. Spójrz na kafelek Kody błędów na postoju.</item>
     </plurals>
     <string name="briefing_event">Następne spotkanie: %1$s o %2$s.</string>
 </resources>

@@ -182,7 +182,8 @@
     <string name="dash_update_ready_title">Atualização pronta</string>
     <string name="dash_update_ready_body">A %1$s está transferida. Instalar demora meio minuto e reinicia o Dashwheel.</string>
     <string name="dash_update_now">Atualizar agora</string>
-    <string name="dash_update_later">Mais tarde</string>
+    <string name="dash_update_not_this_version">Esta versão não</string>
+    <string name="dash_update_allow_installs">Permita que o Dashwheel instale atualizações e toque de novo em Atualizar</string>
     <string name="dash_reset_confirm_title">Limpar este painel?</string>
     <string name="dash_reset_confirm_body">Todos os mosaicos desaparecem. Anular repõe-nos.</string>
     <string name="dash_dashboard_options">Opções do painel</string>

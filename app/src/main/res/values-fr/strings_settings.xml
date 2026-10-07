@@ -13,6 +13,7 @@
     <string name="settings_tap_sound">Son des appuis</string>
     <string name="settings_tap_sound_detail">Un bip court à chaque appui, pour un écran qui ne vibre pas</string>
     <string name="settings_section_driving">Conduite</string>
+    <string name="settings_section_sound">Son</string>
     <!-- Volume follows speed (SpeedVolume.kt), Settings → Driving -->
     <string name="speed_volume_title">Volume selon la vitesse</string>
     <string name="speed_volume_detail">Couvre le bruit de la route : plus fort en accélérant, moins fort en ralentissant. Vos propres réglages du volume sont gardés.</string>
@@ -55,6 +56,7 @@
     <string name="alert_tap_to_hide">Touchez pour masquer</string>
     <string name="alert_enlarge">Afficher</string>
     <string name="alert_speak">Le dire à voix haute</string>
+    <string name="alert_also_spoken">Aussi dit à voix haute</string>
     <string name="alert_show">Afficher cette alerte</string>
     <string name="alert_speak_call_detail">Dit qui appelle pendant la sonnerie</string>
     <string name="alert_speak_doors_detail">Dit quelle porte est ouverte si elle s\'ouvre en roulant ou si vous partez porte ouverte</string>
@@ -96,7 +98,7 @@
     <string name="settings_screen_vertical_hint">Met le tableau de bord à la verticale avec sa propre disposition, si l\'appareil le permet</string>
     <string name="settings_section_display">Affichage</string>
     <string name="settings_appearance_title">Jour et nuit</string>
-    <string name="alert_style_section">Alertes affichées par Dashwheel</string>
+    <string name="alert_style_section">Pop-ups dans le style de Dashwheel</string>
     <string name="alert_more_with_permission">Plus d\'alertes de la voiture avec le root, ou après cette commande depuis un PC : %1$s</string>
     <string name="settings_section_about">À propos</string>
     <string name="settings_screen_keep_title">Garder ce sens d\'écran ?</string>

@@ -157,6 +157,7 @@ internal fun VoiceNotesCard(modifier: Modifier = Modifier) {
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(since) { while (since != null) { now = System.currentTimeMillis(); delay(500) } }
     val tap = rememberTapFeedback()
+    val lock = LocalDriveLock.current
     Card(modifier = modifier) {
         Column(modifier = Modifier.fillMaxSize().padding(DashSpace.Md), verticalArrangement = Arrangement.spacedBy(DashSpace.Sm)) {
             val recording = since != null
@@ -186,7 +187,8 @@ internal fun VoiceNotesCard(modifier: Modifier = Modifier) {
                         units.time(Date(note.at)), color = DashColors.TextPrimary,
                         style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f)
                     )
-                    IconButton(onClick = { tap(); VoiceNotes.delete(context, note) }, modifier = Modifier.size(DashSize.Touch)) {
+                    // Deleting is for a stop: at the wheel the tap gets the parked-only notice instead.
+                    IconButton(onClick = { tap(); lock.whenParked { VoiceNotes.delete(context, note) } }, modifier = Modifier.size(DashSize.Touch)) {
                         Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.widgets_notes_delete), tint = DashColors.Muted, modifier = Modifier.size(20.dp))
                     }
                 }

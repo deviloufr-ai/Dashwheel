@@ -232,15 +232,27 @@ class AiMechanicTest {
     }
 
     @Test
-    fun offlineLinesSpellCodesOutAndCountThem() {
+    fun offlineLinesNameTheFaultsAndCountThemNeverSpellingCodes() {
         assertEquals(
-            SpokenLine(R.plurals.ai_say_new_codes, listOf(1, "P 0 1 2 8"), quantity = 1),
-            MechanicLines.newCodes(listOf("P0128"))
+            SpokenLine(R.plurals.ai_say_new_codes, listOf(1, "coolant below thermostat regulating temp"), quantity = 1),
+            MechanicLines.newCodes(listOf("P0128"), listOf("coolant below thermostat regulating temp"))
         )
         assertEquals(
-            SpokenLine(R.plurals.ai_say_new_codes, listOf(2, "P 0 1 2 8, P 0 4 8 0"), quantity = 2),
-            MechanicLines.newCodes(listOf("P0128", "P0480"))
+            SpokenLine(R.plurals.ai_say_new_codes, listOf(2, "catalyst efficiency below threshold, turbocharger underboost"), quantity = 2),
+            MechanicLines.newCodes(listOf("P0420", "P0299"), listOf("catalyst efficiency below threshold", "turbocharger underboost"))
         )
+        // No name for any of them: the count alone, and still no letters.
+        assertEquals(
+            SpokenLine(R.plurals.ai_say_new_codes_untitled, listOf(2), quantity = 2),
+            MechanicLines.newCodes(listOf("P1F00", "U0100"), emptyList())
+        )
+    }
+
+    @Test
+    fun faultTitlesAreTrimmedForTheVoice() {
+        assertEquals("catalyst efficiency below threshold", spokenFaultTitle("Catalyst efficiency below threshold (bank1)"))
+        assertEquals("crankshaft or camshaft correlation", spokenFaultTitle("Crankshaft/camshaft correlation (bank1 sensor A)"))
+        assertEquals("turbocharger underboost", spokenFaultTitle("Turbocharger underboost"))
     }
 
     @Test

@@ -25,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -103,23 +104,70 @@ internal fun roadAt(lat: Double, lng: Double, bearing: Float?, roads: List<Limit
 }
 
 /**
+ * When staying over the limit is said ([SpeedLimit]), keyed on the limit's
+ * value, not on the road: OpenStreetMap splits one road into many ways, and
+ * they are read again every kilometre. Over by more than [tolerance] for
+ * [overMs]: said once, then not again for that value for [againMs], unless
+ * the car dropped back under the limit for [underMs] and went over again. A
+ * new value is said after its own [overMs]. Pure, so it's unit-tested.
+ */
+internal class LimitNag(
+    val tolerance: Int = 5,
+    val overMs: Long = 4_000L,
+    val againMs: Long = 3 * 60_000L,
+    val underMs: Long = 30_000L
+) {
+    private var lastLimit: Int? = null
+    // Since when (ms) the car has been over, or under, the limit; null when it isn't.
+    private var overSince: Long? = null
+    private var underSince: Long? = null
+    private var warnedLimit: Int? = null
+    private var warnedAt = 0L
+
+    /** Whether to say it now, at [now] (ms), doing [kmh] on a road limited to [limit] (null: unknown). */
+    fun step(limit: Int?, kmh: Int, now: Long): Boolean {
+        if (limit != lastLimit) {
+            lastLimit = limit
+            overSince = null
+            underSince = null
+        }
+        if (limit == null) return false
+        if (kmh <= limit + tolerance) {
+            overSince = null
+            if (kmh <= limit) {
+                val since = underSince ?: now.also { underSince = it }
+                if (now - since >= underMs) warnedLimit = null
+            } else {
+                underSince = null
+            }
+            return false
+        }
+        underSince = null
+        val since = overSince ?: now.also { overSince = it }
+        if (now - since < overMs) return false
+        if (warnedLimit == limit && now - warnedAt < againMs) return false
+        warnedLimit = limit
+        warnedAt = now
+        return true
+    }
+}
+
+/**
  * The speed limit of the road the car is on, from OpenStreetMap (Overpass):
  * the roads around with a limit are read again every [REFETCH_M], the one the
- * car is on is found by position and course. Over the limit for a few seconds,
- * the driver is told once (spoken warnings on by default; a tap on the tile
- * silences them). Legal everywhere, unlike camera warnings.
+ * car is on is found by position and course. Staying over the limit is said
+ * out loud when the driver asked for it ([SpokenEvent.SPEED_LIMIT], off until
+ * then; the tile's button is the same switch), once per limit ([LimitNag]).
+ * Legal everywhere, unlike camera warnings.
  */
 internal object SpeedLimit {
     private const val TAG = "SpeedLimit"
-    private const val PREFS = "speed_limit"
-    private const val KEY_SPEAK = "speak"
     private const val OVERPASS = "https://overpass-api.de/api/interpreter"
     private const val RADIUS_M = 1_500
     private const val REFETCH_M = 1_000f
     const val MAX_M = 30.0
-    /** Over by more than this, for [OVER_MS], is said out loud. */
-    private const val TOLERANCE_KMH = 5
-    private const val OVER_MS = 4_000L
+    /** Over by more than this counts as over, on the tile and out loud. */
+    const val TOLERANCE_KMH = 5
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var job: Job? = null
@@ -127,18 +175,14 @@ internal object SpeedLimit {
     @Volatile private var roads: List<LimitedRoad> = emptyList()
     @Volatile private var fetchedAt: Location? = null
     @Volatile private var fetching = false
-    private var overSince = 0L
-    private var warnedFor: LimitedRoad? = null
+    private val nag = LimitNag(tolerance = TOLERANCE_KMH)
 
     private val _limit = MutableStateFlow<Int?>(null)
     val limit: StateFlow<Int?> = _limit
-    private val _speak = MutableStateFlow(true)
-    val speak: StateFlow<Boolean> = _speak
 
     @Synchronized
     fun start(context: Context) {
         val app = context.applicationContext
-        _speak.value = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_SPEAK, true)
         users++
         if (job?.isActive == true) return
         job = scope.launch {
@@ -155,11 +199,6 @@ internal object SpeedLimit {
         job = null
     }
 
-    fun setSpeak(context: Context, on: Boolean) {
-        _speak.value = on
-        context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_SPEAK, on).apply()
-    }
-
     private suspend fun onLocation(context: Context, loc: Location, kmh: Int) {
         val last = fetchedAt
         if (!fetching && (last == null || last.distanceTo(loc) > REFETCH_M)) {
@@ -170,16 +209,9 @@ internal object SpeedLimit {
         }
         val road = roadAt(loc.latitude, loc.longitude, if (loc.hasBearing() && loc.speed > 2f) loc.bearing else null, roads)
         _limit.value = road?.limitKmh
-        val now = System.currentTimeMillis()
-        if (road != null && kmh > road.limitKmh + TOLERANCE_KMH) {
-            if (overSince == 0L) overSince = now
-            if (now - overSince >= OVER_MS && warnedFor !== road && _speak.value) {
-                warnedFor = road
-                val app = AppLanguage.wrap(context)
-                CarVoice.speak(app.getString(R.string.widgets_limit_say, Units.current.value.speed(road.limitKmh)), InAppNav.locale(context))
-            }
-        } else {
-            overSince = 0L
+        if (nag.step(road?.limitKmh, kmh, System.currentTimeMillis()) && road != null && SpokenEvents.isOn(context, SpokenEvent.SPEED_LIMIT)) {
+            val app = AppLanguage.wrap(context)
+            CarVoice.announce(app.getString(R.string.widgets_limit_say, Units.current.value.speed(road.limitKmh)), InAppNav.locale(context))
         }
     }
 
@@ -210,10 +242,12 @@ internal fun SpeedLimitCard(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     DisposableEffect(Unit) { SpeedLimit.start(context); onDispose { SpeedLimit.stop() } }
     val limit by SpeedLimit.limit.collectAsState()
-    val speak by SpeedLimit.speak.collectAsState()
+    LaunchedEffect(Unit) { SpokenEvents.load(context) }
+    val spoken by SpokenEvents.on.collectAsState()
+    val speak = SpokenEvent.SPEED_LIMIT in spoken
     val units by Units.current.collectAsState()
     val kmh by remember { carSpeedKmh() }.collectAsState(0)
-    val over = limit != null && kmh > limit!! + 5
+    val over = limit != null && kmh > limit!! + SpeedLimit.TOLERANCE_KMH
     Card(modifier = modifier) {
         Row(modifier = Modifier.fillMaxSize().padding(DashSpace.Md), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(DashSpace.Md)) {
             // A round road sign: red ring, the number in black on white.
@@ -235,7 +269,7 @@ internal fun SpeedLimitCard(modifier: Modifier = Modifier) {
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
-            IconButton(onClick = { SpeedLimit.setSpeak(context, !speak) }, modifier = Modifier.size(DashSize.Touch)) {
+            IconButton(onClick = { SpokenEvents.set(context, SpokenEvent.SPEED_LIMIT, !speak) }, modifier = Modifier.size(DashSize.Touch)) {
                 Icon(if (speak) Icons.Filled.VolumeUp else Icons.Filled.VolumeOff, contentDescription = stringResource(R.string.widgets_limit_speak), tint = if (speak) DashColors.Accent else DashColors.Muted)
             }
         }

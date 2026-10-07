@@ -362,7 +362,7 @@ internal fun PhonePane() {
  * its own once the phone has used the code.
  */
 @Composable
-private fun PhonePairingDialog(onDismiss: () -> Unit) {
+internal fun PhonePairingDialog(onDismiss: () -> Unit) {
     val context = LocalContext.current
     val offer = remember { PhoneLink.beginPairing(context) }
     val phones by PhoneLink.phones.collectAsState()

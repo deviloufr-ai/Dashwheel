@@ -9,12 +9,13 @@ import org.json.JSONObject
 import java.util.Locale
 
 /*
- * The car the launcher is fitted to: its specs, from a built-in preset, from
- * Gemini ("My car" → Fetch specs) or typed by the driver. Tiles, the fuel range,
- * the drive monitor and the AI mechanic all read it, so nothing hardcodes the car.
+ * The car the launcher is fitted to: its specs, typed by the driver (the
+ * setup's short form or the "My car" spec sheet) or fetched from Gemini
+ * ("My car" → Fetch specs). Tiles, the fuel range, the drive monitor and the
+ * AI mechanic all read it, so nothing hardcodes the car.
  */
 
-enum class FuelType { DIESEL, PETROL, HYBRID, LPG }
+enum class FuelType { DIESEL, PETROL, HYBRID, LPG, ELECTRIC }
 
 /** ROBOTISED = single-clutch automated manual (Citroën BMP6 / EGS, Peugeot 2-Tronic). */
 enum class GearboxType { MANUAL, ROBOTISED, AUTOMATIC, DUAL_CLUTCH, CVT }
@@ -25,10 +26,16 @@ enum class SpecSource { PRESET, AI, USER }
 /**
  * Everything the launcher knows about the car. Nullable specs are "not known":
  * the derived values below fall back to safe figures for the fuel type.
- * [fuelPrice] and [currency] are the driver's own, never fetched.
+ * [fuelPrice] and [currency] are the driver's own, never fetched. A blank
+ * [name] means no car was entered yet ([known]): screens then say "Your car".
+ * [make], [model] and [year] are what the setup's short form asked for; the
+ * spec sheet's free [name] is composed from them until the driver edits it.
  */
 data class CarProfile(
     val name: String,
+    val make: String = "",
+    val model: String = "",
+    val year: Int? = null,
     val engine: String = "",
     val fuel: FuelType = FuelType.DIESEL,
     val powerHp: Int? = null,
@@ -63,6 +70,12 @@ data class CarProfile(
 ) {
     val diesel: Boolean get() = fuel == FuelType.DIESEL
 
+    /** A car was entered or fetched; false on a fresh install, where nothing should be presented as the driver's car. */
+    val known: Boolean get() = name.isNotBlank()
+
+    /** The car's name for a header or a tile, or "Your car" while none was entered. */
+    fun displayName(context: Context): String = name.ifBlank { context.getString(R.string.setup_car_title) }
+
     /** Tank size, or a typical family car's. */
     val tank: Double get() = tankL ?: TANK_LITERS
 
@@ -89,7 +102,7 @@ data class CarProfile(
 
     /** One line naming the car for Gemini: model, engine, gearbox, filter. */
     fun promptDescription(): String = buildString {
-        append(name.trim())
+        append(name.trim().ifBlank { "car not specified" })
         val details = listOfNotNull(
             engine.ifBlank { null },
             fuel.name.lowercase(Locale.ROOT),
@@ -116,7 +129,8 @@ data class CarProfile(
     }
 
     fun toJson(): JSONObject = JSONObject().apply {
-        put("name", name); put("engine", engine); put("fuel", fuel.name)
+        put("name", name); put("make", make); put("model", model); putOpt("year", year)
+        put("engine", engine); put("fuel", fuel.name)
         putOpt("power_hp", powerHp); putOpt("torque_nm", torqueNm); putOpt("torque_rpm", torqueRpm); putOpt("redline_rpm", redlineRpm)
         put("gearbox", gearbox.name); put("gearbox_name", gearboxName); putOpt("gears", gears)
         putOpt("tank_l", tankL); putOpt("consumption_l100", consumptionL100)
@@ -132,10 +146,17 @@ data class CarProfile(
     }
 
     companion object {
+        /** No car entered yet: every spec unknown, so the derived values use their safe figures. */
+        val NONE = CarProfile(name = "", source = SpecSource.USER)
+
+        /** The name the short form gives a car: make, model and year, whichever were given. */
+        fun composeName(make: String, model: String, year: Int?): String =
+            listOfNotNull(make.trim().ifBlank { null }, model.trim().ifBlank { null }, year?.toString()).joinToString(" ")
+
         /**
-         * The driver's car: Citroën C4 Picasso 1.6 HDi 110 FAP Exclusive (2011)
-         * with the BMP6 robotised gearbox. Only well-known figures; the rest
-         * (tyres, service plan...) comes from "Fetch specs".
+         * A sample car with well-known figures (Citroën C4 Picasso 1.6 HDi 110
+         * FAP Exclusive 2011, BMP6), offered by the spec sheet's "Back to the
+         * preset" only; never presented as the driver's car by itself.
          */
         val PRESET = CarProfile(
             name = "Citroën C4 Picasso 1.6 HDi 110 FAP Exclusive 2011, BMP6",
@@ -162,7 +183,8 @@ data class CarProfile(
             fun <E : Enum<E>> enum(k: String, values: Array<E>, default: E) =
                 values.firstOrNull { it.name == o.optString(k) } ?: default
             return CarProfile(
-                name = o.optString("name").ifBlank { PRESET.name },
+                name = o.optString("name"),
+                make = o.optString("make"), model = o.optString("model"), year = int("year"),
                 engine = o.optString("engine"),
                 fuel = enum("fuel", FuelType.entries.toTypedArray(), FuelType.DIESEL),
                 powerHp = int("power_hp"), torqueNm = int("torque_nm"), torqueRpm = int("torque_rpm"), redlineRpm = int("redline_rpm"),
@@ -185,13 +207,13 @@ data class CarProfile(
     }
 }
 
-/** The saved car, shared by every screen; the preset until the driver changes it. */
+/** The saved car, shared by every screen; [CarProfile.NONE] until the driver enters one. */
 object CarProfileStore {
     private const val PREFS = "car_profile"
     private const val KEY = "profile"
 
     private var appContext: Context? = null
-    private val _profile = MutableStateFlow(CarProfile.PRESET)
+    private val _profile = MutableStateFlow(CarProfile.NONE)
     val profile: StateFlow<CarProfile> = _profile.asStateFlow()
 
     /** The car right now, for code outside Compose. */

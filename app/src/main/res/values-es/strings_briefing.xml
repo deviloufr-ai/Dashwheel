@@ -5,15 +5,17 @@
     <string name="briefing_setting_detail">Al arrancar: poco combustible, hielo, averías del motor y la próxima cita</string>
 
     <!-- Spoken when the car starts, in the mechanic's language -->
-    <string name="briefing_morning">Buenos días.</string>
-    <string name="briefing_afternoon">Buenas tardes.</string>
-    <string name="briefing_evening">Buenas noches.</string>
     <string name="briefing_ice">Cuidado con el hielo en la carretera.</string>
     <string name="briefing_fuel_low">Queda poco combustible: unos %1$d kilómetros, planifica una parada para repostar.</string>
     <plurals name="briefing_faults">
-        <item quantity="one">%1$d código de avería del motor guardado, detalles en pantalla.</item>
-        <item quantity="many">%1$d códigos de avería del motor guardados, detalles en pantalla.</item>
-        <item quantity="other">%1$d códigos de avería del motor guardados, detalles en pantalla.</item>
+        <item quantity="one">%1$d avería del motor guardada: %2$s. Mira la tarjeta Códigos de avería cuando estés parado.</item>
+        <item quantity="many">%1$d averías del motor guardadas: %2$s. Mira la tarjeta Códigos de avería cuando estés parado.</item>
+        <item quantity="other">%1$d averías del motor guardadas: %2$s. Mira la tarjeta Códigos de avería cuando estés parado.</item>
+    </plurals>
+    <plurals name="briefing_faults_untitled">
+        <item quantity="one">%1$d avería del motor guardada. Mira la tarjeta Códigos de avería cuando estés parado.</item>
+        <item quantity="many">%1$d averías del motor guardadas. Mira la tarjeta Códigos de avería cuando estés parado.</item>
+        <item quantity="other">%1$d averías del motor guardadas. Mira la tarjeta Códigos de avería cuando estés parado.</item>
     </plurals>
     <string name="briefing_event">Próxima cita: %1$s a las %2$s.</string>
 </resources>

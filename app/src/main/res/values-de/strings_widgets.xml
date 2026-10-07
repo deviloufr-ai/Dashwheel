@@ -89,8 +89,8 @@
     <string name="widgets_bt_phone_none">Kein Handy verbunden</string>
     <string name="widgets_bt_phone_change">Verbinden</string>
     <string name="widgets_limit">Tempolimit</string>
-    <string name="widgets_limit_blurb">Das Limit der Straße, auf der Sie fahren, angesagt, wenn Sie es überschreiten</string>
-    <string name="widgets_limit_say">Limit %1$d</string>
+    <string name="widgets_limit_blurb">Das Limit der Straße, auf der Sie fahren, auf Wunsch angesagt, wenn Sie darüber bleiben</string>
+    <string name="widgets_limit_say">Über dem Limit, %1$d.</string>
     <string name="widgets_limit_unknown">Kein Limit bekannt</string>
     <string name="widgets_limit_over">Über dem Limit</string>
     <string name="widgets_limit_ok">Im Limit</string>
@@ -100,6 +100,8 @@
     <string name="widgets_park_stop">Stopp</string>
     <string name="widgets_park_until">bis %1$s</string>
     <string name="widgets_park_none">Bezahlte Dauer wählen</string>
+    <string name="widgets_park_no_phone">Koppeln Sie Ihr Telefon für die Erinnerung fern vom Auto</string>
+    <string name="widgets_park_say_ten">Das Parken endet in zehn Minuten.</string>
     <string name="widgets_fuel">Tankbuch</string>
     <string name="widgets_fuel_blurb">Ihre Tankstopps, der echte Verbrauch und die Kosten pro 100 km</string>
     <string name="widgets_fuel_add">Tankstopp hinzufügen</string>
@@ -134,4 +136,6 @@
     <string name="widgets_commute_blurb">Wie lange die Fahrten nach Hause und zur Arbeit dauern, Tag für Tag</string>
     <string name="widgets_commute_none">Noch keine Fahrt hierher</string>
     <string name="widgets_commute_stats">Schnitt %1$d min, Bestzeit %2$d min</string>
+
+    <string name="widgets_switch_look">Aussehen</string>
 </resources>

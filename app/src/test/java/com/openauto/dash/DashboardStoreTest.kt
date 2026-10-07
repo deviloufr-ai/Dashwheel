@@ -382,6 +382,39 @@ class DashboardStoreTest {
         assertEquals(pages, DashboardStore.parsePages(DashboardStore.serializePages(pages)))
     }
 
+    // --- minimum sizes -------------------------------------------------------
+
+    @Test
+    fun everyKindsDefaultSizeIsAtLeastItsMinimum() {
+        for (kind in BuiltinKind.entries) {
+            val (w, h) = kind.minSize()
+            assertTrue("$kind default ${kind.defaultW}x${kind.defaultH} under its minimum ${w}x$h", kind.defaultW >= w && kind.defaultH >= h)
+            assertTrue("$kind minimum wider than the grid", w <= GRID_COLS && h <= GRID_ROWS)
+        }
+        // The kinds read at speed never shrink to one cell; a list keeps three columns.
+        assertEquals(2 to 2, BuiltinKind.SPEED_HUD.minSize())
+        assertEquals(3 to 2, BuiltinKind.QUICK_DIAL.minSize())
+        assertEquals(3 to 3, BuiltinKind.NAVMAP.minSize())
+    }
+
+    @Test
+    fun aSavedTileSmallerThanItsMinimumStillLoadsAtItsSize() {
+        // A one-cell speed tile from an older build, at the grid's far corner: kept, not grown into a neighbour or dropped.
+        val small = widget(BuiltinKind.SPEED_HUD, GRID_COLS - 1, GRID_ROWS - 1, 1, 1)
+        val neighbour = widget(BuiltinKind.CLOCK, GRID_COLS - 3, GRID_ROWS - 2, 2, 1)
+        val pages = listOf(listOf(small, neighbour), emptyList(), emptyList())
+        val back = DashboardStore.parsePages(DashboardStore.serializePages(pages))!!
+        assertEquals(listOf(small, neighbour), back[0])
+        assertEquals(listOf(small, neighbour), DashboardStore.repairOverlaps(back[0]))
+        // Where it sits there is no room for its kind's minimum, so the resize floor is what is left.
+        assertEquals(1, small.minW())
+        assertEquals(1, small.minH())
+        // In the open its minimum is its kind's.
+        assertEquals(2, widget(BuiltinKind.SPEED_HUD, 0, 0, 1, 1).minW())
+        // withCell keeps a saved span; the placer passes the minimum itself.
+        assertEquals(1, widget(BuiltinKind.SPEED_HUD, 0, 0, 1, 1).withCell(0, 0, 1, 1).w)
+    }
+
     @Test
     fun garbageIsRejectedNotDefaulted() {
         assertNull(DashboardStore.parsePages("not json at all"))

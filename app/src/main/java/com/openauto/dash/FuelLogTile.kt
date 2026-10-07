@@ -61,10 +61,13 @@ internal fun FuelLogCard(modifier: Modifier = Modifier) {
     val fills by FuelLog.fills.collectAsState()
     val units by Units.current.collectAsState()
     var adding by remember { mutableStateOf(false) }
+    // The steppers are an entry task: parked only, and put away as soon as the car moves.
+    val lock = LocalDriveLock.current
+    if (adding) ParkedOnly { adding = false }
     Card(modifier = modifier) {
         Column(modifier = Modifier.fillMaxSize().padding(DashSpace.Lg), verticalArrangement = Arrangement.SpaceBetween) {
             TileHeader(stringResource(R.string.widgets_fuel)) {
-                IconButton(onClick = { adding = !adding }) {
+                IconButton(onClick = { if (adding) adding = false else lock.whenParked { adding = true } }) {
                     Icon(
                         if (adding) Icons.Filled.Close else Icons.Filled.Add,
                         contentDescription = stringResource(R.string.widgets_fuel_add), tint = DashColors.Accent

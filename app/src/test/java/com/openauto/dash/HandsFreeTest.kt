@@ -166,7 +166,8 @@ class HandsFreeTest {
     fun whatIsWrongIsSaidAsTheBriefingWould() {
         val low = BriefingFacts(hour = 8, fuel = FuelInfo(10, 60, "CANbox"), faults = listOf("P0101", "P0401"))
         val lines = BriefingLines.status(low)
-        assertEquals(listOf(R.string.briefing_fuel_low, R.plurals.briefing_faults), lines.map { it.res })
+        // Codes the table doesn't know: counted, not named, and never spelt.
+        assertEquals(listOf(R.string.briefing_fuel_low, R.plurals.briefing_faults_untitled), lines.map { it.res })
         assertEquals(2, lines[1].quantity)
     }
 

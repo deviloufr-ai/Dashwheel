@@ -89,8 +89,8 @@
     <string name="widgets_bt_phone_none">Ningún móvil conectado</string>
     <string name="widgets_bt_phone_change">Conectar</string>
     <string name="widgets_limit">Límite de velocidad</string>
-    <string name="widgets_limit_blurb">El límite de la vía por la que circulas, dicho en voz alta si lo superas</string>
-    <string name="widgets_limit_say">Límite %1$d</string>
+    <string name="widgets_limit_blurb">El límite de la vía por la que circulas, dicho en voz alta si lo superas, si quieres</string>
+    <string name="widgets_limit_say">Por encima del límite, %1$d.</string>
     <string name="widgets_limit_unknown">Sin límite conocido aquí</string>
     <string name="widgets_limit_over">Por encima del límite</string>
     <string name="widgets_limit_ok">Dentro del límite</string>
@@ -100,6 +100,8 @@
     <string name="widgets_park_stop">Parar</string>
     <string name="widgets_park_until">hasta las %1$s</string>
     <string name="widgets_park_none">Elige el tiempo pagado</string>
+    <string name="widgets_park_no_phone">Empareja tu teléfono para el recordatorio lejos del coche</string>
+    <string name="widgets_park_say_ten">El aparcamiento termina en diez minutos.</string>
     <string name="widgets_fuel">Registro de combustible</string>
     <string name="widgets_fuel_blurb">Tus repostajes, el consumo real y el coste cada 100 km</string>
     <string name="widgets_fuel_add">Añadir repostaje</string>
@@ -134,4 +136,6 @@
     <string name="widgets_commute_blurb">Cuánto duran los trayectos a casa y al trabajo, día a día</string>
     <string name="widgets_commute_none">Aún no hay trayectos aquí</string>
     <string name="widgets_commute_stats">media %1$d min, mejor %2$d min</string>
+
+    <string name="widgets_switch_look">Aspecto</string>
 </resources>

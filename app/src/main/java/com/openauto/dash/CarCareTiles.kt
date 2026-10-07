@@ -31,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -343,9 +344,11 @@ internal fun EcoDriveCard(modifier: Modifier = Modifier) {
         // What the drive burned at the car's usual consumption, and what it cost.
         val liters = drive.distanceKm * car.typicalUse / 100
         val u = LocalUnits.current
+        // Whole currency units while driving; the cents are for a look while parked.
+        val cents = if (LocalDriveLock.current.moving) 0 else 2
         InfoRow(
             stringResource(if (u.imperial) R.string.units_eco_fuel_mi else R.string.car_eco_fuel, decimal(u.distance(drive.distanceKm))),
-            stringResource(R.string.car_eco_fuel_value, decimal(liters), decimal(liters * car.fuelPrice, 2), car.currency)
+            stringResource(R.string.car_eco_fuel_value, decimal(liters), decimal(liters * car.fuelPrice, cents), car.currency)
         )
     }
 }
@@ -426,16 +429,19 @@ internal fun MyCarCard(modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             TileHeader(stringResource(R.string.car_my_car_title)) {
-                Text(stringResource(car.source.labelRes), color = DashColors.Muted, style = MaterialTheme.typography.labelSmall)
+                if (car.known) Text(stringResource(car.source.labelRes), color = DashColors.Muted, style = MaterialTheme.typography.labelSmall)
             }
-            Text(car.name, color = DashColors.TextPrimary, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis,
+            Text(car.displayName(LocalContext.current), color = DashColors.TextPrimary, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.bodyMedium)
             InfoRow(stringResource(R.string.car_spec_engine), car.engine.ifBlank { unknown })
             InfoRow(stringResource(R.string.car_spec_gearbox), gearboxText(car).ifBlank { unknown })
             InfoRow(stringResource(R.string.car_spec_oil), listOfNotNull(car.oilCapacityL?.let { decimal(it, 2) + " L" }, car.oilSpec.ifBlank { null }).joinToString(" · ").ifBlank { unknown })
             InfoRow(stringResource(R.string.car_spec_tyres), tyreText(car).ifBlank { unknown })
             InfoRow(stringResource(R.string.car_spec_service), serviceText(car).ifBlank { unknown })
-            if (car.source == SpecSource.PRESET) Hint(stringResource(R.string.car_my_car_fetch_hint))
+            when {
+                !car.known -> Hint(stringResource(R.string.car_my_car_name_hint))
+                car.source == SpecSource.PRESET -> Hint(stringResource(R.string.car_my_car_fetch_hint))
+            }
         }
     }
     if (editing) CarSettingsDialog(onDismiss = { editing = false })
@@ -449,7 +455,7 @@ private fun MyCarPicture(car: CarProfile, picture: CarView, style: CarLookStyle,
     Card(modifier = modifier) {
         Column(modifier = Modifier.fillMaxSize().clickable(onClick = onOpen).padding(DashSpace.Lg)) {
             TileHeader(stringResource(R.string.car_my_car_title))
-            Text(car.name, color = DashColors.TextPrimary, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis,
+            Text(car.displayName(LocalContext.current), color = DashColors.TextPrimary, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.titleLarge)
             car.engine.takeIf { it.isNotBlank() }?.let {
                 Text(it, color = DashColors.TextSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium)
@@ -490,6 +496,7 @@ internal val FuelType.labelRes: Int
         FuelType.PETROL -> R.string.car_fuel_petrol
         FuelType.HYBRID -> R.string.car_fuel_hybrid
         FuelType.LPG -> R.string.car_fuel_lpg
+        FuelType.ELECTRIC -> R.string.car_fuel_electric
     }
 
 private fun tyreText(car: CarProfile): String {

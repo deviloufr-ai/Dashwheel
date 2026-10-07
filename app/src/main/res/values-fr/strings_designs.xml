@@ -166,4 +166,9 @@
     <string name="design_family_copper">Cuivre</string>
     <string name="design_family_cabins">Habitacles</string>
     <string name="design_label_value">%1$s : %2$s</string>
+
+    <string name="design_parked_looks">Looks à l\'arrêt</string>
+    <string name="design_parked_looks_note">Jolis, mais plus lents à lire en roulant</string>
+    <string name="design_alert_hot">Chaud</string>
+    <string name="design_alert_low">Bas</string>
 </resources>

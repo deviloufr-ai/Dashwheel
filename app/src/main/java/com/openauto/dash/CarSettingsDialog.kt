@@ -56,6 +56,8 @@ internal fun CarSettingsDialog(onDismiss: () -> Unit) {
     }
     // (worked, message) from the last fetch.
     var result by remember { mutableStateOf<Pair<Boolean, String>?>(null) }
+    // Without a Gemini key the fetch can only fail: a line says where the key goes instead of the button.
+    val hasAiKey = remember { AiSettings.load(context).apiKey.isNotBlank() }
 
     fun replace(p: CarProfile) {
         draft = p
@@ -115,11 +117,13 @@ internal fun CarSettingsDialog(onDismiss: () -> Unit) {
         OutlinedTextField(
             value = draft.name,
             onValueChange = { edit(draft.copy(name = it)); result = null },
-            placeholder = { Text(CarProfile.PRESET.name, color = DashColors.Muted) },
+            placeholder = { Text(stringResource(R.string.car_name_hint), color = DashColors.Muted) },
             modifier = Modifier.fillMaxWidth(),
             colors = fieldColors()
         )
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        if (!hasAiKey) {
+            Text(stringResource(R.string.car_fetch_needs_key), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+        } else Row(verticalAlignment = Alignment.CenterVertically) {
             Button(enabled = !fetching && draft.name.isNotBlank(), onClick = ::fetch, colors = buttonColors()) {
                 Text(stringResource(R.string.car_fetch))
             }

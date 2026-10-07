@@ -363,10 +363,16 @@ internal fun FaceValue(f: WidgetFace, look: FaceLook, m: FaceMetrics, sizeDp: Fl
     val unit: @Composable (Modifier) -> Unit = { mod ->
         if (f.unit.isNotEmpty()) FaceText(f.unit, look, size * (if (f.textValue) 0.6f else 0.3f), mod, color = look.dim, weight = FontWeight.Medium)
     }
+    // The alert in a word ("Hot", "Low"): red on its own could mean two things.
+    val word = f.alertWord.takeIf { f.alert && it.isNotEmpty() }
+    val alertWord: @Composable (Modifier) -> Unit = { mod ->
+        if (word != null) FaceText(word.uppercase(Locale.getDefault()), look, size * 0.3f, mod, color = look.warn, weight = FontWeight.Bold, letterSpacing = 0.08.em)
+    }
     if (stacked) {
         Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
             numeral(Modifier)
             unit(Modifier)
+            alertWord(Modifier)
         }
     } else {
         Row(modifier = modifier) {
@@ -374,6 +380,10 @@ internal fun FaceValue(f: WidgetFace, look: FaceLook, m: FaceMetrics, sizeDp: Fl
             if (f.unit.isNotEmpty()) {
                 Spacer(Modifier.width(m.dp(1.8f)))
                 unit(Modifier.alignByBaseline())
+            }
+            if (word != null) {
+                Spacer(Modifier.width(m.dp(1.8f)))
+                alertWord(Modifier.alignByBaseline())
             }
         }
     }
@@ -669,10 +679,9 @@ private fun RingLayout(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
                 contentAlignment = Alignment.Center
             ) {
                 val art = f.art
-                val clock = f.clock
+                // No seconds in the ring: a number that ticks is a distraction at the wheel; the icon sits there instead.
                 when {
                     art != null -> Image(art, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
-                    clock != null -> FaceText(clock.third.toString().padStart(2, '0'), look, m.sp(ring * 0.22f), weight = look.numWeight, family = look.numFont)
                     else -> Icon(f.icon, contentDescription = null, tint = look.accent, modifier = Modifier.size((ring * 0.32f).dp))
                 }
             }
@@ -954,10 +963,10 @@ private fun DialLayout(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
                 val r = size.minDimension / 2f
                 val clock = f.clock
                 if (clock != null) {
-                    val (h, mi, s) = clock
+                    // Hours and minutes only: a sweeping seconds hand is movement for its own sake while driving.
+                    val (h, mi, _) = clock
                     drawLine(look.ink, c, polarPoint(c, r * 0.45f, (h % 12 + mi / 60f) * 30f), strokeWidth = r * 0.06f, cap = StrokeCap.Round)
-                    drawLine(look.ink, c, polarPoint(c, r * 0.68f, mi * 6f), strokeWidth = r * 0.04f, cap = StrokeCap.Round)
-                    drawLine(look.accent, polarPoint(c, r * 0.15f, s * 6f + 180f), polarPoint(c, r * 0.76f, s * 6f), strokeWidth = r * 0.018f, cap = StrokeCap.Round)
+                    drawLine(look.accent, c, polarPoint(c, r * 0.68f, mi * 6f), strokeWidth = r * 0.04f, cap = StrokeCap.Round)
                 } else {
                     if (showValueInDial && dialValue.isNotEmpty()) {
                         val v = measurer.measure(dialValue, TextStyle(color = look.ink, fontFamily = look.numFont, fontWeight = FontWeight.Bold, fontSize = (r * 0.22f / density / fontScale).sp))

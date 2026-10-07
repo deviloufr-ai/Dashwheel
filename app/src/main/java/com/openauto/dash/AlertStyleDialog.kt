@@ -1,5 +1,6 @@
 package com.openauto.dash
 
+import android.content.Context
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -82,11 +83,9 @@ internal fun AlertStyleRows() {
     val context = LocalContext.current
     var picking by remember { mutableStateOf<AlertKind?>(null) }
     val access = shellAccess()
+    // The volume bar has its row under Driving, Sound (VolumeAlertRow), with the rest of the sound settings.
     val kinds = remember(access) {
-        AlertKind.entries.filter { kind ->
-            val rom = kind.romKind ?: return@filter kind != AlertKind.GEMINI || GeminiLive.available(context)
-            kind == AlertKind.CALL || RomPopups.available(context, rom) && RomPopups.canWork(rom, access)
-        }
+        AlertKind.entries.filter { kind -> kind != AlertKind.VOLUME && offered(context, kind, access) }
     }
     // Alerts this unit could have once the car app's settings can be written.
     val held = remember(access) {
@@ -106,6 +105,23 @@ internal fun AlertStyleRows() {
         )
     }
     picking?.let { kind -> AlertStyleDialog(kind) { picking = null } }
+}
+
+/** Whether [kind] can work on this unit, so its row is offered. */
+private fun offered(context: Context, kind: AlertKind, access: PrivilegedShell.Access): Boolean {
+    val rom = kind.romKind ?: return kind != AlertKind.GEMINI || GeminiLive.available(context)
+    return kind == AlertKind.CALL || RomPopups.available(context, rom) && RomPopups.canWork(rom, access)
+}
+
+/** Settings, Driving, Sound: the volume bar's switch and design, with the other sound settings. */
+@Composable
+internal fun VolumeAlertRow() {
+    val context = LocalContext.current
+    val access = shellAccess()
+    if (!remember(access) { offered(context, AlertKind.VOLUME, access) }) return
+    var picking by remember { mutableStateOf(false) }
+    AlertRow(AlertKind.VOLUME) { picking = true }
+    if (picking) AlertStyleDialog(AlertKind.VOLUME) { picking = false }
 }
 
 /** One command from a PC that lets Dashwheel write the car app's settings without root. */
@@ -299,6 +315,8 @@ private fun AlertStyleDialog(kind: AlertKind, onDismiss: () -> Unit) {
                     }
                 }
                 if (kind.speakable) {
+                    // Its voice is here with its design, not in the "What the car says" list: said so.
+                    Label(stringResource(R.string.alert_also_spoken))
                     SettingsToggle(
                         Icons.Filled.RecordVoiceOver, stringResource(R.string.alert_speak),
                         stringResource(

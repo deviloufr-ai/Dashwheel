@@ -166,4 +166,9 @@
     <string name="design_family_copper">Koper</string>
     <string name="design_family_cabins">Interieurs</string>
     <string name="design_label_value">%1$s: %2$s</string>
+
+    <string name="design_parked_looks">Looks voor stilstand</string>
+    <string name="design_parked_looks_note">Mooi, maar trager te lezen tijdens het rijden</string>
+    <string name="design_alert_hot">Heet</string>
+    <string name="design_alert_low">Laag</string>
 </resources>

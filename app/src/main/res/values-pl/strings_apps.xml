@@ -137,4 +137,11 @@
     <string name="apps_radio_on">Wł.</string>
     <string name="apps_radio_off">Wył.</string>
     <string name="apps_radio_switching">Przełączanie</string>
+
+    <string name="apps_needs_obd">Wymaga adaptera OBD</string>
+    <string name="apps_needs_phone">Wymaga telefonu</string>
+    <string name="apps_needs_internet">Wymaga internetu</string>
+    <string name="apps_needs_root">Wymaga roota</string>
+    <string name="apps_needs_carbox">Wymaga modułu auta</string>
+    <string name="apps_on_dashboard">Już na pulpicie</string>
 </resources>

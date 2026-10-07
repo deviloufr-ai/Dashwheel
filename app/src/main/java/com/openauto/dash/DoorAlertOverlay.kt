@@ -89,7 +89,8 @@ object DoorAlertOverlay {
             preview ?: doors.takeIf { RomPopups.Kind.DOORS in replaced && !reversing && open.isNotEmpty() && !hidden.containsAll(open) }
         }.stateIn(scope, SharingStarted.Eagerly, null)
 
-    private val onTheMove = ShrinkOnTheMove()
+    // Parked, a door opens to get out: the card at most, and the pill after a few seconds.
+    private val onTheMove = ShrinkOnTheMove(parkedCap = AlertStyle.CARD)
     /** The pill shown is the chosen design shrunk for the drive: a tap brings it back. */
     internal val shrunk: StateFlow<Boolean> get() = onTheMove.shrunk
 

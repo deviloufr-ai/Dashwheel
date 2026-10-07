@@ -9,8 +9,9 @@
     <string name="ai_own_key">O tu propia clave API de Gemini</string>
     <string name="ai_key">Clave API de Gemini</string>
     <string name="ai_key_hint">Gratis en aistudio.google.com → Get API key</string>
-    <string name="ai_language">Idioma</string>
+    <string name="ai_language">Idioma de las respuestas</string>
     <string name="ai_language_auto">Como la app</string>
+    <string name="ai_language_detail">Para las respuestas escritas de Gemini</string>
     <string name="ai_test">Probar</string>
     <string name="ai_done">Listo</string>
 
@@ -26,9 +27,14 @@
     <!-- Spoken by the car, in the mechanic's language (resolved with the AI language, not the screen's) -->
     <string name="ai_say_ready">El mecánico IA está listo.</string>
     <plurals name="ai_say_new_codes">
-        <item quantity="one">%1$d código de avería nuevo en el motor: %2$s. Detalles en pantalla.</item>
-        <item quantity="many">%1$d códigos de avería nuevos en el motor: %2$s. Detalles en pantalla.</item>
-        <item quantity="other">%1$d códigos de avería nuevos en el motor: %2$s. Detalles en pantalla.</item>
+        <item quantity="one">%1$d avería nueva en el motor: %2$s. Mira la tarjeta Códigos de avería cuando estés parado.</item>
+        <item quantity="many">%1$d averías nuevas en el motor: %2$s. Mira la tarjeta Códigos de avería cuando estés parado.</item>
+        <item quantity="other">%1$d averías nuevas en el motor: %2$s. Mira la tarjeta Códigos de avería cuando estés parado.</item>
+    </plurals>
+    <plurals name="ai_say_new_codes_untitled">
+        <item quantity="one">%1$d avería nueva en el motor. Mira la tarjeta Códigos de avería cuando estés parado.</item>
+        <item quantity="many">%1$d averías nuevas en el motor. Mira la tarjeta Códigos de avería cuando estés parado.</item>
+        <item quantity="other">%1$d averías nuevas en el motor. Mira la tarjeta Códigos de avería cuando estés parado.</item>
     </plurals>
     <string name="ai_say_overheat">Atención, el motor se está sobrecalentando: %1$d grados. Detente cuando sea seguro y apaga el motor.</string>
     <string name="ai_say_not_charging">La batería no carga: %1$s voltios con el motor en marcha. Ve a un taller y apaga lo que no necesites.</string>

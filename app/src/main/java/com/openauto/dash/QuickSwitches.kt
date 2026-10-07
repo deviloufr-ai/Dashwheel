@@ -90,13 +90,31 @@ internal fun QuickSwitchesCard(modifier: Modifier = Modifier) {
     var look by remember { mutableStateOf(DashThemeStore.loadAppearance(context)) }
     LaunchedEffect(Unit) { DashThemeStore.appearanceAsked.collect { look = it } }
     var dnd by remember { mutableStateOf(doNotDisturbOn(context)) }
+    // Each state in a word under the name, as the Wi-Fi and Bluetooth tile does: tint alone said nothing.
+    val onWord = stringResource(R.string.apps_radio_on)
+    val offWord = stringResource(R.string.apps_radio_off)
+    val switching = stringResource(R.string.apps_radio_switching)
+    fun word(on: Boolean) = if (on) onWord else offWord
+    fun radioLine(s: RadioSwitches.State) = when {
+        s.busy -> switching
+        !s.on -> offWord
+        s.detail != null -> s.detail
+        else -> onWord
+    }
+    // Muted is a music volume at zero; where the keys set it (MediaVolume) the level isn't known.
+    val audio = remember { MediaVolume.audio(context) }
+    val volume by rememberMusicVolume(audio)
+    val byKeys by MediaVolume.byKeys.collectAsState()
+    val muted = !byKeys && volume == 0
     Card(modifier = modifier) {
         Row(modifier = Modifier.fillMaxSize().padding(DashSpace.Md), horizontalArrangement = Arrangement.spacedBy(DashSpace.Sm)) {
             val each = Modifier.weight(1f).fillMaxHeight()
-            Switch(Icons.Filled.VolumeOff, stringResource(R.string.widgets_switch_mute), on = false, modifier = each) { MediaVolume.toggleMute(context) }
+            Switch(Icons.Filled.VolumeOff, stringResource(R.string.widgets_switch_mute), on = muted, line = if (byKeys) null else word(muted), modifier = each) {
+                MediaVolume.toggleMute(context)
+            }
             Switch(
                 when (look) { DashAppearance.AUTO -> Icons.Filled.BrightnessAuto; DashAppearance.DARK -> Icons.Filled.DarkMode; DashAppearance.LIGHT -> Icons.Filled.LightMode },
-                stringResource(look.titleRes), on = look != DashAppearance.AUTO, modifier = each
+                stringResource(R.string.widgets_switch_look), on = look != DashAppearance.AUTO, line = stringResource(look.titleRes), modifier = each
             ) {
                 val next = DashAppearance.entries[(look.ordinal + 1) % DashAppearance.entries.size]
                 look = next
@@ -104,7 +122,7 @@ internal fun QuickSwitchesCard(modifier: Modifier = Modifier) {
             }
             Switch(
                 if (dnd) Icons.Filled.DoNotDisturbOn else Icons.Filled.NotificationsActive,
-                stringResource(R.string.widgets_switch_dnd), on = dnd, modifier = each
+                stringResource(R.string.widgets_switch_dnd), on = dnd, line = word(dnd), modifier = each
             ) {
                 scope.launch {
                     setDoNotDisturb(context, !dnd)
@@ -112,18 +130,19 @@ internal fun QuickSwitchesCard(modifier: Modifier = Modifier) {
                     dnd = doNotDisturbOn(context)
                 }
             }
-            Switch(if (wifi.on) Icons.Filled.Wifi else Icons.Filled.WifiOff, stringResource(R.string.apps_radio_wifi), on = wifi.on, modifier = each) {
+            Switch(if (wifi.on) Icons.Filled.Wifi else Icons.Filled.WifiOff, stringResource(R.string.apps_radio_wifi), on = wifi.on, line = radioLine(wifi), modifier = each) {
                 RadioSwitches.toggleWifi(context)
             }
-            Switch(if (bt.on) Icons.Filled.Bluetooth else Icons.Filled.BluetoothDisabled, stringResource(R.string.apps_radio_bluetooth), on = bt.on, modifier = each) {
+            Switch(if (bt.on) Icons.Filled.Bluetooth else Icons.Filled.BluetoothDisabled, stringResource(R.string.apps_radio_bluetooth), on = bt.on, line = radioLine(bt), modifier = each) {
                 RadioSwitches.toggleBluetooth(context)
             }
         }
     }
 }
 
+/** One switch: icon, name and, under it, its state in a word ([line], or nothing where the state isn't known). */
 @Composable
-private fun Switch(icon: ImageVector, name: String, on: Boolean, modifier: Modifier, onClick: () -> Unit) {
+private fun Switch(icon: ImageVector, name: String, on: Boolean, line: String?, modifier: Modifier, onClick: () -> Unit) {
     val tap = rememberTapFeedback()
     Box(
         modifier = modifier.clip(DashShape.Medium)
@@ -135,7 +154,10 @@ private fun Switch(icon: ImageVector, name: String, on: Boolean, modifier: Modif
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(icon, contentDescription = null, tint = if (on) DashColors.Accent else DashColors.TextPrimary, modifier = Modifier.size(28.dp))
             Spacer(Modifier.height(4.dp))
-            Text(name, color = DashColors.TextSecondary, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(name, color = DashColors.TextPrimary, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (line != null) {
+                Text(line, color = if (on) DashColors.Accent else DashColors.TextSecondary, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
         }
     }
 }
@@ -146,10 +168,20 @@ internal fun quickSwitchesFace(): WidgetFace {
     DisposableEffect(Unit) { RadioSwitches.start(context); onDispose { RadioSwitches.stop(context) } }
     val wifi by RadioSwitches.wifi.collectAsState()
     val bt by RadioSwitches.bluetooth.collectAsState()
+    // Each radio's state in a word, as the tile itself says it: a tinted button alone said nothing.
+    val onWord = stringResource(R.string.apps_radio_on)
+    val offWord = stringResource(R.string.apps_radio_off)
+    val wifiName = stringResource(R.string.apps_radio_wifi)
+    val btName = stringResource(R.string.apps_radio_bluetooth)
     return WidgetFace(
         icon = Icons.Filled.BrightnessAuto,
         title = BuiltinKind.QUICK_SWITCHES.label,
         value = "",
+        caption = "$wifiName ${if (wifi.on) onWord else offWord} · $btName ${if (bt.on) onWord else offWord}",
+        stats = listOf(
+            FaceStat(wifiName, wifi.detail ?: if (wifi.on) onWord else offWord),
+            FaceStat(btName, if (bt.on) onWord else offWord)
+        ),
         actions = listOf(
             FaceAction(Icons.Filled.VolumeOff, stringResource(R.string.widgets_switch_mute), onClick = { MediaVolume.toggleMute(context) }),
             FaceAction(if (wifi.on) Icons.Filled.Wifi else Icons.Filled.WifiOff, stringResource(R.string.apps_radio_wifi), onClick = { RadioSwitches.toggleWifi(context) }, primary = wifi.on),

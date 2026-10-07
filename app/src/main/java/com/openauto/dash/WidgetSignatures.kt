@@ -1121,17 +1121,19 @@ private fun SunPath(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
 @Composable
 private fun BinaryClock(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
     // The clock face already brings the time (and ticks); only a face without one needs a ticker here.
-    val (h, mi, s) = f.clock ?: run {
-        val now = rememberNow(1_000L)
+    // Hours and minutes only: the seconds columns blinked for nothing while driving.
+    val (h, mi, _) = f.clock ?: run {
+        val now = rememberNow(60_000L)
         val cal = remember(now) { Calendar.getInstance().apply { time = now } }
-        Triple(cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), cal.get(Calendar.SECOND))
+        Triple(cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), 0)
     }
     Split(f, look, m, 1.32f) {
         Vb(132f, 100f) {
-            val digits = listOf(h / 10, h % 10, mi / 10, mi % 10, s / 10, s % 10)
-            val bits = listOf(2, 4, 3, 4, 3, 4)
+            val digits = listOf(h / 10, h % 10, mi / 10, mi % 10)
+            val bits = listOf(2, 4, 3, 4)
             digits.forEachIndexed { c, v ->
-                val x = 10f + c * 20f + (if (c > 1) 8f else 0f) + (if (c > 3) 8f else 0f)
+                // Four columns centred where six used to stand.
+                val x = 34f + c * 20f + (if (c > 1) 8f else 0f)
                 for (b in 0 until bits[c]) {
                     val on = (v shr b) and 1 == 1
                     val p = Offset(x, 86f - b * 22f)

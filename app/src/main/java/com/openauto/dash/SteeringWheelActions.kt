@@ -120,11 +120,14 @@ internal enum class SteeringWheelAction(
             VOLUME_MUTE -> MediaVolume.toggleMute(context, show = true)
             SAY_STATUS -> StartupBriefing.sayStatus(context)
             QUIET -> toggleQuiet(context)
-            // Seen: the red chips, the door and tyre cards on screen go (a new problem comes back).
+            // Seen, heard: the red chips, the door, tyre and message cards go (a new problem comes back),
+            // and the voice stops mid-sentence.
             DISMISS_ALERT -> {
                 AlertCenter.acknowledgeAll()
                 DoorAlertOverlay.dismiss()
                 TyreAlertOverlay.dismiss()
+                MessageAlerts.dismiss()
+                CarVoice.stop()
             }
             NAVIGATE_HOME -> guideTo(context, home = true)
             NAVIGATE_WORK -> guideTo(context, home = false)

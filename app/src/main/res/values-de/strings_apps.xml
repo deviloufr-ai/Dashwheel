@@ -135,4 +135,11 @@
     <string name="apps_radio_on">An</string>
     <string name="apps_radio_off">Aus</string>
     <string name="apps_radio_switching">Schaltet</string>
+
+    <string name="apps_needs_obd">Braucht den OBD-Adapter</string>
+    <string name="apps_needs_phone">Braucht das Telefon</string>
+    <string name="apps_needs_internet">Braucht Internet</string>
+    <string name="apps_needs_root">Braucht Root</string>
+    <string name="apps_needs_carbox">Braucht die Fahrzeugbox</string>
+    <string name="apps_on_dashboard">Schon auf einem Dashboard</string>
 </resources>

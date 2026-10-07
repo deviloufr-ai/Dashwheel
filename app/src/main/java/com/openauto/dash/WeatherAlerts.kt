@@ -102,10 +102,15 @@ internal object WeatherWarnings {
 /**
  * Weather warnings (MeteoAlarm, which carries Météo-France's vigilance) where
  * the car is and where the guidance is taking it. Read every [REFRESH_MS];
- * a new orange or red one is said once.
+ * a new orange or red one is said once ([SpokenEvent.WEATHER]), and the ones
+ * said are kept until they expire, so a restart doesn't say them again.
  */
 internal object WeatherAlerts {
     private const val TAG = "WeatherAlerts"
+    private const val PREFS = "weather_alerts"
+    private const val KEY_SAID = "said"
+    /** A warning with no end given is remembered this long. */
+    private const val SAID_DEFAULT_MS = 24 * 3_600_000L
     private const val REFRESH_MS = 30 * 60_000L
     private const val FEED = "https://feeds.meteoalarm.org/feeds/meteoalarm-legacy-atom-"
     private const val REVERSE = "https://nominatim.openstreetmap.org/reverse"
@@ -116,7 +121,8 @@ internal object WeatherAlerts {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var job: Job? = null
     private var users = 0
-    private val said = HashSet<String>()
+    /** The warnings said, by key, with when each expires (wall clock). */
+    private var said: MutableMap<String, Long>? = null
     private var areaCache: Pair<Pair<Int, Int>, Area>? = null
 
     private val _here = MutableStateFlow<List<WeatherWarning>>(emptyList())
@@ -164,13 +170,30 @@ internal object WeatherAlerts {
         val now = worst(warnings(hereArea).filter { WeatherWarnings.inArea(it, hereArea.names) })
         _here.value = now
         _ahead.value = destArea?.let { a -> worst(warnings(a).filter { WeatherWarnings.inArea(it, a.names) }) }.orEmpty()
-        (now + _ahead.value).filter { it.level >= 2 }.forEach { w ->
-            if (said.add("${w.area}|${w.event}|${w.level}|${w.onset}")) {
-                val app = AppLanguage.wrap(context)
-                val colour = app.getString(if (w.level >= 3) R.string.widgets_wx_red else R.string.widgets_wx_orange)
-                CarVoice.speak(app.getString(R.string.widgets_wx_say, colour, hazardName(app, w), w.area), InAppNav.locale(context))
-            }
+        val fresh = (now + _ahead.value).filter { it.level >= 2 && markSaid(context, w = it) }
+        if (fresh.isEmpty() || !SpokenEvents.isOn(context, SpokenEvent.WEATHER)) return
+        val app = AppLanguage.wrap(context)
+        fresh.forEach { w ->
+            val colour = app.getString(if (w.level >= 3) R.string.widgets_wx_red else R.string.widgets_wx_orange)
+            CarVoice.announce(app.getString(R.string.widgets_wx_say, colour, hazardName(app, w), w.area), InAppNav.locale(context))
         }
+    }
+
+    /** Notes [w] as said; false when it already was (and still is in force). Saved, so a restart remembers. */
+    @Synchronized
+    private fun markSaid(context: Context, w: WeatherWarning): Boolean {
+        val nowMs = System.currentTimeMillis()
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val map = said ?: run {
+            val loaded = runCatching { JSONObject(prefs.getString(KEY_SAID, null) ?: "{}") }.getOrDefault(JSONObject())
+            loaded.keys().asSequence().associateWithTo(HashMap()) { loaded.optLong(it) }
+        }.also { said = it }
+        map.entries.removeAll { it.value <= nowMs }
+        val key = "${w.area}|${w.event}|${w.level}|${w.onset}"
+        if (map.containsKey(key)) return false
+        map[key] = if (w.expires > nowMs) w.expires else nowMs + SAID_DEFAULT_MS
+        prefs.edit().putString(KEY_SAID, JSONObject(map as Map<*, *>).toString()).apply()
+        return true
     }
 
     /** The country and area names at a point; the car's own is kept while it stays within about 10 km. */

@@ -107,7 +107,8 @@ enum class AlertKind(
     CALL("call", AlertStyle.CLASSIC, speakable = true, cardAt = CardAt.TOP),
     DOORS("doors", AlertStyle.CLASSIC, speakable = true, cardAt = CardAt.TOP_END),
     RADAR("radar", listOf(AlertStyle.PILL, AlertStyle.CARD, AlertStyle.PANEL), speakable = false, cardAt = CardAt.END),
-    AC("ac", listOf(AlertStyle.PILL, AlertStyle.CARD, AlertStyle.BANNER, AlertStyle.PANEL), speakable = false, cardAt = CardAt.BOTTOM),
+    // Shown at every fan click: never a design that covers the map.
+    AC("ac", listOf(AlertStyle.PILL, AlertStyle.CARD, AlertStyle.BANNER), speakable = false, cardAt = CardAt.BOTTOM),
     TYRES("tyres", AlertStyle.CLASSIC, speakable = true, cardAt = CardAt.TOP_END),
     // Shown while driving: never anything that covers the screen.
     BELT("belt", listOf(AlertStyle.PILL, AlertStyle.CARD, AlertStyle.BANNER), speakable = true, cardAt = CardAt.TOP),
@@ -120,7 +121,8 @@ enum class AlertKind(
     /**
      * Which comes first when several are up at once, the lowest ahead: what
      * the driver must act on now (something behind the car, a call ringing,
-     * the belt) before what can be looked at later.
+     * the belt) before what can be looked at later. A conversation with Gemini
+     * is not shrunk by a fan click.
      */
     val rank: Int
         get() = when (this) {
@@ -129,8 +131,8 @@ enum class AlertKind(
             BELT -> 2
             DOORS -> 3
             TYRES -> 4
-            AC -> 5
-            GEMINI -> 6
+            GEMINI -> 5
+            AC -> 6
             VOLUME -> 7
         }
 }
@@ -171,10 +173,23 @@ internal const val SHRINK_AFTER_MS = 8_000L
  * The design shown for [chosen] while driving: one of the [big] ones (the
  * side panel, the full screen) is the pill once the car moves and it has been
  * up [bigForMs], so no alert stays over the map until it is tapped. Parked,
- * the chosen design stays.
+ * the chosen design stays, unless the alert has a [parkedCap]: then a big
+ * design is never more than that standing still (a door opened to get out
+ * must not veil the screen), and shrinks to the pill after [SHRINK_AFTER_MS]
+ * moving or not.
  */
-internal fun drivingStyle(chosen: AlertStyle, moving: Boolean, bigForMs: Long, big: Set<AlertStyle> = COVERING): AlertStyle =
-    if (chosen in big && moving && bigForMs > SHRINK_AFTER_MS) AlertStyle.PILL else chosen
+internal fun drivingStyle(
+    chosen: AlertStyle,
+    moving: Boolean,
+    bigForMs: Long,
+    big: Set<AlertStyle> = COVERING,
+    parkedCap: AlertStyle? = null
+): AlertStyle = when {
+    chosen !in big -> chosen
+    (moving || parkedCap != null) && bigForMs > SHRINK_AFTER_MS -> AlertStyle.PILL
+    !moving && parkedCap != null -> parkedCap
+    else -> chosen
+}
 
 /** Whether the car moves ([isMoving]), going by the speed the dashboard shows. */
 internal fun carMoving(): Flow<Boolean> =
@@ -183,9 +198,9 @@ internal fun carMoving(): Flow<Boolean> =
 /**
  * One alert's big design on the move ([drivingStyle]): it shrinks to the pill
  * a few seconds after it came up, and a tap on that pill ([enlarge]) brings
- * it back for as long again.
+ * it back for as long again. With a [parkedCap], standing still too.
  */
-internal class ShrinkOnTheMove {
+internal class ShrinkOnTheMove(private val parkedCap: AlertStyle? = null) {
     private val enlargedAt = MutableStateFlow(0L)
 
     private val _shrunk = MutableStateFlow(false)
@@ -207,11 +222,11 @@ internal class ShrinkOnTheMove {
                 if (style != null && !up) bigSince = at
                 up = style != null
                 bigSince = maxOf(bigSince, enlarged)
-                val now = style?.let { drivingStyle(it, moving, at - bigSince) }
+                val now = style?.let { drivingStyle(it, moving, at - bigSince, parkedCap = parkedCap) }
                 _shrunk.value = now != style
                 send(now)
                 // The shrink comes with time, not with an event.
-                val later = style?.let { drivingStyle(it, moving, SHRINK_AFTER_MS + 1) }
+                val later = style?.let { drivingStyle(it, moving, SHRINK_AFTER_MS + 1, parkedCap = parkedCap) }
                 if (later != now) {
                     delay(SHRINK_AFTER_MS + 1 - (at - bigSince))
                     _shrunk.value = true
@@ -243,9 +258,7 @@ object AlertStyleStore {
     /** The alerts also said out loud ([AlertVoice]); the doors until the driver says otherwise. */
     val spoken: StateFlow<Set<AlertKind>> = _spoken
 
-    private val _messages = MutableStateFlow(true)
-    /** Whether a message arriving on the phone is said: who it is from, never what it says ([AlertVoice]). */
-    val messages: StateFlow<Boolean> = _messages
+    // The phone's messages (shown and said) are switched with the rest of what the car says: SpokenEvent.MESSAGES.
 
     fun load(context: Context) {
         val p = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -253,14 +266,7 @@ object AlertStyleStore {
             p.getString(kind.key, null)?.let { name -> AlertStyle.entries.firstOrNull { it.name == name } }?.let { kind to it }
         }.toMap()
         _spoken.value = AlertKind.entries.filter { p.getBoolean("speak_${it.key}", it == AlertKind.DOORS || it == AlertKind.TYRES || it == AlertKind.BELT) }.toSet()
-        _messages.value = p.getBoolean(KEY_MESSAGES, true)
-    }
-
-    private const val KEY_MESSAGES = "speak_messages"
-
-    fun setMessages(context: Context, on: Boolean) {
-        _messages.value = on
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_MESSAGES, on).apply()
+        SpokenEvents.load(context)
     }
 
     fun set(context: Context, kind: AlertKind, style: AlertStyle) {

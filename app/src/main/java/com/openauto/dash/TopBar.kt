@@ -57,6 +57,8 @@ import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material.icons.filled.VerticalSplit
+import androidx.compose.material.icons.filled.VolumeOff
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.filled.HorizontalSplit
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -905,6 +907,16 @@ internal fun MorePicker(m: TopBarModel, geminiInBar: Boolean = false, anchor: @C
             if (!geminiInBar && GeminiLive.available(context)) {
                 DashMenuItem(stringResource(R.string.ai_gemini_live), leading = { MenuIcon(Icons.Filled.AutoAwesome) }, onClick = pick { GeminiLive.toggle(context) })
             }
+            // What the car says by itself, off for this drive and back: the same switch as the wheel's Quiet.
+            val quiet by CarVoice.quietState.collectAsState()
+            DashMenuItem(
+                text = stringResource(if (quiet) R.string.voice_menu_back else R.string.voice_menu_quiet),
+                leading = { MenuIcon(if (quiet) Icons.Filled.VolumeUp else Icons.Filled.VolumeOff) },
+                onClick = pick {
+                    CarVoice.quiet = !quiet
+                    if (quiet) HandsFree.say(context, R.string.voice_quiet_off)
+                }
+            )
             DashMenuItem(stringResource(R.string.settings_menu), leading = { MenuIcon(Icons.Filled.Settings, parked) }, enabled = parked, onClick = pick(m.onSettings))
             if (m.demo) {
                 HorizontalDivider(color = DashColors.Line, modifier = Modifier.padding(vertical = 4.dp))

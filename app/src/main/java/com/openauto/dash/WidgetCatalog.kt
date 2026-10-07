@@ -1,5 +1,9 @@
 package com.openauto.dash
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -73,7 +77,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -94,6 +102,60 @@ val BuiltinKind.label: String
 /** One-line description of a built-in tile for the picker, in the current language. */
 val BuiltinKind.blurb: String
     @Composable get() = stringResource(blurbRes)
+
+/** What a widget cannot show anything without; [needsRes] is the add sheet's chip while it is missing. */
+enum class WidgetSource(@StringRes val needsRes: Int) {
+    OBD(R.string.apps_needs_obd),
+    PHONE(R.string.apps_needs_phone),
+    INTERNET(R.string.apps_needs_internet),
+    ROOT(R.string.apps_needs_root),
+    CARBOX(R.string.apps_needs_carbox)
+}
+
+/**
+ * The sources this kind needs to show anything. A kind that can do with the
+ * adapter or the car box counts the box as there when the firmware shares it.
+ */
+internal val BuiltinKind.needs: Set<WidgetSource>
+    get() = when (this) {
+        BuiltinKind.TELEMETRY, BuiltinKind.OBD_DTC, BuiltinKind.OBD_ALL, BuiltinKind.WARMUP, BuiltinKind.BATTERY,
+        BuiltinKind.FILTER_CARE, BuiltinKind.ECO_DRIVE, BuiltinKind.ENGINE_TEMPS -> setOf(WidgetSource.OBD)
+        BuiltinKind.RANGE, BuiltinKind.FUEL_TO_DEST, BuiltinKind.GEAR -> if (CarBox.available) emptySet() else setOf(WidgetSource.OBD)
+        BuiltinKind.SHARE_ETA -> setOf(WidgetSource.PHONE)
+        BuiltinKind.WEATHER, BuiltinKind.WEATHER_ALERTS, BuiltinKind.FUEL_PRICES, BuiltinKind.SPEED_CAMERAS,
+        BuiltinKind.SPEED_LIMIT, BuiltinKind.HOME_WORK -> setOf(WidgetSource.INTERNET)
+        BuiltinKind.CAN_MON -> setOf(WidgetSource.ROOT)
+        BuiltinKind.DOORS -> if (CarBox.available) emptySet() else setOf(WidgetSource.ROOT)
+        BuiltinKind.CAR_STATUS -> setOf(WidgetSource.CARBOX)
+        else -> emptySet()
+    }
+
+/**
+ * The sources present right now, for the add sheet's chips: an adapter paired
+ * or connected, the phone linked, a network with internet (looked at once, as
+ * the sheet opens), root, the car box.
+ */
+@Composable
+internal fun rememberAvailableSources(): Set<WidgetSource> {
+    val context = LocalContext.current
+    val obd by ObdBluetoothManager.connectionState.collectAsState()
+    val phone by PhoneLink.state.collectAsState()
+    val access = shellAccess()
+    val online = remember { hasInternet(context) }
+    return buildSet {
+        if (obd == ObdConnectionState.CONNECTED || ObdBluetoothManager.savedDeviceAddress() != null) add(WidgetSource.OBD)
+        if (phone is PhoneLinkState.Connected) add(WidgetSource.PHONE)
+        if (online) add(WidgetSource.INTERNET)
+        if (access.root) add(WidgetSource.ROOT)
+        if (CarBox.available) add(WidgetSource.CARBOX)
+    }
+}
+
+private fun hasInternet(context: Context): Boolean {
+    val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return false
+    val caps = cm.getNetworkCapabilities(cm.activeNetwork ?: return false) ?: return false
+    return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+}
 
 internal fun kindIcon(kind: BuiltinKind): ImageVector = when (kind) {
     BuiltinKind.NAVMAP -> Icons.Filled.Navigation

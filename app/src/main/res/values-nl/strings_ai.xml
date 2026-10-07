@@ -9,8 +9,9 @@
     <string name="ai_own_key">Of je eigen Gemini-API-sleutel</string>
     <string name="ai_key">Gemini-API-sleutel</string>
     <string name="ai_key_hint">Gratis op aistudio.google.com → Get API key</string>
-    <string name="ai_language">Taal</string>
+    <string name="ai_language">Taal van de antwoorden</string>
     <string name="ai_language_auto">Zoals de app</string>
+    <string name="ai_language_detail">Voor de geschreven antwoorden van Gemini</string>
     <string name="ai_test">Testen</string>
     <string name="ai_done">Klaar</string>
 
@@ -26,8 +27,12 @@
     <!-- Spoken by the car, in the mechanic's language (resolved with the AI language, not the screen's) -->
     <string name="ai_say_ready">De AI-monteur is klaar.</string>
     <plurals name="ai_say_new_codes">
-        <item quantity="one">%1$d nieuwe motorfoutcode: %2$s. Details op het scherm.</item>
-        <item quantity="other">%1$d nieuwe motorfoutcodes: %2$s. Details op het scherm.</item>
+        <item quantity="one">%1$d nieuwe motorfout: %2$s. Kijk stilstaand op de tegel Foutcodes.</item>
+        <item quantity="other">%1$d nieuwe motorfouten: %2$s. Kijk stilstaand op de tegel Foutcodes.</item>
+    </plurals>
+    <plurals name="ai_say_new_codes_untitled">
+        <item quantity="one">%1$d nieuwe motorfout. Kijk stilstaand op de tegel Foutcodes.</item>
+        <item quantity="other">%1$d nieuwe motorfouten. Kijk stilstaand op de tegel Foutcodes.</item>
     </plurals>
     <string name="ai_say_overheat">Let op, de motor raakt oververhit: %1$d graden. Stop zodra het veilig is en zet de motor uit.</string>
     <string name="ai_say_not_charging">De accu laadt niet op: %1$s volt met draaiende motor. Rij naar een garage en zet uit wat je niet nodig hebt.</string>

@@ -464,7 +464,7 @@ object PhoneLink {
         val news = scope.launch { CarNews.report { send(it) } }
         // A parking still running: the phone may have missed it, or lost its reminders to a restart.
         ParkingClock.load(context)
-        ParkingClock.endsAt.value.takeIf { it > System.currentTimeMillis() }?.let { send(ParkingTimer(it)) }
+        ParkingClock.resend()
         try {
             while (true) {
                 val message = link.receive() ?: continue

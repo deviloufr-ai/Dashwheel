@@ -10,6 +10,8 @@ import android.os.SystemClock
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import java.util.Locale
 
 /**
@@ -114,20 +116,19 @@ object CarVoice {
         }
     }
 
-    /** Quiet asked for this long at most: a drive, not for good. */
-    private const val QUIET_MAX_MS = 4 * 3_600_000L
-    // Until when (elapsed realtime) the car keeps what it would say by itself to itself; 0 = not quiet.
-    @Volatile private var quietUntil = 0L
+    private val _quiet = MutableStateFlow(false)
+    /** [quiet], for the menu that offers to end it. */
+    val quietState: StateFlow<Boolean> = _quiet
 
     /**
-     * Quiet for this drive (a learned wheel button): what the car says by
-     * itself ([announce]) is dropped, except what can't wait. Ends at the
-     * next start of the car ([CarPower]).
+     * Quiet for this drive (the ⋮ menu, a learned wheel button): what the car
+     * says by itself ([announce]) is dropped, except what can't wait. Lasts
+     * until the driver ends it or the car starts again ([CarPower]).
      */
     var quiet: Boolean
-        get() = SystemClock.elapsedRealtime() < quietUntil
+        get() = _quiet.value
         set(on) {
-            quietUntil = if (on) SystemClock.elapsedRealtime() + QUIET_MAX_MS else 0L
+            _quiet.value = on
             // Quiet means now: the sentence being said stops too, unless it can't wait.
             if (on) main.post { if (pending.values.none { it.urgent }) tts?.stop() }
         }
@@ -135,6 +136,8 @@ object CarVoice {
     /**
      * What the car says by itself: an alert, a reminder, the briefing. Like
      * [speak], but not while the driver asked for [quiet], unless [urgent].
+     * Every unasked sentence goes through here; [speak] is for answers to
+     * what the driver asked (a wheel button, a tap on a read button, a turn).
      */
     fun announce(text: String, locale: Locale, urgent: Boolean = false) {
         if (quiet && !urgent) return

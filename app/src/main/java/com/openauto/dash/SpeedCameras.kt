@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -51,13 +52,11 @@ internal data class CameraAhead(val camera: SpeedCamera, val distanceM: Int)
  * Speed cameras ahead, from OpenStreetMap (Overpass): the ones within
  * [RADIUS_M] are read again every [REFETCH_M] driven. The nearest one in the
  * direction of travel is shown, and said out loud at [WARN_M] when the driver
- * turned warnings on (off by default: warning of fixed cameras is not allowed
- * in some countries, France among them).
+ * turned warnings on ([SpokenEvent.SPEED_CAMERAS], off by default: warning of
+ * fixed cameras is not allowed in some countries, France among them).
  */
 internal object SpeedCameras {
     private const val TAG = "SpeedCameras"
-    private const val PREFS = "speed_cameras"
-    private const val KEY_SPEAK = "speak"
     private const val OVERPASS = "https://overpass-api.de/api/interpreter"
     private const val RADIUS_M = 15_000
     private const val REFETCH_M = 8_000f
@@ -75,14 +74,13 @@ internal object SpeedCameras {
 
     private val _ahead = MutableStateFlow<CameraAhead?>(null)
     val ahead: StateFlow<CameraAhead?> = _ahead
-    private val _speak = MutableStateFlow(false)
-    val speak: StateFlow<Boolean> = _speak
+    private var appContext: Context? = null
 
     /** Follows the drive while a tile shows the cameras, or always once warnings are on ([MainActivity]). */
     @Synchronized
     fun start(context: Context) {
         val app = context.applicationContext
-        _speak.value = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_SPEAK, false)
+        appContext = app
         users++
         if (job?.isActive == true) return
         job = scope.launch { LocationFeed.location.collect { loc -> if (loc != null) onLocation(app, loc) } }
@@ -91,17 +89,13 @@ internal object SpeedCameras {
     @Synchronized
     fun stop() {
         if (users == 0 || --users > 0) return
-        if (!_speak.value) { job?.cancel(); job = null }
+        val app = appContext
+        if (app == null || !SpokenEvents.isOn(app, SpokenEvent.SPEED_CAMERAS)) { job?.cancel(); job = null }
     }
 
-    /** Started at boot only when warnings are on. */
+    /** Started at boot, and when the switch is turned on, only when warnings are on. */
     fun startIfSpeaking(context: Context) {
-        if (context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_SPEAK, false)) start(context)
-    }
-
-    fun setSpeak(context: Context, on: Boolean) {
-        _speak.value = on
-        context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_SPEAK, on).apply()
+        if (SpokenEvents.isOn(context, SpokenEvent.SPEED_CAMERAS)) start(context)
     }
 
     private suspend fun onLocation(context: Context, loc: Location) {
@@ -114,11 +108,11 @@ internal object SpeedCameras {
         }
         val next = nearestAhead(loc, cameras)
         _ahead.value = next
-        if (next != null && _speak.value && next.distanceM <= WARN_M && warned.add(next.camera)) {
+        if (next != null && next.distanceM <= WARN_M && SpokenEvents.isOn(context, SpokenEvent.SPEED_CAMERAS) && warned.add(next.camera)) {
             val app = AppLanguage.wrap(context)
             val text = next.camera.limitKmh?.let { app.getString(R.string.widgets_cam_say_limit, Units.current.value.speed(it)) }
                 ?: app.getString(R.string.widgets_cam_say)
-            CarVoice.speak(text, InAppNav.locale(context))
+            CarVoice.announce(text, InAppNav.locale(context))
         }
         if (warned.size > 200) warned.clear()
     }
@@ -157,12 +151,14 @@ internal fun SpeedCamerasCard(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     DisposableEffect(Unit) { SpeedCameras.start(context); onDispose { SpeedCameras.stop() } }
     val ahead by SpeedCameras.ahead.collectAsState()
-    val speak by SpeedCameras.speak.collectAsState()
+    LaunchedEffect(Unit) { SpokenEvents.load(context) }
+    val spoken by SpokenEvents.on.collectAsState()
+    val speak = SpokenEvent.SPEED_CAMERAS in spoken
     val units by Units.current.collectAsState()
     Card(modifier = modifier) {
         Column(modifier = Modifier.fillMaxSize().padding(DashSpace.Lg), verticalArrangement = Arrangement.SpaceBetween) {
             TileHeader(stringResource(R.string.widgets_cam)) {
-                IconButton(onClick = { SpeedCameras.setSpeak(context, !speak) }, modifier = Modifier.size(DashSize.Touch)) {
+                IconButton(onClick = { SpokenEvents.set(context, SpokenEvent.SPEED_CAMERAS, !speak) }, modifier = Modifier.size(DashSize.Touch)) {
                     Icon(
                         if (speak) Icons.Filled.VolumeUp else Icons.Filled.VolumeOff,
                         contentDescription = stringResource(R.string.widgets_cam_speak),

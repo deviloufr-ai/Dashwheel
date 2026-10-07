@@ -92,6 +92,7 @@
     <!-- My car tile -->
     <string name="car_my_car_title">MY CAR</string>
     <string name="car_my_car_fetch_hint">Tap to fetch the full specs with AI</string>
+    <string name="car_my_car_name_hint">Tap to enter your car</string>
     <string name="car_source_preset">Preset</string>
     <string name="car_source_ai">From AI</string>
     <string name="car_source_user">Edited</string>
@@ -109,16 +110,19 @@
     <string name="car_fuel_petrol">Petrol</string>
     <string name="car_fuel_hybrid">Hybrid</string>
     <string name="car_fuel_lpg">LPG</string>
+    <string name="car_fuel_electric">Electric</string>
 
     <!-- My car settings -->
     <string name="car_menu">My car</string>
     <string name="car_my_car_title_dialog">My car</string>
     <string name="car_settings_explanation">Name your car precisely, then let AI fill in the specs. Check them before saving.</string>
     <string name="car_name">Car</string>
+    <string name="car_name_hint">Make, model, engine and year</string>
     <string name="car_fetch">Fetch specs with AI</string>
     <string name="car_fetch_ok">Specs filled in: check them, then Save</string>
     <string name="car_fetch_failed">Couldn\'t fetch the specs: %1$s</string>
     <string name="car_fetch_no_key">add a Gemini key in Settings → Car → AI mechanic first</string>
+    <string name="car_fetch_needs_key">Add a Gemini key in Settings, Car, AI mechanic to fill the specs</string>
     <string name="car_section_engine">Engine</string>
     <string name="car_section_gearbox">Gearbox</string>
     <string name="car_section_upkeep">Upkeep</string>

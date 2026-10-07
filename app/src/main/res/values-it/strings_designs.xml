@@ -166,4 +166,9 @@
     <string name="design_family_copper">Rame</string>
     <string name="design_family_cabins">Abitacoli</string>
     <string name="design_label_value">%1$s: %2$s</string>
+
+    <string name="design_parked_looks">Stili da fermo</string>
+    <string name="design_parked_looks_note">Belli, ma più lenti da leggere guidando</string>
+    <string name="design_alert_hot">Caldo</string>
+    <string name="design_alert_low">Basso</string>
 </resources>

@@ -3,6 +3,8 @@ package com.openauto.dash
 import android.content.Context
 import android.util.Log
 import androidx.annotation.StringRes
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import org.json.JSONArray
 import org.json.JSONObject
 import kotlin.math.abs
@@ -200,12 +202,39 @@ fun DashboardItem.isCompactTile(): Boolean =
     this is DashboardItem.AppShortcut || this is DashboardItem.SplitPair
 
 /**
- * Smallest span a tile may be resized to: a single cell, whatever it is. A
- * small tile's content is made to fit with its [DashboardItem.zoom].
+ * Smallest span a built-in kind stays readable at, width to height: a number
+ * tile needs two cells each way, a list three across, the map three by three.
+ * The resize handle, the templates and the placer never go under it; a saved
+ * tile that is smaller still loads at its size.
  */
-fun DashboardItem.minW(): Int = 1
+fun BuiltinKind.minSize(): Pair<Int, Int> = when (this) {
+    BuiltinKind.SPEED_HUD, BuiltinKind.SPEED_LIMIT, BuiltinKind.GEAR, BuiltinKind.CLOCK -> 2 to 2
+    // Lists: rows need their width.
+    BuiltinKind.CALENDAR, BuiltinKind.NOTIFICATIONS, BuiltinKind.QUICK_DIAL, BuiltinKind.FUEL_PRICES, BuiltinKind.WIFI_NETWORKS,
+    BuiltinKind.BT_DEVICES, BuiltinKind.FUEL_LOG, BuiltinKind.RADIO_PRESETS, BuiltinKind.VOICE_NOTES, BuiltinKind.CAN_MON,
+    BuiltinKind.SHARE_ETA -> 3 to 2
+    BuiltinKind.NAVMAP, BuiltinKind.MAPS_INSIDE, BuiltinKind.PIP_ANCHOR -> 3 to 3
+    BuiltinKind.DASH_BAR -> 1 to 3
+    BuiltinKind.QUICK_SWITCHES -> 3 to 1
+    // A gauge or a picture with a few lines under it.
+    BuiltinKind.TELEMETRY, BuiltinKind.OBD_ALL, BuiltinKind.OBD_DTC, BuiltinKind.RANGE, BuiltinKind.DOORS, BuiltinKind.COMPASS,
+    BuiltinKind.GFORCE, BuiltinKind.NAVIGATION, BuiltinKind.MEDIA, BuiltinKind.FILTER_CARE, BuiltinKind.MY_CAR, BuiltinKind.ECO_DRIVE,
+    BuiltinKind.SERVICE, BuiltinKind.CAR_STATUS, BuiltinKind.TYRES, BuiltinKind.HEAD_UNIT -> 2 to 2
+    // One reading and a caption.
+    else -> 2 to 1
+}
 
-fun DashboardItem.minH(): Int = 1
+/**
+ * Smallest span this tile may be resized to where it sits: its kind's
+ * [minSize] for a built-in widget, one cell for the rest, and never more than
+ * the room left to the grid's edge, so a saved tile smaller than its kind's
+ * minimum is kept where it is rather than pushed off or dropped.
+ */
+fun DashboardItem.minW(): Int =
+    (if (this is DashboardItem.BuiltinWidget) kind.minSize().first else 1).coerceAtMost(GRID_COLS - x).coerceAtLeast(1)
+
+fun DashboardItem.minH(): Int =
+    (if (this is DashboardItem.BuiltinWidget) kind.minSize().second else 1).coerceAtMost(GRID_ROWS - y).coerceAtLeast(1)
 
 /** How far a tile's content can be zoomed out and in, and by how much per tap. */
 const val ZOOM_MIN = 0.5f
@@ -248,10 +277,15 @@ fun DashboardItem.withZoom(zoom: Float): DashboardItem {
     }
 }
 
-/** Returns a copy placed at cell [x],[y] spanning [w] x [h], clamped to the grid. */
+/**
+ * Returns a copy placed at cell [x],[y] spanning [w] x [h], clamped to the
+ * grid. One cell is the floor here, not the kind's [minSize]: a saved layout
+ * with a smaller tile loads as it was (the resize handle and the placer pass
+ * the kind's minimum themselves).
+ */
 fun DashboardItem.withCell(x: Int, y: Int, w: Int, h: Int): DashboardItem {
-    val cw = w.coerceIn(minW(), GRID_COLS)
-    val ch = h.coerceIn(minH(), GRID_ROWS)
+    val cw = w.coerceIn(1, GRID_COLS)
+    val ch = h.coerceIn(1, GRID_ROWS)
     val cx = x.coerceIn(0, GRID_COLS - cw)
     val cy = y.coerceIn(0, GRID_ROWS - ch)
     return when (this) {
@@ -376,9 +410,10 @@ object DashboardStore {
     /**
      * Default layout when nothing is saved yet: the Daily template, laid out
      * for the head unit's 1280x720 screen ([half]: beside a Maps dock). Car
-     * tiles are included so a new user sees where to connect the adapter; the
-     * CANbox ones only under root ([PrivilegedShell]), where they can show
-     * something.
+     * tiles only once an adapter can be dialled (a fresh install has none,
+     * and tiles with nothing to show would fill four pages; choosing one
+     * later offers to add them, see TemplatePlacer.addCarTiles); the CANbox
+     * ones only under root ([PrivilegedShell]), where they can show something.
      */
     private fun defaultPages(half: Boolean = false): List<List<DashboardItem>> = TemplatePlacer.pages(
         DashTemplate.DAILY,
@@ -386,7 +421,7 @@ object DashboardStore {
             // Upright (720x1280), the Maps dock takes the top or bottom half instead.
             pageWidthDp = if (ScreenShape.vertical) 720f else if (half) 640f else 1280f,
             pageHeightDp = if (ScreenShape.vertical) (if (half) 560f else 1120f) else 576f,
-            obdPaired = true,
+            obdPaired = ObdBluetoothManager.canDial(),
             driverOnRight = CarProfileStore.current.driverOnRight,
             mapsDocked = half,
             dockApps = emptyList(),
@@ -510,7 +545,7 @@ object DashboardStore {
 
     fun load(context: Context, variant: String = ""): List<List<DashboardItem>> {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val raw = prefs.getString(pagesKey(variant), null) ?: run { retained(variant).clear(); return defaultPagesFor(variant) }
+        val raw = prefs.getString(pagesKey(variant), null) ?: run { retained(variant).clear(); return defaultPagesFor(variant).also(::notePlaced) }
 
         // A corrupt primary value falls back to the last good layout rather
         // than to the defaults; only when both are unreadable does the user
@@ -524,7 +559,7 @@ object DashboardStore {
                 Log.e(TAG, "Saved layout and its backup are both unreadable; using defaults")
                 retained(variant).clear()
                 lastGoodDoc.remove(variant)
-                return defaultPagesFor(variant)
+                return defaultPagesFor(variant).also(::notePlaced)
             }
 
         // Always return exactly PAGE_COUNT pages. Tiles that predate grid
@@ -534,7 +569,15 @@ object DashboardStore {
         return List(PAGE_COUNT) { p ->
             val page = parsed.getOrElse(p) { emptyList() }
             repairOverlaps(if (page.any { it.x < 0 }) autoPlace(page) else page)
-        }
+        }.also(::notePlaced)
+    }
+
+    /** The built-in kinds on any dashboard of the layout last loaded or saved: the add sheet marks them as already there. */
+    private val _placedKinds = MutableStateFlow<Set<BuiltinKind>>(emptySet())
+    val placedKinds: StateFlow<Set<BuiltinKind>> = _placedKinds
+
+    private fun notePlaced(pages: List<List<DashboardItem>>) {
+        _placedKinds.value = pages.flatten().filterIsInstance<DashboardItem.BuiltinWidget>().map { it.kind }.toSet()
     }
 
     /**
@@ -581,6 +624,7 @@ object DashboardStore {
     }
 
     fun save(context: Context, pages: List<List<DashboardItem>>, variant: String = "") {
+        notePlaced(pages)
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val doc = serializePages(pages, variant)
         // Keep what was there as the fallback for the next load, unless it is
@@ -719,9 +763,11 @@ object DashboardStore {
                 placed += fixed.withCell(full.first, full.second, fixed.w, fixed.h)
                 continue
             }
-            // No room at its size: shrink to the minimum span before giving up.
-            val small = nearestFreeCell(placed, fixed.minW(), fixed.minH(), fixed.x, fixed.y) ?: continue
-            placed += fixed.withCell(small.first, small.second, fixed.minW(), fixed.minH())
+            // No room at its size: shrink to its kind's minimum, then to one cell, before giving up.
+            val shrunk = listOf(fixed.minW() to fixed.minH(), 1 to 1).firstNotNullOfOrNull { (w, h) ->
+                nearestFreeCell(placed, w, h, fixed.x, fixed.y)?.let { cell -> fixed.withCell(cell.first, cell.second, w, h) }
+            } ?: continue
+            placed += shrunk
         }
         return placed
     }

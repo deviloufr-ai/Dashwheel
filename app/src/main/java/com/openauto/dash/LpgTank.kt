@@ -279,11 +279,10 @@ internal object LpgTank {
         _state.value = st.copy(warned = true)
         save(saveState = true)
         val app = appContext ?: return
-        val config = AiSettings.load(app)
-        if (!config.speak) return
+        if (!SpokenEvents.isOn(app, SpokenEvent.LPG)) return
         val units = Units.current.value
-        val text = config.language.resources(app).getString(R.string.lpg_voice_low, units.distance(r.rangeKm).roundToInt(), units.distanceUnit)
-        CarVoice.announce(text, config.language.locale)
+        val text = AppLanguage.wrap(app).getString(R.string.lpg_voice_low, units.distance(r.rangeKm).roundToInt(), units.distanceUnit)
+        CarVoice.announce(text, InAppNav.locale(app))
     }
 
     fun saveSettings(context: Context, s: LpgSettings) {

@@ -240,22 +240,23 @@ private fun ClockReadout(numSize: Int) {
     val u = LocalUnits.current
     val timeFmt = remember(locale, u.clock24) { SimpleDateFormat(u.digitsPattern(), locale) }
     val dateFmt = remember(locale) { SimpleDateFormat(android.text.format.DateFormat.getBestDateTimePattern(locale, "EEEEdMMMM"), locale) }
-    val secFmt = remember(locale) { SimpleDateFormat("ss", locale) }
     val time = timeFmt.format(now)
     val date = dateFmt.format(now)
-    // A 12-hour clock's AM / PM rides with the small seconds.
-    val seconds = secFmt.format(now) + (u.amPm(now, locale)?.let { " $it" } ?: "")
+    // Hours and minutes only: seconds ticking beside them pulled the eye for nothing. A 12-hour clock's AM / PM stays small.
+    val amPm = u.amPm(now, locale)
     Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
         Row(verticalAlignment = Alignment.Bottom) {
             HeroNumber(text = time, size = numSize)
-            Spacer(Modifier.width(6.dp))
-            Text(
-                seconds,
-                color = DashColors.TextSecondary,
-                fontWeight = FontWeight.SemiBold,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = (numSize * 0.16f).dp)
-            )
+            if (amPm != null) {
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    amPm,
+                    color = DashColors.TextSecondary,
+                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(bottom = (numSize * 0.16f).dp)
+                )
+            }
         }
         Text(
             date.replaceFirstChar { it.uppercase() },
@@ -473,41 +474,50 @@ internal fun guideToEvent(context: Context, e: AgendaEvent) {
     NavHandoff.go(context, e.title.ifBlank { e.location }, null, null, e.location)
 }
 
-/** Next events from the driver's phone, else the device calendars. An event with a place: a tap starts guidance there. */
+/**
+ * Next events from the driver's phone, else the device calendars. An event
+ * with a place: a tap says "Guidance to X" and leaves three seconds to cancel
+ * ([PendingActionStrip]) before guidance starts.
+ */
 @Composable
 internal fun CalendarCard(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val agenda = rememberAgendaSource()
     val events = agenda.events
+    val pending = rememberPendingAction()
+    fun guide(e: AgendaEvent) = pending.arm(context.getString(R.string.phone_guidance_to, e.title.ifBlank { e.location })) { guideToEvent(context, e) }
 
     Card(modifier = modifier) {
-        Column(modifier = Modifier.fillMaxSize().padding(DashSpace.Lg)) {
-            TileHeader(stringResource(R.string.info_agenda_title)) {
-                // The unit's calendar app knows nothing of the phone's events.
-                if (!agenda.fromPhone) TextButton(
-                    onClick = {
-                        runCatching {
-                            context.startActivity(
-                                Intent(Intent.ACTION_VIEW, CalendarContract.CONTENT_URI.buildUpon().appendPath("time").build())
-                                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            )
-                        }
-                    },
-                    modifier = Modifier.height(DashSize.Touch), contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp)
-                ) { Text(stringResource(R.string.info_open), color = DashColors.Accent, style = MaterialTheme.typography.labelMedium) }
-            }
-            when {
-                events.isEmpty() && !agenda.phoneSent && !agenda.access.granted -> NeedsAccess(
-                    Icons.Filled.Event, stringResource(R.string.info_agenda_needs_access),
-                    stringResource(if (agenda.access.blocked) R.string.dash_open_settings else R.string.info_agenda_allow), agenda.access.request
-                )
-                events.isEmpty() -> Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    Text(stringResource(agenda.emptyText), color = DashColors.Muted, textAlign = TextAlign.Center)
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize().padding(DashSpace.Lg)) {
+                TileHeader(stringResource(R.string.info_agenda_title)) {
+                    // The unit's calendar app knows nothing of the phone's events.
+                    if (!agenda.fromPhone) TextButton(
+                        onClick = {
+                            runCatching {
+                                context.startActivity(
+                                    Intent(Intent.ACTION_VIEW, CalendarContract.CONTENT_URI.buildUpon().appendPath("time").build())
+                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                )
+                            }
+                        },
+                        modifier = Modifier.height(DashSize.Touch), contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp)
+                    ) { Text(stringResource(R.string.info_open), color = DashColors.Accent, style = MaterialTheme.typography.labelMedium) }
                 }
-                else -> LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    items(events) { e -> AgendaRow(e) { guideToEvent(context, e) } }
+                when {
+                    events.isEmpty() && !agenda.phoneSent && !agenda.access.granted -> NeedsAccess(
+                        Icons.Filled.Event, stringResource(R.string.info_agenda_needs_access),
+                        stringResource(if (agenda.access.blocked) R.string.dash_open_settings else R.string.info_agenda_allow), agenda.access.request
+                    )
+                    events.isEmpty() -> Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Text(stringResource(agenda.emptyText), color = DashColors.Muted, textAlign = TextAlign.Center)
+                    }
+                    else -> LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        items(events) { e -> AgendaRow(e) { guide(e) } }
+                    }
                 }
             }
+            PendingActionStrip(pending, Modifier.align(Alignment.BottomCenter).padding(DashSpace.Sm))
         }
     }
 }

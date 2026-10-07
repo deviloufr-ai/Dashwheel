@@ -92,6 +92,7 @@
     <!-- My car tile -->
     <string name="car_my_car_title">O MEU CARRO</string>
     <string name="car_my_car_fetch_hint">Toque para obter a ficha completa com IA</string>
+    <string name="car_my_car_name_hint">Toque para indicar o seu carro</string>
     <string name="car_source_preset">Predefinido</string>
     <string name="car_source_ai">Da IA</string>
     <string name="car_source_user">Editado</string>
@@ -109,16 +110,19 @@
     <string name="car_fuel_petrol">Gasolina</string>
     <string name="car_fuel_hybrid">Híbrido</string>
     <string name="car_fuel_lpg">GPL</string>
+    <string name="car_fuel_electric">Elétrico</string>
 
     <!-- My car settings -->
     <string name="car_menu">O meu carro</string>
     <string name="car_my_car_title_dialog">O meu carro</string>
     <string name="car_settings_explanation">Indique o carro com precisão e deixe a IA preencher as características. Verifique-as antes de guardar.</string>
     <string name="car_name">Carro</string>
+    <string name="car_name_hint">Marca, modelo, motor e ano</string>
     <string name="car_fetch">Obter ficha com IA</string>
     <string name="car_fetch_ok">Ficha preenchida: verifique-a e depois Guardar</string>
     <string name="car_fetch_failed">Não foi possível obter a ficha: %1$s</string>
     <string name="car_fetch_no_key">adicione primeiro uma chave Gemini em Definições → Carro → Mecânico IA</string>
+    <string name="car_fetch_needs_key">Adicione uma chave Gemini em Definições, Carro, Mecânico IA para preencher a ficha</string>
     <string name="car_section_engine">Motor</string>
     <string name="car_section_gearbox">Caixa de velocidades</string>
     <string name="car_section_upkeep">Manutenção</string>

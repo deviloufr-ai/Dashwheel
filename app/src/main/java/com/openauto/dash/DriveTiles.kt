@@ -39,7 +39,9 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -72,6 +74,7 @@ import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sin
+import kotlinx.coroutines.delay
 
 /*
  * Driving widgets: digital speed HUD, compass, trip computer, G-force meter
@@ -144,18 +147,26 @@ internal fun SpeedHudCard(obdData: ObdData, obdConnected: Boolean, modifier: Mod
     val over = (kmh ?: 0) >= SPEED_WARNING_KMH
     val u = LocalUnits.current
     val speed = kmh?.let { u.speed(it) }
+    // The source (OBD or GPS) is said for two seconds when it changes, not worn
+    // as a badge; "No signal" stays while there is no speed to show.
+    var saidSource by remember { mutableStateOf<String?>(null) }
+    var lastSource by remember { mutableStateOf(source) }
+    LaunchedEffect(source) {
+        if (source == lastSource) return@LaunchedEffect
+        lastSource = source
+        saidSource = source
+        delay(SOURCE_CAPTION_MS)
+        saidSource = null
+    }
+    val caption = saidSource ?: source.takeIf { speed == null }
 
     Card(modifier = modifier) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(DashSpace.Lg)) {
             val numSize = (min(maxWidth.value * 0.42f, maxHeight.value * 0.62f)).coerceIn(40f, 150f).roundToInt()
+            // Two rows high or less the number is everything: no header, as on the Gear card.
+            val roomy = maxHeight >= 150.dp
             Column(modifier = Modifier.fillMaxSize()) {
-                TileHeader(stringResource(R.string.info_speed_title)) {
-                    Text(
-                        source,
-                        color = if (speed != null) DashColors.Good else DashColors.Muted,
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                }
+                if (roomy) TileHeader(stringResource(R.string.info_speed_title))
                 Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                     Row(verticalAlignment = Alignment.Bottom) {
                         if (over) {
@@ -185,10 +196,22 @@ internal fun SpeedHudCard(obdData: ObdData, obdConnected: Boolean, modifier: Mod
                         )
                     }
                 }
+                if (caption != null) {
+                    Text(
+                        caption,
+                        color = if (speed != null) DashColors.Good else DashColors.Muted,
+                        style = MaterialTheme.typography.labelSmall,
+                        maxLines = 1,
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
+                }
             }
         }
     }
 }
+
+/** How long the speed tile says where its reading comes from after that changes. */
+private const val SOURCE_CAPTION_MS = 2_000L
 
 // --- Compass --------------------------------------------------------------------
 
@@ -342,7 +365,8 @@ internal fun TripCard(modifier: Modifier = Modifier) {
             ) {
                 Column(modifier = Modifier.weight(1.2f)) {
                     Row(verticalAlignment = Alignment.Bottom) {
-                        HeroNumber(text = if (km < 100) String.format(Locale.getDefault(), "%.1f", km) else km.roundToInt().toString(), size = 48)
+                        // A decimal only under 10: past that it ticked every 100 m while driving.
+                        HeroNumber(text = if (km < 10) String.format(Locale.getDefault(), "%.1f", km) else km.roundToInt().toString(), size = 48)
                         Spacer(Modifier.width(6.dp))
                         Text(u.distanceUnit.uppercase(), color = DashColors.TextSecondary, fontWeight = FontWeight.SemiBold, letterSpacing = 0.2.em,
                             style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(bottom = 8.dp))

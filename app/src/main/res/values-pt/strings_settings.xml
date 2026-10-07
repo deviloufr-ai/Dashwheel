@@ -9,6 +9,7 @@
     <string name="settings_ai_detail">Explica os códigos de avaria e fala os alertas</string>
     <string name="settings_system_detail">Os widgets Android são adicionados sem perguntar sempre. Precisa de root.</string>
     <string name="settings_section_driving">Condução</string>
+    <string name="settings_section_sound">Som</string>
     <string name="settings_drive_lock">Alterações só com o carro parado</string>
     <string name="settings_drive_lock_detail">A edição, as definições e a grelha de apps esperam que o carro pare</string>
     <string name="settings_tap_sound">Som ao tocar</string>
@@ -55,6 +56,7 @@
     <string name="alert_tap_to_hide">Toque para ocultar</string>
     <string name="alert_enlarge">Mostrar</string>
     <string name="alert_speak">Dizer em voz alta</string>
+    <string name="alert_also_spoken">Também dito em voz alta</string>
     <string name="alert_show">Mostrar este alerta</string>
     <string name="alert_speak_call_detail">Diz quem está a ligar enquanto toca</string>
     <string name="alert_speak_doors_detail">Diz que porta está aberta se abrir em andamento ou se arrancar com uma aberta</string>
@@ -96,7 +98,7 @@
     <string name="settings_screen_vertical_hint">Põe o painel na vertical com uma disposição própria, se a unidade o permitir</string>
     <string name="settings_section_display">Visualização</string>
     <string name="settings_appearance_title">Dia e noite</string>
-    <string name="alert_style_section">Alertas que o Dashwheel mostra</string>
+    <string name="alert_style_section">Pop-ups ao estilo do Dashwheel</string>
     <string name="alert_more_with_permission">Mais alertas do carro com root, ou após este comando a partir de um PC: %1$s</string>
     <string name="settings_section_about">Acerca</string>
     <string name="settings_screen_keep_title">Manter esta orientação?</string>

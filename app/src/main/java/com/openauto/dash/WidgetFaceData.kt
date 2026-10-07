@@ -205,7 +205,9 @@ private fun telemetryFace(env: SkinTileEnv): WidgetFace {
         value = u.speed(d.speedKmh).toString(), unit = u.speedUnit,
         caption = "${d.rpm} rpm",
         fraction = d.speedKmh / 220f,
-        alert = d.speedKmh >= SPEED_WARNING_KMH || d.coolantTempC >= 110,
+        // An engine alert only: speeding is the speed tile's business, and a red number here read as both.
+        alert = d.coolantTempC >= 110,
+        alertWord = stringResource(R.string.design_alert_hot),
         number = u.speed(d.speedKmh).toFloat(),
         gauges = engineGauges(d, rpmFirst = false),
         // The revs are already the caption: the designs showing only two stats don't repeat them.
@@ -259,6 +261,7 @@ private fun rangeFace(env: SkinTileEnv): WidgetFace {
         caption = (if (fuel.percentEstimated) "≈ " else "") + fmt("%d %% · %.1f L", fuel.percent, fuel.liters),
         fraction = fuel.percent / 100f,
         alert = fuel.percent <= 10,
+        alertWord = stringResource(R.string.design_alert_low),
         severity = if (fuel.percent <= 10) 2 else if (fuel.percent <= 20) 1 else 0,
         sign = SignKind.FUEL,
         scale = "E" to "F",
@@ -353,6 +356,7 @@ private fun doorsFace(): WidgetFace {
         caption = if (d.anyOpen) all.filter { it.second }.joinToString(" · ") { it.first } else stringResource(R.string.vehicle_doors_all_closed),
         fraction = openCount / all.size.toFloat(),
         alert = d.anyOpen,
+        alertWord = open,
         severity = if (d.anyOpen) 1 else 0,
         doors = listOf(d.frontLeft, d.frontRight, d.rearLeft, d.rearRight, d.tailgate, d.bonnet),
         // Open doors first, so every design shows them before the closed ones.
@@ -444,7 +448,8 @@ private fun tripFace(): WidgetFace {
     return WidgetFace(
         icon = Icons.Filled.Timeline,
         title = BuiltinKind.TRIP.label,
-        value = if (km < 100) fmt("%.1f", km) else km.roundToInt().toString(), unit = u.distanceUnit,
+        // A decimal only under 10: past that it ticked every 100 m while driving.
+        value = if (km < 10) fmt("%.1f", km) else km.roundToInt().toString(), unit = u.distanceUnit,
         caption = since,
         reach = since,
         stats = listOf(
@@ -686,15 +691,16 @@ private fun clockFace(): WidgetFace {
     val cal = remember(now) { Calendar.getInstance().apply { time = now } }
     val h = cal.get(Calendar.HOUR_OF_DAY)
     val m = cal.get(Calendar.MINUTE)
-    val s = cal.get(Calendar.SECOND)
+    // No seconds: hours and minutes are what a driver reads, and a face equal
+    // to the last one costs nothing on screen (the seconds in the triple stay 0).
     return WidgetFace(
         icon = Icons.Filled.Schedule,
         title = BuiltinKind.CLOCK.label,
         value = timeFmt.format(now), unit = u.amPm(now, locale).orEmpty(),
         caption = dateFmt.format(now).replaceFirstChar { it.uppercase() },
-        fraction = s / 60f,
+        fraction = m / 60f,
         fullCircle = true,
-        clock = Triple(h, m, s),
+        clock = Triple(h, m, 0),
         onClick = { openClockApp(context) }
     )
 }
@@ -757,10 +763,13 @@ private fun agendaFace(): WidgetFace {
     // Read each minute: taken once, the approach bar and "started" stood still until the events changed.
     val now = rememberWallClock(60_000L).longValue
     val span = (next.begin - now).coerceAtLeast(0L)
+    // Guidance starts after the held step, as on the standard card: a wrong row can be taken back.
+    val pending = LocalPendingAction.current
+    fun guideTo(e: AgendaEvent) = pending.arm(context.getString(R.string.phone_guidance_to, e.title.ifBlank { e.location })) { guideToEvent(context, e) }
     // Guidance to the next event's place, a tap away.
     val guide = next.takeIf { it.location.isNotBlank() }?.let { e ->
         FaceAction(Icons.Filled.Navigation, stringResource(R.string.phone_guidance_to, e.title.ifBlank { e.location }), primary = true,
-            onClick = { guideToEvent(context, e) })
+            onClick = { guideTo(e) })
     }
     return WidgetFace(
         icon = Icons.Filled.Event,
@@ -771,7 +780,7 @@ private fun agendaFace(): WidgetFace {
         fraction = 1f - (span / (3 * 3_600_000f)).coerceIn(0f, 1f),
         rows = list.map { e ->
             FaceRow(e.title.ifBlank { noTitle }, whenText(e), alert = e.begin <= now,
-                onClick = if (e.location.isNotBlank()) ({ guideToEvent(context, e) }) else null)
+                onClick = if (e.location.isNotBlank()) ({ guideTo(e) }) else null)
         },
         events = list.filter { !it.allDay }.map { FaceEvent(it.begin, it.end, it.title.ifBlank { noTitle }) },
         actions = listOfNotNull(guide),
@@ -788,10 +797,13 @@ private fun quickDialFace(): WidgetFace {
     val perm = source.access
     val favourites = source.favourites
     val dialer = FaceAction(Icons.Filled.Dialpad, stringResource(R.string.info_quickdial_dialer), onClick = { context.launchSafely(Intent(Intent.ACTION_DIAL)) })
+    // Every call waits in the tile's strip first, as on the standard card: "Calling X", Cancel, three seconds.
+    val pending = LocalPendingAction.current
+    fun call(name: String, number: String) = pending.arm(context.getString(R.string.phone_calling, name)) { dialNumber(context, number) }
     // A missed call on the phone: calling back comes first.
-    val callBack = source.callBack?.let { call ->
-        FaceAction(Icons.Filled.PhoneMissed, stringResource(R.string.phone_call_back, call.name ?: call.number), primary = true,
-            onClick = { dialNumber(context, call.number) })
+    val callBack = source.callBack?.let { missed ->
+        FaceAction(Icons.Filled.PhoneMissed, stringResource(R.string.phone_call_back, missed.name ?: missed.number), primary = true,
+            onClick = { call(missed.name ?: missed.number, missed.number) })
     }
     if (favourites.isEmpty() && !source.phoneSent && !perm.granted) {
         return idleFace(Icons.Filled.Call, BuiltinKind.QUICK_DIAL.label, stringResource(R.string.info_quickdial_needs_access),
@@ -802,7 +814,7 @@ private fun quickDialFace(): WidgetFace {
         return idleFace(Icons.Filled.Call, BuiltinKind.QUICK_DIAL.label, stringResource(source.emptyText), action = callBack ?: dialer)
     }
     fun dial(f: Favourite) {
-        f.number?.let { dialNumber(context, it) }
+        f.number?.let { call(f.name, it) }
     }
     fun initials(name: String) = name.split(' ').take(2).mapNotNull { it.firstOrNull()?.uppercase() }.joinToString("")
     val first = favourites.first()
@@ -978,6 +990,8 @@ private fun ecoFace(): WidgetFace {
     val liters = drive.distanceKm * car.typicalUse / 100
     val call = ecoCall(score)
     val u = LocalUnits.current
+    // Whole currency units while driving; the cents are for a look while parked.
+    val moving = LocalDriveLock.current.moving
     return WidgetFace(
         icon = kindIcon(BuiltinKind.ECO_DRIVE),
         title = stringResource(if (care.drive != null) R.string.car_eco_title else R.string.car_eco_title_last),
@@ -992,7 +1006,7 @@ private fun ecoFace(): WidgetFace {
             if (car.gearbox == GearboxType.ROBOTISED) FaceStat(stringResource(R.string.car_eco_clutch), drive.clutchHolds.toString()) else null,
             FaceStat(
                 stringResource(if (u.imperial) R.string.units_eco_fuel_mi else R.string.car_eco_fuel, fmt("%.1f", u.distance(drive.distanceKm))),
-                stringResource(R.string.car_eco_fuel_value, fmt("%.1f", liters), fmt("%.2f", liters * car.fuelPrice), car.currency)
+                stringResource(R.string.car_eco_fuel_value, fmt("%.1f", liters), fmt(if (moving) "%.0f" else "%.2f", liters * car.fuelPrice), car.currency)
             )
         )
     )
@@ -1107,6 +1121,11 @@ private fun fuelPricesFace(): WidgetFace {
         ), "€/L")
     if (nearby.ranked.isEmpty()) return idleFace(icon, title, fuelNoneText(), "€/L")
     val best = nearby.ranked.first()
+    // A new route only after the held step, as on the standard card: "Guidance to X", Cancel, three seconds.
+    val pending = LocalPendingAction.current
+    fun goTo(station: FuelStation) = pending.arm(context.getString(R.string.phone_guidance_to, station.name.ifBlank { station.town })) {
+        navigateTo(context, station.lat, station.lng, station.label)
+    }
     return WidgetFace(
         icon = icon, title = title,
         value = FuelPrices.formatPrice(best.price), unit = "€/L",
@@ -1120,10 +1139,10 @@ private fun fuelPricesFace(): WidgetFace {
             FaceRow(
                 FuelPrices.formatPriceWithCurrency(r.price) + " · " + listOf(r.station.name, r.station.town).filter { it.isNotBlank() }.joinToString(", "),
                 FuelPrices.formatDistance(r.distanceKm),
-                onClick = { navigateTo(context, r.station.lat, r.station.lng, r.station.label) }
+                onClick = { goTo(r.station) }
             )
         },
-        onClick = { navigateTo(context, best.station.lat, best.station.lng, best.station.label) }
+        onClick = { goTo(best.station) }
     )
 }
 

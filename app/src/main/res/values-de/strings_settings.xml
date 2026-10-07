@@ -9,6 +9,7 @@
     <string name="settings_ai_detail">Erklärt Fehlercodes und spricht Warnungen</string>
     <string name="settings_system_detail">Android-Widgets lassen sich ohne Rückfrage hinzufügen. Benötigt Root.</string>
     <string name="settings_section_driving">Fahren</string>
+    <string name="settings_section_sound">Ton</string>
     <string name="settings_drive_lock">Änderungen nur im Stand</string>
     <string name="settings_drive_lock_detail">Bearbeiten, Einstellungen und das App-Raster warten, bis das Auto steht</string>
     <string name="settings_tap_sound">Tippton</string>
@@ -55,6 +56,7 @@
     <string name="alert_tap_to_hide">Zum Ausblenden tippen</string>
     <string name="alert_enlarge">Zeigen</string>
     <string name="alert_speak">Ansagen</string>
+    <string name="alert_also_spoken">Auch angesagt</string>
     <string name="alert_show">Diesen Hinweis zeigen</string>
     <string name="alert_speak_call_detail">Sagt beim Klingeln, wer anruft</string>
     <string name="alert_speak_doors_detail">Sagt, welche Tür offen ist, wenn sie sich während der Fahrt öffnet oder du mit offener Tür losfährst</string>
@@ -96,7 +98,7 @@
     <string name="settings_screen_vertical_hint">Dreht das Dashboard hochkant, mit eigenem Layout, wenn das Gerät es erlaubt</string>
     <string name="settings_section_display">Anzeige</string>
     <string name="settings_appearance_title">Tag und Nacht</string>
-    <string name="alert_style_section">Hinweise von Dashwheel</string>
+    <string name="alert_style_section">Pop-ups im Stil von Dashwheel</string>
     <string name="alert_more_with_permission">Mehr Fahrzeughinweise mit Root oder nach diesem Befehl von einem PC: %1$s</string>
     <string name="settings_section_about">Über</string>
     <string name="settings_screen_keep_title">Diese Ausrichtung behalten?</string>

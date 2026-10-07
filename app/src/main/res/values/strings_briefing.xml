@@ -4,15 +4,16 @@
     <string name="briefing_setting">Start-up briefing</string>
     <string name="briefing_setting_detail">When the car starts: low fuel, ice, engine faults and the next appointment</string>
 
-    <!-- Spoken when the car starts, in the mechanic's language -->
-    <string name="briefing_morning">Good morning.</string>
-    <string name="briefing_afternoon">Good afternoon.</string>
-    <string name="briefing_evening">Good evening.</string>
+    <!-- Spoken when the car starts, in the launcher's language -->
     <string name="briefing_ice">Watch out for ice on the road.</string>
     <string name="briefing_fuel_low">Fuel is low: about %1$d kilometres left, plan a stop.</string>
     <plurals name="briefing_faults">
-        <item quantity="one">%1$d engine fault code stored, details on screen.</item>
-        <item quantity="other">%1$d engine fault codes stored, details on screen.</item>
+        <item quantity="one">%1$d engine fault stored: %2$s. Look at the Fault codes tile when parked.</item>
+        <item quantity="other">%1$d engine faults stored: %2$s. Look at the Fault codes tile when parked.</item>
+    </plurals>
+    <plurals name="briefing_faults_untitled">
+        <item quantity="one">%1$d engine fault stored. Look at the Fault codes tile when parked.</item>
+        <item quantity="other">%1$d engine faults stored. Look at the Fault codes tile when parked.</item>
     </plurals>
     <string name="briefing_event">Next: %1$s at %2$s.</string>
     <!-- A sentence the AI mechanic already wrote in the right language -->

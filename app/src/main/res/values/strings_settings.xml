@@ -14,6 +14,7 @@
     <string name="settings_tap_sound">Tap sound</string>
     <string name="settings_tap_sound_detail">A short beep on each tap, for a screen that cannot vibrate</string>
     <string name="settings_section_driving">Driving</string>
+    <string name="settings_section_sound">Sound</string>
     <!-- Volume follows speed (SpeedVolume.kt), Settings → Driving -->
     <string name="speed_volume_title">Volume follows speed</string>
     <string name="speed_volume_detail">Covers road noise: louder as you speed up, back down as you slow. Your own volume changes are kept.</string>
@@ -56,6 +57,7 @@
     <string name="alert_tap_to_hide">Tap to hide</string>
     <string name="alert_enlarge">Show</string>
     <string name="alert_speak">Speak it</string>
+    <string name="alert_also_spoken">Also spoken</string>
     <string name="alert_show">Show this alert</string>
     <string name="alert_speak_call_detail">Says who is calling as the phone rings</string>
     <string name="alert_speak_doors_detail">Says which door is open if one opens while driving or you set off with one open</string>
@@ -98,7 +100,7 @@
     <!-- Settings by subject: Display and Alerts categories, the screen direction on trial -->
     <string name="settings_section_display">Display</string>
     <string name="settings_appearance_title">Day and night</string>
-    <string name="alert_style_section">Alerts Dashwheel shows</string>
+    <string name="alert_style_section">Pop-ups in Dashwheel\'s look</string>
     <string name="alert_more_with_permission">More car alerts with root, or after this command from a PC: %1$s</string>
     <string name="settings_section_about">About</string>
     <string name="settings_screen_keep_title">Keep this screen direction?</string>

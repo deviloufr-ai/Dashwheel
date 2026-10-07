@@ -27,6 +27,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CropFree
 import androidx.compose.material.icons.filled.OpenInNew
@@ -41,6 +42,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -232,7 +234,7 @@ private fun WidgetsTab(
     // The tiles that live on the privileged shell (the Maps window, the CANbox
     // ones) are left out where there is none: they could only sit waiting.
     val access = shellAccess()
-    val kinds = BuiltinKind.entries.filter { kind ->
+    val unsorted = BuiltinKind.entries.filter { kind ->
         kind.offered && access.allows(kind) &&
             // Only the QF firmware's car app shares the car's data.
             (kind != BuiltinKind.CAR_STATUS || CarBox.available) &&
@@ -249,6 +251,13 @@ private fun WidgetsTab(
             (category == null || kind.category == category) &&
             (query.isEmpty() || context.getString(kind.labelRes).contains(query, true) || context.getString(kind.blurbRes).contains(query, true))
     }
+    // What each kind needs and is missing right now goes on its card as a chip,
+    // and those cards follow the ones that can show something, within their category.
+    val available = rememberAvailableSources()
+    fun missing(kind: BuiltinKind): WidgetSource? = kind.needs.firstOrNull { it !in available }
+    val kinds = unsorted.sortedBy { if (missing(it) == null) 0 else 1 }
+    // Kinds already on a dashboard say so, so nothing is added twice by mistake.
+    val placed by DashboardStore.placedKinds.collectAsState()
     val extras = (category == null || category == WidgetCategory.APPS) && query.isEmpty()
     // The launch bar's preview holds a few of the installed apps, so it reads as a bar and not an empty strip.
     val sampleBar = remember(apps) { DashboardItem.LaunchBar(packages = apps.take(5).map { it.packageName }) }
@@ -261,7 +270,10 @@ private fun WidgetsTab(
     ) {
         val kindCards: (List<BuiltinKind>) -> Unit = { list ->
             items(list, key = { it.name }) { kind ->
-                WidgetCard(kind.label, kind.blurb, tileAspect(kind.defaultW, kind.defaultH), onClick = { onPickBuiltin(kind) }) {
+                WidgetCard(
+                    kind.label, kind.blurb, tileAspect(kind.defaultW, kind.defaultH), onClick = { onPickBuiltin(kind) },
+                    chip = missing(kind)?.let { stringResource(it.needsRes) }, placed = kind in placed
+                ) {
                     previewTile(DashboardItem.BuiltinWidget(kind, w = kind.defaultW, h = kind.defaultH))
                 }
             }
@@ -341,11 +353,21 @@ internal fun CategoryChip(label: String, selected: Boolean, onClick: () -> Unit)
 
 /**
  * One widget as it will look on the page: the live tile over the page
- * background at [aspect], then its name and the whole two-line blurb. The
- * card is a single button; taps never reach the preview's own controls.
+ * background at [aspect], then its name and the whole two-line blurb. A
+ * [chip] names the source the widget is missing right now ("Needs the OBD
+ * adapter"); [placed] marks a kind already on a dashboard. The card is a
+ * single button; taps never reach the preview's own controls.
  */
 @Composable
-private fun WidgetCard(label: String, blurb: String, aspect: Float, onClick: () -> Unit, preview: @Composable () -> Unit) {
+private fun WidgetCard(
+    label: String,
+    blurb: String,
+    aspect: Float,
+    onClick: () -> Unit,
+    chip: String? = null,
+    placed: Boolean = false,
+    preview: @Composable () -> Unit
+) {
     val tap = rememberTapFeedback()
     val shape = DashShape.Medium
     Column(
@@ -372,7 +394,29 @@ private fun WidgetCard(label: String, blurb: String, aspect: Float, onClick: () 
             Box(Modifier.fillMaxSize().pointerInput(Unit) { awaitPointerEventScope { while (true) awaitPointerEvent() } })
         }
         Column(modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)) {
-            Text(label, color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    label, color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyLarge,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f)
+                )
+                if (chip != null) {
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        chip, color = DashColors.TextSecondary, style = MaterialTheme.typography.labelSmall, maxLines = 1,
+                        modifier = Modifier
+                            .clip(DashShape.Pill)
+                            .border(1.dp, DashColors.Line, DashShape.Pill)
+                            .padding(horizontal = 8.dp, vertical = 3.dp)
+                    )
+                }
+            }
+            if (placed) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Filled.Check, contentDescription = null, tint = DashColors.Accent, modifier = Modifier.size(14.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text(stringResource(R.string.apps_on_dashboard), color = DashColors.Accent, style = MaterialTheme.typography.labelSmall, maxLines = 1)
+                }
+            }
             Text(blurb, color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
     }

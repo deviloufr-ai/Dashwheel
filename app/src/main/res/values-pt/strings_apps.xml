@@ -136,4 +136,11 @@
     <string name="apps_radio_on">Ligado</string>
     <string name="apps_radio_off">Desligado</string>
     <string name="apps_radio_switching">A mudar</string>
+
+    <string name="apps_needs_obd">Precisa do adaptador OBD</string>
+    <string name="apps_needs_phone">Precisa do telemóvel</string>
+    <string name="apps_needs_internet">Precisa de Internet</string>
+    <string name="apps_needs_root">Precisa de root</string>
+    <string name="apps_needs_carbox">Precisa da caixa do carro</string>
+    <string name="apps_on_dashboard">Já num painel</string>
 </resources>

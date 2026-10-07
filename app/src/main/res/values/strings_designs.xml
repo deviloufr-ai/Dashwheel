@@ -166,4 +166,10 @@
     <string name="design_family_copper">Copper</string>
     <string name="design_family_cabins">Cabins</string>
     <string name="design_label_value">%1$s: %2$s</string>
+
+    <!-- The design shelf's slower looks, and the words for an alert state -->
+    <string name="design_parked_looks">Parked looks</string>
+    <string name="design_parked_looks_note">Pretty, but slower to read while driving</string>
+    <string name="design_alert_hot">Hot</string>
+    <string name="design_alert_low">Low</string>
 </resources>

@@ -186,7 +186,8 @@
     <string name="dash_update_ready_title">Mise à jour prête</string>
     <string name="dash_update_ready_body">La %1$s est téléchargée. L\'installation prend une demi-minute et redémarre Dashwheel.</string>
     <string name="dash_update_now">Mettre à jour</string>
-    <string name="dash_update_later">Plus tard</string>
+    <string name="dash_update_not_this_version">Pas cette version</string>
+    <string name="dash_update_allow_installs">Autorisez Dashwheel à installer les mises à jour, puis touchez à nouveau Mettre à jour</string>
     <string name="dash_reset_confirm_title">Vider ce tableau de bord ?</string>
     <string name="dash_reset_confirm_body">Toutes ses tuiles disparaissent. Annuler les ramène.</string>
     <string name="dash_dashboard_options">Options du tableau de bord</string>

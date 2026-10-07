@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
@@ -24,6 +25,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
@@ -44,6 +46,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
 /*
@@ -65,8 +68,19 @@ internal fun DesignedTile(item: DashboardItem.BuiltinWidget, env: SkinTileEnv, s
     }
     // A design no longer offered for this widget (it could not show what the widget needs): its own look.
     if (!item.design.appliesTo(item.kind)) return standard()
-    val face = rememberWidgetFace(item.kind, env)
-    if (face == null) standard() else DesignedFace(face, item.design, Modifier.fillMaxSize())
+    // A row that calls or re-routes waits in this strip first, as on the standard tiles (PendingAction.kt).
+    val pending = rememberPendingAction()
+    CompositionLocalProvider(LocalPendingAction provides pending) {
+        val face = rememberWidgetFace(item.kind, env)
+        if (face == null) {
+            standard()
+        } else {
+            Box(Modifier.fillMaxSize()) {
+                DesignedFace(face, item.design, Modifier.fillMaxSize())
+                PendingActionStrip(pending, Modifier.align(Alignment.BottomCenter).padding(DashSpace.Sm))
+            }
+        }
+    }
 }
 
 /**
@@ -99,6 +113,11 @@ internal fun DesignShelf(
     val worn = if (current.appliesTo(kind)) current else WidgetDesign.STANDARD
     var shelf by remember(kind) { mutableStateOf(DesignFamily.of(worn)) }
     val shown = offered.filter { DesignFamily.of(it) == shelf }
+    // For what is read at the wheel, the looks read in a glance come first; the
+    // pretty-but-slow ones follow under their own heading. Nothing is taken away.
+    val atTheWheel = kind.category == WidgetCategory.DRIVING || kind.category == WidgetCategory.NAVIGATION
+    val quick = if (atTheWheel) shown.filter { it.glanceable } else shown
+    val parked = if (atTheWheel) shown.filter { !it.glanceable } else emptyList()
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
@@ -114,14 +133,33 @@ internal fun DesignShelf(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            items(shown, key = { it.name }) { design ->
-                DesignThumb(design, design == worn, aspect, onClick = { onPick(design) }) {
-                    when {
-                        design == WidgetDesign.STANDARD -> standardPreview()
-                        framed -> DesignFrame(design, kindIcon(kind), kind.label, Modifier.fillMaxSize()) { FramedPlaceholder(kind) }
-                        else -> DesignedFace(frozen.value ?: sample, design, Modifier.fillMaxSize())
+            val thumbs: (List<WidgetDesign>) -> Unit = { list ->
+                items(list, key = { it.name }) { design ->
+                    DesignThumb(design, design == worn, aspect, onClick = { onPick(design) }) {
+                        when {
+                            design == WidgetDesign.STANDARD -> standardPreview()
+                            framed -> DesignFrame(design, kindIcon(kind), kind.label, Modifier.fillMaxSize()) { FramedPlaceholder(kind) }
+                            else -> DesignedFace(frozen.value ?: sample, design, Modifier.fillMaxSize())
+                        }
                     }
                 }
+            }
+            thumbs(quick)
+            if (parked.isNotEmpty()) {
+                item(key = "parked", span = { GridItemSpan(maxLineSpan) }) {
+                    Column(modifier = Modifier.fillMaxWidth().padding(start = 2.dp, top = 6.dp)) {
+                        Text(
+                            stringResource(R.string.design_parked_looks).uppercase(),
+                            color = DashColors.Muted, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp,
+                            style = MaterialTheme.typography.labelMedium, maxLines = 1
+                        )
+                        Text(
+                            stringResource(R.string.design_parked_looks_note),
+                            color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+                thumbs(parked)
             }
         }
         // The previews carry names only; the one in use says what it is.

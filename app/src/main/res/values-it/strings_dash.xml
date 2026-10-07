@@ -186,7 +186,8 @@
     <string name="dash_update_ready_title">Aggiornamento pronto</string>
     <string name="dash_update_ready_body">%1$s è scaricato. L\'installazione dura mezzo minuto e riavvia Dashwheel.</string>
     <string name="dash_update_now">Aggiorna ora</string>
-    <string name="dash_update_later">Più tardi</string>
+    <string name="dash_update_not_this_version">Non questa versione</string>
+    <string name="dash_update_allow_installs">Consenti a Dashwheel di installare gli aggiornamenti, poi tocca di nuovo Aggiorna</string>
     <string name="dash_reset_confirm_title">Svuotare questo cruscotto?</string>
     <string name="dash_reset_confirm_body">Tutte le sue tessere spariscono. Annulla le riporta.</string>
     <string name="dash_dashboard_options">Opzioni del cruscotto</string>

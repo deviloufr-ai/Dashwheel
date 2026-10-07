@@ -9,8 +9,9 @@
     <string name="ai_own_key">Lub własny klucz API Gemini</string>
     <string name="ai_key">Klucz API Gemini</string>
     <string name="ai_key_hint">Za darmo na aistudio.google.com → Get API key</string>
-    <string name="ai_language">Język</string>
+    <string name="ai_language">Język odpowiedzi</string>
     <string name="ai_language_auto">Jak aplikacja</string>
+    <string name="ai_language_detail">Dla pisemnych odpowiedzi Gemini</string>
     <string name="ai_test">Testuj</string>
     <string name="ai_done">Gotowe</string>
 
@@ -26,10 +27,16 @@
     <!-- Spoken by the car, in the mechanic's language (resolved with the AI language, not the screen's) -->
     <string name="ai_say_ready">Mechanik AI jest gotowy.</string>
     <plurals name="ai_say_new_codes">
-        <item quantity="one">%1$d nowy kod błędu silnika: %2$s. Szczegóły na ekranie.</item>
-        <item quantity="few">%1$d nowe kody błędów silnika: %2$s. Szczegóły na ekranie.</item>
-        <item quantity="many">%1$d nowych kodów błędów silnika: %2$s. Szczegóły na ekranie.</item>
-        <item quantity="other">%1$d nowego kodu błędu silnika: %2$s. Szczegóły na ekranie.</item>
+        <item quantity="one">%1$d nowa usterka silnika: %2$s. Spójrz na kafelek Kody błędów na postoju.</item>
+        <item quantity="few">%1$d nowe usterki silnika: %2$s. Spójrz na kafelek Kody błędów na postoju.</item>
+        <item quantity="many">%1$d nowych usterek silnika: %2$s. Spójrz na kafelek Kody błędów na postoju.</item>
+        <item quantity="other">%1$d nowych usterek silnika: %2$s. Spójrz na kafelek Kody błędów na postoju.</item>
+    </plurals>
+    <plurals name="ai_say_new_codes_untitled">
+        <item quantity="one">%1$d nowa usterka silnika. Spójrz na kafelek Kody błędów na postoju.</item>
+        <item quantity="few">%1$d nowe usterki silnika. Spójrz na kafelek Kody błędów na postoju.</item>
+        <item quantity="many">%1$d nowych usterek silnika. Spójrz na kafelek Kody błędów na postoju.</item>
+        <item quantity="other">%1$d nowych usterek silnika. Spójrz na kafelek Kody błędów na postoju.</item>
     </plurals>
     <string name="ai_say_overheat">Uwaga, silnik się przegrzewa: temperatura doszła do %1$d stopni. Zatrzymaj się, gdy będzie bezpiecznie, i wyłącz silnik.</string>
     <string name="ai_say_not_charging">Akumulator nie jest ładowany: %1$s wolta przy pracującym silniku. Jedź do warsztatu i wyłącz zbędne odbiorniki.</string>

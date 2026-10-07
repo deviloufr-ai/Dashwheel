@@ -382,10 +382,9 @@ object CarCare {
                 best?.let { stationLine(it) }
             )
             val context = appContext ?: return@launch
-            val config = AiSettings.load(context)
-            if (!config.speak) return@launch
-            val resources = config.language.resources(context)
-            CarVoice.announce(lines.joinToString(" ") { it.text(resources) }, config.language.locale)
+            if (!SpokenEvents.isOn(context, SpokenEvent.CAR_TIPS)) return@launch
+            val resources = AppLanguage.wrap(context).resources
+            CarVoice.announce(lines.joinToString(" ") { it.text(resources) }, InAppNav.locale(context))
         }
     }
 
@@ -503,11 +502,11 @@ object CarCare {
         }
     }
 
+    /** Said by the car on its own, when car warnings are spoken, in the launcher's voice. */
     private fun say(line: SpokenLine) {
         val context = appContext ?: return
-        val config = AiSettings.load(context)
-        if (!config.speak) return
-        CarVoice.announce(line.text(config.language.resources(context)), config.language.locale)
+        if (!SpokenEvents.isOn(context, SpokenEvent.CAR_TIPS)) return
+        CarVoice.announce(line.text(AppLanguage.wrap(context).resources), InAppNav.locale(context))
     }
 
     private fun save(s: CareState, now: Long) {

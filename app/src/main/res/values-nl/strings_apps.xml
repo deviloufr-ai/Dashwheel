@@ -135,4 +135,11 @@
     <string name="apps_radio_on">Aan</string>
     <string name="apps_radio_off">Uit</string>
     <string name="apps_radio_switching">Bezig</string>
+
+    <string name="apps_needs_obd">Heeft de OBD-adapter nodig</string>
+    <string name="apps_needs_phone">Heeft de telefoon nodig</string>
+    <string name="apps_needs_internet">Heeft internet nodig</string>
+    <string name="apps_needs_root">Heeft root nodig</string>
+    <string name="apps_needs_carbox">Heeft de autobox nodig</string>
+    <string name="apps_on_dashboard">Al op een dashboard</string>
 </resources>

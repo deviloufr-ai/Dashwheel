@@ -9,6 +9,7 @@
     <string name="settings_ai_detail">Objaśnia kody usterek i mówi ostrzeżenia</string>
     <string name="settings_system_detail">Widżety Androida dodawane bez pytania za każdym razem. Wymaga roota.</string>
     <string name="settings_section_driving">Jazda</string>
+    <string name="settings_section_sound">Dźwięk</string>
     <string name="settings_drive_lock">Zmiany tylko na postoju</string>
     <string name="settings_drive_lock_detail">Edycja, ustawienia i siatka aplikacji czekają, aż samochód się zatrzyma</string>
     <string name="settings_tap_sound">Dźwięk dotknięcia</string>
@@ -55,6 +56,7 @@
     <string name="alert_tap_to_hide">Dotknij, aby ukryć</string>
     <string name="alert_enlarge">Pokaż</string>
     <string name="alert_speak">Mów na głos</string>
+    <string name="alert_also_spoken">Również wypowiadane</string>
     <string name="alert_show">Pokazuj ten alert</string>
     <string name="alert_speak_call_detail">Mówi, kto dzwoni, gdy telefon dzwoni</string>
     <string name="alert_speak_doors_detail">Mówi, które drzwi są otwarte, gdy otworzą się w czasie jazdy lub ruszysz z otwartymi</string>
@@ -96,7 +98,7 @@
     <string name="settings_screen_vertical_hint">Obraca pulpit pionowo, z osobnym układem, jeśli radio na to pozwala</string>
     <string name="settings_section_display">Wyświetlanie</string>
     <string name="settings_appearance_title">Dzień i noc</string>
-    <string name="alert_style_section">Alerty pokazywane przez Dashwheel</string>
+    <string name="alert_style_section">Wyskakujące okna w stylu Dashwheel</string>
     <string name="alert_more_with_permission">Więcej alertów auta z rootem lub po tym poleceniu z komputera: %1$s</string>
     <string name="settings_section_about">Informacje</string>
     <string name="settings_screen_keep_title">Zachować tę orientację?</string>

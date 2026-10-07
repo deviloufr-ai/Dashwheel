@@ -166,4 +166,9 @@
     <string name="design_family_copper">Cobre</string>
     <string name="design_family_cabins">Habitáculos</string>
     <string name="design_label_value">%1$s: %2$s</string>
+
+    <string name="design_parked_looks">Estilos para parado</string>
+    <string name="design_parked_looks_note">Bonitos, pero más lentos de leer conduciendo</string>
+    <string name="design_alert_hot">Caliente</string>
+    <string name="design_alert_low">Bajo</string>
 </resources>

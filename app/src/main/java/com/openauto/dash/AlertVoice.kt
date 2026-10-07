@@ -109,7 +109,7 @@ object AlertVoice {
      * message itself is read on request ([readLastMessage]).
      */
     private fun sayMessage(context: Context, item: NotifItem) {
-        if (!AlertStyleStore.messages.value) return
+        if (!SpokenEvents.isOn(context, SpokenEvent.MESSAGES)) return
         // CarPlay / Android Auto announces its own messages.
         if (UnitSignals.projectionOnScreen.value) return
         val now = SystemClock.elapsedRealtime()

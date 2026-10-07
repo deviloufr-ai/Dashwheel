@@ -2,6 +2,7 @@ package com.openauto.dash
 
 import android.content.Context
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -48,9 +49,9 @@ import kotlinx.coroutines.launch
 /*
  * A message arriving on the phone, shown as well as said: a card at the top
  * with who it's from and its first lines, for a glance at a red light, and
- * a button each to hear it, answer it or put it away: the card itself does
- * nothing, so a touch that misses a button opens no sheet. It goes by itself
- * after a few seconds; the same switch as the spoken alert turns it on and off.
+ * a button each to hear it or answer it. A tap anywhere else on the card puts
+ * it away, like every other alert. It goes by itself after a few seconds; the
+ * same switch as the spoken alert turns it on and off ([SpokenEvent.MESSAGES]).
  */
 internal object MessageAlerts {
     private const val SHOW_MS = 8_000L
@@ -66,7 +67,7 @@ internal object MessageAlerts {
         started = true
         scope.launch {
             NotificationFeed.arrived.collect { item ->
-                if (!AlertStyleStore.messages.value) return@collect
+                if (SpokenEvent.MESSAGES !in SpokenEvents.on.value) return@collect
                 // CarPlay / Android Auto shows its own.
                 if (UnitSignals.projectionOnScreen.value) return@collect
                 show(item)
@@ -117,7 +118,7 @@ internal fun MessageAlertHost() {
     replying?.let { PhoneMessageSheet(it) { replying = null } }
     val n = item ?: return
     AlertPopup(AlertStyle.CARD, Alignment.TopCenter) {
-        AlertSurface(AlertStyle.CARD, Modifier.widthIn(min = 360.dp, max = 620.dp)) {
+        AlertSurface(AlertStyle.CARD, Modifier.widthIn(min = 360.dp, max = 620.dp).clickable { MessageAlerts.dismiss() }) {
             Row(
                 modifier = Modifier.padding(start = 16.dp, end = 10.dp, top = 12.dp, bottom = 12.dp),
                 verticalAlignment = Alignment.CenterVertically

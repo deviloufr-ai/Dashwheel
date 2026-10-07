@@ -63,12 +63,25 @@ class StartupBriefingTest {
     }
 
     @Test
-    fun whatIsSaidComesAfterAGreetingForTheTimeOfDay() {
-        val lines = BriefingLines.compose(BriefingFacts(hour = 8, weather = weather(-2.0)))
-        assertEquals(listOf(R.string.briefing_morning, R.string.briefing_ice), lines.map { it.res })
-        assertEquals(R.string.briefing_afternoon, BriefingLines.compose(BriefingFacts(hour = 14, weather = weather(-2.0)))[0].res)
-        assertEquals(R.string.briefing_evening, BriefingLines.compose(BriefingFacts(hour = 21, weather = weather(-2.0)))[0].res)
-        assertEquals(R.string.briefing_evening, BriefingLines.compose(BriefingFacts(hour = 2, weather = weather(-2.0)))[0].res)
+    fun noGreetingWhateverTheHour() {
+        listOf(8, 14, 21, 2).forEach { hour ->
+            assertEquals(listOf(R.string.briefing_ice), BriefingLines.compose(BriefingFacts(hour = hour, weather = weather(-2.0))).map { it.res })
+        }
+    }
+
+    @Test
+    fun threeLinesAtMostTheAppointmentRightAfterIceAndFuel() {
+        val due = UpkeepDue(UpkeepKind.OIL, kmLeft = 800, daysLeft = null, stage = UpkeepStage.SOON)
+        val everything = BriefingFacts(
+            hour = 8, weather = weather(-2.0), fuel = FuelInfo(12, 110, "CANbox"), faults = listOf("P0420"),
+            faultTitles = listOf("catalyst efficiency below threshold"), event = UpcomingEvent("Dentist", "10:30"), upkeep = listOf(due)
+        )
+        val lines = BriefingLines.compose(everything)
+        assertEquals(BriefingLines.MAX_LINES, lines.size)
+        assertEquals(listOf(R.string.briefing_ice, R.string.briefing_fuel_low, R.string.briefing_event), lines.map { it.res })
+        // Without ice and fuel, the engine and the servicing get their turn, in that order.
+        val quiet = everything.copy(weather = weather(12.0), fuel = FuelInfo(80, 700, "CANbox"))
+        assertEquals(listOf(R.string.briefing_event, R.plurals.briefing_faults, R.plurals.upkeep_say_soon_km), BriefingLines.compose(quiet).map { it.res })
     }
 
     @Test
@@ -84,38 +97,44 @@ class StartupBriefingTest {
     fun onlyLowFuelIsMentioned() {
         assertTrue(BriefingLines.compose(BriefingFacts(hour = 8, fuel = FuelInfo(40, 370, "CANbox"))).isEmpty())
         val low = BriefingLines.compose(BriefingFacts(hour = 8, fuel = FuelInfo(12, 110, "CANbox")))
-        assertEquals(SpokenLine(R.string.briefing_fuel_low, listOf(110)), low[1])
+        assertEquals(listOf(SpokenLine(R.string.briefing_fuel_low, listOf(110))), low)
     }
 
     @Test
-    fun engineLineFollowsWhatTheScanFound() {
-        fun engine(f: BriefingFacts) = BriefingLines.compose(f).drop(1)
+    fun engineLineFollowsWhatTheScanFoundByNameNeverByCode() {
+        fun engine(f: BriefingFacts) = BriefingLines.compose(f)
         assertTrue(engine(BriefingFacts(hour = 8, faults = emptyList())).isEmpty())
+        // Named faults: the count and the names; the codes' letters are never said.
         assertEquals(
-            listOf(SpokenLine(R.plurals.briefing_faults, listOf(2), quantity = 2)),
-            engine(BriefingFacts(hour = 8, faults = listOf("P0128", "P2002")))
+            listOf(SpokenLine(R.plurals.briefing_faults, listOf(2, "coolant below thermostat regulating temperature, particle filter"), quantity = 2)),
+            engine(BriefingFacts(hour = 8, faults = listOf("P0128", "P2002"), faultTitles = listOf("coolant below thermostat regulating temperature", "particle filter")))
+        )
+        // Codes the table doesn't know: the count alone.
+        assertEquals(
+            listOf(SpokenLine(R.plurals.briefing_faults_untitled, listOf(1), quantity = 1)),
+            engine(BriefingFacts(hour = 8, faults = listOf("P1F00")))
         )
         assertEquals(
             listOf(SpokenLine(R.string.briefing_verbatim, listOf("The thermostat is stuck open."))),
             engine(BriefingFacts(hour = 8, faults = listOf("P0128"), faultSummary = "The thermostat is stuck open."))
         )
-        // Already announced by the mechanic moments ago: not repeated, and alone it's not worth a hello.
+        // Already announced by the mechanic moments ago: not repeated.
         assertTrue(BriefingLines.compose(BriefingFacts(hour = 8, faults = listOf("P0128"), faultsJustSaid = true)).isEmpty())
     }
 
     @Test
-    fun theNextAppointmentComesLast() {
+    fun theNextAppointmentAloneIsWorthSaying() {
         val lines = BriefingLines.compose(
             BriefingFacts(hour = 8, weather = weather(12.0), faults = emptyList(), event = UpcomingEvent("Dentist", "10:30"))
         )
-        assertEquals(SpokenLine(R.string.briefing_event, listOf("Dentist", "10:30")), lines.last())
+        assertEquals(listOf(SpokenLine(R.string.briefing_event, listOf("Dentist", "10:30"))), lines)
     }
 
     @Test
-    fun servicingComingDueIsSaidBeforeTheAppointment() {
+    fun servicingComingDueIsSaidAfterTheAppointment() {
         val due = UpkeepDue(UpkeepKind.OIL, kmLeft = 800, daysLeft = null, stage = UpkeepStage.SOON)
         val lines = BriefingLines.compose(BriefingFacts(hour = 8, upkeep = listOf(due), event = UpcomingEvent("Dentist", "10:30")))
-        assertEquals(listOf(R.string.briefing_morning, R.plurals.upkeep_say_soon_km, R.string.briefing_event), lines.map { it.res })
+        assertEquals(listOf(R.string.briefing_event, R.plurals.upkeep_say_soon_km), lines.map { it.res })
         assertEquals(800, lines[1].args[1])
         // Nothing due: nothing said.
         assertTrue(BriefingLines.compose(BriefingFacts(hour = 8, upkeep = emptyList())).isEmpty())

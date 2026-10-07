@@ -92,6 +92,7 @@
     <!-- My car tile -->
     <string name="car_my_car_title">MEIN AUTO</string>
     <string name="car_my_car_fetch_hint">Tippen, um alle Daten per KI zu holen</string>
+    <string name="car_my_car_name_hint">Tippen, um dein Auto einzutragen</string>
     <string name="car_source_preset">Vorgabe</string>
     <string name="car_source_ai">Von KI</string>
     <string name="car_source_user">Bearbeitet</string>
@@ -109,16 +110,19 @@
     <string name="car_fuel_petrol">Benzin</string>
     <string name="car_fuel_hybrid">Hybrid</string>
     <string name="car_fuel_lpg">Autogas</string>
+    <string name="car_fuel_electric">Elektrisch</string>
 
     <!-- My car settings -->
     <string name="car_menu">Mein Auto</string>
     <string name="car_my_car_title_dialog">Mein Auto</string>
     <string name="car_settings_explanation">Das Auto genau benennen, dann die Daten von der KI ausfüllen lassen. Vor dem Speichern prüfen.</string>
     <string name="car_name">Auto</string>
+    <string name="car_name_hint">Marke, Modell, Motor und Baujahr</string>
     <string name="car_fetch">Daten per KI holen</string>
     <string name="car_fetch_ok">Daten ausgefüllt: prüfen, dann Speichern</string>
     <string name="car_fetch_failed">Daten konnten nicht geholt werden: %1$s</string>
     <string name="car_fetch_no_key">zuerst einen Gemini-Schlüssel unter Einstellungen → Auto → KI-Mechaniker eintragen</string>
+    <string name="car_fetch_needs_key">Trage unter Einstellungen, Auto, KI-Mechaniker einen Gemini-Schlüssel ein, um die Daten zu füllen</string>
     <string name="car_section_engine">Motor</string>
     <string name="car_section_gearbox">Getriebe</string>
     <string name="car_section_upkeep">Wartung</string>

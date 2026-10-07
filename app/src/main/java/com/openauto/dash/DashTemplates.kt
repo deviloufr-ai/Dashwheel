@@ -187,6 +187,9 @@ object TemplatePlacer {
     private val NEEDS_OBD = setOf(TELEMETRY, OBD_DTC, OBD_ALL, BATTERY, WARMUP, FILTER_CARE, ECO_DRIVE, BREAK_TIMER)
     private val WITHOUT_OBD = mapOf(TELEMETRY to TRIP)
 
+    /** Whether [kind] is one of the car tiles a template holds back without an adapter (and [addCarTiles] adds). */
+    fun needsObd(kind: BuiltinKind): Boolean = kind in NEEDS_OBD
+
     /** Tiles fed by the CANbox stream alone, which only root can read: nothing stands in for them. */
     private val NEEDS_CANBOX = setOf(DOORS, CAN_MON, CAR_STATUS)
 
@@ -212,6 +215,32 @@ object TemplatePlacer {
             if (use != null && use !in out) out += use
         }
         return out
+    }
+
+    /**
+     * [pages] with the car tiles of [template] added, for an adapter chosen
+     * after the dashboards were built without one ([screen] has it). A page
+     * still holding its template page's no-adapter version is laid out again
+     * with the car tiles, an empty one is filled, and a page the driver
+     * arranged gets the missing car tiles in whatever free room it has, each
+     * at the largest readable size that fits, or goes without.
+     */
+    fun addCarTiles(pages: List<List<DashboardItem>>, template: DashTemplate, screen: TemplateScreen): List<List<DashboardItem>> {
+        val without = screen.copy(obdPaired = false)
+        return pages.mapIndexed { p, items ->
+            val templatePage = template.pages[p] ?: return@mapIndexed items
+            fun kindsOf(page: List<DashboardItem>) = page.filterIsInstance<DashboardItem.BuiltinWidget>().map { it.kind }.toSet()
+            val kinds = kindsOf(items)
+            // Still the widgets the template placed without an adapter (moved or resized or not), and nothing else.
+            val untouched = kinds == kindsOf(page(templatePage, without)) &&
+                items.all { it is DashboardItem.BuiltinWidget || it is DashboardItem.LaunchBar }
+            if (items.isEmpty() || untouched) return@mapIndexed page(templatePage, screen)
+            val missing = kindsFor(templatePage, screen).filter { it in NEEDS_OBD && it !in kinds }
+            missing.fold(items) { acc, kind ->
+                val fit = largestFit(acc, kind.defaultW, kind.defaultH, minW = screen.minCols, minH = 2) ?: return@fold acc
+                acc + DashboardItem.BuiltinWidget(kind, fit.x, fit.y, fit.w, fit.h)
+            }
+        }
     }
 
     /** One page's tiles: its widgets packed into the grid, plus the app dock along the bottom. */
@@ -251,8 +280,10 @@ object TemplatePlacer {
         /** Cheapest way to lay [kinds] (in order of importance) out over exactly [r]; null if they cannot fit. */
         fun best(kinds: List<BuiltinKind>, r: Cells): Fit? {
             if (kinds.size == 1) {
-                if (r.w < minCols || r.h < minRows) return null
                 val kind = kinds.single()
+                // Never under the kind's own readable minimum (the map wants three rows).
+                val (kindCols, kindRows) = kind.minSize()
+                if (r.w < maxOf(minCols, kindCols) || r.h < maxOf(minRows, kindRows)) return null
                 return Fit(cost(kind, r), listOf(DashboardItem.BuiltinWidget(kind, r.x, r.y, r.w, r.h)))
             }
             var winner: Fit? = null

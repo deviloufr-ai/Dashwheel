@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -456,29 +457,34 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     var setupDone by remember { mutableStateOf(SetupStore.isDone(context)) }
     var setupPillOff by remember { mutableStateOf(SetupStore.pillOff(context)) }
     var setupStep by remember { mutableStateOf(if (setupDone) null else SetupStep.CAR) }
-    var showCarSettings by remember { mutableStateOf(false) }
+    // The step on screen, and the one to come back to once the drive lock
+    // has closed a setup that was not done yet.
+    var setupShownStep by remember { mutableStateOf(SetupStep.CAR) }
+    var setupResume by remember { mutableStateOf<SetupStep?>(null) }
+    // An adapter was just chosen while no page holds a car tile: asked whether to add them.
+    var offerCarTiles by remember { mutableStateOf(false) }
     /**
-     * The one way out of the setup: it counts as seen, and the tour of the
-     * basics is offered next. [finished]: gone through to the end (true) or
-     * skipped (false), which rests the pill until the setup is run again;
-     * null when the driver just left it (Back, the bar) and the pill stays as it was.
+     * The one way out of the setup (Done, Skip, Back, the bar): it counts as
+     * seen, and the tour of the basics is offered next. The pill is left as
+     * it was; only "Don't remind me" on the access step turns it off.
      */
-    fun closeSetup(finished: Boolean?) {
+    fun closeSetup() {
         SetupStore.markDone(context); setupDone = true
-        if (finished != null) {
-            SetupStore.setPillOff(context, !finished); setupPillOff = !finished
-        }
         setupStep = null
+        setupResume = null
         TourStore.offer(context)
     }
     // The tour of the basics (TourScreen.kt): its step while open. Offered once
     // after the first setup, at most once per start, and only parked.
     var tourStep by remember { mutableStateOf<TourStep?>(null) }
     var tourOffered by remember { mutableStateOf(false) }
+    // Up by itself after the setup (its look tip is left out, the setup just asked that) rather than replayed from Settings.
+    var tourAfterSetup by remember { mutableStateOf(false) }
     // Arranging was turned on by the tour, for its tips about the tiles.
     var tourEditing by remember { mutableStateOf(false) }
-    fun closeTour() {
-        TourStore.markSeen(context)
+    /** [declined]: "Not now" on the welcome, which comes back once at the next parked start; anything else counts as seen. */
+    fun closeTour(declined: Boolean = false) {
+        if (declined) TourStore.notNow(context) else TourStore.markSeen(context)
         CarVoice.stop()
         tourStep = null
     }
@@ -491,9 +497,9 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     val offHome = currentPage != (if (tabsMode) barTabs.firstOrNull()?.page ?: 0 else DashboardStore.CENTER)
     BackHandler(enabled = tourStep != null || setupStep != null || showAllApps || settingsTab != null || showAddSheet || tileOptions != null || editing || offHome) {
         when {
-            tourStep != null -> closeTour()
+            tourStep != null -> closeTour(declined = tourStep == TourStep.WELCOME)
             // The setup takes Back itself, a step at a time (SetupScreen).
-            setupStep != null -> closeSetup(null)
+            setupStep != null -> closeSetup()
             showAddSheet -> showAddSheet = false
             showAllApps -> showAllApps = false
             settingsTab != null -> closeSettings()
@@ -534,14 +540,19 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             tileOptions = null
             confirmReset = false
             confirmTemplate = null
+            // A first setup the lock closes comes back where it was, once parked.
+            if (setupStep != null && !setupDone) setupResume = setupShownStep
             setupStep = null
-            showCarSettings = false
+            offerCarTiles = false
             showSplitPicker = false
             showSplitEnable = false
             showDevicePicker = false
             launchBarEditor = null
             // Stopped, not seen: offered again at the next start.
             tourStep = null
+        } else setupResume?.let { step ->
+            setupResume = null
+            if (!setupDone) setupStep = step
         }
     }
     // The tour comes up by itself once the first setup has closed, parked, and
@@ -551,6 +562,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     LaunchedEffect(tourCanStart) {
         if (tourCanStart && !tourOffered && TourStore.isPending(context)) {
             tourOffered = true
+            tourAfterSetup = true
             tourStep = TourStep.WELCOME
         }
     }
@@ -837,7 +849,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         // Roughly what the bars leave the grid.
         pageHeightDp = screenConfig.screenHeightDp * (if (ScreenShape.vertical) 0.9f else 0.8f) *
             if (half && ScreenShape.vertical) 1f - dockFraction.floatValue else 1f,
-        obdPaired = ObdBluetoothManager.savedDeviceAddress() != null || obdConnection.value == ObdConnectionState.CONNECTED,
+        obdPaired = ObdBluetoothManager.canDial() || obdConnection.value == ObdConnectionState.CONNECTED,
         driverOnRight = CarProfileStore.current.driverOnRight,
         mapsDocked = half,
         dockApps = TemplatePlacer.dockApps(pages, appsByPackage.keys),
@@ -967,7 +979,11 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         val info = status.updateInfo
         if (info != null && status !is UpdateStatus.Downloading && status !is UpdateStatus.Installing) whenParked {
             when {
-                !updateManager.canInstallPackages() -> updateManager.openInstallPermissionSettings()
+                !updateManager.canInstallPackages() -> {
+                    // Android's own page comes up without a word: say what to do there, and that Update is to be tapped again.
+                    Toast.makeText(context, R.string.dash_update_allow_installs, Toast.LENGTH_LONG).show()
+                    updateManager.openInstallPermissionSettings()
+                }
                 status is UpdateStatus.Ready -> updateManager.install(status.file)
                 else -> scope.launch { updateManager.downloadAndInstall(info) }
             }
@@ -1056,7 +1072,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         closeSettings()
         showAddSheet = false
         showAllApps = false
-        if (setupStep != null) closeSetup(null)
+        if (setupStep != null) closeSetup()
     }
     // The bar's "Finish setting up" pill: a tile on some page still lacks
     // what it needs, the setup has been seen, and the driver has not skipped it.
@@ -1158,6 +1174,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             whenParked {
                 closeSheets()
                 editing = false
+                tourAfterSetup = false
                 tourStep = TourStep.WELCOME
             }
         }
@@ -1662,9 +1679,13 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                 SetupScreen(
                     initialStep = step,
                     theme = themeState,
-                    onCarSettings = { showCarSettings = true },
                     onPickObd = onPickDevice,
-                    onClose = { finished -> closeSetup(finished) },
+                    // No adapter, or a phone paired: the pill looks again.
+                    onAccessChanged = { accessGeneration++ },
+                    pillOff = setupPillOff,
+                    onPillOff = { SetupStore.setPillOff(context, true); setupPillOff = true },
+                    onStep = { setupShownStep = it },
+                    onClose = { closeSetup() },
                     modifier = Modifier.fillMaxSize().padding(10.dp)
                 )
             }
@@ -1734,7 +1755,8 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             step = step,
             obd = obdConnection.value,
             onStep = { tourStep = it },
-            onClose = { closeTour() }
+            onClose = { finished -> closeTour(declined = !finished && step == TourStep.WELCOME) },
+            afterSetup = tourAfterSetup
         )
     }
     pageFull?.let { page ->
@@ -1923,13 +1945,11 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             },
             dismissButton = {
                 TextButton(onClick = { updatePrompt = null; updateManager.dismiss() }) {
-                    Text(stringResource(R.string.dash_update_later), color = DashColors.Muted)
+                    Text(stringResource(R.string.dash_update_not_this_version), color = DashColors.Muted)
                 }
             }
         )
     }
-
-    if (showCarSettings) CarSettingsDialog(onDismiss = { showCarSettings = false })
 
     // Tiles that need root or the unit's ADB, where Dashwheel has neither: said, then removed.
     RootlessTiles(pages, shellAccess) { kept ->
@@ -1976,6 +1996,8 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                 ObdBluetoothManager.saveDeviceAddress(mac)
                 showDevicePicker = false
                 scope.launch { ObdBluetoothManager.connect(mac, byDriver = true) }
+                // Dashboards built without an adapter have no car tile: offered now that one is here.
+                if (pages.flatten().none { it is DashboardItem.BuiltinWidget && TemplatePlacer.needsObd(it.kind) }) offerCarTiles = true
             },
             onDismiss = { showDevicePicker = false },
             onOpenSettings = {
@@ -1985,6 +2007,26 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                         Intent(Settings.ACTION_BLUETOOTH_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     )
                 }
+            }
+        )
+    }
+
+    if (offerCarTiles) {
+        AlertDialog(
+            modifier = Modifier.keepClearOfWindows(),
+            onDismissRequest = { offerCarTiles = false },
+            containerColor = DashColors.Card,
+            title = { Text(stringResource(R.string.setup_car_tiles_title), color = DashColors.TextPrimary) },
+            text = { Text(stringResource(R.string.setup_car_tiles_body), color = DashColors.TextSecondary) },
+            confirmButton = {
+                TextButton(onClick = {
+                    offerCarTiles = false
+                    // The Daily template's car tiles, into the pages as they are (one Undo step).
+                    mutateAll(TemplatePlacer.addCarTiles(pages, DashTemplate.DAILY, templateScreen(layout != DashLayout.GRID).copy(obdPaired = true)))
+                }) { Text(stringResource(R.string.dash_add), color = DashColors.Accent) }
+            },
+            dismissButton = {
+                TextButton(onClick = { offerCarTiles = false }) { Text(stringResource(R.string.tour_not_now), color = DashColors.Muted) }
             }
         )
     }

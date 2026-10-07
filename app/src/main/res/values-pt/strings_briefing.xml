@@ -5,15 +5,17 @@
     <string name="briefing_setting_detail">Ao arrancar: pouco combustível, gelo, avarias do motor e o próximo compromisso</string>
 
     <!-- Spoken when the car starts, in the mechanic's language -->
-    <string name="briefing_morning">Bom dia.</string>
-    <string name="briefing_afternoon">Boa tarde.</string>
-    <string name="briefing_evening">Boa noite.</string>
     <string name="briefing_ice">Cuidado com o gelo na estrada.</string>
     <string name="briefing_fuel_low">Combustível baixo: cerca de %1$d quilómetros, convém abastecer em breve.</string>
     <plurals name="briefing_faults">
-        <item quantity="one">%1$d código de avaria do motor guardado, detalhes no ecrã.</item>
-        <item quantity="many">%1$d códigos de avaria do motor guardados, detalhes no ecrã.</item>
-        <item quantity="other">%1$d códigos de avaria do motor guardados, detalhes no ecrã.</item>
+        <item quantity="one">%1$d avaria do motor guardada: %2$s. Veja o mosaico Códigos de avaria quando estiver parado.</item>
+        <item quantity="many">%1$d avarias do motor guardadas: %2$s. Veja o mosaico Códigos de avaria quando estiver parado.</item>
+        <item quantity="other">%1$d avarias do motor guardadas: %2$s. Veja o mosaico Códigos de avaria quando estiver parado.</item>
+    </plurals>
+    <plurals name="briefing_faults_untitled">
+        <item quantity="one">%1$d avaria do motor guardada. Veja o mosaico Códigos de avaria quando estiver parado.</item>
+        <item quantity="many">%1$d avarias do motor guardadas. Veja o mosaico Códigos de avaria quando estiver parado.</item>
+        <item quantity="other">%1$d avarias do motor guardadas. Veja o mosaico Códigos de avaria quando estiver parado.</item>
     </plurals>
     <string name="briefing_event">Próximo compromisso: %1$s às %2$s.</string>
 </resources>

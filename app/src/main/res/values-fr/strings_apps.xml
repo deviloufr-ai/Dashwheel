@@ -136,4 +136,11 @@
     <string name="apps_radio_on">Activé</string>
     <string name="apps_radio_off">Coupé</string>
     <string name="apps_radio_switching">Bascule</string>
+
+    <string name="apps_needs_obd">Il faut l\'adaptateur OBD</string>
+    <string name="apps_needs_phone">Il faut le téléphone</string>
+    <string name="apps_needs_internet">Il faut Internet</string>
+    <string name="apps_needs_root">Il faut le root</string>
+    <string name="apps_needs_carbox">Il faut le boîtier de la voiture</string>
+    <string name="apps_on_dashboard">Déjà sur un tableau de bord</string>
 </resources>

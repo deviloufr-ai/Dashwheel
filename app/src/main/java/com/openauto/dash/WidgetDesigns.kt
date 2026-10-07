@@ -39,22 +39,28 @@ enum class WidgetDesign(
     internal val layout: FaceLayout?,
     internal val look: FaceLookKind,
     /** The widgets a widget-specific design is made for; null for the generic ones, which suit every widget. */
-    internal val kinds: Set<BuiltinKind>? = null
+    internal val kinds: Set<BuiltinKind>? = null,
+    /**
+     * Read in a glance at the wheel. False for the looks that are pretty but
+     * slow to read (flipping cards, waves, dots, drums, no digits): the shelf
+     * lists them last for the driving and navigation widgets.
+     */
+    internal val glanceable: Boolean = true
 ) {
     STANDARD(R.string.design_standard, R.string.design_standard_desc, null, FaceLookKind.THEME),
     HERO(R.string.design_hero, R.string.design_hero_desc, FaceLayout.HERO, FaceLookKind.THEME),
     LCD(R.string.design_lcd, R.string.design_lcd_desc, FaceLayout.HERO, FaceLookKind.LCD),
-    AMBER(R.string.design_amber, R.string.design_amber_desc, FaceLayout.TERMINAL, FaceLookKind.AMBER),
+    AMBER(R.string.design_amber, R.string.design_amber_desc, FaceLayout.TERMINAL, FaceLookKind.AMBER, glanceable = false),
     NEON(R.string.design_neon, R.string.design_neon_desc, FaceLayout.ARC, FaceLookKind.NEON),
     PAPER(R.string.design_paper, R.string.design_paper_desc, FaceLayout.STATS, FaceLookKind.PAPER),
     GLASS(R.string.design_glass, R.string.design_glass_desc, FaceLayout.RING, FaceLookKind.GLASS),
     CARBON(R.string.design_carbon, R.string.design_carbon_desc, FaceLayout.BARS, FaceLookKind.CARBON),
     CHRONO(R.string.design_chrono, R.string.design_chrono_desc, FaceLayout.DIAL, FaceLookKind.CHROME),
-    FLAP(R.string.design_flap, R.string.design_flap_desc, FaceLayout.FLAP, FaceLookKind.FLAP),
+    FLAP(R.string.design_flap, R.string.design_flap_desc, FaceLayout.FLAP, FaceLookKind.FLAP, glanceable = false),
     ORB(R.string.design_orb, R.string.design_orb_desc, FaceLayout.ORB, FaceLookKind.THEME),
-    LIQUID(R.string.design_liquid, R.string.design_liquid_desc, FaceLayout.LIQUID, FaceLookKind.THEME),
-    DOTS(R.string.design_dots, R.string.design_dots_desc, FaceLayout.DOTS, FaceLookKind.DOTS),
-    POSTER(R.string.design_poster, R.string.design_poster_desc, FaceLayout.POSTER, FaceLookKind.THEME),
+    LIQUID(R.string.design_liquid, R.string.design_liquid_desc, FaceLayout.LIQUID, FaceLookKind.THEME, glanceable = false),
+    DOTS(R.string.design_dots, R.string.design_dots_desc, FaceLayout.DOTS, FaceLookKind.DOTS, glanceable = false),
+    POSTER(R.string.design_poster, R.string.design_poster_desc, FaceLayout.POSTER, FaceLookKind.THEME, glanceable = false),
     DUO(R.string.design_duo, R.string.design_duo_desc, FaceLayout.DUO, FaceLookKind.THEME),
     ISLAND(R.string.design_island, R.string.design_island_desc, FaceLayout.ISLAND, FaceLookKind.THEME),
     // The copper set, after the latest Cupra cars (WidgetFacesCopper.kt).
@@ -87,7 +93,7 @@ enum class WidgetDesign(
     TURN_CARD(R.string.design_turn_card, R.string.design_turn_card_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.NAVIGATION)),
     ROAD_AHEAD(R.string.design_road_ahead, R.string.design_road_ahead_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.NAVIGATION, BuiltinKind.TRIP, BuiltinKind.FUEL_TO_DEST)),
     RADAR(R.string.design_radar, R.string.design_radar_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.PARKING, BuiltinKind.GPS_STATUS)),
-    ODOMETER(R.string.design_odometer, R.string.design_odometer_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.TRIP, BuiltinKind.RANGE, BuiltinKind.SERVICE, BuiltinKind.CAR_STATUS, BuiltinKind.PERF_TIMER, BuiltinKind.COMMUTE)),
+    ODOMETER(R.string.design_odometer, R.string.design_odometer_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.TRIP, BuiltinKind.RANGE, BuiltinKind.SERVICE, BuiltinKind.CAR_STATUS, BuiltinKind.PERF_TIMER, BuiltinKind.COMMUTE), glanceable = false),
     PRINTOUT(R.string.design_printout, R.string.design_printout_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.TRIP, BuiltinKind.ECO_DRIVE, BuiltinKind.OBD_DTC, BuiltinKind.CAN_MON, BuiltinKind.SERVICE, BuiltinKind.FUEL_PRICES, BuiltinKind.CAR_STATUS, BuiltinKind.TYRES, BuiltinKind.HEAD_UNIT, BuiltinKind.RADIOS, BuiltinKind.PERF_TIMER, BuiltinKind.FUEL_LOG, BuiltinKind.COMMUTE, BuiltinKind.LPG_TANK)),
     WARNING_LAMP(R.string.design_warning_lamp, R.string.design_warning_lamp_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.OBD_DTC, BuiltinKind.FILTER_CARE, BuiltinKind.BATTERY, BuiltinKind.WARMUP, BuiltinKind.DOORS, BuiltinKind.RANGE, BuiltinKind.FUEL_TO_DEST, BuiltinKind.SERVICE, BuiltinKind.TYRES, BuiltinKind.SPEED_CAMERAS, BuiltinKind.WEATHER_ALERTS)),
     TRAFFIC_LIGHT(R.string.design_traffic_light, R.string.design_traffic_light_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.OBD_DTC, BuiltinKind.BATTERY, BuiltinKind.ECO_DRIVE, BuiltinKind.BREAK_TIMER, BuiltinKind.FILTER_CARE, BuiltinKind.DOORS, BuiltinKind.FUEL_TO_DEST, BuiltinKind.HEAD_UNIT, BuiltinKind.QUICK_SWITCHES, BuiltinKind.WEATHER_ALERTS)),
@@ -96,7 +102,7 @@ enum class WidgetDesign(
     DATA_RAIN(R.string.design_data_rain, R.string.design_data_rain_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.CAN_MON)),
     SKY(R.string.design_sky, R.string.design_sky_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.WEATHER, BuiltinKind.CLOCK, BuiltinKind.WEATHER_ALERTS)),
     SUN_PATH(R.string.design_sun_path, R.string.design_sun_path_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.CLOCK, BuiltinKind.WEATHER)),
-    BINARY_CLOCK(R.string.design_binary_clock, R.string.design_binary_clock_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.CLOCK)),
+    BINARY_CLOCK(R.string.design_binary_clock, R.string.design_binary_clock_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.CLOCK), glanceable = false),
     TIMELINE(R.string.design_timeline, R.string.design_timeline_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.CALENDAR, BuiltinKind.NOTIFICATIONS, BuiltinKind.COMMUTE)),
     DESK_CALENDAR(R.string.design_desk_calendar, R.string.design_desk_calendar_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.CALENDAR)),
     CARD_STACK(R.string.design_card_stack, R.string.design_card_stack_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.NOTIFICATIONS, BuiltinKind.CALENDAR, BuiltinKind.QUICK_DIAL, BuiltinKind.HOME_WORK, BuiltinKind.SHARE_ETA, BuiltinKind.BT_DEVICES)),
@@ -238,6 +244,8 @@ internal data class WidgetFace(
     val rows: List<FaceRow> = emptyList(),
     val actions: List<FaceAction> = emptyList(),
     val alert: Boolean = false,
+    /** The word for [alert] ("Hot", "Low", "Open"), drawn beside the headline so red alone never has to say it. */
+    val alertWord: String = "",
     val textValue: Boolean = false,
     val fullCircle: Boolean = false,
     val art: ImageBitmap? = null,

@@ -46,6 +46,50 @@ class AlertVoiceTest {
     }
 
     @Test
+    fun overTheLimitIsSaidOncePerLimitValueNotPerRoadPiece() {
+        val nag = LimitNag(tolerance = 5, overMs = 4_000L, againMs = 180_000L, underMs = 30_000L)
+        // Over 80 for a moment: nothing; held for 4 s: said once.
+        assertFalse(nag.step(80, 90, 0L))
+        assertFalse(nag.step(80, 90, 3_000L))
+        assertTrue(nag.step(80, 90, 4_000L))
+        // The same limit on the next piece of road, still over: silence for three minutes.
+        assertFalse(nag.step(80, 92, 60_000L))
+        assertFalse(nag.step(80, 92, 179_000L))
+        // Still over after three minutes: said again.
+        assertTrue(nag.step(80, 92, 184_001L))
+    }
+
+    @Test
+    fun droppingUnderTheLimitForHalfAMinuteArmsTheWarningAgain() {
+        val nag = LimitNag(tolerance = 5, overMs = 4_000L, againMs = 180_000L, underMs = 30_000L)
+        assertFalse(nag.step(80, 90, 0L))
+        assertTrue(nag.step(80, 90, 4_000L))
+        // Under 80 for 30 s, then over again for 4 s: said again, well within the three minutes.
+        assertFalse(nag.step(80, 78, 10_000L))
+        assertFalse(nag.step(80, 78, 40_000L))
+        assertFalse(nag.step(80, 90, 41_000L))
+        assertTrue(nag.step(80, 90, 45_000L))
+        // Within the tolerance but not under the limit doesn't count as dropping under.
+        assertFalse(nag.step(80, 83, 50_000L))
+        assertFalse(nag.step(80, 83, 90_000L))
+        assertFalse(nag.step(80, 90, 91_000L))
+        assertFalse(nag.step(80, 90, 95_000L))
+    }
+
+    @Test
+    fun aNewLimitValueIsSaidAfterItsOwnFewSeconds() {
+        val nag = LimitNag(tolerance = 5, overMs = 4_000L, againMs = 180_000L, underMs = 30_000L)
+        assertFalse(nag.step(80, 90, 0L))
+        assertTrue(nag.step(80, 90, 4_000L))
+        // Into a 50 zone at 90: over at once, but said only after 4 s over the new value.
+        assertFalse(nag.step(50, 90, 10_000L))
+        assertFalse(nag.step(50, 90, 13_000L))
+        assertTrue(nag.step(50, 90, 14_000L))
+        // No limit known: nothing.
+        assertFalse(nag.step(null, 120, 20_000L))
+    }
+
+    @Test
     fun movingHasHysteresis() {
         assertFalse(isMoving(null, wasMoving = true))
         assertFalse(isMoving(MOVING_KMH - 1, wasMoving = false))

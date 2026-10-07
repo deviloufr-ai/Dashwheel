@@ -21,6 +21,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -78,6 +79,15 @@ internal class PendingActionState {
 
 @Composable
 internal fun rememberPendingAction(): PendingActionState = remember { PendingActionState() }
+
+/**
+ * The strip of the designed tile a face is drawn in (DesignedTile): a row or
+ * button that calls, texts or re-routes arms it instead of acting, so the
+ * designed faces keep the same held step as the standard tiles. Where nothing
+ * provides one (a shelf preview, the second screen) the action is held and
+ * never fires, since no strip would show it.
+ */
+internal val LocalPendingAction = staticCompositionLocalOf { PendingActionState() }
 
 /**
  * The strip itself, laid over the bottom of the tile while [state] holds an

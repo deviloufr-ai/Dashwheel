@@ -92,6 +92,7 @@
     <!-- My car tile -->
     <string name="car_my_car_title">MIJN AUTO</string>
     <string name="car_my_car_fetch_hint">Tik om alle gegevens met AI op te halen</string>
+    <string name="car_my_car_name_hint">Tik om je auto in te voeren</string>
     <string name="car_source_preset">Standaard</string>
     <string name="car_source_ai">Via AI</string>
     <string name="car_source_user">Bewerkt</string>
@@ -109,16 +110,19 @@
     <string name="car_fuel_petrol">Benzine</string>
     <string name="car_fuel_hybrid">Hybride</string>
     <string name="car_fuel_lpg">LPG</string>
+    <string name="car_fuel_electric">Elektrisch</string>
 
     <!-- My car settings -->
     <string name="car_menu">Mijn auto</string>
     <string name="car_my_car_title_dialog">Mijn auto</string>
     <string name="car_settings_explanation">Benoem je auto precies en laat de AI de gegevens invullen. Controleer ze voor je opslaat.</string>
     <string name="car_name">Auto</string>
+    <string name="car_name_hint">Merk, model, motor en bouwjaar</string>
     <string name="car_fetch">Gegevens ophalen met AI</string>
     <string name="car_fetch_ok">Gegevens ingevuld: controleer ze en tik op Opslaan</string>
     <string name="car_fetch_failed">Kon de gegevens niet ophalen: %1$s</string>
     <string name="car_fetch_no_key">voeg eerst een Gemini-sleutel toe via Instellingen → Auto → AI-monteur</string>
+    <string name="car_fetch_needs_key">Voeg een Gemini-sleutel toe via Instellingen, Auto, AI-monteur om de gegevens in te vullen</string>
     <string name="car_section_engine">Motor</string>
     <string name="car_section_gearbox">Versnellingsbak</string>
     <string name="car_section_upkeep">Onderhoud</string>

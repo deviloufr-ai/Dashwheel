@@ -135,4 +135,12 @@
     <string name="apps_radio_on">On</string>
     <string name="apps_radio_off">Off</string>
     <string name="apps_radio_switching">Switching</string>
+
+    <!-- Add sheet: what a widget is missing right now, and the kinds already placed -->
+    <string name="apps_needs_obd">Needs the OBD adapter</string>
+    <string name="apps_needs_phone">Needs the phone</string>
+    <string name="apps_needs_internet">Needs internet</string>
+    <string name="apps_needs_root">Needs root</string>
+    <string name="apps_needs_carbox">Needs the car box</string>
+    <string name="apps_on_dashboard">On a dashboard</string>
 </resources>

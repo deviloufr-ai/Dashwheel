@@ -190,10 +190,12 @@ internal fun WifiNetworksCard(modifier: Modifier = Modifier) {
         }
     }
     val refused = stringResource(R.string.widgets_wifi_refused)
+    // Picking a network is an entry task: parked only (the lock shows its notice while moving).
+    val lock = LocalDriveLock.current
     ListCard(
         title = stringResource(R.string.widgets_wifi),
         modifier = modifier,
-        onSettings = { openSettings(context, Settings.Panel.ACTION_WIFI) },
+        onSettings = { lock.whenParked { openSettings(context, Settings.Panel.ACTION_WIFI) } },
         empty = when {
             !wifi.on -> stringResource(R.string.widgets_wifi_off)
             !location.granted -> stringResource(R.string.widgets_wifi_location)
@@ -213,11 +215,13 @@ internal fun WifiNetworksCard(modifier: Modifier = Modifier) {
                 },
                 on = e.connected
             ) {
-                if (!wifiJoinOrLeave(context, e)) {
-                    Toast.makeText(context, refused, Toast.LENGTH_SHORT).show()
-                    openSettings(context, Settings.Panel.ACTION_WIFI)
+                lock.whenParked {
+                    if (!wifiJoinOrLeave(context, e)) {
+                        Toast.makeText(context, refused, Toast.LENGTH_SHORT).show()
+                        openSettings(context, Settings.Panel.ACTION_WIFI)
+                    }
+                    refresh++
                 }
-                refresh++
             }
         }
     }
@@ -243,10 +247,12 @@ internal fun BluetoothDevicesCard(modifier: Modifier = Modifier) {
     // that app tells (UnitSignals), and connected or changed in that app, the only one that can.
     val carBluetooth = remember { HeadUnitPhone.available(context) }
     val phone by UnitSignals.phone.collectAsState()
+    // Picking a device is an entry task: parked only (the lock shows its notice while moving).
+    val lock = LocalDriveLock.current
     ListCard(
         title = stringResource(R.string.widgets_bt),
         modifier = modifier,
-        onSettings = { openSettings(context, Settings.ACTION_BLUETOOTH_SETTINGS) },
+        onSettings = { lock.whenParked { openSettings(context, Settings.ACTION_BLUETOOTH_SETTINGS) } },
         empty = when {
             carBluetooth -> null
             !bt.on -> stringResource(R.string.widgets_bt_off)
@@ -262,7 +268,7 @@ internal fun BluetoothDevicesCard(modifier: Modifier = Modifier) {
                 name = p?.name ?: stringResource(R.string.widgets_bt_phone_none),
                 state = if (p != null) stringResource(R.string.widgets_list_connected) else stringResource(R.string.widgets_bt_phone_change),
                 on = p != null
-            ) { openCarBluetooth(context) }
+            ) { lock.whenParked { openCarBluetooth(context) } }
             if (!bt.on) {
                 ListRow(Icons.Filled.Bluetooth, stringResource(R.string.widgets_bt_off), "", false) { RadioSwitches.toggleBluetooth(context) }
             }
@@ -278,16 +284,18 @@ internal fun BluetoothDevicesCard(modifier: Modifier = Modifier) {
                 },
                 on = e.connected
             ) {
-                busy = e.device.address
-                scope.launchSafely {
-                    val ok = btConnectOrDisconnect(context, e)
-                    if (!ok) {
-                        Toast.makeText(context, refused, Toast.LENGTH_SHORT).show()
-                        openSettings(context, Settings.ACTION_BLUETOOTH_SETTINGS)
+                lock.whenParked {
+                    busy = e.device.address
+                    scope.launchSafely {
+                        val ok = btConnectOrDisconnect(context, e)
+                        if (!ok) {
+                            Toast.makeText(context, refused, Toast.LENGTH_SHORT).show()
+                            openSettings(context, Settings.ACTION_BLUETOOTH_SETTINGS)
+                        }
+                        delay(2_500)
+                        busy = null
+                        refresh++
                     }
-                    delay(2_500)
-                    busy = null
-                    refresh++
                 }
             }
         }

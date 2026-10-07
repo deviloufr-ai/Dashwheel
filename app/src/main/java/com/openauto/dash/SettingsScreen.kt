@@ -370,7 +370,7 @@ private fun MoreBelow(scroll: ScrollState, modifier: Modifier = Modifier) {
 private fun CarPane(open: (Deep) -> Unit, onPickObd: () -> Unit) {
     val car by CarProfileStore.profile.collectAsState()
     SettingsSection(stringResource(R.string.settings_section_car))
-    SettingsRow(Icons.Filled.DirectionsCar, stringResource(R.string.car_menu), car.name) { open(Deep.CAR) }
+    SettingsRow(Icons.Filled.DirectionsCar, stringResource(R.string.car_menu), car.displayName(LocalContext.current)) { open(Deep.CAR) }
     SettingsRow(Icons.Filled.Image, stringResource(R.string.mycar_title), stringResource(R.string.mycar_settings_detail)) { open(Deep.CAR_LOOK) }
     SettingsRow(Icons.Filled.Videocam, stringResource(R.string.reverse_title), stringResource(R.string.reverse_settings_detail)) { open(Deep.REVERSE) }
     SettingsRow(Icons.Filled.SettingsInputAntenna, stringResource(R.string.signals_title), stringResource(R.string.signals_settings_detail)) { open(Deep.SIGNALS) }
@@ -696,6 +696,8 @@ private fun DrivingPane(m: TopBarModel, onWheelButtons: () -> Unit, onPlaces: ()
     }
     SendLogRow()
     Spacer(Modifier.height(20.dp))
+    SettingsSection(stringResource(R.string.settings_section_sound))
+    VolumeAlertRow()
     SpeedVolumeSetting()
     KeyTargetRows()
 }

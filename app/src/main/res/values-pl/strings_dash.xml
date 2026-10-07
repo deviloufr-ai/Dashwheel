@@ -182,7 +182,8 @@
     <string name="dash_update_ready_title">Aktualizacja gotowa</string>
     <string name="dash_update_ready_body">%1$s jest pobrana. Instalacja trwa pół minuty i uruchomi Dashwheel ponownie.</string>
     <string name="dash_update_now">Aktualizuj teraz</string>
-    <string name="dash_update_later">Później</string>
+    <string name="dash_update_not_this_version">Nie ta wersja</string>
+    <string name="dash_update_allow_installs">Zezwól Dashwheel na instalowanie aktualizacji, a potem dotknij ponownie Aktualizuj</string>
     <string name="dash_reset_confirm_title">Wyczyścić ten pulpit?</string>
     <string name="dash_reset_confirm_body">Wszystkie kafelki znikną. Cofnij je przywróci.</string>
     <string name="dash_dashboard_options">Opcje pulpitu</string>

@@ -74,7 +74,8 @@ object FuelPrices {
     /** The grades this car can take, best first: a petrol car shows E10 unless only SP95/98 is around. */
     fun gradesFor(car: CarProfile): List<FuelGrade> = when (car.fuel) {
         FuelType.DIESEL -> listOf(FuelGrade.GAZOLE)
-        FuelType.PETROL, FuelType.HYBRID -> listOf(FuelGrade.E10, FuelGrade.SP95, FuelGrade.SP98)
+        // An electric car never pumps, but the fuel tiles still need a grade to look up.
+        FuelType.PETROL, FuelType.HYBRID, FuelType.ELECTRIC -> listOf(FuelGrade.E10, FuelGrade.SP95, FuelGrade.SP98)
         FuelType.LPG -> listOf(FuelGrade.GPLC, FuelGrade.E10, FuelGrade.SP95, FuelGrade.SP98)
     }
 

@@ -5,14 +5,15 @@
     <string name="briefing_setting_detail">Bij het starten: weinig brandstof, ijzel, motorstoringen en de volgende afspraak</string>
 
     <!-- Spoken when the car starts, in the mechanic's language -->
-    <string name="briefing_morning">Goedemorgen.</string>
-    <string name="briefing_afternoon">Goedemiddag.</string>
-    <string name="briefing_evening">Goedenavond.</string>
     <string name="briefing_ice">Pas op voor gladheid.</string>
     <string name="briefing_fuel_low">Weinig brandstof: nog ongeveer %1$d kilometer, plan een tankstop.</string>
     <plurals name="briefing_faults">
-        <item quantity="one">%1$d motorfoutcode opgeslagen, details op het scherm.</item>
-        <item quantity="other">%1$d motorfoutcodes opgeslagen, details op het scherm.</item>
+        <item quantity="one">%1$d motorfout opgeslagen: %2$s. Kijk stilstaand op de tegel Foutcodes.</item>
+        <item quantity="other">%1$d motorfouten opgeslagen: %2$s. Kijk stilstaand op de tegel Foutcodes.</item>
+    </plurals>
+    <plurals name="briefing_faults_untitled">
+        <item quantity="one">%1$d motorfout opgeslagen. Kijk stilstaand op de tegel Foutcodes.</item>
+        <item quantity="other">%1$d motorfouten opgeslagen. Kijk stilstaand op de tegel Foutcodes.</item>
     </plurals>
     <string name="briefing_event">Volgende afspraak: %1$s om %2$s.</string>
 </resources>

@@ -90,8 +90,8 @@
     <string name="widgets_bt_phone_none">No phone connected</string>
     <string name="widgets_bt_phone_change">Connect</string>
     <string name="widgets_limit">Speed limit</string>
-    <string name="widgets_limit_blurb">The limit of the road you are on, said out loud when you go over it</string>
-    <string name="widgets_limit_say">Speed limit %1$d</string>
+    <string name="widgets_limit_blurb">The limit of the road you are on, with a word when you stay over it if you want one</string>
+    <string name="widgets_limit_say">Over the limit, %1$d.</string>
     <string name="widgets_limit_unknown">No limit known here</string>
     <string name="widgets_limit_over">Over the limit</string>
     <string name="widgets_limit_ok">Within the limit</string>
@@ -101,6 +101,8 @@
     <string name="widgets_park_stop">Stop</string>
     <string name="widgets_park_until">until %1$s</string>
     <string name="widgets_park_none">Pick how long you paid for</string>
+    <string name="widgets_park_no_phone">Pair your phone for the reminder away from the car</string>
+    <string name="widgets_park_say_ten">Parking ends in ten minutes.</string>
     <string name="widgets_fuel">Fuel log</string>
     <string name="widgets_fuel_blurb">Your refuels, what the car really uses and the cost of 100 km</string>
     <string name="widgets_fuel_add">Add a refuel</string>
@@ -135,4 +137,6 @@
     <string name="widgets_commute_blurb">How long the drives home and to work take, day after day</string>
     <string name="widgets_commute_none">No drive here yet</string>
     <string name="widgets_commute_stats">average %1$d min, best %2$d min</string>
+
+    <string name="widgets_switch_look">Look</string>
 </resources>

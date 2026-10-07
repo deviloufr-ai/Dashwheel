@@ -166,4 +166,9 @@
     <string name="design_family_copper">Kupfer</string>
     <string name="design_family_cabins">Innenräume</string>
     <string name="design_label_value">%1$s: %2$s</string>
+
+    <string name="design_parked_looks">Looks im Stand</string>
+    <string name="design_parked_looks_note">Hübsch, aber beim Fahren langsamer zu lesen</string>
+    <string name="design_alert_hot">Heiß</string>
+    <string name="design_alert_low">Niedrig</string>
 </resources>
