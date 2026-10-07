@@ -48,7 +48,7 @@
     <string name="reverse_lens">Objektivkrümmung</string>
     <string name="reverse_second_title">Zweiter Bildschirm</string>
     <string name="reverse_second_off">Aus</string>
-    <string name="reverse_second_hint">Beim Rückwärtsfahren statt seiner Seite angezeigt.</string>
-    <string name="reverse_second_hint_rom">Die Kamera braucht das eigene Bild von Dashwheel, oben: bis dahin zeigt der zweite Bildschirm das Radar.</string>
+    <string name="reverse_second_hint">Übernimmt den zweiten Bildschirm von selbst im Rückwärtsgang.</string>
+    <string name="reverse_second_hint_rom">Die Kamera braucht die Rückfahransicht mit dem Bild von Dashwheel: bis dahin zeigt der zweite Bildschirm das Radar.</string>
     <string name="reverse_second_hint_video">Braucht Scharfes Bild in den Einstellungen des zweiten Bildschirms.</string>
 </resources>

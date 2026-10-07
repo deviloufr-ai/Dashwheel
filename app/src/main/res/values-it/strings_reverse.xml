@@ -48,7 +48,7 @@
     <string name="reverse_lens">Curvatura dell\'obiettivo</string>
     <string name="reverse_second_title">Secondo schermo</string>
     <string name="reverse_second_off">No</string>
-    <string name="reverse_second_hint">Mostrato al posto della sua pagina in retromarcia.</string>
-    <string name="reverse_second_hint_rom">La telecamera richiede l\'immagine di Dashwheel, sopra: fino ad allora il secondo schermo mostra il radar.</string>
+    <string name="reverse_second_hint">Prende da solo il secondo schermo in retromarcia.</string>
+    <string name="reverse_second_hint_rom">La telecamera richiede la vista posteriore attiva con l\'immagine di Dashwheel: fino ad allora il secondo schermo mostra il radar.</string>
     <string name="reverse_second_hint_video">Richiede Immagine nitida nelle impostazioni del secondo schermo.</string>
 </resources>

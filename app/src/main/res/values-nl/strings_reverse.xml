@@ -48,7 +48,7 @@
     <string name="reverse_lens">Lenskromming</string>
     <string name="reverse_second_title">Tweede scherm</string>
     <string name="reverse_second_off">Uit</string>
-    <string name="reverse_second_hint">Getoond in plaats van zijn pagina bij achteruitrijden.</string>
-    <string name="reverse_second_hint_rom">De camera heeft het eigen beeld van Dashwheel nodig, hierboven: tot dan toont het tweede scherm de radar.</string>
+    <string name="reverse_second_hint">Neemt het tweede scherm vanzelf over in de achteruit.</string>
+    <string name="reverse_second_hint_rom">De camera heeft het achteruitrijbeeld aan nodig met het beeld van Dashwheel: tot dan toont het tweede scherm de radar.</string>
     <string name="reverse_second_hint_video">Vereist Scherp beeld in de instellingen van het tweede scherm.</string>
 </resources>

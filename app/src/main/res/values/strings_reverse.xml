@@ -49,7 +49,7 @@
     <string name="reverse_lens">Lens curve</string>
     <string name="reverse_second_title">Second screen</string>
     <string name="reverse_second_off">Off</string>
-    <string name="reverse_second_hint">Shown in place of its page while reversing.</string>
-    <string name="reverse_second_hint_rom">The camera needs Dashwheel\'s own picture, above: until then the second screen shows the radar.</string>
+    <string name="reverse_second_hint">Takes over the second screen by itself in reverse gear.</string>
+    <string name="reverse_second_hint_rom">The camera needs the reverse view on with Dashwheel\'s picture: until then the second screen shows the radar.</string>
     <string name="reverse_second_hint_video">Needs Sharp picture in the second screen\'s settings.</string>
 </resources>

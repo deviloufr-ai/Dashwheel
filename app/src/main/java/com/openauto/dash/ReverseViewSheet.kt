@@ -120,7 +120,7 @@ internal fun ReverseViewSheet(onDismiss: () -> Unit) {
                 stringResource(
                     when {
                         secondScreen != null && !config.video -> R.string.reverse_second_hint_video
-                        (secondScreen == ReverseLayout.CAMERA || secondScreen == ReverseLayout.BOTH) && !ownCamera -> R.string.reverse_second_hint_rom
+                        (secondScreen == ReverseLayout.CAMERA || secondScreen == ReverseLayout.BOTH) && !(on && ownCamera) -> R.string.reverse_second_hint_rom
                         else -> R.string.reverse_second_hint
                     }
                 )

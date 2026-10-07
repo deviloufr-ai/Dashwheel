@@ -142,6 +142,8 @@ internal object ReverseView {
     private const val PREVIEW_MS = 20_000L
     /** The C4 Picasso's tailgate, measured from its hinge to its edge: about 95 cm behind the bumper when open. */
     const val DEFAULT_TAILGATE_M = 0.95f
+    /** Saved for a second screen that keeps its page in reverse (nothing saved: the default, on). */
+    private const val SECOND_SCREEN_OFF = "OFF"
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var started = false
@@ -165,8 +167,11 @@ internal object ReverseView {
     /** The car app's own lines are off: the angle is read from its log. */
     val hideStock: StateFlow<Boolean> = _hideStock.asStateFlow()
 
-    private val _secondScreen = MutableStateFlow<ReverseLayout?>(null)
-    /** What the second screen shows while reversing, in place of its page; null: its page stays. */
+    private val _secondScreen = MutableStateFlow<ReverseLayout?>(ReverseLayout.BOTH)
+    /**
+     * What the second screen shows while reversing, in place of its page; null: its page stays.
+     * Camera and radar until the driver says otherwise: the second screen turns to it by itself.
+     */
     val secondScreen: StateFlow<ReverseLayout?> = _secondScreen.asStateFlow()
 
     private val _tailgate = MutableStateFlow(DEFAULT_TAILGATE_M)
@@ -188,13 +193,16 @@ internal object ReverseView {
             .stateIn(scope, SharingStarted.Eagerly, false)
 
     /**
-     * What the second screen shows now ([ReverseSecondScreen]): while the reverse
-     * view is wanted, on a second screen streamed by the head unit (one that draws
-     * its pages itself can't show it).
+     * What the second screen shows now ([ReverseSecondScreen]): in reverse gear,
+     * whether or not the head unit shows Dashwheel's reverse view, on a second
+     * screen streamed by the head unit (one that draws its pages itself can't
+     * show it). Its camera picture is the head unit's ([ReverseCamera.mirror]):
+     * without it, the radar.
      */
     val secondScreenShown: StateFlow<ReverseLayout?> =
-        combine(wanted, _secondScreen, SecondScreenStore.config) { want, shown, config -> shown?.takeIf { want && config.video } }
-            .stateIn(scope, SharingStarted.Eagerly, null)
+        combine(CarBox.reversing, _preview, _secondScreen, SecondScreenStore.config) { reversing, preview, shown, config ->
+            shown?.takeIf { (reversing || preview) && config.video }
+        }.stateIn(scope, SharingStarted.Eagerly, null)
 
     private val _covering = MutableStateFlow(false)
     /** The reverse view is up: the radar alert stays away ([RadarOverlay]). */
@@ -251,7 +259,11 @@ internal object ReverseView {
         _hideStock.value = p.getBoolean("hide_stock", false)
         _ownCamera.value = p.getBoolean("own_camera", false)
         _tailgate.value = p.getFloat("tailgate", DEFAULT_TAILGATE_M)
-        _secondScreen.value = p.getString("second_screen", null)?.let { name -> ReverseLayout.entries.firstOrNull { it.name == name } }
+        _secondScreen.value = when (val saved = p.getString("second_screen", null)) {
+            null -> ReverseLayout.BOTH
+            SECOND_SCREEN_OFF -> null
+            else -> ReverseLayout.entries.firstOrNull { it.name == saved } ?: ReverseLayout.BOTH
+        }
         val d = ReverseCalibration()
         _calibration.value = ReverseCalibration(
             shift = p.getFloat("shift", d.shift),
@@ -282,7 +294,7 @@ internal object ReverseView {
 
     fun setSecondScreen(context: Context, shown: ReverseLayout?) {
         _secondScreen.value = shown
-        prefs(context).edit().putString("second_screen", shown?.name).apply()
+        prefs(context).edit().putString("second_screen", shown?.name ?: SECOND_SCREEN_OFF).apply()
     }
 
     fun setLayout(context: Context, layout: ReverseLayout) {

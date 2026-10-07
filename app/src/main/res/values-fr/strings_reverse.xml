@@ -48,7 +48,7 @@
     <string name="reverse_lens">Courbure de l\'objectif</string>
     <string name="reverse_second_title">Second écran</string>
     <string name="reverse_second_off">Non</string>
-    <string name="reverse_second_hint">Affiché à la place de sa page pendant la marche arrière.</string>
-    <string name="reverse_second_hint_rom">La caméra demande l\'image de Dashwheel, au-dessus : d\'ici là, le second écran montre le radar.</string>
+    <string name="reverse_second_hint">Prend le second écran tout seul en marche arrière.</string>
+    <string name="reverse_second_hint_rom">La caméra demande la vue de recul activée avec l\'image de Dashwheel : d\'ici là, le second écran montre le radar.</string>
     <string name="reverse_second_hint_video">Demande Image nette dans les réglages du second écran.</string>
 </resources>
