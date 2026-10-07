@@ -54,7 +54,7 @@ class PipAnchorTest {
         assertEquals(7, win.stackId)
         assertEquals(63, win.taskId)
         assertEquals("com.google.android.apps.maps", win.packageName)
-        assertEquals("fullscreen dash \u00b7 freeform maps", WindowListing.summarizeStacks(freeform))
+        assertEquals("fullscreen dashwheel \u00b7 freeform maps", WindowListing.summarizeStacks(freeform))
     }
 
     @Test
