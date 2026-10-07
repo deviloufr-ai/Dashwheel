@@ -47,11 +47,16 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
         if (pairingUri == null && logo != null) {
             // The boot picture again, where Plymouth left it (same size, same background):
             // the hand-over can't be seen, and it stays until the head unit sends its own.
+            // Only the clock comes in over it.
             val scale = min(1.0, min(width * 0.5 / logo.width, height * 0.6 / logo.height))
             val w = (logo.width * scale).roundToInt()
             val h = (logo.height * scale).roundToInt()
             g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
             g.drawImage(logo, (width - w) / 2, (height - h) / 2, w, h, null)
+            // The time in the top right corner, clear of the logo (at most 60 % of the height, centred).
+            g.color = TEXT
+            g.font = font(Font.BOLD, 12f)
+            drawRight(g, clockText(now, clock12), width - inset - (6 * unit).roundToInt(), inset + (16 * unit).roundToInt())
             g.color = MUTED
             g.font = font(Font.PLAIN, 4.5f)
             drawCentered(g, status, width / 2, height - inset - (8 * unit).roundToInt())
@@ -89,6 +94,12 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
         val right = width - inset - (5 * unit).roundToInt()
         val top = inset + (5 * unit).roundToInt()
 
+        // An alert up on the head unit takes the whole screen while it lasts.
+        state.alert?.let { alert ->
+            paintAlert(g, alert, text.clock(now), left, right, top, fg, muted, accent, state.night)
+            return@draw
+        }
+
         // Top line on every page: the clock, and what the car is warning about.
         g.color = muted
         g.font = font(Font.BOLD, 7f)
@@ -105,6 +116,38 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
             "MEDIA" -> paintMedia(g, state, text, left, right, fg, muted, accent)
             "NAV" -> paintNav(g, state, text, left, right, fg, muted, accent)
             else -> paintDrive(g, state, text, left, right, fg, muted, accent)
+        }
+    }
+
+    /** [alert] full screen: the clock, a frame and a stripe in its colour, its title big, its detail under it. */
+    private fun paintAlert(
+        g: Graphics2D, alert: ClusterState.Alert, clock: String, left: Int, right: Int, top: Int,
+        fg: Color, muted: Color, accent: Color, night: Boolean
+    ) {
+        val tone = when (alert.level) {
+            ClusterState.Alert.CRITICAL -> if (night) CRITICAL else CRITICAL_DAY
+            ClusterState.Alert.WARN -> if (night) WARN else WARN_DAY
+            else -> accent
+        }
+        g.color = muted
+        g.font = font(Font.BOLD, 7f)
+        g.drawString(clock, left, top + (6 * unit).roundToInt())
+        // A frame in the alert's colour, inside the overscan.
+        val frame = (1.5f * unit).roundToInt().coerceAtLeast(2)
+        g.color = tone
+        g.stroke = BasicStroke(frame.toFloat())
+        g.drawRoundRect(inset + frame, inset + frame, width - 2 * (inset + frame), height - 2 * (inset + frame), (8 * unit).roundToInt(), (8 * unit).roundToInt())
+        val cx = width / 2
+        val room = right - left
+        g.color = tone
+        g.fillRoundRect(cx - (10 * unit).roundToInt(), height / 2 - (22 * unit).roundToInt(), (20 * unit).roundToInt(), (2 * unit).roundToInt(), (2 * unit).roundToInt(), (2 * unit).roundToInt())
+        g.color = fg
+        g.font = font(Font.BOLD, 16f)
+        drawCentered(g, clipped(g, alert.title, room), cx, height / 2)
+        if (alert.detail.isNotEmpty()) {
+            g.color = tone
+            g.font = font(Font.BOLD, 8f)
+            drawCentered(g, clipped(g, alert.detail, room), cx, height / 2 + (16 * unit).roundToInt())
         }
     }
 
@@ -252,6 +295,8 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
         val MUTED = Color(0x8A96A3)
         val MUTED_DAY = Color(0x5B6570)
         val WARN = Color(0xFFB300)
+        val CRITICAL = Color(0xFF5252)
+        val CRITICAL_DAY = Color(0xC62828)
         /** Amber is lost on the day palette's near-white: a burnt orange reads there. */
         val WARN_DAY = Color(0xA84300)
     }

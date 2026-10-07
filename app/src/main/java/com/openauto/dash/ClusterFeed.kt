@@ -60,6 +60,7 @@ internal object ClusterFeed {
             open = open,
             obdConnected = obdLive,
             imperial = units.imperial,
+            alert = SecondScreenAlerts.dataAlert(context),
             speedUnit = units.speedUnit,
             fahrenheit = units.fahrenheit,
             clock12 = !units.clock24,

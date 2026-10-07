@@ -46,4 +46,9 @@
     <string name="reverse_boot_detail">Een stippellijn tot waar de open achterklep reikt, en een waarschuwing als iets dichterbij is.</string>
     <string name="reverse_boot_room">Ruimte voor de klep: %1$d cm</string>
     <string name="reverse_lens">Lenskromming</string>
+    <string name="reverse_second_title">Tweede scherm</string>
+    <string name="reverse_second_off">Uit</string>
+    <string name="reverse_second_hint">Getoond in plaats van zijn pagina bij achteruitrijden.</string>
+    <string name="reverse_second_hint_rom">De camera heeft het eigen beeld van Dashwheel nodig, hierboven: tot dan toont het tweede scherm de radar.</string>
+    <string name="reverse_second_hint_video">Vereist Scherp beeld in de instellingen van het tweede scherm.</string>
 </resources>

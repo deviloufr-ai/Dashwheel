@@ -89,4 +89,6 @@
     <string name="second_screen_light_night">At night</string>
     <string name="second_screen_light_down">Dimmer</string>
     <string name="second_screen_light_up">Brighter</string>
+    <string name="second_screen_alerts">Alerts full screen</string>
+    <string name="second_screen_alerts_detail">An alert on the dashboard covers the whole cluster while it shows.</string>
 </resources>

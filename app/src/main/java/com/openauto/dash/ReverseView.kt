@@ -7,7 +7,9 @@ import android.util.Log
 import android.view.Gravity
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.Canvas
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -163,6 +165,10 @@ internal object ReverseView {
     /** The car app's own lines are off: the angle is read from its log. */
     val hideStock: StateFlow<Boolean> = _hideStock.asStateFlow()
 
+    private val _secondScreen = MutableStateFlow<ReverseLayout?>(null)
+    /** What the second screen shows while reversing, in place of its page; null: its page stays. */
+    val secondScreen: StateFlow<ReverseLayout?> = _secondScreen.asStateFlow()
+
     private val _tailgate = MutableStateFlow(DEFAULT_TAILGATE_M)
     /** Room the tailgate needs behind the bumper to open, in metres; 0 hides its line. */
     val tailgate: StateFlow<Float> = _tailgate.asStateFlow()
@@ -180,6 +186,15 @@ internal object ReverseView {
     val wanted: StateFlow<Boolean> =
         combine(_on, CarBox.reversing, _preview) { on, reversing, preview -> preview || on && reversing }
             .stateIn(scope, SharingStarted.Eagerly, false)
+
+    /**
+     * What the second screen shows now ([ReverseSecondScreen]): while the reverse
+     * view is wanted, on a second screen streamed by the head unit (one that draws
+     * its pages itself can't show it).
+     */
+    val secondScreenShown: StateFlow<ReverseLayout?> =
+        combine(wanted, _secondScreen, SecondScreenStore.config) { want, shown, config -> shown?.takeIf { want && config.video } }
+            .stateIn(scope, SharingStarted.Eagerly, null)
 
     private val _covering = MutableStateFlow(false)
     /** The reverse view is up: the radar alert stays away ([RadarOverlay]). */
@@ -215,6 +230,10 @@ internal object ReverseView {
                 }
             }
         }
+        // The camera's picture copied for the second screen only while it shows it.
+        scope.launch {
+            secondScreenShown.collect { ReverseCamera.setMirror(it == ReverseLayout.CAMERA || it == ReverseLayout.BOTH) }
+        }
         // The car app's log is only read while it's needed: reversing with its lines hidden.
         scope.launch {
             combine(CarBox.reversing, _hideStock, _on) { r, hide, on -> r && hide && on }.collect { read ->
@@ -232,6 +251,7 @@ internal object ReverseView {
         _hideStock.value = p.getBoolean("hide_stock", false)
         _ownCamera.value = p.getBoolean("own_camera", false)
         _tailgate.value = p.getFloat("tailgate", DEFAULT_TAILGATE_M)
+        _secondScreen.value = p.getString("second_screen", null)?.let { name -> ReverseLayout.entries.firstOrNull { it.name == name } }
         val d = ReverseCalibration()
         _calibration.value = ReverseCalibration(
             shift = p.getFloat("shift", d.shift),
@@ -258,6 +278,11 @@ internal object ReverseView {
     fun setOwnCamera(context: Context, own: Boolean) {
         _ownCamera.value = own
         prefs(context).edit().putBoolean("own_camera", own).apply()
+    }
+
+    fun setSecondScreen(context: Context, shown: ReverseLayout?) {
+        _secondScreen.value = shown
+        prefs(context).edit().putString("second_screen", shown?.name).apply()
     }
 
     fun setLayout(context: Context, layout: ReverseLayout) {
@@ -804,6 +829,74 @@ private fun ReverseScreen() {
             preview, pictureUp, adjusting, failed = ownCamera && !preview && camera == ReverseCamera.State.FAILED,
             pose = pose, memoryVersion = memoryVersion
         )
+    }
+}
+
+/**
+ * The reverse view on the second screen ([ClusterScreen]), over its page while
+ * reversing: the camera with its lines, the radar from above, or both side by
+ * side. The picture is the copy of Dashwheel's own ([ReverseCamera.mirror]);
+ * with the car app's picture there is none, and the radar shows instead.
+ * Nothing to press there: no chips, no buttons.
+ */
+@Composable
+internal fun ReverseSecondScreen() {
+    val mode by ReverseView.secondScreenShown.collectAsState()
+    val wanted = mode ?: return
+    val calibration by ReverseView.calibration.collectAsState()
+    val steeringNow by ReverseView.steering.collectAsState()
+    val radar by ReverseView.radar.collectAsState()
+    val preview by ReverseView.preview.collectAsState()
+    val frame by ReverseCamera.mirror.collectAsState()
+    val look by MyCarLook.shown.collectAsState()
+    val lookStyle by MyCarLook.style.collectAsState()
+    val steering by animateFloatAsState(steeringNow ?: 0f, tween(180), label = "steering")
+    val shownSteering = steering.takeIf { steeringNow != null }
+    val tailgate by ReverseView.tailgate.collectAsState()
+    val pose by ParkingMotion.pose.collectAsState()
+    val memoryVersion by ObstacleMemory.version.collectAsState()
+    val groundVersion by GroundMemory.version.collectAsState()
+    val ground by GroundMemory.filled.collectAsState()
+    val above = Above(pose, memoryVersion + groundVersion, ground, tailgate)
+    val top = look?.top
+    val pictureUp = preview || frame != null
+    val shown = if (wanted != ReverseLayout.RADAR && !pictureUp) ReverseLayout.RADAR else wanted
+
+    @Composable
+    fun Picture(modifier: Modifier) {
+        Box(modifier) {
+            val f = frame
+            if (f != null && !preview) Image(f, contentDescription = null, contentScale = ContentScale.FillBounds, modifier = Modifier.fillMaxSize())
+            else Box(Modifier.fillMaxSize().background(Color(0xFF2B2C2E)))
+            Canvas(Modifier.fillMaxSize()) {
+                val g = Ground(size.width, size.height, calibration)
+                fixedLines(g, shadow = true)
+                if (shownSteering != null) steeringLines(g, shownSteering)
+                fixedLines(g, shadow = false)
+                if (tailgate > 0f) tailgateLine(g, tailgate)
+            }
+        }
+    }
+
+    BoxWithConstraints(Modifier.fillMaxSize().background(ReverseInk.PanelSolid)) {
+        when (shown) {
+            ReverseLayout.RADAR -> Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Nearest(radar)
+                Canvas(Modifier.weight(1f).fillMaxWidth()) { fromAbove(radar, shownSteering, top, lookStyle, above) }
+            }
+            ReverseLayout.CAMERA -> Box(Modifier.fillMaxSize()) {
+                Picture(Modifier.fillMaxSize())
+                Box(Modifier.align(Alignment.TopStart).padding(16.dp)) { Nearest(radar) }
+            }
+            ReverseLayout.BOTH -> {
+                val panels = SplitPanels(maxWidth, maxHeight)
+                Column(panels.radar.background(ReverseInk.Chip).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Nearest(radar, compact = true)
+                    Canvas(Modifier.weight(1f).fillMaxWidth()) { fromAbove(radar, shownSteering, top, lookStyle, above) }
+                }
+                Box(panels.camera.background(Color.Black)) { Picture(panels.picture.align(Alignment.Center)) }
+            }
+        }
     }
 }
 

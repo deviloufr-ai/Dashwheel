@@ -46,4 +46,9 @@
     <string name="reverse_boot_detail">Przerywana linia tam, gdzie sięga otwarta klapa, i ostrzeżenie, gdy coś jest bliżej.</string>
     <string name="reverse_boot_room">Miejsce na klapę: %1$d cm</string>
     <string name="reverse_lens">Krzywizna obiektywu</string>
+    <string name="reverse_second_title">Drugi ekran</string>
+    <string name="reverse_second_off">Wył.</string>
+    <string name="reverse_second_hint">Pokazywane zamiast jego strony podczas cofania.</string>
+    <string name="reverse_second_hint_rom">Kamera wymaga własnego obrazu Dashwheel, powyżej: do tego czasu drugi ekran pokazuje radar.</string>
+    <string name="reverse_second_hint_video">Wymaga opcji Ostry obraz w ustawieniach drugiego ekranu.</string>
 </resources>

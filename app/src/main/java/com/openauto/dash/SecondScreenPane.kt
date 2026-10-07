@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.EventSeat
 import androidx.compose.material.icons.filled.Brightness6
 import androidx.compose.material.icons.filled.FileOpen
@@ -222,6 +223,10 @@ private fun SecondScreenSettings() {
                 Icons.Filled.Brightness6, stringResource(R.string.second_screen_day_night),
                 stringResource(R.string.second_screen_day_night_detail), config.followDayNight
             ) { on -> update { it.copy(followDayNight = on) } }
+            SettingsToggle(
+                Icons.Filled.Fullscreen, stringResource(R.string.second_screen_alerts),
+                stringResource(R.string.second_screen_alerts_detail), config.alertsFullScreen
+            ) { on -> update { it.copy(alertsFullScreen = on) } }
             SettingsToggle(
                 Icons.Filled.HighQuality, stringResource(R.string.second_screen_video),
                 stringResource(R.string.second_screen_video_detail), config.video

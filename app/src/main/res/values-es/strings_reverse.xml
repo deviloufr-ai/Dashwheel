@@ -46,4 +46,9 @@
     <string name="reverse_boot_detail">Una línea discontinua hasta donde llega el portón abierto, y un aviso si algo está más cerca.</string>
     <string name="reverse_boot_room">Espacio del maletero: %1$d cm</string>
     <string name="reverse_lens">Curva del objetivo</string>
+    <string name="reverse_second_title">Segunda pantalla</string>
+    <string name="reverse_second_off">No</string>
+    <string name="reverse_second_hint">Se muestra en lugar de su página al dar marcha atrás.</string>
+    <string name="reverse_second_hint_rom">La cámara necesita la imagen propia de Dashwheel, arriba: mientras tanto la segunda pantalla muestra el radar.</string>
+    <string name="reverse_second_hint_video">Requiere Imagen nítida en los ajustes de la segunda pantalla.</string>
 </resources>

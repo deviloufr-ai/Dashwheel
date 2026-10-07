@@ -89,4 +89,6 @@
     <string name="second_screen_light_night">Di notte</string>
     <string name="second_screen_light_down">Più scuro</string>
     <string name="second_screen_light_up">Più chiaro</string>
+    <string name="second_screen_alerts">Avvisi a schermo intero</string>
+    <string name="second_screen_alerts_detail">Un avviso sulla dashboard occupa tutto il quadro finché è mostrato.</string>
 </resources>

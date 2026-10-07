@@ -89,4 +89,6 @@
     <string name="second_screen_light_night">De nuit</string>
     <string name="second_screen_light_down">Plus sombre</string>
     <string name="second_screen_light_up">Plus clair</string>
+    <string name="second_screen_alerts">Alertes en plein écran</string>
+    <string name="second_screen_alerts_detail">Une alerte affichée sur le tableau de bord couvre tout le combiné.</string>
 </resources>

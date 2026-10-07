@@ -143,7 +143,7 @@ object DoorAlertOverlay {
 
 /** The doors in [style], following [DoorAlertOverlay.alert]; the last ones stay while it animates out. */
 @Composable
-private fun DoorAlertContent(style: AlertStyle) {
+internal fun DoorAlertContent(style: AlertStyle) {
     val live by DoorAlertOverlay.alert.collectAsState()
     val doors = rememberLast(live) ?: return
     DoorAlert(doors, style)

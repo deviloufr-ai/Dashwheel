@@ -46,4 +46,9 @@
     <string name="reverse_boot_detail">Eine gestrichelte Linie, bis wohin die offene Heckklappe reicht, und eine Warnung, wenn etwas näher ist.</string>
     <string name="reverse_boot_room">Platz für die Klappe: %1$d cm</string>
     <string name="reverse_lens">Objektivkrümmung</string>
+    <string name="reverse_second_title">Zweiter Bildschirm</string>
+    <string name="reverse_second_off">Aus</string>
+    <string name="reverse_second_hint">Beim Rückwärtsfahren statt seiner Seite angezeigt.</string>
+    <string name="reverse_second_hint_rom">Die Kamera braucht das eigene Bild von Dashwheel, oben: bis dahin zeigt der zweite Bildschirm das Radar.</string>
+    <string name="reverse_second_hint_video">Braucht Scharfes Bild in den Einstellungen des zweiten Bildschirms.</string>
 </resources>

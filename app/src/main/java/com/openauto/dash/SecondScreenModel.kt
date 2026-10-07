@@ -47,6 +47,8 @@ data class SecondScreenConfig(
     val background: ClusterBackground = ClusterBackground.BLACK,
     /** Light by day, [background] (or dark) by night, as the dashboard's automatic look. */
     val followDayNight: Boolean = false,
+    /** An alert up on the dashboard also covers the whole second screen ([SecondScreenAlerts]). */
+    val alertsFullScreen: Boolean = true,
     /** The monitor is mounted upside down: the display turns every picture 180°. */
     val upsideDown: Boolean = false,
     /** The monitor's backlight by day and by night, 1..100, for a display wired to its buttons. */

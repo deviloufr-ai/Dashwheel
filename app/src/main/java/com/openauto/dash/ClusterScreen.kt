@@ -87,6 +87,10 @@ private fun ClusterFrame(config: SecondScreenConfig, shown: ClusterPage, all: Li
                 }
             }
         }
+        // An alert up on the dashboard covers the page, in the dashboard's own look.
+        SecondScreenAlertLayer()
+        // Reversing: the camera, the radar or both, over everything else.
+        ReverseSecondScreen()
     }
 }
 

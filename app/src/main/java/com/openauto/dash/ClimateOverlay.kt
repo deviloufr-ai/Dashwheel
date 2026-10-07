@@ -112,7 +112,7 @@ object ClimateOverlay {
 }
 
 @Composable
-private fun ClimateAlertContent(style: AlertStyle) {
+internal fun ClimateAlertContent(style: AlertStyle) {
     val live by ClimateOverlay.alert.collectAsState()
     val climate = rememberLast(live) ?: return
     ClimateAlert(climate, style)

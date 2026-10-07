@@ -104,7 +104,7 @@ object RadarOverlay {
 }
 
 @Composable
-private fun RadarAlertContent(style: AlertStyle) {
+internal fun RadarAlertContent(style: AlertStyle) {
     val live by RadarOverlay.alert.collectAsState()
     val radar = rememberLast(live) ?: return
     RadarAlert(radar, style)

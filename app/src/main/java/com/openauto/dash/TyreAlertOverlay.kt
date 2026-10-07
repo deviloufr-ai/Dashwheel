@@ -118,7 +118,7 @@ object TyreAlertOverlay {
 }
 
 @Composable
-private fun TyreAlertContent(style: AlertStyle) {
+internal fun TyreAlertContent(style: AlertStyle) {
     val live by TyreAlertOverlay.alert.collectAsState()
     val tyres = rememberLast(live) ?: return
     TyreAlert(tyres, style)

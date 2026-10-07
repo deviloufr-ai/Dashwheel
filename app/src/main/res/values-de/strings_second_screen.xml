@@ -89,4 +89,6 @@
     <string name="second_screen_light_night">Bei Nacht</string>
     <string name="second_screen_light_down">Dunkler</string>
     <string name="second_screen_light_up">Heller</string>
+    <string name="second_screen_alerts">Hinweise im Vollbild</string>
+    <string name="second_screen_alerts_detail">Ein Hinweis auf dem Dashboard füllt das ganze Kombiinstrument, solange er angezeigt wird.</string>
 </resources>

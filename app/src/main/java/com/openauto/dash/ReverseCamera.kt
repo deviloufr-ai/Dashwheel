@@ -14,6 +14,8 @@ import android.os.HandlerThread
 import android.util.Log
 import android.view.Surface
 import android.view.TextureView
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
@@ -69,6 +71,10 @@ internal object ReverseCamera {
     private const val FRAME_W = 320
     private const val FRAME_H = 180
     private const val SAMPLE_MS = 200L
+    /** The copy the second screen shows ([mirror]): enough for its stream, at its pace. */
+    private const val MIRROR_W = 960
+    private const val MIRROR_H = 540
+    private const val MIRROR_MS = 80L
 
     /** TAKING: the car app's picture is still up; OPENING: it's gone, Dashwheel's not there yet. */
     enum class State { OFF, TAKING, OPENING, LIVE, FAILED }
@@ -97,6 +103,41 @@ internal object ReverseCamera {
     val romPicture: StateFlow<Boolean> = _romPicture.asStateFlow()
     private var romPictureJob: Job? = null
     private var watching = false
+
+    private val mirrorWanted = MutableStateFlow(false)
+    private val _mirror = MutableStateFlow<ImageBitmap?>(null)
+    /** Dashwheel's picture copied for the second screen, about 12 times a second while it's wanted; null otherwise. */
+    val mirror: StateFlow<ImageBitmap?> = _mirror.asStateFlow()
+    private var mirrorJob: Job? = null
+    private var liveView: TextureView? = null
+
+    /** The second screen shows the camera ([ReverseView.secondScreenShown]): [mirror] is kept up to date. */
+    fun setMirror(on: Boolean) {
+        mirrorWanted.value = on
+        if (on) liveView?.let { startMirror(it) } else stopMirror()
+    }
+
+    private fun startMirror(view: TextureView) {
+        if (!mirrorWanted.value || mirrorJob?.isActive == true) return
+        mirrorJob = scope.launch {
+            // Three copies in turn: the one the second screen draws is never the one being written.
+            val copies = Array(3) { Bitmap.createBitmap(MIRROR_W, MIRROR_H, Bitmap.Config.ARGB_8888) }
+            var next = 0
+            while (isActive && _state.value == State.LIVE) {
+                val b = copies[next]
+                next = (next + 1) % copies.size
+                if (view.width > 0 && runCatching { view.getBitmap(b) }.isSuccess) _mirror.value = b.asImageBitmap()
+                delay(MIRROR_MS)
+            }
+            _mirror.value = null
+        }
+    }
+
+    private fun stopMirror() {
+        mirrorJob?.cancel()
+        mirrorJob = null
+        _mirror.value = null
+    }
 
     /**
      * Follows who has the reversing camera: when the ROM app opens it,
@@ -172,6 +213,8 @@ internal object ReverseCamera {
                     _state.value = State.LIVE
                     watchdog?.cancel()
                     sample(view)
+                    liveView = view
+                    startMirror(view)
                 }
             }
         }
@@ -332,6 +375,8 @@ internal object ReverseCamera {
 
     private fun close() {
         attempt++
+        stopMirror()
+        liveView = null
         sampler?.cancel()
         sampler = null
         opening?.cancel()

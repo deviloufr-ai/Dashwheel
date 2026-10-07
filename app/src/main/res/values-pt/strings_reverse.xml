@@ -46,4 +46,9 @@
     <string name="reverse_boot_detail">Uma linha tracejada até onde chega a porta da mala aberta, e um aviso se algo estiver mais perto.</string>
     <string name="reverse_boot_room">Espaço da mala: %1$d cm</string>
     <string name="reverse_lens">Curvatura da lente</string>
+    <string name="reverse_second_title">Segundo ecrã</string>
+    <string name="reverse_second_off">Não</string>
+    <string name="reverse_second_hint">Mostrado em vez da sua página em marcha-atrás.</string>
+    <string name="reverse_second_hint_rom">A câmara precisa da imagem do próprio Dashwheel, acima: até lá o segundo ecrã mostra o radar.</string>
+    <string name="reverse_second_hint_video">Precisa de Imagem nítida nas definições do segundo ecrã.</string>
 </resources>

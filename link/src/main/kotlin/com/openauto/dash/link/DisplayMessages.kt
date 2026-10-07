@@ -214,8 +214,27 @@ data class ClusterState(
     val media: Media? = null,
     val nav: Nav? = null,
     /** The cluster's own words in the head unit's language; null from an older head unit. */
-    val labels: Labels? = null
+    val labels: Labels? = null,
+    /** An alert up on the head unit, to show full screen over the page; null when none. */
+    val alert: Alert? = null
 ) : LinkMessage {
+    /** What the head unit is alerting about, in its language: an older display ignores it. */
+    @Serializable
+    data class Alert(
+        /** e.g. "Doors". */
+        val title: String,
+        /** e.g. "Front left, Tailgate"; may be empty. */
+        val detail: String = "",
+        /** [INFO], [WARN] or [CRITICAL]: the colour it is drawn in. */
+        val level: String = INFO
+    ) {
+        companion object {
+            const val INFO = "info"
+            const val WARN = "warn"
+            const val CRITICAL = "critical"
+        }
+    }
+
     /**
      * What the Pi prints around the figures, as the head unit would write it.
      * Each one may be missing: the Pi then keeps its own English.

@@ -179,7 +179,7 @@ internal fun callStyle(call: PhoneCall, chosen: AlertStyle, reversing: Boolean, 
 
 /** The call in [style], following [PhoneCallOverlay.call]; the last call stays while it animates out. */
 @Composable
-private fun CallAlertContent(style: AlertStyle) {
+internal fun CallAlertContent(style: AlertStyle) {
     val live by PhoneCallOverlay.call.collectAsState()
     val call = rememberLast(live) ?: return
     CallAlert(call, style)

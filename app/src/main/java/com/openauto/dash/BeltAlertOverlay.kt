@@ -102,7 +102,7 @@ private const val BODY_SILENT_MS = 30_000L
 internal fun beltReminder(driverUnbuckled: Boolean, moving: Boolean): Boolean = driverUnbuckled && moving
 
 @Composable
-private fun BeltAlert(style: AlertStyle) {
+internal fun BeltAlert(style: AlertStyle) {
     val text = stringResource(R.string.car_belt_fasten)
     when (style) {
         AlertStyle.BANNER -> AlertSurface(AlertStyle.BANNER, tone = DashColors.Critical) {

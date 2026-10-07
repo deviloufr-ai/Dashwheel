@@ -6,6 +6,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Layers
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LayersClear
 import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.Videocam
@@ -94,6 +95,37 @@ internal fun ReverseViewSheet(onDismiss: () -> Unit) {
             }
         )
         SwitchHint(stringResource(if (ownCamera) R.string.reverse_picture_hint_own else R.string.reverse_picture_hint_rom))
+
+        // Only once a second screen is paired: nothing to choose before.
+        val displays by DisplayLink.displays.collectAsState()
+        if (displays.isNotEmpty()) {
+            val secondScreen by ReverseView.secondScreen.collectAsState()
+            val config by SecondScreenStore.config.collectAsState()
+            SettingsSection(stringResource(R.string.reverse_second_title))
+            SegmentedSwitch(
+                options = listOf<ReverseLayout?>(null) + ReverseLayout.entries,
+                chosen = secondScreen,
+                icon = {
+                    when (it) {
+                        null -> Icons.Filled.Close
+                        ReverseLayout.BOTH -> Icons.Filled.ViewQuilt
+                        ReverseLayout.CAMERA -> Icons.Filled.Videocam
+                        ReverseLayout.RADAR -> Icons.Filled.Sensors
+                    }
+                },
+                title = { it?.let { l -> stringResource(l.titleRes) } ?: stringResource(R.string.reverse_second_off) },
+                onChoose = { ReverseView.setSecondScreen(context, it) }
+            )
+            SwitchHint(
+                stringResource(
+                    when {
+                        secondScreen != null && !config.video -> R.string.reverse_second_hint_video
+                        (secondScreen == ReverseLayout.CAMERA || secondScreen == ReverseLayout.BOTH) && !ownCamera -> R.string.reverse_second_hint_rom
+                        else -> R.string.reverse_second_hint
+                    }
+                )
+            )
+        }
 
         SettingsSection(stringResource(R.string.reverse_stock_title))
         SegmentedSwitch(
