@@ -205,4 +205,9 @@
         <item quantity="many">%1$s ont besoin de l\'accès root, que Dashwheel n\'a pas sur cet autoradio. Ces tuiles vont être retirées du tableau de bord.</item>
         <item quantity="other">%1$s ont besoin de l\'accès root, que Dashwheel n\'a pas sur cet autoradio. Ces tuiles vont être retirées du tableau de bord.</item>
     </plurals>
+    <!-- Every dashboard at once, with + and - (DashboardsOverview.kt) -->
+    <string name="dash_dashboards">Tableaux de bord</string>
+    <string name="dash_dashboards_hint">Touchez-en un pour l\'ouvrir</string>
+    <string name="dash_dashboard_add">Ajouter un tableau de bord ici</string>
+    <string name="dash_dashboard_removed">%1$s supprimé</string>
 </resources>

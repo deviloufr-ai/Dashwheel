@@ -201,4 +201,9 @@
         <item quantity="many">%1$s precisam de acesso root, que o Dashwheel não tem neste autorrádio. Os blocos vão ser removidos do painel.</item>
         <item quantity="other">%1$s precisam de acesso root, que o Dashwheel não tem neste autorrádio. Os blocos vão ser removidos do painel.</item>
     </plurals>
+    <!-- Every dashboard at once, with + and - (DashboardsOverview.kt) -->
+    <string name="dash_dashboards">Painéis</string>
+    <string name="dash_dashboards_hint">Toque num para o abrir</string>
+    <string name="dash_dashboard_add">Adicionar um painel aqui</string>
+    <string name="dash_dashboard_removed">%1$s removido</string>
 </resources>

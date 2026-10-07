@@ -200,4 +200,9 @@
         <item quantity="one">%1$s heeft root-toegang nodig, die Dashwheel op deze radio niet heeft. De tegel wordt van het dashboard verwijderd.</item>
         <item quantity="other">%1$s hebben root-toegang nodig, die Dashwheel op deze radio niet heeft. De tegels worden van het dashboard verwijderd.</item>
     </plurals>
+    <!-- Every dashboard at once, with + and - (DashboardsOverview.kt) -->
+    <string name="dash_dashboards">Dashboards</string>
+    <string name="dash_dashboards_hint">Tik erop om te openen</string>
+    <string name="dash_dashboard_add">Hier een dashboard toevoegen</string>
+    <string name="dash_dashboard_removed">%1$s verwijderd</string>
 </resources>

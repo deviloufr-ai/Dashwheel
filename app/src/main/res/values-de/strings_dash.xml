@@ -200,4 +200,9 @@
         <item quantity="one">%1$s braucht Root-Zugriff, den Dashwheel auf diesem Radio nicht hat. Die Kachel wird vom Dashboard entfernt.</item>
         <item quantity="other">%1$s brauchen Root-Zugriff, den Dashwheel auf diesem Radio nicht hat. Die Kacheln werden vom Dashboard entfernt.</item>
     </plurals>
+    <!-- Every dashboard at once, with + and - (DashboardsOverview.kt) -->
+    <string name="dash_dashboards">Dashboards</string>
+    <string name="dash_dashboards_hint">Zum Öffnen antippen</string>
+    <string name="dash_dashboard_add">Hier ein Dashboard hinzufügen</string>
+    <string name="dash_dashboard_removed">%1$s entfernt</string>
 </resources>

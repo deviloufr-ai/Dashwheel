@@ -207,4 +207,9 @@
         <item quantity="one">%1$s needs root access, which Dashwheel doesn\'t have on this head unit. It will be removed from your dashboard.</item>
         <item quantity="other">%1$s need root access, which Dashwheel doesn\'t have on this head unit. They will be removed from your dashboard.</item>
     </plurals>
+    <!-- Every dashboard at once, with + and - (DashboardsOverview.kt) -->
+    <string name="dash_dashboards">Dashboards</string>
+    <string name="dash_dashboards_hint">Tap one to open it</string>
+    <string name="dash_dashboard_add">Add a dashboard here</string>
+    <string name="dash_dashboard_removed">%1$s removed</string>
 </resources>

@@ -202,4 +202,9 @@
         <item quantity="many">%1$s wymagają dostępu root, którego Dashwheel nie ma w tym radiu. Kafelki zostaną usunięte z pulpitu.</item>
         <item quantity="other">%1$s wymagają dostępu root, którego Dashwheel nie ma w tym radiu. Kafelki zostaną usunięte z pulpitu.</item>
     </plurals>
+    <!-- Every dashboard at once, with + and - (DashboardsOverview.kt) -->
+    <string name="dash_dashboards">Pulpity</string>
+    <string name="dash_dashboards_hint">Dotknij, aby otworzyć</string>
+    <string name="dash_dashboard_add">Dodaj tu pulpit</string>
+    <string name="dash_dashboard_removed">Usunięto: %1$s</string>
 </resources>

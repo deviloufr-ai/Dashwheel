@@ -1162,6 +1162,8 @@ internal fun EditBar(
     onDashboard: () -> Unit,
     /** Starts a new dashboard; null when every spot of the cross has one. */
     onNewDashboard: (() -> Unit)?,
+    /** Shows every dashboard, to add and remove them; null over an app (the rail does it). */
+    onDashboards: (() -> Unit)?,
     onDone: () -> Unit
 ) {
     val glass = DashColors.Glass
@@ -1225,6 +1227,7 @@ internal fun EditBar(
             PageZoomButton(pageZoom, narrow, onPageZoom)
             EditAction(Icons.Filled.RestartAlt, stringResource(R.string.dash_reset_page), narrow, ink = DashColors.Critical, onClick = onReset)
             if (onNewDashboard != null) EditAction(Icons.Filled.LibraryAdd, stringResource(R.string.canvas_tab_new), narrow, onClick = onNewDashboard)
+            if (onDashboards != null) EditAction(Icons.Filled.LibraryAdd, stringResource(R.string.dash_dashboards), narrow, onClick = onDashboards)
             Spacer(Modifier.width(4.dp))
             Button(
                 onClick = { tap(); onDone() },

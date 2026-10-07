@@ -205,4 +205,9 @@
         <item quantity="many">%1$s richiedono l\'accesso root, che Dashwheel non ha su questa autoradio. I riquadri verranno tolti dal cruscotto.</item>
         <item quantity="other">%1$s richiedono l\'accesso root, che Dashwheel non ha su questa autoradio. I riquadri verranno tolti dal cruscotto.</item>
     </plurals>
+    <!-- Every dashboard at once, with + and - (DashboardsOverview.kt) -->
+    <string name="dash_dashboards">Cruscotti</string>
+    <string name="dash_dashboards_hint">Toccane uno per aprirlo</string>
+    <string name="dash_dashboard_add">Aggiungi un cruscotto qui</string>
+    <string name="dash_dashboard_removed">%1$s rimosso</string>
 </resources>

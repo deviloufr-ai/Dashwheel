@@ -163,7 +163,7 @@ private fun TemplatePreview(pages: List<List<DashboardItem>>, screen: TemplateSc
     }
 }
 
-private fun DrawScope.drawTile(item: DashboardItem, origin: Offset, pw: Float, ph: Float, colors: TileColors) {
+internal fun DrawScope.drawTile(item: DashboardItem, origin: Offset, pw: Float, ph: Float, colors: TileColors) {
     val cw = pw / GRID_COLS
     val ch = ph / GRID_ROWS
     val inset = 1f
@@ -179,7 +179,7 @@ private fun DrawScope.drawTile(item: DashboardItem, origin: Offset, pw: Float, p
     )
 }
 
-private class TileColors(
+internal class TileColors(
     val navigation: Color,
     val driving: Color,
     val vehicle: Color,
@@ -201,7 +201,7 @@ private class TileColors(
  * accent / speed / warning, and the preview needs the categories apart.
  */
 @Composable
-private fun categoryColors() = TileColors(
+internal fun categoryColors() = TileColors(
     navigation = Color(0xFF3B82F6),
     driving = Color(0xFF14B8A6),
     vehicle = Color(0xFFE0694A),

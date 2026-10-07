@@ -201,4 +201,9 @@
         <item quantity="many">%1$s necesitan acceso root, que Dashwheel no tiene en esta radio. Las tarjetas se quitarán del panel.</item>
         <item quantity="other">%1$s necesitan acceso root, que Dashwheel no tiene en esta radio. Las tarjetas se quitarán del panel.</item>
     </plurals>
+    <!-- Every dashboard at once, with + and - (DashboardsOverview.kt) -->
+    <string name="dash_dashboards">Paneles</string>
+    <string name="dash_dashboards_hint">Toca uno para abrirlo</string>
+    <string name="dash_dashboard_add">Añadir un panel aquí</string>
+    <string name="dash_dashboard_removed">%1$s quitado</string>
 </resources>

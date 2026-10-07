@@ -1731,7 +1731,9 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                     // Not the floating windows: a size of their own would move them inside their tiles.
                     onPageZoom = { zoom -> mutatePage(currentPage) { list -> list.map { if (it.canZoom()) it.withZoom(zoom) else it } } },
                     onDashboard = { barTabs.indexOfFirst { it.page == currentPage }.takeIf { it >= 0 }?.let { dashSheet = it } },
-                    onNewDashboard = if (barModel.canAddDashboard) ({ dashSheet = -1 }) else null,
+                    // A cross: the overview adds and removes them; over an app, the rail's sheet.
+                    onNewDashboard = if (tabsShown && barModel.canAddDashboard) ({ dashSheet = -1 }) else null,
+                    onDashboards = if (!tabsShown) ({ DashboardsOverviewHost.open = true }) else null,
                     onDone = { editing = false }
                 )
             }
@@ -1749,6 +1751,25 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                 }
             }
         }
+    }
+    // Every dashboard of the cross at once, with + and - (DashboardsOverview.kt).
+    if (DashboardsOverviewHost.open && !tabsShown) {
+        val overviewKey = CanvasTabs.keyFor(variant())
+        DashboardsOverview(
+            tabs = barTabs,
+            pages = pages,
+            current = currentPage,
+            onOpen = { page -> DashboardsOverviewHost.open = false; showPage(page) },
+            onAdd = { page -> CanvasTabs.saveTabs(overviewKey, barTabs + CanvasTab(page)) },
+            onRemove = { page -> removeCrossDashboard(page) },
+            onUndoRemove = { tab, index, hadTiles ->
+                if (hadTiles) undo()
+                // The tiles bring their page back unnamed: it takes its name and place again.
+                val now = CanvasTabs.tabsFor(overviewKey, CanvasTabs.lists.value, pages)
+                CanvasTabs.saveTabs(overviewKey, CanvasTabs.placed(now, tab, index))
+            },
+            onDismiss = { DashboardsOverviewHost.open = false }
+        )
     }
     tourStep?.let { step ->
         TourOverlay(
