@@ -91,8 +91,9 @@ jobs:
       # any .apk but the companion). The phone companion app ships in the same
       # release, under the name the launcher's pairing screen links to (and its
       # updater skips).
-      # The Play edition's APK is a workflow artifact only, never a release
-      # asset: the updater takes the first launcher .apk of a release.
+      # The Play edition (bundles and APK) is a workflow artifact only, never a
+      # release asset: the updater takes the first launcher .apk of a release,
+      # and the bundles are for the Play Console, not for drivers.
       - name: Name the outputs
         run: |
           v=1.0.${{ github.run_number }}
@@ -149,11 +150,11 @@ jobs:
         with:
           tag_name: v1.0.${{ github.run_number }}
           name: Dashwheel v1.0.${{ github.run_number }}
+          # The launcher and the companion only: the Google Play edition's bundles are
+          # for the Play Console, and stay in the "dashwheel-play" workflow artifact.
           files: |
             Dashwheel-1.0.${{ github.run_number }}.apk
             dashwheel-companion.apk
-            Dashwheel-1.0.${{ github.run_number }}-play.aab
-            dashwheel-companion-play.aab
           body_path: ${{ runner.temp }}/release-notes.md
 
       - name: Publish branch pre-release
