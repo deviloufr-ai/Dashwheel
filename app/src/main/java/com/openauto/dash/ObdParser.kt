@@ -30,6 +30,28 @@ object ObdParser {
         return a - 40
     }
 
+    /** Engine fuel rate (PID 015E): (256A + B) / 20 litres an hour. */
+    internal fun parseFuelRate(response: String): Double? {
+        val bytes = dataBytes(response, "415E") ?: return null
+        if (bytes.size < 2) return null
+        return (bytes[0] * 256 + bytes[1]) / 20.0
+    }
+
+    /**
+     * Petrol litres an hour from the air flow (PID 0110, (256A + B) / 100 g/s):
+     * a petrol engine burns one gram of fuel for [STOICH_AFR] of air, and a
+     * litre of petrol weighs [PETROL_G_PER_L] g.
+     */
+    internal fun parseMafAsPetrol(response: String): Double? {
+        val bytes = dataBytes(response, "4110") ?: return null
+        if (bytes.size < 2) return null
+        val gramsPerSecond = (bytes[0] * 256 + bytes[1]) / 100.0
+        return gramsPerSecond * 3600 / STOICH_AFR / PETROL_G_PER_L
+    }
+
+    private const val STOICH_AFR = 14.7
+    private const val PETROL_G_PER_L = 745.0
+
     /** Temperature PIDs: value = A - 40 (°C). */
     internal fun tempFrom(response: String, header: String): Int? {
         val a = dataBytes(response, header)?.firstOrNull() ?: return null

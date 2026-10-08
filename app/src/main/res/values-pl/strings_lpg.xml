@@ -51,4 +51,18 @@
     <string name="lpg_voice_on_petrol">Na benzynie.</string>
     <string name="lpg_wheel_full">Zbiornik LPG pełny</string>
     <string name="lpg_wheel_switch">Gaz czy benzyna</string>
+    <string name="lpg_warming">Benzyna, zimny silnik</string>
+    <string name="lpg_lpg_off">Gaz wyłączony</string>
+    <string name="lpg_now">Teraz</string>
+    <string name="lpg_off_hint">Sam wyłączyłeś gaz? Dotknij znaku LPG na kafelku lub przycisku na kierownicy. Gaz liczy się znowu po ponownym dotknięciu lub tankowaniu.</string>
+    <string name="lpg_method_label">Jak liczyć zużyty gaz</string>
+    <string name="lpg_method_average">Średnia</string>
+    <string name="lpg_method_engine">Silnik × współczynnik</string>
+    <string name="lpg_method_engine_detail">Nawet na gazie sterownik silnika wylicza potrzebną benzynę. Odczytana przez OBD i pomnożona przez współczynnik, uwzględnia miasto i autostradę; bez adaptera używana jest średnia.</string>
+    <string name="lpg_factor">Współczynnik, litry gazu na litr benzyny</string>
+    <string name="lpg_factor_learned">Zmierzony na stacji: %1$s</string>
+    <string name="lpg_flow_now">Odczyt silnika: %1$s L/h</string>
+    <string name="lpg_flow_none">Brak odczytu silnika. Pojawi się, gdy adapter jest połączony, a silnik pracuje.</string>
+    <string name="lpg_voice_auto">Gaz wraca, gdy silnik się rozgrzeje.</string>
+    <string name="lpg_voice_lpg_off">Gaz wyłączony. Liczę benzynę.</string>
 </resources>

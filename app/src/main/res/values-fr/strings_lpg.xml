@@ -49,4 +49,18 @@
     <string name="lpg_voice_on_petrol">À l\'essence.</string>
     <string name="lpg_wheel_full">Plein de GPL</string>
     <string name="lpg_wheel_switch">GPL ou essence</string>
+    <string name="lpg_warming">Essence, moteur froid</string>
+    <string name="lpg_lpg_off">GPL coupé</string>
+    <string name="lpg_now">Actuel</string>
+    <string name="lpg_off_hint">Vous avez coupé le GPL vous-même ? Touchez la marque GPL sur la tuile ou un bouton au volant. Le GPL compte à nouveau quand vous la retouchez ou faites le plein.</string>
+    <string name="lpg_method_label">Comment calculer le GPL consommé</string>
+    <string name="lpg_method_average">Moyenne</string>
+    <string name="lpg_method_engine">Moteur × facteur</string>
+    <string name="lpg_method_engine_detail">Même au GPL, le calculateur moteur évalue l\'essence nécessaire. Lue par l\'OBD et multipliée par le facteur, elle suit la ville comme l\'autoroute ; sans adaptateur, la moyenne est utilisée.</string>
+    <string name="lpg_factor">Facteur, litres de GPL par litre d\'essence</string>
+    <string name="lpg_factor_learned">Mesuré à la pompe : %1$s</string>
+    <string name="lpg_flow_now">Lecture moteur : %1$s L/h</string>
+    <string name="lpg_flow_none">Pas encore de lecture moteur. Elle apparaît quand l\'adaptateur est connecté et le moteur tourne.</string>
+    <string name="lpg_voice_auto">GPL rétabli, dès que le moteur est chaud.</string>
+    <string name="lpg_voice_lpg_off">GPL coupé. Je compte l\'essence.</string>
 </resources>

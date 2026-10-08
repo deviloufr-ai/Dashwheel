@@ -38,11 +38,13 @@ data class ObdData(
      * [voltage] came from the engine computer (PID 0142), not the adapter's own
      * ATRV. Only the former is trusted for alerts: clone adapters misread ATRV.
      */
-    val voltageFromEcu: Boolean = false
+    val voltageFromEcu: Boolean = false,
+    /** Petrol the engine computer asks for, litres an hour; null when not read (see [ObdBluetoothManager.wantFuelFlow]). */
+    val fuelFlowLh: Double? = null
 )
 
 /** The readings once the engine computer has gone quiet (engine off): nothing turns, nothing moves. */
-internal fun ObdData.engineStopped(): ObdData = copy(speedKmh = 0, rpm = 0, throttlePct = 0, engineLoadPct = 0)
+internal fun ObdData.engineStopped(): ObdData = copy(speedKmh = 0, rpm = 0, throttlePct = 0, engineLoadPct = 0, fuelFlowLh = null)
 
 /**
  * The order to try [count] ways of reaching the adapter in: the one that
@@ -638,6 +640,10 @@ object ObdBluetoothManager {
         edit.apply()
     }
 
+    /** Read the engine's fuel flow too ([ObdData.fuelFlowLh]): set by the LPG tank when it counts with it. */
+    @Volatile
+    var wantFuelFlow: Boolean = false
+
     /** Polls speed, RPM and coolant temperature once, updating [data]. */
     suspend fun poll(): Unit = withContext(Dispatchers.IO) {
         if (DemoMode.isOn || _connectionState.value != ObdConnectionState.CONNECTED) return@withContext
@@ -668,6 +674,11 @@ object ObdBluetoothManager {
 
         val throttle = if (first || cycle % 2 == 0) read(0x11, alive, cycle) { ObdParser.percentFrom(it, "4111") } else null
         val load = if (first || cycle % 2 == 1) read(0x04, alive, cycle) { ObdParser.percentFrom(it, "4104") } else null
+        // The fuel the engine asks for, only while the LPG tank counts with it: the engine's own
+        // fuel rate where it serves one, else worked out from the air flow.
+        val flow = if (wantFuelFlow && (first || cycle % 2 == 1)) {
+            read(0x5E, alive, cycle) { ObdParser.parseFuelRate(it) } ?: read(0x10, alive, cycle) { ObdParser.parseMafAsPetrol(it) }
+        } else null
         val slot = cycle % SLOW_SLOTS
         val coolant = if (first || slot == 0) read(0x05, alive, cycle) { ObdParser.parseCoolant(it) } else null
         val intake = if (first || slot == 1) read(0x0F, alive, cycle) { ObdParser.tempFrom(it, "410F") } else null
@@ -702,7 +713,8 @@ object ObdBluetoothManager {
             engineLoadPct = load ?: d.engineLoadPct,
             fuelLevelPct = fuel ?: d.fuelLevelPct,
             voltage = volt ?: d.voltage,
-            voltageFromEcu = if (volt != null) ecuVolt != null else d.voltageFromEcu
+            voltageFromEcu = if (volt != null) ecuVolt != null else d.voltageFromEcu,
+            fuelFlowLh = if (wantFuelFlow) flow ?: d.fuelFlowLh else null
         )
         // Engine off with the key in accessory: every PID says NO DATA while the
         // adapter stays linked. The last revs and speed would otherwise stay up

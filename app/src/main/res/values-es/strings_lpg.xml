@@ -49,4 +49,18 @@
     <string name="lpg_voice_on_petrol">Con gasolina.</string>
     <string name="lpg_wheel_full">Lleno de GLP</string>
     <string name="lpg_wheel_switch">GLP o gasolina</string>
+    <string name="lpg_warming">Gasolina, motor frío</string>
+    <string name="lpg_lpg_off">GLP apagado</string>
+    <string name="lpg_now">Ahora</string>
+    <string name="lpg_off_hint">¿Has apagado el GLP tú mismo? Toca la marca de GLP en el panel o un botón del volante. El GLP vuelve a contar al tocarla de nuevo o al repostar.</string>
+    <string name="lpg_method_label">Cómo se calcula el GLP gastado</string>
+    <string name="lpg_method_average">Media</string>
+    <string name="lpg_method_engine">Motor × factor</string>
+    <string name="lpg_method_engine_detail">Incluso con GLP, la centralita calcula la gasolina que necesita. Leída por OBD y multiplicada por el factor, sigue la ciudad y la autopista; sin adaptador se usa la media.</string>
+    <string name="lpg_factor">Factor, litros de GLP por litro de gasolina</string>
+    <string name="lpg_factor_learned">Medido en el surtidor: %1$s</string>
+    <string name="lpg_flow_now">Lectura del motor: %1$s L/h</string>
+    <string name="lpg_flow_none">Aún sin lectura del motor. Aparece con el adaptador conectado y el motor en marcha.</string>
+    <string name="lpg_voice_auto">GLP de nuevo, en cuanto el motor esté caliente.</string>
+    <string name="lpg_voice_lpg_off">GLP apagado. Cuento gasolina.</string>
 </resources>

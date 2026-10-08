@@ -49,7 +49,7 @@ import kotlin.math.roundToInt
 internal fun LpgTankCard(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val settings by LpgTank.settings.collectAsState()
-    val state by LpgTank.state.collectAsState()
+    val status by LpgTank.status.collectAsState()
     val reading by LpgTank.reading.collectAsState()
     val units by Units.current.collectAsState()
     var setup by remember { mutableStateOf(false) }
@@ -58,9 +58,7 @@ internal fun LpgTankCard(modifier: Modifier = Modifier) {
     Card(modifier = modifier) {
         Column(modifier = Modifier.fillMaxSize().padding(DashSpace.Lg), verticalArrangement = Arrangement.SpaceBetween) {
             TileHeader(stringResource(R.string.lpg_title)) {
-                if (settings.enabled && settings.mode == LpgMode.MANUAL) {
-                    LpgButton(stringResource(if (state.onLpg) R.string.lpg_on_lpg else R.string.lpg_on_petrol), Modifier) { LpgTank.toggleFuel(context) }
-                }
+                if (settings.enabled) LpgMark(status) { LpgTank.toggle(context) }
             }
             val r = reading
             when {
@@ -114,6 +112,39 @@ internal fun LpgTankCard(modifier: Modifier = Modifier) {
     }
 }
 
+/** What counts now, green on LPG; a tap says LPG is off (or, in Manual, flips LPG and petrol). */
+@Composable
+private fun LpgMark(status: LpgStatus, onClick: () -> Unit) {
+    val tap = rememberTapFeedback()
+    val lpg = status == LpgStatus.LPG
+    Box(
+        modifier = Modifier.height(32.dp).clip(DashShape.Medium)
+            .background(if (lpg) DashColors.Good.copy(alpha = 0.18f) else DashColors.CardHi)
+            .clickable(role = Role.Switch) { tap(); onClick() }.padding(horizontal = DashSpace.Sm),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            statusText(status),
+            color = when (status) {
+                LpgStatus.LPG -> DashColors.Good
+                LpgStatus.LPG_OFF -> DashColors.Warning
+                else -> DashColors.TextSecondary
+            },
+            fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge, maxLines = 1
+        )
+    }
+}
+
+@Composable
+private fun statusText(status: LpgStatus): String = stringResource(
+    when (status) {
+        LpgStatus.LPG -> R.string.lpg_on_lpg
+        LpgStatus.WARMING -> R.string.lpg_warming
+        LpgStatus.PETROL -> R.string.lpg_on_petrol
+        LpgStatus.LPG_OFF -> R.string.lpg_lpg_off
+    }
+)
+
 @Composable
 private fun useText(r: LpgReading, units: UnitSystem): String {
     val use = units.economyText(r.useL100)
@@ -164,6 +195,7 @@ internal fun lpgTankFace(): WidgetFace {
     val context = LocalContext.current
     val settings by LpgTank.settings.collectAsState()
     val reading by LpgTank.reading.collectAsState()
+    val status by LpgTank.status.collectAsState()
     val units by Units.current.collectAsState()
     val r = reading
     val full = stringResource(R.string.lpg_full)
@@ -181,6 +213,7 @@ internal fun lpgTankFace(): WidgetFace {
         fraction = r?.let { it.percent / 100f },
         alert = r?.low == true,
         stats = listOfNotNull(
+            if (settings.enabled) FaceStat(stringResource(R.string.lpg_now), statusText(status)) else null,
             r?.let { FaceStat(stringResource(R.string.lpg_use_label), units.economyText(it.useL100)) },
             r?.costPer100?.let { FaceStat(stringResource(R.string.widgets_fuel_per100), String.format(Locale.getDefault(), "%.2f %s", it, CarProfileStore.current.currency)) }
         ),
@@ -248,6 +281,27 @@ internal fun LpgTankSheet(onDismiss: () -> Unit) {
             }
             LpgMode.ALWAYS -> Unit
             LpgMode.MANUAL -> Text(stringResource(R.string.lpg_mode_manual_detail), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+        }
+        if (draft.mode != LpgMode.MANUAL) {
+            Text(stringResource(R.string.lpg_off_hint), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+        }
+
+        Label(stringResource(R.string.lpg_method_label))
+        ChoiceRow(LpgMethod.entries, draft.method, {
+            context.getString(if (it == LpgMethod.AVERAGE) R.string.lpg_method_average else R.string.lpg_method_engine)
+        }) { edit(draft.copy(method = it)) }
+        if (draft.method == LpgMethod.ENGINE) {
+            val obd by ObdBluetoothManager.data.collectAsState()
+            Text(stringResource(R.string.lpg_method_engine_detail), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+            LpgNumber(stringResource(R.string.lpg_factor), draft.factor, Modifier.fillMaxWidth()) { edit(draft.copy(factor = it?.takeIf { v -> v > 0 })) }
+            val use = LpgRules.use(draft, state.fills, CarProfileStore.current.typicalUse).first
+            LpgRules.learnedFactor(state.fills, use)?.let {
+                Text(stringResource(R.string.lpg_factor_learned, String.format(Locale.getDefault(), "%.2f", it)), color = DashColors.TextPrimary, style = MaterialTheme.typography.bodySmall)
+            }
+            Text(
+                obd.fuelFlowLh?.let { stringResource(R.string.lpg_flow_now, String.format(Locale.getDefault(), "%.1f", it)) } ?: stringResource(R.string.lpg_flow_none),
+                color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall
+            )
         }
 
         Label(stringResource(R.string.lpg_level))

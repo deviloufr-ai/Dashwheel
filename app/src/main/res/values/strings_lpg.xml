@@ -49,4 +49,18 @@
     <string name="lpg_voice_on_petrol">On petrol.</string>
     <string name="lpg_wheel_full">LPG tank full</string>
     <string name="lpg_wheel_switch">LPG or petrol</string>
+    <string name="lpg_warming">Petrol, warming up</string>
+    <string name="lpg_lpg_off">LPG off</string>
+    <string name="lpg_now">Now</string>
+    <string name="lpg_off_hint">Switched LPG off yourself? Tap the LPG mark on the tile or use a steering wheel button. LPG counts again when you tap it back or fill up.</string>
+    <string name="lpg_method_label">How the LPG used is worked out</string>
+    <string name="lpg_method_average">Average</string>
+    <string name="lpg_method_engine">Engine × factor</string>
+    <string name="lpg_method_engine_detail">Even on LPG, the engine computer works out the petrol it needs. Read over OBD and multiplied by the factor, it follows city and motorway driving; without the adapter the average is used.</string>
+    <string name="lpg_factor">Factor, LPG litres per petrol litre</string>
+    <string name="lpg_factor_learned">Measured at the pump: %1$s</string>
+    <string name="lpg_flow_now">Engine reading now: %1$s L/h</string>
+    <string name="lpg_flow_none">No engine reading yet. It shows once the adapter is connected and the engine runs.</string>
+    <string name="lpg_voice_auto">LPG back on, once the engine is warm.</string>
+    <string name="lpg_voice_lpg_off">LPG off. Counting petrol.</string>
 </resources>

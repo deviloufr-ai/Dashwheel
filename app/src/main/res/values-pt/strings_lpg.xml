@@ -49,4 +49,18 @@
     <string name="lpg_voice_on_petrol">A gasolina.</string>
     <string name="lpg_wheel_full">GPL atestado</string>
     <string name="lpg_wheel_switch">GPL ou gasolina</string>
+    <string name="lpg_warming">Gasolina, motor frio</string>
+    <string name="lpg_lpg_off">GPL desligado</string>
+    <string name="lpg_now">Agora</string>
+    <string name="lpg_off_hint">Desligou o GPL? Toque na marca de GPL no mosaico ou num botão do volante. O GPL volta a contar quando tocar de novo ou atestar.</string>
+    <string name="lpg_method_label">Como é calculado o GPL gasto</string>
+    <string name="lpg_method_average">Média</string>
+    <string name="lpg_method_engine">Motor × fator</string>
+    <string name="lpg_method_engine_detail">Mesmo a GPL, a centralina calcula a gasolina de que precisa. Lida por OBD e multiplicada pelo fator, acompanha cidade e autoestrada; sem adaptador usa-se a média.</string>
+    <string name="lpg_factor">Fator, litros de GPL por litro de gasolina</string>
+    <string name="lpg_factor_learned">Medido na bomba: %1$s</string>
+    <string name="lpg_flow_now">Leitura do motor: %1$s L/h</string>
+    <string name="lpg_flow_none">Ainda sem leitura do motor. Aparece com o adaptador ligado e o motor a trabalhar.</string>
+    <string name="lpg_voice_auto">GPL de volta, assim que o motor aquecer.</string>
+    <string name="lpg_voice_lpg_off">GPL desligado. A contar gasolina.</string>
 </resources>

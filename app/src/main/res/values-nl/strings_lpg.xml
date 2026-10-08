@@ -49,4 +49,18 @@
     <string name="lpg_voice_on_petrol">Op benzine.</string>
     <string name="lpg_wheel_full">LPG-tank vol</string>
     <string name="lpg_wheel_switch">LPG of benzine</string>
+    <string name="lpg_warming">Benzine, motor koud</string>
+    <string name="lpg_lpg_off">LPG uit</string>
+    <string name="lpg_now">Nu</string>
+    <string name="lpg_off_hint">Zelf LPG uitgezet? Tik op het LPG-teken op de tegel of gebruik een stuurknop. LPG telt weer zodra je opnieuw tikt of tankt.</string>
+    <string name="lpg_method_label">Hoe het LPG-verbruik wordt berekend</string>
+    <string name="lpg_method_average">Gemiddelde</string>
+    <string name="lpg_method_engine">Motor × factor</string>
+    <string name="lpg_method_engine_detail">Ook op LPG berekent de motorcomputer hoeveel benzine nodig is. Via OBD gelezen en met de factor vermenigvuldigd volgt dat stad en snelweg; zonder adapter geldt het gemiddelde.</string>
+    <string name="lpg_factor">Factor, liter LPG per liter benzine</string>
+    <string name="lpg_factor_learned">Gemeten aan de pomp: %1$s</string>
+    <string name="lpg_flow_now">Motorwaarde nu: %1$s L/h</string>
+    <string name="lpg_flow_none">Nog geen motorwaarde. Die verschijnt zodra de adapter verbonden is en de motor draait.</string>
+    <string name="lpg_voice_auto">LPG weer aan, zodra de motor warm is.</string>
+    <string name="lpg_voice_lpg_off">LPG uit. Benzine wordt geteld.</string>
 </resources>

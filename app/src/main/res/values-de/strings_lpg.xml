@@ -49,4 +49,18 @@
     <string name="lpg_voice_on_petrol">Auf Benzin.</string>
     <string name="lpg_wheel_full">Gastank voll</string>
     <string name="lpg_wheel_switch">Gas oder Benzin</string>
+    <string name="lpg_warming">Benzin, Motor kalt</string>
+    <string name="lpg_lpg_off">Gas aus</string>
+    <string name="lpg_now">Jetzt</string>
+    <string name="lpg_off_hint">Gas selbst ausgeschaltet? Tippe auf die Gas-Marke der Kachel oder eine Lenkradtaste. Gas zählt wieder, wenn du erneut tippst oder volltankst.</string>
+    <string name="lpg_method_label">Wie der Gasverbrauch berechnet wird</string>
+    <string name="lpg_method_average">Durchschnitt</string>
+    <string name="lpg_method_engine">Motor × Faktor</string>
+    <string name="lpg_method_engine_detail">Auch mit Gas berechnet das Motorsteuergerät den Benzinbedarf. Über OBD gelesen und mit dem Faktor multipliziert, folgt er Stadt und Autobahn; ohne Adapter gilt der Durchschnitt.</string>
+    <string name="lpg_factor">Faktor, Liter Gas je Liter Benzin</string>
+    <string name="lpg_factor_learned">An der Säule gemessen: %1$s</string>
+    <string name="lpg_flow_now">Motorwert jetzt: %1$s L/h</string>
+    <string name="lpg_flow_none">Noch kein Motorwert. Er erscheint, sobald der Adapter verbunden ist und der Motor läuft.</string>
+    <string name="lpg_voice_auto">Gas wieder an, sobald der Motor warm ist.</string>
+    <string name="lpg_voice_lpg_off">Gas aus. Benzin wird gezählt.</string>
 </resources>

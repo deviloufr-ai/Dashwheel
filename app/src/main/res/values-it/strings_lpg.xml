@@ -49,4 +49,18 @@
     <string name="lpg_voice_on_petrol">A benzina.</string>
     <string name="lpg_wheel_full">Pieno di GPL</string>
     <string name="lpg_wheel_switch">GPL o benzina</string>
+    <string name="lpg_warming">Benzina, motore freddo</string>
+    <string name="lpg_lpg_off">GPL spento</string>
+    <string name="lpg_now">Ora</string>
+    <string name="lpg_off_hint">Hai spento il GPL tu? Tocca il segno GPL sul riquadro o un tasto al volante. Il GPL conta di nuovo quando lo ritocchi o fai il pieno.</string>
+    <string name="lpg_method_label">Come si calcola il GPL consumato</string>
+    <string name="lpg_method_average">Media</string>
+    <string name="lpg_method_engine">Motore × fattore</string>
+    <string name="lpg_method_engine_detail">Anche a GPL la centralina calcola la benzina che servirebbe. Letta via OBD e moltiplicata per il fattore, segue città e autostrada; senza adattatore si usa la media.</string>
+    <string name="lpg_factor">Fattore, litri di GPL per litro di benzina</string>
+    <string name="lpg_factor_learned">Misurato alla pompa: %1$s</string>
+    <string name="lpg_flow_now">Lettura motore: %1$s L/h</string>
+    <string name="lpg_flow_none">Ancora nessuna lettura motore. Compare con l\'adattatore collegato e il motore acceso.</string>
+    <string name="lpg_voice_auto">GPL di nuovo, appena il motore è caldo.</string>
+    <string name="lpg_voice_lpg_off">GPL spento. Conto la benzina.</string>
 </resources>
