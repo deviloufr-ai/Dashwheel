@@ -376,6 +376,15 @@ internal object EmbeddedApp {
         }
     }
 
+    /**
+     * The unit started ([BootReceiver]): its firmware may put its own launcher
+     * in front, so the dashboard is brought back as at ignition on, for the
+     * first seconds and until the driver acts.
+     */
+    fun bootedUp(context: Context) {
+        mainScope.launch { homeAfterPowerUp(context) }
+    }
+
     /** How long a tile's app is given to draw again after the ignition comes on, before it is looked at. */
     private const val WAKE_SETTLE_MS = 6_000L
 
@@ -410,6 +419,17 @@ internal object EmbeddedApp {
             .addCategory(Intent.CATEGORY_HOME)
             .setPackage(context.packageName)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+        // From the background, Android only lets an app with "display over other apps"
+        // start its screen: without it the start is dropped without a word, so the
+        // unit's shell (root or ADB) starts it instead, where there is one.
+        if (!android.provider.Settings.canDrawOverlays(context) && PrivilegedShell.access.value.shell) {
+            val app = context.applicationContext
+            scope.launch {
+                runCatching { DockShell.shell(app, "am start -c android.intent.category.HOME -n ${app.packageName}/.MainActivity") }
+                    .onFailure { Log.w(TAG, "$why: can't bring the dashboard back through the shell", it) }
+            }
+            return
+        }
         runCatching { context.startActivity(home) }
             .onSuccess {
                 Log.i(TAG, "$why: an app was in front of the dashboard, Home brought back")

@@ -55,6 +55,8 @@
          privileged /system/priv-app install; touchable, unlike an accessibility
          overlay which some ROMs render as pass-through only. -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <!-- At boot, firmwares that start their own launcher are beaten to the screen (BootReceiver). -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <!-- Google Maps inside a tile (EmbeddedApp.kt): open it on our own display
          and pass it the tile's touches. Kept for the firmware's apps, so only
@@ -176,6 +178,15 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

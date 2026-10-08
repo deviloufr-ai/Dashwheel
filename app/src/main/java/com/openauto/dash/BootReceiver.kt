@@ -1,0 +1,38 @@
+package com.openauto.dash
+
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+
+/**
+ * The unit started: Dashwheel takes the screen when it is the default Home.
+ * Many head unit firmwares start their own launcher at boot whatever Android's
+ * default Home is, and only the QF firmware says when the ignition comes on
+ * ([CarPower]); elsewhere the stock launcher stayed in front until the Home
+ * key was pressed. Here, as at the QF's ignition on, the dashboard is put back
+ * in front for the first seconds, until the driver touches or presses
+ * something ([EmbeddedApp.bootedUp]).
+ */
+class BootReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action !in BOOT_ACTIONS) return
+        if (!isDefaultHome(context)) return
+        DebugLog.note(context, "boot: Dashwheel is the default Home, taking the screen")
+        EmbeddedApp.bootedUp(context.applicationContext)
+    }
+
+    private fun isDefaultHome(context: Context): Boolean {
+        val home = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+        return context.packageManager.resolveActivity(home, PackageManager.MATCH_DEFAULT_ONLY)?.activityInfo?.packageName == context.packageName
+    }
+
+    private companion object {
+        /** Android's own, and the "fast boot" some units send when they wake rather than start. */
+        val BOOT_ACTIONS = setOf(
+            Intent.ACTION_BOOT_COMPLETED,
+            "android.intent.action.QUICKBOOT_POWERON",
+            "com.htc.intent.action.QUICKBOOT_POWERON"
+        )
+    }
+}
