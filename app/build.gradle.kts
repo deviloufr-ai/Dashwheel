@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.openauto.dash"
-    compileSdk = 35
+    compileSdk = 36
 
     // Release signing key, supplied by CI via env vars. Local builds may fall
     // back to the debug key; CI must not, because a debug-signed release can
@@ -29,7 +29,7 @@ android {
     defaultConfig {
         applicationId = "com.openauto.dash"
         minSdk = 29
-        targetSdk = 35
+        targetSdk = 36
         // Version is driven by CI (the Actions run number) so each build is
         // newer than the last; defaults keep local builds working.
         versionCode = (System.getenv("VERSION_CODE") ?: "1").toInt()

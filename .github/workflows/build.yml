@@ -42,7 +42,7 @@ jobs:
         with:
           # Override the action's default ("tools platform-tools"); the obsolete
           # "tools" package was removed from the SDK repo and breaks the step.
-          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
+          packages: 'platform-tools platforms;android-36 build-tools;35.0.0'
 
       # The committed wrapper pins Gradle 8.13 with a verified checksum; do not
       # regenerate it here, that would silently drop the verification.
