@@ -1,40 +1,33 @@
-<p>Dashwheel remplace l'écran d'accueil d'un autoradio Android. Carte, musique et données de la voiture tiennent sur un seul écran, que vous organisez vous-même.</p>
+Dashwheel remplace l'écran d'accueil d'un autoradio Android. Carte, musique et données de la voiture en direct partagent un seul écran calme, que vous organisez vous-même.
 
-<p>Conçu pour les autoradios 1280x720 (ROCO K706, unités FYT et QF). Fonctionne aussi sur les écrans verticaux type Tesla et sur téléphone. Android 10 ou plus récent. Sans root.</p>
+Conçu pour les autoradios 1280x720 (ROCO K706, unités FYT et QF). Fonctionne aussi sur les écrans verticaux et sur téléphone. Android 10 ou plus récent. Sans root.
 
-<p><b>Tableaux de bord</b></p>
-<ul>
-<li>Sept tableaux de bord en croix : trois côte à côte, deux au-dessus et deux en dessous de celui du milieu</li>
-<li>Une grille libre sur chacun : appui long pour déplacer une tuile, glisser son coin pour la redimensionner, annulation de chaque changement</li>
-<li>Modèles prêts à l'emploi : Quotidien, Road trip et Santé de la voiture</li>
-<li>Plus de 30 widgets intégrés et plus de 60 designs, plus les widgets Android et raccourcis d'applis</li>
-<li>14 thèmes, dont quatre habillages complets (Orbit, Cockpit, Horizon, Tape Deck), chacun en version jour et nuit</li>
-</ul>
+TABLEAUX DE BORD
+• Jusqu'à sept tableaux de bord en croix : trois côte à côte, deux au-dessus et deux en dessous de celui du milieu
+• Voyez-les tous d'un coup d'œil, ajoutez-en un avec +, retirez-en un avec −
+• Une grille libre sur chacun : maintenez une tuile pour la déplacer, tirez son coin pour la redimensionner, annulez n'importe quel changement
+• Modèles prêts à l'emploi : Quotidien, Road trip et Santé de la voiture
+• Plus de 30 widgets intégrés avec plus de 60 designs, plus les widgets Android et les raccourcis d'applis
+• 14 thèmes, dont quatre au design complet, chacun en version jour et nuit
 
-<p><b>Votre voiture</b></p>
-<ul>
-<li>Données en direct d'un adaptateur OBD ELM327 Bluetooth : vitesse, régime, températures, carburant, tension, codes défaut lus et effacés</li>
-<li>Les données de l'autoradio sur les unités qui les partagent : portes, niveau de carburant, feux, kilométrage, pression des pneus</li>
-<li>Entretien : santé du filtre à particules, montée en température, batterie, planning d'entretien avec rappels vocaux</li>
-<li>Carnet de carburant, estimation du réservoir GPL, minuteur de stationnement et où est garée la voiture</li>
-</ul>
+VOTRE VOITURE
+• Données en direct d'un adaptateur OBD Bluetooth ELM327 : vitesse, régime, températures, carburant, tension, codes défaut lus et effacés
+• Les données de la voiture fournies par l'autoradio quand il les partage : portes, niveau de carburant, feux, kilométrage, pression des pneus
+• Entretien : état du filtre à particules, montée en température, batterie, planning d'entretien avec rappels vocaux
+• Carnet de carburant, estimation du réservoir GPL, minuteur de stationnement et où vous êtes garé
 
-<p><b>Sur la route</b></p>
-<ul>
-<li>Une carte MapLibre libre avec recherche et itinéraires, guidage intégré ou passé à votre appli de navigation</li>
-<li>Prochaine direction de Google Maps ou Waze sur sa propre tuile</li>
-<li>Rappel de pause, score d'éco-conduite, limitations de vitesse, prix des carburants à proximité (France)</li>
-<li>Volume qui suit la vitesse, alertes vocales et briefing au démarrage</li>
-<li>Vos propres fenêtres pour les appels et les événements de la voiture, et des boutons au volant que vous assignez vous-même</li>
-</ul>
+SUR LA ROUTE
+• Une carte gratuite avec recherche et itinéraires, guidage pas à pas intégré ou confié à votre appli de navigation
+• Prochaine direction de Google Maps ou Waze sur sa propre tuile
+• Rappel de pause, score d'éco-conduite, limitations de vitesse, prix des carburants à proximité (France)
+• Volume qui suit la vitesse, alertes vocales et bilan au démarrage
+• Vos propres pop-ups pour les appels et les événements de la voiture, et des boutons au volant que vous attribuez vous-même
 
-<p><b>En option</b></p>
-<ul>
-<li>Mécanicien IA : codes défaut expliqués simplement avec Google Gemini (votre propre clé API gratuite)</li>
-<li>Lien avec le téléphone via l'appli Dashwheel Companion : notifications, messages et appels sur le grand écran, appairage par QR code et chiffrement de bout en bout sur le point d'accès du téléphone</li>
-<li>Écran partagé et saisie depuis le téléphone via le service d'accessibilité d'Android, que vous activez vous-même et pouvez couper à tout moment</li>
-</ul>
+EN OPTION
+• Mécanicien IA : codes défaut expliqués simplement avec Google Gemini (votre propre clé API gratuite)
+• Lien avec le téléphone via l'appli Dashwheel Companion : notifications, messages et appels sur le grand écran, appairage par QR code et chiffrement de bout en bout
+• Écran partagé et saisie depuis votre téléphone via le service d'accessibilité d'Android, que vous activez vous-même et pouvez désactiver à tout moment
 
-<p>9 langues : anglais, français, allemand, espagnol, italien, portugais, néerlandais, polonais, russe.</p>
+9 langues : anglais, français, allemand, espagnol, italien, portugais, néerlandais, polonais, russe.
 
-<p>Libre et open source sous licence GPL v3. Sans publicité, sans pistage, sans compte. Les mises à jour viennent de Google Play.</p>
+Libre et open source sous licence GPL v3. Sans publicité, sans pistage, sans compte.
