@@ -86,9 +86,8 @@ internal fun AlertStyleRows() {
     val context = LocalContext.current
     var picking by remember { mutableStateOf<AlertKind?>(null) }
     val access = shellAccess()
-    // The volume bar has its row under Driving, Sound (VolumeAlertRow), with the rest of the sound settings.
     val kinds = remember(access) {
-        AlertKind.entries.filter { kind -> kind != AlertKind.VOLUME && offered(context, kind, access) }
+        AlertKind.entries.filter { kind -> offered(context, kind, access) }
     }
     // Alerts this unit could have once the car app's settings can be written.
     val held = remember(access) {
@@ -139,17 +138,6 @@ private fun GrantHint() {
 private fun offered(context: Context, kind: AlertKind, access: PrivilegedShell.Access): Boolean {
     val rom = kind.romKind ?: return kind != AlertKind.GEMINI || GeminiLive.available(context)
     return kind == AlertKind.CALL || RomPopups.available(context, rom) && RomPopups.canWork(rom, access)
-}
-
-/** Settings, Driving, Sound: the volume bar's switch and design, with the other sound settings. */
-@Composable
-internal fun VolumeAlertRow() {
-    val context = LocalContext.current
-    val access = shellAccess()
-    if (!remember(access) { offered(context, AlertKind.VOLUME, access) }) return
-    var picking by remember { mutableStateOf(false) }
-    AlertRow(AlertKind.VOLUME) { picking = true }
-    if (picking) AlertStyleDialog(AlertKind.VOLUME) { picking = false }
 }
 
 /** One command from a PC that lets Dashwheel write the car app's settings without root. */

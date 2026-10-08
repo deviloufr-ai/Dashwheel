@@ -15,7 +15,7 @@
     <string name="voice_lpg_detail">Dice cuando el segundo depósito se agota</string>
     <string name="voice_menu_quiet">Silencio</string>
     <string name="voice_menu_back">Voz de vuelta</string>
-    <string name="voice_where">Lo que el coche dice por sí mismo se ajusta en Ajustes, Avisos.</string>
+    <string name="voice_where">Lo que el coche dice por sí mismo se ajusta en Ajustes, Sonido y voz.</string>
 
     <!-- Spoken -->
     <string name="voice_say_message">Mensaje de %1$s</string>

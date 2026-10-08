@@ -15,7 +15,7 @@
     <string name="voice_lpg_detail">Says when the second tank runs low</string>
     <string name="voice_menu_quiet">Quiet</string>
     <string name="voice_menu_back">Voice back on</string>
-    <string name="voice_where">What the car says by itself is switched in Settings, Alerts.</string>
+    <string name="voice_where">What the car says by itself is switched in Settings, Sound and voice.</string>
 
     <!-- Spoken -->
     <string name="voice_say_message">Message from %1$s</string>

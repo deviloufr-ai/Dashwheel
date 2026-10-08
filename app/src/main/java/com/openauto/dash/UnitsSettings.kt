@@ -26,12 +26,12 @@ import androidx.compose.ui.unit.dp
  * unit's own choice, which the hint spells out.
  */
 @Composable
-internal fun UnitsSetting() {
+internal fun UnitsSetting(heading: Boolean = true) {
     val context = LocalContext.current
     val chosen by Units.choices.collectAsState()
     val auto = Units.auto()
     val autoTitle = stringResource(R.string.units_auto)
-    SettingsSection(stringResource(R.string.units_title))
+    if (heading) SettingsSection(stringResource(R.string.units_title))
 
     UnitLabel(stringResource(R.string.units_speed))
     SegmentedSwitch(
@@ -94,14 +94,14 @@ internal fun UnitsSetting() {
         },
         onChoose = { Units.save(context, chosen.copy(clock = it)) }
     )
-    SwitchHint(stringResource(R.string.units_auto_hint, autoSummary(auto)))
+    SwitchHint(stringResource(R.string.units_auto_hint, unitsSummary(auto)))
     Spacer(Modifier.height(20.dp))
 }
 
 private fun autoOr(auto: Boolean, icon: ImageVector): ImageVector = if (auto) Icons.Filled.Public else icon
 
-/** "km/h, °C, L/100 km, 24 h": what Auto gives on this unit. */
-private fun autoSummary(auto: UnitSystem): String {
+/** "km/h, °C, L/100 km, 24 h": the units in [auto], as Auto gives them or as chosen. */
+internal fun unitsSummary(auto: UnitSystem): String {
     val economy = when (auto.economy) {
         Economy.MPG_UK -> "mpg UK"
         Economy.MPG_US -> "mpg US"

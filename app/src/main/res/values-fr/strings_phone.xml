@@ -53,8 +53,8 @@
     <string name="phone_overlay">Afficher les appels par-dessus les applis</string>
     <string name="phone_overlay_detail">Un appel entrant s\'affiche alors même quand une autre appli occupe tout l\'écran.</string>
     <string name="phone_text_copied">Texte du téléphone copié : appuyez longuement sur un champ pour le coller</string>
-    <string name="phone_quickdial_empty">Associez votre téléphone dans Réglages, Téléphone, pour voir ses favoris ici</string>
-    <string name="phone_agenda_empty">Associez votre téléphone dans Réglages, Téléphone, pour voir son agenda ici</string>
+    <string name="phone_quickdial_empty">Associez votre téléphone dans Réglages, Connexions, pour voir ses favoris ici</string>
+    <string name="phone_agenda_empty">Associez votre téléphone dans Réglages, Connexions, pour voir son agenda ici</string>
     <string name="phone_call_back">Rappeler %1$s</string>
     <string name="phone_calling">Appel : %1$s</string>
     <string name="phone_dial_not_allowed">Pour appeler d\'ici, autorisez les Appels dans Dashwheel Compagnon.</string>

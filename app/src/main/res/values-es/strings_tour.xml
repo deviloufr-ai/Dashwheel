@@ -42,7 +42,7 @@
     <string name="tour_wheel_voice">Asistente de voz</string>
     <string name="tour_wheel_alerts">Avisos hablados</string>
     <string name="tour_done_title">Todo listo</string>
-    <string name="tour_done_body">Vuelve a ver este repaso en Ajustes, Acerca de.</string>
+    <string name="tour_done_body">Vuelve a ver este repaso en Ajustes, Sistema, Acerca de.</string>
     <string name="tour_start_driving">A conducir</string>
     <string name="tour_settings_row">Repaso rápido</string>
     <string name="tour_settings_row_detail">Seis consejos cortos sobre el panel</string>

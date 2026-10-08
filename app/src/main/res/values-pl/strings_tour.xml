@@ -42,7 +42,7 @@
     <string name="tour_wheel_voice">Asystent głosowy</string>
     <string name="tour_wheel_alerts">Komunikaty głosowe</string>
     <string name="tour_done_title">Wszystko gotowe</string>
-    <string name="tour_done_body">Ten przegląd znajdziesz zawsze w Ustawienia, Informacje.</string>
+    <string name="tour_done_body">Ten przegląd znajdziesz zawsze w Ustawienia, System, Informacje.</string>
     <string name="tour_start_driving">Ruszamy</string>
     <string name="tour_settings_row">Przegląd podstaw</string>
     <string name="tour_settings_row_detail">Sześć krótkich porad o pulpicie</string>

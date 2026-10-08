@@ -42,7 +42,7 @@
     <string name="tour_wheel_voice">Assistente de voz</string>
     <string name="tour_wheel_alerts">Avisos falados</string>
     <string name="tour_done_title">Tudo pronto</string>
-    <string name="tour_done_body">Veja esta visita outra vez em Definições, Acerca.</string>
+    <string name="tour_done_body">Veja esta visita outra vez em Definições, Sistema, Acerca.</string>
     <string name="tour_start_driving">Arrancar</string>
     <string name="tour_settings_row">Visita rápida</string>
     <string name="tour_settings_row_detail">Seis dicas curtas sobre o painel</string>

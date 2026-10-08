@@ -250,4 +250,61 @@
     <string name="settings_deepobd_field_voltage">Batterie</string>
     <string name="settings_deepobd_field_none">Inutilisée</string>
     <string name="settings_deepobd_field_ignored">Ignorée</string>
+    <!-- Settings rework: groups, overview, search (SettingsScreen.kt, SettingsOverview.kt) -->
+    <string name="settings_overview">Vue d\'ensemble</string>
+    <string name="settings_section_connections">Connexions</string>
+    <string name="settings_section_sound_voice">Son et voix</string>
+    <string name="settings_section_popups">Pop-ups</string>
+    <string name="settings_section_system">Système</string>
+    <string name="settings_section_volume">Volume</string>
+    <string name="settings_section_taps_music">Touches et musique</string>
+    <string name="settings_section_more_tools">Autres outils</string>
+    <string name="settings_show_all">Tous les réglages</string>
+    <string name="settings_show_fewer">Moins de réglages</string>
+    <string name="settings_show_fewer_detail">Ne garder ici que les plus courants</string>
+    <string name="settings_lab">Labo</string>
+    <string name="settings_lab_detail">Outils encore à l\'essai, et le journal de l\'unité</string>
+    <string name="settings_unit_tools">Outils de l\'unité</string>
+    <string name="settings_unit_tools_detail">Logo de démarrage, Google Maps dans une tuile, app système</string>
+    <string name="settings_root_how">Comment</string>
+    <string name="settings_obd_linked">Connecté : %1$s</string>
+    <string name="settings_obd_deepobd">Mesures de l\'app Deep OBD</string>
+    <string name="settings_access_all">Tout est autorisé</string>
+    <string name="settings_about_detail">Aide, la visite, le projet et le soutien</string>
+    <string name="settings_search_hint">Chercher un réglage</string>
+    <string name="settings_search_clear">Effacer la recherche</string>
+    <string name="settings_search_none">Aucun réglage ne correspond à %1$s</string>
+    <string name="settings_ov_updates">Mises à jour</string>
+    <string name="settings_ov_linked">Connecté</string>
+    <string name="settings_ov_not_linked">Pas connecté</string>
+    <string name="settings_ov_connecting">Connexion</string>
+    <string name="settings_ov_obd_deep">App Deep OBD</string>
+    <string name="settings_ov_obd_none">Aucun choisi</string>
+    <string name="settings_ov_obd_pick">Touchez pour choisir le vôtre</string>
+    <string name="settings_ov_phone_away">Associé, absent</string>
+    <string name="settings_ov_upkeep_none">Rien de prévu</string>
+    <string name="settings_ov_not_allowed">Pas encore autorisé : %1$s</string>
+    <string name="settings_ov_not_allowed_detail">Des tuiles et des messages lus l\'attendent</string>
+    <string name="settings_ov_allow">Autoriser</string>
+    <string name="settings_sum_popups_none">Un style pour chaque alerte</string>
+    <plurals name="settings_root_more">
+        <item quantity="one">%d de plus avec le root sur cette unité</item>
+        <item quantity="many">%d de plus avec le root sur cette unité</item>
+        <item quantity="other">%d de plus avec le root sur cette unité</item>
+    </plurals>
+    <plurals name="settings_access_missing">
+        <item quantity="one">%d pas encore autorisé</item>
+        <item quantity="many">%d pas encore autorisés</item>
+        <item quantity="other">%d pas encore autorisés</item>
+    </plurals>
+    <plurals name="settings_sum_spoken">
+        <item quantity="one">%1$d sur %2$d lu à voix haute</item>
+        <item quantity="many">%1$d sur %2$d lus à voix haute</item>
+        <item quantity="other">%1$d sur %2$d lus à voix haute</item>
+    </plurals>
+    <plurals name="settings_sum_popups">
+        <item quantity="one">%d dans le style de Dashwheel</item>
+        <item quantity="many">%d dans le style de Dashwheel</item>
+        <item quantity="other">%d dans le style de Dashwheel</item>
+    </plurals>
 </resources>

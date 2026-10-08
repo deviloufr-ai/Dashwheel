@@ -53,8 +53,8 @@
     <string name="phone_overlay">Oproepen over andere apps tonen</string>
     <string name="phone_overlay_detail">Een oproep verschijnt dan ook als een andere app het hele scherm vult.</string>
     <string name="phone_text_copied">Tekst van je telefoon gekopieerd: houd een tekstveld ingedrukt om te plakken</string>
-    <string name="phone_quickdial_empty">Koppel je telefoon onder Instellingen, Telefoon, om hier de favorieten te zien</string>
-    <string name="phone_agenda_empty">Koppel je telefoon onder Instellingen, Telefoon, om hier de agenda te zien</string>
+    <string name="phone_quickdial_empty">Koppel je telefoon onder Instellingen, Verbindingen, om hier de favorieten te zien</string>
+    <string name="phone_agenda_empty">Koppel je telefoon onder Instellingen, Verbindingen, om hier de agenda te zien</string>
     <string name="phone_call_back">Bel %1$s terug</string>
     <string name="phone_calling">%1$s bellen</string>
     <string name="phone_dial_not_allowed">Sta Oproepen toe in Dashwheel Companion om hier te bellen.</string>

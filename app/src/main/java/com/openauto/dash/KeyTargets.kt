@@ -81,23 +81,17 @@ object KeyTargets {
 /**
  * Settings, Driving, under Buttons: which app the unit's NAVI, voice and
  * custom keys open. Only the QF firmware has the keys and only a privileged
- * shell can write the choice; without either the row stays in sight, greyed,
- * and says which one is missing.
+ * shell can write the choice: other units have no row, and a QF unit
+ * without a shell counts them in the pane's [RootLockCard].
  */
 @Composable
 internal fun KeyTargetRows() {
     // The choice is written through the shell: the Play edition has no row for it.
     if (Edition.play) return
     val context = LocalContext.current
+    // Not on this firmware: nothing to list. Without a shell the Driving pane's root card names it.
     val available = remember { KeyTargets.available() }
-    if (!available) {
-        GatedRow(Icons.Filled.Keyboard, stringResource(R.string.keys_section), stringResource(R.string.settings_needs_qf))
-        return
-    }
-    if (!shellAccess().shell) {
-        GatedRow(Icons.Filled.Keyboard, stringResource(R.string.keys_section), stringResource(R.string.settings_rom_needs_root))
-        return
-    }
+    if (!available || !shellAccess().shell) return
     LaunchedEffect(Unit) { KeyTargets.refresh() }
     val targets by KeyTargets.targets.collectAsState()
     var picking by remember { mutableStateOf<KeyTargets.Key?>(null) }

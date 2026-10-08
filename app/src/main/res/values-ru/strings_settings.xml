@@ -251,4 +251,65 @@
     <string name="settings_deepobd_field_voltage">Аккумулятор</string>
     <string name="settings_deepobd_field_none">Не используется</string>
     <string name="settings_deepobd_field_ignored">Пропущено</string>
+    <!-- Settings rework: groups, overview, search (SettingsScreen.kt, SettingsOverview.kt) -->
+    <string name="settings_overview">Обзор</string>
+    <string name="settings_section_connections">Подключения</string>
+    <string name="settings_section_sound_voice">Звук и голос</string>
+    <string name="settings_section_popups">Окна</string>
+    <string name="settings_section_system">Система</string>
+    <string name="settings_section_volume">Громкость</string>
+    <string name="settings_section_taps_music">Нажатия и музыка</string>
+    <string name="settings_section_more_tools">Другие инструменты</string>
+    <string name="settings_show_all">Все настройки</string>
+    <string name="settings_show_fewer">Меньше настроек</string>
+    <string name="settings_show_fewer_detail">Оставить здесь только обычные</string>
+    <string name="settings_lab">Лаборатория</string>
+    <string name="settings_lab_detail">Инструменты в испытании и журнал устройства</string>
+    <string name="settings_unit_tools">Инструменты устройства</string>
+    <string name="settings_unit_tools_detail">Логотип загрузки, Google Карты в плитке, системное приложение</string>
+    <string name="settings_root_how">Как</string>
+    <string name="settings_obd_linked">Подключён: %1$s</string>
+    <string name="settings_obd_deepobd">Данные из приложения Deep OBD</string>
+    <string name="settings_access_all">Всё разрешено</string>
+    <string name="settings_about_detail">Справка, обзор, проект и поддержка</string>
+    <string name="settings_search_hint">Поиск настроек</string>
+    <string name="settings_search_clear">Очистить поиск</string>
+    <string name="settings_search_none">Нет настроек для %1$s</string>
+    <string name="settings_ov_updates">Обновления</string>
+    <string name="settings_ov_linked">Подключён</string>
+    <string name="settings_ov_not_linked">Сейчас не подключён</string>
+    <string name="settings_ov_connecting">Подключение</string>
+    <string name="settings_ov_obd_deep">Приложение Deep OBD</string>
+    <string name="settings_ov_obd_none">Не выбран</string>
+    <string name="settings_ov_obd_pick">Нажмите, чтобы выбрать свой</string>
+    <string name="settings_ov_phone_away">Сопряжён, не рядом</string>
+    <string name="settings_ov_upkeep_none">Пока ничего не запланировано</string>
+    <string name="settings_ov_not_allowed">Ещё не разрешено: %1$s</string>
+    <string name="settings_ov_not_allowed_detail">Этого ждут некоторые плитки и озвучка сообщений</string>
+    <string name="settings_ov_allow">Разрешить</string>
+    <string name="settings_sum_popups_none">Стиль для каждого оповещения</string>
+    <plurals name="settings_root_more">
+        <item quantity="one">Ещё %d требует root на этом устройстве</item>
+        <item quantity="few">Ещё %d требуют root на этом устройстве</item>
+        <item quantity="many">Ещё %d требуют root на этом устройстве</item>
+        <item quantity="other">Ещё %d требуют root на этом устройстве</item>
+    </plurals>
+    <plurals name="settings_access_missing">
+        <item quantity="one">%d ещё не разрешено</item>
+        <item quantity="few">%d ещё не разрешено</item>
+        <item quantity="many">%d ещё не разрешено</item>
+        <item quantity="other">%d ещё не разрешено</item>
+    </plurals>
+    <plurals name="settings_sum_spoken">
+        <item quantity="one">Озвучено %1$d из %2$d</item>
+        <item quantity="few">Озвучено %1$d из %2$d</item>
+        <item quantity="many">Озвучено %1$d из %2$d</item>
+        <item quantity="other">Озвучено %1$d из %2$d</item>
+    </plurals>
+    <plurals name="settings_sum_popups">
+        <item quantity="one">%d в стиле Dashwheel</item>
+        <item quantity="few">%d в стиле Dashwheel</item>
+        <item quantity="many">%d в стиле Dashwheel</item>
+        <item quantity="other">%d в стиле Dashwheel</item>
+    </plurals>
 </resources>

@@ -190,7 +190,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     var fillPage by remember { mutableStateOf<Int?>(null) }
     // The Settings screen, on the tab it was opened to; null while closed. A
     // dashboard rebuilt by a turn of the screen made in Settings opens there again.
-    var settingsTab by remember { mutableStateOf(if (ScreenShape.settingsWanted()) SettingsTab.DISPLAY else null) }
+    var settingsTab by remember { mutableStateOf(if (ScreenShape.settingsWanted()) SettingsTab.SYSTEM else null) }
     /**
      * Closes Settings: its open sheet leaves first. A screen direction on trial
      * is still on trial: the dashboard goes on asking (KeepDirectionStrip).
@@ -1214,7 +1214,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             whenParked {
                 closeSheets()
                 editing = false
-                settingsTab = SettingsTab.CAR
+                settingsTab = SettingsTab.OVERVIEW
             }
         },
         onTour = {

@@ -15,7 +15,7 @@
     <string name="voice_lpg_detail">Zegt het als de tweede tank bijna leeg is</string>
     <string name="voice_menu_quiet">Stil</string>
     <string name="voice_menu_back">Stem weer aan</string>
-    <string name="voice_where">Wat de auto uit zichzelf zegt, stel je in bij Instellingen, Meldingen.</string>
+    <string name="voice_where">Wat de auto uit zichzelf zegt, stel je in bij Instellingen, Geluid en stem.</string>
 
     <!-- Spoken -->
     <string name="voice_say_message">Bericht van %1$s</string>

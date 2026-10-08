@@ -42,7 +42,7 @@
     <string name="tour_wheel_voice">Voice assistant</string>
     <string name="tour_wheel_alerts">Spoken alerts</string>
     <string name="tour_done_title">You are all set</string>
-    <string name="tour_done_body">Watch this tour again any time in Settings, About.</string>
+    <string name="tour_done_body">Watch this tour again any time in Settings, System, About.</string>
     <string name="tour_start_driving">Start driving</string>
     <string name="tour_settings_row">Tour of the basics</string>
     <string name="tour_settings_row_detail">Six short tips about the dashboard</string>

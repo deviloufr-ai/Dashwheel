@@ -15,7 +15,7 @@
     <string name="voice_lpg_detail">Mówi, gdy drugi zbiornik się kończy</string>
     <string name="voice_menu_quiet">Cisza</string>
     <string name="voice_menu_back">Głos znów włączony</string>
-    <string name="voice_where">To, co auto mówi samo, włącza się w Ustawieniach, Alerty.</string>
+    <string name="voice_where">To, co auto mówi samo, włącza się w Ustawieniach, Dźwięk i głos.</string>
 
     <!-- Spoken -->
     <string name="voice_say_message">Wiadomość od: %1$s</string>

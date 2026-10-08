@@ -15,7 +15,7 @@
     <string name="voice_lpg_detail">Dit quand le second réservoir est presque vide</string>
     <string name="voice_menu_quiet">Silence</string>
     <string name="voice_menu_back">Voix de retour</string>
-    <string name="voice_where">Ce que la voiture dit d\'elle-même se règle dans Réglages, Alertes.</string>
+    <string name="voice_where">Ce que la voiture dit d\'elle-même se règle dans Réglages, Son et voix.</string>
 
     <!-- Spoken -->
     <string name="voice_say_message">Message de %1$s</string>

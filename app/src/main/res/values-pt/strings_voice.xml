@@ -15,7 +15,7 @@
     <string name="voice_lpg_detail">Diz quando o segundo depósito está a acabar</string>
     <string name="voice_menu_quiet">Silêncio</string>
     <string name="voice_menu_back">Voz de volta</string>
-    <string name="voice_where">O que o carro diz por si define-se em Definições, Alertas.</string>
+    <string name="voice_where">O que o carro diz por si define-se em Definições, Som e voz.</string>
 
     <!-- Spoken -->
     <string name="voice_say_message">Mensagem de %1$s</string>

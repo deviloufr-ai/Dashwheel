@@ -15,7 +15,7 @@
     <string name="voice_lpg_detail">Sagt, wenn der zweite Tank zur Neige geht</string>
     <string name="voice_menu_quiet">Ruhe</string>
     <string name="voice_menu_back">Stimme wieder an</string>
-    <string name="voice_where">Was das Auto von sich aus sagt, wird unter Einstellungen, Hinweise geschaltet.</string>
+    <string name="voice_where">Was das Auto von sich aus sagt, wird unter Einstellungen, Ton und Stimme geschaltet.</string>
 
     <!-- Spoken -->
     <string name="voice_say_message">Nachricht von %1$s</string>

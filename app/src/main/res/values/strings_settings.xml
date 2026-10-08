@@ -253,4 +253,57 @@
     <string name="settings_deepobd_field_voltage">Battery</string>
     <string name="settings_deepobd_field_none">Unused</string>
     <string name="settings_deepobd_field_ignored">Ignored</string>
+    <!-- Settings rework: groups, overview, search (SettingsScreen.kt, SettingsOverview.kt) -->
+    <string name="settings_overview">Overview</string>
+    <string name="settings_section_connections">Connections</string>
+    <string name="settings_section_sound_voice">Sound and voice</string>
+    <string name="settings_section_popups">Pop-ups</string>
+    <string name="settings_section_system">System</string>
+    <string name="settings_section_volume">Volume</string>
+    <string name="settings_section_taps_music">Taps and music</string>
+    <string name="settings_section_more_tools">More tools</string>
+    <string name="settings_show_all">Show all settings</string>
+    <string name="settings_show_fewer">Show fewer settings</string>
+    <string name="settings_show_fewer_detail">Keep only the usual ones here</string>
+    <string name="settings_lab">Lab</string>
+    <string name="settings_lab_detail">Tools still being tried, and the unit\'s log</string>
+    <string name="settings_unit_tools">Unit tools</string>
+    <string name="settings_unit_tools_detail">Boot logo, Google Maps inside a tile, system app</string>
+    <string name="settings_root_how">How</string>
+    <string name="settings_obd_linked">Linked: %1$s</string>
+    <string name="settings_obd_deepobd">Readings from the Deep OBD app</string>
+    <string name="settings_access_all">Everything allowed</string>
+    <string name="settings_about_detail">Help, the tour, the project and support</string>
+    <string name="settings_search_hint">Search settings</string>
+    <string name="settings_search_clear">Clear the search</string>
+    <string name="settings_search_none">No setting matches %1$s</string>
+    <string name="settings_ov_updates">Updates</string>
+    <string name="settings_ov_linked">Linked</string>
+    <string name="settings_ov_not_linked">Not linked now</string>
+    <string name="settings_ov_connecting">Connecting</string>
+    <string name="settings_ov_obd_deep">Deep OBD app</string>
+    <string name="settings_ov_obd_none">None chosen</string>
+    <string name="settings_ov_obd_pick">Tap to pick yours</string>
+    <string name="settings_ov_phone_away">Paired, not here</string>
+    <string name="settings_ov_upkeep_none">Nothing planned yet</string>
+    <string name="settings_ov_not_allowed">Not allowed yet: %1$s</string>
+    <string name="settings_ov_not_allowed_detail">Some tiles and spoken messages wait for it</string>
+    <string name="settings_ov_allow">Allow</string>
+    <string name="settings_sum_popups_none">Designs for each alert</string>
+    <plurals name="settings_root_more">
+        <item quantity="one">%d more needs root on this unit</item>
+        <item quantity="other">%d more need root on this unit</item>
+    </plurals>
+    <plurals name="settings_access_missing">
+        <item quantity="one">%d not allowed yet</item>
+        <item quantity="other">%d not allowed yet</item>
+    </plurals>
+    <plurals name="settings_sum_spoken">
+        <item quantity="one">%1$d of %2$d spoken</item>
+        <item quantity="other">%1$d of %2$d spoken</item>
+    </plurals>
+    <plurals name="settings_sum_popups">
+        <item quantity="one">%d in Dashwheel\'s look</item>
+        <item quantity="other">%d in Dashwheel\'s look</item>
+    </plurals>
 </resources>

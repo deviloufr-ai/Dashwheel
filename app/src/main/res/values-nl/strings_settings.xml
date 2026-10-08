@@ -250,4 +250,57 @@
     <string name="settings_deepobd_field_voltage">Accu</string>
     <string name="settings_deepobd_field_none">Ongebruikt</string>
     <string name="settings_deepobd_field_ignored">Genegeerd</string>
+    <!-- Settings rework: groups, overview, search (SettingsScreen.kt, SettingsOverview.kt) -->
+    <string name="settings_overview">Overzicht</string>
+    <string name="settings_section_connections">Verbindingen</string>
+    <string name="settings_section_sound_voice">Geluid en stem</string>
+    <string name="settings_section_popups">Pop-ups</string>
+    <string name="settings_section_system">Systeem</string>
+    <string name="settings_section_volume">Volume</string>
+    <string name="settings_section_taps_music">Tikken en muziek</string>
+    <string name="settings_section_more_tools">Meer hulpmiddelen</string>
+    <string name="settings_show_all">Alle instellingen</string>
+    <string name="settings_show_fewer">Minder instellingen</string>
+    <string name="settings_show_fewer_detail">Alleen de gewone hier houden</string>
+    <string name="settings_lab">Lab</string>
+    <string name="settings_lab_detail">Hulpmiddelen in test en het logboek van het toestel</string>
+    <string name="settings_unit_tools">Toestelhulpmiddelen</string>
+    <string name="settings_unit_tools_detail">Opstartlogo, Google Maps in een tegel, systeemapp</string>
+    <string name="settings_root_how">Hoe</string>
+    <string name="settings_obd_linked">Verbonden: %1$s</string>
+    <string name="settings_obd_deepobd">Waarden uit de Deep OBD-app</string>
+    <string name="settings_access_all">Alles toegestaan</string>
+    <string name="settings_about_detail">Hulp, de rondleiding, het project en steun</string>
+    <string name="settings_search_hint">Instellingen zoeken</string>
+    <string name="settings_search_clear">Zoekopdracht wissen</string>
+    <string name="settings_search_none">Geen instelling past bij %1$s</string>
+    <string name="settings_ov_updates">Updates</string>
+    <string name="settings_ov_linked">Verbonden</string>
+    <string name="settings_ov_not_linked">Nu niet verbonden</string>
+    <string name="settings_ov_connecting">Verbinden</string>
+    <string name="settings_ov_obd_deep">Deep OBD-app</string>
+    <string name="settings_ov_obd_none">Geen gekozen</string>
+    <string name="settings_ov_obd_pick">Tik om de jouwe te kiezen</string>
+    <string name="settings_ov_phone_away">Gekoppeld, niet hier</string>
+    <string name="settings_ov_upkeep_none">Nog niets gepland</string>
+    <string name="settings_ov_not_allowed">Nog niet toegestaan: %1$s</string>
+    <string name="settings_ov_not_allowed_detail">Sommige tegels en gesproken berichten wachten erop</string>
+    <string name="settings_ov_allow">Toestaan</string>
+    <string name="settings_sum_popups_none">Een stijl voor elke melding</string>
+    <plurals name="settings_root_more">
+        <item quantity="one">Nog %d heeft root nodig op dit toestel</item>
+        <item quantity="other">Nog %d hebben root nodig op dit toestel</item>
+    </plurals>
+    <plurals name="settings_access_missing">
+        <item quantity="one">%d nog niet toegestaan</item>
+        <item quantity="other">%d nog niet toegestaan</item>
+    </plurals>
+    <plurals name="settings_sum_spoken">
+        <item quantity="one">%1$d van %2$d uitgesproken</item>
+        <item quantity="other">%1$d van %2$d uitgesproken</item>
+    </plurals>
+    <plurals name="settings_sum_popups">
+        <item quantity="one">%d in de stijl van Dashwheel</item>
+        <item quantity="other">%d in de stijl van Dashwheel</item>
+    </plurals>
 </resources>

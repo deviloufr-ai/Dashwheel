@@ -15,7 +15,7 @@
     <string name="voice_lpg_detail">Dice quando il secondo serbatoio si esaurisce</string>
     <string name="voice_menu_quiet">Silenzio</string>
     <string name="voice_menu_back">Voce di nuovo attiva</string>
-    <string name="voice_where">Ciò che l\'auto dice da sola si regola in Impostazioni, Avvisi.</string>
+    <string name="voice_where">Ciò che l\'auto dice da sola si regola in Impostazioni, Suono e voce.</string>
 
     <!-- Spoken -->
     <string name="voice_say_message">Messaggio da %1$s</string>

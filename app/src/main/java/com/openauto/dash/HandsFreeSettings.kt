@@ -55,7 +55,7 @@ import kotlinx.coroutines.withContext
  * below, under "Also spoken".
  */
 @Composable
-internal fun VoiceSettings() {
+internal fun VoiceSettings(essentialOnly: Boolean = false) {
     val context = LocalContext.current
     LaunchedEffect(Unit) { SpokenEvents.load(context) }
     val on by SpokenEvents.on.collectAsState()
@@ -63,6 +63,8 @@ internal fun VoiceSettings() {
     SettingsSection(stringResource(R.string.voice_section))
     SpokenEvent.entries.forEach { event ->
         if (event == SpokenEvent.LPG && !lpg.enabled) return@forEach
+        // A rarer one that speaks stays in sight: what the car says is never hidden.
+        if (essentialOnly && event !in ESSENTIAL_SPOKEN && event !in on) return@forEach
         SettingsToggle(event.icon, stringResource(event.label), stringResource(event.detail), event in on) { wanted ->
             SpokenEvents.set(context, event, wanted)
             // Camera warnings follow the drive from now on, tile or no tile.
@@ -77,6 +79,9 @@ internal fun VoiceSettings() {
     Spacer(Modifier.height(20.dp))
 }
 
+/** The spoken events Settings lists before "Show all"; the others show there once switched on. */
+internal val ESSENTIAL_SPOKEN = setOf(SpokenEvent.BRIEFING, SpokenEvent.CAR_TIPS, SpokenEvent.FAULT_CODES, SpokenEvent.SPEED_CAMERAS, SpokenEvent.MESSAGES)
+
 private val SpokenEvent.icon: ImageVector
     get() = when (this) {
         SpokenEvent.BRIEFING -> Icons.Filled.WbSunny
@@ -89,7 +94,7 @@ private val SpokenEvent.icon: ImageVector
         SpokenEvent.LPG -> Icons.Filled.PropaneTank
     }
 
-private val SpokenEvent.label: Int
+internal val SpokenEvent.label: Int
     get() = when (this) {
         SpokenEvent.BRIEFING -> R.string.briefing_setting
         SpokenEvent.CAR_TIPS -> R.string.voice_warnings

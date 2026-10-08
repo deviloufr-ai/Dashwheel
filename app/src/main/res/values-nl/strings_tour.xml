@@ -42,7 +42,7 @@
     <string name="tour_wheel_voice">Spraakassistent</string>
     <string name="tour_wheel_alerts">Gesproken meldingen</string>
     <string name="tour_done_title">Alles klaar</string>
-    <string name="tour_done_body">Bekijk deze rondleiding altijd opnieuw via Instellingen, Over.</string>
+    <string name="tour_done_body">Bekijk deze rondleiding altijd opnieuw via Instellingen, Systeem, Over.</string>
     <string name="tour_start_driving">Wegrijden</string>
     <string name="tour_settings_row">Korte rondleiding</string>
     <string name="tour_settings_row_detail">Zes korte tips over het dashboard</string>

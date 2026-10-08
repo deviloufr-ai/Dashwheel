@@ -15,7 +15,7 @@
     <string name="voice_lpg_detail">Сообщает, когда во втором баке заканчивается газ</string>
     <string name="voice_menu_quiet">Тишина</string>
     <string name="voice_menu_back">Включить голос</string>
-    <string name="voice_where">Что автомобиль говорит сам, включается в Настройках, раздел «Оповещения».</string>
+    <string name="voice_where">Что автомобиль говорит сам, включается в Настройках, раздел «Звук и голос».</string>
 
     <!-- Spoken -->
     <string name="voice_say_message">Сообщение от %1$s</string>

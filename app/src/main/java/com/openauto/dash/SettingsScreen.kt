@@ -78,6 +78,14 @@ import androidx.compose.material.icons.filled.TireRepair
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.RecordVoiceOver
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Straighten
+import androidx.compose.material.icons.filled.UnfoldLess
+import androidx.compose.material.icons.filled.UnfoldMore
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -107,6 +115,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -119,32 +130,44 @@ import kotlinx.coroutines.launch
 
 /*
  * The Settings screen: everything set once, full screen in two columns like
- * a car's own settings. Categories on the left (along the top on an upright
- * screen), the chosen one's settings on the right, most of them right there
- * and the deep ones (car profile, AI, servicing, readings, wheel buttons,
- * language, second screen) one tap further in the same pane, with a back arrow
- * (SettingsSheet.kt). One subject, one place: every alert under Alerts, what
- * the screen does under Display, what it looks like under Look, every
- * physical button under Driving. A setting this unit cannot have stays in
- * sight, greyed, with the reason in one line ([GatedRow]).
+ * a car's own settings. It opens on an overview (SettingsOverview.kt): how
+ * the adapter, the phone, the update and the servicing stand, what is not
+ * allowed yet, a search, and the groups with what each holds now. A group
+ * shows the categories down the left (along the top on an upright screen)
+ * and its settings on the right, the deep ones (car profile, AI, servicing,
+ * wheel buttons, language, the OBD adapter...) one tap further in the same
+ * pane, with a back arrow (SettingsSheet.kt). One subject, one place, named
+ * the way a driver thinks of it: the car, what connects to it, the look,
+ * what it says, what pops up, how it is driven, the unit itself. A group
+ * lists what most drivers change; the rest waits under "Show all settings".
+ * What this unit cannot have is not listed: one card per group says how
+ * many more root would bring ([RootLockCard]).
  */
 
 internal enum class SettingsTab(@StringRes val titleRes: Int, val icon: ImageVector) {
+    OVERVIEW(R.string.settings_overview, Icons.Filled.Dashboard),
     CAR(R.string.settings_section_car, Icons.Filled.DirectionsCar),
+    CONNECTIONS(R.string.settings_section_connections, Icons.Filled.Link),
     LOOK(R.string.settings_section_look, Icons.Filled.Palette),
-    DISPLAY(R.string.settings_section_display, Icons.Filled.Tv),
-    ALERTS(R.string.alert_section, Icons.Filled.NotificationsActive),
+    SOUND(R.string.settings_section_sound_voice, Icons.Filled.RecordVoiceOver),
+    POPUPS(R.string.settings_section_popups, Icons.Filled.NotificationsActive),
     DRIVING(R.string.settings_section_driving, Icons.Filled.Speed),
-    PHONE(R.string.settings_section_phone, Icons.Filled.PhoneAndroid),
-    ADVANCED(R.string.settings_section_advanced, Icons.Filled.Tune),
-    ABOUT(R.string.settings_section_about, Icons.Filled.Info)
+    SYSTEM(R.string.settings_section_system, Icons.Filled.Settings);
+
+    companion object {
+        /** The groups, without the overview that leads to them. */
+        val groups: List<SettingsTab> = entries - OVERVIEW
+    }
 }
 
-/** The settings that open further into the pane. */
-private enum class Deep { CAR, CAR_LOOK, REVERSE, SIGNALS, AI, UPKEEP, EXPLORER, WHEEL, PLACES, LANGUAGE, SECOND_SCREEN, LPG }
+/** The settings that open further into the pane; Lab's open over Lab. */
+internal enum class Deep {
+    CAR, CAR_LOOK, REVERSE, SIGNALS, AI, UPKEEP, EXPLORER, WHEEL, PLACES, LANGUAGE, SECOND_SCREEN, LPG,
+    OBD, UNITS, ACCESS, ABOUT, LAB, UNIT_TOOLS
+}
 
 /** Under this width the categories go along the top: a rail would leave the settings half a screen. */
-private val NARROW_SETTINGS = 800.dp
+internal val NARROW_SETTINGS = 800.dp
 
 /** The theme choice and its setters, owned by the dashboard root. */
 internal data class ThemeState(
@@ -159,7 +182,7 @@ internal data class ThemeState(
     val barHideSeconds: Int,
     val onBarAutoHide: (Boolean) -> Unit,
     val onBarHideSeconds: (Int) -> Unit,
-    /** The side rail in the bar's place, and tabs in it instead of swiping (Display, Navigation). */
+    /** The side rail in the bar's place, and tabs in it instead of swiping (Look, Navigation). */
     val rail: Boolean = false,
     val tabs: Boolean = false,
     val onRail: (Boolean) -> Unit = {},
@@ -176,20 +199,27 @@ internal fun SettingsScreen(
     onClose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     var tab by remember(initialTab) { mutableStateOf(initialTab) }
-    var deep by remember { mutableStateOf<Deep?>(null) }
+    // The deep pages open, the one on top showing: Lab opens its tools over itself.
+    var stack by remember { mutableStateOf(emptyList<Deep>()) }
+    val deep = stack.lastOrNull()
     var bootLogo by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { SettingsShowAll.load(context) }
+    val shownAll by SettingsShowAll.open.collectAsState()
     // Another category, or closing: the open sheet leaves first, as by its back arrow.
-    val choose: (SettingsTab) -> Unit = { t ->
+    val go: (SettingsTab, List<Deep>) -> Unit = { t, path ->
         OpenSheet.dismiss()
-        deep = null
+        stack = path
         tab = t
     }
+    val choose: (SettingsTab) -> Unit = { go(it, emptyList()) }
     val close = {
         OpenSheet.dismiss()
         onClose()
     }
-    val back = { deep = null }
+    val open: (Deep) -> Unit = { stack = stack + it }
+    val back = { stack = stack.dropLast(1) }
     // A turn of the screen rebuilds the dashboard, which opens Settings again only if they were open.
     DisposableEffect(Unit) {
         ScreenShape.settingsShown(true)
@@ -198,26 +228,35 @@ internal fun SettingsScreen(
 
     val pane: @Composable (Modifier) -> Unit = { paneModifier ->
         Box(modifier = paneModifier) {
-            CompositionLocalProvider(LocalSheetInPane provides true) {
-                when (deep) {
-                    Deep.CAR -> CarSettingsDialog(onDismiss = back)
-                    Deep.CAR_LOOK -> MyCarLookSheet(onDismiss = back)
-                    Deep.REVERSE -> ReverseViewSheet(onDismiss = back)
-                    Deep.SIGNALS -> SignalFinderSheet(onDismiss = back)
-                    Deep.AI -> AiSettingsDialog(onDismiss = back)
-                    Deep.UPKEEP -> UpkeepDialog(onDismiss = back)
-                    Deep.EXPLORER -> PidExplorerDialog(onDismiss = back)
-                    Deep.WHEEL -> SteeringWheelDialog(onDismiss = back)
-                    Deep.PLACES -> PlacesSheet(onDismiss = back)
-                    Deep.LANGUAGE -> LanguageSheet(onDismiss = back)
-                    Deep.SECOND_SCREEN -> SecondScreenSheet(onDismiss = back)
-                    Deep.LPG -> LpgTankSheet(onDismiss = back)
-                    null -> Unit
+            if (deep != null) key(stack.size, deep) {
+                CompositionLocalProvider(LocalSheetInPane provides true) {
+                    when (deep) {
+                        Deep.CAR -> CarSettingsDialog(onDismiss = back)
+                        Deep.CAR_LOOK -> MyCarLookSheet(onDismiss = back)
+                        Deep.REVERSE -> ReverseViewSheet(onDismiss = back)
+                        Deep.SIGNALS -> SignalFinderSheet(onDismiss = back)
+                        Deep.AI -> AiSettingsDialog(onDismiss = back)
+                        Deep.UPKEEP -> UpkeepDialog(onDismiss = back)
+                        Deep.EXPLORER -> PidExplorerDialog(onDismiss = back)
+                        Deep.WHEEL -> SteeringWheelDialog(onDismiss = back)
+                        Deep.PLACES -> PlacesSheet(onDismiss = back)
+                        Deep.LANGUAGE -> LanguageSheet(onDismiss = back)
+                        Deep.SECOND_SCREEN -> SecondScreenSheet(onDismiss = back)
+                        Deep.LPG -> LpgTankSheet(onDismiss = back)
+                        Deep.OBD -> ObdSheet(onPickObd = onPickObd, onDismiss = back)
+                        Deep.UNITS -> UnitsSheet(onDismiss = back)
+                        Deep.ACCESS -> AccessSheet(onPickObd = onPickObd, onDismiss = back)
+                        Deep.ABOUT -> AboutSheet(m, onDismiss = back)
+                        Deep.LAB -> LabSheet(open = open, onDismiss = back)
+                        Deep.UNIT_TOOLS -> UnitToolsSheet(m, onBootLogo = { bootLogo = true }, onDismiss = back)
+                    }
                 }
             }
             // Each category keeps its own place: a long one scrolled down does not move the next.
             if (deep == null) key(tab) {
                 val scroll = rememberScrollState()
+                val all = tab in shownAll
+                val showAll: (Boolean) -> Unit = { SettingsShowAll.set(context, tab, it) }
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -225,14 +264,14 @@ internal fun SettingsScreen(
                         .padding(horizontal = 20.dp, vertical = 16.dp)
                 ) {
                     when (tab) {
-                        SettingsTab.CAR -> CarPane(open = { deep = it }, onPickObd = onPickObd)
-                        SettingsTab.LOOK -> LookPane(theme)
-                        SettingsTab.DISPLAY -> DisplayPane(theme, onLanguage = { deep = Deep.LANGUAGE }, onSecondScreen = { deep = Deep.SECOND_SCREEN })
-                        SettingsTab.ALERTS -> AlertsPane()
-                        SettingsTab.DRIVING -> DrivingPane(m, onWheelButtons = { deep = Deep.WHEEL }, onPlaces = { deep = Deep.PLACES })
-                        SettingsTab.PHONE -> PhonePane()
-                        SettingsTab.ADVANCED -> AdvancedPane(m, onBootLogo = { bootLogo = true }, onPickObd = onPickObd)
-                        SettingsTab.ABOUT -> AboutPane(m)
+                        SettingsTab.OVERVIEW -> Unit
+                        SettingsTab.CAR -> CarPane(open)
+                        SettingsTab.CONNECTIONS -> ConnectionsPane(open)
+                        SettingsTab.LOOK -> LookPane(theme, all, showAll)
+                        SettingsTab.SOUND -> SoundPane(all, showAll)
+                        SettingsTab.POPUPS -> AlertStyleRows()
+                        SettingsTab.DRIVING -> DrivingPane(m, open)
+                        SettingsTab.SYSTEM -> SystemPane(m, open, all, showAll)
                     }
                 }
                 MoreBelow(scroll, Modifier.align(Alignment.BottomCenter))
@@ -242,13 +281,23 @@ internal fun SettingsScreen(
 
     SolidCard(modifier = modifier) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-            if (maxWidth < NARROW_SETTINGS) {
-                Column(modifier = Modifier.fillMaxSize()) {
+            when {
+                // The overview has the whole card: its tiles are the categories.
+                tab == SettingsTab.OVERVIEW -> SettingsOverview(
+                    m = m,
+                    theme = theme,
+                    narrow = maxWidth < NARROW_SETTINGS,
+                    onGo = { t, path, extra ->
+                        if (extra) SettingsShowAll.set(context, t, true)
+                        go(t, path)
+                    },
+                    onClose = close
+                )
+                maxWidth < NARROW_SETTINGS -> Column(modifier = Modifier.fillMaxSize()) {
                     SettingsTabs(tab, choose, close)
                     pane(Modifier.weight(1f).fillMaxWidth())
                 }
-            } else {
-                Row(modifier = Modifier.fillMaxSize()) {
+                else -> Row(modifier = Modifier.fillMaxSize()) {
                     SettingsRail(tab, choose, close)
                     pane(Modifier.weight(1f).fillMaxHeight())
                 }
@@ -260,7 +309,7 @@ internal fun SettingsScreen(
 }
 
 @Composable
-private fun SettingsHeader(onClose: () -> Unit) {
+internal fun SettingsHeader(onClose: () -> Unit) {
     val tap = rememberTapFeedback()
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(
@@ -366,7 +415,7 @@ private fun SettingsTabs(tab: SettingsTab, onChoose: (SettingsTab) -> Unit, onCl
 
 /** Over the pane's bottom edge while there is more under it: a fade and an arrow. */
 @Composable
-private fun MoreBelow(scroll: ScrollState, modifier: Modifier = Modifier) {
+internal fun MoreBelow(scroll: ScrollState, modifier: Modifier = Modifier) {
     if (!scroll.canScrollForward) return
     val card = DashColors.Card.copy(alpha = 1f)
     Box(
@@ -380,27 +429,90 @@ private fun MoreBelow(scroll: ScrollState, modifier: Modifier = Modifier) {
     }
 }
 
+/** The car itself: who it is, how it looks in the tiles, what it needs. */
 @Composable
-private fun CarPane(open: (Deep) -> Unit, onPickObd: () -> Unit) {
+private fun CarPane(open: (Deep) -> Unit) {
     val car by CarProfileStore.profile.collectAsState()
     SettingsSection(stringResource(R.string.settings_section_car))
     SettingsRow(Icons.Filled.DirectionsCar, stringResource(R.string.car_menu), car.displayName(LocalContext.current)) { open(Deep.CAR) }
     SettingsRow(Icons.Filled.Image, stringResource(R.string.mycar_title), stringResource(R.string.mycar_settings_detail)) { open(Deep.CAR_LOOK) }
-    SettingsRow(Icons.Filled.Videocam, stringResource(R.string.reverse_title), stringResource(R.string.reverse_settings_detail)) { open(Deep.REVERSE) }
-    SettingsRow(Icons.Filled.SettingsInputAntenna, stringResource(R.string.signals_title), stringResource(R.string.signals_settings_detail)) { open(Deep.SIGNALS) }
-    val deepObd by DeepObdSource.source.collectAsState()
-    ObdSourceSetting()
-    // Deep OBD holds the adapter then: nothing to pick here.
-    if (deepObd == ObdSource.ADAPTER) {
-        ObdAdapterRow(onPickObd)
-        ObdRouteSetting()
-    }
-    // Settings is parked-only; the Telemetry tile's tuning button opens the same row on the move.
-    SpeedCorrectionRow(detail = stringResource(R.string.settings_speed_fix_detail))
     SettingsRow(Icons.Filled.AutoAwesome, stringResource(R.string.ai_title), stringResource(R.string.settings_ai_detail)) { open(Deep.AI) }
     SettingsRow(Icons.Filled.Handyman, stringResource(R.string.upkeep_dialog_title), stringResource(R.string.upkeep_settings_detail)) { open(Deep.UPKEEP) }
     LpgSettingsRow { open(Deep.LPG) }
-    SettingsRow(Icons.Filled.Science, stringResource(R.string.explore_title), stringResource(R.string.explore_settings_detail)) { open(Deep.EXPLORER) }
+    // Settings is parked-only; the Telemetry tile's tuning button opens the same row on the move.
+    SpeedCorrectionRow(detail = stringResource(R.string.settings_speed_fix_detail))
+    SettingsRow(Icons.Filled.Videocam, stringResource(R.string.reverse_title), stringResource(R.string.reverse_settings_detail)) { open(Deep.REVERSE) }
+}
+
+/** What connects to the unit: the adapter, the phone, a second screen, and what Dashwheel may use. */
+@Composable
+private fun ConnectionsPane(open: (Deep) -> Unit) {
+    SettingsSection(stringResource(R.string.settings_section_connections))
+    SettingsRow(Icons.Filled.Bluetooth, stringResource(R.string.settings_obd_title), obdSummary()) { open(Deep.OBD) }
+    SettingsRow(Icons.Filled.ConnectedTv, stringResource(R.string.settings_section_second_screen), secondScreenSummary()) { open(Deep.SECOND_SCREEN) }
+    SettingsRow(Icons.Filled.VerifiedUser, stringResource(R.string.setup_access_title), accessSummary()) { open(Deep.ACCESS) }
+    Spacer(Modifier.height(20.dp))
+    PhonePane()
+}
+
+/** Where the readings come from now, in one line: the Deep OBD app, or the adapter and whether it is linked. */
+@Composable
+internal fun obdSummary(): String {
+    val source by DeepObdSource.source.collectAsState()
+    val connection by ObdBluetoothManager.connectionState.collectAsState()
+    val name = remember(connection) { ObdBluetoothManager.savedDeviceName() }
+    return when {
+        source == ObdSource.DEEPOBD -> stringResource(R.string.settings_obd_deepobd)
+        name == null -> stringResource(R.string.settings_obd_none)
+        connection == ObdConnectionState.CONNECTED -> stringResource(R.string.settings_obd_linked, name)
+        else -> stringResource(R.string.settings_obd_saved, name)
+    }
+}
+
+/** The Android permissions Dashwheel still lacks, read again each time the launcher comes back. */
+@Composable
+internal fun missingAccess(): List<AccessNeed> {
+    val context = LocalContext.current
+    var generation by remember { mutableIntStateOf(0) }
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    DisposableEffect(lifecycle) {
+        val observer = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_RESUME) generation++ }
+        lifecycle.addObserver(observer)
+        onDispose { lifecycle.removeObserver(observer) }
+    }
+    // The adapter has its own row and its own card: not counted here.
+    return remember(generation) { AccessNeed.entries.filter { it != AccessNeed.OBD && !it.granted(context) } }
+}
+
+@Composable
+private fun accessSummary(): String {
+    val missing = missingAccess()
+    return if (missing.isEmpty()) stringResource(R.string.settings_access_all)
+    else pluralStringResource(R.plurals.settings_access_missing, missing.size, missing.size)
+}
+
+/** The adapter: where the readings come from, which adapter, and which way the unit reaches it. */
+@Composable
+private fun ObdSheet(onPickObd: () -> Unit, onDismiss: () -> Unit) {
+    val deepObd by DeepObdSource.source.collectAsState()
+    SettingsSheet(title = stringResource(R.string.settings_obd_title), onDismiss = onDismiss, actions = {}) {
+        Column {
+            ObdSourceSetting()
+            // Deep OBD holds the adapter then: nothing to pick here.
+            if (deepObd == ObdSource.ADAPTER) {
+                ObdAdapterRow(onPickObd)
+                ObdRouteSetting()
+            }
+        }
+    }
+}
+
+/** What Dashwheel may use, as in the setup, to look up or allow later. */
+@Composable
+private fun AccessSheet(onPickObd: () -> Unit, onDismiss: () -> Unit) {
+    SettingsSheet(title = stringResource(R.string.setup_access_title), onDismiss = onDismiss, actions = {}) {
+        AccessRows(onPickObd)
+    }
 }
 
 /**
@@ -593,40 +705,90 @@ private fun deepFieldLabel(field: ObdField): Int = when (field) {
     ObdField.VOLTAGE -> R.string.settings_deepobd_field_voltage
 }
 
-/** What the dashboard looks like: the theme first, then its day and night and its effects. */
+/**
+ * What the dashboard looks like: the theme, its day and night, the bottom
+ * bar's hiding; under "Show all" the effects, the bar's readouts and the
+ * side rail.
+ */
 @Composable
-private fun LookPane(theme: ThemeState) {
+private fun LookPane(theme: ThemeState, all: Boolean, onShowAll: (Boolean) -> Unit) {
     ThemeGallery(theme)
     Spacer(Modifier.height(20.dp))
     if (theme.mode == DashThemeMode.CANVAS) CanvasMapSetting()
     AppearanceSetting(theme)
     Spacer(Modifier.height(20.dp))
-    EffectsSetting(theme)
-}
-
-/** What the screen does: its language first, which way it stands, its bottom bar, the second screen. */
-@Composable
-private fun DisplayPane(theme: ThemeState, onLanguage: () -> Unit, onSecondScreen: () -> Unit) {
-    val context = LocalContext.current
-    SettingsSection(stringResource(R.string.language_title))
-    SettingsRow(Icons.Filled.Language, stringResource(R.string.language_title), languageName(AppLanguage.current(context)), onLanguage)
-    Spacer(Modifier.height(20.dp))
-    ScreenOrientationSetting()
-    Spacer(Modifier.height(20.dp))
-    UnitsSetting()
     // One "Bottom bar": its auto-hide, then its readouts under the same heading.
     BarAutoHideSetting(theme)
-    BarItemsSetting()
-    Spacer(Modifier.height(20.dp))
-    NavigationSetting(theme)
-    Spacer(Modifier.height(20.dp))
-    // The unit's bar is moved through the shell: not in the Play edition.
-    if (FreeformBar.supported && Edition.full) {
-        UnitBarSetting()
+    if (all) {
+        BarItemsSetting()
         Spacer(Modifier.height(20.dp))
+        EffectsSetting(theme)
+        Spacer(Modifier.height(20.dp))
+        NavigationSetting(theme)
     }
-    SettingsSection(stringResource(R.string.settings_section_second_screen))
-    SettingsRow(Icons.Filled.ConnectedTv, stringResource(R.string.settings_section_second_screen), secondScreenSummary(), onSecondScreen)
+    ShowAllRow(
+        all,
+        listOf(
+            stringResource(R.string.dash_effects_title),
+            stringResource(R.string.bar_items_custom),
+            stringResource(R.string.settings_navigation_title)
+        ),
+        onShowAll
+    )
+}
+
+/**
+ * Everything the car says and every sound it makes: the spoken events, the
+ * volume, the tap sound. The rarer ones wait under "Show all".
+ */
+@Composable
+private fun SoundPane(all: Boolean, onShowAll: (Boolean) -> Unit) {
+    val context = LocalContext.current
+    VoiceSettings(essentialOnly = !all)
+    SettingsSection(stringResource(R.string.settings_section_volume))
+    SpeedVolumeSetting()
+    if (all) {
+        // Only for a unit whose sound ignores Android's volume; on the QF firmware Automatic is the only way that works.
+        if (MediaVolume.choiceOffered) {
+            Spacer(Modifier.height(20.dp))
+            VolumeWaySetting()
+        }
+        Spacer(Modifier.height(20.dp))
+        SettingsSection(stringResource(R.string.settings_section_taps_music))
+        SettingsToggle(
+            Icons.Filled.VolumeUp, stringResource(R.string.settings_tap_sound),
+            stringResource(R.string.settings_tap_sound_detail), FeedbackStore.sound
+        ) { FeedbackStore.save(context, it) }
+        val resume by MediaResume.on.collectAsState()
+        LaunchedEffect(Unit) { MediaResume.load(context) }
+        SettingsToggle(
+            Icons.Filled.PlayCircle, stringResource(R.string.settings_resume_music),
+            stringResource(R.string.settings_resume_music_detail), resume
+        ) { MediaResume.save(context, it) }
+    }
+    // The rarer spoken events that are switched on are listed already, LPG's only with a tank followed.
+    val spoken by SpokenEvents.on.collectAsState()
+    val lpg by LpgTank.settings.collectAsState()
+    ShowAllRow(
+        all,
+        SpokenEvent.entries
+            .filterNot { it in ESSENTIAL_SPOKEN || it in spoken || (it == SpokenEvent.LPG && !lpg.enabled) }
+            .map { stringResource(it.label) } +
+            listOfNotNull(
+                if (MediaVolume.choiceOffered) stringResource(R.string.volume_way_title) else null,
+                stringResource(R.string.settings_tap_sound),
+                stringResource(R.string.settings_resume_music)
+            ),
+        onShowAll
+    )
+}
+
+/** Units, as a page of their own under System: the row says what they are now. */
+@Composable
+private fun UnitsSheet(onDismiss: () -> Unit) {
+    SettingsSheet(title = stringResource(R.string.units_title), onDismiss = onDismiss, actions = {}) {
+        Column { UnitsSetting(heading = false) }
+    }
 }
 
 /**
@@ -674,7 +836,7 @@ private fun UnitBarSetting() {
 
 /** A language by its own name; the system's says which one that is. */
 @Composable
-private fun languageName(language: AppLanguage): String {
+internal fun languageName(language: AppLanguage): String {
     if (language != AppLanguage.SYSTEM) return language.nativeName
     val system = remember { AppLanguage.systemLocale() }
     return stringResource(R.string.language_system, system.getDisplayLanguage(system).replaceFirstChar { it.titlecase(system) })
@@ -689,13 +851,6 @@ private fun LanguageSheet(onDismiss: () -> Unit) {
     ) {
         LanguageChoices()
     }
-}
-
-/** Every alert in one place: what the car says, then each alert with its switch and design. */
-@Composable
-private fun AlertsPane() {
-    VoiceSettings()
-    AlertStyleRows()
 }
 
 /**
@@ -799,27 +954,23 @@ internal fun KeepDirectionStrip(modifier: Modifier = Modifier) {
     )
 }
 
+/** How the car is driven: what waits until parked, the places, every physical button. */
 @Composable
-private fun DrivingPane(m: TopBarModel, onWheelButtons: () -> Unit, onPlaces: () -> Unit) {
-    val context = LocalContext.current
+private fun DrivingPane(m: TopBarModel, open: (Deep) -> Unit) {
     val wheelButtons by SteeringWheelStore.buttons.collectAsState()
     SettingsSection(stringResource(R.string.settings_section_driving))
     SettingsToggle(
         Icons.Filled.DirectionsCar, stringResource(R.string.settings_drive_lock),
         stringResource(R.string.settings_drive_lock_detail), m.lockWhileMoving, onChange = m.onLockWhileMoving
     )
-    SettingsToggle(
-        Icons.Filled.VolumeUp, stringResource(R.string.settings_tap_sound),
-        stringResource(R.string.settings_tap_sound_detail), FeedbackStore.sound
-    ) { FeedbackStore.save(context, it) }
-    PlacesRow(onPlaces)
-    val resume by MediaResume.on.collectAsState()
-    LaunchedEffect(Unit) { MediaResume.load(context) }
-    SettingsToggle(
-        Icons.Filled.PlayCircle, stringResource(R.string.settings_resume_music),
-        stringResource(R.string.settings_resume_music_detail), resume
-    ) { MediaResume.save(context, it) }
+    PlacesRow { open(Deep.PLACES) }
     // Every physical button together: what the wheel's do, then what the unit's own keys open.
+    val keys = remember { Edition.full && KeyTargets.available() }
+    val keysLocked = keys && !shellAccess().shell
+    if (!SteeringWheelStore.AVAILABLE && (!keys || keysLocked)) {
+        if (keysLocked) RootLockCard(listOf(stringResource(R.string.keys_section)))
+        return
+    }
     Spacer(Modifier.height(20.dp))
     SettingsSection(stringResource(R.string.settings_section_buttons))
     if (SteeringWheelStore.AVAILABLE) SettingsRow(
@@ -830,14 +981,10 @@ private fun DrivingPane(m: TopBarModel, onWheelButtons: () -> Unit, onPlaces: ()
                 wheelButtons.isNotEmpty() -> pluralStringResource(R.plurals.wheel_settings_detail_mapped, wheelButtons.size, wheelButtons.size)
                 else -> stringResource(R.string.wheel_settings_detail_empty)
             }
-        },
-        onWheelButtons
-    )
+        }
+    ) { open(Deep.WHEEL) }
     KeyTargetRows()
-    Spacer(Modifier.height(20.dp))
-    SettingsSection(stringResource(R.string.settings_section_sound))
-    VolumeAlertRow()
-    SpeedVolumeSetting()
+    if (keysLocked) RootLockCard(listOf(stringResource(R.string.keys_section)))
 }
 
 /**
@@ -921,69 +1068,187 @@ private fun SpeedVolumeSetting() {
     }
 }
 
+/**
+ * The unit itself: its language, units and screen, the setup kept or done
+ * again, the demo, updates and the app. Then two pages for the few: Unit
+ * tools (what root writes to /system) and Lab (experimental tools and logs).
+ */
 @Composable
-private fun AdvancedPane(m: TopBarModel, onBootLogo: () -> Unit, onPickObd: () -> Unit) {
+private fun SystemPane(m: TopBarModel, open: (Deep) -> Unit, all: Boolean, onShowAll: (Boolean) -> Unit) {
     val context = LocalContext.current
-    // The boot logo and the system-app install write to /system: only with a
-    // privileged shell (root or the unit's ADB, see PrivilegedShell) can they
-    // do anything. Without one the rows stay in sight, greyed, and say why.
-    val shell = shellAccess().shell
-    val needsRoot = stringResource(R.string.settings_rom_needs_root)
-    SettingsSection(stringResource(R.string.settings_section_advanced))
-    if (Edition.play) {
-        // The Play edition can never have root: the root features are not
-        // listed, one row says where they are instead.
-        MoreWithGithubRow()
-        Spacer(Modifier.height(20.dp))
-    } else {
-        // Only on the QF001 / K706 firmware the feature was built for.
-        when {
-            !BootLogoSupport.available -> GatedRow(Icons.Filled.PowerSettingsNew, stringResource(R.string.boot_menu), stringResource(R.string.settings_needs_qf))
-            !shell -> GatedRow(Icons.Filled.PowerSettingsNew, stringResource(R.string.boot_menu), needsRoot)
-            else -> SettingsRow(Icons.Filled.PowerSettingsNew, stringResource(R.string.boot_menu), null, onBootLogo)
-        }
-        Spacer(Modifier.height(20.dp))
-        // Apps running inside tiles: Google Maps needs permissions only the
-        // firmware's apps get (EmbeddedApp), through PMPatch3; Android widgets
-        // need Dashwheel installed as a system app.
-        SettingsSection(stringResource(R.string.settings_section_apps_in_tiles))
-        val embed = EmbeddedApp.allowed(context)
-        if (shell || embed) SystemPermissionsRow(embed)
-        else GatedRow(Icons.Filled.VerifiedUser, stringResource(R.string.settings_system_perms), needsRoot)
-        if (shell) SettingsRow(Icons.Filled.Build, stringResource(R.string.dash_system_app_title), stringResource(R.string.settings_system_detail), m.onSystem)
-        else GatedRow(Icons.Filled.Build, stringResource(R.string.dash_system_app_title), needsRoot)
-        Spacer(Modifier.height(20.dp))
-    }
-    // Only for a unit whose sound ignores Android's volume; on the QF firmware Automatic is the only way that works.
-    if (MediaVolume.choiceOffered) {
-        VolumeWaySetting()
-        Spacer(Modifier.height(20.dp))
-    }
+    val units by Units.current.collectAsState()
+    SettingsSection(stringResource(R.string.settings_section_system))
+    SettingsRow(Icons.Filled.Language, stringResource(R.string.language_title), languageName(AppLanguage.current(context))) { open(Deep.LANGUAGE) }
+    SettingsRow(Icons.Filled.Straighten, stringResource(R.string.units_title), unitsSummary(units)) { open(Deep.UNITS) }
+    Spacer(Modifier.height(20.dp))
+    ScreenOrientationSetting()
+    Spacer(Modifier.height(20.dp))
     SetupBackupRows()
-    // What is allowed and what is not, without running the setup again.
-    SettingsSection(stringResource(R.string.setup_access_title))
-    Column(modifier = Modifier.padding(horizontal = 12.dp)) { AccessRows(onPickObd) }
     // The demo stays here once turned on: the dashboard's badge stops it, and so does this switch.
     SettingsToggle(
         Icons.Filled.PlayCircle, stringResource(R.string.demo_menu_start),
         stringResource(R.string.demo_settings_detail), m.demo
     ) { m.onDemo() }
-    SettingsRow(Icons.Filled.Checklist, stringResource(R.string.setup_again), stringResource(R.string.setup_again_detail)) { m.onSetup(true) }
-    // Counters and logs, for a bug report rather than for a setting.
-    Spacer(Modifier.height(20.dp))
-    SettingsSection(stringResource(R.string.settings_section_diagnostics))
-    if (CarPower.available) {
-        val lost = remember { CarPower.sleepLost(context) }
-        var open by remember { mutableStateOf(false) }
-        ExpandRow(
-            Icons.Filled.DirectionsCar, stringResource(R.string.settings_sleep_title),
-            if (lost.isEmpty()) stringResource(R.string.settings_sleep_none)
-            else stringResource(R.string.settings_sleep_lost, lost.size, if (open) lost.joinToString("\n") else lost.first()),
-            open = open,
-            canOpen = lost.size > 1
-        ) { open = !open }
+    if (all) {
+        SettingsRow(Icons.Filled.Checklist, stringResource(R.string.setup_again), stringResource(R.string.setup_again_detail)) { m.onSetup(true) }
+        // The unit's bar is moved through the shell: not in the Play edition.
+        if (FreeformBar.supported && Edition.full) {
+            Spacer(Modifier.height(20.dp))
+            UnitBarSetting()
+        }
     }
-    SendLogRow()
+    Spacer(Modifier.height(20.dp))
+    SettingsSection(stringResource(R.string.settings_section_about))
+    // The Play edition has no updater of its own: Google Play updates it, and the row opens its listing.
+    if (Edition.play) {
+        SettingsRow(Icons.Filled.SystemUpdate, stringResource(R.string.about_updates_play), stringResource(R.string.settings_version, m.versionName)) {
+            context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_LISTING + context.packageName)))
+        }
+    } else {
+        UpdateRow(m)
+    }
+    SettingsRow(Icons.Filled.Info, stringResource(R.string.settings_section_about), stringResource(R.string.settings_about_detail)) { open(Deep.ABOUT) }
+    Spacer(Modifier.height(20.dp))
+    SettingsSection(stringResource(R.string.settings_section_more_tools))
+    // The boot logo and the system-app install write to /system: only with a
+    // privileged shell (root or the unit's ADB, see PrivilegedShell) can they
+    // do anything. Without one they are not listed, the root card counts them.
+    // The Play edition can never have root: one row says where they are instead.
+    val locked = mutableListOf<String>()
+    if (Edition.play) {
+        MoreWithGithubRow()
+    } else {
+        val shell = shellAccess().shell
+        val embed = remember { EmbeddedApp.allowed(context) }
+        if (shell || embed) {
+            SettingsRow(Icons.Filled.Build, stringResource(R.string.settings_unit_tools), stringResource(R.string.settings_unit_tools_detail)) { open(Deep.UNIT_TOOLS) }
+        } else {
+            if (BootLogoSupport.available) locked += stringResource(R.string.boot_menu)
+            locked += stringResource(R.string.settings_system_perms)
+            locked += stringResource(R.string.dash_system_app_title)
+        }
+    }
+    SettingsRow(Icons.Filled.Science, stringResource(R.string.settings_lab), stringResource(R.string.settings_lab_detail)) { open(Deep.LAB) }
+    if (locked.isNotEmpty()) RootLockCard(locked)
+    ShowAllRow(
+        all,
+        listOfNotNull(
+            stringResource(R.string.setup_again),
+            if (FreeformBar.supported && Edition.full) stringResource(R.string.settings_unit_bar_title) else null
+        ),
+        onShowAll
+    )
+}
+
+/**
+ * What root writes to the unit: the boot logo, Google Maps inside a tile and
+ * the system app. The boot logo needs the QF firmware as well; on another
+ * one its row stays, greyed, with that reason.
+ */
+@Composable
+private fun UnitToolsSheet(m: TopBarModel, onBootLogo: () -> Unit, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    val shell = shellAccess().shell
+    val needsRoot = stringResource(R.string.settings_rom_needs_root)
+    SettingsSheet(title = stringResource(R.string.settings_unit_tools), onDismiss = onDismiss, help = WikiPage.ROOT_PMPATCH, actions = {}) {
+        Column {
+            when {
+                !BootLogoSupport.available -> GatedRow(Icons.Filled.PowerSettingsNew, stringResource(R.string.boot_menu), stringResource(R.string.settings_needs_qf))
+                !shell -> GatedRow(Icons.Filled.PowerSettingsNew, stringResource(R.string.boot_menu), needsRoot)
+                else -> SettingsRow(Icons.Filled.PowerSettingsNew, stringResource(R.string.boot_menu), null, onBootLogo)
+            }
+            Spacer(Modifier.height(20.dp))
+            // Apps running inside tiles: Google Maps needs permissions only the
+            // firmware's apps get (EmbeddedApp), through PMPatch3; Android widgets
+            // need Dashwheel installed as a system app.
+            SettingsSection(stringResource(R.string.settings_section_apps_in_tiles))
+            SystemPermissionsRow(remember { EmbeddedApp.allowed(context) })
+            if (shell) SettingsRow(Icons.Filled.Build, stringResource(R.string.dash_system_app_title), stringResource(R.string.settings_system_detail), m.onSystem)
+            else GatedRow(Icons.Filled.Build, stringResource(R.string.dash_system_app_title), needsRoot)
+        }
+    }
+}
+
+/**
+ * Tools still being tried, and what is for a bug report rather than a
+ * setting: the readings found by AI, the car signals, deep sleep and the log.
+ */
+@Composable
+private fun LabSheet(open: (Deep) -> Unit, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    SettingsSheet(title = stringResource(R.string.settings_lab), onDismiss = onDismiss, actions = {}) {
+        Column {
+            SettingsRow(Icons.Filled.Science, stringResource(R.string.explore_title), stringResource(R.string.explore_settings_detail)) { open(Deep.EXPLORER) }
+            SettingsRow(Icons.Filled.SettingsInputAntenna, stringResource(R.string.signals_title), stringResource(R.string.signals_settings_detail)) { open(Deep.SIGNALS) }
+            Spacer(Modifier.height(20.dp))
+            SettingsSection(stringResource(R.string.settings_section_diagnostics))
+            if (CarPower.available) {
+                val lost = remember { CarPower.sleepLost(context) }
+                var expanded by remember { mutableStateOf(false) }
+                ExpandRow(
+                    Icons.Filled.DirectionsCar, stringResource(R.string.settings_sleep_title),
+                    if (lost.isEmpty()) stringResource(R.string.settings_sleep_none)
+                    else stringResource(R.string.settings_sleep_lost, lost.size, if (expanded) lost.joinToString("\n") else lost.first()),
+                    open = expanded,
+                    canOpen = lost.size > 1
+                ) { expanded = !expanded }
+            }
+            SendLogRow()
+        }
+    }
+}
+
+/**
+ * The settings a group keeps under "Show all": a last row naming them, or,
+ * once shown, the row that tucks them away again. Remembered per group.
+ */
+@Composable
+private fun ShowAllRow(all: Boolean, hidden: List<String>, onChange: (Boolean) -> Unit) {
+    if (hidden.isEmpty() && !all) return
+    Spacer(Modifier.height(12.dp))
+    ExpandRow(
+        if (all) Icons.Filled.UnfoldLess else Icons.Filled.UnfoldMore,
+        stringResource(if (all) R.string.settings_show_fewer else R.string.settings_show_all),
+        if (all) stringResource(R.string.settings_show_fewer_detail) else hidden.joinToString(" · "),
+        open = all,
+        canOpen = true
+    ) { onChange(!all) }
+}
+
+/**
+ * What this unit could have with root, said once per group instead of a
+ * greyed row each: how many, which, and a way to the wiki page on root.
+ * Never in the Play edition, which can never have root.
+ */
+@Composable
+internal fun RootLockCard(features: List<String>) {
+    if (Edition.play || features.isEmpty()) return
+    var help by remember { mutableStateOf(false) }
+    val shape = DashShape.Medium
+    Spacer(Modifier.height(16.dp))
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .border(1.dp, DashColors.Line, shape)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(Icons.Filled.Lock, contentDescription = null, tint = DashColors.Muted, modifier = Modifier.size(24.dp))
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
+            Text(
+                pluralStringResource(R.plurals.settings_root_more, features.size, features.size),
+                color = DashColors.TextPrimary, style = MaterialTheme.typography.bodyLarge
+            )
+            Text(features.joinToString(" · "), color = DashColors.TextSecondary, maxLines = 2, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall)
+        }
+        Spacer(Modifier.width(12.dp))
+        CompositionLocalProvider(LocalSheetInPane provides true) {
+            SheetButton(stringResource(R.string.settings_root_how), primary = false) { help = true }
+        }
+    }
+    if (help) WikiHelpDialog(WikiPage.ROOT_PMPATCH) { help = false }
 }
 
 /**
@@ -1003,9 +1268,16 @@ private const val PROJECT_URL = "https://github.com/deviloufr-ai/Dashwheel"
 /** A Google Play listing, the package name appended (the Play edition's own, and the companion's). */
 internal const val PLAY_LISTING = "https://play.google.com/store/apps/details?id="
 
-/** Who made the app, what it is, the update check, and a Ko-fi link with its QR code. */
+/** Who made the app, what it is, a Ko-fi link with its QR code, the tour, help and the project. The update check is in System itself. */
 @Composable
-private fun AboutPane(m: TopBarModel) {
+private fun AboutSheet(m: TopBarModel, onDismiss: () -> Unit) {
+    SettingsSheet(title = stringResource(R.string.settings_section_about), onDismiss = onDismiss, actions = {}) {
+        Column { AboutBody(m) }
+    }
+}
+
+@Composable
+private fun AboutBody(m: TopBarModel) {
     val context = LocalContext.current
     val tap = rememberTapFeedback()
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp)) {
@@ -1058,14 +1330,6 @@ private fun AboutPane(m: TopBarModel) {
     }
     Spacer(Modifier.height(20.dp))
     SettingsSection(stringResource(R.string.settings_section_about))
-    // The Play edition has no updater of its own: Google Play updates it, and the row opens its listing.
-    if (Edition.play) {
-        SettingsRow(Icons.Filled.SystemUpdate, stringResource(R.string.about_updates_play), stringResource(R.string.settings_version, m.versionName)) {
-            context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_LISTING + context.packageName)))
-        }
-    } else {
-        UpdateRow(m)
-    }
     SettingsRow(Icons.Filled.School, stringResource(R.string.tour_settings_row), stringResource(R.string.tour_settings_row_detail), m.onTour)
     // The wiki, as a QR code for the phone and a button for this screen (WikiHelp.kt).
     var help by remember { mutableStateOf(false) }
@@ -1083,25 +1347,31 @@ private fun AboutPane(m: TopBarModel) {
  */
 @Composable
 private fun UpdateRow(m: TopBarModel) {
+    SettingsRow(Icons.Filled.SystemUpdate, updateTitle(m), updateDetail(m)) { updateTap(m) }
+}
+
+/** "Update to 1.0.531", or "Check for updates" while none is known. */
+@Composable
+internal fun updateTitle(m: TopBarModel): String =
+    m.update.updateInfo?.let { stringResource(R.string.dash_update_to, it.versionName) } ?: stringResource(R.string.dash_menu_check_updates)
+
+/** What the updater knows now, in one line. */
+@Composable
+internal fun updateDetail(m: TopBarModel): String = when (val status = m.update) {
+    is UpdateStatus.Checking -> stringResource(R.string.dash_update_checking)
+    is UpdateStatus.UpToDate -> stringResource(R.string.dash_update_up_to_date, m.versionName)
+    is UpdateStatus.Downloading -> stringResource(R.string.dash_update_downloading, status.percent)
+    is UpdateStatus.Ready -> stringResource(R.string.dash_update_ready_detail)
+    is UpdateStatus.Installing -> stringResource(R.string.dash_update_installing)
+    is UpdateStatus.Error -> stringResource(status.messageRes)
+    is UpdateStatus.Available, is UpdateStatus.Dismissed -> stringResource(R.string.dash_update_available_detail, m.versionName)
+    UpdateStatus.Idle -> stringResource(R.string.settings_version, m.versionName)
+}
+
+/** The one action that fits: install what is there, or look again. */
+internal fun updateTap(m: TopBarModel) {
     val status = m.update
-    val info = status.updateInfo
-    val title = when {
-        info != null -> stringResource(R.string.dash_update_to, info.versionName)
-        else -> stringResource(R.string.dash_menu_check_updates)
-    }
-    val detail = when (status) {
-        is UpdateStatus.Checking -> stringResource(R.string.dash_update_checking)
-        is UpdateStatus.UpToDate -> stringResource(R.string.dash_update_up_to_date, m.versionName)
-        is UpdateStatus.Downloading -> stringResource(R.string.dash_update_downloading, status.percent)
-        is UpdateStatus.Ready -> stringResource(R.string.dash_update_ready_detail)
-        is UpdateStatus.Installing -> stringResource(R.string.dash_update_installing)
-        is UpdateStatus.Error -> stringResource(status.messageRes)
-        is UpdateStatus.Available, is UpdateStatus.Dismissed -> stringResource(R.string.dash_update_available_detail, m.versionName)
-        UpdateStatus.Idle -> stringResource(R.string.settings_version, m.versionName)
-    }
-    SettingsRow(Icons.Filled.SystemUpdate, title, detail) {
-        if (info != null && status !is UpdateStatus.Downloading && status !is UpdateStatus.Installing) m.onUpdate() else m.onCheckUpdates()
-    }
+    if (status.updateInfo != null && status !is UpdateStatus.Downloading && status !is UpdateStatus.Installing) m.onUpdate() else m.onCheckUpdates()
 }
 
 /** The one heading of the Settings panes: every group of settings starts with it. */

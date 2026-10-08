@@ -56,8 +56,8 @@
     <!-- Text typed on the phone, for the field selected on the car screen (PhoneKeyboard). -->
     <string name="phone_text_copied">Текст с телефона скопирован: удерживайте текстовое поле, чтобы вставить его</string>
     <!-- Quick dial and Agenda from the phone, and places sent from it (PhoneLink, InfoTiles, NavHandoff). -->
-    <string name="phone_quickdial_empty">Сопрягите телефон в разделе Настройки, Телефон, чтобы видеть здесь его избранные контакты</string>
-    <string name="phone_agenda_empty">Сопрягите телефон в разделе Настройки, Телефон, чтобы видеть здесь его календарь</string>
+    <string name="phone_quickdial_empty">Сопрягите телефон в разделе Настройки, Подключения, чтобы видеть здесь его избранные контакты</string>
+    <string name="phone_agenda_empty">Сопрягите телефон в разделе Настройки, Подключения, чтобы видеть здесь его календарь</string>
     <string name="phone_call_back">Перезвонить: %1$s</string>
     <string name="phone_calling">Вызов: %1$s</string>
     <string name="phone_dial_not_allowed">Чтобы звонить отсюда, разрешите «Звонки» в Dashwheel Companion.</string>

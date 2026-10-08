@@ -42,7 +42,7 @@
     <string name="tour_wheel_voice">Голосовой ассистент</string>
     <string name="tour_wheel_alerts">Голосовые оповещения</string>
     <string name="tour_done_title">Всё готово</string>
-    <string name="tour_done_body">Этот обзор можно пройти снова в любое время: Настройки, «О приложении».</string>
+    <string name="tour_done_body">Этот обзор можно пройти снова в любое время: Настройки, «Система», «О приложении».</string>
     <string name="tour_start_driving">Поехали</string>
     <string name="tour_settings_row">Обзор основ</string>
     <string name="tour_settings_row_detail">Шесть коротких советов о панели</string>

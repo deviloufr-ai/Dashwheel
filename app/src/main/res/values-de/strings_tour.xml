@@ -42,7 +42,7 @@
     <string name="tour_wheel_voice">Sprachassistent</string>
     <string name="tour_wheel_alerts">Gesprochene Hinweise</string>
     <string name="tour_done_title">Alles bereit</string>
-    <string name="tour_done_body">Diese Tour findest du jederzeit unter Einstellungen, Über.</string>
+    <string name="tour_done_body">Diese Tour findest du jederzeit unter Einstellungen, System, Über.</string>
     <string name="tour_start_driving">Losfahren</string>
     <string name="tour_settings_row">Kurze Tour</string>
     <string name="tour_settings_row_detail">Sechs kurze Tipps zum Dashboard</string>

@@ -250,4 +250,65 @@
     <string name="settings_deepobd_field_voltage">Akumulator</string>
     <string name="settings_deepobd_field_none">Nieużyty</string>
     <string name="settings_deepobd_field_ignored">Pominięty</string>
+    <!-- Settings rework: groups, overview, search (SettingsScreen.kt, SettingsOverview.kt) -->
+    <string name="settings_overview">Przegląd</string>
+    <string name="settings_section_connections">Połączenia</string>
+    <string name="settings_section_sound_voice">Dźwięk i głos</string>
+    <string name="settings_section_popups">Okienka</string>
+    <string name="settings_section_system">System</string>
+    <string name="settings_section_volume">Głośność</string>
+    <string name="settings_section_taps_music">Dotyk i muzyka</string>
+    <string name="settings_section_more_tools">Więcej narzędzi</string>
+    <string name="settings_show_all">Wszystkie ustawienia</string>
+    <string name="settings_show_fewer">Mniej ustawień</string>
+    <string name="settings_show_fewer_detail">Zostaw tu tylko te zwykłe</string>
+    <string name="settings_lab">Laboratorium</string>
+    <string name="settings_lab_detail">Narzędzia w testach i dziennik urządzenia</string>
+    <string name="settings_unit_tools">Narzędzia urządzenia</string>
+    <string name="settings_unit_tools_detail">Logo startowe, Mapy Google w kafelku, aplikacja systemowa</string>
+    <string name="settings_root_how">Jak</string>
+    <string name="settings_obd_linked">Połączono: %1$s</string>
+    <string name="settings_obd_deepobd">Odczyty z aplikacji Deep OBD</string>
+    <string name="settings_access_all">Wszystko dozwolone</string>
+    <string name="settings_about_detail">Pomoc, przegląd, projekt i wsparcie</string>
+    <string name="settings_search_hint">Szukaj ustawień</string>
+    <string name="settings_search_clear">Wyczyść wyszukiwanie</string>
+    <string name="settings_search_none">Żadne ustawienie nie pasuje do %1$s</string>
+    <string name="settings_ov_updates">Aktualizacje</string>
+    <string name="settings_ov_linked">Połączono</string>
+    <string name="settings_ov_not_linked">Teraz bez połączenia</string>
+    <string name="settings_ov_connecting">Łączenie</string>
+    <string name="settings_ov_obd_deep">Aplikacja Deep OBD</string>
+    <string name="settings_ov_obd_none">Nie wybrano</string>
+    <string name="settings_ov_obd_pick">Dotknij, aby wybrać swój</string>
+    <string name="settings_ov_phone_away">Sparowany, nieobecny</string>
+    <string name="settings_ov_upkeep_none">Nic jeszcze nie zaplanowano</string>
+    <string name="settings_ov_not_allowed">Jeszcze niedozwolone: %1$s</string>
+    <string name="settings_ov_not_allowed_detail">Czekają na to niektóre kafelki i czytane wiadomości</string>
+    <string name="settings_ov_allow">Zezwól</string>
+    <string name="settings_sum_popups_none">Styl dla każdego alertu</string>
+    <plurals name="settings_root_more">
+        <item quantity="one">Jeszcze %d wymaga roota na tym urządzeniu</item>
+        <item quantity="few">Jeszcze %d wymagają roota na tym urządzeniu</item>
+        <item quantity="many">Jeszcze %d wymaga roota na tym urządzeniu</item>
+        <item quantity="other">Jeszcze %d wymaga roota na tym urządzeniu</item>
+    </plurals>
+    <plurals name="settings_access_missing">
+        <item quantity="one">%d jeszcze niedozwolone</item>
+        <item quantity="few">%d jeszcze niedozwolone</item>
+        <item quantity="many">%d jeszcze niedozwolonych</item>
+        <item quantity="other">%d jeszcze niedozwolonych</item>
+    </plurals>
+    <plurals name="settings_sum_spoken">
+        <item quantity="one">%1$d z %2$d czytane</item>
+        <item quantity="few">%1$d z %2$d czytane</item>
+        <item quantity="many">%1$d z %2$d czytanych</item>
+        <item quantity="other">%1$d z %2$d czytanych</item>
+    </plurals>
+    <plurals name="settings_sum_popups">
+        <item quantity="one">%d w stylu Dashwheel</item>
+        <item quantity="few">%d w stylu Dashwheel</item>
+        <item quantity="many">%d w stylu Dashwheel</item>
+        <item quantity="other">%d w stylu Dashwheel</item>
+    </plurals>
 </resources>

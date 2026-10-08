@@ -250,4 +250,61 @@
     <string name="settings_deepobd_field_voltage">Bateria</string>
     <string name="settings_deepobd_field_none">Sem uso</string>
     <string name="settings_deepobd_field_ignored">Ignorada</string>
+    <!-- Settings rework: groups, overview, search (SettingsScreen.kt, SettingsOverview.kt) -->
+    <string name="settings_overview">Resumo</string>
+    <string name="settings_section_connections">Ligações</string>
+    <string name="settings_section_sound_voice">Som e voz</string>
+    <string name="settings_section_popups">Pop-ups</string>
+    <string name="settings_section_system">Sistema</string>
+    <string name="settings_section_volume">Volume</string>
+    <string name="settings_section_taps_music">Toques e música</string>
+    <string name="settings_section_more_tools">Mais ferramentas</string>
+    <string name="settings_show_all">Todas as definições</string>
+    <string name="settings_show_fewer">Menos definições</string>
+    <string name="settings_show_fewer_detail">Deixar aqui só as habituais</string>
+    <string name="settings_lab">Laboratório</string>
+    <string name="settings_lab_detail">Ferramentas em teste e o registo da unidade</string>
+    <string name="settings_unit_tools">Ferramentas da unidade</string>
+    <string name="settings_unit_tools_detail">Logótipo de arranque, Google Maps num mosaico, app de sistema</string>
+    <string name="settings_root_how">Como</string>
+    <string name="settings_obd_linked">Ligado: %1$s</string>
+    <string name="settings_obd_deepobd">Leituras da app Deep OBD</string>
+    <string name="settings_access_all">Tudo permitido</string>
+    <string name="settings_about_detail">Ajuda, a visita, o projeto e apoio</string>
+    <string name="settings_search_hint">Procurar definições</string>
+    <string name="settings_search_clear">Limpar a pesquisa</string>
+    <string name="settings_search_none">Nenhuma definição corresponde a %1$s</string>
+    <string name="settings_ov_updates">Atualizações</string>
+    <string name="settings_ov_linked">Ligado</string>
+    <string name="settings_ov_not_linked">Sem ligação agora</string>
+    <string name="settings_ov_connecting">A ligar</string>
+    <string name="settings_ov_obd_deep">App Deep OBD</string>
+    <string name="settings_ov_obd_none">Nenhum escolhido</string>
+    <string name="settings_ov_obd_pick">Toque para escolher o seu</string>
+    <string name="settings_ov_phone_away">Associado, ausente</string>
+    <string name="settings_ov_upkeep_none">Nada previsto ainda</string>
+    <string name="settings_ov_not_allowed">Ainda não permitido: %1$s</string>
+    <string name="settings_ov_not_allowed_detail">Alguns mosaicos e mensagens faladas esperam por isso</string>
+    <string name="settings_ov_allow">Permitir</string>
+    <string name="settings_sum_popups_none">Um estilo para cada alerta</string>
+    <plurals name="settings_root_more">
+        <item quantity="one">Mais %d precisa de root nesta unidade</item>
+        <item quantity="many">Mais %d precisam de root nesta unidade</item>
+        <item quantity="other">Mais %d precisam de root nesta unidade</item>
+    </plurals>
+    <plurals name="settings_access_missing">
+        <item quantity="one">%d ainda não permitido</item>
+        <item quantity="many">%d ainda não permitidos</item>
+        <item quantity="other">%d ainda não permitidos</item>
+    </plurals>
+    <plurals name="settings_sum_spoken">
+        <item quantity="one">%1$d de %2$d falado</item>
+        <item quantity="many">%1$d de %2$d falados</item>
+        <item quantity="other">%1$d de %2$d falados</item>
+    </plurals>
+    <plurals name="settings_sum_popups">
+        <item quantity="one">%d ao estilo do Dashwheel</item>
+        <item quantity="many">%d ao estilo do Dashwheel</item>
+        <item quantity="other">%d ao estilo do Dashwheel</item>
+    </plurals>
 </resources>

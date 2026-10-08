@@ -42,7 +42,7 @@
     <string name="tour_wheel_voice">Assistente vocale</string>
     <string name="tour_wheel_alerts">Avvisi vocali</string>
     <string name="tour_done_title">Tutto pronto</string>
-    <string name="tour_done_body">Rivedi questo giro quando vuoi in Impostazioni, Informazioni.</string>
+    <string name="tour_done_body">Rivedi questo giro quando vuoi in Impostazioni, Sistema, Informazioni.</string>
     <string name="tour_start_driving">Si parte</string>
     <string name="tour_settings_row">Giro delle basi</string>
     <string name="tour_settings_row_detail">Sei consigli brevi sul cruscotto</string>

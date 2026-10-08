@@ -42,7 +42,7 @@
     <string name="tour_wheel_voice">Assistant vocal</string>
     <string name="tour_wheel_alerts">Alertes parlées</string>
     <string name="tour_done_title">Tout est prêt</string>
-    <string name="tour_done_body">Revoyez ce tour quand vous voulez dans Réglages, À propos.</string>
+    <string name="tour_done_body">Revoyez ce tour quand vous voulez dans Réglages, Système, À propos.</string>
     <string name="tour_start_driving">C\'est parti</string>
     <string name="tour_settings_row">Tour des bases</string>
     <string name="tour_settings_row_detail">Six conseils courts sur le tableau de bord</string>
