@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.EventSeat
 import androidx.compose.material.icons.filled.Brightness6
 import androidx.compose.material.icons.filled.FileOpen
 import androidx.compose.material.icons.filled.HighQuality
+import androidx.compose.material.icons.filled.ViewCompact
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.SkipNext
@@ -227,10 +228,11 @@ private fun SecondScreenSettings() {
                 Icons.Filled.Fullscreen, stringResource(R.string.second_screen_alerts),
                 stringResource(R.string.second_screen_alerts_detail), config.alertsFullScreen
             ) { on -> update { it.copy(alertsFullScreen = on) } }
+            // "Simple display": on, the screen draws its own pages ([SecondScreenConfig.video] off).
             SettingsToggle(
-                Icons.Filled.HighQuality, stringResource(R.string.second_screen_video),
-                stringResource(R.string.second_screen_video_detail), config.video
-            ) { on -> update { it.copy(video = on) } }
+                Icons.Filled.ViewCompact, stringResource(R.string.second_screen_video),
+                stringResource(R.string.second_screen_video_detail), !config.video
+            ) { simple -> update { it.copy(video = !simple) } }
             Spacer(Modifier.padding(top = 12.dp))
             ClusterBoard()
         }

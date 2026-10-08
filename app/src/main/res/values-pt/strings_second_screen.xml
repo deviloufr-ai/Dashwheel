@@ -23,8 +23,8 @@
     <string name="second_screen_page_media">Multimédia</string>
     <string name="second_screen_page_nav">Percurso</string>
     <string name="second_screen_page_obd">Leituras</string>
-    <string name="second_screen_video">Imagem nítida</string>
-    <string name="second_screen_video_detail">O auto-rádio desenha o quadrante e transmite-o. Desligado: o ecrã desenha um mais simples a partir das leituras, quase sem usar Wi-Fi.</string>
+    <string name="second_screen_video">Vista simples</string>
+    <string name="second_screen_video_detail">O ecrã desenha a velocidade, o combustível e os alertas, quase sem Wi-Fi. Desligada: o rádio envia a vista completa, com widgets, Maps e câmara traseira.</string>
     <string name="second_screen_app">App no ecrã</string>
     <string name="second_screen_app_none">Escolher uma app</string>
     <string name="second_screen_rear_seat">Ecrã para os bancos traseiros</string>
@@ -57,7 +57,7 @@
     <string name="second_screen_not_connected">Não ligado</string>
     <string name="second_screen_board">Quadro de páginas</string>
     <string name="second_screen_board_detail">Toque num widget para o mudar. O segundo ecrã mostra a página que edita.</string>
-    <string name="second_screen_board_no_video">O quadro organiza a imagem nítida. Sem ela, o ecrã desenha as suas próprias páginas, mais simples.</string>
+    <string name="second_screen_board_no_video">O quadro organiza a vista completa. Com Vista simples, o ecrã desenha as suas próprias páginas.</string>
     <string name="second_screen_layout">Disposição</string>
     <string name="second_screen_layout_one">Um</string>
     <string name="second_screen_layout_big_side">Grande + 1</string>

@@ -50,5 +50,5 @@
     <string name="reverse_second_off">Aus</string>
     <string name="reverse_second_hint">Übernimmt den zweiten Bildschirm von selbst im Rückwärtsgang.</string>
     <string name="reverse_second_hint_rom">Die Kamera braucht die Rückfahransicht mit dem Bild von Dashwheel: bis dahin zeigt der zweite Bildschirm das Radar.</string>
-    <string name="reverse_second_hint_video">Braucht Scharfes Bild in den Einstellungen des zweiten Bildschirms.</string>
+    <string name="reverse_second_hint_video">Braucht Einfache Anzeige aus in den Einstellungen des zweiten Bildschirms.</string>
 </resources>

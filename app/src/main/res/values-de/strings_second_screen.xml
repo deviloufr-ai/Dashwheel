@@ -23,8 +23,8 @@
     <string name="second_screen_page_media">Medien</string>
     <string name="second_screen_page_nav">Route</string>
     <string name="second_screen_page_obd">Messwerte</string>
-    <string name="second_screen_video">Scharfes Bild</string>
-    <string name="second_screen_video_detail">Das Radio zeichnet das Kombiinstrument und streamt es. Aus: Der Bildschirm zeichnet aus den Messwerten ein einfacheres, fast ohne WLAN.</string>
+    <string name="second_screen_video">Einfache Anzeige</string>
+    <string name="second_screen_video_detail">Der Bildschirm zeichnet Geschwindigkeit, Kraftstoff und Hinweise selbst, fast ohne WLAN. Aus: Das Radio sendet die volle Anzeige mit Widgets, Maps und Rückfahrkamera.</string>
     <string name="second_screen_app">App auf dem Bildschirm</string>
     <string name="second_screen_app_none">App auswählen</string>
     <string name="second_screen_rear_seat">Bildschirm für den Fond</string>
@@ -57,7 +57,7 @@
     <string name="second_screen_not_connected">Nicht verbunden</string>
     <string name="second_screen_board">Seitenboard</string>
     <string name="second_screen_board_detail">Tippe auf ein Widget, um es zu ändern. Der zweite Bildschirm zeigt die bearbeitete Seite.</string>
-    <string name="second_screen_board_no_video">Das Board gestaltet das scharfe Bild. Ohne es zeichnet der Bildschirm eigene, einfachere Seiten.</string>
+    <string name="second_screen_board_no_video">Die Tafel gestaltet die volle Anzeige. Mit Einfache Anzeige zeichnet der Bildschirm seine eigenen Seiten.</string>
     <string name="second_screen_layout">Anordnung</string>
     <string name="second_screen_layout_one">Eins</string>
     <string name="second_screen_layout_big_side">Groß + 1</string>

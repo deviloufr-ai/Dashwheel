@@ -23,8 +23,8 @@
     <string name="second_screen_page_media">Multimedia</string>
     <string name="second_screen_page_nav">Ruta</string>
     <string name="second_screen_page_obd">Lecturas</string>
-    <string name="second_screen_video">Imagen nítida</string>
-    <string name="second_screen_video_detail">La radio dibuja el cuadro y lo transmite. Desactivado: la pantalla dibuja uno más sencillo con las lecturas, casi sin usar Wi-Fi.</string>
+    <string name="second_screen_video">Vista simple</string>
+    <string name="second_screen_video_detail">La pantalla dibuja ella misma la velocidad, el combustible y los avisos, casi sin wifi. Desactivada: la radio envía la vista completa, con widgets, Maps y cámara trasera.</string>
     <string name="second_screen_app">App en la pantalla</string>
     <string name="second_screen_app_none">Elige una app</string>
     <string name="second_screen_rear_seat">Pantalla para los asientos traseros</string>
@@ -57,7 +57,7 @@
     <string name="second_screen_not_connected">No conectada</string>
     <string name="second_screen_board">Tablero de páginas</string>
     <string name="second_screen_board_detail">Toca un widget para cambiarlo. La segunda pantalla muestra la página que editas.</string>
-    <string name="second_screen_board_no_video">El tablero organiza la imagen nítida. Sin ella, la pantalla dibuja sus propias páginas, más simples.</string>
+    <string name="second_screen_board_no_video">El tablero organiza la vista completa. Con Vista simple, la pantalla dibuja sus propias páginas.</string>
     <string name="second_screen_layout">Disposición</string>
     <string name="second_screen_layout_one">Uno</string>
     <string name="second_screen_layout_big_side">Grande + 1</string>

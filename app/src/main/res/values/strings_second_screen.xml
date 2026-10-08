@@ -23,8 +23,8 @@
     <string name="second_screen_page_media">Media</string>
     <string name="second_screen_page_nav">Directions</string>
     <string name="second_screen_page_obd">Readings</string>
-    <string name="second_screen_video">Sharp picture</string>
-    <string name="second_screen_video_detail">The head unit draws the cluster and streams it. Off: the screen draws a simpler one from the readings, using almost no Wi-Fi.</string>
+    <string name="second_screen_video">Simple display</string>
+    <string name="second_screen_video_detail">The screen draws the speed, fuel and alerts itself, using almost no Wi-Fi. Off: the head unit sends the full display, with widgets, Maps and the rear camera.</string>
     <string name="second_screen_app">App on the screen</string>
     <string name="second_screen_app_none">Choose an app</string>
     <string name="second_screen_rear_seat">Rear-seat screen</string>
@@ -57,7 +57,7 @@
     <string name="second_screen_not_connected">Not connected</string>
     <string name="second_screen_board">Page board</string>
     <string name="second_screen_board_detail">Tap a widget to change it. The second screen turns to the page you edit.</string>
-    <string name="second_screen_board_no_video">The board lays out the sharp picture. With it off, the screen draws its own simpler pages.</string>
+    <string name="second_screen_board_no_video">The board lays out the full display. With Simple display on, the screen draws its own pages.</string>
     <string name="second_screen_layout">Layout</string>
     <string name="second_screen_layout_one">One</string>
     <string name="second_screen_layout_big_side">Big + 1</string>

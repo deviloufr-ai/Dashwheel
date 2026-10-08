@@ -50,5 +50,5 @@
     <string name="reverse_second_off">Uit</string>
     <string name="reverse_second_hint">Neemt het tweede scherm vanzelf over in de achteruit.</string>
     <string name="reverse_second_hint_rom">De camera heeft het achteruitrijbeeld aan nodig met het beeld van Dashwheel: tot dan toont het tweede scherm de radar.</string>
-    <string name="reverse_second_hint_video">Vereist Scherp beeld in de instellingen van het tweede scherm.</string>
+    <string name="reverse_second_hint_video">Vereist Eenvoudige weergave uit in de instellingen van het tweede scherm.</string>
 </resources>

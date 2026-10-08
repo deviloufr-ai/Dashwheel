@@ -23,8 +23,8 @@
     <string name="second_screen_page_media">Multimedia</string>
     <string name="second_screen_page_nav">Trasa</string>
     <string name="second_screen_page_obd">Odczyty</string>
-    <string name="second_screen_video">Ostry obraz</string>
-    <string name="second_screen_video_detail">Radio rysuje zegary i przesyła obraz. Wyłączone: ekran sam rysuje prostsze zegary z odczytów, prawie bez użycia Wi-Fi.</string>
+    <string name="second_screen_video">Prosty widok</string>
+    <string name="second_screen_video_detail">Ekran sam rysuje prędkość, paliwo i alerty, prawie bez Wi-Fi. Wyłączony: radio wysyła pełny widok z widżetami, Maps i kamerą cofania.</string>
     <string name="second_screen_app">Aplikacja na ekranie</string>
     <string name="second_screen_app_none">Wybierz aplikację</string>
     <string name="second_screen_rear_seat">Ekran dla tylnych siedzeń</string>
@@ -57,7 +57,7 @@
     <string name="second_screen_not_connected">Nie połączono</string>
     <string name="second_screen_board">Tablica stron</string>
     <string name="second_screen_board_detail">Dotknij widżetu, aby go zmienić. Drugi ekran pokazuje edytowaną stronę.</string>
-    <string name="second_screen_board_no_video">Tablica układa ostry obraz. Bez niego ekran rysuje własne, prostsze strony.</string>
+    <string name="second_screen_board_no_video">Tablica układa pełny widok. Z Prostym widokiem ekran rysuje własne strony.</string>
     <string name="second_screen_layout">Układ</string>
     <string name="second_screen_layout_one">Jeden</string>
     <string name="second_screen_layout_big_side">Duży + 1</string>

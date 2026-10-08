@@ -50,5 +50,5 @@
     <string name="reverse_second_off">Non</string>
     <string name="reverse_second_hint">Prend le second écran tout seul en marche arrière.</string>
     <string name="reverse_second_hint_rom">La caméra demande la vue de recul activée avec l\'image de Dashwheel : d\'ici là, le second écran montre le radar.</string>
-    <string name="reverse_second_hint_video">Demande Image nette dans les réglages du second écran.</string>
+    <string name="reverse_second_hint_video">Demande Affichage simple désactivé dans les réglages du second écran.</string>
 </resources>

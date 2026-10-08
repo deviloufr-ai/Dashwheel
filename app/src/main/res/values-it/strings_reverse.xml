@@ -50,5 +50,5 @@
     <string name="reverse_second_off">No</string>
     <string name="reverse_second_hint">Prende da solo il secondo schermo in retromarcia.</string>
     <string name="reverse_second_hint_rom">La telecamera richiede la vista posteriore attiva con l\'immagine di Dashwheel: fino ad allora il secondo schermo mostra il radar.</string>
-    <string name="reverse_second_hint_video">Richiede Immagine nitida nelle impostazioni del secondo schermo.</string>
+    <string name="reverse_second_hint_video">Richiede Vista semplice disattivata nelle impostazioni del secondo schermo.</string>
 </resources>

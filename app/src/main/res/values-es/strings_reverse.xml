@@ -50,5 +50,5 @@
     <string name="reverse_second_off">No</string>
     <string name="reverse_second_hint">Ocupa la segunda pantalla por sí solo en marcha atrás.</string>
     <string name="reverse_second_hint_rom">La cámara necesita la vista trasera activada con la imagen de Dashwheel: mientras tanto la segunda pantalla muestra el radar.</string>
-    <string name="reverse_second_hint_video">Requiere Imagen nítida en los ajustes de la segunda pantalla.</string>
+    <string name="reverse_second_hint_video">Requiere Vista simple desactivada en los ajustes de la segunda pantalla.</string>
 </resources>

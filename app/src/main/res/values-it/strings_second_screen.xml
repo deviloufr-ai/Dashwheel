@@ -23,8 +23,8 @@
     <string name="second_screen_page_media">Media</string>
     <string name="second_screen_page_nav">Percorso</string>
     <string name="second_screen_page_obd">Letture</string>
-    <string name="second_screen_video">Immagine nitida</string>
-    <string name="second_screen_video_detail">L\'autoradio disegna il quadro e lo trasmette. Disattivato: lo schermo ne disegna uno più semplice dalle letture, usando pochissimo Wi-Fi.</string>
+    <string name="second_screen_video">Vista semplice</string>
+    <string name="second_screen_video_detail">Lo schermo disegna da sé velocità, carburante e avvisi, quasi senza Wi-Fi. Disattivata: l\'autoradio invia la vista completa, con widget, Maps e telecamera posteriore.</string>
     <string name="second_screen_app">App sullo schermo</string>
     <string name="second_screen_app_none">Scegli un\'app</string>
     <string name="second_screen_rear_seat">Schermo per i sedili posteriori</string>
@@ -57,7 +57,7 @@
     <string name="second_screen_not_connected">Non connesso</string>
     <string name="second_screen_board">Tabellone pagine</string>
     <string name="second_screen_board_detail">Tocca un widget per cambiarlo. Il secondo schermo mostra la pagina che modifichi.</string>
-    <string name="second_screen_board_no_video">Il tabellone organizza l\'immagine nitida. Senza, lo schermo disegna pagine proprie, più semplici.</string>
+    <string name="second_screen_board_no_video">Il tabellone dispone la vista completa. Con Vista semplice, lo schermo disegna le proprie pagine.</string>
     <string name="second_screen_layout">Disposizione</string>
     <string name="second_screen_layout_one">Uno</string>
     <string name="second_screen_layout_big_side">Grande + 1</string>

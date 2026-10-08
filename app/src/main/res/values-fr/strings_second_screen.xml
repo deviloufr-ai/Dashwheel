@@ -23,8 +23,8 @@
     <string name="second_screen_page_media">Média</string>
     <string name="second_screen_page_nav">Itinéraire</string>
     <string name="second_screen_page_obd">Mesures</string>
-    <string name="second_screen_video">Image nette</string>
-    <string name="second_screen_video_detail">L\'autoradio dessine le combiné et le diffuse. Désactivé : l\'écran en dessine un plus simple à partir des mesures, sans presque utiliser le Wi-Fi.</string>
+    <string name="second_screen_video">Affichage simple</string>
+    <string name="second_screen_video_detail">L\'écran dessine lui-même la vitesse, le carburant et les alertes, presque sans Wi-Fi. Désactivé : l\'autoradio envoie l\'affichage complet, avec widgets, Maps et caméra de recul.</string>
     <string name="second_screen_app">Appli à l\'écran</string>
     <string name="second_screen_app_none">Choisir une appli</string>
     <string name="second_screen_rear_seat">Écran pour l\'arrière</string>
@@ -57,7 +57,7 @@
     <string name="second_screen_not_connected">Non connecté</string>
     <string name="second_screen_board">Tableau des pages</string>
     <string name="second_screen_board_detail">Touchez un widget pour le changer. Le second écran affiche la page en cours.</string>
-    <string name="second_screen_board_no_video">Le tableau règle l\'image nette. Sans elle, l\'écran dessine ses propres pages, plus simples.</string>
+    <string name="second_screen_board_no_video">Le tableau règle l\'affichage complet. Avec Affichage simple, l\'écran dessine ses propres pages.</string>
     <string name="second_screen_layout">Disposition</string>
     <string name="second_screen_layout_one">Un</string>
     <string name="second_screen_layout_big_side">Grand + 1</string>

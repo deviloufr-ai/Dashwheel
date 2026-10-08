@@ -23,8 +23,8 @@
     <string name="second_screen_page_media">Media</string>
     <string name="second_screen_page_nav">Route</string>
     <string name="second_screen_page_obd">Meetwaarden</string>
-    <string name="second_screen_video">Scherp beeld</string>
-    <string name="second_screen_video_detail">De radio tekent de instrumenten en streamt ze. Uit: het scherm tekent zelf een eenvoudiger versie uit de meetwaarden, met bijna geen wifi.</string>
+    <string name="second_screen_video">Eenvoudige weergave</string>
+    <string name="second_screen_video_detail">Het scherm tekent zelf snelheid, brandstof en meldingen, bijna zonder wifi. Uit: de radio stuurt de volledige weergave, met widgets, Maps en achteruitrijcamera.</string>
     <string name="second_screen_app">App op het scherm</string>
     <string name="second_screen_app_none">Kies een app</string>
     <string name="second_screen_rear_seat">Scherm voor achterin</string>
@@ -57,7 +57,7 @@
     <string name="second_screen_not_connected">Niet verbonden</string>
     <string name="second_screen_board">Paginabord</string>
     <string name="second_screen_board_detail">Tik op een widget om hem te wijzigen. Het tweede scherm toont de pagina die je bewerkt.</string>
-    <string name="second_screen_board_no_video">Het bord deelt het scherpe beeld in. Zonder tekent het scherm eigen, eenvoudigere pagina\'s.</string>
+    <string name="second_screen_board_no_video">Het bord deelt de volledige weergave in. Met Eenvoudige weergave tekent het scherm zijn eigen pagina\'s.</string>
     <string name="second_screen_layout">Indeling</string>
     <string name="second_screen_layout_one">Eén</string>
     <string name="second_screen_layout_big_side">Groot + 1</string>
