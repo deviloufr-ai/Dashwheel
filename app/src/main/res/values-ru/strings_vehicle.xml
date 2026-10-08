@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- OBD tiles: shared -->
+    <string name="vehicle_obd_not_connected">OBD не подключён</string>
+    <string name="vehicle_connect">Подключить</string>
+    <string name="vehicle_speed">Скорость</string>
+    <string name="vehicle_rpm">Обороты</string>
+    <string name="vehicle_coolant">ОЖ</string>
+    <string name="vehicle_battery">Аккумулятор</string>
+    <string name="vehicle_fuel">Топливо</string>
+    <string name="vehicle_close">Закрыть</string>
+    <string name="vehicle_cancel">Отмена</string>
+    <string name="vehicle_reset">Сбросить</string>
+    <string name="vehicle_capture_a">Снять A</string>
+    <string name="vehicle_capture_b">Снять B</string>
+
+    <!-- Telemetry tile -->
+    <string name="vehicle_telemetry_title">ПРИБОРЫ ДВИГАТЕЛЯ</string>
+    <string name="vehicle_live">Сейчас</string>
+    <string name="vehicle_speed_caps">СКОРОСТЬ</string>
+    <string name="vehicle_rpm_caps">ОБ/МИН</string>
+    <string name="vehicle_load">Нагрузка</string>
+
+    <!-- Fault codes tile -->
+    <string name="vehicle_fault_codes_title">КОДЫ ОШИБОК</string>
+    <string name="vehicle_scan">Проверить</string>
+    <string name="vehicle_clear">Стереть коды</string>
+
+    <!-- OBD data tile -->
+    <string name="vehicle_obd_data_title">ДАННЫЕ АВТОМОБИЛЯ</string>
+    <string name="vehicle_intake_air">Впускной воздух</string>
+    <string name="vehicle_throttle">Дроссель</string>
+    <string name="vehicle_engine_load">Нагрузка двигателя</string>
+    <string name="vehicle_fuel_level">Уровень топлива</string>
+
+    <!-- Fuel & range tile -->
+    <string name="vehicle_fuel_range_title">ТОПЛИВО И ЗАПАС ХОДА</string>
+    <string name="vehicle_via_canbox">через CAN-блок</string>
+    <string name="vehicle_via_obd">через OBD</string>
+    <string name="vehicle_fuel_no_obd">OBD этого автомобиля не сообщает уровень топлива. Определите его через CAN-блок: нужен root.</string>
+    <string name="vehicle_fuel_none">Уровня топлива пока нет. Подключите OBD-адаптер: не каждый автомобиль его сообщает.</string>
+    <string name="vehicle_find_fuel_signal">Найти сигнал топлива</string>
+    <string name="vehicle_try_obd_fuel_pid">Проверить PID топлива OBD</string>
+    <string name="vehicle_km_to_empty">КМ ДО ПУСТОГО БАКА</string>
+    <string name="vehicle_range_approx">≈ запас хода</string>
+    <string name="vehicle_in_tank">В баке</string>
+    <string name="vehicle_avg_use">Средний расход</string>
+    <string name="vehicle_learn_fuel">Определить топливо через CAN-блок</string>
+    <string name="vehicle_recalibrate_fuel">Перекалибровать топливо</string>
+    <string name="vehicle_find_range_signal">Брать запас хода из CAN-блока</string>
+    <string name="vehicle_learn_range">Запас хода из CAN-блока</string>
+    <string name="vehicle_change_range">Сменить сигнал запаса хода</string>
+    <string name="vehicle_range_from_car">бортовой компьютер</string>
+
+    <!-- Fuel signal finder dialog -->
+    <string name="vehicle_finder_help">Укажите уровень, который показывает указатель на приборной панели, нажмите Снять A, затем закройте окно и ездите как обычно. Через несколько дней, когда указатель немного опустится, откройте снова, укажите новое значение и нажмите Снять B. Снимок A сохраняется после перезапуска. Предлагаются только байты, которые менялись вместе с топливом.</string>
+    <string name="vehicle_dash_reads">На приборах</string>
+    <string name="vehicle_waiting_canbox">Ожидание данных CAN-блока: нужен root</string>
+    <string name="vehicle_finder_step_a">Укажите уровень топлива на приборах и нажмите Снять A.</string>
+    <string name="vehicle_finder_step_b">Снимок A при %1$d %% сохранён. Можно закрыть окно и ездить как обычно. Вернитесь, когда указатель опустится на несколько %%, укажите новое значение и нажмите Снять B.</string>
+    <string name="vehicle_finder_same">A и B на одном уровне. Снимите B при другом уровне топлива.</string>
+    <string name="vehicle_finder_none">Ни один байт не отследил изменение. Снимите B ещё раз после большего снижения.</string>
+    <string name="vehicle_finder_candidates">Байты, менявшиеся вместе с топливом</string>
+    <string name="vehicle_finder_frame">кадр %1$s · байт %2$d</string>
+    <string name="vehicle_finder_raw">%1$d → %2$d · полный≈%3$d</string>
+    <string name="vehicle_forget_current">Забыть текущий</string>
+
+    <!-- Range signal finder dialog -->
+    <string name="vehicle_range_finder_help">Откройте бортовой компьютер магнитолы, введите запас хода в км, который он показывает, и нажмите Искать. Выберите сигнал, живое значение которого совпадает с бортовым компьютером.</string>
+    <string name="vehicle_range_car_shows">Бортовой компьютер показывает</string>
+    <string name="vehicle_range_search">Искать</string>
+    <string name="vehicle_range_none">Ни один сигнал не содержит это значение. Проверьте число, оставьте бортовой компьютер открытым на несколько секунд и повторите поиск.</string>
+    <string name="vehicle_range_candidates">Сигналы с этим значением: выберите тот, что следует за бортовым компьютером</string>
+    <string name="vehicle_range_frame">кадр %1$s · байты %2$d–%3$d</string>
+
+    <!-- OBD adapter picker -->
+    <string name="vehicle_select_adapter">Выберите OBD-адаптер</string>
+    <string name="vehicle_no_paired">Нет сопряжённых устройств Bluetooth. Сначала выполните сопряжение OBD-адаптера в настройках Bluetooth.</string>
+    <string name="vehicle_bt_settings">Настройки Bluetooth</string>
+
+    <!-- OBD adapter status messages -->
+    <string name="vehicle_unknown_device">Неизвестное устройство</string>
+    <string name="vehicle_no_response">Адаптер не отвечает</string>
+    <string name="vehicle_no_dtc_answer">Блок управления двигателем не ответил на запрос кодов ошибок. Повторите через минуту.</string>
+    <string name="vehicle_lamp_no_codes">Лампа Check Engine горит, но код не получен. Повторите при работающем двигателе.</string>
+    <string name="vehicle_pending">Ожидающие</string>
+    <string name="vehicle_lamp_on">Check Engine горит</string>
+    <string name="vehicle_lamp_off">Check Engine не горит</string>
+    <string name="vehicle_engine_off_hint">Двигатель заглушён: при включённом зажигании лампа Check Engine загорается для самопроверки и гаснет после запуска двигателя. Проверка повторится сама, когда двигатель заработает.</string>
+    <string name="vehicle_obd_scope">Стандартный OBD видит только ошибки двигателя и экологии; для ABS, подушек безопасности и кузова нужен диагностический прибор Citroën.</string>
+    <string name="vehicle_clear_rejected">Адаптер ответил «%1$s». Включите зажигание, не заводя двигатель, и повторите.</string>
+
+    <!-- Doors tile -->
+    <string name="vehicle_doors_title">ДВЕРИ</string>
+    <string name="vehicle_waiting_mcu">Ожидание данных CAN-блока: нужен root</string>
+    <string name="vehicle_door_front_left">Передняя левая</string>
+    <string name="vehicle_door_front_right">Передняя правая</string>
+    <string name="vehicle_door_rear_left">Задняя левая</string>
+    <string name="vehicle_door_rear_right">Задняя правая</string>
+    <string name="vehicle_door_tailgate">Багажник</string>
+    <string name="vehicle_door_bonnet">Капот</string>
+    <string name="vehicle_door_any_open">Открыта дверь</string>
+    <string name="vehicle_doors_all_closed">Всё закрыто</string>
+    <string name="vehicle_door_open_caps">ОТКРЫТО</string>
+    <string name="vehicle_door_closed">закрыто</string>
+
+    <!-- CAN monitor (debug tile) -->
+    <string name="vehicle_can_monitor_title">CAN-МОНИТОР: поиск сигнала</string>
+    <string name="vehicle_can_monitor_help">Двери ЗАКРЫТЫ → Снять A. Затем ОТКРОЙТЕ дверь → Снять B. Показываются только различающиеся дискретные сигналы.</string>
+    <string name="vehicle_can_a_closed">A: закрыто</string>
+    <string name="vehicle_can_b_open">B: открыто</string>
+    <string name="vehicle_can_prompt">Снимите A при закрытой двери, затем B при открытой, чтобы сравнить.</string>
+    <string name="vehicle_can_no_diff">Чёткой дискретной разницы нет. Делайте это при ЗАГЛУШЁННОМ двигателе, чтобы датчики не плавали, и держите дверь открытой во время снимка B.</string>
+    <string name="vehicle_can_row_closed">закрыто: %1$s</string>
+    <string name="vehicle_can_row_open">открыто: %1$s</string>
+
+    <!-- Fault code (DTC) descriptions: title + what to check -->
+    <string name="vehicle_dtc_p0300_title">Случайные или множественные пропуски зажигания</string>
+    <string name="vehicle_dtc_p0300_fix">Проверьте свечи и катушки (на THP катушки известное слабое место), форсунки и подсос воздуха. Свечи и катушки меняйте комплектом.</string>
+    <string name="vehicle_dtc_p0301_title">Пропуски зажигания в цилиндре 1</string>
+    <string name="vehicle_dtc_p0301_fix">Переставьте катушку или свечу с 1-го цилиндра на другой; если пропуски перешли за ней, замените её. Проверьте также форсунку 1.</string>
+    <string name="vehicle_dtc_p0302_title">Пропуски зажигания в цилиндре 2</string>
+    <string name="vehicle_dtc_p0302_fix">Переставьте катушку или свечу, чтобы найти причину; проверьте форсунку 2 и компрессию.</string>
+    <string name="vehicle_dtc_p0303_title">Пропуски зажигания в цилиндре 3</string>
+    <string name="vehicle_dtc_p0303_fix">Переставьте катушку или свечу, чтобы найти причину; проверьте форсунку 3 и компрессию.</string>
+    <string name="vehicle_dtc_p0304_title">Пропуски зажигания в цилиндре 4</string>
+    <string name="vehicle_dtc_p0304_fix">Переставьте катушку или свечу, чтобы найти причину; проверьте форсунку 4 и компрессию.</string>
+    <string name="vehicle_dtc_p0016_title">Рассогласование коленвала и распредвала, банк 1, датчик A</string>
+    <string name="vehicle_dtc_p0016_fix">Типичная для 1.6 THP растянутая цепь ГРМ. Проверьте цепь, натяжитель и датчики распредвала и коленвала. Часто нужен комплект цепи ГРМ.</string>
+    <string name="vehicle_dtc_p0017_title">Рассогласование коленвала и распредвала, банк 1, датчик B</string>
+    <string name="vehicle_dtc_p0017_fix">Вероятно, растянута цепь ГРМ или неисправен натяжитель (1.6 THP). Осмотрите цепь и звёздочки.</string>
+    <string name="vehicle_dtc_p0011_title">Слишком ранние фазы впускного распредвала, банк 1</string>
+    <string name="vehicle_dtc_p0011_fix">Фазовращатель VVT или клапан управления маслом. Проверьте уровень и качество масла, соленоид VVT и износ цепи ГРМ.</string>
+    <string name="vehicle_dtc_p0341_title">Датчик положения распредвала: вне диапазона</string>
+    <string name="vehicle_dtc_p0341_fix">Проверьте датчик распредвала и его проводку; убедитесь, что фазы ГРМ выставлены верно.</string>
+    <string name="vehicle_dtc_p0340_title">Цепь датчика положения распредвала</string>
+    <string name="vehicle_dtc_p0340_fix">Проверьте или замените датчик распредвала; осмотрите разъём и проводку.</string>
+    <string name="vehicle_dtc_p0299_title">Недостаточное давление наддува</string>
+    <string name="vehicle_dtc_p0299_fix">Часто на THP и HDi. Проверьте утечки наддува в патрубках и интеркулере, вестгейт или привод турбины и перепускной клапан.</string>
+    <string name="vehicle_dtc_p0234_title">Избыточное давление наддува</string>
+    <string name="vehicle_dtc_p0234_fix">Проверьте, не заедает ли привод вестгейта, соленоид наддува и не залипла ли геометрия турбины (HDi).</string>
+    <string name="vehicle_dtc_p0087_title">Слишком низкое давление в топливной рампе</string>
+    <string name="vehicle_dtc_p0087_fix">HDi: проверьте топливный фильтр, подкачку низкого давления, ТНВД и регулятор давления в рампе; ищите подсос воздуха и утечки.</string>
+    <string name="vehicle_dtc_p0089_title">Работа регулятора давления топлива</string>
+    <string name="vehicle_dtc_p0089_fix">Проверьте регулятор давления в рампе или дозирующий клапан и насос; осмотрите топливный фильтр.</string>
+    <string name="vehicle_dtc_p0093_title">Обнаружена большая утечка топлива</string>
+    <string name="vehicle_dtc_p0093_fix">HDi: проверьте обратку форсунок, трубки высокого давления и уплотнения ТНВД на утечки дизеля.</string>
+    <string name="vehicle_dtc_p0420_title">Эффективность катализатора ниже порога, банк 1</string>
+    <string name="vehicle_dtc_p0420_fix">Часто изношен катализатор или вялый задний датчик кислорода. Сначала исключите утечки выхлопа и пропуски зажигания.</string>
+    <string name="vehicle_dtc_p0401_title">Недостаточный поток EGR</string>
+    <string name="vehicle_dtc_p0401_fix">Очистите или замените клапан EGR; проверьте радиатор EGR и каналы на нагар (часто на HDi).</string>
+    <string name="vehicle_dtc_p0402_title">Избыточный поток EGR</string>
+    <string name="vehicle_dtc_p0402_fix">Проверьте, не залип ли клапан EGR открытым, и его управление; удалите нагар.</string>
+    <string name="vehicle_dtc_p2463_title">Слишком много сажи в сажевом фильтре</string>
+    <string name="vehicle_dtc_p2463_fix">Дизель HDi: проедьте подольше по трассе для регенерации; проверьте датчик давления сажевого фильтра и уровень присадки Eolys. Может понадобиться принудительная регенерация.</string>
+    <string name="vehicle_dtc_p242f_title">Сажевый фильтр забит золой</string>
+    <string name="vehicle_dtc_p242f_fix">Сажевый фильтр выработал ресурс или забит; может понадобиться принудительная регенерация, чистка или замена.</string>
+    <string name="vehicle_dtc_p0113_title">Высокий сигнал датчика температуры впуска</string>
+    <string name="vehicle_dtc_p0113_fix">Проверьте датчик IAT, проводку и разъём; очистите или замените датчик (часто он в ДМРВ или впуске).</string>
+    <string name="vehicle_dtc_p0128_title">ОЖ ниже рабочей температуры термостата</string>
+    <string name="vehicle_dtc_p0128_fix">Обычно термостат залип открытым. Замените термостат; проверьте уровень охлаждающей жидкости и датчик.</string>
+    <string name="vehicle_dtc_p0135_title">Подогрев датчика кислорода, банк 1, датчик 1</string>
+    <string name="vehicle_dtc_p0135_fix">Проверьте цепь подогрева верхнего датчика кислорода и предохранитель; при обрыве подогрева замените датчик.</string>
+    <string name="vehicle_dtc_p0130_title">Цепь датчика кислорода, банк 1, датчик 1</string>
+    <string name="vehicle_dtc_p0130_fix">Осмотрите верхний датчик кислорода и проводку; замените, если он вялый или неисправен.</string>
+    <string name="vehicle_dtc_p0171_title">Слишком бедная смесь, банк 1</string>
+    <string name="vehicle_dtc_p0171_fix">Проверьте подсос воздуха на впуске (частая причина), грязный ДМРВ, слабый топливный насос или форсунки.</string>
+    <string name="vehicle_dtc_p0172_title">Слишком богатая смесь, банк 1</string>
+    <string name="vehicle_dtc_p0172_fix">Проверьте, не льют ли форсунки, нет ли высокого давления топлива, грязного ДМРВ или неисправного датчика кислорода.</string>
+    <string name="vehicle_dtc_p0505_title">Система регулирования холостого хода</string>
+    <string name="vehicle_dtc_p0505_fix">Очистите дроссельный узел; проверьте подсос воздуха и работу мотора дросселя.</string>
+    <string name="vehicle_dtc_p2100_title">Цепь мотора привода дросселя</string>
+    <string name="vehicle_dtc_p2100_fix">Проверьте мотор дроссельного узла и проводку; может понадобиться замена дроссельного узла.</string>
+
+    <!-- Fault codes not in the table: described from the code's structure -->
+    <string name="vehicle_dtc_unknown_code">Неизвестный код</string>
+    <string name="vehicle_dtc_fallback_title">%1$s, %2$s: %3$s</string>
+    <string name="vehicle_dtc_fallback_fix">Описания нет. Поищите связанные коды, проверьте датчик и проводку затронутой цепи и найдите в интернете «%1$s Citroën C4 Picasso» для советов по модели.</string>
+    <string name="vehicle_dtc_system_powertrain">Силовой агрегат</string>
+    <string name="vehicle_dtc_system_chassis">Шасси</string>
+    <string name="vehicle_dtc_system_body">Кузов</string>
+    <string name="vehicle_dtc_system_network">Сеть</string>
+    <string name="vehicle_dtc_system_unknown">Неизвестно</string>
+    <string name="vehicle_dtc_scope_generic">общий код</string>
+    <string name="vehicle_dtc_scope_manufacturer">код производителя</string>
+    <string name="vehicle_dtc_area_fuel_air">дозирование топлива и воздуха</string>
+    <string name="vehicle_dtc_area_ignition">зажигание и пропуски</string>
+    <string name="vehicle_dtc_area_emissions">экология и вспомогательные системы</string>
+    <string name="vehicle_dtc_area_idle">скорость и холостой ход</string>
+    <string name="vehicle_dtc_area_computer">блок управления и выходы</string>
+    <string name="vehicle_dtc_area_transmission">трансмиссия</string>
+    <string name="vehicle_dtc_area_system">система</string>
+
+    <!-- Why the adapter is not connected -->
+    <string name="vehicle_obd_connecting_to">Подключение к %1$s…</string>
+    <string name="vehicle_obd_pairing_pin">Сопряжение: введите PIN адаптера в окне</string>
+    <string name="vehicle_obd_switching_bt_on">Включение Bluetooth магнитолы…</string>
+    <string name="vehicle_obd_adapter">Адаптер: %1$s</string>
+    <string name="vehicle_choose_adapter">Выбрать адаптер</string>
+    <string name="vehicle_err_bt_off">Bluetooth на магнитоле выключен</string>
+    <string name="vehicle_err_not_paired">%1$s не сопряжён с магнитолой: нажмите OBD, чтобы сопрячь снова</string>
+    <string name="vehicle_err_pairing_failed">Сопряжение с %1$s не завершилось: нажмите OBD и введите PIN</string>
+    <string name="vehicle_err_bt_still_off">Bluetooth магнитолы выключен и не включается: перезапустите магнитолу и нажмите OBD</string>
+    <string name="vehicle_err_bt_stuck">Bluetooth Android на магнитоле завис: перезапустите магнитолу и нажмите OBD</string>
+    <string name="vehicle_err_refused">%1$s отклонил подключение: занят телефоном или другим приложением, без питания или вне зоны</string>
+    <string name="vehicle_err_silent">%1$s подключился, но не отвечает: включите зажигание и нажмите OBD</string>
+    <string name="vehicle_err_phone_not_linked">OBD работает через телефон: сначала подключите телефон</string>
+    <string name="vehicle_err_phone_no_adapter">OBD работает через телефон: выберите адаптер в компаньоне</string>
+    <string name="vehicle_obd_asking_phone">Запрос адаптера у телефона</string>
+    <string name="vehicle_err_phone_relay">Телефон не связался с %1$s: проверьте, что адаптер вставлен и сопряжён с телефоном</string>
+    <string name="vehicle_err_in_call">OBD приостановлен на время звонка и вернётся после него</string>
+    <string name="vehicle_err_phone_aa">Android Auto на %1$s блокирует OBD-адаптер</string>
+    <string name="vehicle_phone_aa_fix">Как исправить</string>
+    <string name="vehicle_phone_aa_title">Android Auto блокирует OBD</string>
+    <string name="vehicle_phone_aa_body">Телефон и OBD-адаптер используют один Bluetooth магнитолы. Android Auto на телефоне пытается запуститься без кабеля и перехватывает его.</string>
+    <string name="vehicle_phone_aa_step1">На телефоне откройте Настройки, затем Приложения, затем Android Auto.</string>
+    <string name="vehicle_phone_aa_step2">Нажмите Разрешения, затем Устройства поблизости и выберите Запретить.</string>
+    <string name="vehicle_phone_aa_step3">Выключите и снова включите автомобиль.</string>
+    <string name="vehicle_phone_aa_note">Звонки, музыка и Android Auto по USB-кабелю продолжат работать.</string>
+    <string name="vehicle_phone_aa_say">Android Auto на %1$s блокирует OBD. Как это исправить, показано на экране.</string>
+    <string name="vehicle_err_permission">Нет разрешения на Bluetooth</string>
+    <string name="vehicle_obd_connect_from_bar">Подключите кнопкой OBD на панели</string>
+    <string name="vehicle_recent_alerts">Недавние оповещения</string>
+    <string name="vehicle_speed_fix">Поправка скорости</string>
+    <string name="vehicle_speed_fix_detail">Прибавляется к скорости от автомобиля, чтобы совпадать со спидометром</string>
+    <string name="vehicle_speed_fix_less">Уменьшить поправку</string>
+    <string name="vehicle_speed_fix_more">Увеличить поправку</string>
+    <string name="vehicle_speed_fix_now">Скорость сейчас: %1$d км/ч. Настройте, пока она не совпадёт со спидометром.</string>
+    <string name="vehicle_speed_fix_not_connected">Подключите OBD-адаптер, чтобы видеть исправленную скорость.</string>
+    <string name="vehicle_clear_confirm_title">Стереть коды ошибок?</string>
+    <string name="vehicle_clear_confirm_body">Они будут стёрты из автомобиля навсегда. Сервису они нужны, чтобы найти неисправность.</string>
+</resources>

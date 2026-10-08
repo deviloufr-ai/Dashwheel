@@ -202,6 +202,7 @@
     <string name="about_support_text">Dashwheel ist kostenlos. Wenn es dir gefällt, hilft ein Kaffee weiter.</string>
     <string name="about_kofi">Spendiere mir einen Kaffee auf Ko-fi</string>
     <string name="about_scan">Mit dem Handy scannen</string>
+    <string name="about_tip_thanks">Danke, das hilft wirklich.</string>
     <string name="about_project">Projektseite</string>
     <string name="about_project_detail">Quellcode, Versionen und Fehlermeldungen</string>
     <string name="help_title">Hilfe</string>

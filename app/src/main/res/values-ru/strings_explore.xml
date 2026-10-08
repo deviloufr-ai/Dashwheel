@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Experimental advanced readings (PidExplorer.kt, PidExplorerDialog.kt) -->
+    <string name="explore_title">Расширенные показания</string>
+    <string name="explore_settings_detail">Экспериментально: сажа в фильтре и другое, предложено ИИ и подтверждено автомобилем</string>
+    <string name="explore_soot_load">Загрузка сажей</string>
+    <string name="explore_dpf_temp">Температура фильтра</string>
+    <string name="explore_dpf_pressure">Давление в фильтре</string>
+    <string name="explore_regen">Регенерация</string>
+    <string name="explore_km_since_regen">После последней регенерации</string>
+    <string name="explore_additive">Уровень присадки</string>
+    <string name="explore_oil_temp">Температура масла</string>
+    <string name="explore_explanation">Экспериментально: ИИ предлагает диагностические запросы для этого автомобиля и оставляет те, на которые автомобиль отвечает разумным и стабильным значением. Оставленное показание всё равно может быть неверным.</string>
+    <string name="explore_search">Поиск с ИИ</string>
+    <string name="explore_searching">Пробуем запросы… %1$d с</string>
+    <string name="explore_verified">Подтверждённые показания</string>
+    <string name="explore_none_verified">Пока нет. Подключите адаптер при работающем двигателе и запустите поиск.</string>
+    <string name="explore_results">Проверено</string>
+    <string name="explore_forget">Сбросить всё</string>
+    <string name="explore_v_no_answer">нет ответа</string>
+    <string name="explore_v_refused">отказ</string>
+    <string name="explore_v_unreadable">не читается</string>
+    <string name="explore_v_implausible">неправдоподобно</string>
+    <string name="explore_v_unstable">нестабильно</string>
+    <string name="explore_v_ok">подтверждено</string>
+    <string name="explore_silent">адаптер молчит</string>
+    <string name="explore_not_in_demo">Недоступно в демо-режиме</string>
+    <string name="explore_nothing_found">Ничего не подтверждено. Возможно, автомобиль отдаёт эти данные только диагностическому оборудованию.</string>
+    <string name="explore_source_standard">стандарт</string>
+    <string name="explore_source_ai">ИИ</string>
+    <string name="explore_regen_yes">Идёт регенерация</string>
+    <string name="explore_regen_no">Нет регенерации</string>
+    <string name="explore_soot_status">Сажа %1$d %%</string>
+</resources>

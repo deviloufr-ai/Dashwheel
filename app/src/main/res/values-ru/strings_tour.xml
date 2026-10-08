@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- First-run tour (TourScreen.kt): six tips over the real dashboard -->
+    <string name="tour_welcome_kicker">Добро пожаловать в Dashwheel</string>
+    <string name="tour_welcome_title">Краткий обзор основ</string>
+    <string name="tour_welcome_body">Несколько коротких советов. Около минуты. Остановиться можно в любой момент.</string>
+    <string name="tour_topic_swipe">Смена панели</string>
+    <string name="tour_topic_arrange">Перемещение и размер</string>
+    <string name="tour_topic_add">Добавление</string>
+    <string name="tour_topic_look">Оформление</string>
+    <string name="tour_topic_obd">Данные автомобиля</string>
+    <string name="tour_topic_hands">Без рук</string>
+    <string name="tour_show_me">Показать</string>
+    <string name="tour_not_now">Не сейчас</string>
+    <string name="tour_tip">Совет %1$d из %2$d</string>
+    <string name="tour_skip">Пропустить обзор</string>
+    <string name="tour_next">Далее</string>
+    <string name="tour_back">Назад</string>
+    <string name="tour_finish">Завершить</string>
+    <string name="tour_read_aloud">Прочитать вслух</string>
+    <string name="tour_swipe_title">Листайте, чтобы сменить панель</string>
+    <string name="tour_swipe_body">Главная в центре. Листайте влево или вправо к двум соседним. Ещё панели можно разместить сверху и снизу.</string>
+    <string name="tour_try_swipe">Попробуйте: проведите по экрану</string>
+    <string name="tour_arrange_title">Перемещайте плитки и меняйте размер</string>
+    <string name="tour_arrange_body">Нажмите на плитку, чтобы открыть её параметры, удерживайте, чтобы переместить, тяните за угол, чтобы изменить размер. Удержание на самой панели тоже включает расстановку.</string>
+    <string name="tour_arrange_hint">Позже это открывается из меню: «Изменить панели».</string>
+    <string name="tour_add_title">Добавьте виджет или приложение</string>
+    <string name="tour_add_body">Нажмите «Добавить», чтобы поместить на эту панель музыку, данные автомобиля, погоду или любое приложение.</string>
+    <string name="tour_add_hint">Спешите? Шаблоны заполняют целую панель за один раз.</string>
+    <string name="tour_look_title">Сделайте по-своему</string>
+    <string name="tour_look_body">Откройте меню, затем Настройки, затем «Вид». Выберите тему и дневные или ночные цвета.</string>
+    <string name="tour_obd_title">Подключите OBD-адаптер</string>
+    <string name="tour_obd_body">Он вставляется в разъём под рулём. Один раз выполните сопряжение в настройках Bluetooth Android, дальше Dashwheel подключается сам.</string>
+    <string name="tour_obd_off">Не подключён</string>
+    <string name="tour_obd_looking">Поиск</string>
+    <string name="tour_obd_connected">Подключён</string>
+    <string name="tour_hands_title">Не отвлекайтесь от дороги</string>
+    <string name="tour_hands_body">Кнопками руля можно сменить панель, переключить трек или запустить голосового ассистента. Dashwheel сам скажет, когда что-то важно.</string>
+    <string name="tour_hands_hint">Кнопки настраиваются в Настройках: «Вождение», «Кнопки руля».</string>
+    <string name="tour_wheel_dashboard">Следующая панель</string>
+    <string name="tour_wheel_music">Музыка</string>
+    <string name="tour_wheel_voice">Голосовой ассистент</string>
+    <string name="tour_wheel_alerts">Голосовые оповещения</string>
+    <string name="tour_done_title">Всё готово</string>
+    <string name="tour_done_body">Этот обзор можно пройти снова в любое время: Настройки, «О приложении».</string>
+    <string name="tour_start_driving">Поехали</string>
+    <string name="tour_settings_row">Обзор основ</string>
+    <string name="tour_settings_row_detail">Шесть коротких советов о панели</string>
+</resources>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Per-tile zoom while arranging (DashboardGrid.kt) -->
+    <string name="zoom_button">Размер текста и значков</string>
+    <string name="zoom_out">Меньше</string>
+    <string name="zoom_in">Больше</string>
+    <string name="zoom_reset">Сбросить до 100 %</string>
+    <string name="zoom_page">Размер текста</string>
+    <string name="zoom_percent">%1$d %%</string>
+    <string name="zoom_window_inside">Приложение работает внутри плитки при любом размере, кроме 100 %.</string>
+</resources>

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Settings, Display: units and clock (Units.kt) -->
+    <string name="units_title">Единицы</string>
+    <string name="units_speed">Скорость и расстояние</string>
+    <string name="units_temp">Температура</string>
+    <string name="units_economy">Расход топлива</string>
+    <string name="units_clock">Часы</string>
+    <string name="units_auto">Авто</string>
+    <string name="units_auto_hint">«Авто» следует настройкам магнитолы: %1$s</string>
+
+    <!-- Miles and mph versions of the lines that say km and km/h -->
+    <string name="units_eco_fuel_mi">Топливо на %1$s миль</string>
+    <string name="units_fuel_dest_spare_unit_mi">миль в запасе</string>
+    <string name="units_fuel_dest_detail_mi">Запас %1$d миль · ехать %2$d миль</string>
+    <string name="units_fuel_none_mi">В радиусе %1$d миль нет заправки с этим топливом. Цены только по Франции.</string>
+    <plurals name="units_fuel_stations_mi">
+        <item quantity="one">%1$d заправка в радиусе %2$d миль</item>
+        <item quantity="few">%1$d заправки в радиусе %2$d миль</item>
+        <item quantity="many">%1$d заправок в радиусе %2$d миль</item>
+        <item quantity="other">%1$d заправки в радиусе %2$d миль</item>
+    </plurals>
+    <string name="units_weather_details_mph">Ощущается %1$d° · Ветер %2$d миль/ч</string>
+    <string name="units_weather_details_range_mph">Ощущается %1$d° · Ветер %2$d миль/ч · %3$d° / %4$d°</string>
+    <string name="units_speed_fix_now_mph">Скорость сейчас: %1$d миль/ч. Подстройте, пока не совпадёт со спидометром.</string>
+    <string name="units_mi_to_empty">ЗАПАС ХОДА, МИЛЬ</string>
+    <string name="units_upkeep_next_mi">%1$s через %2$s миль</string>
+    <string name="units_upkeep_overdue_mi">%1$s: просрочено на %2$s миль</string>
+    <string name="units_upkeep_row_mi">%1$s миль</string>
+    <string name="units_upkeep_odometer_mi">Пробег в милях</string>
+    <string name="units_upkeep_odometer_as_of_mi">Введено %1$s, плюс %2$d миль с тех пор</string>
+    <string name="units_upkeep_every_mi">Интервал в милях</string>
+    <string name="units_upkeep_last_mi">Последний раз на миле</string>
+    <string name="units_cockpit_feels_wind_mph">ОЩУЩ. %1$d° · ВЕТЕР %2$d МИЛЬ/Ч</string>
+    <string name="units_orbit_wind_mph">Ветер %1$d миль/ч</string>
+    <string name="units_orbit_feels_wind_mph">ощущ. %1$d° · %2$d миль/ч</string>
+    <string name="units_horizon_wind_mph">ветер %1$d миль/ч</string>
+    <string name="units_tape_feels_wind_caps_mph">ОЩУЩ. %1$d° · ВЕТЕР %2$d МИЛЬ/Ч</string>
+    <string name="units_canvas_fuel_left_mi">Топлива на %1$d миль</string>
+    <string name="units_alert_coolant_f">Охлаждающая жидкость %1$d°F</string>
+    <string name="units_car_filter_needs_drive_mph">Нужна поездка 20 мин быстрее 40 миль/ч</string>
+
+    <!-- Said aloud: full words -->
+    <string name="units_briefing_fuel_low_mi">Мало топлива: запас хода в милях около %1$d, запланируйте заправку.</string>
+    <string name="units_voice_status_range_mi">Запас хода в милях: около %1$d.</string>
+    <plurals name="units_voice_fuel_station_mi">
+        <item quantity="one">Самая дешёвая заправка рядом: %1$s, в %2$d миле отсюда.</item>
+        <item quantity="few">Самая дешёвая заправка рядом: %1$s, в %2$d милях отсюда.</item>
+        <item quantity="many">Самая дешёвая заправка рядом: %1$s, в %2$d милях отсюда.</item>
+        <item quantity="other">Самая дешёвая заправка рядом: %1$s, в %2$d милях отсюда.</item>
+    </plurals>
+    <plurals name="units_lpg_voice_low_mi">
+        <item quantity="one">Мало газа: осталось около %1$d мили.</item>
+        <item quantity="few">Мало газа: осталось около %1$d миль.</item>
+        <item quantity="many">Мало газа: осталось около %1$d миль.</item>
+        <item quantity="other">Мало газа: осталось около %1$d мили.</item>
+    </plurals>
+    <string name="units_car_say_fuel_short_mi">Запас хода в милях: %1$d, а до места назначения: %2$d. Этого не хватит, запланируйте заправку.</string>
+    <string name="units_car_say_filter_mph">Коротких поездок подряд: %1$d. Когда сможете, проедьте от 15 до 20 минут быстрее 40 миль в час, чтобы сажевый фильтр очистился.</string>
+    <plurals name="units_upkeep_say_overdue_mi">
+        <item quantity="one">%1$s: просрочено на %2$d милю.</item>
+        <item quantity="few">%1$s: просрочено на %2$d мили.</item>
+        <item quantity="many">%1$s: просрочено на %2$d миль.</item>
+        <item quantity="other">%1$s: просрочено на %2$d мили.</item>
+    </plurals>
+    <plurals name="units_upkeep_say_soon_mi">
+        <item quantity="one">%1$s через %2$d милю.</item>
+        <item quantity="few">%1$s через %2$d мили.</item>
+        <item quantity="many">%1$s через %2$d миль.</item>
+        <item quantity="other">%1$s через %2$d мили.</item>
+    </plurals>
+</resources>

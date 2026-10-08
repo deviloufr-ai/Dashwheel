@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Car news for the phone companion (CarNews.kt): reminders shown as notifications. -->
+    <string name="news_battery_title">Аккумулятор слабый в покое</string>
+    <string name="news_battery_text">При выключенном двигателе аккумулятор показал %1$s В. Если автомобиль плохо заводится, проверьте аккумулятор.</string>
+    <string name="news_upkeep_soon">Скоро: %1$s</string>
+    <string name="news_upkeep_due">Пора: %1$s</string>
+    <string name="news_fault_title">Коды ошибок двигателя: %1$s</string>
+    <string name="news_fault_text">Откройте ИИ-механика в автомобиле, чтобы узнать, что они значат.</string>
+    <string name="news_filter_title">Сажевому фильтру нужна долгая поездка</string>
+    <string name="news_filter_text">Коротких поездок подряд: %1$d. Скоро запланируйте 20-минутную поездку по скоростной дороге.</string>
+</resources>

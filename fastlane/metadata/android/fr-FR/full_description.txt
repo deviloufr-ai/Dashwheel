@@ -35,6 +35,6 @@
 <li>Les fonctions root (installation en appli système, logo de démarrage, applis dans les tuiles, commandes au volant) n'apparaissent que si l'autoradio offre un shell root</li>
 </ul>
 
-<p>8 langues : anglais, français, allemand, espagnol, italien, portugais, néerlandais, polonais.</p>
+<p>9 langues : anglais, français, allemand, espagnol, italien, portugais, néerlandais, polonais, russe.</p>
 
 <p>Libre et open source sous licence GPL v3. Sans publicité, sans pistage.</p>

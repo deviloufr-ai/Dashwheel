@@ -124,13 +124,13 @@ private fun GrantHint() {
         Text(stringResource(R.string.alert_more_with_permission), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
         TextButton(onClick = {
             context.getSystemService(ClipboardManager::class.java)
-                ?.setPrimaryClip(ClipData.newPlainText("adb", GRANT_COMMAND))
+                ?.setPrimaryClip(ClipData.newPlainText("adb", grantCommand(context.packageName)))
             copied = true
         }) {
             Text(stringResource(if (copied) R.string.alert_command_copied else R.string.alert_copy_command))
         }
         if (copied) {
-            Text(GRANT_COMMAND, color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall, fontFamily = FontFamily.Monospace)
+            Text(grantCommand(context.packageName), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall, fontFamily = FontFamily.Monospace)
         }
     }
 }
@@ -153,7 +153,8 @@ internal fun VolumeAlertRow() {
 }
 
 /** One command from a PC that lets Dashwheel write the car app's settings without root. */
-private const val GRANT_COMMAND = "adb shell pm grant com.openauto.dash android.permission.WRITE_SECURE_SETTINGS"
+/** The command that grants this edition (its own package) the permission from a PC. */
+private fun grantCommand(packageName: String) = "adb shell pm grant $packageName android.permission.WRITE_SECURE_SETTINGS"
 
 /** The switch that turns [this] alert on, in [RomPopups]; none for Gemini Live, opened by the driver. */
 private val AlertKind.romKind: RomPopups.Kind? get() = if (this == AlertKind.GEMINI) null else RomPopups.Kind.valueOf(name)

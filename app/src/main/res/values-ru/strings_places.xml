@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The driver's places (Places.kt): Settings -> Driving, the map tile, the steering wheel buttons -->
+    <string name="places_title">Мои места</string>
+    <string name="places_detail_empty">Дом и работа в одно касание или одной кнопкой</string>
+    <string name="places_explanation">Задайте их один раз. Затем они появятся на плитке карты.</string>
+    <string name="places_home">Дом</string>
+    <string name="places_work">Работа</string>
+    <string name="places_not_set">Не задано</string>
+    <string name="places_address_hint">Адрес или место</string>
+    <string name="places_find">Найти</string>
+    <string name="places_here">Автомобиль здесь</string>
+    <string name="places_forget">Забыть</string>
+    <string name="places_recent">Последние пункты назначения</string>
+    <string name="places_forget_recent">Очистить список</string>
+    <string name="places_offline">Нет подключения</string>
+    <string name="places_no_nav_app">На магнитоле нет навигационного приложения</string>
+    <!-- Spoken when a steering wheel button asks for a place that isn't set -->
+    <string name="places_no_home">Дом не задан. Задайте его в Настройках: «Вождение», «Мои места».</string>
+    <string name="places_no_work">Работа не задана. Задайте её в Настройках: «Вождение», «Мои места».</string>
+</resources>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="split_a11y_description">Позволяет Dashwheel открывать приложения в режиме разделённого экрана рядом с панелью, используя то же системное разделение, что и экран недавних приложений. Из содержимого экрана используется только выбранное текстовое поле, чтобы вводить текст, отправленный с телефона. Сервис также получает аппаратные кнопки, чтобы «Домой» и «Назад» работали, пока приложение открыто в плитке, а выбранные кнопки руля листали страницы второго экрана; остальные кнопки работают как обычно.</string>
+
+    <!-- Language picker; each language is listed under its own name. -->
+    <string name="language_menu">Язык</string>
+    <string name="language_title">Язык</string>
+    <string name="language_system">Системный (%1$s)</string>
+    <string name="language_close">Закрыть</string>
+</resources>

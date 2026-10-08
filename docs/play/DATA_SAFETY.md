@@ -2,7 +2,7 @@
 
 Filled in from the code as of 2026-10-08 (see `docs/play/PRIVACY_POLICY.md` for the endpoints). One form per app. "Collected" in Play's sense means data sent off the device, even transiently, to the developer or a third party; data that stays on the device is not collected. Dashwheel and the Companion collect nothing for the developer, but some features send data to third-party services, which Play counts as collection.
 
-## Dashwheel (com.openauto.dash)
+## Dashwheel (com.dashwheel.app)
 
 ### Overview questions
 
@@ -30,7 +30,7 @@ Declare for every row above: not processed ephemerally only where a service may 
 - Committed to the Play Families policy: No (not a children's app).
 - Independent security review: No.
 
-## Dashwheel Companion (com.openauto.dash.companion)
+## Dashwheel Companion (com.dashwheel.companion)
 
 ### Overview questions
 

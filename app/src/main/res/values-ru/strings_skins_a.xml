@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Cockpit skin: top bar -->
+    <string name="cockpit_apps">ПРИЛ.</string>
+    <string name="cockpit_layout">ЭКРАН</string>
+    <string name="cockpit_screen_layout_desc">Положение Google Maps: %1$s</string>
+    <string name="cockpit_more">Ещё</string>
+    <string name="cockpit_time_desc">Время %1$s</string>
+    <string name="cockpit_out">НАРУЖ.</string>
+    <string name="cockpit_connect_obd">Подключить OBD</string>
+
+    <!-- Cockpit skin: dial faces (C/H = cold/hot coolant, E/F = empty/full tank) -->
+    <string name="cockpit_dial_rpm_title">×1000 об/мин</string>
+    <string name="cockpit_dial_temp">ТЕМП</string>
+    <string name="cockpit_dial_fuel">ТОПЛ</string>
+    <string name="cockpit_dial_volt">ВОЛЬТ</string>
+    <string name="cockpit_dial_load">НАГР</string>
+    <string name="cockpit_dial_cold">Х</string>
+    <string name="cockpit_dial_hot">Г</string>
+    <string name="cockpit_dial_empty">0</string>
+    <string name="cockpit_dial_full">1</string>
+    <string name="cockpit_dial_fuel_title">ТОПЛИВО</string>
+    <string name="cockpit_unit_rpm">об/мин</string>
+
+    <!-- Cockpit skin: telemetry and speed -->
+    <string name="cockpit_speed_rpm_caption">КМ/Ч · %1$d ОБ/МИН</string>
+    <string name="cockpit_obd_off">OBD ВЫКЛ</string>
+    <string name="cockpit_battery">Аккумулятор</string>
+    <string name="cockpit_coolant">Охлаждающая жидкость</string>
+    <string name="cockpit_speed_warning">Превышение скорости</string>
+    <string name="cockpit_tap_to_connect">НАЖМИТЕ ДЛЯ\nПОДКЛЮЧЕНИЯ</string>
+
+    <!-- Cockpit skin: media -->
+    <string name="cockpit_tap_to_enable">НАЖМИТЕ, ЧТОБЫ ВКЛЮЧИТЬ</string>
+    <string name="cockpit_grant_media_access">Разрешить доступ к медиа</string>
+    <string name="cockpit_previous">Предыдущий</string>
+    <string name="cockpit_play">Играть</string>
+    <string name="cockpit_pause">Пауза</string>
+    <string name="cockpit_next">Следующий</string>
+    <string name="cockpit_vu_left">L</string>
+    <string name="cockpit_vu_right">R</string>
+
+    <!-- Cockpit skin: navigation, clock, weather, range -->
+    <string name="cockpit_open_navigation">Открыть навигацию</string>
+    <string name="cockpit_tap_for_maps">НАЖМИТЕ ДЛЯ КАРТ</string>
+    <string name="cockpit_open_alarms">Открыть будильники</string>
+    <string name="cockpit_clock">Часы</string>
+    <string name="cockpit_loading">ЗАГРУЗКА…</string>
+    <string name="cockpit_feels_wind">ОЩУЩ. %1$d° · ВЕТЕР %2$d КМ/Ч</string>
+    <string name="cockpit_fuel_settings">Настройки сигнала топлива</string>
+    <string name="cockpit_range">ЗАПАС ХОДА</string>
+
+    <!-- Cockpit skin: app toggles and launch bar -->
+    <string name="cockpit_open_app">Открыть %1$s</string>
+    <string name="cockpit_launch_bar_empty">ПАНЕЛЬ ЗАПУСКА: НАЖМИТЕ НА КАРАНДАШ, ЧТОБЫ ДОБАВИТЬ ПРИЛОЖЕНИЯ</string>
+    <string name="cockpit_edit_launch_bar">Изменить панель запуска</string>
+
+    <!-- Orbit skin: top bar -->
+    <string name="orbit_all_apps">Все приложения</string>
+    <string name="orbit_screen_layout_desc">Положение Google Maps: %1$s</string>
+    <string name="orbit_more">Ещё</string>
+
+    <!-- Orbit skin: speed dial and satellite bubbles -->
+    <string name="orbit_sat_coolant">ОЖ</string>
+    <string name="orbit_sat_battery">аккумулятор</string>
+    <string name="orbit_sat_load">нагрузка</string>
+    <string name="orbit_rpm_value">%1$s об/мин</string>
+    <string name="orbit_tap_to_connect">Нажмите для подключения</string>
+    <string name="orbit_connecting">Подключение…</string>
+    <string name="orbit_connect_obd">Подключить OBD</string>
+
+    <!-- Orbit skin: media -->
+    <string name="orbit_tap_to_enable">Нажмите, чтобы включить</string>
+    <string name="orbit_start_music">Включите музыку в любом приложении</string>
+    <string name="orbit_previous_track">Предыдущий трек</string>
+    <string name="orbit_play">Играть</string>
+    <string name="orbit_pause">Пауза</string>
+    <string name="orbit_next_track">Следующий трек</string>
+    <string name="orbit_grant_access">Разрешить доступ</string>
+
+    <!-- Orbit skin: navigation -->
+    <string name="orbit_tap_open_maps">Нажмите, чтобы открыть Google Maps</string>
+    <string name="orbit_tap_allow_notifications">Нажмите, чтобы разрешить доступ к уведомлениям</string>
+
+    <!-- Orbit skin: clock and weather -->
+    <string name="orbit_open_alarms">Открыть будильники</string>
+    <string name="orbit_feels">Ощущается как %1$d°</string>
+    <string name="orbit_wind">Ветер %1$d км/ч</string>
+    <string name="orbit_feels_wind">ощущается %1$d° · %2$d км/ч</string>
+    <string name="orbit_offline">Нет сети</string>
+    <string name="orbit_loading">Загрузка…</string>
+
+    <!-- Orbit skin: fuel and range -->
+    <string name="orbit_to_empty">до пустого бака</string>
+    <string name="orbit_liters_in_tank">≈ %1$.0f л в баке</string>
+    <string name="orbit_via_source">через %1$s</string>
+    <string name="orbit_tap_to_recalibrate">нажмите для калибровки</string>
+    <string name="orbit_recalibrate_fuel">Откалибровать топливо</string>
+    <string name="orbit_fuel_percent">топливо %1$d %%</string>
+
+    <!-- Orbit skin: launch bar -->
+    <string name="orbit_launch_bar_empty">Панель запуска: нажмите на карандаш, чтобы добавить приложения</string>
+    <string name="orbit_edit_launch_bar">Изменить панель запуска</string>
+</resources>

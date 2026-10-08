@@ -1713,8 +1713,8 @@ private fun VuMeter(level: () -> Float, channel: String, modifier: Modifier) {
 
 // --- Navigation ---------------------------------------------------------------------
 
-private val LEFT_WORDS = listOf("left", "gauche", "izquierda", "links", "sinistra", "esquerda")
-private val RIGHT_WORDS = listOf("right", "droite", "derecha", "rechts", "destra", "direita")
+private val LEFT_WORDS = listOf("left", "gauche", "izquierda", "links", "sinistra", "esquerda", "налево", "левее")
+private val RIGHT_WORDS = listOf("right", "droite", "derecha", "rechts", "destra", "direita", "направо", "правее")
 
 /** -1 for a left turn, 1 for a right turn, 0 when the instruction does not say. */
 private fun turnSide(instruction: String): Int {

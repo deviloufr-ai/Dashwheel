@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="monitor_kind">Монитор магнитолы</string>
+    <string name="monitor_kind_blurb">ЦП, память, температура и самые активные приложения</string>
+    <string name="monitor_cpu">ЦП</string>
+    <string name="monitor_ram">ОЗУ</string>
+    <string name="monitor_chip">Чип</string>
+    <string name="monitor_storage">Хранилище</string>
+    <string name="monitor_up">Работает %1$s</string>
+    <string name="monitor_apps_running">Запущенные приложения</string>
+    <plurals name="monitor_apps_count">
+        <item quantity="one">%1$d приложение</item>
+        <item quantity="few">%1$d приложения</item>
+        <item quantity="many">%1$d приложений</item>
+        <item quantity="other">%1$d приложения</item>
+    </plurals>
+    <string name="monitor_busiest">Активнее всех: %1$s</string>
+    <string name="monitor_no_shell">Для ЦП и списка приложений нужен root</string>
+    <string name="monitor_reading">Чтение данных магнитолы…</string>
+    <string name="monitor_stop">Остановить</string>
+    <string name="monitor_stop_hint">Остановка приложения освобождает его память. Навигация и музыка остановятся вместе с ним.</string>
+    <string name="monitor_system">Система</string>
+    <string name="monitor_hot_alert">Магнитола перегревается, температура %1$d.</string>
+    <string name="gear_kind">Передача</string>
+    <string name="gear_kind_blurb">Включённая передача и задний ход</string>
+    <string name="gear_reverse">Задний ход</string>
+    <string name="gear_free">Накатом</string>
+    <string name="gear_stopped">Стоп</string>
+    <string name="gear_nth">%1$d передача</string>
+    <string name="gear_needs_data">Нужен OBD-адаптер или CAN-модуль</string>
+    <string name="design_gear_gate">Кулиса</string>
+    <string name="design_gear_gate_desc">Передачи в ряд, включённая подсвечена</string>
+    <string name="monitor_title">МОНИТОР МАГНИТОЛЫ</string>
+    <string name="gear_title">ПЕРЕДАЧА</string>
+    <plurals name="monitor_cores">
+        <item quantity="one">%1$d ядро</item>
+        <item quantity="few">%1$d ядра</item>
+        <item quantity="many">%1$d ядер</item>
+        <item quantity="other">%1$d ядра</item>
+    </plurals>
+</resources>

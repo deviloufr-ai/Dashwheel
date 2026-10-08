@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- First-run setup (SetupScreen.kt): the car, what the launcher may use, the look -->
+    <string name="setup_title">Настройка Dashwheel</string>
+    <string name="setup_step">Шаг %1$d из 3</string>
+    <string name="setup_skip">Пропустить</string>
+    <string name="setup_back">Назад</string>
+    <string name="setup_next">Далее</string>
+    <string name="setup_done">Готово</string>
+    <string name="setup_car_title">Ваш автомобиль</string>
+    <string name="setup_car_body">Достаточно марки, модели и года. Все характеристики: в Настройках, раздел «Автомобиль».</string>
+    <string name="setup_car_make">Марка</string>
+    <string name="setup_car_model">Модель</string>
+    <string name="setup_car_year">Год</string>
+    <string name="setup_car_fuel">Топливо</string>
+    <string name="setup_car_gearbox">Коробка передач</string>
+    <string name="setup_later">Позже</string>
+    <string name="setup_driver_side">Место водителя</string>
+    <string name="setup_driver_left">Слева</string>
+    <string name="setup_driver_right">Справа</string>
+    <string name="setup_access_title">Что может использовать Dashwheel</string>
+    <string name="setup_access_body">Всё по желанию. Разрешите на открывшемся экране и вернитесь.</string>
+    <string name="setup_access_notifications">Уведомления</string>
+    <string name="setup_access_notifications_detail">Музыка и следующий поворот из приложений на магнитоле</string>
+    <string name="setup_access_location">Местоположение</string>
+    <string name="setup_access_location_detail">Карта, погода, поездка и место парковки</string>
+    <string name="setup_access_contacts">Контакты</string>
+    <string name="setup_access_contacts_detail">Избранные контакты для быстрого набора</string>
+    <string name="setup_access_calendar">Календарь</string>
+    <string name="setup_access_calendar_detail">Встречи на сегодня в расписании</string>
+    <string name="setup_access_obd">OBD-адаптер</string>
+    <string name="setup_access_obd_detail">Показания двигателя, топливо и коды ошибок по Bluetooth</string>
+    <string name="setup_access_phone">Телефон</string>
+    <string name="setup_access_phone_detail">Сообщения, звонки и расписание с вашего телефона</string>
+    <string name="setup_allow">Разрешить</string>
+    <string name="setup_choose">Выбрать</string>
+    <string name="setup_allowed">Разрешено</string>
+    <string name="setup_pair">Подключить</string>
+    <string name="setup_paired">Подключено</string>
+    <string name="setup_obd_none">У меня его нет</string>
+    <string name="setup_obd_no_adapter">Нет адаптера</string>
+    <string name="setup_no_reminder">Не напоминать</string>
+    <string name="setup_look_title">Внешний вид</string>
+    <string name="setup_look_body">Для начала три темы. Все темы: в Настройках, раздел «Вид».</string>
+    <string name="setup_pill">Завершить настройку</string>
+    <string name="setup_car_tiles_title">Добавить плитки автомобиля?</string>
+    <string name="setup_car_tiles_body">Приборы двигателя, коды ошибок, аккумулятор и прогрев на панелях.</string>
+    <string name="setup_again">Настроить заново</string>
+    <string name="setup_again_detail">Автомобиль, доступы Dashwheel и оформление, шаг за шагом</string>
+</resources>

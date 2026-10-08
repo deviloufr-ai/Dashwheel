@@ -938,13 +938,9 @@ private fun AboutPane(m: TopBarModel) {
         Text(stringResource(R.string.about_author_role), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
     }
     Spacer(Modifier.height(20.dp))
-    // Google Play allows no donation link in the app: one line says it is free instead.
+    // Google Play allows no donation link in the app: tips go through Play's own billing there.
     if (Edition.play) {
-        Text(
-            stringResource(R.string.about_free_open_source),
-            color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(horizontal = 12.dp)
-        )
+        TipJar(Modifier.padding(horizontal = 12.dp))
     } else {
         SettingsSection(stringResource(R.string.about_support_section))
         Row(

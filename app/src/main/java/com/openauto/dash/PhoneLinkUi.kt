@@ -357,8 +357,8 @@ internal fun PhonePane() {
     }
 }
 
-/** The companion app's applicationId (companion/build.gradle.kts): its Google Play listing. */
-private const val COMPANION_PACKAGE = "com.openauto.dash.companion"
+/** The companion's Play edition package (companion/build.gradle.kts): its Google Play listing. */
+private const val COMPANION_PACKAGE = "com.dashwheel.companion"
 
 /**
  * The pairing code, with the companion app's download next to it. Closes on

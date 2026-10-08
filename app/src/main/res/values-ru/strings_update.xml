@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Release notes of an available update (ReleaseNotes.kt), from the update strip -->
+    <string name="update_notes_title">Что нового в %1$s</string>
+    <string name="update_notes_empty">Для этой версии нет описания изменений.</string>
+</resources>

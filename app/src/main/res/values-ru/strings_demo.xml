@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Demo mode: a made-up drive that shows every tile working (DemoMode.kt) -->
+    <string name="demo_menu_start">Демо-режим</string>
+    <string name="demo_menu_stop">Остановить демо</string>
+    <!-- Settings → Advanced: what the demo does -->
+    <string name="demo_settings_detail">Вымышленная поездка заполняет все плитки. Ничего не сохраняется.</string>
+    <string name="demo_badge">Демо · вымышленные данные</string>
+    <string name="demo_stop">Стоп</string>
+    <!-- Fake turn-by-turn instructions; %1$s = street name -->
+    <string name="demo_nav_right">Поверните направо на %1$s</string>
+    <string name="demo_nav_left">Поверните налево на %1$s</string>
+    <string name="demo_nav_straight">Продолжайте движение по %1$s</string>
+    <!-- Fake notifications -->
+    <string name="demo_notif_message">Еду, буду через 10 минут</string>
+    <string name="demo_notif_event_title">Приём у стоматолога</string>
+    <string name="demo_notif_event_text">Завтра в 9:30</string>
+
+    <!-- The mechanic's canned advice on the demo's fault code (P0401, EGR flow too low) -->
+    <string name="demo_p0401_summary">Клапан EGR пропускает слишком мало выхлопных газов, скорее всего из-за сажи. Ездить можно, но скоро его стоит почистить.</string>
+    <string name="demo_p0401_meaning">Недостаточный поток EGR</string>
+    <string name="demo_p0401_explanation">Двигатель возвращает часть выхлопных газов во впуск, чтобы снизить выбросы. Блок управления запросил больше, чем получил, а на этом двигателе это обычно значит, что клапан забит сажей.</string>
+    <string name="demo_p0401_cause_1">Клапан EGR забит сажей</string>
+    <string name="demo_p0401_cause_2">Клапан EGR заклинил или неисправен его привод</string>
+    <string name="demo_p0401_cause_3">Забит охладитель или патрубок EGR</string>
+    <string name="demo_p0401_check_first">Снимите клапан EGR и проверьте его на сажу</string>
+    <string name="demo_p0401_repair">Почистите клапан или замените его, если он заедает</string>
+    <string name="demo_p0401_cost">Около 80–150 € за чистку, 250–400 € за новый клапан</string>
+    <string name="demo_p0401_driving">Да. До ремонта возможны неровный холостой ход и повышенный расход топлива.</string>
+</resources>

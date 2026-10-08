@@ -37,7 +37,8 @@ enum class AiLanguage(val label: String, val promptName: String, val locale: Loc
     ITALIAN("Italiano", "Italian", Locale.ITALY),
     PORTUGUESE("Português", "Portuguese", Locale("pt", "PT")),
     DUTCH("Nederlands", "Dutch", Locale("nl", "NL")),
-    POLISH("Polski", "Polish", Locale("pl", "PL"));
+    POLISH("Polski", "Polish", Locale("pl", "PL")),
+    RUSSIAN("Русский", "Russian", Locale("ru", "RU"));
 
     /**
      * The app's strings in this language, whatever the launcher's own: spoken

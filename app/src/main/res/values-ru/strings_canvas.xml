@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The Canvas theme (CanvasSkin.kt): the journey line and its glass tiles. -->
+    <string name="canvas_rain">Дождь</string>
+    <string name="canvas_rain_stops">Конец дождя</string>
+    <string name="canvas_break">Перерыв</string>
+    <string name="canvas_sunset">Закат</string>
+    <string name="canvas_fuel_left">Топлива на %1$d км</string>
+    <string name="canvas_rain_from">Дождь с %1$s</string>
+    <string name="canvas_rain_until">Дождь до %1$s</string>
+    <string name="canvas_tab_map">Карта</string>
+    <string name="canvas_tab_media">Медиа</string>
+    <string name="canvas_tab_car">Авто</string>
+    <string name="canvas_tab_info">Инфо</string>
+    <string name="canvas_tab_trip">Поездка</string>
+    <string name="canvas_tab_phone">Телефон</string>
+    <string name="canvas_tab_weather">Погода</string>
+    <string name="canvas_tab_service">Сервис</string>
+    <string name="canvas_when_parked">На стоянке</string>
+    <string name="canvas_when_driving">В пути</string>
+    <string name="canvas_when_fault">Ошибка двигателя</string>
+    <string name="canvas_tab_add">Добавить</string>
+    <string name="canvas_tab_remove">Удалить панель</string>
+    <string name="canvas_tab_done">Готово</string>
+    <string name="canvas_tab_name">Название</string>
+    <string name="canvas_tab_when">Открывается сама, когда</string>
+    <string name="canvas_tab_when_hint">«На стоянке» значит при запуске или после 2 минут без движения. Нажмите выбранный пункт ещё раз, чтобы отключить его.</string>
+    <string name="canvas_map_title">Под панелью</string>
+    <string name="canvas_map_builtin">Встроенная карта</string>
+    <string name="canvas_map_builtin_hint">Собственная карта Dashwheel с панелями, которые листаются.</string>
+    <string name="canvas_map_app_hint">Приложение работает под плитками и получает все касания мимо них. Вкладки в боковой полосе заменяют пролистывание: удерживайте вкладку, чтобы её назвать.</string>
+    <string name="canvas_bar_add_title">Добавить в полосу</string>
+    <string name="canvas_bar_add_dashboard">Панель</string>
+    <string name="canvas_bar_add_dashboard_detail">Новый набор виджетов со своим названием и местом.</string>
+    <string name="canvas_bar_add_dashboard_short">Добавить панель</string>
+    <string name="canvas_bar_add_app">Приложение</string>
+    <string name="canvas_bar_add_app_detail">Открывается одним касанием. Значок стоит под панелями.</string>
+    <string name="canvas_bar_add_app_short">Добавить приложение</string>
+    <string name="canvas_tab_new">Новая панель</string>
+    <string name="canvas_tab_place">Место в полосе</string>
+    <string name="canvas_tab_where">Расположение</string>
+    <string name="canvas_tab_create">Создать</string>
+    <string name="canvas_bar_app_remove">Убрать из полосы</string>
+    <string name="canvas_tab_engine">Двигатель</string>
+    <string name="canvas_tab_checks">Проверки</string>
+    <string name="canvas_tab_eco">Эко</string>
+    <string name="canvas_when_taken">%1$s: сейчас на %2$s</string>
+    <string name="canvas_when_take_title">Забрать «%1$s» у %2$s?</string>
+    <string name="canvas_when_take_body">Там она больше не будет открываться сама.</string>
+    <string name="canvas_when_take">Забрать</string>
+</resources>

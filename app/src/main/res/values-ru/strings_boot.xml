@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="boot_menu">Логотип загрузки</string>
+    <string name="boot_title">Логотип загрузки</string>
+    <string name="boot_search">Поиск среди %1$d марок</string>
+    <string name="boot_no_match">Марка не найдена.</string>
+    <string name="boot_downloading">Загрузка логотипа…</string>
+    <string name="boot_bg_black">Чёрный</string>
+    <string name="boot_bg_white">Белый</string>
+    <string name="boot_show_name">Показывать название марки</string>
+    <string name="boot_show_name_detail">Под логотипом</string>
+    <string name="boot_install">Установить</string>
+    <string name="boot_play">Воспроизвести</string>
+    <string name="boot_restore">Вернуть исходный</string>
+    <string name="boot_close">Закрыть</string>
+    <string name="boot_building">Создание анимации…</string>
+    <string name="boot_installing">Установка…</string>
+    <string name="boot_restoring">Восстановление…</string>
+    <string name="boot_playing">Воспроизведение на экране…</string>
+    <string name="boot_installed">Установлено в %1$s. Вы увидите его при следующем запуске.</string>
+    <string name="boot_install_failed">Не удалось установить: %1$s</string>
+    <string name="boot_restored">Исходная анимация загрузки возвращена.</string>
+    <string name="boot_nothing_to_restore">Нечего восстанавливать: анимация загрузки не менялась.</string>
+    <string name="boot_restore_failed">Не удалось восстановить: %1$s</string>
+    <string name="boot_restore_confirm_title">Вернуть исходный?</string>
+    <string name="boot_restore_confirm_body">Будут возвращены родные анимация загрузки и статичный логотип магнитолы.</string>
+    <string name="boot_play_failed">Не удалось воспроизвести: %1$s</string>
+    <string name="boot_current">Логотип загрузки: %1$s</string>
+    <string name="boot_hint">Меняет то, что магнитола показывает при запуске, на логотип этой марки: анимацию Android и, если включено, статичный логотип. Использует внутренний root ADB магнитолы и не трогает /system. Оригиналы сохраняются (также в Dashwheel/boot_backup во внутренней памяти), а «Вернуть исходный» восстанавливает их. Логотипы взяты из открытого car-logos-dataset.</string>
+    <string name="boot_usb">Сохранить на USB</string>
+    <string name="boot_saving_usb">Запись на USB-накопитель…</string>
+    <string name="boot_saved_usb">Сохранено на %1$s. Извлеките накопитель и вставьте снова: магнитола импортирует анимацию. Для статичного логотипа: Настройки → Заводские настройки (8888) → Logo set → выберите %2$s → Update logo.</string>
+    <string name="boot_no_usb">USB-накопитель не найден. Вставьте его и повторите.</string>
+    <string name="boot_still">Сменить и статичный логотип</string>
+    <string name="boot_still_detail">Первая картинка, до Android. По умолчанию выключено: записывается в раздел логотипа, с резервной копией до и проверкой после.</string>
+    <string name="boot_still_confirm_title">Сменить статичный логотип?</string>
+    <string name="boot_still_confirm_body">Статичный логотип записывается в раздел логотипа магнитолы, сначала создаётся резервная копия.</string>
+    <string name="boot_still_done">Статичный логотип тоже обновлён.</string>
+    <string name="boot_still_failed">Статичный логотип не изменён: %1$s</string>
+    <string name="boot_still_unsupported">у этой магнитолы нет инструмента для статичного логотипа</string>
+    <string name="boot_not_qf">«Установить» работает только на прошивке QF001 / K706, для которой сделано. Используйте «Сохранить на USB».</string>
+    <string name="boot_no_adb">Внутренний ADB магнитолы не отвечает (порт %1$d), а у Dashwheel нет root. Включите отладку по USB (Настройки → Об устройстве → 7 раз нажмите «Номер сборки», затем «Для разработчиков» → «Отладка по USB») или дайте root и повторите.</string>
+</resources>

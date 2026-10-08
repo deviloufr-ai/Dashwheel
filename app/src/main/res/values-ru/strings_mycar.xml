@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Experimental: the driver's own car in place of the drawn one (MyCarLook.kt, MyCarLookSheet.kt) -->
+    <string name="mycar_title">Изображение автомобиля</string>
+    <string name="mycar_settings_detail">Экспериментально: ваш автомобиль на плитках</string>
+    <string name="mycar_experimental">Экспериментально: ваш автомобиль вместо нарисованного. Используйте пакет, сделанный из 3D-модели, или снимок автомобиля сбоку.</string>
+    <string name="mycar_empty">Изображения пока нет. Выберите файл или отправьте его из приложения на телефоне.</string>
+    <string name="mycar_working">Подготовка</string>
+    <string name="mycar_ready">Изображение вашего автомобиля загружено</string>
+    <string name="mycar_failed">Не удалось прочитать изображение. Попробуйте JPG или PNG.</string>
+    <string name="mycar_no_picker">На магнитоле нет выбора файлов. Положите файл сюда: %1$s</string>
+    <string name="mycar_pick">Выбрать файл</string>
+    <string name="mycar_remove">Удалить</string>
+    <string name="mycar_remove_title">Удалить изображение автомобиля?</string>
+    <string name="mycar_remove_body">На плитках снова будет нарисованный автомобиль.</string>
+    <string name="mycar_cancel">Отмена</string>
+    <string name="mycar_views">Ракурсы: %1$s</string>
+    <string name="mycar_view_side">сбоку</string>
+    <string name="mycar_view_top">сверху</string>
+    <string name="mycar_view_hero">три четверти</string>
+    <string name="mycar_view_open">двери открыты</string>
+    <string name="mycar_show_title">Показывать</string>
+    <string name="mycar_show_drawn">Нарисованный</string>
+    <string name="mycar_show_mine">Мой автомобиль</string>
+    <string name="mycar_style_title">Стиль</string>
+    <string name="mycar_style_photo">Фото</string>
+    <string name="mycar_style_photo_hint">Изображение как есть</string>
+    <string name="mycar_style_tinted">Тонировка</string>
+    <string name="mycar_style_tinted_hint">В цвете оформления, тени сохранены</string>
+    <string name="mycar_style_outline">Контур</string>
+    <string name="mycar_style_outline_hint">Только линии, в цвете оформления</string>
+    <string name="mycar_where">Показывается в дизайнах «Карта шин» и «Контур автомобиля» и на плитке «Мой автомобиль».</string>
+    <string name="mycar_phone_hint">С телефона: в приложении Dashwheel Companion откройте «Изображение автомобиля», затем «Выбрать файл».</string>
+    <string name="mycar_photos">3 фото</string>
+    <string name="mycar_photos_hint">Или выберите сразу все снимки автомобиля: сбоку, спереди и сзади, а также сверху и сверху с открытыми дверями, если они есть. С именами side, front, back, top и open они никогда не перепутаются.</string>
+    <string name="mycar_photos_no_car">На этих фото автомобиль не найден. Используйте снимки всего автомобиля на однотонном фоне.</string>
+</resources>

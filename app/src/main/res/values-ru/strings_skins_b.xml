@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Horizon skin: top bar -->
+    <string name="horizon_cd_all_apps">Все приложения</string>
+    <string name="horizon_cd_screen_layout">Положение Google Maps: %1$s</string>
+    <string name="horizon_cd_more">Ещё</string>
+
+    <!-- Horizon skin: telemetry and speed -->
+    <string name="horizon_connect_obd">Подключить OBD</string>
+    <string name="horizon_obd_connecting">Подключение к OBD…</string>
+    <string name="horizon_obd_error_retry">Ошибка OBD · нажмите для повтора</string>
+    <string name="horizon_obd_tap_connect">Нажмите, чтобы подключить OBD</string>
+    <string name="horizon_rpm_value">%1$s об/мин</string>
+    <string name="horizon_coolant_value">ОЖ %1$d°</string>
+    <string name="horizon_load_value">нагрузка %1$d %%</string>
+
+    <!-- Horizon skin: music -->
+    <string name="horizon_cd_previous_track">Предыдущий трек</string>
+    <string name="horizon_cd_pause">Пауза</string>
+    <string name="horizon_cd_play">Играть</string>
+    <string name="horizon_cd_next_track">Следующий трек</string>
+    <string name="horizon_allow_media_access">Разрешить доступ к медиа</string>
+    <string name="horizon_music_caps">МУЗЫКА</string>
+    <string name="horizon_now_playing_caps">СЕЙЧАС ИГРАЕТ</string>
+    <string name="horizon_paused_caps">ПАУЗА</string>
+    <string name="horizon_tap_allow_notification_access">Нажмите, чтобы разрешить доступ к уведомлениям</string>
+    <string name="horizon_play_something">Включите что-нибудь в любом музыкальном приложении</string>
+    <string name="horizon_unknown_artist">Неизвестный исполнитель</string>
+
+    <!-- Horizon skin: directions -->
+    <string name="horizon_start_navigation">Запустите навигацию в Google Maps или Waze</string>
+    <string name="horizon_open_navigation">Открыть навигацию</string>
+
+    <!-- Horizon skin: clock (a weather condition, lower case, set in the part of the day: "clear evening") -->
+    <string name="horizon_mood_morning">утро, %1$s</string>
+    <string name="horizon_mood_afternoon">день, %1$s</string>
+    <string name="horizon_mood_evening">вечер, %1$s</string>
+    <string name="horizon_mood_night">ночь, %1$s</string>
+    <string name="horizon_open_clock">Открыть часы</string>
+
+    <!-- Horizon skin: weather and range -->
+    <string name="horizon_loading">Загрузка…</string>
+    <string name="horizon_weather_at_car">Погода у автомобиля</string>
+    <string name="horizon_feels">ощущается %1$d°</string>
+    <string name="horizon_wind">ветер %1$d км/ч</string>
+    <string name="horizon_range_fuel">запас хода · топливо %1$d %%</string>
+
+    <!-- Horizon skin: apps and launch bar -->
+    <string name="horizon_open_app">Открыть %1$s</string>
+    <string name="horizon_launch_bar_empty">Приложений пока нет · нажмите на карандаш, чтобы добавить</string>
+    <string name="horizon_cd_edit_launch_bar">Изменить панель запуска</string>
+
+    <!-- Tape Deck skin: top bar -->
+    <string name="tape_apps_caps">ПРИЛ.</string>
+    <string name="tape_cd_all_apps">Все приложения</string>
+    <string name="tape_layout_caps">ЭКРАН</string>
+    <string name="tape_cd_screen_layout">Положение Google Maps: %1$s</string>
+    <string name="tape_cd_more">Ещё</string>
+
+    <!-- Tape Deck skin: telemetry and speed -->
+    <string name="tape_temp_caps">ТЕМП</string>
+    <string name="tape_batt_caps">АКБ</string>
+    <string name="tape_load_caps">НАГР</string>
+    <string name="tape_cd_choose_adapter">Выбрать OBD-адаптер</string>
+    <string name="tape_rpm_caps">ОБ/МИН</string>
+    <string name="tape_telemetry_caps">ТЕЛЕМЕТРИЯ</string>
+    <string name="tape_live_caps">ЭФИР</string>
+    <string name="tape_linking_caps">СВЯЗЬ</string>
+    <string name="tape_obd_error_tap">ОШИБКА OBD · НАЖМИТЕ</string>
+    <string name="tape_no_obd_tap">НЕТ OBD · НАЖМИТЕ</string>
+    <string name="tape_speed_caps">СКОРОСТЬ</string>
+
+    <!-- Tape Deck skin: cassette deck -->
+    <string name="tape_tap_to_enable_caps">НАЖМИТЕ, ЧТОБЫ ВКЛЮЧИТЬ</string>
+    <string name="tape_unknown_artist_caps">НЕИЗВЕСТНЫЙ ИСПОЛНИТЕЛЬ</string>
+    <string name="tape_start_music_app_caps">ВКЛЮЧИТЕ МУЗЫКУ</string>
+    <string name="tape_cd_grant_media_access">Разрешить доступ к медиа</string>
+    <string name="tape_grant_access_caps">РАЗРЕШИТЬ ДОСТУП</string>
+    <string name="tape_cd_previous_track">Предыдущий трек</string>
+    <string name="tape_cd_pause">Пауза</string>
+    <string name="tape_cd_play">Играть</string>
+    <string name="tape_cd_next_track">Следующий трек</string>
+    <string name="tape_cd_open_music_app">Открыть музыкальное приложение</string>
+    <string name="tape_play_caps">ИГРАТЬ</string>
+    <string name="tape_pause_caps">ПАУЗА</string>
+    <string name="tape_stop_caps">СТОП</string>
+    <string name="tape_hifi_stereo_caps">HI-FI STEREO</string>
+
+    <!-- Tape Deck skin: directions CRT -->
+    <string name="tape_tap_grant_notification_access_caps">НАЖМИТЕ, ЧТОБЫ РАЗРЕШИТЬ ДОСТУП К УВЕДОМЛЕНИЯМ</string>
+    <string name="tape_tap_open_maps_caps">НАЖМИТЕ, ЧТОБЫ ОТКРЫТЬ КАРТЫ</string>
+    <string name="tape_eta_caps">ПРИБЫТИЕ %1$s</string>
+
+    <!-- Tape Deck skin: weather neon sign -->
+    <string name="tape_loading_caps">ЗАГРУЗКА</string>
+    <string name="tape_feels_wind_caps">ОЩУЩ. %1$d° · ВЕТЕР %2$d КМ/Ч</string>
+    <string name="tape_low_high_caps">МИН %1$d° · МАКС %2$d°</string>
+
+    <!-- Tape Deck skin: fuel and range -->
+    <string name="tape_fuel_range_caps">ТОПЛИВО И ЗАПАС ХОДА</string>
+    <string name="tape_fuel_caps">ТОПЛИВО</string>
+    <string name="tape_range_caps">ЗАПАС ХОДА</string>
+
+    <!-- Tape Deck skin: radio presets -->
+    <string name="tape_presets_empty_caps">НЕТ ПРЕСЕТОВ · НАЖМИТЕ НА КАРАНДАШ, ЧТОБЫ ДОБАВИТЬ ПРИЛОЖЕНИЯ</string>
+    <string name="tape_cd_edit_launch_bar">Изменить панель запуска</string>
+
+    <!-- In-app updater -->
+    <string name="sys_update_check_failed">Не удалось проверить обновления</string>
+    <string name="sys_update_download_failed">Ошибка загрузки</string>
+    <string name="sys_update_downloading">Загрузка обновления</string>
+
+    <!-- System-app install (shown after "Failed: " in the install dialog) -->
+    <string name="sys_install_su_failed">ошибка установки через su</string>
+    <string name="sys_install_failed">ошибка установки</string>
+    <string name="sys_install_failed_not_root">%1$s (adbd без root: uid=%2$s)</string>
+</resources>

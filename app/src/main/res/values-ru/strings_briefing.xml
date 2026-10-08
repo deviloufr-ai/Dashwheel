@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- AI mechanic settings: the start-up briefing switch -->
+    <string name="briefing_setting">Сводка при запуске</string>
+    <string name="briefing_setting_detail">При запуске автомобиля: мало топлива, гололёд, ошибки двигателя и ближайшая встреча</string>
+
+    <!-- Spoken when the car starts, in the launcher's language -->
+    <string name="briefing_ice">Осторожно, на дороге возможен гололёд.</string>
+    <string name="briefing_fuel_low">Мало топлива: осталось около %1$d км, запланируйте заправку.</string>
+    <plurals name="briefing_faults">
+        <item quantity="one">%1$d ошибка двигателя в памяти: %2$s. На стоянке посмотрите плитку «Коды ошибок».</item>
+        <item quantity="few">%1$d ошибки двигателя в памяти: %2$s. На стоянке посмотрите плитку «Коды ошибок».</item>
+        <item quantity="many">%1$d ошибок двигателя в памяти: %2$s. На стоянке посмотрите плитку «Коды ошибок».</item>
+        <item quantity="other">%1$d ошибки двигателя в памяти: %2$s. На стоянке посмотрите плитку «Коды ошибок».</item>
+    </plurals>
+    <plurals name="briefing_faults_untitled">
+        <item quantity="one">%1$d ошибка двигателя в памяти. На стоянке посмотрите плитку «Коды ошибок».</item>
+        <item quantity="few">%1$d ошибки двигателя в памяти. На стоянке посмотрите плитку «Коды ошибок».</item>
+        <item quantity="many">%1$d ошибок двигателя в памяти. На стоянке посмотрите плитку «Коды ошибок».</item>
+        <item quantity="other">%1$d ошибки двигателя в памяти. На стоянке посмотрите плитку «Коды ошибок».</item>
+    </plurals>
+    <string name="briefing_event">Далее: %1$s в %2$s.</string>
+</resources>

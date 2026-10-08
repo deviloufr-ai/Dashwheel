@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The Play edition's disclosure dialogs before a system access page (AccessDisclosure.kt). -->
+    <string name="access_a11y_title">Доступ к спец. возможностям</string>
+    <string name="access_a11y_body">Dashwheel использует службу специальных возможностей, чтобы показывать два приложения рядом, вводить в поля магнитолы то, что вы диктуете на телефоне, и считывать кнопки руля. Больше ничего на экране она не читает.</string>
+    <string name="access_notif_title">Доступ к уведомлениям</string>
+    <string name="access_notif_body">Dashwheel читает уведомления, чтобы показывать на панели текущий трек, следующий манёвр и новые сообщения. Они остаются на этой магнитоле.</string>
+    <string name="access_open_settings">Открыть настройки</string>
+    <string name="access_not_now">Не сейчас</string>
+</resources>

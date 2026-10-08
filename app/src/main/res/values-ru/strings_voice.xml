@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- What the car says by itself: Settings -> Alerts -> What the car says (HandsFreeSettings.kt, SpokenEvents.kt) -->
+    <string name="voice_section">Что говорит автомобиль</string>
+    <string name="voice_warnings">Голосовые оповещения и советы</string>
+    <string name="voice_warnings_detail">Двигатель, аккумулятор, сажевый фильтр, перерывы, топливо, нагрев магнитолы</string>
+    <string name="voice_messages">Сообщения</string>
+    <string name="voice_messages_detail">Показывает и называет отправителя сообщения.</string>
+    <string name="voice_faults">Новые коды ошибок</string>
+    <string name="voice_faults_detail">Называются при обнаружении во время сканирования, один раз</string>
+    <string name="voice_limit_detail">Сообщает, если вы едете быстрее ограничения, один раз на каждое</string>
+    <string name="voice_weather">Погодные предупреждения</string>
+    <string name="voice_weather_detail">Оранжевый и красный уровни там, где вы сейчас и куда едете</string>
+    <string name="voice_lpg">Мало газа</string>
+    <string name="voice_lpg_detail">Сообщает, когда во втором баке заканчивается газ</string>
+    <string name="voice_menu_quiet">Тишина</string>
+    <string name="voice_menu_back">Включить голос</string>
+    <string name="voice_where">Что автомобиль говорит сам, включается в Настройках, раздел «Оповещения».</string>
+
+    <!-- Spoken -->
+    <string name="voice_say_message">Сообщение от %1$s</string>
+    <string name="voice_no_message">Сообщений нет.</string>
+    <string name="voice_status_range">Топлива осталось примерно на %1$d км.</string>
+    <string name="voice_status_no_faults">Кодов ошибок нет.</string>
+    <string name="voice_status_nothing">Сообщать нечего.</string>
+    <string name="voice_quiet_on">Тишина до следующего запуска. Срочные оповещения всё равно прозвучат.</string>
+    <string name="voice_quiet_off">Голос снова включён.</string>
+    <string name="voice_no_position">Местоположение пока неизвестно.</string>
+    <string name="voice_no_fuel_prices">Здесь нет данных о ценах на топливо.</string>
+    <plurals name="voice_fuel_station">
+        <item quantity="one">Самая дешёвая заправка рядом: %1$s, в %2$d километре отсюда.</item>
+        <item quantity="few">Самая дешёвая заправка рядом: %1$s, в %2$d километрах отсюда.</item>
+        <item quantity="many">Самая дешёвая заправка рядом: %1$s, в %2$d километрах отсюда.</item>
+        <item quantity="other">Самая дешёвая заправка рядом: %1$s, в %2$d километрах отсюда.</item>
+    </plurals>
+    <string name="voice_guidance_stopped">Навигация остановлена.</string>
+    <string name="voice_guidance_none">Навигация не запущена.</string>
+</resources>

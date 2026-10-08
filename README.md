@@ -37,7 +37,7 @@ Dashwheel is free, with no ads. If it makes your drives nicer, a coffee on Ko-fi
 - **Your own alerts and reverse view** instead of the head unit's pop-ups
 - **Hands-free**: spoken alerts, steering-wheel buttons, volume that follows speed
 - **Second screen** (experimental): a Raspberry Pi drives a second monitor in the car
-- **8 languages**, day and night themes, updates from GitHub Releases
+- **9 languages**, day and night themes, updates from GitHub Releases
 - **Root is optional**: extra features appear only when the unit allows them ([what needs what](https://github.com/deviloufr-ai/Dashwheel/wiki/Root-and-PMPatch3))
 
 ## Two editions

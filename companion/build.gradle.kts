@@ -40,6 +40,8 @@ android {
         }
         create("play") {
             dimension = "edition"
+            // Its own package on Google Play, beside the launcher's com.dashwheel.app.
+            applicationId = "com.dashwheel.companion"
             buildConfigField("boolean", "PLAY", "true")
         }
     }
@@ -86,7 +88,7 @@ android {
     }
 
     androidResources {
-        localeFilters += listOf("en", "fr", "de", "es", "it", "pt", "nl", "pl")
+        localeFilters += listOf("en", "fr", "de", "es", "it", "pt", "nl", "pl", "ru")
     }
 
     lint {

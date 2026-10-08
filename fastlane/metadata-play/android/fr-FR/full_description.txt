@@ -35,6 +35,6 @@
 <li>Écran partagé et saisie depuis le téléphone via le service d'accessibilité d'Android, que vous activez vous-même et pouvez couper à tout moment</li>
 </ul>
 
-<p>8 langues : anglais, français, allemand, espagnol, italien, portugais, néerlandais, polonais.</p>
+<p>9 langues : anglais, français, allemand, espagnol, italien, portugais, néerlandais, polonais, russe.</p>
 
 <p>Libre et open source sous licence GPL v3. Sans publicité, sans pistage, sans compte. Les mises à jour viennent de Google Play.</p>

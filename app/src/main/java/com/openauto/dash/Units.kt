@@ -53,15 +53,19 @@ data class UnitSystem(
     val economy: Economy = Economy.L_PER_100KM,
     val clock24: Boolean = true
 ) {
-    val speedUnit: String get() = if (imperial) "mph" else "km/h"
-    val distanceUnit: String get() = if (imperial) "mi" else "km"
+    // Russian writes its units in Cyrillic (км/ч); the Latin "KM/H" reads as the wrong letters there.
+    val speedUnit: String get() = if (imperial) (if (cyrillic) "миль/ч" else "mph") else if (cyrillic) "км/ч" else "km/h"
+    val distanceUnit: String get() = if (imperial) (if (cyrillic) "миль" else "mi") else if (cyrillic) "км" else "km"
     val tempUnit: String get() = if (fahrenheit) "°F" else "°C"
     val economyUnit: String
         get() = when (economy) {
-            Economy.L_PER_100KM -> "L/100 km"
+            Economy.L_PER_100KM -> if (cyrillic) "л/100 км" else "L/100 km"
             Economy.MPG_UK, Economy.MPG_US -> "mpg"
-            Economy.KM_PER_L -> "km/L"
+            Economy.KM_PER_L -> if (cyrillic) "км/л" else "km/L"
         }
+
+    /** The app is in Russian (AppLanguage keeps the default locale on the app's language). */
+    private val cyrillic: Boolean get() = Locale.getDefault().language == "ru"
 
     fun speed(kmh: Int): Int = if (imperial) (kmh / KM_PER_MILE).roundToInt() else kmh
     fun speed(kmh: Float): Int = (if (imperial) kmh / KM_PER_MILE.toFloat() else kmh).roundToInt()

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Servicing planner (Maintenance.kt, MaintenanceTiles.kt) -->
+    <string name="upkeep_kind">Обслуживание</string>
+    <string name="upkeep_kind_blurb">Масло, ремень, жидкости: что и когда менять</string>
+    <string name="upkeep_oil">Замена масла</string>
+    <string name="upkeep_air_filter">Воздушный фильтр</string>
+    <string name="upkeep_fuel_filter">Топливный фильтр</string>
+    <string name="upkeep_cabin_filter">Салонный фильтр</string>
+    <string name="upkeep_brake_fluid">Тормозная жидкость</string>
+    <string name="upkeep_coolant">Охлаждающая жидкость</string>
+    <string name="upkeep_timing_belt">Ремень ГРМ</string>
+    <string name="upkeep_additive">Присадка фильтра</string>
+    <string name="upkeep_gearbox_oil">Масло коробки передач</string>
+    <string name="upkeep_spark_plugs">Свечи зажигания</string>
+    <string name="upkeep_inspection">Техосмотр</string>
+    <string name="upkeep_title">ОБСЛУЖИВАНИЕ</string>
+    <string name="upkeep_no_odometer">Нажмите, чтобы ввести пробег</string>
+    <string name="upkeep_needs_dates">Укажите, когда что делалось в последний раз</string>
+    <string name="upkeep_all_good">Ничего не требуется</string>
+    <string name="upkeep_next_km">%1$s через %2$s км</string>
+    <plurals name="upkeep_next_days">
+        <item quantity="one">%1$s через %2$d день</item>
+        <item quantity="few">%1$s через %2$d дня</item>
+        <item quantity="many">%1$s через %2$d дней</item>
+        <item quantity="other">%1$s через %2$d дня</item>
+    </plurals>
+    <string name="upkeep_overdue_km">%1$s: просрочено на %2$s км</string>
+    <plurals name="upkeep_overdue_days">
+        <item quantity="one">%1$s: просрочено на %2$d день</item>
+        <item quantity="few">%1$s: просрочено на %2$d дня</item>
+        <item quantity="many">%1$s: просрочено на %2$d дней</item>
+        <item quantity="other">%1$s: просрочено на %2$d дня</item>
+    </plurals>
+    <string name="upkeep_due_today">%1$s: сегодня</string>
+    <string name="upkeep_say_due_today">%1$s: срок сегодня.</string>
+    <string name="upkeep_row_km">%1$s км</string>
+    <string name="upkeep_row_days">%1$d дн.</string>
+    <string name="upkeep_not_set">Не задано</string>
+    <string name="upkeep_dialog_title">Обслуживание</string>
+    <string name="upkeep_settings_detail">Пробег, план ТО и голосовые напоминания</string>
+    <string name="upkeep_explanation">Введите пробег один раз: поездки будут прибавляться к нему. Укажите, когда что делалось в последний раз. О предстоящем сообщается при запуске.</string>
+    <string name="upkeep_odometer">Пробег (км)</string>
+    <string name="upkeep_odometer_as_of">Введено %1$s, плюс %2$d км с тех пор</string>
+    <string name="upkeep_fetch">Получить план ТО через ИИ</string>
+    <string name="upkeep_fetch_ok">Интервалы заполнены ИИ: проверьте их</string>
+    <string name="upkeep_fetch_failed">Не удалось получить план: %1$s</string>
+    <string name="upkeep_plan_ai">Интервалы от ИИ</string>
+    <string name="upkeep_plan_default">Интервалы ещё не подтверждены</string>
+    <string name="upkeep_section_items">Пункты</string>
+    <string name="upkeep_every_km">Каждые (км)</string>
+    <string name="upkeep_every_months">Каждые (мес.)</string>
+    <string name="upkeep_last_km">Последний раз на (км)</string>
+    <string name="upkeep_last_date">Последний раз (ГГГГ-ММ)</string>
+    <string name="upkeep_done_today">Сделано сегодня</string>
+    <plurals name="upkeep_say_soon_km">
+        <item quantity="one">%1$s через %2$d километр.</item>
+        <item quantity="few">%1$s через %2$d километра.</item>
+        <item quantity="many">%1$s через %2$d километров.</item>
+        <item quantity="other">%1$s через %2$d километра.</item>
+    </plurals>
+    <plurals name="upkeep_say_soon_days">
+        <item quantity="one">%1$s через %2$d день.</item>
+        <item quantity="few">%1$s через %2$d дня.</item>
+        <item quantity="many">%1$s через %2$d дней.</item>
+        <item quantity="other">%1$s через %2$d дня.</item>
+    </plurals>
+    <plurals name="upkeep_say_overdue_km">
+        <item quantity="one">%1$s: просрочено на %2$d километр.</item>
+        <item quantity="few">%1$s: просрочено на %2$d километра.</item>
+        <item quantity="many">%1$s: просрочено на %2$d километров.</item>
+        <item quantity="other">%1$s: просрочено на %2$d километра.</item>
+    </plurals>
+    <plurals name="upkeep_say_overdue_days">
+        <item quantity="one">%1$s: просрочено на %2$d день.</item>
+        <item quantity="few">%1$s: просрочено на %2$d дня.</item>
+        <item quantity="many">%1$s: просрочено на %2$d дней.</item>
+        <item quantity="other">%1$s: просрочено на %2$d дня.</item>
+    </plurals>
+</resources>

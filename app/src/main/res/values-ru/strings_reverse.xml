@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dashwheel's reverse view over the reversing camera (ReverseView.kt, ReverseViewSheet.kt) -->
+    <string name="reverse_title">Задний вид</string>
+    <string name="reverse_settings_detail">Линии разметки и парктроник поверх камеры заднего вида</string>
+    <string name="reverse_switch">Задний вид Dashwheel</string>
+    <string name="reverse_switch_detail">Линии, следующие за рулём, парктроник и ваш автомобиль поверх камеры заднего вида.</string>
+    <string name="reverse_needs_access">Включите службу специальных возможностей Dashwheel: только так можно рисовать поверх камеры.</string>
+    <string name="reverse_layout_title">На экране</string>
+    <string name="reverse_layout_both">Камера и парктроник</string>
+    <string name="reverse_layout_camera">Камера</string>
+    <string name="reverse_layout_radar">Парктроник</string>
+    <string name="reverse_layout_hint">Переключать можно и на самом экране заднего хода.</string>
+    <string name="reverse_stock_title">Штатные линии</string>
+    <string name="reverse_stock_keep">Оставить</string>
+    <string name="reverse_stock_hide">Скрыть</string>
+    <string name="reverse_stock_hint_keep">Линии штатного приложения остаются под линиями Dashwheel. Линии руля двигаются шагами примерно по 12°.</string>
+    <string name="reverse_stock_hint_hide">Только линии Dashwheel, плавнее. Нужен root.</string>
+    <string name="reverse_stock_failed">Не удалось изменить. Нужен root.</string>
+    <string name="reverse_lines_title">Выравнивание линий</string>
+    <string name="reverse_lines_hint">Включите R, затем нажмите «Настроить» на экране заднего хода, чтобы совместить линии с дорогой.</string>
+    <string name="reverse_preview">Попробовать</string>
+    <string name="reverse_reset">Сбросить линии</string>
+    <string name="reverse_preview_badge">Просмотр: тестовые данные</string>
+    <string name="reverse_adjust">Настроить</string>
+    <string name="reverse_done">Готово</string>
+    <string name="reverse_close">Закрыть</string>
+    <string name="reverse_shift">Влево или вправо</string>
+    <string name="reverse_bumper">Линия бампера</string>
+    <string name="reverse_far">Линия 3 м</string>
+    <string name="reverse_width">Ширина</string>
+    <string name="reverse_mirror">Инвертировать руль</string>
+    <string name="reverse_near_stop">Стоп</string>
+    <string name="reverse_near_close">Близко</string>
+    <string name="reverse_near_far">Сзади препятствие</string>
+    <string name="reverse_picture_title">Изображение камеры</string>
+    <string name="reverse_picture_rom">Штатное</string>
+    <string name="reverse_picture_own">Dashwheel</string>
+    <string name="reverse_picture_hint_rom">Штатное приложение показывает камеру, а Dashwheel рисует поверх.</string>
+    <string name="reverse_picture_hint_own">Экспериментально: Dashwheel сам показывает камеру. Если изображения нет, через несколько секунд вернётся штатное.</string>
+    <string name="reverse_picture_denied">Для этого Dashwheel нужно разрешение на камеру.</string>
+    <string name="reverse_picture_failed">Dashwheel не удалось получить камеру: это изображение штатного приложения</string>
+    <string name="reverse_side_left">Слева: %1$d см</string>
+    <string name="reverse_side_right">Справа: %1$d см</string>
+    <string name="reverse_boot_blocked">Багажник здесь полностью не откроется</string>
+    <string name="reverse_boot_title">Линия багажника</string>
+    <string name="reverse_boot_detail">Пунктир там, куда дойдёт открытая крышка багажника, и предупреждение, если препятствие ближе.</string>
+    <string name="reverse_boot_room">Место для крышки: %1$d см</string>
+    <string name="reverse_lens">Кривизна объектива</string>
+    <string name="reverse_second_title">Второй экран</string>
+    <string name="reverse_second_off">Выкл.</string>
+    <string name="reverse_second_hint">Сам занимает второй экран при включении задней передачи.</string>
+    <string name="reverse_second_hint_rom">Для камеры нужен задний вид с изображением Dashwheel: до этого на втором экране показывается парктроник.</string>
+    <string name="reverse_second_hint_video">Выключите простой режим в настройках второго экрана.</string>
+</resources>

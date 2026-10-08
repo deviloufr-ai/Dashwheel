@@ -35,6 +35,6 @@
 <li>Root features (system-app install, boot logo, apps inside tiles, steering-wheel keys) only appear when the unit offers a root shell</li>
 </ul>
 
-<p>8 languages: English, French, German, Spanish, Italian, Portuguese, Dutch, Polish.</p>
+<p>9 languages: English, French, German, Spanish, Italian, Portuguese, Dutch, Polish, Russian.</p>
 
 <p>Free and open source under the GPL v3. No ads, no tracking.</p>

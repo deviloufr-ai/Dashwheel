@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Fuel prices nearby (FuelPrices.kt, FuelPricesTile.kt) -->
+    <string name="fuel_kind">Цены на топливо</string>
+    <string name="fuel_kind_blurb">Самые дешёвые заправки рядом, нажмите для маршрута</string>
+    <string name="fuel_title">ТОПЛИВО РЯДОМ</string>
+    <string name="fuel_loading">Поиск заправок…</string>
+    <string name="fuel_none">В радиусе %1$d км нет заправки с этим топливом. Цены только по Франции.</string>
+    <string name="fuel_error">Цены сейчас недоступны</string>
+    <string name="fuel_cheapest">Дешевле всего: %1$s</string>
+    <string name="fuel_navigate">нажмите для маршрута</string>
+    <string name="fuel_allow_location">Разрешить местоположение</string>
+    <plurals name="fuel_stations">
+        <item quantity="one">%1$d заправка в радиусе %2$d км</item>
+        <item quantity="few">%1$d заправки в радиусе %2$d км</item>
+        <item quantity="many">%1$d заправок в радиусе %2$d км</item>
+        <item quantity="other">%1$d заправки в радиусе %2$d км</item>
+    </plurals>
+</resources>

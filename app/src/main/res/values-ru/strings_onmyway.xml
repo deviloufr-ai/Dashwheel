@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- "On my way": the arrival time texted by the phone (OnMyWay.kt). -->
+    <string name="onmyway_button">Я в пути</string>
+    <string name="onmyway_title">Отправить время прибытия</string>
+    <string name="onmyway_no_contacts">На телефоне нет избранного контакта с номером. Отметьте контакт звёздочкой в контактах телефона.</string>
+    <string name="onmyway_text_to">Еду: %1$s, буду примерно в %2$s.</string>
+    <string name="onmyway_text_eta">Еду, буду примерно в %1$s.</string>
+    <string name="onmyway_text_plain">Я в пути.</string>
+    <string name="onmyway_sent">Отправлено: %1$s</string>
+    <string name="onmyway_sending">Отправка: %1$s</string>
+    <string name="onmyway_failed">Телефону не удалось отправить SMS: %1$s</string>
+    <string name="onmyway_no_answer">Телефон не отвечает</string>
+    <string name="phone_battery_percent">%1$d %%</string>
+    <string name="message_alert_read">Прочитать вслух</string>
+    <string name="message_alert_reply">Ответить</string>
+    <string name="message_alert_try">Попробовать</string>
+    <string name="message_alert_sample">Опаздываю, увидимся в 7.</string>
+</resources>

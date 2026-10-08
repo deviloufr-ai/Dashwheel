@@ -2,7 +2,7 @@
 
 Last updated: 2026-10-08
 
-This policy covers the Google Play editions of **Dashwheel** (the car launcher, package `com.openauto.dash`) and **Dashwheel Companion** (the phone app, package `com.openauto.dash.companion`). The GitHub editions behave the same, with one difference noted at the end.
+This policy covers the Google Play editions of **Dashwheel** (the car launcher, package `com.dashwheel.app`) and **Dashwheel Companion** (the phone app, package `com.dashwheel.companion`). The GitHub editions behave the same, with one difference noted at the end.
 
 ## The short version
 

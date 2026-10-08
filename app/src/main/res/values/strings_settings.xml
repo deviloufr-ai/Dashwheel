@@ -205,6 +205,7 @@
     <string name="about_support_text">Dashwheel is free. If you like it, a coffee helps keep it going.</string>
     <string name="about_kofi">Buy me a coffee on Ko-fi</string>
     <string name="about_scan">Scan with your phone</string>
+    <string name="about_tip_thanks">Thank you, it really helps.</string>
     <string name="about_project">Project page</string>
     <string name="about_project_detail">Source code, releases and bug reports</string>
     <string name="help_title">Help</string>

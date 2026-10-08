@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Common buttons and labels -->
+    <string name="dash_cancel">Отмена</string>
+    <string name="dash_done">Готово</string>
+    <string name="dash_close">Закрыть</string>
+    <string name="dash_add">Добавить</string>
+    <string name="dash_selected">Выбрано</string>
+    <string name="dash_dismiss">Скрыть</string>
+    <string name="dash_got_it">Понятно</string>
+
+    <!-- Top bar -->
+    <string name="dash_all_apps">Все приложения</string>
+    <string name="dash_screen_layout">Положение Google Maps: %1$s</string>
+    <string name="dash_more">Ещё</string>
+    <string name="dash_obd_connected">OBD подключён</string>
+    <string name="dash_obd_connecting">Подключение OBD</string>
+    <string name="dash_obd_error">Ошибка OBD, нажмите для переподключения</string>
+    <string name="dash_obd_off">OBD выключен, нажмите для подключения</string>
+    <string name="dash_alert_battery">АКБ %1$.1f В</string>
+    <string name="dash_alert_coolant">ОЖ %1$d°C</string>
+
+    <!-- Top bar menu -->
+    <string name="dash_menu_edit_dashboards">Изменить панели</string>
+    <string name="dash_menu_done_editing">Завершить редактирование</string>
+    <string name="dash_menu_theme">Тема</string>
+
+    <!-- Edit bar (arranging a dashboard) -->
+    <string name="dash_arranging_dashboard">Правка: %1$s</string>
+    <string name="dash_arranging_hint">Нажмите на плитку для настроек, удерживайте для перемещения, тяните за угол для изменения размера.</string>
+    <string name="dash_undo">Отменить</string>
+    <string name="dash_reset_page">Удалить панель…</string>
+
+    <!-- Update banner -->
+    <string name="dash_update_downloading">Загрузка обновления… %1$d %%</string>
+    <string name="dash_update_installing">Запуск установки…</string>
+    <string name="dash_menu_check_updates">Проверить обновления</string>
+    <string name="dash_update_checking">Проверка обновлений…</string>
+    <string name="dash_update_up_to_date">Dashwheel обновлён, v%1$s</string>
+    <string name="dash_update">Обновить</string>
+
+    <!-- Tiles while arranging -->
+    <string name="dash_resize_tile">Размер: %1$s</string>
+    <string name="dash_app_window">Окно %1$s</string>
+    <string name="dash_app_inside">%1$s внутри</string>
+    <string name="dash_describe_split_pair">пара приложений</string>
+    <string name="dash_describe_launch_bar">панель запуска</string>
+    <string name="dash_describe_widget">виджет</string>
+    <string name="dash_app_widget">Виджет приложения</string>
+    <string name="dash_shown_while_arranging">Показано при редактировании</string>
+    <string name="dash_map_needs_gpu">Карте нужен настоящий GPU</string>
+    <string name="dash_not_on_emulator">Недоступно в эмуляторе</string>
+
+    <!-- Layout notices -->
+    <string name="dash_notice_title">Не хватает места</string>
+    <string name="dash_notice_no_space">На этой панели нет места для этой плитки. Удалите или уменьшите плитки, либо выберите другую панель.</string>
+    <string name="dash_notice_no_room_to_move">Нет места, чтобы сдвинуть другие плитки. Сначала освободите место.</string>
+    <string name="dash_notice_resize_overlap">Этот размер перекрывает другую плитку. Освободите место перед изменением размера.</string>
+    <string name="dash_full_title">Панель заполнена</string>
+    <string name="dash_full_body">Удалите или уменьшите плитку, чтобы добавить новую.</string>
+
+    <!-- Add to dashboard -->
+
+    <!-- Split screen -->
+    <string name="dash_swap_split">Поменять приложения местами</string>
+    <string name="dash_split_with">Разделить экран с…</string>
+    <string name="dash_enable_split_title">Включить разделение экрана</string>
+    <string name="dash_enable_split_body">Dashwheel использует системное разделение экрана, то же, что в недавних приложениях. Один раз включите Dashwheel в Настройки, Спец. возможности.</string>
+    <string name="dash_open_settings">Открыть настройки</string>
+
+    <!-- System app install (root) -->
+    <string name="dash_system_app_title">Системное приложение</string>
+    <string name="dash_system_app_body">Устанавливает Dashwheel как системное приложение, чтобы виджеты Android добавлялись без запроса каждый раз. Нужен root или внутренний ADB магнитолы на порту %1$d, затем перезагрузка.</string>
+    <string name="dash_root_checking">Проверка root…</string>
+    <string name="dash_root_available">Root доступен. Если есть Magisk, установка пройдёт как модуль Magisk.</string>
+    <string name="dash_root_missing">Нет root. Попробуем внутренний ADB на порту %1$d.</string>
+    <string name="dash_install_system_app">Установить как системное</string>
+    <string name="dash_reboot_now">Перезагрузить</string>
+    <string name="dash_system_installed">Установлено. Перезагрузите для завершения.</string>
+    <string name="dash_system_failed">Ошибка: %1$s</string>
+
+    <!-- System app-widget picker -->
+    <string name="dash_widget_unavailable">Виджет недоступен. Его приложение удалено или изменено.</string>
+    <string name="dash_choose_widget">Выберите виджет</string>
+    <string name="dash_no_widgets_found">Виджеты не найдены.</string>
+
+    <!-- Theme picker -->
+    <string name="dash_theme_picker_title">Тема панели</string>
+    <string name="dash_appearance_auto">Авто</string>
+    <string name="dash_appearance_dark">Тёмная</string>
+    <string name="dash_appearance_light">Светлая</string>
+    <string name="dash_appearance_auto_hint">Все темы следуют режиму день/ночь автомобиля</string>
+    <string name="dash_appearance_dark_hint">Все темы в тёмном варианте</string>
+    <string name="dash_appearance_light_hint">Все темы в светлом варианте</string>
+
+    <!-- Effects switch (theme picker): how much halo and glass a theme draws -->
+    <string name="dash_effects_title">Читаемость</string>
+    <string name="dash_effects_none">Просто, для солнца</string>
+    <string name="dash_effects_reduced">Мягко</string>
+    <string name="dash_effects_full">Полное свечение</string>
+    <string name="dash_effects_none_hint">Непрозрачные карточки, простые цифры, без свечения: читается на ярком солнце</string>
+    <string name="dash_effects_reduced_hint">Мягкое свечение, стекло сохранено</string>
+    <string name="dash_effects_full_hint">Все темы со всем свечением и стеклом</string>
+    <string name="dash_bar_title">Нижняя панель</string>
+    <string name="dash_bar_auto_hide">Автоскрытие панели</string>
+    <string name="dash_bar_auto_hide_detail">Уезжает, когда не используется, освобождая место для панелей</string>
+    <string name="dash_bar_hide_after">Скрывать через %1$d с</string>
+    <string name="dash_bar_hide_now">Скрывать сразу</string>
+    <string name="dash_bar_swipe_up_detail">Когда она скрыта, проведите вверх от нижнего края, чтобы вернуть её</string>
+    <string name="dash_bar_swipe_up_hint">Проведите вверх для панели</string>
+    <string name="dash_bar_show">Показать панель</string>
+
+    <!-- Moving: edits wait until the car has stopped -->
+    <string name="dash_drive_lock_notice">Остановитесь, чтобы изменить</string>
+    <string name="dash_theme_group_recommended">Рекомендуемые</string>
+    <string name="dash_theme_group_colours">Темы</string>
+    <string name="dash_theme_group_skins">Оформления</string>
+    <string name="dash_theme_night">Ночь</string>
+    <string name="dash_theme_day">День</string>
+
+    <!-- Theme names and descriptions (the enum names are what gets saved) -->
+    <string name="dash_theme_standard">Стандарт</string>
+    <string name="dash_theme_standard_desc">Простые карточки с мягко светящимися шкалами</string>
+    <string name="dash_theme_original">Оригинал</string>
+    <string name="dash_theme_original_desc">Первый вид лаунчера: плоские карточки, двойные стрелочные шкалы</string>
+    <string name="dash_theme_aurora">Aurora Glass</string>
+    <string name="dash_theme_aurora_desc">Стеклянные панели, светящиеся шкалы, градиентные элементы</string>
+    <string name="dash_theme_neon">Неон</string>
+    <string name="dash_theme_neon_desc">Футуристичный сине-фиолетовый кокпит</string>
+    <string name="dash_theme_clean">Чистая</string>
+    <string name="dash_theme_clean_desc">Минимализм, высокий контраст и легко читать</string>
+    <string name="dash_theme_premium_glass">Premium Glass</string>
+    <string name="dash_theme_premium_glass_desc">Дымчатое стекло ночью, матовое стекло днём</string>
+    <string name="dash_theme_sporty">Спорт</string>
+    <string name="dash_theme_sporty_desc">Красный спортивный кокпит</string>
+    <string name="dash_theme_floating">Парящая</string>
+    <string name="dash_theme_floating_desc">Плитки без фона: виджеты и значки прямо на фоне</string>
+    <string name="dash_theme_orbit">Орбита</string>
+    <string name="dash_theme_orbit_desc">Всё круглое: вращающаяся пластинка, кольцевые шкалы, пузыри</string>
+    <string name="dash_theme_cockpit">Кокпит</string>
+    <string name="dash_theme_cockpit_desc">Аналоговые циферблаты в хромовых кольцах и тумблеры на прошитой коже</string>
+    <string name="dash_theme_horizon">Горизонт</string>
+    <string name="dash_theme_horizon_desc">Без виджетов, только небо и дорога впереди</string>
+    <string name="dash_theme_tape_deck">Кассетник</string>
+    <string name="dash_theme_tape_deck_desc">Магнитола в стиле синтвейв 80-х: кассета, неоновая сетка, LED-цифры</string>
+    <string name="dash_theme_mistral">Mistral</string>
+    <string name="dash_theme_mistral_desc">Центральная приборная панель C4 Picasso: холодно-белые цифры на дымчатом графите, янтарные предупреждения</string>
+    <string name="dash_theme_zenith">Zénith</string>
+    <string name="dash_theme_zenith_desc">Салон-лаунж: жемчужно-серый, белые панели, один глубокий синий акцент</string>
+    <string name="dash_theme_luxury">Люкс Классик</string>
+    <string name="dash_theme_luxury_desc">Тёмно-синее стекло, тонкие линии цвета шампань, тонкие цифры</string>
+    <string name="dash_theme_eco_leaf">Эко Лист</string>
+    <string name="dash_theme_eco_leaf_desc">Матовый шалфейно-зелёный, мятные показания, спокойно и легко</string>
+    <string name="dash_theme_cyber">Кибер Спорт</string>
+    <string name="dash_theme_cyber_desc">Чёрный карбон, от малинового к пурпурному, гоночная панель в нижней панели</string>
+    <string name="dash_theme_nordic">Северный минимализм</string>
+    <string name="dash_theme_nordic_desc">Графит и ледяной синий, тонкие линии, ничего кричащего</string>
+    <string name="dash_theme_canvas">Canvas</string>
+    <string name="dash_theme_canvas_desc">Карта на весь экран, поездка в одну строку. По умолчанию с боковой панелью; изменить можно в разделе «Экран».</string>
+
+    <!-- Screen layouts (the enum names are what gets saved) -->
+    <string name="dash_layout_grid">Только панели</string>
+    <string name="dash_layout_grid_desc">Перелистываемые панели на весь экран</string>
+    <string name="dash_layout_maps_left">Google Maps слева</string>
+    <string name="dash_layout_maps_left_desc">Google Maps на левой половине, панели листаются справа</string>
+    <string name="dash_layout_maps_right">Google Maps справа</string>
+    <string name="dash_layout_maps_right_desc">Google Maps на правой половине, панели листаются слева</string>
+    <string name="dash_layout_maps_top">Google Maps сверху</string>
+    <string name="dash_layout_maps_bottom">Google Maps снизу</string>
+    <string name="dash_layout_button">Макет</string>
+    <string name="dash_layout_another_app">Другое приложение рядом с панелями…</string>
+    <string name="dash_update_dot_hint">В меню ждёт обновление</string>
+    <string name="dash_update_dot_menu">Точка на кнопке меню означает это обновление</string>
+
+    <!-- The pages' places in the cross, and an empty page -->
+    <string name="dash_page_home">Главная</string>
+    <string name="dash_page_left">Слева от Главной</string>
+    <string name="dash_page_right">Справа от Главной</string>
+    <string name="dash_page_above">Над Главной</string>
+    <string name="dash_page_above2">Вторая над Главной</string>
+    <string name="dash_page_below">Под Главной</string>
+    <string name="dash_page_below2">Вторая под Главной</string>
+    <string name="dash_empty_title">Здесь пока пусто</string>
+    <string name="dash_empty_body">Заполните из шаблона или добавляйте плитки по одной.</string>
+    <!-- Updates without a strip (⋮ dot, Settings row, ready prompt); edit-mode confirms; tile options; theme gallery -->
+    <string name="dash_update_to">Обновить до %1$s</string>
+    <string name="dash_update_available_detail">Есть сборка новее v%1$s. Установка перезапустит Dashwheel.</string>
+    <string name="dash_update_ready_detail">Загружено и готово к установке</string>
+    <string name="dash_update_ready_title">Обновление готово</string>
+    <string name="dash_update_ready_body">%1$s загружено. Установка займёт полминуты и перезапустит Dashwheel.</string>
+    <string name="dash_update_now">Обновить сейчас</string>
+    <string name="dash_update_not_this_version">Пропустить версию</string>
+    <string name="dash_update_allow_installs">Разрешите Dashwheel устанавливать обновления, затем снова нажмите «Обновить»</string>
+    <string name="dash_dashboard_options">Настройки панели</string>
+    <string name="dash_remove_dashboard_title">Удалить «%1$s»?</string>
+    <string name="dash_remove_dashboard_body">Очистите её или уберите из пролистывания вместе с плитками. «Отменить» вернёт их.</string>
+    <string name="dash_theme_show_all">Показать все темы: %1$d</string>
+    <string name="dash_theme_show_fewer">Показать меньше</string>
+    <string name="dash_tile_move">На другую панель</string>
+    <string name="dash_tile_remove">Удалить</string>
+    <!-- The bar's Apps button, labelled -->
+    <string name="dash_apps">Приложения</string>
+    <!-- Tiles on the dashboard that live on root or the unit's ADB, where Dashwheel has neither -->
+    <string name="dash_rootless_title">Нужен root-доступ</string>
+    <plurals name="dash_rootless_body">
+        <item quantity="one">%1$s требует root-доступ, которого у Dashwheel нет на этой магнитоле. Плитка будет удалена с панели.</item>
+        <item quantity="few">%1$s требуют root-доступ, которого у Dashwheel нет на этой магнитоле. Плитки будут удалены с панели.</item>
+        <item quantity="many">%1$s требуют root-доступ, которого у Dashwheel нет на этой магнитоле. Плитки будут удалены с панели.</item>
+        <item quantity="other">%1$s требуют root-доступ, которого у Dashwheel нет на этой магнитоле. Плитки будут удалены с панели.</item>
+    </plurals>
+    <!-- The bar's position chip (PagePosition.kt) -->
+    <string name="dash_position_chip">Панель: %1$s</string>
+    <string name="dash_position_title">Перейти к панели</string>
+    <!-- Every dashboard at once, with + and - (DashboardsOverview.kt) -->
+    <string name="dash_dashboards">Панели</string>
+    <string name="dash_dashboards_hint">Нажмите на панель, чтобы открыть</string>
+    <string name="dash_dashboard_add">Добавить панель сюда</string>
+    <string name="dash_dashboard_removed">«%1$s» удалена</string>
+    <string name="dash_remove_empty">Очистить</string>
+    <string name="dash_remove_take_out">Убрать из пролистывания</string>
+    <string name="dash_bring_back_title">Вернуть «%1$s»?</string>
+    <string name="dash_bring_back_body">Плитка попадёт туда, а панель снова появится в пролистывании.</string>
+    <string name="dash_bring_back">Вернуть</string>
+    <string name="dash_moved_to">Перемещено: %1$s</string>
+    <string name="dash_page_removed">%1$s, вне пролистывания</string>
+    <string name="dash_way_home_up">Проведите вверх к Главной</string>
+    <string name="dash_way_home_down">Проведите вниз к Главной</string>
+    <string name="dash_add_tile">Добавить плитку</string>
+</resources>

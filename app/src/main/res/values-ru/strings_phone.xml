@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Phone link: the driver's phone over its hotspot, with the Dashwheel Companion app. -->
+    <string name="settings_section_phone">Телефон</string>
+    <string name="phone_from_phone">С вашего телефона</string>
+    <string name="phone_status_connected">Подключено к %1$s</string>
+    <string name="phone_status_connected_detail">Его уведомления и сообщения показываются в виджете «Уведомления».</string>
+    <string name="phone_status_searching">Поиск телефона по Wi-Fi</string>
+    <string name="phone_status_searching_detail">Включите точку доступа на телефоне и подключите к ней магнитолу; остальное сделает Dashwheel Companion.</string>
+    <string name="phone_status_unpaired">Телефон не сопряжён</string>
+    <string name="phone_status_unpaired_detail">Сопрягите телефон, чтобы видеть здесь его сообщения и отвечать на них.</string>
+    <string name="phone_pair">Сопрячь телефон</string>
+    <string name="phone_pair_detail">Показывает код для сканирования в Dashwheel Companion</string>
+    <string name="phone_gps">GPS телефона</string>
+    <string name="phone_gps_detail">Когда телефон подключён, его GPS заменяет GPS магнитолы: больше спутников, местоположение за секунды</string>
+    <string name="phone_gps_in_use">Спутников с телефона: %1$d</string>
+    <string name="phone_gps_waiting">С телефона пока нет местоположения. В приложении на телефоне разрешите передачу местоположения автомобилю</string>
+    <string name="phone_gps_refused">Магнитола не разрешила это. Нужен root или ADB магнитолы</string>
+    <string name="phone_paired_on">Сопряжено: %1$s</string>
+    <string name="phone_unnamed">Телефон</string>
+    <string name="phone_forgotten">Удалено на телефоне: сопрягите его снова</string>
+    <string name="phone_forget">Забыть</string>
+    <string name="phone_forget_title">Забыть %1$s?</string>
+    <string name="phone_forget_body">Его сообщения и звонки перестанут показываться здесь. Для нового сопряжения нужен новый код.</string>
+    <string name="phone_pair_title">Сопряжение телефона</string>
+    <string name="phone_pair_step1">1. Установите Dashwheel Companion на телефон: отсканируйте этот код его камерой.</string>
+    <string name="phone_pair_step2">2. Включите точку доступа Wi-Fi на телефоне и подключите к ней магнитолу.</string>
+    <string name="phone_pair_step3">3. В приложении нажмите «Сопрячь автомобиль» и отсканируйте этот код.</string>
+    <string name="phone_pair_waiting">Ожидание телефона…</string>
+    <string name="phone_pair_done">Сопряжено с %1$s</string>
+    <string name="phone_done">Готово</string>
+    <string name="phone_read_aloud">Прочитать вслух</string>
+    <string name="phone_quick_replies">Быстрые ответы</string>
+    <string name="phone_quick_1">Я за рулём, отвечу позже.</string>
+    <string name="phone_quick_2">Уже еду.</string>
+    <string name="phone_quick_3">Хорошо, спасибо!</string>
+    <string name="phone_dictate">Надиктовать ответ</string>
+    <string name="phone_send">Отправить</string>
+    <string name="phone_sending">Отправка через телефон…</string>
+    <string name="phone_sent">Ответ отправлен</string>
+    <string name="phone_failed">Телефон не смог это сделать: возможно, сообщения уже нет.</string>
+    <string name="phone_no_link">Телефон не подключён.</string>
+    <string name="phone_mark_read">Отметить как прочитанное</string>
+    <string name="phone_clear">Удалить на телефоне</string>
+    <string name="phone_pair_qr_download">Скачать приложение</string>
+    <string name="phone_pair_qr_pair">Код сопряжения: отсканируйте его в приложении</string>
+    <string name="phone_call_incoming">Входящий вызов</string>
+    <string name="phone_call_outgoing">Вызов</string>
+    <string name="phone_call_unknown">Неизвестный номер</string>
+    <string name="phone_call_answer">Ответить</string>
+    <string name="phone_call_decline">Отклонить</string>
+    <string name="phone_call_hang_up">Завершить</string>
+    <string name="phone_call_no_control">Чтобы отвечать отсюда, разрешите «Звонки» в Dashwheel Companion.</string>
+    <string name="phone_overlay">Звонки поверх других приложений</string>
+    <string name="phone_overlay_detail">Входящий вызов будет виден, даже когда другое приложение открыто на весь экран.</string>
+    <!-- Text typed on the phone, for the field selected on the car screen (PhoneKeyboard). -->
+    <string name="phone_text_copied">Текст с телефона скопирован: удерживайте текстовое поле, чтобы вставить его</string>
+    <!-- Quick dial and Agenda from the phone, and places sent from it (PhoneLink, InfoTiles, NavHandoff). -->
+    <string name="phone_quickdial_empty">Сопрягите телефон в разделе Настройки, Телефон, чтобы видеть здесь его избранные контакты</string>
+    <string name="phone_agenda_empty">Сопрягите телефон в разделе Настройки, Телефон, чтобы видеть здесь его календарь</string>
+    <string name="phone_call_back">Перезвонить: %1$s</string>
+    <string name="phone_calling">Вызов: %1$s</string>
+    <string name="phone_dial_not_allowed">Чтобы звонить отсюда, разрешите «Звонки» в Dashwheel Companion.</string>
+    <string name="phone_guidance_to">Маршрут: %1$s</string>
+</resources>

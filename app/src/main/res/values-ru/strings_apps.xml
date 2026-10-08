@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Add-widget catalogue: section headings -->
+    <string name="apps_category_driving">Вождение</string>
+    <string name="apps_category_navigation">Навигация</string>
+    <string name="apps_category_vehicle">Автомобиль</string>
+    <string name="apps_category_info">Инфо и связь</string>
+    <string name="apps_category_apps">Медиа</string>
+
+    <!-- Add-widget catalogue: built-in tiles (name, then one-line description) -->
+    <string name="apps_kind_navmap">Карта</string>
+    <string name="apps_kind_navmap_blurb">Бесплатная 3D-карта с поиском и маршрутами</string>
+    <string name="apps_kind_navigation">Маршрут</string>
+    <string name="apps_kind_navigation_blurb">Следующий поворот из Google Maps / Waze</string>
+    <string name="apps_kind_pip_anchor">Окно Maps</string>
+    <string name="apps_kind_pip_anchor_blurb">Закрепляет здесь плавающее окно Maps</string>
+    <string name="apps_kind_media">Плеер</string>
+    <string name="apps_kind_media_blurb">Текущий трек с управлением</string>
+    <string name="apps_kind_telemetry">Приборы двигателя</string>
+    <string name="apps_kind_telemetry_blurb">Скорость, обороты, ОЖ, нагрузка, аккумулятор</string>
+    <string name="apps_kind_obd_dtc">Коды ошибок</string>
+    <string name="apps_kind_obd_dtc_blurb">Чтение и сброс кодов ошибок OBD</string>
+    <string name="apps_kind_obd_all">Все данные авто</string>
+    <string name="apps_kind_obd_all_blurb">Все значения OBD в реальном времени</string>
+    <string name="apps_kind_range">Топливо и запас хода</string>
+    <string name="apps_kind_range_blurb">Уровень в баке и км до пустого бака</string>
+    <string name="apps_kind_doors">Двери</string>
+    <string name="apps_kind_doors_blurb">Состояние дверей и багажника от автомобиля</string>
+    <string name="apps_kind_can_mon">Монитор CAN</string>
+    <string name="apps_kind_can_mon_blurb">Сырые кадры CAN для поиска сигналов</string>
+    <string name="apps_kind_speed_hud">Скорость</string>
+    <string name="apps_kind_speed_hud_blurb">Крупная цифровая скорость по OBD или GPS</string>
+    <string name="apps_kind_compass">Компас</string>
+    <string name="apps_kind_compass_blurb">Курс, высота и скорость по GPS</string>
+    <string name="apps_kind_trip">Бортовой компьютер</string>
+    <string name="apps_kind_trip_blurb">Пробег, время, средняя и макс. скорость</string>
+    <string name="apps_kind_gforce">Перегрузка</string>
+    <string name="apps_kind_gforce_blurb">Перегрузка g в поворотах и при торможении</string>
+    <string name="apps_kind_parking">Место парковки</string>
+    <string name="apps_kind_parking_blurb">Запомните место парковки и вернитесь к нему пешком</string>
+    <string name="apps_kind_clock">Часы</string>
+    <string name="apps_kind_clock_blurb">Время и дата крупно</string>
+    <string name="apps_kind_weather">Погода</string>
+    <string name="apps_kind_weather_blurb">Погода у автомобиля, без аккаунта</string>
+    <string name="apps_kind_calendar">Календарь</string>
+    <string name="apps_kind_calendar_blurb">Ваши ближайшие события</string>
+    <string name="apps_kind_quick_dial">Быстрый набор</string>
+    <string name="apps_kind_quick_dial_blurb">Избранные контакты, звонок одним касанием</string>
+    <string name="apps_kind_notifications">Уведомления</string>
+    <string name="apps_kind_notifications_blurb">Сообщения и оповещения из приложений</string>
+    <string name="apps_kind_audio">Звук</string>
+    <string name="apps_kind_audio_blurb">Громкость, без звука, настройки звука и Bluetooth</string>
+
+    <!-- Add-widget catalogue: dialog -->
+    <string name="apps_pick_launch_bar">Панель запуска</string>
+    <string name="apps_pick_launch_bar_blurb">Любимые приложения в один ряд</string>
+    <string name="apps_pick_system_widget">Системный виджет…</string>
+    <string name="apps_pick_system_widget_blurb">Любой установленный виджет</string>
+    <string name="apps_cancel">Отмена</string>
+    <string name="apps_save">Сохранить</string>
+
+    <!-- Launch bar tile and its editor -->
+    <string name="apps_launch_bar_empty">Панель запуска: нажмите на карандаш, чтобы добавить приложения</string>
+    <string name="apps_launch_bar_edit">Изменить панель запуска</string>
+    <string name="apps_launch_bar_editor_title">Приложения панели запуска</string>
+    <string name="apps_launch_bar_editor_empty">Приложений пока нет. Добавьте те, что открываете чаще всего.</string>
+    <string name="apps_move_left">Влево</string>
+    <string name="apps_move_right">Вправо</string>
+    <string name="apps_remove">Удалить</string>
+    <string name="apps_add_app">Добавить приложение</string>
+    <plurals name="apps_launch_bar_full">
+        <item quantity="one">Панель заполнена: %1$d приложение</item>
+        <item quantity="few">Панель заполнена: %1$d приложения</item>
+        <item quantity="many">Панель заполнена: %1$d приложений</item>
+        <item quantity="other">Панель заполнена: %1$d приложения</item>
+    </plurals>
+    <string name="apps_launch_bar_add_title">Добавить на панель запуска</string>
+
+    <!-- App picker and all-apps drawer -->
+    <string name="apps_choose_app">Выберите приложение</string>
+    <string name="apps_all_apps">Все приложения</string>
+    <string name="apps_close_drawer">Закрыть список приложений</string>
+    <string name="apps_no_apps_found">Приложения не найдены</string>
+
+    <!-- Docked app window tile (%1$s is the app name; the tile title is ALL CAPS) -->
+    <string name="apps_window_title">ОКНО %1$s</string>
+    <string name="apps_window_maps_docked_beside">Maps закреплено рядом с панелью.</string>
+    <string name="apps_window_docked">Закреплено: %1$s (%2$s)</string>
+    <string name="apps_window_tap_to_raise">Окно скрыто? Нажмите здесь, чтобы вернуть его на передний план.</string>
+    <string name="apps_window_gave_up">Система не даёт переместить %1$s</string>
+    <string name="apps_window_moving">Перемещение %1$s сюда…</string>
+    <string name="apps_window_opening">Открытие %1$s здесь…</string>
+    <string name="apps_window_maps_hint">Google Maps закрепляется здесь.\nОткройте его ниже или запустите навигацию и нажмите «Домой».</string>
+    <string name="apps_window_app_hint">%1$s работает здесь, в окне размером с эту плитку.</string>
+    <string name="apps_window_open">Открыть %1$s здесь</string>
+    <string name="apps_window_open_full">Открыть %1$s целиком здесь</string>
+    <string name="apps_window_error_gave_up">Не удалось удержать приложение в окне</string>
+    <string name="apps_window_error_no_shell">Нет root (Magisk), и сокет ADB на порту %1$d не отвечает</string>
+
+    <!-- Docked app window tile: diagnostics (%1$s / %2$s are pixel rectangles or system output) -->
+    <string name="apps_window_diag_position">Окно %1$s → цель %2$s</string>
+    <string name="apps_window_diag_last">Последнее: %1$s</string>
+    <string name="apps_window_diag_seen">Окна: %1$s</string>
+
+    <!-- Floating split-screen swap button (accessibility label) -->
+    <string name="apps_swap_split_panes">Поменять приложения на разделённом экране</string>
+    <!-- The add sheet (AddSheet.kt): widgets, apps and windows in one place -->
+    <string name="apps_add_title">Добавить на %1$s</string>
+    <string name="apps_tab_widgets">Виджеты</string>
+    <string name="apps_tab_apps">Приложения</string>
+    <string name="apps_search">Поиск</string>
+    <string name="apps_category_all">Все</string>
+    <string name="apps_embed_app_starting">Открытие %1$s</string>
+    <string name="apps_embed_app_missing">%1$s не установлено</string>
+    <string name="apps_embed_app_blocked">%1$s не работает внутри плитки на этой магнитоле. Добавьте его как окно.</string>
+    <string name="apps_embed_under_dashboard">Уже под панелью</string>
+    <string name="apps_pair_pick_first">Выберите приложение для левой стороны.</string>
+    <string name="apps_pair_pick_second">%1$s слева. Теперь выберите приложение для правой стороны.</string>
+    <string name="apps_pair_change">Изменить</string>
+    <string name="apps_kind_maps_inside">Google Maps внутри</string>
+    <string name="apps_kind_maps_inside_blurb">Настоящее приложение Google Maps прямо в этой плитке</string>
+    <string name="apps_kind_dash_bar">Строка панелей</string>
+    <string name="apps_kind_dash_bar_blurb">Ваши панели и приложения на этой панели, каждое одним касанием</string>
+    <string name="apps_most_used">Часто используемые</string>
+    <string name="apps_kind_screen_light">Яркость экрана Pi</string>
+    <string name="apps_kind_screen_light_blurb">Подсветка второго экрана днём и ночью</string>
+    <string name="apps_kind_radios">Wi-Fi и Bluetooth</string>
+    <string name="apps_kind_radios_blurb">Включение и выключение Wi-Fi и Bluetooth магнитолы</string>
+    <string name="apps_radio_wifi">Wi-Fi</string>
+    <string name="apps_radio_bluetooth">Bluetooth</string>
+    <string name="apps_radio_on">Вкл.</string>
+    <string name="apps_radio_off">Выкл.</string>
+    <string name="apps_radio_switching">Переключение</string>
+
+    <!-- Add sheet: what a widget is missing right now, and the kinds already placed -->
+    <string name="apps_needs_obd">Нужен OBD-адаптер</string>
+    <string name="apps_needs_phone">Нужен телефон</string>
+    <string name="apps_needs_internet">Нужен интернет</string>
+    <string name="apps_needs_root">Нужен root</string>
+    <string name="apps_needs_carbox">Нужен CAN-блок автомобиля</string>
+    <string name="apps_on_dashboard">Уже на панели</string>
+    <string name="apps_as_icon">Значок</string>
+    <string name="apps_as_icon_detail">Открывает приложение</string>
+    <string name="apps_in_tile">В плитке</string>
+    <string name="apps_in_tile_inside">Работает внутри плитки на этой панели</string>
+    <string name="apps_in_tile_window">Остаётся открытым в окне размером с плитку</string>
+    <string name="apps_side_by_side">Рядом</string>
+    <string name="apps_side_by_side_detail">Два приложения сразу на разделённом экране</string>
+</resources>

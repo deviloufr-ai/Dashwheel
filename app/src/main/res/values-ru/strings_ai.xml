@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Settings dialog (also the menu item) -->
+    <string name="ai_title">ИИ-механик</string>
+    <string name="ai_explanation">Gemini объясняет каждый новый код ошибки и зачитывает его вслух. В Google отправляются: коды, показания двигателя, модель автомобиля и ваш голос, когда вы задаёте вопрос вслух.</string>
+    <string name="ai_activation_code">Код активации</string>
+    <string name="ai_activation_hint">Открывает встроенный ключ</string>
+    <string name="ai_activate">Активировать</string>
+    <string name="ai_own_key">Или ваш собственный API-ключ Gemini</string>
+    <string name="ai_key">API-ключ Gemini</string>
+    <string name="ai_key_hint">Бесплатно на aistudio.google.com → Get API key</string>
+    <string name="ai_language">Язык ответов</string>
+    <string name="ai_language_auto">Как в приложении</string>
+    <string name="ai_language_detail">Для письменных ответов Gemini</string>
+    <string name="ai_test">Проверить</string>
+    <string name="ai_done">Готово</string>
+
+    <!-- Settings dialog: test results -->
+    <string name="ai_test_ok">Gemini работает: %1$s</string>
+    <string name="ai_test_activated_ok">Активировано. Gemini работает: %1$s</string>
+    <string name="ai_test_failed">Не удалось: %1$s</string>
+    <string name="ai_test_activated_unreachable">Активировано. Gemini пока недоступен: %1$s</string>
+    <string name="ai_test_waiting">Связь с Google… %1$d с</string>
+    <string name="ai_wrong_code">Неверный код активации</string>
+    <string name="ai_no_voice">На этой магнитоле нет голоса для языка %1$s: добавьте его в Настройки Android → Синтез речи.</string>
+
+    <!-- Spoken by the car, in the launcher's language -->
+    <string name="ai_say_ready">ИИ-механик готов.</string>
+    <plurals name="ai_say_new_codes">
+        <item quantity="one">%1$d новая неисправность двигателя: %2$s. Посмотрите плитку «Коды ошибок» на стоянке.</item>
+        <item quantity="few">%1$d новые неисправности двигателя: %2$s. Посмотрите плитку «Коды ошибок» на стоянке.</item>
+        <item quantity="many">%1$d новых неисправностей двигателя: %2$s. Посмотрите плитку «Коды ошибок» на стоянке.</item>
+        <item quantity="other">%1$d новой неисправности двигателя: %2$s. Посмотрите плитку «Коды ошибок» на стоянке.</item>
+    </plurals>
+    <plurals name="ai_say_new_codes_untitled">
+        <item quantity="one">%1$d новая неисправность двигателя. Посмотрите плитку «Коды ошибок» на стоянке.</item>
+        <item quantity="few">%1$d новые неисправности двигателя. Посмотрите плитку «Коды ошибок» на стоянке.</item>
+        <item quantity="many">%1$d новых неисправностей двигателя. Посмотрите плитку «Коды ошибок» на стоянке.</item>
+        <item quantity="other">%1$d новой неисправности двигателя. Посмотрите плитку «Коды ошибок» на стоянке.</item>
+    </plurals>
+    <string name="ai_say_overheat">Внимание, двигатель перегревается: %1$d°. Остановитесь, когда это будет безопасно, и заглушите двигатель.</string>
+    <string name="ai_say_not_charging">Аккумулятор не заряжается: %1$s вольта при работающем двигателе. Поезжайте в сервис и выключите всё лишнее.</string>
+    <string name="ai_say_weak_battery">Аккумулятор слабый: %1$s вольта при заглушенном двигателе. Проверьте его в ближайшее время.</string>
+
+    <!-- Fault codes tile: labels around the AI advice (in the mechanic's language, like the advice) -->
+    <string name="ai_verdict_ok">Срочности нет</string>
+    <string name="ai_verdict_soon">Проверьте в ближайшее время</string>
+    <string name="ai_verdict_stop">Прекратите движение</string>
+    <!-- When the built-in rules rate a fault more serious than the AI did (spoken, and shown in the verdict) -->
+    <string name="ai_rules_stop">Эта неисправность может повредить двигатель: остановитесь, когда это безопасно, и проверьте автомобиль, прежде чем ехать дальше.</string>
+    <string name="ai_rules_soon">С этой неисправностью нужно заехать в сервис в ближайшие дни: до тех пор езжайте спокойно.</string>
+    <string name="ai_rules_raised">Встроенные правила безопасности оценили это серьёзнее, чем ИИ.</string>
+    <string name="ai_disclaimer">Совет ИИ (%1$s) может быть ошибочным. Перед ремонтом уточните в сервисе.</string>
+    <string name="ai_details_parked">Подробности доступны на стоянке. Вопрос можно задать вслух.</string>
+    <string name="ai_check_first">Сначала проверьте: %1$s</string>
+    <string name="ai_details">Подробнее</string>
+    <string name="ai_close">Закрыть</string>
+    <string name="ai_detail_overview">Обзор</string>
+    <string name="ai_detail_meaning">Что это значит</string>
+    <string name="ai_detail_symptoms">Что вы можете заметить</string>
+    <string name="ai_detail_causes">Вероятные причины</string>
+    <string name="ai_detail_check_first">Что проверить сначала</string>
+    <string name="ai_detail_checks">Пошагово</string>
+    <string name="ai_detail_repair">Обычный ремонт</string>
+    <string name="ai_detail_cost">Примерная стоимость</string>
+    <string name="ai_detail_diy">Можно сделать самому?</string>
+    <string name="ai_detail_driving">Можно ли ехать дальше?</string>
+    <string name="ai_ask">Задать вопрос</string>
+    <string name="ai_ask_send">Отправить</string>
+    <string name="ai_ask_listening">Слушаю… задайте вопрос, он отправится сам, когда вы замолчите.</string>
+    <string name="ai_ask_thinking">Механик думает…</string>
+    <string name="ai_ask_you_asked">Ваш вопрос: %1$s</string>
+    <string name="ai_ask_nothing_heard">Вопрос не расслышан. Нажмите и спросите ещё раз.</string>
+    <string name="ai_ask_mic_denied">Разрешите доступ к микрофону, чтобы спрашивать голосом.</string>
+    <string name="ai_ask_mic_error">Не удалось включить микрофон.</string>
+    <string name="ai_ask_failed">Нет ответа: %1$s</string>
+    <string name="ai_ask_replay">Прослушать снова</string>
+
+    <!-- Fault codes tile: status -->
+    <string name="ai_no_codes">Кодов ошибок нет</string>
+    <string name="ai_cleared">Сброшено</string>
+    <string name="ai_scan_failed">Ошибка чтения</string>
+    <string name="ai_clear_failed">Ошибка сброса</string>
+    <string name="ai_thinking">Запрос к ИИ-механику…</string>
+    <string name="ai_retry">Повторить</string>
+    <string name="ai_note_no_key">Добавьте бесплатный ключ Gemini в Настройки → Автомобиль → ИИ-механик, чтобы получать понятные советы.</string>
+    <string name="ai_note_unavailable">ИИ недоступен: %1$s</string>
+
+    <!-- Why asking Gemini failed (follows "AI unavailable: " / "Didn't work: ") -->
+    <string name="ai_error_quota">бесплатный лимит на сегодня исчерпан</string>
+    <string name="ai_error_key_refused">ключ отклонён</string>
+    <string name="ai_error_gemini">ошибка Gemini %1$d</string>
+    <string name="ai_error_empty">Gemini вернул пустой ответ</string>
+    <string name="ai_error_unreadable">ответ Gemini не удалось прочитать</string>
+    <string name="ai_error_offline">нет подключения к интернету</string>
+    <string name="ai_error_no_dns">нет интернета: Google не найден (проверьте Wi-Fi или точку доступа магнитолы)</string>
+    <string name="ai_error_no_access">Wi-Fi подключён, но интернета нет (возможно, нужен вход или на телефоне нет мобильных данных)</string>
+    <string name="ai_error_timeout">Google не ответил вовремя: соединение слишком медленное или без интернета</string>
+    <string name="ai_error_gemini_busy">ИИ Google сейчас перегружен, повторите через несколько минут</string>
+    <string name="ai_error_tls">защищённое соединение отклонено: проверьте дату и время на магнитоле</string>
+    <string name="ai_error_connect">не удалось подключиться к Google</string>
+    <string name="ai_error_unknown">неизвестная ошибка</string>
+    <string name="ai_say_overcharging">Напряжение аккумулятора слишком высокое: %1$s вольта при работающем двигателе. Возможно, неисправен регулятор заряда: проверьте его в ближайшее время.</string>
+    <!-- Asking the mechanic about the car as it is now (fault codes tile microphone, hands-free) -->
+    <string name="ai_ask_wheel_action">Спросить ИИ-механика</string>
+    <!-- Spoken, in the mechanic's language -->
+    <string name="ai_ask_say_listening">Слушаю.</string>
+    <string name="ai_ask_say_nothing_heard">Я не расслышал вопрос.</string>
+    <string name="ai_ask_say_no_key">ИИ-механику нужен ключ Gemini. Добавьте его в настройках автомобиля, в разделе ИИ-механик.</string>
+    <string name="ai_ask_say_mic">Доступ к микрофону ещё не разрешён. Один раз нажмите на микрофон на плитке «Коды ошибок», чтобы разрешить его.</string>
+    <string name="ai_gemini_live_missing">Gemini не установлен на этой магнитоле.</string>
+    <string name="ai_gemini_live_end">Завершить</string>
+    <string name="ai_gemini_live_show">Показать Gemini Live</string>
+    <string name="ai_live_connecting">Подключение</string>
+    <string name="ai_live_listening">Слушаю</string>
+    <string name="ai_live_thinking">Думаю</string>
+    <string name="ai_live_speaking">Говорю</string>
+    <string name="ai_live_failed">Gemini не отвечает. Проверьте подключение.</string>
+    <string name="ai_live_own">Gemini, который знает автомобиль</string>
+    <string name="ai_live_own_detail">Использует ваш ключ Gemini: видит автомобиль, поездку и панель и может управлять ими. Выкл.: приложение Gemini от Google</string>
+</resources>

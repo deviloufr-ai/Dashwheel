@@ -58,6 +58,9 @@ android {
         }
         create("play") {
             dimension = "edition"
+            // Its own package on Google Play: the GitHub edition keeps com.openauto.dash,
+            // so the two never overwrite each other (their signing keys differ anyway).
+            applicationId = "com.dashwheel.app"
             buildConfigField("boolean", "PLAY", "true")
         }
     }
@@ -116,7 +119,7 @@ android {
     androidResources {
         // The languages the app is translated into (see tools/check_translations.py);
         // drops the dozens of others the libraries bring, keeping the APK small.
-        localeFilters += listOf("en", "fr", "de", "es", "it", "pt", "nl", "pl")
+        localeFilters += listOf("en", "fr", "de", "es", "it", "pt", "nl", "pl", "ru")
     }
 
     // The language can be switched inside the app, so every build carries them all.
@@ -192,6 +195,8 @@ dependencies {
     // Phone link: the protocol shared with the companion app, and the pairing QR code.
     implementation(project(":link"))
     implementation("com.google.zxing:core:3.5.3")
+    // The Play edition's tips (TipJar.kt): Google Play's own billing, as Play requires.
+    "playImplementation"("com.android.billingclient:billing-ktx:8.0.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 

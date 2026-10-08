@@ -202,6 +202,7 @@
     <string name="about_support_text">O Dashwheel é gratuito. Se gostar, um café ajuda a mantê-lo.</string>
     <string name="about_kofi">Ofereça-me um café no Ko-fi</string>
     <string name="about_scan">Leia com o telemóvel</string>
+    <string name="about_tip_thanks">Obrigado, ajuda mesmo.</string>
     <string name="about_project">Página do projeto</string>
     <string name="about_project_detail">Código-fonte, versões e relatórios de erros</string>
     <string name="help_title">Ajuda</string>

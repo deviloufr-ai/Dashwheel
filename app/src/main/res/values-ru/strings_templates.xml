@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dashboard templates: ready-made widget sets for all 7 dashboards -->
+    <string name="templates_button">Шаблоны</string>
+    <string name="templates_title">Шаблоны панелей</string>
+    <string name="templates_daily">На каждый день</string>
+    <string name="templates_daily_blurb">Карта и музыка на виду, автомобиль и ваш день в одном свайпе</string>
+    <string name="templates_road_trip">Дальняя поездка</string>
+    <string name="templates_road_trip_blurb">Большая карта, запас хода, погода и остановки для долгих поездок</string>
+    <string name="templates_car_health">Состояние автомобиля</string>
+    <string name="templates_car_health_blurb">Данные автомобиля и коды ошибок на Главной</string>
+    <string name="templates_hint">Шаблон заполняет Главную и две соседние панели под этот экран, основные плитки со стороны водителя.</string>
+    <string name="templates_no_obd">OBD-адаптер ещё не выбран, поэтому виджеты данных автомобиля не добавлены.</string>
+    <string name="templates_fill_empty">Заполнить пустые панели</string>
+    <string name="templates_replace_all">Заменить эти панели</string>
+    <string name="templates_replace_confirm_title">Заменить эти панели?</string>
+    <string name="templates_replace_confirm_body">Ваша расстановка пропадёт. «Отменить» вернёт её.</string>
+    <string name="templates_replace">Заменить</string>
+    <string name="templates_column">Заполнить и панели сверху и снизу</string>
+    <string name="templates_column_detail">Ещё четыре панели, вверх и вниз от Главной</string>
+    <string name="templates_fill_this">Заполнить эту панель</string>
+    <string name="templates_fill_this_hint">На неё одну ставится страница шаблона для %1$s.</string>
+    <string name="templates_fill">Заполнить</string>
+    <string name="templates_all_dashboards">Все панели…</string>
+    <string name="templates_none_empty">Нет пустых панелей среди пролистываемых</string>
+</resources>

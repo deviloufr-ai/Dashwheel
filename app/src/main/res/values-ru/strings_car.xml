@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Car profile and car-care tiles (CarProfile.kt, CarCare.kt, CarCareTiles.kt, CarSettingsDialog.kt) -->
+
+    <!-- Widget picker -->
+    <string name="car_kind_filter">Сажевый фильтр</string>
+    <string name="car_kind_filter_blurb">Короткие поездки и очистка фильтра</string>
+    <string name="car_kind_warmup">Прогрев двигателя</string>
+    <string name="car_kind_warmup_blurb">Температура ОЖ, бережно на холодном</string>
+    <string name="car_kind_battery">Аккумулятор</string>
+    <string name="car_kind_battery_blurb">Напряжение и зарядка</string>
+    <string name="car_kind_my_car">Мой автомобиль</string>
+    <string name="car_kind_my_car_blurb">Масло, шины, ТО и другие данные</string>
+    <string name="car_kind_eco">Эко-вождение</string>
+    <string name="car_kind_eco_blurb">Оценка вождения, топливо и расходы</string>
+    <string name="car_kind_break">Напоминание о перерыве</string>
+    <string name="car_kind_break_blurb">Время в пути, голосовое напоминание через 2 ч</string>
+    <string name="car_kind_fuel_dest">Топливо до цели</string>
+    <string name="car_kind_fuel_dest_blurb">Хватит ли запаса хода на маршрут?</string>
+
+    <!-- Shared -->
+    <string name="car_waiting_obd">Ожидание OBD-адаптера…</string>
+    <string name="car_unknown">Неизвестно</string>
+    <string name="car_running_for">Двигатель работает: %1$s</string>
+    <string name="car_gears">Передач: %1$d</string>
+    <string name="car_months">%1$d мес.</string>
+
+    <!-- Particle filter -->
+    <string name="car_filter_title">САЖЕВЫЙ ФИЛЬТР</string>
+    <string name="car_filter_none">В этом автомобиле нет сажевого фильтра. Изменить: Настройки → Автомобиль → Мой автомобиль.</string>
+    <plurals name="car_filter_short_unit">
+        <item quantity="one">короткая поездка</item>
+        <item quantity="few">короткие поездки подряд</item>
+        <item quantity="many">коротких поездок подряд</item>
+        <item quantity="other">короткой поездки подряд</item>
+    </plurals>
+    <string name="car_filter_ok">Фильтр очищается нормально</string>
+    <string name="car_filter_needs_drive">Запланируйте 20 мин езды быстрее 60 км/ч</string>
+    <string name="car_filter_needs_drive_now">Фильтру скоро нужна долгая поездка</string>
+    <string name="car_filter_this_drive">Эта поездка: %1$d из %2$d мин быстрой езды на прогретом двигателе</string>
+    <string name="car_filter_last_long">Последняя долгая поездка: %1$s</string>
+    <string name="car_filter_last_long_never">Долгих поездок пока не было</string>
+    <string name="car_filter_additive">Используется присадка к топливу: проверяйте её уровень на каждом ТО</string>
+    <string name="car_filter_regen">Идёт очистка</string>
+    <string name="car_filter_additive_low">Присадки мало: %1$d %%. Долейте на ближайшем ТО</string>
+
+    <!-- Warm-up -->
+    <string name="car_warmup_title">ПРОГРЕВ</string>
+    <string name="car_warmup_cold">Холодный: не выше %1$d об/мин</string>
+    <string name="car_warmup_warming">Прогревается</string>
+    <string name="car_warmup_warm">Прогрет: можно на полную мощность</string>
+
+    <!-- Battery -->
+    <string name="car_battery_title">АККУМУЛЯТОР</string>
+    <string name="car_battery_charging">Зарядка в норме</string>
+    <string name="car_battery_charging_low">Зарядка слегка понижена</string>
+    <string name="car_battery_not_charging">Нет зарядки: проверьте генератор</string>
+    <string name="car_battery_full">Полностью заряжен</string>
+    <string name="car_battery_good">Хороший заряд</string>
+    <string name="car_battery_low">Низкий: поездка его подзарядит</string>
+    <string name="car_battery_weak">Слабый аккумулятор</string>
+    <string name="car_battery_hint_running">Двигатель работает: норма 13,2–14,8 В</string>
+    <string name="car_battery_hint_off">Двигатель заглушен: норма от 12,4 В</string>
+    <string name="car_battery_capacity">Аккумулятор %1$d А·ч</string>
+
+    <!-- Eco driving -->
+    <string name="car_eco_title">ЭКО-ВОЖДЕНИЕ</string>
+    <string name="car_eco_title_last">ПОСЛЕДНЯЯ ПОЕЗДКА</string>
+    <string name="car_eco_empty">Начнётся со следующей поездки</string>
+    <string name="car_eco_too_early">Пока рано судить</string>
+    <string name="car_eco_smooth">Плавное вождение</string>
+    <string name="car_eco_fair">Неплохо: немного резко</string>
+    <string name="car_eco_harsh">Резко: спокойнее</string>
+    <string name="car_eco_band">Обороты %1$d–%2$d об/мин</string>
+    <string name="car_eco_hard">Резкие разгоны / торможения</string>
+    <string name="car_eco_hard_value">%1$d / %2$d</string>
+    <string name="car_eco_clutch">Удержание на подъёме газом</string>
+    <string name="car_eco_fuel">Топливо на %1$s км</string>
+    <string name="car_eco_fuel_value">≈ %1$s л · %2$s %3$s</string>
+
+    <!-- Fuel to destination -->
+    <string name="car_fuel_dest_title">ТОПЛИВО ДО ЦЕЛИ</string>
+    <string name="car_fuel_dest_no_range">Запас хода пока неизвестен: настройте плитку «Топливо и запас хода»</string>
+    <string name="car_fuel_dest_no_nav">Оставшийся запас хода. Запустите навигацию в Maps или Waze для сравнения.</string>
+    <string name="car_fuel_dest_spare_unit">км в запасе</string>
+    <string name="car_fuel_dest_enough">Топлива хватит</string>
+    <string name="car_fuel_dest_tight">Впритык: запас мал</string>
+    <string name="car_fuel_dest_short">Заправьтесь по пути</string>
+    <string name="car_fuel_dest_detail">Запас хода %1$d км · осталось %2$d км</string>
+
+    <!-- Break reminder -->
+    <string name="car_break_title">ВРЕМЯ В ПУТИ</string>
+    <string name="car_break_ok">Перерыв каждые 2 часа</string>
+    <string name="car_break_due">Пора сделать перерыв</string>
+    <string name="car_break_hint">Остановка на 15 мин сбрасывает счёт</string>
+
+    <!-- My car tile -->
+    <string name="car_my_car_title">МОЙ АВТОМОБИЛЬ</string>
+    <string name="car_my_car_fetch_hint">Нажмите, чтобы получить все данные через ИИ</string>
+    <string name="car_my_car_name_hint">Нажмите, чтобы указать автомобиль</string>
+    <string name="car_source_preset">Шаблон</string>
+    <string name="car_source_ai">От ИИ</string>
+    <string name="car_source_user">Изменено</string>
+    <string name="car_spec_engine">Двигатель</string>
+    <string name="car_spec_gearbox">КПП</string>
+    <string name="car_spec_oil">Масло</string>
+    <string name="car_spec_tyres">Шины</string>
+    <string name="car_spec_service">ТО</string>
+    <string name="car_gearbox_manual">Механика</string>
+    <string name="car_gearbox_robotised">Робот</string>
+    <string name="car_gearbox_automatic">Автомат</string>
+    <string name="car_gearbox_dual_clutch">Два сцепления</string>
+    <string name="car_gearbox_cvt">Вариатор</string>
+    <string name="car_fuel_diesel">Дизель</string>
+    <string name="car_fuel_petrol">Бензин</string>
+    <string name="car_fuel_hybrid">Гибрид</string>
+    <string name="car_fuel_lpg">Газ</string>
+    <string name="car_fuel_electric">Электро</string>
+
+    <!-- My car settings -->
+    <string name="car_menu">Мой автомобиль</string>
+    <string name="car_my_car_title_dialog">Мой автомобиль</string>
+    <string name="car_settings_explanation">Точно укажите автомобиль, и ИИ заполнит характеристики. Проверьте их перед сохранением.</string>
+    <string name="car_name">Автомобиль</string>
+    <string name="car_name_hint">Марка, модель, двигатель и год</string>
+    <string name="car_fetch">Заполнить через ИИ</string>
+    <string name="car_fetch_ok">Данные заполнены: проверьте и нажмите «Сохранить»</string>
+    <string name="car_fetch_failed">Не удалось получить данные: %1$s</string>
+    <string name="car_fetch_no_key">сначала добавьте ключ Gemini в Настройки → Автомобиль → ИИ-механик</string>
+    <string name="car_fetch_needs_key">Добавьте ключ Gemini в Настройки, Автомобиль, ИИ-механик, чтобы заполнить данные</string>
+    <string name="car_section_engine">Двигатель</string>
+    <string name="car_section_gearbox">Коробка передач</string>
+    <string name="car_section_upkeep">Обслуживание</string>
+    <string name="car_section_fuel_price">Цена топлива</string>
+    <string name="car_section_notes">Известные слабые места</string>
+    <string name="car_spec_power">Мощность (л. с.)</string>
+    <string name="car_spec_torque">Момент (Н·м)</string>
+    <string name="car_spec_torque_rpm">Момент от (об/мин)</string>
+    <string name="car_spec_redline">Красная зона (об/мин)</string>
+    <string name="car_spec_operating_temp">Рабочая темп. (°C)</string>
+    <string name="car_spec_battery">Аккумулятор (А·ч)</string>
+    <string name="car_spec_filter">Сажевый фильтр</string>
+    <string name="car_spec_filter_detail">Дизельный сажевый фильтр (FAP / DPF)</string>
+    <string name="car_spec_additive">Присадка фильтра</string>
+    <string name="car_spec_additive_detail">Фильтр использует присадку к топливу (например, Eolys)</string>
+    <string name="car_spec_gearbox_name">Название КПП</string>
+    <string name="car_spec_gears">Передачи</string>
+    <string name="car_spec_tank">Бак (л)</string>
+    <string name="car_spec_consumption">Обычный расход (л/100 км)</string>
+    <string name="car_spec_oil_capacity">Масло (л)</string>
+    <string name="car_spec_oil_spec">Тип масла</string>
+    <string name="car_service_interval">ТО каждые %1$s км или %2$d мес.</string>
+    <string name="car_service_interval_km">ТО каждые %1$s км</string>
+    <string name="car_service_interval_months">ТО каждые %1$d мес.</string>
+    <string name="car_service_interval_unknown">Интервал ТО не задан</string>
+    <string name="car_service_from_servicing">Изменить в разделе «Обслуживание»</string>
+    <string name="car_spec_timing">Ремень / цепь ГРМ</string>
+    <string name="car_spec_tyre_size">Размер шин</string>
+    <string name="car_spec_tyre_front">Перед (бар)</string>
+    <string name="car_spec_tyre_rear">Зад (бар)</string>
+    <string name="car_spec_fuel_price">Цена за литр</string>
+    <string name="car_spec_currency">Валюта</string>
+    <string name="car_reset_preset">Вернуть шаблон: C4 Picasso 1.6 HDi BMP6</string>
+    <string name="car_save">Сохранить</string>
+
+    <!-- AI mechanic settings -->
+    <string name="car_ai_car">Автомобиль</string>
+    <string name="car_ai_car_detail">%1$s. Изменить: Настройки → Автомобиль → Мой автомобиль.</string>
+
+    <!-- Spoken by CarCare, in the mechanic's language -->
+    <string name="car_say_cold_revs">Двигатель ещё холодный. Ещё несколько минут не поднимайте обороты выше %1$d.</string>
+    <string name="car_say_clutch_hold">Удерживайте автомобиль тормозом, а не педалью газа. Так изнашивается сцепление этой коробки.</string>
+    <string name="car_say_filter">Коротких поездок подряд: %1$d. Когда будет возможность, проедьте 15–20 минут со скоростью выше 60 км/ч, чтобы сажевый фильтр очистился.</string>
+    <string name="car_say_filter_regen">Сажевый фильтр очищается. Если можете, проедьте ещё около 10 минут с постоянной скоростью.</string>
+    <string name="car_say_filter_regen_standing">Сажевый фильтр ещё очищается. Если можете, проедьте ещё несколько минут, прежде чем глушить двигатель.</string>
+    <string name="car_say_filter_soot">Сажевый фильтр заполнен на %1$d %%. Постарайтесь в ближайшее время проехать 20 минут по скоростной дороге.</string>
+    <string name="car_say_filter_soot_short">Коротких поездок подряд: %1$d, а сажевый фильтр заполнен на %2$d %%. Постарайтесь в ближайшее время проехать 20 минут по скоростной дороге.</string>
+    <string name="car_say_filter_additive">Присадки для сажевого фильтра мало, осталось %1$d %%. Попросите долить её на ближайшем ТО.</string>
+    <string name="car_say_break">Вы за рулём уже %1$s. Пора сделать перерыв.</string>
+    <string name="car_say_fuel_short">Запаса хода в %1$d км не хватит до пункта назначения: до него %2$d км. Запланируйте заправку.</string>
+    <string name="car_hours_minutes">%1$s и %2$s</string>
+    <plurals name="car_hours">
+        <item quantity="one">%1$d час</item>
+        <item quantity="few">%1$d часа</item>
+        <item quantity="many">%1$d часов</item>
+        <item quantity="other">%1$d часа</item>
+    </plurals>
+    <plurals name="car_minutes">
+        <item quantity="one">%1$d минуту</item>
+        <item quantity="few">%1$d минуты</item>
+        <item quantity="many">%1$d минут</item>
+        <item quantity="other">%1$d минуты</item>
+    </plurals>
+
+    <!-- Which side the driver sits on (templates) -->
+    <string name="car_spec_driver_side">Правый руль</string>
+    <string name="car_spec_driver_side_detail">Правый руль: шаблоны размещают главные плитки справа</string>
+    <string name="car_battery_trip_range">Эта поездка: от %1$s до %2$s В</string>
+    <string name="car_kind_status">Фары и пробег</string>
+    <string name="car_kind_status_blurb">Фары, пробег, поездка и расход от автомобиля</string>
+    <string name="car_status_title">ФАРЫ И ПРОБЕГ</string>
+    <string name="car_status_waiting">Ожидание данных автомобиля</string>
+    <string name="car_status_lights">Свет</string>
+    <string name="car_status_lights_off">Выкл.</string>
+    <string name="car_status_hazard">Аварийка</string>
+    <string name="car_status_main_beam">Дальний свет</string>
+    <string name="car_status_dipped">Ближний свет</string>
+    <string name="car_status_sidelights">Габариты</string>
+    <string name="car_status_front_fog">Передние ПТФ</string>
+    <string name="car_status_rear_fog">Задний ПТФ</string>
+    <string name="car_status_odometer">Пробег</string>
+    <string name="car_status_trip">Поездка</string>
+    <string name="car_status_consumption">Расход</string>
+    <string name="car_status_range">Запас хода</string>
+    <string name="car_status_parking_brake">Стояночный тормоз</string>
+    <string name="car_status_on">Вкл.</string>
+    <string name="car_status_off">Выкл.</string>
+    <string name="car_status_km">км</string>
+    <string name="car_kind_tyres">Шины</string>
+    <string name="car_kind_tyres_blurb">Давление и температура каждой шины от датчиков</string>
+    <string name="car_tyres_title">ШИНЫ</string>
+    <string name="car_tyres_waiting">Ожидание датчиков шин</string>
+    <string name="car_tyres_spare">Запаска</string>
+    <string name="car_tyres_leak">Утечка</string>
+    <string name="car_tyres_low">Низкое давление</string>
+    <string name="car_tyres_high">Высокое давление</string>
+    <string name="car_tyres_hot">Перегрев</string>
+    <string name="car_tyres_no_signal">Нет сигнала</string>
+    <string name="car_tyres_sensor_battery">Батарея датчика разряжена</string>
+    <string name="car_tyres_alert">Проблема с шинами</string>
+    <string name="car_tyres_ok">Шины в норме</string>
+    <string name="car_belt_fasten">Пристегните ремень</string>
+</resources>

@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Shared -->
+    <string name="info_waiting_gps">Ожидание GPS…</string>
+    <string name="info_no_gps">Нет GPS</string>
+    <string name="info_open">Открыть</string>
+    <string name="info_clear">Очистить</string>
+    <string name="info_reset">Сбросить</string>
+    <string name="info_grant_access">Дать доступ</string>
+    <string name="info_connect">Подключить</string>
+
+    <!-- Weather tile -->
+    <string name="info_weather_title">ПОГОДА</string>
+    <string name="info_weather_refresh">Обновить погоду</string>
+    <string name="info_weather_details">Ощущается %1$d° · Ветер %2$d км/ч</string>
+    <string name="info_weather_details_range">Ощущается %1$d° · Ветер %2$d км/ч · %3$d° / %4$d°</string>
+    <string name="info_weather_loading">Загрузка погоды…</string>
+    <string name="info_weather_unavailable">Погода недоступна</string>
+    <string name="info_weather_unavailable_detail">Погода недоступна (%1$s)</string>
+    <string name="info_as_of">Данные на %1$s</string>
+
+    <!-- Weather conditions (WMO codes), also used by the skins -->
+    <string name="info_wx_clear">Ясно</string>
+    <string name="info_wx_mostly_clear">Преимущественно ясно</string>
+    <string name="info_wx_partly_cloudy">Переменная облачность</string>
+    <string name="info_wx_overcast">Пасмурно</string>
+    <string name="info_wx_fog">Туман</string>
+    <string name="info_wx_drizzle">Морось</string>
+    <string name="info_wx_freezing_drizzle">Ледяная морось</string>
+    <string name="info_wx_rain">Дождь</string>
+    <string name="info_wx_freezing_rain">Ледяной дождь</string>
+    <string name="info_wx_snow">Снег</string>
+    <string name="info_wx_showers">Ливни</string>
+    <string name="info_wx_snow_showers">Ливневый снег</string>
+    <string name="info_wx_thunderstorm">Гроза</string>
+    <string name="info_wx_hail_storm">Гроза с градом</string>
+    <string name="info_wx_unknown">Неизвестно</string>
+
+    <!-- Agenda tile -->
+    <string name="info_agenda_title">КАЛЕНДАРЬ</string>
+    <string name="info_agenda_needs_access">Показывать ближайшие события из календаря</string>
+    <string name="info_agenda_allow">Доступ к календарю</string>
+    <string name="info_agenda_empty">Ничего в ближайшие 36 часов</string>
+    <string name="info_agenda_no_title">Без названия</string>
+    <string name="info_agenda_all_day">Весь день</string>
+
+    <!-- Quick dial tile -->
+    <string name="info_quickdial_title">БЫСТРЫЙ НАБОР</string>
+    <string name="info_quickdial_dialer">Набор номера</string>
+    <string name="info_quickdial_needs_access">Показывать здесь избранные контакты</string>
+    <string name="info_quickdial_allow">Доступ к контактам</string>
+    <string name="info_quickdial_empty">Добавьте контакты в избранное в приложении Контакты, чтобы видеть их здесь</string>
+
+    <!-- Notifications tile -->
+    <string name="info_notif_title">УВЕДОМЛЕНИЯ</string>
+    <string name="info_notif_needs_access">Показывать сообщения и оповещения приложений</string>
+    <string name="info_notif_empty">Нет новых уведомлений</string>
+
+    <!-- Audio tile -->
+    <string name="info_audio_title">ЗВУК</string>
+    <string name="info_audio_mute">Выключить звук</string>
+    <string name="info_audio_unmute">Включить звук</string>
+    <string name="info_audio_sound">Звук</string>
+
+    <!-- Speed HUD tile (the title is also the Original theme's speed gauge label) -->
+    <string name="info_speed_title">СКОРОСТЬ</string>
+    <string name="info_speed_no_signal">Нет сигнала</string>
+
+    <!-- Compass tile -->
+    <string name="info_compass_title">КОМПАС</string>
+    <string name="info_compass_no_heading">Начните движение, чтобы определить курс</string>
+    <string name="info_compass_altitude">Высота</string>
+    <string name="info_compass_gps_speed">Скорость GPS</string>
+    <string name="info_compass_accuracy">Точность</string>
+
+    <!-- Compass points (dial letters and heading abbreviations) -->
+    <string name="info_dir_n">С</string>
+    <string name="info_dir_ne">СВ</string>
+    <string name="info_dir_e">В</string>
+    <string name="info_dir_se">ЮВ</string>
+    <string name="info_dir_s">Ю</string>
+    <string name="info_dir_sw">ЮЗ</string>
+    <string name="info_dir_w">З</string>
+    <string name="info_dir_nw">СЗ</string>
+
+    <!-- Trip computer tile -->
+    <string name="info_trip_title">ПОЕЗДКА</string>
+    <string name="info_trip_since">с %1$s</string>
+    <string name="info_trip_time">Время</string>
+    <string name="info_trip_moving">В движении</string>
+    <string name="info_trip_average">Средняя</string>
+    <string name="info_trip_top">Макс.</string>
+    <string name="info_duration_hm">%1$d ч %2$02d мин</string>
+    <string name="info_duration_ms">%1$d мин %2$02d с</string>
+
+    <!-- G-force tile -->
+    <string name="info_gforce_title">ПЕРЕГРУЗКИ</string>
+    <string name="info_gforce_reset_peaks">Сбросить пики</string>
+    <string name="info_gforce_lateral">Боковые</string>
+    <string name="info_gforce_accel_brake">Разгон / торможение</string>
+    <string name="info_gforce_peaks">Пики</string>
+
+    <!-- Parking tile -->
+    <string name="info_parking_title">ПАРКОВКА</string>
+    <string name="info_parking_prompt">Запомнить, где стоит автомобиль</string>
+    <string name="info_parking_save">Сохранить место</string>
+    <string name="info_parking_dir_right">Автомобиль на %1$d° правее</string>
+    <string name="info_parking_dir_left">Автомобиль на %1$d° левее</string>
+    <string name="info_parking_distance_unknown">Расстояние неизвестно</string>
+    <string name="info_parking_parked">Припаркован %1$s</string>
+    <string name="info_parking_parked_dir">Припаркован %1$s · %2$s</string>
+    <string name="info_parking_walk">Пешком туда</string>
+    <string name="info_parking_map_label">Мой автомобиль</string>
+    <string name="info_ago_just_now">только что</string>
+    <string name="info_ago_minutes">%1$d мин назад</string>
+    <string name="info_ago_hours">%1$d ч %2$02d мин назад</string>
+    <string name="info_ago_days">%1$d дн. назад</string>
+
+    <!-- Media tile (both the current and the Original theme) -->
+    <string name="info_now_playing">СЕЙЧАС ИГРАЕТ</string>
+    <string name="info_paused">ПАУЗА</string>
+    <string name="info_nothing_playing">Ничего не играет</string>
+    <string name="info_media_access_needed">Нужен доступ к медиа</string>
+    <string name="info_media_tap_to_enable">Нажмите, чтобы включить</string>
+    <string name="info_media_previous">Назад</string>
+    <string name="info_media_play_pause">Пуск/пауза</string>
+    <string name="info_media_next">Далее</string>
+    <string name="info_media_grant_access">Дать доступ к медиа</string>
+
+    <!-- Original theme telemetry tile -->
+    <string name="info_telemetry_title">ДВИГАТЕЛЬ</string>
+    <string name="info_obd_live">Онлайн</string>
+    <string name="info_gauge_rpm">ОБ/МИН</string>
+    <string name="info_unit_rpm">об/мин</string>
+    <string name="info_chip_coolant">ОЖ</string>
+    <string name="info_chip_load">Нагрузка</string>
+    <string name="info_chip_battery">АКБ</string>
+
+    <!-- Directions tile -->
+    <string name="info_directions_title">МАРШРУТ</string>
+    <string name="info_directions_no_route">Нет маршрута</string>
+    <string name="info_directions_access_title">Нужен доступ к уведомлениям</string>
+    <string name="info_directions_access_hint">Подсказки берутся из уведомления навигации Google Maps.</string>
+    <string name="info_directions_idle_title">Нет активного маршрута</string>
+    <string name="info_directions_idle_hint">Запустите навигацию в Google Maps или Waze, и следующий поворот появится здесь.</string>
+    <string name="info_directions_open_maps">Открыть %1$s</string>
+    <string name="info_nav_continue">Продолжить</string>
+
+    <!-- Map navigator (MapLibre panel) -->
+    <string name="info_map_where_to">Куда едем?</string>
+    <string name="info_map_search">Поиск</string>
+    <string name="info_map_clear_route">Сбросить маршрут</string>
+    <string name="info_map_ready">Готово к навигации</string>
+    <string name="info_map_start">Старт</string>
+    <string name="info_map_gps_not_ready">GPS не готов: Старт всё равно откроет Google Maps</string>
+    <string name="info_map_no_route">Маршрут не найден</string>
+    <string name="info_map_routing_failed">Не удалось построить маршрут</string>
+    <string name="info_map_routing_failed_detail">Не удалось построить маршрут (%1$s)</string>
+    <string name="info_map_address_not_found">Адрес не найден</string>
+    <string name="info_map_duration_hm">%1$d ч %2$02d мин</string>
+    <string name="info_map_duration_min">%1$d мин</string>
+    <string name="info_map_stop">Стоп</string>
+    <string name="info_map_arrived">Вы прибыли</string>
+    <string name="info_map_rerouting">Поиск нового маршрута</string>
+    <string name="info_map_voice_on">Включить голос</string>
+    <string name="info_map_voice_off">Выключить голос</string>
+    <string name="info_map_other_app">Вести в Google Maps или Waze</string>
+    <string name="info_audio_by_keys">Громкость регулируется кнопками магнитолы</string>
+    <string name="info_audio_unavailable">Громкость отсюда не меняется: используйте ручку</string>
+    <string name="info_map_stop_title">Остановить навигацию?</string>
+    <string name="info_map_stop_body">Карта перестанет вести по маршруту. Начните заново с карты.</string>
+    <string name="info_directions_running_title">Запущено: %1$s</string>
+    <string name="info_directions_running_hint">Следующий поворот пока нельзя прочитать здесь.</string>
+</resources>
