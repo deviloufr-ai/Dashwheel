@@ -82,7 +82,8 @@ internal object ClusterFeed {
             nav = nav.takeIf { it.active && it.instruction.isNotBlank() }?.let {
                 ClusterState.Nav(instruction = it.instruction, distance = it.distance, eta = it.eta)
             },
-            labels = labels(context, units)
+            labels = labels(context, units),
+            design = SecondScreenStore.config.value.design.name
         )
     }
 

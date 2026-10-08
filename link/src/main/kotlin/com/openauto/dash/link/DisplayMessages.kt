@@ -216,7 +216,9 @@ data class ClusterState(
     /** The cluster's own words in the head unit's language; null from an older head unit. */
     val labels: Labels? = null,
     /** An alert up on the head unit, to show full screen over the page; null when none. */
-    val alert: Alert? = null
+    val alert: Alert? = null,
+    /** How the display draws its pages, e.g. "DIALS"; null from an older head unit (the display's default). */
+    val design: String? = null
 ) : LinkMessage {
     /** What the head unit is alerting about, in its language: an older display ignores it. */
     @Serializable

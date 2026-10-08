@@ -91,4 +91,8 @@
     <string name="second_screen_light_up">Jaśniej</string>
     <string name="second_screen_alerts">Alerty na pełnym ekranie</string>
     <string name="second_screen_alerts_detail">Alert na pulpicie zajmuje całe zegary, dopóki jest wyświetlany.</string>
+    <string name="second_screen_design_cards">Karty</string>
+    <string name="second_screen_design_dials">Zegary</string>
+    <string name="second_screen_design_large">Duży</string>
+    <string name="second_screen_design_retro">Retro</string>
 </resources>

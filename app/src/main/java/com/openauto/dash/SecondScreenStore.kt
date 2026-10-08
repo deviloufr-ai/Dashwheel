@@ -33,6 +33,7 @@ object SecondScreenStore {
             background = enumOr(p.getString("background", null), d.background),
             followDayNight = p.getBoolean("follow_day_night", d.followDayNight),
             alertsFullScreen = p.getBoolean("alerts_full_screen", d.alertsFullScreen),
+            design = enumOr(p.getString("design", null), d.design),
             upsideDown = p.getBoolean("upside_down", d.upsideDown),
             brightnessDay = p.getInt("brightness_day", d.brightnessDay).coerceIn(BRIGHTNESS),
             brightnessNight = p.getInt("brightness_night", d.brightnessNight).coerceIn(BRIGHTNESS),
@@ -65,6 +66,7 @@ object SecondScreenStore {
             .putString("background", c.background.name)
             .putBoolean("follow_day_night", c.followDayNight)
             .putBoolean("alerts_full_screen", c.alertsFullScreen)
+            .putString("design", c.design.name)
             .putBoolean("upside_down", c.upsideDown)
             .putInt("brightness_day", c.brightnessDay)
             .putInt("brightness_night", c.brightnessNight)

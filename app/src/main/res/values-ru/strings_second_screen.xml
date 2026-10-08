@@ -91,4 +91,8 @@
     <string name="second_screen_light_up">Ярче</string>
     <string name="second_screen_alerts">Оповещения на весь экран</string>
     <string name="second_screen_alerts_detail">Оповещение на панели закрывает все приборы, пока оно показано.</string>
+    <string name="second_screen_design_cards">Карточки</string>
+    <string name="second_screen_design_dials">Циферблаты</string>
+    <string name="second_screen_design_large">Крупно</string>
+    <string name="second_screen_design_retro">Ретро</string>
 </resources>

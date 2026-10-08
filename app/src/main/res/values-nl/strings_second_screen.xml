@@ -91,4 +91,8 @@
     <string name="second_screen_light_up">Lichter</string>
     <string name="second_screen_alerts">Meldingen schermvullend</string>
     <string name="second_screen_alerts_detail">Een melding op het dashboard vult het hele dashboardscherm zolang ze getoond wordt.</string>
+    <string name="second_screen_design_cards">Kaarten</string>
+    <string name="second_screen_design_dials">Wijzers</string>
+    <string name="second_screen_design_large">Groot</string>
+    <string name="second_screen_design_retro">Retro</string>
 </resources>

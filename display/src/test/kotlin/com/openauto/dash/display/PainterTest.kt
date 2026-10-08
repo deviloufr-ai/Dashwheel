@@ -116,10 +116,10 @@ class PainterTest {
         val doors = listOf("Front left door", "Front right door", "Rear left door", "Rear right door", "Tailgate", "Bonnet")
         for ((w, h) in listOf(720 to 480, 1024 to 600)) {
             val painter = Painter(w, h, overscanPct = 5)
-            // The top band on the speed page holds the clock and the warning, nothing else.
+            // The top band on the speed page (above the ring) holds the clock and the warning, nothing else.
             fun band(open: List<String>): List<IntArray> {
                 val image = painter.paintCluster(ClusterState(clock = 0, open = open), 0)
-                return (0 until w).map { x -> image.getRGB(x, 0, 1, h / 4, null, 0, 1) }
+                return (0 until w).map { x -> image.getRGB(x, 0, 1, h / 5, null, 0, 1) }
             }
             val alone = band(emptyList())
             val background = alone[0]
@@ -143,6 +143,20 @@ class PainterTest {
         assertTrue(0xA84300 in day)
         assertFalse(0xFFB300 in day)
         assertTrue(0xFFB300 in colours(night = true))
+    }
+
+    @Test
+    fun theTurnSignFollowsTheWordsInEveryLanguage() {
+        assertEquals(Maneuver.RIGHT, Maneuver.of("Turn right onto Rue de Rivoli"))
+        assertEquals(Maneuver.RIGHT, Maneuver.of("Keep right to continue on A6"))
+        assertEquals(Maneuver.LEFT, Maneuver.of("Tournez à gauche"))
+        assertEquals(Maneuver.RIGHT, Maneuver.of("Biegen Sie rechts ab"))
+        assertEquals(Maneuver.STRAIGHT, Maneuver.of("Continuez tout droit"))
+        assertEquals(Maneuver.STRAIGHT, Maneuver.of("Rechtdoor rijden"))
+        assertEquals(Maneuver.ROUNDABOUT, Maneuver.of("Au rond-point, prenez la 2e sortie à droite"))
+        assertEquals(Maneuver.UTURN, Maneuver.of("Faites demi-tour"))
+        assertEquals(Maneuver.LEFT, Maneuver.of("Поверните налево"))
+        assertNull(Maneuver.of("Take exit 12"))
     }
 
     @Test

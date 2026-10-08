@@ -91,4 +91,8 @@
     <string name="second_screen_light_up">Más claro</string>
     <string name="second_screen_alerts">Avisos a pantalla completa</string>
     <string name="second_screen_alerts_detail">Un aviso en el panel ocupa todo el cuadro mientras se muestra.</string>
+    <string name="second_screen_design_cards">Tarjetas</string>
+    <string name="second_screen_design_dials">Esferas</string>
+    <string name="second_screen_design_large">Grande</string>
+    <string name="second_screen_design_retro">Retro</string>
 </resources>

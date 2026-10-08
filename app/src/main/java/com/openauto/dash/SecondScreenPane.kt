@@ -4,6 +4,7 @@ import android.view.KeyEvent
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -51,6 +53,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -234,7 +239,13 @@ private fun SecondScreenSettings() {
                 stringResource(R.string.second_screen_video_detail), !config.video
             ) { simple -> update { it.copy(video = !simple) } }
             Spacer(Modifier.padding(top = 12.dp))
-            ClusterBoard()
+            // The board lays out the streamed pages; the display draws its own in the chosen design.
+            if (config.video) {
+                ClusterBoard()
+            } else {
+                SettingsSection(stringResource(R.string.second_screen_design))
+                DesignPicker(config.design) { design -> update { it.copy(design = design) } }
+            }
         }
         SecondScreenMode.APP -> {
             if (!SecondScreenRules.appsMovable(android.os.Build.VERSION.SDK_INT)) {
@@ -374,6 +385,60 @@ private fun BrightnessRow(icon: ImageVector, title: String, level: Int, onSet: (
             modifier = Modifier.weight(1f)
         )
     }
+}
+
+/** The Simple display's designs, each as the display draws it, the chosen one framed in the accent. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun DesignPicker(selected: ClusterDesign, onPick: (ClusterDesign) -> Unit) {
+    val tap = rememberTapFeedback()
+    FlowRow(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        ClusterDesign.entries.forEach { design ->
+            val on = design == selected
+            val shape = DashShape.Medium
+            Column(
+                modifier = Modifier
+                    .width(220.dp)
+                    .border(if (on) 3.dp else 1.dp, if (on) DashColors.Accent else DashColors.CardHi, shape)
+                    .background(DashColors.CardHi.copy(alpha = DashColors.CardHi.alpha * if (on) 0.65f else 0.35f), shape)
+                    .clip(shape)
+                    .clickable { tap(); onPick(design) }
+                    .padding(8.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Image(
+                    painterResource(designPreview(design)), contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxWidth().aspectRatio(1024f / 600f).clip(DashShape.Small)
+                )
+                Text(
+                    stringResource(designName(design)),
+                    color = if (on) DashColors.TextPrimary else DashColors.TextSecondary,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                )
+            }
+        }
+    }
+}
+
+private fun designName(design: ClusterDesign): Int = when (design) {
+    ClusterDesign.CARDS -> R.string.second_screen_design_cards
+    ClusterDesign.DIALS -> R.string.second_screen_design_dials
+    ClusterDesign.LARGE -> R.string.second_screen_design_large
+    ClusterDesign.RETRO -> R.string.second_screen_design_retro
+}
+
+/** Pictures the display's own painter made (display module, RenderPreview), so they match it exactly. */
+private fun designPreview(design: ClusterDesign): Int = when (design) {
+    ClusterDesign.CARDS -> R.drawable.second_screen_design_cards
+    ClusterDesign.DIALS -> R.drawable.second_screen_design_dials
+    ClusterDesign.LARGE -> R.drawable.second_screen_design_large
+    ClusterDesign.RETRO -> R.drawable.second_screen_design_retro
 }
 
 /** A row of choices, like the language list's options but side by side. */

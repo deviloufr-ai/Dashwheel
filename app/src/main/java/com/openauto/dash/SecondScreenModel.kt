@@ -21,6 +21,9 @@ enum class ClusterPage { DRIVE, MEDIA, NAV, OBD }
 
 enum class ClusterBackground { BLACK, DARK, LIGHT }
 
+/** How the display draws its own pages ("Simple display"); the names go over the link as they are. */
+enum class ClusterDesign { CARDS, DIALS, LARGE, RETRO }
+
 data class SecondScreenConfig(
     val mode: SecondScreenMode = SecondScreenMode.CLUSTER,
     /** The app shown in [SecondScreenMode.APP]. */
@@ -49,6 +52,8 @@ data class SecondScreenConfig(
     val followDayNight: Boolean = false,
     /** An alert up on the dashboard also covers the whole second screen ([SecondScreenAlerts]). */
     val alertsFullScreen: Boolean = true,
+    /** The look of the pages the display draws itself, when it isn't sent video. */
+    val design: ClusterDesign = ClusterDesign.CARDS,
     /** The monitor is mounted upside down: the display turns every picture 180°. */
     val upsideDown: Boolean = false,
     /** The monitor's backlight by day and by night, 1..100, for a display wired to its buttons. */
