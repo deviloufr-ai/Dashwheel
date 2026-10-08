@@ -1,3 +1,5 @@
+<img src="docs/logo.png" width="96" alt="Dashwheel logo">
+
 # Dashwheel
 
 **The free, open-source car launcher for Android head units (FYT / UIS7862 and similar).** Map, music and live car data on one calm screen: up to seven dashboards you arrange yourself, 30+ widgets, whole-design skins, an AI mechanic that explains warning lights, and your phone's calls and messages on the big screen. No ads, no trial, no account.
