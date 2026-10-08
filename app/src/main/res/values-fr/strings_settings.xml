@@ -232,4 +232,22 @@
     <string name="settings_tabs_nav_detail">Les tableaux de bord se touchent dans la barre latérale ; il la faut. S\'active tout seul quand une appli de carte est sous les tableaux de bord.</string>
     <string name="about_free_open_source">Dashwheel est gratuit et open source.</string>
     <string name="about_updates_play">Les mises à jour viennent de Google Play</string>
+    <string name="settings_obd_source_label">Données OBD depuis</string>
+    <string name="settings_obd_source_adapter">Adaptateur</string>
+    <string name="settings_obd_source_deepobd">Deep OBD</string>
+    <string name="settings_obd_source_adapter_hint">Dashwheel parle lui-même à l\'adaptateur OBD.</string>
+    <string name="settings_obd_source_deepobd_hint">Deep OBD lit la voiture et partage les données. Activez l\'envoi des données dans Deep OBD. Les codes défaut demandent l\'adaptateur.</string>
+    <string name="settings_deepobd_waiting">Rien de Deep OBD pour l\'instant. Ouvrez-le et connectez la voiture.</string>
+    <string name="settings_deepobd_lines">Lignes de Deep OBD. Touchez-en une pour changer ce qu\'elle affiche.</string>
+    <string name="settings_deepobd_needs_adapter">Les codes défaut demandent l\'adaptateur, pas Deep OBD.</string>
+    <string name="settings_deepobd_field_speed">Vitesse</string>
+    <string name="settings_deepobd_field_rpm">Régime</string>
+    <string name="settings_deepobd_field_coolant">Liquide refr.</string>
+    <string name="settings_deepobd_field_intake">Air admission</string>
+    <string name="settings_deepobd_field_throttle">Papillon</string>
+    <string name="settings_deepobd_field_load">Charge moteur</string>
+    <string name="settings_deepobd_field_fuel">Carburant</string>
+    <string name="settings_deepobd_field_voltage">Batterie</string>
+    <string name="settings_deepobd_field_none">Inutilisée</string>
+    <string name="settings_deepobd_field_ignored">Ignorée</string>
 </resources>

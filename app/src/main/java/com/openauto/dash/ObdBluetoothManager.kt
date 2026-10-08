@@ -184,14 +184,30 @@ object ObdBluetoothManager {
     }
 
     /** Whether the next link goes through the phone: chosen so, or Automatic with a phone offering its adapter. */
-    fun usesPhone(): Boolean = when (route()) {
+    fun usesPhone(): Boolean = !DeepObdSource.owns() && when (route()) {
         ObdRoute.PHONE -> true
         ObdRoute.UNIT -> false
         ObdRoute.AUTO -> PhoneObd.offer.value != null
     }
 
-    /** Something to dial: an adapter saved here, or one the phone relays. */
-    fun canDial(): Boolean = usesPhone() || savedDeviceAddress() != null
+    /** Something to dial: an adapter saved here, or one the phone relays; Deep OBD is always there to open. */
+    fun canDial(): Boolean = DeepObdSource.owns() || usesPhone() || savedDeviceAddress() != null
+
+    /** [DeepObdSource]'s readings, shown as if an adapter were connected. */
+    internal fun deepObdWrite(data: ObdData) {
+        if (DemoMode.isOn) return
+        _lastError.value = null
+        _data.value = data
+        _connectionState.value = ObdConnectionState.CONNECTED
+        BatteryWatch.feed(data, System.currentTimeMillis())
+    }
+
+    /** Deep OBD stopped sending: nothing is read any more. */
+    internal fun deepObdDown() {
+        if (DemoMode.isOn) return
+        _connectionState.value = ObdConnectionState.DISCONNECTED
+        _data.value = ObdData()
+    }
 
     private fun fail(@StringRes reason: Int, vararg args: Any): Boolean {
         _lastError.value = appContext?.let { if (args.isEmpty()) it.getString(reason) else it.getString(reason, *args) }
@@ -227,6 +243,8 @@ object ObdBluetoothManager {
     @SuppressLint("MissingPermission")
     suspend fun connect(deviceAddress: String, byDriver: Boolean = false): Boolean {
         if (_connectionState.value == ObdConnectionState.CONNECTED) return true
+        // Deep OBD holds the adapter, which takes one connection at a time.
+        if (DeepObdSource.owns()) return false
         if (!connectLock.tryLock()) return false
         try {
             if (_connectionState.value == ObdConnectionState.CONNECTED) return true
@@ -646,7 +664,7 @@ object ObdBluetoothManager {
 
     /** Polls speed, RPM and coolant temperature once, updating [data]. */
     suspend fun poll(): Unit = withContext(Dispatchers.IO) {
-        if (DemoMode.isOn || _connectionState.value != ObdConnectionState.CONNECTED) return@withContext
+        if (DemoMode.isOn || DeepObdSource.owns() || _connectionState.value != ObdConnectionState.CONNECTED) return@withContext
         commandMutex.withLock {
             if (_connectionState.value == ObdConnectionState.CONNECTED) pollLocked()
         }
@@ -763,6 +781,7 @@ object ObdBluetoothManager {
      */
     suspend fun readTroubleCodes(): Result<List<String>> = withContext(Dispatchers.IO) {
         if (DemoMode.isOn) return@withContext DemoMode.scanCodes()
+        if (DeepObdSource.owns()) return@withContext failure(R.string.settings_deepobd_needs_adapter)
         if (_connectionState.value != ObdConnectionState.CONNECTED) {
             return@withContext failure(R.string.vehicle_obd_not_connected)
         }
@@ -844,7 +863,7 @@ object ObdBluetoothManager {
         replyAddress: String? = null,
         session: String? = null
     ): List<String?> = withContext(Dispatchers.IO) {
-        if (DemoMode.isOn || _connectionState.value != ObdConnectionState.CONNECTED) return@withContext emptyList()
+        if (DemoMode.isOn || DeepObdSource.owns() || _connectionState.value != ObdConnectionState.CONNECTED) return@withContext emptyList()
         commandMutex.withLock {
             if (_connectionState.value != ObdConnectionState.CONNECTED) return@withLock emptyList()
             val ownAddresses = header != null && replyAddress != null
@@ -884,6 +903,7 @@ object ObdBluetoothManager {
     /** Clears stored trouble codes and turns off the MIL (OBD mode 04). */
     suspend fun clearTroubleCodes(): Result<Unit> = withContext(Dispatchers.IO) {
         if (DemoMode.isOn) return@withContext DemoMode.clearCodes()
+        if (DeepObdSource.owns()) return@withContext failure(R.string.settings_deepobd_needs_adapter)
         if (_connectionState.value != ObdConnectionState.CONNECTED) {
             return@withContext failure(R.string.vehicle_obd_not_connected)
         }
@@ -988,7 +1008,7 @@ object ObdBluetoothManager {
 
     /** The demo is over: back to the real link, whose next poll fills the readings in again. */
     internal fun endDemo(lamp: EngineLamp?, pending: Set<String>) {
-        val linked = socket?.isConnected == true || (_viaPhone.value && outputStream != null)
+        val linked = socket?.isConnected == true || (_viaPhone.value && outputStream != null) || (DeepObdSource.owns() && DeepObdSource.live)
         _connectionState.value = if (linked) ObdConnectionState.CONNECTED else ObdConnectionState.DISCONNECTED
         _data.value = ObdData()
         _lamp.value = lamp

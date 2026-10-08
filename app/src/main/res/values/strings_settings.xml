@@ -235,4 +235,22 @@
     <string name="settings_tabs_nav_detail">Dashboards are tapped in the rail; needs the rail. Shows by itself when a map app is under the dashboards.</string>
     <string name="about_free_open_source">Dashwheel is free and open source.</string>
     <string name="about_updates_play">Updates come from Google Play</string>
+    <string name="settings_obd_source_label">OBD readings from</string>
+    <string name="settings_obd_source_adapter">Adapter</string>
+    <string name="settings_obd_source_deepobd">Deep OBD</string>
+    <string name="settings_obd_source_adapter_hint">Dashwheel talks to the OBD adapter itself.</string>
+    <string name="settings_obd_source_deepobd_hint">Deep OBD reads the car and shares it. Turn on data broadcast in Deep OBD. Fault codes need the adapter.</string>
+    <string name="settings_deepobd_waiting">Nothing from Deep OBD yet. Open it and connect to the car.</string>
+    <string name="settings_deepobd_lines">Deep OBD lines. Tap one to change what it shows.</string>
+    <string name="settings_deepobd_needs_adapter">Fault codes need the adapter, not Deep OBD.</string>
+    <string name="settings_deepobd_field_speed">Speed</string>
+    <string name="settings_deepobd_field_rpm">Revs</string>
+    <string name="settings_deepobd_field_coolant">Coolant</string>
+    <string name="settings_deepobd_field_intake">Intake air</string>
+    <string name="settings_deepobd_field_throttle">Throttle</string>
+    <string name="settings_deepobd_field_load">Engine load</string>
+    <string name="settings_deepobd_field_fuel">Fuel level</string>
+    <string name="settings_deepobd_field_voltage">Battery</string>
+    <string name="settings_deepobd_field_none">Unused</string>
+    <string name="settings_deepobd_field_ignored">Ignored</string>
 </resources>

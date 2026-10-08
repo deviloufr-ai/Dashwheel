@@ -233,4 +233,22 @@
     <string name="settings_tabs_nav_detail">Панели выбираются нажатием на боковой панели; нужна боковая панель. Включается сама, если под панелями карта.</string>
     <string name="about_free_open_source">Dashwheel бесплатен и с открытым кодом.</string>
     <string name="about_updates_play">Обновления приходят из Google Play</string>
+    <string name="settings_obd_source_label">Данные OBD из</string>
+    <string name="settings_obd_source_adapter">Адаптер</string>
+    <string name="settings_obd_source_deepobd">Deep OBD</string>
+    <string name="settings_obd_source_adapter_hint">Dashwheel сам связывается с адаптером OBD.</string>
+    <string name="settings_obd_source_deepobd_hint">Deep OBD читает машину и делится данными. Включите отправку данных в Deep OBD. Коды ошибок требуют адаптера.</string>
+    <string name="settings_deepobd_waiting">От Deep OBD пока ничего. Откройте его и подключитесь к машине.</string>
+    <string name="settings_deepobd_lines">Строки Deep OBD. Нажмите, чтобы изменить, что она показывает.</string>
+    <string name="settings_deepobd_needs_adapter">Коды ошибок требуют адаптера, а не Deep OBD.</string>
+    <string name="settings_deepobd_field_speed">Скорость</string>
+    <string name="settings_deepobd_field_rpm">Обороты</string>
+    <string name="settings_deepobd_field_coolant">Охл. жидкость</string>
+    <string name="settings_deepobd_field_intake">Впуск. воздух</string>
+    <string name="settings_deepobd_field_throttle">Дроссель</string>
+    <string name="settings_deepobd_field_load">Нагрузка</string>
+    <string name="settings_deepobd_field_fuel">Топливо</string>
+    <string name="settings_deepobd_field_voltage">Аккумулятор</string>
+    <string name="settings_deepobd_field_none">Не используется</string>
+    <string name="settings_deepobd_field_ignored">Пропущено</string>
 </resources>

@@ -232,4 +232,22 @@
     <string name="settings_tabs_nav_detail">Dashboards werden in der Seitenleiste angetippt; braucht die Leiste. Schaltet sich von selbst ein, wenn eine Karten-App unter den Dashboards liegt.</string>
     <string name="about_free_open_source">Dashwheel ist kostenlos und quelloffen.</string>
     <string name="about_updates_play">Updates kommen von Google Play</string>
+    <string name="settings_obd_source_label">OBD-Werte von</string>
+    <string name="settings_obd_source_adapter">Adapter</string>
+    <string name="settings_obd_source_deepobd">Deep OBD</string>
+    <string name="settings_obd_source_adapter_hint">Dashwheel spricht selbst mit dem OBD-Adapter.</string>
+    <string name="settings_obd_source_deepobd_hint">Deep OBD liest das Auto und teilt die Werte. In Deep OBD das Senden der Daten einschalten. Fehlercodes brauchen den Adapter.</string>
+    <string name="settings_deepobd_waiting">Noch nichts von Deep OBD. Öffnen und mit dem Auto verbinden.</string>
+    <string name="settings_deepobd_lines">Zeilen von Deep OBD. Tippen ändert, was sie zeigt.</string>
+    <string name="settings_deepobd_needs_adapter">Fehlercodes brauchen den Adapter, nicht Deep OBD.</string>
+    <string name="settings_deepobd_field_speed">Tempo</string>
+    <string name="settings_deepobd_field_rpm">Drehzahl</string>
+    <string name="settings_deepobd_field_coolant">Kühlmittel</string>
+    <string name="settings_deepobd_field_intake">Ansaugluft</string>
+    <string name="settings_deepobd_field_throttle">Drossel</string>
+    <string name="settings_deepobd_field_load">Motorlast</string>
+    <string name="settings_deepobd_field_fuel">Tankinhalt</string>
+    <string name="settings_deepobd_field_voltage">Batterie</string>
+    <string name="settings_deepobd_field_none">Ungenutzt</string>
+    <string name="settings_deepobd_field_ignored">Ignoriert</string>
 </resources>

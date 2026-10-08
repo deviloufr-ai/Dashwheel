@@ -232,4 +232,22 @@
     <string name="settings_tabs_nav_detail">Los paneles se tocan en la barra lateral; necesita la barra. Se activa solo cuando una app de mapas está bajo los paneles.</string>
     <string name="about_free_open_source">Dashwheel es gratuito y de código abierto.</string>
     <string name="about_updates_play">Las actualizaciones vienen de Google Play</string>
+    <string name="settings_obd_source_label">Datos OBD desde</string>
+    <string name="settings_obd_source_adapter">Adaptador</string>
+    <string name="settings_obd_source_deepobd">Deep OBD</string>
+    <string name="settings_obd_source_adapter_hint">Dashwheel habla él mismo con el adaptador OBD.</string>
+    <string name="settings_obd_source_deepobd_hint">Deep OBD lee el coche y comparte los datos. Activa el envío de datos en Deep OBD. Los códigos de avería necesitan el adaptador.</string>
+    <string name="settings_deepobd_waiting">Nada de Deep OBD todavía. Ábrelo y conéctalo al coche.</string>
+    <string name="settings_deepobd_lines">Líneas de Deep OBD. Toca una para cambiar lo que muestra.</string>
+    <string name="settings_deepobd_needs_adapter">Los códigos de avería necesitan el adaptador, no Deep OBD.</string>
+    <string name="settings_deepobd_field_speed">Velocidad</string>
+    <string name="settings_deepobd_field_rpm">Revol.</string>
+    <string name="settings_deepobd_field_coolant">Refrigerante</string>
+    <string name="settings_deepobd_field_intake">Aire admisión</string>
+    <string name="settings_deepobd_field_throttle">Mariposa</string>
+    <string name="settings_deepobd_field_load">Carga motor</string>
+    <string name="settings_deepobd_field_fuel">Combustible</string>
+    <string name="settings_deepobd_field_voltage">Batería</string>
+    <string name="settings_deepobd_field_none">Sin uso</string>
+    <string name="settings_deepobd_field_ignored">Ignorada</string>
 </resources>

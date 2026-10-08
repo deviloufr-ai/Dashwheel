@@ -1086,7 +1086,14 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         if (missing.isNotEmpty()) permissionLauncher.launch(missing.toTypedArray()) else action()
     }
 
-    val onConnectObd: () -> Unit = { if (ObdBluetoothManager.usesPhone()) connectObd() else ensureBluetooth { connectSavedOrPick() } }
+    val onConnectObd: () -> Unit = {
+        when {
+            // Deep OBD makes the connection to the car itself: open it.
+            DeepObdSource.owns() -> DeepObdSource.launch(context)
+            ObdBluetoothManager.usesPhone() -> connectObd()
+            else -> ensureBluetooth { connectSavedOrPick() }
+        }
+    }
     val onPickDevice: () -> Unit = { ensureBluetooth { openDevicePicker() } }
 
     val onLaunchApp: (String) -> Unit = { pkg ->

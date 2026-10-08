@@ -232,4 +232,22 @@
     <string name="settings_tabs_nav_detail">Pulpity wybiera się dotykiem w pasku bocznym; wymaga paska. Włącza się samo, gdy pod pulpitami jest aplikacja z mapą.</string>
     <string name="about_free_open_source">Dashwheel jest darmowy i ma otwarty kod.</string>
     <string name="about_updates_play">Aktualizacje pochodzą z Google Play</string>
+    <string name="settings_obd_source_label">Dane OBD z</string>
+    <string name="settings_obd_source_adapter">Adapter</string>
+    <string name="settings_obd_source_deepobd">Deep OBD</string>
+    <string name="settings_obd_source_adapter_hint">Dashwheel sam łączy się z adapterem OBD.</string>
+    <string name="settings_obd_source_deepobd_hint">Deep OBD czyta auto i udostępnia dane. Włącz wysyłanie danych w Deep OBD. Kody błędów wymagają adaptera.</string>
+    <string name="settings_deepobd_waiting">Na razie nic z Deep OBD. Otwórz je i połącz z autem.</string>
+    <string name="settings_deepobd_lines">Wiersze z Deep OBD. Dotknij, aby zmienić, co pokazuje.</string>
+    <string name="settings_deepobd_needs_adapter">Kody błędów wymagają adaptera, nie Deep OBD.</string>
+    <string name="settings_deepobd_field_speed">Prędkość</string>
+    <string name="settings_deepobd_field_rpm">Obroty</string>
+    <string name="settings_deepobd_field_coolant">Płyn chłodz.</string>
+    <string name="settings_deepobd_field_intake">Powietrze dol.</string>
+    <string name="settings_deepobd_field_throttle">Przepustnica</string>
+    <string name="settings_deepobd_field_load">Obciążenie</string>
+    <string name="settings_deepobd_field_fuel">Paliwo</string>
+    <string name="settings_deepobd_field_voltage">Akumulator</string>
+    <string name="settings_deepobd_field_none">Nieużyty</string>
+    <string name="settings_deepobd_field_ignored">Pominięty</string>
 </resources>

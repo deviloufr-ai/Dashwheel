@@ -51,6 +51,9 @@ internal object VehicleMonitor {
             context.applicationContext, bluetoothState,
             IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED), ContextCompat.RECEIVER_NOT_EXPORTED
         )
+        DeepObdSource.init(context)
+        val listener = context.applicationContext
+        scope.launch { DeepObdSource.run(listener) }
         scope.launch { pollWhileConnected() }
         scope.launch { reconnectWhileWanted() }
         scope.launch { redialAfterCalls() }
@@ -107,6 +110,8 @@ internal object VehicleMonitor {
      */
     fun connectSaved() {
         val context = appContext ?: return
+        // Deep OBD holds the adapter and reports by itself: nothing to dial.
+        if (DeepObdSource.owns()) return
         if (CarPower.ignition.value == false) return
         if (!ObdBluetoothManager.connectionState.value.isIdle) return
         // Through the phone: its companion holds the adapter, nothing to pair or allow here.
@@ -168,7 +173,7 @@ internal object VehicleMonitor {
                     // readings are in (it only speaks about codes it hasn't heard before).
                     launch {
                         delay(3000)
-                        AiMechanic.autoScan()
+                        if (!DeepObdSource.owns()) AiMechanic.autoScan()
                     }
                     while (true) {
                         ObdBluetoothManager.poll()

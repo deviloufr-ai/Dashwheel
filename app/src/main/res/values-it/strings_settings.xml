@@ -232,4 +232,22 @@
     <string name="settings_tabs_nav_detail">I pannelli si toccano nella barra laterale; serve la barra. Si attiva da solo quando un\'app di mappe sta sotto i pannelli.</string>
     <string name="about_free_open_source">Dashwheel è gratuito e open source.</string>
     <string name="about_updates_play">Gli aggiornamenti arrivano da Google Play</string>
+    <string name="settings_obd_source_label">Dati OBD da</string>
+    <string name="settings_obd_source_adapter">Adattatore</string>
+    <string name="settings_obd_source_deepobd">Deep OBD</string>
+    <string name="settings_obd_source_adapter_hint">Dashwheel parla da solo con l\'adattatore OBD.</string>
+    <string name="settings_obd_source_deepobd_hint">Deep OBD legge l\'auto e condivide i dati. Attiva l\'invio dei dati in Deep OBD. I codici guasto richiedono l\'adattatore.</string>
+    <string name="settings_deepobd_waiting">Ancora niente da Deep OBD. Aprilo e collegalo all\'auto.</string>
+    <string name="settings_deepobd_lines">Righe di Deep OBD. Tocca una per cambiare cosa mostra.</string>
+    <string name="settings_deepobd_needs_adapter">I codici guasto richiedono l\'adattatore, non Deep OBD.</string>
+    <string name="settings_deepobd_field_speed">Velocità</string>
+    <string name="settings_deepobd_field_rpm">Giri</string>
+    <string name="settings_deepobd_field_coolant">Refrigerante</string>
+    <string name="settings_deepobd_field_intake">Aria aspirata</string>
+    <string name="settings_deepobd_field_throttle">Farfalla</string>
+    <string name="settings_deepobd_field_load">Carico motore</string>
+    <string name="settings_deepobd_field_fuel">Carburante</string>
+    <string name="settings_deepobd_field_voltage">Batteria</string>
+    <string name="settings_deepobd_field_none">Non usata</string>
+    <string name="settings_deepobd_field_ignored">Ignorata</string>
 </resources>

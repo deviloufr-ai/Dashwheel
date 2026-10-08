@@ -85,6 +85,8 @@
         <!-- The QF firmware's Bluetooth phone and car apps (ROCO K706): calls and pop-ups, see HeadUnitPhone / RomPopups. -->
         <package android:name="com.qf.bluetooth" />
         <package android:name="com.qf.vehicle" />
+        <!-- Deep OBD, which can report the car's readings in place of an adapter (DeepObdSource). -->
+        <package android:name="de.holeschak.bmw_deep_obd" />
         <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />

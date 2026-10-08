@@ -117,7 +117,7 @@ internal fun ObdNotConnected(connection: ObdConnectionState, onConnect: () -> Un
     val offered by PhoneObd.offer.collectAsState()
     val adapter = remember(connection, offered) {
         // Through the phone: the adapter is the one its companion holds.
-        if (ObdBluetoothManager.usesPhone()) offered else ObdBluetoothManager.savedDeviceLabel()
+        if (DeepObdSource.owns()) "Deep OBD" else if (ObdBluetoothManager.usesPhone()) offered else ObdBluetoothManager.savedDeviceLabel()
     }
     if (connecting) {
         Text(stringResource(R.string.vehicle_obd_connecting_to, adapter ?: "OBD"), color = DashColors.Accent)

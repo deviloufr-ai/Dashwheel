@@ -232,4 +232,22 @@
     <string name="settings_tabs_nav_detail">Dashboards tik je aan in de zijbalk; vereist de zijbalk. Gaat vanzelf aan als een kaart-app onder de dashboards staat.</string>
     <string name="about_free_open_source">Dashwheel is gratis en open source.</string>
     <string name="about_updates_play">Updates komen van Google Play</string>
+    <string name="settings_obd_source_label">OBD-gegevens van</string>
+    <string name="settings_obd_source_adapter">Adapter</string>
+    <string name="settings_obd_source_deepobd">Deep OBD</string>
+    <string name="settings_obd_source_adapter_hint">Dashwheel praat zelf met de OBD-adapter.</string>
+    <string name="settings_obd_source_deepobd_hint">Deep OBD leest de auto en deelt de gegevens. Zet het verzenden van gegevens aan in Deep OBD. Foutcodes hebben de adapter nodig.</string>
+    <string name="settings_deepobd_waiting">Nog niets van Deep OBD. Open het en verbind met de auto.</string>
+    <string name="settings_deepobd_lines">Regels van Deep OBD. Tik er een om te wijzigen wat die toont.</string>
+    <string name="settings_deepobd_needs_adapter">Foutcodes hebben de adapter nodig, niet Deep OBD.</string>
+    <string name="settings_deepobd_field_speed">Snelheid</string>
+    <string name="settings_deepobd_field_rpm">Toerental</string>
+    <string name="settings_deepobd_field_coolant">Koelvloeistof</string>
+    <string name="settings_deepobd_field_intake">Inlaatlucht</string>
+    <string name="settings_deepobd_field_throttle">Gasklep</string>
+    <string name="settings_deepobd_field_load">Motorlast</string>
+    <string name="settings_deepobd_field_fuel">Brandstof</string>
+    <string name="settings_deepobd_field_voltage">Accu</string>
+    <string name="settings_deepobd_field_none">Ongebruikt</string>
+    <string name="settings_deepobd_field_ignored">Genegeerd</string>
 </resources>

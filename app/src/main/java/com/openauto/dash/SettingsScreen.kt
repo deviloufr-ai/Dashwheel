@@ -388,8 +388,13 @@ private fun CarPane(open: (Deep) -> Unit, onPickObd: () -> Unit) {
     SettingsRow(Icons.Filled.Image, stringResource(R.string.mycar_title), stringResource(R.string.mycar_settings_detail)) { open(Deep.CAR_LOOK) }
     SettingsRow(Icons.Filled.Videocam, stringResource(R.string.reverse_title), stringResource(R.string.reverse_settings_detail)) { open(Deep.REVERSE) }
     SettingsRow(Icons.Filled.SettingsInputAntenna, stringResource(R.string.signals_title), stringResource(R.string.signals_settings_detail)) { open(Deep.SIGNALS) }
-    ObdAdapterRow(onPickObd)
-    ObdRouteSetting()
+    val deepObd by DeepObdSource.source.collectAsState()
+    ObdSourceSetting()
+    // Deep OBD holds the adapter then: nothing to pick here.
+    if (deepObd == ObdSource.ADAPTER) {
+        ObdAdapterRow(onPickObd)
+        ObdRouteSetting()
+    }
     // Settings is parked-only; the Telemetry tile's tuning button opens the same row on the move.
     SpeedCorrectionRow(detail = stringResource(R.string.settings_speed_fix_detail))
     SettingsRow(Icons.Filled.AutoAwesome, stringResource(R.string.ai_title), stringResource(R.string.settings_ai_detail)) { open(Deep.AI) }
@@ -497,6 +502,95 @@ private fun ObdRouteSetting() {
             else -> stringResource(R.string.settings_obd_route_hint)
         }
     )
+}
+
+/**
+ * Where the readings come from: an adapter of our own, or the Deep OBD app
+ * reporting them. Only shown where Deep OBD is installed (or already chosen,
+ * so it can be switched back).
+ */
+@Composable
+private fun ObdSourceSetting() {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val source by DeepObdSource.source.collectAsState()
+    if (source != ObdSource.DEEPOBD && !remember { DeepObdSource.installed(context) }) return
+    Text(
+        stringResource(R.string.settings_obd_source_label),
+        color = DashColors.TextSecondary,
+        fontWeight = FontWeight.SemiBold,
+        style = MaterialTheme.typography.labelLarge,
+        modifier = Modifier.padding(start = 12.dp, top = 10.dp, bottom = 8.dp)
+    )
+    SegmentedSwitch(
+        options = ObdSource.entries,
+        chosen = source,
+        icon = { if (it == ObdSource.ADAPTER) Icons.Filled.Bluetooth else Icons.Filled.Android },
+        title = { stringResource(if (it == ObdSource.ADAPTER) R.string.settings_obd_source_adapter else R.string.settings_obd_source_deepobd) },
+        onChoose = { option ->
+            DeepObdSource.setSource(option)
+            scope.launch {
+                // The adapter takes one connection: ours is closed before Deep OBD uses it, and dialled again after.
+                ObdBluetoothManager.disconnect()
+                if (option == ObdSource.ADAPTER) VehicleMonitor.connectSaved()
+            }
+        }
+    )
+    SwitchHint(stringResource(if (source == ObdSource.DEEPOBD) R.string.settings_obd_source_deepobd_hint else R.string.settings_obd_source_adapter_hint))
+    if (source == ObdSource.DEEPOBD) DeepObdLines()
+}
+
+/** The lines Deep OBD sent and the reading each one counts as; a tap picks the next choice. */
+@Composable
+private fun DeepObdLines() {
+    val seen by DeepObdSource.seen.collectAsState()
+    val tap = rememberTapFeedback()
+    if (seen.isEmpty()) {
+        SwitchHint(stringResource(R.string.settings_deepobd_waiting))
+        return
+    }
+    Text(
+        stringResource(R.string.settings_deepobd_lines),
+        color = DashColors.TextSecondary,
+        fontWeight = FontWeight.SemiBold,
+        style = MaterialTheme.typography.labelLarge,
+        modifier = Modifier.padding(start = 12.dp, top = 14.dp, bottom = 4.dp)
+    )
+    for (line in seen) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp)
+                .clip(DashShape.Medium)
+                .clickable { tap(); DeepObdSource.cycle(line.item) }
+                .padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(line.item.name, color = DashColors.TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium)
+                Text(line.item.value, color = DashColors.TextSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall)
+            }
+            Spacer(Modifier.width(8.dp))
+            val label = line.field?.let { stringResource(deepFieldLabel(it)) }
+                ?: stringResource(if (line.chosen) R.string.settings_deepobd_field_ignored else R.string.settings_deepobd_field_none)
+            Text(
+                label,
+                color = if (line.field != null) DashColors.Accent else DashColors.Muted,
+                style = MaterialTheme.typography.labelLarge
+            )
+        }
+    }
+}
+
+private fun deepFieldLabel(field: ObdField): Int = when (field) {
+    ObdField.SPEED -> R.string.settings_deepobd_field_speed
+    ObdField.RPM -> R.string.settings_deepobd_field_rpm
+    ObdField.COOLANT -> R.string.settings_deepobd_field_coolant
+    ObdField.INTAKE -> R.string.settings_deepobd_field_intake
+    ObdField.THROTTLE -> R.string.settings_deepobd_field_throttle
+    ObdField.LOAD -> R.string.settings_deepobd_field_load
+    ObdField.FUEL -> R.string.settings_deepobd_field_fuel
+    ObdField.VOLTAGE -> R.string.settings_deepobd_field_voltage
 }
 
 /** What the dashboard looks like: the theme first, then its day and night and its effects. */
