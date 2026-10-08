@@ -143,7 +143,7 @@
     <string name="info_directions_access_hint">Trasa pochodzi z powiadomienia nawigacji Google Maps.</string>
     <string name="info_directions_idle_title">Brak aktywnej trasy</string>
     <string name="info_directions_idle_hint">Po uruchomieniu nawigacji w Google Maps lub Waze pojawi się tu następny manewr.</string>
-    <string name="info_directions_open_maps">Otwórz Google Maps</string>
+    <string name="info_directions_open_maps">Otwórz %1$s</string>
     <string name="info_nav_continue">Jedź dalej</string>
 
     <!-- Map navigator (MapLibre panel) -->
@@ -169,4 +169,6 @@
     <string name="info_audio_unavailable">Głośności nie można tu zmienić: użyj pokrętła</string>
     <string name="info_map_stop_title">Zakończyć nawigację?</string>
     <string name="info_map_stop_body">Mapa przestanie podawać wskazówki. Ponowny start z mapy.</string>
+    <string name="info_directions_running_title">%1$s działa</string>
+    <string name="info_directions_running_hint">Następnego manewru nie da się tu jeszcze odczytać.</string>
 </resources>

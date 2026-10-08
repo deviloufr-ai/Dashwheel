@@ -143,7 +143,7 @@
     <string name="info_directions_access_hint">De route komt uit de navigatiemelding van Google Maps.</string>
     <string name="info_directions_idle_title">Geen actieve route</string>
     <string name="info_directions_idle_hint">Start navigatie in Google Maps of Waze en de volgende afslag verschijnt hier.</string>
-    <string name="info_directions_open_maps">Google Maps openen</string>
+    <string name="info_directions_open_maps">%1$s openen</string>
     <string name="info_nav_continue">Doorrijden</string>
 
     <!-- Map navigator (MapLibre panel) -->
@@ -169,4 +169,6 @@
     <string name="info_audio_unavailable">Volume hier niet in te stellen: gebruik de knop</string>
     <string name="info_map_stop_title">Navigatie stoppen?</string>
     <string name="info_map_stop_body">De kaart geeft geen aanwijzingen meer. Opnieuw starten kan vanaf de kaart.</string>
+    <string name="info_directions_running_title">%1$s draait</string>
+    <string name="info_directions_running_hint">De volgende afslag kan hier nog niet gelezen worden.</string>
 </resources>

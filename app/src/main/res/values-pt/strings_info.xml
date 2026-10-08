@@ -143,7 +143,7 @@
     <string name="info_directions_access_hint">O percurso vem da notificação de navegação do Google Maps.</string>
     <string name="info_directions_idle_title">Sem percurso ativo</string>
     <string name="info_directions_idle_hint">Com a navegação ativa no Google Maps ou no Waze, a próxima manobra aparece aqui.</string>
-    <string name="info_directions_open_maps">Abrir o Google Maps</string>
+    <string name="info_directions_open_maps">Abrir %1$s</string>
     <string name="info_nav_continue">Continuar</string>
 
     <!-- Map navigator (MapLibre panel) -->
@@ -169,4 +169,6 @@
     <string name="info_audio_unavailable">O volume não pode ser alterado aqui: use o botão rotativo</string>
     <string name="info_map_stop_title">Parar a navegação?</string>
     <string name="info_map_stop_body">O mapa deixa de dar indicações. Recomeça-se a partir do mapa.</string>
+    <string name="info_directions_running_title">%1$s está aberto</string>
+    <string name="info_directions_running_hint">A próxima manobra ainda não pode ser lida aqui.</string>
 </resources>

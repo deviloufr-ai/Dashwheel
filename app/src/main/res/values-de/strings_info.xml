@@ -143,7 +143,7 @@
     <string name="info_directions_access_hint">Die Route stammt aus der Navigationsbenachrichtigung von Google Maps.</string>
     <string name="info_directions_idle_title">Keine aktive Route</string>
     <string name="info_directions_idle_hint">Navigation in Google Maps oder Waze starten: die nächste Abbiegung erscheint hier.</string>
-    <string name="info_directions_open_maps">Google Maps öffnen</string>
+    <string name="info_directions_open_maps">%1$s öffnen</string>
     <string name="info_nav_continue">Weiterfahren</string>
 
     <!-- Map navigator (MapLibre panel) -->
@@ -169,4 +169,6 @@
     <string name="info_audio_unavailable">Lautstärke hier nicht einstellbar: Drehknopf benutzen</string>
     <string name="info_map_stop_title">Navigation beenden?</string>
     <string name="info_map_stop_body">Die Karte sagt keine Abbiegungen mehr an. Neustart über die Karte.</string>
+    <string name="info_directions_running_title">%1$s läuft</string>
+    <string name="info_directions_running_hint">Das nächste Manöver kann hier noch nicht gelesen werden.</string>
 </resources>

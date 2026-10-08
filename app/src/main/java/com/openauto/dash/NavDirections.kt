@@ -1,6 +1,8 @@
 package com.openauto.dash
 
 import android.app.Notification
+import android.os.SystemClock
+import android.util.Log
 import android.app.PendingIntent
 import android.content.Context
 import android.graphics.Bitmap
@@ -71,6 +73,19 @@ object NavDirections {
     private val _state = MutableStateFlow(NavState())
     val state: StateFlow<NavState> = _state
 
+    private val _running = MutableStateFlow<String?>(null)
+    /**
+     * The navigation app with an ongoing notification now (Waze, Google Maps),
+     * whether or not its turns could be read from it: the tile names it and
+     * opens it rather than say there is no route.
+     */
+    val running: StateFlow<String?> = _running
+    @Volatile private var runningKey: String? = null
+
+    /** What was last logged of a notification whose turns couldn't be read, and when. */
+    @Volatile private var unreadLogged: String? = null
+    @Volatile private var unreadLoggedAt = 0L
+
     /** Notification key currently driving [state], so its removal clears the route. */
     @Volatile
     private var currentKey: String? = null
@@ -131,6 +146,10 @@ object NavDirections {
 
     fun onPosted(context: Context, sbn: StatusBarNotification) {
         if (sbn.packageName !in PACKAGES) return
+        if (sbn.isOngoing) {
+            runningKey = sbn.key
+            _running.value = sbn.packageName
+        }
         val parsed = parse(context, sbn) ?: return
         currentKey = sbn.key
         exit = sbn.notification?.actions?.singleOrNull()?.actionIntent?.takeIf { sbn.packageName == NavHandoff.MAPS }
@@ -138,6 +157,10 @@ object NavDirections {
     }
 
     fun onRemoved(sbn: StatusBarNotification) {
+        if (sbn.key == runningKey) {
+            runningKey = null
+            _running.value = null
+        }
         if (sbn.key == currentKey) {
             currentKey = null
             exit = null
@@ -146,6 +169,8 @@ object NavDirections {
     }
 
     fun clear() {
+        runningKey = null
+        _running.value = null
         currentKey = null
         exit = null
         publish(NavState())
@@ -195,9 +220,27 @@ object NavDirections {
         } else if (!worthInflating) {
             fruitlessInflations[pkg] = fruitless + 1
         }
-        if (lines.isEmpty()) return null
-        return fromLines(lines, sameIcon(icon), pkg, continueLabel)
+        val parsed = if (lines.isEmpty()) null else fromLines(lines, sameIcon(icon), pkg, continueLabel)
+        if (parsed == null) logUnread(pkg, lines)
+        return parsed
     }
+
+    /**
+     * What a navigation app's ongoing notification said when no turn could be
+     * read from it (Waze's format is not known yet): logged when it changes, at
+     * most every [UNREAD_LOG_MS], for the parser to be taught it.
+     */
+    private fun logUnread(pkg: String, lines: List<String>) {
+        val what = "$pkg $lines"
+        val now = SystemClock.elapsedRealtime()
+        if (what == unreadLogged || now - unreadLoggedAt < UNREAD_LOG_MS) return
+        unreadLogged = what
+        unreadLoggedAt = now
+        Log.i(TAG, "no turn read from $what")
+    }
+
+    private const val TAG = "NavDirections"
+    private const val UNREAD_LOG_MS = 10_000L
 
     /**
      * Every update (about once a second) carries its arrow as a new bitmap;

@@ -143,7 +143,7 @@
     <string name="info_directions_access_hint">Il percorso proviene dalla notifica di navigazione di Google Maps.</string>
     <string name="info_directions_idle_title">Nessun percorso attivo</string>
     <string name="info_directions_idle_hint">Avvia la navigazione in Google Maps o Waze e qui comparirà la prossima svolta.</string>
-    <string name="info_directions_open_maps">Apri Google Maps</string>
+    <string name="info_directions_open_maps">Apri %1$s</string>
     <string name="info_nav_continue">Prosegui</string>
 
     <!-- Map navigator (MapLibre panel) -->
@@ -169,4 +169,6 @@
     <string name="info_audio_unavailable">Il volume non si può cambiare da qui: usa la manopola</string>
     <string name="info_map_stop_title">Fermare la navigazione?</string>
     <string name="info_map_stop_body">La mappa non dà più indicazioni. Si riavvia dalla mappa.</string>
+    <string name="info_directions_running_title">%1$s è aperto</string>
+    <string name="info_directions_running_hint">La sua prossima manovra non si può ancora leggere qui.</string>
 </resources>

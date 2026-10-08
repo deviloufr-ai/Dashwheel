@@ -74,8 +74,15 @@ internal const val GOOGLE_MAPS_PACKAGE = "com.google.android.apps.maps"
 internal fun openNavigationApp(context: Context, nav: NavState) {
     // The dashboard's own guidance has no app to open: the tap offers to stop it.
     if (nav.packageName == context.packageName) return InAppNav.askToStop()
-    SplitLauncher.launchSplit(context, nav.packageName.ifEmpty { GOOGLE_MAPS_PACKAGE })
+    SplitLauncher.launchSplit(context, nav.packageName.ifEmpty { navAppToOpen(context) })
 }
+
+/** With no route read: the navigation app that runs now, else the one the driver uses, else Google Maps. */
+internal fun navAppToOpen(context: Context): String =
+    NavDirections.running.value ?: NavHandoff.preferredApp(context) ?: GOOGLE_MAPS_PACKAGE
+
+/** "Waze" or "Google Maps", as the tile names them. */
+internal fun navAppName(pkg: String): String = if (pkg == NavHandoff.WAZE) "Waze" else "Google Maps"
 
 /**
  * Asked after a tap on the dashboard's own guidance, on any tile or banner
@@ -107,6 +114,7 @@ internal fun DirectionsCard(
     modifier: Modifier = Modifier
 ) {
     val nav by NavDirections.state.collectAsState()
+    val running by NavDirections.running.collectAsState()
     val glow = DashColors.Glow
     val accent = DashColors.Accent
     // "On my way" texts someone: said first, with three seconds to cancel.
@@ -146,8 +154,8 @@ internal fun DirectionsCard(
                         Text(
                             text = when {
                                 nav.active && nav.packageName == context.packageName -> stringResource(R.string.app_name)
-                                nav.active && nav.packageName == "com.waze" -> "Waze"
-                                nav.active -> "Google Maps"
+                                nav.active -> navAppName(nav.packageName)
+                                running != null -> navAppName(running!!)
                                 else -> stringResource(R.string.info_directions_no_route)
                             },
                             color = if (nav.active) DashColors.Good else DashColors.Muted,
@@ -164,11 +172,19 @@ internal fun DirectionsCard(
                         action = stringResource(R.string.info_grant_access),
                         onAction = { CarMediaController.openNotificationAccessSettings(context) }
                     )
+                    // The app guides, but its turns can't be read from its notification yet.
+                    !nav.active && running != null -> DirectionsEmpty(
+                        icon = Icons.Filled.Navigation,
+                        title = stringResource(R.string.info_directions_running_title, navAppName(running!!)),
+                        hint = stringResource(R.string.info_directions_running_hint),
+                        action = stringResource(R.string.info_directions_open_maps, navAppName(running!!)),
+                        onAction = { openNavigationApp(context, nav) }
+                    )
                     !nav.active -> DirectionsEmpty(
                         icon = Icons.Filled.Navigation,
                         title = stringResource(R.string.info_directions_idle_title),
                         hint = stringResource(R.string.info_directions_idle_hint),
-                        action = stringResource(R.string.info_directions_open_maps),
+                        action = stringResource(R.string.info_directions_open_maps, navAppName(navAppToOpen(context))),
                         onAction = { openNavigationApp(context, nav) }
                     )
                     else -> {

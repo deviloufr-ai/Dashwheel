@@ -193,6 +193,13 @@ internal object NavHandoff {
         if (to.isNotBlank()) destination = to to System.currentTimeMillis()
     }
 
+    /**
+     * The navigation app the driver uses: the one the unit's NAVI key opens when
+     * it is Maps or Waze, else Maps, else Waze; null with neither installed.
+     */
+    fun preferredApp(context: Context): String? =
+        order(KeyTargets.targets.value[KeyTargets.Key.NAVI], isPackageInstalled(context, MAPS), isPackageInstalled(context, WAZE)).firstOrNull()
+
     /** Starts guidance to ([lat], [lng]); false when no app on the unit can. */
     fun start(context: Context, lat: Double, lng: Double, label: String = ""): Boolean {
         heading(label)

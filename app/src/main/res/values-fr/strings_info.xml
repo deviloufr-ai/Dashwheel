@@ -143,7 +143,7 @@
     <string name="info_directions_access_hint">L\'itinéraire provient de la notification de navigation de Google Maps.</string>
     <string name="info_directions_idle_title">Aucun itinéraire en cours</string>
     <string name="info_directions_idle_hint">Lancez la navigation dans Google Maps ou Waze : la prochaine manœuvre s\'affichera ici.</string>
-    <string name="info_directions_open_maps">Ouvrir Google Maps</string>
+    <string name="info_directions_open_maps">Ouvrir %1$s</string>
     <string name="info_nav_continue">Continuer</string>
 
     <!-- Map navigator (MapLibre panel) -->
@@ -169,4 +169,6 @@
     <string name="info_audio_unavailable">Volume non réglable d\'ici : utilisez le bouton</string>
     <string name="info_map_stop_title">Arrêter la navigation ?</string>
     <string name="info_map_stop_body">La carte n\'annonce plus les directions. Relancez depuis la carte.</string>
+    <string name="info_directions_running_title">%1$s est lancé</string>
+    <string name="info_directions_running_hint">Sa prochaine manœuvre ne peut pas encore être lue ici.</string>
 </resources>

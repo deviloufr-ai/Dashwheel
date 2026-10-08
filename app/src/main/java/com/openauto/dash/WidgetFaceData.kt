@@ -547,14 +547,16 @@ private fun parkingFace(): WidgetFace {
 @Composable
 private fun directionsFace(env: SkinTileEnv): WidgetFace {
     val nav by NavDirections.state.collectAsState()
+    val running by NavDirections.running.collectAsState()
     if (!env.hasMediaAccess) {
         return idleFace(Icons.Filled.TurnRight, BuiltinKind.NAVIGATION.label, stringResource(R.string.info_directions_access_title), action = grantAccessAction(),
             sign = SignKind.DIRECTIONS)
     }
     if (!nav.active) {
         return idleFace(
-            Icons.Filled.TurnRight, BuiltinKind.NAVIGATION.label, stringResource(R.string.info_directions_idle_title),
-            action = FaceAction(Icons.Filled.Navigation, stringResource(R.string.info_directions_open_maps), primary = true,
+            Icons.Filled.TurnRight, BuiltinKind.NAVIGATION.label,
+            running?.let { stringResource(R.string.info_directions_running_title, navAppName(it)) } ?: stringResource(R.string.info_directions_idle_title),
+            action = FaceAction(Icons.Filled.Navigation, stringResource(R.string.info_directions_open_maps, navAppName(running ?: navAppToOpen(env.context))), primary = true,
                 onClick = { openNavigationApp(env.context, nav) }),
             sign = SignKind.DIRECTIONS
         )

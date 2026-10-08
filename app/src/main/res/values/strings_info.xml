@@ -143,7 +143,7 @@
     <string name="info_directions_access_hint">Directions come from Google Maps\' navigation notification.</string>
     <string name="info_directions_idle_title">No active route</string>
     <string name="info_directions_idle_hint">Start navigation in Google Maps or Waze and the next turn shows here.</string>
-    <string name="info_directions_open_maps">Open Google Maps</string>
+    <string name="info_directions_open_maps">Open %1$s</string>
     <string name="info_nav_continue">Continue</string>
 
     <!-- Map navigator (MapLibre panel) -->
@@ -169,4 +169,6 @@
     <string name="info_audio_unavailable">Volume can\'t be changed from here: use the knob</string>
     <string name="info_map_stop_title">Stop navigating?</string>
     <string name="info_map_stop_body">The map stops giving directions. Start again from the map.</string>
+    <string name="info_directions_running_title">%1$s is running</string>
+    <string name="info_directions_running_hint">Its next turn can\'t be read here yet.</string>
 </resources>
