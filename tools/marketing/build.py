@@ -158,8 +158,64 @@ for i, shot in enumerate(["vert_default", "vert_orbit"]):
     body += f'<div class="device" style="left:{vx + i * (vw + 80)}px;top:300px"><img src="{SHOTS}/{shot}.png" width="{vw - 32}" height="{vh - 32}"></div>'
 SLIDES["14_upright"] = page(body)
 
+
+SLIDES["15_canvas"] = single(
+    "Canvas look", "The map is the dashboard.",
+    "A full-screen 3D map with your next turn, arrival time, speed and music floating on top.",
+    "canvas_DARK")
+
+body = copy("Canvas, day and night", "Clear at noon. Calm at midnight.",
+            "The map and every card switch with the light, so the screen never dazzles you after dark.")
+body += f"""<div class="device" style="left:{(1920-1312)//2}px;top:318px">
+<div style="position:relative;width:1280px;height:720px;border-radius:12px;overflow:hidden">
+<img src="{SHOTS}/canvas_LIGHT.png" width="1280" height="720" style="position:absolute;inset:0;border-radius:0">
+<img src="{SHOTS}/canvas_DARK.png" width="1280" height="720" style="position:absolute;inset:0;border-radius:0;clip-path:polygon(0 0,58% 0,42% 100%,0 100%)">
+<div style="position:absolute;inset:0;clip-path:polygon(57.8% 0,58.2% 0,42.2% 100%,41.8% 100%);background:#fff"></div>
+</div></div>"""
+SLIDES["16_canvas_day_night"] = page(body)
+
+SLIDES["17_upkeep"] = single(
+    "Servicing and AI mechanic", "Knows your car. Remembers the service.",
+    "Your car's specs, fault codes in plain words, and a heads-up before each service.",
+    "upkeep_AUTO_DARK")
+
+
+def grid(eyebrow, h1, sub, items, cols, sc, gap=40, top=272):
+    """Screens in a grid with a label under each: items = [(shot, label)]."""
+    w, h = round(1280 * sc) + 32, round(720 * sc) + 32
+    x0 = (1920 - (cols * w + (cols - 1) * gap)) // 2
+    body = copy(eyebrow, h1, sub)
+    for i, (shot, name) in enumerate(items):
+        x = x0 + (i % cols) * (w + gap)
+        y = top + (i // cols) * (h + 62)
+        body += device(shot, x, y, sc)
+        body += f'<div class="label" style="left:{x}px;width:{w}px;top:{y + h + 12}px;font-size:17px">{name}</div>'
+    return page(body)
+
+
+SLIDES["18_skins_six"] = grid(
+    "Whole-dashboard skins", "One app. Six personalities.",
+    "Each skin redraws every gauge, card and button, not just the colours.",
+    [("sk_CANVAS", "Canvas"), ("sk_ORBIT", "Orbit"), ("sk_COCKPIT", "Cockpit"),
+     ("sk_HORIZON", "Horizon"), ("sk_TAPE_DECK", "Tape Deck"), ("sk_CYBER_SPORT", "Cyber Sport")], 3, 0.42)
+
+SLIDES["19_colour_themes"] = grid(
+    "Colour themes", "Match it to your interior.",
+    "Calm blues, sporty reds, warm gold or soft green. Switch in one tap, day or night.",
+    [("sk_AURORA", "Aurora"), ("sk_SPORTY", "Sporty"), ("sk_LUXURY", "Luxury"),
+     ("sk_ECO_LEAF", "Eco Leaf"), ("sk_NEON_DARK", "Neon"), ("sk_NORDIC", "Nordic")], 3, 0.42)
+
+SLIDES["20_arrangements"] = grid(
+    "Your widgets, your way", "Build the dashboard you need.",
+    "Big map, car data, road trip or daily drive: drag, resize and mix 50+ widgets on seven dashboards.",
+    [("lay_bigmap", "Map first"), ("lay_car", "Car data"), ("lay_trip", "Road trip"), ("lay_glance", "Daily drive")], 2, 0.42, gap=56, top=268)
+
 out = ROOT / "out" / "html"
 out.mkdir(parents=True, exist_ok=True)
+import sys
+only = sys.argv[1:]
 for name, html in SLIDES.items():
+    if only and not any(name.startswith(o) for o in only):
+        continue
     (out / f"{name}.html").write_text(html, encoding="utf-8")
     print(name)
