@@ -2,9 +2,10 @@ name: Build Android APK
 
 on:
   push:
-    # main publishes a release the in-app updater picks up; any other branch
-    # publishes a *pre-release* (ignored by the updater) for trying a branch on
-    # the head unit without merging it.
+    # main publishes a beta (a pre-release the in-app updater offers on its
+    # beta channel only; promote.yml makes one stable each week); any other
+    # branch publishes a pre-release the updater never offers, for trying a
+    # branch on the head unit without merging it.
     branches: [ '**' ]
   pull_request:
     branches: [ main ]
@@ -101,7 +102,7 @@ jobs:
           prev=$(git describe --tags --abbrev=0 --match 'v1.0.*' HEAD^ 2>/dev/null || true)
           range=${prev:+$prev..HEAD}
           {
-            echo "## What's new in v1.0.${{ github.run_number }}"
+            echo "## What's new in v1.0.${{ github.run_number }} (beta)"
             echo
             git log $range --no-merges -n 30 --format='### %s%n%n%b' \
               | sed -e '/^Co-Authored-By:/d' -e '/^Signed-off-by:/d' -e '/^Claude-Session:/Id'
@@ -112,12 +113,16 @@ jobs:
           } > "$RUNNER_TEMP/release-notes.md"
           cat "$RUNNER_TEMP/release-notes.md"
 
-      - name: Publish GitHub Release
+      # A beta: GitHub's "latest" release (the stable channel, the README's
+      # download link) stays on the last stable build until promote.yml moves it.
+      - name: Publish beta release
         if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           tag_name: v1.0.${{ github.run_number }}
-          name: Dashwheel v1.0.${{ github.run_number }}
+          name: Dashwheel v1.0.${{ github.run_number }} (beta)
+          prerelease: true
+          make_latest: false
           files: |
             Dashwheel-1.0.${{ github.run_number }}.apk
             dashwheel-companion.apk

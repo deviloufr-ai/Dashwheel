@@ -35,6 +35,8 @@
     <string name="dash_update_downloading">A transferir atualização… %1$d %%</string>
     <string name="dash_update_installing">A iniciar o instalador…</string>
     <string name="dash_menu_check_updates">Procurar atualizações</string>
+    <string name="update_beta">Versões beta</string>
+    <string name="update_beta_detail">Cada nova versão no próprio dia. Desligado: uma versão estável por semana, testada dois dias antes</string>
     <string name="dash_update_checking">A procurar atualizações…</string>
     <string name="dash_update_up_to_date">O Dashwheel está atualizado, v%1$s</string>
     <string name="dash_update">Atualizar</string>

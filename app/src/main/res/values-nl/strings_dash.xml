@@ -35,6 +35,8 @@
     <string name="dash_update_downloading">Update downloaden… %1$d %%</string>
     <string name="dash_update_installing">Installatie starten…</string>
     <string name="dash_menu_check_updates">Zoeken naar updates</string>
+    <string name="update_beta">Bètaversies</string>
+    <string name="update_beta_detail">Elke nieuwe versie op de dag zelf. Uit: één stabiele versie per week, eerst twee dagen getest</string>
     <string name="dash_update_checking">Zoeken naar updates…</string>
     <string name="dash_update_up_to_date">Dashwheel is up-to-date, v%1$s</string>
     <string name="dash_update">Bijwerken</string>

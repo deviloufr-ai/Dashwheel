@@ -220,6 +220,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     val demoMedia = DemoMode.media.collectAsState()
     val media = remember { derivedStateOf { if (demoState.value) demoMedia.value else realMedia.value } }
     val updateStatus by updateManager.status.collectAsState()
+    val betaUpdates by updateManager.beta.collectAsState()
 
     // Enumerating every launchable app (labels + icons) is the slowest part of
     // a cold start, so it runs on IO; tiles render their placeholder until then.
@@ -1185,6 +1186,8 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         update = updateStatus,
         onUpdate = onUpdate,
         onDismissUpdate = { updateManager.dismiss() },
+        betaUpdates = betaUpdates,
+        onBetaUpdates = { on -> updateManager.setBeta(on); checkForUpdates() },
         setupPending = setupPending,
         onSetup = { fromStart ->
             whenParked {

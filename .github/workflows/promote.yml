@@ -1,0 +1,89 @@
+name: Promote to stable
+
+# Every build of main is published as a beta (build.yml). Once a week the
+# newest beta that has been out for two days is made stable: a full release,
+# GitHub's "latest", which the in-app updater's default channel and the
+# README's download link follow. Run it by hand to promote a given build now.
+on:
+  schedule:
+    # Mondays, 06:17 UTC.
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Beta to promote (e.g. v1.0.590); empty takes the newest beta out for 48 h'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    name: Promote a beta to stable
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Pick the beta
+        id: pick
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WANTED: ${{ github.event.inputs.tag }}
+        run: |
+          releases=$(gh release list --limit 100 --exclude-drafts --json tagName,isPrerelease,publishedAt)
+          build() { echo "${1##*.}"; }
+          stable=$(echo "$releases" | jq -r '[.[] | select(.isPrerelease | not) | select(.tagName | test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))] | max_by(.tagName | split(".")[-1] | tonumber) | .tagName // ""')
+          if [ -n "$WANTED" ]; then
+            if ! echo "$releases" | jq -e --arg t "$WANTED" '.[] | select(.tagName == $t and .isPrerelease)' > /dev/null; then
+              echo "::error::$WANTED is not a beta of main."
+              exit 1
+            fi
+            tag=$WANTED
+          else
+            cutoff=$(date -u -d '48 hours ago' +%Y-%m-%dT%H:%M:%SZ)
+            tag=$(echo "$releases" | jq -r --arg c "$cutoff" '[.[] | select(.isPrerelease) | select(.tagName | test("^v[0-9]+\\.[0-9]+\\.[0-9]+$")) | select(.publishedAt <= $c)] | max_by(.tagName | split(".")[-1] | tonumber) | .tagName // ""')
+          fi
+          if [ -z "$tag" ] || { [ -n "$stable" ] && [ "$(build "$tag")" -le "$(build "$stable")" ]; }; then
+            echo "Nothing newer than ${stable:-no stable yet} to promote."
+            exit 0
+          fi
+          echo "Promoting $tag (previous stable: ${stable:-none})."
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "prev=$stable" >> "$GITHUB_OUTPUT"
+
+      # The notes of a stable release cover every change since the previous
+      # stable one, in build.yml's format, so drivers on the stable channel
+      # read what they did not see in the betas.
+      - name: Write release notes
+        if: ${{ steps.pick.outputs.tag != '' }}
+        env:
+          TAG: ${{ steps.pick.outputs.tag }}
+          PREV: ${{ steps.pick.outputs.prev }}
+        run: |
+          range=${PREV:+$PREV..}$TAG
+          {
+            echo "## What's new in $TAG"
+            echo
+            git log "$range" --no-merges -n 50 --format='### %s%n%n%b' \
+              | sed -e '/^Co-Authored-By:/d' -e '/^Signed-off-by:/d' -e '/^Claude-Session:/Id'
+            if [ -n "$PREV" ]; then
+              echo
+              echo "_Changes since ${PREV}, the previous stable version._"
+            fi
+          } > "$RUNNER_TEMP/release-notes.md"
+          cat "$RUNNER_TEMP/release-notes.md"
+
+      - name: Make it stable
+        if: ${{ steps.pick.outputs.tag != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.pick.outputs.tag }}
+        run: |
+          gh release edit "$TAG" --prerelease=false --latest \
+            --title "Dashwheel $TAG" --notes-file "$RUNNER_TEMP/release-notes.md"

@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.net.HttpURLConnection
@@ -72,6 +73,11 @@ val UpdateStatus.updateInfo: UpdateInfo?
  * (set by CI to the Actions run number); the latest build number is parsed from
  * the release tag (e.g. `v1.0.42` → 42). A newer build number means an update.
  *
+ * Channels: every build of main is published as a pre-release (beta); once a
+ * week the newest beta out for at least two days is promoted to a
+ * full release (stable, see promote.yml). The stable channel, the default,
+ * follows GitHub's "latest" release; [beta] follows every build of main.
+ *
  * Note: Android always shows its own install confirmation, and a downloaded APK
  * can only replace the installed one if both are signed with the same key.
  */
@@ -90,13 +96,23 @@ class UpdateManager(private val context: Context) {
     private var downloadJob: Deferred<Boolean>? = null
     private var downloadBuild = -1L
 
+    /** Beta updates: every build of main, not only the stable ones. Off by default. */
+    private val _beta = MutableStateFlow(prefs.getBoolean(KEY_BETA, false))
+    val beta: StateFlow<Boolean> = _beta.asStateFlow()
+
+    /** Switches channel; the next [checkForUpdate] looks in the new one. */
+    fun setBeta(on: Boolean) {
+        prefs.edit().putBoolean(KEY_BETA, on).apply()
+        _beta.value = on
+    }
+
     /** Queries GitHub for the latest release and updates [status]. */
     suspend fun checkForUpdate() {
         // A download under way or done keeps its state: the check is for news.
         val keep = _status.value
         if (keep is UpdateStatus.Downloading || keep is UpdateStatus.Ready || keep is UpdateStatus.Installing) return
         _status.value = UpdateStatus.Checking
-        val info = withContext(Dispatchers.IO) { fetchLatestRelease() }
+        val info = withContext(Dispatchers.IO) { if (_beta.value) fetchNewestBeta() else fetchLatestRelease() }
         val downloaded = info?.let { downloadedFile(it) }
         if (info != null && info.buildNumber <= currentVersionCode) withContext(Dispatchers.IO) { forgetDownloads() }
         _status.value = when {
@@ -126,12 +142,40 @@ class UpdateManager(private val context: Context) {
             caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
-    private fun fetchLatestRelease(): UpdateInfo? {
+    /** The stable channel: GitHub's "latest" release, which pre-releases never are. */
+    private fun fetchLatestRelease(): UpdateInfo? =
+        fetchJson("releases/latest")?.let { body -> runCatching { releaseInfo(JSONObject(body)) }.getOrNull() }
+
+    /**
+     * The beta channel: the newest build of main, pre-release or not. A
+     * branch's test build (tag `<branch>-v1.0.N`) is never offered.
+     */
+    private fun fetchNewestBeta(): UpdateInfo? {
+        val body = fetchJson("releases?per_page=30") ?: return null
+        return runCatching {
+            val releases = JSONArray(body)
+            (0 until releases.length())
+                .mapNotNull { releases.optJSONObject(it) }
+                .filter { !it.optBoolean("draft") && isMainBuildTag(it.optString("tag_name")) }
+                .mapNotNull { releaseInfo(it) }
+                .maxByOrNull { it.buildNumber }
+        }.getOrNull()
+    }
+
+    private fun releaseInfo(json: JSONObject): UpdateInfo? {
+        val tag = json.optString("tag_name")
+        val buildNumber = parseBuildNumber(tag) ?: return null
+        val apkUrl = firstApkAssetUrl(json) ?: return null
+        return UpdateInfo(versionName = tag, buildNumber = buildNumber, apkUrl = apkUrl, notes = json.optString("body"))
+    }
+
+    /** The body of a GitHub API call on this app's repository, or null on any failure. */
+    private fun fetchJson(path: String): String? {
         var connection: HttpURLConnection? = null
         return try {
             val endpoint = URL(
                 "https://api.github.com/repos/" +
-                    "${BuildConfig.GITHUB_OWNER}/${BuildConfig.GITHUB_REPO}/releases/latest"
+                    "${BuildConfig.GITHUB_OWNER}/${BuildConfig.GITHUB_REPO}/$path"
             )
             connection = (endpoint.openConnection() as HttpURLConnection).apply {
                 requestMethod = "GET"
@@ -145,20 +189,7 @@ class UpdateManager(private val context: Context) {
                 connection.errorStream?.close()
                 return null
             }
-
-            connection.inputStream.bufferedReader().use { reader ->
-                val json = JSONObject(reader.readText())
-                val tag = json.optString("tag_name")
-                val notes = json.optString("body")
-                val buildNumber = parseBuildNumber(tag) ?: return null
-                val apkUrl = firstApkAssetUrl(json) ?: return null
-                UpdateInfo(
-                    versionName = tag,
-                    buildNumber = buildNumber,
-                    apkUrl = apkUrl,
-                    notes = notes
-                )
-            }
+            connection.inputStream.bufferedReader().use { it.readText() }
         } catch (e: Exception) {
             null
         } finally {
@@ -418,6 +449,10 @@ class UpdateManager(private val context: Context) {
         private const val INSTALL_WAIT_MS = 45_000L
         private const val KEY_DISMISSED = "dismissed_build"
         private const val KEY_DOWNLOADED = "downloaded_build"
+        private const val KEY_BETA = "beta_channel"
+
+        /** A build of main ("v1.0.42"), as opposed to a branch's test build ("my-branch-v1.0.42"). */
+        internal fun isMainBuildTag(tag: String): Boolean = Regex("v\\d+\\.\\d+\\.\\d+").matches(tag)
 
         /** Build number from a release tag or name: "v1.0.42" -> 42 (the last number wins). */
         internal fun parseBuildNumber(text: String): Long? =

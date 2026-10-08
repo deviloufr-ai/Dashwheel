@@ -1,7 +1,9 @@
 package com.openauto.dash
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** Release tag -> build number, the comparison the in-app updater relies on. */
@@ -25,5 +27,14 @@ class UpdateManagerTest {
     fun noDigitsMeansUnknown() {
         assertNull(UpdateManager.parseBuildNumber("nightly"))
         assertNull(UpdateManager.parseBuildNumber(""))
+    }
+
+    @Test
+    fun betaChannelTakesMainBuildsOnly() {
+        assertTrue(UpdateManager.isMainBuildTag("v1.0.590"))
+        // A branch's test build is a pre-release too, but never an update.
+        assertFalse(UpdateManager.isMainBuildTag("ccr-feature-v1.0.591"))
+        assertFalse(UpdateManager.isMainBuildTag("v1.0.591-rc"))
+        assertFalse(UpdateManager.isMainBuildTag(""))
     }
 }

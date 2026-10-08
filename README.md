@@ -4,7 +4,7 @@
 
 ![Dashwheel: map, speed, weather and music on one screen](docs/screenshots/01_hero.jpg)
 
-**[Download the latest release](https://github.com/deviloufr-ai/Dashwheel/releases/latest)** · Android 10+ · made for 1280×720 head units (ROCO K706 / FYT / QF), also works on upright screens and phones.
+**[Download the latest stable release](https://github.com/deviloufr-ai/Dashwheel/releases/latest)** · Android 10+ · made for 1280×720 head units (ROCO K706 / FYT / QF), also works on upright screens and phones.
 
 📖 **[Read the wiki](https://github.com/deviloufr-ai/Dashwheel/wiki)** for every feature, setup guides and what works with or without root.
 
@@ -45,6 +45,8 @@ Dashwheel is free, with no ads. If it makes your drives nicer, a coffee on Ko-fi
 1. Install `Dashwheel-<version>.apk` on the head unit and set it as the Home app.
 2. Optional: `dashwheel-companion.apk` on your phone, an ELM327 Bluetooth adapter, a free Gemini key.
 3. Follow the first-run setup and the tour.
+
+Updates arrive by themselves: one stable version a week, each one tried as a beta for at least two days first. To get every build the day it is made, turn on Settings, About, Beta versions ([all releases](https://github.com/deviloufr-ai/Dashwheel/releases)).
 
 Details: [Installation and updates](https://github.com/deviloufr-ai/Dashwheel/wiki/Installation-and-Updates) · [Troubleshooting](https://github.com/deviloufr-ai/Dashwheel/wiki/Troubleshooting)
 

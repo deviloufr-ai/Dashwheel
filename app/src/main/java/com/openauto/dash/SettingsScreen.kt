@@ -936,6 +936,7 @@ private fun AboutPane(m: TopBarModel) {
     Spacer(Modifier.height(20.dp))
     SettingsSection(stringResource(R.string.settings_section_about))
     UpdateRow(m)
+    SettingsToggle(Icons.Filled.Science, stringResource(R.string.update_beta), stringResource(R.string.update_beta_detail), m.betaUpdates, onChange = m.onBetaUpdates)
     SettingsRow(Icons.Filled.School, stringResource(R.string.tour_settings_row), stringResource(R.string.tour_settings_row_detail), m.onTour)
     // The wiki, as a QR code for the phone and a button for this screen (WikiHelp.kt).
     var help by remember { mutableStateOf(false) }

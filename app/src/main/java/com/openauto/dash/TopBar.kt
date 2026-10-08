@@ -156,6 +156,9 @@ internal data class TopBarModel(
     val onUpdate: () -> Unit,
     /** "Later": stops the update asking until a newer one. */
     val onDismissUpdate: () -> Unit,
+    /** Updates follow every build of main (beta) rather than the weekly stable one. */
+    val betaUpdates: Boolean = false,
+    val onBetaUpdates: (Boolean) -> Unit = {},
     /** Something the launcher can use is still not allowed: the bar shows a pill that opens the setup. */
     val setupPending: Boolean,
     /** Opens the setup on its access step (the pill), or from the start (Settings). */
