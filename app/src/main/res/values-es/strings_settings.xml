@@ -40,6 +40,8 @@
     <string name="settings_rom_call_detail">Las llamadas Bluetooth solo aparecen en la tarjeta de Dashwheel, con contestar y colgar</string>
     <string name="settings_rom_doors_detail">Indica qué puerta está abierta sobre cualquier app, en lugar del aviso de la radio</string>
     <string name="settings_rom_needs_root">Requiere root o el ADB de la radio</string>
+    <string name="settings_more_github">Más con la edición de GitHub</string>
+    <string name="settings_more_github_detail">Google Maps dentro de un mosaico, las ventanas propias de la radio, el logo de arranque y más necesitan root en la radio. La edición gratuita de GitHub los tiene.</string>
     <string name="settings_needs_qf">Requiere el firmware QF</string>
     <string name="alert_section">Avisos</string>
     <string name="alert_kind_call">Llamadas</string>
@@ -105,6 +107,7 @@
     <string name="settings_appearance_title">Día y noche</string>
     <string name="alert_style_section">Avisos emergentes al estilo de Dashwheel</string>
     <string name="alert_more_with_permission">Más avisos del coche necesitan root, o un comando único desde un PC: ver la wiki, Car settings permission.</string>
+    <string name="alert_more_with_github">Los avisos de puertas, cinturón y radar necesitan la edición de GitHub de Dashwheel, que puede usar el root de la radio.</string>
     <string name="alert_copy_command">Copiar el comando</string>
     <string name="alert_command_copied">Comando copiado</string>
     <string name="settings_section_about">Acerca de</string>
@@ -226,4 +229,6 @@
     <string name="settings_side_rail_detail">Los botones de la barra quedan del lado del conductor, a lo largo de la pantalla</string>
     <string name="settings_tabs_nav">Pestañas en lugar de deslizar</string>
     <string name="settings_tabs_nav_detail">Los paneles se tocan en la barra lateral; necesita la barra. Se activa solo cuando una app de mapas está bajo los paneles.</string>
+    <string name="about_free_open_source">Dashwheel es gratuito y de código abierto.</string>
+    <string name="about_updates_play">Las actualizaciones vienen de Google Play</string>
 </resources>

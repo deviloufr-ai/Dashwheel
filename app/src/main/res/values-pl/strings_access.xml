@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="access_a11y_title">Dostęp do ułatwień dostępu</string>
+    <string name="access_a11y_body">Dashwheel używa usługi ułatwień dostępu, by ustawić dwie aplikacje obok siebie, wpisywać w pola samochodu to, co dyktujesz w telefonie, i odczytywać przyciski kierownicy. Nigdy nie czyta ekranu w innym celu.</string>
+    <string name="access_notif_title">Dostęp do powiadomień</string>
+    <string name="access_notif_body">Dashwheel czyta powiadomienia, by pokazać, co gra, następny zakręt i nowe wiadomości na pulpicie. Zostają w tym urządzeniu.</string>
+    <string name="access_open_settings">Otwórz ustawienia</string>
+    <string name="access_not_now">Nie teraz</string>
+</resources>

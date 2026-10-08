@@ -41,6 +41,8 @@
     <string name="settings_rom_call_detail">Bluetooth calls show only in Dashwheel\'s card, with answer and hang up</string>
     <string name="settings_rom_doors_detail">Shows which door is open over any app, in place of the unit\'s own alert</string>
     <string name="settings_rom_needs_root">Needs root or the head unit\'s ADB</string>
+    <string name="settings_more_github">More with the GitHub edition</string>
+    <string name="settings_more_github_detail">Google Maps inside a tile, the unit\'s own pop-ups, boot logo and more need the unit\'s root. The free GitHub edition has them.</string>
     <string name="settings_needs_qf">Needs the QF firmware</string>
     <string name="alert_section">Alerts</string>
     <string name="alert_kind_call">Calls</string>
@@ -107,6 +109,7 @@
     <string name="settings_appearance_title">Day and night</string>
     <string name="alert_style_section">Pop-ups in Dashwheel\'s look</string>
     <string name="alert_more_with_permission">More car alerts need root, or a one-time command from a PC: see the wiki, Car settings permission.</string>
+    <string name="alert_more_with_github">Door, belt and radar alerts need the GitHub edition of Dashwheel, which can use the unit\'s root.</string>
     <string name="alert_copy_command">Copy the command</string>
     <string name="alert_command_copied">Command copied</string>
     <string name="settings_section_about">About</string>
@@ -229,4 +232,6 @@
     <string name="settings_side_rail_detail">The bar\'s buttons stand at the driver\'s side, down the screen</string>
     <string name="settings_tabs_nav">Tabs instead of swiping</string>
     <string name="settings_tabs_nav_detail">Dashboards are tapped in the rail; needs the rail. Shows by itself when a map app is under the dashboards.</string>
+    <string name="about_free_open_source">Dashwheel is free and open source.</string>
+    <string name="about_updates_play">Updates come from Google Play</string>
 </resources>

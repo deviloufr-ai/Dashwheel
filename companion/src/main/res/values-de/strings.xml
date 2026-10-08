@@ -203,6 +203,7 @@
     <string name="update_check_failed">Prüfung nicht möglich. Ist das Telefon online?</string>
     <string name="update_allow_installs">Erlaube Installationen aus dieser App und tippe dann erneut auf Installieren.</string>
     <string name="update_channel">Updates</string>
+    <string name="update_play_detail">Updates kommen von Google Play.</string>
     <plurals name="setup_left">
         <item quantity="one">%d Freigabe fehlt noch</item>
         <item quantity="other">%d Freigaben fehlen noch</item>

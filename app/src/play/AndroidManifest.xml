@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Play edition (see Edition.kt): the permissions the GitHub edition holds
+    for its root, internal-ADB and PMPatch3 features are taken out of the
+    merged manifest. WRITE_SETTINGS stays: the screen light tile asks the
+    driver for it through Android's own "modify system settings" screen
+    (UnitLight). The com.qf.* queries stay: the call takeover works without root.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Android widgets in tiles bind through the privileged system-app install. -->
+    <uses-permission android:name="android.permission.BIND_APPWIDGET" tools:node="remove" />
+    <!-- Joining Wi-Fi networks and connecting Bluetooth devices from their tiles: PMPatch3 only. -->
+    <uses-permission android:name="android.permission.NETWORK_SETTINGS" tools:node="remove" />
+    <uses-permission android:name="android.permission.BLUETOOTH_PRIVILEGED" tools:node="remove" />
+    <!-- Google Maps inside a tile: PMPatch3 only. -->
+    <uses-permission android:name="android.permission.INTERNAL_SYSTEM_WINDOW" tools:node="remove" />
+    <uses-permission android:name="android.permission.INJECT_EVENTS" tools:node="remove" />
+    <!-- The car app's switches in the global settings: granted from a PC or the shell. -->
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" tools:node="remove" />
+    <!-- The car app's log for the steering angle: granted through the root shell. -->
+    <uses-permission android:name="android.permission.READ_LOGS" tools:node="remove" />
+    <!-- The in-app updater: this edition updates through Google Play. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" tools:node="remove" />
+    <!-- Dashwheel's own reversing-camera picture (the ROM camera takeover runs as root). -->
+    <uses-permission android:name="android.permission.CAMERA" tools:node="remove" />
+    <uses-feature android:name="android.hardware.camera" tools:node="remove" />
+
+</manifest>

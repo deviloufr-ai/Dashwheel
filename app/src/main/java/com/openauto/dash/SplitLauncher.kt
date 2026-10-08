@@ -129,8 +129,16 @@ object SplitLauncher {
     /** Swap the two split-screen panes (left/right). Needs the accessibility service. */
     fun swapSplit(): Boolean = SplitAccessibilityService.swapSplit()
 
-    /** Deep-link the user to Accessibility settings to enable the split service. */
+    /**
+     * Deep-link the user to Accessibility settings to enable the split service.
+     * The Play edition first says what the service is for ([AccessDisclosure]);
+     * only that dialog's "Open settings" goes on to the system page.
+     */
     fun openAccessibilitySettings(context: Context) {
+        if (Edition.play) {
+            AccessDisclosure.show(context, AccessDisclosure.Kind.ACCESSIBILITY)
+            return
+        }
         runCatching {
             context.startActivity(
                 Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)

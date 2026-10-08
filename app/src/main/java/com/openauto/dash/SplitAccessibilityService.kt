@@ -30,6 +30,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.math.hypot
 
 /**
@@ -409,6 +410,8 @@ class SplitAccessibilityService : AccessibilityService() {
 
         /** How long the service gets to come up once turned on, and how often it is looked for. */
         private const val BIND_WAIT_MS = 5_000L
+        /** Play edition: the driver's own trip through the disclosure and the system page. */
+        private const val DISCLOSURE_WAIT_MS = 60_000L
         private const val BIND_POLL_MS = 250L
 
         private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -422,6 +425,8 @@ class SplitAccessibilityService : AccessibilityService() {
          * the wheel buttons all go through it.
          */
         fun autoTurnOn(context: Context) {
+            // Google Play: the driver turns the service on, never the app (AccessDisclosure).
+            if (Edition.play) return
             if (autoStarted) return
             autoStarted = true
             val app = context.applicationContext
@@ -438,11 +443,20 @@ class SplitAccessibilityService : AccessibilityService() {
          */
         suspend fun turnOn(context: Context): Boolean {
             if (isConnected) return true
-            val service = ComponentName(context, SplitAccessibilityService::class.java).flattenToString()
-            runCatching { DockShell.shell(context, enableCommand(service)) }
-                .onFailure { Log.w(TAG, "could not turn the service on: ${it.message}") }
+            // The Play edition never switches the service on itself: it says what
+            // the service is for and offers the system page, then waits a while
+            // for the driver to turn it on there.
+            val wait = if (Edition.play) {
+                withContext(Dispatchers.Main) { AccessDisclosure.show(context, AccessDisclosure.Kind.ACCESSIBILITY) }
+                DISCLOSURE_WAIT_MS
+            } else {
+                val service = ComponentName(context, SplitAccessibilityService::class.java).flattenToString()
+                runCatching { DockShell.shell(context, enableCommand(service)) }
+                    .onFailure { Log.w(TAG, "could not turn the service on: ${it.message}") }
+                BIND_WAIT_MS
+            }
             var waited = 0L
-            while (!isConnected && waited < BIND_WAIT_MS) {
+            while (!isConnected && waited < wait) {
                 delay(BIND_POLL_MS)
                 waited += BIND_POLL_MS
             }

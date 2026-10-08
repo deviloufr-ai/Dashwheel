@@ -203,6 +203,7 @@
     <string name="update_check_failed">Não foi possível verificar. O telemóvel tem ligação?</string>
     <string name="update_allow_installs">Permita instalações a partir desta app e toque de novo em Instalar.</string>
     <string name="update_channel">Atualizações</string>
+    <string name="update_play_detail">As atualizações vêm do Google Play.</string>
     <plurals name="setup_left">
         <item quantity="one">Falta %d autorização</item>
         <item quantity="many">Faltam %d autorizações</item>

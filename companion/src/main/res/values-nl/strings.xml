@@ -203,6 +203,7 @@
     <string name="update_check_failed">Controleren lukte niet. Is de telefoon online?</string>
     <string name="update_allow_installs">Sta installaties vanuit deze app toe en tik dan opnieuw op Installeren.</string>
     <string name="update_channel">Updates</string>
+    <string name="update_play_detail">Updates komen van Google Play.</string>
     <plurals name="setup_left">
         <item quantity="one">Nog %d toestemming nodig</item>
         <item quantity="other">Nog %d toestemmingen nodig</item>

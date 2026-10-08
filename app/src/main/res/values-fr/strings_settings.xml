@@ -40,6 +40,8 @@
     <string name="settings_rom_call_detail">Les appels Bluetooth s\'affichent seulement dans la carte Dashwheel, avec décrocher et raccrocher</string>
     <string name="settings_rom_doors_detail">Indique quelle porte est ouverte par-dessus toute appli, à la place de l\'alerte de l\'autoradio</string>
     <string name="settings_rom_needs_root">Demande le root ou l\'ADB de l\'autoradio</string>
+    <string name="settings_more_github">Plus avec l\'édition GitHub</string>
+    <string name="settings_more_github_detail">Google Maps dans une tuile, les pop-ups de l\'autoradio, le logo de démarrage et plus demandent le root de l\'autoradio. L\'édition GitHub gratuite les a.</string>
     <string name="settings_needs_qf">Demande le firmware QF</string>
     <string name="alert_section">Alertes</string>
     <string name="alert_kind_call">Appels</string>
@@ -105,6 +107,7 @@
     <string name="settings_appearance_title">Jour et nuit</string>
     <string name="alert_style_section">Pop-ups dans le style de Dashwheel</string>
     <string name="alert_more_with_permission">D\'autres alertes de la voiture demandent le root, ou une commande unique depuis un PC : voir le wiki, Car settings permission.</string>
+    <string name="alert_more_with_github">Les alertes portes, ceinture et radar demandent l\'édition GitHub de Dashwheel, qui peut utiliser le root de l\'autoradio.</string>
     <string name="alert_copy_command">Copier la commande</string>
     <string name="alert_command_copied">Commande copiée</string>
     <string name="settings_section_about">À propos</string>
@@ -226,4 +229,6 @@
     <string name="settings_side_rail_detail">Les boutons de la barre se tiennent côté conducteur, le long de l\'écran</string>
     <string name="settings_tabs_nav">Onglets au lieu du balayage</string>
     <string name="settings_tabs_nav_detail">Les tableaux de bord se touchent dans la barre latérale ; il la faut. S\'active tout seul quand une appli de carte est sous les tableaux de bord.</string>
+    <string name="about_free_open_source">Dashwheel est gratuit et open source.</string>
+    <string name="about_updates_play">Les mises à jour viennent de Google Play</string>
 </resources>

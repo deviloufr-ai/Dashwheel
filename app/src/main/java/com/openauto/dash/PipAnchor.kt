@@ -708,6 +708,8 @@ object PipAnchor {
 
     suspend fun grantOverlayPermission(context: Context): Boolean {
         if (android.provider.Settings.canDrawOverlays(context)) return true
+        // The Play edition has no shell to grant it with: the driver allows it in the system settings (PhoneLinkUi).
+        if (Edition.play) return false
         if (overlayGrantTried) return false
         val out = runGuarded { DockShell.shell(context, "appops set ${context.packageName} SYSTEM_ALERT_WINDOW allow") }
             .getOrElse { "failed: ${it.message}" }

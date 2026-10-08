@@ -62,7 +62,12 @@ jobs:
             exit 1
           fi
 
-      - name: Build release APK
+      # Two editions from one code base (see Edition.kt): the GitHub edition
+      # ships as an APK the in-app updater installs; the Google Play edition
+      # ships as an App Bundle to upload to the Play Console, with a test APK
+      # for sideloading. Each edition is built in its own Gradle invocation:
+      # compiling both flavors in one run has crashed the Kotlin compiler.
+      - name: Build the GitHub edition
         env:
           VERSION_CODE: ${{ github.run_number }}
           VERSION_NAME: 1.0.${{ github.run_number }}
@@ -70,16 +75,32 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: ./gradlew assembleRelease --stacktrace
+        run: ./gradlew :app:assembleGithubRelease :companion:assembleGithubRelease --stacktrace
+
+      - name: Build the Google Play edition
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+          VERSION_NAME: 1.0.${{ github.run_number }}
+          KEYSTORE_FILE: ${{ runner.temp }}/release.keystore
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew :app:bundlePlayRelease :app:assemblePlayRelease :companion:bundlePlayRelease --stacktrace
 
       # The launcher ships as Dashwheel-<version>.apk (the in-app updater takes
       # any .apk but the companion). The phone companion app ships in the same
       # release, under the name the launcher's pairing screen links to (and its
       # updater skips).
-      - name: Name APKs
+      # The Play edition's APK is a workflow artifact only, never a release
+      # asset: the updater takes the first launcher .apk of a release.
+      - name: Name the outputs
         run: |
-          cp app/build/outputs/apk/release/app-release.apk Dashwheel-1.0.${{ github.run_number }}.apk
-          cp companion/build/outputs/apk/release/companion-release.apk dashwheel-companion.apk
+          v=1.0.${{ github.run_number }}
+          cp app/build/outputs/apk/github/release/app-github-release.apk "Dashwheel-$v.apk"
+          cp companion/build/outputs/apk/github/release/companion-github-release.apk dashwheel-companion.apk
+          cp app/build/outputs/bundle/playRelease/app-play-release.aab "Dashwheel-$v-play.aab"
+          cp app/build/outputs/apk/play/release/app-play-release.apk "Dashwheel-$v-play.apk"
+          cp companion/build/outputs/bundle/playRelease/companion-play-release.aab dashwheel-companion-play.aab
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -88,6 +109,16 @@ jobs:
           path: |
             Dashwheel-1.0.${{ github.run_number }}.apk
             dashwheel-companion.apk
+          if-no-files-found: error
+
+      - name: Upload Play edition artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashwheel-play
+          path: |
+            Dashwheel-1.0.${{ github.run_number }}-play.aab
+            Dashwheel-1.0.${{ github.run_number }}-play.apk
+            dashwheel-companion-play.aab
           if-no-files-found: error
 
       # Readable changelog: one section per commit since the previous release,
@@ -121,6 +152,8 @@ jobs:
           files: |
             Dashwheel-1.0.${{ github.run_number }}.apk
             dashwheel-companion.apk
+            Dashwheel-1.0.${{ github.run_number }}-play.aab
+            dashwheel-companion-play.aab
           body_path: ${{ runner.temp }}/release-notes.md
 
       - name: Publish branch pre-release

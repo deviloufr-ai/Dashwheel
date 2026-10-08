@@ -17,8 +17,13 @@
   (SteeringWheelStore), and the keys the driver chose turn the second
   screen's cluster page (SecondScreenController.onKey); keys that aren't
   learned go on untouched.
+  isAccessibilityTool="false" (Android 12+): Dashwheel is not a tool for users
+  with disabilities, which Google Play asks apps to state.
 -->
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:targetApi="31"
+    android:isAccessibilityTool="false"
     android:accessibilityEventTypes="typeWindowStateChanged|typeWindowsChanged"
     android:accessibilityFeedbackType="feedbackGeneric"
     android:accessibilityFlags="flagDefault|flagRetrieveInteractiveWindows|flagRequestFilterKeyEvents"

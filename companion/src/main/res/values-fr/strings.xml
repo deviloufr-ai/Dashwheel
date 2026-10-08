@@ -203,6 +203,7 @@
     <string name="update_check_failed">Vérification impossible. Le téléphone est-il connecté à Internet ?</string>
     <string name="update_allow_installs">Autorisez les installations depuis cette appli, puis touchez Installer à nouveau.</string>
     <string name="update_channel">Mises à jour</string>
+    <string name="update_play_detail">Les mises à jour viennent de Google Play.</string>
     <plurals name="setup_left">
         <item quantity="one">%d autorisation à donner</item>
         <item quantity="many">%d autorisations à donner</item>

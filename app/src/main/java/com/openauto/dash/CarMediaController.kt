@@ -397,8 +397,15 @@ class CarMediaController(private val context: Context) {
             }
         }
 
-        /** Opens the system screen where the user enables Notification access. */
+        /**
+         * Opens the system screen where the user enables Notification access.
+         * The Play edition first says what the access is for ([AccessDisclosure]).
+         */
         fun openNotificationAccessSettings(context: Context) {
+            if (Edition.play) {
+                AccessDisclosure.show(context, AccessDisclosure.Kind.NOTIFICATIONS)
+                return
+            }
             context.startActivity(
                 Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

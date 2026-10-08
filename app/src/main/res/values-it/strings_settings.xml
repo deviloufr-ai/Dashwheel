@@ -40,6 +40,8 @@
     <string name="settings_rom_call_detail">Le chiamate Bluetooth appaiono solo nella scheda di Dashwheel, con rispondi e riaggancia</string>
     <string name="settings_rom_doors_detail">Indica quale porta è aperta sopra qualsiasi app, al posto dell\'avviso dell\'autoradio</string>
     <string name="settings_rom_needs_root">Richiede root o l\'ADB dell\'autoradio</string>
+    <string name="settings_more_github">Di più con l\'edizione GitHub</string>
+    <string name="settings_more_github_detail">Google Maps in un riquadro, i pop-up dell\'autoradio, il logo di avvio e altro richiedono root sull\'autoradio. L\'edizione gratuita su GitHub li ha.</string>
     <string name="settings_needs_qf">Richiede il firmware QF</string>
     <string name="alert_section">Avvisi</string>
     <string name="alert_kind_call">Chiamate</string>
@@ -105,6 +107,7 @@
     <string name="settings_appearance_title">Giorno e notte</string>
     <string name="alert_style_section">Pop-up nello stile di Dashwheel</string>
     <string name="alert_more_with_permission">Altri avvisi dell\'auto richiedono root, o un comando una tantum da un PC: vedi il wiki, Car settings permission.</string>
+    <string name="alert_more_with_github">Gli avvisi di porte, cintura e radar richiedono l\'edizione GitHub di Dashwheel, che può usare il root dell\'autoradio.</string>
     <string name="alert_copy_command">Copia il comando</string>
     <string name="alert_command_copied">Comando copiato</string>
     <string name="settings_section_about">Informazioni</string>
@@ -226,4 +229,6 @@
     <string name="settings_side_rail_detail">I pulsanti della barra stanno dal lato del guidatore, lungo lo schermo</string>
     <string name="settings_tabs_nav">Schede al posto dello scorrimento</string>
     <string name="settings_tabs_nav_detail">I pannelli si toccano nella barra laterale; serve la barra. Si attiva da solo quando un\'app di mappe sta sotto i pannelli.</string>
+    <string name="about_free_open_source">Dashwheel è gratuito e open source.</string>
+    <string name="about_updates_play">Gli aggiornamenti arrivano da Google Play</string>
 </resources>

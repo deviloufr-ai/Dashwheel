@@ -8,10 +8,6 @@
 -keep class org.maplibre.** { *; }
 -dontwarn org.maplibre.**
 
-# dadb (pure-Kotlin ADB client used by the priv-app self-install).
--keep class dev.mobile.dadb.** { *; }
--dontwarn dev.mobile.dadb.**
-
 # Keep the app's own JSON-facing enums by name: tile kinds and theme modes are
 # persisted with Enum.name / valueOf, which R8 would otherwise rename.
 -keepclassmembers enum com.openauto.dash.** { *; }

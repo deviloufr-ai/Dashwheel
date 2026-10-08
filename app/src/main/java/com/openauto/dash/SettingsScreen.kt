@@ -41,6 +41,7 @@ import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.ChevronRight
@@ -525,7 +526,8 @@ private fun DisplayPane(theme: ThemeState, onLanguage: () -> Unit, onSecondScree
     Spacer(Modifier.height(20.dp))
     NavigationSetting(theme)
     Spacer(Modifier.height(20.dp))
-    if (FreeformBar.supported) {
+    // The unit's bar is moved through the shell: not in the Play edition.
+    if (FreeformBar.supported && Edition.full) {
         UnitBarSetting()
         Spacer(Modifier.height(20.dp))
     }
@@ -754,11 +756,12 @@ private fun VolumeWaySetting() {
     val context = LocalContext.current
     val saved by MediaVolume.way.collectAsState()
     val shell = shellAccess().shell
-    // The keys way stays in sight without a shell, greyed, with the reason under the switch.
+    // The keys way stays in sight without a shell, greyed, with the reason under the switch;
+    // the Play edition, which can never have a shell, leaves it out.
     val way = if (shell || saved != VolumeWay.KEYS) saved else VolumeWay.AUTO
     SettingsSection(stringResource(R.string.volume_way_title))
     SegmentedSwitch(
-        options = VolumeWay.entries,
+        options = if (Edition.play) VolumeWay.entries - VolumeWay.KEYS else VolumeWay.entries,
         chosen = way,
         icon = { option ->
             when (option) {
@@ -771,7 +774,7 @@ private fun VolumeWaySetting() {
         enabled = { shell || it != VolumeWay.KEYS },
         onChoose = { MediaVolume.saveWay(context, it) }
     )
-    SwitchHint(stringResource(if (!shell) R.string.volume_way_keys_locked else way.hintRes))
+    SwitchHint(stringResource(if (!shell && Edition.full) R.string.volume_way_keys_locked else way.hintRes))
 }
 
 /**
@@ -833,23 +836,30 @@ private fun AdvancedPane(m: TopBarModel, onBootLogo: () -> Unit, onPickObd: () -
     val shell = shellAccess().shell
     val needsRoot = stringResource(R.string.settings_rom_needs_root)
     SettingsSection(stringResource(R.string.settings_section_advanced))
-    // Only on the QF001 / K706 firmware the feature was built for.
-    when {
-        !BootLogoSupport.available -> GatedRow(Icons.Filled.PowerSettingsNew, stringResource(R.string.boot_menu), stringResource(R.string.settings_needs_qf))
-        !shell -> GatedRow(Icons.Filled.PowerSettingsNew, stringResource(R.string.boot_menu), needsRoot)
-        else -> SettingsRow(Icons.Filled.PowerSettingsNew, stringResource(R.string.boot_menu), null, onBootLogo)
+    if (Edition.play) {
+        // The Play edition can never have root: the root features are not
+        // listed, one row says where they are instead.
+        MoreWithGithubRow()
+        Spacer(Modifier.height(20.dp))
+    } else {
+        // Only on the QF001 / K706 firmware the feature was built for.
+        when {
+            !BootLogoSupport.available -> GatedRow(Icons.Filled.PowerSettingsNew, stringResource(R.string.boot_menu), stringResource(R.string.settings_needs_qf))
+            !shell -> GatedRow(Icons.Filled.PowerSettingsNew, stringResource(R.string.boot_menu), needsRoot)
+            else -> SettingsRow(Icons.Filled.PowerSettingsNew, stringResource(R.string.boot_menu), null, onBootLogo)
+        }
+        Spacer(Modifier.height(20.dp))
+        // Apps running inside tiles: Google Maps needs permissions only the
+        // firmware's apps get (EmbeddedApp), through PMPatch3; Android widgets
+        // need Dashwheel installed as a system app.
+        SettingsSection(stringResource(R.string.settings_section_apps_in_tiles))
+        val embed = EmbeddedApp.allowed(context)
+        if (shell || embed) SystemPermissionsRow(embed)
+        else GatedRow(Icons.Filled.VerifiedUser, stringResource(R.string.settings_system_perms), needsRoot)
+        if (shell) SettingsRow(Icons.Filled.Build, stringResource(R.string.dash_system_app_title), stringResource(R.string.settings_system_detail), m.onSystem)
+        else GatedRow(Icons.Filled.Build, stringResource(R.string.dash_system_app_title), needsRoot)
+        Spacer(Modifier.height(20.dp))
     }
-    Spacer(Modifier.height(20.dp))
-    // Apps running inside tiles: Google Maps needs permissions only the
-    // firmware's apps get (EmbeddedApp), through PMPatch3; Android widgets
-    // need Dashwheel installed as a system app.
-    SettingsSection(stringResource(R.string.settings_section_apps_in_tiles))
-    val embed = EmbeddedApp.allowed(context)
-    if (shell || embed) SystemPermissionsRow(embed)
-    else GatedRow(Icons.Filled.VerifiedUser, stringResource(R.string.settings_system_perms), needsRoot)
-    if (shell) SettingsRow(Icons.Filled.Build, stringResource(R.string.dash_system_app_title), stringResource(R.string.settings_system_detail), m.onSystem)
-    else GatedRow(Icons.Filled.Build, stringResource(R.string.dash_system_app_title), needsRoot)
-    Spacer(Modifier.height(20.dp))
     // Only for a unit whose sound ignores Android's volume; on the QF firmware Automatic is the only way that works.
     if (MediaVolume.choiceOffered) {
         VolumeWaySetting()
@@ -882,8 +892,22 @@ private fun AdvancedPane(m: TopBarModel, onBootLogo: () -> Unit, onPickObd: () -
     SendLogRow()
 }
 
+/**
+ * Play edition only: the one place that says what the GitHub edition has
+ * more (Google Maps inside a tile, the unit's own pop-ups, the boot logo),
+ * and why (the unit's root). Opens the wiki page on root and PMPatch3.
+ */
+@Composable
+private fun MoreWithGithubRow() {
+    var help by remember { mutableStateOf(false) }
+    SettingsRow(Icons.Filled.Extension, stringResource(R.string.settings_more_github), stringResource(R.string.settings_more_github_detail)) { help = true }
+    if (help) WikiHelpDialog(WikiPage.ROOT_PMPATCH) { help = false }
+}
+
 private const val KOFI_URL = "https://ko-fi.com/deviloufr"
 private const val PROJECT_URL = "https://github.com/deviloufr-ai/Dashwheel"
+/** A Google Play listing, the package name appended (the Play edition's own, and the companion's). */
+internal const val PLAY_LISTING = "https://play.google.com/store/apps/details?id="
 
 /** Who made the app, what it is, the update check, and a Ko-fi link with its QR code. */
 @Composable
@@ -914,28 +938,44 @@ private fun AboutPane(m: TopBarModel) {
         Text(stringResource(R.string.about_author_role), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
     }
     Spacer(Modifier.height(20.dp))
-    SettingsSection(stringResource(R.string.about_support_section))
-    Row(
-        modifier = Modifier.padding(horizontal = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(Modifier.weight(1f)) {
-            Text(stringResource(R.string.about_support_text), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
-            Spacer(Modifier.height(12.dp))
-            SheetButton(stringResource(R.string.about_kofi)) {
-                tap()
-                context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(KOFI_URL)))
+    // Google Play allows no donation link in the app: one line says it is free instead.
+    if (Edition.play) {
+        Text(
+            stringResource(R.string.about_free_open_source),
+            color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(horizontal = 12.dp)
+        )
+    } else {
+        SettingsSection(stringResource(R.string.about_support_section))
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.about_support_text), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
+                Spacer(Modifier.height(12.dp))
+                SheetButton(stringResource(R.string.about_kofi)) {
+                    tap()
+                    context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(KOFI_URL)))
+                }
             }
-        }
-        Spacer(Modifier.width(16.dp))
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            QrCode(KOFI_URL, Modifier.size(120.dp).clip(DashShape.Small))
-            Text(stringResource(R.string.about_scan), color = DashColors.TextSecondary, style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 4.dp))
+            Spacer(Modifier.width(16.dp))
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                QrCode(KOFI_URL, Modifier.size(120.dp).clip(DashShape.Small))
+                Text(stringResource(R.string.about_scan), color = DashColors.TextSecondary, style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 4.dp))
+            }
         }
     }
     Spacer(Modifier.height(20.dp))
     SettingsSection(stringResource(R.string.settings_section_about))
-    UpdateRow(m)
+    // The Play edition has no updater of its own: Google Play updates it, and the row opens its listing.
+    if (Edition.play) {
+        SettingsRow(Icons.Filled.SystemUpdate, stringResource(R.string.about_updates_play), stringResource(R.string.settings_version, m.versionName)) {
+            context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_LISTING + context.packageName)))
+        }
+    } else {
+        UpdateRow(m)
+    }
     SettingsRow(Icons.Filled.School, stringResource(R.string.tour_settings_row), stringResource(R.string.tour_settings_row_detail), m.onTour)
     // The wiki, as a QR code for the phone and a button for this screen (WikiHelp.kt).
     var help by remember { mutableStateOf(false) }

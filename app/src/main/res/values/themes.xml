@@ -20,4 +20,12 @@
              strip whenever a pop-up window took the focus. -->
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
+
+    <!-- A see-through activity that holds one dialog (AccessDisclosureActivity). -->
+    <style name="Theme.OpenAutoDash.Transparent">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
 </resources>

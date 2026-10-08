@@ -999,8 +999,9 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
 
     // The unit sleeps at ignition off rather than restarting, often for days: a
     // check at start alone missed every release after it. So also at each
-    // ignition on, and every six hours awake.
-    LaunchedEffect(Unit) {
+    // ignition on, and every six hours awake. Never in the Play edition: its
+    // updates come from Google Play (UpdateManager stays Idle there anyway).
+    if (Edition.full) LaunchedEffect(Unit) {
         launch { CarPower.ignition.drop(1).filter { it == true }.collect { updateManager.checkForUpdate() } }
         while (true) {
             updateManager.checkForUpdate()
@@ -2174,7 +2175,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             },
             confirmButton = {
                 if (systemInstalled) {
-                    TextButton(onClick = { scope.launch { withContext(Dispatchers.IO) { SystemInstaller.rebootDevice(context) } } }) {
+                    TextButton(onClick = { scope.launch { withContext(Dispatchers.IO) { PrivApp.rebootDevice(context) } } }) {
                         Text(stringResource(R.string.dash_reboot_now), color = DashColors.Accent)
                     }
                 } else {
@@ -2185,7 +2186,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                             systemMessage = null
                             scope.launch {
                                 val res = withContext(Dispatchers.IO) {
-                                    SystemInstaller.install(context)
+                                    PrivApp.install(context)
                                 }
                                 systemBusy = false
                                 res.onSuccess {

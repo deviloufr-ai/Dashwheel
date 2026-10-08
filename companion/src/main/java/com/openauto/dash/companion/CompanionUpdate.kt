@@ -71,8 +71,13 @@ object CompanionUpdate {
     /** Opened from the notification in a new process: install as soon as the check finds the download. */
     private var installPending = false
 
-    /** Looks for a newer build unless one was looked for lately; [force] looks anyway. */
+    /**
+     * Looks for a newer build unless one was looked for lately; [force] looks
+     * anyway. Never in the Play edition: Google Play updates it, and [status]
+     * stays [Status.None] for good, so no card, button or notification shows.
+     */
     fun check(context: Context, force: Boolean = false) {
+        if (Edition.play) return
         val app = context.applicationContext
         // A local build is signed with the debug key: a release could never install over it.
         if (app.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0) return
@@ -117,6 +122,7 @@ object CompanionUpdate {
 
     /** Downloads the build on offer (or after a failure); a running download goes on. */
     fun download(context: Context) {
+        if (Edition.play) return
         val app = context.applicationContext
         val release = when (val s = _status.value) {
             is Status.Available -> s.release
@@ -146,6 +152,7 @@ object CompanionUpdate {
      * driver to allow installs from this app if that is still needed.
      */
     fun install(context: Context) {
+        if (Edition.play) return
         val ready = _status.value as? Status.Ready ?: return
         installPending = false
         if (!context.packageManager.canRequestPackageInstalls()) {
@@ -171,6 +178,7 @@ object CompanionUpdate {
 
     /** Installs the download, or once the check under way (or a new one) has found it again. */
     fun installWhenReady(context: Context) {
+        if (Edition.play) return
         if (_status.value is Status.Ready) {
             install(context)
             return

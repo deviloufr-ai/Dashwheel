@@ -142,14 +142,15 @@ internal object EmbeddedApp {
         BLOCKED
     }
 
-    /** Whether Android lets Dashwheel open another app on its own display. */
+    /** Whether Android lets Dashwheel open another app on its own display; never in the Play edition. */
     fun allowed(context: Context): Boolean = granted(context, "android.permission.INTERNAL_SYSTEM_WINDOW")
 
     /** Whether the tile's touches can be sent on to the app. */
     fun canTouch(context: Context): Boolean = granted(context, "android.permission.INJECT_EVENTS")
 
+    // The Play edition does not ask for these permissions and never touches the hidden calls behind them.
     private fun granted(context: Context, permission: String) =
-        ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+        Edition.full && ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
 
     private val hosts = java.util.concurrent.ConcurrentHashMap<String, Host>()
 
@@ -583,7 +584,7 @@ internal object EmbeddedApp {
     }
 
     /** Whether the on-screen keyboard shows (for an app inside a tile, typing a search). */
-    private fun keyboardUp(context: Context): Boolean = runCatching {
+    private fun keyboardUp(context: Context): Boolean = Edition.full && runCatching {
         // @hide, public on Android 10 and 11.
         val imm = context.getSystemService(InputMethodManager::class.java)
         (HiddenApiBypass.invoke(InputMethodManager::class.java, imm, "getInputMethodWindowVisibleHeight") as Int) > 0

@@ -86,6 +86,8 @@ object KeyTargets {
  */
 @Composable
 internal fun KeyTargetRows() {
+    // The choice is written through the shell: the Play edition has no row for it.
+    if (Edition.play) return
     val context = LocalContext.current
     val available = remember { KeyTargets.available() }
     if (!available) {

@@ -129,6 +129,14 @@
 
         </activity>
 
+        <!-- The Play edition's disclosure dialog before the accessibility or
+             notification access page (AccessDisclosure.kt). -->
+        <activity
+            android:name=".AccessDisclosureActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.OpenAutoDash.Transparent" />
+
         <!-- Reads active media sessions (title/artist/playback) from other apps.
              Requires the user to grant Notification access in system settings. -->
         <service

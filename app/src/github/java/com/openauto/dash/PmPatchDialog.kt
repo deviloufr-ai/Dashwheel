@@ -110,7 +110,7 @@ internal fun PmPatchDialog(onDismiss: () -> Unit) {
                     run({ PmPatch.install(context) }, PmPatch.State.RESTART)
                 }
                 PmPatch.State.RESTART -> R.string.dash_reboot_now to {
-                    run({ SystemInstaller.rebootDevice(context) }, null)
+                    run({ PrivApp.rebootDevice(context) }, null)
                 }
                 PmPatch.State.RUNNING -> R.string.settings_pmpatch_reinstall to {
                     run({ PmPatch.reinstallSelf(context) }, null)

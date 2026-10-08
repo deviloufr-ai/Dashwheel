@@ -40,6 +40,8 @@
     <string name="settings_rom_call_detail">Bluetooth-Anrufe erscheinen nur in der Dashwheel-Karte, mit Annehmen und Auflegen</string>
     <string name="settings_rom_doors_detail">Zeigt über jeder App, welche Tür offen ist, statt der Warnung des Radios</string>
     <string name="settings_rom_needs_root">Braucht Root oder das ADB des Radios</string>
+    <string name="settings_more_github">Mehr mit der GitHub-Ausgabe</string>
+    <string name="settings_more_github_detail">Google Maps in einer Kachel, die eigenen Pop-ups des Radios, das Startlogo und mehr brauchen Root auf dem Radio. Die kostenlose GitHub-Ausgabe hat sie.</string>
     <string name="settings_needs_qf">Braucht die QF-Firmware</string>
     <string name="alert_section">Hinweise</string>
     <string name="alert_kind_call">Anrufe</string>
@@ -105,6 +107,7 @@
     <string name="settings_appearance_title">Tag und Nacht</string>
     <string name="alert_style_section">Pop-ups im Stil von Dashwheel</string>
     <string name="alert_more_with_permission">Weitere Fahrzeughinweise brauchen Root oder einen einmaligen Befehl von einem PC: siehe Wiki, Car settings permission.</string>
+    <string name="alert_more_with_github">Hinweise zu Türen, Gurt und Radar brauchen die GitHub-Ausgabe von Dashwheel, die Root auf dem Radio nutzen kann.</string>
     <string name="alert_copy_command">Befehl kopieren</string>
     <string name="alert_command_copied">Befehl kopiert</string>
     <string name="settings_section_about">Über</string>
@@ -226,4 +229,6 @@
     <string name="settings_side_rail_detail">Die Tasten der Leiste stehen auf der Fahrerseite, am Bildschirmrand</string>
     <string name="settings_tabs_nav">Tabs statt Wischen</string>
     <string name="settings_tabs_nav_detail">Dashboards werden in der Seitenleiste angetippt; braucht die Leiste. Schaltet sich von selbst ein, wenn eine Karten-App unter den Dashboards liegt.</string>
+    <string name="about_free_open_source">Dashwheel ist kostenlos und quelloffen.</string>
+    <string name="about_updates_play">Updates kommen von Google Play</string>
 </resources>

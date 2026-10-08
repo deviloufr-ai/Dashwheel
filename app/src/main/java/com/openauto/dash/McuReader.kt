@@ -290,6 +290,8 @@ object McuReader {
 
     @Synchronized
     fun start() {
+        // The stream is read through root: the Play edition has none, so no reader is counted or started.
+        if (Edition.play) return
         refCount++
         shutdown?.cancel()
         shutdown = null
@@ -331,7 +333,7 @@ object McuReader {
             var caughtUp = false
             // Started under the lock: a stop() can't slip in between and miss it.
             val p = synchronized(this) {
-                if (!ctx.isActive) return
+                if (!ctx.isActive || Edition.play) return
                 runCatching { Runtime.getRuntime().exec(arrayOf("su", "-c", "exec logcat -s mcu_services:D")) }
                     .getOrNull()?.also { process = it }
             }

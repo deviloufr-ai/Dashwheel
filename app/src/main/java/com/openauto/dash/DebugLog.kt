@@ -49,6 +49,8 @@ object DebugLog {
     /** Saves the system log as it is now, [why] naming the moment; the last few are kept. */
     fun snapshot(context: Context, why: String) {
         val app = context.applicationContext
+        // The system log comes through the shell: the Play edition keeps its event log only.
+        if (Edition.play) return
         scope.launch {
             runCatching {
                 val text = DockShell.shell(app, LOGCAT)
@@ -70,7 +72,7 @@ object DebugLog {
     /** The report: build, boot, lost deep sleeps, the event log, the saved snapshots, then the log as it is now. */
     suspend fun report(context: Context): String = withContext(Dispatchers.IO) {
         val boot = runCatching { Settings.Global.getInt(context.contentResolver, Settings.Global.BOOT_COUNT) }.getOrDefault(-1)
-        suspend fun sh(cmd: String) = runCatching { DockShell.shell(context, cmd) }.getOrDefault("").trim()
+        suspend fun sh(cmd: String) = if (Edition.play) "" else runCatching { DockShell.shell(context, cmd) }.getOrDefault("").trim()
         val reason = sh("getprop sys.boot.reason; getprop ro.boot.bootreason").replace('\n', ' ')
         val head = buildString {
             appendLine("App ${runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull()}")

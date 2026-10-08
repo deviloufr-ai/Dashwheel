@@ -357,6 +357,9 @@ internal fun PhonePane() {
     }
 }
 
+/** The companion app's applicationId (companion/build.gradle.kts): its Google Play listing. */
+private const val COMPANION_PACKAGE = "com.openauto.dash.companion"
+
 /**
  * The pairing code, with the companion app's download next to it. Closes on
  * its own once the phone has used the code.
@@ -370,8 +373,12 @@ internal fun PhonePairingDialog(onDismiss: () -> Unit) {
     DisposableEffect(offer) {
         onDispose { if (PhoneLink.pending.value?.id == offer.id) PhoneLink.cancelPairing() }
     }
+    // Where the phone gets the companion app: the GitHub release's APK, or
+    // the Play edition's companion on Google Play (same package name, see
+    // companion/build.gradle.kts).
     val download = remember {
-        "https://github.com/${BuildConfig.GITHUB_OWNER}/${BuildConfig.GITHUB_REPO}/releases/latest/download/${UpdateManager.COMPANION_APK_NAME}"
+        if (Edition.play) PLAY_LISTING + COMPANION_PACKAGE
+        else "https://github.com/${BuildConfig.GITHUB_OWNER}/${BuildConfig.GITHUB_REPO}/releases/latest/download/${UpdateManager.COMPANION_APK_NAME}"
     }
 
     AlertDialog(

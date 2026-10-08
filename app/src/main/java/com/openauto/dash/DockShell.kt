@@ -2,7 +2,7 @@ package com.openauto.dash
 
 import android.content.Context
 import android.util.Log
-import dadb.Dadb
+import java.io.Closeable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -13,14 +13,22 @@ import kotlinx.coroutines.withContext
  * Magisk root when granted, else the head unit's internal ADB socket. One
  * command at a time, bounded so a stuck prompt or a hung adbd cannot freeze the
  * dashboard. Also the two window-manager commands built on it (resize, swipe).
+ * The Play edition has neither ([Edition.play]): every command fails at once,
+ * without a process or a socket.
  */
 object DockShell {
 
     private const val TAG = "DockShell"
 
+    /** A connection to the unit's adbd ([AdbInstaller.openShell]); GitHub edition only. */
+    interface AdbShell : Closeable {
+        /** Runs [cmd] and returns all it printed (both streams). */
+        fun run(cmd: String): String
+    }
+
     private val io = Mutex()
 
-    private var dadb: Dadb? = null
+    private var adb: AdbShell? = null
 
     /** Drags the window by its centre onto the target centre (SystemUI handles PiP drags itself). */
     suspend fun swipeTo(context: Context, from: ScreenRect, to: ScreenRect): String {
@@ -162,6 +170,8 @@ object DockShell {
 
     /** Only from inside [io]'s lock. */
     private fun execute(context: Context, cmd: String): String {
+        // No root, no ADB in the Play edition: nothing is tried.
+        if (Edition.play) throw IllegalStateException("no shell in the Play edition")
         // su can run out of time while the unit boots: ADB was taken then, for the
         // life of the process, on a unit whose ADB may be off. Root found since is used.
         if (backend == Backend.ADB && PrivilegedShell.access.value.root) {
@@ -203,10 +213,9 @@ object DockShell {
     private const val SU_TIMEOUT_S = 8L
 
     private fun adbShell(context: Context, cmd: String): String {
-        val conn = dadb ?: AdbInstaller.connect(context, AdbInstaller.announcedPort(), ADB_TIMEOUT_MS).also { dadb = it }
+        val conn = adb ?: AdbInstaller.openShell(context, AdbInstaller.announcedPort(), ADB_TIMEOUT_MS).also { adb = it }
         try {
-            val res = conn.shell(cmd)
-            return res.output + res.errorOutput
+            return conn.run(cmd)
         } catch (e: Exception) {
             closeConnection()
             throw e
@@ -218,8 +227,8 @@ object DockShell {
 
     /** Only from inside [shell]'s lock. */
     private fun closeConnection() {
-        runCatching { dadb?.close() }
-        dadb = null
+        runCatching { adb?.close() }
+        adb = null
     }
 
     /**

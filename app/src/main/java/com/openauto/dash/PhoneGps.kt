@@ -109,7 +109,9 @@ object PhoneGps {
         if (!mockAllowed(context)) {
             if (grantTried) return false
             grantTried = true
-            val out = runCatching { DockShell.shell(context, "appops set ${context.packageName} android:mock_location allow") }
+            // The Play edition has no shell: the driver picks Dashwheel as the mock location app in the developer options.
+            val out = if (Edition.play) "no shell in the Play edition"
+            else runCatching { DockShell.shell(context, "appops set ${context.packageName} android:mock_location allow") }
                 .getOrElse { "failed: ${it.message}" }
             if (!mockAllowed(context)) {
                 Log.w(TAG, "mock location not allowed: ${out.trim()}")

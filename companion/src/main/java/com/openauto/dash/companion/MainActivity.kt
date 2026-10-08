@@ -192,9 +192,14 @@ class MainActivity : ComponentActivity() {
         PhoneLists.recheck()
     }
 
-    /** The launcher shows two codes; the download one is the easy one to scan by mistake. */
+    /**
+     * The launcher shows two codes; the download one (the release's APK, or
+     * the Play listing in the Play edition) is the easy one to scan by mistake.
+     */
     private fun explainWrongCode(text: String) {
-        val message = if (text.contains(COMPANION_APK, ignoreCase = true)) {
+        val downloadCode = text.contains(COMPANION_APK, ignoreCase = true) ||
+            text.contains("play.google.com/store/apps/details", ignoreCase = true)
+        val message = if (downloadCode) {
             getString(R.string.scanned_download_code)
         } else {
             getString(R.string.invalid_code_read, text.trim().take(60))
@@ -489,6 +494,15 @@ private fun AppVersionCard(update: CompanionUpdate.Status) {
         return
     }
     val version = remember { runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull().orEmpty() }
+    // The Play edition has no updater of its own: the version, and where updates come from.
+    if (Edition.play) {
+        Panel {
+            Column(Modifier.padding(18.dp)) {
+                CardHeading(Icons.Filled.SystemUpdate, stringResource(R.string.update_installed, version), stringResource(R.string.update_play_detail), CompanionColors.Teal)
+            }
+        }
+        return
+    }
     // "Up to date" only once GitHub has answered; a check that failed says so.
     val check by CompanionUpdate.checked.collectAsState()
     val (line, tint) = when (val c = check) {

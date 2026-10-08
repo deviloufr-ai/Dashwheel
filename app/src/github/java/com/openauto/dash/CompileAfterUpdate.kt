@@ -12,7 +12,7 @@ import kotlin.concurrent.thread
  * Android only does that by itself in an idle-and-charging maintenance window
  * a head unit rarely has, so until then the dashboard runs through the slow
  * JIT on the unit's modest CPU. The priv-app install does it right away
- * (SystemInstaller.compileInBackground); this covers updates from the in-app
+ * (PrivApp.compileInBackground); this covers updates from the in-app
  * updater, which restart the app on the new version.
  */
 internal object CompileAfterUpdate {
@@ -39,7 +39,7 @@ internal object CompileAfterUpdate {
             // The shell user may run `cmd package compile`; no root needed, only adbd.
             val port = AdbInstaller.listeningPort() ?: return@thread
             runCatching {
-                AdbInstaller.connect(app, port, readTimeoutMs = SystemInstaller.COMPILE_TIMEOUT_MS).use {
+                AdbInstaller.connect(app, port, readTimeoutMs = PrivApp.COMPILE_TIMEOUT_MS).use {
                     it.shell("cmd package compile -m speed-profile -f ${app.packageName}").allOutput
                 }
             }

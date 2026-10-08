@@ -203,6 +203,7 @@
     <string name="update_check_failed">No se pudo comprobar. ¿Tiene conexión el teléfono?</string>
     <string name="update_allow_installs">Permite instalar desde esta app y vuelve a tocar Instalar.</string>
     <string name="update_channel">Actualizaciones</string>
+    <string name="update_play_detail">Las actualizaciones vienen de Google Play.</string>
     <plurals name="setup_left">
         <item quantity="one">Falta %d permiso</item>
         <item quantity="many">Faltan %d permisos</item>

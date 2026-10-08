@@ -99,7 +99,15 @@ internal fun AlertStyleRows() {
     }
     SettingsSection(stringResource(R.string.alert_style_section))
     kinds.forEach { kind -> AlertRow(kind) { picking = kind } }
-    if (held && access != PrivilegedShell.Access.UNKNOWN) GrantHint()
+    if (held && access != PrivilegedShell.Access.UNKNOWN) {
+        // The Play edition can never write the car app's settings: one line says which edition can.
+        if (Edition.play) Text(
+            stringResource(R.string.alert_more_with_github),
+            color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+        )
+        else GrantHint()
+    }
     picking?.let { kind -> AlertStyleDialog(kind) { picking = null } }
 }
 

@@ -31,3 +31,6 @@ captures/
 
 # GLB edit backups
 *.glb.bak
+
+# Kotlin 2 compiler session files
+.kotlin/

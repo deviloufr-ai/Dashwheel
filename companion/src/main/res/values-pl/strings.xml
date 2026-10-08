@@ -203,6 +203,7 @@
     <string name="update_check_failed">Nie udało się sprawdzić. Czy telefon ma połączenie?</string>
     <string name="update_allow_installs">Zezwól na instalowanie z tej aplikacji, a potem dotknij Zainstaluj ponownie.</string>
     <string name="update_channel">Aktualizacje</string>
+    <string name="update_play_detail">Aktualizacje pochodzą z Google Play.</string>
     <plurals name="setup_left">
         <item quantity="one">Brakuje %d zgody</item>
         <item quantity="few">Brakuje %d zgód</item>

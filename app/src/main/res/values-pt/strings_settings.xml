@@ -40,6 +40,8 @@
     <string name="settings_rom_call_detail">As chamadas Bluetooth aparecem só no cartão do Dashwheel, com atender e desligar</string>
     <string name="settings_rom_doors_detail">Mostra que porta está aberta por cima de qualquer app, em vez do alerta do rádio</string>
     <string name="settings_rom_needs_root">Precisa de root ou do ADB do rádio</string>
+    <string name="settings_more_github">Mais com a edição GitHub</string>
+    <string name="settings_more_github_detail">Google Maps dentro de um mosaico, os pop-ups do próprio rádio, o logótipo de arranque e mais precisam de root no rádio. A edição gratuita do GitHub tem-nos.</string>
     <string name="settings_needs_qf">Precisa do firmware QF</string>
     <string name="alert_section">Alertas</string>
     <string name="alert_kind_call">Chamadas</string>
@@ -105,6 +107,7 @@
     <string name="settings_appearance_title">Dia e noite</string>
     <string name="alert_style_section">Pop-ups ao estilo do Dashwheel</string>
     <string name="alert_more_with_permission">Mais alertas do carro precisam de root, ou de um comando único a partir de um PC: ver a wiki, Car settings permission.</string>
+    <string name="alert_more_with_github">Os alertas de portas, cinto e radar precisam da edição GitHub do Dashwheel, que pode usar o root do rádio.</string>
     <string name="alert_copy_command">Copiar o comando</string>
     <string name="alert_command_copied">Comando copiado</string>
     <string name="settings_section_about">Acerca</string>
@@ -226,4 +229,6 @@
     <string name="settings_side_rail_detail">Os botões da barra ficam do lado do condutor, ao longo do ecrã</string>
     <string name="settings_tabs_nav">Separadores em vez de deslizar</string>
     <string name="settings_tabs_nav_detail">Os painéis tocam-se na barra lateral; precisa da barra. Ativa-se sozinho quando uma app de mapas está sob os painéis.</string>
+    <string name="about_free_open_source">O Dashwheel é gratuito e de código aberto.</string>
+    <string name="about_updates_play">As atualizações vêm do Google Play</string>
 </resources>

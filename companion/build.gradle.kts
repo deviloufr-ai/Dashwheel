@@ -29,6 +29,21 @@ android {
         versionName = System.getenv("VERSION_NAME") ?: "1.0"
     }
 
+    // Same two editions as the launcher (app/build.gradle.kts). "github" updates
+    // itself from the GitHub release; "play" is the Google Play edition: no
+    // self-update and no install permission. Gate code on Edition.play.
+    flavorDimensions += "edition"
+    productFlavors {
+        create("github") {
+            dimension = "edition"
+            buildConfigField("boolean", "PLAY", "false")
+        }
+        create("play") {
+            dimension = "edition"
+            buildConfigField("boolean", "PLAY", "true")
+        }
+    }
+
     signingConfigs {
         if (releaseKeystore != null) {
             create("release") {
@@ -67,6 +82,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     androidResources {

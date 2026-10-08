@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="access_a11y_title">Zugriff auf Bedienungshilfen</string>
+    <string name="access_a11y_body">Dashwheel nutzt den Bedienungshilfen-Dienst, um zwei Apps nebeneinander zu zeigen, das am Telefon Diktierte in die Felder des Autos zu tippen und die Lenkradtasten zu lesen. Für nichts anderes liest es Ihren Bildschirm.</string>
+    <string name="access_notif_title">Benachrichtigungszugriff</string>
+    <string name="access_notif_body">Dashwheel liest Benachrichtigungen, um die laufende Wiedergabe, die nächste Abbiegung und neue Nachrichten auf dem Dashboard zu zeigen. Sie bleiben auf diesem Gerät.</string>
+    <string name="access_open_settings">Einstellungen öffnen</string>
+    <string name="access_not_now">Nicht jetzt</string>
+</resources>

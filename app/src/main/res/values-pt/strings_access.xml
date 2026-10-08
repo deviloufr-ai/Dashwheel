@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="access_a11y_title">Acesso à acessibilidade</string>
+    <string name="access_a11y_body">O Dashwheel usa o serviço de acessibilidade para pôr duas apps lado a lado, escrever nos campos do carro o que dita no telemóvel e ler os botões do volante. Nunca lê o ecrã para mais nada.</string>
+    <string name="access_notif_title">Acesso às notificações</string>
+    <string name="access_notif_body">O Dashwheel lê as notificações para mostrar o que está a tocar, a próxima curva e as mensagens novas no painel. Ficam nesta unidade.</string>
+    <string name="access_open_settings">Abrir definições</string>
+    <string name="access_not_now">Agora não</string>
+</resources>

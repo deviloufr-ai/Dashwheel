@@ -40,6 +40,8 @@
     <string name="settings_rom_call_detail">Połączenia Bluetooth pokazują się tylko na karcie Dashwheel, z odbieraniem i rozłączaniem</string>
     <string name="settings_rom_doors_detail">Pokazuje nad każdą aplikacją, które drzwi są otwarte, zamiast alertu radia</string>
     <string name="settings_rom_needs_root">Wymaga roota lub ADB radia</string>
+    <string name="settings_more_github">Więcej w edycji GitHub</string>
+    <string name="settings_more_github_detail">Google Maps w kafelku, własne okienka radia, logo startowe i więcej wymagają roota na radiu. Darmowa edycja GitHub je ma.</string>
     <string name="settings_needs_qf">Wymaga firmware QF</string>
     <string name="alert_section">Alerty</string>
     <string name="alert_kind_call">Połączenia</string>
@@ -105,6 +107,7 @@
     <string name="settings_appearance_title">Dzień i noc</string>
     <string name="alert_style_section">Wyskakujące okna w stylu Dashwheel</string>
     <string name="alert_more_with_permission">Więcej alertów auta wymaga roota lub jednorazowego polecenia z komputera: zobacz wiki, Car settings permission.</string>
+    <string name="alert_more_with_github">Alerty drzwi, pasa i radaru wymagają edycji GitHub Dashwheel, która może korzystać z roota radia.</string>
     <string name="alert_copy_command">Kopiuj polecenie</string>
     <string name="alert_command_copied">Polecenie skopiowane</string>
     <string name="settings_section_about">Informacje</string>
@@ -226,4 +229,6 @@
     <string name="settings_side_rail_detail">Przyciski paska stoją po stronie kierowcy, wzdłuż ekranu</string>
     <string name="settings_tabs_nav">Karty zamiast przesuwania</string>
     <string name="settings_tabs_nav_detail">Pulpity wybiera się dotykiem w pasku bocznym; wymaga paska. Włącza się samo, gdy pod pulpitami jest aplikacja z mapą.</string>
+    <string name="about_free_open_source">Dashwheel jest darmowy i ma otwarty kod.</string>
+    <string name="about_updates_play">Aktualizacje pochodzą z Google Play</string>
 </resources>

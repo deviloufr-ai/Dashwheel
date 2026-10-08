@@ -92,7 +92,7 @@ internal object PmPatch {
 
     /**
      * Downloads the module, checks it, has Magisk install it and turns Zygisk
-     * on. The unit then needs a restart ([SystemInstaller.rebootDevice]).
+     * on. The unit then needs a restart ([PrivApp.rebootDevice]).
      */
     fun install(context: Context): Result<Unit> = runCatching {
         val zip = download(context)

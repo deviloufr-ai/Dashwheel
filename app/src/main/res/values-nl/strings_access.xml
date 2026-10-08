@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="access_a11y_title">Toegankelijkheidstoegang</string>
+    <string name="access_a11y_body">Dashwheel gebruikt de toegankelijkheidsdienst om twee apps naast elkaar te zetten, wat u op de telefoon dicteert in de velden van de auto te typen en de stuurwielknoppen te lezen. Het leest uw scherm nooit voor iets anders.</string>
+    <string name="access_notif_title">Meldingstoegang</string>
+    <string name="access_notif_body">Dashwheel leest meldingen om te tonen wat er speelt, de volgende afslag en nieuwe berichten op het dashboard. Ze blijven op dit apparaat.</string>
+    <string name="access_open_settings">Instellingen openen</string>
+    <string name="access_not_now">Niet nu</string>
+</resources>

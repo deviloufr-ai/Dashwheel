@@ -70,8 +70,8 @@ internal object WheelMonitor {
         updateInputLocked()
         // Keys and CAN lines are added by SteeringWheelStore whatever the
         // device; the raw input and the log are read through su, which is not
-        // asked for where root was not found (PrivilegedShell).
-        if (!PrivilegedShell.access.value.root) return
+        // asked for where root was not found (PrivilegedShell), nor in the Play edition.
+        if (Edition.play || !PrivilegedShell.access.value.root) return
         jobs += sniff("exec logcat -v brief -T 1", onStart = { processes += it }) { line ->
             line.takeIf { LOG_MATCH.containsMatchIn(it) && !LOG_SKIP.containsMatchIn(it) }?.let { add(Source.LOG, it.trim()) }
         }
@@ -99,7 +99,7 @@ internal object WheelMonitor {
     }
 
     private fun updateInputLocked() {
-        val wanted = (monitoring || inputHeld) && PrivilegedShell.access.value.root
+        val wanted = (monitoring || inputHeld) && Edition.full && PrivilegedShell.access.value.root
         if (wanted == (inputJob?.isActive == true)) return
         if (!wanted) {
             inputJob?.cancel()
@@ -133,6 +133,7 @@ internal object WheelMonitor {
 
     /** Runs [command] under su until cancelled, handing each line to [onLine]; [onStart] keeps the process to kill it. */
     private fun sniff(command: String, onStart: (Process) -> Unit = {}, onLine: (String) -> Unit): Job = scope.launch {
+        if (Edition.play) return@launch
         val p = runCatching { Runtime.getRuntime().exec(arrayOf("su", "-c", command)) }.getOrNull() ?: return@launch
         synchronized(this@WheelMonitor) { onStart(p) }
         try {

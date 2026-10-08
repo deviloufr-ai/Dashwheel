@@ -37,16 +37,27 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
 
-      - name: Android Lint
-        run: ./gradlew lintDebug --stacktrace
+      # Both editions are linted and tested; see Edition.kt. Each flavor gets
+      # its own Gradle invocation (compiling both in one run has crashed the
+      # Kotlin compiler).
+      - name: Android Lint, GitHub edition
+        run: ./gradlew :app:lintGithubDebug :companion:lintGithubDebug --stacktrace
 
-      - name: Unit tests
-        run: ./gradlew testDebugUnitTest :link:test :display:test --stacktrace
+      - name: Android Lint, Play edition
+        run: ./gradlew :app:lintPlayDebug :companion:lintPlayDebug --stacktrace
+
+      - name: Unit tests, GitHub edition
+        run: ./gradlew :app:testGithubDebugUnitTest :companion:testGithubDebugUnitTest :link:test :display:test --stacktrace
+
+      - name: Unit tests, Play edition
+        run: ./gradlew :app:testPlayDebugUnitTest --stacktrace
 
       - name: Upload lint report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: lint-report
-          path: app/build/reports/lint-results-debug.html
+          path: |
+            app/build/reports/lint-results-githubDebug.html
+            app/build/reports/lint-results-playDebug.html
           if-no-files-found: ignore

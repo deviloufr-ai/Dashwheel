@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="access_a11y_title">Accès à l\'accessibilité</string>
+    <string name="access_a11y_body">Dashwheel utilise le service d\'accessibilité pour mettre deux applis côte à côte, taper dans les champs de la voiture ce que vous dictez sur le téléphone, et lire les boutons du volant. Il ne lit jamais votre écran pour autre chose.</string>
+    <string name="access_notif_title">Accès aux notifications</string>
+    <string name="access_notif_body">Dashwheel lit les notifications pour afficher la lecture en cours, la prochaine direction et les nouveaux messages sur le tableau de bord. Elles restent sur cet autoradio.</string>
+    <string name="access_open_settings">Ouvrir les réglages</string>
+    <string name="access_not_now">Pas maintenant</string>
+</resources>

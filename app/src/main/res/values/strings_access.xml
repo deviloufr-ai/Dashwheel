@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The Play edition\'s disclosure dialogs before a system access page (AccessDisclosure.kt). -->
+    <string name="access_a11y_title">Accessibility access</string>
+    <string name="access_a11y_body">Dashwheel uses the accessibility service to put two apps side by side, type what you dictate on the phone into the car\'s fields, and read the steering wheel buttons. It never reads your screen for anything else.</string>
+    <string name="access_notif_title">Notification access</string>
+    <string name="access_notif_body">Dashwheel reads notifications to show what is playing, the next turn and new messages on the dashboard. They stay on this unit.</string>
+    <string name="access_open_settings">Open settings</string>
+    <string name="access_not_now">Not now</string>
+</resources>

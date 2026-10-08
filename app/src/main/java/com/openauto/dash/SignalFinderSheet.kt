@@ -126,7 +126,9 @@ private fun SignalList(onDismiss: () -> Unit, onFind: (CarSignal) -> Unit, onSni
         Text(stringResource(R.string.signals_intro), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
 
         SettingsSection(stringResource(R.string.signals_sources))
+        // The CAN box stream is read through root: the Play edition does not list it.
         for (source in SignalSource.entries) {
+            if (source == SignalSource.CAN && Edition.play) continue
             val count = values.keys.count { it.startsWith(source.prefix + ":") }
             val detail = when {
                 source == SignalSource.CAN && !canReadable -> stringResource(R.string.signals_needs_root)
@@ -159,12 +161,15 @@ private fun SignalList(onDismiss: () -> Unit, onFind: (CarSignal) -> Unit, onSni
             )
         }
 
-        SettingsSection(stringResource(R.string.signals_camera))
-        SettingsRow(
-            Icons.Filled.Videocam,
-            stringResource(R.string.signals_camera),
-            camera?.let { stringResource(R.string.signals_camera_chosen, it) } ?: stringResource(R.string.signals_camera_rom)
-        ) { picking = true }
+        // The camera picked here is the one Dashwheel's own reverse picture opens: a root feature.
+        if (Edition.full) {
+            SettingsSection(stringResource(R.string.signals_camera))
+            SettingsRow(
+                Icons.Filled.Videocam,
+                stringResource(R.string.signals_camera),
+                camera?.let { stringResource(R.string.signals_camera_chosen, it) } ?: stringResource(R.string.signals_camera_rom)
+            ) { picking = true }
+        }
     }
 
     if (picking) CameraPicker(onDismiss = { picking = false })

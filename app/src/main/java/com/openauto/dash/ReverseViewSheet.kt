@@ -83,18 +83,21 @@ internal fun ReverseViewSheet(onDismiss: () -> Unit) {
         )
         SwitchHint(stringResource(R.string.reverse_layout_hint))
 
-        SettingsSection(stringResource(R.string.reverse_picture_title))
-        SegmentedSwitch(
-            options = listOf(false, true),
-            chosen = ownCamera,
-            icon = { if (it) Icons.Filled.Videocam else Icons.Filled.Layers },
-            title = { stringResource(if (it) R.string.reverse_picture_own else R.string.reverse_picture_rom) },
-            onChoose = { own ->
-                if (!own || ReverseCamera.hasPermission(context)) ReverseView.setOwnCamera(context, own)
-                else askCamera.launch(Manifest.permission.CAMERA)
-            }
-        )
-        SwitchHint(stringResource(if (ownCamera) R.string.reverse_picture_hint_own else R.string.reverse_picture_hint_rom))
+        // Dashwheel's own camera picture and hiding the car app's lines both run as root: not in the Play edition.
+        if (Edition.full) {
+            SettingsSection(stringResource(R.string.reverse_picture_title))
+            SegmentedSwitch(
+                options = listOf(false, true),
+                chosen = ownCamera,
+                icon = { if (it) Icons.Filled.Videocam else Icons.Filled.Layers },
+                title = { stringResource(if (it) R.string.reverse_picture_own else R.string.reverse_picture_rom) },
+                onChoose = { own ->
+                    if (!own || ReverseCamera.hasPermission(context)) ReverseView.setOwnCamera(context, own)
+                    else askCamera.launch(Manifest.permission.CAMERA)
+                }
+            )
+            SwitchHint(stringResource(if (ownCamera) R.string.reverse_picture_hint_own else R.string.reverse_picture_hint_rom))
+        }
 
         // Only once a second screen is paired: nothing to choose before.
         val displays by DisplayLink.displays.collectAsState()
@@ -127,23 +130,25 @@ internal fun ReverseViewSheet(onDismiss: () -> Unit) {
             )
         }
 
-        SettingsSection(stringResource(R.string.reverse_stock_title))
-        SegmentedSwitch(
-            options = listOf(false, true),
-            chosen = hideStock,
-            icon = { if (it) Icons.Filled.LayersClear else Icons.Filled.Layers },
-            title = { stringResource(if (it) R.string.reverse_stock_hide else R.string.reverse_stock_keep) },
-            onChoose = { hide ->
-                if (!busy && hide != hideStock) {
-                    busy = true
-                    scope.launch {
-                        if (!ReverseView.setHideStock(context, hide)) Toast.makeText(context, failed, Toast.LENGTH_LONG).show()
-                        busy = false
+        if (Edition.full) {
+            SettingsSection(stringResource(R.string.reverse_stock_title))
+            SegmentedSwitch(
+                options = listOf(false, true),
+                chosen = hideStock,
+                icon = { if (it) Icons.Filled.LayersClear else Icons.Filled.Layers },
+                title = { stringResource(if (it) R.string.reverse_stock_hide else R.string.reverse_stock_keep) },
+                onChoose = { hide ->
+                    if (!busy && hide != hideStock) {
+                        busy = true
+                        scope.launch {
+                            if (!ReverseView.setHideStock(context, hide)) Toast.makeText(context, failed, Toast.LENGTH_LONG).show()
+                            busy = false
+                        }
                     }
                 }
-            }
-        )
-        SwitchHint(stringResource(if (hideStock) R.string.reverse_stock_hint_hide else R.string.reverse_stock_hint_keep))
+            )
+            SwitchHint(stringResource(if (hideStock) R.string.reverse_stock_hint_hide else R.string.reverse_stock_hint_keep))
+        }
 
         SettingsSection(stringResource(R.string.reverse_boot_title))
         val tailgate by ReverseView.tailgate.collectAsState()

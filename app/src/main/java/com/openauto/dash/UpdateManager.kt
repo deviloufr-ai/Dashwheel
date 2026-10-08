@@ -90,8 +90,13 @@ class UpdateManager(private val context: Context) {
     private var downloadJob: Deferred<Boolean>? = null
     private var downloadBuild = -1L
 
-    /** Queries GitHub for the latest release and updates [status]. */
+    /**
+     * Queries GitHub for the latest release and updates [status]. The Play
+     * edition never checks: its updates come from Google Play, and [status]
+     * stays [UpdateStatus.Idle] for good, so no row, dot or prompt ever shows.
+     */
     suspend fun checkForUpdate() {
+        if (Edition.play) return
         // A download under way or done keeps its state: the check is for news.
         val keep = _status.value
         if (keep is UpdateStatus.Downloading || keep is UpdateStatus.Ready || keep is UpdateStatus.Installing) return
@@ -168,19 +173,13 @@ class UpdateManager(private val context: Context) {
 
     private fun firstApkAssetUrl(release: JSONObject): String? {
         val assets = release.optJSONArray("assets") ?: return null
-        for (i in 0 until assets.length()) {
-            val asset = assets.getJSONObject(i)
-            val name = asset.optString("name")
-            // The release also carries the phone companion app: never install that here.
-            if (name.endsWith(".apk", ignoreCase = true) && !name.equals(COMPANION_APK_NAME, ignoreCase = true)) {
-                val url = asset.optString("browser_download_url").ifBlank { null } ?: continue
-                // The URL comes from a JSON document fetched over the network;
-                // only accept GitHub's own release hosts.
-                val host = Uri.parse(url).host.orEmpty()
-                if (url.startsWith("https://") && host in ALLOWED_DOWNLOAD_HOSTS) return url
+        val named = buildList {
+            for (i in 0 until assets.length()) {
+                val asset = assets.getJSONObject(i)
+                add(asset.optString("name") to asset.optString("browser_download_url"))
             }
         }
-        return null
+        return pickLauncherApk(named)
     }
 
     /** True if the app may install APKs (Android 8+ requires a per-app grant). */
@@ -205,12 +204,14 @@ class UpdateManager(private val context: Context) {
 
     /** Downloads the update APK (unless it already is), then launches the system installer. */
     suspend fun downloadAndInstall(info: UpdateInfo) {
+        if (Edition.play) return
         val file = downloadedFile(info) ?: (if (download(info)) downloadedFile(info) else null) ?: return
         install(file)
     }
 
     /** Launches the system installer on a downloaded [file]. */
     fun install(file: File) {
+        if (Edition.play) return
         val ready = _status.value as? UpdateStatus.Ready
         // The update is on offer again, to try once more, or nothing is if it was lost.
         fun offerAgain() {
@@ -267,6 +268,7 @@ class UpdateManager(private val context: Context) {
      * the same build joins the download under way.
      */
     suspend fun download(info: UpdateInfo): Boolean {
+        if (Edition.play) return false
         val running = downloadJob?.takeIf { it.isActive && downloadBuild == info.buildNumber }
         val job = running ?: scope.async { runDownload(info) }.also {
             downloadJob = it
@@ -422,6 +424,32 @@ class UpdateManager(private val context: Context) {
         /** Build number from a release tag or name: "v1.0.42" -> 42 (the last number wins). */
         internal fun parseBuildNumber(text: String): Long? =
             Regex("(\\d+)").findAll(text).lastOrNull()?.value?.toLongOrNull()
+
+        /**
+         * The launcher's own APK among a release's assets, as (name, URL)
+         * pairs in the release's order: the first `.apk` that is neither the
+         * phone companion, nor the Play edition's APK (a "-play" name, kept
+         * for testers; it would not install over the GitHub edition's key,
+         * and must never be offered to it), nor a Play bundle (`.aab`). The
+         * URL comes from a document fetched over the network: only GitHub's
+         * own release hosts, over https, are accepted.
+         */
+        internal fun pickLauncherApk(assets: List<Pair<String, String>>): String? {
+            for ((name, url) in assets) {
+                if (!isLauncherApk(name)) continue
+                if (url.isBlank() || !url.startsWith("https://")) continue
+                // java.net, not android.net.Uri: the choice is unit-tested on the JVM.
+                val host = runCatching { java.net.URI(url).host }.getOrNull().orEmpty()
+                if (host in ALLOWED_DOWNLOAD_HOSTS) return url
+            }
+            return null
+        }
+
+        /** True for the GitHub edition's own APK (see [pickLauncherApk]). */
+        internal fun isLauncherApk(name: String): Boolean =
+            name.endsWith(".apk", ignoreCase = true) &&
+                !name.equals(COMPANION_APK_NAME, ignoreCase = true) &&
+                !name.contains("-play", ignoreCase = true)
 
         private const val APK_NAME = "openauto-dash-update.apk"
         /** The whole download, however slowly it still moves. */

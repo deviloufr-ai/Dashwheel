@@ -41,6 +41,19 @@ class PrivilegedShellTest {
     }
 
     @Test
+    fun thePlayEdition_findsNoShellWithoutLooking() {
+        // Neither su nor a socket is tried: the answer comes before either probe.
+        val was = PrivilegedShell.editionPlay
+        try {
+            PrivilegedShell.editionPlay = true
+            assertEquals(Access.NONE, PrivilegedShell.find())
+            assertFalse(PrivilegedShell.settingsGranted)
+        } finally {
+            PrivilegedShell.editionPlay = was
+        }
+    }
+
+    @Test
     fun untilProbed_nothingIsOffered() {
         assertEquals(Access.UNKNOWN, PrivilegedShell.access.value)
         assertFalse(PrivilegedShell.access.value.shell)

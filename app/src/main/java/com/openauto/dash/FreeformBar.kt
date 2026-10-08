@@ -106,7 +106,8 @@ object FreeformBar {
     var dashboardInFront = false
 
     fun start(context: Context) {
-        if (started || !supported) return
+        // The switch is written through the shell: the Play edition leaves the unit's bar as it is.
+        if (started || !supported || Edition.play) return
         started = true
         val app = context.applicationContext
         val keep = !app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_HIDE, false)

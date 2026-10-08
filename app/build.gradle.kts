@@ -44,6 +44,24 @@ android {
         }
     }
 
+    // Two editions from one code base. "github" is the full app shipped from
+    // GitHub Releases, root and firmware hooks included. "play" is the Google
+    // Play edition: no root, no internal ADB, no PMPatch3, no self-update, and
+    // only permissions Play accepts for a launcher. Gate code on Edition.play.
+    flavorDimensions += "edition"
+    productFlavors {
+        create("github") {
+            dimension = "edition"
+            buildConfigField("boolean", "PLAY", "false")
+            // Keep rules for the libraries only this edition ships (dadb).
+            proguardFile("proguard-github.pro")
+        }
+        create("play") {
+            dimension = "edition"
+            buildConfigField("boolean", "PLAY", "true")
+        }
+    }
+
     signingConfigs {
         if (releaseKeystore != null) {
             create("release") {
@@ -154,7 +172,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     // Pure-Kotlin ADB client — lets the app self-install to /system/priv-app
     // over the head unit's root wireless-ADB socket (no Magisk/su needed).
-    implementation("dev.mobile:dadb:1.2.10")
+    // GitHub edition only: the Play edition never opens the unit's ADB.
+    "githubImplementation"("dev.mobile:dadb:1.2.10")
     // Reaches the @hide input calls that pass the tile's touches to Google Maps inside it (EmbeddedApp.kt).
     implementation("org.lsposed.hiddenapibypass:hiddenapibypass:6.1")
     // MapLibre GL — free/open-source map (OpenFreeMap style, no token/API key).

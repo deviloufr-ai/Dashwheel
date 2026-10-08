@@ -579,7 +579,9 @@ internal fun LayoutPicker(m: TopBarModel, anchor: @Composable (open: () -> Unit)
     Box {
         anchor { lock.whenParked { open = true } }
         DashMenu(open, onDismiss = { open = false }) {
-            DashLayout.entries.forEach { l ->
+            // The Maps dock is placed through the shell: the Play edition offers the dashboards alone.
+            val layouts = if (Edition.play) DashLayout.entries.filter { it == DashLayout.GRID } else DashLayout.entries
+            layouts.forEach { l ->
                 DashMenuItem(
                     text = l.title,
                     leading = { LayoutIcon(l, null, if (l == m.layout) DashColors.Accent else DashColors.TextSecondary) },

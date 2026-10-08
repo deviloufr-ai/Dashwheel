@@ -40,6 +40,8 @@
     <string name="settings_rom_call_detail">Bluetooth-oproepen verschijnen alleen in de Dashwheel-kaart, met opnemen en ophangen</string>
     <string name="settings_rom_doors_detail">Toont boven elke app welke deur open is, in plaats van de melding van de radio</string>
     <string name="settings_rom_needs_root">Vereist root of de ADB van de radio</string>
+    <string name="settings_more_github">Meer met de GitHub-editie</string>
+    <string name="settings_more_github_detail">Google Maps in een tegel, de eigen pop-ups van de radio, het opstartlogo en meer vragen root op de radio. De gratis GitHub-editie heeft ze.</string>
     <string name="settings_needs_qf">Vereist de QF-firmware</string>
     <string name="alert_section">Meldingen</string>
     <string name="alert_kind_call">Oproepen</string>
@@ -105,6 +107,7 @@
     <string name="settings_appearance_title">Dag en nacht</string>
     <string name="alert_style_section">Pop-ups in de stijl van Dashwheel</string>
     <string name="alert_more_with_permission">Meer automeldingen vragen root, of eenmalig een opdracht vanaf een pc: zie de wiki, Car settings permission.</string>
+    <string name="alert_more_with_github">Meldingen voor deuren, gordel en radar vragen de GitHub-editie van Dashwheel, die de root van de radio kan gebruiken.</string>
     <string name="alert_copy_command">Opdracht kopiëren</string>
     <string name="alert_command_copied">Opdracht gekopieerd</string>
     <string name="settings_section_about">Over</string>
@@ -226,4 +229,6 @@
     <string name="settings_side_rail_detail">De knoppen van de balk staan aan de bestuurderskant, langs het scherm</string>
     <string name="settings_tabs_nav">Tabbladen in plaats van vegen</string>
     <string name="settings_tabs_nav_detail">Dashboards tik je aan in de zijbalk; vereist de zijbalk. Gaat vanzelf aan als een kaart-app onder de dashboards staat.</string>
+    <string name="about_free_open_source">Dashwheel is gratis en open source.</string>
+    <string name="about_updates_play">Updates komen van Google Play</string>
 </resources>

@@ -203,6 +203,7 @@
     <string name="update_check_failed">Controllo non riuscito. Il telefono è online?</string>
     <string name="update_allow_installs">Consenti le installazioni da questa app, poi tocca di nuovo Installa.</string>
     <string name="update_channel">Aggiornamenti</string>
+    <string name="update_play_detail">Gli aggiornamenti arrivano da Google Play.</string>
     <plurals name="setup_left">
         <item quantity="one">Manca %d autorizzazione</item>
         <item quantity="many">Mancano %d autorizzazioni</item>

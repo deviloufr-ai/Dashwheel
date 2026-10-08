@@ -257,7 +257,8 @@ internal object ReverseView {
         _on.value = p.getBoolean("on", false)
         _layout.value = runCatching { ReverseLayout.valueOf(p.getString("layout", null) ?: "") }.getOrDefault(ReverseLayout.BOTH)
         _hideStock.value = p.getBoolean("hide_stock", false)
-        _ownCamera.value = p.getBoolean("own_camera", false)
+        // The own picture takes the camera from the car app as root: never in the Play edition.
+        _ownCamera.value = Edition.full && p.getBoolean("own_camera", false)
         _tailgate.value = p.getFloat("tailgate", DEFAULT_TAILGATE_M)
         _secondScreen.value = when (val saved = p.getString("second_screen", null)) {
             null -> ReverseLayout.BOTH
@@ -288,6 +289,7 @@ internal object ReverseView {
     }
 
     fun setOwnCamera(context: Context, own: Boolean) {
+        if (Edition.play) return
         _ownCamera.value = own
         prefs(context).edit().putBoolean("own_camera", own).apply()
     }

@@ -40,6 +40,18 @@ Dashwheel is free, with no ads. If it makes your drives nicer, a coffee on Ko-fi
 - **8 languages**, day and night themes, updates from GitHub Releases
 - **Root is optional**: extra features appear only when the unit allows them ([what needs what](https://github.com/deviloufr-ai/Dashwheel/wiki/Root-and-PMPatch3))
 
+## Two editions
+
+- **GitHub edition** (`Dashwheel-<version>.apk` from [Releases](https://github.com/deviloufr-ai/Dashwheel/releases/latest)): the full app. Root, internal ADB and PMPatch3 features appear when the unit allows them, and it updates itself from GitHub Releases.
+- **Google Play edition**: the same app without the features that need root, the unit's internal ADB or PMPatch3. It never installs anything itself: updates come from Google Play, and the Companion comes from Play too. Store texts and the privacy policy are in `fastlane/metadata-play/` and `docs/play/`.
+
+| | GitHub | Google Play |
+|---|---|---|
+| Dashboards, widgets, skins, OBD, map, AI mechanic, phone link | yes | yes |
+| Self-update from GitHub, Ko-fi link | yes | no (Play updates it) |
+| System-app install, boot logo, Google Maps inside a tile (PMPatch3), reverse camera takeover, firmware pop-up and volume bar replacement, CAN car data from the unit's MCU, Signal Finder | when the unit allows it | no |
+| Accessibility service (split screen, typing from the phone, wheel buttons) | turned on by the app where there is a root shell | turned on by you in Android's settings, after an in-app explanation |
+
 ## Get started
 
 1. Install `Dashwheel-<version>.apk` on the head unit and set it as the Home app.

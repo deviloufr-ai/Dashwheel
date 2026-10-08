@@ -26,8 +26,14 @@ import kotlin.concurrent.thread
  * out of the settings, the widget catalogue and the templates while neither
  * is there: a phone or an unrooted unit never shows a control that can only
  * fail. Until the probe has answered, nothing is offered either.
+ *
+ * The Play edition ([Edition.play]) has neither and never looks: the probe
+ * answers [Access.NONE] without running `su` or opening a socket.
  */
 object PrivilegedShell {
+
+    /** [Edition.play], as a field so a test can try the Play edition's answer on a GitHub build. */
+    @Volatile internal var editionPlay: Boolean = Edition.play
 
     enum class Access {
         /** Not probed yet. */
@@ -74,7 +80,8 @@ object PrivilegedShell {
      * each time, so a grant made while it runs counts at once.
      */
     val settingsGranted: Boolean
-        get() = appContext?.checkSelfPermission(Manifest.permission.WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_GRANTED
+        get() = !editionPlay &&
+            appContext?.checkSelfPermission(Manifest.permission.WRITE_SECURE_SETTINGS) == PackageManager.PERMISSION_GRANTED
 
     private const val TAG = "PrivilegedShell"
 
@@ -125,9 +132,11 @@ object PrivilegedShell {
      * a listening socket is looked for, not a connection: the connection's
      * authorisation prompt is left to the first feature that uses it. An
      * emulator counts as having the socket, so what needs a shell can be tried
-     * there without root (`adb tcpip 5555` makes it answer).
+     * there without root (`adb tcpip 5555` makes it answer). The Play edition
+     * is answered first, before anything is run.
      */
-    private fun find(): Access = when {
+    internal fun find(): Access = when {
+        editionPlay -> Access.NONE
         SystemInstaller.isRootAvailable() -> Access.ROOT
         AdbInstaller.listeningPort() != null -> Access.ADB
         isEmulator -> Access.ADB

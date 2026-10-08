@@ -205,6 +205,7 @@
     <string name="update_check_failed">Could not check. Is the phone online?</string>
     <string name="update_allow_installs">Allow installs from this app, then tap Install again.</string>
     <string name="update_channel">Updates</string>
+    <string name="update_play_detail">Updates come from Google Play.</string>
     <plurals name="setup_left">
         <item quantity="one">%d thing left to allow</item>
         <item quantity="other">%d things left to allow</item>

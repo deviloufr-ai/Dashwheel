@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
  *   set of home apps changes, which an update does; the unit's Home key still
  *   found it (the firmware names its launcher), but Android's own Home then
  *   asked which app to use.
- * - The Magisk module's copy of Dashwheel ([SystemInstaller.installAsSystemApp]),
+ * - The Magisk module's copy of Dashwheel ([PrivApp.installAsSystemApp]),
  *   the one Android falls back to if the installed update is ever removed.
  *   It is what keeps Dashwheel a system app, which the unit's background
  *   cleaner never stops; kept the same as the running version, the fallback
@@ -80,8 +80,8 @@ internal object SystemUpkeep {
     fun refreshScript(apk: String, versionName: String, versionCode: Long): String = """
         A=$MODULE_APK
         [ -f "${'$'}A" ] || { echo NOMODULE; exit 0; }
-        X=$MODULE/system/etc/permissions/${SystemInstaller.PRIVAPP_XML_NAME}
-        [ "${'$'}(cat "${'$'}X" 2>/dev/null)" = '${SystemInstaller.PRIVAPP_XML}' ] || echo '${SystemInstaller.PRIVAPP_XML}' > "${'$'}X" 2>/dev/null
+        X=$MODULE/system/etc/permissions/${PrivApp.PRIVAPP_XML_NAME}
+        [ "${'$'}(cat "${'$'}X" 2>/dev/null)" = '${PrivApp.PRIVAPP_XML}' ] || echo '${PrivApp.PRIVAPP_XML}' > "${'$'}X" 2>/dev/null
         cmp -s '$apk' "${'$'}A" && { echo SAME; exit 0; }
         CTX=${'$'}(ls -Z "${'$'}A" | cut -d' ' -f1)
         cp '$apk' "${'$'}A.new" || exit 41

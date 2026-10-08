@@ -52,6 +52,18 @@ object AdbInstaller {
         return Dadb.create(HOST, port, keyPair, connectTimeoutMs, readTimeoutMs)
     }
 
+    /**
+     * A shell on the unit's adbd for [DockShell]: one connection, kept until
+     * closed, each command read within [timeoutMs].
+     */
+    internal fun openShell(context: Context, port: Int, timeoutMs: Int): DockShell.AdbShell {
+        val dadb = connect(context, port, timeoutMs)
+        return object : DockShell.AdbShell {
+            override fun run(cmd: String): String = dadb.shell(cmd).let { it.output + it.errorOutput }
+            override fun close() = dadb.close()
+        }
+    }
+
     /** The unit's ADB TCP port from `service.adb.tcp.port`, else the K706 default. */
     fun announcedPort(): Int = runCatching {
         val p = Runtime.getRuntime().exec(arrayOf("getprop", "service.adb.tcp.port"))
@@ -107,8 +119,8 @@ object AdbInstaller {
             }
             Log.d("AdbInstaller", "Installed via ADB :$port (uid=$uid): ${ok.removePrefix("OKINSTALL:")}")
         }
-        SystemInstaller.compileInBackground { cmd ->
-            connect(context, port, readTimeoutMs = SystemInstaller.COMPILE_TIMEOUT_MS).use { it.shell(cmd).allOutput }
+        PrivApp.compileInBackground { cmd ->
+            connect(context, port, readTimeoutMs = PrivApp.COMPILE_TIMEOUT_MS).use { it.shell(cmd).allOutput }
         }
     }
 
@@ -126,10 +138,10 @@ object AdbInstaller {
         // worked before the whitelist was added.
         append("ENF=\$(getprop ro.control_privapp_permissions); ")
         append("for BASE in /system /product /system_ext /vendor /odm; do ")
-        append("  DIR=\$BASE/priv-app/OpenAutoDash; PERM=\$BASE/etc/permissions; XML=\$PERM/${SystemInstaller.PRIVAPP_XML_NAME}; ")
+        append("  DIR=\$BASE/priv-app/OpenAutoDash; PERM=\$BASE/etc/permissions; XML=\$PERM/${PrivApp.PRIVAPP_XML_NAME}; ")
         append("  mount -o remount,rw \$BASE 2>>\$ERR; mount -o remount,rw / 2>>\$ERR; ")
         append("  if mkdir -p \"\$DIR\" 2>>\$ERR && cp \"\$TMP\" \"\$DIR/OpenAutoDash.apk\" 2>>\$ERR; then ")
-        append("    if mkdir -p \"\$PERM\" 2>>\$ERR && echo '${SystemInstaller.PRIVAPP_XML}' > \"\$XML\" 2>>\$ERR; then ")
+        append("    if mkdir -p \"\$PERM\" 2>>\$ERR && echo '${PrivApp.PRIVAPP_XML}' > \"\$XML\" 2>>\$ERR; then ")
         append("      chmod 644 \"\$XML\" 2>>\$ERR; chcon u:object_r:system_file:s0 \"\$XML\" 2>>\$ERR; ")
         append("    elif [ \"\$ENF\" = enforce ]; then rm -rf \"\$DIR\" 2>/dev/null; rm -f \"\$XML\" 2>/dev/null; continue; ")
         append("    else rm -f \"\$XML\" 2>/dev/null; fi; ")
