@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Car profile and car-care tiles (CarProfile.kt, CarCare.kt, CarCareTiles.kt, CarSettingsDialog.kt) -->
 
     <!-- Widget picker -->
@@ -29,7 +29,7 @@
     <string name="car_filter_title">САЖЕВЫЙ ФИЛЬТР</string>
     <string name="car_filter_none">В этом автомобиле нет сажевого фильтра. Изменить: Настройки → Автомобиль → Мой автомобиль.</string>
     <string name="car_filter_unknown">Укажите автомобиль: Настройки → Автомобиль → Мой автомобиль.</string>
-    <plurals name="car_filter_short_unit">
+    <plurals name="car_filter_short_unit" tools:ignore="ImpliedQuantity">
         <item quantity="one">короткая поездка</item>
         <item quantity="few">короткие поездки подряд</item>
         <item quantity="many">коротких поездок подряд</item>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Car profile and car-care tiles (CarProfile.kt, CarCare.kt, CarCareTiles.kt, CarSettingsDialog.kt) -->
 
     <!-- Widget picker -->
@@ -29,7 +29,7 @@
     <string name="car_filter_title">FILTRO PARTÍCULAS</string>
     <string name="car_filter_none">Este carro não tem filtro de partículas. Altere em Definições → Carro → O meu carro.</string>
     <string name="car_filter_unknown">Indique o seu carro em Definições → Carro → O meu carro.</string>
-    <plurals name="car_filter_short_unit">
+    <plurals name="car_filter_short_unit" tools:ignore="ImpliedQuantity">
         <item quantity="one">viagem curta</item>
         <item quantity="other">viagens curtas seguidas</item>
     </plurals>

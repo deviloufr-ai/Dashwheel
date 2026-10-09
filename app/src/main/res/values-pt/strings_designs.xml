@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Tile designs (WidgetDesigns.kt) and the labels the designed tiles add -->
     <string name="design_standard">Padrão</string>
     <string name="design_standard_desc">O widget de sempre; segue o tema do painel.</string>
@@ -54,7 +54,7 @@
     <string name="design_car_outline">Silhueta</string>
     <string name="design_car_outline_desc">O carro de perfil, com as leituras ao lado.</string>
     <string name="design_change">Mudar o design de %1$s</string>
-    <plurals name="design_codes_unit">
+    <plurals name="design_codes_unit" tools:ignore="ImpliedQuantity">
         <item quantity="one">código</item>
         <item quantity="other">códigos</item>
     </plurals>

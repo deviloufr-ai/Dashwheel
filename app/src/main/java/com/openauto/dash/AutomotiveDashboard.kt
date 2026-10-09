@@ -179,7 +179,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         val suffix = DashboardStore.legacySuffix(
             canvas = themeMode == DashThemeMode.CANVAS, overApp = mapApp != null && embedAllowed, docked = layout != DashLayout.GRID
         )
-        DashboardStore.mergeLegacyVariants(context, suffix)?.let { CanvasTabs.mergeLegacy(suffix, it) }
+        DashboardStore.mergeLegacyVariants(context, suffix)?.also { CanvasTabs.mergeLegacy(suffix, it) }
     }
     // Read when called, never captured: gesture handlers outlive a composition.
     fun variant() = ScreenShape.layoutPrefix
