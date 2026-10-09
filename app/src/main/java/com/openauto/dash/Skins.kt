@@ -11,7 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 /*
- * Whole-design skins (Orbit, Cockpit, Horizon, Tape Deck, Canvas). The active skin's
+ * Whole-design skins (Orbit, Cockpit, Horizon, Tape Deck, Canvas, and Futuristic,
+ * Simple, Modern, Motorsport, Anime, Racing). The active skin's
  * file draws the page background, the top bar, the frame over a docked Maps
  * window and the main widgets; every other tile keeps its standard renderer on
  * the skin's (bare) palette.
@@ -71,6 +72,12 @@ internal fun SkinTile(item: DashboardItem, env: SkinTileEnv) {
         DashSkin.HORIZON -> HorizonTile(item, env)
         DashSkin.TAPE_DECK -> TapeDeckTile(item, env)
         DashSkin.CANVAS -> CanvasTile(item, env)
+        DashSkin.FUTURISTIC -> FuturisticTile(item, env)
+        DashSkin.SIMPLE -> SimpleTile(item, env)
+        DashSkin.MODERN -> ModernTile(item, env)
+        DashSkin.MOTORSPORT -> MotorsportTile(item, env)
+        DashSkin.ANIME -> AnimeTile(item, env)
+        DashSkin.RACING -> RacingTile(item, env)
         DashSkin.STANDARD -> Unit
     }
 }
@@ -84,6 +91,12 @@ internal fun SkinTopBar(m: TopBarModel) {
         DashSkin.TAPE_DECK -> TapeDeckTopBar(m)
         // Canvas has no bar: its rail stands at the side (AutomotiveDashboard).
         DashSkin.CANVAS -> Unit
+        DashSkin.FUTURISTIC -> FuturisticTopBar(m)
+        DashSkin.SIMPLE -> SimpleTopBar(m)
+        DashSkin.MODERN -> ModernTopBar(m)
+        DashSkin.MOTORSPORT -> MotorsportTopBar(m)
+        DashSkin.ANIME -> AnimeTopBar(m)
+        DashSkin.RACING -> RacingTopBar(m)
         DashSkin.STANDARD -> Unit
     }
 }
@@ -97,6 +110,12 @@ internal fun skinBackground(): Modifier = when (DashColors.Skin) {
     DashSkin.TAPE_DECK -> tapeDeckBackground()
     // The map is drawn under the whole dashboard instead (CanvasBackdrop).
     DashSkin.CANVAS -> Modifier
+    DashSkin.FUTURISTIC -> futuristicBackground()
+    DashSkin.SIMPLE -> simpleBackground()
+    DashSkin.MODERN -> modernBackground()
+    DashSkin.MOTORSPORT -> motorsportBackground()
+    DashSkin.ANIME -> animeBackground()
+    DashSkin.RACING -> racingBackground()
     DashSkin.STANDARD -> Modifier
 }
 
@@ -113,6 +132,12 @@ internal fun SkinWindowFrame(modifier: Modifier) {
         DashSkin.HORIZON -> HorizonWindowFrame(modifier)
         DashSkin.TAPE_DECK -> TapeDeckWindowFrame(modifier)
         DashSkin.CANVAS -> Unit
+        DashSkin.FUTURISTIC -> FuturisticWindowFrame(modifier)
+        DashSkin.SIMPLE -> SimpleWindowFrame(modifier)
+        DashSkin.MODERN -> ModernWindowFrame(modifier)
+        DashSkin.MOTORSPORT -> MotorsportWindowFrame(modifier)
+        DashSkin.ANIME -> AnimeWindowFrame(modifier)
+        DashSkin.RACING -> RacingWindowFrame(modifier)
         DashSkin.STANDARD -> Unit
     }
 }
@@ -159,6 +184,9 @@ internal class SkinChrome(
     val shapes: androidx.compose.material3.Shapes
 )
 
+/** A skin's corners: [large] for sheets and big cards, [medium] for tiles, [small] for chips and pills. */
+internal fun skinShapes(large: Int, medium: Int, small: Int) = shapes(large, medium, small)
+
 private fun shapes(large: Int, medium: Int, small: Int) = androidx.compose.material3.Shapes(
     extraSmall = androidx.compose.foundation.shape.RoundedCornerShape(small.dp),
     small = androidx.compose.foundation.shape.RoundedCornerShape(small.dp),
@@ -181,5 +209,14 @@ internal fun skinChrome(): SkinChrome = when (DashColors.Skin) {
     DashSkin.HORIZON -> SkinChrome(HorizonShapes)
     DashSkin.TAPE_DECK -> SkinChrome(TapeDeckShapes)
     DashSkin.CANVAS -> SkinChrome(CanvasShapes)
+    DashSkin.FUTURISTIC -> SkinChrome(FuturisticShapes)
+    DashSkin.SIMPLE -> SkinChrome(SimpleShapes)
+    DashSkin.MODERN -> SkinChrome(ModernShapes)
+    DashSkin.MOTORSPORT -> SkinChrome(MotorsportShapes)
+    DashSkin.ANIME -> SkinChrome(AnimeShapes)
+    DashSkin.RACING -> SkinChrome(RacingShapes)
     DashSkin.STANDARD -> SkinChrome(StandardShapes)
 }
+
+/** Draws a number centred on (x, y) at sizeSp in the stamp's hero face (ThemePane's theme stamps). */
+internal typealias StampNumber = (text: String, x: Float, y: Float, sizeSp: Float, color: androidx.compose.ui.graphics.Color) -> Unit

@@ -226,4 +226,16 @@
     <string name="dash_way_home_up">Проведите вверх к Главной</string>
     <string name="dash_way_home_down">Проведите вниз к Главной</string>
     <string name="dash_add_tile">Добавить плитку</string>
+    <string name="dash_theme_futuristic">Футуристичная</string>
+    <string name="dash_theme_futuristic_desc">Ваша машина голограммой над бегущей световой сеткой, показания указаны на ней.</string>
+    <string name="dash_theme_simple">Простая</string>
+    <string name="dash_theme_simple_desc">Крупные читаемые цифры, машина в свете как в салоне, несколько больших кнопок.</string>
+    <string name="dash_theme_modern">Современная</string>
+    <string name="dash_theme_modern_desc">Карточки из матового стекла над городом в 3D, маршрут светится.</string>
+    <string name="dash_theme_motorsport">Автоспорт</string>
+    <string name="dash_theme_motorsport_desc">Экран гоночной машины: огни переключения, время секторов, рамка цвета флага.</string>
+    <string name="dash_theme_anime">Аниме</string>
+    <string name="dash_theme_anime_desc">Кадры комикса на фоне заката, ваша машина как говорящая наклейка.</string>
+    <string name="dash_theme_racing">Гонки</string>
+    <string name="dash_theme_racing_desc">Ночная поездка в неоне: полосатое солнце, приборы и мини-карта как в гоночной игре.</string>
 </resources>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Futuristic skin (FuturisticSkin*.kt) -->
+    <string name="skin_futuristic_cd_all_apps">Все приложения</string>
+    <string name="skin_futuristic_cd_screen_layout">Положение Google Maps: %1$s</string>
+    <string name="skin_futuristic_cd_more">Ещё</string>
+    <string name="skin_futuristic_link_live">Связь есть</string>
+    <string name="skin_futuristic_link_off">Связь выкл.</string>
+    <string name="skin_futuristic_link_linking">Подключение</string>
+    <string name="skin_futuristic_link_error">Ошибка связи</string>
+    <string name="skin_futuristic_connect_obd">Подключить OBD</string>
+    <string name="skin_futuristic_tap_connect_obd">Нажмите, чтобы подключить OBD</string>
+    <string name="skin_futuristic_choose_adapter">Выбрать адаптер OBD</string>
+    <string name="skin_futuristic_telemetry">Телеметрия</string>
+    <string name="skin_futuristic_live">Онлайн</string>
+    <string name="skin_futuristic_engine">Двигатель</string>
+    <string name="skin_futuristic_tyres">Шины</string>
+    <string name="skin_futuristic_doors">Двери</string>
+    <string name="skin_futuristic_doors_closed">Закрыты</string>
+    <string name="skin_futuristic_door_open">Открыта</string>
+    <string name="skin_futuristic_rpm">об/мин</string>
+    <string name="skin_futuristic_gear">Передача</string>
+    <string name="skin_futuristic_load">Нагрузка</string>
+    <string name="skin_futuristic_next_manoeuvre">Следующий манёвр</string>
+    <string name="skin_futuristic_start_navigation">Нажмите, чтобы начать навигацию</string>
+    <string name="skin_futuristic_open_navigation">Открыть навигацию</string>
+    <string name="skin_futuristic_tap_allow_access">Нажмите, чтобы разрешить доступ к уведомлениям</string>
+    <string name="skin_futuristic_eta">Прибытие %1$s</string>
+    <string name="skin_futuristic_now_playing">Сейчас играет</string>
+    <string name="skin_futuristic_paused">Пауза</string>
+    <string name="skin_futuristic_music">Музыка</string>
+    <string name="skin_futuristic_play_something">Включите что-нибудь в любом музыкальном приложении</string>
+    <string name="skin_futuristic_unknown_artist">Неизвестный исполнитель</string>
+    <string name="skin_futuristic_cd_previous">Предыдущий трек</string>
+    <string name="skin_futuristic_cd_play">Воспроизвести</string>
+    <string name="skin_futuristic_cd_pause">Пауза</string>
+    <string name="skin_futuristic_cd_next">Следующий трек</string>
+    <string name="skin_futuristic_allow_media">Разрешить доступ к медиа</string>
+    <string name="skin_futuristic_open_clock">Открыть часы</string>
+    <string name="skin_futuristic_loading">Загрузка</string>
+    <string name="skin_futuristic_weather_at_car">Погода у машины</string>
+    <string name="skin_futuristic_feels">Ощущается %1$d°</string>
+    <string name="skin_futuristic_wind">Ветер %1$d %2$s</string>
+    <string name="skin_futuristic_to_empty">Запас хода</string>
+    <string name="skin_futuristic_recalibrate_fuel">Перекалибровать топливо</string>
+    <string name="skin_futuristic_open_app">Открыть %1$s</string>
+    <string name="skin_futuristic_launch_bar_empty">Приложений пока нет, нажмите на карандаш, чтобы добавить</string>
+    <string name="skin_futuristic_cd_edit_launch_bar">Изменить панель приложений</string>
+</resources>

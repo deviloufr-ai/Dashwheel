@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Motorsport skin (MotorsportSkin.kt, MotorsportSkinTiles.kt). -->
+<resources>
+    <string name="skin_motorsport_cd_shift_lights">Luzes de troca, acesas pelas rotações do motor</string>
+    <string name="skin_motorsport_flag_green">BANDEIRA VERDE</string>
+    <string name="skin_motorsport_flag_yellow">BANDEIRA AMARELA</string>
+    <string name="skin_motorsport_flag_red">BANDEIRA VERMELHA</string>
+    <string name="skin_motorsport_connect_obd">Ligar OBD</string>
+    <string name="skin_motorsport_choose_adapter">Escolher adaptador OBD</string>
+    <string name="skin_motorsport_gear_caps">MUDANÇA</string>
+    <string name="skin_motorsport_speed_caps">VELOCIDADE</string>
+    <string name="skin_motorsport_rpm_caps">RPM</string>
+    <string name="skin_motorsport_tap_connect_caps">TOQUE PARA LIGAR O OBD</string>
+    <string name="skin_motorsport_connecting_caps">A LIGAR</string>
+    <string name="skin_motorsport_obd_error_caps">ERRO OBD · TOQUE PARA TENTAR DE NOVO</string>
+    <string name="skin_motorsport_live_caps">AO VIVO</string>
+    <string name="skin_motorsport_vs_usual_caps">VS HABITUAL</string>
+    <string name="skin_motorsport_tyre_fl">FE</string>
+    <string name="skin_motorsport_tyre_fr">FD</string>
+    <string name="skin_motorsport_tyre_rl">TE</string>
+    <string name="skin_motorsport_tyre_rr">TD</string>
+    <string name="skin_motorsport_water_caps">ÁGUA</string>
+    <string name="skin_motorsport_batt_caps">BAT</string>
+    <string name="skin_motorsport_air_caps">AR</string>
+    <string name="skin_motorsport_load_caps">CARGA</string>
+    <string name="skin_motorsport_track_caps">PISTA</string>
+    <string name="skin_motorsport_finish_caps">CHEGADA %1$s</string>
+    <string name="skin_motorsport_sector">S%1$d</string>
+    <string name="skin_motorsport_turn_left">E</string>
+    <string name="skin_motorsport_turn_right">D</string>
+    <string name="skin_motorsport_open_navigation">Abrir navegação</string>
+    <string name="skin_motorsport_tap_allow_caps">TOQUE PARA PERMITIR</string>
+    <string name="skin_motorsport_tap_maps_caps">TOQUE PARA ABRIR O MAPS</string>
+    <string name="skin_motorsport_team_radio_caps">RÁDIO DA EQUIPA</string>
+    <string name="skin_motorsport_on_air_caps">NO AR</string>
+    <string name="skin_motorsport_allow_media">Permitir acesso a multimédia</string>
+    <string name="skin_motorsport_start_music_caps">ABRA UMA APP DE MÚSICA</string>
+    <string name="skin_motorsport_unknown_artist">Artista desconhecido</string>
+    <string name="skin_motorsport_previous">Faixa anterior</string>
+    <string name="skin_motorsport_play">Reproduzir</string>
+    <string name="skin_motorsport_pause">Pausa</string>
+    <string name="skin_motorsport_next">Faixa seguinte</string>
+    <string name="skin_motorsport_local_time_caps">HORA LOCAL</string>
+    <string name="skin_motorsport_open_clock">Abrir relógio</string>
+    <string name="skin_motorsport_conditions_caps">CONDIÇÕES</string>
+    <string name="skin_motorsport_loading_caps">A CARREGAR</string>
+    <string name="skin_motorsport_feels_caps">SENSAÇÃO %1$d°</string>
+    <string name="skin_motorsport_wind_caps">VENTO %1$d %2$s</string>
+    <string name="skin_motorsport_tyre_slicks">SLICKS</string>
+    <string name="skin_motorsport_tyre_inters">INTERMÉDIOS</string>
+    <string name="skin_motorsport_tyre_wets">CHUVA</string>
+    <string name="skin_motorsport_pit_board_caps">PLACA DAS BOXES</string>
+    <string name="skin_motorsport_box_box_caps">BOX BOX · POUCO COMBUSTÍVEL</string>
+    <string name="skin_motorsport_open_app">Abrir %1$s</string>
+    <string name="skin_motorsport_edit_launch_bar">Editar barra de apps</string>
+    <string name="skin_motorsport_launch_bar_empty_caps">SEM APPS · TOQUE NO LÁPIS PARA ADICIONAR</string>
+</resources>

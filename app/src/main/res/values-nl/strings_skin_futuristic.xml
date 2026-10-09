@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Futuristic skin (FuturisticSkin*.kt) -->
+    <string name="skin_futuristic_cd_all_apps">Alle apps</string>
+    <string name="skin_futuristic_cd_screen_layout">Positie van Google Maps: %1$s</string>
+    <string name="skin_futuristic_cd_more">Meer</string>
+    <string name="skin_futuristic_link_live">Verbinding actief</string>
+    <string name="skin_futuristic_link_off">Verbinding uit</string>
+    <string name="skin_futuristic_link_linking">Verbinden</string>
+    <string name="skin_futuristic_link_error">Verbindingsfout</string>
+    <string name="skin_futuristic_connect_obd">OBD verbinden</string>
+    <string name="skin_futuristic_tap_connect_obd">Tik om OBD te verbinden</string>
+    <string name="skin_futuristic_choose_adapter">OBD-adapter kiezen</string>
+    <string name="skin_futuristic_telemetry">Telemetrie</string>
+    <string name="skin_futuristic_live">Live</string>
+    <string name="skin_futuristic_engine">Motor</string>
+    <string name="skin_futuristic_tyres">Banden</string>
+    <string name="skin_futuristic_doors">Deuren</string>
+    <string name="skin_futuristic_doors_closed">Dicht</string>
+    <string name="skin_futuristic_door_open">Open</string>
+    <string name="skin_futuristic_rpm">tpm</string>
+    <string name="skin_futuristic_gear">Versnelling</string>
+    <string name="skin_futuristic_load">Belasting</string>
+    <string name="skin_futuristic_next_manoeuvre">Volgende manoeuvre</string>
+    <string name="skin_futuristic_start_navigation">Tik om navigatie te starten</string>
+    <string name="skin_futuristic_open_navigation">Navigatie openen</string>
+    <string name="skin_futuristic_tap_allow_access">Tik om meldingstoegang toe te staan</string>
+    <string name="skin_futuristic_eta">Aankomst %1$s</string>
+    <string name="skin_futuristic_now_playing">Speelt nu</string>
+    <string name="skin_futuristic_paused">Gepauzeerd</string>
+    <string name="skin_futuristic_music">Muziek</string>
+    <string name="skin_futuristic_play_something">Speel iets af in een muziekapp</string>
+    <string name="skin_futuristic_unknown_artist">Onbekende artiest</string>
+    <string name="skin_futuristic_cd_previous">Vorig nummer</string>
+    <string name="skin_futuristic_cd_play">Afspelen</string>
+    <string name="skin_futuristic_cd_pause">Pauzeren</string>
+    <string name="skin_futuristic_cd_next">Volgend nummer</string>
+    <string name="skin_futuristic_allow_media">Mediatoegang toestaan</string>
+    <string name="skin_futuristic_open_clock">Klok openen</string>
+    <string name="skin_futuristic_loading">Laden</string>
+    <string name="skin_futuristic_weather_at_car">Weer bij de auto</string>
+    <string name="skin_futuristic_feels">Voelt als %1$d°</string>
+    <string name="skin_futuristic_wind">Wind %1$d %2$s</string>
+    <string name="skin_futuristic_to_empty">Actieradius</string>
+    <string name="skin_futuristic_recalibrate_fuel">Brandstof opnieuw kalibreren</string>
+    <string name="skin_futuristic_open_app">%1$s openen</string>
+    <string name="skin_futuristic_launch_bar_empty">Nog geen apps, tik op het potlood om toe te voegen</string>
+    <string name="skin_futuristic_cd_edit_launch_bar">Startbalk bewerken</string>
+</resources>

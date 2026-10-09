@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Futuristic skin (FuturisticSkin*.kt) -->
+    <string name="skin_futuristic_cd_all_apps">All apps</string>
+    <string name="skin_futuristic_cd_screen_layout">Google Maps position: %1$s</string>
+    <string name="skin_futuristic_cd_more">More</string>
+    <string name="skin_futuristic_link_live">Link live</string>
+    <string name="skin_futuristic_link_off">Link off</string>
+    <string name="skin_futuristic_link_linking">Linking</string>
+    <string name="skin_futuristic_link_error">Link error</string>
+    <string name="skin_futuristic_connect_obd">Connect OBD</string>
+    <string name="skin_futuristic_tap_connect_obd">Tap to connect OBD</string>
+    <string name="skin_futuristic_choose_adapter">Choose OBD adapter</string>
+    <string name="skin_futuristic_telemetry">Telemetry</string>
+    <string name="skin_futuristic_live">Live</string>
+    <string name="skin_futuristic_engine">Engine</string>
+    <string name="skin_futuristic_tyres">Tyres</string>
+    <string name="skin_futuristic_doors">Doors</string>
+    <string name="skin_futuristic_doors_closed">Closed</string>
+    <string name="skin_futuristic_door_open">Open</string>
+    <string name="skin_futuristic_rpm">RPM</string>
+    <string name="skin_futuristic_gear">Gear</string>
+    <string name="skin_futuristic_load">Load</string>
+    <string name="skin_futuristic_next_manoeuvre">Next manoeuvre</string>
+    <string name="skin_futuristic_start_navigation">Tap to start navigation</string>
+    <string name="skin_futuristic_open_navigation">Open navigation</string>
+    <string name="skin_futuristic_tap_allow_access">Tap to allow notification access</string>
+    <string name="skin_futuristic_eta">ETA %1$s</string>
+    <string name="skin_futuristic_now_playing">Now playing</string>
+    <string name="skin_futuristic_paused">Paused</string>
+    <string name="skin_futuristic_music">Music</string>
+    <string name="skin_futuristic_play_something">Play something in any music app</string>
+    <string name="skin_futuristic_unknown_artist">Unknown artist</string>
+    <string name="skin_futuristic_cd_previous">Previous track</string>
+    <string name="skin_futuristic_cd_play">Play</string>
+    <string name="skin_futuristic_cd_pause">Pause</string>
+    <string name="skin_futuristic_cd_next">Next track</string>
+    <string name="skin_futuristic_allow_media">Allow media access</string>
+    <string name="skin_futuristic_open_clock">Open clock</string>
+    <string name="skin_futuristic_loading">Loading</string>
+    <string name="skin_futuristic_weather_at_car">Weather at the car</string>
+    <string name="skin_futuristic_feels">Feels %1$d°</string>
+    <string name="skin_futuristic_wind">Wind %1$d %2$s</string>
+    <string name="skin_futuristic_to_empty">To empty</string>
+    <string name="skin_futuristic_recalibrate_fuel">Recalibrate fuel</string>
+    <string name="skin_futuristic_open_app">Open %1$s</string>
+    <string name="skin_futuristic_launch_bar_empty">No apps yet, tap the pencil to add some</string>
+    <string name="skin_futuristic_cd_edit_launch_bar">Edit launch bar</string>
+</resources>

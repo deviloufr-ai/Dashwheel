@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Simple skin -->
+    <string name="skin_simple_talk">Praten</string>
+    <string name="skin_simple_talk_cd">Praten met de assistent</string>
+    <string name="skin_simple_doors_closed">Portieren dicht</string>
+    <string name="skin_simple_fuel_chip">Brandstof %1$d %% · %2$s</string>
+    <string name="skin_simple_fuel_chip_short">Brandstof %1$d %%</string>
+    <string name="skin_simple_speed_limit_cd">Snelheidslimiet %1$d</string>
+    <string name="skin_simple_no_signal_connect">Geen signaal. Tik om OBD te verbinden</string>
+    <string name="skin_simple_car_cd">Je auto</string>
+    <string name="skin_simple_car_open_cd">Je auto, er staat een portier open</string>
+    <string name="skin_simple_launch_bar_empty">Nog geen apps. Tik op het potlood om toe te voegen.</string>
+</resources>

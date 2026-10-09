@@ -218,4 +218,16 @@
     <string name="dash_way_home_up">Nach oben wischen für Start</string>
     <string name="dash_way_home_down">Nach unten wischen für Start</string>
     <string name="dash_add_tile">Kachel hinzufügen</string>
+    <string name="dash_theme_futuristic">Futuristisch</string>
+    <string name="dash_theme_futuristic_desc">Ihr Auto als Hologramm über einem bewegten Lichtgitter, die Werte daran gezeigt.</string>
+    <string name="dash_theme_simple">Einfach</string>
+    <string name="dash_theme_simple_desc">Große, gut lesbare Zahlen, Ihr Auto wie im Showroom beleuchtet, wenige große Tasten.</string>
+    <string name="dash_theme_modern">Modern</string>
+    <string name="dash_theme_modern_desc">Milchglas-Karten über einer Stadt in 3D, die Route leuchtet.</string>
+    <string name="dash_theme_motorsport">Motorsport</string>
+    <string name="dash_theme_motorsport_desc">Das Display eines Rennwagens: Schaltblitze, Sektorzeiten, ein Rahmen in Flaggenfarbe.</string>
+    <string name="dash_theme_anime">Anime</string>
+    <string name="dash_theme_anime_desc">Comic-Felder im Abendhimmel, Ihr Auto als sprechender Sticker.</string>
+    <string name="dash_theme_racing">Racing</string>
+    <string name="dash_theme_racing_desc">Eine Neon-Nachtfahrt: gestreifte Sonne, Anzeigen und Minikarte wie im Rennspiel.</string>
 </resources>

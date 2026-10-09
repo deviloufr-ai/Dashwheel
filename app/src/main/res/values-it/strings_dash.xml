@@ -223,4 +223,16 @@
     <string name="dash_way_home_up">Scorri in alto per la Home</string>
     <string name="dash_way_home_down">Scorri in basso per la Home</string>
     <string name="dash_add_tile">Aggiungi un riquadro</string>
+    <string name="dash_theme_futuristic">Futuristico</string>
+    <string name="dash_theme_futuristic_desc">La tua auto come ologramma su una griglia di luce in movimento, con i valori indicati.</string>
+    <string name="dash_theme_simple">Semplice</string>
+    <string name="dash_theme_simple_desc">Numeri grandi e leggibili, la tua auto illuminata come in salone, pochi tasti grandi.</string>
+    <string name="dash_theme_modern">Moderno</string>
+    <string name="dash_theme_modern_desc">Schede in vetro satinato su una città in 3D, il percorso luminoso.</string>
+    <string name="dash_theme_motorsport">Motorsport</string>
+    <string name="dash_theme_motorsport_desc">Il display di un\'auto da corsa: luci di cambiata, tempi per settore, cornice del colore della bandiera.</string>
+    <string name="dash_theme_anime">Anime</string>
+    <string name="dash_theme_anime_desc">Vignette a fumetti in un cielo al tramonto, la tua auto come adesivo parlante.</string>
+    <string name="dash_theme_racing">Racing</string>
+    <string name="dash_theme_racing_desc">Una notte al neon: sole a strisce, quadranti e minimappa da videogioco di corse.</string>
 </resources>

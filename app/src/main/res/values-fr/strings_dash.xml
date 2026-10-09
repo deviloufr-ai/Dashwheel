@@ -223,4 +223,16 @@
     <string name="dash_way_home_up">Balayez vers le haut pour l\'Accueil</string>
     <string name="dash_way_home_down">Balayez vers le bas pour l\'Accueil</string>
     <string name="dash_add_tile">Ajouter une tuile</string>
+    <string name="dash_theme_futuristic">Futuriste</string>
+    <string name="dash_theme_futuristic_desc">Votre voiture en hologramme sur une grille lumineuse, ses valeurs pointées dessus.</string>
+    <string name="dash_theme_simple">Simple</string>
+    <string name="dash_theme_simple_desc">Grands chiffres lisibles, votre voiture éclairée comme en salle d\'exposition, peu de boutons.</string>
+    <string name="dash_theme_modern">Moderne</string>
+    <string name="dash_theme_modern_desc">Cartes en verre dépoli sur une ville en 3D, l\'itinéraire lumineux.</string>
+    <string name="dash_theme_motorsport">Sport auto</string>
+    <string name="dash_theme_motorsport_desc">L\'écran d\'une voiture de course : voyants de passage, temps par secteur, cadre couleur drapeau.</string>
+    <string name="dash_theme_anime">Anime</string>
+    <string name="dash_theme_anime_desc">Cases de BD dans un ciel de coucher de soleil, votre voiture en autocollant qui parle.</string>
+    <string name="dash_theme_racing">Course</string>
+    <string name="dash_theme_racing_desc">Une nuit au néon : soleil rayé, cadrans et mini-carte de jeu de course.</string>
 </resources>

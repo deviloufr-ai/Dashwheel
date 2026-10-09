@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Simple skin -->
+    <string name="skin_simple_talk">Hablar</string>
+    <string name="skin_simple_talk_cd">Hablar con el asistente</string>
+    <string name="skin_simple_doors_closed">Puertas cerradas</string>
+    <string name="skin_simple_fuel_chip">Combustible %1$d %% · %2$s</string>
+    <string name="skin_simple_fuel_chip_short">Combustible %1$d %%</string>
+    <string name="skin_simple_speed_limit_cd">Límite de velocidad %1$d</string>
+    <string name="skin_simple_no_signal_connect">Sin señal. Toca para conectar el OBD</string>
+    <string name="skin_simple_car_cd">Tu coche</string>
+    <string name="skin_simple_car_open_cd">Tu coche, hay una puerta abierta</string>
+    <string name="skin_simple_launch_bar_empty">Aún no hay apps. Toca el lápiz para añadir.</string>
+</resources>

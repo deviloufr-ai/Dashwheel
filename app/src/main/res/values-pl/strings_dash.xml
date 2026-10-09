@@ -220,4 +220,16 @@
     <string name="dash_way_home_up">Przesuń w górę do Startu</string>
     <string name="dash_way_home_down">Przesuń w dół do Startu</string>
     <string name="dash_add_tile">Dodaj kafelek</string>
+    <string name="dash_theme_futuristic">Futurystyczny</string>
+    <string name="dash_theme_futuristic_desc">Twój samochód jako hologram nad ruchomą siatką świateł, z zaznaczonymi odczytami.</string>
+    <string name="dash_theme_simple">Prosty</string>
+    <string name="dash_theme_simple_desc">Duże, czytelne liczby, Twój samochód oświetlony jak w salonie, kilka dużych przycisków.</string>
+    <string name="dash_theme_modern">Nowoczesny</string>
+    <string name="dash_theme_modern_desc">Karty z matowego szkła nad miastem w 3D, podświetlona trasa.</string>
+    <string name="dash_theme_motorsport">Motorsport</string>
+    <string name="dash_theme_motorsport_desc">Wyświetlacz auta wyścigowego: lampki zmiany biegu, czasy sektorów, ramka w kolorze flagi.</string>
+    <string name="dash_theme_anime">Anime</string>
+    <string name="dash_theme_anime_desc">Kadry komiksu na tle zachodu słońca, Twój samochód jako mówiąca naklejka.</string>
+    <string name="dash_theme_racing">Wyścigi</string>
+    <string name="dash_theme_racing_desc">Nocna jazda w neonach: pasiaste słońce, zegary i minimapa jak w grze wyścigowej.</string>
 </resources>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Futuristic skin (FuturisticSkin*.kt) -->
+    <string name="skin_futuristic_cd_all_apps">Tutte le app</string>
+    <string name="skin_futuristic_cd_screen_layout">Posizione di Google Maps: %1$s</string>
+    <string name="skin_futuristic_cd_more">Altro</string>
+    <string name="skin_futuristic_link_live">Collegamento attivo</string>
+    <string name="skin_futuristic_link_off">Collegamento spento</string>
+    <string name="skin_futuristic_link_linking">Collegamento in corso</string>
+    <string name="skin_futuristic_link_error">Errore di collegamento</string>
+    <string name="skin_futuristic_connect_obd">Connetti OBD</string>
+    <string name="skin_futuristic_tap_connect_obd">Tocca per connettere l\'OBD</string>
+    <string name="skin_futuristic_choose_adapter">Scegli adattatore OBD</string>
+    <string name="skin_futuristic_telemetry">Telemetria</string>
+    <string name="skin_futuristic_live">Live</string>
+    <string name="skin_futuristic_engine">Motore</string>
+    <string name="skin_futuristic_tyres">Pneumatici</string>
+    <string name="skin_futuristic_doors">Porte</string>
+    <string name="skin_futuristic_doors_closed">Chiuse</string>
+    <string name="skin_futuristic_door_open">Aperta</string>
+    <string name="skin_futuristic_rpm">giri/min</string>
+    <string name="skin_futuristic_gear">Marcia</string>
+    <string name="skin_futuristic_load">Carico</string>
+    <string name="skin_futuristic_next_manoeuvre">Prossima manovra</string>
+    <string name="skin_futuristic_start_navigation">Tocca per avviare la navigazione</string>
+    <string name="skin_futuristic_open_navigation">Apri navigazione</string>
+    <string name="skin_futuristic_tap_allow_access">Tocca per consentire l\'accesso alle notifiche</string>
+    <string name="skin_futuristic_eta">Arrivo %1$s</string>
+    <string name="skin_futuristic_now_playing">In riproduzione</string>
+    <string name="skin_futuristic_paused">In pausa</string>
+    <string name="skin_futuristic_music">Musica</string>
+    <string name="skin_futuristic_play_something">Riproduci qualcosa in un\'app musicale</string>
+    <string name="skin_futuristic_unknown_artist">Artista sconosciuto</string>
+    <string name="skin_futuristic_cd_previous">Brano precedente</string>
+    <string name="skin_futuristic_cd_play">Riproduci</string>
+    <string name="skin_futuristic_cd_pause">Pausa</string>
+    <string name="skin_futuristic_cd_next">Brano successivo</string>
+    <string name="skin_futuristic_allow_media">Consenti accesso ai media</string>
+    <string name="skin_futuristic_open_clock">Apri orologio</string>
+    <string name="skin_futuristic_loading">Caricamento</string>
+    <string name="skin_futuristic_weather_at_car">Meteo intorno all\'auto</string>
+    <string name="skin_futuristic_feels">Percepita %1$d°</string>
+    <string name="skin_futuristic_wind">Vento %1$d %2$s</string>
+    <string name="skin_futuristic_to_empty">Autonomia</string>
+    <string name="skin_futuristic_recalibrate_fuel">Ricalibra carburante</string>
+    <string name="skin_futuristic_open_app">Apri %1$s</string>
+    <string name="skin_futuristic_launch_bar_empty">Nessuna app, tocca la matita per aggiungerne</string>
+    <string name="skin_futuristic_cd_edit_launch_bar">Modifica barra delle app</string>
+</resources>

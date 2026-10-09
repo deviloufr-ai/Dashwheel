@@ -225,4 +225,16 @@
     <string name="dash_way_home_up">Swipe up for Home</string>
     <string name="dash_way_home_down">Swipe down for Home</string>
     <string name="dash_add_tile">Add a tile</string>
+    <string name="dash_theme_futuristic">Futuristic</string>
+    <string name="dash_theme_futuristic_desc">Your car as a hologram over a moving light grid, readings pointed out on it.</string>
+    <string name="dash_theme_simple">Simple</string>
+    <string name="dash_theme_simple_desc">Big readable figures, your car lit as in a showroom, a few large buttons.</string>
+    <string name="dash_theme_modern">Modern</string>
+    <string name="dash_theme_modern_desc">Frosted glass cards over a city in 3D, the route glowing.</string>
+    <string name="dash_theme_motorsport">Motorsport</string>
+    <string name="dash_theme_motorsport_desc">A race car\'s display: shift lights, sector times, a frame that turns the colour of the flag.</string>
+    <string name="dash_theme_anime">Anime</string>
+    <string name="dash_theme_anime_desc">Comic panels in a sunset sky, your car as a sticker that talks.</string>
+    <string name="dash_theme_racing">Racing</string>
+    <string name="dash_theme_racing_desc">A night drive in neon: a striped sun, a racing game\'s dials and minimap.</string>
 </resources>

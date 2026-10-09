@@ -219,4 +219,16 @@
     <string name="dash_way_home_up">Deslize para cima para o Início</string>
     <string name="dash_way_home_down">Deslize para baixo para o Início</string>
     <string name="dash_add_tile">Adicionar um mosaico</string>
+    <string name="dash_theme_futuristic">Futurista</string>
+    <string name="dash_theme_futuristic_desc">O seu carro como holograma sobre uma grelha de luz em movimento, com os valores apontados.</string>
+    <string name="dash_theme_simple">Simples</string>
+    <string name="dash_theme_simple_desc">Números grandes e legíveis, o seu carro iluminado como num stand, poucos botões grandes.</string>
+    <string name="dash_theme_modern">Moderno</string>
+    <string name="dash_theme_modern_desc">Cartões de vidro fosco sobre uma cidade em 3D, a rota iluminada.</string>
+    <string name="dash_theme_motorsport">Desporto motorizado</string>
+    <string name="dash_theme_motorsport_desc">O ecrã de um carro de corrida: luzes de mudança, tempos por setor, moldura da cor da bandeira.</string>
+    <string name="dash_theme_anime">Anime</string>
+    <string name="dash_theme_anime_desc">Quadros de banda desenhada num céu de pôr do sol, o seu carro como autocolante que fala.</string>
+    <string name="dash_theme_racing">Corrida</string>
+    <string name="dash_theme_racing_desc">Uma noite de néon: sol às riscas, mostradores e minimapa de jogo de corridas.</string>
 </resources>

@@ -43,7 +43,13 @@ enum class DashThemeMode(@StringRes val titleRes: Int, @StringRes val descriptio
     ECO_LEAF(R.string.dash_theme_eco_leaf, R.string.dash_theme_eco_leaf_desc),
     CYBER_SPORT(R.string.dash_theme_cyber, R.string.dash_theme_cyber_desc),
     NORDIC(R.string.dash_theme_nordic, R.string.dash_theme_nordic_desc),
-    CANVAS(R.string.dash_theme_canvas, R.string.dash_theme_canvas_desc)
+    CANVAS(R.string.dash_theme_canvas, R.string.dash_theme_canvas_desc),
+    FUTURISTIC(R.string.dash_theme_futuristic, R.string.dash_theme_futuristic_desc),
+    SIMPLE(R.string.dash_theme_simple, R.string.dash_theme_simple_desc),
+    MODERN(R.string.dash_theme_modern, R.string.dash_theme_modern_desc),
+    MOTORSPORT(R.string.dash_theme_motorsport, R.string.dash_theme_motorsport_desc),
+    ANIME(R.string.dash_theme_anime, R.string.dash_theme_anime_desc),
+    RACING(R.string.dash_theme_racing, R.string.dash_theme_racing_desc)
 }
 
 /** Dark or light version of the theme; [AUTO] follows the car's day/night mode. */
@@ -69,7 +75,7 @@ enum class DashEffects(@StringRes val titleRes: Int, @StringRes val hintRes: Int
  * background, top bar and renderers for the main widgets (see Skins.kt).
  * [STANDARD] is every colour-only theme.
  */
-enum class DashSkin { STANDARD, ORBIT, COCKPIT, HORIZON, TAPE_DECK, CANVAS }
+enum class DashSkin { STANDARD, ORBIT, COCKPIT, HORIZON, TAPE_DECK, CANVAS, FUTURISTIC, SIMPLE, MODERN, MOTORSPORT, ANIME, RACING }
 
 /**
  * Colours plus a few style knobs for one dashboard theme.
@@ -591,6 +597,13 @@ internal fun paletteFor(mode: DashThemeMode, light: Boolean): DashPalette = when
     DashThemeMode.CYBER_SPORT -> if (light) CyberSportLightPalette else CyberSportPalette
     DashThemeMode.NORDIC -> if (light) NordicLightPalette else NordicPalette
     DashThemeMode.CANVAS -> if (light) CanvasLightPalette else CanvasPalette
+    // The 2026-10 skins keep their palettes in their own files.
+    DashThemeMode.FUTURISTIC -> if (light) FuturisticLightPalette else FuturisticPalette
+    DashThemeMode.SIMPLE -> if (light) SimpleLightPalette else SimplePalette
+    DashThemeMode.MODERN -> if (light) ModernLightPalette else ModernPalette
+    DashThemeMode.MOTORSPORT -> if (light) MotorsportLightPalette else MotorsportPalette
+    DashThemeMode.ANIME -> if (light) AnimeLightPalette else AnimePalette
+    DashThemeMode.RACING -> if (light) RacingLightPalette else RacingPalette
 }
 
 /**

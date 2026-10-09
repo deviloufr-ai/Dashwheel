@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Anime skin: comic words on the stickers -->
+    <string name="skin_anime_turn_in">TRA %1$s!</string>
+    <string name="skin_anime_fuel">carburante</string>
+    <string name="skin_anime_fuel_low">riserva!</string>
+    <string name="skin_anime_to_go">di autonomia</string>
+    <string name="skin_anime_engine_cold">motore si sveglia</string>
+    <string name="skin_anime_engine_happy">motore felice</string>
+    <string name="skin_anime_engine_hot">motore caldo!</string>
+    <string name="skin_anime_battery">batteria</string>
+    <string name="skin_anime_rpm">giri/min</string>
+    <string name="skin_anime_load">carico</string>
+    <string name="skin_anime_talk">PARLAMI!</string>
+    <string name="skin_anime_talk_end">CIAO!</string>
+</resources>

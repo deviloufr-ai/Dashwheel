@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Simple skin -->
+    <string name="skin_simple_talk">Сказать</string>
+    <string name="skin_simple_talk_cd">Поговорить с ассистентом</string>
+    <string name="skin_simple_doors_closed">Двери закрыты</string>
+    <string name="skin_simple_fuel_chip">Топливо %1$d %% · %2$s</string>
+    <string name="skin_simple_fuel_chip_short">Топливо %1$d %%</string>
+    <string name="skin_simple_speed_limit_cd">Ограничение скорости %1$d</string>
+    <string name="skin_simple_no_signal_connect">Нет сигнала. Нажмите, чтобы подключить OBD</string>
+    <string name="skin_simple_car_cd">Ваш автомобиль</string>
+    <string name="skin_simple_car_open_cd">Ваш автомобиль, открыта дверь</string>
+    <string name="skin_simple_launch_bar_empty">Приложений пока нет. Нажмите на карандаш, чтобы добавить.</string>
+</resources>

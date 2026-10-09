@@ -218,4 +218,16 @@
     <string name="dash_way_home_up">Veeg omhoog voor Start</string>
     <string name="dash_way_home_down">Veeg omlaag voor Start</string>
     <string name="dash_add_tile">Tegel toevoegen</string>
+    <string name="dash_theme_futuristic">Futuristisch</string>
+    <string name="dash_theme_futuristic_desc">Je auto als hologram boven een bewegend lichtraster, de waarden erop aangewezen.</string>
+    <string name="dash_theme_simple">Eenvoudig</string>
+    <string name="dash_theme_simple_desc">Grote, goed leesbare cijfers, je auto verlicht als in een showroom, een paar grote knoppen.</string>
+    <string name="dash_theme_modern">Modern</string>
+    <string name="dash_theme_modern_desc">Matglazen kaarten boven een stad in 3D, de route oplichtend.</string>
+    <string name="dash_theme_motorsport">Motorsport</string>
+    <string name="dash_theme_motorsport_desc">Het scherm van een raceauto: schakellampjes, sectortijden, een rand in de kleur van de vlag.</string>
+    <string name="dash_theme_anime">Anime</string>
+    <string name="dash_theme_anime_desc">Stripvakken in een avondlucht, je auto als pratende sticker.</string>
+    <string name="dash_theme_racing">Racen</string>
+    <string name="dash_theme_racing_desc">Een neonnacht: gestreepte zon, meters en minikaart als in een racegame.</string>
 </resources>

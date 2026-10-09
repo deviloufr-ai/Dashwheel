@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Modern skin (ModernSkin*.kt) -->
+    <string name="skin_modern_arrival">Ankunft</string>
+    <string name="skin_modern_engine">MOTOR</string>
+    <string name="skin_modern_rpm">U/min</string>
+    <string name="skin_modern_fuel_low">Kraftstoff knapp</string>
+    <string name="skin_modern_fuel_at">%1$s für %2$s</string>
+    <string name="skin_modern_away">%1$s entfernt</string>
+    <string name="skin_modern_range_left">noch %1$s</string>
+    <string name="skin_modern_go">Los</string>
+    <string name="skin_modern_recalibrate">Kraftstoff neu kalibrieren</string>
+    <string name="skin_modern_in_tank">%1$d L im Tank</string>
+    <string name="skin_modern_open_navigation">Navigation öffnen</string>
+    <string name="skin_modern_tap_open_navigation">Tippen, um die Navigation zu öffnen</string>
+    <string name="skin_modern_allow_access">Benachrichtigungszugriff erlauben</string>
+    <string name="skin_modern_tap_allow_access">Tippen, um den Benachrichtigungszugriff zu erlauben</string>
+    <string name="skin_modern_connect_obd">OBD verbinden</string>
+    <string name="skin_modern_tap_connect">Tippen, um OBD zu verbinden</string>
+    <string name="skin_modern_open_clock">Uhr öffnen</string>
+    <string name="skin_modern_open_app">%1$s öffnen</string>
+    <string name="skin_modern_launch_bar_empty">Noch keine Apps. Tippe auf den Stift, um welche hinzuzufügen.</string>
+    <string name="skin_modern_edit_launch_bar">Startleiste bearbeiten</string>
+    <string name="skin_modern_play">Abspielen</string>
+    <string name="skin_modern_pause">Pause</string>
+    <string name="skin_modern_unknown_artist">Unbekannter Interpret</string>
+    <string name="skin_modern_play_something">Spiele Musik in einer beliebigen App ab</string>
+    <string name="skin_modern_feels">Gefühlt %1$d°</string>
+    <string name="skin_modern_wind">Wind %1$d %2$s</string>
+    <string name="skin_modern_weather_here">Wetter am Auto</string>
+</resources>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Racing skin: words on the HUD (caps, as the game shows them) -->
+    <string name="skin_racing_finish">FINISH</string>
+    <string name="skin_racing_stage">STAGE</string>
+    <string name="skin_racing_fuel">FUEL</string>
+    <string name="skin_racing_rpm">RPM</string>
+    <string name="skin_racing_temp">TEMP</string>
+    <string name="skin_racing_batt">BATT</string>
+    <string name="skin_racing_load">LOAD</string>
+    <!-- Racing skin: OBD link state on the stage card -->
+    <string name="skin_racing_live">LIVE</string>
+    <string name="skin_racing_linking">LINKING</string>
+    <string name="skin_racing_no_obd_tap">NO OBD · TAP</string>
+    <string name="skin_racing_obd_error_tap">OBD ERROR · TAP</string>
+    <string name="skin_racing_connect_obd">Connect the OBD adapter</string>
+    <string name="skin_racing_choose_adapter">Choose another OBD adapter</string>
+    <!-- Racing skin: turn banner and navigation -->
+    <string name="skin_racing_left">LEFT</string>
+    <string name="skin_racing_right">RIGHT</string>
+    <string name="skin_racing_tap_open_maps">TAP TO OPEN MAPS</string>
+    <string name="skin_racing_tap_to_allow">TAP TO ALLOW</string>
+    <string name="skin_racing_open_navigation">Open navigation</string>
+    <string name="skin_racing_allow_access">Allow notification access</string>
+    <!-- Racing skin: music ticker and buttons -->
+    <string name="skin_racing_start_music">START A MUSIC APP</string>
+    <string name="skin_racing_unknown_artist">UNKNOWN ARTIST</string>
+    <string name="skin_racing_cd_previous">Previous track</string>
+    <string name="skin_racing_cd_next">Next track</string>
+    <string name="skin_racing_cd_play">Play</string>
+    <string name="skin_racing_cd_pause">Pause</string>
+    <!-- Racing skin: clock and weather -->
+    <string name="skin_racing_open_clock">Open alarms</string>
+    <string name="skin_racing_loading">LOADING</string>
+    <string name="skin_racing_feels">FEELS %1$d°</string>
+    <string name="skin_racing_wind_kmh">WIND %1$d KM/H</string>
+    <string name="skin_racing_wind_mph">WIND %1$d MPH</string>
+    <!-- Racing skin: apps and launch bars -->
+    <string name="skin_racing_open_app">Open %1$s</string>
+    <string name="skin_racing_edit_launch_bar">Edit the launch bar</string>
+    <string name="skin_racing_launch_bar_empty">NO APPS YET · TAP THE PENCIL</string>
+    <string name="skin_racing_gear">Gear %1$s</string>
+</resources>

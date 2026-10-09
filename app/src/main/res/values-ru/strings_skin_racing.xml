@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Racing skin: words on the HUD (caps, as the game shows them) -->
+    <string name="skin_racing_finish">ФИНИШ</string>
+    <string name="skin_racing_stage">ЭТАП</string>
+    <string name="skin_racing_fuel">ТОПЛИВО</string>
+    <string name="skin_racing_rpm">ОБ/МИН</string>
+    <string name="skin_racing_temp">ТЕМП</string>
+    <string name="skin_racing_batt">АКБ</string>
+    <string name="skin_racing_load">НАГРУЗКА</string>
+    <!-- Racing skin: OBD link state on the stage card -->
+    <string name="skin_racing_live">ОНЛАЙН</string>
+    <string name="skin_racing_linking">СВЯЗЬ</string>
+    <string name="skin_racing_no_obd_tap">НЕТ OBD · НАЖМИТЕ</string>
+    <string name="skin_racing_obd_error_tap">ОШИБКА OBD · НАЖМИТЕ</string>
+    <string name="skin_racing_connect_obd">Подключить OBD-адаптер</string>
+    <string name="skin_racing_choose_adapter">Выбрать другой OBD-адаптер</string>
+    <!-- Racing skin: turn banner and navigation -->
+    <string name="skin_racing_left">НАЛЕВО</string>
+    <string name="skin_racing_right">НАПРАВО</string>
+    <string name="skin_racing_tap_open_maps">НАЖМИТЕ, ЧТОБЫ ОТКРЫТЬ MAPS</string>
+    <string name="skin_racing_tap_to_allow">НАЖМИТЕ, ЧТОБЫ РАЗРЕШИТЬ</string>
+    <string name="skin_racing_open_navigation">Открыть навигацию</string>
+    <string name="skin_racing_allow_access">Разрешить доступ к уведомлениям</string>
+    <!-- Racing skin: music ticker and buttons -->
+    <string name="skin_racing_start_music">ВКЛЮЧИТЕ МУЗЫКУ</string>
+    <string name="skin_racing_unknown_artist">НЕИЗВЕСТНЫЙ ИСПОЛНИТЕЛЬ</string>
+    <string name="skin_racing_cd_previous">Предыдущий трек</string>
+    <string name="skin_racing_cd_next">Следующий трек</string>
+    <string name="skin_racing_cd_play">Воспроизвести</string>
+    <string name="skin_racing_cd_pause">Пауза</string>
+    <!-- Racing skin: clock and weather -->
+    <string name="skin_racing_open_clock">Открыть будильники</string>
+    <string name="skin_racing_loading">ЗАГРУЗКА</string>
+    <string name="skin_racing_feels">ОЩУЩАЕТСЯ %1$d°</string>
+    <string name="skin_racing_wind_kmh">ВЕТЕР %1$d КМ/Ч</string>
+    <string name="skin_racing_wind_mph">ВЕТЕР %1$d МИЛЬ/Ч</string>
+    <!-- Racing skin: apps and launch bars -->
+    <string name="skin_racing_open_app">Открыть %1$s</string>
+    <string name="skin_racing_edit_launch_bar">Изменить панель запуска</string>
+    <string name="skin_racing_launch_bar_empty">ПРИЛОЖЕНИЙ НЕТ · НАЖМИТЕ НА КАРАНДАШ</string>
+    <string name="skin_racing_gear">Передача %1$s</string>
+</resources>

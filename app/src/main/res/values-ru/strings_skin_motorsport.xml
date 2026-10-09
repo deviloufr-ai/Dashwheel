@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Motorsport skin (MotorsportSkin.kt, MotorsportSkinTiles.kt). -->
+<resources>
+    <string name="skin_motorsport_cd_shift_lights">Индикаторы переключения, горят от оборотов двигателя</string>
+    <string name="skin_motorsport_flag_green">ЗЕЛЁНЫЙ ФЛАГ</string>
+    <string name="skin_motorsport_flag_yellow">ЖЁЛТЫЙ ФЛАГ</string>
+    <string name="skin_motorsport_flag_red">КРАСНЫЙ ФЛАГ</string>
+    <string name="skin_motorsport_connect_obd">Подключить OBD</string>
+    <string name="skin_motorsport_choose_adapter">Выбрать адаптер OBD</string>
+    <string name="skin_motorsport_gear_caps">ПЕРЕДАЧА</string>
+    <string name="skin_motorsport_speed_caps">СКОРОСТЬ</string>
+    <string name="skin_motorsport_rpm_caps">ОБ/МИН</string>
+    <string name="skin_motorsport_tap_connect_caps">НАЖМИТЕ, ЧТОБЫ ПОДКЛЮЧИТЬ OBD</string>
+    <string name="skin_motorsport_connecting_caps">ПОДКЛЮЧЕНИЕ</string>
+    <string name="skin_motorsport_obd_error_caps">ОШИБКА OBD · НАЖМИТЕ ДЛЯ ПОВТОРА</string>
+    <string name="skin_motorsport_live_caps">LIVE</string>
+    <string name="skin_motorsport_vs_usual_caps">VS ОБЫЧНО</string>
+    <string name="skin_motorsport_tyre_fl">ПЛ</string>
+    <string name="skin_motorsport_tyre_fr">ПП</string>
+    <string name="skin_motorsport_tyre_rl">ЗЛ</string>
+    <string name="skin_motorsport_tyre_rr">ЗП</string>
+    <string name="skin_motorsport_water_caps">ВОДА</string>
+    <string name="skin_motorsport_batt_caps">АКБ</string>
+    <string name="skin_motorsport_air_caps">ВОЗДУХ</string>
+    <string name="skin_motorsport_load_caps">НАГРУЗКА</string>
+    <string name="skin_motorsport_track_caps">ТРАССА</string>
+    <string name="skin_motorsport_finish_caps">ФИНИШ %1$s</string>
+    <string name="skin_motorsport_sector">S%1$d</string>
+    <string name="skin_motorsport_turn_left">Л</string>
+    <string name="skin_motorsport_turn_right">П</string>
+    <string name="skin_motorsport_open_navigation">Открыть навигацию</string>
+    <string name="skin_motorsport_tap_allow_caps">НАЖМИТЕ, ЧТОБЫ РАЗРЕШИТЬ</string>
+    <string name="skin_motorsport_tap_maps_caps">НАЖМИТЕ, ЧТОБЫ ОТКРЫТЬ КАРТЫ</string>
+    <string name="skin_motorsport_team_radio_caps">РАДИО КОМАНДЫ</string>
+    <string name="skin_motorsport_on_air_caps">В ЭФИРЕ</string>
+    <string name="skin_motorsport_allow_media">Разрешить доступ к медиа</string>
+    <string name="skin_motorsport_start_music_caps">ЗАПУСТИТЕ МУЗЫКАЛЬНОЕ ПРИЛОЖЕНИЕ</string>
+    <string name="skin_motorsport_unknown_artist">Неизвестный исполнитель</string>
+    <string name="skin_motorsport_previous">Предыдущий трек</string>
+    <string name="skin_motorsport_play">Воспроизвести</string>
+    <string name="skin_motorsport_pause">Пауза</string>
+    <string name="skin_motorsport_next">Следующий трек</string>
+    <string name="skin_motorsport_local_time_caps">МЕСТНОЕ ВРЕМЯ</string>
+    <string name="skin_motorsport_open_clock">Открыть часы</string>
+    <string name="skin_motorsport_conditions_caps">УСЛОВИЯ</string>
+    <string name="skin_motorsport_loading_caps">ЗАГРУЗКА</string>
+    <string name="skin_motorsport_feels_caps">ОЩУЩАЕТСЯ %1$d°</string>
+    <string name="skin_motorsport_wind_caps">ВЕТЕР %1$d %2$s</string>
+    <string name="skin_motorsport_tyre_slicks">СЛИКИ</string>
+    <string name="skin_motorsport_tyre_inters">ПРОМЕЖУТОЧНЫЕ</string>
+    <string name="skin_motorsport_tyre_wets">ДОЖДЕВЫЕ</string>
+    <string name="skin_motorsport_pit_board_caps">ДОСКА БОКСОВ</string>
+    <string name="skin_motorsport_box_box_caps">BOX BOX · МАЛО ТОПЛИВА</string>
+    <string name="skin_motorsport_open_app">Открыть %1$s</string>
+    <string name="skin_motorsport_edit_launch_bar">Изменить панель приложений</string>
+    <string name="skin_motorsport_launch_bar_empty_caps">НЕТ ПРИЛОЖЕНИЙ · НАЖМИТЕ НА КАРАНДАШ, ЧТОБЫ ДОБАВИТЬ</string>
+</resources>

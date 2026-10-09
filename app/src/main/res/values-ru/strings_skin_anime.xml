@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Anime skin: comic words on the stickers -->
+    <string name="skin_anime_turn_in">ЧЕРЕЗ %1$s!</string>
+    <string name="skin_anime_fuel">топливо</string>
+    <string name="skin_anime_fuel_low">мало топлива!</string>
+    <string name="skin_anime_to_go">запас хода</string>
+    <string name="skin_anime_engine_cold">мотор просыпается</string>
+    <string name="skin_anime_engine_happy">мотор доволен</string>
+    <string name="skin_anime_engine_hot">мотор горячий!</string>
+    <string name="skin_anime_battery">аккумулятор</string>
+    <string name="skin_anime_rpm">об/мин</string>
+    <string name="skin_anime_load">нагрузка</string>
+    <string name="skin_anime_talk">ПОГОВОРИМ!</string>
+    <string name="skin_anime_talk_end">ПОКА!</string>
+</resources>

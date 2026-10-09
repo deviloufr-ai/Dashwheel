@@ -286,6 +286,7 @@ private fun ThemeStamp(p: DashPalette, modifier: Modifier) {
             val layout = digits.measure(text, TextStyle(fontSize = sizeSp.sp, fontWeight = weight, fontFamily = family, color = color))
             drawText(layout, topLeft = Offset(x - layout.size.width / 2f, y - layout.size.height / 2f))
         }
+        val num: StampNumber = { t, x, y, s, c -> number(t, x, y, s, c) }
         when (p.Skin) {
             DashSkin.ORBIT -> {
                 // A ring gauge on the right, a record on the left, the pill bar below.
@@ -359,6 +360,12 @@ private fun ThemeStamp(p: DashPalette, modifier: Modifier) {
                 number("88", c.x, c.y, 9f, p.TextPrimary)
                 drawRoundRect(glass, Offset(w * 0.34f, h * 0.8f), Size(w * 0.44f, h * 0.14f), CornerRadius(h * 0.07f))
             }
+            DashSkin.FUTURISTIC -> futuristicStamp(p, num)
+            DashSkin.SIMPLE -> simpleStamp(p, num)
+            DashSkin.MODERN -> modernStamp(p, num)
+            DashSkin.MOTORSPORT -> motorsportStamp(p, num)
+            DashSkin.ANIME -> animeStamp(p, num)
+            DashSkin.RACING -> racingStamp(p, num)
             DashSkin.STANDARD -> {
                 // The standard bar and two tiles; glass themes show through, bare ones draw no card.
                 val cardFill = when {

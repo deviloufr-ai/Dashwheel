@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Anime skin: comic words on the stickers -->
+    <string name="skin_anime_turn_in">OVER %1$s!</string>
+    <string name="skin_anime_fuel">brandstof</string>
+    <string name="skin_anime_fuel_low">bijna leeg!</string>
+    <string name="skin_anime_to_go">te gaan</string>
+    <string name="skin_anime_engine_cold">motor warmt op</string>
+    <string name="skin_anime_engine_happy">motor blij</string>
+    <string name="skin_anime_engine_hot">motor heet!</string>
+    <string name="skin_anime_battery">accu</string>
+    <string name="skin_anime_rpm">tpm</string>
+    <string name="skin_anime_load">belasting</string>
+    <string name="skin_anime_talk">PRAAT MET ME!</string>
+    <string name="skin_anime_talk_end">DOEI!</string>
+</resources>

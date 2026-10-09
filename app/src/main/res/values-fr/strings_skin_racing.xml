@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Racing skin: words on the HUD (caps, as the game shows them) -->
+    <string name="skin_racing_finish">ARRIVÉE</string>
+    <string name="skin_racing_stage">ÉTAPE</string>
+    <string name="skin_racing_fuel">CARBURANT</string>
+    <string name="skin_racing_rpm">TR/MIN</string>
+    <string name="skin_racing_temp">TEMP</string>
+    <string name="skin_racing_batt">BATT</string>
+    <string name="skin_racing_load">CHARGE</string>
+    <!-- Racing skin: OBD link state on the stage card -->
+    <string name="skin_racing_live">EN DIRECT</string>
+    <string name="skin_racing_linking">CONNEXION</string>
+    <string name="skin_racing_no_obd_tap">PAS D\'OBD · TOUCHEZ</string>
+    <string name="skin_racing_obd_error_tap">ERREUR OBD · TOUCHEZ</string>
+    <string name="skin_racing_connect_obd">Connecter l\'adaptateur OBD</string>
+    <string name="skin_racing_choose_adapter">Choisir un autre adaptateur OBD</string>
+    <!-- Racing skin: turn banner and navigation -->
+    <string name="skin_racing_left">GAUCHE</string>
+    <string name="skin_racing_right">DROITE</string>
+    <string name="skin_racing_tap_open_maps">TOUCHEZ POUR OUVRIR MAPS</string>
+    <string name="skin_racing_tap_to_allow">TOUCHEZ POUR AUTORISER</string>
+    <string name="skin_racing_open_navigation">Ouvrir la navigation</string>
+    <string name="skin_racing_allow_access">Autoriser l\'accès aux notifications</string>
+    <!-- Racing skin: music ticker and buttons -->
+    <string name="skin_racing_start_music">LANCEZ UNE APPLI MUSICALE</string>
+    <string name="skin_racing_unknown_artist">ARTISTE INCONNU</string>
+    <string name="skin_racing_cd_previous">Piste précédente</string>
+    <string name="skin_racing_cd_next">Piste suivante</string>
+    <string name="skin_racing_cd_play">Lecture</string>
+    <string name="skin_racing_cd_pause">Pause</string>
+    <!-- Racing skin: clock and weather -->
+    <string name="skin_racing_open_clock">Ouvrir les alarmes</string>
+    <string name="skin_racing_loading">CHARGEMENT</string>
+    <string name="skin_racing_feels">RESSENTI %1$d°</string>
+    <string name="skin_racing_wind_kmh">VENT %1$d KM/H</string>
+    <string name="skin_racing_wind_mph">VENT %1$d MPH</string>
+    <!-- Racing skin: apps and launch bars -->
+    <string name="skin_racing_open_app">Ouvrir %1$s</string>
+    <string name="skin_racing_edit_launch_bar">Modifier la barre de lancement</string>
+    <string name="skin_racing_launch_bar_empty">AUCUNE APPLI · TOUCHEZ LE CRAYON</string>
+    <string name="skin_racing_gear">Rapport %1$s</string>
+</resources>
