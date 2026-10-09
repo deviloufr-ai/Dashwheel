@@ -75,7 +75,7 @@
 
     <!-- OBD adapter picker -->
     <string name="vehicle_select_adapter">Wybierz adapter OBD</string>
-    <string name="vehicle_no_paired">Brak sparowanych urządzeń Bluetooth. Najpierw sparuj adapter OBD w ustawieniach Bluetooth.</string>
+    <string name="vehicle_no_paired">Brak sparowanych urządzeń Bluetooth i adaptera USB. Sparuj adapter OBD w ustawieniach Bluetooth albo podłącz adapter USB.</string>
     <string name="vehicle_bt_settings">Ustawienia Bluetooth</string>
 
     <!-- OBD adapter status messages -->
@@ -204,6 +204,13 @@
     <string name="vehicle_err_bt_stuck">Bluetooth Androida w radiu się zawiesił: uruchom ponownie radio, potem dotknij OBD</string>
     <string name="vehicle_err_refused">%1$s odrzucił połączenie: zajęty przez telefon lub inną aplikację, bez zasilania albo poza zasięgiem</string>
     <string name="vehicle_err_silent">%1$s połączył się, ale nigdy nie odpowiedział: włącz zapłon, potem dotknij OBD</string>
+    <string name="vehicle_usb_cable">Kabel USB</string>
+    <string name="vehicle_obd_usb_allow">Zezwól w oknie, aby Dashwheel używał adaptera</string>
+    <string name="vehicle_err_usb_none">Nie podłączono adaptera USB</string>
+    <string name="vehicle_err_usb_tap">Dotknij OBD, aby Dashwheel mógł używać %1$s</string>
+    <string name="vehicle_err_usb_denied">Dashwheel nie otrzymał zgody na użycie %1$s</string>
+    <string name="vehicle_err_usb_open">Nie udało się otworzyć %1$s: odłącz go i podłącz ponownie</string>
+    <string name="vehicle_err_usb_silent">%1$s nie odpowiedział jak adapter OBD</string>
     <string name="vehicle_err_phone_not_linked">OBD idzie przez telefon: najpierw połącz telefon</string>
     <string name="vehicle_err_phone_no_adapter">OBD idzie przez telefon: wybierz adapter w aplikacji towarzyszącej</string>
     <string name="vehicle_obd_asking_phone">Pytanie telefonu o adapter</string>

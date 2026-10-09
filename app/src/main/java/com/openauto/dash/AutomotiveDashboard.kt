@@ -436,6 +436,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     val mediaAccess = hasMediaAccess || demoOn
     var showDevicePicker by remember { mutableStateOf(false) }
     var pairedDevices by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) }
+    var usbAdapters by remember { mutableStateOf<List<UsbObdAdapter>>(emptyList()) }
 
     // "+" add flow: the page a tile is being added to, and the sheet that offers them (AddSheet.kt).
     var addTargetPage by remember { mutableIntStateOf(-1) }
@@ -1062,6 +1063,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     /** The adapter picker is a list to read: parked only. Reconnecting a saved one needs no picker. */
     fun openDevicePicker() = whenParked {
         pairedDevices = ObdBluetoothManager.bondedDevices()
+        usbAdapters = UsbObd.attached(context)
         showDevicePicker = true
     }
 
@@ -1091,6 +1093,8 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         when {
             // Deep OBD makes the connection to the car itself: open it.
             DeepObdSource.owns() -> DeepObdSource.launch(context)
+            // On a cable: Android asks for access to it if needed, nothing to pair.
+            ObdBluetoothManager.usesUsb() -> connectObd()
             ObdBluetoothManager.usesPhone() -> connectObd()
             else -> ensureBluetooth { connectSavedOrPick() }
         }
@@ -2065,11 +2069,26 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     if (showDevicePicker) {
         DevicePickerDialog(
             devices = pairedDevices,
+            usbAdapters = usbAdapters,
             onPick = { mac ->
                 ObdBluetoothManager.saveDeviceAddress(mac)
                 showDevicePicker = false
-                scope.launch { ObdBluetoothManager.connect(mac, byDriver = true) }
+                scope.launch {
+                    // A link already up (a cable) is closed for the one picked.
+                    ObdBluetoothManager.disconnect()
+                    ObdBluetoothManager.connect(mac, byDriver = true)
+                }
                 // Dashboards built without an adapter have no car tile: offered now that one is here.
+                if (pages.flatten().none { it is DashboardItem.BuiltinWidget && TemplatePlacer.needsObd(it.kind) }) offerCarTiles = true
+            },
+            onPickUsb = { key ->
+                ObdBluetoothManager.saveUsbAdapter(key)
+                showDevicePicker = false
+                scope.launch {
+                    ObdBluetoothManager.disconnect()
+                    // Android asks to let Dashwheel use it the first time.
+                    ObdBluetoothManager.connect("", byDriver = true)
+                }
                 if (pages.flatten().none { it is DashboardItem.BuiltinWidget && TemplatePlacer.needsObd(it.kind) }) offerCarTiles = true
             },
             onDismiss = { showDevicePicker = false },

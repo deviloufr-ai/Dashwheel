@@ -75,7 +75,7 @@
 
     <!-- OBD adapter picker -->
     <string name="vehicle_select_adapter">Choisir l\'adaptateur OBD</string>
-    <string name="vehicle_no_paired">Aucun appareil Bluetooth appairé. Appairez d\'abord votre adaptateur OBD dans les paramètres Bluetooth.</string>
+    <string name="vehicle_no_paired">Aucun appareil Bluetooth appairé ni adaptateur USB. Appairez votre adaptateur OBD dans les paramètres Bluetooth, ou branchez-en un en USB.</string>
     <string name="vehicle_bt_settings">Paramètres Bluetooth</string>
 
     <!-- OBD adapter status messages -->
@@ -204,6 +204,13 @@
     <string name="vehicle_err_bt_stuck">Le Bluetooth Android de l\'autoradio est bloqué : redémarrez l\'autoradio, puis touchez OBD</string>
     <string name="vehicle_err_refused">%1$s a refusé la connexion : pris par un téléphone ou une autre appli, sans alimentation, ou hors de portée</string>
     <string name="vehicle_err_silent">%1$s s\'est connecté mais n\'a jamais répondu : mettez le contact, puis touchez OBD</string>
+    <string name="vehicle_usb_cable">Câble USB</string>
+    <string name="vehicle_obd_usb_allow">Autorisez Dashwheel à utiliser l\'adaptateur dans la fenêtre</string>
+    <string name="vehicle_err_usb_none">Aucun adaptateur USB branché</string>
+    <string name="vehicle_err_usb_tap">Touchez OBD pour laisser Dashwheel utiliser %1$s</string>
+    <string name="vehicle_err_usb_denied">Dashwheel n\'a pas été autorisé à utiliser %1$s</string>
+    <string name="vehicle_err_usb_open">%1$s n\'a pas pu être ouvert : débranchez-le et rebranchez-le</string>
+    <string name="vehicle_err_usb_silent">%1$s n\'a jamais répondu comme un adaptateur OBD</string>
     <string name="vehicle_err_phone_not_linked">L\'OBD passe par le téléphone : connectez d\'abord le téléphone</string>
     <string name="vehicle_err_phone_no_adapter">L\'OBD passe par le téléphone : choisissez l\'adaptateur dans le compagnon</string>
     <string name="vehicle_obd_asking_phone">Demande de l\'adaptateur au téléphone</string>

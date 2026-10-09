@@ -306,7 +306,9 @@ private fun BarReadout(item: BarItem, m: TopBarModel) {
             val on by Radios.bluetoothOn.collectAsState()
             val phone by UnitSignals.phone.collectAsState()
             val viaPhone by ObdBluetoothManager.viaPhone.collectAsState()
-            val linked = phone != null || (connected && !viaPhone)
+            val viaUsb by ObdBluetoothManager.viaUsb.collectAsState()
+            // The adapter counts only when it is on this unit's Bluetooth.
+            val linked = phone != null || (connected && !viaPhone && !viaUsb)
             RadioReadout(
                 when {
                     !on -> Icons.Filled.BluetoothDisabled

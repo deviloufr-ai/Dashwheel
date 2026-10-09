@@ -140,12 +140,14 @@
     <string name="settings_obd_none">Keiner gewählt. Tippen, um deinen zu wählen.</string>
     <string name="settings_obd_forget">Vergessen</string>
     <string name="settings_obd_route_auto">Automatisch</string>
-    <string name="settings_obd_route_unit">Dieses Radio</string>
+    <string name="settings_obd_route_unit">Bluetooth</string>
     <string name="settings_obd_route_phone">Handy</string>
     <string name="settings_obd_route_label">OBD erreicht über</string>
     <string name="settings_obd_route_offered">Das Handy hält %1$s und leitet ihn weiter: Anrufe und Android Auto stören nicht mehr.</string>
     <string name="settings_obd_route_unit_hint">Der Adapter wird über das Bluetooth dieses Radios erreicht.</string>
-    <string name="settings_obd_route_hint">Über das Handy, wenn die Begleit-App den Adapter hält, sonst über das Bluetooth des Radios. Den Adapter in der Begleit-App wählen.</string>
+    <string name="settings_obd_route_usb">USB</string>
+    <string name="settings_obd_route_usb_hint">Der Adapter wird über sein USB-Kabel erreicht, an diesem Radio eingesteckt.</string>
+    <string name="settings_obd_route_hint">Zuerst ein eingesteckter USB-Adapter, dann das Handy, wenn die Begleit-App den Adapter hält, sonst das Bluetooth des Radios.</string>
     <string name="settings_speed_fix_detail">Wird zur gemeldeten Geschwindigkeit addiert, passend zum Tacho. Während der Fahrt über die Kachel Motoranzeigen einstellen.</string>
     <string name="settings_backup_section">Deine Einrichtung</string>
     <string name="settings_backup_save">Einrichtung sichern</string>

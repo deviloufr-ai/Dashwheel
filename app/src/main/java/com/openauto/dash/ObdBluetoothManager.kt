@@ -71,10 +71,11 @@ enum class ObdConnectionState { DISCONNECTED, CONNECTING, CONNECTED, ERROR }
 val ObdConnectionState.isIdle: Boolean get() = this == ObdConnectionState.DISCONNECTED || this == ObdConnectionState.ERROR
 
 /**
- * Singleton manager for OBD-II telemetry over a Bluetooth ELM327 adapter.
+ * Singleton manager for OBD-II telemetry over an ELM327 adapter: on this
+ * unit's Bluetooth, through the phone ([PhoneObd]) or on a USB cable ([UsbObd]).
  *
- * Connects to the adapter over the standard Serial Port Profile (SPP) RFCOMM
- * channel, issues AT setup commands, and polls the standard PIDs for speed
+ * Over Bluetooth it connects on the standard Serial Port Profile (SPP) RFCOMM
+ * channel. Every way, it issues AT setup commands, and polls the standard PIDs for speed
  * (010D), RPM (010C) and coolant temperature (0105).
  *
  * All socket work runs on [Dispatchers.IO]; callers observe [data] and
@@ -172,6 +173,10 @@ object ObdBluetoothManager {
     /** The link runs through the phone's companion ([PhoneObd]) rather than this unit's Bluetooth. */
     val viaPhone: StateFlow<Boolean> = _viaPhone.asStateFlow()
 
+    private val _viaUsb = MutableStateFlow(false)
+    /** The link runs over a USB cable ([UsbObd]) rather than Bluetooth. */
+    val viaUsb: StateFlow<Boolean> = _viaUsb.asStateFlow()
+
     private const val KEY_ROUTE = "obd_route"
 
     /** The way to the adapter the driver chose (Settings, Car). */
@@ -183,15 +188,26 @@ object ObdBluetoothManager {
         appContext?.getSharedPreferences(PREFS, Context.MODE_PRIVATE)?.edit()?.putString(KEY_ROUTE, route.name)?.apply()
     }
 
+    /**
+     * Whether the next link goes over a USB cable: chosen so, or Automatic
+     * with the saved USB adapter (or one Dashwheel was let use) plugged in.
+     * A cable beats Bluetooth: nothing else shares it.
+     */
+    fun usesUsb(): Boolean = !DeepObdSource.owns() && when (route()) {
+        ObdRoute.USB -> true
+        ObdRoute.AUTO -> appContext?.let { UsbObd.chosen(it) } != null
+        else -> false
+    }
+
     /** Whether the next link goes through the phone: chosen so, or Automatic with a phone offering its adapter. */
     fun usesPhone(): Boolean = !DeepObdSource.owns() && when (route()) {
         ObdRoute.PHONE -> true
-        ObdRoute.UNIT -> false
-        ObdRoute.AUTO -> PhoneObd.offer.value != null
+        ObdRoute.UNIT, ObdRoute.USB -> false
+        ObdRoute.AUTO -> PhoneObd.offer.value != null && !usesUsb()
     }
 
-    /** Something to dial: an adapter saved here, or one the phone relays; Deep OBD is always there to open. */
-    fun canDial(): Boolean = DeepObdSource.owns() || usesPhone() || savedDeviceAddress() != null
+    /** Something to dial: an adapter saved here, one the phone relays or one on a cable; Deep OBD is always there to open. */
+    fun canDial(): Boolean = DeepObdSource.owns() || usesUsb() || usesPhone() || savedDeviceAddress() != null
 
     /** [DeepObdSource]'s readings, shown as if an adapter were connected. */
     internal fun deepObdWrite(data: ObdData) {
@@ -217,6 +233,7 @@ object ObdBluetoothManager {
     /** The saved adapter as the picker showed it: its Bluetooth name, else its address; null when none was chosen. */
     @SuppressLint("MissingPermission")
     fun savedDeviceLabel(): String? {
+        usbLabel()?.let { return it }
         val address = savedDeviceAddress() ?: return null
         return bondedDevices().firstOrNull { it.second == address }?.first ?: address
     }
@@ -253,7 +270,13 @@ object ObdBluetoothManager {
             val ok = withContext(Dispatchers.IO) {
                 // No poll or fault-code scan may talk to the link being replaced.
                 commandMutex.withLock {
-                    runCatching { if (usesPhone()) openThroughPhone() else open(deviceAddress, byDriver) }
+                    runCatching {
+                        when {
+                            usesUsb() -> openUsb(byDriver)
+                            usesPhone() -> openThroughPhone()
+                            else -> open(deviceAddress, byDriver)
+                        }
+                    }
                         .onFailure {
                             Log.w(TAG, "connect failed", it)
                             if (it is SecurityException) fail(R.string.vehicle_err_permission)
@@ -413,6 +436,50 @@ object ObdBluetoothManager {
         if (initializeAdapter()) return true
         Log.w(TAG, "$name through the phone: connected but the adapter never answered")
         return fail(R.string.vehicle_err_silent, name)
+    }
+
+    /**
+     * The adapter on a USB cable ([UsbObd]). Android asks the driver once to
+     * let Dashwheel use it: on Connect, or when it is plugged in. The
+     * background retries never ask, so nothing pops up by itself mid-drive.
+     */
+    private suspend fun openUsb(byDriver: Boolean): Boolean {
+        val context = appContext ?: return false
+        freshLink()
+        val adapter = UsbObd.pick(context, anyDevice = route() == ObdRoute.USB) ?: return fail(R.string.vehicle_err_usb_none)
+        if (!UsbObd.permitted(context, adapter)) {
+            if (!byDriver) return fail(R.string.vehicle_err_usb_tap, adapter.label)
+            _connectStep.value = R.string.vehicle_obd_usb_allow
+            val allowed = try {
+                UsbObd.allow(context, adapter)
+            } finally {
+                _connectStep.value = null
+            }
+            if (!allowed) return fail(R.string.vehicle_err_usb_denied, adapter.label)
+        }
+        when (val opened = UsbObd.open(context, adapter)) {
+            UsbObd.Opened.Failed -> return fail(R.string.vehicle_err_usb_open, adapter.label)
+            UsbObd.Opened.Silent -> return fail(R.string.vehicle_err_usb_silent, adapter.label)
+            is UsbObd.Opened.Streams -> {
+                inputStream = opened.input
+                outputStream = opened.output
+                _viaUsb.value = true
+            }
+        }
+        if (initializeAdapter()) {
+            silentCommands = 0
+            UsbObd.save(context, adapter.key)
+            return true
+        }
+        Log.w(TAG, "USB ${adapter.key}: connected but the adapter never answered")
+        return fail(R.string.vehicle_err_silent, adapter.label)
+    }
+
+    /** The USB adapter's name while the link goes over a cable; null otherwise. */
+    private fun usbLabel(): String? {
+        val context = appContext ?: return null
+        if (!usesUsb()) return null
+        return UsbObd.pick(context, anyDevice = route() == ObdRoute.USB)?.label
     }
 
     /** A call ringing or going on, through the unit's Bluetooth or the companion. */
@@ -639,6 +706,7 @@ object ObdBluetoothManager {
 
     /** The saved adapter's name as Bluetooth knows it, or its address when it is no longer paired; null when none is saved. */
     fun savedDeviceName(): String? {
+        usbLabel()?.let { return it }
         val mac = savedDeviceAddress() ?: return null
         return bondedDevices().firstOrNull { it.second.equals(mac, ignoreCase = true) }?.first ?: mac
     }
@@ -646,6 +714,7 @@ object ObdBluetoothManager {
     /** No adapter any more (Settings, Car): the link closes and nothing is redialled until one is picked. */
     suspend fun forgetDevice() {
         appContext?.getSharedPreferences(PREFS, Context.MODE_PRIVATE)?.edit()?.remove(KEY_MAC)?.remove(KEY_CHANNEL)?.apply()
+        appContext?.let { UsbObd.forget(it) }
         disconnect()
     }
 
@@ -656,6 +725,16 @@ object ObdBluetoothManager {
         // Another adapter may answer on another channel.
         if (other) edit.remove(KEY_CHANNEL)
         edit.apply()
+        // A Bluetooth adapter picked: a cable saved before no longer comes first.
+        appContext?.let { UsbObd.forget(it) }
+        if (route() == ObdRoute.USB) setRoute(ObdRoute.AUTO)
+    }
+
+    /** The adapter on a USB cable picked as the one to use; Automatic then reaches it first. */
+    fun saveUsbAdapter(key: String) {
+        val context = appContext ?: return
+        UsbObd.save(context, key)
+        if (route() == ObdRoute.UNIT || route() == ObdRoute.PHONE) setRoute(ObdRoute.AUTO)
     }
 
     /** Read the engine's fuel flow too ([ObdData.fuelFlowLh]): set by the LPG tank when it counts with it. */
@@ -1010,7 +1089,7 @@ object ObdBluetoothManager {
 
     /** The demo is over: back to the real link, whose next poll fills the readings in again. */
     internal fun endDemo(lamp: EngineLamp?, pending: Set<String>) {
-        val linked = socket?.isConnected == true || (_viaPhone.value && outputStream != null) || (DeepObdSource.owns() && DeepObdSource.live)
+        val linked = socket?.isConnected == true || ((_viaPhone.value || _viaUsb.value) && outputStream != null) || (DeepObdSource.owns() && DeepObdSource.live)
         _connectionState.value = if (linked) ObdConnectionState.CONNECTED else ObdConnectionState.DISCONNECTED
         _data.value = ObdData()
         _lamp.value = lamp
@@ -1034,15 +1113,18 @@ object ObdBluetoothManager {
         outputStream = null
         socket = null
         _viaPhone.value = false
+        _viaUsb.value = false
     }
 }
 
-/** Which way the head unit reaches the OBD adapter (Settings, Car). */
+/** Which way the head unit reaches the OBD adapter (Settings, Car). Saved by name: the order is only the switch's. */
 enum class ObdRoute {
-    /** Through the phone when its companion offers the adapter, else this unit's Bluetooth. */
+    /** A USB adapter plugged in, else through the phone when its companion offers the adapter, else this unit's Bluetooth. */
     AUTO,
     /** Always this unit's own Bluetooth. */
     UNIT,
+    /** Always an adapter on a USB cable ([UsbObd]). */
+    USB,
     /** Always through the phone's companion. */
     PHONE
 }

@@ -140,12 +140,14 @@
     <string name="settings_obd_none">Nenhum escolhido. Toque para escolher o seu.</string>
     <string name="settings_obd_forget">Esquecer</string>
     <string name="settings_obd_route_auto">Automático</string>
-    <string name="settings_obd_route_unit">Este rádio</string>
+    <string name="settings_obd_route_unit">Bluetooth</string>
     <string name="settings_obd_route_phone">Telemóvel</string>
     <string name="settings_obd_route_label">OBD alcançado através de</string>
     <string name="settings_obd_route_offered">O telemóvel mantém %1$s e transmite-o: as chamadas e o Android Auto deixam de atrapalhar.</string>
     <string name="settings_obd_route_unit_hint">O adaptador é alcançado pelo Bluetooth deste rádio.</string>
-    <string name="settings_obd_route_hint">Pelo telemóvel quando a app companheira tem o adaptador; caso contrário, pelo Bluetooth do rádio. Escolha o adaptador na app companheira.</string>
+    <string name="settings_obd_route_usb">USB</string>
+    <string name="settings_obd_route_usb_hint">O adaptador é alcançado pelo seu cabo USB, ligado a este rádio.</string>
+    <string name="settings_obd_route_hint">Primeiro um adaptador USB ligado, depois o telemóvel quando a app companheira tem o adaptador; caso contrário, o Bluetooth do rádio.</string>
     <string name="settings_speed_fix_detail">Somado à velocidade que o carro indica, para bater com o velocímetro. Em andamento, ajuste-o no bloco Indicadores do motor.</string>
     <string name="settings_backup_section">A sua configuração</string>
     <string name="settings_backup_save">Guardar a configuração</string>

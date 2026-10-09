@@ -195,6 +195,8 @@ dependencies {
     // Phone link: the protocol shared with the companion app, and the pairing QR code.
     implementation(project(":link"))
     implementation("com.google.zxing:core:3.5.3")
+    // USB OBD adapters (UsbObd.kt): FTDI, CH34x, PL2303, CP210x and CDC serial chips over Android's USB host API.
+    implementation("com.github.mik3y:usb-serial-for-android:3.10.0")
     // The Play edition's tips (TipJar.kt): Google Play's own billing, as Play requires.
     "playImplementation"("com.android.billingclient:billing-ktx:8.0.0")
 

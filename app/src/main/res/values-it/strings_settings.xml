@@ -140,12 +140,14 @@
     <string name="settings_obd_none">Nessuno scelto. Tocca per scegliere il tuo.</string>
     <string name="settings_obd_forget">Dimentica</string>
     <string name="settings_obd_route_auto">Automatico</string>
-    <string name="settings_obd_route_unit">Questa autoradio</string>
+    <string name="settings_obd_route_unit">Bluetooth</string>
     <string name="settings_obd_route_phone">Telefono</string>
     <string name="settings_obd_route_label">OBD raggiunto tramite</string>
     <string name="settings_obd_route_offered">Il telefono tiene %1$s e lo inoltra: chiamate e Android Auto non danno più fastidio.</string>
     <string name="settings_obd_route_unit_hint">L\'adattatore si raggiunge col Bluetooth di questa autoradio.</string>
-    <string name="settings_obd_route_hint">Tramite il telefono quando la sua app compagna tiene l\'adattatore, altrimenti col Bluetooth dell\'autoradio. Scegli l\'adattatore nell\'app compagna.</string>
+    <string name="settings_obd_route_usb">USB</string>
+    <string name="settings_obd_route_usb_hint">L\'adattatore si raggiunge col suo cavo USB, collegato a questa autoradio.</string>
+    <string name="settings_obd_route_hint">Prima un adattatore USB collegato, poi il telefono quando la sua app compagna tiene l\'adattatore, altrimenti il Bluetooth dell\'autoradio.</string>
     <string name="settings_speed_fix_detail">Aggiunto alla velocità riportata dall\'auto, per allinearla al tachimetro. In marcia, regolalo dal riquadro Strumenti motore.</string>
     <string name="settings_backup_section">La tua configurazione</string>
     <string name="settings_backup_save">Salva la configurazione</string>

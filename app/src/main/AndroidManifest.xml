@@ -78,6 +78,8 @@
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
     <uses-feature android:name="android.hardware.audio.output" android:required="true" />
+    <!-- OBD adapters on a USB cable (UsbObd.kt); Bluetooth ones still work without it. -->
+    <uses-feature android:name="android.hardware.usb.host" android:required="false" />
 
     <!-- Package visibility (Android 11+): lets the app drawer enumerate every
          launchable app and resolve their launch intents. -->
@@ -131,6 +133,25 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
 
+        </activity>
+
+        <!-- Opened by Android when a USB OBD adapter is plugged in: letting
+             Dashwheel handle it (with "always") grants the access for good, and
+             the adapter is dialled. Shows nothing (UsbObd.kt). -->
+        <activity
+            android:name=".UsbObdAttachActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:label="@string/app_name"
+            android:theme="@android:style/Theme.NoDisplay">
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/usb_obd_devices" />
         </activity>
 
         <!-- The Play edition's disclosure dialog before the accessibility or

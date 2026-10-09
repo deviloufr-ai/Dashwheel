@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The USB serial chips OBD cables are built on (UsbObd.kt): Android offers
+     Dashwheel these when they are plugged in. -->
+<resources>
+    <!-- FTDI (FT232R, FT231X): genuine ELM327 cables, OBDLink SX. -->
+    <usb-device vendor-id="1027" />
+    <!-- WCH CH340 / CH341: most cheap ELM327 cables. -->
+    <usb-device vendor-id="6790" />
+    <!-- Prolific PL2303. -->
+    <usb-device vendor-id="1659" />
+    <!-- Silicon Labs CP210x. -->
+    <usb-device vendor-id="4292" />
+    <!-- Any USB serial port (CDC ACM), as STN-based adapters show up. -->
+    <usb-device class="2" subclass="2" />
+</resources>

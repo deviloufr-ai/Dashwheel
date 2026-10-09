@@ -75,7 +75,7 @@
 
     <!-- OBD adapter picker -->
     <string name="vehicle_select_adapter">OBD-adapter kiezen</string>
-    <string name="vehicle_no_paired">Geen gekoppelde Bluetooth-apparaten. Koppel eerst je OBD-adapter in de Bluetooth-instellingen.</string>
+    <string name="vehicle_no_paired">Geen gekoppelde Bluetooth-apparaten en geen USB-adapter. Koppel je OBD-adapter in de Bluetooth-instellingen of sluit er een via USB aan.</string>
     <string name="vehicle_bt_settings">Bluetooth-instellingen</string>
 
     <!-- OBD adapter status messages -->
@@ -204,6 +204,13 @@
     <string name="vehicle_err_bt_stuck">De Android-bluetooth van de autoradio hangt: herstart de autoradio en tik dan op OBD</string>
     <string name="vehicle_err_refused">%1$s weigerde de verbinding: in gebruik door een telefoon of andere app, zonder stroom, of buiten bereik</string>
     <string name="vehicle_err_silent">%1$s is verbonden maar heeft nooit geantwoord: zet het contact aan en tik dan op OBD</string>
+    <string name="vehicle_usb_cable">USB-kabel</string>
+    <string name="vehicle_obd_usb_allow">Sta in het venster toe dat Dashwheel de adapter gebruikt</string>
+    <string name="vehicle_err_usb_none">Geen USB-adapter aangesloten</string>
+    <string name="vehicle_err_usb_tap">Tik op OBD zodat Dashwheel %1$s mag gebruiken</string>
+    <string name="vehicle_err_usb_denied">Dashwheel mocht %1$s niet gebruiken</string>
+    <string name="vehicle_err_usb_open">%1$s kon niet worden geopend: koppel hem los en sluit hem opnieuw aan</string>
+    <string name="vehicle_err_usb_silent">%1$s antwoordde nooit als een OBD-adapter</string>
     <string name="vehicle_err_phone_not_linked">OBD loopt via de telefoon: verbind eerst de telefoon</string>
     <string name="vehicle_err_phone_no_adapter">OBD loopt via de telefoon: kies de adapter in de companion-app</string>
     <string name="vehicle_obd_asking_phone">De telefoon wordt om de adapter gevraagd</string>

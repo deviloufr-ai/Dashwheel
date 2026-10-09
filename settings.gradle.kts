@@ -13,6 +13,10 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        // Only for the USB serial drivers (UsbObd.kt), which are published there alone.
+        maven("https://jitpack.io") {
+            content { includeGroup("com.github.mik3y") }
+        }
     }
 }
 

@@ -140,12 +140,14 @@
     <string name="settings_obd_none">Nie wybrano. Dotknij, aby wybrać swój.</string>
     <string name="settings_obd_forget">Zapomnij</string>
     <string name="settings_obd_route_auto">Automatycznie</string>
-    <string name="settings_obd_route_unit">To radio</string>
+    <string name="settings_obd_route_unit">Bluetooth</string>
     <string name="settings_obd_route_phone">Telefon</string>
     <string name="settings_obd_route_label">OBD osiągany przez</string>
     <string name="settings_obd_route_offered">Telefon trzyma %1$s i przekazuje go dalej: rozmowy i Android Auto już nie przeszkadzają.</string>
     <string name="settings_obd_route_unit_hint">Adapter jest łączony przez Bluetooth tego radia.</string>
-    <string name="settings_obd_route_hint">Przez telefon, gdy aplikacja towarzysząca trzyma adapter, w przeciwnym razie przez Bluetooth radia. Wybierz adapter w aplikacji towarzyszącej.</string>
+    <string name="settings_obd_route_usb">USB</string>
+    <string name="settings_obd_route_usb_hint">Adapter jest łączony kablem USB podłączonym do tego radia.</string>
+    <string name="settings_obd_route_hint">Najpierw podłączony adapter USB, potem telefon, gdy aplikacja towarzysząca trzyma adapter, w przeciwnym razie Bluetooth radia.</string>
     <string name="settings_speed_fix_detail">Dodawane do prędkości podawanej przez auto, by zgadzała się z licznikiem. W trakcie jazdy zmień to z kafelka Wskaźniki silnika.</string>
     <string name="settings_backup_section">Twoja konfiguracja</string>
     <string name="settings_backup_save">Zapisz konfigurację</string>

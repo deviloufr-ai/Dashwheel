@@ -75,7 +75,7 @@
 
     <!-- OBD adapter picker -->
     <string name="vehicle_select_adapter">Selecionar adaptador OBD</string>
-    <string name="vehicle_no_paired">Nenhum dispositivo Bluetooth emparelhado. Emparelhe primeiro o adaptador OBD nas definições de Bluetooth.</string>
+    <string name="vehicle_no_paired">Nenhum dispositivo Bluetooth emparelhado nem adaptador USB. Emparelhe o adaptador OBD nas definições de Bluetooth ou ligue um USB.</string>
     <string name="vehicle_bt_settings">Definições de Bluetooth</string>
 
     <!-- OBD adapter status messages -->
@@ -204,6 +204,13 @@
     <string name="vehicle_err_bt_stuck">O Bluetooth Android do autorrádio está bloqueado: reinicie o autorrádio e toque em OBD</string>
     <string name="vehicle_err_refused">%1$s recusou a ligação: ocupado por um telemóvel ou outra app, sem alimentação ou fora de alcance</string>
     <string name="vehicle_err_silent">%1$s ligou-se mas nunca respondeu: ligue a ignição e toque em OBD</string>
+    <string name="vehicle_usb_cable">Cabo USB</string>
+    <string name="vehicle_obd_usb_allow">Permita na janela que o Dashwheel use o adaptador</string>
+    <string name="vehicle_err_usb_none">Nenhum adaptador USB ligado</string>
+    <string name="vehicle_err_usb_tap">Toque em OBD para o Dashwheel poder usar %1$s</string>
+    <string name="vehicle_err_usb_denied">O Dashwheel não foi autorizado a usar %1$s</string>
+    <string name="vehicle_err_usb_open">Não foi possível abrir %1$s: desligue-o e volte a ligá-lo</string>
+    <string name="vehicle_err_usb_silent">%1$s nunca respondeu como um adaptador OBD</string>
     <string name="vehicle_err_phone_not_linked">O OBD passa pelo telemóvel: ligue primeiro o telemóvel</string>
     <string name="vehicle_err_phone_no_adapter">O OBD passa pelo telemóvel: escolha o adaptador na app companheira</string>
     <string name="vehicle_obd_asking_phone">A pedir o adaptador ao telemóvel</string>

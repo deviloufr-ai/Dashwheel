@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.hardware.usb.UsbManager
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,6 +41,7 @@ internal object VehicleMonitor {
     private const val BLUETOOTH_SETTLE_MS = 2_000L
     /** The unit's Bluetooth takes a moment to hand the call audio back. */
     private const val CALL_SETTLE_MS = 2_000L
+    private const val USB_SETTLE_MS = 1_500L
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var started = false
@@ -55,6 +57,14 @@ internal object VehicleMonitor {
         ContextCompat.registerReceiver(
             context.applicationContext, bluetoothState,
             IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED), ContextCompat.RECEIVER_NOT_EXPORTED
+        )
+        ContextCompat.registerReceiver(
+            context.applicationContext, usbState,
+            IntentFilter().apply {
+                addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED)
+                addAction(UsbManager.ACTION_USB_DEVICE_DETACHED)
+            },
+            ContextCompat.RECEIVER_NOT_EXPORTED
         )
         DeepObdSource.init(context)
         val listener = context.applicationContext
@@ -97,6 +107,32 @@ internal object VehicleMonitor {
         }
     }
 
+    /** A USB device plugged in or pulled out: maybe the adapter's cable. */
+    private val usbState = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            usbChanged()
+        }
+    }
+
+    /**
+     * The USB adapter plugged in or pulled out (Automatic): a link the other
+     * way is closed and the adapter dialled the way that now comes first.
+     * Plugged in, it is dialled at once rather than at the next retry.
+     */
+    fun usbChanged() {
+        if (!started) return
+        scope.launch {
+            // The device is listed a moment after the broadcast, and the attach dialog saves it.
+            delay(USB_SETTLE_MS)
+            if (ObdBluetoothManager.route() == ObdRoute.AUTO) {
+                val state = ObdBluetoothManager.connectionState.value
+                val wrongSide = state == ObdConnectionState.CONNECTED && ObdBluetoothManager.viaUsb.value != ObdBluetoothManager.usesUsb()
+                if (wrongSide) ObdBluetoothManager.disconnect()
+            }
+            if (redials(foreground.value || secondScreen.value, CarPower.ignition.value)) connectSaved()
+        }
+    }
+
     /** The second screen shows the car's readings: they are wanted even with an app in front. */
     private val secondScreen = MutableStateFlow(false)
 
@@ -119,6 +155,11 @@ internal object VehicleMonitor {
         if (DeepObdSource.owns()) return
         if (CarPower.ignition.value == false) return
         if (!ObdBluetoothManager.connectionState.value.isIdle) return
+        // On a cable: nothing to pair, and Android's USB access was given when it was plugged in or on Connect.
+        if (ObdBluetoothManager.usesUsb()) {
+            scope.launch { ObdBluetoothManager.connect(ObdBluetoothManager.savedDeviceAddress().orEmpty()) }
+            return
+        }
         // Through the phone: its companion holds the adapter, nothing to pair or allow here.
         if (ObdBluetoothManager.usesPhone()) {
             scope.launch { ObdBluetoothManager.connect(ObdBluetoothManager.savedDeviceAddress().orEmpty()) }

@@ -142,12 +142,14 @@
     <string name="settings_obd_none">None chosen. Tap to pick yours.</string>
     <string name="settings_obd_forget">Forget</string>
     <string name="settings_obd_route_auto">Automatic</string>
-    <string name="settings_obd_route_unit">This unit</string>
+    <string name="settings_obd_route_unit">Bluetooth</string>
     <string name="settings_obd_route_phone">Phone</string>
     <string name="settings_obd_route_label">OBD reached through</string>
     <string name="settings_obd_route_offered">The phone holds %1$s and passes it on: calls and Android Auto no longer get in the way.</string>
     <string name="settings_obd_route_unit_hint">The adapter is reached with this unit\'s own Bluetooth.</string>
-    <string name="settings_obd_route_hint">Through the phone when its companion holds the adapter, else with this unit\'s Bluetooth. Choose the adapter in the companion.</string>
+    <string name="settings_obd_route_usb">USB</string>
+    <string name="settings_obd_route_usb_hint">The adapter is reached by its USB cable, plugged into this unit.</string>
+    <string name="settings_obd_route_hint">A USB adapter plugged in first, then the phone when its companion holds the adapter, else this unit\'s Bluetooth.</string>
     <string name="settings_speed_fix_detail">Added to the speed the car reports, to match its speedometer. While driving, adjust it from the Engine gauges tile.</string>
     <string name="settings_backup_section">Your setup</string>
     <string name="settings_backup_save">Save my setup</string>

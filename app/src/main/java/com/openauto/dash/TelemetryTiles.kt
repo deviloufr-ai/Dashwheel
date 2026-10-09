@@ -1280,11 +1280,13 @@ internal fun gaugeSweepBrush(center: Offset, start: Color, end: Color): Brush {
     )
 }
 
-/** Lets the user pick which paired Bluetooth device is the OBD adapter. */
+/** Lets the user pick which paired Bluetooth device, or which USB device plugged in, is the OBD adapter. */
 @Composable
 internal fun DevicePickerDialog(
     devices: List<Pair<String, String>>,
+    usbAdapters: List<UsbObdAdapter>,
     onPick: (String) -> Unit,
+    onPickUsb: (String) -> Unit,
     onDismiss: () -> Unit,
     onOpenSettings: () -> Unit
 ) {
@@ -1295,11 +1297,25 @@ internal fun DevicePickerDialog(
         title = { TitleWithHelp(stringResource(R.string.vehicle_select_adapter), WikiPage.OBD_ADAPTER) },
         text = {
             Column {
+                // A cable first: plugged in, it is the one meant.
+                usbAdapters.forEach { adapter ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onPickUsb(adapter.key) }
+                            .padding(vertical = 10.dp)
+                    ) {
+                        Text(adapter.label, color = DashColors.TextPrimary, fontWeight = FontWeight.Medium)
+                        Text(stringResource(R.string.vehicle_usb_cable), color = DashColors.Muted, style = MaterialTheme.typography.labelSmall)
+                    }
+                }
                 if (devices.isEmpty()) {
-                    Text(
-                        stringResource(R.string.vehicle_no_paired),
-                        color = DashColors.TextSecondary
-                    )
+                    if (usbAdapters.isEmpty()) {
+                        Text(
+                            stringResource(R.string.vehicle_no_paired),
+                            color = DashColors.TextSecondary
+                        )
+                    }
                 } else {
                     devices.forEach { (name, mac) ->
                         Column(

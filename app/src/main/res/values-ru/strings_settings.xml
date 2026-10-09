@@ -141,12 +141,14 @@
     <string name="settings_obd_none">Не выбран. Нажмите, чтобы выбрать.</string>
     <string name="settings_obd_forget">Забыть</string>
     <string name="settings_obd_route_auto">Авто</string>
-    <string name="settings_obd_route_unit">Магнитола</string>
+    <string name="settings_obd_route_unit">Bluetooth</string>
     <string name="settings_obd_route_phone">Телефон</string>
     <string name="settings_obd_route_label">Связь с OBD через</string>
     <string name="settings_obd_route_offered">Телефон держит %1$s и передаёт данные: звонки и Android Auto больше не мешают.</string>
     <string name="settings_obd_route_unit_hint">Адаптер подключается через Bluetooth самой магнитолы.</string>
-    <string name="settings_obd_route_hint">Через телефон, если адаптер у компаньона, иначе через Bluetooth магнитолы. Адаптер выбирается в компаньоне.</string>
+    <string name="settings_obd_route_usb">USB</string>
+    <string name="settings_obd_route_usb_hint">Адаптер подключается USB-кабелем к этой магнитоле.</string>
+    <string name="settings_obd_route_hint">Сначала подключённый USB-адаптер, затем телефон, если адаптер у компаньона, иначе Bluetooth магнитолы.</string>
     <string name="settings_speed_fix_detail">Прибавляется к скорости от автомобиля, чтобы совпадать со спидометром. В пути настраивается в плитке приборов двигателя.</string>
     <string name="settings_backup_section">Ваша настройка</string>
     <string name="settings_backup_save">Сохранить настройку</string>

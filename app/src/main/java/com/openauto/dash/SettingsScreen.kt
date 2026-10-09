@@ -48,6 +48,7 @@ import androidx.compose.material.icons.filled.AirlineSeatReclineNormal
 import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Bluetooth
+import androidx.compose.material.icons.filled.Usb
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Call
@@ -539,6 +540,7 @@ private fun ObdAdapterRow(onPickObd: () -> Unit) {
     // Read again when the link changes: a pick made in the picker connects it.
     var forgotten by remember { mutableIntStateOf(0) }
     val name = remember(connection, forgotten) { ObdBluetoothManager.savedDeviceName() }
+    val usb = remember(connection, forgotten) { ObdBluetoothManager.usesUsb() }
     val tap = rememberTapFeedback()
     Row(
         modifier = Modifier
@@ -549,7 +551,7 @@ private fun ObdAdapterRow(onPickObd: () -> Unit) {
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Filled.Bluetooth, contentDescription = null, tint = DashColors.TextSecondary, modifier = Modifier.size(24.dp))
+        Icon(if (usb) Icons.Filled.Usb else Icons.Filled.Bluetooth, contentDescription = null, tint = DashColors.TextSecondary, modifier = Modifier.size(24.dp))
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f)) {
             Text(stringResource(R.string.settings_obd_title), color = DashColors.TextPrimary, style = MaterialTheme.typography.bodyLarge)
@@ -598,6 +600,7 @@ private fun ObdRouteSetting() {
             when (option) {
                 ObdRoute.AUTO -> Icons.Filled.AutoAwesome
                 ObdRoute.UNIT -> Icons.Filled.Bluetooth
+                ObdRoute.USB -> Icons.Filled.Usb
                 ObdRoute.PHONE -> Icons.Filled.PhoneAndroid
             }
         },
@@ -606,6 +609,7 @@ private fun ObdRouteSetting() {
                 when (option) {
                     ObdRoute.AUTO -> R.string.settings_obd_route_auto
                     ObdRoute.UNIT -> R.string.settings_obd_route_unit
+                    ObdRoute.USB -> R.string.settings_obd_route_usb
                     ObdRoute.PHONE -> R.string.settings_obd_route_phone
                 }
             )
@@ -621,6 +625,7 @@ private fun ObdRouteSetting() {
     )
     SwitchHint(
         when {
+            chosen == ObdRoute.USB -> stringResource(R.string.settings_obd_route_usb_hint)
             offered != null -> stringResource(R.string.settings_obd_route_offered, offered!!)
             chosen == ObdRoute.UNIT -> stringResource(R.string.settings_obd_route_unit_hint)
             else -> stringResource(R.string.settings_obd_route_hint)

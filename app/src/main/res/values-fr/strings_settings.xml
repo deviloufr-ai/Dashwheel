@@ -140,12 +140,14 @@
     <string name="settings_obd_none">Aucun choisi. Touchez pour choisir le vôtre.</string>
     <string name="settings_obd_forget">Oublier</string>
     <string name="settings_obd_route_auto">Automatique</string>
-    <string name="settings_obd_route_unit">Cet autoradio</string>
+    <string name="settings_obd_route_unit">Bluetooth</string>
     <string name="settings_obd_route_phone">Téléphone</string>
     <string name="settings_obd_route_label">OBD joint via</string>
     <string name="settings_obd_route_offered">Le téléphone tient %1$s et le relaie : les appels et Android Auto ne le gênent plus.</string>
     <string name="settings_obd_route_unit_hint">L\'adaptateur est joint par le Bluetooth de cet autoradio.</string>
-    <string name="settings_obd_route_hint">Par le téléphone quand son compagnon tient l\'adaptateur, sinon par le Bluetooth de l\'autoradio. Choisissez l\'adaptateur dans le compagnon.</string>
+    <string name="settings_obd_route_usb">USB</string>
+    <string name="settings_obd_route_usb_hint">L\'adaptateur est joint par son câble USB, branché sur cet autoradio.</string>
+    <string name="settings_obd_route_hint">Un adaptateur USB branché d\'abord, puis le téléphone quand son compagnon tient l\'adaptateur, sinon le Bluetooth de l\'autoradio.</string>
     <string name="settings_speed_fix_detail">Ajouté à la vitesse annoncée par la voiture, pour coller au compteur. En roulant, réglez-le depuis la tuile Jauges moteur.</string>
     <string name="settings_backup_section">Votre configuration</string>
     <string name="settings_backup_save">Enregistrer ma configuration</string>
