@@ -1273,7 +1273,7 @@ private fun MoreWithGithubRow() {
     if (help) WikiHelpDialog(WikiPage.ROOT_PMPATCH) { help = false }
 }
 
-private const val KOFI_URL = "https://ko-fi.com/deviloufr"
+internal const val KOFI_URL = "https://ko-fi.com/deviloufr"
 private const val PROJECT_URL = "https://github.com/deviloufr-ai/Dashwheel"
 /** A Google Play listing, the package name appended (the Play edition's own, and the companion's). */
 internal const val PLAY_LISTING = "https://play.google.com/store/apps/details?id="

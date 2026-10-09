@@ -3,4 +3,7 @@
     <!-- Release notes of an available update (ReleaseNotes.kt), from the update strip -->
     <string name="update_notes_title">Neu in %1$s</string>
     <string name="update_notes_empty">Keine Versionshinweise für diese Version.</string>
+    <!-- The Ko-fi ask beside every release's notes, GitHub edition (ReleaseNotes.kt) -->
+    <string name="update_support_title">In meiner Freizeit gemacht</string>
+    <string name="update_support_body">Dashwheel ist kostenlos und entsteht an meinen Abenden und in vielen langen Nächten. Wenn es deine Fahrten besser macht, hält mich ein Kaffee bis zur nächsten Version wach. Danke!</string>
 </resources>
