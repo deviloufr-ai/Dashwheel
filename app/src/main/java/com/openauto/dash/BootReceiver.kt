@@ -17,7 +17,12 @@ import android.content.pm.PackageManager
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action !in BOOT_ACTIONS) return
-        if (!isDefaultHome(context)) return
+        // Which launcher came up first, and who started it, for a bug report: gone from the log soon after.
+        DebugLog.snapshotLater(context, "a minute after boot", BOOT_SNAPSHOT_MS)
+        if (!isDefaultHome(context)) {
+            DebugLog.note(context, "boot: Dashwheel is not Android's default Home")
+            return
+        }
         DebugLog.note(context, "boot: Dashwheel is the default Home, taking the screen")
         EmbeddedApp.bootedUp(context.applicationContext)
         // A QF unit then starts Dashwheel itself from the next boot on.
@@ -30,6 +35,9 @@ class BootReceiver : BroadcastReceiver() {
     }
 
     private companion object {
+        const val BOOT_SNAPSHOT_MS = 60_000L
+
+
         /** Android's own, and the "fast boot" some units send when they wake rather than start. */
         val BOOT_ACTIONS = setOf(
             Intent.ACTION_BOOT_COMPLETED,

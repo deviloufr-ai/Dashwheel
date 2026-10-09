@@ -1,6 +1,8 @@
 package com.openauto.dash
 
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.SystemClock
 import android.provider.Settings
@@ -8,6 +10,7 @@ import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -29,7 +32,8 @@ object DebugLog {
     private const val SNAP_DIR = "log_snapshots"
     private const val KEEP_BYTES = 100_000
     private const val KEEP_SNAPSHOTS = 4
-    private const val LOGCAT = "logcat -d -v threadtime -t 3000 CarPower:I EmbeddedApp:I MediaResume:I DebugLog:I *:W"
+    // ActivityTaskManager: which app started which screen, to see who puts a launcher in front at boot.
+    private const val LOGCAT = "logcat -d -v threadtime -t 3000 CarPower:I EmbeddedApp:I MediaResume:I DebugLog:I UnitLauncher:I ActivityTaskManager:I *:W"
 
     private val lock = Any()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -64,6 +68,15 @@ object DebugLog {
         }
     }
 
+    /** [snapshot] once [afterMs] have passed: what the unit did in its first minute is gone from the log soon after. */
+    fun snapshotLater(context: Context, why: String, afterMs: Long) {
+        val app = context.applicationContext
+        scope.launch {
+            delay(afterMs)
+            snapshot(app, why)
+        }
+    }
+
     /** When the newest snapshot was taken, or null when there is none. */
     fun lastSnapshot(context: Context): Long? = synchronized(lock) {
         File(context.filesDir, SNAP_DIR).listFiles()?.mapNotNull { it.nameWithoutExtension.toLongOrNull() }?.maxOrNull()
@@ -85,6 +98,11 @@ object DebugLog {
             appendLine(sh("getprop persist.sys.boot.reason.history").ifBlank { "-" })
             appendLine("Kept kernel logs: ${sh("ls /sys/fs/pstore /proc/last_kmsg 2>&1").replace('\n', ' ')}")
             appendLine("Ignition property: ${sh("getprop sys.qf.is.acc.on")}")
+            // Android's Home, and the one a QF unit starts by itself ([UnitLauncher]).
+            val home = context.packageManager.resolveActivity(
+                Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME), PackageManager.MATCH_DEFAULT_ONLY
+            )?.activityInfo?.packageName
+            appendLine("Home: Android $home, unit's own ${sh("getprop persist.sys.qf.launcher").ifBlank { "-" }}")
             appendLine()
             appendLine("Lost deep sleeps:")
             appendLine(CarPower.sleepLost(context).joinToString("\n").ifBlank { "none" })
