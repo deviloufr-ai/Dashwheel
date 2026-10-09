@@ -482,6 +482,32 @@ object AiMechanic {
     private const val PREFS = "ai_mechanic"
     private const val KEY_KNOWN = "known_codes"
 
+    /**
+     * A code unseen for this long counts as new when it comes back (repaired,
+     * then failing again). Shorter, a scan that came back empty (an adapter half
+     * connected, a code that comes and goes like a glow plug relay's) made the
+     * same fault new at the next scan: the fault's dashboard came up again and
+     * again, and the fault was spoken again.
+     */
+    internal const val FORGET_MS = 3L * 24 * 60 * 60 * 1000
+
+    /** "P1352:1728480000000,P0380:…" (when each was last seen); a code alone is from before the dates, taken as seen now. */
+    internal fun parseKnown(text: String, now: Long): Map<String, Long> =
+        text.split(',').filter { it.isNotBlank() }.associate { part ->
+            val code = part.substringBefore(':').trim()
+            code to (part.substringAfter(':', "").toLongOrNull() ?: now)
+        }
+
+    internal fun formatKnown(known: Map<String, Long>): String = known.entries.joinToString(",") { "${it.key}:${it.value}" }
+
+    /** The codes in [list] not seen within [FORGET_MS] of [now]. */
+    internal fun newCodes(list: List<String>, known: Map<String, Long>, now: Long): List<String> =
+        list.filter { code -> known[code]?.let { now - it > FORGET_MS } ?: true }
+
+    /** [known] with [list] seen [now], and the codes unseen for [FORGET_MS] dropped. */
+    internal fun remembered(list: List<String>, known: Map<String, Long>, now: Long): Map<String, Long> =
+        known.filterValues { now - it <= FORGET_MS } + list.associateWith { now }
+
     private val _state = MutableStateFlow(State())
     val state: StateFlow<State> = _state.asStateFlow()
 
@@ -531,13 +557,15 @@ object AiMechanic {
                 val context = appContext ?: return@withLock
                 val list = codes.map { it.trim().uppercase() }.filter { it.isNotEmpty() }.distinct()
                 val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                val known = prefs.getString(KEY_KNOWN, "").orEmpty().split(',').filter { it.isNotEmpty() }.toSet()
-                // Remember exactly the current codes: one that is repaired and comes back is news again.
-                prefs.edit().putString(KEY_KNOWN, list.joinToString(",")).apply()
+                val now = System.currentTimeMillis()
+                val seen = parseKnown(prefs.getString(KEY_KNOWN, "").orEmpty(), now)
+                // New: not seen for days. A scan that missed a code doesn't make it new next time.
+                val fresh = newCodes(list, seen, now)
+                prefs.edit().putString(KEY_KNOWN, formatKnown(remembered(list, seen, now))).apply()
                 rescan.scanned(ObdBluetoothManager.data.value.rpm)
                 _state.value = State(codes = list)
-                if (list.any { it !in known }) _newFaultAt.value = System.currentTimeMillis()
-                if (list.isNotEmpty()) explain(context, list, fresh = if (announce) list.filter { it !in known } else emptyList())
+                if (fresh.isNotEmpty()) _newFaultAt.value = now
+                if (list.isNotEmpty()) explain(context, list, fresh = if (announce) fresh else emptyList())
             }
         }
     }
