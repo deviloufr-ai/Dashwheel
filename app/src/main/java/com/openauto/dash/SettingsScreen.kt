@@ -1082,7 +1082,7 @@ private fun SpeedVolumeSetting() {
 
 /**
  * The unit itself: its language, units and screen, the setup kept or done
- * again, the demo, updates and the app. Then two pages for the few: Unit
+ * again, the demo and the app. Then two pages for the few: Unit
  * tools (what root writes to /system) and Lab (experimental tools and logs).
  */
 @Composable
@@ -1111,7 +1111,7 @@ private fun SystemPane(m: TopBarModel, open: (Deep) -> Unit, all: Boolean, onSho
     }
     Spacer(Modifier.height(20.dp))
     SettingsSection(stringResource(R.string.settings_section_about))
-    UpdateRow(m)
+    // Updates are in About only, beside the version (the overview's card shows one waiting).
     SettingsRow(Icons.Filled.Info, stringResource(R.string.settings_section_about), stringResource(R.string.settings_about_detail)) { open(Deep.ABOUT) }
     Spacer(Modifier.height(20.dp))
     SettingsSection(stringResource(R.string.settings_section_more_tools))
@@ -1273,7 +1273,7 @@ private const val PROJECT_URL = "https://github.com/deviloufr-ai/Dashwheel"
 /** A Google Play listing, the package name appended (the Play edition's own, and the companion's). */
 internal const val PLAY_LISTING = "https://play.google.com/store/apps/details?id="
 
-/** Who made the app, what it is, a Ko-fi link with its QR code, the tour, help and the project. The update check is in System itself. */
+/** Who made the app, what it is, the update check, a Ko-fi link with its QR code, the tour, help and the project. */
 @Composable
 private fun AboutSheet(m: TopBarModel, onDismiss: () -> Unit) {
     SettingsSheet(title = stringResource(R.string.settings_section_about), onDismiss = onDismiss, actions = {}) {
