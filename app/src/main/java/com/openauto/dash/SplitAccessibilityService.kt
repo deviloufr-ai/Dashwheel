@@ -65,6 +65,28 @@ class SplitAccessibilityService : AccessibilityService() {
         } == true
         Log.d(TAG, "connected")
         updateOverlayForSplit()
+        if (Edition.full) {
+            wazeWatch?.cancel()
+            wazeWatch = mainScope.launch { NavDirections.running.collect { watchContent(it == WazeScreen.PACKAGE) } }
+        }
+    }
+
+    /** Collects which app guides, to hear Waze's screen only while it runs. */
+    private var wazeWatch: kotlinx.coroutines.Job? = null
+    private val mainScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+
+    /**
+     * Window content changes, heard only while Waze runs ([WazeScreen]): every
+     * app's screen sends them, and the rest of the time they'd be dropped anyway.
+     */
+    private fun watchContent(on: Boolean) {
+        val info = serviceInfo ?: return
+        val types = if (on) info.eventTypes or AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
+        else info.eventTypes and AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED.inv()
+        if (types == info.eventTypes) return
+        info.eventTypes = types
+        serviceInfo = info
+        Log.i(TAG, "Waze's screen ${if (on) "read" else "no longer read"}")
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
@@ -76,6 +98,7 @@ class SplitAccessibilityService : AccessibilityService() {
     }
 
     override fun onDestroy() {
+        wazeWatch?.cancel()
         instance = null
         connectedState.value = false
         SecondScreenController.serviceFiltersKeys = false
@@ -95,7 +118,9 @@ class SplitAccessibilityService : AccessibilityService() {
             AccessibilityEvent.TYPE_WINDOWS_CHANGED -> {
                 updateOverlayForSplit()
                 checkProjectionOnScreen()
+                WazeScreen.onEvent(this, event)
             }
+            AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED -> WazeScreen.onEvent(this, event)
             else -> Unit
         }
     }

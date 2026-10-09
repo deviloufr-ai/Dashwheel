@@ -17,6 +17,9 @@
   (SteeringWheelStore), and the keys the driver chose turn the second
   screen's cluster page (SecondScreenController.onKey); keys that aren't
   learned go on untouched.
+  While Waze runs, window content changes are asked for too (at run time,
+  SplitAccessibilityService.watchContent; GitHub edition only): Waze's guidance
+  banner is read from them (WazeScreen), as its notification carries no turn.
   isAccessibilityTool="false" (Android 12+): Dashwheel is not a tool for users
   with disabilities, which Google Play asks apps to state.
 -->

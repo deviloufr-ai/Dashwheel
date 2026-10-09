@@ -138,6 +138,25 @@ object NavDirections {
         if (!DemoMode.isOn && inApp == null) _state.value = state
     }
 
+    /** The route last published came from Waze's screen ([WazeScreen]), not a notification. */
+    @Volatile
+    private var fromScreen = false
+
+    /**
+     * Waze's turn read off its screen ([WazeScreen]); null once it no longer
+     * guides. A navigation app whose notification carries its turns wins.
+     */
+    internal fun publishScreen(state: NavState?) {
+        if (currentKey != null) return
+        if (state != null) {
+            fromScreen = true
+            if (state != real) publish(state)
+        } else if (fromScreen) {
+            fromScreen = false
+            publish(NavState())
+        }
+    }
+
     /** [InAppNav]'s next turn; null when its guidance ends and the navigation app's turns come back. */
     internal fun publishInApp(state: NavState?) {
         inApp = state
@@ -162,6 +181,8 @@ object NavDirections {
             Log.i(TAG, "${sbn.packageName} no longer runs")
             runningKey = null
             _running.value = null
+            // Its screen can't be read any more either: the route it showed is over.
+            publishScreen(null)
         }
         if (sbn.key == currentKey) {
             currentKey = null
