@@ -116,6 +116,7 @@ internal object SecondScreenController {
         }
         scope.launch { followSpeed() }
         SecondScreenBrightness.start(scope, appContext)
+        SecondScreenWords.start(scope, appContext)
         scope.launch {
             combine(SecondScreenStore.config, DisplayLink.state, moving, encoderFailed) { config, link, isMoving, failed ->
                 val display = (link as? DisplayLinkState.Connected)?.display
@@ -292,7 +293,8 @@ internal object SecondScreenController {
         val s = stream ?: return
         if (presentation != null) return
         presentation = runCatching {
-            ClusterPresentation(appContext, s.androidDisplay, _page, _pages, overscanPct, MainActivity.started).also { it.show() }
+            // In Dashwheel's language, one picked inside it included (the app's own context keeps the unit's).
+            ClusterPresentation(AppLanguage.wrap(appContext), s.androidDisplay, _page, _pages, overscanPct, MainActivity.started).also { it.show() }
         }.onFailure { Log.w(TAG, "cluster presentation refused", it) }.getOrNull()
     }
 

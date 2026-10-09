@@ -95,4 +95,8 @@
     <string name="second_screen_design_dials">Wijzers</string>
     <string name="second_screen_design_large">Groot</string>
     <string name="second_screen_design_retro">Retro</string>
+    <string name="second_screen_pi_waiting">Wachten op Dashwheel…</string>
+    <string name="second_screen_pi_no_signal">Geen signaal van Dashwheel</string>
+    <string name="second_screen_pi_connected">Verbonden</string>
+    <string name="second_screen_pi_scan">Scan met de Dashwheel-app op je telefoon</string>
 </resources>

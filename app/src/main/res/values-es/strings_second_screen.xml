@@ -95,4 +95,8 @@
     <string name="second_screen_design_dials">Esferas</string>
     <string name="second_screen_design_large">Grande</string>
     <string name="second_screen_design_retro">Retro</string>
+    <string name="second_screen_pi_waiting">Esperando a Dashwheel…</string>
+    <string name="second_screen_pi_no_signal">Sin señal de Dashwheel</string>
+    <string name="second_screen_pi_connected">Conectado</string>
+    <string name="second_screen_pi_scan">Escanea con la app Dashwheel del móvil</string>
 </resources>

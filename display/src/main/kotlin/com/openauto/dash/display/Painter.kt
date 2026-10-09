@@ -89,7 +89,7 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
             drawQr(g, pairingUri, x, y, size)
             g.color = MUTED
             g.font = font(Font.PLAIN, 4.5f)
-            g.drawString("Scan with the Dashwheel phone app", x, y + size + (6 * unit).roundToInt())
+            g.drawString(Words.scanApp, x, y + size + (6 * unit).roundToInt())
         }
     }
 

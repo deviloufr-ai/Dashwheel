@@ -95,4 +95,8 @@
     <string name="second_screen_design_dials">Cadrans</string>
     <string name="second_screen_design_large">Grand</string>
     <string name="second_screen_design_retro">Rétro</string>
+    <string name="second_screen_pi_waiting">En attente de Dashwheel…</string>
+    <string name="second_screen_pi_no_signal">Aucun signal de Dashwheel</string>
+    <string name="second_screen_pi_connected">Connecté</string>
+    <string name="second_screen_pi_scan">Scannez avec l\'application Dashwheel du téléphone</string>
 </resources>

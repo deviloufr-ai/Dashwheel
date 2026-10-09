@@ -95,4 +95,8 @@
     <string name="second_screen_design_dials">Quadranti</string>
     <string name="second_screen_design_large">Grande</string>
     <string name="second_screen_design_retro">Retrò</string>
+    <string name="second_screen_pi_waiting">In attesa di Dashwheel…</string>
+    <string name="second_screen_pi_no_signal">Nessun segnale da Dashwheel</string>
+    <string name="second_screen_pi_connected">Connesso</string>
+    <string name="second_screen_pi_scan">Scansiona con l\'app Dashwheel sul telefono</string>
 </resources>

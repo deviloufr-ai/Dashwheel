@@ -5,6 +5,7 @@ import com.openauto.dash.link.DisplayBrightness
 import com.openauto.dash.link.DisplayCommand
 import com.openauto.dash.link.DisplayHello
 import com.openauto.dash.link.DisplayMode
+import com.openauto.dash.link.DisplayWords
 import com.openauto.dash.link.DisplayStats
 import com.openauto.dash.link.Hello
 import com.openauto.dash.link.Incoming
@@ -79,7 +80,7 @@ class DisplayServer(
             session.send(hello)
             // Here before it has said a word: the idle screen stops offering the pairing code.
             screen.heard()
-            screen.idle("Connected")
+            screen.idle(linked = true)
             while (true) {
                 val frame = session.receiveAny()
                 if (frame != null) screen.heard()
@@ -109,7 +110,7 @@ class DisplayServer(
             is DisplayMode -> {
                 screen.turn(message.rotate180)
                 when (message.mode) {
-                DisplayMode.Mode.IDLE -> screen.idle("Connected")
+                DisplayMode.Mode.IDLE -> screen.idle(linked = true)
                 DisplayMode.Mode.DATA -> screen.data(null)
                 DisplayMode.Mode.VIDEO -> screen.video()
                 }
@@ -117,6 +118,10 @@ class DisplayServer(
             is VideoConfig -> screen.configureVideo(message)
             is ClusterState -> screen.data(message)
             is DisplayBrightness -> buttons?.set(message.level)
+            is DisplayWords -> if (Words.set(pairing.dir, message)) {
+                log("words now in ${message.language.ifEmpty { "?" }}")
+                screen.wordsChanged()
+            }
             is Ping -> session.sendOrClose(Pong)
             is Hello -> log("head unit: ${message.deviceName} ${message.appVersion}")
             else -> Unit

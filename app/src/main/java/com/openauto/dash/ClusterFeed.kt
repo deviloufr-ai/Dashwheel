@@ -17,11 +17,20 @@ import kotlinx.coroutines.launch
  */
 internal object ClusterFeed {
     private const val SAMPLE_MS = 200L
+    private const val WORDS_MS = 30_000L
 
     fun run(context: Context, scope: CoroutineScope, page: StateFlow<ClusterPage>): Job = scope.launch {
         val throttle = ClusterThrottle()
+        // The words in Dashwheel's language, one picked inside it included (the app's own
+        // context stays in the unit's); looked up again now and then for a new choice.
+        var words = AppLanguage.wrap(context)
+        var wordsAt = System.currentTimeMillis()
         while (isActive) {
-            val state = snapshot(context, page.value)
+            if (System.currentTimeMillis() - wordsAt > WORDS_MS) {
+                words = AppLanguage.wrap(context)
+                wordsAt = System.currentTimeMillis()
+            }
+            val state = snapshot(words, page.value)
             // The clock and the playing position move on their own: they don't make a change.
             val key = state.copy(clock = 0, media = state.media?.copy(positionMs = 0))
             if (throttle.shouldSend(key, System.currentTimeMillis())) DisplayLink.send(state)

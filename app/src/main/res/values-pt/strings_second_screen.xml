@@ -95,4 +95,8 @@
     <string name="second_screen_design_dials">Mostradores</string>
     <string name="second_screen_design_large">Grande</string>
     <string name="second_screen_design_retro">Retrô</string>
+    <string name="second_screen_pi_waiting">À espera do Dashwheel…</string>
+    <string name="second_screen_pi_no_signal">Sem sinal do Dashwheel</string>
+    <string name="second_screen_pi_connected">Ligado</string>
+    <string name="second_screen_pi_scan">Leia com a aplicação Dashwheel do telemóvel</string>
 </resources>

@@ -95,4 +95,8 @@
     <string name="second_screen_design_dials">Zegary</string>
     <string name="second_screen_design_large">Duży</string>
     <string name="second_screen_design_retro">Retro</string>
+    <string name="second_screen_pi_waiting">Czekam na Dashwheel…</string>
+    <string name="second_screen_pi_no_signal">Brak sygnału z Dashwheel</string>
+    <string name="second_screen_pi_connected">Połączono</string>
+    <string name="second_screen_pi_scan">Zeskanuj aplikacją Dashwheel w telefonie</string>
 </resources>

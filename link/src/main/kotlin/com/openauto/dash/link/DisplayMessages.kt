@@ -85,6 +85,27 @@ data class DisplayBrightness(val level: Int) : LinkMessage {
 }
 
 /**
+ * Head unit → Pi: the lines the Pi writes itself, in the head unit's language
+ * ([language], e.g. "fr"). Sent when the link comes up and when the language
+ * changes; the Pi keeps them for its next start, so the screens it shows before
+ * a head unit links read the same. A line left out stays in English (an older
+ * head unit sends none).
+ */
+@Serializable
+@SerialName("display_words")
+data class DisplayWords(
+    val language: String = "",
+    /** The idle screen's line while no head unit is linked, e.g. "Waiting for Dashwheel…". */
+    val waiting: String? = null,
+    /** In place of the head unit's picture or readings once it went silent. */
+    val noSignal: String? = null,
+    /** The idle screen's line while linked with nothing to show. */
+    val connected: String? = null,
+    /** Under the pairing code. */
+    val scanApp: String? = null
+) : LinkMessage
+
+/**
  * Head unit → Pi, before the first [VideoPacket] of a stream and whenever the
  * encoder is restarted: the stream's shape and its parameter sets
  * ([csd], Annex-B SPS + PPS, base64), which the Pi feeds its decoder first.

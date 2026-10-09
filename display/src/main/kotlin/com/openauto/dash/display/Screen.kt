@@ -39,7 +39,8 @@ class Screen(
 
     @Volatile var showing = Showing.IDLE
         private set
-    private var status = WAITING
+    // Linked to a head unit with nothing to show, else waiting for one (the line under the logo).
+    private var linked = false
     private var cluster: ClusterState? = null
     // When the head unit last sent readings, and when it last sent anything (uptime);
     // none heard yet counts from the start, which leaves it the time to boot and dial.
@@ -88,8 +89,8 @@ class Screen(
     }
 
     @Synchronized
-    fun idle(status: String = WAITING) {
-        this.status = status
+    fun idle(linked: Boolean = false) {
+        this.linked = linked
         if (showing == Showing.VIDEO) video.stop()
         // The next session starts from its own readings, never the last one's.
         cluster = null
@@ -226,16 +227,16 @@ class Screen(
             val name = config.name
             val clock = clock12
             when (showing) {
-                Showing.VIDEO -> if (videoLost) ({ painter.paintIdle(name, NO_SIGNAL, now, null, clock) }) else return
+                Showing.VIDEO -> if (videoLost) ({ painter.paintIdle(name, Words.noSignal, now, null, clock) }) else return
                 Showing.IDLE -> {
                     val offer = pairing.offer.toUri().takeIf { pairingShown }
-                    val text = status
+                    val text = status()
                     ({ painter.paintIdle(name, text, now, offer, clock) })
                 }
                 Showing.DATA -> {
                     val lost = signalLost
                     val state = cluster?.takeIf { !lost }
-                    val text = if (lost) NO_SIGNAL else status
+                    val text = if (lost) Words.noSignal else status()
                     if (state != null) ({ painter.paintCluster(state, now) }) else ({ painter.paintIdle(name, text, now, null, clock) })
                 }
             }
@@ -257,14 +258,21 @@ class Screen(
         }
     }
 
+    /** The idle line, in the head unit's language as it last sent its words ([Words]). */
+    private fun status(): String = if (linked) Words.connected else Words.waiting
+
+    /** New words from the head unit: the idle line redraws in them. */
+    @Synchronized
+    fun wordsChanged() {
+        if (showing != Showing.VIDEO || videoLost) redraw()
+    }
+
     private fun stopFrames() {
         frames?.stop()
         frames = null
     }
 
     companion object {
-        const val WAITING = "Waiting for Dashwheel…"
-        const val NO_SIGNAL = "No signal from Dashwheel"
         /** The head unit sends its readings every 5 s at least: two missed and they are old. */
         const val DATA_SILENT_MS = 12_000L
         /** With a still picture only its ping is heard, every 15 s: one missed. */
