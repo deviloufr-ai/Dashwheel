@@ -197,6 +197,8 @@ class MainActivity : ComponentActivity() {
                 SplitAccessibilityService.autoTurnOn(this)
                 // Dashwheel as the default Home, and the system copy up to date, after an update.
                 SystemUpkeep.start(this)
+                // The QF firmware's own launcher choice, which its Home follows instead of Android's.
+                UnitLauncher.start(this)
                 RadarOverlay.start(this)
                 ReverseView.start(this)
                 ClimateOverlay.start(this)

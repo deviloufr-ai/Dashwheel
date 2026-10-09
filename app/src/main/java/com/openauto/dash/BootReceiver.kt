@@ -20,6 +20,8 @@ class BootReceiver : BroadcastReceiver() {
         if (!isDefaultHome(context)) return
         DebugLog.note(context, "boot: Dashwheel is the default Home, taking the screen")
         EmbeddedApp.bootedUp(context.applicationContext)
+        // A QF unit then starts Dashwheel itself from the next boot on.
+        UnitLauncher.start(context)
     }
 
     private fun isDefaultHome(context: Context): Boolean {
