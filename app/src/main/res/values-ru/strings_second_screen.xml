@@ -33,6 +33,13 @@
     <string name="second_screen_quality_detail">Чем ниже, тем меньше нагрузка на Wi-Fi телефона.</string>
     <string name="second_screen_output_video">Передача изображения · %1$d кбит/с</string>
     <string name="second_screen_output_data">Передача показаний; экран сам рисует приборы</string>
+    <string name="second_screen_program">программа %1$s</string>
+    <string name="second_screen_program_older">Программа экрана старее этого приложения: запишите его карту заново.</string>
+    <string name="second_screen_program_newer">Программа экрана новее этого приложения: обновите Dashwheel.</string>
+    <string name="second_screen_health_under_powered">Плате экрана не хватает питания, и она замедляется: используйте блок питания 5 В 2,5 А и короткий толстый кабель.</string>
+    <string name="second_screen_health_hot">Плата экрана перегрета (%1$d °C) и замедляется: обеспечьте обдув или радиатор.</string>
+    <string name="second_screen_health_throttled">Плату экрана ограничивает её прошивка: проверьте питание.</string>
+    <string name="second_screen_output_lighter">Облегчённая картинка: экран не успевал</string>
     <string name="second_screen_label_open">Открыто: %1$s</string>
     <string name="second_screen_label_arrive">Прибытие %1$s</string>
     <string name="second_screen_label_fuel">топливо</string>

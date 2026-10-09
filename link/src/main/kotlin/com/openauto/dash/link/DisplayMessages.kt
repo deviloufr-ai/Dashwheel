@@ -33,6 +33,19 @@ const val DISPLAY_BEACON_PORT = 47812
 /** A beacon's text: this, then the display's pairing id. */
 const val DISPLAY_BEACON_PREFIX = "dashwheel-display "
 
+/**
+ * The display protocol as this side knows it ([DisplayHello.protocol]). Both
+ * halves ship apart (the Pi by card, the head unit by OTA), so each one reads
+ * the other's and says so in its settings or its log when they differ. Every
+ * change is backward compatible (new fields with defaults); the number only
+ * tells which fields the other side will act on.
+ *
+ * 1: the first release.
+ * 2: [DisplayTime], [DisplayStats.droppedLate] and the board's health, the
+ *    words in [DisplayWords.labels], [ClusterState.maneuver] and [ClusterState.layout].
+ */
+const val DISPLAY_PROTOCOL = 2
+
 /** Pi → head unit, first thing on the channel: the screen it drives. */
 @Serializable
 @SerialName("display_hello")
@@ -54,8 +67,24 @@ data class DisplayHello(
     val model: String = "",
     /** Wired to the monitor's brightness buttons: it follows [DisplayBrightness]. */
     val brightness: Boolean = false,
-    val protocol: Int = PROTOCOL_VERSION
+    /**
+     * The display protocol the display speaks ([DISPLAY_PROTOCOL]). A display
+     * passes its own; the default is what an older display, which never sent
+     * the field, spoke (a default is not written out, so it can't be the current number).
+     */
+    val protocol: Int = 1
 ) : LinkMessage
+
+/**
+ * Head unit → Pi, right after [Hello] and with every ping: the head unit's
+ * clock and time zone. The Pi has no clock of its own (no battery), its card
+ * knows no zone, and it may have no network time: this sets both. [clock] is
+ * epoch milliseconds, [zoneOffsetMin] the zone's offset from UTC at that
+ * moment, [zone] its name when the head unit has one ("Europe/Paris").
+ */
+@Serializable
+@SerialName("display_time")
+data class DisplayTime(val clock: Long, val zoneOffsetMin: Int, val zone: String = "") : LinkMessage
 
 /**
  * Head unit → Pi: what to show. The Pi shows its own idle screen for [Mode.IDLE].
@@ -102,7 +131,13 @@ data class DisplayWords(
     /** The idle screen's line while linked with nothing to show. */
     val connected: String? = null,
     /** Under the pairing code. */
-    val scanApp: String? = null
+    val scanApp: String? = null,
+    /**
+     * The words around the cluster's figures, sent here once per language
+     * rather than with every reading; an older head unit sends them in
+     * [ClusterState.labels] instead.
+     */
+    val labels: ClusterState.Labels? = null
 ) : LinkMessage
 
 /**
@@ -183,16 +218,45 @@ data class DisplayCommand(val action: Action) : LinkMessage {
     }
 }
 
-/** Pi → head unit, every few seconds while it plays video: how well it keeps up. */
+/**
+ * Pi → head unit, every few seconds: how well it keeps up with the video, and
+ * how the board itself is doing. Sent in every mode (a heartbeat the head unit
+ * hears sooner than a missed pong); the frame counts are zero without video.
+ */
 @Serializable
 @SerialName("display_stats")
 data class DisplayStats(
     val framesShown: Int,
+    /** Every frame not shown, whatever the reason (an older head unit reads only this). */
     val framesDropped: Int,
     /** Bytes of video received in the period, over its length. */
     val kbps: Int,
-    val periodMs: Long
-) : LinkMessage
+    val periodMs: Long,
+    /**
+     * Of [framesDropped], those the decoder had no room for: the display was
+     * too slow, not the link. Lowering the bitrate does nothing for these;
+     * fewer pixels or frames does.
+     */
+    val droppedLate: Int = 0,
+    /**
+     * The board's throttle flags as `vcgencmd get_throttled` gives them:
+     * [THROTTLE_UNDER_VOLTAGE], [THROTTLE_FREQ_CAPPED], [THROTTLE_THROTTLED],
+     * [THROTTLE_SOFT_TEMP] now; the same bits shifted by 16 for "since it started". 0 when not read.
+     */
+    val throttled: Int = 0,
+    /** The board's temperature, °C; null when not read. */
+    val tempC: Int? = null
+) : LinkMessage {
+    companion object {
+        const val THROTTLE_UNDER_VOLTAGE = 0x1
+        const val THROTTLE_FREQ_CAPPED = 0x2
+        const val THROTTLE_THROTTLED = 0x4
+        const val THROTTLE_SOFT_TEMP = 0x8
+
+        /** The flags that hold now, without the "since it started" ones. */
+        const val THROTTLE_NOW = 0xF
+    }
+}
 
 /**
  * Phone → head unit: the display's pairing code, scanned by the companion app
@@ -245,8 +309,28 @@ data class ClusterState(
      * language and units); sent with that page only, empty without an OBD
      * adapter and from an older head unit.
      */
-    val measures: List<Measure> = emptyList()
+    val measures: List<Measure> = emptyList(),
+    /**
+     * The next turn as the head unit's navigation knows it, one of [MANEUVERS];
+     * null when it only has words (a notification), and the display reads them.
+     */
+    val maneuver: String? = null,
+    /**
+     * The page as laid out on the head unit's board, so the display draws the
+     * same widgets in the same places; null from an older head unit, or for a
+     * page whose widgets the display has no readings for: it then draws its own page.
+     */
+    val layout: Layout? = null
 ) : LinkMessage {
+    /**
+     * A page's arrangement ([ClusterArrangement] names: ONE, BIG_SIDE, BIG_STACK,
+     * HALVES, THREE, GRID) and what each of its slots shows, the big slot first,
+     * as [ClusterFace] names. A face the display doesn't know is left empty.
+     */
+    @Serializable
+    data class Layout(val arrangement: String, val faces: List<String>)
+
+    /** One reading of the Measures page, e.g. "Coolant" and "87 °C". */
     /** One reading of the Measures page, e.g. "Coolant" and "87 °C". */
     @Serializable
     data class Measure(val label: String, val value: String)
@@ -312,6 +396,31 @@ data class ClusterState(
 }
 
 const val CODEC_H264 = "h264"
+
+/** The turns [ClusterState.maneuver] can name. */
+val MANEUVERS = listOf("LEFT", "RIGHT", "STRAIGHT", "UTURN", "ROUNDABOUT", "ARRIVE")
+
+/**
+ * What one slot of a board page shows on a display that draws itself
+ * ([ClusterState.Layout.faces]): each one is drawn from the readings the
+ * display already gets, so the board and the display stay in step.
+ */
+object ClusterFace {
+    const val SPEED = "SPEED"
+    const val CLOCK = "CLOCK"
+    const val FUEL = "FUEL"
+    const val RANGE = "RANGE"
+    const val RPM = "RPM"
+    const val COOLANT = "COOLANT"
+    /** Revs and coolant together, as the dashboard's engine gauges. */
+    const val TELEMETRY = "TELEMETRY"
+    const val MEDIA = "MEDIA"
+    const val NAV = "NAV"
+    const val MEASURES = "MEASURES"
+    const val DOORS = "DOORS"
+
+    val ALL = listOf(SPEED, CLOCK, FUEL, RANGE, RPM, COOLANT, TELEMETRY, MEDIA, NAV, MEASURES, DOORS)
+}
 
 /**
  * One encoded video access unit, carried as a raw frame

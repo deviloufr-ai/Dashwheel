@@ -33,6 +33,8 @@ class VideoSink(
 
     private var shown = 0
     private var dropped = 0
+    /** Of [dropped], those the decoder had no room for: this board was too slow, not the link. */
+    private var droppedLate = 0
     private var bytes = 0L
 
     @Synchronized
@@ -93,6 +95,7 @@ class VideoSink(
             }
             if (!running.offer(csd + packet.data)) {
                 dropped++
+                droppedLate++
                 requestKeyFrame()
                 return
             }
@@ -104,8 +107,10 @@ class VideoSink(
         if (running.offer(packet.data)) {
             shown++
         } else {
-            // A reference frame lost: what follows can't be decoded until the next key frame.
+            // The decoder's queue is full: this board is behind, and a reference frame is
+            // lost with it, so what follows can't be decoded until the next key frame.
             dropped++
+            droppedLate++
             waitingForKey = true
             requestKeyFrame()
         }
@@ -137,11 +142,15 @@ class VideoSink(
         }
     }
 
-    /** Frames handed to the decoder, frames dropped and bytes received since the last call. */
+    /** What happened to the frames since the last call. */
+    data class Stats(val shown: Int, val dropped: Int, val droppedLate: Int, val bytes: Long)
+
+    /** Frames handed to the decoder, frames dropped (and how many of those for want of room) and bytes received since the last call. */
     @Synchronized
-    fun takeStats(): Triple<Int, Int, Long> = Triple(shown, dropped, bytes).also {
+    fun takeStats(): Stats = Stats(shown, dropped, droppedLate, bytes).also {
         shown = 0
         dropped = 0
+        droppedLate = 0
         bytes = 0
     }
 }

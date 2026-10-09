@@ -33,6 +33,13 @@
     <string name="second_screen_quality_detail">Niedriger schont das WLAN des Handys.</string>
     <string name="second_screen_output_video">Bild wird gestreamt · %1$d kbit/s</string>
     <string name="second_screen_output_data">Messwerte werden gesendet; der Bildschirm zeichnet das Kombiinstrument</string>
+    <string name="second_screen_program">Programm %1$s</string>
+    <string name="second_screen_program_older">Das Programm des Bildschirms ist älter als diese App: Schreiben Sie seine Karte neu.</string>
+    <string name="second_screen_program_newer">Das Programm des Bildschirms ist neuer als diese App: Aktualisieren Sie Dashwheel.</string>
+    <string name="second_screen_health_under_powered">Die Platine des Bildschirms bekommt zu wenig Strom und wird langsamer: Verwenden Sie ein 5-V-Netzteil mit 2,5 A und ein kurzes, dickes Kabel.</string>
+    <string name="second_screen_health_hot">Die Platine des Bildschirms ist heiß (%1$d °C) und wird langsamer: Sorgen Sie für Luft oder einen Kühlkörper.</string>
+    <string name="second_screen_health_throttled">Die Platine des Bildschirms wird von ihrer Firmware gedrosselt: Prüfen Sie die Stromversorgung.</string>
+    <string name="second_screen_output_lighter">Leichteres Bild: der Bildschirm kam nicht mit</string>
     <string name="second_screen_label_open">Offen: %1$s</string>
     <string name="second_screen_label_arrive">Ankunft %1$s</string>
     <string name="second_screen_label_fuel">tank</string>

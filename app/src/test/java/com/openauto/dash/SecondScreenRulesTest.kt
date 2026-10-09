@@ -8,6 +8,71 @@ import org.junit.Test
 
 class SecondScreenRulesTest {
 
+    @Test
+    fun theDisplaysOwnSlownessLightensThePictureInsteadOfTheBitrate() {
+        val late = com.openauto.dash.link.DisplayStats(framesShown = 60, framesDropped = 15, kbps = 2000, periodMs = 5_000, droppedLate = 12)
+        // Only the frames the link lost count for the bitrate: 3 on the display, plus the 2 refused here.
+        assertEquals(5, SecondScreenRules.networkDrops(late, refused = 2))
+        assertEquals(1, SecondScreenRules.relief(0, late, settled = true))
+        assertEquals(2, SecondScreenRules.relief(1, late, settled = true))
+        assertEquals(2, SecondScreenRules.relief(2, late, settled = true))
+        // A stream still starting drops frames for want of a key frame, not for slowness.
+        assertEquals(0, SecondScreenRules.relief(0, late, settled = false))
+        // Two frames late in a period: a hiccup, not a slow display.
+        assertEquals(0, SecondScreenRules.relief(0, late.copy(framesDropped = 2, droppedLate = 2), settled = true))
+        // Half the frames first, then a size down as well.
+        assertEquals(30, SecondScreenRules.reliefFps(30, 0))
+        assertEquals(15, SecondScreenRules.reliefFps(30, 1))
+        assertEquals(10, SecondScreenRules.reliefFps(15, 2))
+        assertEquals(720, SecondScreenRules.reliefHeight(720, 1))
+        assertEquals(480, SecondScreenRules.reliefHeight(720, 2))
+        assertEquals(720, SecondScreenRules.reliefHeight(1080, 2))
+        assertEquals(480, SecondScreenRules.reliefHeight(480, 2))
+    }
+
+    @Test
+    fun theBoardsHealthComesFromItsFlagsAndTemperature() {
+        fun report(throttled: Int, tempC: Int? = 50) = com.openauto.dash.link.DisplayStats(0, 0, 0, 5_000, throttled = throttled, tempC = tempC)
+        assertEquals(DisplayHealth.UNKNOWN, SecondScreenRules.health(null))
+        assertEquals(DisplayHealth.OK, SecondScreenRules.health(report(0)))
+        // Trouble since the start, none now: fine.
+        assertEquals(DisplayHealth.OK, SecondScreenRules.health(report(0x50000)))
+        assertEquals(DisplayHealth.UNDER_POWERED, SecondScreenRules.health(report(0x50005)))
+        assertEquals(DisplayHealth.HOT, SecondScreenRules.health(report(0x8)))
+        assertEquals(DisplayHealth.HOT, SecondScreenRules.health(report(0, tempC = 85)))
+        assertEquals(DisplayHealth.THROTTLED, SecondScreenRules.health(report(0x4)))
+        assertEquals(SecondScreenVersionGap.DISPLAY_OLDER, SecondScreenRules.versionGap(1))
+        assertEquals(SecondScreenVersionGap.NONE, SecondScreenRules.versionGap(com.openauto.dash.link.DISPLAY_PROTOCOL))
+        assertEquals(SecondScreenVersionGap.DISPLAY_NEWER, SecondScreenRules.versionGap(99))
+        assertFalse(SecondScreenRules.readsWordsOnce(1))
+        assertTrue(SecondScreenRules.readsWordsOnce(2))
+    }
+
+    @Test
+    fun theBoardGoesToTheDisplayAsFacesItCanDraw() {
+        val drive = SecondScreenRules.layoutMessage(ClusterLayouts.default(ClusterPage.DRIVE))!!
+        assertEquals("BIG_STACK", drive.arrangement)
+        assertEquals(listOf("SPEED", "CLOCK", "RANGE"), drive.faces)
+        assertEquals(listOf("TELEMETRY", "MEASURES"), SecondScreenRules.layoutMessage(ClusterLayouts.default(ClusterPage.OBD))!!.faces)
+        // A widget the display has no readings for leaves its slot empty; a page of only those sends nothing.
+        val weather = ClusterLayout(ClusterArrangement.HALVES, listOf(ClusterSlot(BuiltinKind.WEATHER, WidgetDesign.HERO), ClusterSlot(BuiltinKind.CLOCK, WidgetDesign.HERO)))
+        assertEquals(listOf("", "CLOCK"), SecondScreenRules.layoutMessage(weather)!!.faces)
+        assertNull(SecondScreenRules.layoutMessage(ClusterLayout(ClusterArrangement.ONE, listOf(ClusterSlot(BuiltinKind.WEATHER, WidgetDesign.HERO)))))
+    }
+
+    @Test
+    fun theTurnIsNamedFromTheRoutesManoeuvre() {
+        assertEquals("ROUNDABOUT", Maneuvers.fromOsrm("roundabout", "right"))
+        assertEquals("ARRIVE", Maneuvers.fromOsrm("arrive", "left"))
+        assertEquals("UTURN", Maneuvers.fromOsrm("turn", "uturn"))
+        assertEquals("LEFT", Maneuvers.fromOsrm("turn", "sharp left"))
+        assertEquals("RIGHT", Maneuvers.fromOsrm("fork", "slight right"))
+        assertEquals("STRAIGHT", Maneuvers.fromOsrm("continue", null))
+        assertEquals("STRAIGHT", Maneuvers.fromOsrm("turn", "straight"))
+        assertNull(Maneuvers.fromOsrm("turn", null))
+        assertNull(Maneuvers.fromOsrm(null, null))
+    }
+
     private fun output(
         config: SecondScreenConfig,
         connected: Boolean = true,

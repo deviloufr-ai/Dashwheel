@@ -39,6 +39,10 @@ internal object ClusterFeed {
     }
 
     private fun snapshot(context: Context, page: ClusterPage): ClusterState {
+        val display = (DisplayLink.state.value as? DisplayLinkState.Connected)?.display
+        // A display that reads the words sent once (SecondScreenWords) needn't get them five times a second.
+        val wordsOnce = display != null && SecondScreenRules.readsWordsOnce(display.protocol)
+        val config = SecondScreenStore.config.value
         val obdLive = ObdBluetoothManager.connectionState.value == ObdConnectionState.CONNECTED || DemoMode.isOn
         val obd = ObdBluetoothManager.data.value
         // The OBD speed comes corrected already (ObdBluetoothManager), and the correction is for the car's
@@ -91,10 +95,14 @@ internal object ClusterFeed {
             nav = nav.takeIf { it.active && it.instruction.isNotBlank() }?.let {
                 ClusterState.Nav(instruction = it.instruction, distance = it.distance, eta = it.eta)
             },
-            labels = labels(context, units),
-            design = SecondScreenStore.config.value.design.name,
+            labels = if (wordsOnce) null else SecondScreenWords.labels(context, units),
+            design = config.design.name,
             // Only for the page that shows them: five times a second, the rest of the time, for nothing.
-            measures = if (page == ClusterPage.OBD && obdLive) measures(context, obd, units) else emptyList()
+            measures = if (page == ClusterPage.OBD && obdLive) measures(context, obd, units) else emptyList(),
+            // The turn as the navigation knows it (in-app), so the display needn't read the words.
+            maneuver = nav.maneuver,
+            // The page as laid out on the board, so the display draws the same widgets in the same places.
+            layout = SecondScreenRules.layoutMessage(config.layoutFor(page))
         )
     }
 
@@ -110,17 +118,4 @@ internal object ClusterFeed {
         d.fuelLevelPct.takeIf { it > 0 }?.let { ClusterState.Measure(context.getString(R.string.vehicle_fuel_level), "$it %") }
     )
 
-    /** The words the display prints around these figures, in the driver's language like the door names above. */
-    private fun labels(context: Context, units: UnitSystem) = ClusterState.Labels(
-        // The display puts the names and the time where the %s is.
-        open = context.getString(R.string.second_screen_label_open, "%s"),
-        nothingPlaying = context.getString(R.string.info_nothing_playing),
-        noRoute = context.getString(R.string.info_directions_no_route),
-        arrive = context.getString(R.string.second_screen_label_arrive, "%s"),
-        rpm = context.getString(R.string.info_unit_rpm),
-        coolant = context.getString(R.string.orbit_sat_coolant),
-        fuel = context.getString(R.string.second_screen_label_fuel),
-        range = context.getString(R.string.second_screen_label_range, units.distanceUnit),
-        measuresNone = context.getString(R.string.car_waiting_obd)
-    )
 }

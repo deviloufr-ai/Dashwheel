@@ -53,7 +53,7 @@ apt-get update
 apt-get install -y --no-install-recommends \
   default-jre-headless fonts-dejavu-core avahi-daemon \
   gstreamer1.0-tools gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
-  plymouth plymouth-themes overlayroot
+  plymouth plymouth-themes overlayroot iw
 
 echo "== program"
 systemctl stop dashwheel-display 2>/dev/null || true
@@ -158,7 +158,12 @@ if [ -f "$WPA" ]; then
   # Avahi answers .local names; resolved stays out of the way.
   printf '[Resolve]\nMulticastDNS=no\nLLMNR=no\n' > /etc/systemd/resolved.conf.d/dashwheel.conf
   printf '[Match]\nName=wlan0\n\n[Network]\nDHCP=ipv4\nIPv6AcceptRA=no\n' > /etc/systemd/network/30-wlan0.network
-  printf '[Match]\nName=eth0\n\n[Network]\nDHCP=ipv4\n' > /etc/systemd/network/20-eth0.network
+  # eth0 is for a cable straight to the head unit (a USB Ethernet adapter on it): the Pi hands
+  # the head unit its address, with no router between them and no gateway, so the head unit
+  # keeps its Wi-Fi for the internet. Never plug it into a home network: it would hand out
+  # addresses there too.
+  printf '[Match]\nName=eth0\n\n[Link]\nRequiredForOnline=no\n\n[Network]\nAddress=10.47.0.1/24\nDHCPServer=yes\nIPv6AcceptRA=no\n\n[DHCPServer]\nPoolOffset=10\nPoolSize=100\nEmitDNS=no\nEmitRouter=no\nEmitNTP=no\n' \
+    > /etc/systemd/network/20-eth0.network
   systemctl disable NetworkManager.service NetworkManager-dispatcher.service wpa_supplicant.service 2>/dev/null || true
   # Wi-Fi power saving holds packets back (the DHCP answer, video): off.
   mkdir -p /etc/systemd/system/wpa_supplicant@wlan0.service.d

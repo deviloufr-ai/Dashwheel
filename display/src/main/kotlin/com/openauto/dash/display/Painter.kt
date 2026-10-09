@@ -4,6 +4,7 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
+import com.openauto.dash.link.ClusterFace
 import com.openauto.dash.link.ClusterState
 import java.awt.BasicStroke
 import java.awt.Color
@@ -40,6 +41,9 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
     /** Drawn turned 180° (Rotation). */
     @Volatile var upsideDown = false
 
+    /** The time zone the clocks are written in: the head unit's (LocalClock). */
+    @Volatile var zone: ZoneId = ZoneId.systemDefault()
+
 
     /** TYPE_INT_RGB is 0x00RRGGBB per pixel: little-endian, the bytes are B,G,R,x (GStreamer's "bgrx"). */
     val image = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
@@ -68,7 +72,7 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
             // The time in the top right corner, clear of the logo (at most 60 % of the height, centred).
             g.color = TEXT
             g.font = font(Font.BOLD, 12f)
-            drawRight(g, clockText(now, clock12), width - inset - (6 * unit).roundToInt(), inset + (16 * unit).roundToInt())
+            drawRight(g, clockText(now, clock12, zone), width - inset - (6 * unit).roundToInt(), inset + (16 * unit).roundToInt())
             g.color = MUTED
             g.font = font(Font.PLAIN, 4.5f)
             drawCentered(g, status, width / 2, height - inset - (8 * unit).roundToInt())
@@ -77,7 +81,7 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
         val left = inset + (6 * unit).roundToInt()
         g.color = TEXT
         g.font = font(Font.BOLD, 22f)
-        g.drawString(clockText(now, clock12), left, inset + (26 * unit).roundToInt())
+        g.drawString(clockText(now, clock12, zone), left, inset + (26 * unit).roundToInt())
         g.color = MUTED
         g.font = font(Font.PLAIN, 6f)
         g.drawString(name, left, inset + (36 * unit).roundToInt())
@@ -108,13 +112,13 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
 
         // An alert up on the head unit takes the whole screen while it lasts.
         state.alert?.let { alert ->
-            paintAlert(g, alert, text.clock(now), left, right, top, p)
+            paintAlert(g, alert, text.clock(now, zone), left, right, top, p)
             return@draw
         }
 
         // Top line on every page: the clock, and what the car is warning about in an amber pill.
         val clockFont = font(Font.BOLD, 7f)
-        val clock = text.clock(now)
+        val clock = text.clock(now, zone)
         val clockBase = top + (6 * unit).roundToInt()
         g.color = p.fg
         g.font = clockFont
@@ -136,6 +140,14 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
 
         val bodyTop = top + (12 * unit).roundToInt()
         val body = Rectangle(left, bodyTop, right - left, bottom - bodyTop)
+        // The page as the driver laid it out on the head unit's board, when it says so.
+        state.layout?.let { layout ->
+            val boxes = Board.boxes(layout.arrangement, body, (3 * unit).roundToInt())
+            if (boxes != null) {
+                boxes.forEachIndexed { i, box -> paintFace(g, layout.faces.getOrNull(i).orEmpty(), box, state, text, p, design, clock) }
+                return@draw
+            }
+        }
         when (state.page) {
             "MEDIA" -> paintMedia(g, state, text, body, p)
             "NAV" -> paintNav(g, state, text, body, p)
@@ -192,20 +204,7 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
         val cards = text.cards
         val gap = (4 * unit).roundToInt()
         val ringBox = if (cards.isEmpty()) body else Rectangle(body.x, body.y, (body.width * 0.46).roundToInt(), body.height)
-        val radius = min(ringBox.width, ringBox.height) / 2f
-        val cx = ringBox.centerX.toFloat()
-        val cy = ringBox.centerY.toFloat() + radius * 0.06f
-        val shown = text.speedShown
-        val full = if (s.imperial) 130f else 200f
-        speedRing(g, cx, cy, radius, (shown ?: 0) / full, p)
-
-        g.color = if (shown == null) p.muted else p.fg
-        // Sized for three digits, so the figure keeps its size from 99 to 100.
-        g.font = fitFont(g, radius * 0.8f / unit, "888", (radius * 1.25f).roundToInt())
-        drawCentered(g, text.speed, cx.roundToInt(), (cy + g.fontMetrics.ascent * 0.36f).roundToInt())
-        g.color = p.muted
-        g.font = font(Font.BOLD, 5.5f)
-        drawCentered(g, text.speedUnit, cx.roundToInt(), (cy + radius * 0.78f).roundToInt())
+        speedRingFace(g, ringBox, s, text, p)
 
         if (cards.isEmpty()) return
         val grid = Rectangle(ringBox.x + ringBox.width + gap, body.y, body.width - ringBox.width - gap, body.height)
@@ -217,6 +216,170 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
             val cardW = if (alone) grid.width else (grid.width - gap) / 2
             val x = grid.x + if (alone) 0 else (i % 2) * (cardW + gap)
             readingCard(g, card, Rectangle(x, grid.y + (i / 2) * (cardH + gap), cardW, cardH), s, p)
+        }
+    }
+
+    /** The speed in its ring, as big as [box] allows. */
+    private fun speedRingFace(g: Graphics2D, box: Rectangle, s: ClusterState, text: ClusterText, p: Palette) {
+        val radius = min(box.width, box.height) / 2f
+        val cx = box.centerX.toFloat()
+        val cy = box.centerY.toFloat() + radius * 0.06f
+        val shown = text.speedShown
+        val full = if (s.imperial) 130f else 200f
+        speedRing(g, cx, cy, radius, (shown ?: 0) / full, p)
+
+        g.color = if (shown == null) p.muted else p.fg
+        // Sized for three digits, so the figure keeps its size from 99 to 100.
+        g.font = fitFont(g, radius * 0.8f / unit, "888", (radius * 1.25f).roundToInt())
+        drawCentered(g, text.speed, cx.roundToInt(), (cy + g.fontMetrics.ascent * 0.36f).roundToInt())
+        g.color = p.muted
+        g.font = font(Font.BOLD, 5.5f)
+        drawCentered(g, text.speedUnit, cx.roundToInt(), (cy + radius * 0.78f).roundToInt())
+    }
+
+    // --- The board: one face per slot, each drawn from the readings in the design's own manner -------
+
+    /** Slot [face] of the board in [box]; a face this display doesn't know is an empty card. */
+    private fun paintFace(g: Graphics2D, face: String, box: Rectangle, s: ClusterState, text: ClusterText, p: Palette, design: Design, clock: String) {
+        val pad = (3 * unit).roundToInt()
+        val inner = Rectangle(box.x + pad, box.y + pad, box.width - 2 * pad, box.height - 2 * pad)
+        when (face) {
+            ClusterFace.SPEED -> speedFace(g, inner, s, text, p, design)
+            ClusterFace.CLOCK -> {
+                card(g, box, p)
+                g.color = p.fg
+                g.font = fitFont(g, min(30f, inner.height / unit * 0.6f), clock, inner.width)
+                drawCentered(g, clock, inner.centerX.roundToInt(), (inner.centerY + g.fontMetrics.ascent * 0.36f).roundToInt())
+            }
+            ClusterFace.FUEL -> readingCard(g, text.card(ClusterText.Kind.FUEL), box, s, p)
+            ClusterFace.RANGE -> readingCard(g, text.card(ClusterText.Kind.RANGE), box, s, p)
+            ClusterFace.RPM -> readingCard(g, text.card(ClusterText.Kind.RPM), box, s, p)
+            ClusterFace.COOLANT -> readingCard(g, text.card(ClusterText.Kind.COOLANT), box, s, p)
+            ClusterFace.TELEMETRY -> telemetryFace(g, box, inner, s, text, p)
+            ClusterFace.MEDIA -> {
+                card(g, box, p)
+                paintMedia(g, s, text, Rectangle(inner.x + pad, inner.y, inner.width - 2 * pad, inner.height), p)
+            }
+            ClusterFace.NAV -> paintNav(g, s, text, inner, p)
+            ClusterFace.MEASURES -> paintMeasures(g, s, text, inner, p)
+            ClusterFace.DOORS -> doorsFace(g, box, inner, text, p)
+            else -> card(g, box, p)
+        }
+    }
+
+    /** The speed as each design draws it: a ring, a dial, one big number or amber digits. */
+    private fun speedFace(g: Graphics2D, box: Rectangle, s: ClusterState, text: ClusterText, p: Palette, design: Design) {
+        val shown = text.speedShown
+        when (design) {
+            Design.CARDS -> speedRingFace(g, box, s, text, p)
+            Design.DIALS -> {
+                val r = min(box.width, box.height) / 2f
+                val cx = box.centerX.toFloat()
+                val cy = box.centerY.toFloat() + r * 0.04f
+                dial(g, cx, cy, r, shown?.toFloat(), if (s.imperial) 140f else 220f, 20f, 10f, null, p)
+                dialReadout(g, cx, cy, r, text.speed, text.speedUnit, shown != null, p)
+            }
+            Design.LARGE -> {
+                val cx = box.centerX.roundToInt()
+                val unitBase = box.y + box.height - (2 * unit).roundToInt()
+                val numberBase = unitBase - (8 * unit).roundToInt()
+                g.color = if (shown == null) p.muted else p.fg
+                g.font = fitFont(g, min(52f, (numberBase - box.y) / unit / 0.74f), "888", box.width)
+                drawCentered(g, text.speed, cx, numberBase)
+                g.color = p.muted
+                g.font = font(Font.BOLD, 6f)
+                drawCentered(g, text.speedUnit, cx, unitBase)
+            }
+            Design.RETRO -> {
+                g.font = fitFont(g, min(46f, box.height / unit * 0.9f), "888", (box.width * 0.7f).roundToInt())
+                val digitsW = g.fontMetrics.stringWidth("888")
+                val unitFont = font(Font.BOLD, 7f)
+                val unitGap = (3 * unit).roundToInt()
+                val x = box.x + (box.width - digitsW - g.getFontMetrics(unitFont).stringWidth(text.speedUnit) - unitGap) / 2
+                val base = box.y + box.height / 2 + g.fontMetrics.ascent * 2 / 5
+                g.color = p.ghost
+                g.drawString("888", x, base)
+                g.color = if (shown == null) p.muted else p.fg
+                g.drawString(text.speed.takeLast(3).padStart(3, ' '), x, base)
+                g.color = p.muted
+                g.font = unitFont
+                g.drawString(text.speedUnit, x + digitsW + unitGap, base)
+            }
+        }
+    }
+
+    /** The engine's gauges: the revs on a dial, the coolant beside it (both "--" without an adapter). */
+    private fun telemetryFace(g: Graphics2D, box: Rectangle, inner: Rectangle, s: ClusterState, text: ClusterText, p: Palette) {
+        card(g, box, p)
+        val coolant = text.card(ClusterText.Kind.COOLANT)
+        val beside = inner.width > inner.height * 1.4f
+        // The dial takes the left of a wide slot, the top of a tall one; the coolant the rest.
+        val dialW = if (beside) (inner.width * 0.6f).roundToInt() else inner.width
+        val rowH = if (beside) 0 else (9 * unit).roundToInt()
+        val r = min(dialW, inner.height - rowH) / 2f
+        val cx = inner.x + dialW / 2f
+        val cy = inner.y + (inner.height - rowH) / 2f + r * 0.04f
+        dial(g, cx, cy, r, s.rpm?.let { it / 1000f }, 7f, 1f, 0.5f, 5f, p)
+        dialReadout(g, cx, cy, r, s.rpm?.toString() ?: "--", text.rpmLabel, s.rpm != null, p)
+        val small = font(Font.BOLD, 4.2f)
+        val tone = toneOf(coolant, s, p) ?: p.fg
+        if (beside) {
+            val x = inner.x + dialW + (2 * unit).roundToInt()
+            val room = inner.x + inner.width - x
+            g.color = p.muted
+            g.font = small
+            drawClipped(g, coolant.label.uppercase(), x, inner.centerY.roundToInt() - (2 * unit).roundToInt(), room)
+            g.color = tone
+            g.font = fitFont(g, 11f, coolant.value, room)
+            g.drawString(coolant.value, x, inner.centerY.roundToInt() + g.fontMetrics.ascent)
+        } else {
+            // One line along the bottom: the caption, then the figure, as the Dials page does.
+            val y = inner.y + inner.height - rowH / 2
+            val big = font(Font.BOLD, 7f)
+            val label = coolant.label.uppercase()
+            val space = (2 * unit).roundToInt()
+            val total = g.getFontMetrics(small).stringWidth(label) + space + g.getFontMetrics(big).stringWidth(coolant.value)
+            var x = inner.x + (inner.width - total) / 2
+            g.color = p.muted
+            g.font = small
+            g.drawString(label, x, y + g.fontMetrics.ascent * 2 / 5)
+            x += g.fontMetrics.stringWidth(label) + space
+            g.color = tone
+            g.font = big
+            g.drawString(coolant.value, x, y + g.fontMetrics.ascent * 2 / 5)
+        }
+    }
+
+    /** How much smaller than the page's own body [box] is, for the type drawn in it: never under a bit more than half. */
+    private fun scaleFor(box: Rectangle): Float {
+        val pageWidth = width - 2 * inset - (10 * unit)
+        return (box.width / pageWidth).coerceIn(0.55f, 1f)
+    }
+
+    /** The doors: what is open, in the warning colour, else a tick. */
+    private fun doorsFace(g: Graphics2D, box: Rectangle, inner: Rectangle, text: ClusterText, p: Palette) {
+        card(g, box, p)
+        val open = text.open
+        if (open == null) {
+            val r = min(inner.width, inner.height) * 0.22f
+            val cx = inner.centerX.toFloat()
+            val cy = inner.centerY.toFloat()
+            g.color = p.accent
+            g.stroke = BasicStroke(r * 0.28f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
+            g.draw(Path2D.Float().apply {
+                moveTo(cx - r * 0.8f, cy)
+                lineTo(cx - r * 0.2f, cy + r * 0.6f)
+                lineTo(cx + r * 0.9f, cy - r * 0.6f)
+            })
+            return
+        }
+        g.color = p.warn
+        g.font = font(Font.BOLD, 6.5f)
+        val lines = wrap(g, open, inner.width, max(1, inner.height / g.fontMetrics.height))
+        var y = inner.centerY.roundToInt() - (lines.size - 1) * g.fontMetrics.height / 2 + g.fontMetrics.ascent * 2 / 5
+        for (line in lines) {
+            drawCentered(g, line, inner.centerX.roundToInt(), y)
+            y += g.fontMetrics.height
         }
     }
 
@@ -502,6 +665,8 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
             emptyState(g, body, text.nothingPlaying, p) { cx, cy, size -> musicNote(g, cx, cy, size, p.muted) }
             return
         }
+        // In a board slot narrower than the page, the type shrinks with it.
+        val k = scaleFor(body)
         // The cover: no picture comes with the readings, so a tile in the accent with a note.
         val side = min(body.height - (4 * unit).roundToInt(), (body.width * 0.4).roundToInt())
         val cover = Rectangle(body.x, body.y + (body.height - side) / 2, side, side)
@@ -510,36 +675,39 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
         g.fillRoundRect(cover.x, cover.y, side, side, radius, radius)
         musicNote(g, cover.centerX.toFloat(), cover.centerY.toFloat(), side * 0.42f, Color(255, 255, 255, 235))
 
-        val x = cover.x + side + (7 * unit).roundToInt()
+        val x = cover.x + side + (7 * unit * k).roundToInt()
         val room = body.x + body.width - x
         var y = cover.y + (2 * unit).roundToInt()
+        // Playing or paused, and how far along, on the cover's bottom line: the words stay above it.
+        val icon = 6 * unit * k
+        val iconY = cover.y + side - icon / 2 - unit
+        val wordsEnd = (iconY - icon).roundToInt()
         if (media.app.isNotBlank()) {
             g.color = p.accent
-            g.font = font(Font.BOLD, 4.2f)
+            g.font = font(Font.BOLD, 4.2f * k)
             y += g.fontMetrics.ascent
             drawClipped(g, media.app.uppercase(), x, y, room)
-            y += (3 * unit).roundToInt()
+            y += (3 * unit * k).roundToInt()
         }
         g.color = p.fg
-        g.font = font(Font.BOLD, 10f)
-        for (line in wrap(g, media.title, room, 2)) {
+        g.font = font(Font.BOLD, 10f * k)
+        val lineH = g.fontMetrics.ascent + (1.5f * unit * k).roundToInt()
+        val titleLines = wrap(g, media.title, room, if (y + 2 * lineH <= wordsEnd) 2 else 1)
+        for (line in titleLines) {
             y += g.fontMetrics.ascent
             g.drawString(line, x, y)
-            y += (1.5f * unit).roundToInt()
+            y += (1.5f * unit * k).roundToInt()
         }
         if (media.artist.isNotBlank()) {
             g.color = p.muted
-            g.font = font(Font.PLAIN, 6.5f)
-            y += g.fontMetrics.ascent + (1 * unit).roundToInt()
-            drawClipped(g, media.artist, x, y, room)
+            g.font = font(Font.PLAIN, 6.5f * k)
+            val base = y + g.fontMetrics.ascent + (1 * unit * k).roundToInt()
+            if (base <= wordsEnd) drawClipped(g, media.artist, x, base, room)
         }
 
-        // Playing or paused, and how far along, on the cover's bottom line.
-        val icon = 6 * unit
-        val iconY = cover.y + side - icon / 2 - unit
         playState(g, x + icon / 2, iconY, icon, media.playing, p.fg)
         if (media.durationMs > 0) {
-            g.font = font(Font.PLAIN, 4.5f)
+            g.font = font(Font.PLAIN, 4.5f * k)
             val times = "${mmss(media.positionMs)} / ${mmss(media.durationMs)}"
             val barX = (x + icon + 4 * unit).roundToInt()
             val barW = body.x + body.width - barX - g.fontMetrics.stringWidth(times) - (4 * unit).roundToInt()
@@ -566,35 +734,38 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
         val radius = (8 * unit).roundToInt()
         g.color = p.accent
         g.fillRoundRect(sign.x, sign.y, side, side, radius, radius)
-        maneuver(g, Maneuver.of(nav.instruction), sign.centerX.toFloat(), sign.centerY.toFloat(), side * 0.6f, onAccent(p.accent), p.accent)
+        maneuver(g, s.maneuver?.let(Maneuver::named) ?: Maneuver.of(nav.instruction), sign.centerX.toFloat(), sign.centerY.toFloat(), side * 0.6f, onAccent(p.accent), p.accent)
 
-        val x = sign.x + side + (7 * unit).roundToInt()
+        // In a board slot narrower than the page, the type shrinks with it.
+        val k = scaleFor(body)
+        val x = sign.x + side + (7 * unit * k).roundToInt()
         val room = body.x + body.width - x
         var y = sign.y
         g.color = p.fg
-        g.font = fitFont(g, 18f, nav.distance, room)
-        y += g.fontMetrics.ascent - (3 * unit).roundToInt()
+        g.font = fitFont(g, 18f * k, nav.distance, room)
+        y += g.fontMetrics.ascent - (3 * unit * k).roundToInt()
         g.drawString(nav.distance, x, y)
-        g.font = font(Font.BOLD, 7.5f)
-        y += (4 * unit).roundToInt()
+        g.font = font(Font.BOLD, 7.5f * k)
+        y += (4 * unit * k).roundToInt()
         for (line in wrap(g, nav.instruction, room, 2)) {
+            if (y + g.fontMetrics.ascent > strip.y) break
             y += g.fontMetrics.ascent
             g.drawString(line, x, y)
-            y += (1 * unit).roundToInt()
+            y += (1 * unit * k).roundToInt()
         }
-        // The street only when the instruction didn't already name it.
+        // The street only when the instruction didn't already name it, and only where it fits.
         if (nav.street.isNotBlank() && !nav.instruction.contains(nav.street, ignoreCase = true)) {
             g.color = p.muted
-            g.font = font(Font.PLAIN, 6f)
-            y += g.fontMetrics.ascent + (1 * unit).roundToInt()
-            drawClipped(g, nav.street, x, y, room)
+            g.font = font(Font.PLAIN, 6f * k)
+            y += g.fontMetrics.ascent + (1 * unit * k).roundToInt()
+            if (y <= strip.y) drawClipped(g, nav.street, x, y, room)
         }
 
         card(g, strip, p)
-        val pad = (5 * unit).roundToInt()
+        val pad = (5 * unit * k).roundToInt()
         val mid = strip.y + strip.height / 2
-        val small = font(Font.BOLD, 4.2f)
-        val big = font(Font.BOLD, 7f)
+        val small = font(Font.BOLD, 4.2f * k)
+        val big = font(Font.BOLD, 7f * k)
         val smallBase = mid + g.getFontMetrics(small).ascent * 2 / 5
         val bigBase = mid + g.getFontMetrics(big).ascent * 2 / 5
         if (nav.eta.isNotBlank()) {
@@ -630,7 +801,10 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
             return
         }
         val gap = (4 * unit).roundToInt()
+        // As many to a row as keeps the cards about as wide as they are tall: four for eight on
+        // the whole page, two in a tall board slot.
         val columns = when {
+            body.width < body.height * 1.6f -> Math.round(Math.sqrt(measures.size * body.width / body.height.toDouble())).toInt().coerceIn(1, measures.size)
             measures.size > 6 -> 4
             measures.size > 4 -> 3
             else -> 2
@@ -638,7 +812,9 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
         val rows = (measures.size + columns - 1) / columns
         val cardW = (body.width - gap * (columns - 1)) / columns
         val cardH = (body.height - gap * (rows - 1)) / rows
-        val pad = (4 * unit).roundToInt()
+        // A short card (a tall board slot, many rows): the caption on one line, smaller, and the figure sized to what is left.
+        val short = cardH < 20 * unit
+        val pad = ((if (short) 2.5f else 4f) * unit).roundToInt()
         measures.forEachIndexed { i, m ->
             val box = Rectangle(body.x + (i % columns) * (cardW + gap), body.y + (i / columns) * (cardH + gap), cardW, cardH)
             card(g, box, p)
@@ -647,13 +823,16 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
             // On two lines: "Liquide de refroidissement" does not fit on one at four to a row;
             // smaller where one word alone is wider than the card ("ACCÉLÉRATEUR").
             val label = m.label.uppercase()
-            g.font = fitFont(g, 4.2f, label.split(' ').maxBy { it.length }, inner - unit.roundToInt())
-            wrap(g, label, inner, 2).forEachIndexed { line, words ->
+            g.font = fitFont(g, if (short) 3.4f else 4.2f, label.split(' ').maxBy { it.length }, inner - unit.roundToInt())
+            val lines = wrap(g, label, inner, if (short) 1 else 2)
+            lines.forEachIndexed { line, words ->
                 g.drawString(words, box.x + pad, box.y + pad + g.fontMetrics.ascent + line * g.fontMetrics.height)
             }
+            val labelBottom = box.y + pad + lines.size * g.fontMetrics.height
+            val valueBase = box.y + box.height - pad - ((if (short) 0.5f else 3f) * unit).roundToInt()
             g.color = p.fg
-            g.font = fitFont(g, min(13f, box.height / unit * 0.34f), m.value, inner)
-            g.drawString(m.value, box.x + pad, box.y + box.height - pad - (3 * unit).roundToInt())
+            g.font = fitFont(g, min(13f, (valueBase - labelBottom) / unit * 0.9f), m.value, inner)
+            g.drawString(m.value, box.x + pad, valueBase)
         }
     }
 
@@ -1045,6 +1224,9 @@ internal enum class Maneuver {
         private val RIGHT_WORDS = listOf("right", "droite", "rechts", "derecha", "destra", "direita", "prawo", "направо", "правее", "вправо")
         private val STRAIGHT_WORDS = listOf("straight", "continue", "tout droit", "continuez", "geradeaus", "recto", "dritto", "em frente", "rechtdoor", "prosto", "прямо")
 
+        /** The turn as the head unit names it ([ClusterState.maneuver]); null for a name this display doesn't know. */
+        fun named(name: String): Maneuver? = entries.firstOrNull { it.name == name }
+
         fun of(instruction: String): Maneuver? {
             val s = instruction.lowercase()
             if (ROUNDABOUT_WORDS.any { it in s }) return ROUNDABOUT
@@ -1063,8 +1245,9 @@ internal enum class Maneuver {
  * units and the head unit's own words when it sent them, else metric, 24 h and
  * English as before (an older head unit says none of it).
  */
-internal class ClusterText(private val s: ClusterState) {
-    private val labels = s.labels
+internal class ClusterText(private val s: ClusterState, words: ClusterState.Labels? = Words.labels) {
+    /** The head unit's words: with each reading (an older head unit), else as sent once ([Words.labels]). */
+    private val labels = s.labels ?: words
 
     fun clock(now: Long, zone: ZoneId = ZoneId.systemDefault()): String = clockText(now, s.clock12, zone)
 
@@ -1091,6 +1274,18 @@ internal class ClusterText(private val s: ClusterState) {
             s.fuelPct?.let { add(Reading("$it%", labels?.fuel ?: "fuel", Kind.FUEL)) }
             s.rangeKm?.let { add(Reading(distance(it).toString(), labels?.range ?: if (s.imperial) "mi range" else "km range", Kind.RANGE)) }
         }
+
+    /** The reading of [kind], "--" when the car doesn't give it. */
+    fun card(kind: Kind): Reading = cards.firstOrNull { it.kind == kind } ?: Reading(
+        "--",
+        when (kind) {
+            Kind.RPM -> rpmLabel
+            Kind.COOLANT -> labels?.coolant ?: "coolant"
+            Kind.FUEL -> labels?.fuel ?: "fuel"
+            Kind.RANGE -> labels?.range ?: if (s.imperial) "mi range" else "km range"
+        },
+        kind
+    )
 
     /** [cards] as figure to caption. */
     val readings: List<Pair<String, String>> get() = cards.map { it.value to it.label }
@@ -1128,3 +1323,41 @@ private val CLOCK_12 = DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH)
 /** "14:05", or "2:05 PM" on a 12-hour clock. */
 internal fun clockText(now: Long, clock12: Boolean, zone: ZoneId = ZoneId.systemDefault()): String =
     (if (clock12) CLOCK_12 else CLOCK_24).withZone(zone).format(Instant.ofEpochMilli(now))
+
+/**
+ * The board's arrangements ([ClusterState.Layout.arrangement]) as boxes in a
+ * body, the big one first, as the head unit lays its own slots out.
+ */
+internal object Board {
+    private const val BIG = 1.55f
+
+    fun boxes(arrangement: String, body: Rectangle, gap: Int): List<Rectangle>? = when (arrangement) {
+        "ONE" -> listOf(body)
+        "BIG_SIDE" -> columns(body, gap, BIG, 1f)
+        "HALVES" -> columns(body, gap, 1f, 1f)
+        "THREE" -> columns(body, gap, 1f, 1f, 1f)
+        "BIG_STACK" -> columns(body, gap, BIG, 1f).let { (big, side) -> listOf(big) + rows(side, gap, 1f, 1f) }
+        "GRID" -> rows(body, gap, 1f, 1f).flatMap { columns(it, gap, 1f, 1f) }
+        else -> null
+    }
+
+    private fun columns(box: Rectangle, gap: Int, vararg weights: Float): List<Rectangle> {
+        val room = box.width - gap * (weights.size - 1)
+        val total = weights.sum()
+        var x = box.x
+        return weights.mapIndexed { i, w ->
+            val width = if (i == weights.lastIndex) box.x + box.width - x else (room * w / total).roundToInt()
+            Rectangle(x, box.y, width, box.height).also { x += width + gap }
+        }
+    }
+
+    private fun rows(box: Rectangle, gap: Int, vararg weights: Float): List<Rectangle> {
+        val room = box.height - gap * (weights.size - 1)
+        val total = weights.sum()
+        var y = box.y
+        return weights.mapIndexed { i, w ->
+            val height = if (i == weights.lastIndex) box.y + box.height - y else (room * w / total).roundToInt()
+            Rectangle(box.x, y, box.width, height).also { y += height + gap }
+        }
+    }
+}

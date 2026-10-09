@@ -222,7 +222,8 @@ object InAppNav {
                 distance = if (arrived) "" else units.shortDistance(stepLeft),
                 eta = "$time · $distance · $arrival",
                 icon = maneuverIcon(context, type?.text, modifier, primary?.degrees, primary?.drivingSide),
-                packageName = context.packageName
+                packageName = context.packageName,
+                maneuver = Maneuvers.fromOsrm(type?.text, modifier)
             )
         )
         // There: the last line stays up a moment, then the guidance ends by itself.

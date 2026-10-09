@@ -1,5 +1,6 @@
 package com.openauto.dash.display
 
+import com.openauto.dash.link.ClusterState
 import com.openauto.dash.link.DisplayWords
 import java.io.File
 import java.util.Properties
@@ -21,6 +22,11 @@ object Words {
     val connected: String get() = current.connected ?: "Connected"
     val scanApp: String get() = current.scanApp ?: "Scan with the Dashwheel phone app"
 
+    /** The words around the cluster's figures, when the head unit sent them here (an older one sends them with each reading). */
+    val labels: ClusterState.Labels? get() = current.labels
+
+    private val LABEL_KEYS = listOf("open", "nothingPlaying", "noRoute", "arrive", "rpm", "coolant", "fuel", "range", "measuresNone")
+
     fun load(dir: File) {
         val file = File(dir, FILE)
         if (!file.isFile) return
@@ -31,7 +37,8 @@ object Words {
                 waiting = p.getProperty("waiting"),
                 noSignal = p.getProperty("noSignal"),
                 connected = p.getProperty("connected"),
-                scanApp = p.getProperty("scanApp")
+                scanApp = p.getProperty("scanApp"),
+                labels = labelsOf(p)
             )
         }.onFailure { log("could not read $FILE: ${it.message}") }
     }
@@ -46,9 +53,22 @@ object Words {
         words.noSignal?.let { p.setProperty("noSignal", it) }
         words.connected?.let { p.setProperty("connected", it) }
         words.scanApp?.let { p.setProperty("scanApp", it) }
+        words.labels?.let { l ->
+            listOf(l.open, l.nothingPlaying, l.noRoute, l.arrive, l.rpm, l.coolant, l.fuel, l.range, l.measuresNone)
+                .forEachIndexed { i, v -> v?.let { p.setProperty("label." + LABEL_KEYS[i], it) } }
+        }
         ReadOnlyCard.write(dir) {
             File(dir, FILE).writer(Charsets.UTF_8).use { p.store(it, "Dashwheel display: the head unit's words") }
         }
         return true
+    }
+
+    private fun labelsOf(p: Properties): ClusterState.Labels? {
+        if (LABEL_KEYS.none { p.containsKey("label.$it") }) return null
+        fun v(key: String) = p.getProperty("label.$key")
+        return ClusterState.Labels(
+            open = v("open"), nothingPlaying = v("nothingPlaying"), noRoute = v("noRoute"), arrive = v("arrive"),
+            rpm = v("rpm"), coolant = v("coolant"), fuel = v("fuel"), range = v("range"), measuresNone = v("measuresNone")
+        )
     }
 }

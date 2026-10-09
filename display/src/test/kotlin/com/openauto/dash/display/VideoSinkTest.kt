@@ -44,7 +44,7 @@ class VideoSinkTest {
         assertEquals(2, out.size)
         assertArrayEquals(csd + key.data, out[0])
         assertArrayEquals(delta.data, out[1])
-        assertEquals(Triple(2, 1, 18L), video.takeStats())
+        assertEquals(VideoSink.Stats(shown = 2, dropped = 1, droppedLate = 0, bytes = 18L), video.takeStats())
         // The delta frame before any key frame asked for one.
         assertEquals(1, requests)
     }
@@ -60,6 +60,8 @@ class VideoSinkTest {
         video.feed(delta) // the decoder is full: dropped
         assertTrue(video.needsKeyFrame)
         assertEquals(1, requests)
+        // Counted as the decoder's own lateness, not the link's.
+        assertEquals(VideoSink.Stats(shown = 2, dropped = 1, droppedLate = 1, bytes = 18L), video.takeStats())
         sink.room = 10
         video.feed(delta) // can't be decoded without the one lost
         assertEquals(2, sink.written.size)

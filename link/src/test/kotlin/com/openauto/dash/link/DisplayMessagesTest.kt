@@ -63,6 +63,33 @@ class DisplayMessagesTest {
     }
 
     @Test
+    fun protocolTwoMessagesRoundTripAndAnOlderSideStillReads() {
+        roundTrip(DisplayTime(1_700_000_000_000, 120, "Europe/Paris"))
+        roundTrip(DisplayStats(150, 5, 2400, 5_000, droppedLate = 4, throttled = 0x50005, tempC = 71))
+        roundTrip(DisplayWords(language = "fr", waiting = "En attente…", labels = ClusterState.Labels(fuel = "carburant")))
+        roundTrip(
+            ClusterState(
+                clock = 1, page = "NAV", maneuver = "ROUNDABOUT",
+                layout = ClusterState.Layout("BIG_STACK", listOf("SPEED", "CLOCK", "RANGE"))
+            )
+        )
+        // A display passes its protocol; written out, since it isn't the default (an older display's).
+        val hello = DisplayHello("Pi", "1.0", 1024, 600, protocol = DISPLAY_PROTOCOL)
+        assertTrue(""""protocol":$DISPLAY_PROTOCOL""" in LinkCodec.encode(hello).decodeToString())
+        assertEquals(hello, LinkCodec.decode(LinkCodec.encode(hello)))
+        // An older display never sends the new fields: the head unit reads what it always did.
+        val old = LinkCodec.decode("""{"t":"display_stats","framesShown":150,"framesDropped":2,"kbps":2400,"periodMs":5000}""".encodeToByteArray()) as DisplayStats
+        assertEquals(0, old.droppedLate)
+        assertEquals(0, old.throttled)
+        assertNull(old.tempC)
+        val oldHello = LinkCodec.decode("""{"t":"display_hello","name":"Pi","appVersion":"1.0","width":1024,"height":600}""".encodeToByteArray()) as DisplayHello
+        assertEquals(1, oldHello.protocol)
+        // An older display skips the time message altogether, and the new fields of the readings.
+        assertNull(LinkCodec.decode("""{"t":"display_time","clock":5,"zoneOffsetMin":60}""".encodeToByteArray())?.let { null })
+        assertNull((LinkCodec.decode("""{"t":"cluster_state","clock":5}""".encodeToByteArray()) as ClusterState).layout)
+    }
+
+    @Test
     fun videoPacketsRoundTrip() {
         val data = byteArrayOf(0, 0, 0, 1, 0x65, 1, 2, 3)
         val back = VideoPacket.decode(VideoPacket(true, 123_456_789L, data).encode())!!

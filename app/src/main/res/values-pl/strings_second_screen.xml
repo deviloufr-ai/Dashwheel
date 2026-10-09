@@ -33,6 +33,13 @@
     <string name="second_screen_quality_detail">Niższa mniej obciąża Wi-Fi telefonu.</string>
     <string name="second_screen_output_video">Przesyłanie obrazu · %1$d kbit/s</string>
     <string name="second_screen_output_data">Wysyłanie odczytów; ekran rysuje zegary</string>
+    <string name="second_screen_program">program %1$s</string>
+    <string name="second_screen_program_older">Program ekranu jest starszy niż ta aplikacja: zapisz jego kartę na nowo.</string>
+    <string name="second_screen_program_newer">Program ekranu jest nowszy niż ta aplikacja: zaktualizuj Dashwheel.</string>
+    <string name="second_screen_health_under_powered">Płytka ekranu ma za mało prądu i zwalnia: użyj zasilacza 5 V 2,5 A i krótkiego, grubego kabla.</string>
+    <string name="second_screen_health_hot">Płytka ekranu jest gorąca (%1$d °C) i zwalnia: zapewnij jej powietrze lub radiator.</string>
+    <string name="second_screen_health_throttled">Płytka ekranu jest spowalniana przez firmware: sprawdź zasilanie.</string>
+    <string name="second_screen_output_lighter">Lżejszy obraz: ekran nie nadążał</string>
     <string name="second_screen_label_open">Otwarte: %1$s</string>
     <string name="second_screen_label_arrive">Przyjazd %1$s</string>
     <string name="second_screen_label_fuel">paliwo</string>

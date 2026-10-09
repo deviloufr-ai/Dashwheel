@@ -12,7 +12,7 @@ output of their own, such as the K706 (QF001, UIS7862).
    encrypted link, port 47811: H.264 video, or cluster data
 ```
 
-- **Network.** Every device joins the **phone's hotspot**; the head unit already does this for the phone link. The head unit finds the Pi by itself: DNS-SD first, then the last address that worked, then a scan of the hotspot.
+- **Network.** Every device joins the **phone's hotspot**; the head unit already does this for the phone link. The head unit finds the Pi by itself: its beacon first, then the last address that worked, DNS-SD, then a scan of the network. Better still, a **cable**: see *Wired to the head unit* below.
 - **Video.** The head unit draws the picture and encodes it to H.264. The Pi's VideoCore decodes it in hardware straight to the screen, with no desktop and no browser.
 - **Fallback.** When the head unit can't encode (another app holds the encoder), it sends only data, and the Pi draws a simple cluster itself.
 - **Security.** Every connection is encrypted and authenticated, like the phone link. Only a head unit that was given the Pi's pairing code can connect.
@@ -33,6 +33,15 @@ A head unit's USB port gives 0.5–1 A. A Pi 3 needs up to 2.5 A, and the monito
   - **Ready-made board:** use an ignition-sense power HAT (e.g. Mausberry car switch), which does the same in one module.
   - **Signal alternative:** the blue/white **REMOTE** (amplifier turn-on) wire follows the head unit's own power, sleep included. It can be the sense signal instead of ACC, but it carries only 100–300 mA: never power anything from it.
 - **Read-only card.** The card turns read-only by itself once a head unit has paired (step 5), so a sudden power cut can't damage it.
+
+### Wired to the head unit (recommended)
+
+Two Wi-Fi hops through a phone are the usual cause of a late or stuttering picture, and at home the head unit and the Pi easily end up on different networks. A cable avoids all of it:
+
+- a **USB Ethernet adapter** on one of the head unit's USB ports (most head units take the common AX88179 / RTL8153 ones), and
+- an **Ethernet cable** from it to the Pi's own port.
+
+Nothing to set up: the Pi hands the head unit an address on that cable (10.47.0.x), without a gateway, so the head unit keeps using the phone's Wi-Fi for the internet, and finds the Pi over the cable within a second. Wi-Fi stays as the fallback. Do not plug the Pi's Ethernet port into a home network: it hands out addresses there too.
 
 ## 2. Video output
 
@@ -121,7 +130,9 @@ For keys to work while another app is in front, Dashwheel's accessibility servic
 - **Screen size:** `cat /sys/class/drm/card*-HDMI-A-1/modes` shows what the monitor reports; the first line is used.
 - **Decoder check:** `gst-launch-1.0 videotestsrc num-buffers=100 ! x264enc ! h264parse ! v4l2h264dec ! kmssink` needs `gstreamer1.0-plugins-ugly` for x264enc. Stop the service first.
 - **Head unit can't find the Pi:** make sure both are on the hotspot and the phone doesn't isolate hotspot clients from each other (some phones call it "client isolation" or "AP isolation").
-- **Stuttering video:** check Wi-Fi. Both hops (head unit → phone → Pi) share the air. Use 5 GHz on a 3B+, or lower the resolution or bit rate on the head unit.
+- **Stuttering video:** first look at **Settings → Display → Second screen** on the head unit: it says when the Pi is under-powered or hot (the Pi reports its own throttle flags), which no Wi-Fi setting can fix: a 5 V 2.5 A supply over a short, thick cable, and air or a heatsink. Then the Wi-Fi: both hops (head unit → phone → Pi) share the air; use the cable above, 5 GHz on a 3B+, or a lower picture height on the head unit.
+- **Wrong time on the screen:** the head unit sends its clock and time zone at each link (older head units send no zone: set it on the Pi with `sudo timedatectl set-timezone Europe/Paris`).
+- **"Program older than this app" in the head unit's settings:** the card's program and the app ship separately; write the newest card image (step 3) or run the installer again (step 4).
 
 ## Trying it on a computer
 

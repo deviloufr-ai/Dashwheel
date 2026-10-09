@@ -33,6 +33,13 @@
     <string name="second_screen_quality_detail">Lager is lichter voor de wifi van de telefoon.</string>
     <string name="second_screen_output_video">Beeld wordt gestreamd · %1$d kbit/s</string>
     <string name="second_screen_output_data">Meetwaarden worden verstuurd; het scherm tekent de instrumenten</string>
+    <string name="second_screen_program">programma %1$s</string>
+    <string name="second_screen_program_older">Het programma van het scherm is ouder dan deze app: schrijf zijn kaart opnieuw.</string>
+    <string name="second_screen_program_newer">Het programma van het scherm is nieuwer dan deze app: werk Dashwheel bij.</string>
+    <string name="second_screen_health_under_powered">De printplaat van het scherm krijgt te weinig stroom en vertraagt: gebruik een voeding van 5 V en 2,5 A en een korte, dikke kabel.</string>
+    <string name="second_screen_health_hot">De printplaat van het scherm is heet (%1$d °C) en vertraagt: geef hem lucht of een koellichaam.</string>
+    <string name="second_screen_health_throttled">De printplaat van het scherm wordt door zijn firmware afgeremd: controleer de voeding.</string>
+    <string name="second_screen_output_lighter">Lichter beeld: het scherm kon het niet bijhouden</string>
     <string name="second_screen_label_open">Open: %1$s</string>
     <string name="second_screen_label_arrive">Aankomst %1$s</string>
     <string name="second_screen_label_fuel">brandstof</string>

@@ -31,7 +31,12 @@ data class SecondScreenStatus(
     val output: SecondScreenOutput = SecondScreenOutput.NONE,
     val block: SecondScreenBlock = SecondScreenBlock.NONE,
     /** The display's own measure of the video it receives. */
-    val kbps: Int = 0
+    val kbps: Int = 0,
+    /** How the display's board is doing, from its reports. */
+    val health: DisplayHealth = DisplayHealth.UNKNOWN,
+    val tempC: Int? = null,
+    /** How far the picture was lightened because the display could not decode it in time (0: not at all). */
+    val relief: Int = 0
 )
 
 /**
@@ -81,6 +86,8 @@ internal object SecondScreenController {
     @Volatile var serviceFiltersKeys = false
 
     private val encoderFailed = MutableStateFlow(false)
+    /** The picture lightened for a display that can't keep up ([SecondScreenRules.relief]); back to 0 with a new link. */
+    private val relief = MutableStateFlow(0)
     private val moving = MutableStateFlow(false)
     /** Whether the car moves, by the second screen's own reckoning: video apps' copies wait for it to stop. */
     val isMoving: StateFlow<Boolean> = moving
@@ -100,7 +107,8 @@ internal object SecondScreenController {
         val output: SecondScreenOutput,
         val block: SecondScreenBlock,
         val config: SecondScreenConfig,
-        val display: DisplayHello?
+        val display: DisplayHello?,
+        val relief: Int = 0
     )
 
     fun start(context: Context) {
@@ -118,7 +126,7 @@ internal object SecondScreenController {
         SecondScreenBrightness.start(scope, appContext)
         SecondScreenWords.start(scope, appContext)
         scope.launch {
-            combine(SecondScreenStore.config, DisplayLink.state, moving, encoderFailed) { config, link, isMoving, failed ->
+            combine(SecondScreenStore.config, DisplayLink.state, moving, encoderFailed, relief) { config, link, isMoving, failed, lighter ->
                 val display = (link as? DisplayLinkState.Connected)?.display
                 val canStream = display != null && com.openauto.dash.link.CODEC_H264 in display.decoders && !failed
                 val (output, block) = SecondScreenRules.output(
@@ -126,7 +134,7 @@ internal object SecondScreenController {
                     appIsVideo = config.appPackage?.let(::isVideoApp) == true,
                     canMoveApps = SecondScreenRules.appsMovable(android.os.Build.VERSION.SDK_INT)
                 )
-                Wanted(output, block, config, display)
+                Wanted(output, block, config, display, lighter)
             }
                 .distinctUntilChanged()
                 .conflate()
@@ -136,24 +144,46 @@ internal object SecondScreenController {
         scope.launch {
             DisplayLink.state.filterIsInstance<DisplayLinkState.Connected>().collect {
                 encoderFailed.value = false
-                // A new link may be a different Wi-Fi: the old ceiling no longer says anything.
+                // A new link may be a different Wi-Fi, or a display with a better supply: the old
+                // ceiling and the lighter picture no longer say anything.
                 bitrate = bitrate.copy(ceilingKbps = null, cleanSinceMs = null, settleUntilMs = SystemClock.elapsedRealtime() + SecondScreenRules.BITRATE_SETTLE_MS)
+                relief.value = 0
             }
         }
         scope.launch {
-            SecondScreenStore.config.map { listOf(it.video, it.maxHeight, it.bitrateKbps, it.mode) }.distinctUntilChanged().collect { encoderFailed.value = false }
+            SecondScreenStore.config.map { listOf(it.video, it.maxHeight, it.bitrateKbps, it.mode) }.distinctUntilChanged().collect {
+                encoderFailed.value = false
+                relief.value = 0
+            }
         }
         scope.launch { DisplayLink.keyFrameRequests.collect { stream?.requestKeyFrame() } }
         scope.launch {
+            var lastHealth = DisplayHealth.UNKNOWN
             DisplayLink.stats.collect { report ->
-                _status.update { it.copy(kbps = report?.kbps ?: 0) }
-                // Too much for the Wi-Fi: lighter frames rather than frames lost.
+                val health = SecondScreenRules.health(report)
+                _status.update { it.copy(kbps = report?.kbps ?: 0, health = health, tempC = report?.tempC) }
+                if (health != lastHealth) {
+                    lastHealth = health
+                    if (health != DisplayHealth.UNKNOWN && health != DisplayHealth.OK) {
+                        DebugLog.note(appContext, "second screen board: $health" + (report?.tempC?.let { ", $it °C" } ?: "") + ", flags 0x${Integer.toHexString(report?.throttled ?: 0)}")
+                    }
+                }
                 val s = stream ?: return@collect
                 if (report == null) return@collect
-                // Frames the link could not take on this side count as dropped too.
-                val dropped = report.framesDropped + DisplayLink.takeRefusedFrames()
+                val now = SystemClock.elapsedRealtime()
+                // The display itself too slow for the stream: fewer frames and pixels, not fewer bits.
+                val lighter = SecondScreenRules.relief(relief.value, report, settled = now >= bitrate.settleUntilMs)
+                if (lighter != relief.value) {
+                    Log.i(TAG, "display behind (${report.droppedLate} of ${report.framesShown + report.framesDropped} frames late): lighter picture, step $lighter")
+                    DebugLog.note(appContext, "second screen could not keep up (${report.droppedLate} frames late, $health): lighter picture, step $lighter")
+                    relief.value = lighter
+                }
+                // Too much for the Wi-Fi: lighter frames rather than frames lost. Only the frames the
+                // link lost count: those the display had no room for are its own (above), plus the ones
+                // refused on this side because the link was behind.
+                val dropped = SecondScreenRules.networkDrops(report, DisplayLink.takeRefusedFrames())
                 val next = SecondScreenRules.adaptBitrate(
-                    bitrate, SecondScreenStore.config.value.bitrateKbps, report.framesShown, dropped, SystemClock.elapsedRealtime()
+                    bitrate, SecondScreenStore.config.value.bitrateKbps, report.framesShown, dropped, now
                 )
                 if (next.kbps != bitrate.kbps || next.ceilingKbps != bitrate.ceilingKbps) {
                     Log.i(TAG, "bitrate ${bitrate.kbps} -> ${next.kbps} kbit/s, ceiling ${next.ceilingKbps} ($dropped of ${report.framesShown + dropped} frames dropped)")
@@ -197,7 +227,7 @@ internal object SecondScreenController {
     }
 
     private suspend fun apply(wanted: Wanted) {
-        _status.update { it.copy(output = wanted.output, block = wanted.block) }
+        _status.update { it.copy(output = wanted.output, block = wanted.block, relief = wanted.relief) }
         val connected = wanted.display != null
         if (!connected && wanted.config.mode != SecondScreenMode.OFF && (stream != null || appShown != null)) {
             // Gone for now: keep the app where it is for a while, it will likely be back.
@@ -221,11 +251,12 @@ internal object SecondScreenController {
         if (!videoOut || display == null) {
             tearDown()
         } else {
-            val (w, h) = SecondScreenRules.streamSize(display.width, display.height, wanted.config.maxHeight, display.maxWidth, display.maxHeight)
+            val maxHeight = SecondScreenRules.reliefHeight(wanted.config.maxHeight, wanted.relief)
+            val (w, h) = SecondScreenRules.streamSize(display.width, display.height, maxHeight, display.maxWidth, display.maxHeight)
             // A page with a live map or an app's copy moves like video: smoother, and each frame waits less.
             // Decided for all the pages at once, so turning one never restarts the stream.
             val live = wanted.config.pages.any { p -> wanted.config.layoutFor(p).slots.any { it.kind in LIVE_KINDS } }
-            val fps = if (wanted.output == SecondScreenOutput.VIDEO_APP || live) APP_FPS else CLUSTER_FPS
+            val fps = SecondScreenRules.reliefFps(if (wanted.output == SecondScreenOutput.VIDEO_APP || live) APP_FPS else CLUSTER_FPS, wanted.relief)
             val shape = listOf(w, h, fps, wanted.config.bitrateKbps)
             if (streamShape != shape) {
                 tearDown()

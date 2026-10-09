@@ -1,5 +1,10 @@
 package com.openauto.dash
 
+import com.openauto.dash.link.ClusterFace
+import com.openauto.dash.link.ClusterState
+import com.openauto.dash.link.DISPLAY_PROTOCOL
+import com.openauto.dash.link.DisplayStats
+
 /*
  * The second screen: a Raspberry Pi wired to a monitor, on the phone's hotspot
  * (see DisplayLink and tools/pi/README.md). What it should show and how, as
@@ -224,6 +229,22 @@ enum class SecondScreenOutput {
 /** Why the app asked for can't be shown (the display then shows the cluster from data). */
 enum class SecondScreenBlock { NONE, NO_APP_CHOSEN, NO_VIDEO, VIDEO_WHILE_MOVING, APPS_NOT_SUPPORTED }
 
+/** How the display's board is doing, from its own report ([DisplayStats.throttled], [DisplayStats.tempC]). */
+enum class DisplayHealth {
+    /** No report yet, or a display that doesn't send one. */
+    UNKNOWN,
+    OK,
+    /** Its supply sags: it slows down and may crash. The usual cause of a stutter. */
+    UNDER_POWERED,
+    /** Too hot: it slows itself down. */
+    HOT,
+    /** Slowed down by its firmware for another reason. */
+    THROTTLED
+}
+
+/** Whether the display's program and this app speak the same protocol ([DISPLAY_PROTOCOL]). */
+enum class SecondScreenVersionGap { NONE, DISPLAY_OLDER, DISPLAY_NEWER }
+
 object SecondScreenRules {
 
     /** The background the cluster shows now: the chosen one, or light by [day] when it follows day and night. */
@@ -362,6 +383,86 @@ object SecondScreenRules {
                 BitrateState(next, ceiling, cleanSince, state.settleUntilMs)
             }
         }
+    }
+
+    /** The display's temperature from which it is called hot, °C: a Pi 3 slows itself from 80 and crashes past 85. */
+    const val HOT_C = 80
+
+    /** How far the picture is lightened for a display that can't decode it in time: none, half the frames, then a size down as well. */
+    const val MAX_RELIEF = 2
+
+    fun health(report: DisplayStats?): DisplayHealth {
+        if (report == null) return DisplayHealth.UNKNOWN
+        val now = report.throttled and DisplayStats.THROTTLE_NOW
+        return when {
+            now and DisplayStats.THROTTLE_UNDER_VOLTAGE != 0 -> DisplayHealth.UNDER_POWERED
+            now and DisplayStats.THROTTLE_SOFT_TEMP != 0 || (report.tempC ?: 0) >= HOT_C -> DisplayHealth.HOT
+            now != 0 -> DisplayHealth.THROTTLED
+            else -> DisplayHealth.OK
+        }
+    }
+
+    /**
+     * The frames the link lost in [report]: those dropped on the display for
+     * any reason but a full decoder, plus the [refused] here. Only these say
+     * anything about the Wi-Fi; the display's own slowness is [relief]'s business.
+     */
+    fun networkDrops(report: DisplayStats, refused: Int): Int = (report.framesDropped - report.droppedLate).coerceAtLeast(0) + refused
+
+    /**
+     * The next relief step from [current]: one more when the display dropped
+     * more than one frame in twenty for want of decoder room (it is the
+     * bottleneck, not the link), never past [MAX_RELIEF], and never while a
+     * new stream settles ([settled] false: its decoder is still starting).
+     */
+    fun relief(current: Int, report: DisplayStats, settled: Boolean): Int {
+        if (!settled || current >= MAX_RELIEF) return current
+        val total = report.framesShown + report.framesDropped
+        return if (report.droppedLate >= MIN_DROPS_TO_CUT && report.droppedLate * 20 > total) current + 1 else current
+    }
+
+    /** The frame rate at [relief]: halved from the first step on, never under 10. */
+    fun reliefFps(fps: Int, relief: Int): Int = if (relief >= 1) maxOf(10, fps / 2) else fps
+
+    /** The tallest picture at [relief]: one step of [STREAM_HEIGHTS] down from the second step on. */
+    fun reliefHeight(maxHeight: Int, relief: Int): Int {
+        if (relief < 2) return maxHeight
+        val at = STREAM_HEIGHTS.indexOfFirst { it >= maxHeight }.takeIf { it > 0 } ?: return maxHeight.coerceAtMost(STREAM_HEIGHTS.first())
+        return STREAM_HEIGHTS[at - 1]
+    }
+
+    fun versionGap(displayProtocol: Int): SecondScreenVersionGap = when {
+        displayProtocol < DISPLAY_PROTOCOL -> SecondScreenVersionGap.DISPLAY_OLDER
+        displayProtocol > DISPLAY_PROTOCOL -> SecondScreenVersionGap.DISPLAY_NEWER
+        else -> SecondScreenVersionGap.NONE
+    }
+
+    /** A display that reads the words sent once ([com.openauto.dash.link.DisplayWords.labels]) rather than with each reading. */
+    fun readsWordsOnce(displayProtocol: Int): Boolean = displayProtocol >= 2
+
+    /** What the display draws for a board widget, when it has the readings for it; null for the others. */
+    fun faceOf(kind: BuiltinKind): String? = when (kind) {
+        BuiltinKind.SPEED_HUD -> ClusterFace.SPEED
+        BuiltinKind.CLOCK -> ClusterFace.CLOCK
+        BuiltinKind.RANGE -> ClusterFace.RANGE
+        BuiltinKind.MEDIA -> ClusterFace.MEDIA
+        BuiltinKind.NAVIGATION -> ClusterFace.NAV
+        BuiltinKind.TELEMETRY -> ClusterFace.TELEMETRY
+        BuiltinKind.OBD_ALL -> ClusterFace.MEASURES
+        BuiltinKind.DOORS -> ClusterFace.DOORS
+        BuiltinKind.ENGINE_TEMPS -> ClusterFace.COOLANT
+        else -> null
+    }
+
+    /**
+     * [layout] for the display to draw itself: its arrangement and a face per
+     * slot, empty where the display has nothing for that widget. Null when it
+     * has nothing for any of them: the display then draws its own page.
+     */
+    fun layoutMessage(layout: ClusterLayout): ClusterState.Layout? {
+        val faces = layout.slots.map { faceOf(it.kind).orEmpty() }
+        if (faces.all { it.isEmpty() }) return null
+        return ClusterState.Layout(layout.arrangement.name, faces)
     }
 
     /** Density for the streamed screen: what a head unit of that height would use, so apps lay out alike. */

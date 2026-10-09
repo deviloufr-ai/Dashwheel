@@ -44,6 +44,13 @@ class RenderPreview {
             "obd_none" to base.copy(page = "OBD", labels = ClusterState.Labels(measuresNone = "En attente de l'adaptateur OBD…")),
             "alert_warn" to base.copy(alert = ClusterState.Alert("Doors", "Front left, Tailgate", ClusterState.Alert.WARN)),
             "alert_crit" to base.copy(alert = ClusterState.Alert("Engine hot", "Coolant 118°", ClusterState.Alert.CRITICAL)),
+            // The board's own pages, as the head unit lays them out by default.
+            "board_drive" to base.copy(layout = ClusterState.Layout("BIG_STACK", listOf("SPEED", "CLOCK", "RANGE"))),
+            "board_media" to base.copy(page = "MEDIA", layout = ClusterState.Layout("BIG_STACK", listOf("MEDIA", "SPEED", "CLOCK"))),
+            "board_nav" to base.copy(page = "NAV", maneuver = "ROUNDABOUT", layout = ClusterState.Layout("BIG_STACK", listOf("NAV", "SPEED", "CLOCK"))),
+            "board_obd" to base.copy(page = "OBD", measures = MEASURES, layout = ClusterState.Layout("BIG_SIDE", listOf("TELEMETRY", "MEASURES"))),
+            "board_grid" to base.copy(open = listOf("Front left"), layout = ClusterState.Layout("GRID", listOf("SPEED", "DOORS", "FUEL", "COOLANT"))),
+            "board_grid_noobd" to ClusterState(clock = base.clock, speedKmh = 52, night = true, layout = ClusterState.Layout("GRID", listOf("SPEED", "DOORS", "FUEL", "COOLANT"))),
         )
         File(dir).mkdirs()
         val painter = Painter(1024, 600, overscanPct = 0)
@@ -51,7 +58,7 @@ class RenderPreview {
             ImageIO.write(painter.paintCluster(s, s.clock), "png", File(dir, "$name.png"))
         }
         for (design in Design.entries) for ((name, s) in states) {
-            if (!name.startsWith("drive") && name != "nav_night" && name != "media_night") continue
+            if (!name.startsWith("drive") && !name.startsWith("board") && name != "nav_night" && name != "media_night") continue
             ImageIO.write(painter.paintCluster(s.copy(design = design.name), s.clock), "png", File(dir, "${design.name.lowercase()}_$name.png"))
         }
     }

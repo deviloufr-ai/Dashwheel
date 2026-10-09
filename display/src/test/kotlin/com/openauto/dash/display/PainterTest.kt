@@ -47,6 +47,57 @@ class PainterTest {
     }
 
     @Test
+    fun theBoardDrawsEveryArrangementAndFaceInEveryDesign() {
+        val full = ClusterState(
+            clock = 1_700_000_000_000, speedKmh = 87, rpm = 2100, coolantC = 90, fuelPct = 40, rangeKm = 310,
+            open = listOf("Boot"), obdConnected = true,
+            media = ClusterState.Media("Song", "Artist", "Spotify", true, 30_000, 200_000),
+            nav = ClusterState.Nav("Turn right", "300 m", "Rue de Rivoli", "18:42"), maneuver = "RIGHT",
+            measures = listOf(ClusterState.Measure("Coolant", "90 °C"))
+        )
+        val faces = com.openauto.dash.link.ClusterFace.ALL + "" + "SOMETHING_NEW"
+        val arrangements = listOf("ONE" to 1, "BIG_SIDE" to 2, "HALVES" to 2, "THREE" to 3, "BIG_STACK" to 3, "GRID" to 4)
+        for ((w, h) in listOf(720 to 480, 1024 to 600)) {
+            val painter = Painter(w, h, overscanPct = 0)
+            for (design in Design.entries) for ((arrangement, slots) in arrangements) {
+                // Every face gets a turn in every slot size, with and without readings.
+                for (first in faces.indices step 3) {
+                    val chosen = (0 until slots).map { faces[(first + it) % faces.size] }
+                    val layout = ClusterState.Layout(arrangement, chosen)
+                    painter.paintCluster(full.copy(design = design.name, layout = layout), full.clock)
+                    painter.paintCluster(ClusterState(clock = 0, night = false, design = design.name, layout = layout), 0)
+                }
+            }
+            // A board the display doesn't know (a newer arrangement): the page as it comes, not nothing.
+            val image = painter.paintCluster(full.copy(layout = ClusterState.Layout("HEXAGON", listOf("SPEED"))), full.clock)
+            assertTrue(image.getRGB(0, 0, w, h, null, 0, w).any { it and 0xFFFFFF != 0 })
+        }
+        // The boxes cover the body, the big one first.
+        val boxes = Board.boxes("BIG_STACK", java.awt.Rectangle(0, 0, 1000, 500), 10)!!
+        assertEquals(3, boxes.size)
+        assertTrue(boxes[0].width > boxes[1].width)
+        assertEquals(1000, boxes[1].x + boxes[1].width)
+        assertEquals(500, boxes[2].y + boxes[2].height)
+        assertNull(Board.boxes("HEXAGON", java.awt.Rectangle(0, 0, 10, 10), 1))
+    }
+
+    @Test
+    fun theClockIsWrittenInTheHeadUnitsZoneAndTheTurnAsItNamesIt() {
+        val noon = 1_700_000_000_000L // 2023-11-14 22:13:20 UTC
+        val painter = Painter(400, 200, overscanPct = 0)
+        painter.zone = java.time.ZoneId.of("Europe/Paris")
+        assertEquals("23:13", clockText(noon, false, painter.zone))
+        assertEquals("22:13", clockText(noon, false, java.time.ZoneOffset.UTC))
+        // The head unit's name for the turn wins over its words; an unknown name falls back to them.
+        assertEquals(Maneuver.LEFT, Maneuver.named("LEFT"))
+        assertNull(Maneuver.named("SIDEWAYS"))
+        // Words sent once stand in for the ones an older head unit sent with each reading.
+        val text = ClusterText(ClusterState(clock = 0, fuelPct = 50), words = ClusterState.Labels(fuel = "carburant"))
+        assertEquals("carburant", text.card(ClusterText.Kind.FUEL).label)
+        assertEquals("--", text.card(ClusterText.Kind.RPM).value)
+    }
+
+    @Test
     fun everyClusterPageDrawsOnSmallAndLargeScreens() {
         val full = ClusterState(
             clock = 1_700_000_000_000, speedKmh = 87, rpm = 2100, coolantC = 90, fuelPct = 40, rangeKm = 310,

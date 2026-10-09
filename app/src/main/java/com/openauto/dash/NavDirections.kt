@@ -37,7 +37,13 @@ data class NavState(
     val eta: String = "",
     /** The manoeuvre arrow, usually a white glyph on transparent. */
     val icon: Bitmap? = null,
-    val packageName: String = ""
+    val packageName: String = "",
+    /**
+     * The turn by name ([com.openauto.dash.link.MANEUVERS]) when the
+     * navigation says it (in-app guidance); null from a notification, which
+     * only has the words and the icon.
+     */
+    val maneuver: String? = null
 ) {
     /** Distance split into value and unit: "300 m" → ("300", "m"). */
     val distanceParts: Pair<String, String>

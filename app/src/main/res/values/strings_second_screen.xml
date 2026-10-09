@@ -33,6 +33,13 @@
     <string name="second_screen_quality_detail">Lower is lighter on the phone\'s Wi-Fi.</string>
     <string name="second_screen_output_video">Streaming the picture · %1$d kbit/s</string>
     <string name="second_screen_output_data">Sending readings; the screen draws the cluster</string>
+    <string name="second_screen_program">program %1$s</string>
+    <string name="second_screen_program_older">The screen\'s program is older than this app: write a new card for it.</string>
+    <string name="second_screen_program_newer">The screen\'s program is newer than this app: update Dashwheel.</string>
+    <string name="second_screen_health_under_powered">The screen\'s board is under-powered and slows down: use a 5 V, 2.5 A supply and a short, thick cable.</string>
+    <string name="second_screen_health_hot">The screen\'s board is hot (%1$d °C) and slows down: give it air or a heatsink.</string>
+    <string name="second_screen_health_throttled">The screen\'s board is slowed down by its firmware: check its power supply.</string>
+    <string name="second_screen_output_lighter">Lighter picture: the screen could not keep up</string>
     <string name="second_screen_label_open">Open: %1$s</string>
     <string name="second_screen_label_arrive">Arrive %1$s</string>
     <string name="second_screen_label_fuel">fuel</string>

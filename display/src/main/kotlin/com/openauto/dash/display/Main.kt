@@ -28,6 +28,7 @@ fun main(args: Array<String>) {
     val pairing = DisplayPairing(dir, config.name)
     Rotation.load(dir)
     Words.load(dir)
+    LocalClock.load(dir)
     if (printPairing) {
         println(pairing.offer.toUri())
         return
@@ -38,17 +39,21 @@ fun main(args: Array<String>) {
     else detected ?: ScreenMode.FALLBACK
     log("screen ${mode.width}x${mode.height}" + if (detected == null) " (none detected, assumed)" else "")
     PixelShape.detect(mode.width, mode.height)
+    BoardHealth.readAndLog()
     if (PixelShape.kms != (1 to 1)) log("the monitor reports a size that is not its shape: pixels taken for ${PixelShape.kms.first}/${PixelShape.kms.second}")
 
+    val version = DisplayServer::class.java.`package`?.implementationVersion ?: "dev"
+    log("dashwheel-display $version, protocol ${com.openauto.dash.link.DISPLAY_PROTOCOL}")
     val hello = DisplayHello(
         name = config.name,
-        appVersion = DisplayServer::class.java.`package`?.implementationVersion ?: "dev",
+        appVersion = version,
         width = mode.width,
         height = mode.height,
         refreshHz = mode.refreshHz,
         overscanPct = config.overscanPct,
         model = runCatching { File("/proc/device-tree/model").readText().trim('\u0000', ' ', '\n') }.getOrDefault(""),
-        brightness = config.brightnessUpGpio != null
+        brightness = config.brightnessUpGpio != null,
+        protocol = com.openauto.dash.link.DISPLAY_PROTOCOL
     )
     val buttons = config.brightnessUpGpio?.let { up -> BrightnessButtons(up, config.brightnessDownGpio!!).apply { start() } }
     val server = DisplayServer(config, pairing, hello, buttons)

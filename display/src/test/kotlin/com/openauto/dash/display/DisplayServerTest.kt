@@ -4,6 +4,8 @@ import com.openauto.dash.link.ClusterState
 import com.openauto.dash.link.DisplayCommand
 import com.openauto.dash.link.DisplayHello
 import com.openauto.dash.link.DisplayMode
+import com.openauto.dash.link.DisplayStats
+import com.openauto.dash.link.LinkMessage
 import com.openauto.dash.link.LinkSession
 import com.openauto.dash.link.Ping
 import com.openauto.dash.link.Pong
@@ -34,6 +36,14 @@ class DisplayServerTest {
         override val alive = true
         override fun offer(chunk: ByteArray) = written.add(chunk)
         override fun stop() = Unit
+    }
+
+    /** The next message that isn't the display's periodic stats line. */
+    private fun LinkSession.next(): LinkMessage? {
+        while (true) {
+            val m = receive()
+            if (m !is DisplayStats) return m
+        }
     }
 
     private fun waitFor(what: String, check: () -> Boolean) {
@@ -71,11 +81,11 @@ class DisplayServerTest {
         val s = Socket(InetAddress.getLoopbackAddress(), socket.localPort)
         s.soTimeout = 5_000
         val unit: LinkSession = SecureChannel.client(s.getInputStream(), s.getOutputStream(), offer.id, offer.secret, onClose = s::close)
-        assertEquals(hello, unit.receive())
+        assertEquals(hello, unit.next())
         waitFor("the pairing to be marked used") { pairing.used }
 
         unit.send(Ping)
-        assertEquals(Pong, unit.receive())
+        assertEquals(Pong, unit.next())
 
         unit.send(ClusterState(clock = 1, speedKmh = 50))
         waitFor("data mode") { server.screen.showing == Screen.Showing.DATA }
@@ -86,10 +96,10 @@ class DisplayServerTest {
         // A delta frame first: dropped, and the display asks for a key frame.
         unit.sendBinary(VideoPacket(false, 0, byteArrayOf(0, 0, 0, 1, 0x41)).encode())
         // Each frame is confirmed as it arrives (the head unit's VideoWindow), then the key frame asked for.
-        assertEquals(VideoAck(0), unit.receive())
-        assertEquals(DisplayCommand(DisplayCommand.Action.KEYFRAME_PLEASE), unit.receive())
+        assertEquals(VideoAck(0), unit.next())
+        assertEquals(DisplayCommand(DisplayCommand.Action.KEYFRAME_PLEASE), unit.next())
         unit.sendBinary(VideoPacket(true, 1, byteArrayOf(0, 0, 0, 1, 0x65)).encode())
-        assertEquals(VideoAck(1), unit.receive())
+        assertEquals(VideoAck(1), unit.next())
         waitFor("the key frame to reach the decoder") { sink.written.isNotEmpty() }
         assertArrayEquals(csd + byteArrayOf(0, 0, 0, 1, 0x65), sink.written.first())
         assertTrue(server.screen.showing == Screen.Showing.VIDEO)

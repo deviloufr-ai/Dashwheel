@@ -135,7 +135,8 @@ private fun SecondScreenSettings() {
     val connected = state as? DisplayLinkState.Connected
     val (title, detail) = when (val s = state) {
         is DisplayLinkState.Connected -> stringResource(R.string.second_screen_status_connected, s.display.name) to
-            stringResource(R.string.second_screen_size, s.display.width, s.display.height)
+            (stringResource(R.string.second_screen_size, s.display.width, s.display.height) + " · " +
+                stringResource(R.string.second_screen_program, s.display.appVersion))
         DisplayLinkState.Searching -> stringResource(R.string.second_screen_status_searching) to stringResource(R.string.second_screen_status_searching_detail)
         DisplayLinkState.Unpaired -> stringResource(R.string.second_screen_status_unpaired) to stringResource(R.string.second_screen_status_unpaired_detail)
     }
@@ -153,6 +154,19 @@ private fun SecondScreenSettings() {
             Text(detail, color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
             if (connected != null) {
                 statusLine(status)?.let { Text(it, color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall) }
+                // The two halves ship apart: say when one is behind the other.
+                when (SecondScreenRules.versionGap(connected.display.protocol)) {
+                    SecondScreenVersionGap.DISPLAY_OLDER -> stringResource(R.string.second_screen_program_older)
+                    SecondScreenVersionGap.DISPLAY_NEWER -> stringResource(R.string.second_screen_program_newer)
+                    SecondScreenVersionGap.NONE -> null
+                }?.let { Text(it, color = DashColors.Warning, style = MaterialTheme.typography.bodySmall) }
+                // The board's own trouble, which no Wi-Fi setting can fix.
+                when (status.health) {
+                    DisplayHealth.UNDER_POWERED -> stringResource(R.string.second_screen_health_under_powered)
+                    DisplayHealth.HOT -> stringResource(R.string.second_screen_health_hot, status.tempC ?: 0)
+                    DisplayHealth.THROTTLED -> stringResource(R.string.second_screen_health_throttled)
+                    DisplayHealth.OK, DisplayHealth.UNKNOWN -> null
+                }?.let { Text(it, color = DashColors.Warning, style = MaterialTheme.typography.bodySmall) }
             } else {
                 DisplayAttemptLine()
             }
@@ -239,13 +253,13 @@ private fun SecondScreenSettings() {
                 stringResource(R.string.second_screen_video_detail), !config.video
             ) { simple -> update { it.copy(video = !simple) } }
             Spacer(Modifier.padding(top = 12.dp))
-            // The board lays out the streamed pages; the display draws its own in the chosen design.
-            if (config.video) {
-                ClusterBoard()
-            } else {
+            // The board lays out the pages either way: streamed, or drawn by the display in the chosen design.
+            if (!config.video) {
                 SettingsSection(stringResource(R.string.second_screen_design))
                 DesignPicker(config.design) { design -> update { it.copy(design = design) } }
+                Spacer(Modifier.padding(top = 12.dp))
             }
+            ClusterBoard()
         }
         SecondScreenMode.APP -> {
             if (!SecondScreenRules.appsMovable(android.os.Build.VERSION.SDK_INT)) {
@@ -334,7 +348,8 @@ private fun statusLine(status: SecondScreenStatus): String? {
         SecondScreenOutput.VIDEO_CLUSTER, SecondScreenOutput.VIDEO_APP -> stringResource(R.string.second_screen_output_video, status.kbps)
         SecondScreenOutput.DATA -> stringResource(R.string.second_screen_output_data)
     }
-    return listOfNotNull(output, block).joinToString(" · ").ifEmpty { null }
+    val lighter = if (status.relief > 0 && status.output != SecondScreenOutput.NONE) stringResource(R.string.second_screen_output_lighter) else null
+    return listOfNotNull(output, lighter, block).joinToString(" · ").ifEmpty { null }
 }
 
 private fun appLabel(context: android.content.Context, pkg: String): String =

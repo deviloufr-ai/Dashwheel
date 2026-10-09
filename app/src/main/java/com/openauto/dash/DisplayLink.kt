@@ -11,10 +11,12 @@ import android.util.Log
 import com.openauto.dash.link.DISPLAY_BEACON_PORT
 import com.openauto.dash.link.DISPLAY_BEACON_PREFIX
 import com.openauto.dash.link.DISPLAY_PORT
+import com.openauto.dash.link.DISPLAY_PROTOCOL
 import com.openauto.dash.link.DISPLAY_SERVICE_TYPE
 import com.openauto.dash.link.DisplayCommand
 import com.openauto.dash.link.DisplayHello
 import com.openauto.dash.link.DisplayStats
+import com.openauto.dash.link.DisplayTime
 import com.openauto.dash.link.VideoAck
 import com.openauto.dash.link.VideoWindow
 import com.openauto.dash.link.Hello
@@ -44,6 +46,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withTimeoutOrNull
@@ -95,12 +98,21 @@ object DisplayLink {
      */
     private const val PROBE_EVERY_MS = 15_000L
     private const val HANDSHAKE_TIMEOUT_MS = 10_000
-    private const val READ_TIMEOUT_MS = 45_000
-    private const val PING_EVERY_MS = 15_000L
+    /**
+     * The display answers each ping, and sends its stats every 5 s on its own:
+     * nothing heard for this long and the link is dead. Short, so "no signal"
+     * and the redial come within seconds of a Wi-Fi drop, not three quarters of a minute.
+     */
+    private const val READ_TIMEOUT_MS = 15_000
+    private const val PING_EVERY_MS = 5_000L
+    /** A send that takes this long is stuck in a socket nobody reads any more: the link is closed rather than waited for. */
+    private const val SEND_STALL_MS = 3_000L
     /** One dial at the known addresses: cheap, and the display is found soon after its Wi-Fi joins. */
     private const val RETRY_MS = 2_000L
-    /** Video frames queue here: about a second at 30 fps, then they are dropped (see [sendVideo]). */
-    private const val OUTBOX_SIZE = 48
+    /** Messages waiting to go (a mode, the words, the readings): never behind the video, see [control]. */
+    private const val CONTROL_QUEUE = 64
+    /** Video frames queue here, a few at most ([VIDEO_BACKLOG]); the rest are dropped (see [sendVideo]). */
+    private const val VIDEO_QUEUE = 8
 
     /** Frames waiting to go at most: a third of a second at the cluster's 15 frames a second. */
     private const val VIDEO_BACKLOG = 5
@@ -134,8 +146,17 @@ object DisplayLink {
         class Raw(val bytes: ByteArray) : Out()
     }
 
-    // One queue, one sender: a video config always reaches the display before the frames it describes.
-    private val outbox = Channel<Pair<LinkSession, Out>>(OUTBOX_SIZE)
+    /**
+     * Two queues, one sender, messages first: a mode change, the words or a
+     * brightness level never wait behind video frames, and a video config
+     * still reaches the display before the frames it describes (they are
+     * queued after it, and frames only go when no message waits).
+     */
+    private val control = Channel<Pair<LinkSession, LinkMessage>>(CONTROL_QUEUE)
+    private val video = Channel<Pair<LinkSession, ByteArray>>(VIDEO_QUEUE)
+
+    /** The link a send has been stuck in since when (uptime), for the stall watchdog; null between sends. */
+    @Volatile private var sending: Pair<LinkSession, Long>? = null
 
     /**
      * Video frames in the outbox, not yet sent. Over a phone's hotspot the
@@ -182,7 +203,13 @@ object DisplayLink {
             }
         )
         scope.launch {
-            for ((link, out) in outbox) {
+            while (isActive) {
+                // select takes the first clause that is ready: a message before a frame.
+                val (link, out) = select<Pair<LinkSession, Out>> {
+                    control.onReceive { (l, m) -> l to Out.Message(m) }
+                    video.onReceive { (l, b) -> l to Out.Raw(b) }
+                }
+                sending = link to android.os.SystemClock.elapsedRealtime()
                 val sent = try {
                     when (out) {
                         is Out.Message -> link.send(out.message)
@@ -192,6 +219,7 @@ object DisplayLink {
                     link.close()
                     false
                 } finally {
+                    sending = null
                     if (out is Out.Raw) videoQueued.decrementAndGet()
                 }
                 if (!sent && out is Out.Raw) _keyFrameRequests.tryEmit(Unit)
@@ -223,7 +251,16 @@ object DisplayLink {
     /** Sends to the connected display; false when none is connected or the queue is full. */
     fun send(message: LinkMessage): Boolean {
         val current = session ?: return false
-        return outbox.trySend(current to Out.Message(message)).isSuccess
+        val queued = control.trySend(current to message).isSuccess
+        if (!queued) Log.w(TAG, "message dropped, the link is not keeping up: ${message::class.simpleName}")
+        return queued
+    }
+
+    /** The head unit's clock and zone for the display ([DisplayTime]). */
+    private fun timeMessage(): DisplayTime {
+        val now = System.currentTimeMillis()
+        val zone = java.util.TimeZone.getDefault()
+        return DisplayTime(now, zone.getOffset(now) / 60_000, zone.id)
     }
 
     /**
@@ -239,7 +276,7 @@ object DisplayLink {
             return false
         }
         videoQueued.incrementAndGet()
-        val queued = outbox.trySend(current to Out.Raw(packet.encode())).isSuccess
+        val queued = video.trySend(current to packet.encode()).isSuccess
         if (!queued) videoQueued.decrementAndGet() else window.queued(packet.ptsUs)
         return queued
     }
@@ -327,10 +364,25 @@ object DisplayLink {
         window.reset()
         session = link
         holdWifi(context, true)
+        // The time first, so the display's clock is right from its first picture, then with every ping.
+        send(timeMessage())
         val pinger = scope.launch {
             while (isActive) {
                 delay(PING_EVERY_MS)
                 send(Ping)
+                send(timeMessage())
+            }
+        }
+        // A socket nobody reads any more takes a send with it: closed, so the writer and the reader both let go.
+        val watchdog = scope.launch {
+            while (isActive) {
+                delay(1_000)
+                val (stuckIn, since) = sending ?: continue
+                if (stuckIn === link && android.os.SystemClock.elapsedRealtime() - since > SEND_STALL_MS) {
+                    note("display link stalled: a send took over ${SEND_STALL_MS / 1000} s")
+                    link.close()
+                    break
+                }
             }
         }
         try {
@@ -341,6 +393,16 @@ object DisplayLink {
                         if (message.name != display.name) {
                             updateDisplays(context) { list -> list.map { if (it.id == display.id) it.copy(name = message.name) else it } }
                         }
+                        val versions = "display program ${message.appVersion}, protocol ${message.protocol} (this app: $DISPLAY_PROTOCOL)"
+                        note(versions)
+                        DebugLog.note(
+                            context,
+                            "second screen ${message.name} linked: $versions" + when (SecondScreenRules.versionGap(message.protocol)) {
+                                SecondScreenVersionGap.DISPLAY_OLDER -> ", the display's card is older than this app"
+                                SecondScreenVersionGap.DISPLAY_NEWER -> ", the display's card is newer than this app"
+                                SecondScreenVersionGap.NONE -> ""
+                            }
+                        )
                         _state.value = DisplayLinkState.Connected(message, address)
                     }
                     is DisplayCommand -> if (message.action == DisplayCommand.Action.KEYFRAME_PLEASE) _keyFrameRequests.tryEmit(Unit)
@@ -354,6 +416,7 @@ object DisplayLink {
             note("display link ended: ${e.message.orEmpty()}")
         } finally {
             pinger.cancel()
+            watchdog.cancel()
             link.close()
             if (session === link) session = null
             _stats.value = null
@@ -363,21 +426,24 @@ object DisplayLink {
     }
 
     /**
-     * Every host of the hotspot's network with the display's port open. The
-     * phone (the gateway) and this unit are skipped.
+     * Every host of the hotspot's network with the display's port open, and
+     * of a wired network too (a USB Ethernet adapter straight to the Pi, which
+     * hands this unit its address). The phone (the gateway) and this unit are skipped.
      */
     private suspend fun probe(context: Context): List<String> {
         val cm = context.getSystemService(ConnectivityManager::class.java) ?: return emptyList()
         @Suppress("DEPRECATION")
-        val wifi = (listOfNotNull(cm.activeNetwork) + cm.allNetworks).distinct().firstOrNull {
-            cm.getNetworkCapabilities(it)?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
+        val local = (listOfNotNull(cm.activeNetwork) + cm.allNetworks).distinct().filter { network ->
+            cm.getNetworkCapabilities(network)?.let {
+                it.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || it.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
+            } == true
         }
-        val props = wifi?.let { cm.getLinkProperties(it) }
-        val own = props?.linkAddresses?.firstOrNull { it.address is Inet4Address }
-        val gateway = props?.routes?.firstOrNull { it.isDefaultRoute && it.gateway is Inet4Address }?.gateway
-        val hosts = if (own != null) {
+        val hosts = local.flatMap { network ->
+            val props = cm.getLinkProperties(network) ?: return@flatMap emptyList()
+            val own = props.linkAddresses.firstOrNull { it.address is Inet4Address } ?: return@flatMap emptyList()
+            val gateway = props.routes.firstOrNull { it.isDefaultRoute && it.gateway is Inet4Address }?.gateway
             SecondScreenRules.hostsToProbe(toInt(own.address), own.prefixLength, setOfNotNull(gateway?.let { toInt(it) }))
-        } else {
+        }.distinct().ifEmpty {
             // This device hosts the hotspot itself: Android lists no Wi-Fi network for it.
             val hosted = hostedHotspot() ?: return emptyList()
             SecondScreenRules.hostsToProbe(toInt(hosted.address), hosted.networkPrefixLength.toInt())

@@ -7,6 +7,7 @@ import com.openauto.dash.link.DisplayHello
 import com.openauto.dash.link.DisplayMode
 import com.openauto.dash.link.DisplayWords
 import com.openauto.dash.link.DisplayStats
+import com.openauto.dash.link.DisplayTime
 import com.openauto.dash.link.Hello
 import com.openauto.dash.link.Incoming
 import com.openauto.dash.link.LinkSession
@@ -118,12 +119,13 @@ class DisplayServer(
             is VideoConfig -> screen.configureVideo(message)
             is ClusterState -> screen.data(message)
             is DisplayBrightness -> buttons?.set(message.level)
+            is DisplayTime -> if (LocalClock.set(pairing.dir, message)) screen.wordsChanged()
             is DisplayWords -> if (Words.set(pairing.dir, message)) {
                 log("words now in ${message.language.ifEmpty { "?" }}")
                 screen.wordsChanged()
             }
             is Ping -> session.sendOrClose(Pong)
-            is Hello -> log("head unit: ${message.deviceName} ${message.appVersion}")
+            is Hello -> log("head unit: ${message.deviceName} ${message.appVersion}, link protocol ${message.protocol}")
             else -> Unit
         }
     }
@@ -136,16 +138,27 @@ class DisplayServer(
         current?.sendOrClose(DisplayCommand(DisplayCommand.Action.KEYFRAME_PLEASE))
     }
 
+    /** Every few seconds, in every mode: the video's counts (zero without video) and the board's health; a heartbeat too. */
     private fun sendStats() {
-        val (shown, dropped, bytes) = screen.takeVideoStats()
-        if (screen.showing != Screen.Showing.VIDEO) return
-        current?.sendOrClose(DisplayStats(shown, dropped, (bytes * 8 / STATS_MS).toInt(), STATS_MS))
+        val video = screen.takeVideoStats()
+        val board = BoardHealth.readAndLog()
+        val session = current ?: return
+        val counts = if (screen.showing == Screen.Showing.VIDEO) video else VideoSink.Stats(0, 0, 0, 0)
+        session.sendOrClose(
+            DisplayStats(
+                counts.shown, counts.dropped, (counts.bytes * 8 / STATS_MS).toInt(), STATS_MS,
+                droppedLate = counts.droppedLate, throttled = board.throttled, tempC = board.tempC
+            )
+        )
     }
 
     private companion object {
         const val STATS_MS = 5_000L
-        /** The head unit pings every 15 s: three missed and the link is dead. */
-        const val READ_TIMEOUT_MS = 45_000
+        /**
+         * The head unit pings every 5 s (an older one every 15 s): a link silent
+         * this long is dead, and the next connection is let in sooner.
+         */
+        const val READ_TIMEOUT_MS = 20_000
     }
 }
 

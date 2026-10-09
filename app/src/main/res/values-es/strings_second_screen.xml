@@ -33,6 +33,13 @@
     <string name="second_screen_quality_detail">Menos es más ligero para el Wi-Fi del teléfono.</string>
     <string name="second_screen_output_video">Transmitiendo la imagen · %1$d kbit/s</string>
     <string name="second_screen_output_data">Enviando lecturas; la pantalla dibuja el cuadro</string>
+    <string name="second_screen_program">programa %1$s</string>
+    <string name="second_screen_program_older">El programa de la pantalla es más antiguo que esta app: vuelva a escribir su tarjeta.</string>
+    <string name="second_screen_program_newer">El programa de la pantalla es más reciente que esta app: actualice Dashwheel.</string>
+    <string name="second_screen_health_under_powered">La placa de la pantalla no recibe suficiente corriente y se ralentiza: use una fuente de 5 V y 2,5 A y un cable corto y grueso.</string>
+    <string name="second_screen_health_hot">La placa de la pantalla está caliente (%1$d °C) y se ralentiza: dele aire o un disipador.</string>
+    <string name="second_screen_health_throttled">La placa de la pantalla está limitada por su firmware: revise su alimentación.</string>
+    <string name="second_screen_output_lighter">Imagen aligerada: la pantalla no seguía el ritmo</string>
     <string name="second_screen_label_open">Abierto: %1$s</string>
     <string name="second_screen_label_arrive">Llegada %1$s</string>
     <string name="second_screen_label_fuel">combustible</string>

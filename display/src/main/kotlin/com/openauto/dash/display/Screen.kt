@@ -67,9 +67,6 @@ class Screen(
     internal val pairingShown: Boolean
         @Synchronized get() = showing == Showing.IDLE && (!pairing.used || uptimeMs() - heardAt > PAIR_AGAIN_MS)
 
-    /** Head unit clock minus ours: the Pi has no clock of its own and may have no network time. */
-    private var clockOffset = 0L
-
     private val ticker = Thread({ tick() }, "screen-ticker").apply { isDaemon = true }
 
     // Drawing a picture takes the Pi longer than the readings take to come
@@ -104,7 +101,8 @@ class Screen(
         if (state != null) {
             cluster = state
             clusterAt = uptimeMs()
-            clockOffset = state.clock - System.currentTimeMillis()
+            // An older head unit sends its clock only here (LocalClock takes DisplayTime first).
+            LocalClock.sync(state.clock)
             clock12 = state.clock12
         }
         if (showing == Showing.VIDEO) video.stop()
@@ -223,7 +221,8 @@ class Screen(
     /** What to draw, chosen under the screen's lock; drawn outside it, so the readings keep coming meanwhile. */
     private fun draw() {
         val picture: () -> Unit = synchronized(this) {
-            val now = System.currentTimeMillis() + clockOffset
+            val now = LocalClock.now()
+            painter.zone = LocalClock.zone
             val name = config.name
             val clock = clock12
             when (showing) {
@@ -261,7 +260,7 @@ class Screen(
     /** The idle line, in the head unit's language as it last sent its words ([Words]). */
     private fun status(): String = if (linked) Words.connected else Words.waiting
 
-    /** New words from the head unit: the idle line redraws in them. */
+    /** New words (or a new time zone) from the head unit: the drawn picture is done again with them. */
     @Synchronized
     fun wordsChanged() {
         if (showing != Showing.VIDEO || videoLost) redraw()
