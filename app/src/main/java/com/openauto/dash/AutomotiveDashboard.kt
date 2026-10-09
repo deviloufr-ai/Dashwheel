@@ -103,6 +103,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.activity.compose.ReportDrawn
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.clickable
@@ -188,6 +189,8 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     var showTemplates by remember { mutableStateOf(false) }
     // An empty page's own Fill: the page the templates dialog lays out alone, while open.
     var fillPage by remember { mutableStateOf<Int?>(null) }
+    // The bar's own settings, from a long press on it.
+    var barSettings by remember { mutableStateOf(false) }
     // The Settings screen, on the tab it was opened to; null while closed. A
     // dashboard rebuilt by a turn of the screen made in Settings opens there again.
     var settingsTab by remember { mutableStateOf(if (ScreenShape.settingsWanted()) SettingsTab.SYSTEM else null) }
@@ -1244,6 +1247,8 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(end = if (coverShowing) (ParkedCover.WIDTH_DP + 4).dp else 0.dp)
+                // A long press beside the bar's buttons opens the bar's own settings (BarSettingsSheet).
+                .pointerInput(Unit) { detectTapGestures(onLongPress = { whenParked { barSettings = true } }) }
                 .pointerInput(Unit) {
                     var dragged = 0f
                     val threshold = 48.dp.toPx()
@@ -1995,6 +2000,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         )
     }
 
+    if (barSettings) BarSettingsSheet(themeState) { barSettings = false }
     releaseNotes?.let { info ->
         ParkedOnly { releaseNotes = null }
         ReleaseNotesDialog(

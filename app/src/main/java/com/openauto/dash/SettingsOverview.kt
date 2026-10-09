@@ -64,6 +64,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -193,17 +194,28 @@ private fun StatusCard(icon: ImageVector, label: String, value: String, detail: 
             .background(DashColors.CardHi.copy(alpha = DashColors.CardHi.alpha * 0.6f))
             .then(if (tone == CardTone.WARN || tone == CardTone.BAD) Modifier.border(1.dp, tone.color().copy(alpha = 0.6f), shape) else Modifier)
             .clickable(role = Role.Button) { tap(); onClick() }
-            .heightIn(min = 96.dp)
+            .heightIn(min = 104.dp)
             .padding(horizontal = 14.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, contentDescription = null, tint = tone.color(), modifier = Modifier.size(20.dp))
-            Spacer(Modifier.width(8.dp))
-            Text(label, color = tone.color(), style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            IconBadge(icon, tone.color(), size = 44.dp)
+            Spacer(Modifier.width(10.dp))
+            Text(label, color = tone.color(), style = MaterialTheme.typography.labelLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
         Text(value, color = DashColors.TextPrimary, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
         if (detail != null) Text(detail, color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+    }
+}
+
+/** An icon a glance finds: large, on a disc of its own colour. */
+@Composable
+private fun IconBadge(icon: ImageVector, tint: Color, size: Dp) {
+    Box(
+        modifier = Modifier.size(size).clip(DashShape.Medium).background(tint.copy(alpha = 0.16f)),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(size * 0.62f))
     }
 }
 
@@ -326,7 +338,7 @@ private fun NotAllowedStrip(names: List<String>, onOpen: () -> Unit) {
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Filled.ErrorOutline, contentDescription = null, tint = DashColors.Warning, modifier = Modifier.size(24.dp))
+        Icon(Icons.Filled.ErrorOutline, contentDescription = null, tint = DashColors.Warning, modifier = Modifier.size(32.dp))
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f)) {
             Text(stringResource(R.string.settings_ov_not_allowed, names.joinToString(", ")), color = DashColors.TextPrimary, style = MaterialTheme.typography.bodyLarge)
@@ -343,19 +355,22 @@ private fun NotAllowedStrip(names: List<String>, onOpen: () -> Unit) {
 @Composable
 private fun GroupTile(group: SettingsTab, summary: String, modifier: Modifier, onClick: () -> Unit) {
     val tap = rememberTapFeedback()
-    Column(
+    // The icon beside the name, not above it: two rows of tiles fit a 720 px screen with the cards above.
+    Row(
         modifier = modifier
             .clip(DashShape.Medium)
             .background(DashColors.CardHi.copy(alpha = DashColors.CardHi.alpha * 0.6f))
             .clickable(role = Role.Button) { tap(); onClick() }
-            .heightIn(min = 112.dp)
-            .padding(horizontal = 14.dp, vertical = 14.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+            .heightIn(min = 100.dp)
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(group.icon, contentDescription = null, tint = DashColors.Accent, modifier = Modifier.size(30.dp))
-        Spacer(Modifier.weight(1f))
-        Text(stringResource(group.titleRes), color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Text(summary, color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        IconBadge(group.icon, DashColors.Accent, size = 60.dp)
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(stringResource(group.titleRes), color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text(summary, color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall, maxLines = 3, overflow = TextOverflow.Ellipsis)
+        }
     }
 }
 
@@ -565,7 +580,7 @@ private fun SearchResults(query: String, onGo: (SettingsTab, List<Deep>, Boolean
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(f.entry.tab.icon, contentDescription = null, tint = DashColors.TextSecondary, modifier = Modifier.size(24.dp))
+            IconBadge(f.entry.tab.icon, DashColors.Accent, size = 40.dp)
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
                 Text(f.path, color = DashColors.Accent, style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)

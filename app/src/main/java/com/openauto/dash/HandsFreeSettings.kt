@@ -82,7 +82,7 @@ internal fun VoiceSettings(essentialOnly: Boolean = false) {
 /** The spoken events Settings lists before "Show all"; the others show there once switched on. */
 internal val ESSENTIAL_SPOKEN = setOf(SpokenEvent.BRIEFING, SpokenEvent.CAR_TIPS, SpokenEvent.FAULT_CODES, SpokenEvent.SPEED_CAMERAS, SpokenEvent.MESSAGES)
 
-private val SpokenEvent.icon: ImageVector
+internal val SpokenEvent.icon: ImageVector
     get() = when (this) {
         SpokenEvent.BRIEFING -> Icons.Filled.WbSunny
         SpokenEvent.CAR_TIPS -> Icons.Filled.Campaign
@@ -106,7 +106,7 @@ internal val SpokenEvent.label: Int
         SpokenEvent.LPG -> R.string.voice_lpg
     }
 
-private val SpokenEvent.detail: Int
+internal val SpokenEvent.detail: Int
     get() = when (this) {
         SpokenEvent.BRIEFING -> R.string.briefing_setting_detail
         SpokenEvent.CAR_TIPS -> R.string.voice_warnings_detail

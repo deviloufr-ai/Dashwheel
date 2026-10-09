@@ -105,6 +105,8 @@ internal fun TilePanel(
     barActions: (@Composable () -> Unit)? = null
 ) {
     val upright = side == PanelSide.TOP || side == PanelSide.BOTTOM
+    // The tile's own settings, the same page Settings opens (TileSettings.kt).
+    val settings = (item as? DashboardItem.BuiltinWidget)?.let { tileSettings(it.kind) }
     SolidCard(modifier = modifier.keepClearOfWindows()) {
         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -119,6 +121,7 @@ internal fun TilePanel(
                 )
                 SquareButton(Icons.Filled.Close, stringResource(R.string.dash_close), onClick = onClose)
             }
+            if (settings != null) TileSettingsButton(settings)
             if (upright) {
                 // Along the bottom: the shelf takes the width, the rest stands beside it.
                 Row(

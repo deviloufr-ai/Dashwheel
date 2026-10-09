@@ -809,6 +809,26 @@ private fun UnitsSheet(onDismiss: () -> Unit) {
 }
 
 /**
+ * The bottom bar's settings on their own, from a long press on the bar: its
+ * hiding, its readouts and the side rail. The same rows as Settings, Look.
+ */
+@Composable
+internal fun BarSettingsSheet(theme: ThemeState, onDismiss: () -> Unit) {
+    SettingsSheet(
+        title = stringResource(R.string.dash_bar_title),
+        onDismiss = onDismiss,
+        actions = { SheetButton(stringResource(R.string.dash_close)) { onDismiss() } }
+    ) {
+        Column {
+            BarAutoHideSetting(theme)
+            BarItemsSetting()
+            Spacer(Modifier.height(20.dp))
+            NavigationSetting(theme)
+        }
+    }
+}
+
+/**
  * How the dashboards are reached: the side rail in the bottom bar's place
  * (what the Canvas theme always did), and tabs in that rail instead of
  * swiping, which a map app under the dashboards brings on by itself.
