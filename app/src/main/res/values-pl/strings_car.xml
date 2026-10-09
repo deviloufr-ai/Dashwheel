@@ -28,6 +28,7 @@
     <!-- Particle filter -->
     <string name="car_filter_title">FILTR DPF</string>
     <string name="car_filter_none">To auto nie ma filtra cząstek stałych. Zmień to w Ustawienia → Samochód → Mój samochód.</string>
+    <string name="car_filter_unknown">Wskaż samochód w Ustawienia → Samochód → Mój samochód.</string>
     <plurals name="car_filter_short_unit">
         <item quantity="one">krótka trasa</item>
         <item quantity="few">krótkie trasy z rzędu</item>

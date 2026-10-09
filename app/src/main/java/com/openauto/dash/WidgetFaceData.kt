@@ -547,7 +547,7 @@ private fun parkingFace(): WidgetFace {
 @Composable
 private fun directionsFace(env: SkinTileEnv): WidgetFace {
     val nav by NavDirections.state.collectAsState()
-    val running by NavDirections.running.collectAsState()
+    val running = runningNavApp()
     if (!env.hasMediaAccess) {
         return idleFace(Icons.Filled.TurnRight, BuiltinKind.NAVIGATION.label, stringResource(R.string.info_directions_access_title), action = grantAccessAction(),
             sign = SignKind.DIRECTIONS)
@@ -891,7 +891,10 @@ internal fun sampleFace(kind: BuiltinKind): WidgetFace = WidgetFace(
 private fun filterFace(): WidgetFace {
     val car by CarProfileStore.profile.collectAsState()
     val care by CarCare.state.collectAsState()
-    if (!car.particleFilter) return idleFace(kindIcon(BuiltinKind.FILTER_CARE), BuiltinKind.FILTER_CARE.label, stringResource(R.string.car_filter_none))
+    if (!car.known || !car.particleFilter) return idleFace(
+        kindIcon(BuiltinKind.FILTER_CARE), BuiltinKind.FILTER_CARE.label,
+        stringResource(if (car.known) R.string.car_filter_none else R.string.car_filter_unknown)
+    )
     val streak = care.filter.shortStreak
     val call = filterCall(streak, LocalUnits.current.imperial)
     val drive = care.drive

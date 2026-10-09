@@ -60,6 +60,8 @@ internal object SpeedCameras {
     private const val OVERPASS = "https://overpass-api.de/api/interpreter"
     private const val RADIUS_M = 15_000
     private const val REFETCH_M = 8_000f
+    /** After a failed read, the wait before the next: the server is busy, and every GPS fix asked it again. */
+    private const val RETRY_AFTER_MS = 60_000L
     private const val AHEAD_DEG = 35.0
     private const val AHEAD_MAX_M = 3_000
     const val WARN_M = 500
@@ -70,6 +72,7 @@ internal object SpeedCameras {
     @Volatile private var cameras: List<SpeedCamera> = emptyList()
     @Volatile private var fetchedAt: Location? = null
     @Volatile private var fetching = false
+    @Volatile private var failedAt = 0L
     private val warned = HashSet<SpeedCamera>()
 
     private val _ahead = MutableStateFlow<CameraAhead?>(null)
@@ -100,11 +103,15 @@ internal object SpeedCameras {
 
     private suspend fun onLocation(context: Context, loc: Location) {
         val last = fetchedAt
-        if (!fetching && (last == null || last.distanceTo(loc) > REFETCH_M)) {
+        val resting = android.os.SystemClock.elapsedRealtime() - failedAt < RETRY_AFTER_MS && failedAt != 0L
+        if (!fetching && !resting && (last == null || last.distanceTo(loc) > REFETCH_M)) {
             fetching = true
             val found = withContext(Dispatchers.IO) { runCatching { fetch(loc.latitude, loc.longitude) } }
             fetching = false
-            found.onSuccess { cameras = it; fetchedAt = loc }.onFailure { Log.w(TAG, "cameras unread: ${it.message}") }
+            found.onSuccess { cameras = it; fetchedAt = loc; failedAt = 0L }.onFailure {
+                failedAt = android.os.SystemClock.elapsedRealtime()
+                Log.w(TAG, "cameras unread: ${it.message}")
+            }
         }
         val next = nearestAhead(loc, cameras)
         _ahead.value = next

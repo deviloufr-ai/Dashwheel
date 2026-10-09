@@ -122,6 +122,9 @@ internal fun parseDoorBits(d: ByteArray): Int? =
 
 internal fun parseCarBody(d: ByteArray): CarBody? {
     if (shareType(d) != SHARE_BODY || d.size < 20) return null
+    // Every reading 0 or "not sent": this car's box fills none of it (seen on a
+    // C4 Picasso). No data, rather than a car at 0 km with its parking brake off.
+    if ((2 until d.size).all { d[it] == 0.toByte() || d[it] == 0xFF.toByte() }) return null
     return CarBody(
         speedKmh = d.uBE(7, 2),
         rpm = d.uBE(9, 2),

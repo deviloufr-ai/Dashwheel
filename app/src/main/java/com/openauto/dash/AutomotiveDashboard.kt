@@ -687,6 +687,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             }
         }
         val here = pages.flatten()
+        EmbeddedApp.tilePages = buildMap { pages.forEachIndexed { page, items -> insideApps(items).forEach { putIfAbsent(it, page) } } }
         val inside = EmbeddedApp.keptInside(insideApps(here), insideApps(other), windowApps(here)).toHashSet()
         // The app under Canvas runs as long as it is there.
         if (tabsMode) mapApp?.let { inside += it }

@@ -308,6 +308,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onPause() {
         FreeformBar.dashboardInFront = false
+        // A tile's app torn off its tile (Waze opening a screen of its own) pauses the dashboard first.
+        EmbeddedApp.dashboardPaused()
         super.onPause()
     }
 

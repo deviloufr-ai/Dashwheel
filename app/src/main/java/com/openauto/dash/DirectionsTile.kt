@@ -74,12 +74,32 @@ internal const val GOOGLE_MAPS_PACKAGE = "com.google.android.apps.maps"
 internal fun openNavigationApp(context: Context, nav: NavState) {
     // The dashboard's own guidance has no app to open: the tap offers to stop it.
     if (nav.packageName == context.packageName) return InAppNav.askToStop()
-    SplitLauncher.launchSplit(context, nav.packageName.ifEmpty { navAppToOpen(context) })
+    val app = nav.packageName.ifEmpty { navAppToOpen(context) }
+    // Running inside a tile (Waze on another page): that page comes on screen,
+    // rather than the app taken off its tile and opened full screen.
+    EmbeddedApp.pageOf(app)?.let { page ->
+        MainActivity.dashboardGoTo.value = System.currentTimeMillis() to page
+        return
+    }
+    SplitLauncher.launchSplit(context, app)
 }
 
 /** With no route read: the navigation app that runs now, else the one the driver uses, else Google Maps. */
 internal fun navAppToOpen(context: Context): String =
-    NavDirections.running.value ?: NavHandoff.preferredApp(context) ?: GOOGLE_MAPS_PACKAGE
+    NavDirections.running.value ?: NavDirections.PACKAGES.firstOrNull(EmbeddedApp::holds)
+        ?: NavHandoff.preferredApp(context) ?: GOOGLE_MAPS_PACKAGE
+
+/**
+ * The navigation app running now: by its ongoing notification, or inside a
+ * dashboard tile. Waze posts its "running" notification only while out of
+ * sight, so on its tile, in view, it has none, and the tile offered Google Maps.
+ */
+@Composable
+internal fun runningNavApp(): String? {
+    val posted by NavDirections.running.collectAsState()
+    val inside by EmbeddedApp.hosted.collectAsState()
+    return posted ?: NavDirections.PACKAGES.firstOrNull { it in inside }
+}
 
 /** "Waze" or "Google Maps", as the tile names them. */
 internal fun navAppName(pkg: String): String = if (pkg == NavHandoff.WAZE) "Waze" else "Google Maps"
@@ -114,7 +134,7 @@ internal fun DirectionsCard(
     modifier: Modifier = Modifier
 ) {
     val nav by NavDirections.state.collectAsState()
-    val running by NavDirections.running.collectAsState()
+    val running = runningNavApp()
     val glow = DashColors.Glow
     val accent = DashColors.Accent
     // "On my way" texts someone: said first, with three seconds to cancel.
@@ -155,7 +175,7 @@ internal fun DirectionsCard(
                             text = when {
                                 nav.active && nav.packageName == context.packageName -> stringResource(R.string.app_name)
                                 nav.active -> navAppName(nav.packageName)
-                                running != null -> navAppName(running!!)
+                                running != null -> navAppName(running)
                                 else -> stringResource(R.string.info_directions_no_route)
                             },
                             color = if (nav.active) DashColors.Good else DashColors.Muted,
@@ -175,9 +195,9 @@ internal fun DirectionsCard(
                     // The app guides, but its turns can't be read from its notification yet.
                     !nav.active && running != null -> DirectionsEmpty(
                         icon = Icons.Filled.Navigation,
-                        title = stringResource(R.string.info_directions_running_title, navAppName(running!!)),
+                        title = stringResource(R.string.info_directions_running_title, navAppName(running)),
                         hint = stringResource(R.string.info_directions_running_hint),
-                        action = stringResource(R.string.info_directions_open_maps, navAppName(running!!)),
+                        action = stringResource(R.string.info_directions_open_maps, navAppName(running)),
                         onAction = { openNavigationApp(context, nav) }
                     )
                     !nav.active -> DirectionsEmpty(

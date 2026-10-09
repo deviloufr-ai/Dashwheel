@@ -182,6 +182,7 @@ private fun AlertRow(kind: AlertKind, onOpen: () -> Unit) {
     val tap = rememberTapFeedback()
     Row(
         modifier = Modifier
+            .searchTarget(stringResource(kind.label))
             .fillMaxWidth()
             .heightIn(min = DashSize.Bar)
             .clip(DashShape.Medium)

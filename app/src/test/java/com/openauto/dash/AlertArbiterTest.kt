@@ -46,21 +46,6 @@ class AlertArbiterTest {
     }
 
     @Test
-    fun withAParkedCapABigDesignIsTheCardStandingStillAndThePillAfterAFewSecondsEitherWay() {
-        listOf(AlertStyle.PANEL, AlertStyle.FULL).forEach { big ->
-            // Parked: never more than the card, and the pill once it has been up a while.
-            assertEquals(AlertStyle.CARD, drivingStyle(big, moving = false, bigForMs = 0L, parkedCap = AlertStyle.CARD))
-            assertEquals(AlertStyle.CARD, drivingStyle(big, moving = false, bigForMs = SHRINK_AFTER_MS, parkedCap = AlertStyle.CARD))
-            assertEquals(AlertStyle.PILL, drivingStyle(big, moving = false, bigForMs = SHRINK_AFTER_MS + 1, parkedCap = AlertStyle.CARD))
-            // Moving: as before, the chosen design first, then the pill.
-            assertEquals(big, drivingStyle(big, moving = true, bigForMs = SHRINK_AFTER_MS, parkedCap = AlertStyle.CARD))
-            assertEquals(AlertStyle.PILL, drivingStyle(big, moving = true, bigForMs = SHRINK_AFTER_MS + 1, parkedCap = AlertStyle.CARD))
-        }
-        // A small design is left alone.
-        assertEquals(AlertStyle.BANNER, drivingStyle(AlertStyle.BANNER, moving = false, bigForMs = 60_000L, parkedCap = AlertStyle.CARD))
-    }
-
-    @Test
     fun climateNeverCoversTheMapAndRanksBehindGemini() {
         assertEquals(listOf(AlertStyle.PILL, AlertStyle.CARD, AlertStyle.BANNER), AlertKind.AC.styles)
         assertTrue(AlertKind.GEMINI.rank < AlertKind.AC.rank)

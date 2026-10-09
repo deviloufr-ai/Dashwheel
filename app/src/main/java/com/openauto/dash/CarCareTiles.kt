@@ -221,8 +221,9 @@ internal fun FilterCareCard(modifier: Modifier = Modifier) {
     val car by CarProfileStore.profile.collectAsState()
     val care by CarCare.state.collectAsState()
     CareCard(stringResource(R.string.car_filter_title), modifier) {
-        if (!car.particleFilter) {
-            Hint(stringResource(R.string.car_filter_none))
+        // An unknown car is not one without a filter: it is asked for instead.
+        if (!car.known || !car.particleFilter) {
+            Hint(stringResource(if (car.known) R.string.car_filter_none else R.string.car_filter_unknown))
             return@CareCard
         }
         val streak = care.filter.shortStreak
@@ -542,14 +543,15 @@ internal fun carStatusRows(b: CarBody): List<Pair<String, String>> {
     val km = if (u.imperial) u.distanceUnit else stringResource(R.string.car_status_km)
     return listOfNotNull(
         stringResource(R.string.car_status_lights) to (lights.joinToString(", ").ifEmpty { stringResource(R.string.car_status_lights_off) }),
-        b.odometer?.let { stringResource(R.string.car_status_odometer) to "${NumberFormat.getIntegerInstance().format(u.distance(it.toDouble()).toLong())} $km" },
+        // 0 is the box not sending it, as for the upkeep and the fuel tiles: left out, not "0 km".
+        b.odometer?.takeIf { it > 0f }?.let { stringResource(R.string.car_status_odometer) to "${NumberFormat.getIntegerInstance().format(u.distance(it.toDouble()).toLong())} $km" },
         b.trip1?.let { stringResource(R.string.car_status_trip) to "${decimal(u.distance(it.toDouble()), 1)} $km" },
         b.instantConsumption?.let {
             stringResource(R.string.car_status_consumption) to
                 if (u.economy == Economy.L_PER_100KM) "${decimal(it.toDouble(), 1)} L/100 ${stringResource(R.string.car_status_km)}"
                 else "${u.economy(it.toDouble())?.let { e -> decimal(e, 1) } ?: "--"} ${u.economyUnit}"
         },
-        b.range?.let { stringResource(R.string.car_status_range) to "${u.distance(it.toDouble()).toInt()} $km" },
+        b.range?.takeIf { it > 0f }?.let { stringResource(R.string.car_status_range) to "${u.distance(it.toDouble()).toInt()} $km" },
         stringResource(R.string.car_status_parking_brake) to stringResource(if (b.handbrake) R.string.car_status_on else R.string.car_status_off)
     )
 }

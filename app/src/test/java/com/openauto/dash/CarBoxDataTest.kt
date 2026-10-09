@@ -53,10 +53,18 @@ class CarBoxDataTest {
 
     @Test
     fun valuesTheCarDoesNotSendAreNull() {
-        val d = bytes(79, 0 to 0x2E, 1 to SHARE_BODY, 7 to 0xFF, 8 to 0xFF, 15 to 0xFF, 16 to 0xFF, 17 to 0xFF)
+        // The revs (bytes 9-10) are sent; the speed and the mileage are not.
+        val d = bytes(79, 0 to 0x2E, 1 to SHARE_BODY, 7 to 0xFF, 8 to 0xFF, 10 to 0x20, 15 to 0xFF, 16 to 0xFF, 17 to 0xFF)
         val body = parseCarBody(d)!!
         assertNull(body.speedKmh)
         assertNull(body.odometer)
+    }
+
+    @Test
+    fun aBodyWithNoReadingAtAllIsNoData() {
+        // As a C4 Picasso's box sends it: zeros, and the speed marked not sent.
+        assertNull(parseCarBody(bytes(79, 0 to 0x2E, 1 to SHARE_BODY, 7 to 0xFF, 8 to 0xFF)))
+        assertNull(parseCarBody(bytes(79, 0 to 0x2E, 1 to SHARE_BODY)))
     }
 
     @Test
@@ -122,7 +130,8 @@ class CarBoxDataTest {
 
     @Test
     fun lightsAsTheDriverWouldSayThem() {
-        assertEquals(emptyList<CarLight>(), lightsOn(body()))
+        // The mileage set, so the frame is not an empty one.
+        assertEquals(emptyList<CarLight>(), lightsOn(body(16 to 0x10)))
         // Dipped beam includes the sidelights: only the strongest is named.
         assertEquals(listOf(CarLight.DIPPED), lightsOn(body(2 to 0b0100_0000, 3 to 0b1000_0000)))
         assertEquals(listOf(CarLight.MAIN_BEAM, CarLight.REAR_FOG), lightsOn(body(2 to 0b1101_0000)))

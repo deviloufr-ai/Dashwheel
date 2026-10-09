@@ -28,6 +28,7 @@
     <!-- Particle filter -->
     <string name="car_filter_title">САЖЕВЫЙ ФИЛЬТР</string>
     <string name="car_filter_none">В этом автомобиле нет сажевого фильтра. Изменить: Настройки → Автомобиль → Мой автомобиль.</string>
+    <string name="car_filter_unknown">Укажите автомобиль: Настройки → Автомобиль → Мой автомобиль.</string>
     <plurals name="car_filter_short_unit">
         <item quantity="one">короткая поездка</item>
         <item quantity="few">короткие поездки подряд</item>

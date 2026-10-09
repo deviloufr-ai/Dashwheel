@@ -101,14 +101,15 @@ internal object SettingsShowAll {
 
 /**
  * @param narrow an upright screen: the cards two by two, the tiles in two columns
- * @param onGo opens a group, and the pages [path] in it; extra: the setting is one "Show all" keeps
+ * @param onGo opens a group, and the pages [path] in it; extra: the setting is one "Show all" keeps;
+ *   the last: the name of the setting searched for, scrolled to there
  */
 @Composable
 internal fun SettingsOverview(
     m: TopBarModel,
     theme: ThemeState,
     narrow: Boolean,
-    onGo: (SettingsTab, List<Deep>, Boolean) -> Unit,
+    onGo: (SettingsTab, List<Deep>, Boolean, Int?) -> Unit,
     onClose: () -> Unit
 ) {
     var query by rememberSaveable { mutableStateOf("") }
@@ -137,22 +138,22 @@ internal fun SettingsOverview(
 }
 
 @Composable
-private fun OverviewBody(m: TopBarModel, theme: ThemeState, narrow: Boolean, onGo: (SettingsTab, List<Deep>, Boolean) -> Unit) {
+private fun OverviewBody(m: TopBarModel, theme: ThemeState, narrow: Boolean, onGo: (SettingsTab, List<Deep>, Boolean, Int?) -> Unit) {
     val cards: List<@Composable (Modifier) -> Unit> = listOf(
-        { ObdCard(it) { onGo(SettingsTab.CONNECTIONS, listOf(Deep.OBD), false) } },
-        { PhoneCard(it) { onGo(SettingsTab.CONNECTIONS, emptyList(), false) } },
+        { ObdCard(it) { onGo(SettingsTab.CONNECTIONS, listOf(Deep.OBD), false, null) } },
+        { PhoneCard(it) { onGo(SettingsTab.CONNECTIONS, emptyList(), false, null) } },
         { UpdateCard(m, it) },
-        { UpkeepCard(it) { onGo(SettingsTab.CAR, listOf(Deep.UPKEEP), false) } }
+        { UpkeepCard(it) { onGo(SettingsTab.CAR, listOf(Deep.UPKEEP), false, null) } }
     )
     Grid(cards, columns = if (narrow) 2 else 4)
     val missing = missingAccess()
     if (missing.isNotEmpty()) {
         Spacer(Modifier.height(12.dp))
-        NotAllowedStrip(missing.map { stringResource(it.titleRes) }) { onGo(SettingsTab.CONNECTIONS, listOf(Deep.ACCESS), false) }
+        NotAllowedStrip(missing.map { stringResource(it.titleRes) }) { onGo(SettingsTab.CONNECTIONS, listOf(Deep.ACCESS), false, null) }
     }
     Spacer(Modifier.height(20.dp))
     val tiles: List<@Composable (Modifier) -> Unit> = SettingsTab.groups.map { group ->
-        { modifier -> GroupTile(group, groupSummary(group, m, theme), modifier) { onGo(group, emptyList(), false) } }
+        { modifier -> GroupTile(group, groupSummary(group, m, theme), modifier) { onGo(group, emptyList(), false, null) } }
     }
     Grid(tiles, columns = if (narrow) 2 else 4)
     Spacer(Modifier.height(16.dp))
@@ -523,7 +524,7 @@ private fun fold(text: String): String =
 private class Found(val entry: SettingsEntry, val title: String, val path: String, val rank: Int)
 
 @Composable
-private fun SearchResults(query: String, onGo: (SettingsTab, List<Deep>, Boolean) -> Unit) {
+private fun SearchResults(query: String, onGo: (SettingsTab, List<Deep>, Boolean, Int?) -> Unit) {
     val context = LocalContext.current
     val words = remember(query) { fold(query).split(' ').filter { it.isNotBlank() } }
     val found = remember(words, context.resources.configuration) {
@@ -560,7 +561,7 @@ private fun SearchResults(query: String, onGo: (SettingsTab, List<Deep>, Boolean
                 .fillMaxWidth()
                 .heightIn(min = DashSize.Bar)
                 .clip(DashShape.Medium)
-                .clickable { tap(); onGo(f.entry.tab, f.entry.path, f.entry.extra) }
+                .clickable { tap(); onGo(f.entry.tab, f.entry.path, f.entry.extra, f.entry.title) }
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {

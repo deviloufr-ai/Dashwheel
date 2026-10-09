@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.AlertDialog
@@ -322,7 +323,7 @@ internal fun PhonePane() {
             state is PhoneLinkState.Connected -> stringResource(R.string.phone_gps_waiting)
             else -> stringResource(R.string.phone_gps_detail)
         }
-        SwitchRow(stringResource(R.string.phone_gps), gpsDetail, useGps) { PhoneGps.setEnabled(context, it) }
+        SettingsToggle(Icons.Filled.MyLocation, stringResource(R.string.phone_gps), gpsDetail, useGps) { PhoneGps.setEnabled(context, it) }
     }
 
     // Calls show in their own window over other apps; without that, only over the launcher.

@@ -213,6 +213,13 @@ internal object EmbeddedApp {
     /** True while [packageName] runs inside a tile, on its own display. */
     fun holds(packageName: String): Boolean = packageName in held
 
+    /** Each app inside a tile, and the first dashboard page with such a tile (set by the dashboard). */
+    @Volatile
+    var tilePages: Map<String, Int> = emptyMap()
+
+    /** The page of [packageName]'s tile while it runs inside one; null otherwise. */
+    fun pageOf(packageName: String): Int? = tilePages[packageName]?.takeIf { holds(packageName) }
+
     /** Opens [intent] in [packageName]'s tile when it runs in one ([Host.open]); false otherwise. */
     fun openInside(packageName: String, intent: Intent): Boolean =
         holds(packageName) && hosts[packageName]?.open(intent) == true
@@ -275,11 +282,20 @@ internal object EmbeddedApp {
             // Something else came in front of the dashboard, on the main screen: it has the keys.
             keysAway = false
             // Not the user's doing: maybe the unit opening a tile's app full screen by itself.
-            if (SystemClock.elapsedRealtime() - userActedAt > USER_OPENS_MS) watchFront(COVERED_WATCH_MS)
+            if (!userJustOpened()) watchFront(COVERED_WATCH_MS)
             return
         }
         watching?.cancel()
         dashboardBack()
+    }
+
+    /**
+     * The dashboard lost the front (onPause): a tile's app torn off its tile
+     * pauses it at once, and stops it only a couple of seconds later, so the
+     * watch starts here already.
+     */
+    fun dashboardPaused() {
+        if (dashboard?.get() != null && !userJustOpened()) watchFront(COVERED_WATCH_MS)
     }
 
     /**
@@ -309,6 +325,12 @@ internal object EmbeddedApp {
     // the dashboard gets covered without a touch or a key, a tile's app found
     // full screen in front is put back into its tile. What the user opens full
     // screen themselves is left there.
+    //
+    // Waze does it too: it opens its own screens (voice button, reports, trip
+    // overview, a permission request) "beside" itself, and on Android 10 that
+    // takes its whole task off the tile's display, full screen onto the main
+    // one. A tap inside a tile is never the driver asking for its app full
+    // screen, so that tap does not count as the user's doing.
 
     /** Where the firmware keeps the navigation app to reopen at power-up ("package/class"). */
     private const val NAVI_TO_RESTORE = "navi_activity_before_sleep"
@@ -341,12 +363,25 @@ internal object EmbeddedApp {
     @Volatile
     private var userActedAt = 0L
 
+    /** The user's last act was a touch on an app inside a tile, not on the dashboard. */
+    @Volatile
+    private var actedInsideTile = false
+
     private var watching: Job? = null
 
     /** The user touched the dashboard or pressed a key: what opens next is theirs. */
     fun userActed() {
         userActedAt = SystemClock.elapsedRealtime()
+        actedInsideTile = false
     }
+
+    /**
+     * Whether what covers the dashboard now may be the user's own doing: a
+     * touch on the dashboard or a key just before. A touch inside a tile does
+     * not count: it goes to the tile's app, never asks for it full screen.
+     */
+    private fun userJustOpened(): Boolean =
+        !actedInsideTile && SystemClock.elapsedRealtime() - userActedAt <= USER_OPENS_MS
 
     /**
      * The ignition went off: the dashboard comes in front at once, so the unit
@@ -576,6 +611,7 @@ internal object EmbeddedApp {
     /** That touch landed on an app inside a tile. */
     fun tileTouched() {
         tileTouched = true
+        actedInsideTile = true
     }
 
     /**

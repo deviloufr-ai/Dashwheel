@@ -147,6 +147,7 @@ object NavDirections {
     fun onPosted(context: Context, sbn: StatusBarNotification) {
         if (sbn.packageName !in PACKAGES) return
         if (sbn.isOngoing) {
+            if (runningKey != sbn.key) Log.i(TAG, "${sbn.packageName} runs (${sbn.key})")
             runningKey = sbn.key
             _running.value = sbn.packageName
         }
@@ -158,6 +159,7 @@ object NavDirections {
 
     fun onRemoved(sbn: StatusBarNotification) {
         if (sbn.key == runningKey) {
+            Log.i(TAG, "${sbn.packageName} no longer runs")
             runningKey = null
             _running.value = null
         }
@@ -169,6 +171,7 @@ object NavDirections {
     }
 
     fun clear() {
+        Log.i(TAG, "notification access lost: no navigation app known")
         runningKey = null
         _running.value = null
         currentKey = null

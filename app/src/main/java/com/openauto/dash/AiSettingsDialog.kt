@@ -255,7 +255,7 @@ internal fun Label(text: String) {
 /** An on/off setting: title and explanation on the left, the switch on the right. */
 @Composable
 internal fun SwitchRow(title: String, detail: String, checked: Boolean, onChange: (Boolean) -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.searchTarget(title)) {
         Column(Modifier.weight(1f)) {
             Text(title, color = DashColors.TextPrimary)
             Text(detail, color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)

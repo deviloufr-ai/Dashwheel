@@ -4,6 +4,14 @@ import android.text.format.DateFormat
 import androidx.annotation.StringRes
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.Image
 import android.net.Uri
@@ -205,6 +213,8 @@ internal fun SettingsScreen(
     var stack by remember { mutableStateOf(emptyList<Deep>()) }
     val deep = stack.lastOrNull()
     var bootLogo by remember { mutableStateOf(false) }
+    // The setting a search was for: its row is scrolled to in the pane it opens.
+    var target by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(Unit) { SettingsShowAll.load(context) }
     val shownAll by SettingsShowAll.open.collectAsState()
     // Another category, or closing: the open sheet leaves first, as by its back arrow.
@@ -212,6 +222,7 @@ internal fun SettingsScreen(
         OpenSheet.dismiss()
         stack = path
         tab = t
+        target = null
     }
     val choose: (SettingsTab) -> Unit = { go(it, emptyList()) }
     val close = {
@@ -227,7 +238,7 @@ internal fun SettingsScreen(
     }
 
     val pane: @Composable (Modifier) -> Unit = { paneModifier ->
-        Box(modifier = paneModifier) {
+        Box(modifier = paneModifier) { CompositionLocalProvider(LocalSettingsTarget provides target) {
             if (deep != null) key(stack.size, deep) {
                 CompositionLocalProvider(LocalSheetInPane provides true) {
                     when (deep) {
@@ -276,7 +287,7 @@ internal fun SettingsScreen(
                 }
                 MoreBelow(scroll, Modifier.align(Alignment.BottomCenter))
             }
-        }
+        } }
     }
 
     SolidCard(modifier = modifier) {
@@ -287,9 +298,10 @@ internal fun SettingsScreen(
                     m = m,
                     theme = theme,
                     narrow = maxWidth < NARROW_SETTINGS,
-                    onGo = { t, path, extra ->
+                    onGo = { t, path, extra, searched ->
                         if (extra) SettingsShowAll.set(context, t, true)
                         go(t, path)
+                        target = searched?.let(context::getString)
                     },
                     onClose = close
                 )
@@ -1382,7 +1394,7 @@ internal fun SettingsSection(title: String) {
         color = DashColors.Accent,
         letterSpacing = 0.08.em,
         style = MaterialTheme.typography.labelSmall,
-        modifier = Modifier.padding(start = 12.dp, top = 4.dp, bottom = 8.dp)
+        modifier = Modifier.searchTarget(title).padding(start = 12.dp, top = 4.dp, bottom = 8.dp)
     )
 }
 
@@ -1437,6 +1449,7 @@ private fun SystemPermissionsRow(granted: Boolean) {
 internal fun GatedRow(icon: ImageVector, title: String, reason: String) {
     Row(
         modifier = Modifier
+            .searchTarget(title)
             .fillMaxWidth()
             .heightIn(min = DashSize.Bar)
             .padding(horizontal = 12.dp, vertical = 10.dp),
@@ -1462,6 +1475,7 @@ private fun ExpandRow(icon: ImageVector, title: String, detail: String, open: Bo
     val tap = rememberTapFeedback()
     Row(
         modifier = Modifier
+            .searchTarget(title)
             .fillMaxWidth()
             .heightIn(min = DashSize.Bar)
             .clip(DashShape.Medium)
@@ -1488,6 +1502,7 @@ internal fun SettingsRow(icon: ImageVector, title: String, detail: String?, onCl
     val tap = rememberTapFeedback()
     Row(
         modifier = Modifier
+            .searchTarget(title)
             .fillMaxWidth()
             .heightIn(min = DashSize.Bar)
             .clip(DashShape.Medium)
@@ -1553,6 +1568,7 @@ private fun StepperRow(
 ) {
     Row(
         modifier = Modifier
+            .searchTarget(title)
             .fillMaxWidth()
             .heightIn(min = DashSize.Bar)
             .padding(horizontal = 12.dp, vertical = 6.dp),
@@ -1602,12 +1618,40 @@ private fun StepButton(icon: ImageVector, description: String, enabled: Boolean,
     }
 }
 
+/** The name of the setting a search opened the pane for; null when it was opened otherwise. */
+internal val LocalSettingsTarget = compositionLocalOf<String?> { null }
+
+/** How far below a searched setting's row is brought into view too, so it lands in the upper part of the pane. */
+private val TARGET_ROOM_BELOW = 220.dp
+
+/**
+ * The row of the setting named [title], when a search was for it
+ * ([LocalSettingsTarget]): scrolled into view and lit up a moment. Before,
+ * the pane opened at its top and the setting could sit half hidden at the
+ * bottom edge.
+ */
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@Composable
+internal fun Modifier.searchTarget(title: String): Modifier {
+    if (LocalSettingsTarget.current != title) return this
+    val requester = remember { BringIntoViewRequester() }
+    val glow = remember { Animatable(0.22f) }
+    val room = with(LocalDensity.current) { TARGET_ROOM_BELOW.toPx() }
+    LaunchedEffect(title) {
+        withFrameNanos { } // laid out first
+        requester.bringIntoView(Rect(0f, 0f, 1f, room))
+        glow.animateTo(0f, tween(durationMillis = 1_600, delayMillis = 600))
+    }
+    return bringIntoViewRequester(requester).background(DashColors.Accent.copy(alpha = glow.value), DashShape.Medium)
+}
+
 /** One on/off setting: icon, name, what it does, and a switch; the whole row toggles it. */
 @Composable
 internal fun SettingsToggle(icon: ImageVector, title: String, detail: String, checked: Boolean, enabled: Boolean = true, onChange: (Boolean) -> Unit) {
     val tap = rememberTapFeedback()
     Row(
         modifier = Modifier
+            .searchTarget(title)
             .fillMaxWidth()
             .heightIn(min = DashSize.Bar)
             .clip(DashShape.Medium)

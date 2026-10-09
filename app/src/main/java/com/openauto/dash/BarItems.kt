@@ -50,7 +50,6 @@ import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -418,21 +417,18 @@ private fun Caption(text: String, modifier: Modifier = Modifier, color: Color = 
 internal fun BarItemsSetting() {
     val chosen by BarItems.items.collectAsState()
     if (DashColors.Skin != DashSkin.STANDARD) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
-            Column(Modifier.weight(1f)) {
-                Text(stringResource(R.string.bar_items_custom), color = DashColors.Muted)
-                Text(stringResource(R.string.bar_items_skin), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
-            }
-            Switch(checked = chosen != null, onCheckedChange = null, enabled = false)
-        }
+        SettingsToggle(
+            Icons.Filled.Tune, stringResource(R.string.bar_items_custom), stringResource(R.string.bar_items_skin),
+            checked = chosen != null, enabled = false
+        ) {}
         return
     }
-    SwitchRow(
-        title = stringResource(R.string.bar_items_custom),
-        detail = stringResource(if (chosen == null) R.string.bar_items_theme else R.string.bar_items_custom_detail),
-        checked = chosen != null,
-        onChange = { on -> BarItems.set(if (on) BarItems.STARTER else null) }
-    )
+    // The same row as every other setting of the pane, icon and all.
+    SettingsToggle(
+        Icons.Filled.Tune, stringResource(R.string.bar_items_custom),
+        stringResource(if (chosen == null) R.string.bar_items_theme else R.string.bar_items_custom_detail),
+        checked = chosen != null
+    ) { on -> BarItems.set(if (on) BarItems.STARTER else null) }
     val list = chosen ?: return
     val look by BarItems.look.collectAsState()
     SegmentedSwitch(

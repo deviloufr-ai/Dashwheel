@@ -2,6 +2,8 @@
 
 package com.openauto.dash
 
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
@@ -1284,6 +1286,17 @@ internal fun EditBar(
     val tap = rememberTapFeedback()
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
         val narrow = maxWidth < NARROW_BAR
+        val actionLabels = listOfNotNull(
+            stringResource(R.string.dash_add), stringResource(R.string.dash_undo), stringResource(R.string.templates_button),
+            stringResource(R.string.zoom_page), stringResource(R.string.dash_reset_page),
+            onNewDashboard?.let { stringResource(R.string.canvas_tab_new) }, onDashboards?.let { stringResource(R.string.dash_dashboards) }
+        )
+        val measurer = rememberTextMeasurer()
+        val labelStyle = MaterialTheme.typography.labelLarge
+        val labelsWidth = with(LocalDensity.current) { actionLabels.sumOf { measurer.measure(it, labelStyle).size.width }.toDp() }
+        // The actions keep their names only where the page's name still reads beside
+        // them: in French they left it "Organisatio…" on a 1280 px screen.
+        val iconsOnly = narrow || labelsWidth + EDIT_ACTION_CHROME * actionLabels.size + EDIT_BAR_REST > maxWidth
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1334,13 +1347,13 @@ internal fun EditBar(
                     )
                 }
             }
-            Box(Modifier.tourTarget(TourTarget.ADD)) { EditAction(Icons.Filled.Add, stringResource(R.string.dash_add), narrow, onClick = onAdd) }
-            EditAction(Icons.Filled.Undo, stringResource(R.string.dash_undo), narrow, enabled = canUndo, onClick = onUndo)
-            EditAction(Icons.Filled.Dashboard, stringResource(R.string.templates_button), narrow, onClick = onTemplates)
-            PageZoomButton(pageZoom, narrow, onPageZoom)
-            EditAction(Icons.Outlined.DeleteOutline, stringResource(R.string.dash_reset_page), narrow, onClick = onReset)
-            if (onNewDashboard != null) EditAction(Icons.Filled.LibraryAdd, stringResource(R.string.canvas_tab_new), narrow, onClick = onNewDashboard)
-            if (onDashboards != null) EditAction(Icons.Filled.LibraryAdd, stringResource(R.string.dash_dashboards), narrow, onClick = onDashboards)
+            Box(Modifier.tourTarget(TourTarget.ADD)) { EditAction(Icons.Filled.Add, stringResource(R.string.dash_add), iconsOnly, onClick = onAdd) }
+            EditAction(Icons.Filled.Undo, stringResource(R.string.dash_undo), iconsOnly, enabled = canUndo, onClick = onUndo)
+            EditAction(Icons.Filled.Dashboard, stringResource(R.string.templates_button), iconsOnly, onClick = onTemplates)
+            PageZoomButton(pageZoom, iconsOnly, onPageZoom)
+            EditAction(Icons.Outlined.DeleteOutline, stringResource(R.string.dash_reset_page), iconsOnly, onClick = onReset)
+            if (onNewDashboard != null) EditAction(Icons.Filled.LibraryAdd, stringResource(R.string.canvas_tab_new), iconsOnly, onClick = onNewDashboard)
+            if (onDashboards != null) EditAction(Icons.Filled.LibraryAdd, stringResource(R.string.dash_dashboards), iconsOnly, onClick = onDashboards)
             Spacer(Modifier.width(4.dp))
             Button(
                 onClick = { tap(); onDone() },
@@ -1356,6 +1369,12 @@ internal fun EditBar(
         }
     }
 }
+
+/** An edit bar action's room besides its name: padding, icon, gap, and the space to the next. */
+private val EDIT_ACTION_CHROME = 54.dp
+
+/** The edit bar's room besides its actions: margins, the dot, Done, and a page name that still reads. */
+private val EDIT_BAR_REST = 460.dp
 
 /** One action of the edit bar: icon and name, or the icon alone where the bar is [compact]. */
 @Composable

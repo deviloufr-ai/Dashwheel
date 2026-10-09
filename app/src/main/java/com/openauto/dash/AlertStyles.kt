@@ -173,21 +173,16 @@ internal const val SHRINK_AFTER_MS = 8_000L
  * The design shown for [chosen] while driving: one of the [big] ones (the
  * side panel, the full screen) is the pill once the car moves and it has been
  * up [bigForMs], so no alert stays over the map until it is tapped. Parked,
- * the chosen design stays, unless the alert has a [parkedCap]: then a big
- * design is never more than that standing still (a door opened to get out
- * must not veil the screen), and shrinks to the pill after [SHRINK_AFTER_MS]
- * moving or not.
+ * the chosen design stays.
  */
 internal fun drivingStyle(
     chosen: AlertStyle,
     moving: Boolean,
     bigForMs: Long,
-    big: Set<AlertStyle> = COVERING,
-    parkedCap: AlertStyle? = null
+    big: Set<AlertStyle> = COVERING
 ): AlertStyle = when {
     chosen !in big -> chosen
-    (moving || parkedCap != null) && bigForMs > SHRINK_AFTER_MS -> AlertStyle.PILL
-    !moving && parkedCap != null -> parkedCap
+    moving && bigForMs > SHRINK_AFTER_MS -> AlertStyle.PILL
     else -> chosen
 }
 
@@ -198,9 +193,9 @@ internal fun carMoving(): Flow<Boolean> =
 /**
  * One alert's big design on the move ([drivingStyle]): it shrinks to the pill
  * a few seconds after it came up, and a tap on that pill ([enlarge]) brings
- * it back for as long again. With a [parkedCap], standing still too.
+ * it back for as long again.
  */
-internal class ShrinkOnTheMove(private val parkedCap: AlertStyle? = null) {
+internal class ShrinkOnTheMove {
     private val enlargedAt = MutableStateFlow(0L)
 
     private val _shrunk = MutableStateFlow(false)
@@ -222,11 +217,11 @@ internal class ShrinkOnTheMove(private val parkedCap: AlertStyle? = null) {
                 if (style != null && !up) bigSince = at
                 up = style != null
                 bigSince = maxOf(bigSince, enlarged)
-                val now = style?.let { drivingStyle(it, moving, at - bigSince, parkedCap = parkedCap) }
+                val now = style?.let { drivingStyle(it, moving, at - bigSince) }
                 _shrunk.value = now != style
                 send(now)
                 // The shrink comes with time, not with an event.
-                val later = style?.let { drivingStyle(it, moving, SHRINK_AFTER_MS + 1, parkedCap = parkedCap) }
+                val later = style?.let { drivingStyle(it, moving, SHRINK_AFTER_MS + 1) }
                 if (later != now) {
                     delay(SHRINK_AFTER_MS + 1 - (at - bigSince))
                     _shrunk.value = true

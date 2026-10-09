@@ -28,6 +28,7 @@
     <!-- Particle filter -->
     <string name="car_filter_title">PARTICLE FILTER</string>
     <string name="car_filter_none">This car has no particle filter. Change it in Settings → Car → My car.</string>
+    <string name="car_filter_unknown">Set your car in Settings → Car → My car.</string>
     <plurals name="car_filter_short_unit">
         <item quantity="one">short drive</item>
         <item quantity="other">short drives in a row</item>
