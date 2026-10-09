@@ -672,7 +672,7 @@ object ObdBluetoothManager {
 
     /**
      * One poll. Speed and revs are asked every time; throttle and load every
-     * other poll; the slow readings (temperatures, fuel, voltage) take turns,
+     * fourth poll each; the slow readings (temperatures, fuel, voltage) take turns,
      * one per poll. Each request is a round trip to the car, so fewer of them
      * means fresher speed and revs. The first poll asks for everything.
      */
@@ -690,8 +690,10 @@ object ObdBluetoothManager {
             supported = ObdParser.supportedPids { sendCommand(it) }
         }
 
-        val throttle = if (first || cycle % 2 == 0) read(0x11, alive, cycle) { ObdParser.percentFrom(it, "4111") } else null
-        val load = if (first || cycle % 2 == 1) read(0x04, alive, cycle) { ObdParser.percentFrom(it, "4104") } else null
+        // Throttle and load every fourth poll each, on alternate polls: one round trip
+        // in two instead of one in every, so the revs and the speed come round sooner.
+        val throttle = if (first || cycle % 4 == 0) read(0x11, alive, cycle) { ObdParser.percentFrom(it, "4111") } else null
+        val load = if (first || cycle % 4 == 2) read(0x04, alive, cycle) { ObdParser.percentFrom(it, "4104") } else null
         // The fuel the engine asks for, only while the LPG tank counts with it: the engine's own
         // fuel rate where it serves one, else worked out from the air flow.
         val flow = if (wantFuelFlow && (first || cycle % 2 == 1)) {

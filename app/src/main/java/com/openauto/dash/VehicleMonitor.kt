@@ -28,7 +28,12 @@ import kotlinx.coroutines.launch
  * full-screen app) until the next resume.
  */
 internal object VehicleMonitor {
-    private const val POLL_MS = 500L
+    /**
+     * The pause between two OBD polls: room for a fault scan to get the adapter.
+     * At 500 ms, with a poll's own round trips, the revs moved once in 1.3 s on
+     * the second screen while the car's own counter climbed.
+     */
+    private const val POLL_MS = 100L
     private const val FIRST_RETRY_MS = 5_000L
     private const val MAX_RETRY_MS = 60_000L
     /** The paired devices load just after Bluetooth says it's on. */

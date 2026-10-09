@@ -118,6 +118,8 @@ internal object CareRules {
     const val FILTER_SPEED_KMH = 60
     const val FILTER_WARN_STREAK = 3
     const val HARD_ACCEL_KMHS = 10.0
+    /** The shortest time a change in speed is measured over. */
+    const val MIN_ACCEL_SPAN_MS = 300L
     const val HARD_BRAKE_KMHS = -12.0
     const val COLD_REV_MS = 3_000L
     const val CLUTCH_RPM = 1200
@@ -176,13 +178,14 @@ internal object CareRules {
             sweetMs = v.sweetMs + if (moving && d.rpm in car.sweetBand) dt else 0,
             overRevMs = v.overRevMs + if (d.rpm > car.ecoRpmMax) dt else 0,
             peakCoolant = max(v.peakCoolant, d.coolantTempC),
-            lastSpeed = d.speedKmh,
-            lastSpeedAt = now
         )
 
-        // Hard acceleration / braking from the change in speed since the last reading.
+        // Hard acceleration / braking from the change in speed since a reading at
+        // least [MIN_ACCEL_SPAN_MS] old: readings closer than that (a fast adapter
+        // polled often) keep the older one, or no span ever counted.
         val span = now - v.lastSpeedAt
-        if (span in 300..3_000 && now - v.lastEventAt >= 3_000) {
+        if (span >= MIN_ACCEL_SPAN_MS || span < 0) x = x.copy(lastSpeed = d.speedKmh, lastSpeedAt = now)
+        if (span in MIN_ACCEL_SPAN_MS..3_000 && now - v.lastEventAt >= 3_000) {
             val a = (d.speedKmh - v.lastSpeed) / (span / 1000.0)
             if (a >= HARD_ACCEL_KMHS) x = x.copy(hardAccel = x.hardAccel + 1, lastEventAt = now)
             else if (a <= HARD_BRAKE_KMHS) x = x.copy(hardBrake = x.hardBrake + 1, lastEventAt = now)

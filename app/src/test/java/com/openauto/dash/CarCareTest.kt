@@ -134,6 +134,16 @@ class CareRulesTest {
     }
 
     @Test
+    fun hardBrakingIsCountedFromReadingsCloserThanTheSpan() {
+        // An adapter polled every 150 ms: each step alone is under the 300 ms span.
+        var (s, _) = CareRules.step(CareState(), ObdData(speedKmh = 80, rpm = 2000, coolantTempC = 90), t0, car)
+        s = CareRules.step(s, ObdData(speedKmh = 80, rpm = 2000, coolantTempC = 90), t0 + 1000, car).first
+        s = CareRules.step(s, ObdData(speedKmh = 75, rpm = 1900, coolantTempC = 90), t0 + 1150, car).first
+        s = CareRules.step(s, ObdData(speedKmh = 70, rpm = 1800, coolantTempC = 90), t0 + 1300, car).first
+        assertEquals(1, s.drive!!.hardBrake)
+    }
+
+    @Test
     fun hardBrakingIsCounted() {
         var (s, _) = CareRules.step(CareState(), ObdData(speedKmh = 80, rpm = 2000, coolantTempC = 90), t0, car)
         s = CareRules.step(s, ObdData(speedKmh = 80, rpm = 2000, coolantTempC = 90), t0 + 1000, car).first
