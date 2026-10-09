@@ -361,8 +361,15 @@ internal object EmbeddedApp {
     /** How long it is watched for once the dashboard got covered without the user. */
     private const val COVERED_WATCH_MS = 10_000L
 
-    /** How often, meanwhile: the app is back on its tile this soon after its own screen closes. */
+    /** How often, meanwhile. */
     private const val WATCH_EVERY_MS = 500L
+
+    /**
+     * How long an app is left full screen after a screen of its own closed,
+     * for the next one it opens from it (Waze: the voice screen, then the
+     * search results) to come up first.
+     */
+    private const val OWN_SCREEN_SETTLE_MS = 2_500L
 
     /** How often the dashboard is looked for in front after the ignition comes on. */
     private const val HOME_EVERY_MS = 500L
@@ -1109,9 +1116,19 @@ internal object EmbeddedApp {
             if (front.taskId != null && WindowListing.showsOwnScreen(listing, front.taskId)) {
                 if (waitingFor != front.taskId) Log.i(TAG, "$packageName full screen with a screen of its own: back onto its tile once it closes")
                 waitingFor = front.taskId
+                ownClosedAt = 0L
                 return true
             }
+            // That screen just closed: the app is given a moment before it moves. Waze
+            // opens its search results right after the voice screen, and moved back
+            // onto its tile in between, it never opened them (the place said, then nothing).
+            if (waitingFor != null && waitingFor == front.taskId) {
+                val now = SystemClock.elapsedRealtime()
+                if (ownClosedAt == 0L) ownClosedAt = now
+                if (now - ownClosedAt < OWN_SCREEN_SETTLE_MS) return true
+            }
             waitingFor = null
+            ownClosedAt = 0L
             Log.i(TAG, "$packageName came full screen by itself (task ${front.taskId}): back onto its tile")
             launch(vd)
             return false
@@ -1119,6 +1136,9 @@ internal object EmbeddedApp {
 
         /** The task last left full screen for a screen of its own, so that is said once. */
         private var waitingFor: Int? = null
+
+        /** When that screen was first seen closed (elapsedRealtime), 0 while it is up. */
+        private var ownClosedAt = 0L
 
         fun release() {
             settling?.cancel()
