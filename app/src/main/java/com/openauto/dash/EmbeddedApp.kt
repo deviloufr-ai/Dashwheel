@@ -361,8 +361,8 @@ internal object EmbeddedApp {
     /** How long it is watched for once the dashboard got covered without the user. */
     private const val COVERED_WATCH_MS = 10_000L
 
-    /** How often, meanwhile. */
-    private const val WATCH_EVERY_MS = 1_000L
+    /** How often, meanwhile: the app is back on its tile this soon after its own screen closes. */
+    private const val WATCH_EVERY_MS = 500L
 
     /** How often the dashboard is looked for in front after the ignition comes on. */
     private const val HOME_EVERY_MS = 500L
@@ -507,14 +507,17 @@ internal object EmbeddedApp {
         if (hosts.isEmpty()) return
         watching?.cancel()
         val since = userActedAt
-        val until = SystemClock.elapsedRealtime() + forMs
+        var until = SystemClock.elapsedRealtime() + forMs
         watching = mainScope.launch {
             while (SystemClock.elapsedRealtime() < until) {
                 delay(WATCH_EVERY_MS)
                 if (userActedAt != since) return@launch
                 // One fresh listing per look, shared by every tile's app.
                 DockShell.forgetListing()
-                hosts.values.toList().forEach { it.bringBackFromFront() }
+                // An app full screen with a screen of its own open (Waze listening for
+                // a place) is waited for, however long that takes, then put back.
+                val waiting = hosts.values.toList().map { it.bringBackFromFront() }.any { it }
+                if (waiting) until = SystemClock.elapsedRealtime() + forMs
             }
         }
     }
@@ -1085,22 +1088,37 @@ internal object EmbeddedApp {
         /**
          * Full screen in front of the main screen: put back on the tile. Main
          * thread. The caller forgets the shell's listing first ([watchFront]):
-         * one listing serves every app looked at together.
+         * one listing serves every app looked at together. True while it is
+         * left there for a screen of its own to close.
          */
-        suspend fun bringBackFromFront() {
-            val vd = display ?: return
-            if (shownOn == null || _status.value == Status.BLOCKED || settling?.isActive == true) return
+        suspend fun bringBackFromFront(): Boolean {
+            val vd = display ?: return false
+            if (shownOn == null || _status.value == Status.BLOCKED || settling?.isActive == true) return false
             val listing = try {
                 DockShell.listStacks(context)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                return
+                return false
             }
-            val front = WindowListing.fullscreenInFront(listing, windowPackage, context.packageName) ?: return
+            val front = WindowListing.fullscreenInFront(listing, windowPackage, context.packageName) ?: return false
+            // Waze opens its voice prompt, a report or a permission request full
+            // screen by itself. Moved back onto the tile meanwhile, that screen
+            // started over and the voice prompt went away unheard: it is used
+            // full screen, and the app comes back onto its tile once it closes.
+            if (front.taskId != null && WindowListing.showsOwnScreen(listing, front.taskId)) {
+                if (waitingFor != front.taskId) Log.i(TAG, "$packageName full screen with a screen of its own: back onto its tile once it closes")
+                waitingFor = front.taskId
+                return true
+            }
+            waitingFor = null
             Log.i(TAG, "$packageName came full screen by itself (task ${front.taskId}): back onto its tile")
             launch(vd)
+            return false
         }
+
+        /** The task last left full screen for a screen of its own, so that is said once. */
+        private var waitingFor: Int? = null
 
         fun release() {
             settling?.cancel()

@@ -265,6 +265,19 @@ object WindowListing {
 
     private val TASK = Regex("taskId=(\\d+): ([\\w.]+)/")
 
+    /** A task line: its id, its first screen, and the one on top ("topActivity=ComponentInfo{pkg/cls}"). */
+    private val TASK_SCREENS = Regex("taskId=(\\d+): (\\S+) .*?topActivity=ComponentInfo\\{([^}]+)\\}")
+
+    /**
+     * Whether task [taskId] shows a screen over its first one: Waze's voice
+     * prompt, a report, a permission request. A screen like that is let be
+     * where it opened, or moving it restarted it (the voice prompt asked for
+     * the microphone again, and went away unheard).
+     */
+    internal fun showsOwnScreen(output: String, taskId: Int): Boolean =
+        TASK_SCREENS.findAll(output).firstOrNull { it.groupValues[1].toIntOrNull() == taskId }
+            ?.let { it.groupValues[2] != it.groupValues[3] } ?: false
+
     private val BOUNDS = Regex("bounds=\\[(-?\\d+),(-?\\d+)\\]\\[(-?\\d+),(-?\\d+)\\]")
 
     private val DISPLAY = Regex("displayId=(\\d+)")
