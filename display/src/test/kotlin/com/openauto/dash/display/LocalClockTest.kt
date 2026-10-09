@@ -27,11 +27,12 @@ class LocalClockTest {
         assertEquals("Asia/Tokyo", File(tmp.root, "zone.txt").readText().trim())
         // The same zone again: nothing to save.
         assertFalse(LocalClock.set(tmp.root, DisplayTime(far + 1, 540, "Asia/Tokyo")))
-        // A few seconds off: the board's clock is left alone, the pictures use the offset.
+        // A few seconds off (a head unit beside a board on network time): the board's clock is
+        // left alone, the pictures use the offset.
         set = null
-        LocalClock.set(tmp.root, DisplayTime(System.currentTimeMillis() + 500, 540, "Asia/Tokyo"))
+        LocalClock.set(tmp.root, DisplayTime(System.currentTimeMillis() + 2_500, 540, "Asia/Tokyo"))
         assertEquals(null, set)
-        assertTrue(kotlin.math.abs(LocalClock.now() - (System.currentTimeMillis() + 500)) < 200)
+        assertTrue(kotlin.math.abs(LocalClock.now() - (System.currentTimeMillis() + 2_500)) < 200)
         // A zone this JVM doesn't know: its offset does.
         assertEquals(ZoneOffset.ofHours(-5), LocalClock.zoneOf("Mars/Olympus", -300))
         assertEquals(null, LocalClock.zoneOf("", null))

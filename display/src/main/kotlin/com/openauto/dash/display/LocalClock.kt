@@ -18,8 +18,14 @@ import java.util.concurrent.TimeUnit
  */
 object LocalClock {
     private const val FILE = "zone.txt"
-    /** The board's clock is only set when it is this far off: a few seconds don't matter, a reboot's worth does. */
-    private const val SET_SYSTEM_BEYOND_MS = 2_000L
+    /**
+     * The board's clock is only set when it is this far off: a board without
+     * network time is hours or days off, and that is what this is for. A
+     * board on network time and a head unit a few seconds apart from it
+     * would otherwise be stepped back and forth every ping; the pictures use
+     * the offset anyway.
+     */
+    private const val SET_SYSTEM_BEYOND_MS = 60_000L
 
     /** Head unit clock minus the board's. */
     @Volatile private var offsetMs = 0L
