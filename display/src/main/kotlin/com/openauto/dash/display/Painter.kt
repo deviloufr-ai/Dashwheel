@@ -123,13 +123,13 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
             return@draw
         }
 
-        // Top line on every page: the clock, and what the car is warning about in an amber pill.
-        // A board with a Clock slot shows the time there instead, and without a warning the
+        // Top line: the clock, and what the car is warning about in an amber pill. A board
+        // page shows no clock there (a Clock slot is for that), and without a warning the
         // line is left out altogether: the board then takes the whole height.
         val clockFont = font(Font.BOLD, 7f)
         val clock = text.clock(now, zone)
         val clockBase = top + (6 * unit).roundToInt()
-        val clockOnBoard = state.layout?.faces?.contains(ClusterFace.CLOCK) == true
+        val clockOnBoard = state.layout != null
         val topLine = !clockOnBoard || text.open != null
         if (!clockOnBoard) {
             g.color = p.fg

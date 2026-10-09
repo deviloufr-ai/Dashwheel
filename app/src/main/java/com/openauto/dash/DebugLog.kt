@@ -33,7 +33,7 @@ object DebugLog {
     private const val KEEP_BYTES = 100_000
     private const val KEEP_SNAPSHOTS = 4
     // ActivityTaskManager: which app started which screen, to see who puts a launcher in front at boot.
-    private const val LOGCAT = "logcat -d -v threadtime -t 3000 CarPower:I EmbeddedApp:I MediaResume:I DebugLog:I UnitLauncher:I NavDirections:I WazeScreen:I SecondScreen:I DisplayLink:I ActivityTaskManager:I *:W"
+    private const val LOGCAT = "logcat -d -v threadtime -t 3000 CarPower:I EmbeddedApp:I MediaResume:I DebugLog:I UnitLauncher:I NavDirections:I WazeScreen:I ShadowRoute:I SecondScreen:I DisplayLink:I ActivityTaskManager:I *:W"
 
     private val lock = Any()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)

@@ -61,7 +61,8 @@ internal object ClusterFeed {
 
         val controller = CarMediaController.shared(context)
         val media = if (DemoMode.isOn) DemoMode.media.value else controller.mediaState.value
-        val nav = NavDirections.state.value
+        // The navigation app's own turn; else the one on the shadow route (ShadowRoute), when there is one.
+        val nav = NavDirections.state.value.takeIf { it.active && it.instruction.isNotBlank() } ?: ShadowRoute.turn.value ?: NavState()
         val units = Units.current.value
         return ClusterState(
             clock = System.currentTimeMillis(),

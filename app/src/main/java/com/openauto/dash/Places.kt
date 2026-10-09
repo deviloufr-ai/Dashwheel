@@ -189,8 +189,15 @@ internal object NavHandoff {
     @Volatile var destination: Pair<String, Long>? = null
         private set
 
-    private fun heading(to: String) {
+    /** Where guidance was last started to, for the second screen's shadow route ([ShadowRoute]). */
+    data class Target(val name: String, val lat: Double?, val lng: Double?, val query: String?, val at: Long)
+
+    private val _handedOff = kotlinx.coroutines.flow.MutableStateFlow<Target?>(null)
+    val handedOff: kotlinx.coroutines.flow.StateFlow<Target?> = _handedOff
+
+    private fun heading(to: String, lat: Double? = null, lng: Double? = null, query: String? = null) {
         if (to.isNotBlank()) destination = to to System.currentTimeMillis()
+        _handedOff.value = Target(to.ifBlank { query.orEmpty() }, lat, lng, query, System.currentTimeMillis())
     }
 
     /**
@@ -202,7 +209,7 @@ internal object NavHandoff {
 
     /** Starts guidance to ([lat], [lng]); false when no app on the unit can. */
     fun start(context: Context, lat: Double, lng: Double, label: String = ""): Boolean {
-        heading(label)
+        heading(label, lat, lng)
         InAppNav.handOver()
         for (app in apps(context)) {
             val uri = if (app == WAZE) String.format(Locale.US, "waze://?ll=%.6f,%.6f&navigate=yes", lat, lng)
@@ -225,7 +232,7 @@ internal object NavHandoff {
      * navigation app looks up itself; false when no app on the unit can.
      */
     fun startQuery(context: Context, query: String): Boolean {
-        heading(query)
+        heading(query, query = query)
         InAppNav.handOver()
         for (app in apps(context)) {
             if (open(context, app, queryUri(app, query))) return true
