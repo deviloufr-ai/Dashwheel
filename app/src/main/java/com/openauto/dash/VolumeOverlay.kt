@@ -150,6 +150,8 @@ object VolumeOverlay {
         if (started) return
         started = true
         val app = AppLanguage.wrap(context.applicationContext)
+        // What the next broadcast is compared with: the firmware has written its level by then.
+        lastHeard = runCatching { MediaVolume.unitNow() }.getOrNull()
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(c: Context, intent: Intent) = heard(intent)
         }
@@ -177,18 +179,25 @@ object VolumeOverlay {
         }
     }
 
+    /** The volume as last heard from the firmware, to tell a real change from a repeat. */
+    @Volatile private var lastHeard: VolumeShown? = null
+
     private fun heard(intent: Intent) {
         if (RomPopups.Kind.VOLUME !in RomPopups.replaced.value || !VolumeRomHide.active.value) return
-        val own = SystemClock.elapsedRealtime() - ownAt < OWN_ECHO_MS
-        if (own && !ownShows) return
         val now = MediaVolume.unitNow()
         val volume = when (intent.action) {
             ACTION_CHANGED -> now.copy(level = intent.getIntExtra(EXTRA_LEVEL, now.level).coerceIn(0, now.max))
             ACTION_MUTE -> now.copy(muted = intent.getBooleanExtra(EXTRA_MUTE, now.muted))
             else -> now
         }
+        val before = lastHeard ?: now
+        lastHeard = volume
+        val own = SystemClock.elapsedRealtime() - ownAt < OWN_ECHO_MS
+        if (own && !ownShows) return
+        if (!worthShowing(before, volume, carKeys = intent.action == ACTION_CAN_KEYS)) return
         show(volume)
     }
+
 
     /** Puts [volume] up, or keeps the bar up with it, for [SHOW_MS] more. */
     internal fun show(volume: VolumeShown) {
@@ -371,3 +380,13 @@ internal fun VolumeHost() {
     if (android.provider.Settings.canDrawOverlays(LocalContext.current)) return
     AlertPopup(s, AlertKind.VOLUME.cardAt.alignment) { VolumeAlert(v, s) }
 }
+
+/**
+ * Whether a volume broadcast is worth the bar ([VolumeOverlay]): the level,
+ * the mute or the source changed, or the car's own volume keys were pressed
+ * (the end of the scale shows too). The firmware also sends its "changed",
+ * same level, whenever an app takes the sound: Dashwheel's voice or Gemini
+ * speaking brought the bar up for nothing.
+ */
+internal fun worthShowing(before: VolumeShown, now: VolumeShown, carKeys: Boolean): Boolean =
+    carKeys || before.level != now.level || before.muted != now.muted || before.source != now.source

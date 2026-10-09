@@ -7,6 +7,13 @@ import javax.imageio.ImageIO
 
 /** Writes every page to PNG when -Drender.dir is set (preview only). */
 class RenderPreview {
+    private val MEASURES = listOf(
+        ClusterState.Measure("tr/min", "2100"), ClusterState.Measure("Vitesse", "87 km/h"),
+        ClusterState.Measure("Liquide de refroidissement", "90 °C"), ClusterState.Measure("Air d'admission", "31 °C"),
+        ClusterState.Measure("Accélérateur", "18 %"), ClusterState.Measure("Charge moteur", "42 %"),
+        ClusterState.Measure("Batterie", "14.3 V"), ClusterState.Measure("Niveau de carburant", "40 %")
+    )
+
     @Test
     fun render() {
         val dir = System.getenv("RENDER_DIR") ?: return
@@ -32,6 +39,9 @@ class RenderPreview {
             "media_none" to base.copy(page = "MEDIA", media = null),
             "media_paused_long" to base.copy(page = "MEDIA", media = ClusterState.Media("A very long song title that will not fit on one line at all, really", "Some Artist feat. Another", "YouTube Music", false, 5_000, 600_000)),
             "drive_three" to base.copy(rpm = null, coolantC = 52, fuelPct = 8, speedKmh = 132),
+            "obd_night" to base.copy(page = "OBD", measures = MEASURES),
+            "obd_day" to base.copy(page = "OBD", night = false, measures = MEASURES),
+            "obd_none" to base.copy(page = "OBD", labels = ClusterState.Labels(measuresNone = "En attente de l'adaptateur OBD…")),
             "alert_warn" to base.copy(alert = ClusterState.Alert("Doors", "Front left, Tailgate", ClusterState.Alert.WARN)),
             "alert_crit" to base.copy(alert = ClusterState.Alert("Engine hot", "Coolant 118°", ClusterState.Alert.CRITICAL)),
         )

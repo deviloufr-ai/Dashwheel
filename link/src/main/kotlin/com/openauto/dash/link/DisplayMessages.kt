@@ -218,8 +218,18 @@ data class ClusterState(
     /** An alert up on the head unit, to show full screen over the page; null when none. */
     val alert: Alert? = null,
     /** How the display draws its pages, e.g. "DIALS"; null from an older head unit (the display's default). */
-    val design: String? = null
+    val design: String? = null,
+    /**
+     * The Measures page's readings, written as the head unit shows them (its
+     * language and units); sent with that page only, empty without an OBD
+     * adapter and from an older head unit.
+     */
+    val measures: List<Measure> = emptyList()
 ) : LinkMessage {
+    /** One reading of the Measures page, e.g. "Coolant" and "87 °C". */
+    @Serializable
+    data class Measure(val label: String, val value: String)
+
     /** What the head unit is alerting about, in its language: an older display ignores it. */
     @Serializable
     data class Alert(
@@ -253,7 +263,9 @@ data class ClusterState(
         val coolant: String? = null,
         val fuel: String? = null,
         /** Under the range, its unit included, e.g. "km range". */
-        val range: String? = null
+        val range: String? = null,
+        /** The Measures page without readings, e.g. "Waiting for the OBD adapter…". */
+        val measuresNone: String? = null
     )
 
     @Serializable

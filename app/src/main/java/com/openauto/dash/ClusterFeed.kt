@@ -83,9 +83,23 @@ internal object ClusterFeed {
                 ClusterState.Nav(instruction = it.instruction, distance = it.distance, eta = it.eta)
             },
             labels = labels(context, units),
-            design = SecondScreenStore.config.value.design.name
+            design = SecondScreenStore.config.value.design.name,
+            // Only for the page that shows them: five times a second, the rest of the time, for nothing.
+            measures = if (page == ClusterPage.OBD && obdLive) measures(context, obd, units) else emptyList()
         )
     }
+
+    /** The Measures page's readings: those of the dashboard's "All readings" tile, in its words and units. */
+    private fun measures(context: Context, d: ObdData, u: UnitSystem): List<ClusterState.Measure> = listOfNotNull(
+        ClusterState.Measure(context.getString(R.string.info_unit_rpm), d.rpm.toString()),
+        ClusterState.Measure(context.getString(R.string.vehicle_speed), u.speedText(d.speedKmh)),
+        ClusterState.Measure(context.getString(R.string.vehicle_coolant), u.tempText(d.coolantTempC)),
+        ClusterState.Measure(context.getString(R.string.vehicle_intake_air), u.tempText(d.intakeTempC)),
+        ClusterState.Measure(context.getString(R.string.vehicle_throttle), "${d.throttlePct} %"),
+        ClusterState.Measure(context.getString(R.string.vehicle_engine_load), "${d.engineLoadPct} %"),
+        ClusterState.Measure(context.getString(R.string.vehicle_battery), String.format(java.util.Locale.getDefault(), "%.1f V", d.voltage)),
+        d.fuelLevelPct.takeIf { it > 0 }?.let { ClusterState.Measure(context.getString(R.string.vehicle_fuel_level), "$it %") }
+    )
 
     /** The words the display prints around these figures, in the driver's language like the door names above. */
     private fun labels(context: Context, units: UnitSystem) = ClusterState.Labels(
@@ -97,6 +111,7 @@ internal object ClusterFeed {
         rpm = context.getString(R.string.info_unit_rpm),
         coolant = context.getString(R.string.orbit_sat_coolant),
         fuel = context.getString(R.string.second_screen_label_fuel),
-        range = context.getString(R.string.second_screen_label_range, units.distanceUnit)
+        range = context.getString(R.string.second_screen_label_range, units.distanceUnit),
+        measuresNone = context.getString(R.string.car_waiting_obd)
     )
 }

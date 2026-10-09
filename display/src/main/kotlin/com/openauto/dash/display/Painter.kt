@@ -139,6 +139,7 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
         when (state.page) {
             "MEDIA" -> paintMedia(g, state, text, body, p)
             "NAV" -> paintNav(g, state, text, body, p)
+            "OBD" -> paintMeasures(g, state, text, body, p)
             else -> when (design) {
                 Design.DIALS -> paintDials(g, state, text, body, p)
                 Design.LARGE -> paintLarge(g, state, text, body, p)
@@ -617,6 +618,55 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
         }
     }
 
+    /**
+     * The Measures page: every reading the head unit sends for it, in cards of
+     * the same size, as many to a row as fit (four for eight readings). Without
+     * them (no OBD adapter) it says so, as the media page does with no music.
+     */
+    private fun paintMeasures(g: Graphics2D, s: ClusterState, text: ClusterText, body: Rectangle, p: Palette) {
+        val measures = s.measures
+        if (measures.isEmpty()) {
+            emptyState(g, body, text.measuresNone, p) { cx, cy, size -> gaugeSign(g, cx, cy, size, p.muted) }
+            return
+        }
+        val gap = (4 * unit).roundToInt()
+        val columns = when {
+            measures.size > 6 -> 4
+            measures.size > 4 -> 3
+            else -> 2
+        }
+        val rows = (measures.size + columns - 1) / columns
+        val cardW = (body.width - gap * (columns - 1)) / columns
+        val cardH = (body.height - gap * (rows - 1)) / rows
+        val pad = (4 * unit).roundToInt()
+        measures.forEachIndexed { i, m ->
+            val box = Rectangle(body.x + (i % columns) * (cardW + gap), body.y + (i / columns) * (cardH + gap), cardW, cardH)
+            card(g, box, p)
+            val inner = box.width - 2 * pad
+            g.color = p.muted
+            // On two lines: "Liquide de refroidissement" does not fit on one at four to a row;
+            // smaller where one word alone is wider than the card ("ACCÉLÉRATEUR").
+            val label = m.label.uppercase()
+            g.font = fitFont(g, 4.2f, label.split(' ').maxBy { it.length }, inner - unit.roundToInt())
+            wrap(g, label, inner, 2).forEachIndexed { line, words ->
+                g.drawString(words, box.x + pad, box.y + pad + g.fontMetrics.ascent + line * g.fontMetrics.height)
+            }
+            g.color = p.fg
+            g.font = fitFont(g, min(13f, box.height / unit * 0.34f), m.value, inner)
+            g.drawString(m.value, box.x + pad, box.y + box.height - pad - (3 * unit).roundToInt())
+        }
+    }
+
+    /** A small gauge: an open arc and its needle, for the Measures page with nothing to show. */
+    private fun gaugeSign(g: Graphics2D, cx: Float, cy: Float, size: Float, color: Color) {
+        val r = size * 0.55f
+        g.color = color
+        g.stroke = BasicStroke(size * 0.1f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
+        g.draw(Arc2D.Float(cx - r, cy - r, 2 * r, 2 * r, 210f, -240f, Arc2D.OPEN))
+        val a = Math.toRadians(60.0)
+        g.draw(Line2D.Float(cx, cy, cx + r * 0.8f * cos(a).toFloat(), cy - r * 0.8f * sin(a).toFloat()))
+    }
+
     /** Nothing to show on this page: a faint sign in a disc, and its words under it. */
     private inline fun emptyState(g: Graphics2D, body: Rectangle, words: String, p: Palette, sign: (Float, Float, Float) -> Unit) {
         val r = 18 * unit
@@ -1050,6 +1100,8 @@ internal class ClusterText(private val s: ClusterState) {
     val nothingPlaying: String get() = labels?.nothingPlaying ?: "Nothing playing"
 
     val noRoute: String get() = labels?.noRoute ?: "No route"
+
+    val measuresNone: String get() = labels?.measuresNone ?: "Waiting for the OBD adapter"
 
     fun arrive(eta: String): String = fill(labels?.arrive, "Arrive %s", eta)
 
