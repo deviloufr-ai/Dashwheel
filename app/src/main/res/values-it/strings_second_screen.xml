@@ -66,7 +66,7 @@
     <string name="second_screen_not_connected">Non connesso</string>
     <string name="second_screen_board">Tabellone pagine</string>
     <string name="second_screen_board_detail">Tocca un widget per cambiarlo. Il secondo schermo mostra la pagina che modifichi.</string>
-    <string name="second_screen_board_no_video">Il tabellone dispone la vista completa. Con Vista semplice, lo schermo disegna le proprie pagine.</string>
+    <string name="second_screen_board_no_video">Tocca un widget per cambiarlo. Con Vista semplice, lo schermo disegna la pagina da sé con i widget che conosce: velocità, orologio, carburante, autonomia, motore, media, indicazioni, letture, porte e mappa.</string>
     <string name="second_screen_layout">Disposizione</string>
     <string name="second_screen_layout_one">Uno</string>
     <string name="second_screen_layout_big_side">Grande + 1</string>

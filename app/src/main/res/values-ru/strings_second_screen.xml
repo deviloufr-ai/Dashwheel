@@ -66,7 +66,7 @@
     <string name="second_screen_not_connected">Не подключено</string>
     <string name="second_screen_board">Макет страниц</string>
     <string name="second_screen_board_detail">Нажмите на виджет, чтобы изменить его. Второй экран переключится на редактируемую страницу.</string>
-    <string name="second_screen_board_no_video">Макет задаёт полное изображение. В простом режиме экран рисует свои страницы.</string>
+    <string name="second_screen_board_no_video">Коснитесь виджета, чтобы заменить его. В простом режиме экран сам рисует страницу теми виджетами, которые знает: скорость, часы, топливо, запас хода, двигатель, медиа, указания, показания, двери и карта.</string>
     <string name="second_screen_layout">Компоновка</string>
     <string name="second_screen_layout_one">Один</string>
     <string name="second_screen_layout_big_side">Большой + 1</string>

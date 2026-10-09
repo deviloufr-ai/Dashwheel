@@ -66,7 +66,7 @@
     <string name="second_screen_not_connected">Niet verbonden</string>
     <string name="second_screen_board">Paginabord</string>
     <string name="second_screen_board_detail">Tik op een widget om hem te wijzigen. Het tweede scherm toont de pagina die je bewerkt.</string>
-    <string name="second_screen_board_no_video">Het bord deelt de volledige weergave in. Met Eenvoudige weergave tekent het scherm zijn eigen pagina\'s.</string>
+    <string name="second_screen_board_no_video">Tik op een widget om hem te wijzigen. Met Eenvoudige weergave tekent het scherm de pagina zelf met de widgets die het kent: snelheid, klok, brandstof, bereik, motor, media, aanwijzingen, meetwaarden, deuren en kaart.</string>
     <string name="second_screen_layout">Indeling</string>
     <string name="second_screen_layout_one">Eén</string>
     <string name="second_screen_layout_big_side">Groot + 1</string>

@@ -66,7 +66,7 @@
     <string name="second_screen_not_connected">Nicht verbunden</string>
     <string name="second_screen_board">Seitenboard</string>
     <string name="second_screen_board_detail">Tippe auf ein Widget, um es zu ändern. Der zweite Bildschirm zeigt die bearbeitete Seite.</string>
-    <string name="second_screen_board_no_video">Die Tafel gestaltet die volle Anzeige. Mit Einfache Anzeige zeichnet der Bildschirm seine eigenen Seiten.</string>
+    <string name="second_screen_board_no_video">Tippen Sie auf ein Widget, um es zu ändern. Mit Einfache Anzeige zeichnet der Bildschirm die Seite selbst, mit den Widgets, die er kennt: Tempo, Uhr, Kraftstoff, Reichweite, Motor, Medien, Richtungen, Messwerte, Türen und Karte.</string>
     <string name="second_screen_layout">Anordnung</string>
     <string name="second_screen_layout_one">Eins</string>
     <string name="second_screen_layout_big_side">Groß + 1</string>

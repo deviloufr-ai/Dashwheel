@@ -66,7 +66,7 @@
     <string name="second_screen_not_connected">Not connected</string>
     <string name="second_screen_board">Page board</string>
     <string name="second_screen_board_detail">Tap a widget to change it. The second screen turns to the page you edit.</string>
-    <string name="second_screen_board_no_video">The board lays out the full display. With Simple display on, the screen draws its own pages.</string>
+    <string name="second_screen_board_no_video">Tap a widget to change it. With Simple display on, the screen draws the page itself with the widgets it knows: speed, clock, fuel, range, engine, media, directions, readings, doors and the map.</string>
     <string name="second_screen_layout">Layout</string>
     <string name="second_screen_layout_one">One</string>
     <string name="second_screen_layout_big_side">Big + 1</string>

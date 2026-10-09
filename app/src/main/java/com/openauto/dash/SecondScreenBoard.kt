@@ -78,7 +78,7 @@ internal fun ClusterBoard() {
     SettingsSection(stringResource(R.string.second_screen_board))
     Text(
         stringResource(if (config.video) R.string.second_screen_board_detail else R.string.second_screen_board_no_video),
-        color = if (config.video) DashColors.TextSecondary else DashColors.Warning,
+        color = DashColors.TextSecondary,
         style = MaterialTheme.typography.bodyMedium,
         modifier = Modifier.padding(horizontal = 12.dp)
     )

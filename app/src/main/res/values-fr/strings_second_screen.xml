@@ -66,7 +66,7 @@
     <string name="second_screen_not_connected">Non connecté</string>
     <string name="second_screen_board">Tableau des pages</string>
     <string name="second_screen_board_detail">Touchez un widget pour le changer. Le second écran affiche la page en cours.</string>
-    <string name="second_screen_board_no_video">Le tableau règle l\'affichage complet. Avec Affichage simple, l\'écran dessine ses propres pages.</string>
+    <string name="second_screen_board_no_video">Touchez un widget pour le changer. Avec Affichage simple, l\'écran dessine la page lui-même avec les widgets qu\'il connaît : vitesse, horloge, carburant, autonomie, moteur, médias, directions, mesures, portes et carte.</string>
     <string name="second_screen_layout">Disposition</string>
     <string name="second_screen_layout_one">Un</string>
     <string name="second_screen_layout_big_side">Grand + 1</string>

@@ -66,7 +66,7 @@
     <string name="second_screen_not_connected">Não ligado</string>
     <string name="second_screen_board">Quadro de páginas</string>
     <string name="second_screen_board_detail">Toque num widget para o mudar. O segundo ecrã mostra a página que edita.</string>
-    <string name="second_screen_board_no_video">O quadro organiza a vista completa. Com Vista simples, o ecrã desenha as suas próprias páginas.</string>
+    <string name="second_screen_board_no_video">Toque num widget para o mudar. Com Vista simples, o ecrã desenha a página por si com os widgets que conhece: velocidade, relógio, combustível, autonomia, motor, média, direções, leituras, portas e mapa.</string>
     <string name="second_screen_layout">Disposição</string>
     <string name="second_screen_layout_one">Um</string>
     <string name="second_screen_layout_big_side">Grande + 1</string>

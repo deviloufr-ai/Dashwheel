@@ -66,7 +66,7 @@
     <string name="second_screen_not_connected">Nie połączono</string>
     <string name="second_screen_board">Tablica stron</string>
     <string name="second_screen_board_detail">Dotknij widżetu, aby go zmienić. Drugi ekran pokazuje edytowaną stronę.</string>
-    <string name="second_screen_board_no_video">Tablica układa pełny widok. Z Prostym widokiem ekran rysuje własne strony.</string>
+    <string name="second_screen_board_no_video">Dotknij widżetu, aby go zmienić. Z Prostym widokiem ekran rysuje stronę sam, z widżetami, które zna: prędkość, zegar, paliwo, zasięg, silnik, media, wskazówki, odczyty, drzwi i mapa.</string>
     <string name="second_screen_layout">Układ</string>
     <string name="second_screen_layout_one">Jeden</string>
     <string name="second_screen_layout_big_side">Duży + 1</string>

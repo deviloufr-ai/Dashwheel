@@ -66,7 +66,7 @@
     <string name="second_screen_not_connected">No conectada</string>
     <string name="second_screen_board">Tablero de páginas</string>
     <string name="second_screen_board_detail">Toca un widget para cambiarlo. La segunda pantalla muestra la página que editas.</string>
-    <string name="second_screen_board_no_video">El tablero organiza la vista completa. Con Vista simple, la pantalla dibuja sus propias páginas.</string>
+    <string name="second_screen_board_no_video">Toque un widget para cambiarlo. Con Vista simple, la pantalla dibuja la página por sí misma con los widgets que conoce: velocidad, reloj, combustible, autonomía, motor, multimedia, direcciones, lecturas, puertas y mapa.</string>
     <string name="second_screen_layout">Disposición</string>
     <string name="second_screen_layout_one">Uno</string>
     <string name="second_screen_layout_big_side">Grande + 1</string>
