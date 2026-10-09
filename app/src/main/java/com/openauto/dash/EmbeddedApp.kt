@@ -371,6 +371,14 @@ internal object EmbeddedApp {
      */
     private const val OWN_SCREEN_SETTLE_MS = 2_500L
 
+    /**
+     * The same after a voice screen: Waze then searches for the place said and
+     * lists what it found, which took over 3 s on the K706 (moved back onto its
+     * tile before that, the place said was lost). Long enough to pick a result
+     * full screen; picking one opens its place card, which is waited for in turn.
+     */
+    private const val VOICE_SETTLE_MS = 15_000L
+
     /** How often the dashboard is looked for in front after the ignition comes on. */
     private const val HOME_EVERY_MS = 500L
 
@@ -1113,10 +1121,15 @@ internal object EmbeddedApp {
             // screen by itself. Moved back onto the tile meanwhile, that screen
             // started over and the voice prompt went away unheard: it is used
             // full screen, and the app comes back onto its tile once it closes.
-            if (front.taskId != null && WindowListing.showsOwnScreen(listing, front.taskId)) {
-                if (waitingFor != front.taskId) Log.i(TAG, "$packageName full screen with a screen of its own: back onto its tile once it closes")
+            val own = front.taskId?.let { WindowListing.ownScreenOf(listing, it) }
+            if (own != null) {
+                if (waitingFor != front.taskId) {
+                    Log.i(TAG, "$packageName full screen with a screen of its own: back onto its tile once it closes")
+                    voiceAsked = false
+                }
                 waitingFor = front.taskId
                 ownClosedAt = 0L
+                if (WindowListing.isVoiceScreen(own)) voiceAsked = true
                 return true
             }
             // That screen just closed: the app is given a moment before it moves. Waze
@@ -1125,10 +1138,11 @@ internal object EmbeddedApp {
             if (waitingFor != null && waitingFor == front.taskId) {
                 val now = SystemClock.elapsedRealtime()
                 if (ownClosedAt == 0L) ownClosedAt = now
-                if (now - ownClosedAt < OWN_SCREEN_SETTLE_MS) return true
+                if (now - ownClosedAt < if (voiceAsked) VOICE_SETTLE_MS else OWN_SCREEN_SETTLE_MS) return true
             }
             waitingFor = null
             ownClosedAt = 0L
+            voiceAsked = false
             Log.i(TAG, "$packageName came full screen by itself (task ${front.taskId}): back onto its tile")
             launch(vd)
             return false
@@ -1139,6 +1153,9 @@ internal object EmbeddedApp {
 
         /** When that screen was first seen closed (elapsedRealtime), 0 while it is up. */
         private var ownClosedAt = 0L
+
+        /** One of those screens listened for speech: the app gets [VOICE_SETTLE_MS] to show what it heard. */
+        private var voiceAsked = false
 
         fun release() {
             settling?.cancel()

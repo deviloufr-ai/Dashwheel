@@ -1,6 +1,8 @@
 package com.openauto.dash
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -26,6 +28,17 @@ class WindowListingOwnScreenTest {
     @Test
     fun wazeOnItsMapIsReadyToGoBack() {
         assertFalse(WindowListing.showsOwnScreen(listing("com.waze/com.waze.MainActivity"), 2995))
+    }
+
+    @Test
+    fun theVoicePromptIsToldApart() {
+        val voice = WindowListing.ownScreenOf(listing("com.waze/com.waze.google_assistant.SpeechRecognizerActivity"), 2995)
+        assertEquals("com.waze/com.waze.google_assistant.SpeechRecognizerActivity", voice)
+        assertTrue(WindowListing.isVoiceScreen(voice!!))
+        // A place card or a permission request is a screen of its own, but no voice prompt.
+        assertFalse(WindowListing.isVoiceScreen(WindowListing.ownScreenOf(listing("com.waze/com.waze.navigate.location_preview.LocationPreviewActivity"), 2995)!!))
+        assertFalse(WindowListing.isVoiceScreen("com.android.permissioncontroller/com.android.packageinstaller.permission.ui.GrantPermissionsActivity"))
+        assertNull(WindowListing.ownScreenOf(listing("com.waze/com.waze.MainActivity"), 2995))
     }
 
     @Test

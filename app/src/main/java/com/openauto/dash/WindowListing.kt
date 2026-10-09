@@ -274,9 +274,16 @@ object WindowListing {
      * where it opened, or moving it restarted it (the voice prompt asked for
      * the microphone again, and went away unheard).
      */
-    internal fun showsOwnScreen(output: String, taskId: Int): Boolean =
+    internal fun showsOwnScreen(output: String, taskId: Int): Boolean = ownScreenOf(output, taskId) != null
+
+    /** The screen task [taskId] shows over its first one ("pkg/cls"), or null when none ([showsOwnScreen]). */
+    internal fun ownScreenOf(output: String, taskId: Int): String? =
         TASK_SCREENS.findAll(output).firstOrNull { it.groupValues[1].toIntOrNull() == taskId }
-            ?.let { it.groupValues[2] != it.groupValues[3] } ?: false
+            ?.takeIf { it.groupValues[2] != it.groupValues[3] }?.groupValues?.get(3)
+
+    /** Whether [screen] ("pkg/cls") listens for speech: Waze's voice prompt ("SpeechRecognizerActivity"). */
+    internal fun isVoiceScreen(screen: String): Boolean =
+        screen.substringAfterLast('.').let { it.contains("Speech", ignoreCase = true) || it.contains("Voice", ignoreCase = true) }
 
     private val BOUNDS = Regex("bounds=\\[(-?\\d+),(-?\\d+)\\]\\[(-?\\d+),(-?\\d+)\\]")
 
