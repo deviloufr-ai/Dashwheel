@@ -34,4 +34,12 @@ class WindowMenuTest {
         val anchor = IntRect(400, 280, 450, 330)
         assertEquals(IntOffset(450 - 274, 330), menuOffset(anchor, dash, LayoutDirection.Rtl, menu, 8))
     }
+
+    @Test fun aMeasuredShiftLiftsTheMenuBack() {
+        // The window starts 180 px down the screen; the pop-up opened 180 px lower than asked.
+        val onScreen = IntOffset(40, 600)
+        val window = IntOffset(0, 180)
+        assertEquals(IntOffset(40, 420), popupParams(onScreen, window, IntOffset.Zero))
+        assertEquals(IntOffset(40, 240), popupParams(onScreen, window, IntOffset(0, 180)))
+    }
 }
