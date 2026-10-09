@@ -92,6 +92,18 @@
     <string name="dash_appearance_auto_hint">Все темы следуют режиму день/ночь автомобиля</string>
     <string name="dash_appearance_dark_hint">Все темы в тёмном варианте</string>
     <string name="dash_appearance_light_hint">Все темы в светлом варианте</string>
+    <string name="dash_auto_by_car">Авто</string>
+    <string name="dash_auto_by_sun">Солнце</string>
+    <string name="dash_auto_by_times">Своё время</string>
+    <string name="dash_auto_sun_today">Светлая сегодня с %1$s до %2$s, там где автомобиль</string>
+    <string name="dash_auto_sun_no_place">Светлая с %1$s до %2$s, пока у автомобиля нет GPS</string>
+    <string name="dash_auto_sun_polar">Здесь солнце весь день не встаёт или не садится</string>
+    <string name="dash_auto_light_from">Светлая с</string>
+    <string name="dash_auto_light_from_detail">Когда начинается светлая версия</string>
+    <string name="dash_auto_dark_from">Тёмная с</string>
+    <string name="dash_auto_dark_from_detail">Когда начинается тёмная версия</string>
+    <string name="dash_auto_earlier">Раньше</string>
+    <string name="dash_auto_later">Позже</string>
 
     <!-- Effects switch (theme picker): how much halo and glass a theme draws -->
     <string name="dash_effects_title">Читаемость</string>

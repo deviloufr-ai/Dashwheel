@@ -105,6 +105,7 @@
     <string name="settings_screen_vertical_hint">Obraca pulpit pionowo, z osobnym układem, jeśli radio na to pozwala</string>
     <string name="settings_section_display">Wyświetlanie</string>
     <string name="settings_appearance_title">Dzień i noc</string>
+    <string name="settings_appearance_detail">Auto według auta, wschodu i zachodu słońca lub o stałych godzinach</string>
     <string name="alert_style_section">Wyskakujące okna w stylu Dashwheel</string>
     <string name="alert_more_with_permission">Więcej alertów auta wymaga roota lub jednorazowego polecenia z komputera: zobacz wiki, Car settings permission.</string>
     <string name="alert_more_with_github">Alerty drzwi, pasa i radaru wymagają edycji GitHub Dashwheel, która może korzystać z roota radia.</string>

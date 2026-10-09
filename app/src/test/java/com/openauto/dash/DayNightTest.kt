@@ -1,6 +1,7 @@
 package com.openauto.dash
 
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.Calendar
@@ -44,6 +45,40 @@ class DayNightTest {
         assertTrue(sunUp(at(2025, 6, 21, 20), lat, lon))
         // 21:30 UTC (23:30 in Paris) is dark.
         assertFalse(sunUp(at(2025, 6, 21, 21, 30), lat, lon))
+    }
+
+    @Test
+    fun setTimesDecideByTheClock() {
+        // Light from 7:00, dark from 17:00, as the driver of the 2026-10-09 report set their car.
+        assertTrue(dayByClock(at(2025, 10, 9, 14), 7 * 60, 17 * 60, utc))
+        assertTrue(dayByClock(at(2025, 10, 9, 7), 7 * 60, 17 * 60, utc))
+        assertFalse(dayByClock(at(2025, 10, 9, 17), 7 * 60, 17 * 60, utc))
+        assertFalse(dayByClock(at(2025, 10, 9, 6, 59), 7 * 60, 17 * 60, utc))
+    }
+
+    @Test
+    fun setTimesMayRunPastMidnight() {
+        // A night worker: light from 22:00 to 6:00.
+        assertTrue(dayByClock(at(2025, 10, 9, 23), 22 * 60, 6 * 60, utc))
+        assertTrue(dayByClock(at(2025, 10, 9, 2), 22 * 60, 6 * 60, utc))
+        assertFalse(dayByClock(at(2025, 10, 9, 12), 22 * 60, 6 * 60, utc))
+        // The same time twice: always light.
+        assertTrue(dayByClock(at(2025, 10, 9, 3), 8 * 60, 8 * 60, utc))
+    }
+
+    @Test
+    fun parisSunWindowInJune() {
+        val (lat, lon) = paris
+        // 21 June in UTC minutes: civil dawn about 3:08, civil dusk about 20:37.
+        val window = sunWindow(at(2025, 6, 21, 12), lat, lon, utc)!!
+        assertTrue("dawn ${window.first}", window.first in 3 * 60..3 * 60 + 20)
+        assertTrue("dusk ${window.second}", window.second in 20 * 60 + 25..20 * 60 + 50)
+    }
+
+    @Test
+    fun noSunWindowInPolarSummer() {
+        // Tromsø at midsummer: the sun never sets.
+        assertNull(sunWindow(at(2025, 6, 21, 12), 69.65, 18.96, utc))
     }
 
     @Test

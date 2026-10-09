@@ -105,6 +105,7 @@
     <string name="settings_screen_vertical_hint">Mette il cruscotto in verticale con una disposizione propria, se l\'unità lo consente</string>
     <string name="settings_section_display">Display</string>
     <string name="settings_appearance_title">Giorno e notte</string>
+    <string name="settings_appearance_detail">Auto secondo l\'auto, l\'alba e il tramonto, o a orari fissi</string>
     <string name="alert_style_section">Pop-up nello stile di Dashwheel</string>
     <string name="alert_more_with_permission">Altri avvisi dell\'auto richiedono root, o un comando una tantum da un PC: vedi il wiki, Car settings permission.</string>
     <string name="alert_more_with_github">Gli avvisi di porte, cintura e radar richiedono l\'edizione GitHub di Dashwheel, che può usare il root dell\'autoradio.</string>

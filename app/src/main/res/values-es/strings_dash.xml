@@ -92,6 +92,18 @@
     <string name="dash_appearance_auto_hint">Cada tema sigue el modo día/noche del coche</string>
     <string name="dash_appearance_dark_hint">Cada tema usa su versión oscura</string>
     <string name="dash_appearance_light_hint">Cada tema usa su versión clara</string>
+    <string name="dash_auto_by_car">Coche</string>
+    <string name="dash_auto_by_sun">Sol</string>
+    <string name="dash_auto_by_times">Horas fijas</string>
+    <string name="dash_auto_sun_today">Claro de %1$s a %2$s hoy, donde está el coche</string>
+    <string name="dash_auto_sun_no_place">Claro de %1$s a %2$s hasta que el coche tenga posición GPS</string>
+    <string name="dash_auto_sun_polar">Aquí el sol no sale o no se pone en todo el día</string>
+    <string name="dash_auto_light_from">Claro desde</string>
+    <string name="dash_auto_light_from_detail">Cuándo empieza la versión clara</string>
+    <string name="dash_auto_dark_from">Oscuro desde</string>
+    <string name="dash_auto_dark_from_detail">Cuándo empieza la versión oscura</string>
+    <string name="dash_auto_earlier">Antes</string>
+    <string name="dash_auto_later">Después</string>
 
     <!-- Theme names and descriptions (the enum names are what gets saved) -->
     <string name="dash_theme_standard">Estándar</string>

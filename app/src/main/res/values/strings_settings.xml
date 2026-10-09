@@ -107,6 +107,7 @@
     <!-- Settings by subject: Display and Alerts categories, the screen direction on trial -->
     <string name="settings_section_display">Display</string>
     <string name="settings_appearance_title">Day and night</string>
+    <string name="settings_appearance_detail">Auto by the car, by sunrise and sunset, or at set times</string>
     <string name="alert_style_section">Pop-ups in Dashwheel\'s look</string>
     <string name="alert_more_with_permission">More car alerts need root, or a one-time command from a PC: see the wiki, Car settings permission.</string>
     <string name="alert_more_with_github">Door, belt and radar alerts need the GitHub edition of Dashwheel, which can use the unit\'s root.</string>

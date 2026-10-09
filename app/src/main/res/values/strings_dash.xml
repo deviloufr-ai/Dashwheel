@@ -92,6 +92,18 @@
     <string name="dash_appearance_auto_hint">Every theme follows the car\'s day/night mode</string>
     <string name="dash_appearance_dark_hint">Every theme uses its dark version</string>
     <string name="dash_appearance_light_hint">Every theme uses its light version</string>
+    <string name="dash_auto_by_car">Car</string>
+    <string name="dash_auto_by_sun">Sun</string>
+    <string name="dash_auto_by_times">Set times</string>
+    <string name="dash_auto_sun_today">Light from %1$s to %2$s today, where the car is</string>
+    <string name="dash_auto_sun_no_place">Light from %1$s to %2$s until the car has a GPS position</string>
+    <string name="dash_auto_sun_polar">The sun stays up or down all day here</string>
+    <string name="dash_auto_light_from">Light from</string>
+    <string name="dash_auto_light_from_detail">When the light version starts</string>
+    <string name="dash_auto_dark_from">Dark from</string>
+    <string name="dash_auto_dark_from_detail">When the dark version starts</string>
+    <string name="dash_auto_earlier">Earlier</string>
+    <string name="dash_auto_later">Later</string>
 
     <!-- Effects switch (theme picker): how much halo and glass a theme draws -->
     <string name="dash_effects_title">Legibility</string>

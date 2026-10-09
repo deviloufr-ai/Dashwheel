@@ -105,6 +105,7 @@
     <string name="settings_screen_vertical_hint">Dreht das Dashboard hochkant, mit eigenem Layout, wenn das Gerät es erlaubt</string>
     <string name="settings_section_display">Anzeige</string>
     <string name="settings_appearance_title">Tag und Nacht</string>
+    <string name="settings_appearance_detail">Auto nach dem Auto, nach Sonnenauf- und -untergang oder zu festen Zeiten</string>
     <string name="alert_style_section">Pop-ups im Stil von Dashwheel</string>
     <string name="alert_more_with_permission">Weitere Fahrzeughinweise brauchen Root oder einen einmaligen Befehl von einem PC: siehe Wiki, Car settings permission.</string>
     <string name="alert_more_with_github">Hinweise zu Türen, Gurt und Radar brauchen die GitHub-Ausgabe von Dashwheel, die Root auf dem Radio nutzen kann.</string>

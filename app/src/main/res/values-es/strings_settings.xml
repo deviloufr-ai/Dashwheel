@@ -105,6 +105,7 @@
     <string name="settings_screen_vertical_hint">Pone el panel en vertical con su propia disposición, si la unidad lo permite</string>
     <string name="settings_section_display">Visualización</string>
     <string name="settings_appearance_title">Día y noche</string>
+    <string name="settings_appearance_detail">Auto según el coche, la salida y la puesta del sol, o a horas fijas</string>
     <string name="alert_style_section">Avisos emergentes al estilo de Dashwheel</string>
     <string name="alert_more_with_permission">Más avisos del coche necesitan root, o un comando único desde un PC: ver la wiki, Car settings permission.</string>
     <string name="alert_more_with_github">Los avisos de puertas, cinturón y radar necesitan la edición de GitHub de Dashwheel, que puede usar el root de la radio.</string>

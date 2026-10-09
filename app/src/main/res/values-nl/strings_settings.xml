@@ -105,6 +105,7 @@
     <string name="settings_screen_vertical_hint">Zet het dashboard staand met een eigen indeling, als het toestel dat toelaat</string>
     <string name="settings_section_display">Weergave</string>
     <string name="settings_appearance_title">Dag en nacht</string>
+    <string name="settings_appearance_detail">Auto volgens de auto, zonsopkomst en zonsondergang, of op vaste tijden</string>
     <string name="alert_style_section">Pop-ups in de stijl van Dashwheel</string>
     <string name="alert_more_with_permission">Meer automeldingen vragen root, of eenmalig een opdracht vanaf een pc: zie de wiki, Car settings permission.</string>
     <string name="alert_more_with_github">Meldingen voor deuren, gordel en radar vragen de GitHub-editie van Dashwheel, die de root van de radio kan gebruiken.</string>

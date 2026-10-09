@@ -1556,7 +1556,7 @@ internal fun SpeedCorrectionRow(detail: String = stringResource(R.string.vehicle
 
 /** One setting changed a step at a time: icon, name, what it does, then −, the value and +. */
 @Composable
-private fun StepperRow(
+internal fun StepperRow(
     icon: ImageVector,
     title: String,
     detail: String,

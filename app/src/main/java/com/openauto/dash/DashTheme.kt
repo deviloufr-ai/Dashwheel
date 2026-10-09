@@ -4,10 +4,8 @@ import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -607,16 +605,18 @@ internal fun paletteFor(mode: DashThemeMode, light: Boolean): DashPalette = when
 }
 
 /**
- * True when [this] appearance shows the light version right now. Auto is day
- * only while the system is in day mode (the head unit's headlight signal on
- * most units), the headlights are off (the QF firmware says so directly,
- * [UnitSignals]) and the sun is up where the car is (DayNight.kt): a unit
- * whose night mode never fires still goes dark at dusk, and headlights in a
- * tunnel or rain still win by day.
+ * True when [this] appearance shows the light version right now. Auto goes by
+ * the driver's choice ([AutoLight]). By the car it is day only while the
+ * system is in day mode (the head unit's headlight signal on most units), the
+ * headlights are off (the QF firmware says so directly, [UnitSignals]) and the
+ * sun is up where the car is (DayNight.kt): a unit whose night mode never
+ * fires still goes dark at dusk, and headlights in a tunnel or rain still win
+ * by day. A unit whose night mode or headlight signal is stuck on stays dark
+ * all day that way, hence the sun alone or two set times.
  */
 @Composable
 internal fun DashAppearance.isLight(): Boolean = when (this) {
-    DashAppearance.AUTO -> !isSystemInDarkTheme() && !UnitSignals.headlightsOn.collectAsState().value && rememberSunUp()
+    DashAppearance.AUTO -> rememberAutoDay()
     DashAppearance.DARK -> false
     DashAppearance.LIGHT -> true
 }

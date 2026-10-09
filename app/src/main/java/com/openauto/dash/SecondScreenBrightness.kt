@@ -47,9 +47,10 @@ import kotlin.math.roundToInt
 /**
  * The second screen's backlight: the day level or the night one, sent to a
  * display wired to the monitor's buttons ([DisplayHello.brightness]) when it
- * links, at each day/night switch and when a level changes. Night is the
- * headlights on or the sun down where the car is, whatever look the
- * dashboard wears: a dark theme by day still wants a bright screen.
+ * links, at each day/night switch and when a level changes. Night is told
+ * as the Auto look tells it ([AutoLight]: the headlights or the sun down,
+ * the sun alone, or two set times), whatever look the dashboard wears: a
+ * dark theme by day still wants a bright screen.
  */
 object SecondScreenBrightness {
 
@@ -58,10 +59,17 @@ object SecondScreenBrightness {
     val day: StateFlow<Boolean> = _day
 
     fun start(scope: CoroutineScope, context: Context) {
+        AutoLight.start(context)
         val minutes = flow { while (true) { emit(System.currentTimeMillis()); delay(60_000L) } }
+        val choice = combine(AutoLight.by, AutoLight.from, AutoLight.to) { by, from, to -> Triple(by, from, to) }
         scope.launch {
-            combine(UnitSignals.headlightsOn, LocationFeed.location, minutes) { headlights, location, now ->
-                !headlights && sunUp(now, location?.latitude, location?.longitude)
+            combine(UnitSignals.headlightsOn, AutoLight.place, minutes, choice) { headlights, place, now, (by, from, to) ->
+                val sun = sunUp(now, place?.first, place?.second)
+                when (by) {
+                    AutoLightBy.CAR -> !headlights && sun
+                    AutoLightBy.SUN -> sun
+                    AutoLightBy.TIMES -> dayByClock(now, from, to)
+                }
             }.distinctUntilChanged().collect { _day.value = it }
         }
         scope.launch {

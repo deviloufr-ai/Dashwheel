@@ -435,7 +435,7 @@ private val SETTINGS_INDEX: List<SettingsEntry> by lazy {
         SettingsEntry(R.string.setup_access_title, SettingsTab.CONNECTIONS, listOf(Deep.ACCESS)),
 
         SettingsEntry(R.string.dash_theme_picker_title, SettingsTab.LOOK),
-        SettingsEntry(R.string.settings_appearance_title, SettingsTab.LOOK),
+        SettingsEntry(R.string.settings_appearance_title, SettingsTab.LOOK, detail = R.string.settings_appearance_detail),
         SettingsEntry(R.string.dash_bar_auto_hide, SettingsTab.LOOK, detail = R.string.dash_bar_auto_hide_detail),
         SettingsEntry(R.string.bar_items_custom, SettingsTab.LOOK, extra = true),
         SettingsEntry(R.string.dash_effects_title, SettingsTab.LOOK, extra = true),

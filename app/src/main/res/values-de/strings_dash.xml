@@ -92,6 +92,18 @@
     <string name="dash_appearance_auto_hint">Jedes Design folgt dem Tag-/Nachtmodus des Autos</string>
     <string name="dash_appearance_dark_hint">Jedes Design nutzt seine dunkle Version</string>
     <string name="dash_appearance_light_hint">Jedes Design nutzt seine helle Version</string>
+    <string name="dash_auto_by_car">Auto</string>
+    <string name="dash_auto_by_sun">Sonne</string>
+    <string name="dash_auto_by_times">Feste Zeiten</string>
+    <string name="dash_auto_sun_today">Hell heute von %1$s bis %2$s, dort wo das Auto ist</string>
+    <string name="dash_auto_sun_no_place">Hell von %1$s bis %2$s, bis das Auto eine GPS-Position hat</string>
+    <string name="dash_auto_sun_polar">Die Sonne bleibt hier den ganzen Tag auf oder unter</string>
+    <string name="dash_auto_light_from">Hell ab</string>
+    <string name="dash_auto_light_from_detail">Wann die helle Version beginnt</string>
+    <string name="dash_auto_dark_from">Dunkel ab</string>
+    <string name="dash_auto_dark_from_detail">Wann die dunkle Version beginnt</string>
+    <string name="dash_auto_earlier">Früher</string>
+    <string name="dash_auto_later">Später</string>
 
     <!-- Theme names and descriptions (the enum names are what gets saved) -->
     <string name="dash_theme_standard">Standard</string>

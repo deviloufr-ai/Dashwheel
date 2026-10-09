@@ -106,6 +106,7 @@
     <!-- Settings by subject: Display and Alerts categories, the screen direction on trial -->
     <string name="settings_section_display">Дисплей</string>
     <string name="settings_appearance_title">День и ночь</string>
+    <string name="settings_appearance_detail">Авто по автомобилю, по восходу и закату или в заданное время</string>
     <string name="alert_style_section">Окна в стиле Dashwheel</string>
     <string name="alert_more_with_permission">Для других оповещений нужен root или одна команда с ПК: см. вики, раздел Car settings permission.</string>
     <string name="alert_more_with_github">Оповещения о дверях, ремне и парктронике есть в версии Dashwheel с GitHub, которая использует root магнитолы.</string>

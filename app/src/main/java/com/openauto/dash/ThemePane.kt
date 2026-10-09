@@ -22,6 +22,9 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.BrightnessAuto
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.WbTwilight
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Tonality
 import androidx.compose.material.icons.filled.WbSunny
@@ -35,6 +38,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -60,6 +64,7 @@ import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.VerticalAlignBottom
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
@@ -73,7 +78,10 @@ import kotlin.math.roundToInt
  * effects switch. The bottom bar's auto-hide is here too, shown under Display.
  */
 
-/** Day and night: which version of the theme shows, or the car's light sensor deciding. */
+/**
+ * Day and night: which version of the theme shows, or Auto with what decides
+ * it: the car, the sun where the car is, or two times set here.
+ */
 @Composable
 internal fun AppearanceSetting(theme: ThemeState) {
     SettingsSection(stringResource(R.string.settings_appearance_title))
@@ -90,15 +98,88 @@ internal fun AppearanceSetting(theme: ThemeState) {
         title = { stringResource(it.titleRes) },
         onChoose = theme.onAppearance
     )
-    SwitchHint(
-        stringResource(
-            when (theme.appearance) {
-                DashAppearance.AUTO -> R.string.dash_appearance_auto_hint
-                DashAppearance.DARK -> R.string.dash_appearance_dark_hint
-                DashAppearance.LIGHT -> R.string.dash_appearance_light_hint
+    when (theme.appearance) {
+        DashAppearance.AUTO -> AutoLightSetting()
+        DashAppearance.DARK -> SwitchHint(stringResource(R.string.dash_appearance_dark_hint))
+        DashAppearance.LIGHT -> SwitchHint(stringResource(R.string.dash_appearance_light_hint))
+    }
+}
+
+/** What switches Auto: the car, the sun (with today's times), or the two times set below it. */
+@Composable
+private fun AutoLightSetting() {
+    val context = LocalContext.current
+    AutoLight.start(context)
+    val by by AutoLight.by.collectAsState()
+    val from by AutoLight.from.collectAsState()
+    val to by AutoLight.to.collectAsState()
+    val place by AutoLight.place.collectAsState()
+    val units = LocalUnits.current
+    Spacer(Modifier.height(8.dp))
+    SegmentedSwitch(
+        options = AutoLightBy.entries,
+        chosen = by,
+        icon = { option ->
+            when (option) {
+                AutoLightBy.CAR -> Icons.Filled.DirectionsCar
+                AutoLightBy.SUN -> Icons.Filled.WbTwilight
+                AutoLightBy.TIMES -> Icons.Filled.Schedule
             }
-        )
+        },
+        title = { stringResource(it.titleRes) },
+        onChoose = { AutoLight.setBy(context, it) }
     )
+    when (by) {
+        AutoLightBy.CAR -> SwitchHint(stringResource(R.string.dash_appearance_auto_hint))
+        AutoLightBy.SUN -> {
+            // Today's times where the car is, so the driver sees what to expect.
+            val window = remember(place) { place?.let { (lat, lon) -> sunWindow(System.currentTimeMillis(), lat, lon) } }
+            SwitchHint(
+                when {
+                    place == null -> stringResource(
+                        R.string.dash_auto_sun_no_place,
+                        clockText(AutoLight.DEFAULT_FROM, units), clockText(AutoLight.DEFAULT_TO, units)
+                    )
+                    window == null -> stringResource(R.string.dash_auto_sun_polar)
+                    else -> stringResource(R.string.dash_auto_sun_today, clockText(window.first, units), clockText(window.second, units))
+                }
+            )
+        }
+        AutoLightBy.TIMES -> {
+            Spacer(Modifier.height(4.dp))
+            StepperRow(
+                icon = Icons.Filled.LightMode,
+                title = stringResource(R.string.dash_auto_light_from),
+                detail = stringResource(R.string.dash_auto_light_from_detail),
+                value = clockText(from, units),
+                less = stringResource(R.string.dash_auto_earlier),
+                more = stringResource(R.string.dash_auto_later),
+                canLess = true, canMore = true,
+                onLess = { AutoLight.moveFrom(context, -AutoLight.STEP_MIN) },
+                onMore = { AutoLight.moveFrom(context, AutoLight.STEP_MIN) }
+            )
+            StepperRow(
+                icon = Icons.Filled.DarkMode,
+                title = stringResource(R.string.dash_auto_dark_from),
+                detail = stringResource(R.string.dash_auto_dark_from_detail),
+                value = clockText(to, units),
+                less = stringResource(R.string.dash_auto_earlier),
+                more = stringResource(R.string.dash_auto_later),
+                canLess = true, canMore = true,
+                onLess = { AutoLight.moveTo(context, -AutoLight.STEP_MIN) },
+                onMore = { AutoLight.moveTo(context, AutoLight.STEP_MIN) }
+            )
+        }
+    }
+}
+
+/** [minuteOfDay] as the dashboard's clock shows time: "17:00", or "5:00 PM". */
+private fun clockText(minuteOfDay: Int, units: UnitSystem): String {
+    val at = java.util.Calendar.getInstance().apply {
+        set(java.util.Calendar.HOUR_OF_DAY, minuteOfDay / 60)
+        set(java.util.Calendar.MINUTE, minuteOfDay % 60)
+    }
+    return units.time(at.time)
 }
 
 /**
