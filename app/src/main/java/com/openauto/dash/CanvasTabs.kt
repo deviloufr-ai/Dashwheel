@@ -84,6 +84,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.map
@@ -374,13 +375,22 @@ internal fun FollowTabTriggers(tabs: List<CanvasTab>, onTrigger: (TabTrigger) ->
         UseLocationFeed()
         LaunchedEffect(Unit) {
             var movedYet = false
+            var first = true
             carSpeedKmh().setOffOrStopped().collectLatest { moving ->
+                val atStart = first
+                first = false
                 if (moving) {
                     movedYet = true
                     fire(TabTrigger.DRIVING)
                 } else {
-                    // At power-up the car is parked already; after a drive, a stop must last.
+                    // After a drive, a stop must last. At a power-up the car is parked
+                    // already; at a mere restart of the app it is not a new stop at all.
                     if (movedYet) delay(PARKED_HOLD_MS)
+                    else if (atStart) {
+                        // The switch-on is known once the dashboard has drawn (MainActivity).
+                        CarPower.checked.first { it }
+                        if (!CarPower.justPoweredUp()) return@collectLatest
+                    }
                     fire(TabTrigger.PARKED)
                 }
             }

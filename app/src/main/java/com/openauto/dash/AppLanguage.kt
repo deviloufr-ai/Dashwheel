@@ -38,6 +38,17 @@ enum class AppLanguage(val tag: String?, val nativeName: String) {
         /** The device's own language, whatever the launcher overrides. */
         fun systemLocale(): Locale = Resources.getSystem().configuration.locales[0]
 
+        /** Whether Dashwheel is written in [language] (an ISO code such as "fr"). */
+        internal fun hasText(language: String): Boolean = entries.any { it.tag == language }
+
+        /**
+         * The language Dashwheel speaks and writes in: the one chosen ([chosenTag]),
+         * else the device's ([systemLanguage]) where Dashwheel has text for it
+         * (null: nothing to override), else English.
+         */
+        internal fun textLanguage(chosenTag: String?, systemLanguage: String): String? =
+            chosenTag ?: ENGLISH.tag.takeIf { !hasText(systemLanguage) }
+
         fun current(context: Context): AppLanguage {
             if (Build.VERSION.SDK_INT >= 33) {
                 val tag = context.getSystemService(LocaleManager::class.java)
@@ -70,10 +81,15 @@ enum class AppLanguage(val tag: String?, val nativeName: String) {
          * sets the JVM default locale so dates and numbers follow the language.
          */
         fun wrap(base: Context): Context {
-            if (Build.VERSION.SDK_INT >= 33) return base
-            keepDefaultOnConfigChanges(base)
-            val tag = current(base).tag
             val system = systemLocale()
+            val chosen = current(base)
+            // The device in a language Dashwheel has no text for (Hungarian): the
+            // text comes out in English, so the voice, dates and numbers follow,
+            // or a sentence was said half in each ("130" in Hungarian).
+            val tag = textLanguage(chosen.tag, system.language)
+            // Android 13 applies a chosen language itself; only the fallback is left to do here.
+            if (Build.VERSION.SDK_INT >= 33 && (chosen != SYSTEM || tag == null)) return base
+            keepDefaultOnConfigChanges(base)
             if (tag == null || tag == system.language) {
                 applied = null
                 Locale.setDefault(system)

@@ -251,6 +251,14 @@ internal object EmbeddedApp {
     /** How long a tap in a tile keeps checking before letting the keys be. */
     private const val GIVE_BACK_TRIES = 80
 
+    /**
+     * How long after a tap in a tile the keyboard is given to come up before
+     * the keys go back: at [GIVE_BACK_MS] a slow unit's keyboard was not up
+     * yet, the field lost the focus with the keys, and the tap on an address
+     * field seemed lost (it worked only with the app full screen).
+     */
+    private const val KEYBOARD_GRACE_MS = 4_000L
+
     /** A key's second chance, once the main screen is back in front. */
     private const val KEY_AGAIN_MS = 150L
 
@@ -628,8 +636,8 @@ internal object EmbeddedApp {
         keysAway = true
         givingBack?.cancel()
         givingBack = mainScope.launch {
-            repeat(GIVE_BACK_TRIES) {
-                delay(GIVE_BACK_MS)
+            repeat(GIVE_BACK_TRIES) { look ->
+                delay(if (look == 0) KEYBOARD_GRACE_MS else GIVE_BACK_MS)
                 val activity = dashboard?.get() ?: return@launch
                 if (!keyboardUp(activity)) {
                     giveKeysBack()

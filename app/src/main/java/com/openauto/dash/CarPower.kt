@@ -54,12 +54,31 @@ object CarPower {
     /** Ignition on / off as the unit last said it; null where the unit says nothing. */
     val ignition: StateFlow<Boolean?> = _ignition
 
+    /** When this process saw the car switched on (elapsedRealtime), 0 if it hasn't. */
+    @Volatile
+    private var switchedOnAt = 0L
+
+    /**
+     * True a moment after a power-up: the ignition came on, or the unit
+     * started, in the last [POWER_UP_MS]. Not after the app alone restarted
+     * (an update, a crash), which looked like a power-up to the dashboards
+     * that come up "when parked".
+     */
+    fun justPoweredUp(): Boolean = poweredUpRecently(SystemClock.elapsedRealtime(), switchedOnAt)
+
+    private val _checked = MutableStateFlow(false)
+    /** True once [start] has looked at the ignition (or found a unit that says nothing): [justPoweredUp] means something from then on. */
+    val checked: StateFlow<Boolean> = _checked
+
     fun start(context: Context) {
         if (started) return
         val app = context.applicationContext
         val acc = systemProperty(PROP_ACC)
         // Only on the QF firmware: it sets this property from the MCU at boot.
-        if (acc.isNullOrBlank()) return
+        if (acc.isNullOrBlank()) {
+            _checked.value = true
+            return
+        }
         started = true
         appContext = app
         val on = acc == "true"
@@ -79,6 +98,7 @@ object CarPower {
         // is back: the switch-on is acted on here, or the dashboard, the media
         // and the briefing would wait for the next turn of the key.
         if (wokeUp) switchedOn(app)
+        _checked.value = true
     }
 
     /**
@@ -152,6 +172,7 @@ object CarPower {
 
     private fun switchedOn(context: Context) {
         _ignition.value = true
+        switchedOnAt = SystemClock.elapsedRealtime()
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val offAt = prefs.getLong(KEY_OFF_AT, 0L).takeIf { it > 0 }
         prefs.edit().putLong(KEY_ON_AT, System.currentTimeMillis()).apply()
@@ -223,6 +244,13 @@ internal fun briefOnIgnition(offAt: Long?, now: Long): Boolean =
  */
 internal fun startedBySwitchOn(ignitionOn: Boolean, offAt: Long, onAt: Long): Boolean =
     ignitionOn && offAt > 0 && offAt > onAt
+
+/** How long after the switch-on, or the unit's start, the car counts as just powered up. */
+internal const val POWER_UP_MS = 3 * 60_000L
+
+/** [CarPower.justPoweredUp] at [now], the switch-on seen at [switchedOnAt] (0: none), both elapsedRealtime. */
+internal fun poweredUpRecently(now: Long, switchedOnAt: Long): Boolean =
+    now < POWER_UP_MS || (switchedOnAt > 0 && now - switchedOnAt < POWER_UP_MS)
 
 /** The in-app guidance goes on after a stop shorter than this (fuel, a meal), and ends after a longer one. */
 internal const val GUIDANCE_KEPT_MS = 2 * 60 * 60_000L

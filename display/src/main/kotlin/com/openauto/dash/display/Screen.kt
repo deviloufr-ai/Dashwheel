@@ -71,9 +71,19 @@ class Screen(
 
     private val ticker = Thread({ tick() }, "screen-ticker").apply { isDaemon = true }
 
+    // Drawing a picture takes the Pi longer than the readings take to come
+    // (five a second while they change). Drawn as each one came in, under the
+    // lock the link's thread needs, the readings queued up behind the drawing
+    // and the screen ran about two seconds behind the car. Now a reading only
+    // asks for a picture; this thread draws the newest, skipping the rest.
+    private val drawer = Thread({ drawLoop() }, "screen-drawer").apply { isDaemon = true }
+    private val drawLock = Object()
+    private var drawWanted = false
+
     @Synchronized
     fun start() {
         redraw()
+        drawer.start()
         ticker.start()
     }
 
@@ -187,23 +197,64 @@ class Screen(
         if (showing != Showing.VIDEO || videoLost) redraw()
     }
 
+    /** Asks [drawer] for a picture of what is to be shown now; it draws the newest ask once. */
     private fun redraw() {
-        val now = System.currentTimeMillis() + clockOffset
-        when (showing) {
-            Showing.VIDEO -> if (videoLost) painter.paintIdle(config.name, NO_SIGNAL, now, null, clock12) else return
-            Showing.IDLE -> painter.paintIdle(config.name, status, now, pairing.offer.toUri().takeIf { pairingShown }, clock12)
-            Showing.DATA -> cluster?.takeIf { !signalLost }?.let { painter.paintCluster(it, now) }
-                ?: painter.paintIdle(config.name, if (signalLost) NO_SIGNAL else status, now, null, clock12)
+        synchronized(drawLock) {
+            drawWanted = true
+            drawLock.notify()
         }
-        val process = frames?.takeIf { it.alive } ?: run {
-            frames?.stop()
-            // The same picture underneath until the new process shows its first.
-            showOnConsole(painter.image)
-            startFrames(painter.width, painter.height).also { frames = it }
-        } ?: return
-        // Only the newest picture matters.
-        process.clearQueue()
-        process.offer(painter.bgrx())
+    }
+
+    private fun drawLoop() {
+        while (true) {
+            try {
+                synchronized(drawLock) {
+                    while (!drawWanted) drawLock.wait()
+                    drawWanted = false
+                }
+            } catch (_: InterruptedException) {
+                return
+            }
+            runCatching { draw() }.onFailure { log("drawing failed: ${it.message}") }
+        }
+    }
+
+    /** What to draw, chosen under the screen's lock; drawn outside it, so the readings keep coming meanwhile. */
+    private fun draw() {
+        val picture: () -> Unit = synchronized(this) {
+            val now = System.currentTimeMillis() + clockOffset
+            val name = config.name
+            val clock = clock12
+            when (showing) {
+                Showing.VIDEO -> if (videoLost) ({ painter.paintIdle(name, NO_SIGNAL, now, null, clock) }) else return
+                Showing.IDLE -> {
+                    val offer = pairing.offer.toUri().takeIf { pairingShown }
+                    val text = status
+                    ({ painter.paintIdle(name, text, now, offer, clock) })
+                }
+                Showing.DATA -> {
+                    val lost = signalLost
+                    val state = cluster?.takeIf { !lost }
+                    val text = if (lost) NO_SIGNAL else status
+                    if (state != null) ({ painter.paintCluster(state, now) }) else ({ painter.paintIdle(name, text, now, null, clock) })
+                }
+            }
+        }
+        picture()
+        val bytes = painter.bgrx()
+        synchronized(this) {
+            // The video took the screen while this was drawn: it stays.
+            if (showing == Showing.VIDEO && !videoLost) return
+            val process = frames?.takeIf { it.alive } ?: run {
+                frames?.stop()
+                // The same picture underneath until the new process shows its first.
+                showOnConsole(painter.image)
+                startFrames(painter.width, painter.height).also { frames = it }
+            } ?: return
+            // Only the newest picture matters.
+            process.clearQueue()
+            process.offer(bytes)
+        }
     }
 
     private fun stopFrames() {

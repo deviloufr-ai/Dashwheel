@@ -1111,14 +1111,7 @@ private fun SystemPane(m: TopBarModel, open: (Deep) -> Unit, all: Boolean, onSho
     }
     Spacer(Modifier.height(20.dp))
     SettingsSection(stringResource(R.string.settings_section_about))
-    // The Play edition has no updater of its own: Google Play updates it, and the row opens its listing.
-    if (Edition.play) {
-        SettingsRow(Icons.Filled.SystemUpdate, stringResource(R.string.about_updates_play), stringResource(R.string.settings_version, m.versionName)) {
-            context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_LISTING + context.packageName)))
-        }
-    } else {
-        UpdateRow(m)
-    }
+    UpdateRow(m)
     SettingsRow(Icons.Filled.Info, stringResource(R.string.settings_section_about), stringResource(R.string.settings_about_detail)) { open(Deep.ABOUT) }
     Spacer(Modifier.height(20.dp))
     SettingsSection(stringResource(R.string.settings_section_more_tools))
@@ -1342,6 +1335,8 @@ private fun AboutBody(m: TopBarModel) {
     }
     Spacer(Modifier.height(20.dp))
     SettingsSection(stringResource(R.string.settings_section_about))
+    // Here too, where the version is read: "Update" belongs beside it.
+    UpdateRow(m)
     SettingsRow(Icons.Filled.School, stringResource(R.string.tour_settings_row), stringResource(R.string.tour_settings_row_detail), m.onTour)
     // The wiki, as a QR code for the phone and a button for this screen (WikiHelp.kt).
     var help by remember { mutableStateOf(false) }
@@ -1359,6 +1354,14 @@ private fun AboutBody(m: TopBarModel) {
  */
 @Composable
 private fun UpdateRow(m: TopBarModel) {
+    // The Play edition has no updater of its own: Google Play updates it, and the row opens its listing.
+    if (Edition.play) {
+        val context = LocalContext.current
+        SettingsRow(Icons.Filled.SystemUpdate, stringResource(R.string.about_updates_play), stringResource(R.string.settings_version, m.versionName)) {
+            context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_LISTING + context.packageName)))
+        }
+        return
+    }
     SettingsRow(Icons.Filled.SystemUpdate, updateTitle(m), updateDetail(m)) { updateTap(m) }
 }
 

@@ -41,4 +41,15 @@ class CarPowerTest {
         assertFalse(startedBySwitchOn(ignitionOn = false, offAt = now - 60 * min, onAt = now - 90 * min))
         assertFalse(startedBySwitchOn(ignitionOn = true, offAt = 0, onAt = 0))
     }
+
+    @Test
+    fun aPowerUpIsTheSwitchOnOrTheUnitsStartNotAnAppRestart() {
+        // The unit started a minute ago.
+        assertTrue(poweredUpRecently(now = 1 * min, switchedOnAt = 0))
+        // Switched on a minute ago, the unit up for hours (it slept).
+        assertTrue(poweredUpRecently(now = 600 * min, switchedOnAt = 599 * min))
+        // The app restarted an hour into the drive, or parked: no power-up.
+        assertFalse(poweredUpRecently(now = 600 * min, switchedOnAt = 540 * min))
+        assertFalse(poweredUpRecently(now = 600 * min, switchedOnAt = 0))
+    }
 }
