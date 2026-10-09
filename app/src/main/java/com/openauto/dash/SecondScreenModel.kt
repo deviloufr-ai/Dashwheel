@@ -451,8 +451,9 @@ object SecondScreenRules {
         BuiltinKind.OBD_ALL -> ClusterFace.MEASURES
         BuiltinKind.DOORS -> ClusterFace.DOORS
         BuiltinKind.ENGINE_TEMPS -> ClusterFace.COOLANT
-        // The streamed 3D map's slot: on a display that draws itself, its own flat map.
-        BuiltinKind.NAVMAP -> ClusterFace.MAP
+        // The streamed 3D map's slot, and an app copy's (Waze, Maps): on a display that
+        // draws itself, its own flat map stands in for both.
+        BuiltinKind.NAVMAP, BuiltinKind.MAPS_INSIDE -> ClusterFace.MAP
         else -> null
     }
 

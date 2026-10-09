@@ -54,6 +54,9 @@ class SecondScreenRulesTest {
         assertEquals("BIG_STACK", drive.arrangement)
         assertEquals(listOf("SPEED", "CLOCK", "RANGE"), drive.faces)
         assertEquals(listOf("TELEMETRY", "MEASURES"), SecondScreenRules.layoutMessage(ClusterLayouts.default(ClusterPage.OBD))!!.faces)
+        // The 3D map and an app's copy both become the display's own map.
+        val copies = ClusterLayout(ClusterArrangement.HALVES, listOf(ClusterSlot(BuiltinKind.MAPS_INSIDE, WidgetDesign.STANDARD, "com.waze"), ClusterSlot(BuiltinKind.NAVMAP, WidgetDesign.STANDARD)))
+        assertEquals(listOf("MAP", "MAP"), SecondScreenRules.layoutMessage(copies)!!.faces)
         // A widget the display has no readings for leaves its slot empty; a page of only those sends nothing.
         val weather = ClusterLayout(ClusterArrangement.HALVES, listOf(ClusterSlot(BuiltinKind.WEATHER, WidgetDesign.HERO), ClusterSlot(BuiltinKind.CLOCK, WidgetDesign.HERO)))
         assertEquals(listOf("", "CLOCK"), SecondScreenRules.layoutMessage(weather)!!.faces)
