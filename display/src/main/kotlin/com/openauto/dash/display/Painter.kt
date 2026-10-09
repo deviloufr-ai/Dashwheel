@@ -44,6 +44,13 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
     /** The time zone the clocks are written in: the head unit's (LocalClock). */
     @Volatile var zone: ZoneId = ZoneId.systemDefault()
 
+    /** The map's tiles by day and by night (null: none; by night the day's are dimmed). */
+    @Volatile var tiles: TileSource? = null
+    @Volatile var nightTiles: TileSource? = null
+
+    /** The route the navigation follows, lat, lon pairs flattened (ClusterRoute); empty without one. */
+    @Volatile var route: List<Double> = emptyList()
+
 
     /** TYPE_INT_RGB is 0x00RRGGBB per pixel: little-endian, the bytes are B,G,R,x (GStreamer's "bgrx"). */
     val image = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
@@ -117,17 +124,23 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
         }
 
         // Top line on every page: the clock, and what the car is warning about in an amber pill.
+        // A board with a Clock slot shows the time there instead, and without a warning the
+        // line is left out altogether: the board then takes the whole height.
         val clockFont = font(Font.BOLD, 7f)
         val clock = text.clock(now, zone)
         val clockBase = top + (6 * unit).roundToInt()
-        g.color = p.fg
-        g.font = clockFont
-        g.drawString(clock, left, clockBase)
+        val clockOnBoard = state.layout?.faces?.contains(ClusterFace.CLOCK) == true
+        val topLine = !clockOnBoard || text.open != null
+        if (!clockOnBoard) {
+            g.color = p.fg
+            g.font = clockFont
+            g.drawString(clock, left, clockBase)
+        }
         text.open?.let { open ->
             g.font = font(Font.BOLD, 4.8f)
             // A long list of doors is cut short of the clock, never drawn over it.
             val padX = (3 * unit).roundToInt()
-            val room = right - left - g.getFontMetrics(clockFont).stringWidth(clock) - (6 * unit).roundToInt() - 2 * padX
+            val room = right - left - (if (clockOnBoard) 0 else g.getFontMetrics(clockFont).stringWidth(clock) + (6 * unit).roundToInt()) - 2 * padX
             val shown = clipped(g, open, room)
             val w = g.fontMetrics.stringWidth(shown) + 2 * padX
             val h = (8 * unit).roundToInt()
@@ -138,7 +151,7 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
             drawCentered(g, shown, right - w / 2, y + h / 2 + g.fontMetrics.ascent * 2 / 5)
         }
 
-        val bodyTop = top + (12 * unit).roundToInt()
+        val bodyTop = if (topLine) top + (12 * unit).roundToInt() else top
         val body = Rectangle(left, bodyTop, right - left, bottom - bodyTop)
         // The page as the driver laid it out on the head unit's board, when it says so.
         state.layout?.let { layout ->
@@ -263,6 +276,7 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
             ClusterFace.NAV -> paintNav(g, s, text, inner, p)
             ClusterFace.MEASURES -> paintMeasures(g, s, text, inner, p)
             ClusterFace.DOORS -> doorsFace(g, box, inner, text, p)
+            ClusterFace.MAP -> mapFace(g, box, s, text, p)
             else -> card(g, box, p)
         }
     }
@@ -354,6 +368,233 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
     private fun scaleFor(box: Rectangle): Float {
         val pageWidth = width - 2 * inset - (10 * unit)
         return (box.width / pageWidth).coerceIn(0.55f, 1f)
+    }
+
+    /**
+     * The display's own map, north up, the car in the middle: raster tiles
+     * from [tiles], the route in the accent, the next turn in a card over it.
+     * Without a fix it says so; without tiles the route and the car are drawn
+     * on a plain ground, so the slot still tells where the car is going.
+     */
+    private fun mapFace(g: Graphics2D, box: Rectangle, s: ClusterState, text: ClusterText, p: Palette) {
+        card(g, box, p)
+        val pos = s.position
+        if (pos == null) {
+            emptyState(g, box, text.noPosition, p) { cx, cy, size -> navArrow(g, cx, cy, size, p.muted) }
+            return
+        }
+        val source = if (s.night) nightTiles ?: tiles else tiles
+        val zoom = source?.zoom ?: DisplayConfig.DEFAULT_MAP_ZOOM
+        val k = scaleFor(box)
+        val radius = (6 * unit).roundToInt()
+        val oldClip = g.clip
+        g.clip = RoundRectangle2D.Float(box.x.toFloat(), box.y.toFloat(), box.width.toFloat(), box.height.toFloat(), radius.toFloat(), radius.toFloat())
+        try {
+            // World pixels to the screen: the car's world position lands on the box's centre.
+            val ox = box.centerX - WebMercator.x(pos.lon, zoom)
+            val oy = box.centerY - WebMercator.y(pos.lat, zoom)
+            fun sx(lon: Double) = (WebMercator.x(lon, zoom) + ox).toFloat()
+            fun sy(lat: Double) = (WebMercator.y(lat, zoom) + oy).toFloat()
+
+            if (source != null) {
+                val t = WebMercator.TILE
+                val x0 = WebMercator.tileOf(box.x - ox)
+                val x1 = WebMercator.tileOf(box.x + box.width - ox)
+                val y0 = WebMercator.tileOf(box.y - oy)
+                val y1 = WebMercator.tileOf(box.y + box.height - oy)
+                val ring = ArrayList<TileKey>()
+                for (ty in y0 - 1..y1 + 1) for (tx in x0 - 1..x1 + 1) {
+                    val onScreen = tx in x0..x1 && ty in y0..y1
+                    val image = if (onScreen) source.tile(zoom, tx, ty) else null
+                    if (!onScreen) ring += TileKey(zoom, tx, ty)
+                    if (!onScreen) continue
+                    val x = (tx * t + ox).roundToInt()
+                    val y = (ty * t + oy).roundToInt()
+                    if (image != null) {
+                        g.drawImage(image, x, y, t, t, null)
+                    } else {
+                        g.color = p.track
+                        g.fillRect(x, y, t, t)
+                    }
+                }
+                // By night on the day's tiles: dimmed, as a dashboard dims.
+                if (s.night && nightTiles == null) {
+                    g.color = Color(0, 0, 0, 120)
+                    g.fillRect(box.x, box.y, box.width, box.height)
+                }
+                source.prefetch(ring + routeAhead(pos, zoom))
+            } else {
+                g.color = p.card
+                g.fillRect(box.x, box.y, box.width, box.height)
+                // A faint grid of 100 m, so movement can be seen without tiles.
+                val step = (100.0 / WebMercator.metersPerPixel(pos.lat, zoom)).toFloat().coerceAtLeast(12f)
+                g.color = p.track
+                g.stroke = BasicStroke(1f)
+                var gx = (box.centerX % step).toFloat()
+                while (gx < box.width) { g.draw(Line2D.Float(box.x + gx, box.y.toFloat(), box.x + gx, (box.y + box.height).toFloat())); gx += step }
+                var gy = (box.centerY % step).toFloat()
+                while (gy < box.height) { g.draw(Line2D.Float(box.x.toFloat(), box.y + gy, (box.x + box.width).toFloat(), box.y + gy)); gy += step }
+            }
+
+            // The route: a dark casing, the accent on it.
+            val pts = route
+            if (pts.size >= 4) {
+                val path = Path2D.Float()
+                for (i in 0 until pts.size / 2) {
+                    val x = sx(pts[2 * i + 1])
+                    val y = sy(pts[2 * i])
+                    if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+                }
+                g.stroke = BasicStroke(2.4f * unit, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
+                g.color = mix(if (s.night) Color.BLACK else Color.WHITE, p.accent, 0.35f)
+                g.draw(path)
+                g.stroke = BasicStroke(1.5f * unit, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
+                g.color = p.accent
+                g.draw(path)
+            }
+
+            // The car: a chevron turned to its heading, in a soft halo; a dot when it stands still.
+            val cx = box.centerX.toFloat()
+            val cy = box.centerY.toFloat()
+            val size = 4.5f * unit
+            g.color = Color(p.accent.red, p.accent.green, p.accent.blue, 70)
+            g.fill(Ellipse2D.Float(cx - size, cy - size, 2 * size, 2 * size))
+            val heading = pos.headingDeg
+            if (heading == null) {
+                g.color = p.accent
+                g.fill(Ellipse2D.Float(cx - size * 0.45f, cy - size * 0.45f, size * 0.9f, size * 0.9f))
+                g.color = p.fg
+                g.stroke = BasicStroke(max(2f, unit * 0.4f))
+                g.draw(Ellipse2D.Float(cx - size * 0.45f, cy - size * 0.45f, size * 0.9f, size * 0.9f))
+            } else {
+                val saved = g.transform
+                g.rotate(Math.toRadians(heading.toDouble()), cx.toDouble(), cy.toDouble())
+                val chevron = Path2D.Float().apply {
+                    moveTo(cx, cy - size)
+                    lineTo(cx + size * 0.72f, cy + size * 0.65f)
+                    lineTo(cx, cy + size * 0.25f)
+                    lineTo(cx - size * 0.72f, cy + size * 0.65f)
+                    closePath()
+                }
+                g.color = p.accent
+                g.fill(chevron)
+                g.color = p.fg
+                g.stroke = BasicStroke(max(2f, unit * 0.4f), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
+                g.draw(chevron)
+                g.transform = saved
+            }
+
+            // North, top right; a scale bar, bottom right.
+            val pad = (2.5f * unit).roundToInt()
+            val nr = (2.4f * unit).roundToInt()
+            val nx = box.x + box.width - pad - nr
+            val ny = box.y + pad + nr
+            g.color = p.card
+            g.fill(Ellipse2D.Float((nx - nr).toFloat(), (ny - nr).toFloat(), 2f * nr, 2f * nr))
+            g.color = p.fg
+            g.fill(Path2D.Float().apply { moveTo(nx.toFloat(), ny - nr * 0.7f); lineTo(nx + nr * 0.4f, ny + nr * 0.4f); lineTo(nx.toFloat(), ny + nr * 0.1f); lineTo(nx - nr * 0.4f, ny + nr * 0.4f); closePath() })
+            val metres = 100
+            val barW = (metres / WebMercator.metersPerPixel(pos.lat, zoom)).roundToInt().coerceIn(20, box.width / 3)
+            val barY = box.y + box.height - pad - (if (s.nav?.eta.isNullOrBlank()) 0 else (9 * unit * k).roundToInt())
+            g.color = p.muted
+            g.fillRect(box.x + box.width - pad - barW, barY - 2, barW, 3)
+            g.font = font(Font.PLAIN, 3f)
+            drawRight(g, "$metres m", box.x + box.width - pad, barY - (1.2f * unit).roundToInt())
+
+            // No tiles to draw: say what is missing, small, along the bottom.
+            if (source == null) {
+                g.color = p.muted
+                g.font = font(Font.PLAIN, 3.2f)
+                drawClipped(g, text.noTiles, box.x + pad, box.y + box.height - pad - (0.5f * unit).roundToInt(), box.width - 2 * pad - barW - pad)
+            }
+
+            // The next turn in a card over the map, and the arrival along the bottom.
+            s.nav?.let { nav ->
+                val signSide = (11 * unit * k).roundToInt()
+                val cardPad = (2 * unit * k).roundToInt()
+                val distFont = fitFont(g, 7f * k, nav.distance.ifBlank { "0 m" }, (box.width * 0.5f).roundToInt())
+                val lineFont = font(Font.PLAIN, 3.8f * k)
+                val room = (box.width * 0.6f).roundToInt() - signSide - 3 * cardPad
+                val wordsW = max(g.getFontMetrics(distFont).stringWidth(nav.distance), min(room, g.getFontMetrics(lineFont).stringWidth(nav.instruction)))
+                // The distance over the instruction; the card as tall as the two lines or the sign need.
+                val distAscent = g.getFontMetrics(distFont).ascent
+                val lineAscent = g.getFontMetrics(lineFont).ascent
+                val gapY = (1.2f * unit * k).roundToInt()
+                val textH = distAscent + gapY + lineAscent
+                val cardH = max(signSide, textH) + 2 * cardPad
+                val cardW = signSide + 3 * cardPad + wordsW
+                val cardBox = Rectangle(box.x + pad, box.y + pad, cardW, cardH)
+                card(g, cardBox, p)
+                val signY = cardBox.y + (cardH - signSide) / 2
+                g.color = p.accent
+                g.fillRoundRect(cardBox.x + cardPad, signY, signSide, signSide, (3 * unit).roundToInt(), (3 * unit).roundToInt())
+                maneuver(
+                    g, s.maneuver?.let(Maneuver::named) ?: Maneuver.of(nav.instruction),
+                    cardBox.x + cardPad + signSide / 2f, signY + signSide / 2f, signSide * 0.6f, onAccent(p.accent), p.accent
+                )
+                val tx = cardBox.x + 2 * cardPad + signSide
+                val distBase = cardBox.y + (cardH - textH) / 2 + distAscent
+                g.color = p.fg
+                g.font = distFont
+                if (nav.distance.isNotBlank()) g.drawString(nav.distance, tx, distBase)
+                g.color = p.muted
+                g.font = lineFont
+                drawClipped(g, nav.instruction, tx, distBase + gapY + lineAscent, wordsW)
+                if (nav.eta.isNotBlank()) {
+                    val stripH = (8 * unit * k).roundToInt()
+                    val strip = Rectangle(box.x + pad, box.y + box.height - pad - stripH, box.width - 2 * pad, stripH)
+                    card(g, strip, p)
+                    val (label, value) = text.arriveParts(nav.eta)
+                    val mid = strip.y + strip.height / 2
+                    val small = font(Font.BOLD, 3.6f * k)
+                    val big = font(Font.BOLD, 5.5f * k)
+                    g.color = p.muted
+                    g.font = small
+                    g.drawString(label.uppercase(), strip.x + cardPad * 2, mid + g.fontMetrics.ascent * 2 / 5)
+                    val labelW = if (label.isEmpty()) 0 else g.fontMetrics.stringWidth(label.uppercase()) + (1.5f * unit).roundToInt()
+                    g.color = p.fg
+                    g.font = big
+                    g.drawString(value, strip.x + cardPad * 2 + labelW, mid + g.fontMetrics.ascent * 2 / 5)
+                }
+            }
+        } finally {
+            g.clip = oldClip
+        }
+    }
+
+    /**
+     * The tiles along the route ahead of the car, up to [ROUTE_AHEAD_M], so they
+     * are on the card before the car gets there: from the route point nearest
+     * the car onward, one tile per point, without repeats.
+     */
+    private fun routeAhead(pos: ClusterState.Position, zoom: Int): List<TileKey> {
+        val pts = route
+        if (pts.size < 4) return emptyList()
+        val px = WebMercator.x(pos.lon, zoom)
+        val py = WebMercator.y(pos.lat, zoom)
+        var nearest = 0
+        var best = Double.MAX_VALUE
+        for (i in 0 until pts.size / 2) {
+            val dx = WebMercator.x(pts[2 * i + 1], zoom) - px
+            val dy = WebMercator.y(pts[2 * i], zoom) - py
+            val d = dx * dx + dy * dy
+            if (d < best) { best = d; nearest = i }
+        }
+        val perPx = WebMercator.metersPerPixel(pos.lat, zoom)
+        val keys = LinkedHashSet<TileKey>()
+        var metres = 0.0
+        var lastX = WebMercator.x(pts[2 * nearest + 1], zoom)
+        var lastY = WebMercator.y(pts[2 * nearest], zoom)
+        for (i in nearest until pts.size / 2) {
+            val x = WebMercator.x(pts[2 * i + 1], zoom)
+            val y = WebMercator.y(pts[2 * i], zoom)
+            metres += Math.hypot(x - lastX, y - lastY) * perPx
+            lastX = x
+            lastY = y
+            if (metres > ROUTE_AHEAD_M || keys.size >= ROUTE_AHEAD_TILES) break
+            keys += TileKey(zoom, WebMercator.tileOf(x), WebMercator.tileOf(y))
+        }
+        return keys.toList()
     }
 
     /** The doors: what is open, in the warning colour, else a tick. */
@@ -1170,6 +1411,10 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
         /** Retro's rev segments are all lit here. */
         const val RETRO_RPM_FULL = 5_000f
 
+        /** How far along the route the map fetches tiles ahead of the car. */
+        const val ROUTE_AHEAD_M = 3_000.0
+        const val ROUTE_AHEAD_TILES = 40
+
         /** Coolant below this is still warming up (blue), from these on warm (amber) and hot (red). */
         const val COLD_C = 60
         const val WARM_C = 105
@@ -1297,6 +1542,10 @@ internal class ClusterText(private val s: ClusterState, words: ClusterState.Labe
     val noRoute: String get() = labels?.noRoute ?: "No route"
 
     val measuresNone: String get() = labels?.measuresNone ?: "Waiting for the OBD adapter"
+
+    val noPosition: String get() = labels?.noPosition ?: "Waiting for the GPS"
+
+    val noTiles: String get() = labels?.noTiles ?: "No map tiles: set tile_url on the card"
 
     fun arrive(eta: String): String = fill(labels?.arrive, "Arrive %s", eta)
 

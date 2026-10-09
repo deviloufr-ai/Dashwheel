@@ -23,6 +23,12 @@ import java.util.Properties
  * # GPIOs wired to the monitor's own brightness buttons (see BrightnessButtons).
  * brightness_up_gpio=17
  * brightness_down_gpio=27
+ * # Raster tiles for the map the display draws itself ({z}, {x}, {y}), by day and, optionally, by night.
+ * tile_url=https://tile.example.com/{z}/{x}/{y}.png?key=...
+ * tile_url_night=...
+ * # Where fetched tiles are kept (in memory on a read-only card unless this points elsewhere), and the zoom.
+ * tile_cache=/var/cache/dashwheel-display/tiles
+ * map_zoom=16
  * ```
  */
 data class DisplayConfig(
@@ -37,7 +43,12 @@ data class DisplayConfig(
     /** GPIOs wired to the monitor's `+` and `−` buttons; both or nothing. */
     val brightnessUpGpio: Int? = null,
     val brightnessDownGpio: Int? = null,
-    val port: Int = com.openauto.dash.link.DISPLAY_PORT
+    val port: Int = com.openauto.dash.link.DISPLAY_PORT,
+    /** Raster tiles for the display's own map; null: no map tiles (the map shows the route and the car on a plain ground). */
+    val tileUrl: String? = null,
+    val tileUrlNight: String? = null,
+    val tileCache: String = DEFAULT_TILE_CACHE,
+    val mapZoom: Int = DEFAULT_MAP_ZOOM
 ) {
     enum class Sink(val element: String) {
         /** Straight to the screen through DRM/KMS: the Pi with no desktop. */
@@ -49,6 +60,8 @@ data class DisplayConfig(
 
     companion object {
         const val FILE = "display.conf"
+        const val DEFAULT_TILE_CACHE = "/var/cache/dashwheel-display/tiles"
+        const val DEFAULT_MAP_ZOOM = 16
 
         fun load(dir: File): DisplayConfig {
             val file = File(dir, FILE)
@@ -74,7 +87,11 @@ data class DisplayConfig(
                 readOnlyAfterPairing = !text("read_only").equals("manual", ignoreCase = true),
                 brightnessUpGpio = up?.takeIf { down != null },
                 brightnessDownGpio = down?.takeIf { up != null },
-                port = int("port")?.takeIf { it in 1024..65535 } ?: defaults.port
+                port = int("port")?.takeIf { it in 1024..65535 } ?: defaults.port,
+                tileUrl = text("tile_url")?.takeIf { "{z}" in it && "{x}" in it && "{y}" in it },
+                tileUrlNight = text("tile_url_night")?.takeIf { "{z}" in it && "{x}" in it && "{y}" in it },
+                tileCache = text("tile_cache") ?: defaults.tileCache,
+                mapZoom = int("map_zoom")?.coerceIn(10, 18) ?: defaults.mapZoom
             )
         }
     }

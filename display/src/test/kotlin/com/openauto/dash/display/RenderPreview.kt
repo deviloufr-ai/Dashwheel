@@ -51,9 +51,30 @@ class RenderPreview {
             "board_obd" to base.copy(page = "OBD", measures = MEASURES, layout = ClusterState.Layout("BIG_SIDE", listOf("TELEMETRY", "MEASURES"))),
             "board_grid" to base.copy(open = listOf("Front left"), layout = ClusterState.Layout("GRID", listOf("SPEED", "DOORS", "FUEL", "COOLANT"))),
             "board_grid_noobd" to ClusterState(clock = base.clock, speedKmh = 52, night = true, layout = ClusterState.Layout("GRID", listOf("SPEED", "DOORS", "FUEL", "COOLANT"))),
+            // The map the display draws itself: tiles at hand, the route, the next turn.
+            "board_map" to base.copy(page = "NAV", maneuver = "RIGHT", position = ClusterState.Position(48.8530, 2.3499, 10), layout = ClusterState.Layout("BIG_STACK", listOf("MAP", "SPEED", "CLOCK"))),
+            "board_map_day" to base.copy(page = "NAV", night = false, maneuver = "ROUNDABOUT", position = ClusterState.Position(48.8530, 2.3499, 10), open = listOf("Tailgate"), layout = ClusterState.Layout("ONE", listOf("MAP"))),
+            "board_map_nofix" to base.copy(page = "NAV", layout = ClusterState.Layout("BIG_STACK", listOf("MAP", "SPEED", "CLOCK"))),
         )
         File(dir).mkdirs()
         val painter = Painter(1024, 600, overscanPct = 0)
+        // Stand-in tiles: a block pattern with a street grid, so the map's layout can be judged without a tile server.
+        painter.tiles = object : TileSource {
+            override val zoom = 16
+            override fun tile(z: Int, x: Int, y: Int): java.awt.image.BufferedImage {
+                val img = java.awt.image.BufferedImage(256, 256, java.awt.image.BufferedImage.TYPE_INT_RGB)
+                val g = img.createGraphics()
+                g.color = java.awt.Color(0xE9ECEF); g.fillRect(0, 0, 256, 256)
+                g.color = java.awt.Color(0xDADFE4)
+                for (bx in 0 until 256 step 64) for (by in 0 until 256 step 64) g.fillRect(bx + 6, by + 6, 52, 52)
+                g.color = java.awt.Color.WHITE
+                for (i in 0 until 256 step 64) { g.fillRect(i - 3, 0, 6, 256); g.fillRect(0, i - 3, 256, 6) }
+                g.dispose()
+                return img
+            }
+            override fun prefetch(keys: Collection<TileKey>) = Unit
+        }
+        painter.route = listOf(48.8500, 2.3499, 48.8530, 2.3499, 48.8560, 2.3499, 48.8560, 2.3600, 48.8560, 2.3800)
         for ((name, s) in states) {
             ImageIO.write(painter.paintCluster(s, s.clock), "png", File(dir, "$name.png"))
         }

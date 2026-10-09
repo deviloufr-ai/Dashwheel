@@ -83,6 +83,9 @@ else
   echo "pairing: $(/opt/dashwheel-display/bin/dashwheel-display --config "$CONFIG_DIR" --print-pairing)"
 fi
 
+# Where the map the display draws itself keeps its tiles (in memory on a read-only card: see README.md).
+mkdir -p /var/cache/dashwheel-display/tiles
+
 echo "== services"
 sed "s|@CONFIG_DIR@|$CONFIG_DIR|" "$HERE/dashwheel-display.service" > /etc/systemd/system/dashwheel-display.service
 install -m 644 "$HERE/dashwheel-display.avahi.service" /etc/avahi/services/dashwheel-display.service

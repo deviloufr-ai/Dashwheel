@@ -44,6 +44,8 @@
     <string name="second_screen_label_arrive">Przyjazd %1$s</string>
     <string name="second_screen_label_fuel">paliwo</string>
     <string name="second_screen_label_range">%1$s zasięgu</string>
+    <string name="second_screen_label_no_position">Oczekiwanie na GPS…</string>
+    <string name="second_screen_label_no_tiles">Brak kafelków mapy: ustaw tile_url na karcie ekranu</string>
     <string name="second_screen_blocked_moving">Aplikacje wideo czekają na zatrzymanie auta, chyba że to ekran dla tylnych siedzeń</string>
     <string name="second_screen_blocked_apps">Aplikacje na drugim ekranie wymagają radia z rootem na Androidzie 10 lub 11. Zamiast nich widać zegary.</string>
     <string name="second_screen_blocked_no_video">Ten ekran może tylko rysować zegary z odczytów</string>

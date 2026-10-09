@@ -44,6 +44,8 @@
     <string name="second_screen_label_arrive">Ankunft %1$s</string>
     <string name="second_screen_label_fuel">tank</string>
     <string name="second_screen_label_range">%1$s reichweite</string>
+    <string name="second_screen_label_no_position">Warten auf GPS…</string>
+    <string name="second_screen_label_no_tiles">Keine Kartenkacheln: tile_url auf der Karte des Bildschirms eintragen</string>
     <string name="second_screen_blocked_moving">Video-Apps warten, bis das Auto steht, außer auf einem Bildschirm für den Fond</string>
     <string name="second_screen_blocked_apps">Apps auf dem zweiten Bildschirm brauchen ein gerootetes Radio mit Android 10 oder 11. Stattdessen erscheint das Kombiinstrument.</string>
     <string name="second_screen_blocked_no_video">Dieser Bildschirm kann nur das Kombiinstrument aus Messwerten zeichnen</string>

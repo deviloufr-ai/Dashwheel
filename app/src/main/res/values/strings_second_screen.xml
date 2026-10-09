@@ -44,6 +44,8 @@
     <string name="second_screen_label_arrive">Arrive %1$s</string>
     <string name="second_screen_label_fuel">fuel</string>
     <string name="second_screen_label_range">%1$s range</string>
+    <string name="second_screen_label_no_position">Waiting for the GPS…</string>
+    <string name="second_screen_label_no_tiles">No map tiles: set tile_url on the screen\'s card</string>
     <string name="second_screen_blocked_moving">Video apps wait until the car stops, unless it is a rear-seat screen</string>
     <string name="second_screen_blocked_apps">Apps on the second screen need a rooted head unit on Android 10 or 11. The cluster shows instead.</string>
     <string name="second_screen_blocked_no_video">This screen can only draw the cluster from readings</string>

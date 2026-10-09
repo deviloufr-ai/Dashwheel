@@ -28,3 +28,14 @@ name=Dashwheel display
 # The head unit then sets a day and a night level (Settings, Second screen).
 #brightness_up_gpio=17
 #brightness_down_gpio=27
+
+# The map the display draws itself (a Map slot on the board, Simple display on):
+# raster tiles, 256 px, with {z}, {x} and {y} in the address. Without tile_url the
+# map shows the route and the car on a plain ground. A second address for night.
+#tile_url=https://api.maptiler.com/maps/streets-v2/256/{z}/{x}/{y}.png?key=YOUR_KEY
+#tile_url_night=https://api.maptiler.com/maps/streets-v2-dark/256/{z}/{x}/{y}.png?key=YOUR_KEY
+# Where fetched tiles are kept for the next drive. On a read-only card this folder
+# is in memory and empties at each power-up: point it at a USB stick to keep them.
+#tile_cache=/var/cache/dashwheel-display/tiles
+# 15 shows a town, 16 its streets (default), 17 every house.
+#map_zoom=16

@@ -3,6 +3,7 @@ package com.openauto.dash.display
 import com.openauto.dash.link.ClusterState
 import com.openauto.dash.link.VideoConfig
 import com.openauto.dash.link.VideoPacket
+import java.io.File
 
 /**
  * What the monitor shows: the head unit's video, the display's own cluster
@@ -32,7 +33,13 @@ class Screen(
 ) {
     enum class Showing { IDLE, DATA, VIDEO }
 
-    private val painter = Painter(mode.width, mode.height, config.overscanPct, logo).also { it.upsideDown = Rotation.upsideDown }
+    private val painter = Painter(mode.width, mode.height, config.overscanPct, logo).also {
+        it.upsideDown = Rotation.upsideDown
+        // The map's tiles, when the card names where they come from: a tile that arrives redraws the picture.
+        val agent = "dashwheel-display/" + (Screen::class.java.`package`?.implementationVersion ?: "dev") + " (+https://github.com/deviloufr-ai/Dashwheel)"
+        it.tiles = config.tileUrl?.let { url -> TileCache(File(config.tileCache, "day"), url, config.mapZoom, agent, onLoaded = ::redraw) }
+        it.nightTiles = config.tileUrlNight?.let { url -> TileCache(File(config.tileCache, "night"), url, config.mapZoom, agent, onLoaded = ::redraw) }
+    }
     // The last drawn picture stays up while the decoder starts (see ConsoleFrameBuffer).
     private val video = VideoSink(start = { showOnConsole(painter.image); stopFrames(); startVideo() }, requestKeyFrame = requestKeyFrame)
     private var frames: GstProcess? = null
@@ -91,6 +98,7 @@ class Screen(
         if (showing == Showing.VIDEO) video.stop()
         // The next session starts from its own readings, never the last one's.
         cluster = null
+        painter.route = emptyList()
         videoLost = false
         showing = Showing.IDLE
         redraw()
@@ -118,6 +126,13 @@ class Screen(
         heardAt = uptimeMs()
         log("video: asked")
         video.prepare()
+    }
+
+    /** The route the head unit's navigation follows, for the map; empty when there is none. */
+    @Synchronized
+    fun route(points: List<Double>) {
+        painter.route = points
+        if (showing == Showing.DATA) redraw()
     }
 
     /** The head unit sent something, whatever it was: it is there. */

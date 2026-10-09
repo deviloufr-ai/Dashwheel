@@ -44,6 +44,8 @@
     <string name="second_screen_label_arrive">Chegada %1$s</string>
     <string name="second_screen_label_fuel">combustível</string>
     <string name="second_screen_label_range">%1$s de autonomia</string>
+    <string name="second_screen_label_no_position">À espera do GPS…</string>
+    <string name="second_screen_label_no_tiles">Sem mapa de fundo: defina tile_url no cartão do ecrã</string>
     <string name="second_screen_blocked_moving">As apps de vídeo esperam que o carro pare, exceto num ecrã traseiro</string>
     <string name="second_screen_blocked_apps">As apps no segundo ecrã precisam de um rádio com root em Android 10 ou 11. Aparece o painel no seu lugar.</string>
     <string name="second_screen_blocked_no_video">Este ecrã só consegue desenhar o quadrante a partir das leituras</string>

@@ -44,6 +44,8 @@
     <string name="second_screen_label_arrive">Arrivée %1$s</string>
     <string name="second_screen_label_fuel">carburant</string>
     <string name="second_screen_label_range">%1$s d\'autonomie</string>
+    <string name="second_screen_label_no_position">En attente du GPS…</string>
+    <string name="second_screen_label_no_tiles">Pas de fond de carte : indiquez tile_url sur la carte SD de l\'écran</string>
     <string name="second_screen_blocked_moving">Les applis vidéo attendent l\'arrêt de la voiture, sauf sur un écran pour l\'arrière</string>
     <string name="second_screen_blocked_apps">Les applis sur le second écran demandent un autoradio rooté sous Android 10 ou 11. Le combiné s\'affiche à la place.</string>
     <string name="second_screen_blocked_no_video">Cet écran ne peut que dessiner le combiné à partir des mesures</string>

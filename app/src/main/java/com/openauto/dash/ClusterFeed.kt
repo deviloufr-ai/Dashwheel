@@ -102,7 +102,14 @@ internal object ClusterFeed {
             // The turn as the navigation knows it (in-app), so the display needn't read the words.
             maneuver = nav.maneuver,
             // The page as laid out on the board, so the display draws the same widgets in the same places.
-            layout = SecondScreenRules.layoutMessage(config.layoutFor(page))
+            layout = SecondScreenRules.layoutMessage(config.layoutFor(page)),
+            // Where the car is, for the display's own map: rounded so a parked car sends nothing new.
+            position = LocationFeed.location.value?.let { l ->
+                ClusterState.Position(
+                    Math.round(l.latitude * 1e5) / 1e5, Math.round(l.longitude * 1e5) / 1e5,
+                    LocationFeed.headingDeg.value?.let { Math.round(it) }
+                )
+            }
         )
     }
 

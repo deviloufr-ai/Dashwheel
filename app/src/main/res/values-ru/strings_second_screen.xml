@@ -44,6 +44,8 @@
     <string name="second_screen_label_arrive">Прибытие %1$s</string>
     <string name="second_screen_label_fuel">топливо</string>
     <string name="second_screen_label_range">запас хода %1$s</string>
+    <string name="second_screen_label_no_position">Ожидание GPS…</string>
+    <string name="second_screen_label_no_tiles">Нет тайлов карты: укажите tile_url на карте экрана</string>
     <string name="second_screen_blocked_moving">Видеоприложения ждут остановки автомобиля, если это не экран для заднего ряда</string>
     <string name="second_screen_blocked_apps">Для приложений на втором экране нужна магнитола с root на Android 10 или 11. Вместо них показываются приборы.</string>
     <string name="second_screen_blocked_no_video">Этот экран может рисовать только приборы по показаниям</string>

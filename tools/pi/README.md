@@ -118,6 +118,15 @@ On the head unit: **Settings → Display → Second screen**:
 
 For keys to work while another app is in front, Dashwheel's accessibility service must be on. If it was already on before this update, turn it off and on again: Android only grants key filtering when the service is switched on.
 
+## The map the Pi draws itself
+
+With **Simple display** on, a **Map** slot on the board (the same slot that streams the 3D map otherwise) makes the Pi draw a flat map itself: north up, the car in the middle, the route of the in-app navigation in the accent colour, the next turn in a card. The head unit sends only the car's position and the route, a few hundred bytes a second; the Pi fetches raster tiles over the phone's hotspot and keeps them for the next drive.
+
+- **Tiles.** Put a tile address in `dashwheel/display.conf` on the card: `tile_url=https://…/{z}/{x}/{y}.png`, and `tile_url_night` for a dark style (without one the day tiles are dimmed at night). A provider with a free key, such as MapTiler or Thunderforest, is the usual choice; the public OpenStreetMap servers are not meant for apps. Without `tile_url` the map shows the route and the car on a plain ground.
+- **Cache.** Tiles are kept under `tile_cache` (`/var/cache/dashwheel-display/tiles`). On a read-only card that folder lives in memory and empties at each power-up; to keep tiles across drives, point `tile_cache` at a USB stick or another writable place.
+- **Zoom.** `map_zoom=16` by default (streets); 15 for a town, 17 for every house.
+- **Route line.** Only the in-app navigation gives the head unit its route. With Maps or Waze the Pi shows the car and the next turn, without the line.
+
 ## Settings file
 
 `dashwheel/display.conf` on the boot partition: see `display.conf.example`. It sets the screen's name, overscan, a forced size for monitors that report none, and a custom GStreamer chain.

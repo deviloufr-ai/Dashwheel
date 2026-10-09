@@ -44,6 +44,8 @@
     <string name="second_screen_label_arrive">Aankomst %1$s</string>
     <string name="second_screen_label_fuel">brandstof</string>
     <string name="second_screen_label_range">%1$s bereik</string>
+    <string name="second_screen_label_no_position">Wachten op gps…</string>
+    <string name="second_screen_label_no_tiles">Geen kaarttegels: stel tile_url in op de kaart van het scherm</string>
     <string name="second_screen_blocked_moving">Video-apps wachten tot de auto stilstaat, behalve op een scherm voor achterin</string>
     <string name="second_screen_blocked_apps">Apps op het tweede scherm vragen een geroote autoradio met Android 10 of 11. In plaats daarvan verschijnt het dashboard.</string>
     <string name="second_screen_blocked_no_video">Dit scherm kan alleen de instrumenten uit meetwaarden tekenen</string>

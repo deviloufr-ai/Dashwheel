@@ -41,7 +41,9 @@ internal object SecondScreenWords {
         coolant = context.getString(R.string.orbit_sat_coolant),
         fuel = context.getString(R.string.second_screen_label_fuel),
         range = context.getString(R.string.second_screen_label_range, units.distanceUnit),
-        measuresNone = context.getString(R.string.car_waiting_obd)
+        measuresNone = context.getString(R.string.car_waiting_obd),
+        noPosition = context.getString(R.string.second_screen_label_no_position),
+        noTiles = context.getString(R.string.second_screen_label_no_tiles)
     )
 
     /** The lines in the language Dashwheel writes in, a language picked inside Dashwheel included. */

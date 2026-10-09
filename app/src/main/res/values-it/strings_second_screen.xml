@@ -44,6 +44,8 @@
     <string name="second_screen_label_arrive">Arrivo %1$s</string>
     <string name="second_screen_label_fuel">carburante</string>
     <string name="second_screen_label_range">%1$s di autonomia</string>
+    <string name="second_screen_label_no_position">In attesa del GPS…</string>
+    <string name="second_screen_label_no_tiles">Nessuna mappa di sfondo: imposta tile_url sulla scheda dello schermo</string>
     <string name="second_screen_blocked_moving">Le app video attendono che l\'auto si fermi, tranne su uno schermo posteriore</string>
     <string name="second_screen_blocked_apps">Le app sul secondo schermo richiedono un\'autoradio con root su Android 10 o 11. Al loro posto appare il quadro.</string>
     <string name="second_screen_blocked_no_video">Questo schermo può solo disegnare il quadro dalle letture</string>

@@ -90,6 +90,17 @@ class DisplayMessagesTest {
     }
 
     @Test
+    fun theMapsPositionAndRouteRoundTrip() {
+        roundTrip(ClusterState(clock = 1, position = ClusterState.Position(48.853, 2.3499, 10)))
+        roundTrip(ClusterRoute(listOf(48.85, 2.34, 48.86, 2.35)))
+        assertEquals(listOf(48.85 to 2.34, 48.86 to 2.35), ClusterRoute(listOf(48.85, 2.34, 48.86, 2.35, 7.0)).pairs())
+        assertTrue(ClusterRoute().pairs().isEmpty())
+        // An older display skips the route message, and reads the readings without the position.
+        assertNull((LinkCodec.decode("""{"t":"cluster_state","clock":5}""".encodeToByteArray()) as ClusterState).position)
+        assertTrue(ClusterFace.MAP in ClusterFace.ALL)
+    }
+
+    @Test
     fun videoPacketsRoundTrip() {
         val data = byteArrayOf(0, 0, 0, 1, 0x65, 1, 2, 3)
         val back = VideoPacket.decode(VideoPacket(true, 123_456_789L, data).encode())!!

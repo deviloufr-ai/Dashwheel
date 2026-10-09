@@ -42,7 +42,8 @@ const val DISPLAY_BEACON_PREFIX = "dashwheel-display "
  *
  * 1: the first release.
  * 2: [DisplayTime], [DisplayStats.droppedLate] and the board's health, the
- *    words in [DisplayWords.labels], [ClusterState.maneuver] and [ClusterState.layout].
+ *    words in [DisplayWords.labels], [ClusterState.maneuver] and [ClusterState.layout];
+ *    then [ClusterState.position] and [ClusterRoute] for the map the display draws itself.
  */
 const val DISPLAY_PROTOCOL = 2
 
@@ -320,8 +321,14 @@ data class ClusterState(
      * same widgets in the same places; null from an older head unit, or for a
      * page whose widgets the display has no readings for: it then draws its own page.
      */
-    val layout: Layout? = null
+    val layout: Layout? = null,
+    /** Where the car is, for the map the display draws itself ([ClusterFace.MAP]); null without a fix. */
+    val position: Position? = null
 ) : LinkMessage {
+    /** A GPS fix: degrees to five decimals (about a metre), the heading in degrees from north when the car moves. */
+    @Serializable
+    data class Position(val lat: Double, val lon: Double, val headingDeg: Int? = null)
+
     /**
      * A page's arrangement ([ClusterArrangement] names: ONE, BIG_SIDE, BIG_STACK,
      * HALVES, THREE, GRID) and what each of its slots shows, the big slot first,
@@ -370,7 +377,11 @@ data class ClusterState(
         /** Under the range, its unit included, e.g. "km range". */
         val range: String? = null,
         /** The Measures page without readings, e.g. "Waiting for the OBD adapter…". */
-        val measuresNone: String? = null
+        val measuresNone: String? = null,
+        /** The map without a fix yet, e.g. "Waiting for the GPS…". */
+        val noPosition: String? = null,
+        /** The map without tiles to draw, e.g. "No map tiles: set tile_url on the card". */
+        val noTiles: String? = null
     )
 
     @Serializable
@@ -397,6 +408,24 @@ data class ClusterState(
 
 const val CODEC_H264 = "h264"
 
+/**
+ * Head unit → Pi: the route the in-app navigation follows, as lat, lon pairs
+ * flattened ([points] = lat0, lon0, lat1, lon1…), for the map the display
+ * draws itself. Sent when the route changes and when the link comes up; empty
+ * when there is no route (or the navigation is another app's, which keeps its route to itself).
+ */
+@Serializable
+@SerialName("cluster_route")
+data class ClusterRoute(val points: List<Double> = emptyList()) : LinkMessage {
+    /** The route as (lat, lon) pairs; an odd trailing value is dropped. */
+    fun pairs(): List<Pair<Double, Double>> = (0 until points.size / 2).map { points[2 * it] to points[2 * it + 1] }
+
+    companion object {
+        /** At most this many points go over the link: a long route is thinned to it first. */
+        const val MAX_POINTS = 2_000
+    }
+}
+
 /** The turns [ClusterState.maneuver] can name. */
 val MANEUVERS = listOf("LEFT", "RIGHT", "STRAIGHT", "UTURN", "ROUNDABOUT", "ARRIVE")
 
@@ -418,8 +447,10 @@ object ClusterFace {
     const val NAV = "NAV"
     const val MEASURES = "MEASURES"
     const val DOORS = "DOORS"
+    /** The display's own map: its tiles, the car from [ClusterState.position], the route from [ClusterRoute]. */
+    const val MAP = "MAP"
 
-    val ALL = listOf(SPEED, CLOCK, FUEL, RANGE, RPM, COOLANT, TELEMETRY, MEDIA, NAV, MEASURES, DOORS)
+    val ALL = listOf(SPEED, CLOCK, FUEL, RANGE, RPM, COOLANT, TELEMETRY, MEDIA, NAV, MEASURES, DOORS, MAP)
 }
 
 /**
