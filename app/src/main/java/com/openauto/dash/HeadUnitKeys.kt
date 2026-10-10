@@ -63,8 +63,14 @@ object HeadUnitKeys {
 
     private val died = IBinder.DeathRecipient {
         service = null
+        _listeningFlow.value = false
         main.postDelayed({ register() }, RETRY_MS)
     }
+
+    private val _listeningFlow = kotlinx.coroutines.flow.MutableStateFlow(false)
+
+    /** [listening], as a flow: the accessibility service filters keys only where the unit's own service can't deliver them. */
+    val listeningFlow: kotlinx.coroutines.flow.StateFlow<Boolean> = _listeningFlow
 
     fun start(context: Context) {
         if (appContext != null) return
@@ -86,6 +92,7 @@ object HeadUnitKeys {
             reply.readException()
             binder.linkToDeath(died, 0)
             service = binder
+            _listeningFlow.value = true
             Log.i(TAG, "listening to the unit's keys")
         } catch (e: Exception) {
             Log.w(TAG, "could not listen to the unit's keys", e)

@@ -294,8 +294,14 @@ internal object EmbeddedApp {
     private var dashboard: WeakReference<Activity>? = null
 
     /** A tile's display may be in front, with the keys: set on a launch or a tap there. */
-    @Volatile
-    private var keysAway = false
+    private val _keysAway = MutableStateFlow(false)
+
+    /** An app inside a tile took the unit's keys (a tap in it): Home and Back must be caught before it gets them. */
+    val keysAwayFlow: StateFlow<Boolean> = _keysAway.asStateFlow()
+
+    private var keysAway: Boolean
+        get() = _keysAway.value
+        set(value) { _keysAway.value = value }
 
     private var tileTouched = false
     private var givingBack: Job? = null

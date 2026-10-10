@@ -28,6 +28,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -69,6 +71,48 @@ class SplitAccessibilityService : AccessibilityService() {
             wazeWatch?.cancel()
             wazeWatch = mainScope.launch { NavDirections.running.collect { wazeRuns = it == WazeScreen.PACKAGE; watchContent(wazeRuns || mapsInFront) } }
         }
+        keyWatch?.cancel()
+        keyWatch = mainScope.launch {
+            combine(
+                SteeringWheelStore.mapping, SteeringWheelStore.buttons, HeadUnitKeys.listeningFlow,
+                SecondScreenStore.config, SecondScreenController.status, EmbeddedApp.keysAwayFlow
+            ) { values ->
+                @Suppress("UNCHECKED_CAST")
+                val config = values[3] as SecondScreenConfig
+                val status = values[4] as SecondScreenStatus
+                keysWanted(
+                    learning = values[0] as Boolean,
+                    wheelBound = (values[1] as List<*>).any { (it as? WheelButton)?.assignment != null },
+                    unitKeys = values[2] as Boolean,
+                    clusterKeys = (config.pageKeys.isNotEmpty() || config.mediaKeysTurnPages) &&
+                        (status.output == SecondScreenOutput.VIDEO_CLUSTER || status.output == SecondScreenOutput.DATA),
+                    keysAway = values[5] as Boolean
+                )
+            }.distinctUntilChanged().collect { filterKeys(it) }
+        }
+    }
+
+    private var keyWatch: kotlinx.coroutines.Job? = null
+
+    /**
+     * Whether this service should see the unit's keys before every app. The
+     * filter hands every key it doesn't use back to Android, which on the
+     * K706 then sees it twice, the second time as a long press: the unit's own
+     * screen-off key switched the screen off and straight back on. So the keys
+     * pass through here only while something needs them: a button being
+     * learned, the second screen's page keys while its cluster shows, Home and
+     * Back while an app inside a tile holds them, and the steering wheel's
+     * buttons on a unit whose own key service ([HeadUnitKeys]) doesn't deliver them.
+     */
+    private fun filterKeys(on: Boolean) {
+        val info = serviceInfo ?: return
+        val flag = android.accessibilityservice.AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS
+        val flags = if (on) info.flags or flag else info.flags and flag.inv()
+        if (flags == info.flags) return
+        info.flags = flags
+        serviceInfo = info
+        SecondScreenController.serviceFiltersKeys = on
+        Log.i(TAG, "the unit's keys ${if (on) "pass through this service" else "no longer pass through this service"}")
     }
 
     /** Collects which app guides, to hear Waze's screen only while it runs. */
@@ -103,6 +147,7 @@ class SplitAccessibilityService : AccessibilityService() {
 
     override fun onDestroy() {
         wazeWatch?.cancel()
+        keyWatch?.cancel()
         instance = null
         connectedState.value = false
         SecondScreenController.serviceFiltersKeys = false
@@ -555,3 +600,7 @@ class SplitAccessibilityService : AccessibilityService() {
             instance?.let { runCatching { it.performGlobalAction(action) }.getOrDefault(false) } ?: false
     }
 }
+
+/** See [SplitAccessibilityService.filterKeys]; pure, for the tests. */
+internal fun keysWanted(learning: Boolean, wheelBound: Boolean, unitKeys: Boolean, clusterKeys: Boolean, keysAway: Boolean): Boolean =
+    learning || clusterKeys || keysAway || (wheelBound && !unitKeys)
