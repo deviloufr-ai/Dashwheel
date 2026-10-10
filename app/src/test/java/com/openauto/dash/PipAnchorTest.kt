@@ -412,4 +412,25 @@ class PipAnchorTest {
         assertEquals(66, WindowListing.frontTask(tileInFront))
         assertEquals(70, WindowListing.frontTask(tileInFront, displayId = 7))
     }
+
+    @Test
+    fun frontTaskIsTheTopOfAStackHoldingSeveral() {
+        // An NWD unit at boot: Android starts its stock launcher as Home, then the
+        // dashboard comes over it in the same Home stack. `am stack list` names a
+        // stack's tasks bottom first; raising the first one brought the stock
+        // launcher back over the dashboard.
+        val homeStack = """
+            Stack id=0 bounds=[0,0][1280,720] displayId=0 userId=0
+             configuration={... mWindowingMode=fullscreen mActivityType=home ...}
+              taskId=1: com.android.launcher/com.android.launcher2.Launcher bounds=[0,0][1280,720] userId=0 visible=false topActivity=ComponentInfo{com.android.launcher/com.android.launcher2.Launcher}
+              taskId=110: com.openauto.dash/com.openauto.dash.MainActivity bounds=[0,0][1280,720] userId=0 visible=true topActivity=ComponentInfo{com.openauto.dash/com.openauto.dash.MainActivity}
+            Stack id=3 bounds=[0,0][945,638] displayId=2 userId=0
+             configuration={... mWindowingMode=fullscreen mActivityType=standard ...}
+              taskId=113: com.waze/com.waze.MainActivity bounds=[0,0][945,638] userId=0 visible=true topActivity=ComponentInfo{com.waze/com.waze.MainActivity}
+        """.trimIndent()
+        assertEquals(110, WindowListing.frontTask(homeStack))
+        assertEquals(113, WindowListing.frontTask(homeStack, displayId = 2))
+        // The dashboard is on top: no app is full screen over it.
+        assertNull(WindowListing.fullscreenInFront(homeStack, "com.android.launcher"))
+    }
 }

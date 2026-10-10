@@ -89,7 +89,7 @@ object WindowListing {
         // `am stack list` is ordered front to back: the dashboard's own stack
         // appearing before the window's means the dashboard is drawn over it.
         val blocks = stackBlocks(output)
-        val selfIndex = blocks.indexOfFirst { TASK.find(it)?.groupValues?.get(2) == selfPackage }
+        val selfIndex = blocks.indexOfFirst { holds(it, selfPackage) }
         // Stacks are listed display by display; only one on the dashboard's own
         // display can be in front of it. A window parked on the hidden display
         // is listed after everything on the screen, but it covers nothing.
@@ -99,7 +99,7 @@ object WindowListing {
             if (mode != "pinned" && mode != "freeform") continue
             if (block.contains("ActivityType=home")) continue
             val id = block.takeWhile { it.isDigit() }.toIntOrNull() ?: continue
-            val task = TASK.find(block) ?: continue
+            val task = topTask(block) ?: continue
             val pkg = task.groupValues[2]
             if (pkg == selfPackage) continue
             // The stack's own bounds line comes first and, for freeform, spans
@@ -124,7 +124,7 @@ object WindowListing {
     internal fun stackOf(output: String, packageName: String): Pair<Int, Int>? {
         for (block in stackBlocks(output)) {
             if (block.contains("ActivityType=home")) continue
-            if (TASK.find(block)?.groupValues?.get(2) != packageName) continue
+            if (!holds(block, packageName)) continue
             val id = block.takeWhile { it.isDigit() }.toIntOrNull() ?: continue
             return id to (displayId(block) ?: DEFAULT_DISPLAY)
         }
@@ -140,13 +140,13 @@ object WindowListing {
      */
     internal fun fullscreenStackId(output: String, selfPackage: String = "com.openauto.dash"): Int? {
         val blocks = stackBlocks(output)
-        val selfDisplay = blocks.firstOrNull { TASK.find(it)?.groupValues?.get(2) == selfPackage }
+        val selfDisplay = blocks.firstOrNull { holds(it, selfPackage) }
             ?.let { displayId(it) } ?: DEFAULT_DISPLAY
         val candidates = blocks.filter {
             windowingMode(it) == "fullscreen" && !it.contains("ActivityType=home") &&
                 (displayId(it) ?: DEFAULT_DISPLAY) == selfDisplay
         }
-        val block = candidates.firstOrNull { TASK.find(it)?.groupValues?.get(2) == selfPackage }
+        val block = candidates.firstOrNull { holds(it, selfPackage) }
             ?: candidates.firstOrNull()
         return block?.takeWhile { it.isDigit() }?.toIntOrNull()
     }
@@ -160,7 +160,7 @@ object WindowListing {
     internal fun frontTask(output: String, displayId: Int = DEFAULT_DISPLAY): Int? =
         stackBlocks(output).firstNotNullOfOrNull { block ->
             if ((displayId(block) ?: DEFAULT_DISPLAY) != displayId || windowingMode(block) == "pinned") return@firstNotNullOfOrNull null
-            TASK.find(block)?.groupValues?.get(1)?.toIntOrNull()
+            topTask(block)?.groupValues?.get(1)?.toIntOrNull()
         }
 
     /**
@@ -171,12 +171,12 @@ object WindowListing {
      */
     internal fun fullscreenInFront(output: String, packageName: String, selfPackage: String = "com.openauto.dash"): FloatingWindow? {
         val blocks = stackBlocks(output)
-        val selfDisplay = blocks.firstOrNull { TASK.find(it)?.groupValues?.get(2) == selfPackage }
+        val selfDisplay = blocks.firstOrNull { holds(it, selfPackage) }
             ?.let { displayId(it) } ?: DEFAULT_DISPLAY
         val front = blocks.firstOrNull {
             windowingMode(it) == "fullscreen" && (displayId(it) ?: DEFAULT_DISPLAY) == selfDisplay
         } ?: return null
-        val task = TASK.find(front) ?: return null
+        val task = topTask(front) ?: return null
         if (task.groupValues[2] != packageName) return null
         val taskLine = front.substring(task.range.first).lineSequence().first()
         if (taskLine.contains("visible=false")) return null
@@ -238,10 +238,10 @@ object WindowListing {
     /** Each stack's top task (id, package), front first, on the screen [selfPackage] is on. */
     private fun frontTasks(output: String, selfPackage: String): List<Pair<Int, String>> {
         val blocks = stackBlocks(output)
-        val selfDisplay = blocks.firstOrNull { TASK.find(it)?.groupValues?.get(2) == selfPackage }
+        val selfDisplay = blocks.firstOrNull { holds(it, selfPackage) }
             ?.let { displayId(it) } ?: DEFAULT_DISPLAY
         return blocks.filter { (displayId(it) ?: DEFAULT_DISPLAY) == selfDisplay }.mapNotNull { block ->
-            val task = TASK.find(block) ?: return@mapNotNull null
+            val task = topTask(block) ?: return@mapNotNull null
             val id = task.groupValues[1].toIntOrNull() ?: return@mapNotNull null
             id to task.groupValues[2]
         }
@@ -257,13 +257,23 @@ object WindowListing {
     internal fun summarizeStacks(output: String): String? {
         val parts = stackBlocks(output).mapNotNull { block ->
             val mode = windowingMode(block) ?: return@mapNotNull null
-            val pkg = TASK.find(block)?.groupValues?.get(2) ?: "(empty)"
+            val pkg = topTask(block)?.groupValues?.get(2) ?: "(empty)"
             mode + " " + pkg.substringAfterLast('.')
         }
         return parts.takeIf { it.isNotEmpty() }?.joinToString(" \u00b7 ")
     }
 
     private val TASK = Regex("taskId=(\\d+): ([\\w.]+)/")
+
+    /**
+     * The task on top of a stack. A stack can hold several tasks (the Home
+     * stack: the dashboard over a stock launcher Android started at boot), and
+     * `am stack list` names them bottom first: the last one is the one shown.
+     */
+    private fun topTask(block: String): MatchResult? = TASK.findAll(block).lastOrNull()
+
+    /** Whether one of the stack's tasks is [packageName]'s, at any depth. */
+    private fun holds(block: String, packageName: String): Boolean = TASK.findAll(block).any { it.groupValues[2] == packageName }
 
     /** A task line: its id, its first screen, and the one on top ("topActivity=ComponentInfo{pkg/cls}"). */
     private val TASK_SCREENS = Regex("taskId=(\\d+): (\\S+) .*?topActivity=ComponentInfo\\{([^}]+)\\}")
