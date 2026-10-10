@@ -43,6 +43,9 @@ enum class UpkeepKind(@StringRes val labelRes: Int) {
 /** Every two years in France and most of Europe once the car is four years old. */
 private const val INSPECTION_MONTHS = 24
 
+/** The first inspection, counted from the first registration (France, Italy, Spain...). */
+private const val FIRST_INSPECTION_MONTHS = 48
+
 /**
  * How often [kind] is due; null = not known (no reminder on that count).
  * [own]: the driver typed it, so the maker's intervals never replace it.
@@ -131,8 +134,28 @@ object UpkeepRules {
         return UpkeepDue(interval.kind, kmLeft, daysLeft, stage)
     }
 
-    fun statuses(plan: List<UpkeepInterval>, done: Map<UpkeepKind, UpkeepDone>, odometerKm: Int?, now: Long): List<UpkeepDue> =
-        plan.map { status(it, done[it.kind], odometerKm, now) }.sortedWith(compareBy({ order(it.stage) }, { soonest(it) }))
+    /**
+     * [registeredAt] (the first registration) dates the first inspection when
+     * none was logged and it is still to come; after it, only the driver's
+     * log knows when the last one was.
+     */
+    fun statuses(plan: List<UpkeepInterval>, done: Map<UpkeepKind, UpkeepDone>, odometerKm: Int?, now: Long, registeredAt: Long? = null): List<UpkeepDue> =
+        plan.map {
+            val last = done[it.kind] ?: if (it.kind == UpkeepKind.INSPECTION) firstInspection(registeredAt, now) else null
+            status(it, last, odometerKm, now)
+        }.sortedWith(compareBy({ order(it.stage) }, { soonest(it) }))
+
+    /**
+     * The first inspection as if an inspection had been done one interval
+     * before it, so [status] counts down to it; null once it is past.
+     */
+    internal fun firstInspection(registeredAt: Long?, now: Long): UpkeepDone? {
+        registeredAt ?: return null
+        val cal = Calendar.getInstance().apply { timeInMillis = registeredAt; add(Calendar.MONTH, FIRST_INSPECTION_MONTHS) }
+        if (cal.timeInMillis < now) return null
+        cal.add(Calendar.MONTH, -INSPECTION_MONTHS)
+        return UpkeepDone(at = cal.timeInMillis)
+    }
 
     private fun order(stage: UpkeepStage) = when (stage) {
         UpkeepStage.DUE -> 0
@@ -230,9 +253,11 @@ data class UpkeepState(
     val planFromAi: Boolean = false,
     val fetching: Boolean = false,
     /** Why the last automatic plan fetch failed, to show in the dialog. */
-    val fetchError: String? = null
+    val fetchError: String? = null,
+    /** The car's first registration, which dates its first inspection. */
+    val registeredAt: Long? = null
 ) {
-    fun statuses(now: Long): List<UpkeepDue> = UpkeepRules.statuses(plan, done, odometer?.nowKm, now)
+    fun statuses(now: Long): List<UpkeepDue> = UpkeepRules.statuses(plan, done, odometer?.nowKm, now, registeredAt)
 }
 
 /**
@@ -264,6 +289,8 @@ object Maintenance {
 
     /** The plan follows the car: a new car gets the defaults and, given a key, the maker's intervals. */
     private fun onCar(car: CarProfile) {
+        val registeredAt = car.registeredOn?.atStartOfDay(java.time.ZoneId.systemDefault())?.toInstant()?.toEpochMilli()
+        if (_state.value.registeredAt != registeredAt) _state.value = _state.value.copy(registeredAt = registeredAt)
         val hash = car.promptDescription().hashCode()
         if (ownUnmarked) {
             ownUnmarked = false

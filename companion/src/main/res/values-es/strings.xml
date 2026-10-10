@@ -221,4 +221,26 @@
     <string name="parking_soon_text">Tu aparcamiento termina a las %1$s.</string>
     <string name="parking_over_title">El aparcamiento ha terminado</string>
     <string name="parking_over_text">Tu aparcamiento terminó a las %1$s.</string>
+
+    <!-- Registration certificate scan (RegistrationCard). -->
+    <string name="reg_title">Permiso de circulación</string>
+    <string name="reg_detail">Escanéalo para dar al coche su matrícula, bastidor y fecha de primera matriculación. La foto se queda en este móvil.</string>
+    <string name="reg_scan">Escanearlo</string>
+    <string name="reg_choose">Elegir una foto</string>
+    <string name="reg_reading">Leyendo el documento</string>
+    <string name="reg_nothing">No se lee nada. Vuelve a intentarlo con el documento plano, cerca y bien iluminado.</string>
+    <string name="reg_no_ocr">El reconocimiento de texto aún no está listo en este móvil. Vuelve a intentarlo en un minuto.</string>
+    <string name="reg_check">Revisa lo leído y luego envíalo.</string>
+    <string name="reg_plate">Matrícula</string>
+    <string name="reg_first">Primera matriculación</string>
+    <string name="reg_vin">Bastidor</string>
+    <string name="reg_make">Marca</string>
+    <string name="reg_model">Modelo</string>
+    <string name="reg_power">%1$d kW, %2$d CV</string>
+    <string name="reg_crit_air">Crit\'Air %1$d</string>
+    <string name="reg_crit_air_unclassed">Sin distintivo Crit\'Air</string>
+    <string name="reg_send">Enviar al coche</string>
+    <string name="reg_sent">Enviado al coche</string>
+    <string name="reg_offline">Conéctate al coche para enviarlo</string>
+    <string name="reg_again">Escanear de nuevo</string>
 </resources>

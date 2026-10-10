@@ -221,4 +221,26 @@
     <string name="parking_soon_text">Il tuo parcheggio scade alle %1$s.</string>
     <string name="parking_over_title">Il parcheggio è scaduto</string>
     <string name="parking_over_text">Il tuo parcheggio è scaduto alle %1$s.</string>
+
+    <!-- Registration certificate scan (RegistrationCard). -->
+    <string name="reg_title">Libretto di circolazione</string>
+    <string name="reg_detail">Scansionalo per dare all\'auto targa, telaio e data di prima immatricolazione. La foto resta su questo telefono.</string>
+    <string name="reg_scan">Scansiona</string>
+    <string name="reg_choose">Scegli una foto</string>
+    <string name="reg_reading">Lettura del documento</string>
+    <string name="reg_nothing">Niente di leggibile. Riprova con il documento piatto, vicino e ben illuminato.</string>
+    <string name="reg_no_ocr">Il riconoscimento del testo non è ancora pronto su questo telefono. Riprova tra un minuto.</string>
+    <string name="reg_check">Controlla ciò che è stato letto, poi invialo.</string>
+    <string name="reg_plate">Targa</string>
+    <string name="reg_first">Prima immatricolazione</string>
+    <string name="reg_vin">Telaio</string>
+    <string name="reg_make">Marca</string>
+    <string name="reg_model">Modello</string>
+    <string name="reg_power">%1$d kW, %2$d CV</string>
+    <string name="reg_crit_air">Crit\'Air %1$d</string>
+    <string name="reg_crit_air_unclassed">Nessun bollino Crit\'Air</string>
+    <string name="reg_send">Invia all\'auto</string>
+    <string name="reg_sent">Inviato all\'auto</string>
+    <string name="reg_offline">Collegati all\'auto per inviarlo</string>
+    <string name="reg_again">Scansiona di nuovo</string>
 </resources>

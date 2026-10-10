@@ -222,4 +222,26 @@
     <string name="parking_soon_text">Twoje parkowanie kończy się o %1$s.</string>
     <string name="parking_over_title">Parkowanie się skończyło</string>
     <string name="parking_over_text">Twoje parkowanie skończyło się o %1$s.</string>
+
+    <!-- Registration certificate scan (RegistrationCard). -->
+    <string name="reg_title">Dowód rejestracyjny</string>
+    <string name="reg_detail">Zeskanuj go, aby auto znało numer rejestracyjny, VIN i datę pierwszej rejestracji. Zdjęcie zostaje na tym telefonie.</string>
+    <string name="reg_scan">Zeskanuj</string>
+    <string name="reg_choose">Wybierz zdjęcie</string>
+    <string name="reg_reading">Odczytywanie dokumentu</string>
+    <string name="reg_nothing">Nic nie da się odczytać. Spróbuj ponownie: dokument płasko, blisko i dobrze oświetlony.</string>
+    <string name="reg_no_ocr">Rozpoznawanie tekstu nie jest jeszcze gotowe na tym telefonie. Spróbuj ponownie za minutę.</string>
+    <string name="reg_check">Sprawdź, co odczytano, potem wyślij.</string>
+    <string name="reg_plate">Numer rejestracyjny</string>
+    <string name="reg_first">Pierwsza rejestracja</string>
+    <string name="reg_vin">VIN</string>
+    <string name="reg_make">Marka</string>
+    <string name="reg_model">Model</string>
+    <string name="reg_power">%1$d kW, %2$d KM</string>
+    <string name="reg_crit_air">Crit\'Air %1$d</string>
+    <string name="reg_crit_air_unclassed">Brak naklejki Crit\'Air</string>
+    <string name="reg_send">Wyślij do auta</string>
+    <string name="reg_sent">Wysłano do auta</string>
+    <string name="reg_offline">Połącz się z autem, aby wysłać</string>
+    <string name="reg_again">Skanuj ponownie</string>
 </resources>

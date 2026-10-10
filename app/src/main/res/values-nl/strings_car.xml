@@ -225,4 +225,15 @@
     <string name="car_tyres_alert">Bandenmelding</string>
     <string name="car_tyres_ok">Alle banden goed</string>
     <string name="car_belt_fasten">Doe je gordel om</string>
+
+    <!-- Registration certificate (CarProfile.withRegistration, CarSettingsDialog). -->
+    <string name="car_section_registration">Registratie</string>
+    <string name="car_spec_plate">Kenteken</string>
+    <string name="car_spec_first_registration">Eerste toelating</string>
+    <string name="car_spec_vin">VIN</string>
+    <string name="car_crit_air">Crit\'Air %1$d</string>
+    <string name="car_crit_air_unclassed">Geen Crit\'Air-sticker: te oud om ingedeeld te worden</string>
+    <string name="car_registration_from_phone">Scan het kentekenbewijs in de telefoonapp, tabblad Auto, om dit in te vullen.</string>
+    <string name="car_registration_saved_plate">Kentekenbewijs van %1$s opgeslagen</string>
+    <string name="car_registration_saved">Kentekenbewijs opgeslagen</string>
 </resources>

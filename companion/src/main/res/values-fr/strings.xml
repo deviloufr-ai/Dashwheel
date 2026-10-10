@@ -221,4 +221,26 @@
     <string name="parking_soon_text">Votre stationnement se termine à %1$s.</string>
     <string name="parking_over_title">Le stationnement est terminé</string>
     <string name="parking_over_text">Votre stationnement s\'est terminé à %1$s.</string>
+
+    <!-- Registration certificate scan (RegistrationCard). -->
+    <string name="reg_title">Carte grise</string>
+    <string name="reg_detail">Scannez-la pour donner à la voiture sa plaque, son VIN et sa date de 1re immatriculation. La photo reste sur ce téléphone.</string>
+    <string name="reg_scan">La scanner</string>
+    <string name="reg_choose">Choisir une photo</string>
+    <string name="reg_reading">Lecture du document</string>
+    <string name="reg_nothing">Rien de lisible. Réessayez avec le document à plat, de près et bien éclairé.</string>
+    <string name="reg_no_ocr">La reconnaissance de texte n\'est pas encore prête sur ce téléphone. Réessayez dans une minute.</string>
+    <string name="reg_check">Vérifiez ce qui a été lu, puis envoyez-le.</string>
+    <string name="reg_plate">Plaque</string>
+    <string name="reg_first">1re immatriculation</string>
+    <string name="reg_vin">VIN</string>
+    <string name="reg_make">Marque</string>
+    <string name="reg_model">Modèle</string>
+    <string name="reg_power">%1$d kW, %2$d ch</string>
+    <string name="reg_crit_air">Crit\'Air %1$d</string>
+    <string name="reg_crit_air_unclassed">Pas de vignette Crit\'Air</string>
+    <string name="reg_send">Envoyer à la voiture</string>
+    <string name="reg_sent">Envoyée à la voiture</string>
+    <string name="reg_offline">Connectez-vous à la voiture pour l\'envoyer</string>
+    <string name="reg_again">Scanner à nouveau</string>
 </resources>

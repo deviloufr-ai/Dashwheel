@@ -1,12 +1,19 @@
 package com.openauto.dash
 
 import android.content.Context
+import com.openauto.dash.link.CarRegistration
+import com.openauto.dash.link.CritAir
+import com.openauto.dash.link.Energies
+import com.openauto.dash.link.Energy
+import com.openauto.dash.link.RegistrationReader
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.json.JSONArray
 import org.json.JSONObject
+import java.time.LocalDate
 import java.util.Locale
+import kotlin.math.roundToInt
 
 /*
  * The car the launcher is fitted to: its specs, typed by the driver (the
@@ -63,6 +70,15 @@ data class CarProfile(
     val operatingTempC: Int? = null,
     /** Known weak points and upkeep tips for this engine and gearbox. */
     val notes: List<String> = emptyList(),
+    /** From the registration certificate (scanned on the phone, or typed): the plate, ... */
+    val plate: String = "",
+    val vin: String = "",
+    /** ... the first registration (ISO yyyy-MM-dd), ... */
+    val firstRegistration: String = "",
+    /** ... the fuel as printed there ("GO", "EE"...), finer than [fuel] for the Crit'Air sticker, ... */
+    val registrationEnergy: String = "",
+    /** ... and the Euro emission standard. */
+    val euro: Int? = null,
     val fuelPrice: Double = 1.75,
     val currency: String = "€",
     val source: SpecSource = SpecSource.PRESET,
@@ -99,6 +115,53 @@ data class CarProfile(
 
     /** Revs above this count against the eco score. */
     val ecoRpmMax: Int get() = if (diesel) 3000 else 3500
+
+    /** The certificate's fields alone, to tell whether they changed. */
+    fun registration(): List<Any?> = listOf(plate, vin, firstRegistration, registrationEnergy, euro)
+
+    /** The first registration as a date, or null. */
+    val registeredOn: LocalDate? get() = RegistrationReader.date(firstRegistration)
+
+    /**
+     * The French Crit'Air sticker (0..5, [CritAir.UNCLASSED]) or null: from
+     * the certificate's fuel when scanned, else the profile's.
+     */
+    val critAir: Int? get() = CritAir.of(Energies.of(registrationEnergy) ?: energy(), registeredOn, euro)
+
+    private fun energy(): Energy = when (fuel) {
+        FuelType.DIESEL -> Energy.DIESEL
+        FuelType.PETROL -> Energy.PETROL
+        FuelType.HYBRID -> Energy.HYBRID_PETROL
+        FuelType.LPG -> Energy.LPG
+        FuelType.ELECTRIC -> Energy.ELECTRIC
+    }
+
+    /**
+     * [r]'s fields over this car: the plate, VIN and date always (the
+     * certificate is the truth), the fuel when it reads as one; the make,
+     * model, year and power only where none were known, so specs the driver
+     * or the AI set stay.
+     */
+    fun withRegistration(r: CarRegistration): CarProfile {
+        val year = RegistrationReader.date(r.firstRegistration)?.year
+        val make = this.make.ifBlank { brandName(r.make) }
+        val model = this.model.ifBlank { titleCase(r.model) }
+        val withYear = this.year ?: year
+        return copy(
+            plate = r.plate.ifBlank { plate },
+            vin = r.vin.ifBlank { vin },
+            firstRegistration = RegistrationReader.date(r.firstRegistration)?.toString() ?: firstRegistration,
+            registrationEnergy = r.energy.ifBlank { registrationEnergy },
+            euro = r.euro ?: euro,
+            make = make,
+            model = model,
+            year = withYear,
+            name = name.ifBlank { composeName(make, model, withYear) },
+            fuel = Energies.of(r.energy)?.let(::fuelOf) ?: fuel,
+            powerHp = powerHp ?: r.powerKw?.let { (it * 1.35962).roundToInt() },
+            updatedAt = System.currentTimeMillis()
+        )
+    }
 
     /** One line naming the car for Gemini: model, engine, gearbox, filter. */
     fun promptDescription(): String = buildString {
@@ -141,6 +204,8 @@ data class CarProfile(
         put("tyre_size", tyreSize); putOpt("tyre_front_bar", tyreFrontBar); putOpt("tyre_rear_bar", tyreRearBar)
         putOpt("battery_ah", batteryAh); putOpt("operating_temp_c", operatingTempC)
         put("notes", JSONArray(notes))
+        put("plate", plate); put("vin", vin); put("first_registration", firstRegistration)
+        put("registration_energy", registrationEnergy); putOpt("euro", euro)
         put("fuel_price", fuelPrice); put("currency", currency)
         put("source", source.name); put("updated_at", updatedAt)
     }
@@ -198,6 +263,8 @@ data class CarProfile(
                 tyreSize = o.optString("tyre_size"), tyreFrontBar = dbl("tyre_front_bar"), tyreRearBar = dbl("tyre_rear_bar"),
                 batteryAh = int("battery_ah"), operatingTempC = int("operating_temp_c"),
                 notes = o.optJSONArray("notes")?.let { a -> (0 until a.length()).map { a.optString(it) }.filter { it.isNotBlank() } }.orEmpty(),
+                plate = o.optString("plate"), vin = o.optString("vin"), firstRegistration = o.optString("first_registration"),
+                registrationEnergy = o.optString("registration_energy"), euro = int("euro"),
                 fuelPrice = o.optDouble("fuel_price", PRESET.fuelPrice).takeIf { !it.isNaN() } ?: PRESET.fuelPrice,
                 currency = o.optString("currency").ifBlank { PRESET.currency },
                 source = enum("source", SpecSource.entries.toTypedArray(), SpecSource.USER),
@@ -206,6 +273,30 @@ data class CarProfile(
         }
     }
 }
+
+/** The profile's fuel for a certificate's [energy]. */
+private fun fuelOf(energy: Energy): FuelType = when (energy) {
+    Energy.DIESEL -> FuelType.DIESEL
+    Energy.PETROL, Energy.NATURAL_GAS -> FuelType.PETROL
+    Energy.HYBRID_PETROL, Energy.HYBRID_DIESEL, Energy.PLUG_IN_HYBRID -> FuelType.HYBRID
+    Energy.LPG -> FuelType.LPG
+    Energy.ELECTRIC, Energy.HYDROGEN -> FuelType.ELECTRIC
+}
+
+/** "C4 PICASSO" as "C4 Picasso": short words and ones with digits stay as printed. */
+internal fun titleCase(printed: String): String =
+    printed.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }.joinToString(" ") { w ->
+        if (w.length <= 2 || w.any(Char::isDigit)) w else w.lowercase(Locale.ROOT).replaceFirstChar { it.titlecase(Locale.ROOT) }
+    }
+
+/** A make as printed ("CITROEN") with its accents back when it is a well-known one. */
+private fun brandName(printed: String): String {
+    val name = titleCase(printed)
+    return KNOWN_MAKES.firstOrNull { searchKey(it) == searchKey(name) } ?: name
+}
+
+/** Makes whose printed name lost an accent or a capital on the certificate. */
+private val KNOWN_MAKES = listOf("Citroën", "Škoda", "Mercedes-Benz", "BMW", "DS", "MG", "SEAT", "Dacia", "Peugeot", "Renault", "Opel")
 
 /** The saved car, shared by every screen; [CarProfile.NONE] until the driver enters one. */
 object CarProfileStore {

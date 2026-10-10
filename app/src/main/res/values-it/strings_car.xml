@@ -227,4 +227,15 @@
     <string name="car_tyres_alert">Avviso pneumatici</string>
     <string name="car_tyres_ok">Pneumatici a posto</string>
     <string name="car_belt_fasten">Allaccia la cintura</string>
+
+    <!-- Registration certificate (CarProfile.withRegistration, CarSettingsDialog). -->
+    <string name="car_section_registration">Immatricolazione</string>
+    <string name="car_spec_plate">Targa</string>
+    <string name="car_spec_first_registration">Prima immatricolazione</string>
+    <string name="car_spec_vin">Telaio</string>
+    <string name="car_crit_air">Crit\'Air %1$d</string>
+    <string name="car_crit_air_unclassed">Nessun bollino Crit\'Air: troppo vecchia per essere classificata</string>
+    <string name="car_registration_from_phone">Scansiona il libretto nell\'app del telefono, scheda Auto, per compilare questi campi.</string>
+    <string name="car_registration_saved_plate">Libretto di %1$s salvato</string>
+    <string name="car_registration_saved">Libretto salvato</string>
 </resources>

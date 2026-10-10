@@ -108,6 +108,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     // Scans the pairing QR code the launcher shows.
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+    // Reads the car's registration certificate off its photo, on the phone (RegistrationCard).
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.1")
     // JVM unit tests (companion/src/test): telling a call notification's buttons apart.
     testImplementation("junit:junit:4.13.2")
 }

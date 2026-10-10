@@ -227,4 +227,15 @@
     <string name="car_tyres_alert">Alerte pneus</string>
     <string name="car_tyres_ok">Pneus OK</string>
     <string name="car_belt_fasten">Attachez votre ceinture</string>
+
+    <!-- Registration certificate (CarProfile.withRegistration, CarSettingsDialog). -->
+    <string name="car_section_registration">Immatriculation</string>
+    <string name="car_spec_plate">Plaque</string>
+    <string name="car_spec_first_registration">1re immatriculation</string>
+    <string name="car_spec_vin">VIN</string>
+    <string name="car_crit_air">Crit\'Air %1$d</string>
+    <string name="car_crit_air_unclassed">Pas de vignette Crit\'Air : trop ancienne pour être classée</string>
+    <string name="car_registration_from_phone">Scannez la carte grise dans l\'app du téléphone, onglet Voiture, pour remplir ces champs.</string>
+    <string name="car_registration_saved_plate">Carte grise de %1$s enregistrée</string>
+    <string name="car_registration_saved">Carte grise enregistrée</string>
 </resources>

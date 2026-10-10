@@ -227,4 +227,15 @@
     <string name="car_tyres_alert">Aviso de neumáticos</string>
     <string name="car_tyres_ok">Neumáticos bien</string>
     <string name="car_belt_fasten">Abróchese el cinturón</string>
+
+    <!-- Registration certificate (CarProfile.withRegistration, CarSettingsDialog). -->
+    <string name="car_section_registration">Matriculación</string>
+    <string name="car_spec_plate">Matrícula</string>
+    <string name="car_spec_first_registration">Primera matriculación</string>
+    <string name="car_spec_vin">Bastidor</string>
+    <string name="car_crit_air">Crit\'Air %1$d</string>
+    <string name="car_crit_air_unclassed">Sin distintivo Crit\'Air: demasiado antiguo para clasificarse</string>
+    <string name="car_registration_from_phone">Escanea el permiso de circulación en la app del móvil, pestaña Coche, para rellenar esto.</string>
+    <string name="car_registration_saved_plate">Permiso de %1$s guardado</string>
+    <string name="car_registration_saved">Permiso de circulación guardado</string>
 </resources>

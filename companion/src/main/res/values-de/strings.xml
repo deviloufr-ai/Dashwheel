@@ -220,4 +220,26 @@
     <string name="parking_soon_text">Deine Parkzeit endet um %1$s.</string>
     <string name="parking_over_title">Parkzeit abgelaufen</string>
     <string name="parking_over_text">Deine Parkzeit endete um %1$s.</string>
+
+    <!-- Registration certificate scan (RegistrationCard). -->
+    <string name="reg_title">Fahrzeugschein</string>
+    <string name="reg_detail">Scanne ihn, damit das Auto Kennzeichen, FIN und Erstzulassung kennt. Das Foto bleibt auf diesem Handy.</string>
+    <string name="reg_scan">Scannen</string>
+    <string name="reg_choose">Foto wählen</string>
+    <string name="reg_reading">Dokument wird gelesen</string>
+    <string name="reg_nothing">Nichts lesbar. Versuch es noch einmal: Dokument flach, nah und gut beleuchtet.</string>
+    <string name="reg_no_ocr">Die Texterkennung ist auf diesem Handy noch nicht bereit. Versuch es in einer Minute noch einmal.</string>
+    <string name="reg_check">Prüfe, was gelesen wurde, und sende es dann.</string>
+    <string name="reg_plate">Kennzeichen</string>
+    <string name="reg_first">Erstzulassung</string>
+    <string name="reg_vin">FIN</string>
+    <string name="reg_make">Marke</string>
+    <string name="reg_model">Modell</string>
+    <string name="reg_power">%1$d kW, %2$d PS</string>
+    <string name="reg_crit_air">Crit\'Air %1$d</string>
+    <string name="reg_crit_air_unclassed">Keine Crit\'Air-Plakette</string>
+    <string name="reg_send">An das Auto senden</string>
+    <string name="reg_sent">An das Auto gesendet</string>
+    <string name="reg_offline">Verbinde dich mit dem Auto, um es zu senden</string>
+    <string name="reg_again">Neu scannen</string>
 </resources>

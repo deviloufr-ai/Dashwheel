@@ -360,6 +360,7 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
                     item { SectionTitle(stringResource(R.string.tab_car), top = 2.dp) }
                     item { ObdRelayCard(onPick = { pick(BluetoothPick.OBD) }) }
                     item { CarLookCard(connected, onFromPhotos = { fromPhotos = true }) }
+                    item { RegistrationCard(connected) }
                     item { SectionTitle(stringResource(R.string.cars_title)) }
                     items(units, key = { it.id }) { unit -> CarRow(unit, onRemove = { removing = unit }) }
                     item {
@@ -781,7 +782,7 @@ private fun KeyboardCard(field: TextFieldValue, onField: (TextFieldValue) -> Uni
 
 /** An icon in a tinted circle, a title and a line under it: the head of most cards. */
 @Composable
-private fun CardHeading(icon: ImageVector, title: String, detail: String?, tint: Color = CompanionColors.Blue) {
+internal fun CardHeading(icon: ImageVector, title: String, detail: String?, tint: Color = CompanionColors.Blue) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Surface(shape = CircleShape, color = tint.copy(alpha = 0.16f), modifier = Modifier.size(40.dp)) {
             Box(contentAlignment = Alignment.Center) { Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(22.dp)) }

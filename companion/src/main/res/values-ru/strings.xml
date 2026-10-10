@@ -224,4 +224,26 @@
     <string name="parking_soon_text">Ваша парковка заканчивается в %1$s.</string>
     <string name="parking_over_title">Парковка закончилась</string>
     <string name="parking_over_text">Ваша парковка закончилась в %1$s.</string>
+
+    <!-- Registration certificate scan (RegistrationCard). -->
+    <string name="reg_title">Свидетельство о регистрации</string>
+    <string name="reg_detail">Отсканируйте его, чтобы автомобиль знал госномер, VIN и дату первой регистрации. Фото остаётся на этом телефоне.</string>
+    <string name="reg_scan">Сканировать</string>
+    <string name="reg_choose">Выбрать фото</string>
+    <string name="reg_reading">Чтение документа</string>
+    <string name="reg_nothing">Ничего не читается. Попробуйте снова: документ ровно, близко и при хорошем свете.</string>
+    <string name="reg_no_ocr">Распознавание текста на этом телефоне ещё не готово. Попробуйте через минуту.</string>
+    <string name="reg_check">Проверьте прочитанное, затем отправьте.</string>
+    <string name="reg_plate">Госномер</string>
+    <string name="reg_first">Первая регистрация</string>
+    <string name="reg_vin">VIN</string>
+    <string name="reg_make">Марка</string>
+    <string name="reg_model">Модель</string>
+    <string name="reg_power">%1$d кВт, %2$d л. с.</string>
+    <string name="reg_crit_air">Crit\'Air %1$d</string>
+    <string name="reg_crit_air_unclassed">Без наклейки Crit\'Air</string>
+    <string name="reg_send">Отправить в автомобиль</string>
+    <string name="reg_sent">Отправлено в автомобиль</string>
+    <string name="reg_offline">Подключитесь к автомобилю, чтобы отправить</string>
+    <string name="reg_again">Сканировать снова</string>
 </resources>

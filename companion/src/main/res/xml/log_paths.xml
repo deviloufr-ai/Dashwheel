@@ -3,6 +3,8 @@
     <cache-path name="car_logs" path="car_logs/" />
     <!-- Photos of the car taken for its picture (CarFromPhotos). -->
     <cache-path name="car_photos" path="car_photos/" />
+    <!-- The registration certificate's photo, read on the phone then deleted (RegistrationCard). -->
+    <cache-path name="registration" path="registration/" />
     <!-- The companion's own update, handed to Android's installer (CompanionUpdate). -->
     <cache-path name="updates" path="updates/" />
 </paths>

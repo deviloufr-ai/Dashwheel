@@ -221,4 +221,26 @@
     <string name="parking_soon_text">O seu estacionamento termina às %1$s.</string>
     <string name="parking_over_title">O estacionamento terminou</string>
     <string name="parking_over_text">O seu estacionamento terminou às %1$s.</string>
+
+    <!-- Registration certificate scan (RegistrationCard). -->
+    <string name="reg_title">Documento do carro</string>
+    <string name="reg_detail">Digitalize-o para dar ao carro a matrícula, o VIN e a data da primeira matrícula. A foto fica neste telemóvel.</string>
+    <string name="reg_scan">Digitalizar</string>
+    <string name="reg_choose">Escolher uma foto</string>
+    <string name="reg_reading">A ler o documento</string>
+    <string name="reg_nothing">Nada legível. Tente de novo com o documento plano, perto e bem iluminado.</string>
+    <string name="reg_no_ocr">O reconhecimento de texto ainda não está pronto neste telemóvel. Tente de novo dentro de um minuto.</string>
+    <string name="reg_check">Verifique o que foi lido e depois envie.</string>
+    <string name="reg_plate">Matrícula</string>
+    <string name="reg_first">Primeira matrícula</string>
+    <string name="reg_vin">VIN</string>
+    <string name="reg_make">Marca</string>
+    <string name="reg_model">Modelo</string>
+    <string name="reg_power">%1$d kW, %2$d cv</string>
+    <string name="reg_crit_air">Crit\'Air %1$d</string>
+    <string name="reg_crit_air_unclassed">Sem vinheta Crit\'Air</string>
+    <string name="reg_send">Enviar para o carro</string>
+    <string name="reg_sent">Enviado para o carro</string>
+    <string name="reg_offline">Ligue-se ao carro para enviar</string>
+    <string name="reg_again">Digitalizar de novo</string>
 </resources>

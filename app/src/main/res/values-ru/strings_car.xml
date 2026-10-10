@@ -231,4 +231,15 @@
     <string name="car_tyres_alert">Проблема с шинами</string>
     <string name="car_tyres_ok">Шины в норме</string>
     <string name="car_belt_fasten">Пристегните ремень</string>
+
+    <!-- Registration certificate (CarProfile.withRegistration, CarSettingsDialog). -->
+    <string name="car_section_registration">Регистрация</string>
+    <string name="car_spec_plate">Госномер</string>
+    <string name="car_spec_first_registration">Первая регистрация</string>
+    <string name="car_spec_vin">VIN</string>
+    <string name="car_crit_air">Crit\'Air %1$d</string>
+    <string name="car_crit_air_unclassed">Без наклейки Crit\'Air: слишком старый для класса</string>
+    <string name="car_registration_from_phone">Отсканируйте свидетельство о регистрации в приложении на телефоне, вкладка «Автомобиль», чтобы заполнить эти поля.</string>
+    <string name="car_registration_saved_plate">Свидетельство %1$s сохранено</string>
+    <string name="car_registration_saved">Свидетельство о регистрации сохранено</string>
 </resources>

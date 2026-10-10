@@ -14,6 +14,7 @@ import android.os.Looper
 import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import com.openauto.dash.link.ActionResult
 import com.openauto.dash.link.AgendaSync
 import com.openauto.dash.link.CallCommand
@@ -43,6 +44,7 @@ import com.openauto.dash.link.SendText
 import com.openauto.dash.link.CarLog
 import com.openauto.dash.link.CarLogAck
 import com.openauto.dash.link.CarLookPart
+import com.openauto.dash.link.CarRegistration
 import com.openauto.dash.link.TextSent
 import kotlinx.coroutines.CompletableDeferred
 import java.util.concurrent.ConcurrentHashMap
@@ -610,6 +612,7 @@ object PhoneLink {
             is TextSent -> textsWaiting[message.id]?.complete(message.sent)
             is CarLogAck -> logsWaiting[message.id]?.complete(message.ok)
             is CarLookPart -> MyCarLook.receive(context, message) { send(it) }
+            is CarRegistration -> main.post { saveRegistration(context, message) }
             is NowPlaying -> HeadUnitMedia.fromPhone(message)
             is PhoneBattery -> _battery.value = message
             is PhoneFix -> PhoneGps.feed(message)
@@ -617,6 +620,15 @@ object PhoneLink {
             is DisplayPair -> DisplayLink.pair(context, message.uri)
             else -> Unit
         }
+    }
+
+    /** The registration the phone read: into the car's profile, and a word on screen that it landed. */
+    private fun saveRegistration(context: Context, registration: CarRegistration) {
+        if (registration.empty) return
+        CarProfileStore.save(CarProfileStore.current.withRegistration(registration))
+        val text = registration.plate.ifBlank { null }?.let { context.getString(R.string.car_registration_saved_plate, it) }
+            ?: context.getString(R.string.car_registration_saved)
+        Toast.makeText(context, text, Toast.LENGTH_LONG).show()
     }
 
     private fun bitmapOf(png: String): Bitmap? = runCatching {

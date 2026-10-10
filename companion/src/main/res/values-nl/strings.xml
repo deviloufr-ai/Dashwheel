@@ -220,4 +220,26 @@
     <string name="parking_soon_text">Je parkeertijd loopt af om %1$s.</string>
     <string name="parking_over_title">Parkeertijd is afgelopen</string>
     <string name="parking_over_text">Je parkeertijd liep af om %1$s.</string>
+
+    <!-- Registration certificate scan (RegistrationCard). -->
+    <string name="reg_title">Kentekenbewijs</string>
+    <string name="reg_detail">Scan het om de auto zijn kenteken, VIN en datum eerste toelating te geven. De foto blijft op deze telefoon.</string>
+    <string name="reg_scan">Scannen</string>
+    <string name="reg_choose">Foto kiezen</string>
+    <string name="reg_reading">Document wordt gelezen</string>
+    <string name="reg_nothing">Niets leesbaar. Probeer opnieuw met het document plat, dichtbij en goed verlicht.</string>
+    <string name="reg_no_ocr">Tekstherkenning is nog niet klaar op deze telefoon. Probeer het over een minuut opnieuw.</string>
+    <string name="reg_check">Controleer wat is gelezen en stuur het dan.</string>
+    <string name="reg_plate">Kenteken</string>
+    <string name="reg_first">Eerste toelating</string>
+    <string name="reg_vin">VIN</string>
+    <string name="reg_make">Merk</string>
+    <string name="reg_model">Model</string>
+    <string name="reg_power">%1$d kW, %2$d pk</string>
+    <string name="reg_crit_air">Crit\'Air %1$d</string>
+    <string name="reg_crit_air_unclassed">Geen Crit\'Air-sticker</string>
+    <string name="reg_send">Naar de auto sturen</string>
+    <string name="reg_sent">Naar de auto gestuurd</string>
+    <string name="reg_offline">Verbind met de auto om het te sturen</string>
+    <string name="reg_again">Opnieuw scannen</string>
 </resources>

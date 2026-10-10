@@ -232,4 +232,15 @@
     <string name="car_tyres_alert">Alert opon</string>
     <string name="car_tyres_ok">Opony w porządku</string>
     <string name="car_belt_fasten">Zapnij pasy</string>
+
+    <!-- Registration certificate (CarProfile.withRegistration, CarSettingsDialog). -->
+    <string name="car_section_registration">Rejestracja</string>
+    <string name="car_spec_plate">Numer rejestracyjny</string>
+    <string name="car_spec_first_registration">Pierwsza rejestracja</string>
+    <string name="car_spec_vin">VIN</string>
+    <string name="car_crit_air">Crit\'Air %1$d</string>
+    <string name="car_crit_air_unclassed">Brak naklejki Crit\'Air: zbyt stary, by go sklasyfikować</string>
+    <string name="car_registration_from_phone">Zeskanuj dowód rejestracyjny w aplikacji na telefonie, karta Auto, aby to uzupełnić.</string>
+    <string name="car_registration_saved_plate">Dowód rejestracyjny %1$s zapisany</string>
+    <string name="car_registration_saved">Dowód rejestracyjny zapisany</string>
 </resources>

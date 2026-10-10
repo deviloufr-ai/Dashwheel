@@ -225,4 +225,15 @@
     <string name="car_tyres_alert">Tyre warning</string>
     <string name="car_tyres_ok">All tyres fine</string>
     <string name="car_belt_fasten">Fasten your seat belt</string>
+
+    <!-- Registration certificate (CarProfile.withRegistration, CarSettingsDialog). -->
+    <string name="car_section_registration">Registration</string>
+    <string name="car_spec_plate">Plate</string>
+    <string name="car_spec_first_registration">First registered</string>
+    <string name="car_spec_vin">VIN</string>
+    <string name="car_crit_air">Crit\'Air %1$d</string>
+    <string name="car_crit_air_unclassed">No Crit\'Air sticker: too old to be classed</string>
+    <string name="car_registration_from_phone">Scan the registration document in the phone app, on its Car tab, to fill these in.</string>
+    <string name="car_registration_saved_plate">Registration of %1$s saved</string>
+    <string name="car_registration_saved">Registration saved</string>
 </resources>

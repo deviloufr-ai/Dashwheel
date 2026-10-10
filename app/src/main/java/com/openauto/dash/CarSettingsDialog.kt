@@ -1,11 +1,14 @@
 package com.openauto.dash
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -24,12 +27,17 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.openauto.dash.link.CritAir
+import com.openauto.dash.link.RegistrationReader
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.util.Locale
 
 /**
@@ -68,6 +76,18 @@ internal fun CarSettingsDialog(onDismiss: () -> Unit) {
     fun edit(p: CarProfile) {
         draft = p
         edited = true
+    }
+
+    // A registration scanned on the phone while the sheet is open: taken in, so leaving doesn't save over it.
+    val stored by CarProfileStore.profile.collectAsState()
+    LaunchedEffect(stored.plate, stored.vin, stored.firstRegistration, stored.registrationEnergy, stored.euro) {
+        if (stored.registration() != draft.registration()) {
+            draft = draft.copy(
+                plate = stored.plate, vin = stored.vin, firstRegistration = stored.firstRegistration,
+                registrationEnergy = stored.registrationEnergy, euro = stored.euro
+            )
+            version++
+        }
     }
 
     // Set once the sheet is on its way out: the drive lock closes Settings and
@@ -142,6 +162,18 @@ internal fun CarSettingsDialog(onDismiss: () -> Unit) {
         SwitchRow(stringResource(R.string.car_spec_driver_side), stringResource(R.string.car_spec_driver_side_detail), draft.driverOnRight) {
             edit(draft.copy(driverOnRight = it))
         }
+
+        // The certificate's fields are the driver's own, like the fuel price: typing them doesn't count as editing the specs.
+        Label(stringResource(R.string.car_section_registration))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            TextSpec(stringResource(R.string.car_spec_plate), draft.plate, Modifier.weight(1f)) { draft = draft.copy(plate = it.uppercase()) }
+            DateSpec(stringResource(R.string.car_spec_first_registration), draft.firstRegistration, version, Modifier.weight(1f)) {
+                draft = draft.copy(firstRegistration = it)
+            }
+        }
+        TextSpec(stringResource(R.string.car_spec_vin), draft.vin) { draft = draft.copy(vin = it.uppercase().filter(Char::isLetterOrDigit).take(17)) }
+        CritAirLine(draft.critAir)
+        Text(stringResource(R.string.car_registration_from_phone), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
 
         Label(stringResource(R.string.car_section_engine))
         TextSpec(stringResource(R.string.car_spec_engine), draft.engine) { edit(draft.copy(engine = it)) }
@@ -230,6 +262,58 @@ private fun ServiceIntervalLine() {
     }
     Text(line, color = DashColors.TextPrimary, style = MaterialTheme.typography.bodyMedium)
     Text(stringResource(R.string.car_service_from_servicing), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+}
+
+/** The French air-quality sticker the car gets, in its colour, once the fuel and the date tell it. */
+@Composable
+private fun CritAirLine(critAir: Int?) {
+    critAir ?: return
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(14.dp).clip(CircleShape).background(critAirColor(critAir)))
+        Spacer(Modifier.size(8.dp))
+        Text(
+            if (critAir == CritAir.UNCLASSED) stringResource(R.string.car_crit_air_unclassed) else stringResource(R.string.car_crit_air, critAir),
+            color = DashColors.TextPrimary, style = MaterialTheme.typography.bodyMedium
+        )
+    }
+}
+
+/** The sticker colours: green, purple, yellow, orange, burgundy, grey; no sticker in black. */
+private fun critAirColor(critAir: Int): Color = when (critAir) {
+    0 -> Color(0xFF2E9E4F)
+    1 -> Color(0xFF8E44AD)
+    2 -> Color(0xFFF1C40F)
+    3 -> Color(0xFFE67E22)
+    4 -> Color(0xFF8E2C3A)
+    5 -> Color(0xFF7F8C8D)
+    else -> Color(0xFF202020)
+}
+
+/** A date field typed as 2011-03-15 or 15/03/2011; reports an ISO date, or "" when emptied. */
+@Composable
+private fun DateSpec(label: String, iso: String, version: Int, modifier: Modifier = Modifier, onChange: (String) -> Unit) {
+    var text by remember(version) { mutableStateOf(iso) }
+    OutlinedTextField(
+        value = text,
+        onValueChange = { typed ->
+            text = typed
+            if (typed.isBlank()) onChange("") else parseDate(typed)?.let { onChange(it.toString()) }
+        },
+        label = { Text(label, maxLines = 1) },
+        placeholder = { Text("2011-03-15", color = DashColors.Muted) },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        modifier = modifier,
+        colors = fieldColors()
+    )
+}
+
+/** yyyy-MM-dd, or day first with / . or - between, as on a European certificate. */
+internal fun parseDate(typed: String): LocalDate? {
+    val t = typed.trim()
+    RegistrationReader.date(t)?.let { return it }
+    val m = Regex("^(\\d{1,2})[/.\\-](\\d{1,2})[/.\\-](\\d{4})$").find(t) ?: return null
+    return runCatching { LocalDate.of(m.groupValues[3].toInt(), m.groupValues[2].toInt(), m.groupValues[1].toInt()) }.getOrNull()
 }
 
 @Composable

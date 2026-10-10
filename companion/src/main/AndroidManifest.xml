@@ -115,6 +115,11 @@
             android:screenOrientation="fullSensor"
             tools:replace="screenOrientation" />
 
+        <!-- Play services fetches the text recognizer at install, ready for the registration scan. -->
+        <meta-data
+            android:name="com.google.mlkit.vision.DEPENDENCIES"
+            android:value="ocr" />
+
         <!-- The car's log, shared from its notification. -->
         <provider
             android:name="androidx.core.content.FileProvider"

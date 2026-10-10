@@ -222,4 +222,26 @@
     <string name="parking_soon_text">Your parking ends at %1$s.</string>
     <string name="parking_over_title">Parking has ended</string>
     <string name="parking_over_text">Your parking ended at %1$s.</string>
+
+    <!-- Registration certificate scan (RegistrationCard). -->
+    <string name="reg_title">Registration document</string>
+    <string name="reg_detail">Scan it to give the car its plate, VIN and first registration date. The photo stays on this phone.</string>
+    <string name="reg_scan">Scan it</string>
+    <string name="reg_choose">Choose a photo</string>
+    <string name="reg_reading">Reading the document</string>
+    <string name="reg_nothing">Nothing readable. Try again with the document flat, close and well lit.</string>
+    <string name="reg_no_ocr">Text recognition isn\'t ready on this phone yet. Try again in a minute.</string>
+    <string name="reg_check">Check what was read, then send it.</string>
+    <string name="reg_plate">Plate</string>
+    <string name="reg_first">First registered</string>
+    <string name="reg_vin">VIN</string>
+    <string name="reg_make">Make</string>
+    <string name="reg_model">Model</string>
+    <string name="reg_power">%1$d kW, %2$d hp</string>
+    <string name="reg_crit_air">Crit\'Air %1$d</string>
+    <string name="reg_crit_air_unclassed">No Crit\'Air sticker</string>
+    <string name="reg_send">Send to the car</string>
+    <string name="reg_sent">Sent to the car</string>
+    <string name="reg_offline">Connect to the car to send it</string>
+    <string name="reg_again">Scan again</string>
 </resources>
