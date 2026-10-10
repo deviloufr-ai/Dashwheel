@@ -192,6 +192,8 @@ dependencies {
     // HTTP + JSON for the free routing/geocoding requests.
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.google.code.gson:gson:2.11.0")
+    // Words read off a navigation app's tile (TileText): the Latin recognizer Play services ship.
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.1")
     // Phone link: the protocol shared with the companion app, and the pairing QR code.
     implementation(project(":link"))
     implementation("com.google.zxing:core:3.5.3")

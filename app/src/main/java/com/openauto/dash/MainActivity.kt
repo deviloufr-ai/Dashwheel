@@ -164,6 +164,7 @@ class MainActivity : ComponentActivity() {
                 // The second screen (a Raspberry Pi on the same hotspot), when one is paired.
                 DisplayLink.start(this)
                 SecondScreenController.start(this)
+                TileText.start(this)
                 // Calls on the head unit's own Bluetooth, the ROM pop-ups the driver
                 // chose to replace, and the door alert that replaces one of them.
                 HeadUnitPhone.start(this)

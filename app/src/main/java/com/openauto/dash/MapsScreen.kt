@@ -52,11 +52,15 @@ internal object MapsScreen {
         runCatching { collect(root, pieces, 0) }
         val destination = destinationOf(pieces, height)
         log(pieces, destination)
-        if (destination != null && destination != lastNoticed) {
-            lastNoticed = destination
-            Log.i(TAG, "Maps is going to \"$destination\"")
-            NavHandoff.noticed(destination)
-        }
+        if (destination != null) noticed(destination)
+    }
+
+    /** A destination read, here or off the tile's picture ([TileText]): handed off once per destination. */
+    fun noticed(destination: String) {
+        if (destination == lastNoticed) return
+        lastNoticed = destination
+        Log.i(TAG, "Maps is going to \"$destination\"")
+        NavHandoff.noticed(destination)
     }
 
     private fun rootOf(node: AccessibilityNodeInfo): AccessibilityNodeInfo {

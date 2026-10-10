@@ -213,6 +213,31 @@ internal object EmbeddedApp {
     /** True while [packageName] runs inside a tile, on its own display. */
     fun holds(packageName: String): Boolean = packageName in held
 
+    /** The view each hosted app's tile draws into, while it is up: for [tileBitmap]. */
+    private val tileViews = java.util.concurrent.ConcurrentHashMap<String, java.lang.ref.WeakReference<TextureView>>()
+
+    internal fun tileShown(packageName: String, view: TextureView) {
+        tileViews[packageName] = java.lang.ref.WeakReference(view)
+    }
+
+    internal fun tileGone(packageName: String, view: TextureView) {
+        if (tileViews[packageName]?.get() === view) tileViews.remove(packageName)
+    }
+
+    /**
+     * What [packageName]'s tile shows now, no wider than [maxWidth] (the same
+     * shape), for reading its words ([TileText]); null without a picture.
+     * Main thread. The caller recycles it.
+     */
+    fun tileBitmap(packageName: String, maxWidth: Int): android.graphics.Bitmap? {
+        val view = tileViews[packageName]?.get() ?: return null
+        if (!view.isAvailable || view.width <= 0 || view.height <= 0) return null
+        val scale = minOf(1f, maxWidth.toFloat() / view.width)
+        val w = (view.width * scale).toInt().coerceAtLeast(1)
+        val h = (view.height * scale).toInt().coerceAtLeast(1)
+        return runCatching { view.getBitmap(w, h) }.getOrNull()
+    }
+
     /** Each app inside a tile, and the first dashboard page with such a tile (set by the dashboard). */
     @Volatile
     var tilePages: Map<String, Int> = emptyMap()
@@ -1585,6 +1610,7 @@ internal fun EmbeddedAppCard(packageName: String, label: String, modifier: Modif
                         override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
                             texture.setDefaultBufferSize(width, height)
                             val s = Surface(texture).also { surface = it }
+                            EmbeddedApp.tileShown(host.packageName, this@apply)
                             if (width > 0 && height > 0) host.attach(tile, s, width, height, dpi) { picturePixels(this@apply) }
                         }
 
@@ -1596,6 +1622,7 @@ internal fun EmbeddedAppCard(packageName: String, label: String, modifier: Modif
 
                         override fun onSurfaceTextureDestroyed(texture: SurfaceTexture): Boolean {
                             // The display lets go of the picture before it is freed.
+                            EmbeddedApp.tileGone(host.packageName, this@apply)
                             host.detach(tile)
                             surface?.release()
                             surface = null
