@@ -15,7 +15,9 @@ import android.os.HandlerThread
 import android.os.Process
 import android.os.SystemClock
 import android.util.Log
+import android.view.InputDevice
 import android.view.InputEvent
+import android.view.KeyCharacterMap
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.Surface
@@ -666,6 +668,8 @@ internal object EmbeddedApp {
         val host = downOn ?: return false
         downOn = null
         routeTo = host
+        tileInUse = host
+        tileUsedAt = SystemClock.elapsedRealtime()
         routeDx = down.x - downX
         routeDy = down.y - downY
         return true
@@ -696,13 +700,37 @@ internal object EmbeddedApp {
         actedInsideTile = true
     }
 
+    /** The tile's app the user touched last, and when: the wheel's Back goes to it ([backInTile]). */
+    @Volatile private var tileInUse: Host? = null
+    @Volatile private var tileUsedAt = 0L
+
+    /** How long after its last touch a tile's app still gets the Back key. */
+    private const val TILE_BACK_MS = 120_000L
+
     /**
-     * The touch is over. Elsewhere on the dashboard: the keys come back now.
-     * In a tile: the tap may have opened a screen of the app there, taking the
-     * keys with it; they come back shortly, once no keyboard is up for it.
+     * Back, from the steering wheel or the unit's key, while the user is in an
+     * app inside a tile (touched within [TILE_BACK_MS], nothing on the
+     * dashboard touched since): sent to that app on its display, where it
+     * closes its search, its route choices, whatever it opened. True when
+     * sent; false when there is no such app, and Back is the dashboard's.
+     */
+    fun backInTile(): Boolean {
+        val host = tileInUse ?: return false
+        if (SystemClock.elapsedRealtime() - tileUsedAt > TILE_BACK_MS || !holds(host.packageName)) return false
+        if (!host.key(KeyEvent.KEYCODE_BACK)) return false
+        Log.i(TAG, "Back sent to ${host.packageName} on its tile")
+        return true
+    }
+
+    /**
+     * The touch is over. Elsewhere on the dashboard: the keys come back now,
+     * and Back is the dashboard's again. In a tile: the tap may have opened a
+     * screen of the app there, taking the keys with it; they come back
+     * shortly, once no keyboard is up for it.
      */
     fun touchEnds() {
         if (!tileTouched) {
+            tileInUse = null
             giveKeysBack()
             return
         }
@@ -739,6 +767,20 @@ internal object EmbeddedApp {
         // A key held back when pressed is done again when let go, whatever happened meanwhile.
         val held = event.action == KeyEvent.ACTION_UP && event.keyCode == heldKey
         if (!held && (!keysAway || dashboard?.get() == null)) return false
+        // Back while the user is in a tile's app goes to that app, once (the unit
+        // would deliver the key twice if it were handed back).
+        if (event.keyCode == KeyEvent.KEYCODE_BACK && tileInUse != null) {
+            if (event.action == KeyEvent.ACTION_DOWN) heldKey = event.keyCode
+            if (event.action == KeyEvent.ACTION_UP) {
+                heldKey = 0
+                if (!backInTile()) mainScope.launch {
+                    giveKeysBack()?.join()
+                    delay(KEY_AGAIN_MS)
+                    service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
+                }
+            }
+            return true
+        }
         val action = when (event.keyCode) {
             KeyEvent.KEYCODE_HOME -> AccessibilityService.GLOBAL_ACTION_HOME
             KeyEvent.KEYCODE_BACK -> AccessibilityService.GLOBAL_ACTION_BACK
@@ -1649,6 +1691,30 @@ internal object EmbeddedApp {
         private fun refuseTouches(why: Throwable?) {
             touchRefused = true
             Log.w(TAG, "touches can't reach $packageName", why)
+        }
+
+        /**
+         * [keyCode] pressed and released on the app's display, so its window
+         * there gets it (Back closes what the app opened). False without a
+         * display. Any thread; injected on [touchHandler] like the touches.
+         */
+        fun key(keyCode: Int): Boolean {
+            val id = display?.displayId ?: return false
+            val setId = setDisplayId ?: return false
+            val inject = injectInputEvent ?: return false
+            touchHandler.post {
+                val now = SystemClock.uptimeMillis()
+                for (action in intArrayOf(KeyEvent.ACTION_DOWN, KeyEvent.ACTION_UP)) {
+                    val event = KeyEvent(now, now, action, keyCode, 0, 0, KeyCharacterMap.VIRTUAL_KEYBOARD, 0, 0, InputDevice.SOURCE_KEYBOARD)
+                    try {
+                        setId.invoke(event, id)
+                        inject.invoke(context.getSystemService(InputManager::class.java), event, INJECT_ASYNC)
+                    } catch (t: Exception) {
+                        Log.w(TAG, "a key missed $packageName", (t as? InvocationTargetException)?.targetException ?: t)
+                    }
+                }
+            }
+            return true
         }
     }
 }

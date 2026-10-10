@@ -134,7 +134,8 @@ internal enum class SteeringWheelAction(
             NAVIGATE_FUEL -> HandsFree.navigateToFuel(context)
             // Pressed over Maps or the radio too: the dashboard comes in front first.
             GO_HOME -> if (!showDashboard(context, home = true)) MainActivity.homePressed.value = System.currentTimeMillis()
-            SYSTEM_BACK -> SplitAccessibilityService.globalAction(AccessibilityService.GLOBAL_ACTION_BACK)
+            // In an app inside a tile (touched lately): its Back, on its tile. Else the dashboard's.
+            SYSTEM_BACK -> if (!EmbeddedApp.backInTile()) SplitAccessibilityService.globalAction(AccessibilityService.GLOBAL_ACTION_BACK)
             RECENT_APPS -> SplitAccessibilityService.globalAction(AccessibilityService.GLOBAL_ACTION_RECENTS)
             OPEN_APPS -> {
                 showDashboard(context)
