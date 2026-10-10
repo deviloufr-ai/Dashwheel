@@ -47,6 +47,8 @@ class MapsScreenTest {
         // The explore screen: nothing.
         val explore = logged("emé@65 | oile@190 | Try gas stations, ATMs@22 | Home@81 | Google Maps@542 | Explore@616 | Home,@128 | Beauvais@377 | You@617 | Contribute@615 | Le F@329 | -sur@483")
         assertNull(MapsScreen.destinationOf(explore, 640))
+        // Waze's own preview, as the accessibility reader gave it on the unit.
+        assertEquals("École", MapsScreen.destinationOf(listOf(piece("Votre position", 87), piece("École", 87, described = false)), 640))
         // Scraps and the empty field's words, as the accessibility reader gave them.
         assertEquals(false, MapsScreen.isPlaceName("ois"))
         assertEquals(false, MapsScreen.isPlaceName("Choose destination"))

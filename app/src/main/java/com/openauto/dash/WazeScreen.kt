@@ -43,6 +43,8 @@ internal object WazeScreen {
         val state = fromScreen(pieces, height, context.getString(R.string.info_nav_continue))
         log(pieces, state)
         NavDirections.publishScreen(state)
+        // No turn: maybe its route preview, which names the destination ("Votre position", then the place).
+        if (state == null) MapsScreen.destinationOf(pieces, height)?.let(MapsScreen::noticed)
     }
 
     private fun rootOf(node: AccessibilityNodeInfo): AccessibilityNodeInfo {

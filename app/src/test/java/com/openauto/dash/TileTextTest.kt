@@ -12,8 +12,8 @@ class TileTextTest {
         assertEquals(both, TileText.wanted(both, running = WazeScreen.PACKAGE))
         // Maps guiding: its notification tells the turns, nothing left to read on its tile.
         assertEquals(emptySet<String>(), TileText.wanted(setOf(MapsScreen.PACKAGE), running = MapsScreen.PACKAGE))
-        // Waze in a tile but not guiding: nothing to read.
-        assertEquals(emptySet<String>(), TileText.wanted(setOf(WazeScreen.PACKAGE), running = null))
+        // Waze in a tile but not guiding: still read, for the destination on its preview.
+        assertEquals(setOf(WazeScreen.PACKAGE), TileText.wanted(setOf(WazeScreen.PACKAGE), running = null))
         // Nothing hosted: nothing read, whatever runs.
         assertEquals(emptySet<String>(), TileText.wanted(emptySet(), running = WazeScreen.PACKAGE))
     }

@@ -65,13 +65,14 @@ internal object TileText {
     }
 
     /**
-     * Whose tile is worth reading: Waze's while it guides (its notification
-     * says nothing), Maps' while it is up and not guiding yet (its route
-     * preview names the destination; once it guides, its notification tells
-     * the turns and the preview is gone). Pure, for the tests.
+     * Whose tile is worth reading: Waze's whenever it is up (its route preview
+     * names the destination, and while it guides its notification says
+     * nothing, so the turn comes from the picture); Maps' while it is up and
+     * not guiding yet (its preview names the destination; once it guides,
+     * its notification tells the turns and the preview is gone). Pure, for the tests.
      */
     internal fun wanted(hosted: Set<String>, running: String?): Set<String> = buildSet {
-        if (WazeScreen.PACKAGE in hosted && running == WazeScreen.PACKAGE) add(WazeScreen.PACKAGE)
+        if (WazeScreen.PACKAGE in hosted) add(WazeScreen.PACKAGE)
         if (MapsScreen.PACKAGE in hosted && running != MapsScreen.PACKAGE) add(MapsScreen.PACKAGE)
     }
 
@@ -93,6 +94,13 @@ internal object TileText {
         val height = bitmap.height
         when (pkg) {
             WazeScreen.PACKAGE -> {
+                if (NavDirections.running.value != WazeScreen.PACKAGE) {
+                    // Not guiding yet: its route preview names the destination, like Maps' does.
+                    val destination = MapsScreen.destinationOf(pieces, height)
+                    log(pkg, pieces, destination?.let { "destination \"$it\"" } ?: "no destination")
+                    if (destination != null) MapsScreen.noticed(destination)
+                    return
+                }
                 val state = WazeScreen.fromScreen(pieces, height, context.getString(R.string.info_nav_continue))
                 log(pkg, pieces, state?.let { "${it.distance} ${it.instruction} (${it.eta})" } ?: "no turn")
                 NavDirections.publishScreen(state)
