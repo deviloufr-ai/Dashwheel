@@ -9,14 +9,12 @@ class TileTextTest {
     fun onlyTheTilesWorthReadingAreRead() {
         val both = setOf(WazeScreen.PACKAGE, MapsScreen.PACKAGE)
         // Waze guiding in its tile: read. Maps up but not guiding: read for its preview.
-        assertEquals(both, TileText.wanted(both, running = WazeScreen.PACKAGE, navHasTurn = true))
-        // Maps guiding with its turns in its notification: nothing left to read on it.
-        assertEquals(emptySet<String>(), TileText.wanted(setOf(MapsScreen.PACKAGE), running = MapsScreen.PACKAGE, navHasTurn = true))
-        // Maps guiding but its notification unread: its tile is read.
-        assertEquals(setOf(MapsScreen.PACKAGE), TileText.wanted(setOf(MapsScreen.PACKAGE), running = MapsScreen.PACKAGE, navHasTurn = false))
+        assertEquals(both, TileText.wanted(both, running = WazeScreen.PACKAGE))
+        // Maps guiding: its notification tells the turns, nothing left to read on its tile.
+        assertEquals(emptySet<String>(), TileText.wanted(setOf(MapsScreen.PACKAGE), running = MapsScreen.PACKAGE))
         // Waze in a tile but not guiding: nothing to read.
-        assertEquals(emptySet<String>(), TileText.wanted(setOf(WazeScreen.PACKAGE), running = null, navHasTurn = false))
+        assertEquals(emptySet<String>(), TileText.wanted(setOf(WazeScreen.PACKAGE), running = null))
         // Nothing hosted: nothing read, whatever runs.
-        assertEquals(emptySet<String>(), TileText.wanted(emptySet(), running = WazeScreen.PACKAGE, navHasTurn = false))
+        assertEquals(emptySet<String>(), TileText.wanted(emptySet(), running = WazeScreen.PACKAGE))
     }
 }

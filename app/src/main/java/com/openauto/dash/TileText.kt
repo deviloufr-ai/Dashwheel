@@ -51,9 +51,7 @@ internal object TileText {
         started = true
         val app = context.applicationContext
         scope.launch {
-            combine(EmbeddedApp.hosted, NavDirections.running, NavDirections.state) { hosted, running, nav ->
-                wanted(hosted, running, nav.active && nav.instruction.isNotBlank())
-            }
+            combine(EmbeddedApp.hosted, NavDirections.running) { hosted, running -> wanted(hosted, running) }
                 .distinctUntilChanged()
                 .collectLatest { packages ->
                     if (packages.isEmpty()) return@collectLatest
@@ -72,16 +70,20 @@ internal object TileText {
      * preview names the destination; once it guides, its notification tells
      * the turns and the preview is gone). Pure, for the tests.
      */
-    internal fun wanted(hosted: Set<String>, running: String?, navHasTurn: Boolean): Set<String> = buildSet {
+    internal fun wanted(hosted: Set<String>, running: String?): Set<String> = buildSet {
         if (WazeScreen.PACKAGE in hosted && running == WazeScreen.PACKAGE) add(WazeScreen.PACKAGE)
-        if (MapsScreen.PACKAGE in hosted && !(running == MapsScreen.PACKAGE && navHasTurn)) add(MapsScreen.PACKAGE)
+        if (MapsScreen.PACKAGE in hosted && running != MapsScreen.PACKAGE) add(MapsScreen.PACKAGE)
     }
 
     private suspend fun read(context: Context, pkg: String) {
         val bitmap = EmbeddedApp.tileBitmap(pkg, MAX_WIDTH) ?: return
         val pieces = try {
             recognize(bitmap)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            // The tile stopped being worth reading mid-read: not a failure.
+            throw e
         } catch (e: Exception) {
+            // The recognizer is missing (Play services still fetching it) or refused the picture: tried again in a minute.
             Log.w(TAG, "no text recognition: ${e.message}")
             delay(60_000)
             return
