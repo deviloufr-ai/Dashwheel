@@ -31,7 +31,8 @@ import kotlin.math.sqrt
  *
  * Only while the navigation app runs, only while a second screen is linked,
  * and never while the in-app navigation guides (it has the real route). A
- * destination typed into Maps or Waze themselves stays unknown: no shadow then.
+ * destination typed into Maps is read off its route preview ([MapsScreen]);
+ * one typed into Waze stays unknown: no shadow then.
  */
 internal object ShadowRoute {
     private const val TAG = "ShadowRoute"
@@ -128,7 +129,8 @@ internal object ShadowRoute {
         val lng = target.lng
         if (lat != null && lng != null) return@withContext Point.fromLngLat(lng, lat)
         val query = target.query ?: return@withContext null
-        runCatching { PlaceSearch.find(query) }.getOrNull()?.let { Point.fromLngLat(it.lng, it.lat) }
+        val here = LocationFeed.location.value
+        runCatching { PlaceSearch.find(query, here?.latitude, here?.longitude) }.getOrNull()?.let { Point.fromLngLat(it.lng, it.lat) }
     }
 
     private fun plan(context: Context, here: Location, dest: Point): Plan? {

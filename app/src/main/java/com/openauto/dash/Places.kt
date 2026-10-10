@@ -128,9 +128,16 @@ internal object PlaceSearch {
     private const val REVERSE_URL = "https://nominatim.openstreetmap.org/reverse"
     private const val USER_AGENT = "OpenAutoDash/1.0 (car launcher)"
 
-    /** The first place found for [query], under the name typed; null when nothing matches. Throws when offline. */
-    fun find(query: String): Place? {
-        val url = "$SEARCH_URL?format=json&limit=1&q=" + URLEncoder.encode(query, "UTF-8")
+    /**
+     * The first place found for [query], under the name typed; null when nothing
+     * matches. Throws when offline. With [nearLat]/[nearLng], places around there
+     * come first (a shop's name alone would otherwise find the one in another town).
+     */
+    fun find(query: String, nearLat: Double? = null, nearLng: Double? = null): Place? {
+        val around = if (nearLat != null && nearLng != null) {
+            String.format(java.util.Locale.US, "&viewbox=%.4f,%.4f,%.4f,%.4f&bounded=0", nearLng - 1.0, nearLat + 0.7, nearLng + 1.0, nearLat - 0.7)
+        } else ""
+        val url = "$SEARCH_URL?format=json&limit=1&q=" + URLEncoder.encode(query, "UTF-8") + around
         val request = Request.Builder().url(url).header("User-Agent", USER_AGENT).build()
         Http.client.newCall(request).execute().use { resp ->
             if (!resp.isSuccessful) return null
@@ -194,6 +201,18 @@ internal object NavHandoff {
 
     private val _handedOff = kotlinx.coroutines.flow.MutableStateFlow<Target?>(null)
     val handedOff: kotlinx.coroutines.flow.StateFlow<Target?> = _handedOff
+
+    /**
+     * A destination read off the navigation app's own screen ([MapsScreen]):
+     * not started from here, but known all the same, so the second screen's
+     * shadow route can follow it. Looked up by its words near the car.
+     */
+    fun noticed(name: String) {
+        if (name.isBlank()) return
+        val current = _handedOff.value
+        if (current?.query == name && System.currentTimeMillis() - current.at < 10 * 60_000L) return
+        _handedOff.value = Target(name, null, null, name, System.currentTimeMillis())
+    }
 
     private fun heading(to: String, lat: Double? = null, lng: Double? = null, query: String? = null) {
         if (to.isNotBlank()) destination = to to System.currentTimeMillis()
