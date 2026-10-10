@@ -118,7 +118,7 @@ enum class TabPreset(@StringRes val labelRes: Int, val icon: ImageVector) {
 
 /** When a tab comes up by itself. One tab per moment. */
 internal enum class TabTrigger(@StringRes val labelRes: Int) {
-    /** At power-up before moving, and once the car has stood still for [PARKED_HOLD_MS]. */
+    /** Once the car has stood still for [PARKED_HOLD_MS] after a drive; never at power-up, where Home stays. */
     PARKED(R.string.canvas_when_parked),
     /** As the car sets off. */
     DRIVING(R.string.canvas_when_driving),
@@ -362,9 +362,10 @@ internal object CanvasTabs {
 
 /**
  * Brings up the tab of each moment (CanvasTabs' [TabTrigger]s) as it comes:
- * the car setting off, standing still long enough to be parked (and at
- * power-up, before it moves), a new fault. Only at those moments, so a tab
- * the driver picks stays until the next one.
+ * the car setting off, standing still long enough to be parked after a
+ * drive, a new fault. Only at those moments, so a tab the driver picks stays
+ * until the next one, and the dashboard the launcher starts on stays at
+ * power-up (the parked one came up at every start, in place of Home).
  */
 @Composable
 internal fun FollowTabTriggers(tabs: List<CanvasTab>, onTrigger: (TabTrigger) -> Unit) {
@@ -375,22 +376,13 @@ internal fun FollowTabTriggers(tabs: List<CanvasTab>, onTrigger: (TabTrigger) ->
         UseLocationFeed()
         LaunchedEffect(Unit) {
             var movedYet = false
-            var first = true
             carSpeedKmh().setOffOrStopped().collectLatest { moving ->
-                val atStart = first
-                first = false
                 if (moving) {
                     movedYet = true
                     fire(TabTrigger.DRIVING)
-                } else {
-                    // After a drive, a stop must last. At a power-up the car is parked
-                    // already; at a mere restart of the app it is not a new stop at all.
-                    if (movedYet) delay(PARKED_HOLD_MS)
-                    else if (atStart) {
-                        // The switch-on is known once the dashboard has drawn (MainActivity).
-                        CarPower.checked.first { it }
-                        if (!CarPower.justPoweredUp()) return@collectLatest
-                    }
+                } else if (movedYet) {
+                    // A stop after a drive must last; standing still at the start is no stop at all.
+                    delay(PARKED_HOLD_MS)
                     fire(TabTrigger.PARKED)
                 }
             }
