@@ -79,6 +79,29 @@ class RegistrationTest {
     }
 
     @Test
+    fun theNextInspectionIsFoundBesideItsWordsWhenTheRowIsCutInTwo() {
+        // The recognizer gave the row's two halves as lines far apart in its order.
+        val r = RegistrationReader.read(
+            listOf(
+                RegistrationReader.Line("B. 15/03/2011", 10, 100, 300, 130),
+                RegistrationReader.Line("18/05/2027", 520, 402, 700, 432),
+                RegistrationReader.Line("Y.1 126", 10, 450, 200, 480),
+                RegistrationReader.Line("X.l VISITE AVANT LE", 10, 400, 460, 430)
+            ),
+            today
+        )
+        assertEquals("2027-05-18", r.nextInspection)
+    }
+
+    @Test
+    fun aComingDateIsTheNextInspectionWhenNothingElseTellsIt() {
+        // Its words lost too: B and I are past, so the only date ahead is X.1's.
+        val r = RegistrationReader.read("B. 15/03/2011\nI 07/10/2025\nXI VISTE AVAMT\n18/05/2027", today)
+        assertEquals("2027-05-18", r.nextInspection)
+        assertEquals("", RegistrationReader.read("B. 15/03/2011\nI 07/10/2025", today).nextInspection)
+    }
+
+    @Test
     fun aLabelStandingAloneTakesTheLineBesideIt() {
         val r = RegistrationReader.read(
             listOf(

@@ -197,7 +197,10 @@ object RegistrationReader {
             // A deadline, so it may well be ahead of today; never before the car was registered.
             // With its label misread ("X1", "X.I") or on a line of its own, the words before the date still tell it.
             nextInspection = (field("X.1") { v -> DATE.find(v)?.let(::anyDateOf)?.takeIf { first == null || it.isAfter(first) } }
-                ?: INSPECTION_BY.find(all)?.let { DATE.find(it.value) }?.let(::anyDateOf)?.takeIf { first == null || it.isAfter(first) })
+                ?: INSPECTION_BY.find(all)?.let { DATE.find(it.value) }?.let(::anyDateOf)?.takeIf { first == null || it.isAfter(first) }
+                ?: inspectionBesideWords(clean)?.takeIf { first == null || it.isAfter(first) }
+                // Nothing else on a certificate lies ahead: B and I are past, so a coming date is X.1's.
+                ?: DATE.findAll(all).mapNotNull(::anyDateOf).filter { it.isAfter(today) && !it.isAfter(today.plusYears(3)) }.minOrNull())
                 ?.toString().orEmpty()
         )
     }
@@ -226,6 +229,23 @@ object RegistrationReader {
     }
 
     /** The line just right of [line] on its row, else the one just under it. */
+    /**
+     * X.1's date found by its words: on the line saying "VISITE" or "AVANT",
+     * or on the line beside it when the recognizer cut the row in two.
+     */
+    private fun inspectionBesideWords(lines: List<Line>): LocalDate? {
+        for (line in lines.filter { "AVANT" in it.text || "VISITE" in it.text }) {
+            DATE.find(line.text)?.let(::anyDateOf)?.let { return it }
+            val height = (line.bottom - line.top).coerceAtLeast(1)
+            val middle = (line.top + line.bottom) / 2
+            lines.filter { it !== line && it.left >= line.right - height && middle in it.top - height / 2..it.bottom + height / 2 }
+                .sortedBy { it.left - line.right }
+                .firstNotNullOfOrNull { DATE.find(it.text)?.let(::anyDateOf) }
+                ?.let { return it }
+        }
+        return null
+    }
+
     private fun neighbour(line: Line, lines: List<Line>): Line? {
         val height = (line.bottom - line.top).coerceAtLeast(1)
         val middle = (line.top + line.bottom) / 2
