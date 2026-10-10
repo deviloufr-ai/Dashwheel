@@ -1,10 +1,13 @@
 package com.openauto.dash
 
 import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.IntentFilter
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.util.Log
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -24,6 +27,12 @@ import kotlinx.coroutines.launch
  * screen of its own). Its CarSettings service sets that choice for any app
  * sending `com.qf.action.SET_LAUNCHER` with the package name, as its picker
  * does; no root needed. Once per process; other units have no such property.
+ *
+ * NWD units (com.nwd.*) have no such property: they start their stock
+ * launcher at boot, then reopen the app last started before the switch-off,
+ * which was the app Dashwheel last put in a tile (Waze). What their "app
+ * started" broadcasts carry is noted for a bug report, to learn how to make
+ * that app Dashwheel.
  */
 internal object UnitLauncher {
     private const val TAG = "UnitLauncher"
@@ -41,6 +50,7 @@ internal object UnitLauncher {
         if (started) return
         started = true
         val app = context.applicationContext
+        watchNwd(app)
         val current = systemProperty(PROP)
         // Not a QF unit, or already Dashwheel.
         if (current.isNullOrEmpty()) {
@@ -60,6 +70,33 @@ internal object UnitLauncher {
             Log.i(TAG, line)
             DebugLog.note(app, line)
         }
+    }
+
+    /** The NWD firmware's broadcasts about the app started or shown, noted in the event log. */
+    private val NWD_ACTIONS = listOf(
+        "com.nwd.action.ACTION_START_ACTIVITY",
+        "com.nwd.action.ACTION_START_NWD_ACTIVITY",
+        "com.nwd.action.ACTION_APP_IN_OUT"
+    )
+
+    /** How many of them are noted per run: enough to see the pattern, not to fill the log. */
+    private const val NWD_NOTES = 30
+
+    private var nwdNoted = 0
+
+    private fun watchNwd(app: Context) {
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                if (nwdNoted >= NWD_NOTES) return
+                nwdNoted++
+                val extras = intent.extras?.let { b -> b.keySet().joinToString { "$it=${b.get(it)}" } }.orEmpty()
+                val line = "nwd ${intent.action?.substringAfterLast('.')}: $extras"
+                Log.i(TAG, line)
+                DebugLog.note(context, line)
+            }
+        }
+        val filter = IntentFilter().apply { NWD_ACTIONS.forEach(::addAction) }
+        runCatching { ContextCompat.registerReceiver(app, receiver, filter, ContextCompat.RECEIVER_EXPORTED) }
     }
 
     private fun isDefaultHome(context: Context): Boolean {

@@ -32,6 +32,9 @@ object DebugLog {
     private const val SNAP_DIR = "log_snapshots"
     private const val KEEP_BYTES = 100_000
     private const val KEEP_SNAPSHOTS = 4
+
+    /** The newest part of the event log that goes in a report, leaving room in it for the summary. */
+    private const val REPORT_EVENTS_CHARS = 40_000
     // ActivityTaskManager: which app started which screen, to see who puts a launcher in front at boot.
     private const val LOGCAT = "logcat -d -v threadtime -t 3000 CarPower:I EmbeddedApp:I MediaResume:I DebugLog:I UnitLauncher:I NavDirections:I WazeScreen:I MapsScreen:I TileText:I ShadowRoute:I SecondScreen:I DisplayLink:I ActivityTaskManager:I *:W"
 
@@ -44,6 +47,15 @@ object DebugLog {
 
     /** Every setting and property naming a launcher or a home screen: where a unit keeps its own choice. */
     private const val LAUNCHER_SETTINGS = "getprop | grep -i -E 'launcher|home'; for t in global system secure; do settings list \$t | grep -i -E 'launcher|home' | sed \"s/^/\$t: /\"; done"
+
+    /**
+     * The screens Android holds on each display, and which one it counts as
+     * the home screen: the one it shows whenever the app in front goes away.
+     */
+    private const val STACKS = "dumpsys activity activities | grep -E 'Display #|Stack #|\\* Task|\\* Hist|mActivityType|activityType=' | head -n 80"
+
+    /** Whether storage is encrypted per file: then only apps that can run locked are Home at the first start. */
+    private const val ENCRYPTION = "echo \$(getprop ro.crypto.type) \$(getprop ro.crypto.state)"
 
     private val lock = Any()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -114,6 +126,7 @@ object DebugLog {
                 Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME), PackageManager.MATCH_DEFAULT_ONLY
             )?.activityInfo?.packageName
             appendLine("Home: Android $home, unit's own ${sh("getprop persist.sys.qf.launcher").ifBlank { "-" }}")
+            appendLine("Encryption: ${sh(ENCRYPTION).ifBlank { "-" }}")
             appendLine("Launcher settings:")
             appendLine(sh(LAUNCHER_SETTINGS).ifBlank { "-" })
             appendLine()
@@ -124,10 +137,11 @@ object DebugLog {
         val snapshots = synchronized(lock) {
             File(context.filesDir, SNAP_DIR).listFiles()?.sortedBy { it.name }?.joinToString("\n") { runCatching { it.readText() }.getOrDefault("") }
         }.orEmpty()
-        // Newest last, so what is cut to fit the frame (from the front) is the oldest.
-        fenced("Summary", head) + fenced("Event log (kept across reboots)", events.ifBlank { "empty" }) +
-            fenced("Saved snapshots", snapshots.ifBlank { "none" }) + fenced("Log now", sh(LOGCAT)) +
-            fenced("Screens opened", sh(SCREENS).ifBlank { "none" })
+        // The link to the phone cuts what doesn't fit from the front: the long logs
+        // go first, the short sections that matter most last, where they are kept.
+        fenced("Saved snapshots", snapshots.ifBlank { "none" }) + fenced("Log now", sh(LOGCAT)) +
+            fenced("Screens opened", sh(SCREENS).ifBlank { "none" }) + fenced("Screens held", sh(STACKS).ifBlank { "none" }) +
+            fenced("Event log (kept across reboots)", events.takeLast(REPORT_EVENTS_CHARS).ifBlank { "empty" }) + fenced("Summary", head)
     }
 
     private fun fenced(title: String, body: String) = "### $title\n```\n$body\n```\n\n"
