@@ -334,7 +334,18 @@ internal object EmbeddedApp {
      * watch starts here already.
      */
     fun dashboardPaused() {
-        if (dashboard?.get() != null && !userJustOpened()) watchFront(COVERED_WATCH_MS)
+        if (dashboard?.get() != null && !userJustOpened()) watchFront(COVERED_WATCH_MS, atOnce = true)
+    }
+
+    /**
+     * A window of a tile's app came up on the main screen (the accessibility
+     * service saw it, which sees that screen only): looked at this instant,
+     * so the app is back on its tile as early as can be. Main thread.
+     */
+    fun tileAppInFront(packageName: CharSequence?) {
+        if (packageName == null || packageName.toString() !in held) return
+        if (dashboard?.get() == null || userJustOpened()) return
+        watchFront(COVERED_WATCH_MS, atOnce = true)
     }
 
     /**
@@ -556,16 +567,18 @@ internal object EmbeddedApp {
     /**
      * For [forMs], puts back into its tile every tile's app found full screen
      * in front of the main screen; stops once the user touches or presses a key.
-     * Main thread.
+     * [atOnce]: the first look is now, not [WATCH_EVERY_MS] from now (the app
+     * is known to be in front already). Main thread.
      */
-    private fun watchFront(forMs: Long) {
+    private fun watchFront(forMs: Long, atOnce: Boolean = false) {
         if (hosts.isEmpty()) return
         watching?.cancel()
         val since = userActedAt
         var until = SystemClock.elapsedRealtime() + forMs
+        var first = atOnce
         watching = mainScope.launch {
             while (SystemClock.elapsedRealtime() < until) {
-                delay(WATCH_EVERY_MS)
+                if (first) first = false else delay(WATCH_EVERY_MS)
                 if (userActedAt != since) return@launch
                 // One fresh listing per look, shared by every tile's app.
                 DockShell.forgetListing()

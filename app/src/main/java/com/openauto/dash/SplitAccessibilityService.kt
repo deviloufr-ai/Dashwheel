@@ -168,6 +168,8 @@ class SplitAccessibilityService : AccessibilityService() {
                 updateOverlayForSplit()
                 checkProjectionOnScreen()
                 if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED && event.packageName != null) {
+                    // A tile's app torn off its tile shows here before the dashboard even pauses.
+                    EmbeddedApp.tileAppInFront(event.packageName)
                     val maps = event.packageName == MapsScreen.PACKAGE
                     if (maps != mapsInFront) {
                         mapsInFront = maps
