@@ -398,7 +398,9 @@ internal object EmbeddedApp {
     /**
      * How long an app is left full screen after a screen of its own closed,
      * for the next one it opens from it (Waze: the voice screen, then the
-     * search results) to come up first.
+     * search results) to come up first. The search itself, once up, is moved
+     * back at once ([WindowListing.isTypingScreen]): typing needs the keyboard,
+     * which only comes up on the tile's display.
      */
     private const val OWN_SCREEN_SETTLE_MS = 2_500L
 
@@ -1153,6 +1155,17 @@ internal object EmbeddedApp {
             // started over and the voice prompt went away unheard: it is used
             // full screen, and the app comes back onto its tile once it closes.
             val own = front.taskId?.let { WindowListing.ownScreenOf(listing, it) }
+            if (own != null && WindowListing.isTypingScreen(own)) {
+                // Its search, though, is for typing, and torn off the tile's display
+                // it gets no keyboard ("Où va-t-on ?" dead under the finger): back onto
+                // the tile at once, where the keyboard comes up.
+                waitingFor = null
+                ownClosedAt = 0L
+                voiceAsked = false
+                Log.i(TAG, "$packageName full screen with its search (task ${front.taskId}): back onto its tile for the keyboard")
+                launch(vd)
+                return false
+            }
             if (own != null) {
                 if (waitingFor != front.taskId) {
                     Log.i(TAG, "$packageName full screen with a screen of its own: back onto its tile once it closes")

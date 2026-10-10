@@ -42,6 +42,19 @@ class WindowListingOwnScreenTest {
     }
 
     @Test
+    fun theSearchIsForTypingAndGoesBackToTheTile() {
+        // As the K706 listed it on 2026-10-10: the search opened in a task of its own, over MainActivity.
+        val search = WindowListing.ownScreenOf(listing("com.waze/com.waze.search_v2.SearchV2Activity"), 2995)
+        assertEquals("com.waze/com.waze.search_v2.SearchV2Activity", search)
+        assertTrue(WindowListing.isTypingScreen(search!!))
+        // The voice prompt, a place card and a permission request are waited for, not moved.
+        assertFalse(WindowListing.isTypingScreen("com.waze/com.waze.google_assistant.SpeechRecognizerActivity"))
+        assertFalse(WindowListing.isTypingScreen("com.waze/com.waze.navigate.location_preview.LocationPreviewActivity"))
+        assertFalse(WindowListing.isTypingScreen("com.android.permissioncontroller/com.android.packageinstaller.permission.ui.GrantPermissionsActivity"))
+        assertFalse(WindowListing.isTypingScreen("com.waze/com.waze.reports.AddPlaceFlowActivity"))
+    }
+
+    @Test
     fun anotherTaskOrNoneIsNotAsked() {
         assertFalse(WindowListing.showsOwnScreen(listing("com.waze/com.waze.google_assistant.SpeechRecognizerActivity"), 1234))
         assertFalse(WindowListing.showsOwnScreen("", 2995))
