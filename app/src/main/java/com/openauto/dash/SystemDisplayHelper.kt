@@ -1,5 +1,6 @@
 package com.openauto.dash
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
@@ -101,6 +102,7 @@ object SystemDisplayHelper {
     }
 
     /** A display drawn into a reader nobody looks at, its id printed: to try the launches on it from a shell. */
+    @SuppressLint("WrongConstant") // DESTROY_CONTENT_ON_REMOVAL is a real flag, only @hide.
     private fun selfTest(dm: DisplayManager) {
         val reader = ImageReader.newInstance(522, 638, PixelFormat.RGBA_8888, 2)
         reader.setOnImageAvailableListener({ it.acquireLatestImage()?.close() }, Handler(Looper.getMainLooper()))
@@ -114,6 +116,7 @@ object SystemDisplayHelper {
         private val displays = HashMap<Int, VirtualDisplay>()
         private val surfaces = HashMap<Int, Surface?>()
 
+        @SuppressLint("WrongConstant") // DESTROY_CONTENT_ON_REMOVAL is a real flag, only @hide.
         override fun onTransact(code: Int, data: Parcel, reply: Parcel?, flags: Int): Boolean {
             if (code !in HELLO..PING) return super.onTransact(code, data, reply, flags)
             data.enforceInterface(DESCRIPTOR)
