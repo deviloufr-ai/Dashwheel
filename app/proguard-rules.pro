@@ -22,3 +22,6 @@
 # The QF car app's Parcelables, received in its broadcasts and read back by
 # class name (CarBox): keep the name, the CREATOR and the fields.
 -keep class com.qf.vehicle.entity.** { *; }
+
+# The tile displays' helper runs by name in a process of its own (app_process, SystemDisplays).
+-keep class com.openauto.dash.SystemDisplayHelper { public static void main(java.lang.String[]); }

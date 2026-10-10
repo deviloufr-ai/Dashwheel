@@ -9,8 +9,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.SurfaceTexture
-import android.hardware.display.DisplayManager
-import android.hardware.display.VirtualDisplay
 import android.hardware.input.InputManager
 import android.os.Handler
 import android.os.HandlerThread
@@ -212,6 +210,11 @@ internal object EmbeddedApp {
 
     /** True while [packageName] runs inside a tile, on its own display. */
     fun holds(packageName: String): Boolean = packageName in held
+
+    /** The system's display helper died ([SystemDisplays]): every tile on one of its displays starts over on a display of Dashwheel's own. */
+    fun systemDisplaysLost() {
+        hosts.values.toList().forEach { it.displayLost() }
+    }
 
     /** The view each hosted app's tile draws into, while it is up: for [tileBitmap]. */
     private val tileViews = java.util.concurrent.ConcurrentHashMap<String, java.lang.ref.WeakReference<TextureView>>()
@@ -912,7 +915,7 @@ internal object EmbeddedApp {
         val status: StateFlow<Status> = _status.asStateFlow()
 
         @Volatile
-        private var display: VirtualDisplay? = null
+        private var display: TileDisplay? = null
         @Volatile
         private var touchRefused = false
         private var settling: Job? = null
@@ -964,7 +967,7 @@ internal object EmbeddedApp {
             relay?.let { r -> r.setTile(null); r.input(width, height) } ?: spare(width, height)
 
         /** What the display draws on to show [tile]: the relay's input, which passes the frames on to it, or the tile itself. */
-        private fun feed(vd: VirtualDisplay, tile: Surface, width: Int, height: Int) {
+        private fun feed(vd: TileDisplay, tile: Surface, width: Int, height: Int) {
             val input = relay?.input(width, height)
             if (input == null) {
                 vd.surface = tile
@@ -1047,7 +1050,7 @@ internal object EmbeddedApp {
         }
 
         /** The app's own display while it has one: for a command sent to it ([GeminiLive]). */
-        val displayId: Int? get() = display?.display?.displayId
+        val displayId: Int? get() = display?.displayId
 
         /** Whether a tile other than [mine] shows this app too. */
         fun heldBesides(mine: Collection<Any>): Boolean = tiles.keys.any { tile -> mine.none { it === tile } }
@@ -1098,11 +1101,20 @@ internal object EmbeddedApp {
                 if (_status.value != Status.BLOCKED) launch(vd)
                 return
             }
+            if (SystemDisplays.state.value == SystemDisplays.State.STARTING) {
+                // The system's display helper is still starting: the display waits
+                // for it, so the app keeps every screen it opens on it (SystemDisplays).
+                if (awaitingHelper?.isActive != true) awaitingHelper = mainScope.launch {
+                    SystemDisplays.awaitDecided()
+                    val s = shownSurface ?: return@launch
+                    if (display == null && _status.value != Status.BLOCKED) show(s, shownWidth, shownHeight, shownDpi)
+                }
+                return
+            }
             if (copyWanted(packageName)) startRelay()
             val made = runCatching {
-                val dm = context.getSystemService(DisplayManager::class.java)
-                dm.createVirtualDisplay(
-                    "Dashwheel:$packageName", width, height, dpi, relay?.input(width, height) ?: surface,
+                TileDisplay.create(
+                    context, "Dashwheel:$packageName", width, height, dpi, relay?.input(width, height) ?: surface,
                     FLAG_PUBLIC or FLAG_OWN_CONTENT_ONLY or FLAG_DESTROY_CONTENT_ON_REMOVAL
                 )
             }.onFailure { Log.w(TAG, "no display for $packageName", it) }.getOrNull()
@@ -1113,12 +1125,32 @@ internal object EmbeddedApp {
             display = made
             relay?.setTile(surface)
             // The window tiles now leave this app and this display alone.
-            WindowListing.embeddedDisplays = WindowListing.embeddedDisplays + made.display.displayId
+            WindowListing.embeddedDisplays = WindowListing.embeddedDisplays + made.displayId
             held = held + packageName
             // The dashboard's own context, so it also takes the focus back that a docked window had.
             PipAnchor.takenInside(dashboard?.get() ?: context, packageName)
-            Log.i(TAG, "display ${made.display.displayId} for $packageName, ${width}x$height at $dpi dpi")
+            Log.i(TAG, "display ${made.displayId}${if (made.system) " (the system's)" else ""} for $packageName, ${width}x$height at $dpi dpi")
             launch(made)
+        }
+
+        /** The wait for the system's display helper before the display is made ([show]). */
+        private var awaitingHelper: Job? = null
+
+        /**
+         * The helper owning this app's display died, and the display and the
+         * app with it: a display of Dashwheel's own is made and the app opened
+         * on it, as long as a tile still shows it. Main thread.
+         */
+        fun displayLost() {
+            val vd = display ?: return
+            if (!vd.system) return
+            settling?.cancel()
+            WindowListing.embeddedDisplays = WindowListing.embeddedDisplays - vd.displayId
+            display = null
+            _status.value = Status.STARTING
+            Log.w(TAG, "$packageName lost display ${vd.displayId} with the system's helper")
+            val s = shownSurface ?: return
+            show(s, shownWidth, shownHeight, shownDpi)
         }
 
         /**
@@ -1132,10 +1164,10 @@ internal object EmbeddedApp {
             val vd = display ?: return false
             if (_status.value != Status.SHOWN) return false
             intent.setPackage(packageName).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            val options = ActivityOptions.makeBasic().setLaunchDisplayId(vd.display.displayId)
+            val options = ActivityOptions.makeBasic().setLaunchDisplayId(vd.displayId)
             runCatching { HiddenApiBypass.invoke(ActivityOptions::class.java, options, "setLaunchWindowingMode", WINDOWING_MODE_FULLSCREEN) }
             val ok = runCatching { context.startActivity(intent, options.toBundle()) }
-                .onFailure { Log.w(TAG, "$packageName refused the intent on display ${vd.display.displayId}", it) }
+                .onFailure { Log.w(TAG, "$packageName refused the intent on display ${vd.displayId}", it) }
                 .isSuccess
             if (ok) {
                 launchedOnTile()
@@ -1244,7 +1276,7 @@ internal object EmbeddedApp {
             shownOn = null
             shownSurface = null
             display?.let { vd ->
-                WindowListing.embeddedDisplays = WindowListing.embeddedDisplays - vd.display.displayId
+                WindowListing.embeddedDisplays = WindowListing.embeddedDisplays - vd.displayId
                 vd.release()
             }
             relay?.release()
@@ -1268,7 +1300,7 @@ internal object EmbeddedApp {
          * size and spot once moved, a corner of the tile, so it is closed and
          * the app opened afresh. Not running: started, then moved over.
          */
-        private fun launch(vd: VirtualDisplay) {
+        private fun launch(vd: TileDisplay) {
             if (settling?.isActive == true) return
             settling = scope.launch {
                 place(vd)
@@ -1289,13 +1321,13 @@ internal object EmbeddedApp {
          * once more: it is not closed a second time ([REOPEN_EVERY_MS]), only
          * placed again and given its picture again.
          */
-        private suspend fun watch(vd: VirtualDisplay) {
+        private suspend fun watch(vd: TileDisplay) {
             if (looks(vd)) looks(vd)
         }
 
         /** One round of looks at the tile; true when it ended with the app opened afresh. */
-        private suspend fun looks(vd: VirtualDisplay): Boolean {
-            val id = vd.display.displayId
+        private suspend fun looks(vd: TileDisplay): Boolean {
+            val id = vd.displayId
             for ((look, wait) in LOOK_AFTER_MS.withIndex()) {
                 delay(wait)
                 if (_status.value != Status.SHOWN || display !== vd || dashboard?.get() == null) return false
@@ -1381,7 +1413,7 @@ internal object EmbeddedApp {
          * again: the system draws the whole display afresh for it. Never no
          * picture at all, which switches the display off. Main thread.
          */
-        private suspend fun refresh(vd: VirtualDisplay, nudge: Boolean = false) {
+        private suspend fun refresh(vd: TileDisplay, nudge: Boolean = false) {
             if (display !== vd || shownSurface == null) return
             vd.surface = spare(shownWidth, shownHeight)
             // A size a pixel off makes the app lay itself out and draw everything again.
@@ -1395,7 +1427,7 @@ internal object EmbeddedApp {
         }
 
         /** Closes the app and opens it afresh on the tile, the way it gets there when the dashboard starts. */
-        private suspend fun reopen(vd: VirtualDisplay) {
+        private suspend fun reopen(vd: TileDisplay) {
             reopenedAt = SystemClock.elapsedRealtime()
             _status.value = Status.STARTING
             shell("am force-stop $packageName", "$packageName closed, to open it afresh on its tile")
@@ -1403,8 +1435,8 @@ internal object EmbeddedApp {
             place(vd)
         }
 
-        private suspend fun place(vd: VirtualDisplay) {
-            val id = vd.display.displayId
+        private suspend fun place(vd: TileDisplay) {
+            val id = vd.displayId
             var found: List<WindowListing.AppStack> = listStacks() ?: run {
                 // No shell to look with: the launch alone, which lands on the tile on most ROMs.
                 start(vd)
@@ -1502,10 +1534,10 @@ internal object EmbeddedApp {
             Log.i(TAG, "$what: ${out.trim()}")
         }
 
-        private suspend fun start(vd: VirtualDisplay) {
+        private suspend fun start(vd: TileDisplay) {
             startCommand?.let { cmd ->
                 startCommand = null
-                val ok = runCatching { DockShell.shell(context, "$cmd --display ${vd.display.displayId}") }
+                val ok = runCatching { DockShell.shell(context, "$cmd --display ${vd.displayId}") }
                     .onFailure { Log.w(TAG, "$packageName refused its start command", it) }
                     .isSuccess
                 _status.value = if (ok) Status.SHOWN else Status.BLOCKED
@@ -1521,12 +1553,12 @@ internal object EmbeddedApp {
                 return
             }
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            val options = ActivityOptions.makeBasic().setLaunchDisplayId(vd.display.displayId)
+            val options = ActivityOptions.makeBasic().setLaunchDisplayId(vd.displayId)
             // Full size on the tile's display, not the floating window it may have had before.
             runCatching { HiddenApiBypass.invoke(ActivityOptions::class.java, options, "setLaunchWindowingMode", WINDOWING_MODE_FULLSCREEN) }
                 .onFailure { Log.w(TAG, "no windowing mode for $packageName", it) }
             _status.value = runCatching { context.startActivity(intent, options.toBundle()) }
-                .onFailure { Log.w(TAG, "$packageName refused on display ${vd.display.displayId}", it) }
+                .onFailure { Log.w(TAG, "$packageName refused on display ${vd.displayId}", it) }
                 .fold({ Status.SHOWN }, { Status.BLOCKED })
             if (_status.value == Status.SHOWN) {
                 startedAt = SystemClock.elapsedRealtime()
@@ -1588,7 +1620,7 @@ internal object EmbeddedApp {
          * thread (a drag sends dozens a second).
          */
         fun touch(event: MotionEvent) {
-            val id = display?.display?.displayId ?: return
+            val id = display?.displayId ?: return
             if (touchRefused) return
             val copy = MotionEvent.obtain(event)
             touchHandler.post {

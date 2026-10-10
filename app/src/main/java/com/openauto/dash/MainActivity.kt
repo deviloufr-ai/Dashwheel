@@ -130,6 +130,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (!onlyOne()) return
+        // The tile displays' owner (the system user, through root): started first,
+        // so the tiles' apps open on displays that keep every screen they open.
+        SystemDisplays.start(this)
 
         // Keep the screen on and turn it on while the vehicle is running.
         window.addFlags(
