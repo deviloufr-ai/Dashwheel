@@ -60,6 +60,14 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
 
     private val chase = ChaseMap()
 
+    // The last cluster page but for the car's place (and its clock text), and where its map slot was:
+    // the next picture of the same page only draws that slot again.
+    private var lastRest: Any? = null
+    private var mapBox: Rectangle? = null
+
+    /** What the tilted map's pictures cost since the last call, by part; null when none was drawn (ChaseMap.takeStats). */
+    fun takeMapStats(): String? = chase.takeStats()
+
 
     /** TYPE_INT_RGB is 0x00RRGGBB per pixel: little-endian, the bytes are B,G,R,x (GStreamer's "bgrx"). */
     val image = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
@@ -73,6 +81,10 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
      */
     fun paintIdle(name: String, status: String, now: Long, pairingUri: String?, clock12: Boolean = false) = draw { g ->
         chaseMoving = false
+        unchanged = false
+        lastWhole = null
+        lastRest = null
+        mapBox = null
         mono = false
         g.color = BG_NIGHT
         g.fillRect(0, 0, width, height)
@@ -114,13 +126,42 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
         }
     }
 
-    /** The cluster from data, on the page the head unit chose. [now] is the head unit's clock. */
-    fun paintCluster(state: ClusterState, now: Long) = draw { g ->
+    /** The last [paintCluster] found nothing changed and left the picture as it was. */
+    @Volatile var unchanged = false
+        private set
+    private var lastWhole: Any? = null
+
+    /**
+     * The cluster from data, on the page the head unit chose. [now] is the head unit's clock.
+     * [mayReuse]: a redraw only for the clock's tick; the same page with the clock's words the
+     * same and the map at rest is then left as it is ([unchanged]).
+     */
+    fun paintCluster(state: ClusterState, now: Long, mayReuse: Boolean = false): BufferedImage {
+        val whole = state.copy(clock = 0) to ClusterText(state).clock(now, zone)
+        unchanged = mayReuse && whole == lastWhole && !chaseMoving
+        lastWhole = whole
+        return if (unchanged) image else paintClusterNow(state, now)
+    }
+
+    private fun paintClusterNow(state: ClusterState, now: Long) = draw { g ->
         chaseMoving = false
         val design = Design.of(state.design)
         val p = Palette(state.night, Color(state.accent.toInt(), false), design)
         mono = design == Design.RETRO
         val text = ClusterText(state)
+        // The tilted map moving on with nothing else changed: only its slot is drawn again,
+        // the rest of the page stays as it was (most of a picture's time on a Pi 3B).
+        val rest = state.copy(clock = 0, position = null) to text.clock(now, zone)
+        val box = mapBox
+        val mapOnly = box != null && rest == lastRest && state.alert == null
+        lastRest = rest
+        if (mapOnly && box != null) {
+            g.color = p.bg
+            g.fillRect(box.x, box.y, box.width, box.height)
+            paintFace(g, ClusterFace.MAP, box, state, text, p, design, rest.second)
+            return@draw
+        }
+        mapBox = null
         g.color = p.bg
         g.fillRect(0, 0, width, height)
         val left = inset + (5 * unit).roundToInt()
@@ -168,7 +209,11 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
         state.layout?.let { layout ->
             val boxes = Board.boxes(layout.arrangement, body, (3 * unit).roundToInt())
             if (boxes != null) {
-                boxes.forEachIndexed { i, box -> paintFace(g, layout.faces.getOrNull(i).orEmpty(), box, state, text, p, design, clock) }
+                boxes.forEachIndexed { i, box ->
+                    val face = layout.faces.getOrNull(i).orEmpty()
+                    if (face == ClusterFace.MAP && mapBox == null) mapBox = box
+                    paintFace(g, face, box, state, text, p, design, clock)
+                }
                 return@draw
             }
         }
@@ -390,8 +435,10 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
      * on a plain ground, so the slot still tells where the car is going.
      */
     private fun mapFace(g: Graphics2D, box: Rectangle, s: ClusterState, text: ClusterText, p: Palette) {
-        card(g, box, p)
         val pos = s.position
+        val look = s.mapView ?: ClusterState.MapView()
+        // The tilted map covers its whole card: no card under it.
+        if (pos == null || !look.tilted) card(g, box, p)
         if (pos == null) {
             emptyState(g, box, text.noPosition, p) { cx, cy, size -> navArrow(g, cx, cy, size, p.muted) }
             return
@@ -403,13 +450,13 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
         val oldClip = g.clip
         g.clip = RoundRectangle2D.Float(box.x.toFloat(), box.y.toFloat(), box.width.toFloat(), box.height.toFloat(), radius.toFloat(), radius.toFloat())
         try {
-            val look = s.mapView ?: ClusterState.MapView()
             if (look.tilted) {
                 chase.paint(
                     g, box, s, pos, look, route, source, s.night && nightTiles == null, buildings.takeIf { look.buildings },
                     p.accent, p.night, max(1, zoom - 4), min(MAX_CHASE_ZOOM, zoom + 1), System.nanoTime()
                 )
                 chaseMoving = chase.moving
+                overlaysFrom = System.nanoTime()
             } else {
                 chaseMoving = false
                 flatMap(g, box, pos, source, zoom, s, p)
@@ -443,66 +490,125 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
                 drawRight(g, "$metres m", box.x + box.width - pad, barY - (1.2f * unit).roundToInt())
             }
 
-            // No tiles to draw: say what is missing, small, along the bottom.
-            if (source == null) {
-                g.color = p.muted
-                g.font = font(Font.PLAIN, 3.2f)
-                drawClipped(g, text.noTiles, box.x + pad, box.y + box.height - pad - (0.5f * unit).roundToInt(), box.width - 2 * pad - barW - pad)
-            }
-
-            // The next turn in a card over the map, and the arrival along the bottom.
-            s.nav?.let { nav ->
-                val signSide = (11 * unit * k).roundToInt()
-                val cardPad = (2 * unit * k).roundToInt()
-                val distFont = fitFont(g, 7f * k, nav.distance.ifBlank { "0 m" }, (box.width * 0.5f).roundToInt())
-                val lineFont = font(Font.PLAIN, 3.8f * k)
-                val room = (box.width * 0.6f).roundToInt() - signSide - 3 * cardPad
-                val wordsW = max(g.getFontMetrics(distFont).stringWidth(nav.distance), min(room, g.getFontMetrics(lineFont).stringWidth(nav.instruction)))
-                // The distance over the instruction; the card as tall as the two lines or the sign need.
-                val distAscent = g.getFontMetrics(distFont).ascent
-                val lineAscent = g.getFontMetrics(lineFont).ascent
-                val gapY = (1.2f * unit * k).roundToInt()
-                val textH = distAscent + gapY + lineAscent
-                val cardH = max(signSide, textH) + 2 * cardPad
-                val cardW = signSide + 3 * cardPad + wordsW
-                val cardBox = Rectangle(box.x + pad, box.y + pad, cardW, cardH)
-                card(g, cardBox, p)
-                val signY = cardBox.y + (cardH - signSide) / 2
-                g.color = p.accent
-                g.fillRoundRect(cardBox.x + cardPad, signY, signSide, signSide, (3 * unit).roundToInt(), (3 * unit).roundToInt())
-                maneuver(
-                    g, s.maneuver?.let(Maneuver::named) ?: Maneuver.of(nav.instruction),
-                    cardBox.x + cardPad + signSide / 2f, signY + signSide / 2f, signSide * 0.6f, onAccent(p.accent), p.accent
-                )
-                val tx = cardBox.x + 2 * cardPad + signSide
-                val distBase = cardBox.y + (cardH - textH) / 2 + distAscent
-                g.color = p.fg
-                g.font = distFont
-                if (nav.distance.isNotBlank()) g.drawString(nav.distance, tx, distBase)
-                g.color = p.muted
-                g.font = lineFont
-                drawClipped(g, nav.instruction, tx, distBase + gapY + lineAscent, wordsW)
-                if (nav.eta.isNotBlank()) {
-                    val stripH = (8 * unit * k).roundToInt()
-                    val strip = Rectangle(box.x + pad, box.y + box.height - pad - stripH, box.width - 2 * pad, stripH)
-                    card(g, strip, p)
-                    val (label, value) = text.arriveParts(nav.eta)
-                    val mid = strip.y + strip.height / 2
-                    val small = font(Font.BOLD, 3.6f * k)
-                    val big = font(Font.BOLD, 5.5f * k)
-                    g.color = p.muted
-                    g.font = small
-                    g.drawString(label.uppercase(), strip.x + cardPad * 2, mid + g.fontMetrics.ascent * 2 / 5)
-                    val labelW = if (label.isEmpty()) 0 else g.fontMetrics.stringWidth(label.uppercase()) + (1.5f * unit).roundToInt()
-                    g.color = p.fg
-                    g.font = big
-                    g.drawString(value, strip.x + cardPad * 2 + labelW, mid + g.fontMetrics.ascent * 2 / 5)
-                }
-            }
+            // The words over the map, as they are on the flat one; the tilted one copies them from a sheet, after the clip.
+            if (!look.tilted) mapWords(g, box, s, text, p, k, pad, barW, source == null)
         } finally {
             g.clip = oldClip
         }
+        if (look.tilted) {
+            val pad = (2.5f * unit).roundToInt()
+            val barW = (100 / WebMercator.metersPerPixel(pos.lat, zoom)).roundToInt().coerceIn(20, box.width / 3)
+            // The turn card and the arrival strip change with the directions, not with every picture:
+            // drawn once on a clear sheet, then only their patches are copied over the map.
+            val key = listOf(s.nav, s.maneuver, s.labels, s.night, s.accent, s.design, box.width, box.height, source == null)
+            val sheet = wordsSheet?.takeIf { it.width == box.width && it.height == box.height }
+                ?: BufferedImage(box.width, box.height, BufferedImage.TYPE_INT_ARGB).also { wordsSheet = it; wordsKey = null }
+            if (key != wordsKey) {
+                val w = sheet.createGraphics()
+                try {
+                    w.composite = java.awt.AlphaComposite.Clear
+                    w.fillRect(0, 0, box.width, box.height)
+                    w.composite = java.awt.AlphaComposite.SrcOver
+                    w.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+                    w.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
+                    w.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE)
+                    w.stroke = BasicStroke(max(2f, unit / 2))
+                    w.translate(-box.x, -box.y)
+                    wordsAt = mapWords(w, box, s, text, p, k, pad, barW, source == null).map { Rectangle(it.x - box.x, it.y - box.y, it.width, it.height) }
+                } finally {
+                    w.dispose()
+                }
+                wordsKey = key
+            }
+            for (r in wordsAt) {
+                val x = box.x + r.x
+                val y = box.y + r.y
+                g.drawImage(sheet, x, y, x + r.width, y + r.height, r.x, r.y, r.x + r.width, r.y + r.height, null)
+            }
+            if (overlaysFrom != 0L) chase.overlaysTook(System.nanoTime() - overlaysFrom)
+            overlaysFrom = 0L
+        }
     }
+
+    private var wordsSheet: BufferedImage? = null
+    private var wordsKey: Any? = null
+    private var wordsAt: List<Rectangle> = emptyList()
+
+    /**
+     * What is written over the map: the next turn in a card, the arrival
+     * along the bottom, and what is missing when there are no tiles. Returns
+     * where each went, a little wider than drawn (for the tilted map's sheet).
+     */
+    private fun mapWords(g: Graphics2D, box: Rectangle, s: ClusterState, text: ClusterText, p: Palette, k: Float, pad: Int, barW: Int, noTiles: Boolean): List<Rectangle> {
+        val drawn = ArrayList<Rectangle>()
+        val margin = 2
+        fun drew(r: Rectangle) { drawn += Rectangle(r.x - margin, r.y - margin, r.width + 2 * margin, r.height + 2 * margin) }
+
+        // No tiles to draw: say what is missing, small, along the bottom.
+        if (noTiles) {
+            g.color = p.muted
+            g.font = font(Font.PLAIN, 3.2f)
+            val base = box.y + box.height - pad - (0.5f * unit).roundToInt()
+            val room = box.width - 2 * pad - barW - pad
+            drawClipped(g, text.noTiles, box.x + pad, base, room)
+            drew(Rectangle(box.x + pad, base - g.fontMetrics.ascent, room, g.fontMetrics.ascent + g.fontMetrics.descent))
+        }
+
+        // The next turn in a card over the map, and the arrival along the bottom.
+        s.nav?.let { nav ->
+            val signSide = (11 * unit * k).roundToInt()
+            val cardPad = (2 * unit * k).roundToInt()
+            val distFont = fitFont(g, 7f * k, nav.distance.ifBlank { "0 m" }, (box.width * 0.5f).roundToInt())
+            val lineFont = font(Font.PLAIN, 3.8f * k)
+            val room = (box.width * 0.6f).roundToInt() - signSide - 3 * cardPad
+            val wordsW = max(g.getFontMetrics(distFont).stringWidth(nav.distance), min(room, g.getFontMetrics(lineFont).stringWidth(nav.instruction)))
+            // The distance over the instruction; the card as tall as the two lines or the sign need.
+            val distAscent = g.getFontMetrics(distFont).ascent
+            val lineAscent = g.getFontMetrics(lineFont).ascent
+            val gapY = (1.2f * unit * k).roundToInt()
+            val textH = distAscent + gapY + lineAscent
+            val cardH = max(signSide, textH) + 2 * cardPad
+            val cardW = signSide + 3 * cardPad + wordsW
+            val cardBox = Rectangle(box.x + pad, box.y + pad, cardW, cardH)
+            card(g, cardBox, p)
+            drew(cardBox)
+            val signY = cardBox.y + (cardH - signSide) / 2
+            g.color = p.accent
+            g.fillRoundRect(cardBox.x + cardPad, signY, signSide, signSide, (3 * unit).roundToInt(), (3 * unit).roundToInt())
+            maneuver(
+                g, s.maneuver?.let(Maneuver::named) ?: Maneuver.of(nav.instruction),
+                cardBox.x + cardPad + signSide / 2f, signY + signSide / 2f, signSide * 0.6f, onAccent(p.accent), p.accent
+            )
+            val tx = cardBox.x + 2 * cardPad + signSide
+            val distBase = cardBox.y + (cardH - textH) / 2 + distAscent
+            g.color = p.fg
+            g.font = distFont
+            if (nav.distance.isNotBlank()) g.drawString(nav.distance, tx, distBase)
+            g.color = p.muted
+            g.font = lineFont
+            drawClipped(g, nav.instruction, tx, distBase + gapY + lineAscent, wordsW)
+            if (nav.eta.isNotBlank()) {
+                val stripH = (8 * unit * k).roundToInt()
+                val strip = Rectangle(box.x + pad, box.y + box.height - pad - stripH, box.width - 2 * pad, stripH)
+                card(g, strip, p)
+                drew(strip)
+                val (label, value) = text.arriveParts(nav.eta)
+                val mid = strip.y + strip.height / 2
+                val small = font(Font.BOLD, 3.6f * k)
+                val big = font(Font.BOLD, 5.5f * k)
+                g.color = p.muted
+                g.font = small
+                g.drawString(label.uppercase(), strip.x + cardPad * 2, mid + g.fontMetrics.ascent * 2 / 5)
+                val labelW = if (label.isEmpty()) 0 else g.fontMetrics.stringWidth(label.uppercase()) + (1.5f * unit).roundToInt()
+                g.color = p.fg
+                g.font = big
+                g.drawString(value, strip.x + cardPad * 2 + labelW, mid + g.fontMetrics.ascent * 2 / 5)
+            }
+        }
+        return drawn
+    }
+
+    private var overlaysFrom = 0L
 
     /** The map flat, north up, the car in the middle: as the display drew it before the tilted view. */
     private fun flatMap(g: Graphics2D, box: Rectangle, pos: ClusterState.Position, source: TileSource?, zoom: Int, s: ClusterState, p: Palette) {
@@ -1402,13 +1508,8 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
     fun bgrx(): ByteArray {
         val pixels = (image.raster.dataBuffer as java.awt.image.DataBufferInt).data
         val out = ByteArray(pixels.size * 4)
-        var o = 0
-        for (p in pixels) {
-            out[o++] = p.toByte()
-            out[o++] = (p shr 8).toByte()
-            out[o++] = (p shr 16).toByte()
-            out[o++] = 0
-        }
+        // 0x00RRGGBB written little-endian is B, G, R, x: one bulk copy (a loop of bytes took 35 ms a picture on a Pi 3B).
+        java.nio.ByteBuffer.wrap(out).order(java.nio.ByteOrder.LITTLE_ENDIAN).asIntBuffer().put(pixels)
         return out
     }
 

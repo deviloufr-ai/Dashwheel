@@ -211,16 +211,22 @@ class Screen(
             log("video: the head unit went silent")
             video.stop()
         }
-        if (showing != Showing.VIDEO || videoLost) redraw()
+        if (showing != Showing.VIDEO || videoLost) redraw(tick = true)
     }
 
-    /** Asks [drawer] for a picture of what is to be shown now; it draws the newest ask once. */
-    private fun redraw() {
+    /**
+     * Asks [drawer] for a picture of what is to be shown now; it draws the newest ask once.
+     * [tick]: only for the clock, a picture that would be the same need not be drawn again.
+     */
+    private fun redraw(tick: Boolean = false) {
         synchronized(drawLock) {
+            tickOnly = if (drawWanted) tickOnly && tick else tick
             drawWanted = true
             drawLock.notify()
         }
     }
+
+    private var tickOnly = false
 
     /**
      * Draws when asked; and while the tilted map follows a moving car
@@ -230,29 +236,35 @@ class Screen(
      */
     private fun drawLoop() {
         var nextFrame = 0L
+        var tick: Boolean
         var frames = 0
         var drawingMs = 0L
         var statsFrom = uptimeMs()
         while (true) {
             try {
                 synchronized(drawLock) {
-                    while (!drawWanted) {
+                    while (true) {
                         val animate = config.mapFps > 0 && painter.chaseMoving && showing == Showing.DATA
-                        if (!animate) {
+                        if (animate) {
+                            // On the beat: a reading that comes in between waits for the next picture,
+                            // so the pictures come evenly spaced and the map glides instead of jerking.
+                            val wait = nextFrame - uptimeMs()
+                            if (wait <= 0) break
+                            drawLock.wait(wait)
+                        } else {
+                            if (drawWanted) break
                             drawLock.wait()
-                            continue
                         }
-                        val wait = nextFrame - uptimeMs()
-                        if (wait <= 0) break
-                        drawLock.wait(wait)
                     }
+                    tick = drawWanted && tickOnly
                     drawWanted = false
+                    tickOnly = false
                 }
             } catch (_: InterruptedException) {
                 return
             }
             val started = uptimeMs()
-            runCatching { draw() }.onFailure { log("drawing failed: ${it.message}") }
+            runCatching { draw(tick) }.onFailure { log("drawing failed: ${it.message}") }
             val took = uptimeMs() - started
             nextFrame = started + max(1000L / max(1, config.mapFps), 2 * took)
             if (painter.chaseMoving) {
@@ -260,7 +272,13 @@ class Screen(
                 drawingMs += took
             }
             if (started - statsFrom >= STATS_MS) {
-                if (frames > 0) log("map: ${"%.1f".format(frames * 1000.0 / (started - statsFrom))} pictures a second, ${drawingMs / frames} ms each")
+                val parts = painter.takeMapStats()
+                if (frames > 0) {
+                    // Short of power, the board runs at half speed: worth saying where the speed went.
+                    val power = BoardHealth.read().throttled and com.openauto.dash.link.DisplayStats.THROTTLE_NOW
+                    val board = if (power != 0) " · board ${BoardHealth.describe(power)}" else ""
+                    log("map: ${"%.1f".format(frames * 1000.0 / (started - statsFrom))} pictures a second, ${drawingMs / frames} ms each (${parts ?: "-"})$board")
+                }
                 frames = 0
                 drawingMs = 0
                 statsFrom = started
@@ -269,7 +287,7 @@ class Screen(
     }
 
     /** What to draw, chosen under the screen's lock; drawn outside it, so the readings keep coming meanwhile. */
-    private fun draw() {
+    private fun draw(tick: Boolean = false) {
         val picture: () -> Unit = synchronized(this) {
             val now = LocalClock.now()
             painter.zone = LocalClock.zone
@@ -286,11 +304,13 @@ class Screen(
                     val lost = signalLost
                     val state = cluster?.takeIf { !lost }
                     val text = if (lost) Words.noSignal else status()
-                    if (state != null) ({ painter.paintCluster(state, now) }) else ({ painter.paintIdle(name, text, now, null, clock) })
+                    if (state != null) ({ painter.paintCluster(state, now, mayReuse = tick) }) else ({ painter.paintIdle(name, text, now, null, clock) })
                 }
             }
         }
         picture()
+        // Nothing changed (the clock's tick on a page at rest): the screen already shows it.
+        if (tick && painter.unchanged && frames?.alive == true) return
         val bytes = painter.bgrx()
         synchronized(this) {
             // The video took the screen while this was drawn: it stays.

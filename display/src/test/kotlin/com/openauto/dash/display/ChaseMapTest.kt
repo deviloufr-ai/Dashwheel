@@ -193,6 +193,26 @@ class ChaseMapTest {
     }
 
     @Test
+    fun aParkedCarStaysPutWhileItsGpsWanders() {
+        val chase = ChaseMap()
+        val box = Rectangle(0, 0, 200, 150)
+        val canvas = BufferedImage(200, 150, BufferedImage.TYPE_INT_RGB)
+        fun paint(t: Double, pos: ClusterState.Position) = canvas.createGraphics().let { g ->
+            chase.paint(g, box, state(pos).copy(speedKmh = 0), pos, ClusterState.MapView(), emptyList(), null, false, null, java.awt.Color.CYAN, true, 12, 17, (t * 1e9).toLong())
+            g.dispose()
+            canvas.getRGB(0, 0, 200, 150, null, 0, 200).toList()
+        }
+        paint(0.0, notreDame)
+        val still = paint(2.0, notreDame)
+        // A metre or two off each second, as a parked GPS goes: the same picture, nothing to draw again.
+        val a = paint(3.0, notreDame.copy(lat = notreDame.lat + 0.00001))
+        val b = paint(4.0, notreDame.copy(lon = notreDame.lon - 0.00002, headingDeg = 95))
+        assertEquals(still, a)
+        assertEquals(still, b)
+        assertFalse(chase.moving)
+    }
+
+    @Test
     fun aKilometreOfRoadAsksForAFewDozenTiles() {
         // Driving east at 50 km/h, four pictures a second, on the 7-inch screen's map slot.
         val tiles = Tiles()

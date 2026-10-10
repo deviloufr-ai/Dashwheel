@@ -56,6 +56,8 @@ internal class ChaseMap {
     private var fixX = 0.0
     private var fixY = 0.0
     private var fixSpeed = 0.0
+    /** The latitude of the place the car is drawn at (a stopped car's wandering fixes left out). */
+    private var placeLat = 0.0
     /** Metres the car went on from the fix since it came. */
     private var fixAhead = 0.0
     private var goHeading = 0.0
@@ -67,11 +69,40 @@ internal class ChaseMap {
     private var carHeading = 0.0
     private var paintedAtNs = 0L
 
+    // What the pictures cost, by part (ground, route and haze, buildings, car, onto the page), and how far apart the fixes come.
+    private val spentNs = LongArray(6)
+    private var pictures = 0
+    private var fixes = 0
+    private var fixGapsNs = 0L
+
+    /** Time spent on what is drawn over the map (the turn card, the compass), for [takeStats]. */
+    fun overlaysTook(ns: Long) { overlaysNs += ns }
+    private var overlaysNs = 0L
+
+    /** What the pictures since the last call cost, by part, and how often fixes came; null when none was drawn. */
+    fun takeStats(): String? {
+        if (pictures == 0) return null
+        val ms = spentNs.map { it / pictures / 1_000_000 }
+        val over = overlaysNs / pictures / 1_000_000
+        overlaysNs = 0
+        val spread = spreadNs / pictures / 1_000_000
+        spreadNs = 0
+        val looked = "${lookups / pictures} tile lookups ${lookupNs / pictures / 1_000_000} ms"
+        lookups = 0
+        lookupNs = 0
+        val gaps = if (fixes > 0) " · a fix every ${"%.1f".format(fixGapsNs / fixes / 1e9)} s" else ""
+        spentNs.fill(0)
+        pictures = 0
+        fixes = 0
+        fixGapsNs = 0
+        return "ground ${ms[0]} (spread $spread, $looked), route ${ms[1]}, haze ${ms[5]}, buildings ${ms[2]}, car ${ms[3]}, onto the page ${ms[4]}, over it $over ms$gaps"
+    }
+
     private var view: BufferedImage? = null
     private var routeSource: List<Double>? = null
     private var routeWorld = DoubleArray(0)
-    private val pixelCache = object : LinkedHashMap<BufferedImage, IntArray>(16, 0.75f, true) {
-        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<BufferedImage, IntArray>?) = size > 32
+    private val pixelCache = object : LinkedHashMap<BufferedImage, IntArray>(64, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<BufferedImage, IntArray>?) = size > 80
     }
 
     /** The view's camera for one picture, all in metres and box pixels. */
@@ -124,7 +155,7 @@ internal class ChaseMap {
         val horizon = h * top
         val back = across * f / w
         val height = (h * carRow - horizon) * back / f
-        val mpp = WebMercator.metersPerPixel(pos.lat, Z0)
+        val mpp = WebMercator.metersPerPixel(placeLat, Z0)
         val cam = Camera(
             w, h, f, horizon, height, back, back * 12,
             shownX - sin(camHeading) * back / mpp, shownY + cos(camHeading) * back / mpp, camHeading, mpp
@@ -136,30 +167,40 @@ internal class ChaseMap {
             val sky = if (night) SKY_NIGHT else SKY_DAY
             val fog = if (night) FOG_NIGHT else FOG_DAY
             val farRow = cam.horizon + cam.height * cam.f / cam.far
-            v.paint = GradientPaint(0f, 0f, sky, 0f, farRow.toFloat() + 1, fog)
-            v.fillRect(0, 0, w, ceil(farRow).toInt() + 1)
-            ground(image, cam, pos.lat, tiles, minZoom, maxZoom, night)
+            val px = (image.raster.dataBuffer as DataBufferInt).data
+            // The sky, row by row straight into the pixels (a gradient paint costs a Pi 3B several milliseconds).
+            val skyRows = min(h, ceil(farRow).toInt() + 1)
+            for (y in 0 until skyRows) java.util.Arrays.fill(px, y * w, y * w + w, mix(sky, fog, y / max(1f, farRow.toFloat())).rgb and 0xFFFFFF)
+            var t = System.nanoTime()
+            fun lap(part: Int) { val now = System.nanoTime(); spentNs[part] += now - t; t = now }
+            ground(image, cam, placeLat, tiles, minZoom, maxZoom, night)
             if (dimTiles && tiles != null) {
                 v.color = Color(0, 0, 0, 120)
                 v.fillRect(0, farRow.toInt(), w, h - farRow.toInt())
             }
+            lap(0)
             // The route under the haze, so it fades away with the road.
             v.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
             routeRibbon(v, cam, route, across, accent, night)
+            lap(1)
             // Haze over the far edge, thinning toward the car.
-            val hazeEnd = (farRow + h * 0.24).toFloat()
-            v.paint = GradientPaint(0f, farRow.toFloat() - 1, fog, 0f, hazeEnd, Color(fog.red, fog.green, fog.blue, 0))
-            v.fillRect(0, farRow.toInt() - 1, w, (hazeEnd - farRow).toInt() + 2)
+            haze(px, w, h, farRow, h * 0.24, fog.rgb and 0xFFFFFF)
+            lap(5)
 
             v.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF)
             if (buildings != null) buildings(v, cam, buildings, night, fog)
+            lap(2)
             v.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
             car(v, cam, accent, carHeading - camHeading, pos.headingDeg != null || fixHeadingDeg != null)
+            lap(3)
         } finally {
             v.dispose()
         }
+        val onto = System.nanoTime()
         g.drawImage(image, box.x, box.y, null)
-        prefetch(tiles, cam, pos.lat, minZoom, maxZoom)
+        spentNs[4] += System.nanoTime() - onto
+        pictures++
+        prefetch(tiles, cam, placeLat, minZoom, maxZoom)
     }
 
     // --- Following the car between fixes -----------------------------------------------------------
@@ -171,16 +212,22 @@ internal class ChaseMap {
         if (pos.lat != fixLat || pos.lon != fixLon || pos.headingDeg != fixHeadingDeg) {
             // A new fix: its speed is the car's when the head unit sends one, else what the last two fixes say.
             val seconds = (nowNs - fixAtNs) / 1e9
+            if (!fixLat.isNaN() && seconds < 10) { fixes++; fixGapsNs += nowNs - fixAtNs }
             val moved = if (fixLat.isNaN()) 0.0 else hypot(x - fixX, y - fixY) * mpp
             fixSpeed = speedKmh?.let { it / 3.6 } ?: if (seconds in 0.2..5.0) moved / seconds else 0.0
             fixLat = pos.lat
             fixLon = pos.lon
             fixHeadingDeg = pos.headingDeg
-            fixAtNs = nowNs
-            fixX = x
-            fixY = y
-            fixAhead = 0.0
-            pos.headingDeg?.let { goHeading = Math.toRadians(it.toDouble()) }
+            // A stopped car's GPS wanders a metre or two: the car stays put (and the Pi idle).
+            val wander = speedKmh == 0 && moved < WANDER_M && !shownX.isNaN()
+            if (!wander) {
+                placeLat = pos.lat
+                fixAtNs = nowNs
+                fixX = x
+                fixY = y
+                fixAhead = 0.0
+                pos.headingDeg?.let { goHeading = Math.toRadians(it.toDouble()) }
+            }
         } else if (speedKmh != null) {
             fixSpeed = speedKmh / 3.6
         }
@@ -191,8 +238,8 @@ internal class ChaseMap {
         val sinceLast = if (paintedAtNs == 0L) since else ((paintedAtNs - fixAtNs) / 1e9).coerceIn(0.0, MAX_AHEAD_S)
         fixAhead += speed * max(0.0, since - sinceLast)
         val ahead = fixAhead / mpp
-        val targetX = x + sin(goHeading) * ahead
-        val targetY = y - cos(goHeading) * ahead
+        val targetX = fixX + sin(goHeading) * ahead
+        val targetY = fixY - cos(goHeading) * ahead
         val dt = if (paintedAtNs == 0L) 1.0 else ((nowNs - paintedAtNs) / 1e9).coerceIn(0.0, 1.0)
         paintedAtNs = nowNs
         val off = hypot(targetX - shownX, targetY - shownY) * mpp
@@ -219,101 +266,193 @@ internal class ChaseMap {
 
     // --- The ground --------------------------------------------------------------------------------
 
+    private var half = IntArray(0)
+
     /**
-     * Each row below the far edge, from the tiles: the row's metres per screen
-     * pixel pick the zoom (the first whose pixels are no bigger), then the row
-     * walks across the tiles in fixed point, blending four pixels where the
-     * tiles are stretched (near the car), taking one where they are not.
+     * The ground below the far edge, from the tiles, worked out at half the
+     * screen's resolution each way and then spread over it smoothly: a
+     * quarter of the samples, which are what costs on a Pi (each one a read
+     * somewhere in a tile, rarely next to the last), for a ground that is
+     * stretched tiles near the car anyway.
      */
     private fun ground(image: BufferedImage, cam: Camera, lat: Double, tiles: TileSource?, minZoom: Int, maxZoom: Int, night: Boolean) {
         val out = (image.raster.dataBuffer as DataBufferInt).data
         val w = cam.w
-        val m0 = WebMercator.metersPerPixel(lat, 0)
-        val fwdX = sin(cam.heading)
-        val fwdY = -cos(cam.heading)
-        val rightX = cos(cam.heading)
-        val rightY = sin(cam.heading)
-        val plain = if (night) PLAIN_NIGHT else PLAIN_DAY
-        val plainAlt = if (night) PLAIN_NIGHT_ALT else PLAIN_DAY_ALT
-        val frame = HashMap<Long, IntArray?>()
+        val h = cam.h
+        val hw = w / 2 + 1
+        val hh = h / 2 + 1
+        if (half.size < hw * hh) half = IntArray(hw * hh)
+        frameTiles.clear()
         val first = max(0, ceil(cam.horizon + cam.height * cam.f / cam.far).toInt())
-        for (y in first until cam.h) {
-            val z = cam.height * cam.f / (y + 0.5 - cam.horizon)
-            if (z <= 0 || z > cam.far) continue
-            val metresPerPx = z / cam.f
-            val zoom = zoomFor(m0, metresPerPx, minZoom, maxZoom)
-            val toZoom = Math.scalb(1.0, zoom - Z0)
-            val stepWorld = metresPerPx / cam.mpp
-            // The row's left end and step, in world pixels at the row's zoom.
-            val cx = cam.x + fwdX * z / cam.mpp
-            val cy = cam.y + fwdY * z / cam.mpp
-            val x0 = (cx - rightX * stepWorld * (w / 2.0 - 0.5)) * toZoom
-            val y0 = (cy - rightY * stepWorld * (w / 2.0 - 0.5)) * toZoom
-            val dx = rightX * stepWorld * toZoom
-            val dy = rightY * stepWorld * toZoom
-            val row = y * w
-            if (tiles == null) {
-                // No tiles: squares of 100 m, so the movement shows.
-                val sq = 100.0 / cam.mpp * toZoom
-                for (i in 0 until w) {
-                    val gx = floor((x0 + dx * i) / sq).toLong()
-                    val gy = floor((y0 + dy * i) / sq).toLong()
-                    out[row + i] = if ((gx + gy) and 1L == 0L) plain else plainAlt
-                }
-                continue
+        val firstHalf = first / 2
+        for (j in firstHalf until hh) sampleRow(half, j * hw, hw, 2.0 * j + 0.5, cam, lat, tiles, minZoom, maxZoom, night)
+        val spreadFrom = System.nanoTime()
+        // Spread: even rows and columns are the samples, odd ones the average of their two neighbours.
+        if (mid.size < hw) mid = IntArray(hw)
+        for (y in first until h) {
+            val j = y / 2
+            val a = j * hw
+            val src: IntArray
+            val from: Int
+            if (y and 1 == 1 && j + 1 < hh) {
+                val b = a + hw
+                for (i in 0 until hw) mid[i] = avg(half[a + i], half[b + i])
+                src = mid
+                from = 0
+            } else {
+                src = half
+                from = a
             }
-            val stretched = WebMercator.metersPerPixel(lat, zoom) > metresPerPx * 1.25
-            var xf = (x0 * FIX).toLong()
-            var yf = (y0 * FIX).toLong()
-            val dxf = (dx * FIX).toLong()
-            val dyf = (dy * FIX).toLong()
-            var lastTx = Int.MIN_VALUE
-            var lastTy = Int.MIN_VALUE
-            var px: IntArray? = null
-            var shift = 0
-            for (i in 0 until w) {
-                val ix = (xf shr 16).toInt()
-                val iy = (yf shr 16).toInt()
-                val tx = ix shr 8
-                val ty = iy shr 8
-                if (tx != lastTx || ty != lastTy) {
-                    lastTx = tx
-                    lastTy = ty
-                    // The tile, else a coarser one already at hand while it comes.
-                    shift = 0
-                    px = pixels(tiles, frame, zoom, tx, ty, fetch = true)
-                    while (px == null && shift < 3 && zoom - shift - 1 >= 0) {
-                        shift++
-                        px = pixels(tiles, frame, zoom - shift, tx shr shift, ty shr shift, fetch = false)
-                    }
-                }
-                val p = px
-                out[row + i] = when {
-                    p == null -> plain
-                    shift > 0 -> {
-                        val sx = ((ix shr shift) and 255)
-                        val sy = ((iy shr shift) and 255)
-                        p[(sy shl 8) or sx]
-                    }
-                    stretched -> {
-                        val sx = ix and 255
-                        val sy = iy and 255
-                        val sx1 = if (sx == 255) 255 else sx + 1
-                        val sy1 = if (sy == 255) 255 else sy + 1
-                        val fx = ((xf shr 8) and 255).toInt()
-                        val fy = ((yf shr 8) and 255).toInt()
-                        blend(p[(sy shl 8) or sx], p[(sy shl 8) or sx1], p[(sy1 shl 8) or sx], p[(sy1 shl 8) or sx1], fx, fy)
-                    }
-                    else -> p[((iy and 255) shl 8) or (ix and 255)]
-                }
-                xf += dxf
-                yf += dyf
+            var o = y * w
+            val end = o + w
+            var i = from
+            var c = src[i]
+            while (o < end) {
+                out[o++] = c
+                if (o == end) break
+                val d = src[++i]
+                out[o++] = avg(c, d)
+                c = d
+            }
+        }
+        spreadNs += System.nanoTime() - spreadFrom
+    }
+
+    private var spreadNs = 0L
+
+    private var mid = IntArray(0)
+
+    /** The fog laid over [band] rows from [from], all of it at the top, none at the bottom: the far ground and the route fade away. */
+    private fun haze(px: IntArray, w: Int, h: Int, from: Double, band: Double, fog: Int) {
+        val y0 = max(0, from.toInt() - 1)
+        val y1 = min(h, (from + band).toInt() + 1)
+        val fogRb = fog and 0xFF00FF
+        val fogG = fog and 0xFF00
+        for (y in y0 until y1) {
+            // Out of 256: the fog's share, thinning faster near its end.
+            val t = ((y - from) / band).coerceIn(0.0, 1.0)
+            val a = ((1 - t) * (1 - t) * 256).toInt()
+            if (a <= 0) continue
+            val keep = 256 - a
+            var o = y * w
+            val end = o + w
+            while (o < end) {
+                val c = px[o]
+                val rb = (((c and 0xFF00FF) * keep + fogRb * a) ushr 8) and 0xFF00FF
+                val g = (((c and 0xFF00) * keep + fogG * a) ushr 8) and 0xFF00
+                px[o++] = rb or g
             }
         }
     }
 
+    private fun avg(a: Int, b: Int): Int = ((a and 0xFEFEFE) + (b and 0xFEFEFE)) ushr 1
+
+    /**
+     * One row of samples at screen row [y] (in full-size pixels), [count]
+     * samples two screen pixels apart: the row's metres per sample pick the
+     * zoom (the one whose pixels are nearest), then the row walks across the
+     * tiles in fixed point, blending four pixels where the tiles are
+     * stretched (near the car), taking one where they are not.
+     */
+    private fun sampleRow(
+        out: IntArray, start: Int, count: Int, y: Double, cam: Camera, lat: Double, tiles: TileSource?,
+        minZoom: Int, maxZoom: Int, night: Boolean
+    ) {
+        val z = (cam.height * cam.f / max(0.5, y - cam.horizon)).coerceAtMost(cam.far)
+        val step = 2.0
+        val metresPerSample = z / cam.f * step
+        val m0 = WebMercator.metersPerPixel(lat, 0)
+        val zoom = zoomFor(m0, metresPerSample, minZoom, maxZoom)
+        val toZoom = Math.scalb(1.0, zoom - Z0)
+        val stepWorld = metresPerSample / cam.mpp
+        val fwdX = sin(cam.heading)
+        val fwdY = -cos(cam.heading)
+        val rightX = cos(cam.heading)
+        val rightY = sin(cam.heading)
+        // The row's first sample (at screen x = 0.5) and the step between samples, in world pixels at the row's zoom.
+        val cx = cam.x + fwdX * z / cam.mpp
+        val cy = cam.y + fwdY * z / cam.mpp
+        val fromMiddle = (0.5 - cam.w / 2.0) / step
+        val x0 = (cx + rightX * stepWorld * fromMiddle) * toZoom
+        val y0 = (cy + rightY * stepWorld * fromMiddle) * toZoom
+        val dx = rightX * stepWorld * toZoom
+        val dy = rightY * stepWorld * toZoom
+        val plain = if (night) PLAIN_NIGHT else PLAIN_DAY
+        if (tiles == null) {
+            // No tiles: squares of 100 m, so the movement shows.
+            val plainAlt = if (night) PLAIN_NIGHT_ALT else PLAIN_DAY_ALT
+            val sq = 100.0 / cam.mpp * toZoom
+            for (i in 0 until count) {
+                val gx = floor((x0 + dx * i) / sq).toLong()
+                val gy = floor((y0 + dy * i) / sq).toLong()
+                out[start + i] = if ((gx + gy) and 1L == 0L) plain else plainAlt
+            }
+            return
+        }
+        val stretched = WebMercator.metersPerPixel(lat, zoom) > metresPerSample * 1.25
+        var xf = (x0 * FIX).toLong()
+        var yf = (y0 * FIX).toLong()
+        val dxf = (dx * FIX).toLong()
+        val dyf = (dy * FIX).toLong()
+        var lastTx = Int.MIN_VALUE
+        var lastTy = Int.MIN_VALUE
+        var px: IntArray? = null
+        var shift = 0
+        for (i in 0 until count) {
+            val ix = (xf shr 16).toInt()
+            val iy = (yf shr 16).toInt()
+            val tx = ix shr 8
+            val ty = iy shr 8
+            if (tx != lastTx || ty != lastTy) {
+                lastTx = tx
+                lastTy = ty
+                // The tile, else a coarser one already at hand while it comes.
+                shift = 0
+                px = pixels(tiles, zoom, tx, ty, fetch = true)
+                while (px == null && shift < 3 && zoom - shift - 1 >= 0) {
+                    shift++
+                    px = pixels(tiles, zoom - shift, tx shr shift, ty shr shift, fetch = false)
+                }
+            }
+            val p = px
+            out[start + i] = when {
+                p == null -> plain
+                shift > 0 -> p[at((ix shr shift) and 255, (iy shr shift) and 255)]
+                stretched -> {
+                    val sx = ix and 255
+                    val sy = iy and 255
+                    val sx1 = if (sx == 255) 255 else sx + 1
+                    val sy1 = if (sy == 255) 255 else sy + 1
+                    val fx = ((xf shr 8) and 255).toInt()
+                    val fy = ((yf shr 8) and 255).toInt()
+                    blend(p[at(sx, sy)], p[at(sx1, sy)], p[at(sx, sy1)], p[at(sx1, sy1)], fx, fy)
+                }
+                else -> p[at(ix and 255, iy and 255)]
+            }
+            xf += dxf
+            yf += dyf
+        }
+    }
+
+    /** The tiles' pixels looked up this picture (null: not at hand), so each is asked for once a picture. */
+    private val frameTiles = HashMap<Long, IntArray?>()
+
     /** A tile's pixels, looked up once a picture; [fetch]: ask for it when it isn't at hand. */
-    private fun pixels(tiles: TileSource, frame: HashMap<Long, IntArray?>, z: Int, x: Int, y: Int, fetch: Boolean): IntArray? {
+    private var lookups = 0
+    private var lookupNs = 0L
+
+    private fun pixels(tiles: TileSource, z: Int, x: Int, y: Int, fetch: Boolean): IntArray? {
+        val from = System.nanoTime()
+        try {
+            return pixelsNow(tiles, z, x, y, fetch)
+        } finally {
+            lookups++
+            lookupNs += System.nanoTime() - from
+        }
+    }
+
+    private fun pixelsNow(tiles: TileSource, z: Int, x: Int, y: Int, fetch: Boolean): IntArray? {
+        val frame = frameTiles
         val key = (z.toLong() shl 56) or ((x.toLong() and 0xFFFFFFF) shl 28) or (y.toLong() and 0xFFFFFFF)
         if (frame.containsKey(key)) return frame[key]
         val n = 1 shl z
@@ -325,14 +464,24 @@ internal class ChaseMap {
         return px
     }
 
+    /**
+     * A tile's pixels in blocks of 4×4 ([at]): the ground walks across a tile
+     * in whatever direction the car faces, and in rows of 256 pixels a walk
+     * east or west read a new stretch of memory at almost every step (half a
+     * microsecond each on a Pi 3B). In blocks, every few steps stay in one.
+     */
     private fun pixelsOf(image: BufferedImage): IntArray? {
         if (image.width != WebMercator.TILE || image.height != WebMercator.TILE) return null
-        val buffer = image.raster.dataBuffer
-        if (image.type == BufferedImage.TYPE_INT_RGB && buffer is DataBufferInt && buffer.numBanks == 1 &&
-            image.raster.sampleModelTranslateX == 0 && image.raster.sampleModelTranslateY == 0
-        ) return buffer.data
-        return pixelCache.getOrPut(image) { image.getRGB(0, 0, WebMercator.TILE, WebMercator.TILE, null, 0, WebMercator.TILE) }
+        return pixelCache.getOrPut(image) {
+            val rows = image.getRGB(0, 0, WebMercator.TILE, WebMercator.TILE, null, 0, WebMercator.TILE)
+            val blocks = IntArray(rows.size)
+            for (y in 0 until WebMercator.TILE) for (x in 0 until WebMercator.TILE) blocks[at(x, y)] = rows[(y shl 8) or x]
+            blocks
+        }
     }
+
+    /** Where pixel ([x], [y]) of a tile is in its blocks: 64 blocks of 16 a row of blocks, 4 pixels a row in a block. */
+    private fun at(x: Int, y: Int): Int = ((y shr 2) shl 10) or ((x shr 2) shl 4) or ((y and 3) shl 2) or (x and 3)
 
     /** Four neighbouring pixels weighed by where the point falls between them ([fx], [fy] out of 256). */
     private fun blend(a: Int, b: Int, c: Int, d: Int, fx: Int, fy: Int): Int {
@@ -361,7 +510,7 @@ internal class ChaseMap {
         var d = cam.back + 100.0
         while (d <= cam.back + 500.0) {
             // Drawn from about 100 m nearer than where it is now.
-            val zoom = zoomFor(m0, (d - 100.0) / cam.f, minZoom, maxZoom)
+            val zoom = zoomFor(m0, (d - 100.0) / cam.f * 2, minZoom, maxZoom)
             val toZoom = Math.scalb(1.0, zoom - Z0)
             for (side in -1..1) {
                 val wx = cam.x + (sin(cam.heading) * d + cos(cam.heading) * side * 60.0) / cam.mpp
@@ -694,6 +843,8 @@ internal class ChaseMap {
         private const val FIX = 65536.0
         /** Farther than this from where it should be, the car jumps there (a new drive, a GPS jump). */
         private const val SNAP_M = 250.0
+        /** How far a stopped car's position may wander and still be the same place. */
+        private const val WANDER_M = 4.0
         /** The car goes on from a fix this long at most: a lost GPS doesn't drive it away. */
         private const val MAX_AHEAD_S = 1.5
         /** Nearer than this to where it should be (metres, radians), the car is there. */
