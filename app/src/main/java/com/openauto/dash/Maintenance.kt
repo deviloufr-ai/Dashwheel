@@ -271,6 +271,14 @@ data class UpkeepState(
     val registeredAt: Long? = null
 ) {
     fun statuses(now: Long): List<UpkeepDue> = UpkeepRules.statuses(plan, done, odometer?.nowKm, now, registeredAt)
+
+    /** The date [kind] is next due by, or null while its last date or its interval isn't known. */
+    fun dueAt(kind: UpkeepKind, now: Long): Long? {
+        val months = plan.firstOrNull { it.kind == kind }?.everyMonths ?: return null
+        val last = done[kind] ?: if (kind == UpkeepKind.INSPECTION) UpkeepRules.firstInspection(registeredAt, now) else null
+        val at = last?.at ?: return null
+        return Calendar.getInstance().apply { timeInMillis = at; add(Calendar.MONTH, months) }.timeInMillis
+    }
 }
 
 /**

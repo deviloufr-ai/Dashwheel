@@ -235,6 +235,8 @@
     <string name="car_spec_vin">VIN</string>
     <string name="car_crit_air">Crit\'Air %1$d</string>
     <string name="car_crit_air_unclassed">Pas de vignette Crit\'Air : trop ancienne pour être classée</string>
+    <string name="car_inspection_due">Prochain contrôle technique avant le %1$s</string>
+    <string name="car_inspection_unknown">Prochain contrôle technique : pas encore connu</string>
     <string name="car_registration_from_phone">Scannez la carte grise dans l\'app du téléphone, onglet Voiture, pour remplir ces champs.</string>
     <string name="car_registration_saved_plate">Carte grise de %1$s enregistrée</string>
     <string name="car_registration_saved">Carte grise enregistrée</string>

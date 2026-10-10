@@ -239,6 +239,8 @@
     <string name="car_spec_vin">VIN</string>
     <string name="car_crit_air">Crit\'Air %1$d</string>
     <string name="car_crit_air_unclassed">Без наклейки Crit\'Air: слишком старый для класса</string>
+    <string name="car_inspection_due">Следующий техосмотр до %1$s</string>
+    <string name="car_inspection_unknown">Следующий техосмотр: пока неизвестен</string>
     <string name="car_registration_from_phone">Отсканируйте свидетельство о регистрации в приложении на телефоне, вкладка «Автомобиль», чтобы заполнить эти поля.</string>
     <string name="car_registration_saved_plate">Свидетельство %1$s сохранено</string>
     <string name="car_registration_saved">Свидетельство о регистрации сохранено</string>

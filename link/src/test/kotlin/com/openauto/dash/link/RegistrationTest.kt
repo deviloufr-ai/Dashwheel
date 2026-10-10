@@ -73,6 +73,12 @@ class RegistrationTest {
     }
 
     @Test
+    fun theNextInspectionIsFoundByItsWordsWhenItsLabelIsMisread() {
+        assertEquals("2027-05-18", RegistrationReader.read("B. 15/03/2011\nX1 VISITE AVANT LE 18/05/2027", today).nextInspection)
+        assertEquals("2027-05-18", RegistrationReader.read("B. 15/03/2011\nX.I VISITE AVANT LE\n18/05/2027", today).nextInspection)
+    }
+
+    @Test
     fun aLabelStandingAloneTakesTheLineBesideIt() {
         val r = RegistrationReader.read(
             listOf(

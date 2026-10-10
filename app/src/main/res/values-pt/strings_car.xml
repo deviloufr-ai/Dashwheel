@@ -235,6 +235,8 @@
     <string name="car_spec_vin">VIN</string>
     <string name="car_crit_air">Crit\'Air %1$d</string>
     <string name="car_crit_air_unclassed">Sem vinheta Crit\'Air: demasiado antigo para ser classificado</string>
+    <string name="car_inspection_due">Próxima inspeção até %1$s</string>
+    <string name="car_inspection_unknown">Próxima inspeção: ainda não se sabe</string>
     <string name="car_registration_from_phone">Digitalize o documento do carro na app do telemóvel, separador Carro, para preencher isto.</string>
     <string name="car_registration_saved_plate">Documento de %1$s guardado</string>
     <string name="car_registration_saved">Documento guardado</string>

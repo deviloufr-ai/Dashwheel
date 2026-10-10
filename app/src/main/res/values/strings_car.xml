@@ -233,6 +233,8 @@
     <string name="car_spec_vin">VIN</string>
     <string name="car_crit_air">Crit\'Air %1$d</string>
     <string name="car_crit_air_unclassed">No Crit\'Air sticker: too old to be classed</string>
+    <string name="car_inspection_due">Next roadworthiness test before %1$s</string>
+    <string name="car_inspection_unknown">Next roadworthiness test: not known yet</string>
     <string name="car_registration_from_phone">Scan the registration document in the phone app, on its Car tab, to fill these in.</string>
     <string name="car_registration_saved_plate">Registration of %1$s saved</string>
     <string name="car_registration_saved">Registration saved</string>

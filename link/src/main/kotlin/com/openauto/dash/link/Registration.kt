@@ -157,6 +157,14 @@ object RegistrationReader {
     /** The recognizer often reads EURO5 as EUR05. */
     private val EURO = Regex("EUR[O0]\\s?([1-6])")
     private val NUMBER = Regex("^(\\d{1,5})(?:[.,]\\d+)?")
+    /** X.1's words, "VISITE AVANT LE 18/05/2027", up to the date even across a line break. */
+    private val INSPECTION_BY = Regex("AVANT\\s+L[EF]\\s*\\d{1,2}\\s?[/.\\-]\\s?\\d{1,2}\\s?[/.\\-]\\s?\\d{4}")
+
+    /** A date as printed, past or future. */
+    private fun anyDateOf(m: MatchResult): LocalDate? {
+        val (d, mo, y) = m.destructured
+        return runCatching { LocalDate.of(y.toInt(), mo.toInt(), d.toInt()) }.getOrNull()?.takeIf { it.year in 1950..2100 }
+    }
 
     /** Plain text, one line per line (tests, or a recognizer without boxes). */
     fun read(text: String, today: LocalDate = LocalDate.now()): CarRegistration =
@@ -187,10 +195,10 @@ object RegistrationReader {
             displacementCc = field("P.1") { v -> numberOf(v)?.takeIf { it in 50..10_000 } },
             euro = EURO.find(all)?.groupValues?.get(1)?.toInt(),
             // A deadline, so it may well be ahead of today; never before the car was registered.
-            nextInspection = field("X.1") { v ->
-                DATE.find(v)?.destructured?.let { (d, mo, y) -> runCatching { LocalDate.of(y.toInt(), mo.toInt(), d.toInt()) }.getOrNull() }
-                    ?.takeIf { first == null || it.isAfter(first) }
-            }?.toString().orEmpty()
+            // With its label misread ("X1", "X.I") or on a line of its own, the words before the date still tell it.
+            nextInspection = (field("X.1") { v -> DATE.find(v)?.let(::anyDateOf)?.takeIf { first == null || it.isAfter(first) } }
+                ?: INSPECTION_BY.find(all)?.let { DATE.find(it.value) }?.let(::anyDateOf)?.takeIf { first == null || it.isAfter(first) })
+                ?.toString().orEmpty()
         )
     }
 

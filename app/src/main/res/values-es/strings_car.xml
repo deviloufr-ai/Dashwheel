@@ -235,6 +235,8 @@
     <string name="car_spec_vin">Bastidor</string>
     <string name="car_crit_air">Crit\'Air %1$d</string>
     <string name="car_crit_air_unclassed">Sin distintivo Crit\'Air: demasiado antiguo para clasificarse</string>
+    <string name="car_inspection_due">Próxima ITV antes del %1$s</string>
+    <string name="car_inspection_unknown">Próxima ITV: aún no se sabe</string>
     <string name="car_registration_from_phone">Escanea el permiso de circulación en la app del móvil, pestaña Coche, para rellenar esto.</string>
     <string name="car_registration_saved_plate">Permiso de %1$s guardado</string>
     <string name="car_registration_saved">Permiso de circulación guardado</string>

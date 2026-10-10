@@ -173,6 +173,7 @@ internal fun CarSettingsDialog(onDismiss: () -> Unit) {
         }
         TextSpec(stringResource(R.string.car_spec_vin), draft.vin) { draft = draft.copy(vin = it.uppercase().filter(Char::isLetterOrDigit).take(17)) }
         CritAirLine(draft.critAir)
+        InspectionLine()
         Text(stringResource(R.string.car_registration_from_phone), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
 
         Label(stringResource(R.string.car_section_engine))
@@ -276,6 +277,19 @@ private fun CritAirLine(critAir: Int?) {
             color = DashColors.TextPrimary, style = MaterialTheme.typography.bodyMedium
         )
     }
+}
+
+/** When the next roadworthiness test is due, as Servicing has it (scanned off X.1, or logged there). */
+@Composable
+private fun InspectionLine() {
+    val upkeep by Maintenance.state.collectAsState()
+    val due = remember(upkeep) { upkeep.dueAt(UpkeepKind.INSPECTION, System.currentTimeMillis()) }
+    Text(
+        due?.let { stringResource(R.string.car_inspection_due, java.text.DateFormat.getDateInstance(java.text.DateFormat.LONG).format(java.util.Date(it))) }
+            ?: stringResource(R.string.car_inspection_unknown),
+        color = if (due == null) DashColors.TextSecondary else DashColors.TextPrimary,
+        style = MaterialTheme.typography.bodyMedium
+    )
 }
 
 /** The sticker colours: green, purple, yellow, orange, burgundy, grey; no sticker in black. */

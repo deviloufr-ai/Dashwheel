@@ -233,6 +233,8 @@
     <string name="car_spec_vin">FIN</string>
     <string name="car_crit_air">Crit\'Air %1$d</string>
     <string name="car_crit_air_unclassed">Keine Crit\'Air-Plakette: zu alt für eine Einstufung</string>
+    <string name="car_inspection_due">Nächste HU vor dem %1$s</string>
+    <string name="car_inspection_unknown">Nächste HU: noch nicht bekannt</string>
     <string name="car_registration_from_phone">Scanne den Fahrzeugschein in der Handy-App im Tab Auto, um das auszufüllen.</string>
     <string name="car_registration_saved_plate">Zulassung von %1$s gespeichert</string>
     <string name="car_registration_saved">Zulassung gespeichert</string>

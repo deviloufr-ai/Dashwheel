@@ -235,6 +235,8 @@
     <string name="car_spec_vin">Telaio</string>
     <string name="car_crit_air">Crit\'Air %1$d</string>
     <string name="car_crit_air_unclassed">Nessun bollino Crit\'Air: troppo vecchia per essere classificata</string>
+    <string name="car_inspection_due">Prossima revisione entro il %1$s</string>
+    <string name="car_inspection_unknown">Prossima revisione: non ancora nota</string>
     <string name="car_registration_from_phone">Scansiona il libretto nell\'app del telefono, scheda Auto, per compilare questi campi.</string>
     <string name="car_registration_saved_plate">Libretto di %1$s salvato</string>
     <string name="car_registration_saved">Libretto salvato</string>

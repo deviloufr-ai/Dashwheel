@@ -240,6 +240,8 @@
     <string name="car_spec_vin">VIN</string>
     <string name="car_crit_air">Crit\'Air %1$d</string>
     <string name="car_crit_air_unclassed">Brak naklejki Crit\'Air: zbyt stary, by go sklasyfikować</string>
+    <string name="car_inspection_due">Następny przegląd do %1$s</string>
+    <string name="car_inspection_unknown">Następny przegląd: jeszcze nieznany</string>
     <string name="car_registration_from_phone">Zeskanuj dowód rejestracyjny w aplikacji na telefonie, karta Auto, aby to uzupełnić.</string>
     <string name="car_registration_saved_plate">Dowód rejestracyjny %1$s zapisany</string>
     <string name="car_registration_saved">Dowód rejestracyjny zapisany</string>
