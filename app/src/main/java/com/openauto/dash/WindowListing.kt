@@ -270,9 +270,9 @@ object WindowListing {
 
     /**
      * Whether task [taskId] shows a screen over its first one: Waze's voice
-     * prompt, a report, a permission request. A screen like that is let be
-     * where it opened, or moving it restarted it (the voice prompt asked for
-     * the microphone again, and went away unheard).
+     * prompt, its search, a report, a permission request. Moving the task
+     * starts that screen over on the tile; one that then jumps out again and
+     * again is let be where it opened ([EmbeddedApp]).
      */
     internal fun showsOwnScreen(output: String, taskId: Int): Boolean = ownScreenOf(output, taskId) != null
 
@@ -280,15 +280,6 @@ object WindowListing {
     internal fun ownScreenOf(output: String, taskId: Int): String? =
         TASK_SCREENS.findAll(output).firstOrNull { it.groupValues[1].toIntOrNull() == taskId }
             ?.takeIf { it.groupValues[2] != it.groupValues[3] }?.groupValues?.get(3)
-
-    /**
-     * Whether [screen] ("pkg/cls") is for typing: Waze's search
-     * ("SearchV2Activity"). Torn off the tile's display, that screen never
-     * gets a keyboard (the keyboard refuses a window whose app sits on another
-     * display), so it goes straight back onto the tile, where typing works.
-     */
-    internal fun isTypingScreen(screen: String): Boolean =
-        screen.substringAfterLast('.').let { it.contains("Search", ignoreCase = true) || it.contains("Autocomplete", ignoreCase = true) }
 
     /** Whether [screen] ("pkg/cls") listens for speech: Waze's voice prompt ("SpeechRecognizerActivity"). */
     internal fun isVoiceScreen(screen: String): Boolean =

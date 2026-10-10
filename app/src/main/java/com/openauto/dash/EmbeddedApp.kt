@@ -365,11 +365,12 @@ internal object EmbeddedApp {
     // full screen in front is put back into its tile. What the user opens full
     // screen themselves is left there.
     //
-    // Waze does it too: it opens its own screens (voice button, reports, trip
-    // overview, a permission request) "beside" itself, and on Android 10 that
-    // takes its whole task off the tile's display, full screen onto the main
-    // one. A tap inside a tile is never the driver asking for its app full
-    // screen, so that tap does not count as the user's doing.
+    // Waze does it too: it opens its own screens (voice button, search, reports,
+    // trip overview, a permission request) "beside" itself, and on Android 10
+    // that takes its whole task off the tile's display, full screen onto the
+    // main one. A tap inside a tile is never the driver asking for its app full
+    // screen, so that tap does not count as the user's doing: every such screen
+    // goes back into the tile, unless it keeps jumping out again.
 
     /** Where the firmware keeps the navigation app to reopen at power-up ("package/class"). */
     private const val NAVI_TO_RESTORE = "navi_activity_before_sleep"
@@ -396,11 +397,17 @@ internal object EmbeddedApp {
     private const val WATCH_EVERY_MS = 500L
 
     /**
-     * How long an app is left full screen after a screen of its own closed,
-     * for the next one it opens from it (Waze: the voice screen, then the
-     * search results) to come up first. The search itself, once up, is moved
-     * back at once ([WindowListing.isTypingScreen]): typing needs the keyboard,
-     * which only comes up on the tile's display.
+     * A screen of its own moved back onto the tile this many times within
+     * [JUMPS_WINDOW_MS] is left full screen until it closes: it opens "beside"
+     * itself again each time it starts over there.
+     */
+    private const val MAX_JUMPS = 3
+    private const val JUMPS_WINDOW_MS = 20_000L
+
+    /**
+     * How long an app left full screen with such a screen is kept there after
+     * it closed, for the next one it opens from it (Waze: the voice screen,
+     * then the search results) to come up first.
      */
     private const val OWN_SCREEN_SETTLE_MS = 2_500L
 
@@ -1150,19 +1157,18 @@ internal object EmbeddedApp {
                 return false
             }
             val front = WindowListing.fullscreenInFront(listing, windowPackage, context.packageName) ?: return false
-            // Waze opens its voice prompt, a report or a permission request full
-            // screen by itself. Moved back onto the tile meanwhile, that screen
-            // started over and the voice prompt went away unheard: it is used
-            // full screen, and the app comes back onto its tile once it closes.
+            // Waze opens its voice prompt, its search, a report or a permission
+            // request full screen by itself. Everything belongs in the tile (its
+            // search gets no keyboard anywhere else), so that screen goes back at
+            // once, and starts over there. Only a screen that keeps jumping out
+            // again after each move is left full screen until it closes, so the
+            // two never fight for it.
             val own = front.taskId?.let { WindowListing.ownScreenOf(listing, it) }
-            if (own != null && WindowListing.isTypingScreen(own)) {
-                // Its search, though, is for typing, and torn off the tile's display
-                // it gets no keyboard ("Où va-t-on ?" dead under the finger): back onto
-                // the tile at once, where the keyboard comes up.
+            if (own != null && !keepsJumpingOut(front.taskId)) {
                 waitingFor = null
                 ownClosedAt = 0L
                 voiceAsked = false
-                Log.i(TAG, "$packageName full screen with its search (task ${front.taskId}): back onto its tile for the keyboard")
+                Log.i(TAG, "$packageName full screen with ${own.substringAfterLast('.')} (task ${front.taskId}): back onto its tile")
                 launch(vd)
                 return false
             }
@@ -1189,6 +1195,24 @@ internal object EmbeddedApp {
             voiceAsked = false
             Log.i(TAG, "$packageName came full screen by itself (task ${front.taskId}): back onto its tile")
             launch(vd)
+            return false
+        }
+
+        /** The task last moved back with a screen of its own up, and when ([keepsJumpingOut]). */
+        private var jumpedTask: Int? = null
+        private val jumpedAt = ArrayDeque<Long>()
+
+        /**
+         * Whether task [taskId] came back full screen [MAX_JUMPS] times within
+         * [JUMPS_WINDOW_MS] with a screen of its own up: moved onto the tile, that
+         * screen opened "beside" itself again. Counts this time as a move.
+         */
+        private fun keepsJumpingOut(taskId: Int?): Boolean {
+            val now = SystemClock.elapsedRealtime()
+            if (taskId != jumpedTask) { jumpedTask = taskId; jumpedAt.clear() }
+            while (jumpedAt.isNotEmpty() && now - jumpedAt.first() > JUMPS_WINDOW_MS) jumpedAt.removeFirst()
+            if (jumpedAt.size >= MAX_JUMPS) return true
+            jumpedAt.addLast(now)
             return false
         }
 
