@@ -155,8 +155,11 @@ object PhoneLink {
     private const val KEY_PHONES = "phones"
     private const val CONNECT_TIMEOUT_MS = 3_000
     private const val HANDSHAKE_TIMEOUT_MS = 10_000
-    private const val READ_TIMEOUT_MS = 45_000
+    /** Two missed pongs: the phone is gone, and the OBD relay and the tiles should know sooner than after three. */
+    private const val READ_TIMEOUT_MS = 30_000
     private const val PING_EVERY_MS = 15_000L
+    /** A send stuck this long is in a socket the phone no longer reads (Wi-Fi power save, out of range): the link is closed. */
+    private const val SEND_STALL_MS = 5_000L
     /** How often to look for the phone: quickly while a pairing code is on screen. */
     private const val RETRY_MS = 10_000L
     /**
@@ -222,6 +225,9 @@ object PhoneLink {
     // Everything sent goes through one coroutine, so it reaches the phone in the order it was sent.
     private val outbox = Channel<Pair<LinkSession, LinkMessage>>(OUTBOX_SIZE)
 
+    /** The link a send has been stuck in since when (uptime), for the stall watchdog; null between sends. */
+    @Volatile private var sending: Pair<LinkSession, Long>? = null
+
     /** A link for the pending pairing, opened while another phone's link was up. */
     private class Handover(val gateway: InetAddress, val link: LinkSession, val phone: PairedPhone)
     private val handover = AtomicReference<Handover?>(null)
@@ -242,7 +248,16 @@ object PhoneLink {
                 override fun onLost(network: Network) = wake.update { it + 1 }
             }
         )
-        scope.launch { for ((link, message) in outbox) link.sendOrClose(message) }
+        scope.launch {
+            for ((link, message) in outbox) {
+                sending = link to android.os.SystemClock.elapsedRealtime()
+                try {
+                    link.sendOrClose(message)
+                } finally {
+                    sending = null
+                }
+            }
+        }
         scope.launch { run(app) }
     }
 
@@ -453,6 +468,19 @@ object PhoneLink {
                 send(Ping)
             }
         }
+        // A socket the phone stopped reading takes a send with it, and every message behind it
+        // (the OBD relay's bytes first): closed, so the reader and the writer both let go.
+        val watchdog = scope.launch {
+            while (isActive) {
+                delay(1_000)
+                val (stuckIn, since) = sending ?: continue
+                if (stuckIn === link && android.os.SystemClock.elapsedRealtime() - since > SEND_STALL_MS) {
+                    Log.i(TAG, "link stalled: a send took over ${SEND_STALL_MS / 1000} s")
+                    link.close()
+                    break
+                }
+            }
+        }
         // While a pairing code is on screen, keep asking the phone whether it now knows it.
         val prober = if (isPending) null else scope.launch { probePending(gateway, link) }
         // Where the car stops, for the phone's "where's my car".
@@ -480,6 +508,7 @@ object PhoneLink {
             Log.i(TAG, "link ended: ${e.message}")
         } finally {
             pinger.cancel()
+            watchdog.cancel()
             prober?.cancel()
             whereabouts.cancel()
             drives.cancel()

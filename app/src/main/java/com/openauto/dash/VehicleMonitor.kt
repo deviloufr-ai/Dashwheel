@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Keeps the car link working for the whole process rather than for one
@@ -121,9 +122,10 @@ internal object VehicleMonitor {
      */
     fun usbChanged() {
         if (!started) return
-        scope.launch {
+        scope.launch(Dispatchers.IO) {
             // The device is listed a moment after the broadcast, and the attach dialog saves it.
             delay(USB_SETTLE_MS)
+            ObdBluetoothManager.refreshAdapter()
             if (ObdBluetoothManager.route() == ObdRoute.AUTO) {
                 val state = ObdBluetoothManager.connectionState.value
                 val wrongSide = state == ObdConnectionState.CONNECTED && ObdBluetoothManager.viaUsb.value != ObdBluetoothManager.usesUsb()
@@ -155,21 +157,22 @@ internal object VehicleMonitor {
         if (DeepObdSource.owns()) return
         if (CarPower.ignition.value == false) return
         if (!ObdBluetoothManager.connectionState.value.isIdle) return
+        // Which way to dial asks the USB service (and the phone's offer): off the main thread, like the dial itself.
+        scope.launch(Dispatchers.IO) { dialSaved(context) }
+    }
+
+    private suspend fun dialSaved(context: Context) {
         // On a cable: nothing to pair, and Android's USB access was given when it was plugged in or on Connect.
-        if (ObdBluetoothManager.usesUsb()) {
-            scope.launch { ObdBluetoothManager.connect(ObdBluetoothManager.savedDeviceAddress().orEmpty()) }
-            return
-        }
         // Through the phone: its companion holds the adapter, nothing to pair or allow here.
-        if (ObdBluetoothManager.usesPhone()) {
-            scope.launch { ObdBluetoothManager.connect(ObdBluetoothManager.savedDeviceAddress().orEmpty()) }
+        if (ObdBluetoothManager.usesUsb() || ObdBluetoothManager.usesPhone()) {
+            ObdBluetoothManager.connect(ObdBluetoothManager.savedDeviceAddress().orEmpty())
             return
         }
         val saved = ObdBluetoothManager.savedDeviceAddress() ?: return
         val missingPerms = requiredBluetoothPermissions().any {
             ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED
         }
-        if (!missingPerms) scope.launch { ObdBluetoothManager.connect(saved) }
+        if (!missingPerms) ObdBluetoothManager.connect(saved)
     }
 
     /**
@@ -197,13 +200,24 @@ internal object VehicleMonitor {
      */
     private suspend fun followPhoneOffer() {
         ObdBluetoothManager.setContext(appContext ?: return)
-        PhoneObd.offer.map { it != null }.distinctUntilChanged().collect {
-            if (ObdBluetoothManager.route() != ObdRoute.AUTO) return@collect
-            val state = ObdBluetoothManager.connectionState.value
-            val wrongSide = state == ObdConnectionState.CONNECTED && ObdBluetoothManager.viaPhone.value != ObdBluetoothManager.usesPhone()
-            if (wrongSide) ObdBluetoothManager.disconnect()
-            if (redials(foreground.value || secondScreen.value, CarPower.ignition.value)) connectSaved()
-        }
+        // Also looked at when a link comes up: an attempt on the unit's side that was under way
+        // when the phone offered the adapter would otherwise end on the wrong side and stay there,
+        // both radios on one adapter, until the next drop.
+        var offered = PhoneObd.offer.value != null
+        combine(
+            PhoneObd.offer.map { it != null }.distinctUntilChanged(),
+            ObdBluetoothManager.connectionState.map { it == ObdConnectionState.CONNECTED }.distinctUntilChanged()
+        ) { o, c -> o to c }
+            .distinctUntilChanged()
+            .collect { (nowOffered, connected) ->
+                val offerChanged = nowOffered != offered
+                offered = nowOffered
+                if (ObdBluetoothManager.route() != ObdRoute.AUTO) return@collect
+                val wrongSide = connected && withContext(Dispatchers.IO) { ObdBluetoothManager.viaPhone.value != ObdBluetoothManager.usesPhone() }
+                if (!offerChanged && !wrongSide) return@collect
+                if (wrongSide) ObdBluetoothManager.disconnect()
+                if (redials(foreground.value || secondScreen.value, CarPower.ignition.value)) connectSaved()
+            }
     }
 
     private suspend fun pollWhileConnected() {
@@ -221,11 +235,14 @@ internal object VehicleMonitor {
                         delay(3000)
                         if (!DeepObdSource.owns()) AiMechanic.autoScan()
                     }
-                    while (true) {
-                        ObdBluetoothManager.poll()
-                        AiMechanic.watch(ObdBluetoothManager.data.value)
-                        CarCare.watch(ObdBluetoothManager.data.value)
-                        delay(POLL_MS)
+                    // Ten times a second: the rules and the saves run off the main thread.
+                    withContext(Dispatchers.Default) {
+                        while (true) {
+                            ObdBluetoothManager.poll()
+                            AiMechanic.watch(ObdBluetoothManager.data.value)
+                            CarCare.watch(ObdBluetoothManager.data.value)
+                            delay(POLL_MS)
+                        }
                     }
                 }
             }

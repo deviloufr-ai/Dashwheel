@@ -216,6 +216,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     // The link's state too: it flips at every dial while the adapter is out of
     // reach, and read here that would recompose the whole dashboard each time.
     val obdConnection = ObdBluetoothManager.connectionState.collectAsState()
+    val obdAdapter = ObdBluetoothManager.adapter.collectAsState()
     // Demo mode (Settings → Advanced) plays its own made-up tracks in place of the real session.
     val demoState = DemoMode.active.collectAsState()
     val demoOn by demoState
@@ -882,7 +883,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         // Roughly what the bars leave the grid.
         pageHeightDp = screenConfig.screenHeightDp * (if (ScreenShape.vertical) 0.9f else 0.8f) *
             if (half && ScreenShape.vertical) 1f - dockFraction.floatValue else 1f,
-        obdPaired = ObdBluetoothManager.canDial() || obdConnection.value == ObdConnectionState.CONNECTED,
+        obdPaired = obdAdapter.value.canDial || obdConnection.value == ObdConnectionState.CONNECTED,
         driverOnRight = CarProfileStore.current.driverOnRight,
         mapsDocked = half,
         dockApps = TemplatePlacer.dockApps(pages, appsByPackage.keys),
@@ -1065,9 +1066,13 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
 
     /** The adapter picker is a list to read: parked only. Reconnecting a saved one needs no picker. */
     fun openDevicePicker() = whenParked {
-        pairedDevices = ObdBluetoothManager.bondedDevices()
-        usbAdapters = UsbObd.attached(context)
-        showDevicePicker = true
+        // The paired list and the USB list come from the Bluetooth and USB services: off the main thread.
+        scope.launch {
+            val (paired, usb) = withContext(Dispatchers.IO) { ObdBluetoothManager.bondedDevices() to UsbObd.attached(context) }
+            pairedDevices = paired
+            usbAdapters = usb
+            showDevicePicker = true
+        }
     }
 
     fun connectSavedOrPick() {
@@ -1096,9 +1101,8 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         when {
             // Deep OBD makes the connection to the car itself: open it.
             DeepObdSource.owns() -> DeepObdSource.launch(context)
-            // On a cable: Android asks for access to it if needed, nothing to pair.
-            ObdBluetoothManager.usesUsb() -> connectObd()
-            ObdBluetoothManager.usesPhone() -> connectObd()
+            // On a cable: Android asks for access to it if needed, nothing to pair. Through the phone: nothing to pair either.
+            obdAdapter.value.usb || obdAdapter.value.phone -> connectObd()
             else -> ensureBluetooth { connectSavedOrPick() }
         }
     }

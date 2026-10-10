@@ -9,13 +9,19 @@ import android.content.Context
 import android.os.SystemClock
 import android.util.Log
 import androidx.annotation.StringRes
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -105,6 +111,38 @@ object ObdBluetoothManager {
     private val commandMutex = Mutex()
 
     private var appContext: Context? = null
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /**
+     * What the settings and the tiles say about the adapter. Looked up off the
+     * main thread ([refreshAdapter]): the name of a paired device and the USB
+     * list come from the Bluetooth and USB services, which can hold a call for
+     * seconds while the unit's Bluetooth is half down (restarted around sleep),
+     * and asked from a composable at each flip of the link that froze the screen.
+     */
+    data class AdapterInfo(
+        /** The saved adapter's name (or address when no longer paired); null with none saved. */
+        val name: String? = null,
+        val usb: Boolean = false,
+        val phone: Boolean = false,
+        /** Something to dial: an adapter saved here, one the phone relays, one on a cable, or Deep OBD. */
+        val canDial: Boolean = false
+    )
+
+    private val _adapter = MutableStateFlow(AdapterInfo())
+    val adapter: StateFlow<AdapterInfo> = _adapter.asStateFlow()
+    private var adapterWatched = false
+
+    /** Looks the adapter up again, off the main thread: after a pick, a forget, a plug, an offer, or a link change. */
+    fun refreshAdapter() {
+        if (appContext == null) return
+        scope.launch {
+            val usb = usesUsb()
+            val phone = usesPhone()
+            _adapter.value = AdapterInfo(savedDeviceName(), usb, phone, DeepObdSource.owns() || usb || phone || savedDeviceAddress() != null)
+        }
+    }
+
     // Opened under commandMutex on IO, but closed by disconnect() from any thread.
     @Volatile private var socket: BluetoothSocket? = null
     @Volatile private var inputStream: InputStream? = null
@@ -240,6 +278,14 @@ object ObdBluetoothManager {
 
     fun setContext(context: Context) {
         appContext = context.applicationContext
+        if (adapterWatched) return
+        adapterWatched = true
+        // The adapter's name and route, kept fresh for the screens off the main thread.
+        scope.launch {
+            combine(_connectionState, PhoneObd.offer, DeepObdSource.source) { c, o, s -> Triple(c, o, s) }
+                .distinctUntilChanged()
+                .collect { refreshAdapter() }
+        }
     }
 
     /**
@@ -267,9 +313,11 @@ object ObdBluetoothManager {
             if (_connectionState.value == ObdConnectionState.CONNECTED) return true
             val gen = generation
             _connectionState.value = ObdConnectionState.CONNECTING
+            // Everything that touches the socket stays on IO: closing a Bluetooth socket is a
+            // call into the Bluetooth service too, and the caller may be the main thread.
             val ok = withContext(Dispatchers.IO) {
                 // No poll or fault-code scan may talk to the link being replaced.
-                commandMutex.withLock {
+                val opened = commandMutex.withLock {
                     runCatching {
                         when {
                             usesUsb() -> openUsb(byDriver)
@@ -284,26 +332,27 @@ object ObdBluetoothManager {
                         }
                         .getOrDefault(false)
                 }
-            }
-            synchronized(linkLock) {
-                // Disconnected while opening: that link is no longer wanted.
-                if (gen != generation) {
-                    closeQuietly()
-                    return false
+                synchronized(linkLock) {
+                    // Disconnected while opening: that link is no longer wanted.
+                    if (gen != generation) {
+                        closeQuietly()
+                        return@withContext false
+                    }
+                    if (!opened) closeQuietly() else {
+                        _lastError.value = null
+                        _phoneBlocking.value = false
+                    }
+                    // A demo started meanwhile owns the state; it hands back the real one when it ends.
+                    if (!DemoMode.isOn) _connectionState.value = if (opened) ObdConnectionState.CONNECTED else ObdConnectionState.ERROR
                 }
-                if (!ok) closeQuietly() else {
-                    _lastError.value = null
-                    _phoneBlocking.value = false
-                }
-                // A demo started meanwhile owns the state; it hands back the real one when it ends.
-                if (!DemoMode.isOn) _connectionState.value = if (ok) ObdConnectionState.CONNECTED else ObdConnectionState.ERROR
+                opened
             }
             return ok
         } finally {
             // Cancelled mid-attempt (the screen went away): a CONNECTING left
             // behind would stop every later retry.
             if (_connectionState.value == ObdConnectionState.CONNECTING) {
-                closeQuietly()
+                withContext(NonCancellable + Dispatchers.IO) { closeQuietly() }
                 _connectionState.value = ObdConnectionState.ERROR
             }
             connectLock.unlock()
@@ -716,6 +765,7 @@ object ObdBluetoothManager {
         appContext?.getSharedPreferences(PREFS, Context.MODE_PRIVATE)?.edit()?.remove(KEY_MAC)?.remove(KEY_CHANNEL)?.apply()
         appContext?.let { UsbObd.forget(it) }
         disconnect()
+        refreshAdapter()
     }
 
     fun saveDeviceAddress(address: String) {
@@ -728,6 +778,7 @@ object ObdBluetoothManager {
         // A Bluetooth adapter picked: a cable saved before no longer comes first.
         appContext?.let { UsbObd.forget(it) }
         if (route() == ObdRoute.USB) setRoute(ObdRoute.AUTO)
+        refreshAdapter()
     }
 
     /** The adapter on a USB cable picked as the one to use; Automatic then reaches it first. */

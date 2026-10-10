@@ -126,7 +126,7 @@ internal enum class AccessNeed(val icon: ImageVector, @StringRes val titleRes: I
         CONTACTS -> has(context, Manifest.permission.READ_CONTACTS)
         CALENDAR -> has(context, Manifest.permission.READ_CALENDAR)
         // An adapter to dial, here or through the phone, or none to wait for.
-        OBD -> ObdBluetoothManager.canDial() || SetupStore.noObd(context)
+        OBD -> ObdBluetoothManager.adapter.value.canDial || SetupStore.noObd(context)
     }
 
     private fun has(context: Context, permission: String) =
@@ -403,7 +403,8 @@ internal fun AccessRows(onPickObd: () -> Unit, onChanged: () -> Unit = {}) {
     }
     val obdConnection by ObdBluetoothManager.connectionState.collectAsState()
     // Read again when the link changes too: a pick in the adapter dialog starts a connection.
-    val obdUsable = obdConnection == ObdConnectionState.CONNECTED || remember(generation, obdConnection) { ObdBluetoothManager.canDial() }
+    LaunchedEffect(generation, obdConnection) { ObdBluetoothManager.refreshAdapter() }
+    val obdUsable = obdConnection == ObdConnectionState.CONNECTED || ObdBluetoothManager.adapter.collectAsState().value.canDial
     var noObd by remember { mutableStateOf(SetupStore.noObd(context)) }
     val location = rememberPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     val contacts = rememberPermission(Manifest.permission.READ_CONTACTS)

@@ -24,8 +24,13 @@ import java.io.OutputStream
  * phone projection, the phone's radio keeps the adapter answering.
  */
 internal object PhoneObd {
-    /** How long the phone may take to reach the adapter (three RFCOMM ways, ~12 s each at worst). */
-    private const val OPEN_TIMEOUT_MS = 40_000L
+    /**
+     * How long the phone may take to reach the adapter. The wait holds the OBD
+     * locks, so the Connect button does nothing meanwhile: kept short, and a
+     * phone that needs longer (a call, its own Bluetooth busy) is asked again
+     * at the next retry rather than waited for.
+     */
+    private const val OPEN_TIMEOUT_MS = 15_000L
 
     private val _offer = MutableStateFlow<String?>(null)
     /** The adapter the linked phone can relay (its name), or null: no phone, or none chosen there. */
@@ -60,6 +65,8 @@ internal object PhoneObd {
 
     /** The relayed link is no longer wanted: the phone lets the adapter go. */
     fun close() {
+        // An open still waiting for the phone's answer ends now: the link is no longer wanted.
+        opening?.complete(ObdRelayState(open = false, reason = "closed"))
         val relay = input ?: return
         input = null
         if (!relay.closed) PhoneLink.send(ObdClose)

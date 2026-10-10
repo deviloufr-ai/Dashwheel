@@ -325,7 +325,7 @@ object StartupBriefing {
 
     /** This start's fault-code scan (the mechanic runs it on connect), once its advice is in. */
     private suspend fun engine(startedAt: Long): AiMechanic.State? {
-        if (ObdBluetoothManager.savedDeviceAddress() == null && !ObdBluetoothManager.usesUsb()) return null
+        if (ObdBluetoothManager.savedDeviceAddress() == null && !withContext(Dispatchers.IO) { ObdBluetoothManager.usesUsb() }) return null
         // Codes from before the car was switched off don't count: wait for this start's scan.
         if (lastScanAt < startedAt - FRESH_SCAN_MS) {
             val stale = AiMechanic.state.value

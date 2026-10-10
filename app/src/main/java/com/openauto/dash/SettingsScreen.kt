@@ -473,7 +473,7 @@ private fun ConnectionsPane(open: (Deep) -> Unit) {
 internal fun obdSummary(): String {
     val source by DeepObdSource.source.collectAsState()
     val connection by ObdBluetoothManager.connectionState.collectAsState()
-    val name = remember(connection) { ObdBluetoothManager.savedDeviceName() }
+    val name = ObdBluetoothManager.adapter.collectAsState().value.name
     return when {
         source == ObdSource.DEEPOBD -> stringResource(R.string.settings_obd_deepobd)
         name == null -> stringResource(R.string.settings_obd_none)
@@ -539,8 +539,10 @@ private fun ObdAdapterRow(onPickObd: () -> Unit) {
     val connection by ObdBluetoothManager.connectionState.collectAsState()
     // Read again when the link changes: a pick made in the picker connects it.
     var forgotten by remember { mutableIntStateOf(0) }
-    val name = remember(connection, forgotten) { ObdBluetoothManager.savedDeviceName() }
-    val usb = remember(connection, forgotten) { ObdBluetoothManager.usesUsb() }
+    val adapter by ObdBluetoothManager.adapter.collectAsState()
+    LaunchedEffect(connection, forgotten) { ObdBluetoothManager.refreshAdapter() }
+    val name = adapter.name
+    val usb = adapter.usb
     val tap = rememberTapFeedback()
     Row(
         modifier = Modifier

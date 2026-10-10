@@ -143,7 +143,7 @@ internal fun rememberAvailableSources(): Set<WidgetSource> {
     val access = shellAccess()
     val online = remember { hasInternet(context) }
     return buildSet {
-        if (obd == ObdConnectionState.CONNECTED || ObdBluetoothManager.savedDeviceAddress() != null || ObdBluetoothManager.usesUsb()) add(WidgetSource.OBD)
+        if (obd == ObdConnectionState.CONNECTED || ObdBluetoothManager.adapter.value.canDial) add(WidgetSource.OBD)
         if (phone is PhoneLinkState.Connected) add(WidgetSource.PHONE)
         if (online) add(WidgetSource.INTERNET)
         if (access.root) add(WidgetSource.ROOT)

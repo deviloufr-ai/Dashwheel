@@ -424,7 +424,7 @@ object DashboardStore {
             // Upright (720x1280), the Maps dock takes the top or bottom half instead.
             pageWidthDp = if (ScreenShape.vertical) 720f else if (half) 640f else 1280f,
             pageHeightDp = if (ScreenShape.vertical) (if (half) 560f else 1120f) else 576f,
-            obdPaired = ObdBluetoothManager.canDial(),
+            obdPaired = ObdBluetoothManager.adapter.value.canDial,
             driverOnRight = CarProfileStore.current.driverOnRight,
             mapsDocked = half,
             dockApps = emptyList(),

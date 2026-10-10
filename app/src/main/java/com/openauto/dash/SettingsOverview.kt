@@ -223,7 +223,7 @@ private fun IconBadge(icon: ImageVector, tint: Color, size: Dp) {
 private fun ObdCard(modifier: Modifier, onClick: () -> Unit) {
     val source by DeepObdSource.source.collectAsState()
     val connection by ObdBluetoothManager.connectionState.collectAsState()
-    val name = remember(connection) { ObdBluetoothManager.savedDeviceName() }
+    val name = ObdBluetoothManager.adapter.collectAsState().value.name
     val linked = connection == ObdConnectionState.CONNECTED
     val deep = source == ObdSource.DEEPOBD
     StatusCard(
@@ -248,7 +248,7 @@ private fun ObdCard(modifier: Modifier, onClick: () -> Unit) {
 private fun obdValue(): String {
     val source by DeepObdSource.source.collectAsState()
     val connection by ObdBluetoothManager.connectionState.collectAsState()
-    val name = remember(connection) { ObdBluetoothManager.savedDeviceName() }
+    val name = ObdBluetoothManager.adapter.collectAsState().value.name
     return when {
         source == ObdSource.DEEPOBD -> stringResource(R.string.settings_ov_obd_deep)
         name != null -> name
