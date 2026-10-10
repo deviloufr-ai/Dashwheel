@@ -32,7 +32,8 @@ import kotlin.math.sqrt
  * Only while the navigation app runs, only while a second screen is linked,
  * and never while the in-app navigation guides (it has the real route). A
  * destination typed into Maps is read off its route preview ([MapsScreen]);
- * one typed into Waze stays unknown: no shadow then.
+ * one typed into Waze is read from Waze's own files with root
+ * ([WazeDestination]), else off its preview like Maps.
  */
 internal object ShadowRoute {
     private const val TAG = "ShadowRoute"

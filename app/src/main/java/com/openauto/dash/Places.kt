@@ -197,7 +197,7 @@ internal object NavHandoff {
         private set
 
     /** Where guidance was last started to, for the second screen's shadow route ([ShadowRoute]). */
-    data class Target(val name: String, val lat: Double?, val lng: Double?, val query: String?, val at: Long)
+    data class Target(val name: String, val lat: Double?, val lng: Double?, val query: String?, val at: Long, val fromApp: Boolean = false)
 
     private val _handedOff = kotlinx.coroutines.flow.MutableStateFlow<Target?>(null)
     val handedOff: kotlinx.coroutines.flow.StateFlow<Target?> = _handedOff
@@ -211,7 +211,14 @@ internal object NavHandoff {
         if (name.isBlank()) return
         val current = _handedOff.value
         if (current?.query == name && System.currentTimeMillis() - current.at < 10 * 60_000L) return
+        // The app's own records ([WazeDestination]) know better than words off its screen.
+        if (current?.fromApp == true && NavDirections.running.value != null) return
         _handedOff.value = Target(name, null, null, name, System.currentTimeMillis())
+    }
+
+    /** A destination read from the navigation app's own records ([WazeDestination]), with its exact position. */
+    fun fromApp(name: String, lat: Double, lng: Double) {
+        _handedOff.value = Target(name, lat, lng, null, System.currentTimeMillis(), fromApp = true)
     }
 
     private fun heading(to: String, lat: Double? = null, lng: Double? = null, query: String? = null) {
