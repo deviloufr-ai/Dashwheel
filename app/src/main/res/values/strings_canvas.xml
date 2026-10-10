@@ -19,6 +19,8 @@
     <string name="canvas_when_parked">Parked</string>
     <string name="canvas_when_driving">Driving</string>
     <string name="canvas_when_fault">Engine fault</string>
+    <string name="canvas_when_navigating">Navigating</string>
+    <string name="canvas_when_low_fuel">Low fuel</string>
     <string name="canvas_tab_add">Add</string>
     <string name="canvas_tab_remove">Remove dashboard</string>
     <string name="canvas_tab_done">Done</string>

@@ -1,6 +1,8 @@
 package com.openauto.dash
 
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.platform.ViewConfiguration
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 
 /*
@@ -43,4 +45,20 @@ object DashSize {
     val Bar = 64.dp
     /** A row of the bar's menus. */
     val MenuRow = 60.dp
+    /**
+     * What a finger hits on the dashboard, however small the button is drawn:
+     * the Android Automotive size for controls used while driving. Taps just
+     * outside a smaller button still reach it ([carTouchConfiguration]); the
+     * drawing and the layout stay as they are.
+     */
+    val TouchDriving = 76.dp
+}
+
+/**
+ * [base] with [DashSize.TouchDriving] hit areas: Compose widens the touch
+ * bounds of anything smaller, without moving a pixel, and a tap that lands
+ * inside a neighbour still goes to the neighbour.
+ */
+internal fun carTouchConfiguration(base: ViewConfiguration): ViewConfiguration = object : ViewConfiguration by base {
+    override val minimumTouchTargetSize: DpSize = DpSize(DashSize.TouchDriving, DashSize.TouchDriving)
 }

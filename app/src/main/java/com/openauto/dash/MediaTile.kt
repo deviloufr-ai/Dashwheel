@@ -172,7 +172,7 @@ internal fun MediaCard(
                         }
                         Text(
                             text = stringResource(if (!mediaState.isPlaying && mediaState.hasMedia && mediaState.title.isNotBlank()) R.string.info_paused else R.string.info_now_playing),
-                            color = DashColors.Accent,
+                            color = DashColors.AccentInk,
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.5.sp

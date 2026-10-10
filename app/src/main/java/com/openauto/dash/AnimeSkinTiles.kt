@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -137,7 +138,7 @@ private fun AnimeEmptySticker(title: String, hint: String, onTap: (() -> Unit)?,
                 ) {
                     BoxWithConstraints(Modifier.fillMaxSize().padding(12.dp), contentAlignment = Alignment.Center) {
                         val titleSize = min(maxHeight.value * 0.24f, maxWidth.value / (title.length.coerceAtLeast(4) * 0.42f)).coerceIn(15f, 64f)
-                        val hintSize = (titleSize * 0.38f).coerceIn(12f, 20f)
+                        val hintSize = (titleSize * 0.38f).coerceIn(14f, 20f)
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             AnimeText(title.uppercase(), animeComic(titleSize, t.onPaper), maxLines = 2, align = TextAlign.Center)
                             Spacer(Modifier.height(4.dp))
@@ -409,7 +410,7 @@ private fun AnimeLiveTag(env: SkinTileEnv, modifier: Modifier) {
  */
 @Composable
 private fun AnimeRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env.obdData, env.obdConnection)
+    val fuel = rememberFuel(env)
     if (fuel == null) {
         StandardSkinnedTile(item, env)
         return
@@ -420,7 +421,9 @@ private fun AnimeRange(item: DashboardItem, env: SkinTileEnv) {
     val fuelWord = stringResource(if (low) R.string.skin_anime_fuel_low else R.string.skin_anime_fuel)
     val toGo = stringResource(R.string.skin_anime_to_go)
     val connected = env.obdConnection == ObdConnectionState.CONNECTED
-    val coolant = if (connected) coolantChip(env.obdData.coolantTempC, units) else null
+    // The coolant temperature only, not every OBD sample (the revs move several times a second).
+    val coolantC by remember(env) { derivedStateOf { env.obdData.coolantTempC } }
+    val coolant = if (connected) coolantChip(coolantC, units) else null
     BoxWithConstraints(Modifier.fillMaxSize().padding(TILE_PAD)) {
         val chips = buildList {
             add(AnimeChipSpec((if (fuel.percentEstimated) "≈" else "") + "${fuel.percent}%", fuelWord, if (low) DashColors.Warning else t.mint, pop = low))

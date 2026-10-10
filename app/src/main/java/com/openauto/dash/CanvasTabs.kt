@@ -84,6 +84,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
@@ -123,7 +124,11 @@ internal enum class TabTrigger(@StringRes val labelRes: Int) {
     /** As the car sets off. */
     DRIVING(R.string.canvas_when_driving),
     /** A fault code the car had not reported before. */
-    ENGINE_FAULT(R.string.canvas_when_fault)
+    ENGINE_FAULT(R.string.canvas_when_fault),
+    /** Google Maps, Waze or the built-in guidance starts a route. */
+    NAVIGATING(R.string.canvas_when_navigating),
+    /** The range falls to [LowFuel.WARN_KM], the moment the low fuel warning is spoken. */
+    LOW_FUEL(R.string.canvas_when_low_fuel)
 }
 
 /**
@@ -391,6 +396,21 @@ internal fun FollowTabTriggers(tabs: List<CanvasTab>, onTrigger: (TabTrigger) ->
     if (TabTrigger.ENGINE_FAULT in wanted) {
         LaunchedEffect(Unit) {
             AiMechanic.newFaultAt.drop(1).collectLatest { if (it > 0L) fire(TabTrigger.ENGINE_FAULT) }
+        }
+    }
+    if (TabTrigger.NAVIGATING in wanted) {
+        LaunchedEffect(Unit) {
+            // A route already running at power-up keeps Home, as every other moment does.
+            NavDirections.state.map { it.active }.distinctUntilChanged().drop(1)
+                .collect { if (it) fire(TabTrigger.NAVIGATING) }
+        }
+    }
+    if (TabTrigger.LOW_FUEL in wanted) {
+        LaunchedEffect(Unit) {
+            // The car's own range, as the spoken warning reads it (CarCare): once on the way down.
+            combine(McuReader.fuelPercent, McuReader.rangeKm, ObdBluetoothManager.data) { percent, range, obd ->
+                carFuelInfo(percent, obd.fuelLevelPct, range)?.rangeKm.let { it != null && it in 1..LowFuel.WARN_KM }
+            }.distinctUntilChanged().drop(1).collect { if (it) fire(TabTrigger.LOW_FUEL) }
         }
     }
 }
@@ -851,7 +871,7 @@ private fun CrossPicker(others: List<CanvasTab>, place: Int, label: String, page
                 contentAlignment = Alignment.Center
             ) {
                 when {
-                    here -> Text(label, color = DashColors.Accent, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(horizontal = 6.dp))
+                    here -> Text(label, color = DashColors.AccentInk, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(horizontal = 6.dp))
                     taken != null -> Text(taken.label(context), color = DashColors.TextSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(horizontal = 6.dp))
                     p in pagesWithTiles -> Box(Modifier.size(8.dp).clip(CircleShape).background(DashColors.Muted))
                 }

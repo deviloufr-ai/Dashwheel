@@ -33,7 +33,7 @@
     <string name="apps_kind_compass">Kompas</string>
     <string name="apps_kind_compass_blurb">Koers, hoogte en GPS-snelheid</string>
     <string name="apps_kind_trip">Boordcomputer</string>
-    <string name="apps_kind_trip_blurb">Afstand, tijd, gemiddelde en topsnelheid</string>
+    <string name="apps_kind_trip_blurb">Deze rit en sinds de laatste tankbeurt, met brandstof en kosten</string>
     <string name="apps_kind_gforce">G-kracht</string>
     <string name="apps_kind_gforce_blurb">g in bochten en bij remmen</string>
     <string name="apps_kind_parking">Parkeerplek</string>

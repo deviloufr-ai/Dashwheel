@@ -232,14 +232,22 @@ internal object EmbeddedApp {
     /**
      * What [packageName]'s tile shows now, no wider than [maxWidth] (the same
      * shape), for reading its words ([TileText]); null without a picture.
-     * Main thread. The caller recycles it.
+     * Main thread. Drawn into [reuse] when it has the right size (no new
+     * 1.6 MB picture every read), else into a new one; the caller recycles
+     * whichever it no longer needs.
      */
-    fun tileBitmap(packageName: String, maxWidth: Int): android.graphics.Bitmap? {
+    fun tileBitmap(packageName: String, maxWidth: Int, reuse: android.graphics.Bitmap? = null): android.graphics.Bitmap? {
         val view = tileViews[packageName]?.get() ?: return null
         if (!view.isAvailable || view.width <= 0 || view.height <= 0) return null
         val scale = minOf(1f, maxWidth.toFloat() / view.width)
         val w = (view.width * scale).toInt().coerceAtLeast(1)
         val h = (view.height * scale).toInt().coerceAtLeast(1)
+        if (reuse != null && !reuse.isRecycled && reuse.isMutable && reuse.width == w && reuse.height == h &&
+            reuse.config == android.graphics.Bitmap.Config.ARGB_8888
+        ) {
+            // Cleared first, as a new one starts: a copy that fails leaves it blank, not the last frame.
+            return runCatching { reuse.eraseColor(0); view.getBitmap(reuse) }.getOrNull()
+        }
         return runCatching { view.getBitmap(w, h) }.getOrNull()
     }
 

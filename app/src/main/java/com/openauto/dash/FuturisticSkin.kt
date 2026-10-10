@@ -604,13 +604,13 @@ private fun FutBarClock(clock: String, showDate: Boolean) {
         FutText(digits, futNum(28f), overflow = TextOverflow.Clip)
         if (amPm != null) {
             Spacer(Modifier.width(4.dp))
-            FutText(amPm.uppercase(locale), futCaps(12f, DashColors.Accent))
+            FutText(amPm.uppercase(locale), futCaps(14f, DashColors.AccentInk))
         }
         if (showDate) {
             val now = rememberNow(60_000L)
             val fmt = rememberDateFormat("EEEdMMM", best = true)
             Spacer(Modifier.width(14.dp))
-            FutText(fmt.format(now).uppercase(locale), futCaps(13f))
+            FutText(fmt.format(now).uppercase(locale), futCaps(14f))
         }
     }
 }
@@ -677,7 +677,7 @@ private fun FutLinkStatus(state: ObdConnectionState, onConnect: () -> Unit, name
                     }
             )
             Spacer(Modifier.width(8.dp))
-            FutText(text, futCaps(13f, ink, FontWeight.SemiBold))
+            FutText(text, futCaps(14f, ink, FontWeight.SemiBold))
             if (state == ObdConnectionState.ERROR) {
                 Spacer(Modifier.width(4.dp))
                 FutText("!", futCaps(14f, color, FontWeight.Black))

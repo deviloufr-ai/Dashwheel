@@ -352,7 +352,7 @@ private fun AlertStyleDialog(kind: AlertKind, onDismiss: () -> Unit) {
         },
         confirmButton = {
             TextButton(onClick = { AlertPreview.show(context, kind) }) {
-                Text(stringResource(R.string.alert_try), color = DashColors.Accent)
+                Text(stringResource(R.string.alert_try), color = DashColors.AccentInk)
             }
         },
         dismissButton = {

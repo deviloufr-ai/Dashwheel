@@ -69,6 +69,35 @@ data class NavState(
     }
 }
 
+/** Which way the next turn goes; [sign] is -1 left, 1 right, 0 ahead. */
+internal enum class TurnSide(val sign: Int) { LEFT(-1), RIGHT(1), AHEAD(0) }
+
+private val RIGHT_WORDS = Regex("""\b(right|droite|rechts|derecha|destra|direita|prawo)|направо|вправо|правее""", RegexOption.IGNORE_CASE)
+private val LEFT_WORDS = Regex("""\b(left|gauche|links|izquierda|sinistra|esquerda|lewo)|налево|влево|левее""", RegexOption.IGNORE_CASE)
+
+/**
+ * The next turn's side, the same in every look: the navigation's own
+ * [NavState.maneuver] when it names a side, else the instruction's words in any
+ * of the app's languages. Words are matched from their start, so "Brighton Rd"
+ * is not a right turn; the first side said wins ("Turn left, then right").
+ */
+internal fun NavState.turnSide(): TurnSide = when (maneuver) {
+    "LEFT" -> TurnSide.LEFT
+    "RIGHT" -> TurnSide.RIGHT
+    "STRAIGHT", "ARRIVE" -> TurnSide.AHEAD
+    else -> turnSideOf(instruction)
+}
+
+internal fun turnSideOf(instruction: String): TurnSide {
+    val r = RIGHT_WORDS.find(instruction)?.range?.first
+    val l = LEFT_WORDS.find(instruction)?.range?.first
+    return when {
+        r != null && (l == null || r < l) -> TurnSide.RIGHT
+        l != null -> TurnSide.LEFT
+        else -> TurnSide.AHEAD
+    }
+}
+
 object NavDirections {
     /** Navigation apps whose turn-by-turn notification we read. */
     val PACKAGES = setOf("com.google.android.apps.maps", "com.waze")

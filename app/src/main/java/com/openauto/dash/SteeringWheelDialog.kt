@@ -414,7 +414,7 @@ private fun SilentTips() {
             R.string.wheel_silent_tip_other
         ).forEachIndexed { i, tip ->
             Row {
-                Text("${i + 1}.", color = DashColors.Accent, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodySmall, modifier = Modifier.width(20.dp))
+                Text("${i + 1}.", color = DashColors.AccentInk, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodySmall, modifier = Modifier.width(20.dp))
                 Text(stringResource(tip), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
             }
         }

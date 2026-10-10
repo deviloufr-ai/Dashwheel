@@ -157,10 +157,10 @@ internal fun PageFullDialog(other: Int?, onAddTo: (Int) -> Unit, onDismiss: () -
         confirmButton = {
             if (other != null) {
                 TextButton(onClick = { onAddTo(other) }) {
-                    Text(stringResource(R.string.apps_add_title, pageName(other)), color = DashColors.Accent)
+                    Text(stringResource(R.string.apps_add_title, pageName(other)), color = DashColors.AccentInk)
                 }
             } else {
-                TextButton(onClick = onDismiss) { Text(stringResource(R.string.dash_got_it), color = DashColors.Accent) }
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.dash_got_it), color = DashColors.AccentInk) }
             }
         },
         dismissButton = {
@@ -405,7 +405,7 @@ private fun WidgetCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Filled.Check, contentDescription = null, tint = DashColors.Accent, modifier = Modifier.size(14.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text(stringResource(R.string.apps_on_dashboard), color = DashColors.Accent, style = MaterialTheme.typography.labelSmall, maxLines = 1)
+                    Text(stringResource(R.string.apps_on_dashboard), color = DashColors.AccentInk, style = MaterialTheme.typography.labelSmall, maxLines = 1)
                 }
             }
             Text(blurb, color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -479,7 +479,7 @@ private fun AppsTab(apps: List<AppEntry>, onPickApp: (AppEntry) -> Unit, onPickW
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.weight(1f)
                     )
-                    TextButton(onClick = { first = null }) { Text(stringResource(R.string.apps_pair_change), color = DashColors.Accent) }
+                    TextButton(onClick = { first = null }) { Text(stringResource(R.string.apps_pair_change), color = DashColors.AccentInk) }
                 }
             }
         }

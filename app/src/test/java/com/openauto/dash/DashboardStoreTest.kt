@@ -319,7 +319,10 @@ class DashboardStoreTest {
         val charts = listOf(WidgetDesign.TREND, WidgetDesign.PULSE, WidgetDesign.CONTOUR)
         assertTrue(cabins.none { it.isSignature })
         // The three charts draw no rows: a list widget would show its headline and nothing to read or tap.
-        val lists = setOf(BuiltinKind.QUICK_DIAL, BuiltinKind.NOTIFICATIONS, BuiltinKind.CALENDAR, BuiltinKind.OBD_DTC, BuiltinKind.FUEL_PRICES)
+        val lists = setOf(
+            BuiltinKind.QUICK_DIAL, BuiltinKind.NOTIFICATIONS, BuiltinKind.CALENDAR, BuiltinKind.OBD_DTC, BuiltinKind.FUEL_PRICES,
+            BuiltinKind.DRIVE_HISTORY
+        )
         // Time charted over the last minutes is a straight line.
         val clocks = setOf(BuiltinKind.CLOCK, BuiltinKind.BREAK_TIMER)
         BuiltinKind.entries.forEach { kind ->

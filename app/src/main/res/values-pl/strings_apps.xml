@@ -33,7 +33,7 @@
     <string name="apps_kind_compass">Kompas</string>
     <string name="apps_kind_compass_blurb">Kurs, wysokość i prędkość GPS</string>
     <string name="apps_kind_trip">Komputer pokładowy</string>
-    <string name="apps_kind_trip_blurb">Dystans, czas, średnia i maks. prędkość</string>
+    <string name="apps_kind_trip_blurb">Ta jazda i od ostatniego tankowania, z paliwem i kosztem</string>
     <string name="apps_kind_gforce">Przeciążenie G</string>
     <string name="apps_kind_gforce_blurb">g w zakrętach i przy hamowaniu</string>
     <string name="apps_kind_parking">Miejsce parkowania</string>

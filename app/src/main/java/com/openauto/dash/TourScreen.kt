@@ -488,7 +488,7 @@ private fun CardHead(step: TourStep, tips: List<TourStep>, readAloud: Boolean, o
             tip >= 0 -> stringResource(R.string.tour_tip, tip + 1, tips.size)
             else -> ""
         }
-        Text(kicker.uppercase(), color = DashColors.Accent, fontWeight = FontWeight.Bold, fontSize = 13.sp, letterSpacing = 2.sp)
+        Text(kicker.uppercase(), color = DashColors.AccentInk, fontWeight = FontWeight.Bold, fontSize = 13.sp, letterSpacing = 2.sp)
         if (tip >= 0) {
             Spacer(Modifier.width(10.dp))
             tips.forEachIndexed { i, _ ->

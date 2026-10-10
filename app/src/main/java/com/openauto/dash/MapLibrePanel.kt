@@ -163,6 +163,17 @@ fun MapLibrePanel(modifier: Modifier = Modifier, wallpaper: Boolean = false) {
     }
 
     var mapRef by remember { mutableStateOf<MapLibreMap?>(null) }
+    // On a page the pagers keep composed beside the one on screen nobody sees
+    // the map, yet a camera following the car redrew it every frame: it runs
+    // at [HIDDEN_FPS] there, and back at its own pace (uncapped, or the
+    // wallpaper's cap) as soon as the page starts sliding in ([LocalPageActive]).
+    // Paused or stopped it is not: a tile map put to sleep came back black.
+    val pageActive = LocalPageActive.current
+    LaunchedEffect(pageActive) {
+        mapView.setMaximumFps(if (!pageActive) HIDDEN_FPS else if (wallpaper) WALLPAPER_FPS else Int.MAX_VALUE)
+        if (pageActive) mapRef?.triggerRepaint()
+    }
+
     var navRoute by remember { mutableStateOf<NavigationMapRoute?>(null) }
     var route by remember { mutableStateOf<DirectionsRoute?>(null) }
     var destination by remember { mutableStateOf<Point?>(null) }
@@ -649,6 +660,14 @@ private fun followVehicle(lc: LocationComponent, wallpaper: MapView? = null, zoo
 
 /** The wallpaper map's frame cap: smooth enough for a car moving under it, half the work of 60. */
 private const val WALLPAPER_FPS = 30
+
+/**
+ * A map's frame cap on a page off screen. The cap is a sleep after each frame
+ * on the map's render thread, which lifting it does not cut short, and the
+ * main thread waits it out when the map's view goes: a tenth of a second at
+ * most, over by the time a sliding page shows much of the map.
+ */
+private const val HIDDEN_FPS = 10
 
 /**
  * Adds extruded 3D buildings to the vector basemap, tinted for its [light] or dark

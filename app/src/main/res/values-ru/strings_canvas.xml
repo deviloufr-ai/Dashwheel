@@ -19,6 +19,8 @@
     <string name="canvas_when_parked">На стоянке</string>
     <string name="canvas_when_driving">В пути</string>
     <string name="canvas_when_fault">Ошибка двигателя</string>
+    <string name="canvas_when_navigating">Навигация</string>
+    <string name="canvas_when_low_fuel">Мало топлива</string>
     <string name="canvas_tab_add">Добавить</string>
     <string name="canvas_tab_remove">Удалить панель</string>
     <string name="canvas_tab_done">Готово</string>

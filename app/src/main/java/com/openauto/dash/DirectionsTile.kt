@@ -158,7 +158,7 @@ internal fun DirectionsCard(
                 ) {
                     Text(
                         stringResource(R.string.info_directions_title),
-                        color = DashColors.Accent,
+                        color = DashColors.AccentInk,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.5.sp,
                         style = MaterialTheme.typography.labelMedium

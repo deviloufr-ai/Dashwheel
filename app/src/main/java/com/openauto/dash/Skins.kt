@@ -1,13 +1,17 @@
 package com.openauto.dash
 
 import android.content.Context
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 
 /*
@@ -140,6 +144,39 @@ internal fun SkinWindowFrame(modifier: Modifier) {
         DashSkin.RACING -> RacingWindowFrame(modifier)
         DashSkin.STANDARD -> Unit
     }
+}
+
+/**
+ * What a bare skin puts behind a widget it does not redraw, so a page keeps
+ * one look and the widget's words have something under them instead of the
+ * skin's scenery: the skin's own panel where it has one, else its card colour
+ * in its corners. Orbit and Horizon, whose widgets float on the scene, get a
+ * lighter veil of it.
+ */
+@Composable
+internal fun SkinFallbackPanel(content: @Composable () -> Unit) {
+    val panel = when (DashColors.Skin) {
+        DashSkin.RACING -> return RacingFallbackPanel(content)
+        DashSkin.ANIME -> return AnimeFallbackPanel(content)
+        DashSkin.FUTURISTIC -> Modifier.futPanel(DashColors.Accent).padding(6.dp)
+        DashSkin.SIMPLE -> Modifier.simpleGlass()
+        DashSkin.MODERN -> Modifier.modernGlass()
+        DashSkin.MOTORSPORT -> Modifier.msPanel()
+        DashSkin.TAPE_DECK -> Modifier.tapeDeckPanel().padding(4.dp)
+        DashSkin.ORBIT, DashSkin.HORIZON -> Modifier.plainSkinPanel(alpha = 0.55f)
+        DashSkin.COCKPIT -> Modifier.plainSkinPanel(alpha = 0.92f)
+        DashSkin.CANVAS, DashSkin.STANDARD -> Modifier
+    }
+    Box(Modifier.fillMaxSize().then(panel)) { content() }
+}
+
+/** The palette's card in the skin's tile corners, with its hairline rim. */
+@Composable
+private fun Modifier.plainSkinPanel(alpha: Float): Modifier {
+    val shape = skinChrome().shapes.medium
+    return clip(shape)
+        .background(DashColors.Card.copy(alpha = DashColors.Card.alpha * alpha), shape)
+        .border(1.dp, DashColors.Line, shape)
 }
 
 /**

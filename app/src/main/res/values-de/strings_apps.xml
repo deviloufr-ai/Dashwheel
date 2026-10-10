@@ -33,7 +33,7 @@
     <string name="apps_kind_compass">Kompass</string>
     <string name="apps_kind_compass_blurb">Kurs, Höhe und GPS-Tempo</string>
     <string name="apps_kind_trip">Bordcomputer</string>
-    <string name="apps_kind_trip_blurb">Strecke, Zeit, Ø- und Höchsttempo</string>
+    <string name="apps_kind_trip_blurb">Diese Fahrt und seit dem letzten Tanken, mit Kraftstoff und Kosten</string>
     <string name="apps_kind_gforce">G-Kraft</string>
     <string name="apps_kind_gforce_blurb">g in Kurven und beim Bremsen</string>
     <string name="apps_kind_parking">Parkplatz</string>

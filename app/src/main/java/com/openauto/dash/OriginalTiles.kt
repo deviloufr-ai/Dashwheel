@@ -114,7 +114,7 @@ internal fun OriginalMediaCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = stringResource(if (!mediaState.isPlaying && mediaState.hasMedia && mediaState.title.isNotBlank()) R.string.info_paused else R.string.info_now_playing),
-                        color = DashColors.Accent,
+                        color = DashColors.AccentInk,
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold
                     )
@@ -249,7 +249,7 @@ internal fun OriginalObdCard(
             ) {
                 Text(
                     stringResource(R.string.info_telemetry_title),
-                    color = DashColors.Accent,
+                    color = DashColors.AccentInk,
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.labelMedium
                 )

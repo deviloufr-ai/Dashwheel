@@ -1235,9 +1235,10 @@ private fun ChromeDial(
 private fun SpeedLcd(speed: Int?, caption: String, modifier: Modifier) {
     val ink = LcdInk
     val units = LocalUnits.current
+    val over = speedOver(speed)
     val color = when {
         speed == null -> ink.copy(alpha = 0.4f)
-        speed >= SPEED_WARNING_KMH -> DashColors.Warning
+        over -> DashColors.Warning
         else -> ink
     }
     BoxWithConstraints(modifier) {
@@ -1281,7 +1282,7 @@ private fun CockpitTelemetry(env: SkinTileEnv) {
     val speed = if (connected) d.speedKmh else null
     val rpm = if (connected) d.rpm else null
     val ink = LcdInk
-    val speedColor = if ((speed ?: 0) >= SPEED_WARNING_KMH) DashColors.Warning else ink
+    val speedColor = if (speedOver(speed)) DashColors.Warning else ink
     val coolant = if (connected && d.coolantTempC > 0) ((d.coolantTempC - 50f) / 80f) else null
     val fuelFrac = fuel?.let { it.percent / 100f }
     val volts = if (connected && d.voltage > 0.0) ((d.voltage - 8.0) / 8.0).toFloat() else null
@@ -1402,7 +1403,7 @@ private fun TelemetryTellTales(env: SkinTileEnv, speed: Int?, idle: Boolean, mod
             stringResource(R.string.cockpit_coolant)
         )
         TellTale(
-            Icons.Filled.Speed, if ((speed ?: 0) >= SPEED_WARNING_KMH) warn else null,
+            Icons.Filled.Speed, if (speedOver(speed)) warn else null,
             stringResource(R.string.cockpit_speed_warning)
         )
         if (idle) {
@@ -1424,7 +1425,7 @@ private fun CockpitSpeedHud(env: SkinTileEnv) {
     val source = speedSource(
         env.obdConnection == ObdConnectionState.CONNECTED, speed, stringResource(R.string.info_speed_no_signal).uppercase()
     )
-    val color = if ((speed ?: 0) >= SPEED_WARNING_KMH) DashColors.Warning else LcdInk
+    val color = if (speedOver(speed)) DashColors.Warning else LcdInk
     val words = dialWords()
     val units = LocalUnits.current
     val unitCaps = units.speedUnit.uppercase()
@@ -1713,19 +1714,6 @@ private fun VuMeter(level: () -> Float, channel: String, modifier: Modifier) {
 
 // --- Navigation ---------------------------------------------------------------------
 
-private val LEFT_WORDS = listOf("left", "gauche", "izquierda", "links", "sinistra", "esquerda", "налево", "левее")
-private val RIGHT_WORDS = listOf("right", "droite", "derecha", "rechts", "destra", "direita", "направо", "правее")
-
-/** -1 for a left turn, 1 for a right turn, 0 when the instruction does not say. */
-private fun turnSide(instruction: String): Int {
-    val s = instruction.lowercase()
-    return when {
-        LEFT_WORDS.any { it in s } -> -1
-        RIGHT_WORDS.any { it in s } -> 1
-        else -> 0
-    }
-}
-
 /** Distance to the manoeuvre in metres, when the notification gave one. */
 private fun metresTo(nav: NavState): Float? {
     val (value, unit) = nav.distanceParts
@@ -1854,7 +1842,7 @@ private fun NavReadout(nav: NavState, w: Dp, h: Dp) {
             }
         }
         Spacer(Modifier.width(10.dp))
-        TurnSignal(turnSide(nav.instruction), metres != null && metres < 300f, signal)
+        TurnSignal(nav.turnSide().sign, metres != null && metres < 300f, signal)
     }
 }
 
@@ -2193,7 +2181,7 @@ private fun CockpitWeather() {
  */
 @Composable
 private fun CockpitRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env.obdData, env.obdConnection)
+    val fuel = rememberFuel(env)
     if (fuel == null) {
         StandardSkinnedTile(item, env)
         return

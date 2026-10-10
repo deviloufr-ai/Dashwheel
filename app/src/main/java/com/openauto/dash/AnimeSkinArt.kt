@@ -81,15 +81,15 @@ internal const val ANIME_BURST_ASPECT = 1.15f
  * The speed in a yellow comic burst: pink numerals with an ink outline and
  * the unit (or [caption]) under them, over an ink star with a pink misprint
  * shadow. Over the speed warning the burst turns amber and the numerals
- * white. No reading shows a dash.
+ * ink, which reads on amber where white does not. No reading shows a dash.
  */
 @Composable
 internal fun AnimeSpeedBurst(speed: Int?, caption: String, modifier: Modifier) {
     val t = animeTones
     val units = LocalUnits.current
-    val warn = speed != null && speed >= SPEED_WARNING_KMH
+    val warn = speedOver(speed)
     val fill = if (warn) DashColors.Warning else t.yellow
-    val numColor = if (warn) Color.White else t.pink
+    val numColor = if (warn) t.ink else t.pink
     BoxWithConstraints(
         modifier.cachedDraw(fill, t) {
             val sh = size.minDimension * 0.04f

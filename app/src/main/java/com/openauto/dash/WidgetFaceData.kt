@@ -122,6 +122,7 @@ internal fun rememberWidgetFace(kind: BuiltinKind, env: SkinTileEnv): WidgetFace
     BuiltinKind.WEATHER_ALERTS -> weatherAlertsFace()
     BuiltinKind.ENGINE_TEMPS -> engineTempsFace()
     BuiltinKind.COMMUTE -> commuteFace()
+    BuiltinKind.DRIVE_HISTORY -> driveHistoryFace()
     BuiltinKind.LPG_TANK -> lpgTankFace()
     BuiltinKind.FILTER_CARE -> filterFace()
     BuiltinKind.WARMUP -> warmupFace(env)
@@ -250,7 +251,7 @@ private fun rangeFace(env: SkinTileEnv): WidgetFace {
     var showRangeFinder by remember { mutableStateOf(false) }
     if (showRangeFinder) RangeFinderDialog(onDismiss = { showRangeFinder = false })
     val u = LocalUnits.current
-    val fuel = rememberFuel(env.obdData, env.obdConnection) ?: return idleFace(
+    val fuel = rememberFuel(env) ?: return idleFace(
         Icons.Filled.LocalGasStation, BuiltinKind.RANGE.label, stringResource(R.string.design_range_unknown), u.distanceUnit,
         FaceAction(Icons.Filled.Tune, stringResource(R.string.vehicle_find_range_signal), primary = true, onClick = { showRangeFinder = true })
     )
@@ -406,7 +407,7 @@ private fun speedFace(env: SkinTileEnv): WidgetFace {
         value = speed?.let { u.speed(it).toString() } ?: "--", unit = u.speedUnit,
         caption = source,
         fraction = (speed ?: 0) / 200f,
-        alert = (speed ?: 0) >= SPEED_WARNING_KMH,
+        alert = speedOver(speed),
         number = speed?.let { u.speed(it).toFloat() },
         sign = SignKind.SPEED
     )
@@ -444,20 +445,34 @@ private fun tripFace(): WidgetFace {
     // Re-read each second so the elapsed time keeps moving while parked.
     rememberWallClock(1_000L).longValue
     val u = LocalUnits.current
-    val km = u.distance(trip.distanceM / 1000.0)
+    val rate = rememberFuelRate()
+    val a = TripMath.figures(trip.distanceM / 1000.0, trip.movingMs, rate.use, rate.price)
+    val b = rememberSinceFill(trip)
     val since = stringResource(R.string.info_trip_since, remember(trip.startedAt, u) { formatClock(trip.startedAt, u) })
+    // Since the fill-up as one row: the designs that list rows show it, the others keep this drive alone.
+    val fill = b.fillAt?.let {
+        val f = TripMath.figures(b.km, b.movingMs, rate.use, rate.price)
+        FaceRow(
+            stringResource(R.string.info_trip_since_fill),
+            listOfNotNull("${TripMath.figure(u.distance(f.km))} ${u.distanceUnit}", TripMath.litersText(f.liters), f.cost?.let { c -> money(c, rate.currency) })
+                .joinToString(", ")
+        )
+    }
     return WidgetFace(
         icon = Icons.Filled.Timeline,
         title = BuiltinKind.TRIP.label,
-        // A decimal only under 10: past that it ticked every 100 m while driving.
-        value = if (km < 10) fmt("%.1f", km) else km.roundToInt().toString(), unit = u.distanceUnit,
+        value = TripMath.figure(u.distance(a.km)), unit = u.distanceUnit,
         caption = since,
         reach = since,
-        stats = listOf(
+        // The first three as before, so a design that shows three still reads the same; the fuel after them.
+        stats = listOfNotNull(
             FaceStat(stringResource(R.string.info_trip_time), formatDuration(trip.elapsedMs)),
             FaceStat(stringResource(R.string.info_trip_average), u.speedText(trip.avgSpeedKmh)),
-            FaceStat(stringResource(R.string.info_trip_top), u.speedText(trip.maxSpeedKmh))
+            FaceStat(stringResource(R.string.info_trip_top), u.speedText(trip.maxSpeedKmh)),
+            FaceStat(stringResource(R.string.info_trip_fuel), TripMath.litersText(a.liters)),
+            a.cost?.let { FaceStat(stringResource(R.string.info_trip_cost), money(it, rate.currency)) }
         ),
+        rows = listOfNotNull(fill),
         actions = listOf(FaceAction(Icons.Filled.Refresh, stringResource(R.string.info_reset), onClick = { LocationFeed.resetTrip() }))
     )
 }
@@ -503,14 +518,17 @@ private fun parkingFace(): WidgetFace {
     UseLocationFeed()
     LaunchedEffect(Unit) { ParkingStore.load(context) }
     val spot by ParkingStore.spot.collectAsState()
+    // Read only once a spot is saved (the distance to it): with none, whether
+    // there is a fix is all the face shows, and it doesn't follow each fix.
     val location by LocationFeed.location.collectAsState()
+    val hasFix by LocationFeed.hasFix.collectAsState()
     // "Parked 5 min ago" moves by the minute.
     rememberWallClock(60_000L).longValue
     val s = spot ?: return idleFace(
         Icons.Filled.LocalParking, BuiltinKind.PARKING.label,
-        stringResource(if (location != null) R.string.info_parking_prompt else R.string.info_waiting_gps),
+        stringResource(if (hasFix) R.string.info_parking_prompt else R.string.info_waiting_gps),
         action = FaceAction(Icons.Filled.AddLocation, stringResource(R.string.info_parking_save), primary = true,
-            enabled = location != null, onClick = { location?.let { ParkingStore.save(context, it) } }),
+            enabled = hasFix, onClick = { LocationFeed.location.value?.let { ParkingStore.save(context, it) } }),
         sign = SignKind.PARKING
     )
     val here = location
@@ -710,11 +728,11 @@ private fun clockFace(): WidgetFace {
 
 @Composable
 private fun weatherFace(): WidgetFace {
-    val location by LocationFeed.location.collectAsState()
+    val hasFix by LocationFeed.hasFix.collectAsState()
     val u = LocalUnits.current
     val w = rememberWeather() ?: return idleFace(
         Icons.Filled.WbSunny, BuiltinKind.WEATHER.label,
-        stringResource(if (location == null) R.string.info_waiting_gps else R.string.info_weather_loading), u.tempUnit
+        stringResource(if (!hasFix) R.string.info_waiting_gps else R.string.info_weather_loading), u.tempUnit
     )
     return WidgetFace(
         icon = weatherIcon(w.code),
@@ -961,12 +979,14 @@ private fun warmupFace(env: SkinTileEnv): WidgetFace {
 @Composable
 private fun batteryFace(env: SkinTileEnv): WidgetFace {
     val car by CarProfileStore.profile.collectAsState()
-    val v = env.obdData.voltage
+    // The voltage and whether the engine runs, not every OBD sample (the revs move several times a second).
+    val v by remember(env) { derivedStateOf { env.obdData.voltage } }
+    val engineRuns by remember(env) { derivedStateOf { env.obdData.rpm > LiveWatch.RUNNING_RPM } }
     if (env.obdConnection != ObdConnectionState.CONNECTED) return obdIdle(BuiltinKind.BATTERY, env, "V")
     if (v < LiveWatch.MIN_PLAUSIBLE_V || v > LiveWatch.MAX_PLAUSIBLE_V) {
         return idleFace(kindIcon(BuiltinKind.BATTERY), BuiltinKind.BATTERY.label, stringResource(R.string.car_waiting_obd), "V")
     }
-    val running = env.obdData.rpm > LiveWatch.RUNNING_RPM
+    val running = engineRuns
     val call = batteryCall(v, running)
     return WidgetFace(
         icon = kindIcon(BuiltinKind.BATTERY),
@@ -1116,12 +1136,12 @@ private fun fuelPricesFace(): WidgetFace {
             FaceAction(Icons.Filled.LockOpen, stringResource(R.string.fuel_allow_location), primary = true, onClick = perm.request))
     }
     val error by FuelPriceRepo.error.collectAsState()
-    val location by LocationFeed.location.collectAsState()
+    val hasFix by LocationFeed.hasFix.collectAsState()
     val nearby = rememberFuelNearby()
         ?: return idleFace(icon, title, stringResource(
             when {
                 error != null -> R.string.fuel_error
-                location == null -> R.string.info_waiting_gps
+                !hasFix -> R.string.info_waiting_gps
                 else -> R.string.fuel_loading
             }
         ), "€/L")

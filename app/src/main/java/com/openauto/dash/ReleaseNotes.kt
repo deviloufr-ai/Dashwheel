@@ -187,7 +187,7 @@ private fun NoteBlocks(blocks: List<NoteBlock>) {
                 modifier = Modifier.padding(top = 8.dp)
             )
             is NoteBlock.Bullet -> Row {
-                Text("•", color = DashColors.Accent, style = MaterialTheme.typography.bodyMedium)
+                Text("•", color = DashColors.AccentInk, style = MaterialTheme.typography.bodyMedium)
                 Spacer(Modifier.width(8.dp))
                 Text(inline(block.text, codeBackground), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
             }
@@ -224,7 +224,7 @@ private fun SupportPanel(modifier: Modifier = Modifier) {
         QrCode(KOFI_URL, Modifier.size(150.dp).clip(DashShape.Small))
         Text(stringResource(R.string.about_scan), color = DashColors.Muted, style = MaterialTheme.typography.labelSmall)
         TextButton(onClick = { context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(KOFI_URL))) }) {
-            Text(stringResource(R.string.about_kofi), color = DashColors.Accent, textAlign = TextAlign.Center)
+            Text(stringResource(R.string.about_kofi), color = DashColors.AccentInk, textAlign = TextAlign.Center)
         }
     }
 }

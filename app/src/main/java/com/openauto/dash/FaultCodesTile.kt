@@ -156,7 +156,7 @@ internal fun ObdDtcCard(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 stringResource(R.string.vehicle_fault_codes_title),
-                color = DashColors.Accent,
+                color = DashColors.AccentInk,
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.labelMedium,
                 modifier = Modifier.weight(1f)
@@ -249,7 +249,7 @@ internal fun ObdDtcCard(
                                 modifier = Modifier.weight(1f)
                             )
                             if (ai.canRetry) {
-                                TextButton(onClick = AiMechanic::refresh) { Text(stringResource(R.string.ai_retry), color = DashColors.Accent) }
+                                TextButton(onClick = AiMechanic::refresh) { Text(stringResource(R.string.ai_retry), color = DashColors.AccentInk) }
                             }
                         }
                     }
@@ -400,7 +400,7 @@ private fun CompactFaults(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     stringResource(R.string.vehicle_fault_codes_title),
-                    color = DashColors.Accent,
+                    color = DashColors.AccentInk,
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.labelMedium,
                     maxLines = 1,
@@ -871,7 +871,7 @@ private fun DetailSection(icon: ImageVector, title: String, body: @Composable ()
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(icon, contentDescription = null, tint = DashColors.Accent, modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(8.dp))
-            Text(title, color = DashColors.Accent, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
+            Text(title, color = DashColors.AccentInk, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
         }
         Spacer(Modifier.height(6.dp))
         body()
@@ -891,7 +891,7 @@ private fun DetailList(items: List<String>, numbered: Boolean) {
             Row {
                 Text(
                     if (numbered) "${i + 1}." else "•",
-                    color = DashColors.Accent,
+                    color = DashColors.AccentInk,
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.width(26.dp)

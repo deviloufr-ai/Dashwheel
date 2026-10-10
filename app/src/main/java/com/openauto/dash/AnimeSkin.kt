@@ -323,6 +323,12 @@ internal fun animeTilt(base: Float, w: Dp, h: Dp): Float {
  * draws the border dashed, the mark of a tile being arranged. The content
  * sits inside the border.
  */
+/** A paper sticker around a widget Anime does not redraw ([SkinFallbackPanel]): the same paper and ink as its own. */
+@Composable
+internal fun AnimeFallbackPanel(content: @Composable () -> Unit) {
+    AnimeSticker(Modifier.fillMaxSize(), fill = animeTones.paper, contentAlignment = Alignment.TopStart) { content() }
+}
+
 @Composable
 internal fun AnimeSticker(
     modifier: Modifier,

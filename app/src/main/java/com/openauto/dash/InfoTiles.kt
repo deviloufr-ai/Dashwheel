@@ -286,7 +286,8 @@ internal fun weatherIcon(code: Int): ImageVector = when (code) {
 @Composable
 internal fun WeatherCard(modifier: Modifier = Modifier) {
     UseLocationFeed()
-    val location by LocationFeed.location.collectAsState()
+    // The fetch is keyed on the position to 1/20 degree: the tile doesn't follow each fix.
+    val location by rememberLocationCell(20)
     val weather by WeatherRepo.weather.collectAsState()
     val error by WeatherRepo.error.collectAsState()
     val now = rememberNow(60_000L)
@@ -307,7 +308,11 @@ internal fun WeatherCard(modifier: Modifier = Modifier) {
                     val scope = androidx.compose.runtime.rememberCoroutineScope()
                     val refreshLabel = stringResource(R.string.info_weather_refresh)
                     IconButton(
-                        onClick = { scope.launch { busy = true; WeatherRepo.refresh(l.latitude, l.longitude, force = true); busy = false } },
+                        onClick = {
+                            // Asked for where the car is now, not where it entered its cell.
+                            val here = LocationFeed.location.value ?: l
+                            scope.launch { busy = true; WeatherRepo.refresh(here.latitude, here.longitude, force = true); busy = false }
+                        },
                         modifier = Modifier.size(DashSize.Touch)
                     ) {
                         Icon(Icons.Filled.Refresh, contentDescription = refreshLabel, tint = if (busy) DashColors.Accent else DashColors.Muted, modifier = Modifier.size(20.dp))
@@ -502,7 +507,7 @@ internal fun CalendarCard(modifier: Modifier = Modifier) {
                             }
                         },
                         modifier = Modifier.height(DashSize.Touch), contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp)
-                    ) { Text(stringResource(R.string.info_open), color = DashColors.Accent, style = MaterialTheme.typography.labelMedium) }
+                    ) { Text(stringResource(R.string.info_open), color = DashColors.AccentInk, style = MaterialTheme.typography.labelMedium) }
                 }
                 when {
                     events.isEmpty() && !agenda.phoneSent && !agenda.access.granted -> NeedsAccess(
@@ -671,7 +676,7 @@ internal fun QuickDialCard(modifier: Modifier = Modifier) {
                     TextButton(
                         onClick = { context.launchSafely(Intent(Intent.ACTION_DIAL)) },
                         modifier = Modifier.height(DashSize.Touch), contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp)
-                    ) { Text(stringResource(R.string.info_quickdial_dialer), color = DashColors.Accent, style = MaterialTheme.typography.labelMedium) }
+                    ) { Text(stringResource(R.string.info_quickdial_dialer), color = DashColors.AccentInk, style = MaterialTheme.typography.labelMedium) }
                 }
                 when {
                     favourites.isEmpty() && !source.phoneSent && !perm.granted -> NeedsAccess(
@@ -955,7 +960,11 @@ internal fun rememberMusicVolume(audio: AudioManager, hold: () -> Boolean = { fa
         runCatching { ContextCompat.registerReceiver(context, receiver, filter, ContextCompat.RECEIVER_EXPORTED) }
         onDispose { runCatching { context.unregisterReceiver(receiver) } }
     }
-    LaunchedEffect(Unit) {
+    // The poll holds on a page off screen ([LocalPageActive]) and reads once as it shows again.
+    val active = LocalPageActive.current
+    LaunchedEffect(active) {
+        if (!active) return@LaunchedEffect
+        if (!held()) volume.intValue = MediaVolume.level(audio)
         while (true) {
             delay(5000)
             if (!held()) volume.intValue = MediaVolume.level(audio)

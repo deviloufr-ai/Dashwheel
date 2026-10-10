@@ -141,6 +141,18 @@
     <string name="widgets_commute_blurb">Ile trwają dojazdy do domu i do pracy, dzień po dniu</string>
     <string name="widgets_commute_none">Brak przejazdów</string>
     <string name="widgets_commute_stats">średnio %1$d min, najlepiej %2$d min</string>
+    <string name="widgets_history">Historia jazd</string>
+    <string name="widgets_history_blurb">Ostatnie jazdy i suma tygodnia</string>
+    <string name="widgets_history_none">Brak zapisanych jazd</string>
+    <string name="widgets_history_week">Ten tydzień</string>
+    <string name="widgets_history_week_line">Ten tydzień: %1$s</string>
+    <string name="widgets_history_eco">eko %1$d</string>
+    <plurals name="widgets_history_drives">
+        <item quantity="one">%d jazda</item>
+        <item quantity="few">%d jazdy</item>
+        <item quantity="many">%d jazd</item>
+        <item quantity="other">%d jazdy</item>
+    </plurals>
 
     <string name="widgets_switch_look">Wygląd</string>
 </resources>

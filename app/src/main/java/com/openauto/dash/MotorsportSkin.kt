@@ -476,7 +476,7 @@ private fun BarClock(clock: String) {
         MsText(digits, msHero(30.sp, DashColors.TextPrimary), Modifier.alignByBaseline(), clip = true)
         if (amPm != null) {
             Spacer(Modifier.width(3.dp))
-            MsText(amPm, msCaps(13.sp, DashColors.TextSecondary), Modifier.alignByBaseline())
+            MsText(amPm, msCaps(14.sp, DashColors.TextSecondary), Modifier.alignByBaseline())
         }
     }
 }

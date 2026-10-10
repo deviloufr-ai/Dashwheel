@@ -18,6 +18,8 @@
     <string name="canvas_when_parked">Postój</string>
     <string name="canvas_when_driving">Jazda</string>
     <string name="canvas_when_fault">Usterka silnika</string>
+    <string name="canvas_when_navigating">Nawigacja</string>
+    <string name="canvas_when_low_fuel">Rezerwa</string>
     <string name="canvas_tab_add">Dodaj</string>
     <string name="canvas_tab_remove">Usuń pulpit</string>
     <string name="canvas_tab_done">Gotowe</string>

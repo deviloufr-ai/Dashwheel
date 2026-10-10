@@ -343,6 +343,12 @@ private val SkewShape = GenericShape { s, _ ->
  * being arranged ([dashed]), to show the tile is editable. Effects off keeps
  * the opaque glass and the rim only.
  */
+/** The HUD glass around a widget Racing does not redraw, its content kept clear of the slanted edges ([SkinFallbackPanel]). */
+@Composable
+internal fun RacingFallbackPanel(content: @Composable () -> Unit) {
+    HudPanel(Modifier.fillMaxSize(), Cyan, editing = false, contentAlignment = Alignment.TopStart) { content() }
+}
+
 @Composable
 private fun Modifier.hudPanel(
     rim: Color,
@@ -1057,7 +1063,7 @@ private fun BarClock(clock: String) {
         NumText(digits, hero(fixedSp(30f), DashColors.TextPrimary, glow = Magenta), Modifier.alignByBaseline())
         if (amPm != null) {
             Spacer(Modifier.width(4.dp))
-            HudText(amPm.caps(), hud(fixedSp(13f), Magenta, FontWeight.Black), Modifier.alignByBaseline())
+            HudText(amPm.caps(), hud(fixedSp(14f), Magenta, FontWeight.Black), Modifier.alignByBaseline())
         }
     }
 }
@@ -1083,10 +1089,10 @@ private fun BarStage() {
 @Composable
 private fun BarStat(label: String, value: String, unit: String?) {
     Column {
-        HudText(label, hud(fixedSp(10f), Cyan, FontWeight.Black, 0.2f))
+        HudText(label, hud(fixedSp(14f), Cyan, FontWeight.Black, 0.2f))
         Row {
             NumText(value, hero(fixedSp(19f), DashColors.TextPrimary), Modifier.alignByBaseline())
-            if (unit != null) HudText(" $unit", hud(fixedSp(11f), DashColors.TextSecondary), Modifier.alignByBaseline())
+            if (unit != null) HudText(" $unit", hud(fixedSp(14f), DashColors.TextSecondary), Modifier.alignByBaseline())
         }
     }
 }
@@ -1105,7 +1111,7 @@ private fun BarFinish() {
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        HudText(stringResource(R.string.skin_racing_finish), hud(fixedSp(12f), Magenta, FontWeight.Black, 0.2f))
+        HudText(stringResource(R.string.skin_racing_finish), hud(fixedSp(14f), Magenta, FontWeight.Black, 0.2f))
         Spacer(Modifier.width(8.dp))
         NumText(arrival, hero(fixedSp(22f), DashColors.TextPrimary, glow = Magenta))
     }
@@ -1174,22 +1180,6 @@ private val CLOCK_ONLY = Regex("""\d{1,2}[:h.]\d{2}(\s?[AaPp]\.?[Mm]\.?)?""")
 /** The arrival time of the route, from its ETA line; null when the app gives none. */
 private fun arrivalOf(nav: NavState): String? = nav.etaParts.firstOrNull { CLOCK_ONLY.matches(it) }?.caps()
 
-/** Which way the next turn goes, from the instruction's words in any of the app's languages. */
-private enum class TurnSide { LEFT, RIGHT, AHEAD }
-
-private val RIGHT_WORDS = Regex("""\b(right|droite|rechts|derecha|destra|direita|prawo)|направо|вправо|правее""", RegexOption.IGNORE_CASE)
-private val LEFT_WORDS = Regex("""\b(left|gauche|links|izquierda|sinistra|esquerda|lewo)|налево|влево|левее""", RegexOption.IGNORE_CASE)
-
-private fun turnSide(instruction: String): TurnSide {
-    val r = RIGHT_WORDS.find(instruction)?.range?.first
-    val l = LEFT_WORDS.find(instruction)?.range?.first
-    return when {
-        r != null && (l == null || r < l) -> TurnSide.RIGHT
-        l != null -> TurnSide.LEFT
-        else -> TurnSide.AHEAD
-    }
-}
-
 /**
  * A quiet state on a HUD panel: [title] in black italic caps and [hint]
  * underneath, cyan when tapping does something.
@@ -1206,7 +1196,7 @@ private fun HudMessage(title: String, hint: String?, rim: Color, editing: Boolea
                 Spacer(Modifier.height(4.dp))
                 HudText(
                     hint.caps(),
-                    hud(fixedSp(hintSp), if (onTap != null) Cyan else DashColors.TextSecondary, FontWeight.Bold, 0.14f),
+                    hud(fixedSp(hintSp), if (onTap != null) DashColors.AccentInk else DashColors.TextSecondary, FontWeight.Bold, 0.14f),
                     maxLines = 2,
                     align = TextAlign.Center
                 )
@@ -1309,7 +1299,7 @@ private fun Tacho(speed: Int?, gear: State<GearReading>, source: String, sourceI
     val glass = RaGlass
     val g = glowK
     val units = LocalUnits.current
-    val over = (speed ?: 0) >= SPEED_WARNING_KMH
+    val over = speedOver(speed)
     Box(Modifier.size(d), contentAlignment = Alignment.Center) {
         Spacer(
             Modifier
@@ -1897,7 +1887,7 @@ private fun Ticker(title: String, sub: String, subInk: Color, playing: Boolean, 
 private fun MediaProgress(ms: MediaState, controller: CarMediaController, modifier: Modifier) {
     val positionMs = rememberMediaPosition(ms, controller)
     val fraction = if (ms.durationMs > 0L) (positionMs.toFloat() / ms.durationMs).coerceIn(0f, 1f) else 0f
-    val timeStyle = hud(fixedSp(13f), DashColors.TextSecondary, FontWeight.Bold)
+    val timeStyle = hud(fixedSp(14f), DashColors.TextSecondary, FontWeight.Bold)
     Row(modifier.height(20.dp), verticalAlignment = Alignment.CenterVertically) {
         NumText(formatTrackTime(positionMs), timeStyle)
         Spacer(Modifier.width(8.dp))
@@ -1961,7 +1951,7 @@ private fun RaceNavigation(env: SkinTileEnv) {
             if (canTap) ({ openNavigationApp(context, nav) }) else null
         )
         else -> {
-            val side = turnSide(nav.instruction)
+            val side = nav.turnSide()
             val openLabel = stringResource(R.string.skin_racing_open_navigation)
             val tap = rememberTapFeedback()
             BoxWithConstraints(
@@ -2380,7 +2370,7 @@ private fun WeatherGlyph(code: Int, size: Dp) {
  */
 @Composable
 private fun RaceRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env.obdData, env.obdConnection)
+    val fuel = rememberFuel(env)
     if (fuel == null) {
         StandardSkinnedTile(item, env)
         return

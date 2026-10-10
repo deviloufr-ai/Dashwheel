@@ -122,7 +122,7 @@ internal fun PendingActionStrip(state: PendingActionState, modifier: Modifier = 
             .padding(start = 14.dp, end = 6.dp, top = 6.dp, bottom = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(left.toString(), color = DashColors.Accent, fontWeight = FontWeight.ExtraBold, style = MaterialTheme.typography.titleLarge)
+        Text(left.toString(), color = DashColors.AccentInk, fontWeight = FontWeight.ExtraBold, style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.width(12.dp))
         Text(
             action.label, color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold,

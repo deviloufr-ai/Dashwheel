@@ -100,7 +100,9 @@ enum class BuiltinKind(
     ENGINE_TEMPS(R.string.widgets_temps, WidgetCategory.VEHICLE, R.string.widgets_temps_blurb, 4, 2),
     COMMUTE(R.string.widgets_commute, WidgetCategory.NAVIGATION, R.string.widgets_commute_blurb, 4, 2),
     // The second tank of an LPG car, its level worked out (LpgTank.kt).
-    LPG_TANK(R.string.lpg_kind, WidgetCategory.VEHICLE, R.string.lpg_kind_blurb, 4, 3)
+    LPG_TANK(R.string.lpg_kind, WidgetCategory.VEHICLE, R.string.lpg_kind_blurb, 4, 3),
+    // The last drives the drive log kept, with this week's total (DriveHistoryTile.kt).
+    DRIVE_HISTORY(R.string.widgets_history, WidgetCategory.DRIVING, R.string.widgets_history_blurb, 4, 3)
 }
 
 /**
@@ -212,7 +214,7 @@ fun BuiltinKind.minSize(): Pair<Int, Int> = when (this) {
     // Lists: rows need their width.
     BuiltinKind.CALENDAR, BuiltinKind.NOTIFICATIONS, BuiltinKind.QUICK_DIAL, BuiltinKind.FUEL_PRICES, BuiltinKind.WIFI_NETWORKS,
     BuiltinKind.BT_DEVICES, BuiltinKind.FUEL_LOG, BuiltinKind.RADIO_PRESETS, BuiltinKind.VOICE_NOTES, BuiltinKind.CAN_MON,
-    BuiltinKind.SHARE_ETA -> 3 to 2
+    BuiltinKind.SHARE_ETA, BuiltinKind.DRIVE_HISTORY -> 3 to 2
     BuiltinKind.NAVMAP, BuiltinKind.MAPS_INSIDE, BuiltinKind.PIP_ANCHOR -> 3 to 3
     BuiltinKind.DASH_BAR -> 1 to 3
     BuiltinKind.QUICK_SWITCHES -> 3 to 1

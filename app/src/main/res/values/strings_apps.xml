@@ -33,7 +33,7 @@
     <string name="apps_kind_compass">Compass</string>
     <string name="apps_kind_compass_blurb">Heading, altitude and GPS speed</string>
     <string name="apps_kind_trip">Trip computer</string>
-    <string name="apps_kind_trip_blurb">Distance, time, average and top speed</string>
+    <string name="apps_kind_trip_blurb">This drive and since the last fill-up, with fuel and cost</string>
     <string name="apps_kind_gforce">G-force</string>
     <string name="apps_kind_gforce_blurb">Cornering and braking g</string>
     <string name="apps_kind_parking">Parking spot</string>

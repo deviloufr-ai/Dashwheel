@@ -232,7 +232,7 @@ private fun CameraPicker(onDismiss: () -> Unit) {
                 if (cameras.isEmpty()) Text(stringResource(R.string.signals_camera_none), color = DashColors.TextSecondary)
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.signals_close), color = DashColors.Accent) } }
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.signals_close), color = DashColors.AccentInk) } }
     )
 }
 

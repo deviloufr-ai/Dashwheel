@@ -640,6 +640,10 @@ private fun BlinkingText(text: String, style: TextStyle, periodMs: Long = 600L, 
  * black glass with a faint sheen at night, a flat pearl panel by day. Cached
  * across recompositions (a live readout recomposes on every sample).
  */
+/** The VFD window behind a widget Tape Deck does not redraw ([SkinFallbackPanel]). */
+@Composable
+internal fun Modifier.tapeDeckPanel(): Modifier = vfdPanel(DashColors.Accent.copy(alpha = 0.8f), 12.dp)
+
 @Composable
 private fun Modifier.vfdPanel(rim: Color, corner: Dp = 14.dp): Modifier = cachedDraw(rim, corner) {
     val r = CornerRadius(corner.toPx())
@@ -1124,7 +1128,7 @@ private fun TapeTelemetry(env: SkinTileEnv) {
     val live = state == ObdConnectionState.CONNECTED
     val idle = state.isIdle
     val d = env.obdData
-    val speedColor = if (live && d.speedKmh >= SPEED_WARNING_KMH) DashColors.Warning else cyan
+    val speedColor = if (live && speedOver(d.speedKmh)) DashColors.Warning else cyan
     val volts = live && d.voltage > 0.0
     val units = LocalUnits.current
     val speedUnit = units.speedUnit.uppercase()
@@ -1204,7 +1208,7 @@ private fun TapeSpeedHud(env: SkinTileEnv) {
     val source = speedSource(
         env.obdConnection == ObdConnectionState.CONNECTED, speed, stringResource(R.string.info_speed_no_signal).uppercase()
     )
-    val over = (speed ?: 0) >= SPEED_WARNING_KMH
+    val over = speedOver(speed)
     val color = if (over) DashColors.Warning else cyan
     BoxWithConstraints(
         Modifier
@@ -2172,7 +2176,7 @@ private fun TapeWeather() {
  */
 @Composable
 private fun TapeRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env.obdData, env.obdConnection)
+    val fuel = rememberFuel(env)
     if (fuel == null) {
         StandardSkinnedTile(item, env)
         return

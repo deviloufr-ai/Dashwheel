@@ -55,7 +55,8 @@ internal class FuelNearby(val grade: FuelGrade, val lat: Double, val lng: Double
 @Composable
 internal fun rememberFuelNearby(): FuelNearby? {
     UseLocationFeed()
-    val location by LocationFeed.location.collectAsState()
+    // Only the position to 1/100 degree (the fetch) and 1/1000 (the ranking) is read: not each fix.
+    val location by rememberLocationCell(100, 1000)
     val car by CarProfileStore.profile.collectAsState()
     val stations by FuelPriceRepo.stations.collectAsState()
     val grades = remember(car) { FuelPrices.gradesFor(car) }
@@ -73,9 +74,11 @@ internal fun rememberFuelNearby(): FuelNearby? {
     // Ranked again when the list, the grade or the position (to ~100 m) changes,
     // not on every recomposition.
     return remember(list, grades, (here.latitude * 1000).roundToInt(), (here.longitude * 1000).roundToInt()) {
+        // Ranked from the latest fix, not the one that entered the cell.
+        val at = LocationFeed.location.value ?: here
         // A petrol car falls back to SP95/98 where no E10 is sold.
         val grade = grades.firstOrNull { g -> list.any { it.prices.containsKey(g) } } ?: grades.first()
-        FuelNearby(grade, here.latitude, here.longitude, FuelPrices.rank(list, grade, here.latitude, here.longitude))
+        FuelNearby(grade, at.latitude, at.longitude, FuelPrices.rank(list, grade, at.latitude, at.longitude))
     }
 }
 
@@ -85,7 +88,7 @@ internal fun FuelPricesCard(modifier: Modifier = Modifier) {
     val perm = rememberPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     val error by FuelPriceRepo.error.collectAsState()
     val fetchedAt by FuelPriceRepo.fetchedAt.collectAsState()
-    val location by LocationFeed.location.collectAsState()
+    val hasFix by LocationFeed.hasFix.collectAsState()
     val now = rememberNow(60_000L)
     val pending = rememberPendingAction()
     Card(modifier = modifier) {
@@ -104,7 +107,7 @@ internal fun FuelPricesCard(modifier: Modifier = Modifier) {
                 }
                 when {
                     nearby == null && error != null -> Hint(stringResource(R.string.fuel_error))
-                    nearby == null -> Hint(stringResource(if (location == null) R.string.info_waiting_gps else R.string.fuel_loading))
+                    nearby == null -> Hint(stringResource(if (!hasFix) R.string.info_waiting_gps else R.string.fuel_loading))
                     nearby.ranked.isEmpty() -> Hint(fuelNoneText())
                     else -> {
                         val u = LocalUnits.current

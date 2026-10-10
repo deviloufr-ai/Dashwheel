@@ -139,6 +139,16 @@
     <string name="widgets_commute_blurb">La durée des trajets vers la maison et le travail, jour après jour</string>
     <string name="widgets_commute_none">Pas encore de trajet ici</string>
     <string name="widgets_commute_stats">moyenne %1$d min, record %2$d min</string>
+    <string name="widgets_history">Historique des trajets</string>
+    <string name="widgets_history_blurb">Les derniers trajets et le total de la semaine</string>
+    <string name="widgets_history_none">Aucun trajet enregistré</string>
+    <string name="widgets_history_week">Cette semaine</string>
+    <string name="widgets_history_week_line">Cette semaine : %1$s</string>
+    <string name="widgets_history_eco">éco %1$d</string>
+    <plurals name="widgets_history_drives">
+        <item quantity="one">%d trajet</item>
+        <item quantity="other">%d trajets</item>
+    </plurals>
 
     <string name="widgets_switch_look">Apparence</string>
 </resources>

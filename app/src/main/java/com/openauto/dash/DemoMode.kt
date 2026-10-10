@@ -11,6 +11,7 @@ import android.graphics.Shader
 import android.location.Location
 import android.location.LocationManager
 import android.os.SystemClock
+import com.openauto.dash.link.DriveSummary
 import com.openauto.dash.link.RecentCall
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -123,6 +124,46 @@ object DemoMode {
     /** The fault-code tile's state for [codes]: the advice comes with them, as after a real scan. */
     internal fun mechanicState(codes: List<String>) =
         AiMechanic.State(codes = codes, diagnosis = diagnosis?.takeIf { codes.isNotEmpty() })
+
+    /**
+     * The trip computer's count since the refuel: a fill-up three days before
+     * the demo's [trip], 386 km since, going up as the fake drive goes on.
+     * Worked out where it is shown, so nothing of it reaches the real count.
+     */
+    internal fun sinceFill(trip: TripState) = SinceFillState(
+        fillAt = trip.startedAt - 3 * 86_400_000L,
+        distanceM = DEMO_SINCE_FILL_M + trip.distanceM,
+        movingMs = DEMO_SINCE_FILL_MOVING_MS + trip.movingMs
+    )
+
+    /**
+     * The drive history's last week before [now], newest first: the commute
+     * on weekdays and a longer outing at the weekend, at [car]'s usual
+     * consumption and price. Shown in place of the log, never written to it,
+     * so it never reaches the phone.
+     */
+    internal fun drives(now: Long, car: CarProfile): List<DriveSummary> {
+        val day = java.util.Calendar.getInstance().apply {
+            timeInMillis = now
+            set(java.util.Calendar.HOUR_OF_DAY, 0); set(java.util.Calendar.MINUTE, 0)
+            set(java.util.Calendar.SECOND, 0); set(java.util.Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        // Days back, start time (minutes after midnight), km, minutes moving, top speed, eco score.
+        val plan = listOf(
+            DemoDrive(1, 18 * 60 + 12, 21.8, 27, 94, 81), DemoDrive(1, 8 * 60 + 5, 23.4, 31, 92, 74),
+            DemoDrive(2, 17 * 60 + 48, 22.1, 29, 90, 79), DemoDrive(2, 7 * 60 + 58, 23.0, 33, 91, 70),
+            DemoDrive(3, 15 * 60 + 30, 6.2, 14, 55, 88), DemoDrive(4, 10 * 60 + 20, 118.5, 84, 131, 76),
+            DemoDrive(5, 18 * 60 + 2, 22.6, 30, 93, 77), DemoDrive(5, 8 * 60 + 11, 23.2, 32, 92, 72)
+        )
+        return plan.map { d ->
+            val start = day - d.daysBack * 86_400_000L + d.startMin * 60_000L
+            val moving = d.minutes * 60_000L
+            val trip = TripState(startedAt = start, distanceM = d.km * 1000, movingMs = moving, maxSpeedKmh = d.topKmh.toFloat(), updatedAt = start + moving + 4 * 60_000L)
+            DriveLogRules.summary(trip, null, car, ongoing = false).copy(ecoScore = d.eco)
+        }.sortedByDescending { it.startedAt }
+    }
+
+    private class DemoDrive(val daysBack: Int, val startMin: Int, val km: Double, val minutes: Int, val topKmh: Int, val eco: Int)
 
     /**
      * The mechanic's advice on the demo's P0401 (EGR flow too low, a classic
@@ -265,6 +306,9 @@ object DemoMode {
     /** The mileage and the trip computer's trip when the demo starts. */
     private const val DEMO_ODOMETER_KM = 148_372.0
     private const val DEMO_TRIP_KM = 23.4
+    /** The trip computer's count since the last fill-up when the demo starts. */
+    private const val DEMO_SINCE_FILL_M = 386_400.0
+    private const val DEMO_SINCE_FILL_MOVING_MS = (5 * 60 + 41) * 60_000L
     /** The tyres' pressure (kPa); the front left one starts lower and keeps losing air. */
     private const val DEMO_TYRE_KPA = 232
     private const val DEMO_LEAKY_KPA = 196

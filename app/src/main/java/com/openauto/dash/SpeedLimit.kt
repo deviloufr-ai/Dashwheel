@@ -197,6 +197,8 @@ internal object SpeedLimit {
         if (users == 0 || --users > 0) return
         job?.cancel()
         job = null
+        // Nobody reads the road any more: a kept limit would go stale under the speed colours.
+        _limit.value = null
     }
 
     private suspend fun onLocation(context: Context, loc: Location, kmh: Int) {

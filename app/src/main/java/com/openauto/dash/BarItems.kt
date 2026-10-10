@@ -56,7 +56,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -244,7 +246,8 @@ private fun BarReadout(item: BarItem, m: TopBarModel) {
     val units = LocalUnits.current
     when (item) {
         BarItem.FUEL -> {
-            val fuel = rememberFuel(obd, m.obdConnection)
+            // The fuel, coolant and battery readouts follow their own value, not every OBD sample.
+            val fuel = rememberFuel(m.obd, m.obdConnection)
             MistralSegments(stringResource(item.label), item.icon, fuel?.percent?.let { it / 100f }, fuel?.percent?.let { "$it %" }, cells = 10,
                 warnBelow = 0.2f, alarmBelow = 0.1f)
         }
@@ -264,13 +267,17 @@ private fun BarReadout(item: BarItem, m: TopBarModel) {
             stringResource(item.label), item.icon, if (connected) obd.rpm / 7000f else null,
             if (connected) String.format(Locale.getDefault(), "%,d", obd.rpm) else null, cells = 10, hotAbove = 0.75f
         )
-        BarItem.COOLANT -> MistralSegments(
-            stringResource(item.label), item.icon, if (connected && obd.coolantTempC > 0) obd.coolantTempC / 120f else null,
-            if (connected && obd.coolantTempC > 0) "${units.temp(obd.coolantTempC)}°" else null, cells = 6,
-            hotAbove = COOLANT_WARNING_C / 120f
-        )
+        BarItem.COOLANT -> {
+            val coolantC by remember(m.obd) { derivedStateOf { m.obd.value.coolantTempC } }
+            MistralSegments(
+                stringResource(item.label), item.icon, if (connected && coolantC > 0) coolantC / 120f else null,
+                if (connected && coolantC > 0) "${units.temp(coolantC)}°" else null, cells = 6,
+                hotAbove = COOLANT_WARNING_C / 120f
+            )
+        }
         BarItem.BATTERY -> {
-            val v = obd.voltage.takeIf { connected && it > 0.0 }
+            val voltage by remember(m.obd) { derivedStateOf { m.obd.value.voltage } }
+            val v = voltage.takeIf { connected && it > 0.0 }
             MistralSegments(
                 stringResource(item.label), item.icon, v?.let { ((it - 11.0) / 4.0).toFloat() },
                 v?.let { String.format(Locale.getDefault(), "%.1f V", it) }, cells = 6,
@@ -278,7 +285,7 @@ private fun BarReadout(item: BarItem, m: TopBarModel) {
             )
         }
         BarItem.RANGE -> {
-            val fuel = rememberFuel(obd, m.obdConnection)
+            val fuel = rememberFuel(m.obd, m.obdConnection)
             val value = fuel?.let { units.distanceText(it.rangeKm) } ?: "–"
             if (LocalBarLook.current == BarLook.MINIMAL) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -478,7 +485,7 @@ internal fun BarItemsSetting() {
         }
     }
     TextButton(onClick = { BarItems.set(BarItems.STARTER) }) {
-        Text(stringResource(R.string.bar_items_reset), color = DashColors.Accent)
+        Text(stringResource(R.string.bar_items_reset), color = DashColors.AccentInk)
     }
 }
 

@@ -341,7 +341,7 @@ private fun FutSpeed(env: SkinTileEnv) {
 @Composable
 private fun FutSpeedRing(speedKmh: Int?, caption: String, captionColor: Color, size: Dp) {
     val units = LocalUnits.current
-    val over = speedKmh != null && speedKmh >= SPEED_WARNING_KMH
+    val over = speedOver(speedKmh)
     val tone = if (over) DashColors.Warning else DashColors.Accent
     val frac = animateFloatAsState(((speedKmh ?: 0) / SPEED_SCALE_KMH).coerceIn(0f, 1f), tween(450), label = "speed arc")
     val light = DashColors.Light
@@ -519,7 +519,7 @@ private fun TelemetrySpeed(env: SkinTileEnv, height: Dp, capsDp: Float, modifier
     val d = env.obdData
     val units = LocalUnits.current
     val locale = Locale.getDefault()
-    val over = connected && d.speedKmh >= SPEED_WARNING_KMH
+    val over = connected && speedOver(d.speedKmh)
     val numDp = futFitSp("188", futNum(100f), 200.dp, height * 0.9f, 18f, 80f)
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
         FutText(
@@ -529,7 +529,7 @@ private fun TelemetrySpeed(env: SkinTileEnv, height: Dp, capsDp: Float, modifier
         )
         Spacer(Modifier.width(8.dp))
         Column {
-            FutText(units.speedUnit.uppercase(locale), futCaps(capsDp, DashColors.Accent))
+            FutText(units.speedUnit.uppercase(locale), futCaps(capsDp, DashColors.AccentInk))
             if (connected) FutText("${groupThousands(d.rpm)} ${stringResource(R.string.skin_futuristic_rpm).uppercase(locale)}", futCaps(capsDp))
         }
     }
@@ -613,7 +613,7 @@ private fun TelemetryPanel(env: SkinTileEnv) {
         Column(Modifier.fillMaxSize().padding(pad)) {
             if (!tiny) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    FutText(stringResource(R.string.skin_futuristic_telemetry).uppercase(locale), futCaps(capsDp, DashColors.Accent), Modifier.weight(1f))
+                    FutText(stringResource(R.string.skin_futuristic_telemetry).uppercase(locale), futCaps(capsDp, DashColors.AccentInk), Modifier.weight(1f))
                     TelemetryStatus(env, capsDp)
                 }
                 Spacer(Modifier.height(6.dp))
@@ -624,11 +624,11 @@ private fun TelemetryPanel(env: SkinTileEnv) {
                     Row(verticalAlignment = Alignment.Bottom) {
                         FutText(
                             if (connected) units.speed(d.speedKmh).toString() else "--",
-                            futNum(numDp, if (connected && d.speedKmh >= SPEED_WARNING_KMH) DashColors.Warning else DashColors.TextPrimary),
+                            futNum(numDp, if (connected && speedOver(d.speedKmh)) DashColors.Warning else DashColors.TextPrimary),
                             overflow = TextOverflow.Clip
                         )
                         Spacer(Modifier.width(6.dp))
-                        FutText(units.speedUnit.uppercase(locale), futCaps((numDp * 0.2f).coerceIn(11f, 20f), DashColors.Accent), Modifier.padding(bottom = (numDp * 0.14f).dp))
+                        FutText(units.speedUnit.uppercase(locale), futCaps((numDp * 0.2f).coerceIn(11f, 20f), DashColors.AccentInk), Modifier.padding(bottom = (numDp * 0.14f).dp))
                     }
                 }
             }
@@ -731,7 +731,7 @@ private fun FutMedia(env: SkinTileEnv) {
                 if (!access || !hasTrack) {
                     FutText(
                         stringResource(if (!access) R.string.skin_futuristic_tap_allow_access else R.string.skin_futuristic_play_something),
-                        futText(subDp, if (!access) DashColors.Accent else DashColors.TextSecondary), maxLines = 2
+                        futText(subDp, if (!access) DashColors.AccentInk else DashColors.TextSecondary), maxLines = 2
                     )
                 } else {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -925,7 +925,7 @@ private fun FutNavigation(env: SkinTileEnv) {
                     FutText(stringResource(R.string.info_directions_no_route), futText(titleDp, DashColors.TextPrimary, FontWeight.SemiBold))
                     FutText(
                         stringResource(R.string.skin_futuristic_start_navigation),
-                        futText((titleDp * 0.55f).coerceIn(12f, 16f), DashColors.Accent), maxLines = 2, align = TextAlign.Center
+                        futText((titleDp * 0.55f).coerceIn(12f, 16f), DashColors.AccentInk), maxLines = 2, align = TextAlign.Center
                     )
                 }
                 return@Box
@@ -962,13 +962,13 @@ private fun FutNavigation(env: SkinTileEnv) {
                     FutChevrons(true, Modifier.size(chevW.dp, (innerH * 0.8f)))
                     Spacer(Modifier.width(16.dp))
                     Column(Modifier.weight(1f)) {
-                        FutText(stringResource(R.string.skin_futuristic_next_manoeuvre).uppercase(locale), futCaps(capsDp, DashColors.Accent))
+                        FutText(stringResource(R.string.skin_futuristic_next_manoeuvre).uppercase(locale), futCaps(capsDp, DashColors.AccentInk))
                         Spacer(Modifier.height(4.dp))
                         details(innerW - chevW.dp - 16.dp, innerH - (capsDp * 1.25f + 4f).dp, if (innerH > 200.dp) 2 else 1)
                     }
                 }
                 else -> Column(Modifier.fillMaxSize()) {
-                    FutText(stringResource(R.string.skin_futuristic_next_manoeuvre).uppercase(locale), futCaps(capsDp, DashColors.Accent))
+                    FutText(stringResource(R.string.skin_futuristic_next_manoeuvre).uppercase(locale), futCaps(capsDp, DashColors.AccentInk))
                     val chevH = (innerH * 0.3f).coerceIn(40.dp, 140.dp)
                     FutChevrons(true, Modifier.fillMaxWidth().height(chevH))
                     Spacer(Modifier.weight(1f))
@@ -1101,7 +1101,7 @@ private fun FutClock(env: SkinTileEnv) {
                 FutText(timeFmt.format(now), futNum(timeDp), Modifier.alignByBaseline(), overflow = TextOverflow.Clip)
                 if (amPm != null) {
                     Spacer(Modifier.width((timeDp * 0.05f).dp))
-                    FutText(amPm, futCaps((timeDp * 0.2f).coerceAtLeast(12f), DashColors.Accent), Modifier.alignByBaseline())
+                    FutText(amPm, futCaps((timeDp * 0.2f).coerceAtLeast(12f), DashColors.AccentInk), Modifier.alignByBaseline())
                 }
             }
             if (ticks) {
@@ -1266,7 +1266,7 @@ private fun FutIconRing(icon: ImageVector, size: Dp) {
  */
 @Composable
 private fun FutRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env.obdData, env.obdConnection)
+    val fuel = rememberFuel(env)
     if (fuel == null) {
         StandardSkinnedTile(item, env)
         return

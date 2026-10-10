@@ -80,6 +80,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -531,7 +532,11 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     // and pickers wait. Anything open when it engages closes; a locked tap
     // shows the notice chip for a moment instead of doing nothing.
     var lockWhileMoving by remember { mutableStateOf(DriveLockStore.load(context)) }
-    val moving by rememberMoving(lockWhileMoving, demoOn)
+    // Moving is also read with the lock off: the skins' background motion holds
+    // still while driving (LocalCarMoving, SkinKit.kt). With no motion to hold
+    // and no lock, no speed is read at all.
+    val carMoving by rememberMoving(lockWhileMoving || effects != DashEffects.NONE, demoOn)
+    val moving = lockWhileMoving && carMoving
     var lockNoticeAt by remember { mutableLongStateOf(0L) }
     LaunchedEffect(lockNoticeAt) {
         if (lockNoticeAt > 0L) {
@@ -966,6 +971,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         Maintenance.setContext(context)
         DriveLog.start(context)
         FuelLog.start(context)
+        SinceFill.start(context)
         LpgTank.start(context)
         BarItems.setContext(context)
         Radios.start(context)
@@ -1312,8 +1318,12 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         onAddApp = { whenParked { pickBarApp = true } },
         canAddDashboard = CanvasTabs.freePage(barTabs, pages) != null
     )
+    val viewConfig = LocalViewConfiguration.current
+    val carTouch = remember(viewConfig) { carTouchConfiguration(viewConfig) }
     CompositionLocalProvider(
+        LocalViewConfiguration provides carTouch,
         LocalDriveLock provides driveLock,
+        LocalCarMoving provides carMoving,
         LocalDashboards provides Dashboards(barTabs, tabbed = tabsShown),
         LocalDashBar provides barModel
     ) {
@@ -2024,7 +2034,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             text = { Text(stringResource(R.string.dash_update_ready_body, ready.info.versionName), color = DashColors.TextSecondary) },
             confirmButton = {
                 TextButton(onClick = { updatePrompt = null; updateManager.install(ready.file) }) {
-                    Text(stringResource(R.string.dash_update_now), color = DashColors.Accent)
+                    Text(stringResource(R.string.dash_update_now), color = DashColors.AccentInk)
                 }
             },
             dismissButton = {
@@ -2051,7 +2061,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             text = { Text(notice, color = DashColors.TextSecondary) },
             confirmButton = {
                 TextButton(onClick = { layoutNotice = null }) {
-                    Text(stringResource(R.string.dash_got_it), color = DashColors.Accent)
+                    Text(stringResource(R.string.dash_got_it), color = DashColors.AccentInk)
                 }
             }
         )
@@ -2125,7 +2135,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                     offerCarTiles = false
                     // The Daily template's car tiles, into the pages as they are (one Undo step).
                     mutateAll(TemplatePlacer.addCarTiles(pages, DashTemplate.DAILY, templateScreen(layout != DashLayout.GRID).copy(obdPaired = true)))
-                }) { Text(stringResource(R.string.dash_add), color = DashColors.Accent) }
+                }) { Text(stringResource(R.string.dash_add), color = DashColors.AccentInk) }
             },
             dismissButton = {
                 TextButton(onClick = { offerCarTiles = false }) { Text(stringResource(R.string.tour_not_now), color = DashColors.Muted) }
@@ -2213,7 +2223,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             confirmButton = {
                 if (systemInstalled) {
                     TextButton(onClick = { scope.launch { withContext(Dispatchers.IO) { PrivApp.rebootDevice(context) } } }) {
-                        Text(stringResource(R.string.dash_reboot_now), color = DashColors.Accent)
+                        Text(stringResource(R.string.dash_reboot_now), color = DashColors.AccentInk)
                     }
                 } else {
                     TextButton(
@@ -2235,7 +2245,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                             }
                         }
                     ) {
-                        Text(stringResource(R.string.dash_install_system_app), color = DashColors.Accent)
+                        Text(stringResource(R.string.dash_install_system_app), color = DashColors.AccentInk)
                     }
                 }
             },

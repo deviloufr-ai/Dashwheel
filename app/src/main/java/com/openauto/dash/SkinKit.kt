@@ -2,6 +2,7 @@ package com.openauto.dash
 
 import android.content.Context
 import android.content.Intent
+import android.location.Location
 import android.provider.AlarmClock
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -61,6 +62,15 @@ internal val CondensedFamily: FontFamily =
  * pages (the bars, sheets, dialogs).
  */
 internal val LocalPageActive = compositionLocalOf { true }
+
+/**
+ * True while the car moves (DriveLock.kt's [rememberMoving], whatever the drive
+ * lock setting). Background motion holds its frame then: movement at the edge
+ * of the eye pulls the driver's look off the road. It resumes once the car has
+ * stood still for a moment (a red light, parked). Functional motion (needles,
+ * clocks, media progress, status blinks) keeps running.
+ */
+internal val LocalCarMoving = compositionLocalOf { false }
 
 /**
  * Wall-clock milliseconds, updated on each [stepMs] boundary (so a 1 s step
@@ -161,14 +171,16 @@ private fun ambientStepMs(effects: DashEffects): Long? = when (effects) {
  * Wall-clock ms for background motion, advanced every [stepMs] (all ambient
  * tickers share the same boundaries, so they land in one frame). It waits
  * for a frame before each step, so it sleeps while the app is in the
- * background, and it holds on a page off screen ([LocalPageActive]).
+ * background, and it holds on a page off screen ([LocalPageActive]) and,
+ * when [holdWhileMoving], while the car moves ([LocalCarMoving]).
  */
 @Composable
-private fun rememberAmbientClock(stepMs: Long): LongState {
+private fun rememberAmbientClock(stepMs: Long, holdWhileMoving: Boolean): LongState {
     val now = remember { mutableLongStateOf(System.currentTimeMillis()) }
     val active = LocalPageActive.current
-    LaunchedEffect(stepMs, active) {
-        if (!active) return@LaunchedEffect
+    val held = holdWhileMoving && LocalCarMoving.current
+    LaunchedEffect(stepMs, active, held) {
+        if (!active || held) return@LaunchedEffect
         while (true) {
             delay(stepMs - System.currentTimeMillis() % stepMs)
             withFrameMillis { now.longValue = System.currentTimeMillis() }
@@ -261,11 +273,22 @@ internal fun rememberHasSpeed(connection: ObdConnectionState): Boolean {
     return connection == ObdConnectionState.CONNECTED || gps
 }
 
+/**
+ * The car's position as [LocationFeed.cell] gives it: it only moves when the
+ * car leaves its cell of 1/[perDegree] degree, so a tile keyed on that
+ * rounding doesn't redraw on each GPS fix (one a second). Doesn't start the
+ * GPS itself ([UseLocationFeed]).
+ */
+@Composable
+internal fun rememberLocationCell(vararg perDegree: Int): State<Location?> =
+    remember { LocationFeed.cell(*perDegree) }.collectAsState(initial = remember { LocationFeed.location.value })
+
 /** Weather at the car, refreshed the way the standard weather tile does it; null until the first fetch. */
 @Composable
 internal fun rememberWeather(): Weather? {
     UseLocationFeed()
-    val location by LocationFeed.location.collectAsState()
+    // The fetch is keyed on the position to 1/20 degree: nothing else of it is read.
+    val location by rememberLocationCell(20)
     val weather by WeatherRepo.weather.collectAsState()
     LaunchedEffect(location?.latitude?.let { (it * 20).roundToInt() }, location?.longitude?.let { (it * 20).roundToInt() }) {
         val l = location ?: return@LaunchedEffect
@@ -280,9 +303,9 @@ internal fun rememberWeather(): Weather? {
 /** Why [rememberWeather] has nothing yet, so a skin says "no GPS" or "offline" in its own words and not "loading" all drive. */
 @Composable
 internal fun rememberWeatherWait(): WeatherWait {
-    val location by LocationFeed.location.collectAsState()
+    val hasFix by LocationFeed.hasFix.collectAsState()
     val error by WeatherRepo.error.collectAsState()
-    return weatherWait(location != null, error)
+    return weatherWait(hasFix, error)
 }
 
 /**
@@ -292,14 +315,36 @@ internal fun rememberWeatherWait(): WeatherWait {
  * stream running while on screen.
  */
 @Composable
-internal fun rememberFuel(obdData: ObdData, connection: ObdConnectionState): FuelInfo? {
+internal fun rememberFuel(obdData: ObdData, connection: ObdConnectionState): FuelInfo? =
+    rememberFuelFrom(obdData.fuelLevelPct, connection)
+
+/**
+ * [rememberFuel] for a skin's tile. Only the OBD fuel level is followed, not
+ * every OBD sample (the revs move several times a second), so a range tile
+ * redraws when its own reading changes.
+ */
+@Composable
+internal fun rememberFuel(env: SkinTileEnv): FuelInfo? {
+    val obdFuel by remember(env) { derivedStateOf { env.obdData.fuelLevelPct } }
+    return rememberFuelFrom(obdFuel, env.obdConnection)
+}
+
+/** [rememberFuel] from the OBD feed's state, following its fuel level only. */
+@Composable
+internal fun rememberFuel(obd: State<ObdData>, connection: ObdConnectionState): FuelInfo? {
+    val obdFuel by remember(obd) { derivedStateOf { obd.value.fuelLevelPct } }
+    return rememberFuelFrom(obdFuel, connection)
+}
+
+@Composable
+private fun rememberFuelFrom(obdFuelPct: Int, connection: ObdConnectionState): FuelInfo? {
     DisposableEffect(Unit) {
         McuReader.start()
         onDispose { McuReader.stop() }
     }
     val canFuel by McuReader.fuelPercent.collectAsState()
     val canRange by McuReader.rangeKm.collectAsState()
-    val obdFuel = if (connection == ObdConnectionState.CONNECTED) obdData.fuelLevelPct else 0
+    val obdFuel = if (connection == ObdConnectionState.CONNECTED) obdFuelPct else 0
     return carFuelInfo(canFuel, obdFuel, canRange)
 }
 
@@ -331,15 +376,16 @@ internal fun openClockApp(context: Context) {
  * when paused (a record or reel that stops where it is). Read it in a draw or
  * graphicsLayer lambda so only drawing reruns each step. Ambient motion: it
  * steps at the effects setting's rate, stands still with effects off, and
- * holds on a page off screen ([LocalPageActive]).
+ * holds on a page off screen ([LocalPageActive]) or while the car moves.
  */
 @Composable
 internal fun rememberSpin(periodMs: Int, running: Boolean = true): State<Float> {
     val angle = remember { mutableFloatStateOf(0f) }
     val step = ambientStepMs(DashColors.Effects)
     val active = LocalPageActive.current
-    LaunchedEffect(running, periodMs, step, active) {
-        if (!running || !active || step == null) return@LaunchedEffect
+    val held = LocalCarMoving.current
+    LaunchedEffect(running, periodMs, step, active, held) {
+        if (!running || !active || held || step == null) return@LaunchedEffect
         var last = System.currentTimeMillis()
         while (true) {
             delay(step - System.currentTimeMillis() % step)
@@ -368,7 +414,7 @@ internal fun rememberLoop(
 ): State<Float> {
     val step = (if (status) STATUS_STEP_MS else ambientStepMs(DashColors.Effects))
         ?: return remember(rest) { mutableFloatStateOf(rest) }
-    val clock = rememberAmbientClock(step)
+    val clock = rememberAmbientClock(step, holdWhileMoving = !status)
     return remember(clock, periodMs, reverse) {
         derivedStateOf {
             if (reverse) {

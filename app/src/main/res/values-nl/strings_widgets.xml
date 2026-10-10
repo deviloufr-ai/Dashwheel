@@ -139,6 +139,16 @@
     <string name="widgets_commute_blurb">Hoe lang de ritten naar huis en naar het werk duren, dag na dag</string>
     <string name="widgets_commute_none">Nog geen rit hierheen</string>
     <string name="widgets_commute_stats">gemiddeld %1$d min, snelst %2$d min</string>
+    <string name="widgets_history">Ritgeschiedenis</string>
+    <string name="widgets_history_blurb">De laatste ritten en het totaal van deze week</string>
+    <string name="widgets_history_none">Nog geen rit</string>
+    <string name="widgets_history_week">Deze week</string>
+    <string name="widgets_history_week_line">Deze week: %1$s</string>
+    <string name="widgets_history_eco">eco %1$d</string>
+    <plurals name="widgets_history_drives">
+        <item quantity="one">%d rit</item>
+        <item quantity="other">%d ritten</item>
+    </plurals>
 
     <string name="widgets_switch_look">Uiterlijk</string>
 </resources>

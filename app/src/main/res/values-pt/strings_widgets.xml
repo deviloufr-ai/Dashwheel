@@ -139,6 +139,16 @@
     <string name="widgets_commute_blurb">Quanto duram as viagens para casa e para o trabalho, dia após dia</string>
     <string name="widgets_commute_none">Ainda sem viagens aqui</string>
     <string name="widgets_commute_stats">média %1$d min, melhor %2$d min</string>
+    <string name="widgets_history">Histórico de viagens</string>
+    <string name="widgets_history_blurb">As últimas viagens e o total da semana</string>
+    <string name="widgets_history_none">Ainda sem viagens</string>
+    <string name="widgets_history_week">Esta semana</string>
+    <string name="widgets_history_week_line">Esta semana: %1$s</string>
+    <string name="widgets_history_eco">eco %1$d</string>
+    <plurals name="widgets_history_drives">
+        <item quantity="one">%d viagem</item>
+        <item quantity="other">%d viagens</item>
+    </plurals>
 
     <string name="widgets_switch_look">Aspeto</string>
 </resources>

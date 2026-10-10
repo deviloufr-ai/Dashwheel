@@ -139,6 +139,16 @@
     <string name="widgets_commute_blurb">Cuánto duran los trayectos a casa y al trabajo, día a día</string>
     <string name="widgets_commute_none">Aún no hay trayectos aquí</string>
     <string name="widgets_commute_stats">media %1$d min, mejor %2$d min</string>
+    <string name="widgets_history">Historial de trayectos</string>
+    <string name="widgets_history_blurb">Los últimos trayectos y el total de la semana</string>
+    <string name="widgets_history_none">Aún no hay trayectos</string>
+    <string name="widgets_history_week">Esta semana</string>
+    <string name="widgets_history_week_line">Esta semana: %1$s</string>
+    <string name="widgets_history_eco">eco %1$d</string>
+    <plurals name="widgets_history_drives">
+        <item quantity="one">%d trayecto</item>
+        <item quantity="other">%d trayectos</item>
+    </plurals>
 
     <string name="widgets_switch_look">Aspecto</string>
 </resources>

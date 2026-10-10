@@ -58,11 +58,11 @@ private suspend fun minutesTo(context: Context, fromLat: Double, fromLng: Double
 internal fun HomeWorkCard(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val places by PlacesStore.places.collectAsState()
-    val location by LocationFeed.location.collectAsState()
+    // Only whether there is a fix: the loop reads the position itself, so the tile doesn't follow each fix.
+    val hasFix by LocationFeed.hasFix.collectAsState()
     var homeMin by remember { mutableStateOf<Int?>(null) }
     var workMin by remember { mutableStateOf<Int?>(null) }
-    val here = location
-    LaunchedEffect(places.home, places.work, here != null) {
+    LaunchedEffect(places.home, places.work, hasFix) {
         while (true) {
             val loc = LocationFeed.location.value
             if (loc != null) {

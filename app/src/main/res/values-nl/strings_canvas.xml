@@ -18,6 +18,8 @@
     <string name="canvas_when_parked">Geparkeerd</string>
     <string name="canvas_when_driving">Rijden</string>
     <string name="canvas_when_fault">Motorstoring</string>
+    <string name="canvas_when_navigating">Navigeren</string>
+    <string name="canvas_when_low_fuel">Reserve</string>
     <string name="canvas_tab_add">Nieuw</string>
     <string name="canvas_tab_remove">Dashboard verwijderen</string>
     <string name="canvas_tab_done">Klaar</string>

@@ -184,6 +184,11 @@ internal fun WifiNetworksCard(modifier: Modifier = Modifier) {
     LaunchedEffect(wifi.on, wifi.detail, refresh, location.granted) {
         @Suppress("DEPRECATION")
         runCatching { context.getSystemService(WifiManager::class.java)?.startScan() }
+    }
+    // The list is read again while the page is seen, and as soon as it shows again.
+    val active = LocalPageActive.current
+    LaunchedEffect(wifi.on, wifi.detail, refresh, location.granted, active) {
+        if (!active) return@LaunchedEffect
         while (true) {
             entries = withContext(Dispatchers.IO) { wifiEntries(context) }
             delay(10_000)
@@ -235,7 +240,9 @@ internal fun BluetoothDevicesCard(modifier: Modifier = Modifier) {
     var entries by remember { mutableStateOf<List<BtEntry>>(emptyList()) }
     var refresh by remember { mutableIntStateOf(0) }
     var busy by remember { mutableStateOf<String?>(null) }
-    LaunchedEffect(bt.on, refresh) {
+    val active = LocalPageActive.current
+    LaunchedEffect(bt.on, refresh, active) {
+        if (!active) return@LaunchedEffect
         while (true) {
             entries = withContext(Dispatchers.IO) { btEntries(context) }
             delay(5_000)
@@ -374,7 +381,12 @@ internal fun wifiNetworksFace(): WidgetFace {
 internal fun bluetoothDevicesFace(): WidgetFace {
     val context = LocalContext.current
     var connected by remember { mutableStateOf<String?>(null) }
-    LaunchedEffect(Unit) { while (true) { connected = withContext(Dispatchers.IO) { btEntries(context).firstOrNull { it.connected }?.name }; delay(5_000) } }
+    // Asked again every 5 s while the page is seen, and as soon as it shows again.
+    val active = LocalPageActive.current
+    LaunchedEffect(active) {
+        if (!active) return@LaunchedEffect
+        while (true) { connected = withContext(Dispatchers.IO) { btEntries(context).firstOrNull { it.connected }?.name }; delay(5_000) }
+    }
     return WidgetFace(
         icon = Icons.Filled.Bluetooth,
         title = BuiltinKind.BT_DEVICES.label,

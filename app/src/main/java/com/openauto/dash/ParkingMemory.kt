@@ -12,6 +12,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.cos
@@ -91,25 +94,32 @@ internal object ParkingMotion {
                 if (radar != null) ObstacleMemory.update(radar, p)
             }
         }
+        // Ticks only during a manoeuvre: outside one there is nothing to move.
         scope.launch {
-            var last = SystemClock.elapsedRealtime()
-            while (true) {
-                delay(TICK_MS)
-                val now = SystemClock.elapsedRealtime()
-                val dt = (now - last) / 1000f
-                last = now
-                if (_pose.value == null || ReverseView.preview.value) continue
-                val reversing = CarBox.reversing.value
-                val kmh = speedKmh()
-                if (reversing) lastReverseAt = now
-                else if (now - lastReverseAt > KEEP_MS || (kmh ?: 0f) > DRIVING_KMH) {
-                    end()
-                    continue
-                }
-                if (now - cameraAt < CAMERA_FRESH_MS) continue
-                val v = (kmh ?: 0f) / 3.6f
-                if (v > 0f) move(v * dt * if (reversing) -1f else 1f)
+            _pose.map { it != null }.distinctUntilChanged().collectLatest { inManoeuvre ->
+                if (inManoeuvre) followManoeuvre()
             }
+        }
+    }
+
+    private suspend fun followManoeuvre() {
+        var last = SystemClock.elapsedRealtime()
+        while (true) {
+            delay(TICK_MS)
+            val now = SystemClock.elapsedRealtime()
+            val dt = (now - last) / 1000f
+            last = now
+            if (_pose.value == null || ReverseView.preview.value) continue
+            val reversing = CarBox.reversing.value
+            val kmh = speedKmh()
+            if (reversing) lastReverseAt = now
+            else if (now - lastReverseAt > KEEP_MS || (kmh ?: 0f) > DRIVING_KMH) {
+                end()
+                continue
+            }
+            if (now - cameraAt < CAMERA_FRESH_MS) continue
+            val v = (kmh ?: 0f) / 3.6f
+            if (v > 0f) move(v * dt * if (reversing) -1f else 1f)
         }
     }
 

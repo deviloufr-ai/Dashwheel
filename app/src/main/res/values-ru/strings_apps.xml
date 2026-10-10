@@ -33,7 +33,7 @@
     <string name="apps_kind_compass">Компас</string>
     <string name="apps_kind_compass_blurb">Курс, высота и скорость по GPS</string>
     <string name="apps_kind_trip">Бортовой компьютер</string>
-    <string name="apps_kind_trip_blurb">Пробег, время, средняя и макс. скорость</string>
+    <string name="apps_kind_trip_blurb">Эта поездка и с последней заправки, с топливом и стоимостью</string>
     <string name="apps_kind_gforce">Перегрузка</string>
     <string name="apps_kind_gforce_blurb">Перегрузка g в поворотах и при торможении</string>
     <string name="apps_kind_parking">Место парковки</string>

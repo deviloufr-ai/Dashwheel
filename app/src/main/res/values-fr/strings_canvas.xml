@@ -18,6 +18,8 @@
     <string name="canvas_when_parked">À l\'arrêt</string>
     <string name="canvas_when_driving">En route</string>
     <string name="canvas_when_fault">Panne moteur</string>
+    <string name="canvas_when_navigating">Navigation</string>
+    <string name="canvas_when_low_fuel">Réserve</string>
     <string name="canvas_tab_add">Ajouter</string>
     <string name="canvas_tab_remove">Supprimer le tableau de bord</string>
     <string name="canvas_tab_done">OK</string>

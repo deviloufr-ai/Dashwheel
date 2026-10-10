@@ -238,7 +238,7 @@ private fun SpeedBlock(speed: Int?, obd: Boolean, gear: State<GearReading>, redl
         val showCaps = h >= 150f
         val unitSp = (capsSp * 1.1f).coerceIn(12f, 18f)
         val numH = h - rpmH - vsH - (if (showCaps) capsH else 0f) - unitSp * 1.3f - 8f
-        val over = speed != null && speed >= SPEED_WARNING_KMH
+        val over = speedOver(speed)
         val color = when {
             speed == null -> DashColors.Muted
             over -> DashColors.Warning
@@ -320,11 +320,13 @@ private fun rememberVsUsual(): Int? {
     val drive by DriveLog.current.collectAsState()
     val drives by DriveLog.drives.collectAsState()
     val places by PlacesStore.places.collectAsState()
-    val here by LocationFeed.location.collectAsState()
+    // Only the position to 1/200 degree is a key: the tile doesn't follow each fix.
+    val here by rememberLocationCell(200)
     val now = rememberNow(60_000L).time
     val cell = here?.let { (it.latitude * 200).roundToInt() to (it.longitude * 200).roundToInt() }
     return remember(nav.active, nav.eta, drive?.startedAt, drives, places, cell, now) {
-        if (!nav.active) null else vsUsualMinutes(nav.eta, now, drive?.startedAt, places, drives, here)
+        // Worked out from the latest fix, not the one that entered the cell.
+        if (!nav.active) null else vsUsualMinutes(nav.eta, now, drive?.startedAt, places, drives, LocationFeed.location.value ?: here)
     }
 }
 
@@ -713,17 +715,13 @@ private fun sectorColor(race: MsRace, i: Int): Color? {
     return if (end - start <= planned) DashColors.Accent2 else DashColors.Good
 }
 
-private val LEFT_WORDS = listOf("left", "gauche", "izquierda", "links", "sinistra", "esquerda", "lewo", "налево", "левее")
-private val RIGHT_WORDS = listOf("right", "droite", "derecha", "rechts", "destra", "direita", "prawo", "направо", "правее")
-
-/** "R 300 M": the side of the next turn when the instruction says it, and the distance to it. */
+/** "R 300 M": the side of the next turn when the navigation says it, and the distance to it. */
 @Composable
 private fun nextTurnText(nav: NavState): String {
-    val s = nav.instruction.lowercase()
-    val side = when {
-        LEFT_WORDS.any { it in s } -> stringResource(R.string.skin_motorsport_turn_left)
-        RIGHT_WORDS.any { it in s } -> stringResource(R.string.skin_motorsport_turn_right)
-        else -> null
+    val side = when (nav.turnSide()) {
+        TurnSide.LEFT -> stringResource(R.string.skin_motorsport_turn_left)
+        TurnSide.RIGHT -> stringResource(R.string.skin_motorsport_turn_right)
+        TurnSide.AHEAD -> null
     }
     val (value, unit) = nav.distanceParts
     val dist = listOf(value, unit.uppercase()).filter { it.isNotEmpty() }.joinToString(" ")
@@ -1238,7 +1236,7 @@ private fun MsEmpty(title: String, hint: String, onTap: (() -> Unit)?, track: Bo
     ) {
         if (track && maxHeight >= 140.dp) TrackCanvas(0f, listOf(null, null, null), dim = true, Modifier.fillMaxSize().padding(16.dp))
         val titleSp = min(maxHeight.value * 0.16f, maxWidth.value / (title.length.coerceAtLeast(4) * 0.5f)).coerceIn(16f, 44f)
-        val hintSp = (titleSp * 0.42f).coerceIn(11f, 16f)
+        val hintSp = (titleSp * 0.42f).coerceIn(14f, 16f)
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(14.dp)) {
             MsText(title, msHero(fixedSp(titleSp), DashColors.TextPrimary).copy(textAlign = TextAlign.Center), maxLines = 2)
             Spacer(Modifier.height(4.dp))
@@ -1465,7 +1463,7 @@ private fun CompoundBadge(compound: Compound, size: Dp) {
  */
 @Composable
 internal fun MsPitBoard(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env.obdData, env.obdConnection)
+    val fuel = rememberFuel(env)
     if (fuel == null) {
         StandardSkinnedTile(item, env)
         return

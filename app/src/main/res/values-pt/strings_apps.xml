@@ -33,7 +33,7 @@
     <string name="apps_kind_compass">Bússola</string>
     <string name="apps_kind_compass_blurb">Rumo, altitude e velocidade GPS</string>
     <string name="apps_kind_trip">Computador de bordo</string>
-    <string name="apps_kind_trip_blurb">Distância, tempo, velocidade média e máxima</string>
+    <string name="apps_kind_trip_blurb">Esta viagem e desde o último abastecimento, com combustível e custo</string>
     <string name="apps_kind_gforce">Força G</string>
     <string name="apps_kind_gforce_blurb">g em curva e travagem</string>
     <string name="apps_kind_parking">Estacionamento</string>

@@ -249,7 +249,7 @@ internal fun UpkeepDialog(onDismiss: () -> Unit) {
                 TextButton(onClick = {
                     commitOdometer()
                     Maintenance.setDone(d.kind, UpkeepDone(km = Maintenance.state.value.odometer?.nowKm, at = Calendar.getInstance().timeInMillis))
-                }) { Text(stringResource(R.string.upkeep_done_today), color = DashColors.Accent, maxLines = 2) }
+                }) { Text(stringResource(R.string.upkeep_done_today), color = DashColors.AccentInk, maxLines = 2) }
             }
         }
     }

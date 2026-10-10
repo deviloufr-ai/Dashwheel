@@ -23,14 +23,17 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.openauto.dash.link.ConversationLine
 import com.openauto.dash.link.PhoneNotification
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.update
 import java.util.Base64
 import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.roundToInt
 
 /*
  * Live data sources shared by the dashboard widgets. Each feed is a process
@@ -63,6 +66,35 @@ data class TripState(
 object LocationFeed {
     private val _location = MutableStateFlow<Location?>(null)
     val location: StateFlow<Location?> = _location
+
+    /**
+     * Whether there is a [location] at all. It moves with the first fix (or the
+     * demo), not with each fix, so a tile that only says "waiting for GPS"
+     * doesn't redraw every second.
+     */
+    private val _hasFix = MutableStateFlow(false)
+    val hasFix: StateFlow<Boolean> = _hasFix
+
+    /**
+     * [location], passed on only when the car leaves its cell of 1/[perDegree]
+     * degree (of each of them when several are given): the position a weather
+     * or fuel lookup keyed on that rounding would use, without the fixes in
+     * between (one a second) that change nothing for it.
+     */
+    fun cell(vararg perDegree: Int): Flow<Location?> =
+        location.distinctUntilChanged { old, new -> perDegree.all { sameCell(old, new, it) } }
+
+    /** Whether [a] and [b] round to the same 1/[perDegree] degree in latitude and longitude; two missing fixes count as the same. */
+    internal fun sameCell(a: Location?, b: Location?, perDegree: Int): Boolean {
+        if (a == null || b == null) return a == null && b == null
+        return (a.latitude * perDegree).roundToInt() == (b.latitude * perDegree).roundToInt() &&
+            (a.longitude * perDegree).roundToInt() == (b.longitude * perDegree).roundToInt()
+    }
+
+    private fun setLocation(l: Location?) {
+        _location.value = l
+        _hasFix.value = l != null
+    }
 
     private val _trip = MutableStateFlow(TripState())
     val trip: StateFlow<TripState> = _trip
@@ -118,7 +150,7 @@ object LocationFeed {
         }
         runCatching {
             (lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-                ?: lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER))?.let { _location.value = it }
+                ?: lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER))?.let { setLocation(it) }
         }
         return true
     }
@@ -143,7 +175,7 @@ object LocationFeed {
 
     /** [DemoMode]'s position and trip (and, when it ends, the real ones back). */
     internal fun demoWrite(location: Location?, trip: TripState, heading: Float?) {
-        _location.value = location
+        setLocation(location)
         _trip.value = trip
         _headingDeg.value = heading
         publishSpeed(location)
@@ -205,7 +237,7 @@ object LocationFeed {
         // fills in where GPS has nothing, but not over a GPS position still fresh
         // (the parking spot and the fuel stations are looked up from it).
         if (!gps && prev != null && l.elapsedRealtimeNanos - prev.elapsedRealtimeNanos < GPS_KEPT_NS) return
-        _location.value = l
+        setLocation(l)
         publishSpeed(l)
         val speedKmh = l.speed * 3.6f
         if (l.hasBearing() && speedKmh > 3f) _headingDeg.value = l.bearing

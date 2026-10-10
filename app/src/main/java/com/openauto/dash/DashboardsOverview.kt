@@ -330,7 +330,7 @@ private fun UndoBar(text: String, modifier: Modifier, onUndo: () -> Unit) {
                 .padding(horizontal = 22.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text(stringResource(R.string.dash_undo), color = DashColors.Accent, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.dash_undo), color = DashColors.AccentInk, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
         }
     }
 }

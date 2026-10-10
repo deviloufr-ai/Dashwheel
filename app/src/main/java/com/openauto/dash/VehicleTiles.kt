@@ -57,7 +57,7 @@ internal fun DoorsCard(modifier: Modifier = Modifier) {
         Column(
             modifier = Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState())
         ) {
-            Text(stringResource(R.string.vehicle_doors_title), color = DashColors.Accent, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
+            Text(stringResource(R.string.vehicle_doors_title), color = DashColors.AccentInk, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
             Spacer(Modifier.height(10.dp))
             val d = doors
             if (d == null) {
@@ -148,7 +148,7 @@ internal fun CanMonitorCard(modifier: Modifier = Modifier) {
 
     Card(modifier = modifier) {
         Column(modifier = Modifier.fillMaxSize().padding(DashSpace.Lg)) {
-            Text(stringResource(R.string.vehicle_can_monitor_title), color = DashColors.Accent, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
+            Text(stringResource(R.string.vehicle_can_monitor_title), color = DashColors.AccentInk, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
             Text(
                 stringResource(R.string.vehicle_can_monitor_help),
                 color = DashColors.Muted,
@@ -196,7 +196,7 @@ internal fun CanMonitorCard(modifier: Modifier = Modifier) {
                         ) {
                             Text(row.first, color = DashColors.TextPrimary, fontWeight = FontWeight.Bold)
                             Text(stringResource(R.string.vehicle_can_row_closed, row.second), color = DashColors.Muted, style = MaterialTheme.typography.labelSmall)
-                            Text(stringResource(R.string.vehicle_can_row_open, row.third), color = DashColors.Accent, style = MaterialTheme.typography.bodySmall)
+                            Text(stringResource(R.string.vehicle_can_row_open, row.third), color = DashColors.AccentInk, style = MaterialTheme.typography.bodySmall)
                         }
                     }
                 }

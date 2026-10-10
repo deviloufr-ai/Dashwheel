@@ -48,7 +48,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -200,7 +200,13 @@ internal object GeminiLive {
             HandsFree.say(app, R.string.ai_gemini_live_missing)
             return
         }
-        val root = SystemInstaller.isRootAvailable()
+        // This runs on a tap, on the main thread: the shell probe's answer when it has one
+        // (a "no" would otherwise spawn su and wait up to its timeout on every tap).
+        val root = when (PrivilegedShell.access.value) {
+            PrivilegedShell.Access.ROOT -> true
+            PrivilegedShell.Access.UNKNOWN -> SystemInstaller.isRootAvailable()
+            else -> false
+        }
         if (!root || !EmbeddedApp.allowed(app) || !window(app).canShow()) {
             fullScreen(app, root)
             return
@@ -557,11 +563,12 @@ private fun GeminiOrb(style: AlertStyle, onEnd: () -> Unit) {
 /** Gemini's sparkle, breathing while the conversation is open. */
 @Composable
 private fun Listening(tint: Color = DashColors.Accent, size: Dp = 26.dp) {
-    val pulse by rememberInfiniteTransition(label = "gemini").animateFloat(
+    // Read while drawing, so each frame only redraws the icon instead of recomposing it.
+    val pulse = rememberInfiniteTransition(label = "gemini").animateFloat(
         initialValue = 0.45f, targetValue = 1f,
         animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse), label = "pulse"
     )
-    Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = tint, modifier = Modifier.size(size).alpha(pulse))
+    Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = tint, modifier = Modifier.size(size).graphicsLayer { alpha = pulse.value })
 }
 
 @Composable
@@ -603,7 +610,7 @@ private fun Conversation(modifier: Modifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Listening(DashColors.Accent, 20.dp)
             Spacer(Modifier.width(8.dp))
-            Text(stringResource(status), color = DashColors.Accent, style = MaterialTheme.typography.labelLarge)
+            Text(stringResource(status), color = DashColors.AccentInk, style = MaterialTheme.typography.labelLarge)
         }
     }
 }

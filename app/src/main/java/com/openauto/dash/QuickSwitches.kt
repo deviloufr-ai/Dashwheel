@@ -156,7 +156,7 @@ private fun Switch(icon: ImageVector, name: String, on: Boolean, line: String?, 
             Spacer(Modifier.height(4.dp))
             Text(name, color = DashColors.TextPrimary, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
             if (line != null) {
-                Text(line, color = if (on) DashColors.Accent else DashColors.TextSecondary, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(line, color = if (on) DashColors.AccentInk else DashColors.TextSecondary, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
     }

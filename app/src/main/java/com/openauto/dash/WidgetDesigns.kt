@@ -93,8 +93,8 @@ enum class WidgetDesign(
     TURN_CARD(R.string.design_turn_card, R.string.design_turn_card_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.NAVIGATION)),
     ROAD_AHEAD(R.string.design_road_ahead, R.string.design_road_ahead_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.NAVIGATION, BuiltinKind.TRIP, BuiltinKind.FUEL_TO_DEST)),
     RADAR(R.string.design_radar, R.string.design_radar_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.PARKING, BuiltinKind.GPS_STATUS)),
-    ODOMETER(R.string.design_odometer, R.string.design_odometer_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.TRIP, BuiltinKind.RANGE, BuiltinKind.SERVICE, BuiltinKind.CAR_STATUS, BuiltinKind.PERF_TIMER, BuiltinKind.COMMUTE), glanceable = false),
-    PRINTOUT(R.string.design_printout, R.string.design_printout_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.TRIP, BuiltinKind.ECO_DRIVE, BuiltinKind.OBD_DTC, BuiltinKind.CAN_MON, BuiltinKind.SERVICE, BuiltinKind.FUEL_PRICES, BuiltinKind.CAR_STATUS, BuiltinKind.TYRES, BuiltinKind.HEAD_UNIT, BuiltinKind.RADIOS, BuiltinKind.PERF_TIMER, BuiltinKind.FUEL_LOG, BuiltinKind.COMMUTE, BuiltinKind.LPG_TANK)),
+    ODOMETER(R.string.design_odometer, R.string.design_odometer_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.TRIP, BuiltinKind.RANGE, BuiltinKind.SERVICE, BuiltinKind.CAR_STATUS, BuiltinKind.PERF_TIMER, BuiltinKind.COMMUTE, BuiltinKind.DRIVE_HISTORY), glanceable = false),
+    PRINTOUT(R.string.design_printout, R.string.design_printout_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.TRIP, BuiltinKind.ECO_DRIVE, BuiltinKind.OBD_DTC, BuiltinKind.CAN_MON, BuiltinKind.SERVICE, BuiltinKind.FUEL_PRICES, BuiltinKind.CAR_STATUS, BuiltinKind.TYRES, BuiltinKind.HEAD_UNIT, BuiltinKind.RADIOS, BuiltinKind.PERF_TIMER, BuiltinKind.FUEL_LOG, BuiltinKind.COMMUTE, BuiltinKind.LPG_TANK, BuiltinKind.DRIVE_HISTORY)),
     WARNING_LAMP(R.string.design_warning_lamp, R.string.design_warning_lamp_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.OBD_DTC, BuiltinKind.FILTER_CARE, BuiltinKind.BATTERY, BuiltinKind.WARMUP, BuiltinKind.DOORS, BuiltinKind.RANGE, BuiltinKind.FUEL_TO_DEST, BuiltinKind.SERVICE, BuiltinKind.TYRES, BuiltinKind.SPEED_CAMERAS, BuiltinKind.WEATHER_ALERTS)),
     TRAFFIC_LIGHT(R.string.design_traffic_light, R.string.design_traffic_light_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.OBD_DTC, BuiltinKind.BATTERY, BuiltinKind.ECO_DRIVE, BuiltinKind.BREAK_TIMER, BuiltinKind.FILTER_CARE, BuiltinKind.DOORS, BuiltinKind.FUEL_TO_DEST, BuiltinKind.HEAD_UNIT, BuiltinKind.QUICK_SWITCHES, BuiltinKind.WEATHER_ALERTS)),
     GAUGE_BANK(R.string.design_gauge_bank, R.string.design_gauge_bank_desc, null, FaceLookKind.THEME, setOf(BuiltinKind.OBD_ALL, BuiltinKind.TELEMETRY, BuiltinKind.HEAD_UNIT, BuiltinKind.ENGINE_TEMPS)),
@@ -142,7 +142,8 @@ enum class WidgetDesign(
          * chart and never the rows, so the list would be lost in them.
          */
         private val LIST_KINDS = setOf(
-            BuiltinKind.QUICK_DIAL, BuiltinKind.NOTIFICATIONS, BuiltinKind.CALENDAR, BuiltinKind.OBD_DTC, BuiltinKind.FUEL_PRICES
+            BuiltinKind.QUICK_DIAL, BuiltinKind.NOTIFICATIONS, BuiltinKind.CALENDAR, BuiltinKind.OBD_DTC, BuiltinKind.FUEL_PRICES,
+            BuiltinKind.DRIVE_HISTORY
         )
 
         /** Time only goes up: charted over the last minutes it is a straight line. */

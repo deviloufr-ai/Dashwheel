@@ -360,7 +360,7 @@ internal fun ModernTopBar(m: TopBarModel) {
                     MText(digits, 26f, weight = FontWeight.ExtraBold, face = Face.NUMBER, modifier = Modifier.alignByBaseline(), overflow = TextOverflow.Clip)
                     if (amPm != null) {
                         Spacer(Modifier.width(4.dp))
-                        MText(amPm, 13f, DashColors.Muted, Modifier.alignByBaseline(), weight = FontWeight.Bold)
+                        MText(amPm, 14f, DashColors.Muted, Modifier.alignByBaseline(), weight = FontWeight.Bold)
                     }
                     if (showDate) {
                         Spacer(Modifier.width(10.dp))

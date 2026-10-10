@@ -678,7 +678,7 @@ internal fun TileContent(
             )
         }
 
-        is DashboardItem.BuiltinWidget -> when (item.kind) {
+        is DashboardItem.BuiltinWidget -> SkinFallback(item.kind) { when (item.kind) {
             BuiltinKind.NAVMAP -> if (editing) {
                 EditPlaceholder(icon = Icons.Filled.Navigation, label = BuiltinKind.NAVMAP.label)
             } else if (isEmulator) {
@@ -759,6 +759,7 @@ internal fun TileContent(
             BuiltinKind.WEATHER_ALERTS -> WeatherAlertsCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.ENGINE_TEMPS -> EngineTempsCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.COMMUTE -> CommuteCard(modifier = Modifier.fillMaxSize())
+            BuiltinKind.DRIVE_HISTORY -> DriveHistoryCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.LPG_TANK -> LpgTankCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.FILTER_CARE -> FilterCareCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.WARMUP -> WarmupCard(obd.value, obdConnection.value == ObdConnectionState.CONNECTED, Modifier.fillMaxSize())
@@ -771,7 +772,7 @@ internal fun TileContent(
             BuiltinKind.FUEL_PRICES -> FuelPricesCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.CAR_STATUS -> CarStatusCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.TYRES -> TyresCard(modifier = Modifier.fillMaxSize())
-        }
+        } }
 
         is DashboardItem.SystemWidget -> if (editing) {
             EditPlaceholder(icon = Icons.Filled.Widgets, label = stringResource(R.string.dash_app_widget))
@@ -781,6 +782,20 @@ internal fun TileContent(
             HostedSystemWidget(appWidgetId = item.appWidgetId, modifier = Modifier.fillMaxSize())
         }
     }
+}
+
+/**
+ * A widget the skin does not redraw, on the skin's panel ([SkinFallbackPanel]).
+ * Live views (the map, a docked window) and the bar of dashboards stay as they
+ * are: they fill their tile edge to edge.
+ */
+@Composable
+private fun SkinFallback(kind: BuiltinKind, content: @Composable () -> Unit) {
+    if (DashColors.Skin == DashSkin.STANDARD || !DashColors.Bare || kind in FRAMED_KINDS || kind == BuiltinKind.DASH_BAR || kind in SKINNED_KINDS) {
+        content()
+        return
+    }
+    SkinFallbackPanel(content)
 }
 
 /** What an empty dashboard shows: one line, then filling it from a template first, a tile at a time, or every dashboard. */

@@ -878,9 +878,10 @@ private fun SpeedFigure(speed: Int?, maxW: Dp, maxH: Dp) {
     val units = LocalUnits.current
     val numSp = fitSp("188", display(100f), maxW * 0.78f, maxH, 28f, 400f)
     val unitSp = (numSp * 0.2f).coerceIn(14f, 44f)
+    val over = speedOver(speed)
     val color = when {
         speed == null -> DashColors.Muted
-        speed >= SPEED_WARNING_KMH -> DashColors.Warning
+        over -> DashColors.Warning
         else -> DashColors.TextPrimary
     }
     Row {
@@ -1243,7 +1244,7 @@ private fun HorizonDirections(env: SkinTileEnv, side: Side) {
                     Spacer(Modifier.width((distSp * 0.16f).dp))
                     if (value.isNotEmpty()) {
                         Row {
-                            SceneText(value, display(distSp, DashColors.Accent), Modifier.alignByBaseline(), overflow = TextOverflow.Clip)
+                            SceneText(value, display(distSp, DashColors.AccentInk), Modifier.alignByBaseline(), overflow = TextOverflow.Clip)
                             if (unit.isNotEmpty()) {
                                 Spacer(Modifier.width((distSp * 0.08f).dp))
                                 SceneText(
@@ -1395,7 +1396,7 @@ private fun HorizonWeather(side: Side) {
 /** Fuel & range: serif "480 km", "range · 62% fuel" and a thin mint gauge; unknown fuel falls back to the standard tile. */
 @Composable
 private fun HorizonRange(item: DashboardItem, env: SkinTileEnv, side: Side) {
-    val fuel = rememberFuel(env.obdData, env.obdConnection)
+    val fuel = rememberFuel(env)
     if (fuel == null) {
         StandardSkinnedTile(item, env)
         return

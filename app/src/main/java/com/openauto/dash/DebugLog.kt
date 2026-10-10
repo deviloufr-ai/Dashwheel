@@ -9,6 +9,7 @@ import android.provider.Settings
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -60,14 +61,24 @@ object DebugLog {
     private val lock = Any()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    /** One line of what the car and the unit just did, kept across reboots. */
+    /** One line after the other, in the order they were noted. */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val writer = CoroutineScope(SupervisorJob() + Dispatchers.IO.limitedParallelism(1))
+
+    /**
+     * One line of what the car and the unit just did, kept across reboots. Stamped
+     * now, written on the log's own thread: callers include the main thread at
+     * switch-off, where a slow flash write would stall the screen.
+     */
     fun note(context: Context, message: String) {
         val line = "${stamp()} $message\n"
-        synchronized(lock) {
-            runCatching {
-                val file = File(context.applicationContext.filesDir, EVENTS)
-                if (file.length() > KEEP_BYTES) file.writeText(file.readText().takeLast(KEEP_BYTES / 2))
-                file.appendText(line)
+        val file = File(context.applicationContext.filesDir, EVENTS)
+        writer.launch {
+            synchronized(lock) {
+                runCatching {
+                    if (file.length() > KEEP_BYTES) file.writeText(file.readText().takeLast(KEEP_BYTES / 2))
+                    file.appendText(line)
+                }
             }
         }
     }

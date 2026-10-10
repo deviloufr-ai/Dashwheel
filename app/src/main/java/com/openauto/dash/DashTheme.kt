@@ -12,7 +12,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -118,7 +120,34 @@ data class DashPalette(
     val HeroWeight: FontWeight = FontWeight.ExtraBold,
     /** What the middle of the standard bar shows. */
     val BarStyle: DashBarStyle = DashBarStyle.STANDARD
-)
+) {
+    /**
+     * [Accent] for words (hints, links, a tile's "tap to…"): the accent itself
+     * where it reads at 4.5:1 on every colour of the page, else the accent
+     * moved toward [TextPrimary] until it does. Bright accents fill and glow
+     * well but wash out as text on a pale page in the sun.
+     */
+    val AccentInk: Color by lazy {
+        val pages = listOf(Background) + BackgroundStops
+        var t = 0f
+        var ink = Accent
+        while (t < 1f && pages.any { contrastRatio(ink.compositeOver(it), it) < TEXT_CONTRAST }) {
+            t += 0.05f
+            ink = lerp(Accent, TextPrimary, t.coerceAtMost(1f))
+        }
+        ink
+    }
+}
+
+/** WCAG AA for body text. */
+internal const val TEXT_CONTRAST = 4.5f
+
+/** WCAG contrast ratio of [a] against [b], 1 to 21. */
+internal fun contrastRatio(a: Color, b: Color): Float {
+    val hi = maxOf(a.luminance(), b.luminance())
+    val lo = minOf(a.luminance(), b.luminance())
+    return (hi + 0.05f) / (lo + 0.05f)
+}
 
 /** A theme's hero face: the system sans, or its condensed cut (a cluster's numerals). */
 enum class DashFont { SANS, CONDENSED }
@@ -691,6 +720,8 @@ object DashColors {
     val Card get() = current.Card
     val CardHi get() = current.CardHi
     val Accent get() = current.Accent
+    /** [Accent] for words: reads at 4.5:1 on the page ([DashPalette.AccentInk]). */
+    val AccentInk get() = current.AccentInk
     val Accent2 get() = current.Accent2
     val Secondary get() = current.Secondary
     /** Amber, in every theme: the tachometer, and readings warming up or running low. */

@@ -1421,7 +1421,7 @@ internal fun updateTap(m: TopBarModel) {
 internal fun SettingsSection(title: String) {
     Text(
         title.uppercase(),
-        color = DashColors.Accent,
+        color = DashColors.AccentInk,
         letterSpacing = 0.08.em,
         style = MaterialTheme.typography.labelSmall,
         modifier = Modifier.searchTarget(title).padding(start = 12.dp, top = 4.dp, bottom = 8.dp)

@@ -62,11 +62,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import com.openauto.dash.link.FuelFills
+import java.text.DateFormat
+import java.util.Date
 import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.atan2
@@ -90,8 +94,9 @@ internal fun TileHeader(title: String, trailing: @Composable () -> Unit = {}) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
-            title,
-            color = DashColors.Accent,
+            // Upper case here, so a title passed in sentence case (a widget's name) matches the others.
+            title.uppercase(Locale.getDefault()),
+            color = DashColors.AccentInk,
             fontWeight = FontWeight.Bold,
             letterSpacing = 1.5.sp,
             style = MaterialTheme.typography.labelMedium
@@ -144,7 +149,7 @@ internal fun SpeedHudCard(obdData: ObdData, obdConnected: Boolean, modifier: Mod
         kmh != null -> "GPS"
         else -> stringResource(R.string.info_speed_no_signal)
     }
-    val over = (kmh ?: 0) >= SPEED_WARNING_KMH
+    val over = speedOver(kmh)
     val u = LocalUnits.current
     val speed = kmh?.let { u.speed(it) }
     // The source (OBD or GPS) is said for two seconds when it changes, not worn
@@ -343,44 +348,151 @@ internal fun StatBlock(label: String, value: String, modifier: Modifier = Modifi
 
 // --- Trip computer --------------------------------------------------------------
 
-/** Distance, time, average and top speed since the last reset. */
+/**
+ * This drive: distance, time, average and top speed since the last reset,
+ * with the fuel it took and what it cost. On a tile big enough the distance
+ * since the last fill-up comes beside it, counted on by itself ([SinceFill]).
+ * Reset starts this drive again, as it always did; nothing else needs a tap.
+ */
 @Composable
 internal fun TripCard(modifier: Modifier = Modifier) {
     UseLocationFeed()
     val trip by LocationFeed.trip.collectAsState()
     val u = LocalUnits.current
-    val km = u.distance(trip.distanceM / 1000.0)
+    val rate = rememberFuelRate()
     val since = remember(trip.startedAt, u) { formatClock(trip.startedAt, u) }
+    val a = TripMath.figures(trip.distanceM / 1000.0, trip.movingMs, rate.use, rate.price)
 
     Card(modifier = modifier) {
-        Column(modifier = Modifier.fillMaxSize().padding(DashSpace.Lg)) {
-            TileHeader(stringResource(R.string.info_trip_title)) {
-                TextButton(onClick = { LocationFeed.resetTrip() }, modifier = Modifier.height(DashSize.Touch), contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp)) {
-                    Text(stringResource(R.string.info_reset), color = DashColors.Accent, style = MaterialTheme.typography.labelMedium)
-                }
-            }
-            Row(
-                modifier = Modifier.weight(1f).fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1.2f)) {
-                    Row(verticalAlignment = Alignment.Bottom) {
-                        // A decimal only under 10: past that it ticked every 100 m while driving.
-                        HeroNumber(text = if (km < 10) String.format(Locale.getDefault(), "%.1f", km) else km.roundToInt().toString(), size = 48)
-                        Spacer(Modifier.width(6.dp))
-                        Text(u.distanceUnit.uppercase(), color = DashColors.TextSecondary, fontWeight = FontWeight.SemiBold, letterSpacing = 0.2.em,
-                            style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(bottom = 8.dp))
+        BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(DashSpace.Lg)) {
+            // Both trips once there is room for two blocks of rows: one above the other, or side by side.
+            val stacked = maxHeight >= 300.dp
+            val sideBySide = !stacked && maxWidth >= 600.dp
+            Column(modifier = Modifier.fillMaxSize()) {
+                TileHeader(stringResource(R.string.info_trip_title)) {
+                    TextButton(onClick = { LocationFeed.resetTrip() }, modifier = Modifier.height(DashSize.Touch), contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp)) {
+                        Text(stringResource(R.string.info_reset), color = DashColors.AccentInk, style = MaterialTheme.typography.labelMedium)
                     }
-                    Text(stringResource(R.string.info_trip_since, since), color = DashColors.Muted, style = MaterialTheme.typography.labelSmall)
                 }
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    TripElapsedRow(stringResource(R.string.info_trip_time), trip)
-                    TripRow(stringResource(R.string.info_trip_moving), formatDuration(trip.movingMs))
-                    TripRow(stringResource(R.string.info_trip_average), u.speedText(trip.avgSpeedKmh))
-                    TripRow(stringResource(R.string.info_trip_top), u.speedText(trip.maxSpeedKmh))
+                if (stacked || sideBySide) {
+                    val b = rememberSinceFill(trip)
+                    val drive: @Composable (Modifier) -> Unit = { m ->
+                        TripSection(stringResource(R.string.info_trip_this_drive), stringResource(R.string.info_trip_since, since), a, rate.currency, m) {
+                            TripElapsedRow(stringResource(R.string.info_trip_time), trip)
+                        }
+                    }
+                    val fill: @Composable (Modifier) -> Unit = { m -> SinceFillSection(b, rate, m) }
+                    if (stacked) {
+                        Column(modifier = Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(DashSpace.Sm)) {
+                            drive(Modifier.weight(1f).fillMaxWidth())
+                            fill(Modifier.weight(1f).fillMaxWidth())
+                        }
+                    } else {
+                        Row(modifier = Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(DashSpace.Lg)) {
+                            drive(Modifier.weight(1f).fillMaxHeight())
+                            fill(Modifier.weight(1f).fillMaxHeight())
+                        }
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.weight(1f).fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1.2f)) {
+                            TripDistance(u.distance(a.km), u.distanceUnit, 48)
+                            Text(stringResource(R.string.info_trip_since, since), color = DashColors.Muted, style = MaterialTheme.typography.labelSmall)
+                            // What it took, under the distance: the rows on the right stay as they were.
+                            Text(
+                                listOfNotNull(TripMath.litersText(a.liters), a.cost?.let { money(it, rate.currency) }).joinToString(", "),
+                                color = DashColors.Muted, style = MaterialTheme.typography.labelSmall, maxLines = 1
+                            )
+                        }
+                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            TripElapsedRow(stringResource(R.string.info_trip_time), trip)
+                            TripRow(stringResource(R.string.info_trip_moving), formatDuration(trip.movingMs))
+                            TripRow(stringResource(R.string.info_trip_average), u.speedText(trip.avgSpeedKmh))
+                            TripRow(stringResource(R.string.info_trip_top), u.speedText(trip.maxSpeedKmh))
+                        }
+                    }
                 }
             }
         }
+    }
+}
+
+/** The consumption and price a trip's fuel is counted at, and the money's currency. */
+internal class FuelRate(val use: Double, val price: Double?, val currency: String)
+
+/** The car's measured consumption and last price paid ([FuelLog]) where known, else its profile's. */
+@Composable
+internal fun rememberFuelRate(): FuelRate {
+    val fills by FuelLog.fills.collectAsState()
+    val car by CarProfileStore.profile.collectAsState()
+    return remember(fills, car) {
+        FuelRate(TripMath.use(FuelFills.litersPer100(fills), car), TripMath.price(fills.firstNotNullOfOrNull { it.pricePerL }, car), car.currency)
+    }
+}
+
+/** The count since the last fill-up; the demo's own during the demo. */
+@Composable
+internal fun rememberSinceFill(trip: TripState): SinceFillState {
+    val real by SinceFill.state.collectAsState()
+    val demo by DemoMode.active.collectAsState()
+    return if (demo) DemoMode.sinceFill(trip) else real
+}
+
+/** The headline distance, already in the driver's units. */
+@Composable
+private fun TripDistance(distance: Double, unit: String, size: Int) {
+    Row(verticalAlignment = Alignment.Bottom) {
+        HeroNumber(text = TripMath.figure(distance), size = size)
+        Spacer(Modifier.width(6.dp))
+        Text(unit.uppercase(), color = DashColors.TextSecondary, fontWeight = FontWeight.SemiBold, letterSpacing = 0.2.em,
+            style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(bottom = (size / 6).dp))
+    }
+}
+
+/** One trip of the big tile: its name and start, the distance, then [time], the average, the fuel and its cost. */
+@Composable
+private fun TripSection(title: String, note: String, f: TripFigures, currency: String, modifier: Modifier, time: @Composable () -> Unit) {
+    val u = LocalUnits.current
+    Column(modifier = modifier) {
+        TripSectionTitle(title, note)
+        Row(modifier = Modifier.weight(1f).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Box(modifier = Modifier.weight(1f)) { TripDistance(u.distance(f.km), u.distanceUnit, 40) }
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                time()
+                TripRow(stringResource(R.string.info_trip_average), u.speedText(f.avgKmh))
+                TripRow(stringResource(R.string.info_trip_fuel), TripMath.litersText(f.liters))
+                f.cost?.let { TripRow(stringResource(R.string.info_trip_cost), money(it, currency)) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TripSectionTitle(title: String, note: String) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(DashSpace.Sm)) {
+        Text(title, color = DashColors.TextPrimary, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge, maxLines = 1)
+        Text(note, color = DashColors.Muted, style = MaterialTheme.typography.labelSmall, maxLines = 1)
+    }
+}
+
+/** Since the last fill-up: the time is the time spent moving, the hours parked in between don't count. */
+@Composable
+private fun SinceFillSection(b: SinceFillState, rate: FuelRate, modifier: Modifier) {
+    val fillAt = b.fillAt
+    if (fillAt == null) {
+        Column(modifier = modifier) {
+            TripSectionTitle(stringResource(R.string.info_trip_since_fill), "")
+            Text(stringResource(R.string.info_trip_no_fill), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+        }
+        return
+    }
+    val f = TripMath.figures(b.km, b.movingMs, rate.use, rate.price)
+    val date = remember(fillAt) { DateFormat.getDateInstance(DateFormat.SHORT).format(Date(fillAt)) }
+    TripSection(stringResource(R.string.info_trip_since_fill), stringResource(R.string.info_trip_since, date), f, rate.currency, modifier) {
+        TripRow(stringResource(R.string.info_trip_moving), formatDuration(f.movingMs))
     }
 }
 
@@ -393,9 +505,14 @@ private fun TripElapsedRow(label: String, trip: TripState) {
 
 @Composable
 private fun TripRow(label: String, value: String) {
+    // The value keeps one line on a narrow tile ("48 km/h", not "48 km/" over "h"); the label gives way first.
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(label, color = DashColors.TextSecondary, style = MaterialTheme.typography.labelMedium)
-        Text(value, color = DashColors.TextPrimary, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
+        Text(
+            label, color = DashColors.TextSecondary, style = MaterialTheme.typography.labelMedium,
+            maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false)
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(value, color = DashColors.TextPrimary, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium, maxLines = 1, softWrap = false)
     }
 }
 
@@ -438,7 +555,7 @@ internal fun GForceCard(modifier: Modifier = Modifier) {
         Column(modifier = Modifier.fillMaxSize().padding(DashSpace.Lg)) {
             TileHeader(stringResource(R.string.info_gforce_title)) {
                 TextButton(onClick = { GForceFeed.resetPeaks() }, modifier = Modifier.height(DashSize.Touch), contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp)) {
-                    Text(stringResource(R.string.info_gforce_reset_peaks), color = DashColors.Accent, style = MaterialTheme.typography.labelMedium)
+                    Text(stringResource(R.string.info_gforce_reset_peaks), color = DashColors.AccentInk, style = MaterialTheme.typography.labelMedium)
                 }
             }
             val ink = DashColors.TextPrimary
@@ -499,8 +616,10 @@ internal fun ParkingCard(modifier: Modifier = Modifier) {
     UseLocationFeed()
     LaunchedEffect(Unit) { ParkingStore.load(context) }
     val spot by ParkingStore.spot.collectAsState()
+    // The position is read only once a spot is saved (the distance to it): with
+    // none, whether there is a fix is all the card shows, and it doesn't follow each fix.
     val location by LocationFeed.location.collectAsState()
-    val hasFix = location != null
+    val hasFix by LocationFeed.hasFix.collectAsState()
     // "Parked 5 min ago" moves by the minute, and only once a spot is saved.
     if (spot != null) rememberWallClock(60_000L).longValue
 
@@ -530,7 +649,7 @@ internal fun ParkingCard(modifier: Modifier = Modifier) {
                     )
                     Spacer(Modifier.height(8.dp))
                     Button(
-                        onClick = { location?.let { ParkingStore.save(context, it) } },
+                        onClick = { LocationFeed.location.value?.let { ParkingStore.save(context, it) } },
                         enabled = hasFix,
                         colors = ButtonDefaults.buttonColors(containerColor = DashColors.Accent, contentColor = DashColors.OnAccent),
                         shape = DashShape.Medium,

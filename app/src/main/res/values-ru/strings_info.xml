@@ -90,6 +90,11 @@
     <string name="info_trip_moving">В движении</string>
     <string name="info_trip_average">Средняя</string>
     <string name="info_trip_top">Макс.</string>
+    <string name="info_trip_this_drive">Эта поездка</string>
+    <string name="info_trip_since_fill">С заправки</string>
+    <string name="info_trip_fuel">Топливо</string>
+    <string name="info_trip_cost">Стоимость</string>
+    <string name="info_trip_no_fill">Заправок пока нет</string>
     <string name="info_duration_hm">%1$d ч %2$02d мин</string>
     <string name="info_duration_ms">%1$d мин %2$02d с</string>
 

@@ -106,7 +106,7 @@ internal fun DashTemplateDialog(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (onlyPage == null) {
                     TextButton(onClick = { onApply(TemplateChoice(chosen, pages, replace = false)) }) {
-                        Text(stringResource(R.string.templates_fill_empty), color = DashColors.Accent)
+                        Text(stringResource(R.string.templates_fill_empty), color = DashColors.AccentInk)
                     }
                 }
                 Button(

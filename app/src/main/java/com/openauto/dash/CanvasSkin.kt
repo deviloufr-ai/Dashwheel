@@ -275,12 +275,12 @@ private fun Label(text: String, sizeDp: Float = 16f, color: Color = DashColors.T
         maxLines = maxLines, overflow = TextOverflow.Ellipsis, textAlign = align)
 }
 
-/** The speed on a round glass dial, its arc filling to 180 km/h; amber from [SPEED_WARNING_KMH]. */
+/** The speed on a round glass dial, its arc filling to 180 km/h; amber when [speedOver]. */
 @Composable
 private fun CanvasSpeed(env: SkinTileEnv) {
     val speed = rememberSpeedKmh(env.obdData, env.obdConnection)
     val connected = env.obdConnection == ObdConnectionState.CONNECTED
-    val fast = speed != null && speed >= SPEED_WARNING_KMH
+    val fast = speedOver(speed)
     val arc = if (fast) DashColors.Warning else DashColors.Accent
     val track = DashColors.CardHi
     BoxWithConstraints(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -358,7 +358,7 @@ private fun CanvasCar(env: SkinTileEnv) {
 /** Range as one big number, the tank as a bar under it, the level in words. */
 @Composable
 private fun CanvasRange(env: SkinTileEnv) {
-    val fuel = rememberFuel(env.obdData, env.obdConnection) ?: return StandardSkinnedTile(DashboardItem.BuiltinWidget(BuiltinKind.RANGE), env)
+    val fuel = rememberFuel(env) ?: return StandardSkinnedTile(DashboardItem.BuiltinWidget(BuiltinKind.RANGE), env)
     val low = fuel.percent <= 10
     Column(modifier = Modifier.fillMaxSize().then(canvasGlass()).padding(20.dp), verticalArrangement = Arrangement.SpaceBetween) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -490,15 +490,28 @@ private fun CanvasWeather() {
     val now = System.currentTimeMillis()
     Column(modifier = Modifier.fillMaxSize().then(canvasGlass()).padding(20.dp), verticalArrangement = Arrangement.Center) {
         if (weather == null) {
+            // Say why, as the other looks do: "--°" alone reads as broken.
+            val wait = rememberWeatherWait()
             Num("--°", 48f, DashColors.Muted)
+            Label(
+                stringResource(
+                    when (wait) {
+                        WeatherWait.LOADING -> R.string.horizon_loading
+                        WeatherWait.NO_GPS -> R.string.info_waiting_gps
+                        WeatherWait.UNAVAILABLE -> R.string.info_weather_unavailable
+                    }
+                ),
+                16f,
+                DashColors.Muted
+            )
         } else {
             Num(String.format(Locale.getDefault(), "%.0f°", units.tempExact(weather.tempC)), 52f)
             Label(weather.condition, 18f)
             val from = weather.rainFromMs
             val until = weather.rainUntilMs
             when {
-                from != null && until != null && from <= now -> Label(stringResource(R.string.canvas_rain_until, time.format(Date(until))), 16f, DashColors.Accent)
-                from != null -> Label(stringResource(R.string.canvas_rain_from, time.format(Date(from))), 16f, DashColors.Accent)
+                from != null && until != null && from <= now -> Label(stringResource(R.string.canvas_rain_until, time.format(Date(until))), 16f, DashColors.AccentInk)
+                from != null -> Label(stringResource(R.string.canvas_rain_from, time.format(Date(from))), 16f, DashColors.AccentInk)
             }
         }
     }

@@ -80,7 +80,7 @@ internal fun PipAnchorCard(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(stringResource(R.string.apps_window_title, "MAPS"), color = DashColors.Accent, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
+                Text(stringResource(R.string.apps_window_title, "MAPS"), color = DashColors.AccentInk, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
                 Spacer(Modifier.height(8.dp))
                 Text(stringResource(R.string.apps_window_maps_docked_beside), color = DashColors.TextSecondary, textAlign = TextAlign.Center, style = MaterialTheme.typography.bodyMedium)
             }
@@ -209,7 +209,7 @@ internal fun PipAnchorCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(stringResource(R.string.apps_window_title, appLabel.uppercase()), color = DashColors.Accent, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
+            Text(stringResource(R.string.apps_window_title, appLabel.uppercase()), color = DashColors.AccentInk, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
             Spacer(Modifier.height(8.dp))
             Text(
                 text = when {

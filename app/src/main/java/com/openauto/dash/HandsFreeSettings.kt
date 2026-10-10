@@ -72,7 +72,7 @@ internal fun VoiceSettings(essentialOnly: Boolean = false) {
         }
         if (event == SpokenEvent.MESSAGES && event in on) {
             TextButton(onClick = { MessageAlerts.preview(context) }, modifier = Modifier.padding(start = 48.dp)) {
-                Text(stringResource(R.string.message_alert_try), color = DashColors.Accent)
+                Text(stringResource(R.string.message_alert_try), color = DashColors.AccentInk)
             }
         }
     }

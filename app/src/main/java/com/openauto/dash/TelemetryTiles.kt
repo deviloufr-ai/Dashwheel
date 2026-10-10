@@ -97,6 +97,23 @@ import androidx.compose.runtime.setValue
 
 internal const val SPEED_WARNING_KMH = 110
 
+/**
+ * Whether [kmh] reads as too fast, the same in every look: over the road's
+ * limit (by more than [SpeedLimit.TOLERANCE_KMH]) while a speed-limit reader
+ * runs and knows it, else from [SPEED_WARNING_KMH].
+ */
+@Composable
+internal fun speedOver(kmh: Int?): Boolean {
+    val limit by SpeedLimit.limit.collectAsState()
+    return isSpeedOver(kmh, limit)
+}
+
+internal fun isSpeedOver(kmh: Int?, limit: Int?): Boolean = when {
+    kmh == null -> false
+    limit != null -> kmh > limit + SpeedLimit.TOLERANCE_KMH
+    else -> kmh >= SPEED_WARNING_KMH
+}
+
 /** Battery bar: 11 V empty to 15 V full; healthy between 12 and 15 V, critical under 11.5 V or over 15.5 V. */
 internal fun batteryFraction(voltage: Double): Float = ((voltage - 11.0) / 4.0).toFloat()
 internal fun batteryColor(voltage: Double): Color = when {
@@ -119,7 +136,7 @@ internal fun ObdNotConnected(connection: ObdConnectionState, onConnect: () -> Un
     // Through the phone: the adapter is the one its companion holds. Looked up off the main thread (AdapterInfo).
     val adapter = if (DeepObdSource.owns()) "Deep OBD" else if (info.phone) offered else info.name
     if (connecting) {
-        Text(stringResource(R.string.vehicle_obd_connecting_to, adapter ?: "OBD"), color = DashColors.Accent)
+        Text(stringResource(R.string.vehicle_obd_connecting_to, adapter ?: "OBD"), color = DashColors.AccentInk)
         // A long step (Android's PIN dialog, a Bluetooth restart): say what is going on.
         connectStep?.let { Text(stringResource(it), color = DashColors.Warning, style = MaterialTheme.typography.bodySmall) }
     } else {
@@ -130,7 +147,7 @@ internal fun ObdNotConnected(connection: ObdConnectionState, onConnect: () -> Un
         if (phoneBlocking) {
             var help by remember { mutableStateOf(false) }
             TextButton(onClick = { help = true }) {
-                Text(stringResource(R.string.vehicle_phone_aa_fix), color = DashColors.Accent)
+                Text(stringResource(R.string.vehicle_phone_aa_fix), color = DashColors.AccentInk)
             }
             if (help) PhoneAaHelpDialog(onConnect = { help = false; onConnect() }, onDismiss = { help = false })
         }
@@ -150,7 +167,7 @@ internal fun ObdNotConnected(connection: ObdConnectionState, onConnect: () -> Un
         ) { Text(if (connecting) "\u2026" else stringResource(R.string.vehicle_connect)) }
         if (onPickDevice != null) {
             TextButton(onClick = onPickDevice, enabled = !connecting) {
-                Text(stringResource(R.string.vehicle_choose_adapter), color = DashColors.Accent)
+                Text(stringResource(R.string.vehicle_choose_adapter), color = DashColors.AccentInk)
             }
         }
     }
@@ -174,7 +191,7 @@ internal fun PhoneAaHelpDialog(onConnect: () -> Unit, onDismiss: () -> Unit) {
                 Text(stringResource(R.string.vehicle_phone_aa_body), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
                 steps.forEachIndexed { i, step ->
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("${i + 1}", color = DashColors.Accent, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
+                        Text("${i + 1}", color = DashColors.AccentInk, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
                         Text(stringResource(step), color = DashColors.TextPrimary, style = MaterialTheme.typography.bodyMedium)
                     }
                 }
@@ -182,7 +199,7 @@ internal fun PhoneAaHelpDialog(onConnect: () -> Unit, onDismiss: () -> Unit) {
             }
         },
         confirmButton = {
-            TextButton(onClick = onConnect) { Text(stringResource(R.string.vehicle_connect), color = DashColors.Accent) }
+            TextButton(onClick = onConnect) { Text(stringResource(R.string.vehicle_connect), color = DashColors.AccentInk) }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.dash_close), color = DashColors.Muted) }
@@ -220,7 +237,7 @@ internal fun ObdCard(
                 ) {
                     Text(
                         stringResource(R.string.vehicle_telemetry_title),
-                        color = DashColors.Accent,
+                        color = DashColors.AccentInk,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.5.sp,
                         style = MaterialTheme.typography.labelMedium,
@@ -374,7 +391,7 @@ internal fun SpeedCorrectionDialog(speedKmh: Int?, onDismiss: () -> Unit) {
                 SpeedCorrectionRow()
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.dash_close), color = DashColors.Accent) } }
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.dash_close), color = DashColors.AccentInk) } }
     )
 }
 
@@ -801,7 +818,7 @@ internal fun ObdAllCard(
     val connected = connection == ObdConnectionState.CONNECTED
     Card(modifier = modifier) {
         Column(modifier = Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState())) {
-            Text(stringResource(R.string.vehicle_obd_data_title), color = DashColors.Accent, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
+            Text(stringResource(R.string.vehicle_obd_data_title), color = DashColors.AccentInk, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
             Spacer(Modifier.height(10.dp))
             if (!connected) {
                 ObdNotConnected(connection, onConnect, onPickDevice)
@@ -873,7 +890,7 @@ internal fun RangeCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(stringResource(R.string.vehicle_fuel_range_title), color = DashColors.Accent, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
+                Text(stringResource(R.string.vehicle_fuel_range_title), color = DashColors.AccentInk, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
                 source?.let {
                     Text(it, color = if (fromCan) DashColors.Good else DashColors.Muted, style = MaterialTheme.typography.labelSmall)
                 }
@@ -1041,7 +1058,7 @@ internal fun RangeFinderDialog(onDismiss: () -> Unit) {
                     found.isEmpty() ->
                         Text(stringResource(R.string.vehicle_range_none), color = DashColors.Warning, style = MaterialTheme.typography.bodySmall)
                     else -> {
-                        Text(stringResource(R.string.vehicle_range_candidates), color = DashColors.Accent, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.vehicle_range_candidates), color = DashColors.AccentInk, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                         Spacer(Modifier.height(6.dp))
                         val live = entries.associate { it.key to it.bytes }
                         LazyColumn(modifier = Modifier.fillMaxWidth().height(210.dp)) {
@@ -1071,7 +1088,7 @@ internal fun RangeFinderDialog(onDismiss: () -> Unit) {
                                     }
                                     Text(
                                         now?.let { "$it km" } ?: "—",
-                                        color = DashColors.Accent,
+                                        color = DashColors.AccentInk,
                                         fontWeight = FontWeight.Bold,
                                         style = MaterialTheme.typography.bodyMedium
                                     )
@@ -1217,7 +1234,7 @@ internal fun FuelFinderDialog(onDismiss: () -> Unit) {
                     candidates.isEmpty() ->
                         Text(stringResource(R.string.vehicle_finder_none), color = DashColors.Warning, style = MaterialTheme.typography.bodySmall)
                     else -> {
-                        Text(stringResource(R.string.vehicle_finder_candidates), color = DashColors.Accent, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.vehicle_finder_candidates), color = DashColors.AccentInk, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                         Spacer(Modifier.height(6.dp))
                         LazyColumn(modifier = Modifier.fillMaxWidth().height(210.dp)) {
                             lazyColumnItems(candidates, key = { "${it.key}#${it.index}" }) { c ->
@@ -1332,7 +1349,7 @@ internal fun DevicePickerDialog(
         },
         confirmButton = {
             TextButton(onClick = onOpenSettings) {
-                Text(stringResource(R.string.vehicle_bt_settings), color = DashColors.Accent)
+                Text(stringResource(R.string.vehicle_bt_settings), color = DashColors.AccentInk)
             }
         },
         dismissButton = {

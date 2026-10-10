@@ -172,7 +172,7 @@ internal fun PhoneMessageSheet(item: NotifItem, onDismiss: () -> Unit) {
                 lines.forEach { l ->
                     Column {
                         if (l.sender.isNotEmpty() && l.sender != item.title) {
-                            Text(l.sender, color = DashColors.Accent, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelMedium)
+                            Text(l.sender, color = DashColors.AccentInk, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelMedium)
                         }
                         Text(l.text, color = DashColors.TextPrimary, style = MaterialTheme.typography.bodyLarge)
                     }
@@ -229,7 +229,7 @@ internal fun PhoneMessageSheet(item: NotifItem, onDismiss: () -> Unit) {
             }) {
                 Icon(Icons.Filled.VolumeUp, contentDescription = null, tint = DashColors.Accent)
                 Spacer(Modifier.width(6.dp))
-                Text(stringResource(R.string.phone_read_aloud), color = DashColors.Accent)
+                Text(stringResource(R.string.phone_read_aloud), color = DashColors.AccentInk)
             }
         },
         dismissButton = {
@@ -303,7 +303,7 @@ internal fun PhonePane() {
             }
             // Removed on the phone already: nothing is lost by forgetting it here.
             TextButton(onClick = { if (phone.forgotten) PhoneLink.forget(context, phone.id) else forgetting = phone }) {
-                Text(stringResource(R.string.phone_forget), color = DashColors.Accent)
+                Text(stringResource(R.string.phone_forget), color = DashColors.AccentInk)
             }
         }
         HorizontalDivider(color = DashColors.Line, modifier = Modifier.padding(horizontal = 12.dp))
@@ -421,7 +421,7 @@ internal fun PhonePairingDialog(onDismiss: () -> Unit) {
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(if (paired != null) R.string.phone_done else R.string.dash_cancel), color = DashColors.Accent)
+                Text(stringResource(if (paired != null) R.string.phone_done else R.string.dash_cancel), color = DashColors.AccentInk)
             }
         }
     )

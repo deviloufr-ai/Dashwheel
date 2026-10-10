@@ -140,6 +140,16 @@
     <string name="widgets_commute_blurb">How long the drives home and to work take, day after day</string>
     <string name="widgets_commute_none">No drive here yet</string>
     <string name="widgets_commute_stats">average %1$d min, best %2$d min</string>
+    <string name="widgets_history">Drive history</string>
+    <string name="widgets_history_blurb">The last drives and the total this week</string>
+    <string name="widgets_history_none">No drive logged yet</string>
+    <string name="widgets_history_week">This week</string>
+    <string name="widgets_history_week_line">This week: %1$s</string>
+    <string name="widgets_history_eco">eco %1$d</string>
+    <plurals name="widgets_history_drives">
+        <item quantity="one">%d drive</item>
+        <item quantity="other">%d drives</item>
+    </plurals>
 
     <string name="widgets_switch_look">Look</string>
 </resources>

@@ -93,7 +93,7 @@ internal fun WikiHelpDialog(page: WikiPage, onDismiss: () -> Unit) {
             TextButton(onClick = {
                 context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(page.url)))
                 onDismiss()
-            }) { Text(stringResource(R.string.help_open_here), color = DashColors.Accent) }
+            }) { Text(stringResource(R.string.help_open_here), color = DashColors.AccentInk) }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.dash_close), color = DashColors.Muted) }

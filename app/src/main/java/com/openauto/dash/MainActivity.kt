@@ -160,55 +160,60 @@ class MainActivity : ComponentActivity() {
                 // has drawn: it paints its own opaque page, so from here on the
                 // window's would be one full-screen fill under it on every frame.
                 window.setBackgroundDrawable(null)
-                // Dials the paired phone whenever its hotspot is around, and shows its calls.
-                PhoneLink.start(this)
-                PhoneGps.start(this)
-                PhoneCallOverlay.start(this)
-                // The second screen (a Raspberry Pi on the same hotspot), when one is paired.
-                DisplayLink.start(this)
-                SecondScreenController.start(this)
-                TileText.start(this)
-                // Calls on the head unit's own Bluetooth, the ROM pop-ups the driver
-                // chose to replace, and the door alert that replaces one of them.
-                HeadUnitPhone.start(this)
-                RomPopups.start(this)
-                DoorAlertOverlay.start(this)
-                AlertVoice.start(this)
-                // The ignition as the unit announces it, and the car's own data from the CAN box
-                // with the radar / climate alerts built on it.
-                CarPower.start(this)
-                // The unit's own keys (wheel and panel), straight from its key service, and
-                // what else it tells: headlights, the phone, CarPlay / Android Auto.
-                HeadUnitKeys.start(this)
-                UnitSignals.start(this)
-                // The tyres from the TPMS sensors, and their warnings.
-                Tyres.start(this)
-                TyreAlertOverlay.start(this)
-                // The seat belt reminder, and no system bars over docked app windows.
-                BeltAlertOverlay.start(this)
-                GeminiLive.start(this)
-                DockedNavBar.start(this)
-                FreeformBar.start(this)
-                CarBox.start(this)
-                // What the driver taught Dashwheel with the Signal Finder, over the car's own data.
-                LearnedSignals.start(this)
-                // The screen light following the headlights, and spoken camera warnings, when the driver turned them on.
-                UnitLight.start(this)
-                SpeedCameras.startIfSpeaking(this)
-                // Coolant and intake kept for twenty minutes, for the Engine temperatures graph.
-                EngineTemps.start()
-                // The accessibility service, on by itself where there is a privileged shell.
-                SplitAccessibilityService.autoTurnOn(this)
-                // Dashwheel as the default Home, and the system copy up to date, after an update.
-                SystemUpkeep.start(this)
-                // The QF firmware's own launcher choice, which its Home follows instead of Android's.
-                UnitLauncher.start(this)
-                RadarOverlay.start(this)
-                ReverseView.start(this)
-                ClimateOverlay.start(this)
-                VolumeOverlay.start(this)
-                // A new version runs JIT-only until it is compiled ahead of time.
-                CompileAfterUpdate.schedule(this)
+                // One start per main-thread message, in this order: frames (the pages
+                // beside this one are built next) can be drawn between them instead of
+                // waiting for all of them.
+                startInTurn(
+                    // Dials the paired phone whenever its hotspot is around, and shows its calls.
+                    { PhoneLink.start(this) },
+                    { PhoneGps.start(this) },
+                    { PhoneCallOverlay.start(this) },
+                    // The second screen (a Raspberry Pi on the same hotspot), when one is paired.
+                    { DisplayLink.start(this) },
+                    { SecondScreenController.start(this) },
+                    { TileText.start(this) },
+                    // Calls on the head unit's own Bluetooth, the ROM pop-ups the driver
+                    // chose to replace, and the door alert that replaces one of them.
+                    { HeadUnitPhone.start(this) },
+                    { RomPopups.start(this) },
+                    { DoorAlertOverlay.start(this) },
+                    { AlertVoice.start(this) },
+                    // The ignition as the unit announces it, and the car's own data from the CAN box
+                    // with the radar / climate alerts built on it.
+                    { CarPower.start(this) },
+                    // The unit's own keys (wheel and panel), straight from its key service, and
+                    // what else it tells: headlights, the phone, CarPlay / Android Auto.
+                    { HeadUnitKeys.start(this) },
+                    { UnitSignals.start(this) },
+                    // The tyres from the TPMS sensors, and their warnings.
+                    { Tyres.start(this) },
+                    { TyreAlertOverlay.start(this) },
+                    // The seat belt reminder, and no system bars over docked app windows.
+                    { BeltAlertOverlay.start(this) },
+                    { GeminiLive.start(this) },
+                    { DockedNavBar.start(this) },
+                    { FreeformBar.start(this) },
+                    { CarBox.start(this) },
+                    // What the driver taught Dashwheel with the Signal Finder, over the car's own data.
+                    { LearnedSignals.start(this) },
+                    // The screen light following the headlights, and spoken camera warnings, when the driver turned them on.
+                    { UnitLight.start(this) },
+                    { SpeedCameras.startIfSpeaking(this) },
+                    // Coolant and intake kept for twenty minutes, for the Engine temperatures graph.
+                    { EngineTemps.start() },
+                    // The accessibility service, on by itself where there is a privileged shell.
+                    { SplitAccessibilityService.autoTurnOn(this) },
+                    // Dashwheel as the default Home, and the system copy up to date, after an update.
+                    { SystemUpkeep.start(this) },
+                    // The QF firmware's own launcher choice, which its Home follows instead of Android's.
+                    { UnitLauncher.start(this) },
+                    { RadarOverlay.start(this) },
+                    { ReverseView.start(this) },
+                    { ClimateOverlay.start(this) },
+                    { VolumeOverlay.start(this) },
+                    // A new version runs JIT-only until it is compiled ahead of time.
+                    { CompileAfterUpdate.schedule(this) }
+                )
             }
         }
 
@@ -247,6 +252,17 @@ class MainActivity : ComponentActivity() {
 
     // singleTop: the Home key re-delivers the HOME intent here instead of
     // starting a second copy, both from the launcher itself and from any app.
+    /** Runs [starts] one main-thread message after the other, in their order. */
+    private fun startInTurn(vararg starts: () -> Unit) {
+        val main = window.decorView
+        fun run(i: Int) {
+            if (i >= starts.size || isDestroyed) return
+            starts[i]()
+            main.post { run(i + 1) }
+        }
+        run(0)
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)

@@ -142,6 +142,18 @@
     <string name="widgets_commute_blurb">Сколько занимает дорога домой и на работу, день за днём</string>
     <string name="widgets_commute_none">Здесь поездок пока нет</string>
     <string name="widgets_commute_stats">в среднем %1$d мин, рекорд %2$d мин</string>
+    <string name="widgets_history">История поездок</string>
+    <string name="widgets_history_blurb">Последние поездки и итог недели</string>
+    <string name="widgets_history_none">Поездок пока нет</string>
+    <string name="widgets_history_week">На этой неделе</string>
+    <string name="widgets_history_week_line">На этой неделе: %1$s</string>
+    <string name="widgets_history_eco">эко %1$d</string>
+    <plurals name="widgets_history_drives">
+        <item quantity="one">%d поездка</item>
+        <item quantity="few">%d поездки</item>
+        <item quantity="many">%d поездок</item>
+        <item quantity="other">%d поездки</item>
+    </plurals>
 
     <string name="widgets_switch_look">Вид</string>
 </resources>

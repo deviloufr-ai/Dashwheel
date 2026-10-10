@@ -583,7 +583,7 @@ private fun SearchResults(query: String, onGo: (SettingsTab, List<Deep>, Boolean
             IconBadge(f.entry.tab.icon, DashColors.Accent, size = 40.dp)
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
-                Text(f.path, color = DashColors.Accent, style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(f.path, color = DashColors.AccentInk, style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(f.title, color = DashColors.TextPrimary, style = MaterialTheme.typography.bodyLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
             Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = DashColors.Muted)

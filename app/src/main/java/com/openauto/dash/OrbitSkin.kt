@@ -536,7 +536,7 @@ private fun OrbitTelemetry(env: SkinTileEnv) {
     val connected = env.obdConnection == ObdConnectionState.CONNECTED
     val idle = env.obdConnection.isIdle
     val data = env.obdData
-    val warn = connected && data.speedKmh >= SPEED_WARNING_KMH
+    val warn = connected && speedOver(data.speedKmh)
     val teal = DashColors.Secondary
     val units = LocalUnits.current
     val satellites = listOf(
@@ -826,7 +826,7 @@ private fun OrbitSpeedHud(env: SkinTileEnv) {
     val speed = rememberSpeedKmh(env.obdData, env.obdConnection)
     val obd = env.obdConnection == ObdConnectionState.CONNECTED
     val idle = env.obdConnection.isIdle
-    val warn = (speed ?: 0) >= SPEED_WARNING_KMH
+    val warn = speedOver(speed)
     val units = LocalUnits.current
     BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         val d = min(maxWidth.value, maxHeight.value) - 8f
@@ -1602,7 +1602,7 @@ private fun OrbitWeatherBubble(d: Float, weather: Weather?, offline: Boolean, fe
  */
 @Composable
 private fun OrbitRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env.obdData, env.obdConnection)
+    val fuel = rememberFuel(env)
     if (fuel == null) {
         StandardSkinnedTile(item, env)
         return

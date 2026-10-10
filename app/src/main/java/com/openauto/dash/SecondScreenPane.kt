@@ -190,7 +190,7 @@ private fun SecondScreenSettings() {
                 )
             }
             TextButton(onClick = { forgetting = display }) {
-                Text(stringResource(R.string.phone_forget), color = DashColors.Accent)
+                Text(stringResource(R.string.phone_forget), color = DashColors.AccentInk)
             }
         }
         HorizontalDivider(color = DashColors.Line, modifier = Modifier.padding(horizontal = 12.dp))

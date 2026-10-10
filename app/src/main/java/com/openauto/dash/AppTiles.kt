@@ -225,13 +225,13 @@ internal fun LaunchBarEditorDialog(
                     Text(
                         if (current.size < MAX_LAUNCH_BAR_APPS) stringResource(R.string.apps_add_app)
                         else pluralStringResource(R.plurals.apps_launch_bar_full, MAX_LAUNCH_BAR_APPS, MAX_LAUNCH_BAR_APPS),
-                        color = DashColors.Accent
+                        color = DashColors.AccentInk
                     )
                 }
             }
         },
         confirmButton = {
-            TextButton(onClick = { onSave(current) }) { Text(stringResource(R.string.apps_save), color = DashColors.Accent) }
+            TextButton(onClick = { onSave(current) }) { Text(stringResource(R.string.apps_save), color = DashColors.AccentInk) }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.apps_cancel), color = DashColors.Muted) }
@@ -534,7 +534,7 @@ internal fun AppDrawer(
 private fun DrawerSection(title: String) {
     Text(
         title.uppercase(),
-        color = DashColors.Accent,
+        color = DashColors.AccentInk,
         style = MaterialTheme.typography.labelSmall,
         modifier = Modifier.padding(start = 4.dp, top = 2.dp)
     )

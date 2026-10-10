@@ -18,6 +18,8 @@
     <string name="canvas_when_parked">Geparkt</string>
     <string name="canvas_when_driving">Fahrt</string>
     <string name="canvas_when_fault">Motorfehler</string>
+    <string name="canvas_when_navigating">Navigation</string>
+    <string name="canvas_when_low_fuel">Reserve</string>
     <string name="canvas_tab_add">Neu</string>
     <string name="canvas_tab_remove">Dashboard entfernen</string>
     <string name="canvas_tab_done">Fertig</string>

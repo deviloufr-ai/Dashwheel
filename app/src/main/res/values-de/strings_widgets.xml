@@ -139,6 +139,16 @@
     <string name="widgets_commute_blurb">Wie lange die Fahrten nach Hause und zur Arbeit dauern, Tag für Tag</string>
     <string name="widgets_commute_none">Noch keine Fahrt hierher</string>
     <string name="widgets_commute_stats">Schnitt %1$d min, Bestzeit %2$d min</string>
+    <string name="widgets_history">Fahrtenverlauf</string>
+    <string name="widgets_history_blurb">Die letzten Fahrten und die Summe der Woche</string>
+    <string name="widgets_history_none">Noch keine Fahrt erfasst</string>
+    <string name="widgets_history_week">Diese Woche</string>
+    <string name="widgets_history_week_line">Diese Woche: %1$s</string>
+    <string name="widgets_history_eco">Öko %1$d</string>
+    <plurals name="widgets_history_drives">
+        <item quantity="one">%d Fahrt</item>
+        <item quantity="other">%d Fahrten</item>
+    </plurals>
 
     <string name="widgets_switch_look">Aussehen</string>
 </resources>

@@ -121,7 +121,7 @@ internal fun KeyTargetRows() {
             title = stringResource(key.labelRes),
             onPick = { choose(it.packageName) },
             onDismiss = { picking = null },
-            neutral = { TextButton(onClick = { choose(null) }) { Text(unitChoice, color = DashColors.Accent) } }
+            neutral = { TextButton(onClick = { choose(null) }) { Text(unitChoice, color = DashColors.AccentInk) } }
         )
     }
 }

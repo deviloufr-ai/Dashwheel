@@ -18,6 +18,8 @@
     <string name="canvas_when_parked">Estacionado</string>
     <string name="canvas_when_driving">Em marcha</string>
     <string name="canvas_when_fault">Avaria motor</string>
+    <string name="canvas_when_navigating">Navegação</string>
+    <string name="canvas_when_low_fuel">Reserva</string>
     <string name="canvas_tab_add">Adicionar</string>
     <string name="canvas_tab_remove">Remover painel</string>
     <string name="canvas_tab_done">Concluído</string>

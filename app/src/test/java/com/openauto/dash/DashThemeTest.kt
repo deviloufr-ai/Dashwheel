@@ -3,6 +3,7 @@ package com.openauto.dash
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.toArgb
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -64,6 +65,31 @@ class DashThemeTest {
                 // Red is red: more red than green and blue.
                 assertTrue("$mode light=$light red hue", p.Critical.red > p.Critical.green && p.Critical.red > p.Critical.blue)
             }
+        }
+    }
+
+    @Test
+    fun accentTextReadsInSunlight() {
+        // Accent-coloured words (hints, links, "tap to…") use AccentInk: WCAG AA (4.5:1) on
+        // every colour of the page, by day, where sunlight washes colours out first, and by night.
+        val faint = DashThemeMode.entries.flatMap { mode ->
+            listOf(false, true).flatMap { light ->
+                val p = paletteFor(mode, light)
+                (listOf(p.Background) + p.BackgroundStops).mapNotNull { page ->
+                    val ratio = contrast(p.AccentInk.compositeOver(page), page)
+                    if (ratio < 4.5f) "$mode light=$light on #${Integer.toHexString(page.toArgb())}: %.2f".format(ratio) else null
+                }
+            }
+        }
+        assertTrue("accent text too faint: $faint", faint.isEmpty())
+    }
+
+    @Test
+    fun accentInkKeepsAnAccentThatAlreadyReads() {
+        DashThemeMode.entries.forEach { mode ->
+            val p = paletteFor(mode, light = false)
+            val reads = (listOf(p.Background) + p.BackgroundStops).all { contrast(p.Accent.compositeOver(it), it) >= 4.5f }
+            if (reads) assertEquals("$mode", p.Accent, p.AccentInk)
         }
     }
 

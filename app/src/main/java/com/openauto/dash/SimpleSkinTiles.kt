@@ -244,7 +244,7 @@ private fun SimpleEmpty(icon: ImageVector, title: String, hint: String, editing:
             Column {
                 SimpleLine(title, simpleText(titleSize, DashColors.TextPrimary, FontWeight.SemiBold), maxLines = 2)
                 Spacer(Modifier.height(4.dp))
-                SimpleLine(hint, simpleText(hintSize, if (onTap != null) DashColors.Accent else DashColors.TextSecondary), maxLines = 2)
+                SimpleLine(hint, simpleText(hintSize, if (onTap != null) DashColors.AccentInk else DashColors.TextSecondary), maxLines = 2)
             }
         }
         if (wide) {
@@ -358,7 +358,7 @@ private fun SpeedCard(env: SkinTileEnv, modifier: Modifier) {
                 }
                 if (hint != null) {
                     Spacer(Modifier.height(6.dp))
-                    SimpleLine(hint, simpleText(hintSize, if (canConnect) DashColors.Accent else DashColors.TextSecondary), maxLines = 2)
+                    SimpleLine(hint, simpleText(hintSize, if (canConnect) DashColors.AccentInk else DashColors.TextSecondary), maxLines = 2)
                 }
                 if (roomy) {
                     Spacer(Modifier.height(14.dp))
@@ -538,7 +538,7 @@ private fun TelemetryPanel(env: SkinTileEnv, glass: Boolean, modifier: Modifier)
  */
 @Composable
 private fun SimpleRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env.obdData, env.obdConnection)
+    val fuel = rememberFuel(env)
     if (fuel == null) {
         StandardSkinnedTile(item, env)
         return
@@ -1080,7 +1080,7 @@ private fun SimpleWeather(env: SkinTileEnv) {
                     SimpleLine(w.condition, simpleText(condSize, DashColors.TextPrimary, FontWeight.Medium))
                 }
                 SimpleLine(line, lineStyle)
-                if (rain != null && innerH >= 120.dp) SimpleLine(rain, simpleText(lineSize, DashColors.Accent, FontWeight.Medium))
+                if (rain != null && innerH >= 120.dp) SimpleLine(rain, simpleText(lineSize, DashColors.AccentInk, FontWeight.Medium))
             }
         }
         val tempStyle = simpleText(100f, weight = FontWeight.Light, figure = true)

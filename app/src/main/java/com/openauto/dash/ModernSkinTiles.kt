@@ -258,7 +258,7 @@ private fun NavHead(nav: NavState, access: Boolean, active: Boolean, w: Dp, h: D
             MText(title, size, weight = FontWeight.ExtraBold, maxLines = 2)
             if (textH.value >= size * 1.3f + 18f) {
                 Spacer(Modifier.height(4.dp))
-                MText(hint, (size * 0.55f).coerceIn(13f, 18f), DashColors.Accent, maxLines = 2)
+                MText(hint, (size * 0.55f).coerceIn(13f, 18f), DashColors.AccentInk, maxLines = 2)
             }
         }
     }
@@ -335,7 +335,7 @@ private fun ArrivalStrip(nav: NavState, modifier: Modifier) {
         Spacer(Modifier.width(18.dp))
         Column(horizontalAlignment = Alignment.End) {
             MText(left, 18f, weight = FontWeight.ExtraBold, face = Face.NUMBER)
-            if (distance != null) MText(distance, 12f, DashColors.Muted, weight = FontWeight.SemiBold)
+            if (distance != null) MText(distance, 14f, DashColors.Muted, weight = FontWeight.SemiBold)
         }
     }
 }
@@ -403,7 +403,7 @@ internal fun ModernSpeed(env: SkinTileEnv) {
         val over = speed != null && lim != null && speed > lim + SpeedLimit.TOLERANCE_KMH
         val color = when {
             speed == null -> DashColors.Muted
-            over || speed >= SPEED_WARNING_KMH -> DashColors.Warning
+            over || (lim == null && speed >= SPEED_WARNING_KMH) -> DashColors.Warning
             else -> DashColors.TextPrimary
         }
         val capsSize = (min(w.value, h.value) * 0.07f).coerceIn(12f, 16f)
@@ -523,7 +523,7 @@ internal fun ModernTelemetry(env: SkinTileEnv) {
     val d = env.obdData
     val units = LocalUnits.current
     val chips = listOf(
-        EngineChip(stringResource(R.string.info_speed_title), "${units.speed(d.speedKmh)}", d.speedKmh >= SPEED_WARNING_KMH),
+        EngineChip(stringResource(R.string.info_speed_title), "${units.speed(d.speedKmh)}", speedOver(d.speedKmh)),
         EngineChip(stringResource(R.string.info_chip_coolant), "${units.temp(d.coolantTempC)}°", d.coolantTempC >= 105),
         EngineChip(
             stringResource(R.string.info_chip_battery),
@@ -660,7 +660,7 @@ private fun EngineChipView(chip: EngineChip, height: Dp, modifier: Modifier) {
  */
 @Composable
 internal fun ModernRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env.obdData, env.obdConnection)
+    val fuel = rememberFuel(env)
     if (fuel == null) {
         StandardSkinnedTile(item, env)
         return
@@ -923,7 +923,7 @@ private fun MediaWords(title: String, sub: String, w: Dp, size: Float, hint: Boo
     Column(Modifier.widthIn(max = w), horizontalAlignment = align) {
         val textAlign = if (align == Alignment.CenterHorizontally) TextAlign.Center else TextAlign.Start
         MText(title, size, weight = FontWeight.ExtraBold, align = textAlign)
-        MText(sub, (size * 0.66f).coerceIn(13f, 20f), if (hint) DashColors.Accent else DashColors.Muted, weight = FontWeight.SemiBold, align = textAlign)
+        MText(sub, (size * 0.66f).coerceIn(13f, 20f), if (hint) DashColors.AccentInk else DashColors.Muted, weight = FontWeight.SemiBold, align = textAlign)
     }
 }
 
@@ -1223,7 +1223,7 @@ private fun LaunchKey(app: AppEntry?, pkg: String, icon: Dp, label: Boolean, tal
             AppGlyph(app, icon)
             if (label) {
                 Spacer(Modifier.height(6.dp))
-                MText(name, 13f, DashColors.TextSecondary, weight = FontWeight.SemiBold, align = TextAlign.Center)
+                MText(name, 14f, DashColors.TextSecondary, weight = FontWeight.SemiBold, align = TextAlign.Center)
             }
         }
     } else {

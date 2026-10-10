@@ -201,7 +201,7 @@ internal fun SheetButton(text: String, primary: Boolean = true, onClick: () -> U
     val tap = rememberTapFeedback()
     when {
         !LocalSheetInPane.current -> TextButton(onClick = onClick) {
-            Text(text, color = if (primary) DashColors.Accent else DashColors.Muted)
+            Text(text, color = if (primary) DashColors.AccentInk else DashColors.Muted)
         }
         primary -> Button(
             onClick = { tap(); onClick() },

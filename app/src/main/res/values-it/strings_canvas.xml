@@ -18,6 +18,8 @@
     <string name="canvas_when_parked">Parcheggiata</string>
     <string name="canvas_when_driving">In marcia</string>
     <string name="canvas_when_fault">Guasto motore</string>
+    <string name="canvas_when_navigating">Navigazione</string>
+    <string name="canvas_when_low_fuel">Riserva</string>
     <string name="canvas_tab_add">Aggiungi</string>
     <string name="canvas_tab_remove">Rimuovi cruscotto</string>
     <string name="canvas_tab_done">Fatto</string>

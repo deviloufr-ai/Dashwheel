@@ -33,7 +33,7 @@
     <string name="apps_kind_compass">Brújula</string>
     <string name="apps_kind_compass_blurb">Rumbo, altitud y velocidad GPS</string>
     <string name="apps_kind_trip">Ordenador de viaje</string>
-    <string name="apps_kind_trip_blurb">Distancia, tiempo, velocidad media y máxima</string>
+    <string name="apps_kind_trip_blurb">Este trayecto y desde el último repostaje, con combustible y coste</string>
     <string name="apps_kind_gforce">Fuerza G</string>
     <string name="apps_kind_gforce_blurb">g en curvas y frenadas</string>
     <string name="apps_kind_parking">Aparcamiento</string>

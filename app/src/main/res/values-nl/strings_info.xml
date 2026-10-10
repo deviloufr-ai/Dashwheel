@@ -90,6 +90,11 @@
     <string name="info_trip_moving">Rijdend</string>
     <string name="info_trip_average">Gemiddeld</string>
     <string name="info_trip_top">Max.</string>
+    <string name="info_trip_this_drive">Deze rit</string>
+    <string name="info_trip_since_fill">Sinds het tanken</string>
+    <string name="info_trip_fuel">Brandstof</string>
+    <string name="info_trip_cost">Kosten</string>
+    <string name="info_trip_no_fill">Nog geen tankbeurt</string>
     <string name="info_duration_hm">%1$du %2$02dm</string>
     <string name="info_duration_ms">%1$dm %2$02ds</string>
 

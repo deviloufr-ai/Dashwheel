@@ -28,8 +28,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.ui.draw.alpha
-import androidx.compose.animation.core.RepeatMode
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Apps
@@ -103,10 +102,6 @@ import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.ui.semantics.Role
@@ -322,12 +317,11 @@ private fun GeminiBarButton() {
     val label = stringResource(if (active) R.string.ai_gemini_live_end else R.string.ai_gemini_live)
     BarButton(onClick = { GeminiLive.toggle(context) }, description = label) {
         if (active) {
-            val pulse by rememberInfiniteTransition(label = "gemini").animateFloat(
-                initialValue = 0.6f, targetValue = 1f,
-                animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse), label = "pulse"
-            )
+            // A status pulse at the status rate (20 fps), read while drawing: an
+            // infinite transition would rebuild the bar at the display's rate.
+            val pulse = rememberLoop(900, reverse = true, status = true)
             Box(
-                modifier = Modifier.size(36.dp).alpha(pulse).clip(CircleShape).background(DashColors.Critical),
+                modifier = Modifier.size(36.dp).graphicsLayer { alpha = 0.6f + 0.4f * pulse.value }.clip(CircleShape).background(DashColors.Critical),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(Icons.Filled.Close, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
@@ -480,7 +474,7 @@ private fun ClusterReadout(speedKmh: Int, obd: ObdData, connection: ObdConnectio
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
                     u.speed(speedKmh).toString(),
-                    color = DashColors.Accent,
+                    color = DashColors.AccentInk,
                     fontFamily = DashColors.heroFamily(),
                     fontWeight = DashColors.HeroWeight,
                     fontSize = 40.sp,
@@ -866,11 +860,9 @@ private fun batteryIcon(percent: Int) = when {
 @Composable
 private fun ChargingBattery(percent: Int) {
     val from = (percent / 100f).coerceIn(0f, 1f)
-    val rise by rememberInfiniteTransition(label = "charging").animateFloat(
-        initialValue = from, targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(CHARGE_MS, easing = LinearEasing)),
-        label = "charging fill"
-    )
+    // Stepped at the status rate (20 fps) and read while drawing: it sits in every
+    // look's bar for as long as the phone charges, which can be the whole drive.
+    val loop = rememberLoop(CHARGE_MS, status = true)
     val green = DashColors.Good
     Box(Modifier.size(width = 12.dp, height = 18.dp), contentAlignment = Alignment.Center) {
         Canvas(Modifier.fillMaxSize()) {
@@ -881,7 +873,7 @@ private fun ChargingBattery(percent: Int) {
             val body = Size(size.width, size.height - top)
             drawRoundRect(green, topLeft = Offset(0f, top), size = body, cornerRadius = CornerRadius(2.dp.toPx()), style = Stroke(stroke))
             val inner = body.height - stroke * 2
-            val filled = inner * (if (percent >= 100) 1f else rise)
+            val filled = inner * (if (percent >= 100) 1f else from + (1f - from) * loop.value)
             drawRect(green.copy(alpha = 0.55f), topLeft = Offset(stroke, top + stroke + inner - filled), size = Size(body.width - stroke * 2, filled))
         }
         Icon(Icons.Filled.Bolt, contentDescription = null, tint = DashColors.TextPrimary, modifier = Modifier.size(11.dp))
@@ -1246,7 +1238,7 @@ internal fun DemoBadge(onStop: () -> Unit, modifier: Modifier = Modifier, compac
         Spacer(Modifier.width(4.dp))
         Text(
             stringResource(if (compact) R.string.demo_menu_stop else R.string.demo_stop),
-            color = DashColors.Accent,
+            color = DashColors.AccentInk,
             fontWeight = FontWeight.Bold,
             style = MaterialTheme.typography.labelMedium,
             maxLines = 1
@@ -1473,7 +1465,7 @@ internal fun PageIndicator(current: Int, cross: ShownCross, modifier: Modifier =
         if (wayHome) {
             Text(
                 stringResource(if (homeBelow) R.string.dash_way_home_up else R.string.dash_way_home_down),
-                color = DashColors.Accent,
+                color = DashColors.AccentInk,
                 style = MaterialTheme.typography.labelSmall,
                 maxLines = 1
             )
@@ -1579,7 +1571,7 @@ internal fun ZoomStepper(zoom: Float, onZoom: (Float) -> Unit) {
         }
         if (zoom != 1f) {
             TextButton(onClick = { onZoom(1f) }) {
-                Text(stringResource(R.string.zoom_reset), color = DashColors.Accent)
+                Text(stringResource(R.string.zoom_reset), color = DashColors.AccentInk)
             }
         }
     }
