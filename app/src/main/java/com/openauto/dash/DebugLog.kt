@@ -35,6 +35,16 @@ object DebugLog {
     // ActivityTaskManager: which app started which screen, to see who puts a launcher in front at boot.
     private const val LOGCAT = "logcat -d -v threadtime -t 3000 CarPower:I EmbeddedApp:I MediaResume:I DebugLog:I UnitLauncher:I NavDirections:I WazeScreen:I ShadowRoute:I SecondScreen:I DisplayLink:I ActivityTaskManager:I *:W"
 
+    /**
+     * Every screen opened or brought to the front, from the events log: it is
+     * written far less than the main one, so it still goes back to the boot
+     * when the main log only holds the last half minute.
+     */
+    private const val SCREENS = "logcat -b events -d -v threadtime | grep -E ' (wm|am)_(create_activity|restart_activity|new_intent|task_moved_to_front|set_resumed_activity|finish_activity): | am_proc_start: .*,activity,' | tail -n 300"
+
+    /** Every setting and property naming a launcher or a home screen: where a unit keeps its own choice. */
+    private const val LAUNCHER_SETTINGS = "getprop | grep -i -E 'launcher|home'; for t in global system secure; do settings list \$t | grep -i -E 'launcher|home' | sed \"s/^/\$t: /\"; done"
+
     private val lock = Any()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -57,8 +67,9 @@ object DebugLog {
         if (Edition.play) return
         scope.launch {
             runCatching {
-                val text = DockShell.shell(app, LOGCAT)
-                if (text.isBlank()) return@runCatching
+                val log = DockShell.shell(app, LOGCAT)
+                if (log.isBlank()) return@runCatching
+                val text = "$log\n--- Screens opened ---\n${runCatching { DockShell.shell(app, SCREENS) }.getOrDefault("")}"
                 synchronized(lock) {
                     val dir = File(app.filesDir, SNAP_DIR).apply { mkdirs() }
                     File(dir, "${System.currentTimeMillis()}.txt").writeText("Snapshot: $why, ${stamp()}\n$text".takeLast(KEEP_BYTES * 2))
@@ -103,6 +114,8 @@ object DebugLog {
                 Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME), PackageManager.MATCH_DEFAULT_ONLY
             )?.activityInfo?.packageName
             appendLine("Home: Android $home, unit's own ${sh("getprop persist.sys.qf.launcher").ifBlank { "-" }}")
+            appendLine("Launcher settings:")
+            appendLine(sh(LAUNCHER_SETTINGS).ifBlank { "-" })
             appendLine()
             appendLine("Lost deep sleeps:")
             appendLine(CarPower.sleepLost(context).joinToString("\n").ifBlank { "none" })
@@ -113,7 +126,8 @@ object DebugLog {
         }.orEmpty()
         // Newest last, so what is cut to fit the frame (from the front) is the oldest.
         fenced("Summary", head) + fenced("Event log (kept across reboots)", events.ifBlank { "empty" }) +
-            fenced("Saved snapshots", snapshots.ifBlank { "none" }) + fenced("Log now", sh(LOGCAT))
+            fenced("Saved snapshots", snapshots.ifBlank { "none" }) + fenced("Log now", sh(LOGCAT)) +
+            fenced("Screens opened", sh(SCREENS).ifBlank { "none" })
     }
 
     private fun fenced(title: String, body: String) = "### $title\n```\n$body\n```\n\n"

@@ -18,6 +18,7 @@ class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action !in BOOT_ACTIONS) return
         // Which launcher came up first, and who started it, for a bug report: gone from the log soon after.
+        DebugLog.snapshot(context, "at boot")
         DebugLog.snapshotLater(context, "a minute after boot", BOOT_SNAPSHOT_MS)
         if (!isDefaultHome(context)) {
             DebugLog.note(context, "boot: Dashwheel is not Android's default Home")
