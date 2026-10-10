@@ -51,6 +51,15 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
     /** The route the navigation follows, lat, lon pairs flattened (ClusterRoute); empty without one. */
     @Volatile var route: List<Double> = emptyList()
 
+    /** The buildings' shapes for the tilted map (null: none, the tiles' flat ones only). */
+    @Volatile var buildings: BuildingSource? = null
+
+    /** The last picture had the tilted map following a car on the move: the next one would show it further on. */
+    @Volatile var chaseMoving = false
+        private set
+
+    private val chase = ChaseMap()
+
 
     /** TYPE_INT_RGB is 0x00RRGGBB per pixel: little-endian, the bytes are B,G,R,x (GStreamer's "bgrx"). */
     val image = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
@@ -63,6 +72,7 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
      * [clock12]: the clock as the head unit last asked for it.
      */
     fun paintIdle(name: String, status: String, now: Long, pairingUri: String?, clock12: Boolean = false) = draw { g ->
+        chaseMoving = false
         mono = false
         g.color = BG_NIGHT
         g.fillRect(0, 0, width, height)
@@ -106,6 +116,7 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
 
     /** The cluster from data, on the page the head unit chose. [now] is the head unit's clock. */
     fun paintCluster(state: ClusterState, now: Long) = draw { g ->
+        chaseMoving = false
         val design = Design.of(state.design)
         val p = Palette(state.night, Color(state.accent.toInt(), false), design)
         mono = design == Design.RETRO
@@ -371,8 +382,10 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
     }
 
     /**
-     * The display's own map, north up, the car in the middle: raster tiles
-     * from [tiles], the route in the accent, the next turn in a card over it.
+     * The display's own map: seen from behind the car with the buildings
+     * standing ([ChaseMap]), or flat with north up as the head unit chooses
+     * ([ClusterState.mapView]); raster tiles from [tiles], the route in the
+     * accent, the next turn in a card over it.
      * Without a fix it says so; without tiles the route and the car are drawn
      * on a plain ground, so the slot still tells where the car is going.
      */
@@ -390,116 +403,45 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
         val oldClip = g.clip
         g.clip = RoundRectangle2D.Float(box.x.toFloat(), box.y.toFloat(), box.width.toFloat(), box.height.toFloat(), radius.toFloat(), radius.toFloat())
         try {
-            // World pixels to the screen: the car's world position lands on the box's centre.
-            val ox = box.centerX - WebMercator.x(pos.lon, zoom)
-            val oy = box.centerY - WebMercator.y(pos.lat, zoom)
-            fun sx(lon: Double) = (WebMercator.x(lon, zoom) + ox).toFloat()
-            fun sy(lat: Double) = (WebMercator.y(lat, zoom) + oy).toFloat()
-
-            if (source != null) {
-                val t = WebMercator.TILE
-                val x0 = WebMercator.tileOf(box.x - ox)
-                val x1 = WebMercator.tileOf(box.x + box.width - ox)
-                val y0 = WebMercator.tileOf(box.y - oy)
-                val y1 = WebMercator.tileOf(box.y + box.height - oy)
-                val ring = ArrayList<TileKey>()
-                for (ty in y0 - 1..y1 + 1) for (tx in x0 - 1..x1 + 1) {
-                    val onScreen = tx in x0..x1 && ty in y0..y1
-                    val image = if (onScreen) source.tile(zoom, tx, ty) else null
-                    if (!onScreen) ring += TileKey(zoom, tx, ty)
-                    if (!onScreen) continue
-                    val x = (tx * t + ox).roundToInt()
-                    val y = (ty * t + oy).roundToInt()
-                    if (image != null) {
-                        g.drawImage(image, x, y, t, t, null)
-                    } else {
-                        g.color = p.track
-                        g.fillRect(x, y, t, t)
-                    }
-                }
-                // By night on the day's tiles: dimmed, as a dashboard dims.
-                if (s.night && nightTiles == null) {
-                    g.color = Color(0, 0, 0, 120)
-                    g.fillRect(box.x, box.y, box.width, box.height)
-                }
-                source.prefetch(ring + routeAhead(pos, zoom))
+            val look = s.mapView ?: ClusterState.MapView()
+            if (look.tilted) {
+                chase.paint(
+                    g, box, s, pos, look, route, source, s.night && nightTiles == null, buildings.takeIf { look.buildings },
+                    p.accent, p.night, max(1, zoom - 4), min(MAX_CHASE_ZOOM, zoom + 1), System.nanoTime()
+                )
+                chaseMoving = chase.moving
             } else {
-                g.color = p.card
-                g.fillRect(box.x, box.y, box.width, box.height)
-                // A faint grid of 100 m, so movement can be seen without tiles.
-                val step = (100.0 / WebMercator.metersPerPixel(pos.lat, zoom)).toFloat().coerceAtLeast(12f)
-                g.color = p.track
-                g.stroke = BasicStroke(1f)
-                var gx = (box.centerX % step).toFloat()
-                while (gx < box.width) { g.draw(Line2D.Float(box.x + gx, box.y.toFloat(), box.x + gx, (box.y + box.height).toFloat())); gx += step }
-                var gy = (box.centerY % step).toFloat()
-                while (gy < box.height) { g.draw(Line2D.Float(box.x.toFloat(), box.y + gy, (box.x + box.width).toFloat(), box.y + gy)); gy += step }
+                chaseMoving = false
+                flatMap(g, box, pos, source, zoom, s, p)
             }
 
-            // The route: a dark casing, the accent on it.
-            val pts = route
-            if (pts.size >= 4) {
-                val path = Path2D.Float()
-                for (i in 0 until pts.size / 2) {
-                    val x = sx(pts[2 * i + 1])
-                    val y = sy(pts[2 * i])
-                    if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
-                }
-                g.stroke = BasicStroke(2.4f * unit, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
-                g.color = mix(if (s.night) Color.BLACK else Color.WHITE, p.accent, 0.35f)
-                g.draw(path)
-                g.stroke = BasicStroke(1.5f * unit, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
-                g.color = p.accent
-                g.draw(path)
-            }
-
-            // The car: a chevron turned to its heading, in a soft halo; a dot when it stands still.
-            val cx = box.centerX.toFloat()
-            val cy = box.centerY.toFloat()
-            val size = 4.5f * unit
-            g.color = Color(p.accent.red, p.accent.green, p.accent.blue, 70)
-            g.fill(Ellipse2D.Float(cx - size, cy - size, 2 * size, 2 * size))
-            val heading = pos.headingDeg
-            if (heading == null) {
-                g.color = p.accent
-                g.fill(Ellipse2D.Float(cx - size * 0.45f, cy - size * 0.45f, size * 0.9f, size * 0.9f))
-                g.color = p.fg
-                g.stroke = BasicStroke(max(2f, unit * 0.4f))
-                g.draw(Ellipse2D.Float(cx - size * 0.45f, cy - size * 0.45f, size * 0.9f, size * 0.9f))
-            } else {
-                val saved = g.transform
-                g.rotate(Math.toRadians(heading.toDouble()), cx.toDouble(), cy.toDouble())
-                val chevron = Path2D.Float().apply {
-                    moveTo(cx, cy - size)
-                    lineTo(cx + size * 0.72f, cy + size * 0.65f)
-                    lineTo(cx, cy + size * 0.25f)
-                    lineTo(cx - size * 0.72f, cy + size * 0.65f)
-                    closePath()
-                }
-                g.color = p.accent
-                g.fill(chevron)
-                g.color = p.fg
-                g.stroke = BasicStroke(max(2f, unit * 0.4f), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
-                g.draw(chevron)
-                g.transform = saved
-            }
-
-            // North, top right; a scale bar, bottom right.
             val pad = (2.5f * unit).roundToInt()
+            // North, top right, turning with the map when it turns with the car.
             val nr = (2.4f * unit).roundToInt()
             val nx = box.x + box.width - pad - nr
             val ny = box.y + pad + nr
             g.color = p.card
             g.fill(Ellipse2D.Float((nx - nr).toFloat(), (ny - nr).toFloat(), 2f * nr, 2f * nr))
             g.color = p.fg
-            g.fill(Path2D.Float().apply { moveTo(nx.toFloat(), ny - nr * 0.7f); lineTo(nx + nr * 0.4f, ny + nr * 0.4f); lineTo(nx.toFloat(), ny + nr * 0.1f); lineTo(nx - nr * 0.4f, ny + nr * 0.4f); closePath() })
+            val needle = Path2D.Float().apply { moveTo(nx.toFloat(), ny - nr * 0.7f); lineTo(nx + nr * 0.4f, ny + nr * 0.4f); lineTo(nx.toFloat(), ny + nr * 0.1f); lineTo(nx - nr * 0.4f, ny + nr * 0.4f); closePath() }
+            if (look.tilted) {
+                val saved = g.transform
+                g.rotate(-Math.toRadians(chase.headingDeg), nx.toDouble(), ny.toDouble())
+                g.fill(needle)
+                g.transform = saved
+            } else {
+                g.fill(needle)
+            }
+            // A scale bar, bottom right, on the flat map only: in perspective a metre has no one length.
             val metres = 100
             val barW = (metres / WebMercator.metersPerPixel(pos.lat, zoom)).roundToInt().coerceIn(20, box.width / 3)
-            val barY = box.y + box.height - pad - (if (s.nav?.eta.isNullOrBlank()) 0 else (9 * unit * k).roundToInt())
-            g.color = p.muted
-            g.fillRect(box.x + box.width - pad - barW, barY - 2, barW, 3)
-            g.font = font(Font.PLAIN, 3f)
-            drawRight(g, "$metres m", box.x + box.width - pad, barY - (1.2f * unit).roundToInt())
+            if (!look.tilted) {
+                val barY = box.y + box.height - pad - (if (s.nav?.eta.isNullOrBlank()) 0 else (9 * unit * k).roundToInt())
+                g.color = p.muted
+                g.fillRect(box.x + box.width - pad - barW, barY - 2, barW, 3)
+                g.font = font(Font.PLAIN, 3f)
+                drawRight(g, "$metres m", box.x + box.width - pad, barY - (1.2f * unit).roundToInt())
+            }
 
             // No tiles to draw: say what is missing, small, along the bottom.
             if (source == null) {
@@ -559,6 +501,103 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
             }
         } finally {
             g.clip = oldClip
+        }
+    }
+
+    /** The map flat, north up, the car in the middle: as the display drew it before the tilted view. */
+    private fun flatMap(g: Graphics2D, box: Rectangle, pos: ClusterState.Position, source: TileSource?, zoom: Int, s: ClusterState, p: Palette) {
+        // World pixels to the screen: the car's world position lands on the box's centre.
+        val ox = box.centerX - WebMercator.x(pos.lon, zoom)
+        val oy = box.centerY - WebMercator.y(pos.lat, zoom)
+        fun sx(lon: Double) = (WebMercator.x(lon, zoom) + ox).toFloat()
+        fun sy(lat: Double) = (WebMercator.y(lat, zoom) + oy).toFloat()
+
+        if (source != null) {
+            val t = WebMercator.TILE
+            val x0 = WebMercator.tileOf(box.x - ox)
+            val x1 = WebMercator.tileOf(box.x + box.width - ox)
+            val y0 = WebMercator.tileOf(box.y - oy)
+            val y1 = WebMercator.tileOf(box.y + box.height - oy)
+            val ring = ArrayList<TileKey>()
+            for (ty in y0 - 1..y1 + 1) for (tx in x0 - 1..x1 + 1) {
+                val onScreen = tx in x0..x1 && ty in y0..y1
+                val image = if (onScreen) source.tile(zoom, tx, ty) else null
+                if (!onScreen) ring += TileKey(zoom, tx, ty)
+                if (!onScreen) continue
+                val x = (tx * t + ox).roundToInt()
+                val y = (ty * t + oy).roundToInt()
+                if (image != null) {
+                    g.drawImage(image, x, y, t, t, null)
+                } else {
+                    g.color = p.track
+                    g.fillRect(x, y, t, t)
+                }
+            }
+            // By night on the day's tiles: dimmed, as a dashboard dims.
+            if (s.night && nightTiles == null) {
+                g.color = Color(0, 0, 0, 120)
+                g.fillRect(box.x, box.y, box.width, box.height)
+            }
+            source.prefetch(ring + routeAhead(pos, zoom))
+        } else {
+            g.color = p.card
+            g.fillRect(box.x, box.y, box.width, box.height)
+            // A faint grid of 100 m, so movement can be seen without tiles.
+            val step = (100.0 / WebMercator.metersPerPixel(pos.lat, zoom)).toFloat().coerceAtLeast(12f)
+            g.color = p.track
+            g.stroke = BasicStroke(1f)
+            var gx = (box.centerX % step).toFloat()
+            while (gx < box.width) { g.draw(Line2D.Float(box.x + gx, box.y.toFloat(), box.x + gx, (box.y + box.height).toFloat())); gx += step }
+            var gy = (box.centerY % step).toFloat()
+            while (gy < box.height) { g.draw(Line2D.Float(box.x.toFloat(), box.y + gy, (box.x + box.width).toFloat(), box.y + gy)); gy += step }
+        }
+
+        // The route: a dark casing, the accent on it.
+        val pts = route
+        if (pts.size >= 4) {
+            val path = Path2D.Float()
+            for (i in 0 until pts.size / 2) {
+                val x = sx(pts[2 * i + 1])
+                val y = sy(pts[2 * i])
+                if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+            }
+            g.stroke = BasicStroke(2.4f * unit, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
+            g.color = mix(if (s.night) Color.BLACK else Color.WHITE, p.accent, 0.35f)
+            g.draw(path)
+            g.stroke = BasicStroke(1.5f * unit, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
+            g.color = p.accent
+            g.draw(path)
+        }
+
+        // The car: a chevron turned to its heading, in a soft halo; a dot when it stands still.
+        val cx = box.centerX.toFloat()
+        val cy = box.centerY.toFloat()
+        val size = 4.5f * unit
+        g.color = Color(p.accent.red, p.accent.green, p.accent.blue, 70)
+        g.fill(Ellipse2D.Float(cx - size, cy - size, 2 * size, 2 * size))
+        val heading = pos.headingDeg
+        if (heading == null) {
+            g.color = p.accent
+            g.fill(Ellipse2D.Float(cx - size * 0.45f, cy - size * 0.45f, size * 0.9f, size * 0.9f))
+            g.color = p.fg
+            g.stroke = BasicStroke(max(2f, unit * 0.4f))
+            g.draw(Ellipse2D.Float(cx - size * 0.45f, cy - size * 0.45f, size * 0.9f, size * 0.9f))
+        } else {
+            val saved = g.transform
+            g.rotate(Math.toRadians(heading.toDouble()), cx.toDouble(), cy.toDouble())
+            val chevron = Path2D.Float().apply {
+                moveTo(cx, cy - size)
+                lineTo(cx + size * 0.72f, cy + size * 0.65f)
+                lineTo(cx, cy + size * 0.25f)
+                lineTo(cx - size * 0.72f, cy + size * 0.65f)
+                closePath()
+            }
+            g.color = p.accent
+            g.fill(chevron)
+            g.color = p.fg
+            g.stroke = BasicStroke(max(2f, unit * 0.4f), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
+            g.draw(chevron)
+            g.transform = saved
         }
     }
 
@@ -1413,6 +1452,9 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
 
         /** How far along the route the map fetches tiles ahead of the car. */
         const val ROUTE_AHEAD_M = 3_000.0
+
+        /** The sharpest tiles the tilted map asks for, near the car (one zoom above the flat map's, at most this): about 40 cm a pixel. */
+        const val MAX_CHASE_ZOOM = 18
         const val ROUTE_AHEAD_TILES = 40
 
         /** Coolant below this is still warming up (blue), from these on warm (amber) and hot (red). */

@@ -29,6 +29,11 @@ import java.util.Properties
  * # Where fetched tiles are kept (in memory on a read-only card unless this points elsewhere), and the zoom.
  * tile_cache=/var/cache/dashwheel-display/tiles
  * map_zoom=16
+ * # Vector tiles with the buildings' heights for the tilted map ({z}, {x}, {y}); worked out from a
+ * # MapTiler tile_url when left out, "off" for none.
+ * buildings_url=https://api.maptiler.com/tiles/v3/{z}/{x}/{y}.pbf?key=...
+ * # Pictures a second the tilted map is drawn at while the car moves, at most (0: only as readings come).
+ * map_fps=8
  * ```
  */
 data class DisplayConfig(
@@ -48,7 +53,10 @@ data class DisplayConfig(
     val tileUrl: String? = null,
     val tileUrlNight: String? = null,
     val tileCache: String = DEFAULT_TILE_CACHE,
-    val mapZoom: Int = DEFAULT_MAP_ZOOM
+    val mapZoom: Int = DEFAULT_MAP_ZOOM,
+    /** Vector tiles for the buildings in 3D; null: flat buildings (those printed in the tiles). */
+    val buildingsUrl: String? = null,
+    val mapFps: Int = DEFAULT_MAP_FPS
 ) {
     enum class Sink(val element: String) {
         /** Straight to the screen through DRM/KMS: the Pi with no desktop. */
@@ -62,6 +70,12 @@ data class DisplayConfig(
         const val FILE = "display.conf"
         const val DEFAULT_TILE_CACHE = "/var/cache/dashwheel-display/tiles"
         const val DEFAULT_MAP_ZOOM = 16
+        const val DEFAULT_MAP_FPS = 8
+        private val MAPTILER_KEY = Regex("""^https://api\.maptiler\.com/.*[?&]key=([A-Za-z0-9_-]+)""")
+
+        /** MapTiler's vector tiles with the same key as its [tileUrl]; null for another provider. */
+        fun buildingsFor(tileUrl: String?): String? =
+            tileUrl?.let { MAPTILER_KEY.find(it) }?.let { "https://api.maptiler.com/tiles/v3/{z}/{x}/{y}.pbf?key=" + it.groupValues[1] }
 
         fun load(dir: File): DisplayConfig {
             val file = File(dir, FILE)
@@ -77,6 +91,8 @@ data class DisplayConfig(
             val defaults = DisplayConfig()
             val up = int("brightness_up_gpio")?.takeIf { it in 2..27 }
             val down = int("brightness_down_gpio")?.takeIf { it in 2..27 && it != up }
+            val tileUrl = text("tile_url")?.takeIf { "{z}" in it && "{x}" in it && "{y}" in it }
+            val buildings = text("buildings_url")
             return DisplayConfig(
                 name = text("name")?.take(64) ?: defaults.name,
                 overscanPct = int("overscan")?.coerceIn(0, 15) ?: 0,
@@ -88,10 +104,16 @@ data class DisplayConfig(
                 brightnessUpGpio = up?.takeIf { down != null },
                 brightnessDownGpio = down?.takeIf { up != null },
                 port = int("port")?.takeIf { it in 1024..65535 } ?: defaults.port,
-                tileUrl = text("tile_url")?.takeIf { "{z}" in it && "{x}" in it && "{y}" in it },
+                tileUrl = tileUrl,
                 tileUrlNight = text("tile_url_night")?.takeIf { "{z}" in it && "{x}" in it && "{y}" in it },
                 tileCache = text("tile_cache") ?: defaults.tileCache,
-                mapZoom = int("map_zoom")?.coerceIn(10, 18) ?: defaults.mapZoom
+                mapZoom = int("map_zoom")?.coerceIn(10, 18) ?: defaults.mapZoom,
+                buildingsUrl = when {
+                    buildings.equals("off", ignoreCase = true) -> null
+                    buildings != null -> buildings.takeIf { "{z}" in it && "{x}" in it && "{y}" in it }
+                    else -> buildingsFor(tileUrl)
+                },
+                mapFps = int("map_fps")?.coerceIn(0, 20) ?: defaults.mapFps
             )
         }
     }

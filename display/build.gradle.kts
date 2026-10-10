@@ -29,8 +29,9 @@ tasks.jar {
 application {
     applicationName = "dashwheel-display"
     mainClass.set("com.openauto.dash.display.MainKt")
-    // A Pi 3 has 1 GB, shared with the GPU and the decoder: keep the heap small.
-    applicationDefaultJvmArgs = listOf("-Xmx160m", "-XX:+UseSerialGC", "-Djava.awt.headless=true")
+    // A Pi 3 has 1 GB, shared with the GPU and the decoder: keep the heap small. The tilted
+    // map holds about 130 tiles of three zooms (32 MB) and a town's buildings besides.
+    applicationDefaultJvmArgs = listOf("-Xmx256m", "-XX:+UseSerialGC", "-Djava.awt.headless=true")
 }
 
 dependencies {

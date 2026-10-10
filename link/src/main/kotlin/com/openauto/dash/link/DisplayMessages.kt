@@ -323,8 +323,35 @@ data class ClusterState(
      */
     val layout: Layout? = null,
     /** Where the car is, for the map the display draws itself ([ClusterFace.MAP]); null without a fix. */
-    val position: Position? = null
+    val position: Position? = null,
+    /** How that map is seen; null from an older head unit: the display's default ([MapView] as it comes). */
+    val mapView: MapView? = null
 ) : LinkMessage {
+    /**
+     * How the display's own map is seen: tilted and turned with the car, the
+     * camera behind and above it, or flat with north up. [tilt] and
+     * [distance] are names, so a display that doesn't know one keeps its default.
+     */
+    @Serializable
+    data class MapView(
+        val tilted: Boolean = true,
+        /** [LOW], [MEDIUM] or [HIGH]: how far the camera looks toward the horizon. */
+        val tilt: String = MEDIUM,
+        /** [CLOSE], [NORMAL] or [FAR]: how much of the road the camera takes in around the car. */
+        val distance: String = CLOSE,
+        /** The buildings stand up in 3D, where the display has their shapes. */
+        val buildings: Boolean = true
+    ) {
+        companion object {
+            const val LOW = "LOW"
+            const val MEDIUM = "MEDIUM"
+            const val HIGH = "HIGH"
+            const val CLOSE = "CLOSE"
+            const val NORMAL = "NORMAL"
+            const val FAR = "FAR"
+        }
+    }
+
     /** A GPS fix: degrees to five decimals (about a metre), the heading in degrees from north when the car moves. */
     @Serializable
     data class Position(val lat: Double, val lon: Double, val headingDeg: Int? = null)
@@ -337,7 +364,6 @@ data class ClusterState(
     @Serializable
     data class Layout(val arrangement: String, val faces: List<String>)
 
-    /** One reading of the Measures page, e.g. "Coolant" and "87 °C". */
     /** One reading of the Measures page, e.g. "Coolant" and "87 °C". */
     @Serializable
     data class Measure(val label: String, val value: String)

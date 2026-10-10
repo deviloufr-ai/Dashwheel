@@ -5,6 +5,7 @@ import java.io.ByteArrayInputStream
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.zip.GZIPInputStream
 import javax.imageio.ImageIO
 
 /** Where the map's tiles come from, as the Painter sees it. */
@@ -14,6 +15,9 @@ interface TileSource {
     /** The tile, if it is at hand; null while it is being fetched (the source redraws the screen once it is). */
     fun tile(z: Int, x: Int, y: Int): BufferedImage?
 
+    /** The tile only if it is in memory now: nothing fetched for it. */
+    fun tileAtHand(z: Int, x: Int, y: Int): BufferedImage? = null
+
     /** Tiles wanted soon, in order of need. */
     fun prefetch(keys: Collection<TileKey>)
 }
@@ -21,26 +25,30 @@ interface TileSource {
 data class TileKey(val z: Int, val x: Int, val y: Int)
 
 /**
- * Raster map tiles for the display's own map: fetched from [urlTemplate]
+ * Tiles of any kind for the display's own map: fetched from [urlTemplate]
  * ({z}, {x}, {y}) over whatever network the Pi has (the phone's hotspot),
- * kept decoded in memory for the tiles on screen, and on the card under
- * [dir] for the next drive (on a read-only card that folder is in memory
- * too, and starts empty at each power-up). A tile that can't be fetched is
- * left alone for a minute, so a Pi without internet doesn't hammer the link.
+ * kept decoded in memory for the tiles in use, and on the card under [dir]
+ * for the next drive (on a read-only card that folder is in memory too, and
+ * starts empty at each power-up). A tile that can't be fetched is left alone
+ * for a minute, so a Pi without internet doesn't hammer the link.
  */
-class TileCache(
+open class TileStore<T : Any>(
     private val dir: File?,
     private val urlTemplate: String,
-    override val zoom: Int,
     private val userAgent: String,
+    /** The file's bytes made into a tile; null for bytes that aren't one. */
+    private val decode: (ByteArray) -> T?,
+    /** The files' extension on the card. */
+    private val extension: String,
+    private val memoryTiles: Int,
     /** A tile arrived: the picture is worth drawing again. */
     private val onLoaded: () -> Unit,
-    private val fetch: (String, String) -> ByteArray? = ::download,
-    workers: Int = 2
-) : TileSource {
+    private val fetch: (String, String) -> ByteArray?,
+    workers: Int
+) {
     private val lock = Object()
-    private val memory = object : LinkedHashMap<TileKey, BufferedImage>(32, 0.75f, true) {
-        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<TileKey, BufferedImage>?): Boolean = size > MEMORY_TILES
+    private val memory = object : LinkedHashMap<TileKey, T>(32, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<TileKey, T>?): Boolean = size > memoryTiles
     }
     private val queue = LinkedHashSet<TileKey>()
     private val fetching = HashSet<TileKey>()
@@ -49,20 +57,21 @@ class TileCache(
 
     init {
         dir?.let { runCatching { it.mkdirs() } }
-        repeat(workers) { i -> Thread({ work() }, "tile-fetch-$i").apply { isDaemon = true; start() } }
+        repeat(workers) { i -> Thread({ work() }, "tile-fetch-$extension-$i").apply { isDaemon = true; start() } }
     }
 
-    override fun tile(z: Int, x: Int, y: Int): BufferedImage? {
+    /** The tile, if it is at hand; else it is fetched, and [onLoaded] says when it came. */
+    fun get(z: Int, x: Int, y: Int): T? {
         val key = wrap(z, x, y) ?: return null
         synchronized(lock) {
             memory[key]?.let { return it }
         }
         // On the card from an earlier drive: decoded on the drawing thread, a few milliseconds.
         fileOf(key)?.takeIf { it.isFile }?.let { file ->
-            val image = runCatching { ImageIO.read(file) }.getOrNull()
-            if (image != null) {
-                synchronized(lock) { memory[key] = image }
-                return image
+            val tile = runCatching { decode(file.readBytes()) }.getOrNull()
+            if (tile != null) {
+                synchronized(lock) { memory[key] = tile }
+                return tile
             }
             runCatching { file.delete() }
         }
@@ -70,7 +79,13 @@ class TileCache(
         return null
     }
 
-    override fun prefetch(keys: Collection<TileKey>) {
+    /** The tile only if it is in memory now: no fetching, no reading the card. */
+    fun peek(z: Int, x: Int, y: Int): T? {
+        val key = wrap(z, x, y) ?: return null
+        synchronized(lock) { return memory[key] }
+    }
+
+    fun prefetch(keys: Collection<TileKey>) {
         enqueue(keys.mapNotNull { wrap(it.z, it.x, it.y) }, first = false)
     }
 
@@ -106,17 +121,17 @@ class TileCache(
                 queue.first().also { queue.remove(it); fetching += it }
             }
             val bytes = runCatching { fetch(urlFor(key), userAgent) }.getOrNull()
-            val image = bytes?.let { runCatching { ImageIO.read(ByteArrayInputStream(it)) }.getOrNull() }
+            val tile = bytes?.let { runCatching { decode(it) }.getOrNull() }
             synchronized(lock) {
                 fetching -= key
-                if (image == null) {
+                if (tile == null) {
                     failedUntil[key] = System.currentTimeMillis() + RETRY_MS
                 } else {
-                    memory[key] = image
+                    memory[key] = tile
                 }
             }
-            if (image != null) {
-                bytes.let { save(key, it) }
+            if (tile != null) {
+                save(key, bytes)
                 onLoaded()
             }
         }
@@ -139,12 +154,12 @@ class TileCache(
     /** The oldest tiles go when the card holds more than [MAX_FILES]. */
     private fun prune() {
         val root = dir ?: return
-        val files = runCatching { root.walkTopDown().filter { it.isFile && it.name.endsWith(".png") }.toList() }.getOrDefault(emptyList())
+        val files = runCatching { root.walkTopDown().filter { it.isFile && it.name.endsWith(".$extension") }.toList() }.getOrDefault(emptyList())
         if (files.size <= MAX_FILES) return
         files.sortedBy { it.lastModified() }.take(files.size - MAX_FILES).forEach { runCatching { it.delete() } }
     }
 
-    private fun fileOf(key: TileKey): File? = dir?.let { File(it, "${key.z}/${key.x}/${key.y}.png") }
+    private fun fileOf(key: TileKey): File? = dir?.let { File(it, "${key.z}/${key.x}/${key.y}.$extension") }
 
     internal fun urlFor(key: TileKey): String =
         urlTemplate.replace("{z}", key.z.toString()).replace("{x}", key.x.toString()).replace("{y}", key.y.toString())
@@ -157,29 +172,98 @@ class TileCache(
     }
 
     companion object {
-        /** Decoded tiles kept in memory: a 1024×600 screen shows about 20, with a ring around them. */
-        const val MEMORY_TILES = 96
         const val MAX_QUEUE = 120
         /** Tiles on the card at most, about 10 KB each: a region of a few thousand square kilometres. */
         const val MAX_FILES = 20_000
         const val PRUNE_EVERY = 200
         const val RETRY_MS = 60_000L
         private const val TIMEOUT_MS = 6_000
-        private const val MAX_BYTES = 1_000_000
 
-        /** The tile's bytes, or null when the server (or the network) says no. */
-        fun download(url: String, userAgent: String): ByteArray? {
+        /** The tile's bytes (unzipped), or null when the server (or the network) says no or sends more than [maxBytes]. */
+        fun download(url: String, userAgent: String, maxBytes: Int): ByteArray? {
             val connection = URL(url).openConnection() as HttpURLConnection
             try {
                 connection.connectTimeout = TIMEOUT_MS
                 connection.readTimeout = TIMEOUT_MS
                 connection.instanceFollowRedirects = true
                 connection.setRequestProperty("User-Agent", userAgent)
+                connection.setRequestProperty("Accept-Encoding", "gzip")
                 if (connection.responseCode != 200) return null
-                return connection.inputStream.use { it.readNBytes(MAX_BYTES) }
+                val zipped = connection.contentEncoding.equals("gzip", ignoreCase = true)
+                val bytes = connection.inputStream.use { raw ->
+                    (if (zipped) GZIPInputStream(raw) else raw).use { it.readNBytes(maxBytes + 1) }
+                }
+                return bytes.takeIf { it.size <= maxBytes }
             } finally {
                 connection.disconnect()
             }
         }
+    }
+}
+
+/**
+ * Raster map tiles: kept decoded as plain RGB pixels, which Java2D draws
+ * fastest and the tilted map ([ChaseMap]) reads straight from memory.
+ */
+class TileCache(
+    dir: File?,
+    urlTemplate: String,
+    override val zoom: Int,
+    userAgent: String,
+    onLoaded: () -> Unit,
+    fetch: (String, String) -> ByteArray? = { url, agent -> download(url, agent, MAX_BYTES) },
+    workers: Int = 2
+) : TileStore<BufferedImage>(dir, urlTemplate, userAgent, ::decodeImage, "png", MEMORY_TILES, onLoaded, fetch, workers), TileSource {
+
+    override fun tile(z: Int, x: Int, y: Int): BufferedImage? = get(z, x, y)
+
+    override fun tileAtHand(z: Int, x: Int, y: Int): BufferedImage? = peek(z, x, y)
+
+    companion object {
+        /** Decoded tiles kept in memory: the tilted map uses about 60 of three zooms, with a ring around them. */
+        const val MEMORY_TILES = 128
+        private const val MAX_BYTES = 1_000_000
+
+        /** A PNG or JPEG as TYPE_INT_RGB; null for bytes that aren't a picture. */
+        fun decodeImage(bytes: ByteArray): BufferedImage? {
+            val read = ImageIO.read(ByteArrayInputStream(bytes)) ?: return null
+            if (read.type == BufferedImage.TYPE_INT_RGB) return read
+            return BufferedImage(read.width, read.height, BufferedImage.TYPE_INT_RGB).also { rgb ->
+                val g = rgb.createGraphics()
+                g.drawImage(read, 0, 0, null)
+                g.dispose()
+            }
+        }
+    }
+}
+
+/** The buildings' shapes and heights for the tilted map, by vector tile at [zoom]. */
+interface BuildingSource {
+    val zoom: Int
+
+    /** The tile's buildings if at hand; else null while it is fetched. */
+    fun buildings(x: Int, y: Int): BuildingTile?
+}
+
+/**
+ * Vector tiles (OpenMapTiles, as MapTiler serves them) for the buildings
+ * only: at zoom 14, where they all are, about 1.5 km a side in France, so a
+ * drive needs few of them; a town centre's tile can weigh a megabyte.
+ */
+class BuildingCache(
+    dir: File?,
+    urlTemplate: String,
+    userAgent: String,
+    onLoaded: () -> Unit,
+    fetch: (String, String) -> ByteArray? = { url, agent -> download(url, agent, MAX_BYTES) }
+) : TileStore<BuildingTile>(dir, urlTemplate, userAgent, VectorTile::buildings, "pbf", MEMORY_TILES, onLoaded, fetch, workers = 1), BuildingSource {
+    override val zoom = ZOOM
+
+    override fun buildings(x: Int, y: Int): BuildingTile? = get(ZOOM, x, y)
+
+    companion object {
+        const val ZOOM = 14
+        const val MEMORY_TILES = 9
+        private const val MAX_BYTES = 6_000_000
     }
 }

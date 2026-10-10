@@ -120,11 +120,13 @@ For keys to work while another app is in front, Dashwheel's accessibility servic
 
 ## The map the Pi draws itself
 
-With **Simple display** on, a **Map** slot on the board (the same slot that streams the 3D map otherwise) makes the Pi draw a flat map itself: north up, the car in the middle, the route of the in-app navigation in the accent colour, the next turn in a card. The head unit sends only the car's position and the route, a few hundred bytes a second; the Pi fetches raster tiles over the phone's hotspot and keeps them for the next drive.
+With **Simple display** on, a **Map** slot on the board (the same slot that streams the 3D map otherwise) makes the Pi draw the map itself: seen from behind the car, tilted and turning with it, the buildings standing in 3D, the route of the in-app navigation on the road in the accent colour, the next turn in a card. Settings → Second screen → Map on the head unit chooses 3D or flat (north up, the car in the middle), and for 3D the tilt, the distance and the buildings. The head unit sends only the car's position and the route, a few hundred bytes a second; the Pi fetches the tiles over the phone's hotspot and keeps them for the next drive. Between two GPS fixes the car goes on at its speed, so the map moves smoothly; a Pi 3B draws about 4 pictures a second on a 1024×600 screen.
 
 - **Tiles.** Put a tile address in `dashwheel/display.conf` on the card: `tile_url=https://…/{z}/{x}/{y}.png`, and `tile_url_night` for a dark style (without one the day tiles are dimmed at night). A provider with a free key, such as MapTiler or Thunderforest, is the usual choice; the public OpenStreetMap servers are not meant for apps. Without `tile_url` the map shows the route and the car on a plain ground.
 - **Cache.** Tiles are kept under `tile_cache` (`/var/cache/dashwheel-display/tiles`). On a read-only card that folder lives in memory and empties at each power-up; to keep tiles across drives, point `tile_cache` at a USB stick or another writable place.
-- **Zoom.** `map_zoom=16` by default (streets); 15 for a town, 17 for every house.
+- **Zoom.** `map_zoom=16` by default (streets); 15 for a town, 17 for every house. The 3D map takes one zoom sharper near the car and coarser ones far away: about 60 tiles a kilometre, to keep within a free plan's allowance (MapTiler's is 100,000 a month).
+- **Buildings.** With a MapTiler `tile_url` the Pi also fetches MapTiler's vector tiles for the buildings' heights (same key, `buildings_url` to use another source, `off` for none); a town's tile covers about 1.5 km and is fetched once a drive.
+- **Smoothness.** `map_fps=8` at most while the car moves; the Pi never spends more than half its time drawing, and logs the pictures a second it manages once a minute.
 - **Route line.** Only the in-app navigation gives the head unit its route. With Maps or Waze the Pi shows the car and the next turn, without the line.
 
 ## Settings file

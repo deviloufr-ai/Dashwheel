@@ -29,6 +29,12 @@ enum class ClusterBackground { BLACK, DARK, LIGHT }
 /** How the display draws its own pages ("Simple display"); the names go over the link as they are. */
 enum class ClusterDesign { CARDS, DIALS, LARGE, RETRO }
 
+/** How far the display's tilted map looks toward the horizon; the names go over the link as they are (ClusterState.MapView). */
+enum class MapTilt { LOW, MEDIUM, HIGH }
+
+/** How much road around the car the display's tilted map takes in; the names go over the link as they are. */
+enum class MapDistance { CLOSE, NORMAL, FAR }
+
 data class SecondScreenConfig(
     val mode: SecondScreenMode = SecondScreenMode.CLUSTER,
     /** The app shown in [SecondScreenMode.APP]. */
@@ -59,6 +65,12 @@ data class SecondScreenConfig(
     val alertsFullScreen: Boolean = true,
     /** The look of the pages the display draws itself, when it isn't sent video. */
     val design: ClusterDesign = ClusterDesign.CARDS,
+    /** The display's own map seen from behind the car, tilted and turning with it; false: flat, north up. */
+    val mapTilted: Boolean = true,
+    val mapTilt: MapTilt = MapTilt.MEDIUM,
+    val mapDistance: MapDistance = MapDistance.CLOSE,
+    /** On the tilted map, the buildings stand up in 3D. */
+    val mapBuildings: Boolean = true,
     /** The monitor is mounted upside down: the display turns every picture 180°. */
     val upsideDown: Boolean = false,
     /** The monitor's backlight by day and by night, 1..100, for a display wired to its buttons. */

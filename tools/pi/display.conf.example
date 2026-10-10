@@ -39,3 +39,9 @@ name=Dashwheel display
 #tile_cache=/var/cache/dashwheel-display/tiles
 # 15 shows a town, 16 its streets (default), 17 every house.
 #map_zoom=16
+# The buildings in 3D on the tilted map: vector tiles with their heights. Worked out
+# from a MapTiler tile_url (same key) when left out; "off" for flat buildings.
+#buildings_url=https://api.maptiler.com/tiles/v3/{z}/{x}/{y}.pbf?key=YOUR_KEY
+# Pictures a second the tilted map is drawn at while the car moves, at most (0..20).
+# The Pi never spends more than half its time drawing; lower it if the board runs hot.
+#map_fps=8

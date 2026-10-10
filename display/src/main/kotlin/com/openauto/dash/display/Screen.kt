@@ -4,6 +4,7 @@ import com.openauto.dash.link.ClusterState
 import com.openauto.dash.link.VideoConfig
 import com.openauto.dash.link.VideoPacket
 import java.io.File
+import kotlin.math.max
 
 /**
  * What the monitor shows: the head unit's video, the display's own cluster
@@ -39,6 +40,8 @@ class Screen(
         val agent = "dashwheel-display/" + (Screen::class.java.`package`?.implementationVersion ?: "dev") + " (+https://github.com/deviloufr-ai/Dashwheel)"
         it.tiles = config.tileUrl?.let { url -> TileCache(File(config.tileCache, "day"), url, config.mapZoom, agent, onLoaded = ::redraw) }
         it.nightTiles = config.tileUrlNight?.let { url -> TileCache(File(config.tileCache, "night"), url, config.mapZoom, agent, onLoaded = ::redraw) }
+        // The buildings' heights, for the tilted map.
+        it.buildings = config.buildingsUrl?.let { url -> BuildingCache(File(config.tileCache, "buildings"), url, agent, onLoaded = ::redraw) }
     }
     // The last drawn picture stays up while the decoder starts (see ConsoleFrameBuffer).
     private val video = VideoSink(start = { showOnConsole(painter.image); stopFrames(); startVideo() }, requestKeyFrame = requestKeyFrame)
@@ -219,17 +222,49 @@ class Screen(
         }
     }
 
+    /**
+     * Draws when asked; and while the tilted map follows a moving car
+     * ([Painter.chaseMoving]), again at up to [DisplayConfig.mapFps] pictures
+     * a second, but never more than half the time: the link, the tiles and
+     * the board's temperature need the rest.
+     */
     private fun drawLoop() {
+        var nextFrame = 0L
+        var frames = 0
+        var drawingMs = 0L
+        var statsFrom = uptimeMs()
         while (true) {
             try {
                 synchronized(drawLock) {
-                    while (!drawWanted) drawLock.wait()
+                    while (!drawWanted) {
+                        val animate = config.mapFps > 0 && painter.chaseMoving && showing == Showing.DATA
+                        if (!animate) {
+                            drawLock.wait()
+                            continue
+                        }
+                        val wait = nextFrame - uptimeMs()
+                        if (wait <= 0) break
+                        drawLock.wait(wait)
+                    }
                     drawWanted = false
                 }
             } catch (_: InterruptedException) {
                 return
             }
+            val started = uptimeMs()
             runCatching { draw() }.onFailure { log("drawing failed: ${it.message}") }
+            val took = uptimeMs() - started
+            nextFrame = started + max(1000L / max(1, config.mapFps), 2 * took)
+            if (painter.chaseMoving) {
+                frames++
+                drawingMs += took
+            }
+            if (started - statsFrom >= STATS_MS) {
+                if (frames > 0) log("map: ${"%.1f".format(frames * 1000.0 / (started - statsFrom))} pictures a second, ${drawingMs / frames} ms each")
+                frames = 0
+                drawingMs = 0
+                statsFrom = started
+            }
         }
     }
 
@@ -293,5 +328,7 @@ class Screen(
         const val VIDEO_SILENT_MS = 20_000L
         /** No head unit for this long and the pairing code is offered again. */
         const val PAIR_AGAIN_MS = 180_000L
+        /** How often the moving map's drawing speed goes to the log. */
+        const val STATS_MS = 60_000L
     }
 }

@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.FileOpen
 import androidx.compose.material.icons.filled.HighQuality
 import androidx.compose.material.icons.filled.ViewCompact
 import androidx.compose.material.icons.filled.Keyboard
+import androidx.compose.material.icons.filled.LocationCity
 import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.Swipe
@@ -258,6 +259,8 @@ private fun SecondScreenSettings() {
                 SettingsSection(stringResource(R.string.second_screen_design))
                 DesignPicker(config.design) { design -> update { it.copy(design = design) } }
                 Spacer(Modifier.padding(top = 12.dp))
+                MapViewSection(config, ::update)
+                Spacer(Modifier.padding(top = 12.dp))
             }
             ClusterBoard()
         }
@@ -400,6 +403,51 @@ private fun BrightnessRow(icon: ImageVector, title: String, level: Int, onSet: (
             modifier = Modifier.weight(1f)
         )
     }
+}
+
+/** How the display's own map (a Map slot) is seen: flat, or from behind the car with its tilt, distance and buildings. */
+@Composable
+private fun MapViewSection(config: SecondScreenConfig, update: ((SecondScreenConfig) -> SecondScreenConfig) -> Unit) {
+    SettingsSection(stringResource(R.string.second_screen_mapview))
+    ChoiceRow(
+        options = listOf(
+            true to stringResource(R.string.second_screen_mapview_3d),
+            false to stringResource(R.string.second_screen_mapview_flat)
+        ),
+        selected = { it == config.mapTilted },
+        onPick = { tilted -> update { it.copy(mapTilted = tilted) } }
+    )
+    if (!config.mapTilted) return
+    Text(
+        stringResource(R.string.second_screen_mapview_tilt), color = DashColors.TextSecondary,
+        style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(start = 12.dp, top = 8.dp)
+    )
+    ChoiceRow(
+        options = listOf(
+            MapTilt.LOW to stringResource(R.string.second_screen_mapview_tilt_low),
+            MapTilt.MEDIUM to stringResource(R.string.second_screen_mapview_tilt_medium),
+            MapTilt.HIGH to stringResource(R.string.second_screen_mapview_tilt_high)
+        ),
+        selected = { it == config.mapTilt },
+        onPick = { tilt -> update { it.copy(mapTilt = tilt) } }
+    )
+    Text(
+        stringResource(R.string.second_screen_mapview_distance), color = DashColors.TextSecondary,
+        style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(start = 12.dp, top = 8.dp)
+    )
+    ChoiceRow(
+        options = listOf(
+            MapDistance.CLOSE to stringResource(R.string.second_screen_mapview_distance_close),
+            MapDistance.NORMAL to stringResource(R.string.second_screen_mapview_distance_normal),
+            MapDistance.FAR to stringResource(R.string.second_screen_mapview_distance_far)
+        ),
+        selected = { it == config.mapDistance },
+        onPick = { distance -> update { it.copy(mapDistance = distance) } }
+    )
+    SettingsToggle(
+        Icons.Filled.LocationCity, stringResource(R.string.second_screen_mapview_buildings),
+        stringResource(R.string.second_screen_mapview_buildings_detail), config.mapBuildings
+    ) { on -> update { it.copy(mapBuildings = on) } }
 }
 
 /** The Simple display's designs, each as the display draws it, the chosen one framed in the accent. */

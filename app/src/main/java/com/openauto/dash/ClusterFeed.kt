@@ -110,7 +110,9 @@ internal object ClusterFeed {
                     Math.round(l.latitude * 1e5) / 1e5, Math.round(l.longitude * 1e5) / 1e5,
                     LocationFeed.headingDeg.value?.let { Math.round(it) }
                 )
-            }
+            },
+            // How the display's own map is seen.
+            mapView = ClusterState.MapView(config.mapTilted, config.mapTilt.name, config.mapDistance.name, config.mapBuildings)
         )
     }
 

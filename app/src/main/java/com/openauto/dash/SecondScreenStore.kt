@@ -34,6 +34,10 @@ object SecondScreenStore {
             followDayNight = p.getBoolean("follow_day_night", d.followDayNight),
             alertsFullScreen = p.getBoolean("alerts_full_screen", d.alertsFullScreen),
             design = enumOr(p.getString("design", null), d.design),
+            mapTilted = p.getBoolean("map_tilted", d.mapTilted),
+            mapTilt = enumOr(p.getString("map_tilt", null), d.mapTilt),
+            mapDistance = enumOr(p.getString("map_distance", null), d.mapDistance),
+            mapBuildings = p.getBoolean("map_buildings", d.mapBuildings),
             upsideDown = p.getBoolean("upside_down", d.upsideDown),
             brightnessDay = p.getInt("brightness_day", d.brightnessDay).coerceIn(BRIGHTNESS),
             brightnessNight = p.getInt("brightness_night", d.brightnessNight).coerceIn(BRIGHTNESS),
@@ -67,6 +71,10 @@ object SecondScreenStore {
             .putBoolean("follow_day_night", c.followDayNight)
             .putBoolean("alerts_full_screen", c.alertsFullScreen)
             .putString("design", c.design.name)
+            .putBoolean("map_tilted", c.mapTilted)
+            .putString("map_tilt", c.mapTilt.name)
+            .putString("map_distance", c.mapDistance.name)
+            .putBoolean("map_buildings", c.mapBuildings)
             .putBoolean("upside_down", c.upsideDown)
             .putInt("brightness_day", c.brightnessDay)
             .putInt("brightness_night", c.brightnessNight)

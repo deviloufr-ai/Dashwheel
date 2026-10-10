@@ -113,7 +113,9 @@ class MapTest {
             clock = 0, page = "NAV", night = true,
             position = ClusterState.Position(48.8530, 2.3499, headingDeg = 10),
             nav = ClusterState.Nav("Turn right onto Rue de Rivoli", "300 m", "", "18:42"), maneuver = "RIGHT",
-            layout = ClusterState.Layout("ONE", listOf("MAP"))
+            layout = ClusterState.Layout("ONE", listOf("MAP")),
+            // The flat map, north up (the tilted one is ChaseMapTest's).
+            mapView = ClusterState.MapView(tilted = false)
         )
         // By day first: the tiles show as they are.
         val image = painter.paintCluster(state.copy(night = false), 0)
