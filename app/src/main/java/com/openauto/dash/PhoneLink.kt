@@ -45,6 +45,7 @@ import com.openauto.dash.link.CarLog
 import com.openauto.dash.link.CarLogAck
 import com.openauto.dash.link.CarLookPart
 import com.openauto.dash.link.CarRegistration
+import com.openauto.dash.link.RegistrationReader
 import com.openauto.dash.link.TextSent
 import kotlinx.coroutines.CompletableDeferred
 import java.util.concurrent.ConcurrentHashMap
@@ -626,6 +627,9 @@ object PhoneLink {
     private fun saveRegistration(context: Context, registration: CarRegistration) {
         if (registration.empty) return
         CarProfileStore.save(CarProfileStore.current.withRegistration(registration))
+        RegistrationReader.date(registration.nextInspection)?.let {
+            Maintenance.inspectionDueBy(it.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli())
+        }
         val text = registration.plate.ifBlank { null }?.let { context.getString(R.string.car_registration_saved_plate, it) }
             ?: context.getString(R.string.car_registration_saved)
         Toast.makeText(context, text, Toast.LENGTH_LONG).show()

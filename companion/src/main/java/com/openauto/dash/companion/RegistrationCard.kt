@@ -178,6 +178,9 @@ private fun Fields(r: CarRegistration, onChange: (CarRegistration) -> Unit) {
             Field(stringResource(R.string.reg_make), r.make, Modifier.weight(1f)) { onChange(r.copy(make = it)) }
             Field(stringResource(R.string.reg_model), r.model, Modifier.weight(1f)) { onChange(r.copy(model = it)) }
         }
+        Field(stringResource(R.string.reg_next_inspection), r.nextInspection) { typed ->
+            onChange(r.copy(nextInspection = RegistrationReader.date(typed)?.toString() ?: typed.trim()))
+        }
         val facts = listOfNotNull(
             r.powerKw?.let { stringResource(R.string.reg_power, it, (it * 1.35962).roundToInt()) },
             CritAir.of(Energies.of(r.energy), RegistrationReader.date(r.firstRegistration), r.euro)?.let {

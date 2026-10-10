@@ -239,6 +239,7 @@
     <string name="reg_vin">VIN</string>
     <string name="reg_make">Марка</string>
     <string name="reg_model">Модель</string>
+    <string name="reg_next_inspection">Следующий техосмотр до</string>
     <string name="reg_power">%1$d кВт, %2$d л. с.</string>
     <string name="reg_crit_air">Crit\'Air %1$d</string>
     <string name="reg_crit_air_unclassed">Без наклейки Crit\'Air</string>

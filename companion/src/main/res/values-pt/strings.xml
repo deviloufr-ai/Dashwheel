@@ -236,6 +236,7 @@
     <string name="reg_vin">VIN</string>
     <string name="reg_make">Marca</string>
     <string name="reg_model">Modelo</string>
+    <string name="reg_next_inspection">Próxima inspeção até</string>
     <string name="reg_power">%1$d kW, %2$d cv</string>
     <string name="reg_crit_air">Crit\'Air %1$d</string>
     <string name="reg_crit_air_unclassed">Sem vinheta Crit\'Air</string>

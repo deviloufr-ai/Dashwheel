@@ -56,6 +56,22 @@ class CarRegistrationTest {
     }
 
     @Test
+    fun theCertificatesDeadlineDatesTheNextInspection() {
+        val now = 1_790_000_000_000L
+        fun months(n: Int) = Calendar.getInstance().apply { timeInMillis = now; add(Calendar.MONTH, n) }.timeInMillis
+        val deadline = months(7)
+
+        // Logged one interval before the deadline, so the reminder counts down to it.
+        val done = UpkeepRules.inspectionBefore(deadline, 24, null, now)!!
+        val due = UpkeepRules.status(UpkeepInterval(UpkeepKind.INSPECTION, everyMonths = 24), done, null, now)
+        assertEquals(UpkeepStage.OK, due.stage)
+        assertEquals(months(7 - 24), done.at)
+        // A test logged since wins; a deadline already past says nothing.
+        assertNull(UpkeepRules.inspectionBefore(deadline, 24, UpkeepDone(at = months(-1)), now))
+        assertNull(UpkeepRules.inspectionBefore(months(-2), 24, null, now))
+    }
+
+    @Test
     fun theFirstInspectionCountsFromTheFirstRegistration() {
         val now = 1_790_000_000_000L
         fun monthsAgo(n: Int) = Calendar.getInstance().apply { timeInMillis = now; add(Calendar.MONTH, -n) }.timeInMillis

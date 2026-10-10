@@ -36,11 +36,16 @@ data class CarRegistration(
     /** P.1: the cylinder capacity. */
     val displacementCc: Int? = null,
     /** From V.9: the Euro emission standard, 1..6. */
-    val euro: Int? = null
+    val euro: Int? = null,
+    /**
+     * X.1 on a French certificate, "VISITE AVANT LE ...": the deadline of the
+     * next roadworthiness test when the certificate was made, ISO yyyy-MM-dd.
+     */
+    val nextInspection: String = ""
 ) : LinkMessage {
     val empty: Boolean
         get() = plate.isBlank() && firstRegistration.isBlank() && vin.isBlank() && make.isBlank() && model.isBlank() &&
-            energy.isBlank() && powerKw == null && displacementCc == null && euro == null
+            energy.isBlank() && powerKw == null && displacementCc == null && euro == null && nextInspection.isBlank()
 }
 
 /** What a car runs on, as far as the registration and the Crit'Air rules tell them apart. */
@@ -130,7 +135,7 @@ object CritAir {
 /**
  * Reads the certificate's fields out of the lines a text recognizer found on
  * its photo. Each field is looked for after its printed label (A, B, D.1,
- * D.3, E, P.1, P.2, P.3), on the same line or, when the label stands alone,
+ * D.3, E, P.1, P.2, P.3, X.1), on the same line or, when the label stands alone,
  * the nearest line to its right or under it; the plate, the VIN and the date
  * are also known by their shape, for a photo where the labels didn't come out.
  */
@@ -138,15 +143,19 @@ object RegistrationReader {
     /** One line the recognizer found, with its box in the photo. */
     data class Line(val text: String, val left: Int, val top: Int, val right: Int, val bottom: Int)
 
-    /** Every label printed on the certificate: the wanted ones, and the others that end a value. */
-    private val LABEL = Regex("(?:^|(?<=\\s))([CDFJPSUVXYZ][.,]\\s?\\d(?:[.,]\\s?\\d)?|[ABEGHIJKQ])(?=[\\s:]|$)")
-    private val WANTED = setOf("A", "B", "E", "D.1", "D.3", "P.1", "P.2", "P.3")
+    /**
+     * Every label printed on the certificate: the wanted ones, and the others
+     * that end a value. A one-letter label may carry a dot ("A.", "E.").
+     */
+    private val LABEL = Regex("(?:^|(?<=\\s))([CDFJPSUVXYZ][.,]\\s?\\d(?:[.,]\\s?\\d)?|[ABEGHIJKQ]\\.?)(?=[\\s:]|$)")
+    private val WANTED = setOf("A", "B", "E", "D.1", "D.3", "P.1", "P.2", "P.3", "X.1")
     private val SIV = Regex("(?<![A-Z0-9])([A-Z]{2})\\s?[-\\s]\\s?([0-9OI]{3})\\s?[-\\s]\\s?([A-Z]{2})(?![A-Z0-9])")
     private val SIV_TIGHT = Regex("(?<![A-Z0-9])([A-Z]{2})([0-9]{3})([A-Z]{2})(?![A-Z0-9])")
     private val FNI = Regex("^(\\d{1,4})\\s?([A-Z]{1,3})\\s?(\\d{2}|2A|2B)$")
     private val DATE = Regex("(?<!\\d)(\\d{1,2})\\s?[/.\\-]\\s?(\\d{1,2})\\s?[/.\\-]\\s?(\\d{4})(?!\\d)")
     private val VIN_SHAPE = Regex("(?<![A-Z0-9])[A-Z0-9]{17}(?![A-Z0-9])")
-    private val EURO = Regex("EURO\\s?([1-6])")
+    /** The recognizer often reads EURO5 as EUR05. */
+    private val EURO = Regex("EUR[O0]\\s?([1-6])")
     private val NUMBER = Regex("^(\\d{1,5})(?:[.,]\\d+)?")
 
     /** Plain text, one line per line (tests, or a recognizer without boxes). */
@@ -161,7 +170,9 @@ object RegistrationReader {
         fun <T : Any> field(key: String, read: (String) -> T?): T? = labelled[key]?.firstNotNullOfOrNull(read)
 
         val plate = field("A", ::plateOf) ?: sivIn(all).orEmpty()
-        val vin = field("E", ::vinOf) ?: VIN_SHAPE.findAll(all).map { it.value }.firstNotNullOfOrNull(::vinOf).orEmpty()
+        // The VIN is printed twice on a French certificate (E and the coupon): one from a known maker wins.
+        val vins = (labelled["E"].orEmpty() + VIN_SHAPE.findAll(all).map { it.value }).mapNotNull(::vinOf)
+        val vin = (vins.firstOrNull { it.take(3) in MAKERS } ?: vins.firstOrNull()).orEmpty()
         val dates = DATE.findAll(all).mapNotNull { dateOf(it, today) }.toList()
         // B is the first registration; with its label lost, the earliest date (I, this certificate's, comes later).
         val first = field("B") { v -> DATE.find(v)?.let { dateOf(it, today) } } ?: dates.minOrNull()
@@ -174,7 +185,12 @@ object RegistrationReader {
             energy = field("P.3", ::energyOf).orEmpty(),
             powerKw = field("P.2") { v -> numberOf(v)?.takeIf { it in 5..1500 } },
             displacementCc = field("P.1") { v -> numberOf(v)?.takeIf { it in 50..10_000 } },
-            euro = EURO.find(all)?.groupValues?.get(1)?.toInt()
+            euro = EURO.find(all)?.groupValues?.get(1)?.toInt(),
+            // A deadline, so it may well be ahead of today; never before the car was registered.
+            nextInspection = field("X.1") { v ->
+                DATE.find(v)?.destructured?.let { (d, mo, y) -> runCatching { LocalDate.of(y.toInt(), mo.toInt(), d.toInt()) }.getOrNull() }
+                    ?.takeIf { first == null || it.isAfter(first) }
+            }?.toString().orEmpty()
         )
     }
 
@@ -189,7 +205,7 @@ object RegistrationReader {
         for (line in lines) {
             val labels = LABEL.findAll(line.text).toList()
             for ((i, m) in labels.withIndex()) {
-                val key = m.value.replace(" ", "").replace(',', '.')
+                val key = m.value.replace(" ", "").replace(',', '.').trimEnd('.')
                 if (key !in WANTED) continue
                 val named = key == "D.1" || key == "D.3"
                 val next = labels.drop(i + 1).firstOrNull { !named || it.value.length > 1 }
@@ -235,8 +251,40 @@ object RegistrationReader {
     internal fun vinOf(value: String): String? {
         val v = value.replace(" ", "").take(17).replace('O', '0').replace('Q', '0').replace('I', '1')
         if (v.length != 17 || !v.all { it in 'A'..'Z' || it in '0'..'9' }) return null
-        return v.takeIf { it.count(Char::isDigit) >= 4 && it.take(3).any(Char::isLetter) }
+        if (v.count(Char::isDigit) < 4 || v.take(3).none(Char::isLetter)) return null
+        return withMaker(v)
     }
+
+    /**
+     * The first three characters name the maker (VF7 is Citroën): a code no
+     * maker uses that one look-alike swap makes a known one ("VE7" read off
+     * "VF7") is put right.
+     */
+    private fun withMaker(vin: String): String {
+        val wmi = vin.take(3)
+        if (wmi in MAKERS) return vin
+        for (i in 0 until 3) {
+            for (other in LOOK_ALIKE[wmi[i]].orEmpty()) {
+                val fixed = wmi.substring(0, i) + other + wmi.substring(i + 1)
+                if (fixed in MAKERS) return fixed + vin.substring(3)
+            }
+        }
+        return vin
+    }
+
+    private val LOOK_ALIKE = mapOf(
+        'E' to "F", 'F' to "E", 'B' to "8", '8' to "B", 'S' to "5", '5' to "S",
+        'Z' to "2", '2' to "Z", 'G' to "6", '6' to "G", 'U' to "V", 'V' to "U", 'W' to "V"
+    )
+
+    /** Makers' codes (WMI) of the cars most seen in Europe. */
+    private val MAKERS = setOf(
+        "VF1", "VF3", "VF7", "VR1", "VR3", "VR7", "VF6", "VNE", "UU1", "VSS", "VSK", "TMB", "WVW", "WV1", "WV2",
+        "WAU", "WUA", "WBA", "WBS", "WBY", "WMW", "WDB", "WDD", "WDC", "W1K", "W1N", "WF0", "WME", "W0L", "W0V",
+        "ZFA", "ZFF", "ZAR", "ZCF", "ZLA", "YV1", "YS3", "SAL", "SAJ", "SCC", "KNA", "KNE", "KMH", "TMA", "JTD",
+        "JTE", "JTN", "SB1", "NMT", "JMZ", "JN1", "SJN", "VNK", "JHM", "SHH", "JF1", "JS2", "TSM", "LRW", "5YJ",
+        "XTA", "LSJ", "LVS", "VX1"
+    )
 
     private fun dateOf(m: MatchResult, today: LocalDate): LocalDate? {
         val (d, mo, y) = m.destructured

@@ -235,6 +235,7 @@
     <string name="reg_vin">FIN</string>
     <string name="reg_make">Marke</string>
     <string name="reg_model">Modell</string>
+    <string name="reg_next_inspection">Nächste HU bis</string>
     <string name="reg_power">%1$d kW, %2$d PS</string>
     <string name="reg_crit_air">Crit\'Air %1$d</string>
     <string name="reg_crit_air_unclassed">Keine Crit\'Air-Plakette</string>

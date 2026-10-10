@@ -236,6 +236,7 @@
     <string name="reg_vin">Telaio</string>
     <string name="reg_make">Marca</string>
     <string name="reg_model">Modello</string>
+    <string name="reg_next_inspection">Prossima revisione entro</string>
     <string name="reg_power">%1$d kW, %2$d CV</string>
     <string name="reg_crit_air">Crit\'Air %1$d</string>
     <string name="reg_crit_air_unclassed">Nessun bollino Crit\'Air</string>

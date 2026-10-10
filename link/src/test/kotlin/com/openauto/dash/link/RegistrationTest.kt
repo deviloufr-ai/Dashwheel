@@ -39,6 +39,40 @@ class RegistrationTest {
     }
 
     @Test
+    fun readsTheRealLayoutWithDottedLabelsAndTheNextInspection() {
+        // As a French certificate prints it (made-up values): "A." and "E." carry a dot,
+        // E sits beside D.3, and X.1 holds the next roadworthiness test's deadline.
+        val r = RegistrationReader.read(
+            """
+            N° IMMATRICULATION DATE DE 1ÈRE IMMATRICULATION
+            A. AB-123-CD B. 15/03/2011
+            C.1 DUPONT
+            C.4A EST LE PROPRIÉTAIRE DU VÉHICULE
+            D.1 CITROEN
+            D.2 UDRHJD/ZP
+            D.2.1 M10CTRVP000H180
+            D.3 C4 PICASSO E. VF7UDRHJ8BJ512345
+            F.1 2060 F.2 2060 F.3 3130
+            J M1 J.1 VP J.2 AC J.3 BREAK
+            K E2*2001/116*0345*15
+            P.1 1560 P.2 82 P.3 GO P.6 6
+            U.2 2700 V.7 130 V.9 715/2007*692/2008EUR05
+            X.1 VISITE AVANT LE 18/05/2027
+            I 07/10/2025
+            """.trimIndent(),
+            today
+        )
+        assertEquals("AB-123-CD", r.plate)
+        assertEquals("2011-03-15", r.firstRegistration)
+        assertEquals("VF7UDRHJ8BJ512345", r.vin)
+        assertEquals("C4 PICASSO", r.model)
+        assertEquals("GO", r.energy)
+        assertEquals(82, r.powerKw)
+        assertEquals(5, r.euro)
+        assertEquals("2027-05-18", r.nextInspection)
+    }
+
+    @Test
     fun aLabelStandingAloneTakesTheLineBesideIt() {
         val r = RegistrationReader.read(
             listOf(
@@ -61,6 +95,16 @@ class RegistrationTest {
         assertEquals("2011-03-15", r.firstRegistration)
         // A VIN never holds I, O or Q: the recognizer's slip is put right.
         assertEquals("VF7UDRHJ8BJ512345", r.vin)
+    }
+
+    @Test
+    fun aMakersCodeMisreadByOneLookAlikeIsPutRight() {
+        // Seen on a real certificate: the recognizer read Citroën's VF7 as VE7.
+        assertEquals("VF7UDRHJ8BJ512345", RegistrationReader.vinOf("VE7UDRHJ8BJ512345"))
+        // The coupon's copy, read right, wins over the misread one.
+        assertEquals("VF7UDRHJ8BJ512345", RegistrationReader.read("E. VE7UDRHJ8BJ512345\nVF7UDRHJ8BJ512345", today).vin)
+        // An unknown code with no known look-alike stays as read.
+        assertEquals("XYZUDRHJ8BJ512345", RegistrationReader.vinOf("XYZUDRHJ8BJ512345"))
     }
 
     @Test
@@ -115,7 +159,7 @@ class RegistrationTest {
 
     @Test
     fun roundTripsThroughTheCodec() {
-        val sent = CarRegistration("AB-123-CD", "2011-03-15", "VF7UDRHJ8BJ512345", "CITROEN", "C4 PICASSO", "GO", 82, 1560, 5)
+        val sent = CarRegistration("AB-123-CD", "2011-03-15", "VF7UDRHJ8BJ512345", "CITROEN", "C4 PICASSO", "GO", 82, 1560, 5, "2027-05-18")
         assertEquals(sent, LinkCodec.decode(LinkCodec.encode(sent)))
         assertTrue(CarRegistration().empty)
     }

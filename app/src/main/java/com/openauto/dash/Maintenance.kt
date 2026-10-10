@@ -118,6 +118,19 @@ object UpkeepRules {
         return fresh.map { own[it.kind] ?: it } + own.values.filter { o -> fresh.none { it.kind == o.kind } }
     }
 
+    /**
+     * The inspection to log for a deadline printed on the registration
+     * certificate (X.1): one interval of [everyMonths] before [deadline], so
+     * the reminder counts down to it. Null when [logged] is already that
+     * recent, or when the deadline is past: it says nothing about tests done since.
+     */
+    fun inspectionBefore(deadline: Long, everyMonths: Int, logged: UpkeepDone?, now: Long): UpkeepDone? {
+        if (deadline < now) return null
+        val at = Calendar.getInstance().apply { timeInMillis = deadline; add(Calendar.MONTH, -everyMonths) }.timeInMillis
+        if ((logged?.at ?: Long.MIN_VALUE) >= at) return null
+        return UpkeepDone(at = at)
+    }
+
     /** Where [interval] stands given the last time it was done and the mileage. */
     fun status(interval: UpkeepInterval, done: UpkeepDone?, odometerKm: Int?, now: Long): UpkeepDue {
         val kmLeft = if (interval.everyKm != null && done?.km != null && odometerKm != null) done.km + interval.everyKm - odometerKm else null
@@ -381,6 +394,16 @@ object Maintenance {
         // Done again: the next reminder for it is news again.
         spoken = spoken - kind
         save()
+    }
+
+    /**
+     * The registration certificate says the next roadworthiness test is due by
+     * [deadline] (local midnight): logged as the inspection before it.
+     */
+    fun inspectionDueBy(deadline: Long) {
+        val every = _state.value.plan.firstOrNull { it.kind == UpkeepKind.INSPECTION }?.everyMonths ?: INSPECTION_MONTHS
+        val done = UpkeepRules.inspectionBefore(deadline, every, _state.value.done[UpkeepKind.INSPECTION], System.currentTimeMillis()) ?: return
+        setDone(UpkeepKind.INSPECTION, done)
     }
 
     /** The drive monitor counted [km] more kilometres. */

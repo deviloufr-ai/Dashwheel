@@ -235,6 +235,7 @@
     <string name="reg_vin">VIN</string>
     <string name="reg_make">Merk</string>
     <string name="reg_model">Model</string>
+    <string name="reg_next_inspection">Volgende APK vóór</string>
     <string name="reg_power">%1$d kW, %2$d pk</string>
     <string name="reg_crit_air">Crit\'Air %1$d</string>
     <string name="reg_crit_air_unclassed">Geen Crit\'Air-sticker</string>
