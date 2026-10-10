@@ -37,6 +37,25 @@ internal object MapsScreen {
         "uw locatie", "jouw locatie", "mijn locatie", "twoja lokalizacja", "moja lokalizacja", "ваше местоположение", "моё местоположение", "мое местоположение"
     )
 
+    /** The empty destination field's own words: not a place. */
+    private val PLACEHOLDERS = listOf(
+        "choose destination", "choisir une destination", "choisissez une destination", "ziel auswählen", "ziel wählen", "elegir destino", "elige un destino",
+        "scegli la destinazione", "scegli destinazione", "escolher destino", "escolha o destino", "bestemming kiezen", "kies een bestemming", "wybierz cel", "выберите пункт назначения"
+    )
+
+    /** A step of the route ("Head toward Rue Verte", "Turn right onto…"): the steps list, not the preview. */
+    private val STEP_WORDS = listOf(
+        "head ", "toward", "turn ", "onto", "continue", "take the", "keep ", "exit", "merge", "roundabout", "slight", "sharp", "u-turn", "destination will be",
+        "dirigez", "vers ", "tournez", "continuez", "prenez", "restez", "sortie", "rond-point", "serrez", "demi-tour",
+        "fahren sie", "richtung", "abbiegen", "weiter", "nehmen sie", "ausfahrt", "kreisverkehr",
+        "dirígete", "gira", "continúa", "toma", "salida", "rotonda", "mantente",
+        "dirigiti", "svolta", "continua", "prendi", "uscita", "rotatoria", "mantieni",
+        "siga", "vire", "pegue", "saída", "rotunda",
+        "ga ", "sla ", "rijd", "neem", "afslag", "rotonde", "houd",
+        "jedź", "skręć", "kontynuuj", "zjazd", "rondo",
+        "двигайтесь", "поверните", "продолжайте", "съезд", "круг"
+    )
+
     /** Words around the destination in a field's description ("Destination: Tour Eiffel"), dropped. */
     private val DESTINATION_WORDS = listOf("destination", "arrivée", "ziel", "destino", "destinazione", "bestemming", "cel", "пункт назначения", "to", "vers", "nach", "a", "naar", "do", "до")
 
@@ -98,15 +117,31 @@ internal object MapsScreen {
         if (start < 0) return null
         return ordered.drop(start + 1)
             .map { cleaned(it.text) }
-            .firstOrNull { it.length in 3..120 && !isYourLocation(it) && !looksLikeFigure(it) }
+            .firstOrNull { isPlaceName(it) }
     }
+
+    /** Whether [text] can be the destination: long enough, not the start, a figure, the empty field's words or a step of the route. */
+    internal fun isPlaceName(text: String): Boolean {
+        if (text.length !in 4..120 || isYourLocation(text) || looksLikeFigure(text)) return false
+        val lower = text.lowercase()
+        if (PLACEHOLDERS.any { lower == it || lower.startsWith(it) }) return false
+        if (!lower.first().isLetterOrDigit()) return false
+        if (STEP_WORDS.any { it in lower }) return false
+        // A name needs a word of letters in it ("ois", "Wa" and other scraps of the map don't count).
+        return LETTERS.containsMatchIn(text) || NUMBER_THEN_WORD.containsMatchIn(text)
+    }
+
+    private val LETTERS = Regex("""\p{L}{4,}""")
+    private val NUMBER_THEN_WORD = Regex("""^\d+\s+\p{L}""")
+    /** One stray character and a space before the name: the pin drawn there, as the recognizer reads it (a 9, an O, a Q…). */
+    private val PIN = Regex("""^[^\p{L}\d]?[\p{L}\d¢]\s+(?=\S)""")
 
     private fun isYourLocation(text: String): Boolean {
         val t = text.lowercase().trim().trimEnd('…', '.', ':')
         return YOUR_LOCATION.any { t == it || t.startsWith("$it,") || t.endsWith(": $it") || t.endsWith(", $it") }
     }
 
-    /** "Destination: Tour Eiffel" and "Tour Eiffel, destination" give "Tour Eiffel". */
+    /** "Destination: Tour Eiffel", "Tour Eiffel, destination" and "9 Tour Eiffel" (the pin) give "Tour Eiffel". */
     internal fun cleaned(text: String): String {
         var t = text.trim()
         for (word in DESTINATION_WORDS) {
@@ -114,6 +149,7 @@ internal object MapsScreen {
             val tail = Regex("\\s*[,:：]\\s*$word\\s*$", RegexOption.IGNORE_CASE)
             t = t.replace(head, "").replace(tail, "")
         }
+        t = t.replace(PIN, "")
         return t.trim()
     }
 
