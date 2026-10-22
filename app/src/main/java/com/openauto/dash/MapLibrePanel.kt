@@ -167,8 +167,12 @@ fun MapLibrePanel(modifier: Modifier = Modifier, wallpaper: Boolean = false) {
     // wallpaper's cap) as soon as the page starts sliding in ([LocalPageActive]).
     // Paused or stopped it is not: a tile map put to sleep came back black.
     val pageActive = LocalPageActive.current
-    LaunchedEffect(pageActive) {
-        mapView.setMaximumFps(if (!pageActive) HIDDEN_FPS else if (wallpaper) WALLPAPER_FPS else Int.MAX_VALUE)
+    // A wallpaper under a car standing still barely changes, yet each fix
+    // animated it at full pace, and every map frame redrew the whole
+    // dashboard over it (a third of the K706's CPU parked): [HIDDEN_FPS] then.
+    val still = wallpaper && !rememberMoving(enabled = wallpaper, demo = false).value
+    LaunchedEffect(pageActive, still) {
+        mapView.setMaximumFps(if (!pageActive || still) HIDDEN_FPS else if (wallpaper) WALLPAPER_FPS else Int.MAX_VALUE)
         if (pageActive) mapRef?.triggerRepaint()
     }
 
