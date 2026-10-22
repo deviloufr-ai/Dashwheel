@@ -64,6 +64,8 @@ import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.math.max
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.mutableIntStateOf
 
 /*
  * How Dashwheel's own alerts look, chosen per alert in Settings, Look: the
@@ -402,10 +404,26 @@ internal class AlertWindow(
         val v = ComposeView(hostContext)
         v.setViewTreeLifecycleOwner(o)
         v.setViewTreeSavedStateRegistryOwner(o)
+        // The full screen runs from the very top of the screen. Its content sits under the
+        // status bar while one shows and flush with the top while the bar is hidden: the
+        // window's visible frame starts under the bar only then (an overlay window gets no
+        // content inset for it, and no insets callback when the bar comes or goes, but a layout
+        // pass). Black behind, for a firmware that hides the bar by its own means and still
+        // reports it: never the app below.
+        val barTop = mutableIntStateOf(0)
+        if (style == AlertStyle.FULL) {
+            v.viewTreeObserver.addOnGlobalLayoutListener {
+                barTop.intValue = android.graphics.Rect().also(v::getWindowVisibleDisplayFrame).top.coerceAtLeast(0)
+            }
+        }
         v.setContent {
             OpenAutoDashTheme {
                 // Asked back while it animated out: it stays.
-                AlertMotion(style, state, onGone = { v.post { if (view === v && visible?.targetState == false) removeNow() } }, content = content)
+                AlertMotion(style, state, onGone = { v.post { if (view === v && visible?.targetState == false) removeNow() } }) {
+                    if (style == AlertStyle.FULL) {
+                        Box(Modifier.fillMaxSize().background(Color.Black).padding(top = with(LocalDensity.current) { barTop.intValue.toDp() })) { content() }
+                    } else content()
+                }
             }
         }
         v.addOnLayoutChangeListener { _, l, t, r, b, ol, ot, or, ob -> if (r - l != or - ol || b - t != ob - ot) AlertStack.settle() }
@@ -482,14 +500,16 @@ internal class AlertWindow(
         val panel = (panelWidthDp((dm.widthPixels / dm.density).toInt()).value * dm.density).toInt()
         // The bar's height, its glass margin under it included (TopBar).
         val aboveBar = dm.heightPixels - ((DashSize.Bar.value + 10f) * dm.density).toInt()
-        // The side panel and full screen start under the status bar: laid out in screen, their title sat on its icons.
+        // The side panel starts under the status bar: laid out in screen, its title sat on the
+        // bar's icons. The full screen follows the bar itself instead (show).
         val underStatus = statusBarHeight()
-        val tall = (if (clearOfBar) aboveBar else dm.heightPixels) - underStatus
+        val whole = if (clearOfBar) aboveBar else dm.heightPixels
+        val tall = whole - underStatus
         val (w, h) = when (style) {
             AlertStyle.PILL, AlertStyle.CARD, AlertStyle.BUBBLE, AlertStyle.ICON -> wrap to wrap
             AlertStyle.BANNER -> match to wrap
             AlertStyle.PANEL -> panel to tall
-            AlertStyle.FULL -> match to tall
+            AlertStyle.FULL -> match to whole
         }
         return WindowManager.LayoutParams(
             w, h,
@@ -515,7 +535,7 @@ internal class AlertWindow(
                     }
                 }
                 AlertStyle.PILL -> y = maxOf(margin / 2, underStatus)
-                AlertStyle.PANEL, AlertStyle.FULL -> y = underStatus
+                AlertStyle.PANEL -> y = underStatus
                 else -> Unit
             }
             title = "Dashwheel $name"
