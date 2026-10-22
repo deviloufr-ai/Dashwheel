@@ -115,7 +115,10 @@ object McuFeed {
         UnitPlatform.markUsed(Cap.VEHICLE_BUS)
         McuReader.feed(m)
         when (cmd) {
-            CMD_CAN -> PsaTripComputer.feed(m, 1)
+            CMD_CAN -> {
+                PsaTripComputer.feed(m, 1)
+                CarBoxKeys.feed(m, 1)
+            }
             // 0 is the lights on: the framework's own polarity.
             CMD_HEADLIGHT -> if (m.size > 1) UnitSignals.mcuHeadlights(m[1].toInt() == 0)
             CMD_HANDBRAKE -> if (m.size > 1) UnitSignals.mcuHandbrake(m[1].toInt() == 1)

@@ -183,6 +183,7 @@ internal object UnitFacts {
             "Unit keys service" to yes(HeadUnitKeys.listening),
             "MCU service" to yes(McuFeed.listening.value),
             "CAN box data" to yes(CarBox.available),
+            prop("persist.sys.qf.mcu.version")?.let { "CAN box keys" to CarBoxKeys.reportLine() },
             if (car.make.isNotBlank()) "Car" to listOf(car.make, car.model, car.year?.toString()).filter { !it.isNullOrBlank() }.joinToString(" ") else null,
             "Language" to Locale.getDefault().toLanguageTag()
         )

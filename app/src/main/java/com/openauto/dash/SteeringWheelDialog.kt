@@ -439,6 +439,7 @@ private fun buttonName(button: WheelButton): String =
 @Composable
 private fun wheelKeyLabel(key: WheelKey): String = when {
     key.canKey != null -> stringResource(R.string.wheel_can_button, key.canHex.orEmpty())
+    key.vendor == CarBoxKeys.VENDOR -> stringResource(R.string.wheel_can_button, wheelBoxLabel(key.vendorCode))
     key.input != null -> key.input
     key.keyCode == KeyEvent.KEYCODE_UNKNOWN -> stringResource(R.string.wheel_raw_button, key.scanCode)
     // The head unit's own keys (HeadUnitKeys): by the name on the button.

@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
@@ -28,7 +29,9 @@ import java.util.UUID
  *   [canHex] while the button is held. On MCU head units (the ROCO K706)
  *   some wheel buttons only show up here;
  * - another firmware's own key code ([vendor] names the firmware, "fyt",
- *   [vendorCode] its number), from its [KeySource]: no Android key at all.
+ *   [vendorCode] its number), from its [KeySource]: no Android key at all;
+ * - the CAN box's own code for the button ([vendor] [CarBoxKeys.VENDOR]),
+ *   which tells apart buttons the firmware gives the same key.
  */
 internal data class WheelKey(
     val keyCode: Int,
@@ -51,6 +54,7 @@ internal data class WheelKey(
     /** A readable name: "Media Next", "Volume Up"... The map words the raw and CAN ones in the chosen language. */
     val label: String
         get() {
+            if (vendor == CarBoxKeys.VENDOR) return wheelBoxLabel(vendorCode)
             if (vendor != null) return "${vendor.uppercase()} key $vendorCode"
             if (canKey != null) return "CAN $canKey: $canHex"
             if (input != null) return input
@@ -188,6 +192,13 @@ internal object SteeringWheelStore {
     private const val SAME_PRESS_MS = 250L
     /** How long a pressed button stays lit on the map. */
     private const val LIT_MS = 700L
+    /** A CAN box hold the box never let go of ends by itself after this. */
+    private const val BOX_HOLD_MAX_MS = 3_000L
+    /** A box code new to the map waits this long after its release for the firmware's key, then is a button of its own. */
+    private const val BOX_LEARN_MS = 600L
+    /** A held box button bound to a volume step: the first repeat, then each one after (run() lets one through per [SAME_PRESS_MS]). */
+    private const val BOX_REPEAT_FIRST_MS = 500L
+    private const val BOX_REPEAT_MS = 300L
 
     /** Whether the wheel buttons are offered at all (Settings, Driving). */
     val AVAILABLE = true
@@ -226,6 +237,13 @@ internal object SteeringWheelStore {
     private val litJobs = HashMap<String, Job>()
     /** When each key last ran its action: the same press from two ways runs once. */
     private val lastRun = HashMap<String, Long>()
+    /** A CAN box press and the firmware's key for it, paired whichever comes first. */
+    private val box = BoxPressPairing(holdMaxMs = BOX_HOLD_MAX_MS)
+    /** A box code seen on the map that no button has yet: it waits for the firmware's key for the same press, whose button it takes over. */
+    private var boxLearn: WheelKey? = null
+    private var boxLearnJob: Job? = null
+    /** A held box button bound to a volume step, stepping again and again as a held key would. */
+    private var boxRepeat: Job? = null
 
     fun setContext(context: Context) {
         if (!AVAILABLE || appContext != null) return
@@ -251,6 +269,7 @@ internal object SteeringWheelStore {
         burstJob?.cancel()
         burst.clear()
         clearCandidate()
+        clearBox()
         WheelMonitor.stop()
         updateReaders()
     }
@@ -282,6 +301,7 @@ internal object SteeringWheelStore {
     fun resetAll() {
         _listeningFor.value = null
         clearCandidate()
+        clearBox()
         persist(emptyList())
     }
 
@@ -367,10 +387,13 @@ internal object SteeringWheelStore {
     /** The root readers run only while they can be needed: the map open, or a button bound to them. */
     private fun updateReaders() {
         val bound = _buttons.value.filter { it.assignment != null }.mapNotNull { it.key }
-        val can = _mapping.value || bound.any { it.canKey != null }
+        val can = _mapping.value || bound.any { it.canKey != null || it.vendor == CarBoxKeys.VENDOR }
         if (can != holdsReader) {
             holdsReader = can
-            if (can) McuReader.start() else McuReader.stop()
+            if (can) McuReader.start() else {
+                McuReader.stop()
+                clearBox()
+            }
         }
         val input = bound.any { it.input != null }
         if (input != holdsInput) {
@@ -390,14 +413,29 @@ internal object SteeringWheelStore {
         if (event.flags and KeyEvent.FLAG_SOFT_KEYBOARD != 0) return false
         val key = WheelKey(event.keyCode, event.scanCode)
         val press = event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0
+        val now = SystemClock.uptimeMillis()
+        // The CAN box's code stood for this press: counted or run as that, not twice.
+        // Only the press is taken on its account; its repeats and release follow it, other keys pass.
+        if (press) {
+            box.pending(now)?.let { b ->
+                if (_mapping.value || bound(b) != null) {
+                    box.swallow(key.id)
+                    boxFollowed(b, key)
+                    return true
+                }
+            }
+        } else if (box.follows(key.id, release = event.action == KeyEvent.ACTION_UP)) return true
         if (_mapping.value) {
             if (press) {
                 WheelMonitor.add(WheelMonitor.Source.KEY, "${key.label} (${event.keyCode}/${event.scanCode})", key)
                 mapPress(key)
+                box.firmwarePress(key, now, handled = true)
             }
             return true
         }
-        val assignment = bound(key) ?: return false
+        val assignment = bound(key)
+        if (press) box.firmwarePress(key, now, handled = assignment != null)
+        if (assignment == null) return false
         // Held down, Android sends the key again and again: for the volume each
         // one is a step (paced by run()), as on the unit's own buttons.
         val heldVolume = event.action == KeyEvent.ACTION_DOWN && event.repeatCount > 0 && assignment.isVolumeStep()
@@ -419,13 +457,7 @@ internal object SteeringWheelStore {
     fun onUnitKey(context: Context, keyCode: Int, event: KeyEvent?) {
         // One press: its down (the event is left out by some senders: count that as the press).
         if (event != null && (event.action != KeyEvent.ACTION_DOWN || event.repeatCount != 0)) return
-        val key = WheelKey(keyCode, 0)
-        if (_mapping.value) {
-            WheelMonitor.add(WheelMonitor.Source.KEY, "${key.label} ($keyCode)", key)
-            mapPress(key)
-            return
-        }
-        run(context, key, bound(key) ?: return)
+        unitPress(context, WheelKey(keyCode, 0), keyCode)
     }
 
     /**
@@ -435,13 +467,135 @@ internal object SteeringWheelStore {
     fun onUnitKey(context: Context, press: UnitKeyPress, source: KeySource) {
         if (!press.down) return
         // A firmware that hands Android's own codes out (the QF key service) is wired straight to [onUnitKey] above.
-        val key = WheelKey.vendor(source.vendor, press.code)
+        unitPress(context, WheelKey.vendor(source.vendor, press.code), press.code)
+    }
+
+    /**
+     * One press of a unit key ([code] on the map): a box press's own when one
+     * is pending, else counted on the map, else runs what it's bound to.
+     */
+    private fun unitPress(context: Context, key: WheelKey, code: Int) {
+        val now = SystemClock.uptimeMillis()
+        box.pending(now)?.let { b ->
+            if (_mapping.value || bound(b) != null) return boxFollowed(b, key)
+        }
         if (_mapping.value) {
-            WheelMonitor.add(WheelMonitor.Source.KEY, "${key.label} (${press.code})", key)
+            WheelMonitor.add(WheelMonitor.Source.KEY, "${key.label} ($code)", key)
             mapPress(key)
+            box.firmwarePress(key, now, handled = true)
             return
         }
-        run(context, key, bound(key) ?: return)
+        val assignment = bound(key)
+        box.firmwarePress(key, now, handled = assignment != null)
+        run(context, key, assignment ?: return)
+    }
+
+    /**
+     * A button's code from the CAN box's key frame ([CarBoxKeys]), 0 when it
+     * is let go. Counted on the map, else runs what it's bound to, as it is
+     * pressed. The firmware's key for the same press usually follows when it
+     * is let go, and is taken on the box press's account ([BoxPressPairing]);
+     * read off the root log it may come first instead, and then the box code
+     * runs nothing it already ran. The firmware still does its own thing with it.
+     *
+     * On the map, a code no button has yet waits for the firmware's key: the
+     * button that key has (learned before box codes told the buttons apart)
+     * is keyed by the code from then on, instead of a second button for the
+     * same press ([adopt]). Held and bound to a volume step, it keeps stepping.
+     */
+    fun onBoxKey(code: Int) {
+        val now = SystemClock.uptimeMillis()
+        if (code == 0) {
+            box.release(now)
+            boxRepeat?.cancel()
+            boxRepeat = null
+            if (boxLearn != null) {
+                boxLearnJob?.cancel()
+                boxLearnJob = scope.launch {
+                    delay(BOX_LEARN_MS)
+                    boxLearn?.let { b ->
+                        boxLearn = null
+                        count(b)
+                    }
+                }
+            }
+            return
+        }
+        val key = WheelKey.vendor(CarBoxKeys.VENDOR, code)
+        // The MCU service hands the code over before the firmware's key; only the root log may lag behind it.
+        val first = box.press(key, now, late = !McuFeed.listening.value)
+        boxRepeat?.cancel()
+        boxRepeat = null
+        if (_mapping.value) {
+            WheelMonitor.add(WheelMonitor.Source.CAN, wheelBoxLabel(code), key)
+            when {
+                known(key) != null -> mapPress(key)
+                first != null -> adopt(key, first.key)
+                else -> {
+                    boxLearnJob?.cancel()
+                    // The one before never got its firmware key: a button of its own.
+                    boxLearn?.takeIf { it != key }?.let { count(it) }
+                    boxLearn = key
+                }
+            }
+            return
+        }
+        if (first?.handled == true) return
+        val context = appContext ?: return
+        val assignment = bound(key) ?: return
+        run(context, key, assignment)
+        if (!assignment.isVolumeStep()) return
+        boxRepeat = scope.launch {
+            val until = now + BOX_HOLD_MAX_MS
+            delay(BOX_REPEAT_FIRST_MS)
+            while (isActive && SystemClock.uptimeMillis() < until) {
+                run(context, key, assignment)
+                delay(BOX_REPEAT_MS)
+            }
+        }
+    }
+
+    /**
+     * A wheel or unit key Dashwheel did nothing with was just pressed: the
+     * screen the firmware opens for it is the driver's wish ([UnitPhoneScreen]).
+     */
+    fun keyLeftToFirmware(): Boolean = box.leftToFirmware(SystemClock.uptimeMillis())
+
+    /** The firmware's key [firmware] came for the box press [boxKey]: a code waiting on the map takes over that key's button. */
+    private fun boxFollowed(boxKey: WheelKey, firmware: WheelKey) {
+        if (boxLearn != boxKey) return
+        boxLearn = null
+        boxLearnJob?.cancel()
+        adopt(boxKey, firmware)
+    }
+
+    /**
+     * A box code new to the map, paired with the firmware key [firmware] for
+     * the same press. The button that key has is keyed by the box code from
+     * now on, with its name, place and action: no second button for one
+     * press. With none, or a button waiting to learn, the code is a button of
+     * its own, and the firmware key still waiting its moment is dropped.
+     */
+    private fun adopt(boxKey: WheelKey, firmware: WheelKey) {
+        known(boxKey)?.let { light(it.uid); return }
+        if (_listeningFor.value == null) {
+            known(firmware)?.let { old ->
+                update(old.uid) { it.copy(key = boxKey) }
+                light(old.uid)
+                return
+            }
+        }
+        burst.remove(firmware)
+        count(boxKey)
+    }
+
+    private fun clearBox() {
+        box.clear()
+        boxLearn = null
+        boxLearnJob?.cancel()
+        boxLearnJob = null
+        boxRepeat?.cancel()
+        boxRepeat = null
     }
 
     /** A key only the input system saw ([WheelMonitor.inputPresses]). */
@@ -498,6 +652,114 @@ internal object SteeringWheelStore {
     }
 }
 
+/**
+ * One steering wheel press seen twice: as the CAN box's own key code
+ * ([CarBoxKeys], as the button goes down) and as the firmware's key for it
+ * (as it is let go, a few ms later). Whichever comes first stands for the
+ * press, the other is dropped:
+ * - a firmware key pressed while the box code is held, or within [followMs]
+ *   of its release, is the box press's ([pending]). Only that press is taken;
+ *   its repeats and its release go with it ([swallow], [follows]), other keys pass;
+ * - a box code within [lateMs] of a firmware press that nothing stood for
+ *   (the root log hands the stream over late) belongs to that press: [press]
+ *   gives that key and whether it already did the press's job, and no key
+ *   is taken on that box press's account.
+ * A hold the box never let go of ends by itself after [holdMaxMs]: a lost
+ * release frame must not take every key on the unit.
+ *
+ * A firmware key Dashwheel did nothing with is left to the firmware: the
+ * screen it opens within [screenMs] is wanted ([leftToFirmware]).
+ * Pure, for the tests.
+ */
+internal class BoxPressPairing(
+    private val followMs: Long = 400L,
+    private val holdMaxMs: Long = 3_000L,
+    private val lateMs: Long = 1_000L,
+    private val screenMs: Long = 2_500L
+) {
+    private var box: WheelKey? = null
+    private var held = false
+    private var pressedAt = NEVER
+    private var releasedAt = NEVER
+    /** The firmware key for this box press came first: nothing is taken on its account. */
+    private var taken = false
+    private var firmware: FirmwarePress? = null
+    /** The firmware keys taken as a box press's, by [WheelKey.id], until their release. */
+    private val swallowed = HashSet<String>()
+    /** When a firmware key Dashwheel did nothing with was last pressed. */
+    private var leftAt = NEVER
+
+    /** A firmware key pressed with no box press to belong to, and whether it did the press's job (ran an action, or was counted on the map). */
+    class FirmwarePress(val key: WheelKey, val handled: Boolean, val at: Long)
+
+    /**
+     * The box code [key] went down at [now]. The firmware's key for this
+     * press when it came just before, else null: the box press then runs
+     * nothing that key already did.
+     */
+    fun press(key: WheelKey, now: Long, late: Boolean = true): FirmwarePress? {
+        box = key
+        held = true
+        pressedAt = now
+        // Only a stream that lags ([late]) can bring the box code after its key: else that key was another press.
+        val first = firmware?.takeIf { late && now - it.at < lateMs }
+        taken = first != null
+        firmware = null
+        return first
+    }
+
+    /** The box let its key go at [now]. */
+    fun release(now: Long) {
+        if (held) releasedAt = now
+        held = false
+    }
+
+    /** Whether a screen the firmware opens at [now] follows a key Dashwheel left to it. */
+    fun leftToFirmware(now: Long): Boolean = leftAt != NEVER && now - leftAt < screenMs
+
+    /** The box key a firmware key pressed at [now] belongs to: one held, or let go just before; null for none. */
+    fun pending(now: Long): WheelKey? {
+        val b = box ?: return null
+        if (taken) return null
+        val holding = held && now - pressedAt < holdMaxMs
+        return b.takeIf { holding || (releasedAt != NEVER && now - releasedAt < followMs) }
+    }
+
+    /** The firmware key [id], pressed, was taken as the box press's: its repeats and release are too. */
+    fun swallow(id: String) {
+        swallowed += id
+    }
+
+    /** A repeat or the release of the firmware key [id]: true when its press was taken ([swallow]). */
+    fun follows(id: String, release: Boolean): Boolean {
+        if (id !in swallowed) return false
+        if (release) swallowed -= id
+        return true
+    }
+
+    /** The firmware key [key] pressed at [now] with no box press to belong to; [handled] when it ran an action or was counted on the map. */
+    fun firmwarePress(key: WheelKey, now: Long, handled: Boolean) {
+        firmware = FirmwarePress(key, handled, now)
+        if (!handled) leftAt = now
+    }
+
+    /** Forgets everything: the map closed, the reader stopped. */
+    fun clear() {
+        box = null
+        held = false
+        pressedAt = NEVER
+        releasedAt = NEVER
+        taken = false
+        firmware = null
+        swallowed.clear()
+        leftAt = NEVER
+    }
+
+    private companion object {
+        const val NEVER = Long.MIN_VALUE
+    }
+}
+
 /** The map from JSON; buttons learned before the map (a key and an action, no uid) come back unplaced. */
 internal fun wheelButtonsFromJson(raw: String): List<WheelButton> {
     val arr = JSONArray(raw)
@@ -551,3 +813,6 @@ private fun JSONObject.toButton(): WheelButton {
 }
 
 internal fun newWheelUid(): String = UUID.randomUUID().toString().take(8)
+
+/** A CAN box key code as the map shows it: "0x29". */
+internal fun wheelBoxLabel(code: Int): String = "0x%02X".format(code)

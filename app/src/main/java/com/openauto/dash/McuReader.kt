@@ -419,7 +419,11 @@ object McuReader {
         if (bytes.isEmpty()) return
         ingest(cmdId, bytes, live)
         // The CAN box stream, for the trip computer: what the MCU service would hand over without root.
-        if (cmdId == McuFeed.CMD_CAN && live) PsaTripComputer.feed(ByteArray(bytes.size) { bytes[it].toByte() }, 1)
+        if (cmdId == McuFeed.CMD_CAN && live) {
+            val raw = ByteArray(bytes.size) { bytes[it].toByte() }
+            PsaTripComputer.feed(raw, 1)
+            CarBoxKeys.feed(raw, 1)
+        }
     }
 
     /**

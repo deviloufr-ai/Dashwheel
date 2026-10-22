@@ -875,7 +875,8 @@ object PipAnchor {
     private val fullscreenReturns = java.util.concurrent.ConcurrentHashMap<String, Int>()
 
     /** When the dashboard itself was last touched (ms). */
-    @Volatile private var lastTouchAt = 0L
+    @Volatile var lastTouchAt = 0L
+        private set
 
     /** The dashboard was touched: an app opening right after may be the user's doing. */
     fun noteUserTouch() {

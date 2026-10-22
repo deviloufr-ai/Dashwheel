@@ -389,6 +389,7 @@ class CarMediaController(private val context: Context) {
         val last = getLastMediaPackage(context)?.takeIf { context.packageManager.getLaunchIntentForPackage(it) != null }
         val launch = last?.let { context.packageManager.getLaunchIntentForPackage(it) }
             ?: Intent.makeMainSelectorActivity(Intent.ACTION_MAIN, Intent.CATEGORY_APP_MUSIC)
+        last?.let(UnitPhoneScreen::opened)
         if (!context.launchSafely(launch)) return
         pendingPlayPackage = last ?: ANY_PLAYER
         pendingPlayUntil = SystemClock.elapsedRealtime() + PENDING_PLAY_MS

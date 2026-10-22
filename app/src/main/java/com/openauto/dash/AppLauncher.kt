@@ -119,6 +119,7 @@ object AppLauncher {
         val launchIntent = launchIntent(context, packageName)
             ?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             ?: return false
+        UnitPhoneScreen.opened(packageOf(packageName))
         val options = ActivityOptions.makeBasic()
         runCatching { HiddenApi.invoke(ActivityOptions::class.java, options, "setLaunchWindowingMode", WINDOWING_MODE_FULLSCREEN) }
         val launched = runCatching { context.startActivity(launchIntent, options.toBundle()); true }

@@ -170,6 +170,7 @@ class SplitAccessibilityService : AccessibilityService() {
                 if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED && event.packageName != null) {
                     // A tile's app torn off its tile shows here before the dashboard even pauses.
                     EmbeddedApp.tileAppInFront(event.packageName)
+                    UnitPhoneScreen.onWindow(event.packageName, event.className)
                     val maps = event.packageName == MapsScreen.PACKAGE
                     if (maps != mapsInFront) {
                         mapsInFront = maps
@@ -536,6 +537,12 @@ class SplitAccessibilityService : AccessibilityService() {
 
         /** True once the service is enabled and the system bound it. */
         val isConnected: Boolean get() = instance != null
+
+        /** The package of the window the keys go to now, or null without the service. */
+        fun frontPackage(): String? = instance?.let { s -> runCatching { s.rootInActiveWindow?.packageName?.toString() }.getOrNull() }
+
+        /** Back, as the service sends it: true when it was sent. */
+        fun sendBack(): Boolean = instance?.performGlobalAction(GLOBAL_ACTION_BACK) == true
 
         /** How long the service gets to come up once turned on, and how often it is looked for. */
         private const val BIND_WAIT_MS = 5_000L
