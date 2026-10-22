@@ -55,6 +55,16 @@ class TapCostTest {
     }
 
     @Test
+    fun aTapToldAgainSaysSo() {
+        val tap = TapCost(maps)
+        tap.add(MotionEvent.ACTION_DOWN, raiseMs = null, injected = true, injectMs = 1, lateMs = 4)
+        tap.retapped()
+        assertTrue(tap.add(MotionEvent.ACTION_UP, raiseMs = 60, injected = true, injectMs = 3))
+        assertEquals("tap on $maps: 4 ms late, no raise, inject ok 1 ms, up raise 60 ms, inject ok 3 ms, tapped again", tap.line())
+        assertFalse(tap.worrying)
+    }
+
+    @Test
     fun theSummaryComesOncePerPeriodAndStartsAfresh() {
         val stats = TapStats(periodMs = 60_000)
         fun tap(raise: Long, up: Boolean) = TapCost(maps).apply {

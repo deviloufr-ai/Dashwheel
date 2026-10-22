@@ -16,6 +16,7 @@ internal class TapCost(val packageName: String) {
     private var down: Part? = null
     private var up: Part? = null
     private var cancelled = false
+    private var again = false
 
     /** How long after the finger landed its down was sent on; -1 until known. */
     var downLateMs: Long = -1
@@ -40,6 +41,11 @@ internal class TapCost(val packageName: String) {
         else -> false
     }
 
+    /** The app lost the keys during the tap, which was then told again whole ([EmbeddedApp.Host]). */
+    fun retapped() {
+        again = true
+    }
+
     /** Whether any of the tap's touches never reached the app. */
     val lost: Boolean
         get() = down?.injected != true || movesRefused > 0 || (!cancelled && up?.injected != true)
@@ -54,7 +60,7 @@ internal class TapCost(val packageName: String) {
     /** Whether the line deserves a warning: something was lost or slow. */
     val worrying: Boolean get() = lost || slow
 
-    /** One compact line for the log: "tap on pkg: 35 ms late, raise 180 ms, inject ok 3 ms, 12 moves, up raise 12 ms, inject ok 2 ms". */
+    /** One compact line for the log: "tap on pkg: 35 ms late, raise 180 ms, inject ok 3 ms, 12 moves, up raise 12 ms, inject ok 2 ms[, tapped again]". */
     fun line(): String = buildString {
         append("tap on ").append(packageName).append(": ")
         if (downLateMs >= 0) append(downLateMs).append(" ms late, ")
@@ -64,6 +70,7 @@ internal class TapCost(val packageName: String) {
             if (movesRefused > 0) append(" (").append(movesRefused).append(" refused)")
         }
         if (cancelled) append(", cancelled") else append(", up ").append(part(up))
+        if (again) append(", tapped again")
     }
 
     private fun part(p: Part?): String {

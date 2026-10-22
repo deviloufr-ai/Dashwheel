@@ -24,6 +24,7 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.Surface
 import android.view.TextureView
+import android.view.ViewConfiguration
 import android.view.inputmethod.InputMethodManager
 import com.openauto.unitproto.UnitFamily
 import androidx.compose.foundation.background
@@ -427,6 +428,18 @@ internal object EmbeddedApp {
 
     /** Whether the dashboard's window has the keys ([MainActivity.onWindowFocusChanged]). */
     @Volatile var dashboardFocused = false
+        set(value) {
+            if (value && !field) dashboardFocusGains++
+            field = value
+        }
+
+    /**
+     * How many times the dashboard's window took the keys. Main thread only
+     * writes it. Changed during a tap in a tile, the app's window lost the
+     * keys between its press and its lift ([Host.touch]).
+     */
+    @Volatile var dashboardFocusGains = 0
+        private set
 
     /** The dashboard's task while it shows. */
     @Volatile private var dashboardTask: Int? = null
@@ -760,7 +773,9 @@ internal object EmbeddedApp {
                 val taskId = front ?: activity.taskId
                 val tile = anyTileTask()
                 var began = SystemClock.uptimeMillis()
-                runCatching { raiseFirmly(activity, taskId, tile, ActivityManager.MOVE_TASK_NO_USER_ACTION) }
+                // Off the main thread: on a slow unit a raise took a few hundred ms, and the
+                // dashboard's touches, a tile's taps among them, waited for it.
+                withContext(Dispatchers.IO) { runCatching { raiseFirmly(activity, taskId, tile, ActivityManager.MOVE_TASK_NO_USER_ACTION) } }
                     .onSuccess { raised("keys back to the main screen (task $taskId raised)", SystemClock.uptimeMillis() - began) }
                     .onFailure { Log.w(TAG, "can't give the keys back to the main screen", it) }
                 DockShell.forgetListing()
@@ -768,7 +783,7 @@ internal object EmbeddedApp {
                 delay(KEYS_BACK_CHECK_MS)
                 if (!dashboardFocused && dashboard?.get() === activity && !keysAway) {
                     began = SystemClock.uptimeMillis()
-                    runCatching { raiseFirmly(activity, taskId, tile, ActivityManager.MOVE_TASK_NO_USER_ACTION) }
+                    withContext(Dispatchers.IO) { runCatching { raiseFirmly(activity, taskId, tile, ActivityManager.MOVE_TASK_NO_USER_ACTION) } }
                         .onSuccess { raised("keys still away: main screen raised again", SystemClock.uptimeMillis() - began) }
                 }
             } finally {
@@ -834,6 +849,17 @@ internal object EmbeddedApp {
 
     private var routedDown: RoutedDown? = null
 
+    /** Before Android 11, how long a tap told again waits for the keys to reach the app ([Host.retap]). */
+    private const val FOCUS_SETTLE_MS = 40L
+
+    /**
+     * Whether a press that ended ([dx], [dy]) from where it began, [ms] after,
+     * having [wandered] (past the slop, or a second finger), was a tap: one that
+     * may be told again whole. A drag, a pinch or a long press is left as it went.
+     */
+    internal fun isTap(dx: Float, dy: Float, ms: Long, wandered: Boolean, slop: Int, longPressMs: Int): Boolean =
+        !wandered && ms < longPressMs && kotlin.math.hypot(dx, dy) <= slop
+
     /** A second press this soon after the routed one, this close to it, is that same press told again. */
     private const val SAME_PRESS_MS = 150L
     private const val SAME_PRESS_PX = 24f
@@ -877,6 +903,9 @@ internal object EmbeddedApp {
     fun tileTouched() {
         tileTouched = true
         actedInsideTile = true
+        // A giving back of the keys still under way would raise the dashboard
+        // in the middle of this tap, and the app would lose it.
+        raising?.cancel()
     }
 
     /** The tile's app the user touched last, and when: the wheel's Back goes to it ([backInTile]). */
@@ -1986,6 +2015,8 @@ internal object EmbeddedApp {
             val id = display?.displayId ?: return
             if (touchRefused) return
             val copy = MotionEvent.obtain(event)
+            // Read here, on the main thread, before the dashboard hears of the keys this touch moves.
+            val gains = dashboardFocusGains
             touchHandler.post {
                 val action = copy.actionMasked
                 val tap = if (action == MotionEvent.ACTION_DOWN) TapCost(packageName).also { tap = it } else tap
@@ -1998,9 +2029,16 @@ internal object EmbeddedApp {
                         refuseTouches(null)
                         return@post
                     }
+                    val press = notePress(copy, gains)
                     if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_UP) raiseMs = focusTile()
                     val began = SystemClock.uptimeMillis()
-                    injected = inject(copy, id)
+                    // The dashboard took the keys back during the tap, or the raise just now did:
+                    // the app dropped the press with them, and its lift would do nothing.
+                    val again = action == MotionEvent.ACTION_UP && press != null &&
+                        (raiseMs != null || dashboardFocusGains != press.gains) &&
+                        stillATap(copy.x - press.x, copy.y - press.y, copy.eventTime - press.downTime, press.wandered)
+                    injected = if (again) retap(copy, press!!, id, raised = raiseMs != null) else inject(copy, id)
+                    if (again) tap?.retapped()
                     injectMs = SystemClock.uptimeMillis() - began
                 } catch (t: InvocationTargetException) {
                     // Without INJECT_EVENTS every touch is refused: say it once, then leave the app as a picture.
@@ -2021,6 +2059,58 @@ internal object EmbeddedApp {
 
         /** The tap under way on the tile, from its down to its lift, for the unit report. On [touchHandler]. */
         private var tap: TapCost? = null
+
+        /** Where and when the finger went down on the tile, and [dashboardFocusGains] then. On [touchHandler]. */
+        private class Press(val x: Float, val y: Float, val downTime: Long, val gains: Int) {
+            /** Moved past the slop, or a second finger: no longer a tap. */
+            var wandered = false
+        }
+
+        private var press: Press? = null
+
+        /** Android's touch slop, 8 dp (ViewConfiguration's needs a window's context, and this one is the app's). */
+        private val touchSlop: Int by lazy { (8 * context.resources.displayMetrics.density).toInt() }
+
+        /** Keeps [press] up to date with [event]; the press it belongs to, taken off once over. On [touchHandler]. */
+        private fun notePress(event: MotionEvent, gains: Int): Press? {
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> press = Press(event.x, event.y, event.downTime, gains)
+                MotionEvent.ACTION_POINTER_DOWN -> press?.wandered = true
+                MotionEvent.ACTION_MOVE -> press?.let { if (kotlin.math.hypot(event.x - it.x, event.y - it.y) > touchSlop) it.wandered = true }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> return press.also { press = null }
+            }
+            return press
+        }
+
+        /** Whether a press that ended ([dx], [dy]) from where it began, [ms] after, was a tap: what [retap] may tell again. */
+        private fun stillATap(dx: Float, dy: Float, ms: Long, wandered: Boolean): Boolean =
+            isTap(dx, dy, ms, wandered, touchSlop, ViewConfiguration.getLongPressTimeout())
+
+        /**
+         * Tells the app the tap [up] ends once more, whole, now that its window
+         * has the keys: the press it holds is cancelled, then a new press and
+         * lift go to where the finger went down. A view drops its press when
+         * its window loses the keys ([android.view.View.onWindowFocusChanged]),
+         * and the lift then clicks nothing: the finger lands on the dashboard's
+         * window first, which takes the keys to the main screen, and on a busy
+         * unit that came after the app had the press. Buttons in a tile (a
+         * track skip) and fields (Maps' search) then missed every so often,
+         * mostly on a second tap. Whether Android took all three. On [touchHandler].
+         */
+        private fun retap(up: MotionEvent, press: Press, id: Int, raised: Boolean): Boolean {
+            val cancel = MotionEvent.obtain(up).apply { action = MotionEvent.ACTION_CANCEL }
+            val dropped = try { inject(cancel, id) } finally { cancel.recycle() }
+            // Before Android 11 the keys reach the app apart from its touches: the raise's are let arrive first.
+            if (raised && Build.VERSION.SDK_INT < Build.VERSION_CODES.R) SystemClock.sleep(FOCUS_SETTLE_MS)
+            val now = SystemClock.uptimeMillis()
+            var taken = dropped
+            for (action in intArrayOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)) {
+                val event = MotionEvent.obtain(now, SystemClock.uptimeMillis(), action, press.x, press.y, 1f, 1f, 0, 1f, 1f, up.deviceId, 0)
+                event.source = up.source
+                try { taken = inject(event, id) && taken } finally { event.recycle() }
+            }
+            return taken
+        }
 
         /** [tap] is over: one line says what it cost (a warning when a touch was lost or a raise slow), the minute's summary when due. */
         private fun tapDone(tap: TapCost) {

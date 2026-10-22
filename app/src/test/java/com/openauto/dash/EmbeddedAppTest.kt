@@ -22,6 +22,16 @@ class EmbeddedAppTest {
     }
 
     @Test
+    fun onlyATapIsToldAgain() {
+        // A quick press that stayed put: told again whole when the app lost the keys meanwhile.
+        assertTrue(EmbeddedApp.isTap(dx = 3f, dy = -4f, ms = 90, wandered = false, slop = 16, longPressMs = 400))
+        // A drag on the map, a pinch, a long press: left as they went.
+        assertFalse(EmbeddedApp.isTap(dx = 30f, dy = 0f, ms = 90, wandered = false, slop = 16, longPressMs = 400))
+        assertFalse(EmbeddedApp.isTap(dx = 0f, dy = 0f, ms = 90, wandered = true, slop = 16, longPressMs = 400))
+        assertFalse(EmbeddedApp.isTap(dx = 0f, dy = 0f, ms = 600, wandered = false, slop = 16, longPressMs = 400))
+    }
+
+    @Test
     fun theTileOnScreenGetsThePicture() {
         // Page A's tile had it; the swipe put page B's on screen.
         assertEquals("b", EmbeddedApp.pickTile("a", listOf("a", "b"), setOf("b")))
