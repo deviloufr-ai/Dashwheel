@@ -70,6 +70,8 @@
     <string name="wheel_unit_key_code">Magnetolos mygtukas %1$d</string>
     <string name="wheel_action_next_dashboard">Kitas skydelis</string>
     <string name="wheel_action_previous_dashboard">Ankstesnis skydelis</string>
+    <string name="wheel_action_second_screen_next">Kitas antrojo ekrano puslapis</string>
+    <string name="wheel_action_second_screen_previous">Ankstesnis antrojo ekrano puslapis</string>
     <string name="wheel_group_car">Automobilis</string>
     <string name="wheel_group_navigation">Navigacija</string>
     <string name="wheel_action_status">Pasakyti automobilio būklę</string>
@@ -105,6 +107,8 @@
     <string name="wheel_listen_again">Išmokti signalą iš naujo</string>
     <string name="wheel_listen_for_it">Klausytis</string>
     <string name="wheel_unit_also_acts">Magnetola vis tiek atlieka ir savo veiksmą šiam mygtukui.</string>
+    <string name="wheel_unit_ignores">Įrenginys jo nepaiso</string>
+    <string name="wheel_unit_ignores_detail">Į šį mygtuką reaguoja tik Dashwheel. Paties įrenginio veiksmas išjungtas.</string>
     <string name="wheel_remove_button">Pašalinti iš žemėlapio</string>
     <plurals name="wheel_settings_detail_mapped">
         <item quantity="one">%1$d mygtukas žemėlapyje</item>

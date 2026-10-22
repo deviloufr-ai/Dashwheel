@@ -68,6 +68,8 @@
     <string name="wheel_unit_key_code">Radiotoets %1$d</string>
     <string name="wheel_action_next_dashboard">Volgend dashboard</string>
     <string name="wheel_action_previous_dashboard">Vorig dashboard</string>
+    <string name="wheel_action_second_screen_next">Volgende pagina op het tweede scherm</string>
+    <string name="wheel_action_second_screen_previous">Vorige pagina op het tweede scherm</string>
     <string name="wheel_group_car">Auto</string>
     <string name="wheel_group_navigation">Navigatie</string>
     <string name="wheel_action_status">Zeggen hoe de auto ervoor staat</string>
@@ -103,6 +105,8 @@
     <string name="wheel_listen_again">Signaal opnieuw leren</string>
     <string name="wheel_listen_for_it">Luisteren</string>
     <string name="wheel_unit_also_acts">De radio voert voor deze knop ook zijn eigen actie uit.</string>
+    <string name="wheel_unit_ignores">Het toestel doet er niets mee</string>
+    <string name="wheel_unit_ignores_detail">Alleen Dashwheel reageert op deze knop. De eigen actie van het toestel staat uit.</string>
     <string name="wheel_remove_button">Van de kaart halen</string>
     <plurals name="wheel_settings_detail_mapped">
         <item quantity="one">%1$d knop op de kaart</item>

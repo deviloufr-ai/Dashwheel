@@ -68,6 +68,8 @@
     <string name="wheel_unit_key_code">Radiotaste %1$d</string>
     <string name="wheel_action_next_dashboard">Nächstes Dashboard</string>
     <string name="wheel_action_previous_dashboard">Vorheriges Dashboard</string>
+    <string name="wheel_action_second_screen_next">Nächste Seite auf dem zweiten Bildschirm</string>
+    <string name="wheel_action_second_screen_previous">Vorherige Seite auf dem zweiten Bildschirm</string>
     <string name="wheel_group_car">Auto</string>
     <string name="wheel_group_navigation">Navigation</string>
     <string name="wheel_action_status">Zustand des Autos ansagen</string>
@@ -103,6 +105,8 @@
     <string name="wheel_listen_again">Signal neu lernen</string>
     <string name="wheel_listen_for_it">Darauf hören</string>
     <string name="wheel_unit_also_acts">Das Radio führt für diese Taste auch seine eigene Aktion aus.</string>
+    <string name="wheel_unit_ignores">Das Gerät ignoriert ihn</string>
+    <string name="wheel_unit_ignores_detail">Nur Dashwheel reagiert auf diese Taste. Die eigene Aktion des Geräts ist aus.</string>
     <string name="wheel_remove_button">Von der Karte entfernen</string>
     <plurals name="wheel_settings_detail_mapped">
         <item quantity="one">%1$d Taste auf der Karte</item>

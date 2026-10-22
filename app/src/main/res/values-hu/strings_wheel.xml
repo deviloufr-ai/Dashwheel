@@ -68,6 +68,8 @@
     <string name="wheel_unit_key_code">Fejegység-gomb: %1$d</string>
     <string name="wheel_action_next_dashboard">Következő műszerfal</string>
     <string name="wheel_action_previous_dashboard">Előző műszerfal</string>
+    <string name="wheel_action_second_screen_next">Következő oldal a második kijelzőn</string>
+    <string name="wheel_action_second_screen_previous">Előző oldal a második kijelzőn</string>
     <string name="wheel_group_car">Autó</string>
     <string name="wheel_group_navigation">Navigáció</string>
     <string name="wheel_action_status">Az autó állapotának bemondása</string>
@@ -103,6 +105,8 @@
     <string name="wheel_listen_again">Jel újbóli betanítása</string>
     <string name="wheel_listen_for_it">Figyelés</string>
     <string name="wheel_unit_also_acts">A fejegység ennél a gombnál a saját műveletét is végrehajtja.</string>
+    <string name="wheel_unit_ignores">A fejegység nem csinál vele semmit</string>
+    <string name="wheel_unit_ignores_detail">Erre a gombra csak a Dashwheel reagál. A fejegység saját művelete ki van kapcsolva.</string>
     <string name="wheel_remove_button">Eltávolítás a térképről</string>
     <plurals name="wheel_settings_detail_mapped">
         <item quantity="one">%1$d gomb a térképen</item>

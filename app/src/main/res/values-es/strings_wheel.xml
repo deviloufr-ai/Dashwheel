@@ -68,6 +68,8 @@
     <string name="wheel_unit_key_code">Tecla de la radio %1$d</string>
     <string name="wheel_action_next_dashboard">Panel siguiente</string>
     <string name="wheel_action_previous_dashboard">Panel anterior</string>
+    <string name="wheel_action_second_screen_next">Página siguiente en la segunda pantalla</string>
+    <string name="wheel_action_second_screen_previous">Página anterior en la segunda pantalla</string>
     <string name="wheel_group_car">Coche</string>
     <string name="wheel_group_navigation">Navegación</string>
     <string name="wheel_action_status">Decir cómo está el coche</string>
@@ -103,6 +105,8 @@
     <string name="wheel_listen_again">Volver a aprender su señal</string>
     <string name="wheel_listen_for_it">Escucharlo</string>
     <string name="wheel_unit_also_acts">La radio también hace su propia acción con este botón.</string>
+    <string name="wheel_unit_ignores">La unidad no hace nada con él</string>
+    <string name="wheel_unit_ignores_detail">Solo Dashwheel actúa con este botón. La acción propia de la unidad queda desactivada.</string>
     <string name="wheel_remove_button">Quitar del mapa</string>
     <plurals name="wheel_settings_detail_mapped">
         <item quantity="one">%1$d botón en el mapa</item>

@@ -11,6 +11,34 @@ class CarBoxKeysTest {
     private fun mcu(vararg v: Int) = ByteArray(v.size + 1) { if (it == 0) 0x41 else v[it - 1].toByte() }
 
     @Test
+    fun theUnitIgnoresExactlyTheSilencedCodesAndKeepsItsStudy() {
+        // MODE learned as Home in the unit's own SWC study, Voice learned as something else.
+        val study = FirmwareKeyTable.entries("""{"study0":"17:3","study1":"41:7"}""")
+        assertEquals(listOf("17:3", "41:7"), study)
+        // Voice silenced: its study entry gives way, MODE stays.
+        val silenced = FirmwareKeyTable.silence(study, setOf(0x29, 0x30))
+        assertEquals(listOf("17:3", "41:0", "48:0"), silenced)
+        // Phone given back to the unit: only Dashwheel's entry for it goes.
+        assertEquals(listOf("17:3", "41:0"), FirmwareKeyTable.silence(silenced, setOf(0x29)))
+        // Nothing to change: the same list, so nothing is written.
+        assertEquals(silenced, FirmwareKeyTable.silence(silenced, setOf(0x29, 0x30)))
+        // A code past 127 is written as the signed byte the firmware parses.
+        assertEquals(listOf("-56:0"), FirmwareKeyTable.silence(emptyList(), setOf(200)))
+    }
+
+    @Test
+    fun theTableGoesInAndOutOfTheUnitsPreferencesFile() {
+        val xml = "<?xml version='1.0' encoding='utf-8' standalone='yes' ?>\n<map>\n    <string name=\"swc_map_json\">{&quot;study0&quot;:&quot;17:3&quot;}</string>\n</map>\n"
+        assertEquals(listOf("17:3"), FirmwareKeyTable.entries(FirmwareKeyTable.jsonOf(xml)))
+        val json = FirmwareKeyTable.json(listOf("17:3", "41:0"))
+        val written = FirmwareKeyTable.xmlWith(xml, json)
+        assertEquals(listOf("17:3", "41:0"), FirmwareKeyTable.entries(FirmwareKeyTable.jsonOf(written)))
+        assertTrue(written.startsWith("<?xml") && written.trimEnd().endsWith("</map>"))
+        // No file yet: one is made.
+        assertEquals(listOf("41:0"), FirmwareKeyTable.entries(FirmwareKeyTable.jsonOf(FirmwareKeyTable.xmlWith(null, FirmwareKeyTable.json(listOf("41:0"))))))
+    }
+
+    @Test
     fun aPressAndItsReleaseGiveTheCodeThenZero() {
         val r = BoxKeyReader()
         // Voice on the C4 Picasso, as the MCU hands it over: 41 fd 04 02 29 2f, then 02 00.

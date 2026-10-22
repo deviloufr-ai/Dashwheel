@@ -70,6 +70,8 @@
     <string name="wheel_unit_key_code">Клавиша магнитолы %1$d</string>
     <string name="wheel_action_next_dashboard">Следующая панель</string>
     <string name="wheel_action_previous_dashboard">Предыдущая панель</string>
+    <string name="wheel_action_second_screen_next">Следующая страница второго экрана</string>
+    <string name="wheel_action_second_screen_previous">Предыдущая страница второго экрана</string>
     <string name="wheel_group_car">Автомобиль</string>
     <string name="wheel_group_navigation">Навигация</string>
     <string name="wheel_action_status">Сказать состояние авто</string>
@@ -105,6 +107,8 @@
     <string name="wheel_listen_again">Заново обучить сигнал</string>
     <string name="wheel_listen_for_it">Слушать кнопку</string>
     <string name="wheel_unit_also_acts">Магнитола по-прежнему выполняет и своё действие для этой кнопки.</string>
+    <string name="wheel_unit_ignores">Магнитола его не обрабатывает</string>
+    <string name="wheel_unit_ignores_detail">На эту кнопку реагирует только Dashwheel. Собственное действие магнитолы отключено.</string>
     <string name="wheel_remove_button">Убрать со схемы</string>
     <plurals name="wheel_settings_detail_mapped">
         <item quantity="one">%1$d кнопка на схеме</item>

@@ -68,6 +68,8 @@
     <string name="wheel_unit_key_code">Tasto autoradio %1$d</string>
     <string name="wheel_action_next_dashboard">Cruscotto successivo</string>
     <string name="wheel_action_previous_dashboard">Cruscotto precedente</string>
+    <string name="wheel_action_second_screen_next">Pagina successiva sul secondo schermo</string>
+    <string name="wheel_action_second_screen_previous">Pagina precedente sul secondo schermo</string>
     <string name="wheel_group_car">Auto</string>
     <string name="wheel_group_navigation">Navigazione</string>
     <string name="wheel_action_status">Dire come sta l\'auto</string>
@@ -103,6 +105,8 @@
     <string name="wheel_listen_again">Impara di nuovo il segnale</string>
     <string name="wheel_listen_for_it">Ascoltalo</string>
     <string name="wheel_unit_also_acts">L\'autoradio esegue anche la sua azione per questo tasto.</string>
+    <string name="wheel_unit_ignores">L\'unità lo ignora</string>
+    <string name="wheel_unit_ignores_detail">Solo Dashwheel agisce su questo tasto. L\'azione propria dell\'unità è disattivata.</string>
     <string name="wheel_remove_button">Togli dalla mappa</string>
     <plurals name="wheel_settings_detail_mapped">
         <item quantity="one">%1$d tasto sulla mappa</item>

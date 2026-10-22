@@ -68,6 +68,8 @@
     <string name="wheel_unit_key_code">Unit key %1$d</string>
     <string name="wheel_action_next_dashboard">Next dashboard</string>
     <string name="wheel_action_previous_dashboard">Previous dashboard</string>
+    <string name="wheel_action_second_screen_next">Next page on the second screen</string>
+    <string name="wheel_action_second_screen_previous">Previous page on the second screen</string>
     <string name="wheel_group_car">Car</string>
     <string name="wheel_group_navigation">Navigation</string>
     <string name="wheel_action_status">Say how the car is</string>
@@ -103,6 +105,8 @@
     <string name="wheel_listen_again">Learn its signal again</string>
     <string name="wheel_listen_for_it">Listen for it</string>
     <string name="wheel_unit_also_acts">The unit still does its own action for this button too.</string>
+    <string name="wheel_unit_ignores">The unit does nothing with it</string>
+    <string name="wheel_unit_ignores_detail">Only Dashwheel acts on this button. The unit\'s own action for it is turned off.</string>
     <string name="wheel_remove_button">Remove from the map</string>
     <plurals name="wheel_settings_detail_mapped">
         <item quantity="one">%1$d button on the map</item>

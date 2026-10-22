@@ -68,6 +68,8 @@
     <string name="wheel_unit_key_code">Touche autoradio %1$d</string>
     <string name="wheel_action_next_dashboard">Tableau de bord suivant</string>
     <string name="wheel_action_previous_dashboard">Tableau de bord précédent</string>
+    <string name="wheel_action_second_screen_next">Page suivante du second écran</string>
+    <string name="wheel_action_second_screen_previous">Page précédente du second écran</string>
     <string name="wheel_group_car">Voiture</string>
     <string name="wheel_group_navigation">Navigation</string>
     <string name="wheel_action_status">Dire l\'état de la voiture</string>
@@ -103,6 +105,8 @@
     <string name="wheel_listen_again">Réapprendre son signal</string>
     <string name="wheel_listen_for_it">L\'écouter</string>
     <string name="wheel_unit_also_acts">L\'autoradio fait aussi sa propre action pour ce bouton.</string>
+    <string name="wheel_unit_ignores">L\'autoradio l\'ignore</string>
+    <string name="wheel_unit_ignores_detail">Seul Dashwheel agit sur ce bouton. L\'action propre de l\'autoradio est coupée.</string>
     <string name="wheel_remove_button">Retirer de la carte</string>
     <plurals name="wheel_settings_detail_mapped">
         <item quantity="one">%1$d bouton sur la carte</item>

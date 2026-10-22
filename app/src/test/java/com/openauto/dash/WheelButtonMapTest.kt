@@ -28,7 +28,9 @@ class WheelButtonMapTest {
             WheelButton("b2", WheelKey.input("KEY_PHONE@event2"), "Phone", WheelZone.LEFT),
             WheelButton("c3", WheelKey.can("65.0C", "04 00"), "", WheelZone.STALK),
             // A button with no signal: nothing but its name and place.
-            WheelButton("d4", null, "Cruise", WheelZone.LEFT)
+            WheelButton("d4", null, "Cruise", WheelZone.LEFT),
+            // A CAN box button the unit is told to ignore.
+            WheelButton("e5", WheelKey.vendor(CarBoxKeys.VENDOR, 0x29), "Voice", WheelZone.LEFT, unitIgnores = true)
         )
         assertEquals(buttons, wheelButtonsFromJson(wheelButtonsToJson(buttons)))
     }

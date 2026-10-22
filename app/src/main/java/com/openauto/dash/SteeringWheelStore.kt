@@ -3,6 +3,7 @@ package com.openauto.dash
 import android.content.Context
 import android.os.SystemClock
 import android.view.KeyEvent
+import com.openauto.dash.unit.QfAdapter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -95,14 +96,16 @@ internal enum class WheelZone { LEFT, RIGHT, STALK, PANEL, UNPLACED }
  * One button on the map: its signal ([key], null for a button that gives
  * none the unit can see), the name the driver gave it (empty: named after
  * its signal), where it sits and what it does (null: nothing yet, it only
- * lights up when pressed).
+ * lights up when pressed). [unitIgnores]: a CAN box button the unit itself
+ * does nothing with any more ([FirmwareKeyTable]).
  */
 internal data class WheelButton(
     val uid: String,
     val key: WheelKey?,
     val name: String = "",
     val zone: WheelZone = WheelZone.UNPLACED,
-    val assignment: WheelAssignment? = null
+    val assignment: WheelAssignment? = null,
+    val unitIgnores: Boolean = false
 )
 
 /**
@@ -252,6 +255,7 @@ internal object SteeringWheelStore {
         scope.launch { McuReader.changes.collect { onCanChange(it) } }
         scope.launch { WheelMonitor.inputPresses.collect { onInputPress(it) } }
         updateReaders()
+        syncSilenced(_buttons.value)
     }
 
     fun openMap() {
@@ -292,6 +296,28 @@ internal object SteeringWheelStore {
 
     fun assign(uid: String, assignment: WheelAssignment?) = update(uid) { it.copy(assignment = assignment) }
 
+    fun setUnitIgnores(uid: String, ignores: Boolean) = update(uid) { it.copy(unitIgnores = ignores) }
+
+    /** Whether the unit can be told to ignore [key]: a CAN box code, on a rooted QF unit. */
+    fun canSilence(key: WheelKey?): Boolean =
+        key?.vendor == CarBoxKeys.VENDOR && Edition.full && PrivilegedShell.access.value == PrivilegedShell.Access.ROOT &&
+            appContext?.let { UnitPlatform.hasPackage(it, QfAdapter.VEHICLE_PACKAGE) } == true
+
+    /** The box codes the unit is told to ignore, as last written; null before the first time. */
+    private var silencedWritten: Set<Int>? = null
+
+    /**
+     * The unit's key table follows the map's buttons that it must ignore.
+     * At start only when some are, to put them back if the unit's own SWC study
+     * was saved since; written by [FirmwareKeyTable] only when the table changes.
+     */
+    private fun syncSilenced(buttons: List<WheelButton>) {
+        val silenced = buttons.filter { it.unitIgnores && it.key?.vendor == CarBoxKeys.VENDOR }.mapNotNull { it.key?.vendorCode }.toSet()
+        if (silenced == silencedWritten || (silencedWritten == null && silenced.isEmpty())) return
+        silencedWritten = silenced
+        scope.launch(Dispatchers.IO) { FirmwareKeyTable.apply(silenced) }
+    }
+
     fun remove(uid: String) {
         if (_listeningFor.value == uid) _listeningFor.value = null
         persist(_buttons.value.filterNot { it.uid == uid })
@@ -318,6 +344,7 @@ internal object SteeringWheelStore {
         _buttons.value = updated
         appContext?.let { save(it, updated) }
         updateReaders()
+        syncSilenced(updated)
     }
 
     private fun known(key: WheelKey): WheelButton? = _buttons.value.firstOrNull { it.key?.id == key.id }
@@ -785,6 +812,7 @@ private fun WheelButton.toJson(): JSONObject {
         is WheelAssignment.LaunchApp -> obj.put("t", "app").put("pkg", a.packageName).put("label", a.appLabel)
         null -> Unit
     }
+    if (unitIgnores) obj.put("unitIgnores", true)
     return obj
 }
 
@@ -808,7 +836,8 @@ private fun JSONObject.toButton(): WheelButton {
         key = key,
         name = optString("name"),
         zone = runCatching { WheelZone.valueOf(optString("zone")) }.getOrDefault(WheelZone.UNPLACED),
-        assignment = assignment
+        assignment = assignment,
+        unitIgnores = optBoolean("unitIgnores", false)
     )
 }
 

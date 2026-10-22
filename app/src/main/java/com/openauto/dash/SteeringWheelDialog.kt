@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Accessibility
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Hearing
@@ -385,6 +386,12 @@ private fun WheelButtonDetail(button: WheelButton, onPickAction: () -> Unit, onL
     val key = button.key
     if (key != null && key.keyCode >= HeadUnitKeys.FIRST_VENDOR_KEY) {
         Text(stringResource(R.string.wheel_unit_also_acts), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+    }
+    if (SteeringWheelStore.canSilence(key)) {
+        SettingsToggle(
+            Icons.Filled.Block, stringResource(R.string.wheel_unit_ignores),
+            stringResource(R.string.wheel_unit_ignores_detail), button.unitIgnores
+        ) { SteeringWheelStore.setUnitIgnores(button.uid, it) }
     }
     SettingsSection(stringResource(R.string.wheel_signal_section))
     Text(

@@ -18,6 +18,7 @@ import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.Cast
 import androidx.compose.material.icons.filled.CallEnd
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
@@ -91,6 +92,8 @@ internal enum class SteeringWheelAction(
     PREVIOUS_DASHBOARD(WheelActionGroup.SYSTEM, R.string.wheel_action_previous_dashboard, Icons.AutoMirrored.Filled.NavigateBefore),
     DASHBOARD_UP(WheelActionGroup.SYSTEM, R.string.wheel_action_dashboard_up, Icons.Filled.KeyboardArrowUp),
     DASHBOARD_DOWN(WheelActionGroup.SYSTEM, R.string.wheel_action_dashboard_down, Icons.Filled.KeyboardArrowDown),
+    SECOND_SCREEN_NEXT(WheelActionGroup.SYSTEM, R.string.wheel_action_second_screen_next, Icons.Filled.Cast),
+    SECOND_SCREEN_PREVIOUS(WheelActionGroup.SYSTEM, R.string.wheel_action_second_screen_previous, Icons.Filled.Cast),
     NOTIFICATIONS(WheelActionGroup.SYSTEM, R.string.wheel_action_notifications, Icons.Filled.Notifications, needsAccessibility = true),
     QUICK_SETTINGS(WheelActionGroup.SYSTEM, R.string.wheel_action_quick_settings, Icons.Filled.Tune, needsAccessibility = true),
     VOICE_ASSISTANT(WheelActionGroup.SYSTEM, R.string.wheel_action_voice, Icons.Filled.Mic),
@@ -146,6 +149,8 @@ internal enum class SteeringWheelAction(
             PREVIOUS_DASHBOARD -> if (!showDashboard(context)) MainActivity.dashboardStep.value = System.currentTimeMillis() to -1
             DASHBOARD_UP -> if (!showDashboard(context)) MainActivity.dashboardClimb.value = System.currentTimeMillis() to -1
             DASHBOARD_DOWN -> if (!showDashboard(context)) MainActivity.dashboardClimb.value = System.currentTimeMillis() to 1
+            SECOND_SCREEN_NEXT -> SecondScreenController.turnPage(1)
+            SECOND_SCREEN_PREVIOUS -> SecondScreenController.turnPage(-1)
             NOTIFICATIONS -> SplitAccessibilityService.globalAction(AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS)
             QUICK_SETTINGS -> SplitAccessibilityService.globalAction(AccessibilityService.GLOBAL_ACTION_QUICK_SETTINGS)
             VOICE_ASSISTANT -> startVoiceAssistant(context)
