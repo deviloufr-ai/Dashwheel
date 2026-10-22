@@ -1529,6 +1529,10 @@ private fun AboutBody(m: TopBarModel) {
     var report by remember { mutableStateOf(false) }
     SettingsRow(Icons.Filled.BugReport, stringResource(R.string.report_title), stringResource(R.string.report_row_detail)) { report = true }
     if (report) CompatibilityReportSheet { report = false }
+    // The log too, right under the report: the report holds no log, and drivers
+    // asked for one kept sending the report instead (issues #57, #59, #63).
+    SendLogRow()
+    SaveLogRow()
     SettingsRow(Icons.Filled.School, stringResource(R.string.tour_settings_row), stringResource(R.string.tour_settings_row_detail), m.onTour)
     // The wiki, as a QR code for the phone and a button for this screen (WikiHelp.kt).
     var help by remember { mutableStateOf(false) }
@@ -1917,7 +1921,7 @@ private fun SaveLogRow() {
     }
 }
 
-/** Test builds: gives the unit's log to the phone, to share as a bug report ([DebugLog]). */
+/** Gives the unit's log to the phone, to share as a bug report ([DebugLog]). In About and in Lab. */
 @Composable
 private fun SendLogRow() {
     val context = LocalContext.current
