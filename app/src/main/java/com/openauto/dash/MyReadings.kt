@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.Locale
+import kotlinx.coroutines.flow.first
 
 /*
  * The driver's own readings: any OBD request typed in with the formula that
@@ -304,6 +305,12 @@ object MyReadings {
     private suspend fun tickLoop() {
         var last = System.currentTimeMillis()
         while (true) {
+            // Asleep while there are no readings.
+            if (_list.value.isEmpty()) {
+                _list.first { it.isNotEmpty() }
+                last = System.currentTimeMillis()
+                continue
+            }
             delay(TICK_MS)
             val now = System.currentTimeMillis()
             tick(now, now - last)
@@ -364,6 +371,10 @@ object MyReadings {
 
     private suspend fun pollLoop() {
         while (true) {
+            if (_list.value.isEmpty()) {
+                _list.first { it.isNotEmpty() }
+                continue
+            }
             val asks = _list.value.filter { it.kind == MyReadingKind.PID }
             if (asks.isNotEmpty() && DemoMode.isOn) {
                 val now = System.currentTimeMillis()

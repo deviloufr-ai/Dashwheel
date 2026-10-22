@@ -57,6 +57,8 @@ internal object TileText {
         var bitmap: Bitmap? = null
         var signature = 0L
         var pieces: List<WazeScreen.Piece>? = null
+        /** The tile's frame count at the last look: no new frame, nothing new to read. */
+        var frames = -1L
     }
 
     /** Main thread, and one read at a time: a kept picture is never drawn into while the recognizer reads it. */
@@ -103,6 +105,10 @@ internal object TileText {
         // Mid-swipe the picture is not worth the main thread: the next read, a second and a half on, takes it.
         if (PipAnchor.pageSwiping.value) return
         val tile = seen.getOrPut(pkg) { Seen() }
+        // Nothing drawn since the last look: the picture, and its words, are the same.
+        val frames = EmbeddedApp.tileFrames[pkg] ?: 0L
+        if (frames == tile.frames) return
+        tile.frames = frames
         val kept = tile.bitmap
         val bitmap = EmbeddedApp.tileBitmap(pkg, MAX_WIDTH, kept) ?: return
         if (bitmap !== kept) {
@@ -117,7 +123,8 @@ internal object TileText {
                 val count = bitmap.width * height
                 if (pixels.size < count) pixels = IntArray(count)
                 bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, height)
-                val signature = frameSignature(pixels, bitmap.width, height)
+                // Only the rows the readers look at: the map in between moves all the time, its words do not.
+                val signature = frameSignature(pixels, bitmap.width, height, readRows(pkg, height))
                 tile.pieces?.takeIf { signature == tile.signature }
                     ?: recognize(bitmap).also { tile.signature = signature; tile.pieces = it }
             }
@@ -178,12 +185,18 @@ internal object TileText {
      * tile is not read again. Every pixel, not a sample: a turn's distance
      * ticking down changes only a few. Pure, for the tests.
      */
-    internal fun frameSignature(pixels: IntArray, width: Int, height: Int): Long {
+    internal fun frameSignature(pixels: IntArray, width: Int, height: Int, rows: List<IntRange> = listOf(0 until height)): Long {
         var h = -0x340d631b7bdddcdbL // FNV offset basis
         h = (h xor width.toLong()) * 0x100000001b3L
         h = (h xor height.toLong()) * 0x100000001b3L
-        for (i in 0 until width * height) h = (h xor (pixels[i].toLong() and 0xffffffffL)) * 0x100000001b3L
+        for (r in rows) for (i in r.first * width until (r.last + 1) * width) h = (h xor (pixels[i].toLong() and 0xffffffffL)) * 0x100000001b3L
         return h
+    }
+
+    /** The rows a tile's reader takes words from: Waze's top quarter and bottom third ([WazeScreen.fromScreen]), Maps' top half ([MapsScreen.destinationOf]). */
+    internal fun readRows(pkg: String, height: Int): List<IntRange> = when (pkg) {
+        WazeScreen.PACKAGE -> listOf(0 until height / 4, height * 2 / 3 until height)
+        else -> listOf(0 until height / 2)
     }
 
     /** What was read, when it changes and at most every [LOG_EVERY_MS]: to teach the readers a layout they get wrong. */

@@ -348,7 +348,7 @@ private fun GlyphMonoKey(text: String, enabled: Boolean, onClick: () -> Unit) {
 @Composable
 private fun GlyphSpeed(env: SkinTileEnv) {
     val units = LocalUnits.current
-    val speed = rememberSpeedKmh(env.obdData, env.obdConnection)
+    val speed = rememberSpeedKmh(env)
     val connected = env.obdConnection == ObdConnectionState.CONNECTED
     GlyphModuleBox(env.editing) {
         val text = speed?.let { units.speed(it).toString() } ?: "--"

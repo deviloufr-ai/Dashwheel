@@ -167,6 +167,8 @@ object SpeedVolume {
 
     private fun tick(app: Context) {
         if (DemoMode.isOn || MediaVolume.unavailable.value) return
+        // Standing still with nothing added: nothing to do, and the unit's state (a few binder calls) is not read.
+        if (boost == 0 && applied == 0 && target(speedKmh(), 0, _curve.value) == 0) return
         val audio = MediaVolume.audio(app)
         // In a call the keys would change the call's volume; muted, a raise would unmute.
         if (inCall(audio)) return

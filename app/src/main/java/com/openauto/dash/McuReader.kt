@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
 
 /**
  * Reads the head unit's **CANbox/MCU** stream: straight from the MCU service
@@ -295,7 +296,8 @@ object McuReader {
 
     /** What the CAN monitor lists: the MCU stream's frames, then the values of another family's bus ([CarFeed]). */
     val monitorEntries: StateFlow<List<Entry>> = combine(_entries, CarFeed.rawEntries) { mcu, bus -> mcu + bus }
-        .stateIn(scope, SharingStarted.Eagerly, emptyList())
+        // Only while the monitor shows: the list was joined again at every changed frame for nobody.
+        .stateIn(scope, SharingStarted.WhileSubscribed(), emptyList())
 
     /**
      * What a car box tile says while it has nothing yet: that root is needed
@@ -353,7 +355,7 @@ object McuReader {
             val startedAt = System.currentTimeMillis()
             // The MCU service hands every message over by itself: no root logcat beside it.
             if (McuFeed.listening.value) {
-                delay(RETRY_MIN_MS)
+                McuFeed.listening.first { !it }
                 continue
             }
             // logcat first prints what it kept from before it was started. Those

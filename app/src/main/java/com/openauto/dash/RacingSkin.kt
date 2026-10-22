@@ -1240,7 +1240,7 @@ private fun gearText(gear: Gear): String = when (gear) {
  */
 @Composable
 private fun RaceSpeed(env: SkinTileEnv) {
-    val speed = rememberSpeedKmh(env.obdData, env.obdConnection)
+    val speed = rememberSpeedKmh(env)
     val gear = rememberGear()
     val obd = env.obdConnection == ObdConnectionState.CONNECTED
     val idle = env.obdConnection.isIdle
@@ -1512,6 +1512,8 @@ private fun CarStage(modifier: Modifier) {
                     .fillMaxSize()
                     .graphicsLayer {
                         alpha = 0.7f + 0.3f * (0.5f + 0.5f * sin(2f * PI.toFloat() * STAGE_PULSES * loop.value))
+                        // One circle under it: the alpha goes on the brush, no offscreen buffer per step.
+                        compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.ModulateAlpha
                     }
                     .cachedDraw(aspect, cyan, magenta, g) {
                         val car = stageCarRect(size, aspect)
@@ -2050,6 +2052,8 @@ private fun TurnBanner(nav: NavState, side: TurnSide, modifier: Modifier) {
                     alpha = 0.7f + 0.3f * p
                     scaleX = 1f + 0.03f * p
                     scaleY = 1f + 0.03f * p
+                    // One path under it: the alpha goes on the brush, no offscreen buffer per step.
+                    compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.ModulateAlpha
                 }
                 .cachedDraw(magenta) {
                     val path = skewPath(size.width, size.height, slantOf(size, MAX_SLANT.toPx()))

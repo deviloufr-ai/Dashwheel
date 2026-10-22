@@ -134,7 +134,8 @@ private fun PanoSegments(count: Int, lit: Int, modifier: Modifier, fromEnd: Bool
     val off = panoSegOff
     val glowK = panoGlow
     Spacer(
-        modifier.cachedDraw(count, lit, fromEnd, warmFrom, warm, on, amber, off, glowK) {
+        // Its own layer: a segment lighting up redraws the scale, not the glowing numerals beside it.
+        modifier.graphicsLayer().cachedDraw(count, lit, fromEnd, warmFrom, warm, on, amber, off, glowK) {
             val w = size.width
             val h = size.height
             // The design's 8 wide, 4 apart: a segment and half a gap each.
@@ -510,7 +511,7 @@ private fun BandTurn(nav: NavState, h: Dp, readSize: Float, env: SkinTileEnv) {
 /** The band's middle: the limit sign, the speed large, thin and glowing, KM/H under it, the gear in its box. */
 @Composable
 private fun BandSpeed(env: SkinTileEnv, h: Dp) {
-    val speed = rememberSpeedKmh(env.obdData, env.obdConnection)
+    val speed = rememberSpeedKmh(env)
     val limit by SpeedLimit.limit.collectAsState()
     val gear by rememberGear()
     val units = LocalUnits.current
@@ -614,7 +615,7 @@ private fun BandFuel(env: SkinTileEnv, h: Dp, readSize: Float) {
  */
 @Composable
 private fun PanoSpeedCard(env: SkinTileEnv) {
-    val speed = rememberSpeedKmh(env.obdData, env.obdConnection)
+    val speed = rememberSpeedKmh(env)
     val limit by SpeedLimit.limit.collectAsState()
     val units = LocalUnits.current
     val over = speedOver(speed)

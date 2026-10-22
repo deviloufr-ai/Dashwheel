@@ -13,6 +13,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.derivedStateOf
 
 /*
  * Whole-design skins (Orbit, Cockpit, Horizon, Tape Deck, Canvas, and Futuristic,
@@ -266,12 +268,13 @@ internal fun StandardSkinnedTile(item: DashboardItem, env: SkinTileEnv) {
         is DashboardItem.LaunchBar -> LaunchBarTile(item, env.appsByPackage, env.editing, env.onLaunchApp, env.onEditLaunchBar, full)
         is DashboardItem.BuiltinWidget -> when (item.kind) {
             BuiltinKind.TELEMETRY -> ObdCard(env.obdData, env.obdConnection, env.onConnectObd, env.onPickDevice, full)
-            BuiltinKind.SPEED_HUD -> SpeedHudCard(env.obdData, env.obdConnection == ObdConnectionState.CONNECTED, full)
+            // Only the reading each card shows is followed, not every OBD sample.
+            BuiltinKind.SPEED_HUD -> SpeedHudCard(remember(env) { derivedStateOf { env.obdData.speedKmh } }.value, env.obdConnection == ObdConnectionState.CONNECTED, full)
             BuiltinKind.MEDIA -> MediaCard(env.mediaState, env.mediaController, env.hasMediaAccess, env.context, full)
             BuiltinKind.NAVIGATION -> DirectionsCard(env.hasMediaAccess, env.context, full)
             BuiltinKind.CLOCK -> ClockCard(full)
             BuiltinKind.WEATHER -> WeatherCard(full)
-            BuiltinKind.RANGE -> RangeCard(env.obdData, env.obdConnection, env.onConnectObd, full)
+            BuiltinKind.RANGE -> RangeCard(remember(env) { derivedStateOf { env.obdData.fuelLevelPct } }.value, env.obdConnection, env.onConnectObd, full)
             else -> Unit
         }
         else -> Unit

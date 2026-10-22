@@ -483,7 +483,7 @@ private fun ClaySpeed(env: SkinTileEnv) {
         SpeedLimit.start(context)
         onDispose { SpeedLimit.stop() }
     }
-    val speed = rememberSpeedKmh(env.obdData, env.obdConnection)
+    val speed = rememberSpeedKmh(env)
     val limit by SpeedLimit.limit.collectAsState()
     val units = LocalUnits.current
     val over = speedOver(speed)

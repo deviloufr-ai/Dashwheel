@@ -41,6 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
@@ -264,6 +265,9 @@ internal object EmbeddedApp {
 
     /** The view each hosted app's tile draws into, while it is up: for [tileBitmap]. */
     private val tileViews = java.util.concurrent.ConcurrentHashMap<String, java.lang.ref.WeakReference<TextureView>>()
+
+    /** How many frames each app has drawn on its tile: a reader ([TileText]) skips a tile that drew none since its last look. */
+    internal val tileFrames = java.util.concurrent.ConcurrentHashMap<String, Long>()
 
     internal fun tileShown(packageName: String, view: TextureView) {
         tileViews[packageName] = java.lang.ref.WeakReference(view)
@@ -720,6 +724,8 @@ internal object EmbeddedApp {
             while (SystemClock.elapsedRealtime() < until) {
                 if (first) first = false else delay(WATCH_EVERY_MS)
                 if (userActedAt != since) return@launch
+                // Nothing can be full screen over a dashboard that has the focus: no listing then.
+                if (dashboardFocused && dashboard?.get() != null) continue
                 // One fresh listing per look, shared by every tile's app.
                 DockShell.forgetListing()
                 // An app full screen with a screen of its own open (Waze listening for
@@ -2146,7 +2152,8 @@ internal fun EmbeddedAppCard(packageName: String, label: String, modifier: Modif
             }
     ) {
         AndroidView(
-            modifier = Modifier.fillMaxSize(),
+            // A layer of its own: each frame the app draws re-records only this view, not the tile around it.
+            modifier = Modifier.fillMaxSize().graphicsLayer(),
             factory = { ctx ->
                 // A TextureView, not a SurfaceView: a SurfaceView punches a hole
                 // through the dashboard's window to show its picture, and on the
@@ -2180,6 +2187,7 @@ internal fun EmbeddedAppCard(packageName: String, label: String, modifier: Modif
 
                         override fun onSurfaceTextureUpdated(texture: SurfaceTexture) {
                             if (!painted) painted = true
+                            EmbeddedApp.tileFrames.merge(host.packageName, 1L, Long::plus)
                         }
                     }
                     setOnTouchListener { v, event ->

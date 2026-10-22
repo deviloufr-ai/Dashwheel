@@ -267,7 +267,7 @@ private fun coolantChip(tempC: Int, units: UnitSystem): AnimeChipSpec {
  */
 @Composable
 private fun AnimeSpeed(env: SkinTileEnv) {
-    val speed = rememberSpeedKmh(env.obdData, env.obdConnection)
+    val speed = rememberSpeedKmh(env)
     val idle = env.obdConnection.isIdle
     val canConnect = speed == null && idle && !env.editing
     val units = LocalUnits.current

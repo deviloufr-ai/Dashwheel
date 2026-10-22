@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.Dispatchers
 
 /**
  * The second screen's readings, for when it draws the cluster itself
@@ -28,7 +29,8 @@ internal object ClusterFeed {
     private const val SAMPLE_MS = 200L
     private const val WORDS_MS = 30_000L
 
-    fun run(context: Context, scope: CoroutineScope, page: StateFlow<ClusterPage>): Job = scope.launch {
+    // Off the main thread: five snapshots a second of every feed's state, all of it thread-safe flows.
+    fun run(context: Context, scope: CoroutineScope, page: StateFlow<ClusterPage>): Job = scope.launch(Dispatchers.Default) {
         val throttle = ClusterThrottle()
         // The words in Dashwheel's language, one picked inside it included (the app's own
         // context stays in the unit's); looked up again now and then for a new choice.
@@ -197,9 +199,18 @@ internal object ClusterFeed {
     /** The date as the clock widget writes it ("Jeudi 15 octobre"), in [context]'s language. */
     private fun dateLine(context: Context): String {
         val locale = context.resources.configuration.locales[0]
+        val minute = System.currentTimeMillis() / 60_000
+        // Formatted once a minute, not five times a second.
+        if (minute == dateMinute && locale == dateLocale) return dateCached
         val pattern = android.text.format.DateFormat.getBestDateTimePattern(locale, "EEEEdMMMM")
-        return SimpleDateFormat(pattern, locale).format(Date()).replaceFirstChar { it.uppercase() }
+        return SimpleDateFormat(pattern, locale).format(Date()).replaceFirstChar { it.uppercase() }.also {
+            dateCached = it; dateMinute = minute; dateLocale = locale
+        }
     }
+
+    private var dateMinute = -1L
+    private var dateLocale: java.util.Locale? = null
+    private var dateCached = ""
 
     /** The navigation app running now, by the name the directions tile gives it; null with none. */
     private fun runningNavAppName(): String? {

@@ -90,6 +90,7 @@ import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.runtime.derivedStateOf
 
 /*
  * The free-placement tile grid: page layout, drag / resize tiles, tile content routing.
@@ -779,7 +780,7 @@ internal fun TileContent(
             BuiltinKind.LPG_TANK -> LpgTankCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.MY_READINGS -> MyReadingsCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.FILTER_CARE -> FilterCareCard(modifier = Modifier.fillMaxSize())
-            BuiltinKind.WARMUP -> WarmupCard(obd.value, obdConnection.value == ObdConnectionState.CONNECTED, Modifier.fillMaxSize())
+            BuiltinKind.WARMUP -> WarmupCard(remember(obd) { derivedStateOf { obd.value.coolantTempC } }.value, obdConnection.value == ObdConnectionState.CONNECTED, Modifier.fillMaxSize())
             BuiltinKind.BATTERY -> BatteryCard(obd.value, obdConnection.value == ObdConnectionState.CONNECTED, Modifier.fillMaxSize())
             BuiltinKind.MY_CAR -> MyCarCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.ECO_DRIVE -> EcoDriveCard(modifier = Modifier.fillMaxSize())

@@ -85,7 +85,10 @@ internal object VehicleMonitor {
         scope.launch {
             combine(ObdBluetoothManager.connectionState, ObdBluetoothManager.data, BatteryWatch.state) { connection, data, battery ->
                 Triple(connection == ObdConnectionState.CONNECTED, data, battery)
-            }.collect { (connected, data, battery) -> AlertCenter.evaluate(strings(app), data, battery, connected) }
+            }
+                // Only the coolant and the battery's judgement count (vehicleAlerts): not every reading's revs.
+                .distinctUntilChanged { a, b -> a.first == b.first && a.third == b.third && a.second.coolantTempC == b.second.coolantTempC }
+                .collect { (connected, data, battery) -> AlertCenter.evaluate(strings(app), data, battery, connected) }
         }
     }
 

@@ -156,18 +156,20 @@ internal object HeadUnitMonitor {
         }
     }
 
-    private fun read(context: Context): HeadUnitStats {
+    private suspend fun read(context: Context): HeadUnitStats {
         val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         val mem = ActivityManager.MemoryInfo().also(am::getMemoryInfo)
         val fs = runCatching { StatFs(Environment.getDataDirectory().path) }.getOrNull()
         val totalGb = fs?.let { it.totalBytes / GB } ?: 0f
         val freeGb = fs?.let { it.availableBytes / GB } ?: 0f
         val access = PrivilegedShell.access.value
+        // Read directly where Android lets it; the shell lists the zones only where it does not.
+        val direct = readTempDirect()
         val out = if (access.shell) {
             // Two frames: the first has no time behind it and reads 0 % everywhere.
             // Sorted on %CPU (column 2); toybox sorts on its own default column otherwise.
             shell(context, "top -b -n 2 -d 1 -s 2 -m $TOP_LINES -o PID,%CPU,RES,ARGS; echo $PS_MARK; ps -A -o ARGS=; echo $THERMAL_MARK; " +
-                "for z in /sys/class/thermal/thermal_zone*; do echo \"$(cat \$z/type) $(cat \$z/temp)\"; done", 12)
+                (if (direct == null) "for z in /sys/class/thermal/thermal_zone*; do echo \"$(cat \$z/type) $(cat \$z/temp)\"; done" else "true"), 12)
         } else null
         val parts = out?.let(::splitSections)
         val top = parts?.get(0)?.let(::lastFrame)
@@ -178,7 +180,7 @@ internal object HeadUnitMonitor {
         return HeadUnitStats(
             cpuPct = top?.let(::parseCpuPct),
             cores = Runtime.getRuntime().availableProcessors(),
-            tempC = readTempDirect() ?: thermal?.let(::parseThermal),
+            tempC = direct ?: thermal?.let(::parseThermal),
             ramUsedMb = (mem.totalMem - mem.availMem) / MB,
             ramTotalMb = mem.totalMem / MB,
             storageUsedGb = (totalGb - freeGb).coerceAtLeast(0f),
@@ -190,7 +192,7 @@ internal object HeadUnitMonitor {
     }
 
     /** One command through root (a session kept open while tiles show), else the ADB shell. */
-    private fun shell(context: Context, cmd: String, timeoutS: Long): String? = runCatching {
+    private suspend fun shell(context: Context, cmd: String, timeoutS: Long): String? = runCatching {
         if (PrivilegedShell.access.value.root) {
             // A poller let go of mid-command and the next tile's may overlap: one command at a time.
             synchronized(this) {
@@ -198,7 +200,7 @@ internal object HeadUnitMonitor {
                 s.run(cmd, timeoutS).out
             }
         } else {
-            kotlinx.coroutines.runBlocking { DockShell.shell(context, cmd) }
+            DockShell.shell(context, cmd)
         }
     }.onFailure { Log.w(TAG, "shell failed: ${it.message}") }.getOrNull()
 

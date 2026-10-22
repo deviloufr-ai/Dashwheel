@@ -50,7 +50,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -86,6 +85,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt
+import androidx.compose.runtime.mutableIntStateOf
 
 /*
  * The first-run tour: six tips drawn over the real dashboard, one idea each.
@@ -162,20 +162,29 @@ object TourStore {
 
 /** Where each [TourTarget] is on screen, in root coordinates. Several may report (pager pages): the biggest visible one wins. */
 internal object TourTargets {
-    private val places = mutableStateMapOf<Pair<TourTarget, Any>, Rect>()
+    private val places = HashMap<Pair<TourTarget, Any>, Rect>()
+    // Only a tour reads the places: until one shows, every swipe frame's report stays a plain map write.
+    private val version = mutableIntStateOf(0)
+    @Volatile var wanted = false
 
     fun put(target: TourTarget, owner: Any, bounds: Rect) {
-        if (places[target to owner] != bounds) places[target to owner] = bounds
+        val same = synchronized(places) { places.put(target to owner, bounds) == bounds }
+        if (!same && wanted) version.intValue++
     }
 
     fun remove(target: TourTarget, owner: Any) {
-        places.remove(target to owner)
+        val had = synchronized(places) { places.remove(target to owner) != null }
+        if (had && wanted) version.intValue++
     }
 
-    fun boundsOf(target: TourTarget): Rect? =
-        places.filterKeys { it.first == target }.values
-            .filter { it.width > 1f && it.height > 1f }
-            .maxByOrNull { it.width * it.height }
+    fun boundsOf(target: TourTarget): Rect? {
+        version.intValue
+        return synchronized(places) {
+            places.filterKeys { it.first == target }.values
+                .filter { it.width > 1f && it.height > 1f }
+                .maxByOrNull { it.width * it.height }
+        }
+    }
 }
 
 /** Marks what [target] lights up during the tour. Pager pages off screen are clipped to nothing and so never win. */
@@ -217,6 +226,10 @@ internal fun TourOverlay(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    DisposableEffect(Unit) {
+        TourTargets.wanted = true
+        onDispose { TourTargets.wanted = false }
+    }
     val order = remember(afterSetup) { tourOrder(afterSetup) }
     val density = LocalDensity.current
     var readAloud by remember { mutableStateOf(TourStore.readAloud(context)) }

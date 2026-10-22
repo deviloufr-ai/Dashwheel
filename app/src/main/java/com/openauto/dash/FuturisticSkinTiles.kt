@@ -227,6 +227,8 @@ private fun FutBar(fraction: Float, modifier: Modifier, from: Color = DashColors
     Spacer(
         modifier
             .height(height)
+            // Its own layer: the bar's steps redraw the bar, not the glowing readout beside it.
+            .graphicsLayer()
             .cachedDraw(f, from, to, glowK, light) {
                 val track = from.copy(alpha = if (light) 0.16f else 0.12f)
                 val fill = Brush.horizontalGradient(listOf(from, to), startX = 0f, endX = size.width)
@@ -290,7 +292,7 @@ private fun FutEmpty(title: String, hint: String, tone: Color, editing: Boolean,
  */
 @Composable
 private fun FutSpeed(env: SkinTileEnv) {
-    val speed = rememberSpeedKmh(env.obdData, env.obdConnection)
+    val speed = rememberSpeedKmh(env)
     val obd = env.obdConnection == ObdConnectionState.CONNECTED
     val idle = env.obdConnection.isIdle
     val canConnect = speed == null && idle && !env.editing

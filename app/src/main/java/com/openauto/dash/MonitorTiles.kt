@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
 import kotlinx.coroutines.launch
 import java.util.Locale
+import androidx.compose.runtime.key
 
 /*
  * The Head unit and Gear widgets (HeadUnitMonitor.kt, GearEstimator.kt):
@@ -217,7 +218,7 @@ private fun LargeMonitor(s: HeadUnitStats, openApps: (() -> Unit)?) {
                 stringResource(R.string.monitor_apps_running).uppercase(Locale.getDefault()) + (s.appCount?.let { " · $it" } ?: ""),
                 color = DashColors.Muted, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium
             )
-            s.apps.take(5).forEach { AppLoadRow(it, stop = null) }
+            s.apps.take(5).forEach { key(it.packageName) { AppLoadRow(it, stop = null) } }
         }
     }
 }
@@ -303,11 +304,21 @@ private fun Ring(pct: Int?, value: String, label: String, size: Dp, detail: Stri
     }
 }
 
+/** Each app's icon as the Head unit tile draws it, for the life of the process. */
+private val monitorIcons = HashMap<String, androidx.compose.ui.graphics.ImageBitmap?>()
+
 /** One app's CPU and memory; with [stop], its Stop button. */
 @Composable
 private fun AppLoadRow(app: AppLoad, stop: (() -> Unit)?, stopColumn: Boolean = false) {
     val context = LocalContext.current
-    val icon = remember(app.packageName) { app.packageName?.let { loadAppIcon(context, it) }?.let { runCatching { it.toBitmap(64, 64).asImageBitmap() }.getOrNull() } }
+    // Kept per app: the rows reorder every few seconds, and an icon drawn once is drawn for good.
+    val icon = remember(app.packageName) {
+        app.packageName?.let { pkg ->
+            synchronized(monitorIcons) {
+                monitorIcons.getOrPut(pkg) { loadAppIcon(context, pkg)?.let { runCatching { it.toBitmap(64, 64).asImageBitmap() }.getOrNull() } }
+            }
+        }
+    }
     Row(modifier = Modifier.fillMaxWidth().heightIn(min = 40.dp), verticalAlignment = Alignment.CenterVertically) {
         if (icon != null) Image(icon, contentDescription = null, modifier = Modifier.size(26.dp).clip(RoundedCornerShape(7.dp)))
         else Box(Modifier.size(26.dp).clip(RoundedCornerShape(7.dp)).background(DashColors.CardHi))

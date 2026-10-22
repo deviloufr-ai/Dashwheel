@@ -61,6 +61,7 @@ import java.net.NetworkInterface
 import java.net.Socket
 import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentHashMap
+import android.net.LinkProperties
 
 /*
  * The second screen's link, head unit side. The display (a Raspberry Pi wired
@@ -407,7 +408,7 @@ object DisplayLink {
                 delay(CABLE_CHECK_MS)
                 val now = android.os.SystemClock.elapsedRealtime()
                 if (now - movedToCableAt < CABLE_RETRY_MS || networkFor(context, wired) == null) continue
-                if (!portOpen(context, wired)) continue
+                if (!portOpen(wired, context.getSystemService(ConnectivityManager::class.java)?.let(::linkedNetworks).orEmpty())) continue
                 movedToCableAt = now
                 note("the display answers on the cable: moving the link onto it")
                 link.close()
@@ -480,12 +481,14 @@ object DisplayLink {
         }
         note("looking for the display on ${hosts.size} addresses")
         val gate = Semaphore(PROBE_PARALLEL)
+        // The networks once per sweep: each address asked for them again before.
+        val nets = linkedNetworks(cm)
         return kotlinx.coroutines.coroutineScope {
             hosts.map { host ->
                 async {
                     gate.withPermit {
                         val address = toAddress(host)
-                        if (portOpen(context, address)) address.hostAddress else null
+                        if (portOpen(address, nets)) address.hostAddress else null
                     }
                 }
             }.awaitAll().filterNotNull()
@@ -502,8 +505,9 @@ object DisplayLink {
 
     private val HOTSPOT_INTERFACE = Regex("(swlan|ap|softap|wlan)\\d+")
 
-    private fun portOpen(context: Context, address: InetAddress): Boolean = try {
-        socketFor(context, address).use { it.connect(InetSocketAddress(address, DISPLAY_PORT), PROBE_TIMEOUT_MS) }
+    private fun portOpen(address: InetAddress, nets: List<Pair<Network, LinkProperties>>): Boolean = try {
+        Socket().also { socket -> networkFor(address, nets)?.let { runCatching { it.bindSocket(socket) } } }
+            .use { it.connect(InetSocketAddress(address, DISPLAY_PORT), PROBE_TIMEOUT_MS) }
         true
     } catch (e: IOException) {
         false
@@ -521,14 +525,23 @@ object DisplayLink {
     private fun networkFor(context: Context, address: InetAddress): Network? {
         if (address !is Inet4Address) return null
         val cm = context.getSystemService(ConnectivityManager::class.java) ?: return null
+        return networkFor(address, linkedNetworks(cm))
+    }
+
+    /** Every network and its addresses, as of now. */
+    @Suppress("DEPRECATION")
+    private fun linkedNetworks(cm: ConnectivityManager): List<Pair<Network, LinkProperties>> =
+        cm.allNetworks.mapNotNull { network -> cm.getLinkProperties(network)?.let { network to it } }
+
+    private fun networkFor(address: InetAddress, nets: List<Pair<Network, LinkProperties>>): Network? {
+        if (address !is Inet4Address) return null
         val target = toInt(address)
-        @Suppress("DEPRECATION")
-        return cm.allNetworks.firstOrNull { network ->
-            cm.getLinkProperties(network)?.linkAddresses.orEmpty().any {
+        return nets.firstOrNull { (_, props) ->
+            props.linkAddresses.any {
                 val own = it.address
                 own is Inet4Address && it.prefixLength in 1..32 && sameSubnet(toInt(own), target, it.prefixLength)
             }
-        }
+        }?.first
     }
 
     private fun sameSubnet(a: Int, b: Int, prefix: Int): Boolean {

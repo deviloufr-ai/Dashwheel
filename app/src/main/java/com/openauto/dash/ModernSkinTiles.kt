@@ -389,7 +389,7 @@ internal fun ModernSpeed(env: SkinTileEnv) {
         onDispose { SpeedLimit.stop() }
     }
     val limit by SpeedLimit.limit.collectAsState()
-    val speed = rememberSpeedKmh(env.obdData, env.obdConnection)
+    val speed = rememberSpeedKmh(env)
     val obd = env.obdConnection == ObdConnectionState.CONNECTED
     val idle = env.obdConnection.isIdle
     val canConnect = speed == null && idle

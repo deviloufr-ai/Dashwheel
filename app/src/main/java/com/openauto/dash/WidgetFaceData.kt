@@ -414,7 +414,7 @@ private fun canMonitorFace(): WidgetFace {
 @Composable
 private fun speedFace(env: SkinTileEnv): WidgetFace {
     val u = LocalUnits.current
-    val speed = rememberSpeedKmh(env.obdData, env.obdConnection)
+    val speed = rememberSpeedKmh(env)
     val source = when {
         env.obdConnection == ObdConnectionState.CONNECTED -> "OBD"
         speed != null -> "GPS"

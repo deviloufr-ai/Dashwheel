@@ -432,6 +432,7 @@ private fun KnSweep(view: CarView?, tall: Boolean, clock: State<Float>, modifier
                 val offset = IntOffset(car.left.roundToInt(), car.top.roundToInt())
                 val dstSize = IntSize(car.width.roundToInt().coerceAtLeast(1), car.height.roundToInt().coerceAtLeast(1))
                 val layer = Rect(car.left, car.top, car.right, car.bottom)
+                val layerPaint = Paint()
                 onDrawBehind {
                     val t = clock.value * 3f
                     val p1 = ((t % 1f) / 0.6f)
@@ -450,7 +451,7 @@ private fun KnSweep(view: CarView?, tall: Boolean, clock: State<Float>, modifier
                         clipPath(body) { lights() }
                     } else if (view != null) {
                         drawIntoCanvas { canvas ->
-                            canvas.saveLayer(layer, Paint())
+                            canvas.saveLayer(layer, layerPaint)
                             lights()
                             withTransform({ if (geo.flip) scale(-1f, 1f, car.center) }) {
                                 drawImage(view.photo, dstOffset = offset, dstSize = dstSize, blendMode = BlendMode.DstIn)

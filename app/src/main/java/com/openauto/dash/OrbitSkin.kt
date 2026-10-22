@@ -685,8 +685,12 @@ private fun OrbitDial(
                 if (onClick != null) {
                     Modifier.clip(CircleShape).clickable(onClickLabel = connectLabel, role = Role.Button, onClick = onClick)
                 } else Modifier
-            )
-            .drawWithCache {
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        // Its own layer under the numerals: the needle's swing redraws the dial alone.
+        Spacer(
+            Modifier.matchParentSize().graphicsLayer().drawWithCache {
                 // Geometry from the 340-unit mock, scaled to the dial.
                 val s = size.minDimension / 340f
                 val c = size.center
@@ -766,9 +770,8 @@ private fun OrbitDial(
                         drawCircle(muted.copy(alpha = 0.55f), 9f * s, knob)
                     }
                 }
-            },
-        contentAlignment = Alignment.Center
-    ) {
+            }
+        )
         Column(horizontalAlignment = Alignment.CenterHorizontally, content = content)
     }
 }
@@ -823,7 +826,7 @@ private fun OrbitGaugeBubble(
 /** The dial with speed only (OBD, else GPS) and its source under it; with no signal a tap connects OBD. */
 @Composable
 private fun OrbitSpeedHud(env: SkinTileEnv) {
-    val speed = rememberSpeedKmh(env.obdData, env.obdConnection)
+    val speed = rememberSpeedKmh(env)
     val obd = env.obdConnection == ObdConnectionState.CONNECTED
     val idle = env.obdConnection.isIdle
     val warn = speedOver(speed)

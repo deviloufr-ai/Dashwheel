@@ -1202,10 +1202,10 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     }
     // The bar's "Finish setting up" pill: a tile on some page still lacks
     // what it needs, the setup has been seen, and the driver has not skipped it.
-    // Looked at again when the OBD link changes, but only a change of the answer reaches the bar.
+    // Looked at again when the OBD adapter changes (all the answer depends on), but only a change of the answer reaches the bar.
     val setupPending by remember(pages, accessGeneration, setupDone, setupPillOff) {
         derivedStateOf {
-            obdConnection.value
+            obdAdapter.value
             setupDone && !setupPillOff && AccessNeed.pending(context, pages).isNotEmpty()
         }
     }
@@ -1486,7 +1486,12 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                 val moment = shownMoment.takeIf { page == DashboardStore.CENTER && !editing }
                 CompositionLocalProvider(
                     LocalPageOnScreen provides (page == currentPage),
-                    LocalPageActive provides (page == currentPage || pagerState.isScrollInProgress || columnState.isScrollInProgress)
+                    // Only the pages a swipe can bring on screen wake: the row's for a sideways one, the column's for an up/down one.
+                    LocalPageActive provides (
+                        page == currentPage ||
+                            (page in cross.row && pagerState.isScrollInProgress) ||
+                            (page in cross.column && columnState.isScrollInProgress)
+                        )
                 ) {
                 Box(Modifier.fillMaxSize()) {
                 DashboardPage(
@@ -1553,17 +1558,22 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             // away and back instead of rebuilding its GL surface. Not for the
             // first frames: at a cold start the page on screen is drawn alone,
             // the four beside it right after, long before a swipe can reach them.
-            var beyondViewport by remember { mutableIntStateOf(0) }
+            // The row's neighbours first, the column's a couple of frames later: four pages in one frame was a long one.
+            var beyondRow by remember { mutableIntStateOf(0) }
+            var beyondColumn by remember { mutableIntStateOf(0) }
             LaunchedEffect(Unit) {
                 withFrameNanos { }
                 withFrameNanos { }
-                beyondViewport = 1
+                beyondRow = 1
+                withFrameNanos { }
+                withFrameNanos { }
+                beyondColumn = 1
             }
             Box(Modifier.fillMaxSize()) {
             HorizontalPager(
                 state = pagerState,
                 userScrollEnabled = !blockPagerSwipe && onHomeRow,
-                beyondViewportPageCount = beyondViewport,
+                beyondViewportPageCount = beyondRow,
                 modifier = Modifier.fillMaxSize()
             ) { index ->
                 val page = cross.row.getOrElse(index) { DashboardStore.CENTER }
@@ -1571,7 +1581,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                     VerticalPager(
                         state = columnState,
                         userScrollEnabled = !blockPagerSwipe && !pagerState.isScrollInProgress,
-                        beyondViewportPageCount = beyondViewport,
+                        beyondViewportPageCount = beyondColumn,
                         // Off the home row a sideways swipe moves nothing: there is
                         // nothing beside the page. It shows the cross with the way
                         // back to Home instead, so the swipe never feels dead.

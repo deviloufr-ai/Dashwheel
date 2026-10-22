@@ -1421,7 +1421,7 @@ private fun TelemetryTellTales(env: SkinTileEnv, speed: Int?, idle: Boolean, mod
 /** A single speedometer fed by OBD or GPS, the digits in its LCD window; wide tiles put them on a big LCD beside it. */
 @Composable
 private fun CockpitSpeedHud(env: SkinTileEnv) {
-    val speed = rememberSpeedKmh(env.obdData, env.obdConnection)
+    val speed = rememberSpeedKmh(env)
     val source = speedSource(
         env.obdConnection == ObdConnectionState.CONNECTED, speed, stringResource(R.string.info_speed_no_signal).uppercase()
     )

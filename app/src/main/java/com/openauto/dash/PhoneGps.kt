@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.flow.first
 
 /**
  * The linked phone's GPS in place of this unit's: a phone holds 40 satellites
@@ -54,7 +55,10 @@ object PhoneGps {
     private val lock = Mutex()
     private var appContext: Context? = null
     @Volatile private var lastFixAt = 0L
-    @Volatile private var providerUp = false
+    private val _providerUp = MutableStateFlow(false)
+    private var providerUp: Boolean
+        get() = _providerUp.value
+        set(value) { _providerUp.value = value }
     private var grantTried = false
 
     fun start(context: Context) {
@@ -66,6 +70,8 @@ object PhoneGps {
             // A provider left from before a crash would hold the GPS on a frozen position.
             lock.withLock { removeProvider(app) }
             while (true) {
+                // Asleep until the phone's provider is up: nothing to check before.
+                _providerUp.first { it }
                 delay(1_000)
                 if (providerUp && PhoneGpsRules.stale(lastFixAt, SystemClock.elapsedRealtime())) {
                     Log.i(TAG, "no fix from the phone: the unit's own GPS again")

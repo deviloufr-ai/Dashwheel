@@ -410,8 +410,11 @@ open class MainActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         // With a docked window in focus the hide request below is not read; the
         // window's own flag is. Only meanwhile: it keeps the keyboard from resizing the window.
-        if (FreeformBar.holding.value) window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
-        else window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
+        // Only when it differs: setting a flag it already has still relays out the window.
+        val wantFlag = FreeformBar.holding.value
+        val hasFlag = (window.attributes.flags and WindowManager.LayoutParams.FLAG_FULLSCREEN) != 0
+        if (wantFlag && !hasFlag) window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
+        else if (!wantFlag && hasFlag) window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
         WindowInsetsControllerCompat(window, window.decorView).apply {
             if (statusBarForced) {
                 show(WindowInsetsCompat.Type.statusBars())

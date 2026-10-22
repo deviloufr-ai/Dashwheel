@@ -57,6 +57,8 @@ import androidx.compose.ui.unit.dp
 import com.openauto.unitproto.UnitFamily
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /*
  * Settings, Car, Car signals: the Signal Finder. What Dashwheel reads from
@@ -212,7 +214,9 @@ private fun SignalRow(icon: ImageVector, title: String, detail: String, found: B
 @Composable
 private fun CameraPicker(onDismiss: () -> Unit) {
     val context = LocalContext.current
-    val cameras = remember { cameraList(context) }
+    // Listed off the main thread: each camera's description is a trip to the camera service.
+    var cameras by remember { mutableStateOf(emptyList<Pair<String, String>>()) }
+    LaunchedEffect(Unit) { cameras = withContext(Dispatchers.IO) { cameraList(context) } }
     val chosen by LearnedSignals.cameraId.collectAsState()
     AlertDialog(
         modifier = Modifier.keepClearOfWindows(),

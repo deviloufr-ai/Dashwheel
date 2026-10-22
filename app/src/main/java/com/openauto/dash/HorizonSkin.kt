@@ -98,6 +98,8 @@ import kotlin.math.sin
 import kotlin.random.Random
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.ui.graphics.layer.CompositingStrategy
+import androidx.compose.ui.graphics.layer.drawLayer
 
 /*
  * Horizon skin: no widgets and no boxes. The page is a living scene (in dark
@@ -603,19 +605,19 @@ private fun sceneModifier(look: SkyLook, scene: HorizonScene, time: State<Float>
     scene.edgePaint.color = look.buildingEdge.toArgb()
     scene.edgePaint.strokeWidth = 2f * s
 
-    onDrawBehind {
-        val t = time.value
-
+    // What never moves, recorded once and blitted each step, in the order it was drawn:
+    // the sky and sun, then (over the breathing glow) the still stars, moon and hills,
+    // then (over the ground) the horizon line and the road.
+    val skyLayer = obtainGraphicsLayer().apply { compositingStrategy = CompositingStrategy.Offscreen }
+    skyLayer.record {
         drawRect(skyBrush, size = Size(w, hy))
         if (look.sun > 0.01f) {
             drawCircle(sunHalo, radius = sunHaloR, center = sunC, alpha = look.sun)
             drawCircle(sunCore, radius = sunCoreR, center = sunC, alpha = look.sun)
         }
-        val breathe = 0.9f + 0.1f * sin(TWO_PI * 5f * t)
-        scale(1f, glowRy / glowRx, glowC) {
-            drawCircle(glowBrush, radius = glowRx, center = glowC, alpha = breathe)
-        }
-
+    }
+    val farLayer = obtainGraphicsLayer().apply { compositingStrategy = CompositingStrategy.Offscreen }
+    farLayer.record {
         if (look.stars > 0.01f) {
             drawPoints(small, PointMode.Points, starBrush, strokeWidth = 1.7f * s, cap = StrokeCap.Round, alpha = look.stars)
             drawPoints(big, PointMode.Points, starBrush, strokeWidth = 3f * s, cap = StrokeCap.Round, alpha = look.stars)
@@ -624,6 +626,33 @@ private fun sceneModifier(look: SkyLook, scene: HorizonScene, time: State<Float>
                 drawPoints(nightSmall, PointMode.Points, starBrush, strokeWidth = 1.7f * s, cap = StrokeCap.Round, alpha = a)
                 drawPoints(nightBig, PointMode.Points, starBrush, strokeWidth = 3f * s, cap = StrokeCap.Round, alpha = a)
             }
+        }
+        if (look.moon > 0.01f) {
+            drawCircle(moonHalo, radius = moonHaloR, center = moonC, alpha = look.moon)
+            drawPath(moonPath, Color(0xFFF4EBD9), alpha = look.moon)
+        }
+        drawPath(farHills, look.hillFar)
+        drawPath(nearHills, look.hillNear)
+    }
+    val roadLayer = obtainGraphicsLayer().apply { compositingStrategy = CompositingStrategy.Offscreen }
+    roadLayer.record {
+        drawLine(horizonLine, Offset(0f, hy), Offset(w, hy), strokeWidth = 1.5f * s)
+        drawPath(road, roadBrush)
+        drawPath(leftEdge, edgeBrush, style = edgeStroke)
+        drawPath(rightEdge, edgeBrush, style = edgeStroke)
+    }
+
+    onDrawBehind {
+        val t = time.value
+
+        drawLayer(skyLayer)
+        val breathe = 0.9f + 0.1f * sin(TWO_PI * 5f * t)
+        scale(1f, glowRy / glowRx, glowC) {
+            drawCircle(glowBrush, radius = glowRx, center = glowC, alpha = breathe)
+        }
+
+        drawLayer(farLayer)
+        if (look.stars > 0.01f) {
             for (i in 0 until STAR_COUNT) {
                 val k = scene.starK[i]
                 if (k == 0) continue
@@ -639,13 +668,6 @@ private fun sceneModifier(look: SkyLook, scene: HorizonScene, time: State<Float>
                 )
             }
         }
-        if (look.moon > 0.01f) {
-            drawCircle(moonHalo, radius = moonHaloR, center = moonC, alpha = look.moon)
-            drawPath(moonPath, Color(0xFFF4EBD9), alpha = look.moon)
-        }
-
-        drawPath(farHills, look.hillFar)
-        drawPath(nearHills, look.hillNear)
 
         // Skyline as an equalizer: each building breathes on its own phase.
         var n = 0
@@ -669,11 +691,7 @@ private fun sceneModifier(look: SkyLook, scene: HorizonScene, time: State<Float>
                 drawCircle(glowBrush, radius = glowRx, center = glowC, alpha = 0.35f * breathe)
             }
         }
-        drawLine(horizonLine, Offset(0f, hy), Offset(w, hy), strokeWidth = 1.5f * s)
-
-        drawPath(road, roadBrush)
-        drawPath(leftEdge, edgeBrush, style = edgeStroke)
-        drawPath(rightEdge, edgeBrush, style = edgeStroke)
+        drawLayer(roadLayer)
 
         // Centre dashes in perspective (screen fraction 1 - 1/z), sliding toward the viewer;
         // kept quieter right at the bottom, where tiles sit over the road.
@@ -946,7 +964,7 @@ private fun HorizonTelemetry(env: SkinTileEnv, side: Side) {
 /** Speed HUD: the number from OBD or GPS, and where it comes from. */
 @Composable
 private fun HorizonSpeed(env: SkinTileEnv, side: Side) {
-    val speed = rememberSpeedKmh(env.obdData, env.obdConnection)
+    val speed = rememberSpeedKmh(env)
     val obd = env.obdConnection == ObdConnectionState.CONNECTED
     val idle = env.obdConnection.isIdle
     val canConnect = speed == null && idle && !env.editing

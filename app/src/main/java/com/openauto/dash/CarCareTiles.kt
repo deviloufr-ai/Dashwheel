@@ -294,11 +294,11 @@ internal fun FilterCareCard(modifier: Modifier = Modifier) {
 // --- Engine warm-up -------------------------------------------------------------
 
 @Composable
-internal fun WarmupCard(obd: ObdData, connected: Boolean, modifier: Modifier = Modifier) {
+internal fun WarmupCard(coolantC: Int, connected: Boolean, modifier: Modifier = Modifier) {
     val car by CarProfileStore.profile.collectAsState()
     val care by CarCare.state.collectAsState()
     CareCard(stringResource(R.string.car_warmup_title), modifier) {
-        val t = obd.coolantTempC
+        val t = coolantC
         val u = LocalUnits.current
         if (!connected || t == 0) {
             Reading("--", u.tempUnit, dimmed = true)

@@ -32,4 +32,21 @@ class TileTextTest {
         val longer = frame.copyOf(frame.size + 10).also { it.fill(-1, frame.size) }
         assertEquals(TileText.frameSignature(frame, 40, 30), TileText.frameSignature(longer, 40, 30))
     }
+
+    @Test
+    fun onlyTheRowsTheReadersLookAtCount() {
+        val frame = IntArray(40 * 30) { it * 7919 }
+        val waze = TileText.readRows(WazeScreen.PACKAGE, 30)
+        val maps = TileText.readRows(MapsScreen.PACKAGE, 30)
+        assertEquals(listOf(0 until 7, 20 until 30), waze)
+        assertEquals(listOf(0 until 15), maps)
+        // Waze's map in the middle moves all the time: a change there reads nothing again.
+        val moved = frame.copyOf().also { it[12 * 40 + 3] = it[12 * 40 + 3] xor 1 }
+        assertEquals(TileText.frameSignature(frame, 40, 30, waze), TileText.frameSignature(moved, 40, 30, waze))
+        // Maps' preview is read in the top half: that change is seen there.
+        assertNotEquals(TileText.frameSignature(frame, 40, 30, maps), TileText.frameSignature(moved, 40, 30, maps))
+        // A distance ticking down at the top is seen by both.
+        val ticked = frame.copyOf().also { it[2 * 40 + 3] = it[2 * 40 + 3] xor 1 }
+        assertNotEquals(TileText.frameSignature(frame, 40, 30, waze), TileText.frameSignature(ticked, 40, 30, waze))
+    }
 }

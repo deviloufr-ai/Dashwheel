@@ -92,6 +92,8 @@ import kotlin.math.roundToInt
 import kotlin.math.sin
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.drawscope.translate
 
 /*
  * OBD tiles: hero speed gauge, rev bar, meter chips, fault codes, all-data, fuel & range.
@@ -560,7 +562,8 @@ internal fun AnalogGauge(
             }
         }
 
-        Spacer(modifier = Modifier.fillMaxSize().drawWithCache {
+        // Its own layer: the needle's swing redraws the dial, not the numerals beside it.
+        Spacer(modifier = Modifier.fillMaxSize().graphicsLayer().drawWithCache {
             val stroke = size.minDimension * 0.085f
             val radius = (size.minDimension - stroke) / 2f
             val center = Offset(size.width / 2f, size.height / 2f)
@@ -573,6 +576,7 @@ internal fun AnalogGauge(
             val core = Stroke(width = stroke * 0.22f, cap = StrokeCap.Round)
             val gradient = gaugeSweepBrush(center, accent, accent2)
             val redline = SolidColor(redlineAccent)
+            val tipGlow = Brush.radialGradient(listOf(Color.White.copy(alpha = 0.9f * glow), Color.Transparent), center = Offset.Zero, radius = stroke * 1.6f)
             onDrawBehind {
                 val frac = sweep.value
                 val sweepColor = if (frac >= redlineFraction) redlineAccent else accent
@@ -683,15 +687,7 @@ internal fun AnalogGauge(
                     if (!dimmed) {
                         val tipA = Math.toRadians((startAngle + sweepTotal * frac).toDouble())
                         val tip = Offset(center.x + cos(tipA).toFloat() * radius, center.y + sin(tipA).toFloat() * radius)
-                        if (glow > 0f) {
-                            drawCircle(
-                                brush = Brush.radialGradient(
-                                    listOf(Color.White.copy(alpha = 0.9f * glow), Color.Transparent),
-                                    center = tip, radius = stroke * 1.6f
-                                ),
-                                radius = stroke * 1.6f, center = tip
-                            )
-                        }
+                        if (glow > 0f) translate(tip.x, tip.y) { drawCircle(brush = tipGlow, radius = stroke * 1.6f, center = Offset.Zero) }
                         drawCircle(color = Color.White, radius = stroke * 0.42f, center = tip)
                     }
                 } else {
@@ -866,7 +862,7 @@ internal fun ObdAllCard(
  */
 @Composable
 internal fun RangeCard(
-    obdData: ObdData,
+    obdFuelPct: Int,
     connection: ObdConnectionState,
     onConnect: () -> Unit,
     modifier: Modifier = Modifier
@@ -880,7 +876,7 @@ internal fun RangeCard(
     val canFuel by McuReader.fuelPercent.collectAsState()
     val canRange by McuReader.rangeKm.collectAsState()
     val obdConnected = connection == ObdConnectionState.CONNECTED
-    val obdFuel = if (obdConnected) obdData.fuelLevelPct else 0
+    val obdFuel = if (obdConnected) obdFuelPct else 0
     val fuel = carFuelInfo(canFuel, obdFuel, canRange)
     val fromCan = canFuel != null || canRange != null
     val source = if (fromCan) stringResource(R.string.vehicle_via_canbox)

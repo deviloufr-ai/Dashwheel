@@ -56,6 +56,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
@@ -154,6 +155,8 @@ fun MapLibrePanel(modifier: Modifier = Modifier, wallpaper: Boolean = false) {
         }
     }
 
+    // The fixes the puck follows are Dashwheel's own feed (enableLocation): held while the map shows.
+    UseLocationFeed()
     val mapView = remember {
         MapLibre.getInstance(context)
         val options = MapLibreMapOptions.createFromAttributes(context, null).textureMode(true)
@@ -171,6 +174,7 @@ fun MapLibrePanel(modifier: Modifier = Modifier, wallpaper: Boolean = false) {
     // animated it at full pace, and every map frame redrew the whole
     // dashboard over it (a third of the K706's CPU parked): [HIDDEN_FPS] then.
     val still = wallpaper && !rememberMoving(enabled = wallpaper, demo = false).value
+    val stillNow by rememberUpdatedState(still)
     LaunchedEffect(pageActive, still) {
         mapView.setMaximumFps(if (!pageActive || still) HIDDEN_FPS else if (wallpaper) WALLPAPER_FPS else Int.MAX_VALUE)
         if (pageActive) mapRef?.triggerRepaint()
@@ -398,11 +402,12 @@ fun MapLibrePanel(modifier: Modifier = Modifier, wallpaper: Boolean = false) {
     LaunchedEffect(hasLocation, styleReady) {
         if (!hasLocation || !styleReady) return@LaunchedEffect
         val map = mapRef ?: return@LaunchedEffect
-        map.getStyle { style -> enableLocation(map, style, context, scope, if (wallpaper) mapView else null) }
+        map.getStyle { style -> enableLocation(map, style, context, scope, if (wallpaper) mapView else null) { stillNow } }
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        AndroidView(factory = { mapView }, modifier = Modifier.fillMaxSize())
+        // A layer of its own: each map frame re-records only this view, not the page over it.
+        AndroidView(factory = { mapView }, modifier = Modifier.fillMaxSize().graphicsLayer())
         // The search and route panels belong to the map tile, not to a wallpaper.
         if (!wallpaper) {
             // Destination search bar. Searching from the IME key, the search button
@@ -575,7 +580,9 @@ private fun enableLocation(
     context: Context,
     scope: kotlinx.coroutines.CoroutineScope,
     /** Set when the map is a wallpaper: the camera sits lower and the car low on it. */
-    wallpaper: MapView? = null
+    wallpaper: MapView? = null,
+    /** Whether the car stands still: a fix that only wanders a few metres then is not worth a camera move. */
+    still: () -> Boolean = { false }
 ) {
     if (!hasLocationPerm(context)) return
     val lc = map.locationComponent
@@ -583,6 +590,10 @@ private fun enableLocation(
         if (!lc.isLocationComponentActivated) {
             // Tracking gestures management: a two-finger pinch zooms around the
             // car and keeps following it, instead of counting as a pan.
+            // The fixes are Dashwheel's own ([LocationFeed]), not a second GPS
+            // listener of the map's: parked, GPS wander of a metre or two would
+            // otherwise animate the camera and the puck after every fix, and
+            // keep the map's workers placing labels for a picture that does not change.
             lc.activateLocationComponent(
                 LocationComponentActivationOptions.builder(context, style)
                     .locationComponentOptions(
@@ -590,8 +601,19 @@ private fun enableLocation(
                             .trackingGesturesManagement(true)
                             .build()
                     )
+                    .useDefaultLocationEngine(false)
                     .build()
             )
+            scope.launch {
+                var last: android.location.Location? = null
+                LocationFeed.location.collect { loc ->
+                    if (loc == null) return@collect
+                    val l = last
+                    if (l != null && still() && loc.distanceTo(l) < STILL_WANDER_M) return@collect
+                    last = loc
+                    runCatching { lc.forceLocationUpdate(loc) }
+                }
+            }
             // The zoom the driver picks by hand is the one tracking comes back
             // to; route previews and search hits don't change it.
             var byGesture = false
@@ -645,6 +667,9 @@ private fun enableLocation(
 
 /** Seconds of free panning before the camera snaps back to the vehicle. */
 private const val TRACKING_RESUME_MS = 10_000L
+
+/** A fix this close to the last one shown, with the car standing still, is GPS wander: the map keeps the last. */
+private const val STILL_WANDER_M = 3f
 
 /** Zoom last set by a pinch on each map; tracking resumes at it instead of the default. */
 private val userZooms = java.util.WeakHashMap<MapLibreMap, Double>()

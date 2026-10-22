@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import com.openauto.unitproto.AccBroadcasts
+import kotlinx.coroutines.launch
 
 /**
  * The unit started: Dashwheel takes the screen when it is the default Home.
@@ -33,8 +34,18 @@ class BootReceiver : BroadcastReceiver() {
         EmbeddedApp.bootedUp(context.applicationContext)
         // A QF unit then starts Dashwheel itself from the next boot on.
         UnitLauncher.start(context)
-        // What a reboot undid of the firmware's sleep survival (Reglink's DuraSpeed) is put back.
-        runCatching { UnitPlatform.adapter.survival?.atBoot(context.applicationContext) }
+        // What a reboot undid of the firmware's sleep survival (Reglink's DuraSpeed) is put back: shell
+        // commands, off the main thread the receiver runs on.
+        val survival = UnitPlatform.adapter.survival ?: return
+        val pending = goAsync()
+        val app = context.applicationContext
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            try {
+                runCatching { survival.atBoot(app) }
+            } finally {
+                pending.finish()
+            }
+        }
     }
 
     private fun isDefaultHome(context: Context): Boolean {

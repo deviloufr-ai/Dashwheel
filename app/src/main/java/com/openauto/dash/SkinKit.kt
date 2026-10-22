@@ -285,12 +285,33 @@ internal fun Modifier.cachedDraw(vararg keys: Any?, block: CacheDrawScope.() -> 
  * the GPS feed running while on screen.
  */
 @Composable
-internal fun rememberSpeedKmh(obdData: ObdData, connection: ObdConnectionState): Int? {
+internal fun rememberSpeedKmh(obdData: ObdData, connection: ObdConnectionState): Int? = rememberSpeedKmhFrom(obdData.speedKmh, connection)
+
+/**
+ * [rememberSpeedKmh] for a skin's tile. Only the OBD speed is followed, not
+ * every OBD sample (the revs move several times a second), so a speed tile
+ * redraws when the speed changes.
+ */
+@Composable
+internal fun rememberSpeedKmh(env: SkinTileEnv): Int? {
+    val obdSpeed by remember(env) { derivedStateOf { env.obdData.speedKmh } }
+    return rememberSpeedKmhFrom(obdSpeed, env.obdConnection)
+}
+
+/** [rememberSpeedKmh] from the OBD feed's state, following its speed only. */
+@Composable
+internal fun rememberSpeedKmh(obd: State<ObdData>, connection: ObdConnectionState): Int? {
+    val obdSpeed by remember(obd) { derivedStateOf { obd.value.speedKmh } }
+    return rememberSpeedKmhFrom(obdSpeed, connection)
+}
+
+@Composable
+internal fun rememberSpeedKmhFrom(obdSpeedKmh: Int, connection: ObdConnectionState): Int? {
     UseLocationFeed()
     val gpsKmh by LocationFeed.freshSpeedKmh.collectAsState()
     // Followed, so a change in Settings shows at once.
     SpeedCorrection.offsetKmh.collectAsState().value
-    return if (connection == ObdConnectionState.CONNECTED) obdData.speedKmh else gpsKmh?.let(SpeedCorrection::correctedGps)
+    return if (connection == ObdConnectionState.CONNECTED) obdSpeedKmh else gpsKmh?.let(SpeedCorrection::correctedGps)
 }
 
 /** Whether [rememberSpeedKmh] has a speed to give, without following the speed itself (it changes at every reading). */

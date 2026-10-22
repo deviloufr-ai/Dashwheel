@@ -57,6 +57,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /*
  * The steering wheel button map (SteeringWheelStore.kt), from Settings,
@@ -165,7 +167,9 @@ internal fun SteeringWheelDialog(onDismiss: () -> Unit) {
     }
 
     if (step == WheelStep.PICK_APP) {
-        val apps = remember { AppLauncher.loadApps(context) }
+        // Loaded off the main thread: every app's label and icon is the slowest list there is.
+        var apps by remember { mutableStateOf(emptyList<AppEntry>()) }
+        LaunchedEffect(Unit) { apps = withContext(Dispatchers.IO) { AppLauncher.loadApps(context) } }
         AppPickerDialog(
             apps = apps,
             onPick = { app ->

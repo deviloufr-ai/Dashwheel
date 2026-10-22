@@ -63,7 +63,8 @@ internal object ShadowRoute {
 
     fun start(scope: CoroutineScope, context: Context) {
         val app = context.applicationContext
-        scope.launch {
+        // Off the main thread: the car is matched to the whole route at every fix.
+        scope.launch(Dispatchers.Default) {
             combine(DisplayLink.state, NavHandoff.handedOff, NavDirections.running, InAppNav.guidance) { link, target, running, guidance ->
                 activeTarget = armed(activeTarget, target, running != null, System.currentTimeMillis())
                 val wanted = link is DisplayLinkState.Connected && guidance == null && running != null

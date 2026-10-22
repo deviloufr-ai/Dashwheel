@@ -102,12 +102,13 @@ internal object WazeDestination {
     private class Files(val dbStamp: String?, val recent: Read?, val session: Read?)
 
     /** One root call lists the database's stamp and the session's lines; the database is copied out only when it changed. */
-    private fun readFiles(context: Context, lastStamp: String?): Files {
-        val out = RootShell.su(
+    private suspend fun readFiles(context: Context, lastStamp: String?): Files {
+        // The shell kept open (DockShell), not a new su every look.
+        val out = DockShell.shell(
+            context,
             "cd $DIR && stat -c '%n %Y %s' user.db user.db-wal 2>/dev/null; echo $SPLIT; stat -c %Y session 2>/dev/null; " +
-                "grep -E '^ *(Destination|Navigation)\\.' session 2>/dev/null",
-            8
-        ).out
+                "grep -E '^ *(Destination|Navigation)\\.' session 2>/dev/null"
+        )
         val (stampPart, sessionPart) = out.split(SPLIT).let { it[0].trim() to it.getOrElse(1) { "" } }
         val stamp = stampPart.ifBlank { null }
         val recent = if (stamp != null && stamp != lastStamp) copyAndQuery(context) else null

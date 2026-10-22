@@ -54,6 +54,8 @@ import kotlin.math.PI
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.SolidColor
 
 /*
  * The newer generic layouts: Orb (everything inside one circle, a round
@@ -99,18 +101,20 @@ private fun Orb(f: WidgetFace, look: FaceLook, d: Float) {
     val spin by rememberSpin(7000, f.active)
     val over = look.overImage()
     val inner = d * 0.88f
+    val ringBrush = remember(look, f.alert) {
+        if (f.alert) SolidColor(look.warn) else Brush.sweepGradient(listOf(look.accent, look.accent2, look.accent))
+    }
+    val fillBrush = remember(look) { Brush.sweepGradient(listOf(look.accent, look.accent2, look.accent)) }
+    val shade = remember { Brush.radialGradient(listOf(Color.Black.copy(alpha = 0.30f), Color.Black.copy(alpha = 0.72f))) }
     Box(modifier = Modifier.size(d.dp), contentAlignment = Alignment.Center) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
+        // Its own layer: the glint's steps redraw the ring, not the words inside.
+        Canvas(modifier = Modifier.fillMaxSize().graphicsLayer()) {
             val stroke = size.minDimension * 0.03f
             val tl = Offset(stroke / 2f, stroke / 2f)
             val sz = Size(size.width - stroke, size.height - stroke)
             drawArc(look.track, 0f, 360f, false, tl, sz, style = Stroke(stroke))
             val fr = (f.fraction ?: 0f).coerceIn(0f, 1f)
-            if (fr > 0f) {
-                val brush = if (f.alert) Brush.linearGradient(listOf(look.warn, look.warn))
-                else Brush.sweepGradient(listOf(look.accent, look.accent2, look.accent), center)
-                drawArc(brush, -90f, 360f * fr, false, tl, sz, style = Stroke(stroke, cap = StrokeCap.Round))
-            }
+            if (fr > 0f) drawArc(ringBrush, -90f, 360f * fr, false, tl, sz, style = Stroke(stroke, cap = StrokeCap.Round))
             // A glint that runs round the rim while something plays.
             if (f.active) drawArc(Color.White.copy(alpha = 0.55f), spin - 90f, 24f, false, tl, sz, style = Stroke(stroke * 0.55f, cap = StrokeCap.Round))
         }
@@ -119,10 +123,10 @@ private fun Orb(f: WidgetFace, look: FaceLook, d: Float) {
             if (art != null) {
                 Image(art, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
             } else {
-                Box(Modifier.fillMaxSize().background(Brush.sweepGradient(listOf(look.accent, look.accent2, look.accent))))
+                Box(Modifier.fillMaxSize().background(fillBrush))
                 Icon(f.icon, contentDescription = null, tint = Color.White.copy(alpha = 0.16f), modifier = Modifier.size((inner * 0.62f).dp))
             }
-            Box(Modifier.fillMaxSize().background(Brush.radialGradient(listOf(Color.Black.copy(alpha = 0.30f), Color.Black.copy(alpha = 0.72f)))))
+            Box(Modifier.fillMaxSize().background(shade))
             Column(
                 modifier = Modifier.fillMaxSize().padding(horizontal = (inner * 0.08f).dp, vertical = (inner * 0.1f).dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -198,7 +202,8 @@ internal fun LiquidLayout(f: WidgetFace, look: FaceLook, m: FaceMetrics) {
     val backWave = remember { Path() }
     val frontWave = remember { Path() }
     Box(modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(look.radius))) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
+        // Its own layer: the waves' steps redraw the water, not the words over it.
+        Canvas(modifier = Modifier.fillMaxSize().graphicsLayer()) {
             val w = size.width
             val h = size.height
             val top = h * (1f - level)

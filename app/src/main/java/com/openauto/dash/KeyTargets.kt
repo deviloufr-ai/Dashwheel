@@ -22,6 +22,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /*
  * Which app the head unit's own NAVI, voice and custom keys open, on the QF
@@ -101,10 +103,14 @@ internal fun KeyTargetRows() {
     }
 
     picking?.let { key ->
-        val apps = remember {
-            // Dashwheel first: the NAVI key opening the dashboard's own map is the usual wish.
-            listOf(AppEntry(context.getString(R.string.app_name), context.packageName, context.packageManager.getApplicationIcon(context.packageName))) +
-                AppLauncher.loadApps(context)
+        // Loaded off the main thread: every app's label and icon is the slowest list there is.
+        var apps by remember { mutableStateOf(emptyList<AppEntry>()) }
+        LaunchedEffect(Unit) {
+            apps = withContext(Dispatchers.IO) {
+                // Dashwheel first: the NAVI key opening the dashboard's own map is the usual wish.
+                listOf(AppEntry(context.getString(R.string.app_name), context.packageName, context.packageManager.getApplicationIcon(context.packageName))) +
+                    AppLauncher.loadApps(context)
+            }
         }
         fun choose(pkg: String?) {
             picking = null

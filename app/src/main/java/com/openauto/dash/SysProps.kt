@@ -15,9 +15,13 @@ import java.io.File
 object SysProps {
     /** The property's value ("" when unset), or null when the class can't be reached at all. */
     @SuppressLint("PrivateApi")
-    fun get(name: String): String? = runCatching {
-        Class.forName("android.os.SystemProperties").getMethod("get", String::class.java).invoke(null, name) as String
-    }.getOrNull()
+    fun get(name: String): String? = runCatching { getter?.invoke(null, name) as String? }.getOrNull()
+
+    /** Looked up once: several feeds read a property every second. */
+    @delegate:SuppressLint("PrivateApi")
+    private val getter: java.lang.reflect.Method? by lazy {
+        runCatching { Class.forName("android.os.SystemProperties").getMethod("get", String::class.java) }.getOrNull()
+    }
 
     /** The property's value, or null when unset or blank. */
     fun getOrNull(name: String): String? = get(name)?.takeIf { it.isNotBlank() }

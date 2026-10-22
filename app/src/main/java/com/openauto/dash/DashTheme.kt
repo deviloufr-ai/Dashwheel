@@ -825,7 +825,12 @@ object DashColors {
     fun heroFamily(): FontFamily = if (current.Font == DashFont.CONDENSED) CondensedFamily else FontFamily.Default
 
     /** Diagonal accent → accent2 gradient for primary controls. */
-    val AccentBrush: Brush get() = Brush.linearGradient(listOf(current.Accent, current.Accent2))
+    val AccentBrush: Brush get() {
+        val p = current
+        accentBrush?.takeIf { it.first === p }?.let { return it.second }
+        return Brush.linearGradient(listOf(p.Accent, p.Accent2)).also { accentBrush = p to it }
+    }
+    private var accentBrush: Pair<Any, Brush>? = null
 
     /** Text colour that reads on top of [AccentBrush] ([DashPalette.OnAccentInk]). */
     val OnAccent: Color get() = current.OnAccentInk

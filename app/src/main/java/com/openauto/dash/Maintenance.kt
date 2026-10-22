@@ -409,6 +409,7 @@ object Maintenance {
     fun setOdometer(km: Int) {
         _state.value = _state.value.copy(odometer = Odometer(km, System.currentTimeMillis()))
         drivenUnsaved = 0.0
+        drivenUnpublished = 0.0
         save()
     }
 
@@ -460,13 +461,20 @@ object Maintenance {
     fun drove(km: Double) {
         if (km <= 0.0 || DemoMode.isOn) return
         val odo = _state.value.odometer ?: return
-        _state.value = _state.value.copy(odometer = odo.copy(drivenSince = odo.drivenSince + km))
+        drivenUnpublished += km
         drivenUnsaved += km
+        // Published every 100 m: at every reading, each upkeep tile redrew for a few metres.
+        if (drivenUnpublished < 0.1 && drivenUnsaved < 1.0) return
+        _state.value = _state.value.copy(odometer = odo.copy(drivenSince = odo.drivenSince + drivenUnpublished))
+        drivenUnpublished = 0.0
         if (drivenUnsaved >= 1.0) {
             drivenUnsaved = 0.0
             save()
         }
     }
+
+    /** Kilometres driven since the state last published them. */
+    private var drivenUnpublished = 0.0
 
     /** What the briefing should say now; call [markSpoken] once it has. */
     fun dueForBriefing(now: Long): List<UpkeepDue> = UpkeepRules.toSpeak(_state.value.statuses(now), spoken)

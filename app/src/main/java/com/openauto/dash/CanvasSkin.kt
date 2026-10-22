@@ -292,7 +292,7 @@ private fun Label(text: String, sizeDp: Float = 16f, color: Color = DashColors.T
 /** The speed on a round glass dial, its arc filling to 180 km/h; amber when [speedOver]. */
 @Composable
 private fun CanvasSpeed(env: SkinTileEnv) {
-    val speed = rememberSpeedKmh(env.obdData, env.obdConnection)
+    val speed = rememberSpeedKmh(env)
     val connected = env.obdConnection == ObdConnectionState.CONNECTED
     val fast = speedOver(speed)
     val arc = if (fast) DashColors.Warning else DashColors.Accent

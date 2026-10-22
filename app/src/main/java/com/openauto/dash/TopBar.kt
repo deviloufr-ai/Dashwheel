@@ -117,6 +117,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt
+import androidx.compose.ui.draw.drawWithCache
 
 /*
  * The bottom bar, the edit bar that takes its place while arranging, and the page dots.
@@ -720,17 +721,21 @@ internal fun ObdPill(state: ObdConnectionState, onConnect: () -> Unit, modifier:
             Box(
                 Modifier
                     .size(12.dp)
-                    .drawBehind {
+                    // Its own layer: the pulse redraws the dot, not the whole bar.
+                    .graphicsLayer()
+                    .drawWithCache {
                         val r = size.minDimension / 2f
-                        val a = pulse?.let { 0.35f + 0.65f * it.value } ?: 1f
-                        if (state == ObdConnectionState.CONNECTED && halo > 0f) {
-                            drawCircle(
-                                Brush.radialGradient(listOf(color.copy(alpha = 0.6f * halo), Color.Transparent), center, r * 2.4f),
-                                radius = r * 2.4f
-                            )
+                        val haloBrush = if (state == ObdConnectionState.CONNECTED && halo > 0f) {
+                            Brush.radialGradient(listOf(color.copy(alpha = 0.6f * halo), Color.Transparent), Offset(size.width / 2f, size.height / 2f), r * 2.4f)
+                        } else null
+                        val ring = Stroke(1.5.dp.toPx())
+                        val ringR = r - 1.dp.toPx()
+                        onDrawBehind {
+                            val a = pulse?.let { 0.35f + 0.65f * it.value } ?: 1f
+                            if (haloBrush != null) drawCircle(haloBrush, radius = r * 2.4f)
+                            if (off) drawCircle(ink, radius = ringR, style = ring)
+                            else drawCircle(color.copy(alpha = a), radius = r)
                         }
-                        if (off) drawCircle(ink, radius = r - 1.dp.toPx(), style = Stroke(1.5.dp.toPx()))
-                        else drawCircle(color.copy(alpha = a), radius = r)
                     }
             )
             Spacer(Modifier.width(8.dp))
@@ -873,7 +878,8 @@ private fun ChargingBattery(percent: Int) {
     val loop = rememberLoop(CHARGE_MS, status = true)
     val green = DashColors.Good
     Box(Modifier.size(width = 12.dp, height = 18.dp), contentAlignment = Alignment.Center) {
-        Canvas(Modifier.fillMaxSize()) {
+        // Its own layer: the fill's steps redraw the battery, not the whole bar.
+        Canvas(Modifier.fillMaxSize().graphicsLayer()) {
             val stroke = 1.5.dp.toPx()
             val cap = Size(size.width * 0.4f, 2.dp.toPx())
             drawRect(green, topLeft = Offset((size.width - cap.width) / 2f, 0f), size = cap)
