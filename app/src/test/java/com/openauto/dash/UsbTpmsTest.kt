@@ -46,6 +46,8 @@ class UsbTpmsTest {
         assertEquals(TyrePos.REAR_LEFT, frame.tyre)
         assertTrue(frame.leak)
         assertTrue(frame.toTyre(0).leak)
+        // The byte as sent goes along, for the sensors sheet: its other bits are not known yet.
+        assertEquals(8, frame.toTyre(0).status)
     }
 
     @Test

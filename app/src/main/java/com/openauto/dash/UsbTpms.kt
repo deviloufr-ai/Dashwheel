@@ -225,7 +225,7 @@ internal data class TpmsFrame(val position: Int, val pressure: Int, val temperat
     /** Seen while air was escaping; the other bits are not known. */
     val leak: Boolean get() = (status and 0x08) != 0
 
-    fun toTyre(at: Long) = Tyre(kPa = kPa, celsius = celsius, sensorBatteryLow = false, leak = leak, noSignal = false, at = at)
+    fun toTyre(at: Long) = Tyre(kPa = kPa, celsius = celsius, sensorBatteryLow = false, leak = leak, noSignal = false, at = at, status = status)
 
     companion object {
         const val SIZE = 8

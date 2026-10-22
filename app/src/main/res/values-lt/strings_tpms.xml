@@ -21,4 +21,14 @@
     <string name="tpms_usb_state_busy">Imtuvą naudoja kita programa</string>
     <string name="tpms_usb_state_listening">Laukia jutiklių</string>
     <string name="tpms_usb_state_receiving">Gaunami padangų duomenys</string>
+    <!-- The alarm limits (Tyres.limits) and the receiver's status byte, in the USB tyre sensors sheet. -->
+    <string name="tpms_usb_status">būsena %1$s</string>
+    <string name="tpms_limits">Įspėjimo ribos</string>
+    <string name="tpms_limits_hint">Padangų įspėjimas ir jo balsas įsijungia už šių ribų, kad ir kas praneša apie padangas.</string>
+    <string name="tpms_limit_low">Žemas slėgis</string>
+    <string name="tpms_limit_low_detail">Esant šiai vertei ar žemiau padanga per mažai pripūsta. Jei įvesti automobilio slėgiai, galioja 80 procentų jų.</string>
+    <string name="tpms_limit_high">Aukštas slėgis</string>
+    <string name="tpms_limit_high_detail">Esant šiai vertei ar aukščiau padanga per daug pripūsta</string>
+    <string name="tpms_limit_hot">Karšta padanga</string>
+    <string name="tpms_limit_hot_detail">Esant šiai vertei ar aukščiau padanga per karšta</string>
 </resources>

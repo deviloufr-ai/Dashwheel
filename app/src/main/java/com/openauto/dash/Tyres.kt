@@ -36,13 +36,18 @@ data class Tyre(
     val leak: Boolean,
     val noSignal: Boolean,
     /** When it was heard ([SystemClock.elapsedRealtime]). */
-    val at: Long
+    val at: Long,
+    /** The USB receiver's status byte as sent, for the sensors sheet; 0 from the TPMS app. */
+    val status: Int = 0
 )
 
 enum class TyreProblem { LEAK, LOW, HIGH, HOT }
 
 /** The unit the driver chose in the TPMS app, to show pressures the same way. */
 enum class PressureUnit { BAR, KPA, PSI }
+
+/** The alarm limits: the TPMS app's own by default, the driver's from Settings ([Tyres.limits]). */
+data class TyreLimits(val lowKpa: Int = TYRE_LOW_KPA, val highKpa: Int = TYRE_HIGH_KPA, val hotC: Int = TYRE_HOT_C)
 
 object Tyres {
     const val TPMS_PACKAGE = "com.syt.tmps"
@@ -62,6 +67,11 @@ object Tyres {
      */
     val problems: StateFlow<Map<TyrePos, TyreProblem>> = _problems
 
+    private val _limits = MutableStateFlow(TyreLimits())
+    /** The alarm limits the warnings go by, whatever reports the tyres (Settings, Car, USB tyre sensors). */
+    val limits: StateFlow<TyreLimits> = _limits
+    private var limitsLoaded = false
+
     private var started = false
     private var judging = false
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -79,6 +89,11 @@ object Tyres {
 
     fun start(context: Context) {
         val app = context.applicationContext
+        if (!limitsLoaded) {
+            limitsLoaded = true
+            val p = prefs(app)
+            _limits.value = TyreLimits(p.getInt(KEY_LOW, TYRE_LOW_KPA), p.getInt(KEY_HIGH, TYRE_HIGH_KPA), p.getInt(KEY_HOT, TYRE_HOT_C))
+        }
         // A USB receiver of the driver's own, with or without the TPMS app.
         UsbTpms.start(app)
         if (started) return
@@ -102,7 +117,7 @@ object Tyres {
     private fun judgeLoops() {
         // Judged again at each reading, when the car's pressures change, and
         // now and then so a sensor that went quiet stops holding a warning up.
-        scope.launch { combine(_tyres, CarProfileStore.profile) { _, _ -> }.collect { judge() } }
+        scope.launch { combine(_tyres, CarProfileStore.profile, _limits) { _, _, _ -> }.collect { judge() } }
         scope.launch {
             while (true) {
                 delay(STALE_CHECK_MS)
@@ -115,8 +130,21 @@ object Tyres {
 
     @Synchronized
     private fun judge() {
-        _problems.value = tyreProblems(_tyres.value, _problems.value, SystemClock.elapsedRealtime(), CarProfileStore.current)
+        _problems.value = tyreProblems(_tyres.value, _problems.value, SystemClock.elapsedRealtime(), CarProfileStore.current, _limits.value)
     }
+
+    /** The driver's alarm limits, kept and judged by at once. */
+    fun setLimits(context: Context, limits: TyreLimits) {
+        prefs(context).edit().putInt(KEY_LOW, limits.lowKpa).putInt(KEY_HIGH, limits.highKpa).putInt(KEY_HOT, limits.hotC).apply()
+        _limits.value = limits
+        judge()
+    }
+
+    private const val PREFS = "tyres"
+    private const val KEY_LOW = "low_kpa"
+    private const val KEY_HIGH = "high_kpa"
+    private const val KEY_HOT = "hot_c"
+    private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -193,6 +221,13 @@ internal const val TYRE_LOW_KPA = 180
 internal const val TYRE_HIGH_KPA = 310
 internal const val TYRE_HOT_C = 75
 
+/** How far the driver may move each limit, a step at a time ([Tyres.setLimits]). */
+internal val TYRE_LIMIT_LOW_RANGE = 100..250
+internal val TYRE_LIMIT_HIGH_RANGE = 260..450
+internal val TYRE_LIMIT_HOT_RANGE = 50..120
+internal const val TYRE_LIMIT_KPA_STEP = 10
+internal const val TYRE_LIMIT_C_STEP = 5
+
 /**
  * A problem ends only this far back on the right side of its limit: a tyre
  * at 180 kPa that reads 181, 180, 181 is one alert, not three.
@@ -207,31 +242,31 @@ internal const val TYRE_STALE_MS = 60_000L
  * What's wrong with [t], worst first; null when it's fine or its sensor isn't
  * heard. [before] is what was wrong with it at the last reading: that holds
  * until the reading is clearly back ([TYRE_CLEAR_KPA], [TYRE_CLEAR_C]).
- * [lowKpa]: this tyre's own limit ([tyreLowKpa]).
+ * [limits] holds this tyre's own low limit ([tyreLowKpa]).
  */
-internal fun tyreProblem(t: Tyre, before: TyreProblem? = null, lowKpa: Int = TYRE_LOW_KPA): TyreProblem? = when {
+internal fun tyreProblem(t: Tyre, before: TyreProblem? = null, limits: TyreLimits = TyreLimits()): TyreProblem? = when {
     t.noSignal -> null
     t.leak -> TyreProblem.LEAK
-    t.kPa in 1..lowKpa -> TyreProblem.LOW
+    t.kPa in 1..limits.lowKpa -> TyreProblem.LOW
     // From 0: a tyre that was low and now reads nothing at all has gone flat, not well.
-    before == TyreProblem.LOW && t.kPa in 0 until lowKpa + TYRE_CLEAR_KPA -> TyreProblem.LOW
-    t.kPa >= TYRE_HIGH_KPA -> TyreProblem.HIGH
-    before == TyreProblem.HIGH && t.kPa > TYRE_HIGH_KPA - TYRE_CLEAR_KPA -> TyreProblem.HIGH
-    t.celsius >= TYRE_HOT_C -> TyreProblem.HOT
-    before == TyreProblem.HOT && t.celsius > TYRE_HOT_C - TYRE_CLEAR_C -> TyreProblem.HOT
+    before == TyreProblem.LOW && t.kPa in 0 until limits.lowKpa + TYRE_CLEAR_KPA -> TyreProblem.LOW
+    t.kPa >= limits.highKpa -> TyreProblem.HIGH
+    before == TyreProblem.HIGH && t.kPa > limits.highKpa - TYRE_CLEAR_KPA -> TyreProblem.HIGH
+    t.celsius >= limits.hotC -> TyreProblem.HOT
+    before == TyreProblem.HOT && t.celsius > limits.hotC - TYRE_CLEAR_C -> TyreProblem.HOT
     else -> null
 }
 
 /**
  * A tyre is low at 80 % of the pressure the maker gives for it (the European
- * rule for tyre sensors), else at the TPMS app's own 180 kPa.
+ * rule for tyre sensors), else at [lowKpa]: the driver's limit, or the TPMS app's own 180 kPa.
  */
-internal fun tyreLowKpa(pos: TyrePos, car: CarProfile): Int {
+internal fun tyreLowKpa(pos: TyrePos, car: CarProfile, lowKpa: Int = TYRE_LOW_KPA): Int {
     val bar = when (pos) {
         TyrePos.FRONT_LEFT, TyrePos.FRONT_RIGHT -> car.tyreFrontBar
         TyrePos.REAR_LEFT, TyrePos.REAR_RIGHT -> car.tyreRearBar
         TyrePos.SPARE -> null
-    } ?: return TYRE_LOW_KPA
+    } ?: return lowKpa
     return (bar * 100 * 0.8).roundToInt().coerceIn(120, 280)
 }
 
@@ -243,10 +278,11 @@ internal fun tyreProblems(
     tyres: Map<TyrePos, Tyre>,
     before: Map<TyrePos, TyreProblem>,
     now: Long,
-    car: CarProfile
+    car: CarProfile,
+    limits: TyreLimits = TyreLimits()
 ): Map<TyrePos, TyreProblem> = tyres.mapNotNull { (pos, t) ->
     if (now - t.at > TYRE_STALE_MS) null
-    else tyreProblem(t, before[pos], tyreLowKpa(pos, car))?.let { pos to it }
+    else tyreProblem(t, before[pos], limits.copy(lowKpa = tyreLowKpa(pos, car, limits.lowKpa)))?.let { pos to it }
 }.toMap()
 
 /** "2.3 bar", "230 kPa", "33 psi". */

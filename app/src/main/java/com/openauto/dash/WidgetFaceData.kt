@@ -1229,11 +1229,14 @@ private fun tyresFace(): WidgetFace {
     val order = listOf(TyrePos.FRONT_LEFT, TyrePos.FRONT_RIGHT, TyrePos.REAR_LEFT, TyrePos.REAR_RIGHT)
     val problems = judged.toList()
     val lowest = tyres.filterKeys { it in order }.values.minByOrNull { it.kPa }
+    val u = LocalUnits.current
     val wheels = order.map { pos ->
         tyres[pos]?.let { t ->
             val problem = judged[pos]
-            val value = listOfNotNull(problem?.let { stringResource(it.labelRes) }, formatPressure(t.kPa, unit)).joinToString(" · ")
-            FaceRow(stringResource(pos.labelRes), value, alert = problem != null)
+            // "Low pressure · 2.3 bar, 29 °C": what's wrong, then the reading (the Tyre map splits it the same way).
+            val flags = listOfNotNull(problem?.let { stringResource(it.labelRes) }, stringResource(R.string.car_tyres_sensor_battery).takeIf { t.sensorBatteryLow })
+            val reading = "${formatPressure(t.kPa, unit)}, ${u.tempText(t.celsius)}"
+            FaceRow(stringResource(pos.labelRes), (flags + reading).joinToString(" · "), alert = problem != null)
         }
     }
     val rows = wheels.filterNotNull()

@@ -21,4 +21,14 @@
     <string name="tpms_usb_state_busy">A vevőt más használja</string>
     <string name="tpms_usb_state_listening">Figyel, várja az érzékelőket</string>
     <string name="tpms_usb_state_receiving">Gumik adatai érkeznek</string>
+    <!-- The alarm limits (Tyres.limits) and the receiver's status byte, in the USB tyre sensors sheet. -->
+    <string name="tpms_usb_status">állapot %1$s</string>
+    <string name="tpms_limits">Riasztási határok</string>
+    <string name="tpms_limits_hint">A gumiabroncs-figyelmeztetés és a hangja ezeken túl szólal meg, bármi is jelenti a gumikat.</string>
+    <string name="tpms_limit_low">Alacsony nyomás</string>
+    <string name="tpms_limit_low_detail">Ennél az értéknél vagy alatta egy gumi lapos. Ha az autó saját nyomásai be vannak állítva, azok 80 százaléka számít.</string>
+    <string name="tpms_limit_high">Magas nyomás</string>
+    <string name="tpms_limit_high_detail">Ennél az értéknél vagy felette egy gumi túlfújt</string>
+    <string name="tpms_limit_hot">Forró gumi</string>
+    <string name="tpms_limit_hot_detail">Ennél az értéknél vagy felette egy gumi túl forró</string>
 </resources>

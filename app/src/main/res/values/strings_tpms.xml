@@ -24,4 +24,14 @@
     <string name="tpms_usb_unit_bar" translatable="false">bar</string>
     <string name="tpms_usb_unit_kpa" translatable="false">kPa</string>
     <string name="tpms_usb_unit_psi" translatable="false">psi</string>
+    <!-- The alarm limits (Tyres.limits) and the receiver's status byte, in the USB tyre sensors sheet. -->
+    <string name="tpms_usb_status">status %1$s</string>
+    <string name="tpms_limits">Alarm limits</string>
+    <string name="tpms_limits_hint">The tyre warning and its voice go off past these, whatever reports the tyres.</string>
+    <string name="tpms_limit_low">Low pressure</string>
+    <string name="tpms_limit_low_detail">At or under this a tyre is low. With the car\'s own pressures set, 80 percent of them count instead.</string>
+    <string name="tpms_limit_high">High pressure</string>
+    <string name="tpms_limit_high_detail">At or over this a tyre is high</string>
+    <string name="tpms_limit_hot">Hot tyre</string>
+    <string name="tpms_limit_hot_detail">At or over this a tyre is too hot</string>
 </resources>

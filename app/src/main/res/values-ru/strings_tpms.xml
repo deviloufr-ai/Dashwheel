@@ -21,4 +21,14 @@
     <string name="tpms_usb_state_busy">Приёмник занят другим приложением</string>
     <string name="tpms_usb_state_listening">Ожидание датчиков</string>
     <string name="tpms_usb_state_receiving">Шины принимаются</string>
+    <!-- The alarm limits (Tyres.limits) and the receiver's status byte, in the USB tyre sensors sheet. -->
+    <string name="tpms_usb_status">состояние %1$s</string>
+    <string name="tpms_limits">Пороги тревоги</string>
+    <string name="tpms_limits_hint">Предупреждение о шинах и его голос срабатывают за этими порогами, откуда бы ни шли данные.</string>
+    <string name="tpms_limit_low">Низкое давление</string>
+    <string name="tpms_limit_low_detail">При этом значении или ниже шина спущена. Если заданы давления автомобиля, вместо этого считаются 80 процентов от них.</string>
+    <string name="tpms_limit_high">Высокое давление</string>
+    <string name="tpms_limit_high_detail">При этом значении или выше шина перекачана</string>
+    <string name="tpms_limit_hot">Горячая шина</string>
+    <string name="tpms_limit_hot_detail">При этом значении или выше шина слишком горячая</string>
 </resources>

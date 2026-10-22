@@ -21,4 +21,14 @@
     <string name="tpms_usb_state_busy">Ontvanger elders in gebruik</string>
     <string name="tpms_usb_state_listening">Luistert, wacht op de sensoren</string>
     <string name="tpms_usb_state_receiving">Banden worden ontvangen</string>
+    <!-- The alarm limits (Tyres.limits) and the receiver's status byte, in the USB tyre sensors sheet. -->
+    <string name="tpms_usb_status">status %1$s</string>
+    <string name="tpms_limits">Alarmgrenzen</string>
+    <string name="tpms_limits_hint">De bandenwaarschuwing en haar stem gaan af voorbij deze grenzen, wat de banden ook meldt.</string>
+    <string name="tpms_limit_low">Lage druk</string>
+    <string name="tpms_limit_low_detail">Op deze waarde of lager is een band te zacht. Zijn de drukken van de auto ingevuld, dan geldt 80 procent ervan.</string>
+    <string name="tpms_limit_high">Hoge druk</string>
+    <string name="tpms_limit_high_detail">Op deze waarde of hoger is een band te hard</string>
+    <string name="tpms_limit_hot">Hete band</string>
+    <string name="tpms_limit_hot_detail">Op deze waarde of hoger is een band te heet</string>
 </resources>

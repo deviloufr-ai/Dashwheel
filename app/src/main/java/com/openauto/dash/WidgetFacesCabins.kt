@@ -770,9 +770,12 @@ private fun WheelCallout(row: FaceRow?, look: FaceLook, m: FaceMetrics, end: Boo
         val tint = if (row?.alert == true) look.warn else look.ink
         Row(verticalAlignment = Alignment.Bottom) {
             FaceText(pressure.substringBefore(' '), look, m.sp(max(m.u * 11f, 15f)), color = tint, weight = look.numWeight.coerceAtLeast(FontWeight.SemiBold), family = look.numFont, glow = true)
-            val unit = pressure.substringAfter(' ', "")
+            val unit = pressure.substringAfter(' ', "").substringBefore(',')
             if (unit.isNotEmpty()) FaceText(" $unit", look, m.sp(max(m.u * 5f, 10f)), color = look.dim, modifier = Modifier.padding(bottom = 2.dp))
         }
+        // The temperature after the pressure ("2.3 bar, 29 °C"), on a line of its own.
+        val temp = pressure.substringAfter(", ", "")
+        if (temp.isNotEmpty()) FaceText(temp, look, m.sp(max(m.u * 4.8f, 10f)), color = look.dim)
         if (problem.isNotEmpty()) FaceText(problem, look, m.sp(max(m.u * 4.8f, 10f)), color = look.warn, weight = FontWeight.Medium)
     }
 }

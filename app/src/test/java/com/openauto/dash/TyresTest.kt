@@ -64,6 +64,20 @@ class TyresTest {
     }
 
     @Test
+    fun theDriversOwnLimitsCount() {
+        val l = TyreLimits(lowKpa = 200, highKpa = 280, hotC = 60)
+        assertEquals(TyreProblem.LOW, tyreProblem(tyre(200), limits = l))
+        assertNull(tyreProblem(tyre(201), limits = l))
+        assertEquals(TyreProblem.HIGH, tyreProblem(tyre(280), limits = l))
+        assertNull(tyreProblem(tyre(279), limits = l))
+        assertEquals(TyreProblem.HOT, tyreProblem(tyre(230, celsius = 60), limits = l))
+        // The car's own pressures still set the low limit of the tyres they are known for.
+        val car = CarProfile.PRESET.copy(tyreFrontBar = 2.3, tyreRearBar = null)
+        val tyres = mapOf(TyrePos.FRONT_LEFT to tyre(195), TyrePos.REAR_LEFT to tyre(195))
+        assertEquals(mapOf(TyrePos.REAR_LEFT to TyreProblem.LOW), tyreProblems(tyres, emptyMap(), now = 1_000, car = car, limits = l))
+    }
+
+    @Test
     fun aSensorThatWentQuietHoldsNoWarningUp() {
         val car = CarProfile.PRESET.copy(tyreFrontBar = null, tyreRearBar = null)
         val tyres = mapOf(TyrePos.FRONT_LEFT to tyre(150))

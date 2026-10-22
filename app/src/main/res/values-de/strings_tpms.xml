@@ -21,4 +21,14 @@
     <string name="tpms_usb_state_busy">Empfänger anderweitig belegt</string>
     <string name="tpms_usb_state_listening">Bereit, wartet auf die Sensoren</string>
     <string name="tpms_usb_state_receiving">Reifen werden empfangen</string>
+    <!-- The alarm limits (Tyres.limits) and the receiver's status byte, in the USB tyre sensors sheet. -->
+    <string name="tpms_usb_status">Status %1$s</string>
+    <string name="tpms_limits">Alarmgrenzen</string>
+    <string name="tpms_limits_hint">Die Reifenwarnung und ihre Ansage lösen jenseits dieser Werte aus, egal was die Reifen meldet.</string>
+    <string name="tpms_limit_low">Niedriger Druck</string>
+    <string name="tpms_limit_low_detail">Bei diesem Wert oder darunter ist ein Reifen zu schwach gefüllt. Sind die Drücke des Autos eingetragen, gelten stattdessen 80 Prozent jener Werte.</string>
+    <string name="tpms_limit_high">Hoher Druck</string>
+    <string name="tpms_limit_high_detail">Bei diesem Wert oder darüber ist ein Reifen zu stark gefüllt</string>
+    <string name="tpms_limit_hot">Heißer Reifen</string>
+    <string name="tpms_limit_hot_detail">Bei diesem Wert oder darüber ist ein Reifen zu heiß</string>
 </resources>

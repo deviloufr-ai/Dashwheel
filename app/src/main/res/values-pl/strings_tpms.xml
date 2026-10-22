@@ -21,4 +21,14 @@
     <string name="tpms_usb_state_busy">Odbiornik używany gdzie indziej</string>
     <string name="tpms_usb_state_listening">Nasłuchuje, czeka na czujniki</string>
     <string name="tpms_usb_state_receiving">Odbiera opony</string>
+    <!-- The alarm limits (Tyres.limits) and the receiver's status byte, in the USB tyre sensors sheet. -->
+    <string name="tpms_usb_status">stan %1$s</string>
+    <string name="tpms_limits">Progi alarmu</string>
+    <string name="tpms_limits_hint">Ostrzeżenie o oponach i jego głos włączają się poza tymi progami, niezależnie od źródła.</string>
+    <string name="tpms_limit_low">Niskie ciśnienie</string>
+    <string name="tpms_limit_low_detail">Przy tej wartości lub niżej opona jest za słabo napompowana. Gdy ciśnienia auta są wpisane, liczy się 80 procent z nich.</string>
+    <string name="tpms_limit_high">Wysokie ciśnienie</string>
+    <string name="tpms_limit_high_detail">Przy tej wartości lub wyżej opona jest za mocno napompowana</string>
+    <string name="tpms_limit_hot">Gorąca opona</string>
+    <string name="tpms_limit_hot_detail">Przy tej wartości lub wyżej opona jest za gorąca</string>
 </resources>

@@ -21,4 +21,14 @@
     <string name="tpms_usb_state_busy">Recetor em uso noutro lado</string>
     <string name="tpms_usb_state_listening">À escuta, à espera dos sensores</string>
     <string name="tpms_usb_state_receiving">A receber os pneus</string>
+    <!-- The alarm limits (Tyres.limits) and the receiver's status byte, in the USB tyre sensors sheet. -->
+    <string name="tpms_usb_status">estado %1$s</string>
+    <string name="tpms_limits">Limites de alarme</string>
+    <string name="tpms_limits_hint">O aviso dos pneus e a sua voz disparam além destes limites, seja qual for a fonte.</string>
+    <string name="tpms_limit_low">Pressão baixa</string>
+    <string name="tpms_limit_low_detail">Neste valor ou abaixo, um pneu está baixo. Com as pressões do carro definidas, contam antes os seus 80 por cento.</string>
+    <string name="tpms_limit_high">Pressão alta</string>
+    <string name="tpms_limit_high_detail">Neste valor ou acima, um pneu está alto</string>
+    <string name="tpms_limit_hot">Pneu quente</string>
+    <string name="tpms_limit_hot_detail">Neste valor ou acima, um pneu está quente demais</string>
 </resources>

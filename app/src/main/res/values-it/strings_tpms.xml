@@ -21,4 +21,14 @@
     <string name="tpms_usb_state_busy">Ricevitore in uso altrove</string>
     <string name="tpms_usb_state_listening">In ascolto, in attesa dei sensori</string>
     <string name="tpms_usb_state_receiving">Pneumatici ricevuti</string>
+    <!-- The alarm limits (Tyres.limits) and the receiver's status byte, in the USB tyre sensors sheet. -->
+    <string name="tpms_usb_status">stato %1$s</string>
+    <string name="tpms_limits">Soglie di allarme</string>
+    <string name="tpms_limits_hint">L\'avviso pneumatici e la sua voce scattano oltre queste soglie, qualunque sia la fonte.</string>
+    <string name="tpms_limit_low">Pressione bassa</string>
+    <string name="tpms_limit_low_detail">A questo valore o sotto, uno pneumatico è sgonfio. Con le pressioni dell\'auto impostate, conta invece il loro 80 per cento.</string>
+    <string name="tpms_limit_high">Pressione alta</string>
+    <string name="tpms_limit_high_detail">A questo valore o sopra, uno pneumatico è troppo gonfio</string>
+    <string name="tpms_limit_hot">Pneumatico caldo</string>
+    <string name="tpms_limit_hot_detail">A questo valore o sopra, uno pneumatico è troppo caldo</string>
 </resources>
