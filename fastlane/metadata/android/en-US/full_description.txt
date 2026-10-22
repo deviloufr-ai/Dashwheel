@@ -1,6 +1,6 @@
 <p>Dashwheel replaces the home screen of an Android car head unit. Map, music and live car data share one calm screen, and you arrange it yourself.</p>
 
-<p>Made for 1280x720 head units (ROCO K706, FYT and QF units). It also works on upright Tesla-style screens and on phones. Android 9 or newer.</p>
+<p>Works on any screen size: wide head units (1024x600, 1280x720, 1920x720 and more, ROCO K706, FYT and QF units), upright Tesla-style screens and phones. Android 9 or newer.</p>
 
 <p><b>Dashboards</b></p>
 <ul>

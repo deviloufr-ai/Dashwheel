@@ -6,7 +6,7 @@
 
 ![Dashwheel: map, speed, weather and music on one screen](docs/screenshots/01_hero.jpg)
 
-**[Download the latest release](https://github.com/deviloufr-ai/Dashwheel/releases/latest)** · Android 9+ · made for 1280×720 head units (ROCO K706 / FYT / QF), also works on upright screens and phones.
+**[Download the latest release](https://github.com/deviloufr-ai/Dashwheel/releases/latest)** · Android 9+ · fits any screen size: wide head units of any resolution (ROCO K706 / FYT / QF), upright screens and phones.
 
 📖 **[Read the wiki](https://github.com/deviloufr-ai/Dashwheel/wiki)** for every feature, setup guides and what works with or without root.
 

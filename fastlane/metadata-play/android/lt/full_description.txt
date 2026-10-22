@@ -1,6 +1,6 @@
 Dashwheel pakeičia „Android“ automobilio magnetolos pradžios ekraną. Žemėlapis, muzika ir tiesioginiai automobilio duomenys viename ramiame ekrane, kurį išsidėstote patys.
 
-Sukurta 1280x720 magnetoloms (ROCO K706, FYT ir QF). Veikia ir vertikaliuose ekranuose bei telefonuose. „Android 9“ arba naujesnė. Root nereikia.
+Veikia bet kokio dydžio ekranuose: plačiose magnetolose (1024x600, 1280x720, 1920x720 ir kt., ROCO K706, FYT ir QF), vertikaliuose ekranuose ir telefonuose. „Android 9“ arba naujesnė. Root nereikia.
 
 SKYDELIAI
 • Iki septynių skydelių kryžiumi: trys greta, du virš ir du po viduriniu

@@ -1,6 +1,6 @@
 A Dashwheel lecseréli az Android-alapú autós fejegység kezdőképernyőjét. A térkép, a zene és az élő autóadatok egyetlen nyugodt képernyőn osztoznak, és Ön rendezi el őket.
 
-1280x720-as fejegységekhez készült (ROCO K706, FYT és QF egységek). Álló képernyőkön és telefonokon is működik. Android 9 vagy újabb. Nem kell hozzá root.
+Bármilyen képernyőméreten működik: széles fejegységeken (1024x600, 1280x720, 1920x720 és mások, ROCO K706, FYT és QF egységek), álló képernyőkön és telefonokon. Android 9 vagy újabb. Nem kell hozzá root.
 
 MŰSZERFALAK
 • Legfeljebb hét műszerfal kereszt alakban: három egymás mellett, kettő a középső felett és kettő alatta

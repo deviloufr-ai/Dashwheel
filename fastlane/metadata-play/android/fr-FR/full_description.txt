@@ -1,6 +1,6 @@
 Dashwheel remplace l'écran d'accueil d'un autoradio Android. Carte, musique et données de la voiture en direct partagent un seul écran calme, que vous organisez vous-même.
 
-Conçu pour les autoradios 1280x720 (ROCO K706, unités FYT et QF). Fonctionne aussi sur les écrans verticaux et sur téléphone. Android 9 ou plus récent. Sans root.
+S'adapte à toutes les tailles d'écran : autoradios larges (1024x600, 1280x720, 1920x720 et autres, ROCO K706, unités FYT et QF), écrans verticaux et téléphones. Android 9 ou plus récent. Sans root.
 
 TABLEAUX DE BORD
 • Jusqu'à sept tableaux de bord en croix : trois côte à côte, deux au-dessus et deux en dessous de celui du milieu
