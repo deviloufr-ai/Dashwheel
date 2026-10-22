@@ -194,7 +194,9 @@ internal data class FaceRow(
     val onClick: (() -> Unit)? = null,
     /** Set when the row can be swiped away (a notification); [key] then tells rows apart. */
     val onDismiss: (() -> Unit)? = null,
-    val key: Any? = null
+    val key: Any? = null,
+    /** A tyre's sensor battery, as the TPMS app shows it: true fine, false low, null not known (the Tyre map draws it). */
+    val battery: Boolean? = null
 )
 
 /** A small gauge: label, value, unit and how far round it goes (0..1). */

@@ -25,6 +25,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BatteryAlert
+import androidx.compose.material.icons.filled.BatteryFull
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -773,9 +775,19 @@ private fun WheelCallout(row: FaceRow?, look: FaceLook, m: FaceMetrics, end: Boo
             val unit = pressure.substringAfter(' ', "").substringBefore(',')
             if (unit.isNotEmpty()) FaceText(" $unit", look, m.sp(max(m.u * 5f, 10f)), color = look.dim, modifier = Modifier.padding(bottom = 2.dp))
         }
-        // The temperature after the pressure ("2.3 bar, 29 °C"), on a line of its own.
+        // The temperature after the pressure ("2.3 bar, 29 °C") and the sensor's battery, as the unit's TPMS app shows them.
         val temp = pressure.substringAfter(", ", "")
-        if (temp.isNotEmpty()) FaceText(temp, look, m.sp(max(m.u * 4.8f, 10f)), color = look.dim)
+        val battery = row?.battery
+        if (temp.isNotEmpty() || battery != null) Row(verticalAlignment = Alignment.CenterVertically) {
+            if (temp.isNotEmpty()) FaceText(temp, look, m.sp(max(m.u * 4.8f, 10f)), color = look.dim)
+            if (battery != null) {
+                Spacer(Modifier.width(m.dp(1f)))
+                Icon(
+                    if (battery) Icons.Filled.BatteryFull else Icons.Filled.BatteryAlert, contentDescription = null,
+                    tint = if (battery) look.dim else look.warn, modifier = Modifier.size(maxOf(m.dp(5f), 12.dp))
+                )
+            }
+        }
         if (problem.isNotEmpty()) FaceText(problem, look, m.sp(max(m.u * 4.8f, 10f)), color = look.warn, weight = FontWeight.Medium)
     }
 }

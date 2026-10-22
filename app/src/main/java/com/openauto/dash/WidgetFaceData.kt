@@ -1236,7 +1236,8 @@ private fun tyresFace(): WidgetFace {
             // "Low pressure · 2.3 bar, 29 °C": what's wrong, then the reading (the Tyre map splits it the same way).
             val flags = listOfNotNull(problem?.let { stringResource(it.labelRes) }, stringResource(R.string.car_tyres_sensor_battery).takeIf { t.sensorBatteryLow })
             val reading = "${formatPressure(t.kPa, unit)}, ${u.tempText(t.celsius)}"
-            FaceRow(stringResource(pos.labelRes), (flags + reading).joinToString(" · "), alert = problem != null)
+            // The unit's TPMS app says low or not for every tyre; the USB receiver's frame has no known battery bit.
+            FaceRow(stringResource(pos.labelRes), (flags + reading).joinToString(" · "), alert = problem != null, battery = (!t.sensorBatteryLow).takeIf { Tyres.fromApp })
         }
     }
     val rows = wheels.filterNotNull()
