@@ -11,4 +11,16 @@
     <string name="look_home_own">Comes with its own Home</string>
     <string name="look_home_own_off">Has its own Home. Arrange Home is off.</string>
     <string name="look_home_keeps">Home stays as it is</string>
+    <string name="start_anim_title">Start-up animation</string>
+    <string name="start_anim_detail">Plays while the dashboard and its apps start. Choose one to see it.</string>
+    <string name="start_anim_still">Still picture</string>
+    <string name="start_anim_welcome">Welcome lights</string>
+    <string name="start_anim_assemble">Assemble</string>
+    <string name="start_anim_ignition">Ignition</string>
+    <string name="start_anim_road">Night road</string>
+    <string name="start_anim_blueprint">Blueprint</string>
+    <string name="start_anim_aurora">Aurora</string>
+    <string name="start_greet_morning">Good morning</string>
+    <string name="start_greet_afternoon">Good afternoon</string>
+    <string name="start_greet_evening">Good evening</string>
 </resources>

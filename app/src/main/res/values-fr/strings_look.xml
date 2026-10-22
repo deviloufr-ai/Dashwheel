@@ -10,4 +10,16 @@
     <string name="look_home_own">Arrive avec son propre Accueil</string>
     <string name="look_home_own_off">A son propre Accueil. Disposer est désactivé.</string>
     <string name="look_home_keeps">L\'Accueil reste tel quel</string>
+    <string name="start_anim_title">Animation de démarrage</string>
+    <string name="start_anim_detail">S\'affiche pendant le démarrage du tableau de bord et de ses apps. Choisissez-en une pour la voir.</string>
+    <string name="start_anim_still">Image fixe</string>
+    <string name="start_anim_welcome">Feux d\'accueil</string>
+    <string name="start_anim_assemble">Assemblage</string>
+    <string name="start_anim_ignition">Contact</string>
+    <string name="start_anim_road">Route de nuit</string>
+    <string name="start_anim_blueprint">Plan</string>
+    <string name="start_anim_aurora">Aurore</string>
+    <string name="start_greet_morning">Bonjour</string>
+    <string name="start_greet_afternoon">Bon après-midi</string>
+    <string name="start_greet_evening">Bonsoir</string>
 </resources>

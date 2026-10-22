@@ -63,6 +63,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import kotlin.math.ceil
 import androidx.compose.ui.unit.Dp
@@ -77,6 +78,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -225,7 +228,16 @@ internal fun DashboardPage(
     val haptics = LocalHapticFeedback.current
     val holdPage by rememberUpdatedState(onHoldPage)
     val itemsNow by rememberUpdatedState(pageItems)
-    BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(6.dp)) {
+    val hostView = LocalView.current
+    BoxWithConstraints(
+        modifier = Modifier.fillMaxSize().padding(6.dp).onGloballyPositioned { coords ->
+            // The page in sight, for the Blueprint start-up animation: a page beside it is clipped away.
+            if (!StartSplash.collecting || coords.boundsInWindow().width < coords.size.width * 0.9f) return@onGloballyPositioned
+            val origin = IntArray(2).also { hostView.getLocationOnScreen(it) }
+            val at = coords.positionInWindow()
+            StartSplash.grid(origin[0] + at.x, origin[1] + at.y, coords.size.width / GRID_COLS.toFloat(), coords.size.height / GRID_ROWS.toFloat(), itemsNow)
+        }
+    ) {
         val cellW = maxWidth / GRID_COLS
         val cellH = maxHeight / GRID_ROWS
         val cellWpx = with(density) { cellW.toPx() }

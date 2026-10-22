@@ -10,4 +10,16 @@
     <string name="look_home_own">Traz o seu próprio Início</string>
     <string name="look_home_own_off">Tem o seu próprio Início. Dispor está desligado.</string>
     <string name="look_home_keeps">O Início fica como está</string>
+    <string name="start_anim_title">Animação de arranque</string>
+    <string name="start_anim_detail">Aparece enquanto o painel e as suas apps arrancam. Escolha uma para a ver.</string>
+    <string name="start_anim_still">Imagem fixa</string>
+    <string name="start_anim_welcome">Luzes de boas-vindas</string>
+    <string name="start_anim_assemble">Montagem</string>
+    <string name="start_anim_ignition">Ignição</string>
+    <string name="start_anim_road">Estrada à noite</string>
+    <string name="start_anim_blueprint">Planta</string>
+    <string name="start_anim_aurora">Aurora</string>
+    <string name="start_greet_morning">Bom dia</string>
+    <string name="start_greet_afternoon">Boa tarde</string>
+    <string name="start_greet_evening">Boa noite</string>
 </resources>

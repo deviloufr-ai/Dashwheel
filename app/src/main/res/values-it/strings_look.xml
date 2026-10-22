@@ -10,4 +10,16 @@
     <string name="look_home_own">Ha la sua Home</string>
     <string name="look_home_own_off">Ha la sua Home. Disporre è spento.</string>
     <string name="look_home_keeps">La Home resta com\'è</string>
+    <string name="start_anim_title">Animazione di avvio</string>
+    <string name="start_anim_detail">Si vede mentre partono la dashboard e le sue app. Scegline una per vederla.</string>
+    <string name="start_anim_still">Immagine fissa</string>
+    <string name="start_anim_welcome">Luci di benvenuto</string>
+    <string name="start_anim_assemble">Assemblaggio</string>
+    <string name="start_anim_ignition">Accensione</string>
+    <string name="start_anim_road">Strada di notte</string>
+    <string name="start_anim_blueprint">Progetto</string>
+    <string name="start_anim_aurora">Aurora</string>
+    <string name="start_greet_morning">Buongiorno</string>
+    <string name="start_greet_afternoon">Buon pomeriggio</string>
+    <string name="start_greet_evening">Buonasera</string>
 </resources>

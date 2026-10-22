@@ -11,4 +11,16 @@
     <string name="look_home_own">Turi savo Home</string>
     <string name="look_home_own_off">Turi savo Home. Išdėstymas pagal išvaizdą išjungtas.</string>
     <string name="look_home_keeps">Home lieka toks, koks yra</string>
+    <string name="start_anim_title">Paleidimo animacija</string>
+    <string name="start_anim_detail">Rodoma, kol paleidžiamas skydelis ir jo programos. Pasirinkite, kad pamatytumėte.</string>
+    <string name="start_anim_still">Nejudantis vaizdas</string>
+    <string name="start_anim_welcome">Sveikinimo šviesos</string>
+    <string name="start_anim_assemble">Surinkimas</string>
+    <string name="start_anim_ignition">Uždegimas</string>
+    <string name="start_anim_road">Naktinis kelias</string>
+    <string name="start_anim_blueprint">Brėžinys</string>
+    <string name="start_anim_aurora">Pašvaistė</string>
+    <string name="start_greet_morning">Labas rytas</string>
+    <string name="start_greet_afternoon">Laba diena</string>
+    <string name="start_greet_evening">Labas vakaras</string>
 </resources>

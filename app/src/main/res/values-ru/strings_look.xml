@@ -10,4 +10,16 @@
     <string name="look_home_own">Со своим главным экраном</string>
     <string name="look_home_own_off">Есть свой главный экран. Расстановка выключена.</string>
     <string name="look_home_keeps">Главный экран не меняется</string>
+    <string name="start_anim_title">Анимация запуска</string>
+    <string name="start_anim_detail">Показывается, пока запускаются панель и её приложения. Выберите, чтобы посмотреть.</string>
+    <string name="start_anim_still">Неподвижный кадр</string>
+    <string name="start_anim_welcome">Приветственные огни</string>
+    <string name="start_anim_assemble">Сборка</string>
+    <string name="start_anim_ignition">Зажигание</string>
+    <string name="start_anim_road">Ночная дорога</string>
+    <string name="start_anim_blueprint">Чертёж</string>
+    <string name="start_anim_aurora">Северное сияние</string>
+    <string name="start_greet_morning">Доброе утро</string>
+    <string name="start_greet_afternoon">Добрый день</string>
+    <string name="start_greet_evening">Добрый вечер</string>
 </resources>

@@ -824,13 +824,16 @@ private fun deepFieldLabel(field: ObdField): Int = when (field) {
 
 /**
  * What the dashboard looks like: the look in use with the Home it brings and
- * the looks by family (LookPage.kt), then day and night beside the effects.
+ * the looks by family (LookPage.kt), then day and night beside the effects,
+ * and the animation Dashwheel starts with.
  */
 @Composable
 private fun LookPane(theme: ThemeState) {
     LookPicker(theme)
     Spacer(Modifier.height(16.dp))
     LookLightAndEffects(theme)
+    Spacer(Modifier.height(20.dp))
+    StartAnimationSetting()
 }
 
 /** The dashboard around the tiles: the bottom bar, its readouts, the side rail and tabs, Moments. */

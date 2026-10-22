@@ -10,4 +10,16 @@
     <string name="look_home_own">Bringt einen eigenen Start mit</string>
     <string name="look_home_own_off">Hat einen eigenen Start. Anordnen ist aus.</string>
     <string name="look_home_keeps">Start bleibt, wie er ist</string>
+    <string name="start_anim_title">Startanimation</string>
+    <string name="start_anim_detail">Läuft, während das Dashboard und seine Apps starten. Zum Ansehen eine auswählen.</string>
+    <string name="start_anim_still">Standbild</string>
+    <string name="start_anim_welcome">Willkommenslicht</string>
+    <string name="start_anim_assemble">Zusammenbau</string>
+    <string name="start_anim_ignition">Zündung</string>
+    <string name="start_anim_road">Nachtfahrt</string>
+    <string name="start_anim_blueprint">Bauplan</string>
+    <string name="start_anim_aurora">Polarlicht</string>
+    <string name="start_greet_morning">Guten Morgen</string>
+    <string name="start_greet_afternoon">Guten Tag</string>
+    <string name="start_greet_evening">Guten Abend</string>
 </resources>

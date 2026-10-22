@@ -10,4 +10,16 @@
     <string name="look_home_own">Heeft een eigen Start</string>
     <string name="look_home_own_off">Heeft een eigen Start. Indelen staat uit.</string>
     <string name="look_home_keeps">Start blijft zoals hij is</string>
+    <string name="start_anim_title">Startanimatie</string>
+    <string name="start_anim_detail">Speelt terwijl het dashboard en zijn apps starten. Kies er een om hem te zien.</string>
+    <string name="start_anim_still">Stilstaand beeld</string>
+    <string name="start_anim_welcome">Welkomstlicht</string>
+    <string name="start_anim_assemble">Opbouw</string>
+    <string name="start_anim_ignition">Contact</string>
+    <string name="start_anim_road">Nachtweg</string>
+    <string name="start_anim_blueprint">Blauwdruk</string>
+    <string name="start_anim_aurora">Noorderlicht</string>
+    <string name="start_greet_morning">Goedemorgen</string>
+    <string name="start_greet_afternoon">Goedemiddag</string>
+    <string name="start_greet_evening">Goedenavond</string>
 </resources>

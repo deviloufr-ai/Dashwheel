@@ -47,6 +47,9 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.ui.viewinterop.AndroidView
 
 /*
  * Settings, Look, rebuilt for thirty and more looks. On top, the look in use
@@ -429,6 +432,81 @@ internal fun LookLightAndEffects(theme: ThemeState) {
                 Spacer(Modifier.height(20.dp))
                 EffectsSetting(theme)
             }
+        }
+    }
+}
+
+/** The moment each start-up animation is drawn at on its card: where it looks most like itself. */
+private fun StartAnimation.cardMoment(): Float = when (this) {
+    StartAnimation.IGNITION -> 1.1f
+    StartAnimation.ASSEMBLE, StartAnimation.BLUEPRINT -> 3.5f
+    StartAnimation.WELCOME -> 4f
+    else -> 3f
+}
+
+/**
+ * The animation Dashwheel starts with (StartSplash): a card each, drawn at
+ * its best moment. Choosing one plays it full screen, as the next start will.
+ */
+@Composable
+internal fun StartAnimationSetting() {
+    val context = LocalContext.current
+    val chosen by StartSplash.chosen.collectAsState()
+    SettingsSection(stringResource(R.string.start_anim_title))
+    Row(
+        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        StartAnimation.entries.forEach { animation ->
+            StartAnimationCard(animation, animation == chosen) {
+                StartSplash.save(context, animation)
+                context.findActivity()?.let { MainScreenCover.tryOut(it, animation) }
+            }
+        }
+    }
+    SwitchHint(stringResource(R.string.start_anim_detail))
+}
+
+@Composable
+private fun StartAnimationCard(animation: StartAnimation, selected: Boolean, onClick: () -> Unit) {
+    val shape = DashShape.Medium
+    val tap = rememberTapFeedback()
+    Column(
+        modifier = Modifier
+            .width(210.dp)
+            .clip(shape)
+            .border(if (selected) 2.dp else 1.dp, if (selected) DashColors.Accent else DashColors.Line, shape)
+            .background(DashColors.CardHi.copy(alpha = DashColors.CardHi.alpha * if (selected) 0.65f else 0.3f))
+            .selectable(selected = selected, role = Role.RadioButton) { tap(); onClick() }
+            .padding(8.dp)
+    ) {
+        Box(
+            Modifier.fillMaxWidth().aspectRatio(16f / 9f).clip(DashShape.Small).background(Color(0xFF0B0D12)),
+            contentAlignment = Alignment.Center
+        ) {
+            if (animation == StartAnimation.STILL) {
+                Icon(Icons.Filled.Image, contentDescription = null, tint = Color.White.copy(alpha = 0.6f), modifier = Modifier.size(36.dp))
+            } else {
+                AndroidView(
+                    factory = { StartSplashView(it, animation, frozenAt = animation.cardMoment(), sample = true) },
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth().heightIn(min = 40.dp).padding(start = 4.dp, top = 6.dp)
+        ) {
+            Text(
+                stringResource(animation.titleRes),
+                color = DashColors.TextPrimary,
+                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
+            if (selected) Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.dash_selected), tint = DashColors.Accent, modifier = Modifier.size(22.dp))
         }
     }
 }

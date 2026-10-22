@@ -146,6 +146,7 @@ open class MainActivity : ComponentActivity() {
         if (FloatingHome.redirect(this)) return
         if (!onlyOne()) return
         MainScreenCover.attach(this)
+        StartSplash.load(this)
         // The tile displays' owner (the system user, through root): started first,
         // so the tiles' apps open on displays that keep every screen they open.
         SystemDisplays.start(this)
@@ -354,6 +355,8 @@ open class MainActivity : ComponentActivity() {
         StuckSplit.check(this)
         FreeformBar.dashboardInFront = true
         MainScreenCover.onResumed(true)
+        // Dashwheel's first start: the driver's start-up animation while everything is built.
+        MainScreenCover.startUp(this)
         // Home pressed over an app that never stopped the dashboard (a window): no onStart then.
         EmbeddedApp.dashboardBack()
         // The unit's 24-hour switch may have changed in its settings meanwhile.

@@ -10,4 +10,16 @@
     <string name="look_home_own">Saját kezdőlappal érkezik</string>
     <string name="look_home_own_off">Saját kezdőlapja van. Az elrendezés ki van kapcsolva.</string>
     <string name="look_home_keeps">A kezdőlap marad, ahogy van</string>
+    <string name="start_anim_title">Indítási animáció</string>
+    <string name="start_anim_detail">A műszerfal és alkalmazásai indulása közben fut. Válassz egyet a megtekintéshez.</string>
+    <string name="start_anim_still">Állókép</string>
+    <string name="start_anim_welcome">Üdvözlő fények</string>
+    <string name="start_anim_assemble">Összeállás</string>
+    <string name="start_anim_ignition">Gyújtás</string>
+    <string name="start_anim_road">Éjszakai út</string>
+    <string name="start_anim_blueprint">Tervrajz</string>
+    <string name="start_anim_aurora">Sarki fény</string>
+    <string name="start_greet_morning">Jó reggelt</string>
+    <string name="start_greet_afternoon">Jó napot</string>
+    <string name="start_greet_evening">Jó estét</string>
 </resources>
