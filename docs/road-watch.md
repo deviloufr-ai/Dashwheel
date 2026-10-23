@@ -48,6 +48,19 @@ Two triggers within 10 s are one clip. Recording pauses when Android reports the
 
 Law: dashcams are allowed in most of Europe, restricted in Austria and Portugal among others; the card says so, and the clips stay on the phone.
 
+## Later: the car's own cameras
+
+Not built; an idea kept here so it isn't lost (also a GitHub issue).
+
+On the QF units Dashwheel already opens the unit's cameras through Camera2 (`ReverseCamera.kt`): camera `1` is the reversing camera, camera `0` the second video input, where a front or kerb camera sits on units that have one. They are analog inputs through the unit's video chip, about 720 x 480, wide fisheye, the rear one usually mirrored; the firmware's camera app holds them, so taking one needs root, as the reverse view does. Two uses, in the order worth building:
+
+1. **The reversing camera as a rear recorder.** Rear-end collisions are the most common claim, and the phone behind the windscreen never sees them. With the reversing camera on constant power (most installs power it from the reverse-light circuit, so this is a wiring question first), the launcher could run the same rolling segments and locked clips as `RoadRecorder`, on the unit's storage, with the car's speed and indicators burned in, locked by the same triggers (the hazards, a hard brake, the phone's impact detector over the link); and a "car behind closing fast" warning, the detector seeing a car from the front as well as from behind.
+2. **A front camera on input 0 as Road watch without the phone.** `LaneFinder`, `LeadTracker` and `RoadRules` are shared Kotlin in `link`, so the launcher could run them on the unit's own frames, the vehicle detector on the unit's CPU (a UIS7862 should manage 4 to 6 frames a second). Needs a one-time calibration of the fisheye's view ("the car ahead is about 10 m away"), and gives no impact detection, the unit having no accelerometer.
+
+A third route, the USB "DVR" cameras FYT and QF units support (plain UVC webcams), gives a cleaner picture but needs a UVC library and USB host permission.
+
+First step either way: a probe under Settings that opens camera 0 and 1 outside reversing and reports whether frames arrive, at what size, and whether the rear one stays powered.
+
 ## What to try on a real drive
 
 - The horizon line set right (drag it on the phone's screen): the lane is searched below it.

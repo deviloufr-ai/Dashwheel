@@ -48,6 +48,8 @@
     <!-- Road watch: the phone behind the windscreen reads the road ahead with its camera. -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <!-- The road recorder's short buzz when a clip is kept. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <!-- "On my way": the car asks the phone to text a contact its arrival time. -->
     <uses-permission android:name="android.permission.SEND_SMS" />
