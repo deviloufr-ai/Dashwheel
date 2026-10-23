@@ -103,7 +103,7 @@ class RoadWatchActivity : ComponentActivity() {
         override fun onDisplayRemoved(displayId: Int) = Unit
         // Turned round in its holder (landscape one way, then the other): no restart, so the frames are told.
         override fun onDisplayChanged(displayId: Int) {
-            display?.let { analysis?.targetRotation = it.rotation }
+            analysis?.targetRotation = ContextCompat.getDisplayOrDefault(this@RoadWatchActivity).rotation
         }
     }
 
@@ -175,7 +175,7 @@ class RoadWatchActivity : ComponentActivity() {
                 .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
                 .build()
                 .also { it.setAnalyzer(frames, watch) }
-            display?.let { reader.targetRotation = it.rotation }
+            reader.targetRotation = ContextCompat.getDisplayOrDefault(this@RoadWatchActivity).rotation
             analysis = reader
             provider.unbindAll()
             val camera = runCatching {
