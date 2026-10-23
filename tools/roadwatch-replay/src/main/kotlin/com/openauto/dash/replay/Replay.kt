@@ -1,0 +1,164 @@
+package com.openauto.dash.replay
+
+import com.openauto.dash.link.RoadScene
+import com.openauto.dash.roadwatch.Detection
+import com.openauto.dash.roadwatch.LaneFinder
+import com.openauto.dash.roadwatch.LaneState
+import com.openauto.dash.roadwatch.LaneTracker
+import com.openauto.dash.roadwatch.Lead
+import com.openauto.dash.roadwatch.LeadTracker
+import com.openauto.dash.roadwatch.Luma
+import com.openauto.dash.roadwatch.REFERENCE_HFOV
+import com.openauto.dash.roadwatch.RoadBand
+import com.openauto.dash.roadwatch.RoadRules
+import com.openauto.dash.roadwatch.RoadWarning
+import java.nio.ByteBuffer
+import kotlin.math.abs
+
+/*
+ * The replay itself, frame by frame, with no video or file I/O: the same
+ * calls, in the same order, as RoadWatch.read() on the phone, so what this
+ * reports is what the phone would have done with the same frames. Main.kt
+ * feeds it frames and writes its report; ReplayTest feeds it drawn roads.
+ */
+
+/** What the phone knows beside the picture at one frame: its speed, and whether an indicator is on. */
+data class Telemetry(val speedKmh: Float?, val indicating: Boolean = false)
+
+/** What the pipeline made of one frame. */
+data class FrameResult(
+    val index: Int,
+    val timeMs: Long,
+    val lane: LaneState,
+    val lead: Lead?,
+    val warning: RoadWarning?,
+    val speedKmh: Float?
+)
+
+/** A hand-labelled frame, to measure against: where each line crosses the bonnet's row, and how far the car ahead is. */
+data class Label(val frame: Int, val leftX: Float?, val rightX: Float?, val leadM: Float?)
+
+class ReplaySession(
+    val band: RoadBand = RoadBand(),
+    carX: Float = 0.5f,
+    val hfovDeg: Float = REFERENCE_HFOV,
+    /** The lane is looked for in a picture this wide, as on the phone. */
+    private val lumaWidth: Int = 160
+) {
+    private val lanes = LaneTracker(carX)
+    private val leads = LeadTracker(hfovDeg)
+    private val rules = RoadRules()
+    private val _results = ArrayList<FrameResult>()
+    val results: List<FrameResult> get() = _results
+
+    /** One frame: RGBA bytes, rows [rowStride] apart, standing upright; [detections] from the model for the same frame. */
+    fun frame(index: Int, timeMs: Long, rgba: ByteBuffer, width: Int, height: Int, rowStride: Int, detections: List<Detection>, telemetry: Telemetry): FrameResult {
+        val luma = Luma.fromRgba(rgba, width, height, rowStride, 0, lumaWidth)
+        return frame(index, timeMs, luma, detections, telemetry)
+    }
+
+    fun frame(index: Int, timeMs: Long, luma: Luma, detections: List<Detection>, telemetry: Telemetry): FrameResult {
+        val speed = telemetry.speedKmh
+        val steady = speed != null && speed >= LEARN_KMH
+        val sighting = LaneFinder.find(luma, band, lanes.carX, hfovDeg)
+        val lane = lanes.update(sighting, timeMs, learn = steady && lanes.laneWidth > 0f)
+        val lead = leads.update(detections, lane, band, lanes.carX, timeMs)
+        val scene = RoadScene(
+            offset = lane.offset, lines = lane.lines,
+            leadM = lead?.distanceM, closingMps = lead?.closingMps, ttcS = lead?.ttcS,
+            leadKind = lead?.kind?.name?.lowercase(), speedKmh = speed
+        )
+        val warning = rules.update(scene, null, telemetry.indicating, timeMs)
+        val result = FrameResult(index, timeMs, lane, lead, warning, speed)
+        _results += result
+        return result
+    }
+
+    /** The counts over the frames so far. */
+    fun report(labels: List<Label> = emptyList()): Report = Report.of(_results, labels)
+
+    private companion object {
+        const val LEARN_KMH = 50f
+    }
+}
+
+/** A warning as it came up: its first frame and time. */
+data class WarningEvent(val warning: RoadWarning, val frame: Int, val timeMs: Long)
+
+data class Report(
+    val frames: Int,
+    val bothLines: Int,
+    val oneLine: Int,
+    val noLine: Int,
+    val leadSeen: Int,
+    val warnings: List<WarningEvent>,
+    /** Mean error of the lines' place at the bonnet's row against the labels, as a share of the width; null without labels. */
+    val lineErrorX: Float?,
+    /** Share of the labelled frames whose labelled lines were both found. */
+    val lineRecall: Float?,
+    /** Mean error of the distance to the car ahead against the labels, in metres. */
+    val leadErrorM: Float?,
+    val leadRecall: Float?
+) {
+    fun summary(): String = buildString {
+        appendLine("frames: $frames")
+        appendLine("lane: both lines ${pct(bothLines)}, one ${pct(oneLine)}, none ${pct(noLine)}")
+        appendLine("car ahead seen: ${pct(leadSeen)}")
+        appendLine("warnings: ${warnings.size}")
+        warnings.forEach { appendLine("  ${it.warning} at ${"%.1f".format(it.timeMs / 1000.0)} s (frame ${it.frame})") }
+        if (lineErrorX != null) appendLine("lines vs labels: found ${"%.0f".format(lineRecall!! * 100)} %, mean error ${"%.3f".format(lineErrorX)} of the width")
+        if (leadErrorM != null) appendLine("car ahead vs labels: found ${"%.0f".format(leadRecall!! * 100)} %, mean error ${"%.1f".format(leadErrorM)} m")
+    }
+
+    private fun pct(n: Int) = if (frames == 0) "0 %" else "${n * 100 / frames} %"
+
+    companion object {
+        fun of(results: List<FrameResult>, labels: List<Label>): Report {
+            val events = ArrayList<WarningEvent>()
+            var before: RoadWarning? = null
+            for (r in results) {
+                if (r.warning != null && r.warning != before) events += WarningEvent(r.warning, r.index, r.timeMs)
+                before = r.warning
+            }
+            val byFrame = results.associateBy { it.index }
+            val lineErrors = ArrayList<Float>()
+            var lineLabelled = 0
+            var lineFound = 0
+            val leadErrors = ArrayList<Float>()
+            var leadLabelled = 0
+            var leadFound = 0
+            for (l in labels) {
+                val r = byFrame[l.frame] ?: continue
+                if (l.leftX != null && l.rightX != null) {
+                    lineLabelled++
+                    val left = r.lane.left
+                    val right = r.lane.right
+                    if (left != null && right != null) {
+                        lineFound++
+                        lineErrors += abs(left.bottomX - l.leftX)
+                        lineErrors += abs(right.bottomX - l.rightX)
+                    }
+                }
+                if (l.leadM != null) {
+                    leadLabelled++
+                    r.lead?.let {
+                        leadFound++
+                        leadErrors += abs(it.distanceM - l.leadM)
+                    }
+                }
+            }
+            return Report(
+                frames = results.size,
+                bothLines = results.count { it.lane.lines == 2 },
+                oneLine = results.count { it.lane.lines == 1 },
+                noLine = results.count { it.lane.lines == 0 },
+                leadSeen = results.count { it.lead != null },
+                warnings = events,
+                lineErrorX = lineErrors.takeIf { it.isNotEmpty() }?.average()?.toFloat(),
+                lineRecall = if (lineLabelled > 0) lineFound.toFloat() / lineLabelled else null,
+                leadErrorM = leadErrors.takeIf { it.isNotEmpty() }?.average()?.toFloat(),
+                leadRecall = if (leadLabelled > 0) leadFound.toFloat() / leadLabelled else null
+            )
+        }
+    }
+}

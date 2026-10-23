@@ -13,7 +13,7 @@ Experimental, and marked so in both apps. The phone, in a holder behind the wind
 | `RoadWatch`, `RoadDetector`, `RoadWatchActivity` | `companion/` | The camera (CameraX), the vehicle detector (LiteRT), the screen over the camera's picture. |
 | `RoadWatch`, `RoadAlertOverlay` | `app/` | Applies `RoadRules` with the car's own speed and indicators, shows `AlertKind.ROAD`, plays the tones. |
 
-The shared part is plain Kotlin, tested on the JVM with drawn roads (`link/src/test/.../roadwatch/`).
+The shared part is plain Kotlin, tested on the JVM with drawn roads (`link/src/test/.../roadwatch/`), and replayed over recorded drives with `tools/roadwatch-replay` (its README): every change to the lane or vehicle logic is judged there, on real clips, by numbers.
 
 ## The vehicle detector
 

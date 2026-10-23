@@ -137,9 +137,18 @@ class LaneFinderTest {
         val seen = LaneSighting(LaneLine(0.15f, 0.47f), LaneLine(0.85f, 0.53f))
         repeat(3) { t.update(seen, it * 100L) }
         val jumped = LaneSighting(LaneLine(0.40f, 0.49f), LaneLine(0.85f, 0.53f))
-        assertNear(0.15f, t.update(jumped, 300).left?.bottomX)
-        assertNear(0.15f, t.update(jumped, 400).left?.bottomX)
-        assertNear(0.40f, t.update(jumped, 500).left?.bottomX)
+        repeat(7) { assertNear(0.15f, t.update(jumped, 300 + it * 100L).left?.bottomX) }
+        assertNear(0.40f, t.update(jumped, 1_000).left?.bottomX)
+    }
+
+    @Test
+    fun theRoadsFarEdgeIsNotTheLanesLineInADashesGap() {
+        // The lane's left line dashed at 0.15 (dashedLeft dashes the first line listed), the road's solid
+        // edge far out at -0.55: the edge has more points than the dashes and must still not be taken for them.
+        val img = road(lines = listOf(0.15f, -0.55f, 0.85f), dashedLeft = true, seed = 11)
+        val got = LaneFinder.find(img, band)
+        assertNear(0.15f, got.left?.bottomX)
+        assertNear(0.85f, got.right?.bottomX)
     }
 
     @Test

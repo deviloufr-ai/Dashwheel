@@ -153,6 +153,8 @@ object LaneFinder {
     private const val MAX_POINTS_PER_ROW = 10
     /** A line needs points on this share of the road's rows. */
     private const val MIN_SUPPORT = 0.18f
+    /** The car's own line is at most this far from the car at the bonnet's row (a share of the width at [REFERENCE_HFOV]): a lane and a half. */
+    private const val MAX_LINE_DISTANCE = 0.55f
 
     /**
      * The car's lane in [img]. [carX]: where the car's middle is, as a
@@ -220,10 +222,14 @@ object LaneFinder {
         val peaks = peaks(votes, nTop, nBot, minVotes)
         val car = carX * w
         fun line(p: Peak) = LaneLine((botMin + p.j * botStep) / w, (topMin + p.i * topStep) / w)
-        // A lane's line leans in towards the horizon; of the strong ones on a side, the nearest to the car.
+        // A lane's line leans in towards the horizon; of the strong lines on a side, the nearest to the car.
+        // No line further than a lane and a half away is the car's own, however solid: the road's far edge
+        // must not stand in for a dashed line while a gap in the dashes thins its points.
+        val reach = widthShare(MAX_LINE_DISTANCE, hfovDeg) * w
         fun nearest(candidates: List<Peak>, distance: (Peak) -> Float): Peak? {
-            val strongest = candidates.maxOfOrNull { it.votes } ?: return null
-            return candidates.filter { it.votes * 2 >= strongest }.minByOrNull(distance)
+            val near = candidates.filter { distance(it) <= reach }
+            val strongest = near.maxOfOrNull { it.votes } ?: return null
+            return near.filter { it.votes * 2 >= strongest }.minByOrNull(distance)
         }
         val left = nearest(peaks.filter { p ->
             val l = line(p)
@@ -342,7 +348,9 @@ class LaneTracker(carX: Float = 0.5f) {
                     val p = pending
                     if (p != null && abs(seen.bottomX - p.bottomX) < JUMP) pendingHits++ else pendingHits = 1
                     pending = seen
-                    if (pendingHits >= CONFIRM) {
+                    // A line elsewhere is believed only once it has stayed a while: a lane change takes
+                    // seconds, while the road's edge standing in for a dashed line's gap lasts a few frames.
+                    if (pendingHits >= CONFIRM_JUMP) {
                         line = seen
                         hits = CONFIRM
                         seenAt = now
@@ -399,6 +407,8 @@ class LaneTracker(carX: Float = 0.5f) {
         const val JUMP = 0.08f
         /** Frames running a new line must be seen in. */
         const val CONFIRM = 3
+        /** Frames running a line that jumped aside must be seen in before it replaces the one followed. */
+        const val CONFIRM_JUMP = 8
         const val SMOOTH = 0.5f
         const val WIDTH_SMOOTH = 0.05f
         /** About a minute of steady driving to move the car's place all the way. */
