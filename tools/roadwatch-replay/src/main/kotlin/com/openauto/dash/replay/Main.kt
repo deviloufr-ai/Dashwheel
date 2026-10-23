@@ -19,6 +19,7 @@ import java.io.DataInputStream
 import java.io.EOFException
 import java.io.File
 import java.nio.ByteBuffer
+import java.util.Locale
 import javax.imageio.ImageIO
 import kotlin.system.exitProcess
 
@@ -210,7 +211,7 @@ private fun timelineCsv(results: List<FrameResult>): String = buildString {
     for (r in results) {
         appendLine(
             listOf(
-                r.index, "%.3f".format(r.timeMs / 1000.0), r.speedKmh ?: "", r.lane.lines, r.lane.offset ?: "",
+                r.index, "%.3f".format(Locale.ROOT, r.timeMs / 1000.0), r.speedKmh ?: "", r.lane.lines, r.lane.offset ?: "",
                 r.lane.left?.bottomX ?: "", r.lane.right?.bottomX ?: "",
                 r.lead?.distanceM ?: "", r.lead?.closingMps ?: "", r.lead?.ttcS ?: "", r.warning ?: ""
             ).joinToString(",")

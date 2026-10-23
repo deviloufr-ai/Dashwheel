@@ -60,7 +60,7 @@ class ReplaySession(
     fun frame(index: Int, timeMs: Long, luma: Luma, detections: List<Detection>, telemetry: Telemetry): FrameResult {
         val speed = telemetry.speedKmh
         val steady = speed != null && speed >= LEARN_KMH
-        val sighting = LaneFinder.find(luma, band, lanes.carX, hfovDeg)
+        val sighting = LaneFinder.find(luma, band, lanes.carX, hfovDeg, detections.map { it.box })
         val lane = lanes.update(sighting, timeMs, learn = steady && lanes.laneWidth > 0f)
         val lead = leads.update(detections, lane, band, lanes.carX, timeMs)
         val scene = RoadScene(

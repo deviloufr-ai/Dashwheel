@@ -136,9 +136,9 @@ class LaneFinderTest {
         val t = LaneTracker()
         val seen = LaneSighting(LaneLine(0.15f, 0.47f), LaneLine(0.85f, 0.53f))
         repeat(3) { t.update(seen, it * 100L) }
-        val jumped = LaneSighting(LaneLine(0.40f, 0.49f), LaneLine(0.85f, 0.53f))
+        val jumped = LaneSighting(LaneLine(0.30f, 0.48f), LaneLine(0.85f, 0.53f))
         repeat(7) { assertNear(0.15f, t.update(jumped, 300 + it * 100L).left?.bottomX) }
-        assertNear(0.40f, t.update(jumped, 1_000).left?.bottomX)
+        assertNear(0.30f, t.update(jumped, 1_000).left?.bottomX)
     }
 
     @Test
@@ -149,6 +149,37 @@ class LaneFinderTest {
         val got = LaneFinder.find(img, band)
         assertNear(0.15f, got.left?.bottomX)
         assertNear(0.85f, got.right?.bottomX)
+    }
+
+    @Test
+    fun aVehiclesUprightStripesAreNotALine() {
+        // A van ahead: a white pillar standing up its back, between the car and the lane's right line.
+        val img = road(left = 0.15f, right = 0.85f)
+        upright(img, at = 0.62f, fromY = 0.6f)
+        assertNear(0.62f, LaneFinder.find(img, band).right?.bottomX)
+        val got = LaneFinder.find(img, band, vehicles = listOf(Box(0.55f, 0.55f, 0.7f, 0.95f)))
+        assertNear(0.85f, got.right?.bottomX)
+    }
+
+    @Test
+    fun aPoleIsNotALine() {
+        // Upright at the side, it does not run to the horizon ahead as a marking does.
+        val img = road(lines = listOf(0.85f))
+        upright(img, at = 0.2f, fromY = 0.5f)
+        val got = LaneFinder.find(img, band)
+        assertNull(got.left)
+        assertNear(0.85f, got.right?.bottomX)
+    }
+
+    @Test
+    fun aLaneTooNarrowLeavesOutTheLineTakenUpLast() {
+        val t = LaneTracker()
+        repeat(20) { t.update(LaneSighting(LaneLine(0.15f, 0.47f), LaneLine(0.85f, 0.53f)), it * 100L) }
+        // The right line jumps to the van ahead and stays there: a 0.4 lane against the 0.7 learned.
+        var state = LaneState()
+        repeat(10) { state = t.update(LaneSighting(LaneLine(0.15f, 0.47f), LaneLine(0.55f, 0.505f)), 2_000 + it * 100L) }
+        assertNull(state.right)
+        assertNear(0.15f, state.left?.bottomX)
     }
 
     @Test
@@ -182,6 +213,12 @@ class LaneFinderTest {
     }
 
     private fun topDepth() = band.depth(band.topY)
+
+    /** A bright upright stripe at [at] of the width, from row [fromY] down to the bonnet. */
+    private fun upright(img: Luma, at: Float, fromY: Float) {
+        val x0 = (at * img.w).toInt()
+        for (y in (fromY * img.h).toInt() until (band.bonnetY * img.h).toInt()) for (x in x0 - 1..x0 + 1) img.px[y * img.w + x] = 220
+    }
 
     private fun assertNear(expected: Float, got: Float?) {
         assertNotNull("no line found", got)

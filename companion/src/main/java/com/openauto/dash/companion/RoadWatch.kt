@@ -192,13 +192,12 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         val luma = Luma.fromRgba(buffer, w, h, plane.rowStride, rotation, LUMA_WIDTH)
         val speed = speedKmh?.takeIf { now - speedAt < SPEED_FRESH_MS }
         val steady = speed != null && speed >= LEARN_KMH
-        val sighting = LaneFinder.find(luma, band, lanes.carX, hfov)
-        val lane = lanes.update(sighting, now, learn = steady && lanes.laneWidth > 0f)
         val vehicles = detector
-        val lead = vehicles?.let {
-            val found = it.detect(buffer, w, h, plane.rowStride, rotation, (band.horizonY + band.bonnetY) / 2)
-            leads.update(found, lane, band, lanes.carX, now)
-        }
+        // The vehicles first: the lane is looked for around them, not on them.
+        val found = vehicles?.detect(buffer, w, h, plane.rowStride, rotation, (band.horizonY + band.bonnetY) / 2)
+        val sighting = LaneFinder.find(luma, band, lanes.carX, hfov, found.orEmpty().map { it.box })
+        val lane = lanes.update(sighting, now, learn = steady && lanes.laneWidth > 0f)
+        val lead = found?.let { leads.update(it, lane, band, lanes.carX, now) }
 
         val scene = RoadScene(
             offset = lane.offset,
