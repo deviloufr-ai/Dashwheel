@@ -124,7 +124,7 @@ class RoadWatchActivity : ComponentActivity() {
                     watch,
                     onCamera = { view -> bind(view) },
                     onDim = { dim -> dim(dim) },
-                    onModel = { frames.execute { watch.modelArrived() } },
+                    onModel = { onFrames { watch.modelArrived() } },
                     onClose = { finish() }
                 )
             }
@@ -133,20 +133,27 @@ class RoadWatchActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-        watch.start()
+        // On the frames' thread like stop, so a quick stop and start keep their order.
+        onFrames { watch.start() }
     }
 
     override fun onStop() {
         // On the frames' own thread, after the frame being read.
-        frames.execute { watch.stop() }
+        onFrames { watch.stop() }
         super.onStop()
     }
 
     override fun onDestroy() {
         getSystemService(DisplayManager::class.java)?.unregisterDisplayListener(displays)
+        analysis?.clearAnalyzer()
         frames.execute { watch.close() }
         frames.shutdown()
         super.onDestroy()
+    }
+
+    /** [work] on the frames' thread, unless the screen is already gone. */
+    private fun onFrames(work: () -> Unit) {
+        if (!frames.isShutdown) frames.execute(work)
     }
 
     private fun dim(on: Boolean) {
