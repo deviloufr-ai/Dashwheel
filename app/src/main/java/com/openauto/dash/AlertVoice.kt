@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.SystemClock
 import com.openauto.dash.link.CallState
 import com.openauto.dash.link.ConversationLine
+import com.openauto.dash.roadwatch.RoadWarning
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -168,6 +169,23 @@ object AlertVoice {
         if (AlertKind.TYRES !in AlertStyleStore.spoken.value) return
         val res = AppLanguage.wrap(context.applicationContext).resources
         say(context, res.getString(R.string.alert_say_tyre, res.getString(pos.labelRes), res.getString(problem.labelRes)), force)
+    }
+
+    /**
+     * Road watch's calmer warnings in words: "Keep your distance", "The
+     * traffic is moving". False when they are not said (the driver turned
+     * Road watch's voice off), for a tone to stand in.
+     */
+    fun sayRoad(context: Context, warning: RoadWarning, force: Boolean = false): Boolean {
+        if (AlertKind.ROAD !in AlertStyleStore.spoken.value) return false
+        val res = AppLanguage.wrap(context.applicationContext).resources
+        val text = when (warning) {
+            RoadWarning.TOO_CLOSE -> R.string.road_say_close
+            RoadWarning.MOVED_OFF -> R.string.road_say_moved_off
+            else -> return false
+        }
+        say(context, res.getString(text), force, urgent = warning == RoadWarning.TOO_CLOSE)
+        return true
     }
 
     /** [force]: said even if it was just said, or quiet was asked for ("Try it" pressed again). */

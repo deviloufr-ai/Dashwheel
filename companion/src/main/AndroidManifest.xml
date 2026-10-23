@@ -45,6 +45,10 @@
     <!-- Installs its own updates from the GitHub release; Android still asks each time. -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
+    <!-- Road watch: the phone behind the windscreen reads the road ahead with its camera. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
     <!-- "On my way": the car asks the phone to text a contact its arrival time. -->
     <uses-permission android:name="android.permission.SEND_SMS" />
 
@@ -110,6 +114,13 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
+
+        <!-- Road watch's camera screen: the phone lies sideways in its holder, either way up. -->
+        <activity
+            android:name=".RoadWatchActivity"
+            android:exported="false"
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/Theme.Companion" />
 
         <!-- The QR scanner follows the phone's orientation instead of forcing landscape. -->
         <activity

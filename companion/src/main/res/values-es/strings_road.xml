@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="road_title">Vigía de carretera</string>
+    <string name="road_detail">Pon el teléfono en un soporte detrás del parabrisas: su cámara vigila la carretera y el coche te avisa de un coche delante que se acerca rápido, de una rueda sobre la línea o de ir demasiado cerca.</string>
+    <string name="road_start">Iniciar Vigía de carretera</string>
+    <string name="road_model_get">Descargar el detector de vehículos, 4,6 MB</string>
+    <string name="road_model_retry">Reintentar</string>
+    <string name="road_model_getting">Descargando el detector: %1$d %%</string>
+    <string name="road_model_failed">No se pudo descargar el detector de vehículos. Revisa la conexión a internet del teléfono y vuelve a intentarlo.</string>
+    <string name="road_model_none">Sin el detector de vehículos, solo se vigila el carril.</string>
+    <string name="road_note">Una ayuda, no un sistema de seguridad: mantén la vista en la carretera. Deja el teléfono cargando y lejos del sol fuerte.</string>
+    <string name="road_camera_needed">Vigía de carretera necesita la cámara para ver la carretera.</string>
+    <string name="road_allow_camera">Permitir la cámara</string>
+    <string name="road_linked">Avisos en %1$s</string>
+    <string name="road_not_linked">Ningún coche conectado: avisos en este teléfono</string>
+    <string name="road_lane_seen">Carril encontrado</string>
+    <string name="road_lane_looking">Buscando el carril</string>
+    <string name="road_speed">%1$d km/h</string>
+    <string name="road_horizon_hint">Arrastra la línea de puntos hasta el horizonte</string>
+    <string name="road_lead_m">%1$d m</string>
+    <string name="road_warn_collision">Frena</string>
+    <string name="road_warn_lane">Cuidado con el carril</string>
+    <string name="road_warn_close">Demasiado cerca</string>
+    <string name="road_warn_moved_off">El tráfico avanza</string>
+    <string name="road_dim">Atenuar</string>
+    <string name="road_bright">Iluminar</string>
+    <string name="road_stop">Detener</string>
+</resources>

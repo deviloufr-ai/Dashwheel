@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="road_title">Kelio sargas</string>
+    <string name="road_detail">Įdėkite telefoną į laikiklį už priekinio stiklo: jo kamera stebi kelią, o automobilis įspėja, kai priekyje esantis automobilis greitai artėja, ratas užvažiuoja ant linijos ar važiuojate per arti.</string>
+    <string name="road_start">Paleisti Kelio sargą</string>
+    <string name="road_model_get">Atsisiųsti transporto atpažinimą, 4,6 MB</string>
+    <string name="road_model_retry">Bandyti dar kartą</string>
+    <string name="road_model_getting">Siunčiamas atpažinimas: %1$d%%</string>
+    <string name="road_model_failed">Nepavyko atsisiųsti transporto atpažinimo. Patikrinkite telefono internetą ir bandykite dar kartą.</string>
+    <string name="road_model_none">Be transporto atpažinimo stebima tik juosta.</string>
+    <string name="road_note">Pagalba, o ne saugos sistema: žiūrėkite į kelią. Laikykite telefoną įkraunamą ir atokiau nuo stiprios saulės.</string>
+    <string name="road_camera_needed">Kelio sargui reikia kameros, kad matytų kelią.</string>
+    <string name="road_allow_camera">Leisti kamerą</string>
+    <string name="road_linked">Įspėjimai: %1$s</string>
+    <string name="road_not_linked">Automobilis neprijungtas: įspėjimai šiame telefone</string>
+    <string name="road_lane_seen">Juosta rasta</string>
+    <string name="road_lane_looking">Ieškoma juostos</string>
+    <string name="road_speed">%1$d km/h</string>
+    <string name="road_horizon_hint">Nuvilkite taškinę liniją ant horizonto</string>
+    <string name="road_lead_m">%1$d m</string>
+    <string name="road_warn_collision">Stabdykite</string>
+    <string name="road_warn_lane">Saugokite juostą</string>
+    <string name="road_warn_close">Per arti</string>
+    <string name="road_warn_moved_off">Eismas pajudėjo</string>
+    <string name="road_dim">Pritemdyti</string>
+    <string name="road_bright">Pašviesinti</string>
+    <string name="road_stop">Stabdyti</string>
+</resources>

@@ -110,6 +110,11 @@ dependencies {
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
     // Reads the car's registration certificate off its photo, on the phone (RegistrationCard).
     implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.1")
+    // Road watch: the camera's picture and frames, and the small detector that finds the vehicles ahead.
+    implementation("androidx.camera:camera-camera2:1.4.1")
+    implementation("androidx.camera:camera-lifecycle:1.4.1")
+    implementation("androidx.camera:camera-view:1.4.1")
+    implementation("com.google.ai.edge.litert:litert:1.4.0")
     // JVM unit tests (companion/src/test): telling a call notification's buttons apart.
     testImplementation("junit:junit:4.13.2")
 }

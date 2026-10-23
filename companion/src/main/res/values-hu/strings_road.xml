@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="road_title">Útfigyelő</string>
+    <string name="road_detail">Tegye a telefont egy tartóba a szélvédő mögé: a kamerája figyeli az utat, az autó pedig figyelmeztet, ha egy elöl haladó autó gyorsan közeledik, egy kerék a vonalon van, vagy túl közel követ.</string>
+    <string name="road_start">Útfigyelő indítása</string>
+    <string name="road_model_get">Járműfelismerő letöltése, 4,6 MB</string>
+    <string name="road_model_retry">Újra</string>
+    <string name="road_model_getting">Járműfelismerő letöltése: %1$d%%</string>
+    <string name="road_model_failed">A járműfelismerőt nem sikerült letölteni. Ellenőrizze a telefon internetét, majd próbálja újra.</string>
+    <string name="road_model_none">Járműfelismerő nélkül csak a sávot figyeli.</string>
+    <string name="road_note">Segítség, nem biztonsági rendszer: figyelje az utat. Tartsa a telefont töltőn és távol az erős naptól.</string>
+    <string name="road_camera_needed">Az Útfigyelőnek kamera kell, hogy lássa az utat.</string>
+    <string name="road_allow_camera">Kamera engedélyezése</string>
+    <string name="road_linked">Figyelmeztetések itt: %1$s</string>
+    <string name="road_not_linked">Nincs összekapcsolt autó: figyelmeztetések ezen a telefonon</string>
+    <string name="road_lane_seen">Sáv megvan</string>
+    <string name="road_lane_looking">Sáv keresése</string>
+    <string name="road_speed">%1$d km/h</string>
+    <string name="road_horizon_hint">Húzza a pontozott vonalat a horizontra</string>
+    <string name="road_lead_m">%1$d m</string>
+    <string name="road_warn_collision">Fékezzen</string>
+    <string name="road_warn_lane">Figyeljen a sávra</string>
+    <string name="road_warn_close">Túl közel</string>
+    <string name="road_warn_moved_off">Indul a forgalom</string>
+    <string name="road_dim">Sötétítés</string>
+    <string name="road_bright">Világosítás</string>
+    <string name="road_stop">Leállítás</string>
+</resources>

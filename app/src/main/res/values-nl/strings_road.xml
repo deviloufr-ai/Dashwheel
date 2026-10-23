@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="alert_kind_road">Wegwachter</string>
+    <string name="alert_kind_road_title">Waarschuwingen van Wegwachter</string>
+    <string name="alert_road_detail">Waarschuwingen van de telefooncamera achter de voorruit</string>
+    <string name="alert_road_how">Start Wegwachter in Dashwheel Companion, met de telefoon in zijn houder achter de voorruit. Voor een auto die voor je snel dichterbij komt wordt altijd gewaarschuwd.</string>
+    <string name="alert_road_lanes">Rijstrookwaarschuwingen</string>
+    <string name="alert_road_lanes_detail">Een wiel op de lijn vanaf 60 km/u, nooit met de richtingaanwijzer aan</string>
+    <string name="alert_road_moved_off">Het verkeer rijdt</string>
+    <string name="alert_road_moved_off_detail">Stilstaand in de file: een woord als de auto voor je wegrijdt</string>
+    <string name="alert_speak_road_detail">Te dicht volgen en wegrijdend verkeer worden uitgesproken. De auto voor je en de rijstrook piepen altijd.</string>
+    <string name="road_warn_collision">Remmen, auto voor je</string>
+    <string name="road_warn_lane_left">Let op de linkerlijn</string>
+    <string name="road_warn_lane_right">Let op de rechterlijn</string>
+    <string name="road_warn_close">Te dichtbij</string>
+    <string name="road_warn_moved_off">Het verkeer rijdt</string>
+    <string name="road_say_close">Houd afstand</string>
+    <string name="road_say_moved_off">Het verkeer rijdt weer</string>
+</resources>

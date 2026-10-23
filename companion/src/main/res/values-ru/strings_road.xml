@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="road_title">Дозор дороги</string>
+    <string name="road_detail">Поставьте телефон в держатель за лобовым стеклом: его камера следит за дорогой, а машина предупредит, если машина впереди быстро приближается, колесо на разметке или дистанция слишком мала.</string>
+    <string name="road_start">Запустить Дозор дороги</string>
+    <string name="road_model_get">Загрузить распознавание машин, 4,6 МБ</string>
+    <string name="road_model_retry">Повторить</string>
+    <string name="road_model_getting">Загрузка распознавания: %1$d%%</string>
+    <string name="road_model_failed">Не удалось загрузить распознавание машин. Проверьте интернет на телефоне и повторите.</string>
+    <string name="road_model_none">Без распознавания машин отслеживается только полоса.</string>
+    <string name="road_note">Это помощник, а не система безопасности: следите за дорогой. Держите телефон на зарядке и вдали от яркого солнца.</string>
+    <string name="road_camera_needed">Дозору дороги нужна камера, чтобы видеть дорогу.</string>
+    <string name="road_allow_camera">Разрешить камеру</string>
+    <string name="road_linked">Предупреждения на %1$s</string>
+    <string name="road_not_linked">Машина не подключена: предупреждения на этом телефоне</string>
+    <string name="road_lane_seen">Полоса найдена</string>
+    <string name="road_lane_looking">Поиск полосы</string>
+    <string name="road_speed">%1$d км/ч</string>
+    <string name="road_horizon_hint">Перетащите пунктир на линию горизонта</string>
+    <string name="road_lead_m">%1$d м</string>
+    <string name="road_warn_collision">Тормозите</string>
+    <string name="road_warn_lane">Следите за полосой</string>
+    <string name="road_warn_close">Слишком близко</string>
+    <string name="road_warn_moved_off">Поток тронулся</string>
+    <string name="road_dim">Затемнить</string>
+    <string name="road_bright">Ярче</string>
+    <string name="road_stop">Стоп</string>
+</resources>

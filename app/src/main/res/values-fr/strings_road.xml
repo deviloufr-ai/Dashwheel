@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="alert_kind_road">Vigie route</string>
+    <string name="alert_kind_road_title">Alertes de Vigie route</string>
+    <string name="alert_road_detail">Alertes de la caméra du téléphone derrière le pare-brise</string>
+    <string name="alert_road_how">Lancez Vigie route dans Dashwheel Companion, le téléphone dans son support derrière le pare-brise. Une voiture devant qui approche vite est toujours signalée.</string>
+    <string name="alert_road_lanes">Alertes de voie</string>
+    <string name="alert_road_lanes_detail">Une roue sur la ligne à partir de 60 km/h, jamais avec un clignotant</string>
+    <string name="alert_road_moved_off">Ça avance</string>
+    <string name="alert_road_moved_off_detail">À l\'arrêt dans le trafic : un mot quand la voiture devant repart</string>
+    <string name="alert_speak_road_detail">Distance trop courte et trafic qui repart sont dits à voix haute. La voiture devant et la voie sonnent toujours.</string>
+    <string name="road_warn_collision">Freinez, voiture devant</string>
+    <string name="road_warn_lane_left">Attention à la ligne gauche</string>
+    <string name="road_warn_lane_right">Attention à la ligne droite</string>
+    <string name="road_warn_close">Trop près</string>
+    <string name="road_warn_moved_off">Ça avance</string>
+    <string name="road_say_close">Gardez vos distances</string>
+    <string name="road_say_moved_off">Le trafic repart</string>
+</resources>

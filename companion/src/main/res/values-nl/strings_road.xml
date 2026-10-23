@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="road_title">Wegwachter</string>
+    <string name="road_detail">Zet de telefoon in een houder achter de voorruit: de camera houdt de weg in de gaten en de auto waarschuwt als een auto voor je snel dichterbij komt, een wiel op de lijn staat of je te dicht volgt.</string>
+    <string name="road_start">Wegwachter starten</string>
+    <string name="road_model_get">Voertuigherkenning ophalen, 4,6 MB</string>
+    <string name="road_model_retry">Opnieuw</string>
+    <string name="road_model_getting">Voertuigherkenning ophalen: %1$d%%</string>
+    <string name="road_model_failed">De voertuigherkenning kon niet worden opgehaald. Controleer het internet van de telefoon en probeer het opnieuw.</string>
+    <string name="road_model_none">Zonder voertuigherkenning wordt alleen de rijstrook bewaakt.</string>
+    <string name="road_note">Een hulp, geen veiligheidssysteem: houd je ogen op de weg. Laat de telefoon laden en houd hem uit de felle zon.</string>
+    <string name="road_camera_needed">Wegwachter heeft de camera nodig om de weg te zien.</string>
+    <string name="road_allow_camera">Camera toestaan</string>
+    <string name="road_linked">Waarschuwingen op %1$s</string>
+    <string name="road_not_linked">Geen auto verbonden: waarschuwingen op deze telefoon</string>
+    <string name="road_lane_seen">Rijstrook gevonden</string>
+    <string name="road_lane_looking">Rijstrook zoeken</string>
+    <string name="road_speed">%1$d km/u</string>
+    <string name="road_horizon_hint">Sleep de stippellijn naar de horizon</string>
+    <string name="road_lead_m">%1$d m</string>
+    <string name="road_warn_collision">Remmen</string>
+    <string name="road_warn_lane">Let op je rijstrook</string>
+    <string name="road_warn_close">Te dichtbij</string>
+    <string name="road_warn_moved_off">Het verkeer rijdt</string>
+    <string name="road_dim">Dimmen</string>
+    <string name="road_bright">Helderder</string>
+    <string name="road_stop">Stoppen</string>
+</resources>

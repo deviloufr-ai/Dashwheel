@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="alert_kind_road">Kelio sargas</string>
+    <string name="alert_kind_road_title">Kelio sargo įspėjimai</string>
+    <string name="alert_road_detail">Įspėjimai iš telefono kameros už priekinio stiklo</string>
+    <string name="alert_road_how">Paleiskite Kelio sargą programoje Dashwheel Companion, telefonas laikiklyje už priekinio stiklo. Apie priekyje greitai artėjantį automobilį įspėjama visada.</string>
+    <string name="alert_road_lanes">Juostos įspėjimai</string>
+    <string name="alert_road_lanes_detail">Ratas ant linijos nuo 60 km/h, niekada su įjungtu posūkio žibintu</string>
+    <string name="alert_road_moved_off">Eismas pajudėjo</string>
+    <string name="alert_road_moved_off_detail">Stovint spūstyje: žodis, kai priekyje esantis automobilis pajuda</string>
+    <string name="alert_speak_road_detail">Per artimas važiavimas ir pajudėjęs eismas pasakomi garsiai. Priekyje esantis automobilis ir juosta visada pypsi.</string>
+    <string name="road_warn_collision">Stabdykite, automobilis priekyje</string>
+    <string name="road_warn_lane_left">Saugokitės kairės linijos</string>
+    <string name="road_warn_lane_right">Saugokitės dešinės linijos</string>
+    <string name="road_warn_close">Per arti</string>
+    <string name="road_warn_moved_off">Eismas pajudėjo</string>
+    <string name="road_say_close">Laikykitės atstumo</string>
+    <string name="road_say_moved_off">Eismas pajudėjo</string>
+</resources>
