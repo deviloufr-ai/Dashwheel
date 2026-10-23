@@ -31,11 +31,11 @@ Dashwheel is free, with no ads. If it makes your drives nicer, a coffee on Ko-fi
 
 ## Highlights
 
-- **Dashboards your way**: free grid, drag to move and resize, templates, Canvas theme with the map behind the tiles
+- **Dashboards your way**: free grid, drag to move and resize, templates, or describe one and the AI lays it out; Canvas theme with the map behind the tiles
 - **Live car data**: ELM327 Bluetooth OBD, the head unit's own car data (doors, fuel, tyres, reversing), and a USB TPMS receiver of your own
-- **AI mechanic** (free Google Gemini key): fault codes explained and spoken, start-up briefing, car care and servicing reminders
+- **AI mechanic** (free Google Gemini key): fault codes explained and spoken, a sensor watch that speaks up when the car drifts from its usual before a fault code shows, start-up briefing, car care and servicing reminders
 - **Navigation**: free built-in 3D map with turn-by-turn guidance, or Google Maps / Waze next turn on any tile
-- **Phone link** (Dashwheel Companion app): notifications, messages, calls, where's my car, drive log
+- **Phone link** (Dashwheel Companion app): notifications, messages, calls, where's my car, drive log, a warning-light photo explained by the AI, and a Rescue card for a car screen you're locked out of
 - **Your own alerts and reverse view** instead of the head unit's pop-ups
 - **Road watch** (experimental, Dashwheel Companion): the phone in a windscreen holder watches the road with its camera; the car warns of a car ahead coming up fast, a wheel on the lane's line, following too close, and traffic moving off. Its **road recorder** (experimental too) keeps a one-minute clip around a knock, a hard brake, a warning or the hazard lights, with the time, place and the car's own speed in the picture, on the phone only
 - **Hands-free**: spoken alerts, steering-wheel buttons, volume that follows speed
@@ -76,7 +76,7 @@ What each family gives, and how to help confirm yours: [Supported head units](ht
 2. Optional: `dashwheel-companion.apk` on your phone, an ELM327 Bluetooth adapter, a free Gemini key.
 3. Follow the first-run setup and the tour.
 
-Updates: Dashwheel updates itself from the stable channel. Turn on **Settings, About, Beta updates** to get each new version as soon as it is built; a beta becomes stable once it has been tried.
+Updates: Dashwheel updates itself from the stable channel. Turn on **Settings, General, About, Beta updates** to get each new version as soon as it is built; a beta becomes stable once it has been tried.
 
 Details: [Installation and updates](https://github.com/deviloufr-ai/Dashwheel/wiki/Installation-and-Updates) · [Troubleshooting](https://github.com/deviloufr-ai/Dashwheel/wiki/Troubleshooting)
 
@@ -91,7 +91,7 @@ The Dashwheel Companion app is Android only, so an iPhone gets no notifications,
 
 ## Feedback and support
 
-- Something broken, or a unit that isn't listed? In the app, **Settings, About, Report how it works** fills in a GitHub issue with your unit's model and firmware (a QR code for your phone). Or [open an issue](https://github.com/deviloufr-ai/Dashwheel/issues/new/choose) yourself.
+- Something broken, or a unit that isn't listed? In the app, **Settings, General, About, Report how it works** fills in a GitHub issue with your unit's model and firmware (a QR code for your phone). Or [open an issue](https://github.com/deviloufr-ai/Dashwheel/issues/new/choose) yourself.
 - After a crash, Dashwheel offers to send the error the next time it starts, once the car is parked.
 - If Dashwheel is useful to you, a ⭐ on this repo helps other drivers find it.
 - [Ko-fi](https://ko-fi.com/deviloufr) pays for test hardware.
