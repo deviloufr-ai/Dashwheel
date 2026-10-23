@@ -9,7 +9,11 @@ import androidx.core.content.ContextCompat
 import com.openauto.dash.CameraControl
 import com.openauto.dash.Cap
 import com.openauto.dash.CapClaim
-import com.openauto.dash.CarSink
+import com.openauto.dash.unitBusOutsideTemp
+import com.openauto.dash.unitBusRpm
+import com.openauto.dash.unitBusSpeed
+import com.openauto.dash.unitBusVolts
+import com.openauto.dash.vehicle.Publisher
 import com.openauto.dash.IgnitionEvent
 import com.openauto.dash.IgnitionSource
 import com.openauto.dash.KeySource
@@ -171,20 +175,25 @@ internal object MtcKeys : KeySource {
  * The Vehicle app's sync frame: its bytes reach the Signal Finder through the
  * broadcast catalogue (bit by bit, to learn doors and lights from); the
  * fields are decoded only once a layout is confirmed ([MtcSync.Layout]).
+ * Nothing is decoded yet (the layout is never set), so nothing is put on the vehicle bus; the code is here, on the
+ * publisher API, for the day a layout is confirmed.
  */
 internal object MtcSyncBus : VehicleBusSource {
     private const val TAG = "MtcSync"
     private val _listening = MutableStateFlow(false)
     override val listening: StateFlow<Boolean> = _listening
-    private var sink: CarSink? = null
+
+    /** The Vehicle app repeats its sync frame while the car is on: 15 s without a word that put anything is a car that is off. */
+    override val silenceMs: Long = 15_000L
+    private var out: Publisher? = null
     private var frames = 0
 
     /** The frame's layout for this unit; unknown until a tester confirms one against the dashboard. */
     var layout: MtcSync.Layout = MtcSync.Layout.UNKNOWN
 
-    override fun start(context: Context, sink: CarSink) {
-        if (this.sink != null) return
-        this.sink = sink
+    override fun start(context: Context, publisher: Publisher, raw: (String, String) -> Unit) {
+        if (out != null) return
+        out = publisher
         ContextCompat.registerReceiver(context.applicationContext, receiver, IntentFilter(MtcProtocol.ACTION_SYNC), ContextCompat.RECEIVER_EXPORTED)
     }
 
@@ -193,15 +202,15 @@ internal object MtcSyncBus : VehicleBusSource {
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val bytes = intent.getByteArrayExtra(MtcProtocol.EXTRA_SYNC) ?: return
-            val s = sink ?: return
+            val o = out ?: return
             UnitPlatform.markUsed(Cap.VEHICLE_BUS)
             _listening.value = true
             if (frames++ == 0) Log.i(TAG, "the Vehicle app's sync frames are coming (${bytes.size} bytes)")
             val d = MtcSync.decode(bytes, layout) ?: return
-            d.speedKmh?.let { s.speedKmh(it.toFloat()) }
-            d.rpm?.let { s.rpm(it) }
-            d.volts?.let { s.volts(it) }
-            d.tempC?.let { s.outsideTempC(it.toDouble()) }
+            d.speedKmh?.let { unitBusSpeed(o, it.toFloat()) }
+            d.rpm?.let { unitBusRpm(o, it) }
+            d.volts?.let { unitBusVolts(o, it) }
+            d.tempC?.let { unitBusOutsideTemp(o, it.toDouble()) }
         }
     }
 }

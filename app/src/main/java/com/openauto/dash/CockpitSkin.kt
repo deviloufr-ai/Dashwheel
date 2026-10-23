@@ -1426,8 +1426,7 @@ private fun TelemetryTellTales(env: SkinTileEnv, speed: Int?, idle: Boolean, mod
 @Composable
 private fun CockpitSpeedHud(env: SkinTileEnv) {
     val speed = rememberSpeedKmh()
-    val source = speedSource(
-        env.obdConnection == ObdConnectionState.CONNECTED, speed, stringResource(R.string.info_speed_no_signal).uppercase()
+    val source = speedSource(stringResource(R.string.info_speed_no_signal).uppercase()
     )
     val color = if (speedOver(speed)) DashColors.Warning else LcdInk
     val words = dialWords()

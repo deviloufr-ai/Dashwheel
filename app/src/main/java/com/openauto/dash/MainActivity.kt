@@ -2,6 +2,7 @@ package com.openauto.dash
 
 import android.annotation.SuppressLint
 import android.content.Context
+import com.openauto.dash.vehicle.Computed
 import android.content.res.Configuration
 import android.content.Intent
 import android.os.Bundle
@@ -194,7 +195,9 @@ class MainActivity : ComponentActivity() {
                     { UnitSignals.start(this) },
                     // Everything the car's bus says through the firmware (the CAN box stream, the car
                     // app's shared data, RDS, voltage), into the dashboard's flows.
-                    { UnitPlatform.adapter.bus?.start(this, CarFeed) },
+                    { UnitBus.start(this) },
+                    // The estimates (gear, range or level, engine running): sources that run only while their key is wanted.
+                    { Computed.start(this) },
                     // The map and route servers the driver chose, before any route is asked for.
                     { MapServers.load(this) },
                     // A Peugeot / Citroën / DS: the car's warnings asked for at each start, tile or none.

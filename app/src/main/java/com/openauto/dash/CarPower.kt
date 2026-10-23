@@ -54,7 +54,11 @@ object CarPower {
     /** Ignition on / off as the unit last said it; null where the unit says nothing. */
     val ignition: StateFlow<Boolean?> = _ignition
 
-    /** The unit's power signals on the vehicle bus: the ignition, as the firmware announces it. */
+    /**
+     * The unit's power signals on the vehicle bus: the ignition, as the firmware announces it. It speaks on a change and
+     * the property is read again at each start, so a quiet firmware is a steady ignition: no silence rule (the source is
+     * up as long as the app runs).
+     */
     private val busPublisher = Vehicle.bus.register(Source("power", SourceKind.VEHICLE_APP, "Unit power"))
 
     private fun setIgnition(on: Boolean?) {

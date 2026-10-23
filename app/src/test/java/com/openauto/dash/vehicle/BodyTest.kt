@@ -125,20 +125,20 @@ class BodyTest {
     fun theAdaptersZeroIsNoReading() {
         obd.put(K.FUEL_LEVEL, 0.0)
         val level = bus.sample(K.FUEL_LEVEL).value
+        assertNull(usableLevelPct(level))
         assertNull(fuelInfoOf(level, null))
-        // A range with it: worked back from the range, as when there is no level at all.
-        assertEquals(true, fuelInfoOf(level, 330.0)!!.percentEstimated)
         // The car's own 0 is dropped by its provider; one that is kept (no range) is a real empty tank.
         carApp.put(K.FUEL_LEVEL, 0.0)
-        assertEquals(0, fuelInfoOf(bus.sample(K.FUEL_LEVEL).value, null)!!.percent)
+        assertEquals(0, usableLevelPct(bus.sample(K.FUEL_LEVEL).value))
     }
 
     @Test
     fun theFuelsSourceNamesTheAdapterOnlyForTheAdapter() {
+        carApp.put(K.RANGE, 400.0)
         obd.put(K.FUEL_LEVEL, 50.0)
-        assertEquals("OBD", fuelInfoOf(bus.sample(K.FUEL_LEVEL).value, 400.0)!!.source)
+        assertEquals("OBD", fuelInfoOf(bus.sample(K.FUEL_LEVEL).value, bus.sample(K.RANGE).value)!!.source)
         carApp.put(K.FUEL_LEVEL, 50.0)
-        assertEquals("CANbox", fuelInfoOf(bus.sample(K.FUEL_LEVEL).value, 400.0)!!.source)
+        assertEquals("CANbox", fuelInfoOf(bus.sample(K.FUEL_LEVEL).value, bus.sample(K.RANGE).value)!!.source)
     }
 
     // --- The outside temperature ----------------------------------------------------------------------------

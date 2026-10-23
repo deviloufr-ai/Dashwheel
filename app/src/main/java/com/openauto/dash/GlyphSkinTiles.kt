@@ -362,7 +362,7 @@ private fun GlyphSpeed(env: SkinTileEnv) {
                 GlyphDotText(text, pitch, if (speed != null) glyphRed else glyphOff)
             }
             Spacer(Modifier.weight(1f))
-            GlyphLine(speedSource(connected, speed, stringResource(R.string.glyph_no_speed)), glyphMono(14f, DashColors.Muted, caps = true), Modifier.fillMaxWidth(), align = TextAlign.Center)
+            GlyphLine(speedSource(stringResource(R.string.glyph_no_speed)), glyphMono(14f, DashColors.Muted, caps = true), Modifier.fillMaxWidth(), align = TextAlign.Center)
         }
     }
 }

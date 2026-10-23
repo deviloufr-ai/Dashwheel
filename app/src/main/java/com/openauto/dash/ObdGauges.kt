@@ -73,7 +73,15 @@ internal class ObdGaugePublisher(private val out: Publisher) {
      */
     @Synchronized
     fun publish(d: ObdData, fresh: Set<Pid>, voltsFromEcu: Boolean = d.voltageFromEcu, minTtlMs: Long = 0L) {
+        if (fresh.isNotEmpty()) out.up(true)
         for (pid in fresh) {
+            // A tank the adapter reads as 0 % is no reading (clones and cars without the PID answer that): the level
+            // comes from the next source, else is worked back from the range ([startRangeEstimate]).
+            if (pid == Pid.FUEL_LEVEL && d.fuelLevelPct <= 0) {
+                out.put(K.FUEL_LEVEL, null)
+                answered.remove(pid)
+                continue
+            }
             val value = when (pid) {
                 Pid.SPEED -> d.speedKmh.toDouble()
                 Pid.RPM -> d.rpm.toDouble()
@@ -96,7 +104,9 @@ internal class ObdGaugePublisher(private val out: Publisher) {
 
     @Synchronized
     fun withdrawAll() {
-        for (pid in answered) out.put(pid.key, null)
+        // The link is gone: every key the adapter put goes, and the source is down until it answers again.
+        out.clear()
+        out.up(false)
         answered.clear()
     }
 

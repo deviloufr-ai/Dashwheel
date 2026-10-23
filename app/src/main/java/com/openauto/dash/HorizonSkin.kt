@@ -968,9 +968,7 @@ private fun HorizonSpeed(env: SkinTileEnv, side: Side) {
     ) {
         val capsSp = (maxWidth.value / 26f).coerceIn(11f, 16f)
         val noSignal = stringResource(R.string.info_speed_no_signal).uppercase()
-        val source = speedSource(
-            obd, speed,
-            if (idle) "$noSignal · ${stringResource(R.string.horizon_obd_tap_connect).uppercase()}" else noSignal
+        val source = speedSource(if (idle) "$noSignal · ${stringResource(R.string.horizon_obd_tap_connect).uppercase()}" else noSignal
         )
         val figureW = maxWidth
         val figureH = maxHeight - (capsSp * 1.3f + 8f).dp

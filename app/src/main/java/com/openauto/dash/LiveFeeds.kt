@@ -132,7 +132,10 @@ object LocationFeed {
     /** Sets [freshSpeedKmh] and tells the bus; null (stale, no fix, released) withdraws it. */
     private fun setFreshSpeed(kmh: Int?) {
         _freshSpeedKmh.value = kmh
+        // No fix, a stale one or a released GPS: the source is down (its speed is all it says), up with the next fix.
+        if (kmh != null) busPublisher.up(true)
         busPublisher.put(K.GPS_SPEED, kmh?.toDouble())
+        if (kmh == null) busPublisher.up(false)
     }
 
     private const val FRESH_MS = 5_000L

@@ -174,8 +174,12 @@ object LearnedSignals {
         if (probes.isEmpty()) {
             job?.cancel()
             job = null
+            // Nothing is read any more: nothing is said, and the source is down until the driver teaches one again.
+            busPublisher.clear()
+            busPublisher.up(false)
             return
         }
+        busPublisher.up(true)
         if (job?.isActive == true) return
         job = scope.launch {
             while (isActive) {
@@ -193,6 +197,14 @@ object LearnedSignals {
         }
     }
 
+    /**
+     * The reverse failsafe ([CarBox]) found no evidence of a reverse the taught signal still says: withdrawn, until the
+     * signal changes (a new reading of "on" after an "off").
+     */
+    internal fun reverseEnded() {
+        busPublisher.put(K.REVERSE, null)
+    }
+
     /** Hands [signal]'s new state in [now] to what shows it. */
     private fun publish(now: Map<CarSignal, Boolean>, signal: CarSignal) {
         when {
@@ -200,14 +212,8 @@ object LearnedSignals {
                 McuReader.learnedDoorsWrite(now.filterKeys { it.isDoor })
                 doors.learned(now)
             }
-            signal == CarSignal.REVERSE -> {
-                now[signal]?.let { CarBox.reverseWrite(it) }
-                busPublisher.put(K.REVERSE, now[signal])
-            }
-            signal == CarSignal.HEADLIGHTS -> {
-                now[signal]?.let { UnitSignals.headlightsWrite(it) }
-                busPublisher.put(K.HEADLIGHTS, now[signal])
-            }
+            signal == CarSignal.REVERSE -> busPublisher.put(K.REVERSE, now[signal])
+            signal == CarSignal.HEADLIGHTS -> busPublisher.put(K.HEADLIGHTS, now[signal])
             // The belt reminder reads the key, with the car's speed.
             signal == CarSignal.DRIVER_BELT -> busPublisher.put(K.DRIVER_BELT, now[signal])
             else -> Unit

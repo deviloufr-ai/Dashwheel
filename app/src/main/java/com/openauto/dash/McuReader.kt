@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import com.openauto.dash.vehicle.FUEL_HOLD_MS
 import com.openauto.dash.vehicle.K
 import com.openauto.dash.vehicle.Source
+import com.openauto.dash.vehicle.SourceLiveness
 import com.openauto.dash.vehicle.SourceKind
 import com.openauto.dash.vehicle.Vehicle
 import kotlin.math.roundToInt
@@ -283,7 +284,7 @@ object McuReader {
      * the learned word gives, else the one on the bus. Said on a change, and a parked car says nothing, so they are kept long.
      */
     private fun publishLearned() {
-        val range = learnedRange ?: Vehicle.bus.now(K.RANGE)?.roundToInt()
+        val range = learnedRange ?: Vehicle.bus.sample(K.RANGE).value?.takeUnless { it.source.kind == SourceKind.COMPUTED }?.value?.roundToInt()
         learnedPublisher.put(K.FUEL_LEVEL, fuelPercentToPublish(learnedFuel, range)?.toDouble(), ttlMs = FUEL_HOLD_MS)
         learnedPublisher.put(K.RANGE, learnedRange?.toDouble(), ttlMs = FUEL_HOLD_MS)
     }
@@ -312,6 +313,22 @@ object McuReader {
     }
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+    /**
+     * The MCU's liveness, for what it puts as `qf.mcu` here and in [UnitSignals] (doors, volts, headlights, handbrake). The
+     * MCU says most of those on a change, and a car without a CAN box says little else, so only a long silence means the
+     * MCU is gone: [MCU_SILENCE_MS], as long as the volts are believed. With a CAN box its frames repeat several times a
+     * second, and the stream stops at once with the service ([mcuStopped]). Silent: everything it put is withdrawn.
+     */
+    private val mcuLive = SourceLiveness.of(busPublisher, MCU_SILENCE_MS, scope)
+
+    /** Any message from the MCU, by its service ([McuFeed]) or by the root logcat. */
+    internal fun heardMcu() = mcuLive.heard()
+
+    /** The MCU service went away ([McuFeed]): what it said no longer holds. */
+    internal fun mcuStopped() = mcuLive.stopped()
+
+    internal const val MCU_SILENCE_MS = 10 * 60_000L
     // All guarded by this object's lock.
     private var job: Job? = null
     private var process: Process? = null
@@ -431,6 +448,7 @@ object McuReader {
     private fun parse(line: String, live: Boolean = true) {
         val m = regex.find(line) ?: return
         val cmdId = m.groupValues[1].toIntOrNull() ?: return
+        if (live) heardMcu()
         val bytes = m.groupValues[2].trim().split(whitespace)
             .filter { it.isNotEmpty() }
             .mapNotNull { it.toIntOrNull(16) }
@@ -495,9 +513,6 @@ object McuReader {
 
     /** The doors from the car app's shared data ([CarBox]), the same bits as the MCU frame's. */
     internal fun carBoxDoors(bits: Int) = setDoors(doorsOf(bits))
-
-    /** The doors as another family's bus decoded them ([CarFeed]). */
-    internal fun busDoorsWrite(state: DoorState) = setDoors(state)
 
     internal fun doorsOf(b: Int) = DoorState(
         frontLeft = b and 0x80 != 0,

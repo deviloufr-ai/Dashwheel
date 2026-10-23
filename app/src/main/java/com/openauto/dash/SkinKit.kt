@@ -2,6 +2,8 @@ package com.openauto.dash
 
 import com.openauto.dash.vehicle.rememberFuelInfo
 import com.openauto.dash.vehicle.rememberGaugeInt
+import com.openauto.dash.vehicle.rememberSpeedSourceKind
+import com.openauto.dash.vehicle.speedSourceWord
 import android.content.Context
 import android.content.Intent
 import android.location.Location
@@ -168,12 +170,12 @@ internal fun Dp.fixedSp(): TextUnit = fixedSp(value)
 internal fun groupThousands(n: Int, separator: Char = '\u202F'): String =
     if (n < 1000) "$n" else "${n / 1000}$separator${(n % 1000).toString().padStart(3, '0')}"
 
-/** Where a speed readout comes from: "OBD", "GPS", or the skin's own [none] wording when there is no speed. */
-internal fun speedSource(obd: Boolean, speed: Int?, none: String): String = when {
-    obd -> "OBD"
-    speed != null -> "GPS"
-    else -> none
-}
+/**
+ * Where a speed readout comes from, named from the resolved speed's source ([speedSourceWord]: "OBD", "GPS" or "CAR"),
+ * or the skin's own [none] wording when there is no speed.
+ */
+@Composable
+internal fun speedSource(none: String): String = speedSourceWord(rememberSpeedSourceKind()) ?: none
 
 /** Fuel at or under this share (%) reads as the reserve in every skin. */
 internal const val SKIN_LOW_FUEL_PCT = 12

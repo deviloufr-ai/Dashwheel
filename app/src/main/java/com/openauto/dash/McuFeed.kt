@@ -76,6 +76,7 @@ object McuFeed {
     private val died = IBinder.DeathRecipient {
         service = null
         _listening.value = false
+        McuReader.mcuStopped()
         main.postDelayed({ register() }, RETRY_MS)
     }
 
@@ -113,6 +114,7 @@ object McuFeed {
     private fun onMessage(m: ByteArray) {
         val cmd = m[0].toInt() and 0xFF
         UnitPlatform.markUsed(Cap.VEHICLE_BUS)
+        McuReader.heardMcu()
         McuReader.feed(m)
         when (cmd) {
             CMD_CAN -> PsaTripComputer.feed(m, 1)

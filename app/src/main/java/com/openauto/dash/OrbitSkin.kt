@@ -860,7 +860,7 @@ private fun OrbitSpeedHud(env: SkinTileEnv) {
             OrbitText(units.speedUnit, max(14f, d * 0.044f), DashColors.Muted)
             Spacer(Modifier.height((d * 0.025f).dp))
             OrbitText(
-                speedSource(obd, speed, stringResource(R.string.info_speed_no_signal)),
+                speedSource(stringResource(R.string.info_speed_no_signal)),
                 max(14f, d * 0.042f),
                 if (speed != null) DashColors.Secondary else DashColors.Muted,
                 weight = FontWeight.SemiBold

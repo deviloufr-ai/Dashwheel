@@ -369,7 +369,7 @@ private fun SpeedCard(env: SkinTileEnv, modifier: Modifier) {
                     SpeedScale(speed, limit, color, Modifier.fillMaxWidth().height(7.dp))
                     Spacer(Modifier.height(10.dp))
                     SimpleLine(
-                        speedSource(env.obdConnection == ObdConnectionState.CONNECTED, speed, ""),
+                        speedSource(""),
                         simpleText(sourceSize, DashColors.Muted, FontWeight.Medium).copy(letterSpacing = 0.2.em)
                     )
                 }

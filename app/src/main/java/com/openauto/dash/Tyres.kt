@@ -14,11 +14,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import com.openauto.dash.vehicle.K
 import com.openauto.dash.vehicle.Source
 import com.openauto.dash.vehicle.SourceKind
+import com.openauto.dash.vehicle.SourceLiveness
 import com.openauto.dash.vehicle.Vehicle
 import com.openauto.dash.vehicle.tyresFlow
 import java.util.Locale
@@ -59,6 +59,9 @@ object Tyres {
     /** The TPMS app on the vehicle bus: every tyre it has heard, as one state. */
     private val busPublisher = Vehicle.bus.register(Source("tpms", SourceKind.VEHICLE_APP, "TPMS app"))
 
+    /** What the TPMS app has told, tyre by tyre, as it comes: the receiver's own memory, put on the bus whole. */
+    private val heard = HashMap<TyrePos, Tyre>()
+
     private val _unit = MutableStateFlow(PressureUnit.BAR)
     val unit: StateFlow<PressureUnit> = _unit
 
@@ -76,6 +79,13 @@ object Tyres {
 
     private var started = false
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    /**
+     * The TPMS app's liveness: it tells every tyre about every four seconds, so a minute of nothing from all of them
+     * ([TYRE_STALE_MS], the time after which a sensor says nothing about its tyre any more) is an app that stopped or
+     * sensors all gone. Then the tyres are withdrawn and the source is down, whatever the old pressures were.
+     */
+    private val live = SourceLiveness.of(busPublisher, TYRE_STALE_MS, scope)
 
     init {
         scope.launch {
@@ -127,10 +137,13 @@ object Tyres {
             )
             pressureUnit(intent.getStringExtra("presunit"))?.let { _unit.value = it }
             if (!tyre.noSignal && tyre.kPa > 0) heardAt = tyre.at
-            // The demo shows its own tyres; the sensors fill them in again once it's over.
+            live.heard()
+            val all = synchronized(heard) { heard[pos] = tyre; heard.toMap() }
+            // The demo shows its own tyres; the sensors' next word puts them back once it's over.
             if (DemoMode.isOn) return
-            _tyres.update { it + (pos to tyre) }
-            busPublisher.put(K.TYRES, _tyres.value)
+            busPublisher.put(K.TYRES, all)
+            // The old store, for [DemoMode] putting the real tyres back.
+            _tyres.value = all
         }
     }
 

@@ -60,6 +60,11 @@ object UnitSignals {
      * The firmware's broadcasts and properties on the vehicle bus: the headlight state and the CAN app's outside
      * temperature. The temperature is sent on a change only, so the key's 2 hours are how long the last one is
      * believed (a restart brings back one that is younger than that, with the age it has).
+     * The firmware's own copy of the supply voltage is put here too, while nobody else says it.
+     *
+     * No silence rule: the firmware says these on a change and the receiver lives as long as the app, so nothing is ever
+     * "stopped"; the headlight state stands until the next word, the temperature has its 2 hours, and the property volts
+     * a short ttl they are put again with while somebody wants them.
      */
     private val broadcastPublisher = Vehicle.bus.register(Source("qf.broadcast", SourceKind.VEHICLE_APP, "QF broadcasts"))
 
@@ -68,11 +73,6 @@ object UnitSignals {
 
     private val _headlightsOn = MutableStateFlow(false)
     val headlightsOn: StateFlow<Boolean> = _headlightsOn
-
-    /** The headlights as another source says them ([LearnedSignals] as the driver taught them, [CarFeed]): the old store follows, the bus hears it from that source. */
-    internal fun headlightsWrite(on: Boolean) {
-        _headlightsOn.value = on
-    }
 
     /** The headlights from the MCU's own message ([McuFeed]), the same wire the broadcast tells of. */
     internal fun mcuHeadlights(on: Boolean) {
@@ -94,18 +94,18 @@ object UnitSignals {
     val volts: StateFlow<Double?> = _volts
 
     /**
-     * The unit on the vehicle bus: the supply voltage its power board measures ([mcuVolts], the MCU's
-     * message; else the firmware's copy of the figure, read while somebody wants it). A MCU source: it
-     * outranks the OBD adapter's volts whenever it has one.
+     * The MCU on the vehicle bus: the supply voltage its power board measures ([mcuVolts]), the headlight wire and
+     * the handbrake wire. A MCU source: its volts outrank the OBD adapter's whenever it has one. It lives and goes quiet
+     * with the MCU's stream ([McuReader.mcuLive]); the firmware's copy of the volts (read while somebody wants them
+     * and the MCU has not said) is put as a broadcast, [broadcastPublisher], which has no silence of its own.
      */
     private val busPublisher = Vehicle.bus.register(Source("qf.mcu", SourceKind.MCU, "Unit MCU"))
 
-    /** [asMcu] false for another bus forwarding its volts here ([CarFeed]): the old store follows, the bus hears it from that source. */
-    internal fun mcuVolts(v: Double, asMcu: Boolean = true) {
+    internal fun mcuVolts(v: Double) {
         if (v in 9.0..16.0) {
             _volts.value = v
             mcuVoltsAt = android.os.SystemClock.elapsedRealtime()
-            if (asMcu) busPublisher.put(K.BATTERY_VOLTS, v, ttlMs = MCU_VOLTS_KEEP_MS)
+            busPublisher.put(K.BATTERY_VOLTS, v, ttlMs = MCU_VOLTS_KEEP_MS)
         }
     }
 
@@ -142,11 +142,6 @@ object UnitSignals {
     /** Running on the QF firmware (set by [start]): its signals are the ones above. */
     val onQf: Boolean get() = appContext != null
 
-    /** The car's outside temperature from another family's bus ([CarFeed]): the old store follows, the bus hears it from that source. */
-    internal fun outsideTempWrite(c: Double?) {
-        _outsideTempC.value = c
-    }
-
     fun start(context: Context) {
         if (appContext != null) return
         val app = context.applicationContext
@@ -178,7 +173,7 @@ object UnitSignals {
                 if (!wanted) return@collectLatest
                 while (true) {
                     if (android.os.SystemClock.elapsedRealtime() - mcuVoltsAt > MCU_VOLTS_KEEP_MS) {
-                        busPublisher.put(K.BATTERY_VOLTS, propertyVolts(), ttlMs = 3 * PROP_VOLTS_EVERY_MS)
+                        broadcastPublisher.put(K.BATTERY_VOLTS, propertyVolts(), ttlMs = 3 * PROP_VOLTS_EVERY_MS)
                     }
                     delay(PROP_VOLTS_EVERY_MS)
                 }

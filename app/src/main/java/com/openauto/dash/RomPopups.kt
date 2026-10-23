@@ -6,6 +6,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.provider.Settings
 import android.util.Log
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Vehicle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -60,11 +62,18 @@ object RomPopups {
 
     /**
      * Whether this unit has the ROM app whose pop-up [kind] replaces (its
-     * firmware's adapter says, [PopupTakeover]), or another family's bus
-     * feeds what the alert is built on ([CarFeed]).
+     * firmware's adapter says, [PopupTakeover]), or a source on the vehicle
+     * bus has said what the alert is built on (the doors, the belt).
      */
     fun available(context: Context, kind: Kind): Boolean =
-        UnitPlatform.adapter.popups?.canHide(kind) == true || CarFeed.provides(kind)
+        UnitPlatform.adapter.popups?.canHide(kind) == true || carSays(kind)
+
+    /** Some source that is up has put what the alert of [kind] is built on. */
+    private fun carSays(kind: Kind): Boolean = when (kind) {
+        Kind.DOORS -> Vehicle.bus.has(K.DOORS).value
+        Kind.BELT -> Vehicle.bus.has(K.DRIVER_BELT).value
+        else -> false
+    }
 
     /**
      * Whether [kind] can work with this access ([PrivilegedShell]): the car

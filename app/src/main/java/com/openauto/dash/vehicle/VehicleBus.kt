@@ -291,6 +291,15 @@ class VehicleBus(
             for (p in parents) p.refresh(now)
         }
 
+        /** Withdraws everything [sourceId] said about this key. */
+        fun withdrawFrom(sourceId: String) {
+            if (members != null || !cands.containsKey(sourceId)) return
+            cands.remove(sourceId)
+            lastCounter.remove(sourceId)
+            ttlOverride.remove(sourceId)
+            refresh(clock())
+        }
+
         fun refreshFrom(sourceId: String) {
             if (cands.containsKey(sourceId)) refresh(clock())
         }
@@ -313,6 +322,10 @@ class VehicleBus(
         override fun <T : Any> put(key: Key<T>, value: T?, quality: Quality, atMs: Long, ttlMs: Long?) {
             require(key !is Key.BestOf<*>) { "${key.id} is a BestOf: publish to one of its members" }
             synchronized(lock) { slotOf(key).put(source, value, quality, atMs, ttlMs) }
+        }
+
+        override fun clear() = synchronized(lock) {
+            for (slot in slots.values.toList()) slot.withdrawFrom(source.id)
         }
 
         override fun up(isUp: Boolean) = synchronized(lock) {
@@ -352,6 +365,11 @@ interface Publisher {
     fun <T : Any> put(key: Key<T>, value: T?, quality: Quality = Quality.GOOD, atMs: Long = clock(), ttlMs: Long? = null)
     /** Down: every value of this source drops out at once; up brings back what has not expired. */
     fun up(isUp: Boolean)
+    /**
+     * Withdraws everything this source has put, so that nothing stale comes back with [up]. A source that goes
+     * silent clears and goes down ([SourceLiveness]); one that only restarts its feed can just [up].
+     */
+    fun clear()
     /** The keys somebody listens to, for providers that pay per value (poll only these). */
     val wanted: StateFlow<Set<Key<*>>>
 }

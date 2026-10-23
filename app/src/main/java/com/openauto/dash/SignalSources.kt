@@ -39,13 +39,16 @@ object SignalSources {
     // Last heard, kept from the moment the receiver is up: they come only when they change.
     private val shared = ConcurrentHashMap<String, String>()
     private val broadcasts = ConcurrentHashMap<String, String>()
-    /** Values another family's bus pushed ([CarSink.raw]), under their own source keys. */
+    /** Values another family's bus pushed ([UnitBus]), under their own source keys. */
     private val bus = ConcurrentHashMap<String, String>()
 
     /** A raw value from a vehicle bus, for the finder: "fyt:7:1031#0" = "57". */
     internal fun busValue(key: String, value: String) {
         bus[key] = value
     }
+
+    /** The bus went quiet or its feed was lost: what it last said is no longer the car (a learned signal reads nothing, and so withdraws). */
+    internal fun clearBus() = bus.clear()
     @Volatile private var props: Map<String, String> = emptyMap()
     @Volatile private var globals: Map<String, String> = emptyMap()
     @Volatile private var systems: Map<String, String> = emptyMap()

@@ -68,7 +68,10 @@ object WeatherRepo {
     /** The weather: the forecast as fetched, its temperature the forecast's own (the car's sensor is [K.OUTSIDE_TEMP]). */
     val weather: StateFlow<Weather?> = _weather
 
-    /** The forecast on the vehicle bus: the fetched temperature, as old as the fetch (it goes after the key's 3 h). */
+    /**
+     * The forecast on the vehicle bus: the fetched temperature, as old as the fetch (it goes after the key's 3 h). A
+     * forecast is a number with an age and no feed that can go quiet: no silence rule beyond those 3 hours.
+     */
     private val busPublisher = Vehicle.bus.register(Source("weather", SourceKind.NETWORK, "Weather forecast"))
 
     private val _error = MutableStateFlow<String?>(null)

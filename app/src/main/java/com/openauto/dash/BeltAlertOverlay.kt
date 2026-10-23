@@ -1,6 +1,5 @@
 package com.openauto.dash
 
-import android.os.SystemClock
 import android.content.Context
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,7 +20,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.openauto.dash.vehicle.K
-import com.openauto.dash.vehicle.SourceKind
 import com.openauto.dash.vehicle.Vehicle
 import com.openauto.dash.vehicle.speedKmhFlow
 import kotlinx.coroutines.CoroutineScope
@@ -30,8 +28,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -76,17 +72,9 @@ object BeltAlertOverlay {
                 _unbuckledMoving.value = beltReminder(open == true, moving)
             }
         }
-        // The car app gone quiet mid-drive (its app stopped, the unit slept on):
-        // nothing would ever say "buckled" or "stopped", and the alert stood for good.
-        // A belt the driver taught is not the car app's to go quiet.
-        scope.launch {
-            _unbuckledMoving.collectLatest { on ->
-                if (!on) return@collectLatest
-                if (Vehicle.bus.sample(K.DRIVER_BELT).value?.source?.kind != SourceKind.VEHICLE_APP) return@collectLatest
-                while (SystemClock.elapsedRealtime() - CarBox.bodyAt < BODY_SILENT_MS) delay(5_000)
-                _unbuckledMoving.value = false
-            }
-        }
+        // The car app gone quiet mid-drive (its app stopped, the unit slept on) takes its belt state off the bus
+        // ([CarBox.BODY_SILENT_MS]): nothing is left to say "unfastened", and the alert ends. A belt the driver
+        // taught is not the car app's to go quiet.
         scope.launch {
             alert.collect { on ->
                 if (on && AlertPreview.belt.value.not()) AlertVoice.sayBelt(app)
@@ -100,9 +88,6 @@ object BeltAlertOverlay {
         }
     }
 }
-
-/** No word from the car box for this long, moving: what it last said about the belt no longer holds. */
-private const val BODY_SILENT_MS = 30_000L
 
 /** Remind only on the move: buckling up while parked is nobody's business yet. */
 internal fun beltReminder(driverUnbuckled: Boolean, moving: Boolean): Boolean = driverUnbuckled && moving

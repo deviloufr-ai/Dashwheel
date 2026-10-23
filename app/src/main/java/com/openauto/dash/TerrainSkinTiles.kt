@@ -705,7 +705,7 @@ private fun TrSpeed(env: SkinTileEnv) {
     }
     val canConnect = speed == null && env.obdConnection.isIdle && !env.editing
     val said = speed?.let { "${units.speed(it)} ${units.speedUnit}" } ?: stringResource(R.string.info_speed_no_signal)
-    val source = speedSource(env.obdConnection == ObdConnectionState.CONNECTED, speed, "")
+    val source = speedSource("")
     BoxWithConstraints(
         Modifier
             .fillMaxSize()

@@ -379,7 +379,7 @@ private fun BrSpeed(env: SkinTileEnv) {
     val canConnect = speed == null && env.obdConnection.isIdle && !env.editing
     val said = speed?.let { "${units.speed(it)} ${units.speedUnit}" } ?: stringResource(R.string.info_speed_no_signal)
     val label = stringResource(R.string.brutal_speed, units.speedUnit)
-    val source = speedSource(env.obdConnection == ObdConnectionState.CONNECTED, speed, stringResource(R.string.info_speed_no_signal))
+    val source = speedSource(stringResource(R.string.info_speed_no_signal))
     BoxWithConstraints(Modifier.fillMaxSize()) {
         BrBlock(
             BrTone.WHITE, Modifier.fillMaxSize().semantics(mergeDescendants = true) { contentDescription = said },

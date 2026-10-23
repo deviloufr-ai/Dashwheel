@@ -14,6 +14,7 @@ import com.openauto.dash.vehicle.K
 import com.openauto.dash.vehicle.Key
 import com.openauto.dash.vehicle.Source
 import com.openauto.dash.vehicle.SourceKind
+import com.openauto.dash.vehicle.SourceLiveness
 import com.openauto.dash.vehicle.Vehicle
 import com.qf.vehicle.entity.RadarState
 import kotlinx.coroutines.CoroutineScope
@@ -23,6 +24,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -79,6 +82,24 @@ object CarBox {
     private val stated = HashMap<Key<*>, Any>()
     private var started = false
 
+    /** No share of the body for this long: what the body last said about the lights, the belt and the handbrake no longer holds. */
+    internal const val BODY_SILENT_MS = 30_000L
+
+    /**
+     * The car app's liveness is its body, which it sends every two seconds while anything in it changes. After
+     * [BODY_SILENT_MS] without one, the states the body puts (lights, belt, handbrake) are withdrawn, so nothing
+     * says "belt unfastened" or "handbrake on" for a car app that stopped; the next body puts them again. The car
+     * app is not taken down as a whole: its doors, climate, radar and steering come only on a change (a parked car
+     * says nothing for hours) and its fuel, range and mileage are believed for hours on purpose, and the speed and
+     * revs it puts expire on their own after [FRESH_MS]. Reverse has its own failsafe ([watchReverse]).
+     */
+    private val bodyLive = SourceLiveness(
+        BODY_SILENT_MS, scope, onBack = {}, onSilent = {
+            synchronized(stated) { stated.clear() }
+            for (key in listOf(K.HEADLIGHTS, K.DRIVER_BELT, K.HANDBRAKE)) busPublisher.put(key, null)
+        }
+    )
+
     private val _body = MutableStateFlow<CarBody?>(null)
     val body: StateFlow<CarBody?> = _body
     /** When [body] was heard ([SystemClock.elapsedRealtime]). */
@@ -122,12 +143,11 @@ object CarBox {
     }
 
     /**
-     * The angle read from the car app's log ([StockLines]), when its broadcast is off. [asCarApp] false for
-     * another bus forwarding its angle here ([CarFeed]): the store follows, the bus hears it from its own source.
+     * The angle read from the car app's log ([StockLines]), when its broadcast is off.
      */
-    internal fun steeringWrite(degrees: Float, asCarApp: Boolean = true) {
+    internal fun steeringWrite(degrees: Float) {
         fineAngleAt = SystemClock.elapsedRealtime()
-        if (asCarApp) setSteering(degrees) else _steering.value = degrees
+        setSteering(degrees)
     }
 
     /** The car app's angle: the old store and the bus. It says it on a change only, and a wheel can stay put through a whole manoeuvre, so it is kept long. */
@@ -204,20 +224,23 @@ object CarBox {
 
     /**
      * Reverse ends on one broadcast only: missed, the voice would stay held,
-     * the alerts away and the reverse view up. So while reversing the ROM's
-     * flag is read again every few seconds, and ends it ([ReverseReads]).
+     * the alerts away and the reverse view up. So while the bus says reverse (whichever source said it: the car
+     * app's broadcast, the driver's taught signal) the ROM's flag is read again every few seconds and the speed
+     * looked at, and [ReverseReads] ends it: a reverse on the bus never outlives its evidence. Ending it is the
+     * car app saying "not reversing" and the taught signal withdrawn ([LearnedSignals.reverseEnded]).
      */
     private fun watchReverse() {
         scope.launch {
-            _reversing.collectLatest { on ->
+            Vehicle.bus.value(K.REVERSE).map { it == true }.distinctUntilChanged().collectLatest { on ->
                 var reads = ReverseReads(seenOn = flagSeenOn)
                 while (on) {
                     delay(REVERSE_REREAD_MS)
-                    reads = reads.next(systemProperty(REVERSE_FLAG) == "true")
+                    reads = reads.next(systemProperty(REVERSE_FLAG) == "true", Vehicle.bus.now(K.SPEED))
                     flagSeenOn = reads.seenOn
                     if (reads.over) {
                         Log.w(TAG, "reverse ended without its broadcast")
                         setReversing(false)
+                        LearnedSignals.reverseEnded()
                     }
                 }
             }
@@ -228,14 +251,6 @@ object CarBox {
     private fun setReversing(on: Boolean) {
         _reversing.value = on
         busPublisher.put(K.REVERSE, on)
-    }
-
-    /**
-     * Reverse as another source says it ([LearnedSignals] as the driver taught it, [CarFeed] from the unit's bus),
-     * for a car whose box or ROM doesn't: the old store follows, and the bus hears it from that source.
-     */
-    internal fun reverseWrite(on: Boolean) {
-        _reversing.value = on
     }
 
     /** Puts a state when it changed since the body last said it: the newest change among equals is the one that stands. */
@@ -305,6 +320,7 @@ object CarBox {
         SignalSources.shared(data)
         when (shareType(data)) {
             SHARE_BODY -> parseCarBody(data!!)?.let {
+                bodyLive.heard()
                 val range = it.range?.takeIf { r -> r in 1f..MAX_RANGE_KM }?.roundToInt()
                 // McuReader keeps the real fuel and range through the demo by itself.
                 McuReader.carBoxWrite(fuelPercentOf(it), range)
@@ -386,14 +402,24 @@ internal fun traceIndexDegrees(index: Int, fullLockDeg: Float): Float? =
 /**
  * What the ROM's reverse flag said each time it was read again during a
  * reverse. Reverse is [over] once the flag, seen on before, has read off
- * three times in a row: a unit that never sets it ends nothing, and neither
+ * three times in a row: a unit that never sets it ends nothing by that, and neither
  * do the moments Dashwheel clears it itself to take the camera ([ReverseCamera]).
+ * Whatever the flag says, a car at [REVERSE_MAX_KMH] or more on three looks in a row
+ * is not in reverse: the one end a unit without the flag has.
  */
-internal data class ReverseReads(val seenOn: Boolean = false, val offInARow: Int = 0) {
-    fun next(on: Boolean) = ReverseReads(seenOn || on, if (on) 0 else offInARow + 1)
+internal data class ReverseReads(val seenOn: Boolean = false, val offInARow: Int = 0, val fastInARow: Int = 0) {
+    /** [speedKmh]: the car's speed at this look, when it has one. */
+    fun next(on: Boolean, speedKmh: Double? = null) = ReverseReads(
+        seenOn || on,
+        if (on) 0 else offInARow + 1,
+        if (speedKmh != null && speedKmh >= REVERSE_MAX_KMH) fastInARow + 1 else 0
+    )
 
-    val over: Boolean get() = seenOn && offInARow >= 3
+    val over: Boolean get() = seenOn && offInARow >= 3 || fastInARow >= 3
 }
+
+/** No car reverses this fast. */
+internal const val REVERSE_MAX_KMH = 30.0
 
 /** The car app's radar object, in [Radar]'s terms: -1 is a sensor the car doesn't have. */
 private fun RadarState.toRadar(): Radar {

@@ -437,7 +437,7 @@ internal fun ModernSpeed(env: SkinTileEnv) {
                 Spacer(Modifier.height(4.dp))
                 val none = if (idle) stringResource(R.string.skin_modern_tap_connect) else stringResource(R.string.info_speed_no_signal)
                 MText(
-                    speedSource(obd, speed, none), sourceSize,
+                    speedSource(none), sourceSize,
                     when {
                         speed != null -> DashColors.Good
                         idle -> DashColors.Accent

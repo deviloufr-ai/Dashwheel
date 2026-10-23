@@ -297,7 +297,7 @@ private fun FutSpeed(env: SkinTileEnv) {
     val idle = env.obdConnection.isIdle
     val canConnect = speed == null && idle && !env.editing
     val noSignal = stringResource(R.string.info_speed_no_signal)
-    val source = speedSource(obd, speed, noSignal).uppercase(Locale.getDefault())
+    val source = speedSource(noSignal).uppercase(Locale.getDefault())
     BoxWithConstraints(
         Modifier
             .fillMaxSize()

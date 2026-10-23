@@ -25,21 +25,47 @@ import kotlin.math.roundToInt
  */
 const val FUEL_HOLD_MS = 6 * 3_600_000L
 
-/** The info for [level] (FUEL_LEVEL's resolved sample) and [range] (km); the adapter's 0 % is no reading, as it always was. */
-internal fun fuelInfoOf(level: Sample<Double>?, range: Double?, car: CarProfile = CarProfileStore.current): FuelInfo? {
-    val fromObd = level?.source?.kind == SourceKind.OBD
-    val pct = level?.value?.roundToInt()?.takeUnless { fromObd && it == 0 }
-    return fuelInfo(pct, range?.roundToInt(), car.tank, car.typicalUse, fromObd)
+/** The info for [level] (FUEL_LEVEL's resolved sample) and [range] (RANGE's); both from the bus, an estimate being a source like the others. */
+internal fun fuelInfoOf(level: Sample<Double>?, range: Sample<Double>?, car: CarProfile = CarProfileStore.current): FuelInfo? =
+    fuelInfo(
+        usableLevelPct(level), range?.value?.roundToInt(), car.tank, car.typicalUse,
+        fromObd = level?.source?.kind == SourceKind.OBD,
+        percentEstimated = level?.quality == Quality.ESTIMATED,
+        rangeEstimated = range?.quality == Quality.ESTIMATED
+    )
+
+/** The level in whole percent, or null: no reading (the adapter's 0 % is none, as it always was). */
+internal fun usableLevelPct(level: Sample<Double>?): Int? =
+    level?.value?.roundToInt()?.takeUnless { level.source.kind == SourceKind.OBD && it == 0 }
+
+/**
+ * The fuel and range now; null when nothing is known. A snapshot, for code that is not a flow: nobody may be
+ * asking for the estimate right now (it runs only while its key is wanted), so when the car gives one of the two
+ * and the bus has no estimate of the other yet, it is worked out here from the same functions the
+ * `computed.range` provider uses, and marked the same way. Hold [K.FUEL_LEVEL] while you rely on it.
+ */
+internal fun fuelInfoNow(car: CarProfile = CarProfileStore.current): FuelInfo? {
+    val level = Vehicle.bus.sample(K.FUEL_LEVEL).value
+    val range = Vehicle.bus.sample(K.RANGE).value
+    val pct = usableLevelPct(level)
+    return when {
+        pct != null && range == null ->
+            fuelInfo(
+                pct, rangeFromLevelKm(pct, car.tank, car.typicalUse).roundToInt(), car.tank, car.typicalUse,
+                fromObd = level?.source?.kind == SourceKind.OBD, rangeEstimated = true
+            )
+        pct == null && range != null && range.quality != Quality.ESTIMATED -> {
+            val km = range.value.roundToInt()
+            fuelInfo(levelFromRangePct(km, car.tank, car.typicalUse).roundToInt(), km, car.tank, car.typicalUse, percentEstimated = true)
+        }
+        else -> fuelInfoOf(level, range, car)
+    }
 }
 
-/** The fuel and range now; null when nothing is known. Hold [K.FUEL_LEVEL] while you rely on it. */
-internal fun fuelInfoNow(): FuelInfo? =
-    fuelInfoOf(Vehicle.bus.sample(K.FUEL_LEVEL).value, Vehicle.bus.now(K.RANGE))
-
-/** [fuelInfoNow] as it changes; collecting it is demand for the fuel level. */
+/** [fuelInfoNow] as it changes; collecting it is demand for the fuel level and the range. */
 internal fun fuelInfoFlow(): Flow<FuelInfo?> =
     combine(Vehicle.bus.sample(K.FUEL_LEVEL), Vehicle.bus.sample(K.RANGE), CarProfileStore.profile) { level, range, car ->
-        fuelInfoOf(level, range?.value, car)
+        fuelInfoOf(level, range, car)
     }
 
 /** The fuel and range for a screen; null when nothing is known. */

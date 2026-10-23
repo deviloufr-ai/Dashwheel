@@ -71,11 +71,9 @@ object DemoMode {
      * arriving without showing, and [withdrawBus] takes the demo's away when it ends.
      */
     private val busPublisher = Vehicle.bus.register(Source("demo", SourceKind.DEMO, "Demo"))
-    private val busKeys: List<Key<*>> = listOf(K.DOORS, K.FUEL_LEVEL, K.RANGE, K.HANDBRAKE, K.DRIVER_BELT, K.ODOMETER, K.TYRES, K.OUTSIDE_TEMP)
 
-    private fun withdrawBus() {
-        for (key in busKeys) busPublisher.put(key, null)
-    }
+    /** The demo ends: every key it showed goes (the source stays registered for the next one). */
+    private fun withdrawBus() = busPublisher.clear()
     /** The car's "left rear brake bulb out" message (PsaWarnings). */
     private const val DEMO_BULB = 0x84
     /** Place de la Concorde: where the fake drive sets off. */

@@ -4,6 +4,8 @@ import com.openauto.dash.vehicle.rememberFuelInfo
 import com.openauto.dash.vehicle.rememberGauges
 import com.openauto.dash.vehicle.rememberGaugeInt
 import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Quality
+import com.openauto.dash.vehicle.Vehicle
 import com.openauto.dash.vehicle.rememberVehicle
 import android.text.format.DateUtils
 import androidx.annotation.StringRes
@@ -27,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import kotlinx.coroutines.flow.map
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -591,7 +594,8 @@ internal fun rememberPsaTrip(): PsaTrip? {
 @Composable
 internal fun carStatusRows(b: CarBody?, trip: PsaTrip? = null): List<Pair<String, String>> {
     val lights = b?.let { lightsOn(it) }?.map { stringResource(it.labelRes) }
-    val carRange = rememberVehicle(K.RANGE)
+    // The car's own range: the Car status card never shows the estimate worked from the tank (the fuel tiles do).
+    val carRange by remember { Vehicle.bus.sample(K.RANGE).map { s -> s?.takeUnless { it.quality == Quality.ESTIMATED }?.value } }.collectAsState(null)
     val odometer = rememberVehicle(K.ODOMETER)
     val handbrake = rememberVehicle(K.HANDBRAKE)
     val u = LocalUnits.current

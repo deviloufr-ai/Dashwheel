@@ -47,7 +47,8 @@ data class Gauges(
     )
 }
 
-private fun Sample<Double>?.int(): Int? = this?.value?.roundToInt()
+/** A gauge is what the car answered: an estimate (the level worked back from the range) is not one. */
+private fun Sample<Double>?.int(): Int? = this?.takeUnless { it.quality == Quality.ESTIMATED }?.value?.roundToInt()
 
 private fun gaugesOf(s: Map<Key<Double>, Sample<Double>?>): Gauges = Gauges(
     speedKmh = s[K.SPEED].int(),
@@ -92,14 +93,18 @@ fun rememberGauges(vararg keys: Key<Double>): Gauges {
     return g
 }
 
-/** One gauge, as a number in the key's unit; null while unknown. */
+/** One gauge, as a number in the key's unit; null while unknown, and for an estimate. */
 @Composable
-fun rememberGauge(key: Key<Double>): Double? = rememberVehicle(key)
+fun rememberGauge(key: Key<Double>): Double? {
+    val flow = remember(key) { Vehicle.bus.sample(key).map { s -> s?.takeUnless { it.quality == Quality.ESTIMATED }?.value }.distinctUntilChanged() }
+    val v by flow.collectAsState(null)
+    return v
+}
 
 /** A gauge in whole numbers (temperatures, percentages, revs); null while unknown. */
 @Composable
 fun rememberGaugeInt(key: Key<Double>): Int? {
-    val v = rememberVehicle(key)
+    val v = rememberGauge(key)
     return remember(v) { v?.roundToInt() }
 }
 

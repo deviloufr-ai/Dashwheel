@@ -1209,8 +1209,7 @@ private fun TapeSpeedHud(env: SkinTileEnv) {
     val speed = rememberSpeedKmh()
     val cyan = DashColors.Accent
     val magenta = DashColors.Accent2
-    val source = speedSource(
-        env.obdConnection == ObdConnectionState.CONNECTED, speed, stringResource(R.string.info_speed_no_signal).uppercase()
+    val source = speedSource(stringResource(R.string.info_speed_no_signal).uppercase()
     )
     val over = speedOver(speed)
     val color = if (over) DashColors.Warning else cyan

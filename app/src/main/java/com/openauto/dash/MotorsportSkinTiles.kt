@@ -251,7 +251,7 @@ private fun SpeedBlock(speed: Int?, obd: Boolean, gear: State<GearReading>, redl
         }
         val numSp = msFitSp("188", msHero(100.sp, color), maxWidth, numH.coerceAtLeast(20f).dp, 22f, 280f)
         val noSignal = stringResource(R.string.info_speed_no_signal).uppercase()
-        val source = speedSource(obd, speed, if (idle) stringResource(R.string.skin_motorsport_tap_connect_caps) else noSignal)
+        val source = speedSource(if (idle) stringResource(R.string.skin_motorsport_tap_connect_caps) else noSignal)
         Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween) {
             Column {
                 if (showCaps) {

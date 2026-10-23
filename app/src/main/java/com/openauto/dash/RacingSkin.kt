@@ -1249,7 +1249,7 @@ private fun RaceSpeed(env: SkinTileEnv) {
     val idle = env.obdConnection.isIdle
     val canConnect = speed == null && idle && !env.editing
     val noSignal = stringResource(R.string.info_speed_no_signal).caps()
-    val source = speedSource(obd, speed, noSignal)
+    val source = speedSource(noSignal)
     val connectLabel = stringResource(R.string.skin_racing_connect_obd)
     val tap = rememberTapFeedback()
     BoxWithConstraints(

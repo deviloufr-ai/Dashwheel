@@ -1,27 +1,37 @@
 package com.openauto.dash
 
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
-import kotlin.math.roundToInt
-import com.openauto.dash.vehicle.Vehicle
 import android.content.Context
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import com.openauto.dash.vehicle.Gear as VehicleGear
 import com.openauto.dash.vehicle.K
-import com.openauto.dash.vehicle.reversingFlow
+import com.openauto.dash.vehicle.Source
+import com.openauto.dash.vehicle.SourceKind
+import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.VehicleBus
+import com.openauto.dash.vehicle.estimateWhileWanted
+import com.openauto.dash.vehicle.measured
 import com.openauto.dash.vehicle.speedKmhFlow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlin.math.roundToInt
 import kotlin.math.abs
 import kotlin.math.ln
 import kotlin.math.pow
 
 /*
- * The gear the car is in. No feed says it outright: reverse comes from the
+ * The gear the car is in, as the bus has it (K.GEAR). A car source that says it wins; none does yet, so it is
+ * the estimate of `computed.gear` ([startGearEstimate]): reverse comes from the
  * head unit's reversing signal (the camera the ROM brings up), and the forward
  * gears from the engine's revs against the road speed, each gear turning the
  * engine a set number of rpm per km/h. The table starts from the car's gearbox
@@ -120,9 +130,96 @@ internal object GearEstimator {
 }
 
 /**
- * The gear, followed while the tile shows. A moment between gears (the
- * clutch slipping mid-shift) keeps the last gear shown for [HOLD_MS] rather
- * than flickering to nothing.
+ * The gear estimate over time: [GearEstimator.read] on each moment of the feeds, the table nudged towards the
+ * car's own ratios while driving ([onSave] is told of the table now and then), and a moment between gears (the
+ * clutch slipping mid-shift) keeping the last gear for [holdMs] rather than flickering to nothing. Pure but for
+ * [onSave]; the clock is the caller's.
+ */
+internal class GearTracker(
+    private var table: List<Double>,
+    private val learning: () -> Boolean = { true },
+    private val holdMs: Long = HOLD_MS,
+    private val saveEvery: Int = SAVE_EVERY,
+    private val onSave: (List<Double>) -> Unit = {}
+) {
+    private var lastGear: Gear = Gear.Unknown
+    private var lastGearAt = 0L
+    private var learned = 0
+
+    /** The gear for this moment as the bus's [VehicleGear]; null when it can't be told (standing, no revs or no speed). */
+    fun step(reversing: Boolean, rpm: Int?, speedKmh: Int?, now: Long): VehicleGear? {
+        var gear = GearEstimator.read(reversing, rpm, speedKmh, table)
+        if (gear is Gear.Forward && rpm != null && speedKmh != null && learning()) {
+            table = GearEstimator.learn(table, gear.n, rpm, speedKmh)
+            // Kept now and then, not at every reading.
+            if (++learned % saveEvery == 0) onSave(table)
+        }
+        if (gear is Gear.Forward || gear is Gear.Reverse) {
+            lastGear = gear
+            lastGearAt = now
+        } else if (gear is Gear.Unknown && now - lastGearAt < holdMs) {
+            gear = lastGear
+        }
+        return vehicleGearOf(gear)
+    }
+
+    companion object {
+        const val HOLD_MS = 1_500L
+        const val SAVE_EVERY = 200
+    }
+}
+
+/** An estimated gear as the bus has it: no "stopped" and no "unknown" there, those are a missing value. */
+internal fun vehicleGearOf(gear: Gear): VehicleGear? = when (gear) {
+    Gear.Reverse -> VehicleGear.Reverse
+    is Gear.Forward -> VehicleGear.Forward(gear.n)
+    Gear.Free -> VehicleGear.Neutral
+    Gear.Stopped, Gear.Unknown -> null
+}
+
+/** The gear for a tile: what the bus has, and where it has none, standing or not told. */
+internal fun gearOf(gear: VehicleGear?, speedKmh: Int?): Gear = when (gear) {
+    VehicleGear.Reverse -> Gear.Reverse
+    is VehicleGear.Forward -> Gear.Forward(gear.n)
+    VehicleGear.Neutral -> Gear.Free
+    VehicleGear.Park -> Gear.Stopped
+    // A car that says "drive" without a number has no gear to put in a gate.
+    VehicleGear.Drive -> Gear.Unknown
+    null -> if (speedKmh != null && speedKmh < GearEstimator.STOPPED_KMH) Gear.Stopped else Gear.Unknown
+}
+
+/** The gear estimate over [rpm], the car's [speed] and reverse, for [tracker]; collecting it asks for all three. */
+internal fun gearEstimateFlow(bus: VehicleBus, tracker: GearTracker, clock: () -> Long = System::currentTimeMillis): Flow<VehicleGear?> {
+    // The revs and the speed are the car's: never an estimate's.
+    val rpm = bus.measured(K.RPM).map { it?.value?.roundToInt() }.distinctUntilChanged()
+    val speed = bus.measured(K.VEHICLE_SPEED).map { it?.value?.roundToInt() }.distinctUntilChanged()
+    val reverse = bus.value(K.REVERSE).map { it == true }.distinctUntilChanged()
+    return combine(rpm, reverse, speed) { r, reversing, s -> tracker.step(reversing, r, s, clock()) }
+}
+
+/**
+ * `computed.gear`: GEAR from the revs against the road speed, while somebody wants the gear and no car source says
+ * it. The table starts from the car's gearbox and settles on its own ratios as it drives ([GearEstimator.table]),
+ * as it did when the tiles estimated by themselves; it follows the car profile's number of gears.
+ */
+@OptIn(ExperimentalCoroutinesApi::class)
+internal fun startGearEstimate(context: Context, bus: VehicleBus, scope: CoroutineScope): Job {
+    val out = bus.register(Source("computed.gear", SourceKind.COMPUTED, "Gear from revs and speed"))
+    return estimateWhileWanted(scope, bus, out, K.GEAR) {
+        CarProfileStore.profile.map { it.gears ?: 6 }.distinctUntilChanged().flatMapLatest { gears ->
+            val tracker = GearTracker(
+                GearEstimator.table(context, gears),
+                learning = { !DemoMode.isOn },
+                onSave = { GearEstimator.save(context, it) }
+            )
+            gearEstimateFlow(bus, tracker)
+        }
+    }
+}
+
+/**
+ * The gear, followed while the tile shows: the bus's GEAR (a car source when one has it, else the estimate of
+ * `computed.gear`, which only runs because this asks), with the revs and the speed beside it.
  */
 @Composable
 internal fun rememberGear(): State<GearReading> {
@@ -131,32 +228,11 @@ internal fun rememberGear(): State<GearReading> {
     val state = remember { mutableStateOf(GearReading(Gear.Unknown, null, null, gears)) }
     LaunchedEffect(Unit) { CarBox.start(context) }
     LaunchedEffect(gears) {
-        var table = GearEstimator.table(context, gears)
-        var lastGear: Gear = Gear.Unknown
-        var lastGearAt = 0L
-        var learned = 0
-        val rpmFlow = Vehicle.bus.value(K.RPM).map { it?.roundToInt() }.distinctUntilChanged()
         // The revs are whatever the bus resolves: the car app's or a unit bus's, else the adapter's.
-        combine(rpmFlow, reversingFlow(), speedKmhFlow(K.VEHICLE_SPEED)) { rpm, reversing, speed ->
-            Triple(reversing, rpm, speed)
-        }.collect { (reversing, rpm, speed) ->
-            val now = System.currentTimeMillis()
-            var gear = GearEstimator.read(reversing, rpm, speed, table)
-            if (gear is Gear.Forward && rpm != null && speed != null && !DemoMode.isOn) {
-                table = GearEstimator.learn(table, gear.n, rpm, speed)
-                // Kept now and then, not at every reading.
-                if (++learned % 200 == 0) GearEstimator.save(context, table)
-            }
-            if (gear is Gear.Forward || gear is Gear.Reverse) {
-                lastGear = gear
-                lastGearAt = now
-            } else if (gear is Gear.Unknown && now - lastGearAt < HOLD_MS) {
-                gear = lastGear
-            }
-            state.value = GearReading(gear, rpm, speed, gears)
-        }
+        val rpmFlow = Vehicle.bus.value(K.RPM).map { it?.roundToInt() }.distinctUntilChanged()
+        combine(Vehicle.bus.value(K.GEAR), rpmFlow, speedKmhFlow(K.VEHICLE_SPEED)) { gear, rpm, speed ->
+            GearReading(gearOf(gear, speed), rpm, speed, gears)
+        }.collect { state.value = it }
     }
     return state
 }
-
-private const val HOLD_MS = 1_500L
