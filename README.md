@@ -37,6 +37,7 @@ Dashwheel is free, with no ads. If it makes your drives nicer, a coffee on Ko-fi
 - **Navigation**: free built-in 3D map with turn-by-turn guidance, or Google Maps / Waze next turn on any tile
 - **Phone link** (Dashwheel Companion app): notifications, messages, calls, where's my car, drive log
 - **Your own alerts and reverse view** instead of the head unit's pop-ups
+- **Road watch** (experimental, Dashwheel Companion): the phone in a windscreen holder watches the road with its camera; the car warns of a car ahead coming up fast, a wheel on the lane's line, following too close, and traffic moving off
 - **Hands-free**: spoken alerts, steering-wheel buttons, volume that follows speed
 - **Share and automate**: share a dashboard and its look as a QR code or a short code; Tasker and similar apps can drive Dashwheel and react to the car ([automation](docs/automation.md))
 - **Second screen** (experimental): a Raspberry Pi drives a second monitor in the car

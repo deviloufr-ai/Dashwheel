@@ -2447,6 +2447,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     VolumeHost()
     TyreAlertHost()
     BeltAlertHost()
+    RoadAlertHost()
 }
 
 /**

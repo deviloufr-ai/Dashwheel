@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="alert_kind_road">Straßenwächter</string>
+    <string name="alert_kind_road_title">Warnungen des Straßenwächters</string>
+    <string name="alert_road_detail">Warnungen der Handykamera hinter der Windschutzscheibe</string>
+    <string name="alert_road_how">Starten Sie den Straßenwächter in Dashwheel Companion, das Handy in seiner Halterung hinter der Windschutzscheibe. Vor einem Auto, das vorne schnell näher kommt, wird immer gewarnt.</string>
+    <string name="alert_road_lanes">Spurwarnungen</string>
+    <string name="alert_road_lanes_detail">Ein Rad auf der Linie ab 60 km/h, nie mit gesetztem Blinker</string>
+    <string name="alert_road_moved_off">Es geht weiter</string>
+    <string name="alert_road_moved_off_detail">Im Stau stehend: ein Wort, wenn das Auto vorne losfährt</string>
+    <string name="alert_speak_road_detail">Zu dichtes Auffahren und anfahrender Verkehr werden angesagt. Das Auto vorne und die Spur piepen immer.</string>
+    <string name="road_warn_collision">Bremsen, Auto vorne</string>
+    <string name="road_warn_lane_left">Achtung, linke Linie</string>
+    <string name="road_warn_lane_right">Achtung, rechte Linie</string>
+    <string name="road_warn_close">Zu dicht</string>
+    <string name="road_warn_moved_off">Es geht weiter</string>
+    <string name="road_say_close">Abstand halten</string>
+    <string name="road_say_moved_off">Der Verkehr fährt an</string>
+</resources>

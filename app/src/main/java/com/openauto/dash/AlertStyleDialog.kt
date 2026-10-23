@@ -41,6 +41,8 @@ import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.SensorDoor
 import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.TireRepair
+import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.filled.Traffic
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
@@ -100,6 +102,7 @@ internal enum class AlertGroup(@StringRes val title: Int, val lines: List<AlertL
     ),
     ROAD(
         R.string.alerts_group_road, listOf(
+            AlertLine.Shown(AlertKind.ROAD),
             AlertLine.Said(SpokenEvent.SPEED_CAMERAS), AlertLine.Said(SpokenEvent.SPEED_LIMIT), AlertLine.Said(SpokenEvent.WEATHER)
         )
     ),
@@ -191,6 +194,7 @@ private fun GrantHint() {
 
 /** Whether [kind] can work on this unit, so its row is offered. */
 private fun offered(context: Context, kind: AlertKind, access: PrivilegedShell.Access): Boolean {
+    // Road watch comes with the companion's camera, on any unit.
     val rom = kind.romKind ?: return kind != AlertKind.GEMINI || GeminiLive.available(context)
     return kind == AlertKind.CALL || RomPopups.available(context, rom) && RomPopups.canWork(rom, access)
 }
@@ -199,8 +203,11 @@ private fun offered(context: Context, kind: AlertKind, access: PrivilegedShell.A
 /** The command that grants this edition (its own package) the permission from a PC. */
 private fun grantCommand(packageName: String) = "adb shell pm grant $packageName android.permission.WRITE_SECURE_SETTINGS"
 
-/** The switch that turns [this] alert on, in [RomPopups]; none for Gemini Live, opened by the driver. */
-private val AlertKind.romKind: RomPopups.Kind? get() = if (this == AlertKind.GEMINI) null else RomPopups.Kind.valueOf(name)
+/**
+ * The switch that turns [this] alert on, in [RomPopups]; none for Gemini Live,
+ * opened by the driver, nor for Road watch, started on the phone.
+ */
+private val AlertKind.romKind: RomPopups.Kind? get() = if (this == AlertKind.GEMINI || this == AlertKind.ROAD) null else RomPopups.Kind.valueOf(name)
 
 /** Whether [kind] has a switch on this unit: all but Gemini Live, and the calls where only the companion brings them. */
 @Composable
@@ -345,6 +352,7 @@ private val AlertKind.offDetail: Int
         AlertKind.BELT -> R.string.settings_rom_belt_detail
         AlertKind.GEMINI -> R.string.alert_gemini_detail
         AlertKind.VOLUME -> R.string.settings_rom_volume_detail
+        AlertKind.ROAD -> R.string.alert_road_detail
     }
 
 private val AlertKind.icon: ImageVector
@@ -357,6 +365,7 @@ private val AlertKind.icon: ImageVector
         AlertKind.BELT -> Icons.Filled.AirlineSeatReclineNormal
         AlertKind.GEMINI -> Icons.Filled.AutoAwesome
         AlertKind.VOLUME -> Icons.Filled.VolumeUp
+        AlertKind.ROAD -> Icons.Filled.Traffic
     }
 
 private val AlertKind.label: Int
@@ -369,6 +378,7 @@ private val AlertKind.label: Int
         AlertKind.BELT -> R.string.alert_kind_belt
         AlertKind.GEMINI -> R.string.ai_gemini_live
         AlertKind.VOLUME -> R.string.alert_kind_volume
+        AlertKind.ROAD -> R.string.alert_kind_road
     }
 
 private val AlertKind.dialogTitle: Int
@@ -381,13 +391,14 @@ private val AlertKind.dialogTitle: Int
         AlertKind.BELT -> R.string.alert_kind_belt_title
         AlertKind.GEMINI -> R.string.alert_kind_gemini_title
         AlertKind.VOLUME -> R.string.alert_kind_volume_title
+        AlertKind.ROAD -> R.string.alert_kind_road_title
     }
 
 /** The alert's colour in the picker's small screens. */
 @Composable
 private fun AlertKind.tint(): Color = when (this) {
     AlertKind.DOORS, AlertKind.RADAR -> DashColors.Warning
-    AlertKind.TYRES, AlertKind.BELT -> DashColors.Critical
+    AlertKind.TYRES, AlertKind.BELT, AlertKind.ROAD -> DashColors.Critical
     else -> DashColors.Accent
 }
 
@@ -443,6 +454,19 @@ private fun AlertStyleDialog(kind: AlertKind, onDismiss: () -> Unit) {
                         AiSettings.save(context, ai)
                     }
                 }
+                if (kind == AlertKind.ROAD) {
+                    // What it watches besides the car ahead: the lane, the traffic moving off.
+                    Text(stringResource(R.string.alert_road_how), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+                    Spacer(Modifier.height(8.dp))
+                    val lanes by RoadWatch.lanes.collectAsState()
+                    val movedOff by RoadWatch.movedOff.collectAsState()
+                    SettingsToggle(
+                        Icons.Filled.SwapHoriz, stringResource(R.string.alert_road_lanes), stringResource(R.string.alert_road_lanes_detail), lanes
+                    ) { RoadWatch.setLanes(context, it) }
+                    SettingsToggle(
+                        Icons.Filled.Traffic, stringResource(R.string.alert_road_moved_off), stringResource(R.string.alert_road_moved_off_detail), movedOff
+                    ) { RoadWatch.setMovedOff(context, it) }
+                }
                 if (kind.speakable) {
                     // Its voice is here with its design, not in the "What the car says" list: said so.
                     Label(stringResource(R.string.alert_also_spoken))
@@ -453,6 +477,7 @@ private fun AlertStyleDialog(kind: AlertKind, onDismiss: () -> Unit) {
                                 AlertKind.CALL -> R.string.alert_speak_call_detail
                                 AlertKind.TYRES -> R.string.alert_speak_tyres_detail
                                 AlertKind.BELT -> R.string.alert_speak_belt_detail
+                                AlertKind.ROAD -> R.string.alert_speak_road_detail
                                 else -> R.string.alert_speak_doors_detail
                             }
                         ),

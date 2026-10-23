@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.openauto.dash.link.CallState
 import com.openauto.dash.link.ClusterState
+import com.openauto.dash.roadwatch.RoadWarning
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -90,6 +91,12 @@ internal object SecondScreenAlerts {
             )
             AlertKind.RADAR -> ClusterState.Alert(s(R.string.alert_kind_radar), level = ClusterState.Alert.WARN)
             AlertKind.AC -> ClusterState.Alert(s(R.string.alert_kind_ac))
+            AlertKind.ROAD -> RoadAlertOverlay.shown.value?.let {
+                ClusterState.Alert(
+                    s(R.string.alert_kind_road), s(it.text),
+                    if (it == RoadWarning.COLLISION) ClusterState.Alert.CRITICAL else ClusterState.Alert.WARN
+                )
+            }
             AlertKind.VOLUME, AlertKind.GEMINI -> null
         }
     }
@@ -119,6 +126,7 @@ internal fun SecondScreenAlertLayer() {
                 AlertKind.TYRES -> TyreAlertContent(style)
                 AlertKind.RADAR -> RadarAlertContent(style)
                 AlertKind.AC -> ClimateAlertContent(style)
+                AlertKind.ROAD -> RoadAlertContent(style)
                 AlertKind.VOLUME, AlertKind.GEMINI -> Unit
             }
         }

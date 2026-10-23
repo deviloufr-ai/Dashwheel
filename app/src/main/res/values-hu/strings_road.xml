@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="alert_kind_road">Útfigyelő</string>
+    <string name="alert_kind_road_title">Az Útfigyelő figyelmeztetései</string>
+    <string name="alert_road_detail">Figyelmeztetések a telefon kamerájától a szélvédő mögül</string>
+    <string name="alert_road_how">Indítsa el az Útfigyelőt a Dashwheel Companionben, a telefon a tartójában a szélvédő mögött. Az elöl gyorsan közeledő autóra mindig figyelmeztet.</string>
+    <string name="alert_road_lanes">Sávfigyelmeztetések</string>
+    <string name="alert_road_lanes_detail">Kerék a vonalon 60 km/h felett, soha nem bekapcsolt irányjelzővel</string>
+    <string name="alert_road_moved_off">Indul a forgalom</string>
+    <string name="alert_road_moved_off_detail">Állva a dugóban: egy szó, amikor az elöl álló autó elindul</string>
+    <string name="alert_speak_road_detail">A túl közeli követést és az induló forgalmat hangosan mondja. Az elöl haladó autó és a sáv mindig sípol.</string>
+    <string name="road_warn_collision">Fékezzen, autó elöl</string>
+    <string name="road_warn_lane_left">Figyeljen a bal vonalra</string>
+    <string name="road_warn_lane_right">Figyeljen a jobb vonalra</string>
+    <string name="road_warn_close">Túl közel</string>
+    <string name="road_warn_moved_off">Indul a forgalom</string>
+    <string name="road_say_close">Tartson távolságot</string>
+    <string name="road_say_moved_off">Elindult a forgalom</string>
+</resources>

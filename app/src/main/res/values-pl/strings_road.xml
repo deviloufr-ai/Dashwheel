@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="alert_kind_road">Strażnik drogi</string>
+    <string name="alert_kind_road_title">Ostrzeżenia Strażnika drogi</string>
+    <string name="alert_road_detail">Ostrzeżenia z aparatu telefonu za przednią szybą</string>
+    <string name="alert_road_how">Uruchom Strażnika drogi w Dashwheel Companion, z telefonem w uchwycie za przednią szybą. Przed autem z przodu, które szybko się zbliża, ostrzeżenie jest zawsze.</string>
+    <string name="alert_road_lanes">Ostrzeżenia o pasie</string>
+    <string name="alert_road_lanes_detail">Koło na linii od 60 km/h, nigdy przy włączonym kierunkowskazie</string>
+    <string name="alert_road_moved_off">Ruch rusza</string>
+    <string name="alert_road_moved_off_detail">Postój w korku: słowo, gdy auto z przodu odjeżdża</string>
+    <string name="alert_speak_road_detail">Zbyt bliska jazda i ruszający ruch są mówione na głos. Auto z przodu i pas zawsze piszczą.</string>
+    <string name="road_warn_collision">Hamuj, auto z przodu</string>
+    <string name="road_warn_lane_left">Uważaj na lewą linię</string>
+    <string name="road_warn_lane_right">Uważaj na prawą linię</string>
+    <string name="road_warn_close">Za blisko</string>
+    <string name="road_warn_moved_off">Ruch rusza</string>
+    <string name="road_say_close">Zachowaj odstęp</string>
+    <string name="road_say_moved_off">Ruch ruszył</string>
+</resources>

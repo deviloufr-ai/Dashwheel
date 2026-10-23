@@ -218,6 +218,8 @@ open class MainActivity : ComponentActivity() {
                     { TyreAlertOverlay.start(this) },
                     // The seat belt reminder, and no system bars over docked app windows.
                     { BeltAlertOverlay.start(this) },
+                    // Road watch's warnings, from the camera of the phone behind the windscreen.
+                    { RoadAlertOverlay.start(this) },
                     { GeminiLive.start(this) },
                     { DockedNavBar.start(this) },
                     { FreeformBar.start(this) },

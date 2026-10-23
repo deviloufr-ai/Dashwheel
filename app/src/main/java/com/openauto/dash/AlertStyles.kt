@@ -47,6 +47,7 @@ import androidx.compose.ui.window.PopupProperties
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.openauto.dash.link.CallState
+import com.openauto.dash.roadwatch.RoadWarning
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -118,24 +119,28 @@ enum class AlertKind(
     // the icon, the bubble and the pill only say it listens.
     GEMINI("gemini", listOf(AlertStyle.ICON, AlertStyle.BUBBLE, AlertStyle.PILL, AlertStyle.CARD, AlertStyle.PANEL, AlertStyle.FULL), speakable = false, cardAt = CardAt.TOP_END, default = AlertStyle.PANEL),
     // Where the firmware's own volume bar was: top centre.
-    VOLUME("volume", listOf(AlertStyle.PILL, AlertStyle.CARD, AlertStyle.BANNER, AlertStyle.PANEL), speakable = false, cardAt = CardAt.TOP);
+    VOLUME("volume", listOf(AlertStyle.PILL, AlertStyle.CARD, AlertStyle.BANNER, AlertStyle.PANEL), speakable = false, cardAt = CardAt.TOP),
+    // Road watch, from the phone's camera (RoadAlertOverlay): shown while driving, so never over the screen; big by default.
+    ROAD("road", listOf(AlertStyle.PILL, AlertStyle.CARD, AlertStyle.BANNER), speakable = true, cardAt = CardAt.TOP, default = AlertStyle.BANNER);
 
     /**
      * Which comes first when several are up at once, the lowest ahead: what
      * the driver must act on now (something behind the car, a call ringing,
      * the belt) before what can be looked at later. A conversation with Gemini
-     * is not shrunk by a fan click.
+     * is not shrunk by a fan click. Road watch's warnings come first: the car
+     * ahead coming up fast can't wait for anything.
      */
     val rank: Int
         get() = when (this) {
-            RADAR -> 0
-            CALL -> 1
-            BELT -> 2
-            DOORS -> 3
-            TYRES -> 4
-            GEMINI -> 5
-            AC -> 6
-            VOLUME -> 7
+            ROAD -> 0
+            RADAR -> 1
+            CALL -> 2
+            BELT -> 3
+            DOORS -> 4
+            TYRES -> 5
+            GEMINI -> 6
+            AC -> 7
+            VOLUME -> 8
         }
 }
 
@@ -247,11 +252,13 @@ enum class CardAt(val gravity: Int, val alignment: Alignment) {
 
 object AlertStyleStore {
     private const val PREFS = "alert_styles"
+    /** Said out loud until the driver says otherwise. */
+    private val SPOKEN_FIRST = setOf(AlertKind.DOORS, AlertKind.TYRES, AlertKind.BELT, AlertKind.ROAD)
 
     private val _styles = MutableStateFlow<Map<AlertKind, AlertStyle>>(emptyMap())
     val styles: StateFlow<Map<AlertKind, AlertStyle>> = _styles
 
-    private val _spoken = MutableStateFlow(setOf(AlertKind.DOORS, AlertKind.TYRES, AlertKind.BELT))
+    private val _spoken = MutableStateFlow(SPOKEN_FIRST)
     /** The alerts also said out loud ([AlertVoice]); the doors until the driver says otherwise. */
     val spoken: StateFlow<Set<AlertKind>> = _spoken
 
@@ -262,7 +269,7 @@ object AlertStyleStore {
         _styles.value = AlertKind.entries.mapNotNull { kind ->
             p.getString(kind.key, null)?.let { name -> AlertStyle.entries.firstOrNull { it.name == name } }?.let { kind to it }
         }.toMap()
-        _spoken.value = AlertKind.entries.filter { p.getBoolean("speak_${it.key}", it == AlertKind.DOORS || it == AlertKind.TYRES || it == AlertKind.BELT) }.toSet()
+        _spoken.value = AlertKind.entries.filter { p.getBoolean("speak_${it.key}", it in SPOKEN_FIRST) }.toSet()
         SpokenEvents.load(context)
     }
 
@@ -297,6 +304,7 @@ object AlertPreview {
     val belt = MutableStateFlow(false)
     val gemini = MutableStateFlow(false)
     val volume = MutableStateFlow<VolumeShown?>(null)
+    val road = MutableStateFlow<RoadWarning?>(null)
 
     private const val SHOW_MS = 8_000L
 
@@ -326,6 +334,10 @@ object AlertPreview {
             }
             AlertKind.GEMINI -> gemini.value = true
             AlertKind.VOLUME -> volume.value = VolumeShown(12, MediaVolume.UNIT_MAX, muted = false, VolumeSource.MEDIA)
+            AlertKind.ROAD -> RoadWarning.COLLISION.let {
+                road.value = it
+                RoadAlertOverlay.sound(context, it, force = true)
+            }
         }
         job = scope.launch {
             delay(SHOW_MS)
@@ -348,6 +360,7 @@ object AlertPreview {
         belt.value = false
         gemini.value = false
         volume.value = null
+        road.value = null
     }
 }
 

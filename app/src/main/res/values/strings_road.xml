@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Road watch (RoadAlertOverlay.kt): warnings from the camera of the phone behind the windscreen. -->
+    <string name="alert_kind_road">Road watch</string>
+    <string name="alert_kind_road_title">Road watch warnings</string>
+    <string name="alert_road_detail">Warnings from the phone\'s camera behind the windscreen</string>
+    <string name="alert_road_how">Start Road watch in Dashwheel Companion, the phone in its holder behind the windscreen. A car ahead coming up fast is always warned of.</string>
+    <string name="alert_road_lanes">Lane warnings</string>
+    <string name="alert_road_lanes_detail">A wheel on the line from 60 km/h, never with an indicator on</string>
+    <string name="alert_road_moved_off">Traffic moving</string>
+    <string name="alert_road_moved_off_detail">Stopped in traffic: a word when the car ahead drives off</string>
+    <string name="alert_speak_road_detail">Following too close and traffic moving are said out loud. The car ahead and the lane always beep.</string>
+    <string name="road_warn_collision">Brake, car ahead</string>
+    <string name="road_warn_lane_left">Mind the left line</string>
+    <string name="road_warn_lane_right">Mind the right line</string>
+    <string name="road_warn_close">Too close</string>
+    <string name="road_warn_moved_off">Traffic is moving</string>
+    <string name="road_say_close">Keep your distance</string>
+    <string name="road_say_moved_off">The traffic is moving</string>
+</resources>

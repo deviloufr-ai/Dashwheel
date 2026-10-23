@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="alert_kind_road">Vedetta strada</string>
+    <string name="alert_kind_road_title">Avvisi di Vedetta strada</string>
+    <string name="alert_road_detail">Avvisi dalla fotocamera del telefono dietro il parabrezza</string>
+    <string name="alert_road_how">Avvia Vedetta strada in Dashwheel Companion, con il telefono nel supporto dietro il parabrezza. Un\'auto davanti che si avvicina in fretta viene sempre segnalata.</string>
+    <string name="alert_road_lanes">Avvisi di corsia</string>
+    <string name="alert_road_lanes_detail">Una ruota sulla linea da 60 km/h, mai con la freccia accesa</string>
+    <string name="alert_road_moved_off">Il traffico riparte</string>
+    <string name="alert_road_moved_off_detail">Fermo nel traffico: un avviso quando l\'auto davanti riparte</string>
+    <string name="alert_speak_road_detail">Troppo vicino e traffico che riparte vengono detti a voce. L\'auto davanti e la corsia suonano sempre.</string>
+    <string name="road_warn_collision">Frena, auto davanti</string>
+    <string name="road_warn_lane_left">Attento alla linea sinistra</string>
+    <string name="road_warn_lane_right">Attento alla linea destra</string>
+    <string name="road_warn_close">Troppo vicino</string>
+    <string name="road_warn_moved_off">Il traffico riparte</string>
+    <string name="road_say_close">Mantieni la distanza</string>
+    <string name="road_say_moved_off">Il traffico riparte</string>
+</resources>
