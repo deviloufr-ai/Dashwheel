@@ -9,6 +9,10 @@ import android.content.Context
 import android.os.SystemClock
 import android.util.Log
 import androidx.annotation.StringRes
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Source
+import com.openauto.dash.vehicle.SourceKind
+import com.openauto.dash.vehicle.Vehicle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -177,6 +181,25 @@ object ObdBluetoothManager {
     private val _connectionState = MutableStateFlow(ObdConnectionState.DISCONNECTED)
     val connectionState: StateFlow<ObdConnectionState> = _connectionState.asStateFlow()
 
+    /** This adapter on the vehicle bus: the speed (already corrected) while linked; nothing once it is not. */
+    private val busPublisher = Vehicle.bus.register(Source("obd", SourceKind.OBD, "OBD"))
+
+    init {
+        // Every route (ELM327, Deep OBD, the phone relay, the demo) ends in a connection state and in [data].
+        CoroutineScope(SupervisorJob() + Dispatchers.Default).launch { _connectionState.collect { publishSpeed() } }
+    }
+
+    /** Sets [data] and tells the bus its speed; every write of the readings goes through here. */
+    private fun setData(data: ObdData) {
+        _data.value = data
+        publishSpeed()
+    }
+
+    private fun publishSpeed() {
+        val kmh = _data.value.speedKmh.takeIf { _connectionState.value == ObdConnectionState.CONNECTED }
+        busPublisher.put(K.VEHICLE_SPEED, kmh?.toDouble())
+    }
+
     /** The engine lamp from the last fault-code scan; null until one ran or if the car didn't say. */
     private val _lamp = MutableStateFlow<EngineLamp?>(null)
     val lamp: StateFlow<EngineLamp?> = _lamp.asStateFlow()
@@ -253,7 +276,7 @@ object ObdBluetoothManager {
     internal fun deepObdWrite(data: ObdData) {
         if (DemoMode.isOn) return
         _lastError.value = null
-        _data.value = data
+        setData(data)
         _connectionState.value = ObdConnectionState.CONNECTED
         BatteryWatch.feed(data, System.currentTimeMillis())
     }
@@ -262,7 +285,7 @@ object ObdBluetoothManager {
     internal fun deepObdDown() {
         if (DemoMode.isOn) return
         _connectionState.value = ObdConnectionState.DISCONNECTED
-        _data.value = ObdData()
+        setData(ObdData())
     }
 
     private fun fail(@StringRes reason: Int, vararg args: Any): Boolean {
@@ -909,7 +932,7 @@ object ObdBluetoothManager {
         // for good (a drive that never ends, a battery judged on old readings);
         // the temperatures, fuel and voltage keep their last value, as a gauge would.
         val silentFor = SystemClock.elapsedRealtime() - lastAliveAt
-        _data.value = if (silentPolls >= STALE_POLLS && silentFor >= STALE_MS) next.engineStopped() else next
+        setData(if (silentPolls >= STALE_POLLS && silentFor >= STALE_MS) next.engineStopped() else next)
         BatteryWatch.feed(_data.value, System.currentTimeMillis())
     }
 
@@ -1171,7 +1194,7 @@ object ObdBluetoothManager {
     /** [DemoMode]'s readings, shown as if an adapter were connected. */
     internal fun demoWrite(data: ObdData, lamp: EngineLamp?, pending: Set<String>) {
         _connectionState.value = ObdConnectionState.CONNECTED
-        _data.value = data
+        setData(data)
         _lamp.value = lamp
         _pending.value = pending
     }
@@ -1180,7 +1203,7 @@ object ObdBluetoothManager {
     internal fun endDemo(lamp: EngineLamp?, pending: Set<String>) {
         val linked = socket?.isConnected == true || ((_viaPhone.value || _viaUsb.value) && outputStream != null) || (DeepObdSource.owns() && DeepObdSource.live)
         _connectionState.value = if (linked) ObdConnectionState.CONNECTED else ObdConnectionState.DISCONNECTED
-        _data.value = ObdData()
+        setData(ObdData())
         _lamp.value = lamp
         _pending.value = pending
     }
@@ -1190,7 +1213,7 @@ object ObdBluetoothManager {
             generation++
             closeQuietly()
             _connectionState.value = ObdConnectionState.DISCONNECTED
-            _data.value = ObdData()
+            setData(ObdData())
         }
     }
 

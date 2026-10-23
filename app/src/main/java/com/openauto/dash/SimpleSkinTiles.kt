@@ -302,7 +302,7 @@ private fun SimpleSpeed(env: SkinTileEnv) {
 /** The glass speed card; in its own scope, so a new reading redraws the card and not the car beside it. */
 @Composable
 private fun SpeedCard(env: SkinTileEnv, modifier: Modifier) {
-    val speed = rememberSpeedKmh(env.obdData, env.obdConnection)
+    val speed = rememberSpeedKmh()
     val limit by SpeedLimit.limit.collectAsState()
     val units = LocalUnits.current
     val idle = env.obdConnection.isIdle

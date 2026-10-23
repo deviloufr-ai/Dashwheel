@@ -823,7 +823,7 @@ private fun OrbitGaugeBubble(
 /** The dial with speed only (OBD, else GPS) and its source under it; with no signal a tap connects OBD. */
 @Composable
 private fun OrbitSpeedHud(env: SkinTileEnv) {
-    val speed = rememberSpeedKmh(env.obdData, env.obdConnection)
+    val speed = rememberSpeedKmh()
     val obd = env.obdConnection == ObdConnectionState.CONNECTED
     val idle = env.obdConnection.isIdle
     val warn = speedOver(speed)

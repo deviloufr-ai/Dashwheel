@@ -14,6 +14,9 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.rememberDisplaySpeedKmh
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import androidx.compose.runtime.mutableFloatStateOf
@@ -280,26 +283,23 @@ internal fun Modifier.cachedDraw(vararg keys: Any?, block: CacheDrawScope.() -> 
     this then remember(*keys) { Modifier.drawWithCache(block) }
 
 /**
- * Speed in km/h from OBD when connected, else from a GPS fix under 5 s old,
- * else null; both with the driver's correction ([SpeedCorrection]). Keeps
- * the GPS feed running while on screen.
+ * The speed to show, in km/h: the car's (OBD, car app, unit bus), else a GPS fix
+ * under 5 s old, else null; with the driver's correction ([rememberDisplaySpeedKmh]).
+ * Keeps the GPS feed running while on screen.
  */
 @Composable
-internal fun rememberSpeedKmh(obdData: ObdData, connection: ObdConnectionState): Int? {
+internal fun rememberSpeedKmh(): Int? {
     UseLocationFeed()
-    val gpsKmh by LocationFeed.freshSpeedKmh.collectAsState()
-    // Followed, so a change in Settings shows at once.
-    SpeedCorrection.offsetKmh.collectAsState().value
-    return if (connection == ObdConnectionState.CONNECTED) obdData.speedKmh else gpsKmh?.let(SpeedCorrection::correctedGps)
+    return rememberDisplaySpeedKmh()
 }
 
 /** Whether [rememberSpeedKmh] has a speed to give, without following the speed itself (it changes at every reading). */
 @Composable
-internal fun rememberHasSpeed(connection: ObdConnectionState): Boolean {
+internal fun rememberHasSpeed(): Boolean {
     UseLocationFeed()
-    val gps by remember { LocationFeed.freshSpeedKmh.map { it != null }.distinctUntilChanged() }
-        .collectAsState(initial = remember { LocationFeed.freshSpeedKmh.value != null })
-    return connection == ObdConnectionState.CONNECTED || gps
+    val has by remember { Vehicle.bus.value(K.SPEED).map { it != null }.distinctUntilChanged() }
+        .collectAsState(initial = remember { Vehicle.bus.now(K.SPEED) != null })
+    return has
 }
 
 /**

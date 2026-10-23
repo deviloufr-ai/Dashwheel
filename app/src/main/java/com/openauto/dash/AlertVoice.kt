@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.SystemClock
 import com.openauto.dash.link.CallState
 import com.openauto.dash.link.ConversationLine
+import com.openauto.dash.vehicle.speedKmhFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -74,9 +75,7 @@ object AlertVoice {
         }
 
         scope.launch {
-            val speed = combine(ObdBluetoothManager.connectionState, ObdBluetoothManager.data, CarBox.body, LocationFeed.freshSpeedKmh) { connection, obd, _, gps ->
-                if (connection == ObdConnectionState.CONNECTED) obd.speedKmh else CarBox.freshBody()?.speedKmh ?: gps
-            }
+            val speed = speedKmhFlow()
             var before: Set<String> = emptySet()
             var wasMoving = false
             combine(McuReader.doorState, speed) { doors, kmh -> doors to kmh }.collect { (doors, kmh) ->

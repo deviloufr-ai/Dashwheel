@@ -104,6 +104,11 @@ Providers that pay per value (OBD) use it to poll only wanted keys. A key that i
 - **Match the surrounding code:** package `com.openauto.dash.vehicle` for the bus; naming and comment density like the rest of the app; commit messages in the repo's voice (a headline plus a body), ending with:
   `Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>`
 
+## Decisions
+
+- **Speed correction (step 2).** `VEHICLE_SPEED` is the car's speed *after* the driver's correction (Settings, Car): every car-speed provider applies `SpeedCorrection.corrected` before it publishes (OBD at its poll, the QF car app and the unit bus when they put). `GPS_SPEED` is raw. Display goes through one helper, `displaySpeedKmh(sample)` / `rememberDisplaySpeedKmh()` in `vehicle/Speed.kt`: it returns `SPEED`'s value and applies `SpeedCorrection.correctedGps` only when the resolved sample's source kind is GPS. The bar speedo (`rememberSpeedKmh`) and the second screen (`ClusterFeed`) use it; everything else reads the raw keys, as they always did.
+- **Slow senders are held (step 2).** The QF car app and a unit bus say their speed on a change, while `VEHICLE_SPEED` expires in 3 s. Their providers republish the last value every second while the source was heard within its hold (6 s for the car app, as `CarBox.freshBody()`; 10 s for the unit bus), then withdraw (`SteadySpeed`).
+
 ## 2. The key catalogue (step 1 defines all of it)
 
 | Key | Type | Kind / ttl | Domain | Crit. |

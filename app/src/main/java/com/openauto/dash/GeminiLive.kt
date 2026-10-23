@@ -62,6 +62,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.openauto.dash.vehicle.speedKmhFlow
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -152,9 +153,7 @@ internal object GeminiLive {
         val app = AppLanguage.wrap(context.applicationContext)
         scope.launch {
             var was = false
-            combine(ObdBluetoothManager.connectionState, ObdBluetoothManager.data, CarBox.body, LocationFeed.freshSpeedKmh) { connection, obd, _, gps ->
-                if (connection == ObdConnectionState.CONNECTED) obd.speedKmh else CarBox.freshBody()?.speedKmh ?: gps
-            }.collect { kmh ->
+            speedKmhFlow().collect { kmh ->
                 val now = isMoving(kmh, was)
                 was = now
                 if (now != moving) {

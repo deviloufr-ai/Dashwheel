@@ -9,6 +9,10 @@ import android.net.Uri
 import android.os.SystemClock
 import android.util.Log
 import androidx.core.content.ContextCompat
+import com.openauto.dash.vehicle.Source
+import com.openauto.dash.vehicle.SourceKind
+import com.openauto.dash.vehicle.SteadySpeed
+import com.openauto.dash.vehicle.Vehicle
 import com.qf.vehicle.entity.RadarState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -60,6 +64,9 @@ object CarBox {
     private const val FRESH_MS = 6_000L
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /** The car app on the vehicle bus: the body's speed with the driver's correction, held while the body is fresh ([FRESH_MS]). */
+    private val speedOut = SteadySpeed(Vehicle.bus.register(Source("qf.car_app", SourceKind.VEHICLE_APP, "QF car app")), holdMs = FRESH_MS)
     private var started = false
 
     private val _body = MutableStateFlow<CarBody?>(null)
@@ -253,6 +260,7 @@ object CarBox {
                 if (DemoMode.isOn) return
                 _body.value = it
                 bodyAt = SystemClock.elapsedRealtime()
+                speedOut.set(it.speedKmh?.let(SpeedCorrection::corrected)?.toDouble())
                 it.odometer?.let { km -> Maintenance.carOdometer(km.toInt()) }
             }
             SHARE_AC -> parseClimate(data!!)?.let { _climate.value = it }

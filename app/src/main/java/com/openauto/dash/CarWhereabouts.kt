@@ -3,6 +3,8 @@ package com.openauto.dash
 import android.content.Context
 import android.location.Location
 import com.openauto.dash.link.CarLocation
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.speedKmhNow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.coroutineScope
@@ -70,15 +72,12 @@ internal object CarWhereabouts {
     }
 
     /**
-     * The car's speed at [fix]: OBD's when the adapter is linked, else the fix's
+     * The car's speed at [fix]: the car's own when a source has it, else the fix's
      * own. Null for a fix without a speed (a network position), which can't
      * tell a stop from a drive.
      */
-    private fun speedKmh(fix: Location): Int? = when {
-        ObdBluetoothManager.connectionState.value == ObdConnectionState.CONNECTED -> ObdBluetoothManager.data.value.speedKmh
-        fix.hasSpeed() -> Math.round(fix.speed * 3.6f)
-        else -> null
-    }
+    private fun speedKmh(fix: Location): Int? =
+        speedKmhNow(K.VEHICLE_SPEED) ?: if (fix.hasSpeed()) Math.round(fix.speed * 3.6f) else null
 
     private fun Location.toCarLocation() = CarLocation(latitude, longitude, time)
 }

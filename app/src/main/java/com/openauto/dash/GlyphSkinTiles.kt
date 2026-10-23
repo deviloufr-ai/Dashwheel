@@ -262,7 +262,7 @@ private fun GlyphTelemetry(env: SkinTileEnv) {
     val connected = state == ObdConnectionState.CONNECTED
     val units = LocalUnits.current
     val fuel = rememberFuel(env)
-    val speed = rememberSpeedKmh(env.obdData, state)
+    val speed = rememberSpeedKmh()
     val coolant by remember(env) { derivedStateOf { if (env.obdConnection == ObdConnectionState.CONNECTED) env.obdData.coolantTempC else 0 } }
     val hot = coolant >= COOLANT_WARNING_C
     val rangeLabel = stringResource(R.string.glyph_label_range)
@@ -348,7 +348,7 @@ private fun GlyphMonoKey(text: String, enabled: Boolean, onClick: () -> Unit) {
 @Composable
 private fun GlyphSpeed(env: SkinTileEnv) {
     val units = LocalUnits.current
-    val speed = rememberSpeedKmh(env.obdData, env.obdConnection)
+    val speed = rememberSpeedKmh()
     val connected = env.obdConnection == ObdConnectionState.CONNECTED
     GlyphModuleBox(env.editing) {
         val text = speed?.let { units.speed(it).toString() } ?: "--"

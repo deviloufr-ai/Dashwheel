@@ -946,7 +946,7 @@ private fun HorizonTelemetry(env: SkinTileEnv, side: Side) {
 /** Speed HUD: the number from OBD or GPS, and where it comes from. */
 @Composable
 private fun HorizonSpeed(env: SkinTileEnv, side: Side) {
-    val speed = rememberSpeedKmh(env.obdData, env.obdConnection)
+    val speed = rememberSpeedKmh()
     val obd = env.obdConnection == ObdConnectionState.CONNECTED
     val idle = env.obdConnection.isIdle
     val canConnect = speed == null && idle && !env.editing

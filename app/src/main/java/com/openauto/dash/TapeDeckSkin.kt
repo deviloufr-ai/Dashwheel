@@ -1202,7 +1202,7 @@ private fun TapeTelemetry(env: SkinTileEnv) {
 /** Speed alone: seven-segment digits + KM/H on a cyan VFD, the source top right; magenta over the limit. */
 @Composable
 private fun TapeSpeedHud(env: SkinTileEnv) {
-    val speed = rememberSpeedKmh(env.obdData, env.obdConnection)
+    val speed = rememberSpeedKmh()
     val cyan = DashColors.Accent
     val magenta = DashColors.Accent2
     val source = speedSource(

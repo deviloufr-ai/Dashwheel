@@ -23,6 +23,10 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.openauto.dash.link.ConversationLine
 import com.openauto.dash.link.PhoneNotification
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Source
+import com.openauto.dash.vehicle.SourceKind
+import com.openauto.dash.vehicle.Vehicle
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -121,11 +125,20 @@ object LocationFeed {
     private val _freshSpeedKmh = MutableStateFlow<Int?>(null)
     val freshSpeedKmh: StateFlow<Int?> = _freshSpeedKmh
 
+    /** The GPS on the vehicle bus: its speed, raw (the driver's correction is applied where it is shown). */
+    private val busPublisher = Vehicle.bus.register(Source("gps", SourceKind.GPS, "GPS"))
+
+    /** Sets [freshSpeedKmh] and tells the bus; null (stale, no fix, released) withdraws it. */
+    private fun setFreshSpeed(kmh: Int?) {
+        _freshSpeedKmh.value = kmh
+        busPublisher.put(K.GPS_SPEED, kmh?.toDouble())
+    }
+
     private const val FRESH_MS = 5_000L
     /** A GPS fix this recent stands against a network fix. */
     private const val GPS_KEPT_NS = 10_000_000_000L
     private val main = Handler(Looper.getMainLooper())
-    private val expire = Runnable { _freshSpeedKmh.value = null }
+    private val expire = Runnable { setFreshSpeed(null) }
 
     private var refs = 0
     private var manager: LocationManager? = null
@@ -172,7 +185,7 @@ object LocationFeed {
         manager?.removeUpdates(listener)
         manager = null
         main.removeCallbacks(expire)
-        _freshSpeedKmh.value = null
+        setFreshSpeed(null)
     }
 
     fun resetTrip() {
@@ -237,11 +250,11 @@ object LocationFeed {
             SpeedReading.Keep -> Unit
             SpeedReading.None -> {
                 main.removeCallbacks(expire)
-                _freshSpeedKmh.value = null
+                setFreshSpeed(null)
             }
             is SpeedReading.Kmh -> {
                 main.removeCallbacks(expire)
-                _freshSpeedKmh.value = reading.value
+                setFreshSpeed(reading.value)
                 main.postAtTime(expire, SystemClock.uptimeMillis() + (FRESH_MS - age.coerceAtLeast(0L)))
             }
         }

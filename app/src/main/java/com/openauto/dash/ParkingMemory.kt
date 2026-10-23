@@ -5,6 +5,7 @@ import android.os.SystemClock
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import com.openauto.dash.vehicle.speedKmhNow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -153,11 +154,8 @@ internal object ParkingMotion {
         _pose.value = p.moved(ds, ReverseView.steering.value ?: 0f)
     }
 
-    /** The car's speed from the best source there is: the car, the OBD adapter, then GPS. */
-    private fun speedKmh(): Float? =
-        CarBox.freshBody()?.speedKmh?.toFloat()
-            ?: ObdBluetoothManager.data.value.speedKmh.takeIf { ObdBluetoothManager.connectionState.value == ObdConnectionState.CONNECTED }?.toFloat()
-            ?: LocationFeed.freshSpeedKmh.value?.toFloat()
+    /** The car's speed from the best source there is ([K.SPEED]: the car's by rank, then the GPS's). */
+    private fun speedKmh(): Float? = speedKmhNow()?.toFloat()
 }
 
 /** One thing a sensor saw: where in the manoeuvre, and when last. */

@@ -20,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.speedKmhFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -64,9 +66,9 @@ object BeltAlertOverlay {
         val app = AppLanguage.wrap(context.applicationContext)
         scope.launch {
             var wasMoving = false
-            CarBox.body.combine(LearnedSignals.state) { body, learned -> body to learned[CarSignal.DRIVER_BELT] }.collect { (body, learnedOpen) ->
-                // The car box's own speed: it comes with the belt, from the same frames.
-                val moving = isMoving(body?.speedKmh, wasMoving)
+            combine(CarBox.body, LearnedSignals.state, speedKmhFlow(K.VEHICLE_SPEED)) { body, learned, kmh -> Triple(body, learned[CarSignal.DRIVER_BELT], kmh) }.collect { (body, learnedOpen, kmh) ->
+                // The car's own speed, never the GPS's.
+                val moving = isMoving(kmh, wasMoving)
                 wasMoving = moving
                 // A belt the driver taught Dashwheel wins over the car box's.
                 _unbuckledMoving.value = beltReminder((learnedOpen ?: body?.driverBeltUnfastened) == true, moving)

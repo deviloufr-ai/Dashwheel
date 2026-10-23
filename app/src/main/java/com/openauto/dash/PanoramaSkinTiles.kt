@@ -510,7 +510,7 @@ private fun BandTurn(nav: NavState, h: Dp, readSize: Float, env: SkinTileEnv) {
 /** The band's middle: the limit sign, the speed large, thin and glowing, KM/H under it, the gear in its box. */
 @Composable
 private fun BandSpeed(env: SkinTileEnv, h: Dp) {
-    val speed = rememberSpeedKmh(env.obdData, env.obdConnection)
+    val speed = rememberSpeedKmh()
     val limit by SpeedLimit.limit.collectAsState()
     val gear by rememberGear()
     val units = LocalUnits.current
@@ -614,7 +614,7 @@ private fun BandFuel(env: SkinTileEnv, h: Dp, readSize: Float) {
  */
 @Composable
 private fun PanoSpeedCard(env: SkinTileEnv) {
-    val speed = rememberSpeedKmh(env.obdData, env.obdConnection)
+    val speed = rememberSpeedKmh()
     val limit by SpeedLimit.limit.collectAsState()
     val units = LocalUnits.current
     val over = speedOver(speed)

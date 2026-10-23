@@ -2,6 +2,7 @@ package com.openauto.dash
 
 import android.content.Context
 import android.media.AudioManager
+import com.openauto.dash.vehicle.speedKmhNow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -205,9 +206,7 @@ object SpeedVolume {
         boost = 0
     }
 
-    private fun speedKmh(): Int? =
-        if (ObdBluetoothManager.connectionState.value == ObdConnectionState.CONNECTED) ObdBluetoothManager.data.value.speedKmh
-        else LocationFeed.freshSpeedKmh.value
+    private fun speedKmh(): Int? = speedKmhNow()
 
     private fun inCall(audio: AudioManager): Boolean =
         audio.mode == AudioManager.MODE_IN_CALL || audio.mode == AudioManager.MODE_IN_COMMUNICATION

@@ -260,7 +260,7 @@ private fun BarReadout(item: BarItem, m: TopBarModel) {
                 warnBelow = 0.2f, alarmBelow = 0.1f)
         }
         BarItem.SPEED -> {
-            val kmh = rememberSpeedKmh(obd, m.obdConnection)
+            val kmh = rememberSpeedKmh()
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
                     kmh?.let { units.speed(it).toString() } ?: "–", color = DashColors.Accent,

@@ -1240,7 +1240,7 @@ private fun gearText(gear: Gear): String = when (gear) {
  */
 @Composable
 private fun RaceSpeed(env: SkinTileEnv) {
-    val speed = rememberSpeedKmh(env.obdData, env.obdConnection)
+    val speed = rememberSpeedKmh()
     val gear = rememberGear()
     val obd = env.obdConnection == ObdConnectionState.CONNECTED
     val idle = env.obdConnection.isIdle

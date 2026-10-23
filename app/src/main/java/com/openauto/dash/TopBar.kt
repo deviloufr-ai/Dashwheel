@@ -258,7 +258,7 @@ internal fun StandardTopBar(m: TopBarModel) {
                 // speed source it is the plain bar again.
                 // Whether there is a speed, not the speed: read here, every reading of
                 // the car recomposed the whole bar for the length of the drive.
-                val cluster = DashColors.BarStyle == DashBarStyle.CLUSTER && rememberHasSpeed(m.obdConnection)
+                val cluster = DashColors.BarStyle == DashBarStyle.CLUSTER && rememberHasSpeed()
                 Row(modifier = Modifier.padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     when {
                         cluster -> ClusterReadout(m)
@@ -449,7 +449,7 @@ private fun BarClock(clock: String, style: TextStyle = MaterialTheme.typography.
 @Composable
 private fun ClusterReadout(m: TopBarModel) {
     // The readings are read here, so they recompose the readout alone.
-    ClusterReadout(rememberSpeedKmh(m.obdData, m.obdConnection) ?: 0, m.obdData, m.obdConnection)
+    ClusterReadout(rememberSpeedKmh() ?: 0, m.obdData, m.obdConnection)
 }
 
 @Composable

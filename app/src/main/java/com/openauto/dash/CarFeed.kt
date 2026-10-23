@@ -1,7 +1,12 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.Source
+import com.openauto.dash.vehicle.SourceKind
+import com.openauto.dash.vehicle.SteadySpeed
+import com.openauto.dash.vehicle.Vehicle
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlin.math.roundToInt
 
 /**
  * Where a vehicle bus other than the QF car app's pushes what it decodes
@@ -15,6 +20,13 @@ object CarFeed : CarSink {
     private val _speedKmh = MutableStateFlow<Float?>(null)
     /** The car's speed from the unit's bus, km/h, or null when no bus says it. */
     val speedKmh: StateFlow<Float?> = _speedKmh
+
+    /**
+     * The unit's bus on the vehicle bus: its speed, with the driver's correction. A bus says it on a
+     * change (or now and then), so the last one is held a while ([SteadySpeed]).
+     */
+    private val speedOut = SteadySpeed(Vehicle.bus.register(Source("unit.bus", SourceKind.CANBOX, "Unit bus")), holdMs = BUS_HOLD_MS)
+    private const val BUS_HOLD_MS = 10_000L
 
     private val _rpm = MutableStateFlow<Int?>(null)
     val rpm: StateFlow<Int?> = _rpm
@@ -46,6 +58,7 @@ object CarFeed : CarSink {
     override fun speedKmh(v: Float?) {
         if (v != null) UnitPlatform.markUsed(Cap.SPEED_RPM)
         _speedKmh.value = v
+        speedOut.set(v?.let { SpeedCorrection.corrected(it.roundToInt()) }?.toDouble())
     }
 
     override fun rpm(v: Int?) {

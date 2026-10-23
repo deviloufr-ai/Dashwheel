@@ -290,7 +290,7 @@ private fun FutEmpty(title: String, hint: String, tone: Color, editing: Boolean,
  */
 @Composable
 private fun FutSpeed(env: SkinTileEnv) {
-    val speed = rememberSpeedKmh(env.obdData, env.obdConnection)
+    val speed = rememberSpeedKmh()
     val obd = env.obdConnection == ObdConnectionState.CONNECTED
     val idle = env.obdConnection.isIdle
     val canConnect = speed == null && idle && !env.editing

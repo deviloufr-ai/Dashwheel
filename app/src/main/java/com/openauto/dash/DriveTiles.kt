@@ -70,6 +70,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.openauto.dash.link.FuelFills
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.rememberVehicle
 import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
@@ -185,7 +187,7 @@ internal fun HeroNumber(text: String, size: Int, modifier: Modifier = Modifier, 
 /** Just the speed, as large as the tile allows. OBD when connected, GPS otherwise. */
 @Composable
 internal fun SpeedHudCard(obdData: ObdData, obdConnected: Boolean, modifier: Modifier = Modifier) {
-    val kmh = rememberSpeedKmh(obdData, if (obdConnected) ObdConnectionState.CONNECTED else ObdConnectionState.DISCONNECTED)
+    val kmh = rememberSpeedKmh()
     val source = when {
         obdConnected -> "OBD"
         kmh != null -> "GPS"
@@ -358,7 +360,7 @@ internal fun CompassCard(modifier: Modifier = Modifier) {
 private fun CompassFooter(locationState: State<Location?>) {
     val location = locationState.value
     // From a fresh fix only: in a tunnel the footer reads "--", not the speed the car went in with.
-    val speedKmh by LocationFeed.freshSpeedKmh.collectAsState()
+    val speedKmh = rememberVehicle(K.GPS_SPEED)?.roundToInt()
     val u = LocalUnits.current
     Row(
         modifier = Modifier.fillMaxWidth(),

@@ -1,6 +1,7 @@
 package com.openauto.dash
 
 import android.content.Context
+import com.openauto.dash.vehicle.speedKmhNow
 import org.json.JSONArray
 import org.json.JSONObject
 import java.text.SimpleDateFormat
@@ -61,9 +62,7 @@ internal object CarFacts {
         put("units") { Units.current.value }
         put("car") { CarProfileStore.current }
         put("ignition_on") { CarPower.ignition.value }
-        put("speed_kmh") {
-            if (obdOn) ObdBluetoothManager.data.value.speedKmh else CarBox.freshBody()?.speedKmh ?: LocationFeed.freshSpeedKmh.value
-        }
+        put("speed_kmh") { speedKmhNow() }
         put("obd_adapter") { ObdBluetoothManager.connectionState.value.name }
         put("obd_readings") { ObdBluetoothManager.data.value.takeIf { obdOn } }
         put("engine_warning_lamp") { ObdBluetoothManager.lamp.value }

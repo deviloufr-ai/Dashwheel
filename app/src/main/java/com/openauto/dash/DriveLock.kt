@@ -8,6 +8,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import com.openauto.dash.vehicle.speedKmhFlow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
@@ -114,16 +115,7 @@ internal fun rememberMoving(enabled: Boolean, demo: Boolean): State<Boolean> {
 }
 
 /**
- * The car's speed: the OBD's when connected, else the car box's, else the
- * unit's bus's on another firmware ([CarFeed]), else the GPS's (which only
+ * The speed the app drives by ([K.SPEED]: the car's, else the GPS's, which only
  * runs while someone holds [UseLocationFeed]); 0 when none.
  */
-internal fun carSpeedKmh(): Flow<Int> = combine(
-    ObdBluetoothManager.connectionState,
-    ObdBluetoothManager.data,
-    CarBox.body,
-    CarFeed.speedKmh,
-    LocationFeed.freshSpeedKmh
-) { connection, obd, _, bus, gps ->
-    (if (connection == ObdConnectionState.CONNECTED) obd.speedKmh else CarBox.freshBody()?.speedKmh ?: bus?.toInt() ?: gps) ?: 0
-}
+internal fun carSpeedKmh(): Flow<Int> = speedKmhFlow().map { it ?: 0 }

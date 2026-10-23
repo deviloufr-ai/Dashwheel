@@ -107,7 +107,7 @@ private const val REV_BLOCKS = 14
  */
 @Composable
 internal fun MsDriverDisplay(env: SkinTileEnv) {
-    val speed = rememberSpeedKmh(env.obdData, env.obdConnection)
+    val speed = rememberSpeedKmh()
     val gear = rememberGear()
     val vs = rememberVsUsual()
     val idle = env.obdConnection.isIdle

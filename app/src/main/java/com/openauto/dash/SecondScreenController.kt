@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.KeyEvent
 import com.openauto.dash.link.DisplayHello
 import com.openauto.dash.link.DisplayMode
+import com.openauto.dash.vehicle.speedKmhFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -430,9 +431,9 @@ internal object SecondScreenController {
 
     /** Moving or stopped, as the drive lock decides it ([MOVING_KMH], [STOPPED_KMH]), for the video-app rule. */
     private suspend fun followSpeed() {
-        combine(ObdBluetoothManager.connectionState, ObdBluetoothManager.data, LocationFeed.freshSpeedKmh, DemoMode.active) { connection, obd, gps, demo ->
+        combine(speedKmhFlow(), DemoMode.active) { kmh, demo ->
             if (demo) return@combine false
-            val speed = (if (connection == ObdConnectionState.CONNECTED) obd.speedKmh else gps) ?: 0
+            val speed = kmh ?: 0
             when {
                 speed >= MOVING_KMH -> true
                 speed <= STOPPED_KMH -> false

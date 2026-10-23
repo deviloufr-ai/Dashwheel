@@ -7,6 +7,9 @@ import androidx.compose.ui.graphics.toArgb
 import com.openauto.dash.link.ClusterArt
 import com.openauto.dash.link.ClusterFace
 import com.openauto.dash.link.ClusterState
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.displaySpeedKmh
 import java.io.ByteArrayOutputStream
 import java.security.MessageDigest
 import java.text.SimpleDateFormat
@@ -111,9 +114,9 @@ internal object ClusterFeed {
         val config = SecondScreenStore.config.value
         val obdLive = ObdBluetoothManager.connectionState.value == ObdConnectionState.CONNECTED || DemoMode.isOn
         val obd = ObdBluetoothManager.data.value
-        // The OBD speed comes corrected already (ObdBluetoothManager); the GPS's only once moving
+        // The car's speed comes corrected already; the GPS's only once moving
         // (SpeedCorrection.correctedGps): a stopped car's 1 km/h of GPS drift must not read 9.
-        val speed = if (obdLive) obd.speedKmh else LocationFeed.freshSpeedKmh.value?.let(SpeedCorrection::correctedGps)
+        val speed = displaySpeedKmh(Vehicle.bus.sample(K.SPEED).value)
         val fuel = carFuelInfo(McuReader.fuelPercent.value, if (obdLive) obd.fuelLevelPct else 0, McuReader.rangeKm.value)
         val doors = McuReader.doorState.value
         val open = if (doors == null) emptyList() else listOfNotNull(

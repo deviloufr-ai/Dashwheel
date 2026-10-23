@@ -6,6 +6,8 @@ import android.os.SystemClock
 import android.util.Log
 import android.widget.Toast
 import com.hoho.android.usbserial.driver.UsbSerialProber
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.speedKmhNow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -74,7 +76,7 @@ internal object TpmsReset {
         // The speed says when the wheels turn; kept up while the unit runs, as the drive log keeps it.
         if (!gps) gps = LocationFeed.acquire(context)
         val now = SystemClock.elapsedRealtime()
-        val speed = LocationFeed.freshSpeedKmh.value
+        val speed = speedKmhNow(K.GPS_SPEED)
         drivingSince = if (speed != null && speed >= DRIVING_KMH) drivingSince.takeIf { it > 0 } ?: now else 0L
         if (!stuck(now, drivingSince, Tyres.heardAt, resetThisDrive, resetAt, SPACING_MS) || DemoMode.isOn) return
         resetThisDrive = true

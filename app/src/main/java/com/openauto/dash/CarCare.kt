@@ -1,6 +1,8 @@
 package com.openauto.dash
 
 import android.content.Context
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.speedKmhNow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -319,7 +321,7 @@ object CarCare {
 
     /**
      * Driving time for the break reminder while the OBD adapter is not
-     * connected: from the car box's speed, else the GPS's (held only then).
+     * connected: from the car's speed (car app, unit bus), else the GPS's (held only then).
      * With the adapter, [watch] counts it with the rest of the drive. A gap in
      * the adapter's link used to count as a stop and start the 2 hours again.
      */
@@ -329,7 +331,7 @@ object CarCare {
             delay(REST_TICK_MS)
             val context = appContext ?: continue
             val obd = ObdBluetoothManager.connectionState.value == ObdConnectionState.CONNECTED
-            val wantGps = !obd && CarBox.freshBody()?.speedKmh == null && CarPower.ignition.value != false
+            val wantGps = !obd && speedKmhNow(K.VEHICLE_SPEED) == null && CarPower.ignition.value != false
             if (wantGps && !gpsHeld) gpsHeld = LocationFeed.acquire(context)
             else if (!wantGps && gpsHeld) {
                 LocationFeed.release()

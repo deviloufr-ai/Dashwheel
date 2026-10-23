@@ -8,6 +8,8 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.speedKmhFlow
 import kotlinx.coroutines.flow.combine
 import kotlin.math.abs
 import kotlin.math.ln
@@ -128,11 +130,10 @@ internal fun rememberGear(): State<GearReading> {
         var lastGear: Gear = Gear.Unknown
         var lastGearAt = 0L
         var learned = 0
-        combine(ObdBluetoothManager.connectionState, ObdBluetoothManager.data, CarBox.body, CarBox.reversing) { conn, obd, _, reversing ->
+        combine(ObdBluetoothManager.connectionState, ObdBluetoothManager.data, CarBox.body, CarBox.reversing, speedKmhFlow(K.VEHICLE_SPEED)) { conn, obd, _, reversing, speed ->
             val box = CarBox.freshBody()
             val connected = conn == ObdConnectionState.CONNECTED
             val rpm = if (connected && obd.rpm > 0) obd.rpm else box?.rpm
-            val speed = if (connected) obd.speedKmh else box?.speedKmh
             Triple(reversing, rpm, speed)
         }.collect { (reversing, rpm, speed) ->
             val now = System.currentTimeMillis()
