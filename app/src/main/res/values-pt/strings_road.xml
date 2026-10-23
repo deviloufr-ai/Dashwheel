@@ -2,8 +2,8 @@
 <resources>
     <string name="alert_kind_road">Vigia da estrada</string>
     <string name="alert_kind_road_title">Avisos do Vigia da estrada</string>
-    <string name="alert_road_detail">Avisos da câmara do telemóvel atrás do para-brisas</string>
-    <string name="alert_road_how">Inicie o Vigia da estrada no Dashwheel Companion, com o telemóvel no suporte atrás do para-brisas. Um carro à frente a aproximar-se depressa é sempre avisado.</string>
+    <string name="alert_road_detail">Experimental. Avisos da câmara do telemóvel atrás do para-brisas</string>
+    <string name="alert_road_how">Experimental. Inicie o Vigia da estrada no Dashwheel Companion, com o telemóvel no suporte atrás do para-brisas. Um carro à frente a aproximar-se depressa é sempre avisado.</string>
     <string name="alert_road_lanes">Avisos de faixa</string>
     <string name="alert_road_lanes_detail">Uma roda sobre a linha a partir de 60 km/h, nunca com o pisca ligado</string>
     <string name="alert_road_moved_off">O trânsito avança</string>

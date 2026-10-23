@@ -3,8 +3,8 @@
     <!-- Road watch (RoadAlertOverlay.kt): warnings from the camera of the phone behind the windscreen. -->
     <string name="alert_kind_road">Road watch</string>
     <string name="alert_kind_road_title">Road watch warnings</string>
-    <string name="alert_road_detail">Warnings from the phone\'s camera behind the windscreen</string>
-    <string name="alert_road_how">Start Road watch in Dashwheel Companion, the phone in its holder behind the windscreen. A car ahead coming up fast is always warned of.</string>
+    <string name="alert_road_detail">Experimental. Warnings from the phone\'s camera behind the windscreen</string>
+    <string name="alert_road_how">Experimental. Start Road watch in Dashwheel Companion, the phone in its holder behind the windscreen. A car ahead coming up fast is always warned of.</string>
     <string name="alert_road_lanes">Lane warnings</string>
     <string name="alert_road_lanes_detail">A wheel on the line from 60 km/h, never with an indicator on</string>
     <string name="alert_road_moved_off">Traffic moving</string>

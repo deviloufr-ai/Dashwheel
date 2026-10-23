@@ -9,4 +9,6 @@
     <cache-path name="photo_question" path="photo-question/" />
     <!-- The companion's own update, handed to Android's installer (CompanionUpdate). -->
     <cache-path name="updates" path="updates/" />
+    <!-- The road recorder's clips, shared by the driver (RoadRecorder). -->
+    <files-path name="road_clips" path="road_clips/" />
 </paths>

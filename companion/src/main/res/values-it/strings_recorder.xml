@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="road_experimental">Sperimentale</string>
+    <string name="rec_title">Registra la strada</string>
+    <string name="rec_detail">Mentre Vedetta strada è attiva, gli ultimi due minuti di strada restano su questo telefono. Un urto, una frenata brusca, un avviso, le quattro frecce o un tocco conservano un clip di un minuto, con ora, luogo e velocità dell’auto scritti nell’immagine.</string>
+    <string name="rec_legal">Consentito nella maggior parte dei paesi, limitato in alcuni (Austria, Portogallo). I clip restano su questo telefono, nulla viene inviato altrove e non si registra l’audio.</string>
+    <string name="rec_clips_title">Clip</string>
+    <string name="rec_no_clips">Nessun clip ancora. Ne viene conservato uno quando succede qualcosa, o quando tocchi Conserva clip.</string>
+    <string name="rec_keep">Conserva clip</string>
+    <string name="rec_state_recording">Registrazione</string>
+    <string name="rec_state_keeping">Clip in salvataggio</string>
+    <string name="rec_state_hot">Troppo caldo: registrazione in pausa</string>
+    <string name="rec_state_full">Telefono pieno: registrazione in pausa</string>
+    <string name="rec_state_unsupported">Questo telefono non può registrare mentre osserva la strada</string>
+    <string name="rec_trigger_impact">Urto</string>
+    <string name="rec_trigger_brake">Frenata brusca</string>
+    <string name="rec_trigger_collision">Avviso di collisione</string>
+    <string name="rec_trigger_hazard">Quattro frecce</string>
+    <string name="rec_trigger_button">Conservato a mano</string>
+    <string name="rec_share">Condividi</string>
+    <string name="rec_notes">Note</string>
+    <string name="rec_delete">Elimina</string>
+    <string name="rec_length">%1$d s, %2$d MB</string>
+</resources>

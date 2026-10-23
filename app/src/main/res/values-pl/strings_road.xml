@@ -2,8 +2,8 @@
 <resources>
     <string name="alert_kind_road">Strażnik drogi</string>
     <string name="alert_kind_road_title">Ostrzeżenia Strażnika drogi</string>
-    <string name="alert_road_detail">Ostrzeżenia z aparatu telefonu za przednią szybą</string>
-    <string name="alert_road_how">Uruchom Strażnika drogi w Dashwheel Companion, z telefonem w uchwycie za przednią szybą. Przed autem z przodu, które szybko się zbliża, ostrzeżenie jest zawsze.</string>
+    <string name="alert_road_detail">Eksperymentalne. Ostrzeżenia z aparatu telefonu za przednią szybą</string>
+    <string name="alert_road_how">Eksperymentalne. Uruchom Strażnika drogi w Dashwheel Companion, z telefonem w uchwycie za przednią szybą. Przed autem z przodu, które szybko się zbliża, ostrzeżenie jest zawsze.</string>
     <string name="alert_road_lanes">Ostrzeżenia o pasie</string>
     <string name="alert_road_lanes_detail">Koło na linii od 60 km/h, nigdy przy włączonym kierunkowskazie</string>
     <string name="alert_road_moved_off">Ruch rusza</string>

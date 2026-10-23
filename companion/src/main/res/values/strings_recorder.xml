@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The road recorder (RoadRecorder.kt, RoadWatchCard.kt): clips of the road kept on the phone. -->
+    <string name="road_experimental">Experimental</string>
+    <string name="rec_title">Record the road</string>
+    <string name="rec_detail">While Road watch runs, the last two minutes of the road are kept on this phone. A knock, a hard brake, a warning, the hazard lights or a tap keep a one-minute clip, with the time, the place and the car’s speed written into the picture.</string>
+    <string name="rec_legal">Allowed in most countries, restricted in a few (Austria, Portugal). Clips stay on this phone, nothing is sent anywhere, and no sound is recorded.</string>
+    <string name="rec_clips_title">Clips</string>
+    <string name="rec_no_clips">No clips yet. One is kept when something happens, or when you tap Keep clip.</string>
+    <string name="rec_keep">Keep clip</string>
+    <string name="rec_state_recording">Recording</string>
+    <string name="rec_state_keeping">Keeping a clip</string>
+    <string name="rec_state_hot">Too hot: recording paused</string>
+    <string name="rec_state_full">Phone full: recording paused</string>
+    <string name="rec_state_unsupported">This phone can’t record while watching the road</string>
+    <string name="rec_trigger_impact">Impact</string>
+    <string name="rec_trigger_brake">Hard braking</string>
+    <string name="rec_trigger_collision">Collision warning</string>
+    <string name="rec_trigger_hazard">Hazard lights</string>
+    <string name="rec_trigger_button">Kept by hand</string>
+    <string name="rec_share">Share</string>
+    <string name="rec_notes">Notes</string>
+    <string name="rec_delete">Delete</string>
+    <string name="rec_length">%1$d s, %2$d MB</string>
+</resources>

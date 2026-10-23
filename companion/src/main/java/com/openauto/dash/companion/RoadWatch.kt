@@ -77,6 +77,9 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
     private val _view = MutableStateFlow(RoadView())
     val view: StateFlow<RoadView> = _view
 
+    /** The road recorder running beside it, when the driver turned it on: it gets the position, the frames' rotation, and the collision warning. */
+    @Volatile var recorder: RoadRecorder? = null
+
     private var sentAt = 0L
     private var frames = 0
     private var framesSince = 0L
@@ -91,6 +94,7 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         override fun onLocationChanged(location: Location) {
             speedKmh = if (location.hasSpeed()) location.speed * 3.6f else null
             speedAt = SystemClock.elapsedRealtime()
+            recorder?.location(location)
         }
         @Deprecated("Deprecated in Java")
         override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) = Unit
@@ -178,6 +182,7 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         }
         val hfov = if (tall) hfovTall else hfovWide
         leads.hfovDeg = hfov
+        recorder?.rotation(rotation)
 
         val luma = Luma.fromRgba(buffer, w, h, plane.rowStride, rotation, LUMA_WIDTH)
         val speed = speedKmh?.takeIf { now - speedAt < SPEED_FRESH_MS }
@@ -224,7 +229,10 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
     private fun warnHere(warning: RoadWarning?) {
         val before = shownWarning
         shownWarning = warning
-        if (warning == null || warning == before || LinkServer.state.value is LinkState.Connected) return
+        if (warning == null || warning == before) return
+        // A collision warning is a moment the recorder keeps, whoever sounds it.
+        if (warning == RoadWarning.COLLISION) recorder?.keep("collision")
+        if (LinkServer.state.value is LinkState.Connected) return
         val tone = beeper ?: runCatching { ToneGenerator(AudioManager.STREAM_ALARM, 90) }.getOrNull()?.also { beeper = it } ?: return
         when (warning) {
             RoadWarning.COLLISION -> tone.startTone(ToneGenerator.TONE_CDMA_EMERGENCY_RINGBACK, 1_200)

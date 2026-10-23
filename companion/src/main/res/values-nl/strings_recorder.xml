@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="road_experimental">Experimenteel</string>
+    <string name="rec_title">De weg opnemen</string>
+    <string name="rec_detail">Terwijl Wegwachter draait, blijven de laatste twee minuten weg op deze telefoon. Een klap, hard remmen, een waarschuwing, de alarmlichten of een tik bewaren een clip van een minuut, met de tijd, de plaats en de snelheid van de auto in het beeld.</string>
+    <string name="rec_legal">Toegestaan in de meeste landen, beperkt in enkele (Oostenrijk, Portugal). Clips blijven op deze telefoon, er wordt niets verstuurd en er wordt geen geluid opgenomen.</string>
+    <string name="rec_clips_title">Clips</string>
+    <string name="rec_no_clips">Nog geen clips. Er wordt er een bewaard als er iets gebeurt, of als je op Clip bewaren tikt.</string>
+    <string name="rec_keep">Clip bewaren</string>
+    <string name="rec_state_recording">Opname</string>
+    <string name="rec_state_keeping">Clip wordt bewaard</string>
+    <string name="rec_state_hot">Te heet: opname gepauzeerd</string>
+    <string name="rec_state_full">Telefoon vol: opname gepauzeerd</string>
+    <string name="rec_state_unsupported">Deze telefoon kan niet opnemen terwijl hij de weg bewaakt</string>
+    <string name="rec_trigger_impact">Botsing</string>
+    <string name="rec_trigger_brake">Hard remmen</string>
+    <string name="rec_trigger_collision">Botswaarschuwing</string>
+    <string name="rec_trigger_hazard">Alarmlichten</string>
+    <string name="rec_trigger_button">Met de hand bewaard</string>
+    <string name="rec_share">Delen</string>
+    <string name="rec_notes">Notities</string>
+    <string name="rec_delete">Verwijderen</string>
+    <string name="rec_length">%1$d s, %2$d MB</string>
+</resources>

@@ -2,8 +2,8 @@
 <resources>
     <string name="alert_kind_road">Vedetta strada</string>
     <string name="alert_kind_road_title">Avvisi di Vedetta strada</string>
-    <string name="alert_road_detail">Avvisi dalla fotocamera del telefono dietro il parabrezza</string>
-    <string name="alert_road_how">Avvia Vedetta strada in Dashwheel Companion, con il telefono nel supporto dietro il parabrezza. Un\'auto davanti che si avvicina in fretta viene sempre segnalata.</string>
+    <string name="alert_road_detail">Sperimentale. Avvisi dalla fotocamera del telefono dietro il parabrezza</string>
+    <string name="alert_road_how">Sperimentale. Avvia Vedetta strada in Dashwheel Companion, con il telefono nel supporto dietro il parabrezza. Un\'auto davanti che si avvicina in fretta viene sempre segnalata.</string>
     <string name="alert_road_lanes">Avvisi di corsia</string>
     <string name="alert_road_lanes_detail">Una ruota sulla linea da 60 km/h, mai con la freccia accesa</string>
     <string name="alert_road_moved_off">Il traffico riparte</string>

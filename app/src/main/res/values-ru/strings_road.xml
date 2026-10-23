@@ -2,8 +2,8 @@
 <resources>
     <string name="alert_kind_road">Дозор дороги</string>
     <string name="alert_kind_road_title">Предупреждения Дозора дороги</string>
-    <string name="alert_road_detail">Предупреждения камеры телефона за лобовым стеклом</string>
-    <string name="alert_road_how">Запустите Дозор дороги в Dashwheel Companion, телефон в держателе за лобовым стеклом. О машине впереди, которая быстро приближается, предупреждение есть всегда.</string>
+    <string name="alert_road_detail">Экспериментально. Предупреждения камеры телефона за лобовым стеклом</string>
+    <string name="alert_road_how">Экспериментально. Запустите Дозор дороги в Dashwheel Companion, телефон в держателе за лобовым стеклом. О машине впереди, которая быстро приближается, предупреждение есть всегда.</string>
     <string name="alert_road_lanes">Предупреждения о полосе</string>
     <string name="alert_road_lanes_detail">Колесо на разметке от 60 км/ч, никогда при включённом поворотнике</string>
     <string name="alert_road_moved_off">Поток тронулся</string>

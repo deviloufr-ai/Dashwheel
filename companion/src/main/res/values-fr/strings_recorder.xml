@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="road_experimental">Expérimental</string>
+    <string name="rec_title">Enregistrer la route</string>
+    <string name="rec_detail">Pendant que Vigie route tourne, les deux dernières minutes de route sont gardées sur ce téléphone. Un choc, un freinage brusque, une alerte, les feux de détresse ou un appui gardent un clip d’une minute, avec l’heure, le lieu et la vitesse de la voiture inscrits dans l’image.</string>
+    <string name="rec_legal">Autorisé dans la plupart des pays, restreint dans quelques-uns (Autriche, Portugal). Les clips restent sur ce téléphone, rien n’est envoyé nulle part, et aucun son n’est enregistré.</string>
+    <string name="rec_clips_title">Clips</string>
+    <string name="rec_no_clips">Pas encore de clip. Un clip est gardé quand quelque chose arrive, ou quand vous appuyez sur Garder un clip.</string>
+    <string name="rec_keep">Garder un clip</string>
+    <string name="rec_state_recording">Enregistrement</string>
+    <string name="rec_state_keeping">Clip en cours</string>
+    <string name="rec_state_hot">Trop chaud : enregistrement en pause</string>
+    <string name="rec_state_full">Téléphone plein : enregistrement en pause</string>
+    <string name="rec_state_unsupported">Ce téléphone ne peut pas enregistrer en surveillant la route</string>
+    <string name="rec_trigger_impact">Choc</string>
+    <string name="rec_trigger_brake">Freinage brusque</string>
+    <string name="rec_trigger_collision">Alerte de collision</string>
+    <string name="rec_trigger_hazard">Feux de détresse</string>
+    <string name="rec_trigger_button">Gardé à la main</string>
+    <string name="rec_share">Partager</string>
+    <string name="rec_notes">Notes</string>
+    <string name="rec_delete">Supprimer</string>
+    <string name="rec_length">%1$d s, %2$d Mo</string>
+</resources>

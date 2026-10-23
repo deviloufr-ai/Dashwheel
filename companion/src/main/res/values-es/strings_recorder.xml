@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="road_experimental">Experimental</string>
+    <string name="rec_title">Grabar la carretera</string>
+    <string name="rec_detail">Mientras Vigía de carretera funciona, los dos últimos minutos de carretera se guardan en este teléfono. Un golpe, un frenazo, un aviso, las luces de emergencia o un toque guardan un clip de un minuto, con la hora, el lugar y la velocidad del coche escritos en la imagen.</string>
+    <string name="rec_legal">Permitido en la mayoría de los países, restringido en algunos (Austria, Portugal). Los clips se quedan en este teléfono, no se envía nada a ningún sitio y no se graba sonido.</string>
+    <string name="rec_clips_title">Clips</string>
+    <string name="rec_no_clips">Aún no hay clips. Se guarda uno cuando pasa algo, o cuando tocas Guardar clip.</string>
+    <string name="rec_keep">Guardar clip</string>
+    <string name="rec_state_recording">Grabando</string>
+    <string name="rec_state_keeping">Guardando un clip</string>
+    <string name="rec_state_hot">Demasiado caliente: grabación en pausa</string>
+    <string name="rec_state_full">Teléfono lleno: grabación en pausa</string>
+    <string name="rec_state_unsupported">Este teléfono no puede grabar mientras vigila la carretera</string>
+    <string name="rec_trigger_impact">Impacto</string>
+    <string name="rec_trigger_brake">Frenazo</string>
+    <string name="rec_trigger_collision">Aviso de colisión</string>
+    <string name="rec_trigger_hazard">Luces de emergencia</string>
+    <string name="rec_trigger_button">Guardado a mano</string>
+    <string name="rec_share">Compartir</string>
+    <string name="rec_notes">Notas</string>
+    <string name="rec_delete">Eliminar</string>
+    <string name="rec_length">%1$d s, %2$d MB</string>
+</resources>

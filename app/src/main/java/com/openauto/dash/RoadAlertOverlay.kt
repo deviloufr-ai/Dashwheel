@@ -28,6 +28,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.openauto.dash.link.CarTelemetry
+import com.openauto.dash.link.KeepClip
 import com.openauto.dash.link.RoadScene
 import com.openauto.dash.roadwatch.RoadRules
 import com.openauto.dash.roadwatch.RoadWarning
@@ -41,6 +43,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -60,11 +64,14 @@ object RoadWatch {
     private const val KEY_MOVED_OFF = "moved_off"
     /** No scene for this long: the phone stopped watching (closed, dropped, the link gone). */
     private const val STALE_MS = 1_500L
+    /** The car's own word back to the phone this often, for its recording of the road. */
+    private const val TELEMETRY_MS = 500L
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val rules = RoadRules()
     private var started = false
     private var sceneAt = 0L
+    private var telemetryAt = 0L
     private var carKmh: Int? = null
 
     private val _live = MutableStateFlow(false)
@@ -91,6 +98,12 @@ object RoadWatch {
         rules.lanes = _lanes.value
         rules.movedOff = _movedOff.value
         scope.launch { carSpeed().collect { carKmh = it } }
+        // The hazard lights going on while the phone watches: a moment for its recorder to keep.
+        scope.launch {
+            CarBox.body.map { it?.hazard == true }.distinctUntilChanged().collect { on ->
+                if (on && _live.value) PhoneLink.send(KeepClip("hazard"))
+            }
+        }
         // The scenes stop coming when the phone stops: so do the warnings.
         scope.launch {
             _live.collectLatest { on ->
@@ -114,6 +127,21 @@ object RoadWatch {
             _live.value = true
             // The car's own speed when it gives one (the OBD, the CAN box), else the phone's GPS in the scene.
             _warning.value = rules.update(scene, carKmh?.toFloat(), indicating(), now)
+            // And the car's word back to the phone, for the picture and the notes of its recording.
+            if (now - telemetryAt >= TELEMETRY_MS) {
+                telemetryAt = now
+                val body = CarBox.freshBody()
+                PhoneLink.send(
+                    CarTelemetry(
+                        speedKmh = carKmh,
+                        rpm = body?.rpm,
+                        turnLeft = body?.turnLeft == true,
+                        turnRight = body?.turnRight == true,
+                        hazard = body?.hazard == true,
+                        lights = body?.dippedBeam == true || body?.highBeam == true
+                    )
+                )
+            }
         }
     }
 
