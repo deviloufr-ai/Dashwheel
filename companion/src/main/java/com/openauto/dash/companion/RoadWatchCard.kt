@@ -1,8 +1,10 @@
 package com.openauto.dash.companion
 
 import android.content.Intent
+import android.net.Uri
 import android.text.format.DateUtils
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -121,7 +123,8 @@ internal fun ClipsCard() {
                 Text(stringResource(R.string.rec_no_clips), style = MaterialTheme.typography.bodySmall, color = CompanionColors.Muted)
             }
             clips.take(SHOWN).forEach { clip ->
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                // A tap plays the clip; Share hands the video and its notes over together.
+                Row(Modifier.fillMaxWidth().clickable { play(context, clip.video) }, verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text(
                             DateUtils.formatDateTime(context, clip.at, DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME or DateUtils.FORMAT_ABBREV_MONTH),
@@ -132,10 +135,9 @@ internal fun ClipsCard() {
                             style = MaterialTheme.typography.bodySmall, color = CompanionColors.Muted
                         )
                     }
-                    IconButton(onClick = { share(context, clip.video, "video/mp4") }) {
+                    IconButton(onClick = { share(context, listOf(clip.video, clip.notes)) }) {
                         Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.rec_share), tint = CompanionColors.Blue)
                     }
-                    TextButton(onClick = { share(context, clip.notes, "application/json") }) { Text(stringResource(R.string.rec_notes)) }
                     TextButton(onClick = { RoadClips.delete(context, clip) }) { Text(stringResource(R.string.rec_delete), color = CompanionColors.Red) }
                 }
             }
@@ -153,13 +155,26 @@ private fun triggerLabel(trigger: String): Int = when (trigger) {
     else -> R.string.rec_trigger_button
 }
 
-private fun share(context: android.content.Context, file: File, type: String) {
-    if (!file.exists()) return
-    val uri = FileProvider.getUriForFile(context, "${context.packageName}.logs", file)
-    val send = Intent(Intent.ACTION_SEND).apply {
-        this.type = type
-        putExtra(Intent.EXTRA_STREAM, uri)
+private fun uriOf(context: android.content.Context, file: File): Uri =
+    FileProvider.getUriForFile(context, "${context.packageName}.logs", file)
+
+/** The clip and its notes in one go: what an insurer or a garage wants together. */
+private fun share(context: android.content.Context, files: List<File>) {
+    val uris = ArrayList(files.filter { it.exists() }.map { uriOf(context, it) })
+    if (uris.isEmpty()) return
+    val send = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+        type = "*/*"
+        putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
     runCatching { context.startActivity(Intent.createChooser(send, null)) }
+}
+
+private fun play(context: android.content.Context, video: File) {
+    if (!video.exists()) return
+    val view = Intent(Intent.ACTION_VIEW).apply {
+        setDataAndType(uriOf(context, video), "video/mp4")
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+    runCatching { context.startActivity(view) }
 }

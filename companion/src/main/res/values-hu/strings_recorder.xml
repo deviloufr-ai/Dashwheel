@@ -21,4 +21,6 @@
     <string name="rec_notes">Jegyzetek</string>
     <string name="rec_delete">Törlés</string>
     <string name="rec_length">%1$d mp, %2$d MB</string>
+    <string name="rec_state_low">Alacsony töltöttség: a felvétel szünetel</string>
+    <string name="road_plug_in">Dugja be a telefont: %1$d%%</string>
 </resources>

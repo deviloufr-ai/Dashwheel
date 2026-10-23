@@ -21,4 +21,6 @@
     <string name="rec_notes">Notas</string>
     <string name="rec_delete">Eliminar</string>
     <string name="rec_length">%1$d s, %2$d MB</string>
+    <string name="rec_state_low">Batería baja: grabación en pausa</string>
+    <string name="road_plug_in">Conecta el teléfono: %1$d %%</string>
 </resources>

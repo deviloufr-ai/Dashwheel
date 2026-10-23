@@ -10,15 +10,21 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.location.Location
+import android.media.AudioManager
 import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.media.MediaMuxer
+import android.media.ToneGenerator
+import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.PowerManager
 import android.os.StatFs
 import android.os.SystemClock
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import android.util.Log
 import androidx.camera.core.CameraEffect
 import androidx.camera.effects.Frame
@@ -167,7 +173,16 @@ class RoadRecorder(context: Context) {
     private val _keeping = MutableStateFlow(0)
     val keeping: StateFlow<Int> = _keeping
 
-    enum class State { OFF, RECORDING, PAUSED_HOT, PAUSED_FULL, UNSUPPORTED }
+    enum class State { OFF, RECORDING, PAUSED_HOT, PAUSED_FULL, PAUSED_LOW, UNSUPPORTED }
+
+    @Volatile private var lowPower = false
+
+    /** The battery is low with no charger ([on]): the recorder stops, so Road watch itself lasts longer. */
+    fun lowPower(on: Boolean) {
+        if (on == lowPower) return
+        lowPower = on
+        handler.post { if (on) pause(State.PAUSED_LOW) else resume() }
+    }
 
     /** What the phone and the car knew at one moment: a row of the notes, and what the picture shows. */
     private class Sample(
@@ -268,14 +283,35 @@ class RoadRecorder(context: Context) {
         val now = SystemClock.elapsedRealtime()
         handler.post {
             if (_state.value != State.RECORDING) return@post
-            if (ring.keep(now, trigger)) _keeping.value = ring.pending.size
+            if (ring.keep(now, trigger)) {
+                _keeping.value = ring.pending.size
+                felt()
+            }
+        }
+    }
+
+    /** A short buzz and a note: the driver knows the moment is kept without looking at the screen. */
+    private fun felt() {
+        runCatching {
+            val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                app.getSystemService(VibratorManager::class.java)?.defaultVibrator
+            } else {
+                @Suppress("DEPRECATION")
+                app.getSystemService(Vibrator::class.java)
+            }
+            vibrator?.vibrate(VibrationEffect.createOneShot(90, VibrationEffect.DEFAULT_AMPLITUDE))
+        }
+        runCatching {
+            val tone = ToneGenerator(AudioManager.STREAM_NOTIFICATION, 80)
+            tone.startTone(ToneGenerator.TONE_PROP_ACK, 150)
+            handler.postDelayed({ tone.release() }, 500)
         }
     }
 
     // ---- The segments ----
 
     private fun resume() {
-        if (!running || recording != null) return
+        if (!running || recording != null || tooHot || lowPower) return
         if (freeBytes() < MIN_FREE_BYTES) {
             _state.value = State.PAUSED_FULL
             return

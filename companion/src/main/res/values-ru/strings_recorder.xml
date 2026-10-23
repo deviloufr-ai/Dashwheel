@@ -21,4 +21,6 @@
     <string name="rec_notes">Заметки</string>
     <string name="rec_delete">Удалить</string>
     <string name="rec_length">%1$d с, %2$d МБ</string>
+    <string name="rec_state_low">Батарея разряжена: запись приостановлена</string>
+    <string name="road_plug_in">Подключите телефон к зарядке: %1$d%%</string>
 </resources>

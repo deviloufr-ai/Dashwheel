@@ -3,7 +3,9 @@ package com.openauto.dash.companion
 import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.os.BatteryManager
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.display.DisplayManager
 import android.os.Bundle
@@ -29,6 +31,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -85,6 +88,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.openauto.dash.roadwatch.RoadWarning
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -262,10 +266,32 @@ private fun RoadWatchScreen(
     val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted = it }
     LaunchedEffect(Unit) { if (!granted) ask.launch(Manifest.permission.CAMERA) }
 
+    // The car shows the warnings: once linked, the phone's screen dims by itself, and a tap brings it back.
+    var dimmed by remember { mutableStateOf(false) }
+    val link by LinkServer.state.collectAsState()
+    val linked = link is LinkState.Connected
+    val setDimmed: (Boolean) -> Unit = { on -> dimmed = on; onDim(on) }
+    LaunchedEffect(linked, dimmed) {
+        if (linked && !dimmed) {
+            delay(AUTO_DIM_MS)
+            setDimmed(true)
+        }
+    }
+    // The battery, every half minute: a word when it goes down with no charger, and the recorder paused before the phone dies.
+    var battery by remember { mutableStateOf<Pair<Int, Boolean>?>(null) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            val b = batteryNow(context)
+            battery = b
+            recorder.value?.lowPower(b != null && !b.second && b.first < RECORDER_MIN_PERCENT)
+            delay(30_000L)
+        }
+    }
+
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         if (granted) {
             CameraBinder(onCamera)
-            RoadDrawing(watch)
+            RoadDrawing(watch, onTap = { if (dimmed) setDimmed(false) })
         } else {
             Column(Modifier.align(Alignment.Center).padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(stringResource(R.string.road_camera_needed), color = Color.White)
@@ -273,8 +299,27 @@ private fun RoadWatchScreen(
                 Button(onClick = { ask.launch(Manifest.permission.CAMERA) }) { Text(stringResource(R.string.road_allow_camera)) }
             }
         }
-        RoadControls(watch, recorder, onDim, onModel, onClose)
+        RoadControls(watch, recorder, dimmed, setDimmed, battery, onModel, onClose)
     }
+}
+
+/** Linked to a car, the screen dims after this long. */
+private const val AUTO_DIM_MS = 30_000L
+/** Under this, with no charger, the recorder stops so Road watch itself lasts longer. */
+private const val RECORDER_MIN_PERCENT = 10
+/** Under this, with no charger, the screen says to plug the phone in. */
+private const val PLUG_IN_PERCENT = 20
+
+/** The battery as a share and whether it charges, or null when Android doesn't say. */
+private fun batteryNow(context: Context): Pair<Int, Boolean>? {
+    val i = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED)) ?: return null
+    val level = i.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+    val scale = i.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+    if (level < 0 || scale <= 0) return null
+    val status = i.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
+    val charging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL ||
+        i.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) != 0
+    return level * 100 / scale to charging
 }
 
 /** The recorder's light, top right: recording, keeping a clip, or why not. */
@@ -288,6 +333,7 @@ private fun RecorderBadge(recorder: RoadRecorder, modifier: Modifier) {
         state == RoadRecorder.State.RECORDING -> stringResource(R.string.rec_state_recording) to CompanionColors.Red
         state == RoadRecorder.State.PAUSED_HOT -> stringResource(R.string.rec_state_hot) to CompanionColors.Amber
         state == RoadRecorder.State.PAUSED_FULL -> stringResource(R.string.rec_state_full) to CompanionColors.Amber
+        state == RoadRecorder.State.PAUSED_LOW -> stringResource(R.string.rec_state_low) to CompanionColors.Amber
         else -> stringResource(R.string.rec_state_unsupported) to CompanionColors.Muted
     }
     Surface(color = Color.Black.copy(alpha = 0.55f), shape = RoundedCornerShape(12.dp), modifier = modifier) {
@@ -317,7 +363,7 @@ private fun frameRect(w: Float, h: Float, frameW: Int, frameH: Int): Rect {
 }
 
 @Composable
-private fun RoadDrawing(watch: RoadWatch) {
+private fun RoadDrawing(watch: RoadWatch, onTap: () -> Unit) {
     val view by watch.view.collectAsState()
     var horizon by remember { mutableFloatStateOf(watch.band.horizonY) }
     val density = LocalDensity.current
@@ -328,11 +374,13 @@ private fun RoadDrawing(watch: RoadWatch) {
         fun at(x: Float, y: Float) = Offset(frame.left + x * frame.width, frame.top + y * frame.height)
         val warn = view.warning
         Canvas(
-            Modifier.fillMaxSize().pointerInput(frame) {
-                detectVerticalDragGestures(onDragEnd = { watch.setHorizon(horizon) }) { _, dy ->
-                    horizon = (horizon + dy / frame.height).coerceIn(0.25f, 0.7f)
+            Modifier.fillMaxSize()
+                .pointerInput(Unit) { detectTapGestures { onTap() } }
+                .pointerInput(frame) {
+                    detectVerticalDragGestures(onDragEnd = { watch.setHorizon(horizon) }) { _, dy ->
+                        horizon = (horizon + dy / frame.height).coerceIn(0.25f, 0.7f)
+                    }
                 }
-            }
         ) {
             // The horizon, to drag where the road meets the sky.
             val hy = frame.top + horizon * frame.height
@@ -399,14 +447,21 @@ private fun RoadWarningBanner(warning: RoadWarning, modifier: Modifier) {
 // Kotlin's OptIn by name: this file's OptIn import is androidx's, for the Camera2 interop.
 @kotlin.OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun RoadControls(watch: RoadWatch, recorder: StateFlow<RoadRecorder?>, onDim: (Boolean) -> Unit, onModel: () -> Unit, onClose: () -> Unit) {
+private fun RoadControls(
+    watch: RoadWatch,
+    recorder: StateFlow<RoadRecorder?>,
+    dimmed: Boolean,
+    setDimmed: (Boolean) -> Unit,
+    battery: Pair<Int, Boolean>?,
+    onModel: () -> Unit,
+    onClose: () -> Unit
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val view by watch.view.collectAsState()
     val rec by recorder.collectAsState()
     val link by LinkServer.state.collectAsState()
     val model by RoadModel.state.collectAsState()
-    var dimmed by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { RoadModel.check(context) }
     Box(Modifier.fillMaxSize().padding(16.dp)) {
         // What it reads, top left: the car it warns, the lane, the vehicle finder.
@@ -424,7 +479,12 @@ private fun RoadControls(watch: RoadWatch, recorder: StateFlow<RoadRecorder?>, o
                 view.speedKmh?.let {
                     Text(stringResource(R.string.road_speed, it.roundToInt()), color = CompanionColors.Muted, style = MaterialTheme.typography.bodySmall)
                 }
-                if (view.frameW > 4) Text(stringResource(R.string.road_horizon_hint), color = CompanionColors.Muted, style = MaterialTheme.typography.bodySmall)
+                if (!view.horizonSet) Text(stringResource(R.string.road_horizon_hint), color = CompanionColors.Muted, style = MaterialTheme.typography.bodySmall)
+                battery?.let { (percent, charging) ->
+                    if (!charging && percent < PLUG_IN_PERCENT) {
+                        Text(stringResource(R.string.road_plug_in, percent), color = CompanionColors.Amber, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
+                    }
+                }
             }
         }
         rec?.let { RecorderBadge(it, Modifier.align(Alignment.TopEnd)) }
@@ -455,7 +515,7 @@ private fun RoadControls(watch: RoadWatch, recorder: StateFlow<RoadRecorder?>, o
                     Text(stringResource(if (m == RoadModel.State.Failed) R.string.road_model_retry else R.string.road_model_get))
                 }
             }
-            FilledTonalButton(onClick = { dimmed = !dimmed; onDim(dimmed) }) {
+            FilledTonalButton(onClick = { setDimmed(!dimmed) }) {
                 Icon(if (dimmed) Icons.Filled.BrightnessHigh else Icons.Filled.BrightnessLow, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
                 Text(stringResource(if (dimmed) R.string.road_bright else R.string.road_dim))
