@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oldies Data Flow</title>
+<style>
+:root {
+  --bg: #f7f7f5; --fg: #1d1f21; --muted: #5f6368; --card: #ffffff; --line: #d9dadc;
+  --hub: #e8f0fe; --hubline: #3367d6; --acc: #b3261e; --dead: #a15c00; --deadbg: #fff4e5;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15171a; --fg: #e6e7e9; --muted: #9aa0a6; --card: #1f2226; --line: #3a3e44;
+    --hub: #1e2a44; --hubline: #8ab4f8; --acc: #f28b82; --dead: #f6ad55; --deadbg: #33260f;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15171a; --fg: #e6e7e9; --muted: #9aa0a6; --card: #1f2226; --line: #3a3e44;
+  --hub: #1e2a44; --hubline: #8ab4f8; --acc: #f28b82; --dead: #f6ad55; --deadbg: #33260f;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 1640px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 28px; margin: 0 0 4px; }
+h2 { font-size: 20px; margin: 44px 0 10px; }
+p.lead { color: var(--muted); margin: 0 0 20px; max-width: 900px; }
+code { font: 12.5px ui-monospace, "Cascadia Mono", Consolas, monospace; color: var(--muted); }
+figure { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; overflow-x: auto; }
+figcaption { color: var(--muted); font-size: 14px; margin-top: 10px; max-width: 1000px; }
+svg.flow { width: 100%; min-width: 1200px; height: auto; display: block; color: var(--fg); }
+svg.flow.small { min-width: 760px; max-width: 1000px; }
+.node rect { fill: var(--card); stroke: var(--line); stroke-width: 1.2; }
+.node.hub rect { fill: var(--hub); stroke: var(--hubline); stroke-width: 1.6; }
+.node.deadnode rect { fill: var(--deadbg); stroke: var(--dead); stroke-dasharray: 5 4; }
+.ntitle { font-size: 13px; font-weight: 600; fill: currentColor; }
+.nsub { font-size: 11px; fill: var(--muted); }
+.colh { font-size: 11.5px; font-weight: 700; letter-spacing: .08em; fill: var(--muted); }
+.edge { fill: none; stroke: currentColor; stroke-opacity: .42; stroke-width: 1.3; }
+.edge.dead { stroke: var(--dead); stroke-opacity: 1; stroke-dasharray: 5 4; }
+.edge.acc { stroke: var(--acc); stroke-opacity: 1; stroke-width: 1.8; }
+.edge.fwd { stroke: var(--hubline); stroke-opacity: .9; stroke-dasharray: 2 3; stroke-width: 1.4; }
+.fwdtext { fill: var(--hubline); }
+.lane { fill: none; stroke: var(--muted); stroke-width: 1.4; }
+.lanet { font-size: 12px; font-weight: 700; fill: currentColor; }
+.lanes { font-size: 11px; fill: var(--muted); }
+.edge.loop { stroke-dasharray: 2 3; stroke-opacity: .7; }
+.deadstroke { stroke: var(--dead); stroke-width: 2; }
+.deadfill { fill: var(--dead); }
+.accfill { fill: var(--acc); }
+.elabel { font-size: 10.5px; fill: currentColor; paint-order: stroke; stroke: var(--card); stroke-width: 4px; stroke-linejoin: round; }
+.deadtext { fill: var(--dead); }
+.acctext { fill: var(--acc); }
+.legend { display: flex; flex-wrap: wrap; gap: 18px; font-size: 13px; color: var(--muted); margin: 0 0 12px; }
+.legend span::before { content: ""; display: inline-block; width: 26px; height: 0; vertical-align: middle; margin-right: 6px; border-top: 2px solid currentColor; }
+.legend .l-dead::before { border-top: 2px dashed var(--dead); }
+.legend .l-acc::before { border-top: 2px solid var(--acc); }
+.legend .l-loop::before { border-top: 2px dotted var(--fg); }
+.legend .l-fwd::before { border-top: 2px dotted var(--hubline); }
+.legend .l-hub::before { width: 18px; height: 12px; border: 1.6px solid var(--hubline); background: var(--hub); border-radius: 3px; }
+table { border-collapse: collapse; width: 100%; background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; font-size: 14px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 700; }
+tr:last-child td { border-bottom: 0; }
+td.ord, td.na, th.c { text-align: center; }
+td.na { color: var(--line); }
+.pill { display: inline-block; min-width: 26px; padding: 1px 8px; border-radius: 99px; background: var(--hub); color: var(--hubline); font-weight: 700; font-size: 13px; }
+.wrap { overflow-x: auto; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+.card h3 { margin: 0 0 6px; font-size: 15px; }
+.card p { margin: 0; color: var(--muted); font-size: 14px; }
+ul.odd li { margin-bottom: 6px; }
+.yes { color: var(--hubline); font-weight: 700; }
+.no { color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+<h1>Car data flow on <code style="font-size:24px;color:inherit">oldies</code></h1>
+<p class="lead">Dashwheel at <code>1251898a</code> (upstream PR #56), before the fork's changes. Each source writes into its own store; there is no shared repository. Every consumer reads the stores it knows about and decides its own fallback order. Mapped from the code on 2026-10-23; file references are under <code>app/src/main/java/com/openauto/dash/</code>.</p>
+
+<h2>1 · Sources → stores → consumers</h2>
+<div class="legend">
+  <span>live path</span>
+  <span class="l-loop">store feeds another store</span>
+  <span class="l-fwd">CarSink passes the value on to another store</span>
+  <span class="l-acc">car value overwrites another source</span>
+  <span class="l-dead">wired, but nothing flows / no reader</span>
+  <span class="l-hub">hub</span>
+</div>
+<figure>
+<svg viewBox="0 0 1700 850" role="img" aria-label="Data flow on oldies: twelve sources feed ten separate stores, each consumer reads the stores directly and picks its own fallback order." class="flow">
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker><marker id="ahd" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="deadfill"/></marker><marker id="aha" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="accfill"/></marker></defs>
+<text x="10" y="16" class="colh">HOW THEY ARRIVE</text>
+<text x="190" y="16" class="colh">SOURCES</text>
+<text x="700" y="16" class="colh">STORES (each its own StateFlows)</text>
+<text x="1395" y="16" class="colh">CONSUMERS</text>
+<path d="M700,448 C678,448 678,708 698,708" class="edge acc" marker-end="url(#aha)"/>
+<path d="M700,448 C660,448 660,64 698,64" class="edge loop" marker-end="url(#ah)"/>
+<path d="M970,506 C1040,506 1040,188 972,188" class="edge fwd" marker-end="url(#ah)"/>
+<path d="M970,506 C1022,506 1022,300 972,300" class="edge fwd" marker-end="url(#ah)"/>
+<path d="M970,506 C1004,506 1004,456 972,456" class="edge fwd" marker-end="url(#ah)"/>
+<path d="M430.0,53.0 C565.0,53.0 565.0,53.0 698.0,53.0" class="edge" marker-end="url(#ah)"/>
+<path d="M430.0,111.0 C565.0,111.0 565.0,53.0 698.0,53.0" class="edge" marker-end="url(#ah)"/>
+<path d="M430.0,183.0 C565.0,183.0 565.0,173.0 698.0,173.0" class="edge" marker-end="url(#ah)"/>
+<path d="M430.0,183.0 C565.0,183.0 565.0,285.0 698.0,285.0" class="edge" marker-end="url(#ah)"/>
+<path d="M430.0,241.0 C565.0,241.0 565.0,285.0 698.0,285.0" class="edge" marker-end="url(#ah)"/>
+<path d="M430.0,241.0 C565.0,241.0 565.0,363.0 698.0,363.0" class="edge" marker-end="url(#ah)"/>
+<path d="M430.0,241.0 C565.0,241.0 565.0,441.0 698.0,441.0" class="edge" marker-end="url(#ah)"/>
+<path d="M430.0,299.0 C565.0,299.0 565.0,441.0 698.0,441.0" class="edge" marker-end="url(#ah)"/>
+<path d="M430.0,429.0 C565.0,429.0 565.0,519.0 698.0,519.0" class="edge" marker-end="url(#ah)"/>
+<path d="M430.0,487.0 C565.0,487.0 565.0,519.0 698.0,519.0" class="edge dead" marker-end="url(#ahd)"/>
+<path d="M430.0,357.0 C565.0,357.0 565.0,583.0 698.0,583.0" class="edge" marker-end="url(#ah)"/>
+<path d="M430.0,617.0 C565.0,617.0 565.0,645.0 698.0,645.0" class="edge" marker-end="url(#ah)"/>
+<path d="M430.0,675.0 C565.0,675.0 565.0,715.0 698.0,715.0" class="edge" marker-end="url(#ah)"/>
+<path d="M430.0,747.0 C565.0,747.0 565.0,285.0 698.0,285.0" class="edge" marker-end="url(#ah)"/>
+<path d="M430.0,747.0 C565.0,747.0 565.0,173.0 698.0,173.0" class="edge" marker-end="url(#ah)"/>
+<path d="M430.0,747.0 C565.0,747.0 565.0,441.0 698.0,441.0" class="edge" marker-end="url(#ah)"/>
+<path d="M430.0,545.0 C565.0,545.0 565.0,791.0 698.0,791.0" class="edge" marker-end="url(#ah)"/>
+<path d="M970.0,53.0 C1182.5,53.0 1182.5,53.0 1393.0,53.0" class="edge" marker-end="url(#ah)"/>
+<path d="M970.0,53.0 C1182.5,53.0 1182.5,127.0 1393.0,127.0" class="edge" marker-end="url(#ah)"/>
+<path d="M970.0,53.0 C1182.5,53.0 1182.5,201.0 1393.0,201.0" class="edge" marker-end="url(#ah)"/>
+<path d="M970.0,53.0 C1182.5,53.0 1182.5,363.0 1393.0,363.0" class="edge" marker-end="url(#ah)"/>
+<path d="M970.0,53.0 C1182.5,53.0 1182.5,445.0 1393.0,445.0" class="edge" marker-end="url(#ah)"/>
+<path d="M970.0,173.0 C1182.5,173.0 1182.5,275.0 1393.0,275.0" class="edge" marker-end="url(#ah)"/>
+<path d="M970.0,173.0 C1182.5,173.0 1182.5,363.0 1393.0,363.0" class="edge" marker-end="url(#ah)"/>
+<path d="M970.0,173.0 C1182.5,173.0 1182.5,663.0 1393.0,663.0" class="edge" marker-end="url(#ah)"/>
+<path d="M970.0,285.0 C1182.5,285.0 1182.5,275.0 1393.0,275.0" class="edge" marker-end="url(#ah)"/>
+<path d="M970.0,285.0 C1182.5,285.0 1182.5,445.0 1393.0,445.0" class="edge" marker-end="url(#ah)"/>
+<path d="M970.0,363.0 C1182.5,363.0 1182.5,127.0 1393.0,127.0" class="edge" marker-end="url(#ah)"/>
+<path d="M970.0,441.0 C1182.5,441.0 1182.5,593.0 1393.0,593.0" class="edge" marker-end="url(#ah)"/>
+<path d="M970.0,441.0 C1182.5,441.0 1182.5,523.0 1393.0,523.0" class="edge" marker-end="url(#ah)"/>
+<path d="M970.0,519.0 C1182.5,519.0 1182.5,363.0 1393.0,363.0" class="edge" marker-end="url(#ah)"/>
+<path d="M970.0,583.0 C1182.5,583.0 1182.5,275.0 1393.0,275.0" class="edge" marker-end="url(#ah)"/>
+<path d="M970.0,645.0 C1182.5,645.0 1182.5,53.0 1393.0,53.0" class="edge" marker-end="url(#ah)"/>
+<path d="M970.0,645.0 C1182.5,645.0 1182.5,363.0 1393.0,363.0" class="edge" marker-end="url(#ah)"/>
+<path d="M970.0,645.0 C1182.5,645.0 1182.5,663.0 1393.0,663.0" class="edge" marker-end="url(#ah)"/>
+<path d="M970.0,715.0 C1182.5,715.0 1182.5,523.0 1393.0,523.0" class="edge" marker-end="url(#ah)"/>
+<path d="M970.0,715.0 C1182.5,715.0 1182.5,733.0 1393.0,733.0" class="edge" marker-end="url(#ah)"/>
+<path d="M970.0,791.0 C1182.5,791.0 1182.5,803.0 1393.0,803.0" class="edge" marker-end="url(#ah)"/>
+<path d="M184,30 L178,30 L178,134 L184,134" class="lane"/>
+<path d="M184,160 L178,160 L178,380 L184,380" class="lane"/>
+<path d="M184,406 L178,406 L178,568 L184,568" class="lane"/>
+<path d="M184,594 L178,594 L178,698 L184,698" class="lane"/>
+<path d="M184,724 L178,724 L178,770 L184,770" class="lane"/>
+<g class="node"><rect x="190" y="30" width="240" height="46" rx="7"/><text x="200" y="49" class="ntitle">ELM327 adapter</text><text x="200" y="66" class="nsub">Bluetooth · USB · phone relay</text></g>
+<g class="node"><rect x="190" y="88" width="240" height="46" rx="7"/><text x="200" y="107" class="ntitle">Deep OBD app</text><text x="200" y="124" class="nsub">broadcast, driver&#x27;s choice</text></g>
+<g class="node"><rect x="190" y="160" width="240" height="46" rx="7"/><text x="200" y="179" class="ntitle">QF car app</text><text x="200" y="196" class="nsub">com.qf.vehicle broadcasts</text></g>
+<g class="node"><rect x="190" y="218" width="240" height="46" rx="7"/><text x="200" y="237" class="ntitle">QF MCU service</text><text x="200" y="254" class="nsub">mcu_service binder / root log</text></g>
+<g class="node"><rect x="190" y="276" width="240" height="46" rx="7"/><text x="200" y="295" class="ntitle">QF broadcasts + props</text><text x="200" y="312" class="nsub">TEMP_STRING, headlight_state</text></g>
+<g class="node"><rect x="190" y="334" width="240" height="46" rx="7"/><text x="200" y="353" class="ntitle">TPMS app</text><text x="200" y="370" class="nsub">com.syt.tmps broadcast</text></g>
+<g class="node"><rect x="190" y="406" width="240" height="46" rx="7"/><text x="200" y="425" class="ntitle">FYT CANBUS module</text><text x="200" y="442" class="nsub">FytCanbusSource</text></g>
+<g class="node deadnode"><rect x="190" y="464" width="240" height="46" rx="7"/><text x="200" y="483" class="ntitle">MTC sync broadcast</text><text x="200" y="500" class="nsub">decoder layout never set</text></g>
+<g class="node"><rect x="190" y="522" width="240" height="46" rx="7"/><text x="200" y="541" class="ntitle">Ignition sources</text><text x="200" y="558" class="nsub">IgnitionSource per family</text></g>
+<g class="node"><rect x="190" y="594" width="240" height="46" rx="7"/><text x="200" y="613" class="ntitle">Android GPS</text><text x="200" y="630" class="nsub">LocationManager (+ phone mock)</text></g>
+<g class="node"><rect x="190" y="652" width="240" height="46" rx="7"/><text x="200" y="671" class="ntitle">open-meteo</text><text x="200" y="688" class="nsub">HTTPS forecast</text></g>
+<g class="node"><rect x="190" y="724" width="240" height="46" rx="7"/><text x="200" y="743" class="ntitle">Learned signals</text><text x="200" y="760" class="nsub">Signal Finder mappings</text></g>
+<g class="node hub"><rect x="700" y="30" width="270" height="46" rx="7"/><text x="710" y="49" class="ntitle">ObdBluetoothManager</text><text x="710" y="66" class="nsub">ObdData · lamp · DTCs</text></g>
+<g class="node"><rect x="700" y="150" width="270" height="46" rx="7"/><text x="710" y="169" class="ntitle">CarBox</text><text x="710" y="186" class="nsub">body · climate · radar · reverse · steer</text></g>
+<g class="node"><rect x="700" y="262" width="270" height="46" rx="7"/><text x="710" y="281" class="ntitle">McuReader</text><text x="710" y="298" class="nsub">doors · fuel % · range · frames</text></g>
+<g class="node"><rect x="700" y="340" width="270" height="46" rx="7"/><text x="710" y="359" class="ntitle">PsaTripComputer</text><text x="710" y="376" class="nsub">PSA trip + warnings</text></g>
+<g class="node"><rect x="700" y="418" width="270" height="46" rx="7"/><text x="710" y="437" class="ntitle">UnitSignals</text><text x="710" y="454" class="nsub">outside temp · lights · volts · handbrake</text></g>
+<g class="node"><rect x="700" y="496" width="270" height="46" rx="7"/><text x="710" y="515" class="ntitle">CarFeed</text><text x="710" y="532" class="nsub">speedKmh · rpm</text></g>
+<g class="node"><rect x="700" y="560" width="270" height="46" rx="7"/><text x="710" y="579" class="ntitle">Tyres</text><text x="710" y="596" class="nsub">tyres · problems</text></g>
+<g class="node"><rect x="700" y="622" width="270" height="46" rx="7"/><text x="710" y="641" class="ntitle">LocationFeed</text><text x="710" y="658" class="nsub">location · speed · trip · heading</text></g>
+<g class="node"><rect x="700" y="692" width="270" height="46" rx="7"/><text x="710" y="711" class="ntitle">WeatherRepo</text><text x="710" y="728" class="nsub">weather (tempC)</text></g>
+<g class="node"><rect x="700" y="768" width="270" height="46" rx="7"/><text x="710" y="787" class="ntitle">CarPower</text><text x="710" y="804" class="nsub">ignition</text></g>
+<g class="node"><rect x="1395" y="30" width="285" height="46" rx="7"/><text x="1405" y="49" class="ntitle">Bar + speedo tiles</text><text x="1405" y="66" class="nsub">rememberSpeedKmh: OBD → GPS</text></g>
+<g class="node"><rect x="1395" y="104" width="285" height="46" rx="7"/><text x="1405" y="123" class="ntitle">Telemetry tiles · AI mechanic</text><text x="1405" y="140" class="nsub">CarCare, Engine temps, Battery…</text></g>
+<g class="node"><rect x="1395" y="178" width="285" height="46" rx="7"/><text x="1405" y="197" class="ntitle">Alert chips (AlertCenter)</text><text x="1405" y="214" class="nsub">coolant, battery</text></g>
+<g class="node"><rect x="1395" y="252" width="285" height="46" rx="7"/><text x="1405" y="271" class="ntitle">Overlays</text><text x="1405" y="288" class="nsub">doors · radar · climate · reverse · belt · tyres</text></g>
+<g class="node hub"><rect x="1395" y="340" width="285" height="46" rx="7"/><text x="1405" y="359" class="ntitle">Drive lock: carSpeedKmh</text><text x="1405" y="376" class="nsub">OBD → CarBox → CarFeed → GPS</text></g>
+<g class="node"><rect x="1395" y="422" width="285" height="46" rx="7"/><text x="1405" y="441" class="ntitle">Fuel + range: carFuelInfo</text><text x="1405" y="458" class="nsub">bar FUEL/RANGE, tiles, briefing</text></g>
+<g class="node"><rect x="1395" y="500" width="285" height="46" rx="7"/><text x="1405" y="519" class="ntitle">Outside temp</text><text x="1405" y="536" class="nsub">bar OUTSIDE, skins</text></g>
+<g class="node"><rect x="1395" y="570" width="285" height="46" rx="7"/><text x="1405" y="589" class="ntitle">Day / night, brightness</text><text x="1405" y="606" class="nsub">AutoLightBy.CAR</text></g>
+<g class="node"><rect x="1395" y="640" width="285" height="46" rx="7"/><text x="1405" y="659" class="ntitle">Trip · servicing · drive log</text><text x="1405" y="676" class="nsub">DriveLog, Maintenance, TripTotals</text></g>
+<g class="node"><rect x="1395" y="710" width="285" height="46" rx="7"/><text x="1405" y="729" class="ntitle">Weather tiles · briefing</text><text x="1405" y="746" class="nsub">WeatherAlerts, StartupBriefing</text></g>
+<g class="node"><rect x="1395" y="780" width="285" height="46" rx="7"/><text x="1405" y="799" class="ntitle">VehicleMonitor</text><text x="1405" y="816" class="nsub">reconnect on ignition</text></g>
+<text x="960" y="515" text-anchor="end" class="nsub deadtext">⊘ rpm: no reader</text>
+<text x="960" y="437" text-anchor="end" class="nsub deadtext">⊘ handbrake: no reader</text>
+<text x="679.5" y="578.0" class="elabel acctext" text-anchor="end">temp → weather</text>
+<text x="666.0" y="256.0" class="elabel" text-anchor="end">volts → OBD</text>
+<text x="1026.5" y="347.0" class="elabel fwdtext" text-anchor="start">CarSink forwards reverse, steer</text>
+<text x="1013.0" y="403.0" class="elabel fwdtext" text-anchor="start">doors</text>
+<text x="999.5" y="481.0" class="elabel fwdtext" text-anchor="start">lights, volts, temp</text>
+<text x="563.0" y="49.0" text-anchor="middle" class="elabel">PIDs, 100 ms poll</text>
+<text x="563.0" y="78.9" text-anchor="middle" class="elabel">JSON page</text>
+<text x="563.0" y="174.1" text-anchor="middle" class="elabel">DATA_SHARE body/AC/radar</text>
+<text x="563.0" y="228.5" text-anchor="middle" class="elabel">doors, fuel, range</text>
+<text x="563.0" y="258.3" text-anchor="middle" class="elabel">CAN frames</text>
+<text x="563.0" y="296.2" text-anchor="middle" class="elabel">cmd 65</text>
+<text x="563.0" y="334.0" text-anchor="middle" class="elabel">cmd 34/35/41</text>
+<text x="563.0" y="363.9" text-anchor="middle" class="elabel">temp, headlights</text>
+<text x="563.0" y="468.7" text-anchor="middle" class="elabel">via CarSink: speed, rpm</text>
+<text x="563.0" y="498.5" text-anchor="middle" class="elabel deadtext">nothing decodes</text>
+<text x="556.9" y="452.5" text-anchor="middle" class="elabel">pressure, temp</text>
+<text x="563.0" y="626.6" text-anchor="middle" class="elabel">fix every 1 s</text>
+<text x="563.0" y="690.4" text-anchor="middle" class="elabel">forecast</text>
+<text x="563.0" y="518.9" text-anchor="middle" class="elabel">doors</text>
+<text x="575.2" y="413.1" text-anchor="middle" class="elabel">reverse</text>
+<text x="563.0" y="594.6" text-anchor="middle" class="elabel">headlights</text>
+<text x="563.0" y="660.3" text-anchor="middle" class="elabel">ACC on/off</text>
+<text x="1179.3" y="49.0" text-anchor="middle" class="elabel">speed ①</text>
+<text x="1179.3" y="84.9" text-anchor="middle" class="elabel">all PIDs</text>
+<text x="1179.3" y="120.8" text-anchor="middle" class="elabel">coolant, volts</text>
+<text x="1179.3" y="199.4" text-anchor="middle" class="elabel">speed ①</text>
+<text x="1179.3" y="239.1" text-anchor="middle" class="elabel">fuel PID ③</text>
+<text x="1179.3" y="218.5" text-anchor="middle" class="elabel">radar, climate, reverse, belt</text>
+<text x="1179.3" y="261.2" text-anchor="middle" class="elabel">speed ②</text>
+<text x="1179.3" y="406.7" text-anchor="middle" class="elabel">odometer</text>
+<text x="1179.3" y="276.1" text-anchor="middle" class="elabel">doors</text>
+<text x="1188.9" y="365.8" text-anchor="middle" class="elabel">fuel % ①, range</text>
+<text x="1129.8" y="295.7" text-anchor="middle" class="elabel">trip, warnings</text>
+<text x="1179.3" y="510.7" text-anchor="middle" class="elabel">headlights</text>
+<text x="1179.3" y="476.8" text-anchor="middle" class="elabel">temp (offline only)</text>
+<text x="1179.3" y="439.3" text-anchor="middle" class="elabel">speed ③ (only reader)</text>
+<text x="1160.0" y="457.1" text-anchor="middle" class="elabel">tyre problems</text>
+<text x="1188.9" y="327.2" text-anchor="middle" class="elabel">GPS speed ②</text>
+<text x="1188.9" y="491.5" text-anchor="middle" class="elabel">GPS speed ④</text>
+<text x="1179.3" y="649.7" text-anchor="middle" class="elabel">trip</text>
+<text x="1179.3" y="617.9" text-anchor="middle" class="elabel">tempC</text>
+<text x="1179.3" y="719.7" text-anchor="middle" class="elabel">forecast</text>
+<text x="1179.3" y="792.8" text-anchor="middle" class="elabel">ignition</text>
+<text x="170" y="72.0" text-anchor="end" class="lanet">OBD hub</text>
+<text x="170" y="86.0" text-anchor="end" class="lanes">ObdBluetoothManager</text>
+<text x="170" y="100.0" text-anchor="end" class="lanes">writes ObdData</text>
+<text x="170" y="260.0" text-anchor="end" class="lanet">Vendor receivers</text>
+<text x="170" y="274.0" text-anchor="end" class="lanes">write stores directly</text>
+<text x="170" y="288.0" text-anchor="end" class="lanes">(QF only, no interface)</text>
+<text x="170" y="477.0" text-anchor="end" class="lanet">Unit adapter</text>
+<text x="170" y="491.0" text-anchor="end" class="lanes">interfaces: CarSink,</text>
+<text x="170" y="505.0" text-anchor="end" class="lanes">IgnitionSource</text>
+<text x="170" y="643.0" text-anchor="end" class="lanet">Android system</text>
+<text x="170" y="657.0" text-anchor="end" class="lanes">and network</text>
+<text x="170" y="744.0" text-anchor="end" class="lanet">Derived: republished</text>
+<text x="170" y="758.0" text-anchor="end" class="lanes">into existing stores</text>
+</svg>
+<figcaption>Twelve sources, grouped on the left by how their values reach a store, ten stores, and no layer between the stores and the screen. The circled numbers are each consumer's own priority order for the same quantity, e.g. speed is ① OBD → ② GPS in the bar, but ① OBD → ② CarBox → ③ CarFeed → ④ GPS in the drive lock. The QF family writes straight into CarBox, McuReader and UnitSignals; only FYT (and, in theory, MTC) goes through <code>CarFeed</code>, the one <code>CarSink</code>. Omitted for legibility: <code>CarFacts</code> / <code>CarQuestion</code> (the AI context, which reads every store), <code>DemoMode</code> (overwrites ten stores), the second screen and Automation.</figcaption>
+</figure>
+
+<h2>2 · How consumers read: by store, not by kind of data</h2>
+<p class="lead">There is no "give me speed" subscription. A consumer names the store objects it wants, and gets whole records from them; picking a field, and choosing between stores, is written inside the consumer. The only keyed lookup is <code>SignalSources</code> (string keys), used by the Signal Finder and learned signals.</p>
+<div class="wrap"><table>
+<tr><th>Pattern</th><th>What it looks like</th><th>Used by</th></tr>
+<tr><td><b>Compose subscription to a store</b></td><td><code>ObdBluetoothManager.data.collectAsState()</code>: the whole <code>ObdData</code> record; any field change recomposes. <code>AutomotiveDashboard.kt:226</code> collects it once and hands it down as a parameter.</td><td>tiles, skins, bar, overlays (<code>CarBox.radar</code>, <code>McuReader.doorState</code>, <code>Tyres.problems</code>…)</td></tr>
+<tr><td><b>Helper that hides a fallback chain</b></td><td><code>rememberSpeedKmh</code>, <code>rememberFuel</code>, <code>rememberOutsideTempC</code>, <code>rememberWeather</code>, <code>rememberGear</code>: each subscribes to a fixed set of stores and applies its own order.</td><td>the bar and ~30 skin files</td></tr>
+<tr><td><b>Combined flow</b></td><td><code>carSpeedKmh() = combine(OBD state, ObdData, CarBox.body, CarFeed.speedKmh, LocationFeed.freshSpeedKmh)</code></td><td>drive lock, CarCare, SpeedLimit, Moments, PerfTimer</td></tr>
+<tr><td><b>Pushed to them</b></td><td><code>VehicleMonitor</code>'s loop calls <code>AiMechanic.watch(data)</code>, <code>CarCare.watch(data)</code> after every OBD poll, and <code>AlertCenter.evaluate(...)</code> on each reading. They don't subscribe; they are fed.</td><td>AI mechanic, CarCare, alert chips</td></tr>
+<tr><td><b>Snapshot read</b></td><td><code>.value</code> on demand: <code>CarBox.freshBody()</code>, <code>UnitSignals.supplyVolts()</code>, <code>CarFacts.snapshot</code> reading every store at once.</td><td>AI context, the OBD poll's volts override, reports</td></tr>
+<tr><td><b>Event stream</b></td><td><code>McuReader.changes</code> (SharedFlow of raw frames)</td><td><code>SteeringWheelStore</code>, Signal Finder</td></tr>
+<tr><td><b>Polling</b></td><td><code>LearnedSignals</code> reads <code>SignalSources.current</code> every 300 ms, then writes into the stores</td><td>learned doors, reverse, headlights, belt</td></tr>
+</table></div>
+
+<h2>3 · What adding a source costs</h2>
+<p class="lead">Because consumers are bound to stores, a new source is only as visible as the store it lands in.</p>
+<div class="grid2">
+<div class="card"><h3>Write into an existing store: free, if it can pretend</h3><p>Deep OBD, the USB cable and the phone relay all end up in <code>ObdData</code>, so every OBD consumer sees them. The price is impersonation: Deep OBD has to fake <code>CONNECTED</code>, and only the fields <code>ObdData</code> already has can travel.</p></div>
+<div class="card"><h3>New unit adapter through <code>CarSink</code>: half free</h3><p><code>CarFeed</code> forwards doors, reverse, steering, headlights, volts and outside temperature into McuReader, CarBox and UnitSignals, so those reach every consumer. Speed and rpm stay in <code>CarFeed</code>: speed reaches only the drive lock chain, rpm nobody. Anything outside <code>CarSink</code>'s nine methods (gear, fuel, odometer, handbrake…) has no way in.</p></div>
+<div class="card"><h3>New store: edit every consumer</h3><p>A source with its own store (as <code>CarBox</code> and <code>CarFeed</code> were) is seen only by the consumers changed to read it. That is how speed ended up with ten different chains in section 5.</p></div>
+</div>
+
+<h2>4 · Who feeds what, per unit family</h2>
+<div class="wrap"><table>
+<tr><th>Family</th><th>Bus adapter</th><th>Path</th><th>Ends up in</th></tr>
+<tr><td><b>QF</b> (ROCO K706, Hizpo)</td><td><code>QfBus</code> → <code>CarBox.start</code> + <code>McuFeed.start</code></td><td>straight into stores, bypassing <code>CarSink</code></td><td>CarBox, McuReader, UnitSignals, PsaTripComputer, Tyres (if <code>com.syt.tmps</code>)</td></tr>
+<tr><td><b>FYT</b></td><td><code>FytCanbusSource</code></td><td><code>CarSink</code> → <code>CarFeed</code></td><td><code>CarFeed.speedKmh</code> (drive lock only), <code>CarFeed.rpm</code> (no reader), raw codes to the Signal Finder</td></tr>
+<tr><td><b>MTC</b></td><td><code>MtcSyncBus</code></td><td><code>CarSink</code> → <code>CarFeed</code></td><td>nothing: <code>MtcSyncBus.layout</code> is never set, so every decode is empty</td></tr>
+<tr><td>Topway, Reglink, NWD, Allwinner, generic (incl. XYAuto, undetected)</td><td><code>null</code></td><td>—</td><td>no car data from the unit; ignition and keys only. OBD and GPS still work</td></tr>
+</table></div>
+
+<h2>5 · Speed: one quantity, ten fallback orders</h2>
+<p class="lead">Each consumer builds its own chain. Numbers are the order tried; a dash means that source is never consulted.</p>
+<div class="wrap"><table>
+<tr><th>Consumer · where decided</th><th class="c">OBD</th><th class="c">CarBox (QF)</th><th class="c">CarFeed (FYT)</th><th class="c">GPS</th></tr>
+<tr><td><b>Bar SPEED, speedo tiles, ~30 skins</b><br><code>rememberSpeedKmh · SkinKit.kt:288</code></td><td class="ord"><span class="pill">1</span></td><td class="na">—</td><td class="na">—</td><td class="ord"><span class="pill">2 (corrected)</span></td></tr>
+<tr><td><b>Drive lock, CarCare, SpeedLimit, Moments, PerfTimer</b><br><code>carSpeedKmh · DriveLock.kt:118</code></td><td class="ord"><span class="pill">1</span></td><td class="ord"><span class="pill">2</span></td><td class="ord"><span class="pill">3</span></td><td class="ord"><span class="pill">4</span></td></tr>
+<tr><td><b>AlertVoice, GeminiLive, CarFacts</b><br><code>AlertVoice.kt:77 · GeminiLive.kt:155</code></td><td class="ord"><span class="pill">1</span></td><td class="ord"><span class="pill">2</span></td><td class="na">—</td><td class="ord"><span class="pill">3</span></td></tr>
+<tr><td><b>ParkingMemory</b><br><code>ParkingMemory.kt:156</code></td><td class="ord"><span class="pill">2</span></td><td class="ord"><span class="pill">1</span></td><td class="na">—</td><td class="ord"><span class="pill">3</span></td></tr>
+<tr><td><b>GearEstimator</b><br><code>GearEstimator.kt:131</code></td><td class="ord"><span class="pill">1</span></td><td class="ord"><span class="pill">2</span></td><td class="na">—</td><td class="na">—</td></tr>
+<tr><td><b>ClusterFeed (second screen)</b><br><code>ClusterFeed.kt:112</code></td><td class="ord"><span class="pill">1</span></td><td class="na">—</td><td class="na">—</td><td class="ord"><span class="pill">2 (corrected)</span></td></tr>
+<tr><td><b>SecondScreenController, SpeedVolume</b><br><code>SecondScreenController.kt:433</code></td><td class="ord"><span class="pill">1</span></td><td class="na">—</td><td class="na">—</td><td class="ord"><span class="pill">2</span></td></tr>
+<tr><td><b>CarWhereabouts</b><br><code>CarWhereabouts.kt:74</code></td><td class="ord"><span class="pill">1</span></td><td class="na">—</td><td class="na">—</td><td class="ord"><span class="pill">2 (fix speed)</span></td></tr>
+<tr><td><b>BeltAlertOverlay</b><br><code>BeltAlertOverlay.kt:48</code></td><td class="na">—</td><td class="ord"><span class="pill">1</span></td><td class="na">—</td><td class="na">—</td></tr>
+<tr><td><b>TpmsReset</b><br><code>TpmsReset.kt:75</code></td><td class="na">—</td><td class="na">—</td><td class="na">—</td><td class="ord"><span class="pill">1</span></td></tr>
+</table></div>
+<p class="lead" style="margin-top:10px">Consequences: on an FYT unit the bus speed reaches only the drive lock, CarCare and SpeedLimit; the speedo the driver sees is OBD or GPS. GPS speed correction (<code>SpeedCorrection.correctedGps</code>) is applied in the bar and the cluster but not in the drive lock.</p>
+
+<h2>6 · Outside temperature: the car wins, despite the call site</h2>
+<figure>
+<svg viewBox="0 0 1000 150" role="img" aria-label="Outside temperature: the car's value is copied over the weather's tempC inside WeatherRepo, so the call site's weather-first order still ends up showing the car's sensor." class="flow small">
+<defs><marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker>
+<marker id="ah2a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="accfill"/></marker></defs>
+<g class="node"><rect x="10" y="10" width="190" height="46" rx="7"/><text x="20" y="29" class="ntitle">QF TEMP_STRING</text><text x="20" y="46" class="nsub">"12.5℃", kept 2 h</text></g>
+<g class="node"><rect x="10" y="92" width="190" height="46" rx="7"/><text x="20" y="111" class="ntitle">open-meteo</text><text x="20" y="128" class="nsub">forecast tempC</text></g>
+<g class="node"><rect x="270" y="10" width="200" height="46" rx="7"/><text x="280" y="29" class="ntitle">UnitSignals.outsideTempC</text><text x="280" y="46" class="nsub">car value or null</text></g>
+<g class="node hub"><rect x="540" y="92" width="200" height="46" rx="7"/><text x="550" y="111" class="ntitle">WeatherRepo.show()</text><text x="550" y="128" class="nsub">tempC := car ?: forecast</text></g>
+<g class="node"><rect x="800" y="50" width="190" height="46" rx="7"/><text x="810" y="69" class="ntitle">rememberOutsideTempC</text><text x="810" y="86" class="nsub">weather.tempC ?: car</text></g>
+<path d="M200,33 L268,33" class="edge" marker-end="url(#ah2)"/>
+<path d="M200,115 L538,115" class="edge" marker-end="url(#ah2)"/>
+<path d="M470,33 C520,33 520,104 538,104" class="edge acc" marker-end="url(#ah2a)"/>
+<text x="505" y="60" class="elabel acctext" text-anchor="middle">overrides</text>
+<path d="M740,115 C770,115 770,80 798,80" class="edge" marker-end="url(#ah2)"/>
+<text x="768" y="132" class="elabel" text-anchor="middle">① already car's</text>
+<path d="M470,24 C700,24 760,58 798,62" class="edge" marker-end="url(#ah2)"/>
+<text x="650" y="20" class="elabel" text-anchor="middle">② only when no weather (offline)</text>
+</svg>
+<figcaption><code>rememberOutsideTempC()</code> (<code>SkinKit.kt:337</code>) reads <code>weather?.tempC ?: car</code>, which looks weather-first. But <code>WeatherRepo.show()</code> (<code>WeatherRepo.kt:139</code>) has already copied the car's value over <code>tempC</code>, so the car's sensor shows whenever it has one, and the forecast only when it doesn't. On the XYAuto unit nothing writes <code>UnitSignals.outsideTempC</code>, so OUTSIDE is the forecast.</figcaption>
+</figure>
+
+<h2>7 · Other quantities with more than one source</h2>
+<div class="grid2">
+<div class="card"><h3>Fuel and range</h3><p><code>FuelRange.kt:34-69</code>: learned CAN byte → car app's litres ÷ profile tank → OBD fuel PID → back-computed from range. A 0 % CAN value with a range is dropped. OBD fuel is gated on "connected" in <code>rememberFuelFrom</code> but passed ungated (0 when disconnected) by CarFacts, FuelLog, StartupBriefing and CarCare.</p></div>
+<div class="card"><h3>Doors</h3><p>Learned doors override built-in ones (<code>LearnedSignals.kt:28</code>). Built-in is last-writer-wins between the MCU frame <code>65 .. 0C 38</code>, CarBox's door share and <code>CarFeed.doors</code>.</p></div>
+<div class="card"><h3>Reverse · headlights · steering</h3><p>All last-writer-wins: reverse has four writers into <code>CarBox._reversing</code>; headlights five into <code>UnitSignals._headlightsOn</code>; steering three into <code>CarBox.steeringWrite</code>.</p></div>
+<div class="card"><h3>Supply voltage</h3><p>OBD <code>0142</code> → <code>ATRV</code>, then replaced by the unit's own volts when they differ by more than 1 V with the engine running (<code>ObdBluetoothManager.kt:886</code>). The only store that feeds back into the OBD poll.</p></div>
+<div class="card"><h3>RPM</h3><p>OBD only, for tiles and bar. <code>GearEstimator</code> falls back to CarBox's rpm. <code>CarFeed.rpm</code> is written on FYT and never read.</p></div>
+<div class="card"><h3>OBD itself</h3><p>Route: USB cable → phone relay → unit's Bluetooth (AUTO). Deep OBD is a manual choice that stands the poller, DTC scans and auto-scan down and fakes CONNECTED.</p></div>
+</div>
+
+<h2>8 · Capabilities: two systems</h2>
+<div class="grid2">
+<div class="card"><h3><code>UnitCaps</code> / <code>Cap</code></h3><p>26 caps, claimed per family, shown as ABSENT / LOCKED / READY / LIVE on the Settings head-unit card and in the report. Gates only FreeformBar and KeyTargets. QF claims DOORS, RADAR, CLIMATE… but its direct-to-store path never calls <code>markUsed</code> for them, so they never reach LIVE.</p></div>
+<div class="card"><h3>Ad-hoc flags</h3><p>What actually gates tiles and alerts: <code>CarBox.available</code>, <code>Tyres.available</code>, <code>RomPopups.available</code> (<code>canHide || CarFeed.provides</code>), the add-sheet <code>WidgetSource</code> chips, <code>PsaTripComputer.isPsa</code>.</p></div>
+</div>
+
+<h2>9 · Oddities worth comparing against</h2>
+<ul class="odd">
+<li><b>Values written, never read:</b> <code>CarFeed.rpm</code>, <code>UnitSignals.handbrake</code>; <code>UnitSignals.volts</code> only through <code>supplyVolts()</code>.</li>
+<li><b>MTC bus is inert:</b> the decoder's layout is never set.</li>
+<li><b>Zero means unknown</b> in <code>ObdData</code>: disconnect, demo end and Deep OBD down all reset to zeros, and a silent engine is published as 0 speed / 0 rpm.</li>
+<li><b>Start paths are scattered:</b> CarBox is started by QfBus and again by GearEstimator and MotorsportSkin; McuReader is held from about ten places; OBD starts from a Compose <code>DisposableEffect</code>, the unit bus from <code>MainActivity</code>.</li>
+<li><b>Belt alert</b> can be offered on a non-QF unit once doors are seen (<code>CarFeed.provides(BELT)</code>), though no sink carries a belt signal.</li>
+<li><b>TPMS</b> is the QF TPMS app only; the USB receiver is only power-cycled (<code>TpmsReset</code>).</li>
+<li><b>DemoMode</b> overwrites ten stores directly, each with its own restore path.</li>
+</ul>
+</main>
+</body>
+</html>
