@@ -41,17 +41,19 @@ import kotlin.math.sin
 
 /**
  * Demo mode: a made-up drive through Paris that feeds every live source the
- * tiles read (OBD readings and fault codes, GPS and the trip computer, g-force,
- * CANbox fuel / range / doors and the car's body (mileage, lights, belts),
- * the tyre sensors, weather, turn-by-turn, music, notifications, the
+ * tiles read (the car's data, through the vehicle bus as the `demo` source; fault codes, GPS position
+ * and the trip computer, g-force, weather, turn-by-turn, music, notifications, the
  * phone's favourites, calls and agenda, fuel prices, the parking spot, the particle filter's soot load and the
  * car-care stats), so the whole dashboard can be shown off parked and
  * without an adapter. Started from Settings → Advanced.
  *
- * Meanwhile the real sources are held back (each checks [isOn]) so they don't
- * fight the fake values, nothing is saved and nothing is spoken; stopping puts
- * back what they showed before. It lives in memory only: a restart is always
- * back on real data.
+ * Whatever the bus carries is put by the demo source alone: it outranks every real one, so the real car's
+ * values can keep arriving without showing, and nothing of the demo is left behind when it ends. What is
+ * not on the bus (the position and the trip, g-force, fault codes and the mechanic's state, the car-care
+ * stats, the PSA trip computer, the weather's picture, navigation, music, notifications, the phone) is
+ * written to its own feed, which holds its real state back (each checks [isOn]) and puts it back when the
+ * demo stops. Nothing is saved and nothing is spoken. It lives in memory only: a restart is always back on
+ * real data.
  */
 object DemoMode {
 
@@ -66,14 +68,12 @@ object DemoMode {
     private const val TICK_MS = 250L
 
     /**
-     * The demo on the vehicle bus, for the body, fuel, tyres and temperature it shows (the OBD gauges still go
-     * through the adapter's source): a DEMO source outranks every real one, so the real car's values can keep
-     * arriving without showing, and [withdrawBus] takes the demo's away when it ends.
+     * The demo on the vehicle bus, for every value the bus carries: the speed, the gauges, the body, the fuel, the
+     * tyres and the temperatures. A DEMO source outranks every real one, so the real car's values can keep arriving
+     * without showing. It is up while the demo runs and, when it ends, cleared and down (it stays registered for
+     * the next one).
      */
     private val busPublisher = Vehicle.bus.register(Source("demo", SourceKind.DEMO, "Demo"))
-
-    /** The demo ends: every key it showed goes (the source stays registered for the next one). */
-    private fun withdrawBus() = busPublisher.clear()
     /** The car's "left rear brake bulb out" message (PsaWarnings). */
     private const val DEMO_BULB = 0x84
     /** Place de la Concorde: where the fake drive sets off. */
@@ -101,6 +101,7 @@ object DemoMode {
         diagnosis = demoDiagnosis(app)
         player.reset()
         _active.value = true
+        busPublisher.up(true)
         FuelPriceRepo.demoWrite(DEMO_STATIONS, null)
         val sim = Simulation(System.currentTimeMillis())
         // Where the car stood before the drive: the parking tile points back to it.
@@ -125,7 +126,8 @@ object DemoMode {
         // Off first: a real event from here on publishes itself, and the feeds
         // that kept their real state up to date meanwhile hand it back below.
         _active.value = false
-        withdrawBus()
+        busPublisher.clear()
+        busPublisher.up(false)
         before?.restore()
         before = null
         _media.value = MediaState()
@@ -401,6 +403,7 @@ object DemoMode {
             val throttle = if (accel < -0.3) 0.0 else (12 + accel * 22 + kmh * 0.08).coerceIn(0.0, 85.0)
             val load = if (accel < -0.3) 8.0 else (22 + accel * 26 + kmh * 0.2).coerceIn(5.0, 95.0)
             val coolant = 80 + 10 * (1 - exp(-t / 50)) + sin(t / 20)
+            // The gauges, on the bus; the record is what the car-care rules are written against.
             val data = ObdData(
                 speedKmh = kmh.roundToInt(),
                 rpm = rpm.roundToInt(),
@@ -411,8 +414,9 @@ object DemoMode {
                 fuelLevelPct = 58,
                 voltage = 14.2 + 0.05 * sin(t / 4)
             )
+            publishGauges(data)
             val pending = if (codes.isEmpty()) emptySet() else codes.toSet()
-            ObdBluetoothManager.demoWrite(data, EngineLamp(on = false, storedCodes = 0), pending)
+            ObdBluetoothManager.demoWrite(EngineLamp(on = false, storedCodes = 0), pending)
             AiMechanic.demoWrite(mechanicState(codes))
             care = CareRules.step(care, data, now, CarProfileStore.current).first
             CarCare.demoWrite(care)
@@ -460,7 +464,6 @@ object DemoMode {
 
             // CANbox: doors shut, fuel and range going down with the kilometres.
             val rangeKm = (612 - tripM / 1000).roundToInt()
-            McuReader.demoWrite(McuReader.DoorState(), fuelPercent = 58, rangeKm = rangeKm)
             busPublisher.put(K.DOORS, McuReader.DoorState())
             busPublisher.put(K.FUEL_LEVEL, 58.0)
             busPublisher.put(K.RANGE, rangeKm.toDouble())
@@ -471,34 +474,11 @@ object DemoMode {
             PsaTripComputer.demoWrite(
                 PsaTrip(instantL100 = 5.9f, rangeKm = rangeKm, warnings = listOf(DEMO_BULB), at = android.os.SystemClock.elapsedRealtime())
             )
-            // The car's body: dipped beams on, belts done up, mileage and trip going up.
-            CarBox.demoWrite(
-                CarBody(
-                    speedKmh = kmh.roundToInt(),
-                    rpm = rpm.roundToInt(),
-                    fuelLeft = 34.8f,
-                    restCapacity = null,
-                    odometer = (DEMO_ODOMETER_KM + tripM / 1000).toFloat(),
-                    range = rangeKm.toFloat(),
-                    trip1 = (DEMO_TRIP_KM + tripM / 1000).toFloat(),
-                    // Nothing at a standstill or off the throttle (the injectors cut), more the harder it pulls.
-                    instantConsumption = if (kmh < 3 || accel < -0.3) 0f else (3.2 + load * 0.07).toFloat(),
-                    highBeam = false,
-                    dippedBeam = true,
-                    frontFog = false,
-                    rearFog = false,
-                    turnRight = false,
-                    turnLeft = false,
-                    hazard = false,
-                    sidelights = true,
-                    driverBeltUnfastened = false,
-                    passengerBeltUnfastened = false,
-                    ignition = true,
-                    gearFlag = false,
-                    handbrake = false,
-                    washerFluid = false
-                )
-            )
+            // The car's body: dipped beams on, nothing at a standstill or off the throttle (the injectors cut), more the
+            // harder it pulls; the trip going up.
+            busPublisher.put(K.LIGHTS, listOf(CarLight.DIPPED))
+            busPublisher.put(K.FUEL_CONSUMPTION, if (kmh < 3 || accel < -0.3) 0.0 else 3.2 + load * 0.07)
+            busPublisher.put(K.TRIP_DISTANCE, DEMO_TRIP_KM + tripM / 1000)
             // Tyres near 2.3 bar and warming a little; the front left one slowly going low.
             val warm = (4 * (1 - exp(-t / 120))).roundToInt()
             val leaky = (DEMO_LEAKY_KPA - (t / DEMO_LEAK_S_PER_KPA).toInt()).coerceAtLeast(DEMO_LEAKY_FLOOR_KPA)
@@ -509,14 +489,25 @@ object DemoMode {
                 TyrePos.REAR_LEFT to Tyre(DEMO_TYRE_KPA - 3, 21 + warm, false, false, false, heard),
                 TyrePos.REAR_RIGHT to Tyre(DEMO_TYRE_KPA, 21 + warm, false, false, false, heard)
             )
-            Tyres.demoWrite(demoTyres)
             busPublisher.put(K.TYRES, demoTyres)
             WeatherRepo.demoWrite(weather, error = null)
             // The demo's outside temperature is the weather's, whatever the car's own sensor says.
             busPublisher.put(K.OUTSIDE_TEMP, weather.tempC)
+            busPublisher.put(K.FORECAST_TEMP, weather.tempC)
             // Written once: one cleared or swiped away stays gone for the rest of the demo.
             if (notifications == null) NotificationFeed.demoWrite(demoNotifications(context, startedAt).also { notifications = it })
             navigate(context, metres, now)
+        }
+
+        /** The demo's gauges on the bus, as the tiles draw them (the fuel level is put with the fuel and the range). */
+        private fun publishGauges(d: ObdData) {
+            busPublisher.put(K.VEHICLE_SPEED, d.speedKmh.toDouble())
+            busPublisher.put(K.RPM, d.rpm.toDouble())
+            busPublisher.put(K.THROTTLE, d.throttlePct.toDouble())
+            busPublisher.put(K.ENGINE_LOAD, d.engineLoadPct.toDouble())
+            busPublisher.put(K.COOLANT_TEMP, d.coolantTempC.toDouble())
+            busPublisher.put(K.INTAKE_TEMP, d.intakeTempC.toDouble())
+            busPublisher.put(K.BATTERY_VOLTS, d.voltage)
         }
 
         /** Counts down to the next turn along [route], then on to the one after. */
@@ -663,8 +654,7 @@ object DemoMode {
      * The feeds whose real state can change meanwhile (a route ending, a
      * message arriving, a fetch landing, the CANbox, the parking spot, the
      * particle filter's readings) keep it up to date themselves and hand
-     * back their latest instead. The car's body and the tyres come back as
-     * they were and are refreshed by their next message (every few seconds).
+     * back their latest instead. What the bus carries needs no putting back.
      */
     private class Snapshot(
         val lamp: EngineLamp?,
@@ -675,16 +665,12 @@ object DemoMode {
         val g: GForce,
         val care: CareState,
         val ai: AiMechanic.State,
-        val body: CarBody?,
-        val bodyAt: Long,
-        val tyres: Map<TyrePos, Tyre>,
         val psa: PsaTrip?
     ) {
         fun restore() {
             ObdBluetoothManager.endDemo(lamp, pending)
             LocationFeed.demoWrite(location, trip, heading)
             GForceFeed.demoWrite(g)
-            McuReader.endDemo()
             WeatherRepo.endDemo()
             NavDirections.endDemo()
             NotificationFeed.endDemo()
@@ -694,8 +680,6 @@ object DemoMode {
             ParkingStore.endDemo()
             PhoneLink.endDemo()
             PidExplorer.endDemo()
-            CarBox.demoWrite(body, bodyAt)
-            Tyres.demoWrite(tyres)
             PsaTripComputer.demoWrite(psa)
         }
 
@@ -705,7 +689,6 @@ object DemoMode {
                 LocationFeed.location.value, LocationFeed.trip.value, LocationFeed.headingDeg.value,
                 GForceFeed.g.value,
                 CarCare.state.value, AiMechanic.state.value,
-                CarBox.body.value, CarBox.bodyAt, Tyres.tyres.value,
                 PsaTripComputer.state.value
             )
         }

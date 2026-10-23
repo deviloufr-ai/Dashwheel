@@ -120,9 +120,9 @@ object WeatherRepo {
     internal const val REFRESH_MS = 15 * 60_000L
     private const val MOVE_DEG = 0.05   // ~5 km: refresh sooner when the car has moved on
 
-    /** [DemoMode]'s weather. */
+    /** [DemoMode]'s weather: the picture of it; its temperature goes on the bus through the demo source. */
     internal fun demoWrite(weather: Weather?, error: String?) {
-        show(weather)
+        _weather.value = weather
         _error.value = error
     }
 

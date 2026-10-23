@@ -66,15 +66,9 @@ object McuReader {
     val changes: SharedFlow<Change> = _changes.asSharedFlow()
 
     /**
-     * The door bitfield byte from the MCU status frame `41 FD 0C 38 <bits> …`
-     * (cmdId 65, sub 0x0C, subtype 0x38). Confirmed on the C4 Picasso: bit 0x80
-     * = front-left door. Other bits map to the other doors (to be confirmed).
-     * null until first seen.
+     * Decoded door open/closed state (C4 Picasso bit map, confirmed 2026-09-20), from the door bitfield byte of the MCU
+     * status frame `41 FD 0C 38 <bits> …` (cmdId 65, sub 0x0C, subtype 0x38; bit 0x80 = front left).
      */
-    private val _doorBits = MutableStateFlow<Int?>(null)
-    val doorBits: StateFlow<Int?> = _doorBits.asStateFlow()
-
-    /** Decoded door open/closed state (C4 Picasso bit map, confirmed 2026-09-20). */
     data class DoorState(
         val frontLeft: Boolean = false,
         val frontRight: Boolean = false,
@@ -85,9 +79,6 @@ object McuReader {
     ) {
         val anyOpen: Boolean get() = frontLeft || frontRight || rearLeft || rearRight || tailgate || bonnet
     }
-
-    private val _doorState = MutableStateFlow<DoorState?>(null)
-    val doorState: StateFlow<DoorState?> = _doorState.asStateFlow()
 
     // --- Fuel (CANbox) ------------------------------------------------------
     // The C4 Picasso's OBD does not report fuel level, but the CANbox does —
@@ -223,45 +214,12 @@ object McuReader {
             ?.remove("fuel_key")?.remove("fuel_byte")?.remove("fuel_fullraw")?.apply()
     }
 
-    // The car's real doors, fuel and range, kept up to date while the demo shows
-    // its own and put back when it ends.
-    @Volatile private var realDoors: DoorState? = null
-    @Volatile private var realFuel: Int? = null
-    @Volatile private var realRange: Int? = null
-
-    // The car's own doors, before the learned ones ([LearnedSignals]) are laid over them.
-    @Volatile private var builtInDoors: DoorState? = null
-    @Volatile private var learnedDoors: Map<CarSignal, Boolean> = emptyMap()
-
-    private fun setDoors(v: DoorState?) {
-        builtInDoors = v
-        publishDoors()
-    }
-
-    /** The car itself tells its doors (the car box or its app), learned ones aside. */
-    internal val ownDoorsKnown: Boolean get() = builtInDoors != null
-
-    /** The doors the Signal Finder learned ([LearnedSignals]), over the car's own. */
-    internal fun learnedDoorsWrite(learned: Map<CarSignal, Boolean>) {
-        learnedDoors = learned
-        publishDoors()
-    }
-
-    @Synchronized
-    private fun publishDoors() {
-        val v = mergeDoors(builtInDoors, learnedDoors)
-        realDoors = v
-        if (!DemoMode.isOn) _doorState.value = v
-    }
-
     private fun setFuel(v: Int?) {
-        realFuel = v
-        if (!DemoMode.isOn) _fuelPercent.value = v
+        _fuelPercent.value = v
     }
 
     private fun setRange(v: Int?) {
-        realRange = v
-        if (!DemoMode.isOn) _rangeKm.value = v
+        _rangeKm.value = v
     }
 
     /** The learned fuel byte's reading: the store, and the bus as the learned source. */
@@ -296,20 +254,6 @@ object McuReader {
     internal fun carBoxWrite(fuelPercent: Int?, rangeKm: Int?) {
         if (fuelMapping == null && fuelPercent != null) setFuel(fuelPercent)
         if (rangeMapping == null && rangeKm != null) setRange(rangeKm)
-    }
-
-    /** [DemoMode]'s doors, fuel and range. */
-    internal fun demoWrite(doors: DoorState?, fuelPercent: Int?, rangeKm: Int?) {
-        _doorState.value = doors
-        _fuelPercent.value = fuelPercent
-        _rangeKm.value = rangeKm
-    }
-
-    /** The demo is over: the car's doors, fuel and range back, as they are now. */
-    internal fun endDemo() {
-        _doorState.value = realDoors
-        _fuelPercent.value = realFuel
-        _rangeKm.value = realRange
     }
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -505,14 +449,9 @@ object McuReader {
         // Door bitfield: cmdId 65, [.. 0C 38 <bits> ..] → byte index 4.
         if (cmdId == 65 && bytes.size > 4 && bytes[2] == 0x0C && bytes[3] == 0x38) {
             val b = bytes[4]
-            _doorBits.value = b
-            setDoors(doorsOf(b))
             busPublisher.put(K.DOORS, doorsOf(b))
         }
     }
-
-    /** The doors from the car app's shared data ([CarBox]), the same bits as the MCU frame's. */
-    internal fun carBoxDoors(bits: Int) = setDoors(doorsOf(bits))
 
     internal fun doorsOf(b: Int) = DoorState(
         frontLeft = b and 0x80 != 0,

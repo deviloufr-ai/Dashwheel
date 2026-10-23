@@ -296,7 +296,7 @@ private fun rememberLookHome(mode: DashThemeMode): Pair<List<DashboardItem>, Flo
             // The driver's own apps fill the dock row; one stands for them in the picture.
             dockApps = listOf(DOCK_STAND_IN),
             canbox = root,
-            tyres = Tyres.available
+            tyres = UnitPlatform.delivers(Cap.TYRES)
         )
         val items = runCatching { skinHome(layout, screen) }.getOrDefault(emptyList())
         val aspect = (screen.cellAspect * GRID_COLS / GRID_ROWS).toFloat().coerceIn(0.4f, 4f)

@@ -123,12 +123,12 @@ internal val BuiltinKind.needs: Set<WidgetSource>
     get() = when (this) {
         BuiltinKind.TELEMETRY, BuiltinKind.OBD_DTC, BuiltinKind.OBD_ALL, BuiltinKind.WARMUP, BuiltinKind.BATTERY,
         BuiltinKind.FILTER_CARE, BuiltinKind.ECO_DRIVE, BuiltinKind.ENGINE_TEMPS, BuiltinKind.MY_READINGS -> setOf(WidgetSource.OBD)
-        BuiltinKind.RANGE, BuiltinKind.FUEL_TO_DEST, BuiltinKind.GEAR -> if (CarBox.available) emptySet() else setOf(WidgetSource.OBD)
+        BuiltinKind.RANGE, BuiltinKind.FUEL_TO_DEST, BuiltinKind.GEAR -> if (UnitPlatform.delivers(Cap.BODY_TRIP)) emptySet() else setOf(WidgetSource.OBD)
         BuiltinKind.SHARE_ETA -> setOf(WidgetSource.PHONE)
         BuiltinKind.WEATHER, BuiltinKind.WEATHER_ALERTS, BuiltinKind.FUEL_PRICES, BuiltinKind.SPEED_CAMERAS,
         BuiltinKind.SPEED_LIMIT, BuiltinKind.HOME_WORK -> setOf(WidgetSource.INTERNET)
         BuiltinKind.CAN_MON -> setOf(WidgetSource.ROOT)
-        BuiltinKind.DOORS -> if (CarBox.available) emptySet() else setOf(WidgetSource.ROOT)
+        BuiltinKind.DOORS -> if (UnitPlatform.delivers(Cap.DOORS)) emptySet() else setOf(WidgetSource.ROOT)
         BuiltinKind.CAR_STATUS -> setOf(WidgetSource.CARBOX)
         else -> emptySet()
     }
@@ -150,7 +150,7 @@ internal fun rememberAvailableSources(): Set<WidgetSource> {
         if (phone is PhoneLinkState.Connected) add(WidgetSource.PHONE)
         if (online) add(WidgetSource.INTERNET)
         if (access.root) add(WidgetSource.ROOT)
-        if (CarBox.available) add(WidgetSource.CARBOX)
+        if (UnitPlatform.delivers(Cap.BODY_TRIP)) add(WidgetSource.CARBOX)
     }
 }
 

@@ -123,7 +123,7 @@ data class TemplateScreen(
     val dockApps: List<String> = emptyList(),
     /** The CANbox stream can be read (root, see [PrivilegedShell]): the door and CAN tiles have something to show. */
     val canbox: Boolean = true,
-    /** The head unit has the TPMS app that reports the tyres ([Tyres.available]). */
+    /** The head unit has the TPMS app that reports the tyres ([UnitPlatform.delivers] of [Cap.TYRES]). */
     val tyres: Boolean = true
 ) {
     companion object {

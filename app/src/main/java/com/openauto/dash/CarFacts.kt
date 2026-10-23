@@ -80,7 +80,16 @@ internal object CarFacts {
                 "percent=${it.percent}, range_km=${it.rangeKm}, liters_left=%.1f, from=${it.source}".format(Locale.ROOT, it.liters)
             }
         }
-        put("car_body_trip_computer") { CarBox.freshBody() }
+        put("car_trip_computer") {
+            listOfNotNull(
+                Vehicle.bus.now(K.FUEL_CONSUMPTION)?.let { "consumption_l_per_100km=%.1f".format(Locale.ROOT, it) },
+                Vehicle.bus.now(K.TRIP_DISTANCE)?.let { "trip_km=%.1f".format(Locale.ROOT, it) },
+                Vehicle.bus.now(K.ODOMETER)?.takeIf { it > 0.0 }?.let { "odometer_km=%.0f".format(Locale.ROOT, it) },
+                Vehicle.bus.now(K.LIGHTS)?.let { "lights=${it.joinToString().ifEmpty { "off" }}" },
+                Vehicle.bus.now(K.HANDBRAKE)?.let { "handbrake_on=$it" },
+                Vehicle.bus.now(K.DRIVER_BELT)?.let { "driver_belt_unfastened=$it" }
+            ).joinToString(", ").ifEmpty { null }
+        }
         put("psa_trip_computer") { PsaTripComputer.fresh()?.let { t -> t.copy(at = 0L).toString() + t.warnings.joinToString(prefix = ", messages=") { c -> PsaWarnings.of(c)?.let { w -> context.getString(w.textRes) } ?: "code $c" } } }
         put("climate") { Vehicle.bus.now(K.CLIMATE) }
         put("parking_sensors") { Vehicle.bus.now(K.RADAR) }
@@ -89,7 +98,7 @@ internal object CarFacts {
         put("tyres") { tyresNow() }
         put("tyre_problems") { Tyres.problems.value }
         put("battery") { BatteryWatch.state.value }
-        put("unit_supply_volts") { UnitSignals.supplyVolts() }
+        put("battery_volts") { Vehicle.bus.now(K.BATTERY_VOLTS) }
         put("headlights_on") { headlightsNow() }
         put("fault_codes") {
             AiMechanic.state.value.let { s -> s.codes?.let { "codes=$it, diagnosis=${s.diagnosis}" } }

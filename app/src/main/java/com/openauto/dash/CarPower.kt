@@ -50,9 +50,8 @@ object CarPower {
     private var started = false
     private var appContext: Context? = null
 
-    private val _ignition = MutableStateFlow<Boolean?>(null)
-    /** Ignition on / off as the unit last said it; null where the unit says nothing. */
-    val ignition: StateFlow<Boolean?> = _ignition
+    /** Ignition on / off as the unit last said it (what the bus has as [K.IGNITION]); null where the unit says nothing. */
+    @Volatile private var ignition: Boolean? = null
 
     /**
      * The unit's power signals on the vehicle bus: the ignition, as the firmware announces it. It speaks on a change and
@@ -62,7 +61,7 @@ object CarPower {
     private val busPublisher = Vehicle.bus.register(Source("power", SourceKind.VEHICLE_APP, "Unit power"))
 
     private fun setIgnition(on: Boolean?) {
-        _ignition.value = on
+        ignition = on
         busPublisher.put(K.IGNITION, on)
     }
 
@@ -78,10 +77,6 @@ object CarPower {
      */
     fun justPoweredUp(): Boolean = poweredUpRecently(SystemClock.elapsedRealtime(), switchedOnAt)
 
-    private val _checked = MutableStateFlow(false)
-    /** True once [start] has looked at the ignition (or found a unit that says nothing): [justPoweredUp] means something from then on. */
-    val checked: StateFlow<Boolean> = _checked
-
     /** The firmware's own power signals; null on a unit that announces nothing. */
     private var source: IgnitionSource? = null
 
@@ -93,10 +88,7 @@ object CarPower {
         val src = UnitPlatform.adapter.ignition
         val acc = src?.read()
         // A unit without the signals, or a source that can't read the state now and has no broadcasts either.
-        if (src == null || (acc == null && src.actions.isEmpty())) {
-            _checked.value = true
-            return
-        }
+        if (src == null || (acc == null && src.actions.isEmpty())) return
         started = true
         source = src
         appContext = app
@@ -114,7 +106,6 @@ object CarPower {
         // is back: the switch-on is acted on here, or the dashboard, the media
         // and the briefing would wait for the next turn of the key.
         if (wokeUp) switchedOn(app)
-        _checked.value = true
     }
 
     /**
@@ -163,9 +154,9 @@ object CarPower {
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (source?.decode(intent)) {
-                IgnitionEvent.ON, IgnitionEvent.WAKE -> if (_ignition.value != true) switchedOn(context.applicationContext)
+                IgnitionEvent.ON, IgnitionEvent.WAKE -> if (ignition != true) switchedOn(context.applicationContext)
                 // "Ready to sleep" comes after ACC off; either is the car switched off.
-                IgnitionEvent.OFF, IgnitionEvent.SLEEP_SOON -> if (_ignition.value != false) switchedOff(context.applicationContext)
+                IgnitionEvent.OFF, IgnitionEvent.SLEEP_SOON -> if (ignition != false) switchedOff(context.applicationContext)
                 null -> Unit
             }
         }
@@ -179,7 +170,7 @@ object CarPower {
     fun refresh() {
         val context = appContext ?: return
         val on = source?.read() ?: return
-        if (on == _ignition.value) return
+        if (on == ignition) return
         if (on) switchedOn(context) else switchedOff(context)
     }
 

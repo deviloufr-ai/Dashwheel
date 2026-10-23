@@ -13,6 +13,7 @@ import com.openauto.dash.vehicle.K
 import com.openauto.dash.vehicle.Source
 import com.openauto.dash.vehicle.SourceKind
 import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.gaugesNow
 import com.openauto.dash.vehicle.ignitionNow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -177,7 +178,14 @@ object ObdBluetoothManager {
     private val misses = IntArray(256)
 
     private val _data = MutableStateFlow(ObdData())
+    /**
+     * What the adapter last answered, as the record the OBD-specific readers (the mechanic's scan and explanation, My readings,
+     * Deep OBD, the PID explorer) are written against. Everything else reads keys on the vehicle bus.
+     */
     val data: StateFlow<ObdData> = _data.asStateFlow()
+
+    /** [data], or the demo's drive while it runs (the demo's readings are on the bus, as its own source, not here). */
+    internal fun readings(): ObdData = if (DemoMode.isOn) gaugesNow().toObdData() else _data.value
 
     private val _connectionState = MutableStateFlow(ObdConnectionState.DISCONNECTED)
     val connectionState: StateFlow<ObdConnectionState> = _connectionState.asStateFlow()
@@ -972,8 +980,6 @@ object ObdBluetoothManager {
     private const val MAX_MISSES = 3
     /** Deep OBD says a page when it has read it, seconds apart: its readings live this long on the bus. */
     private const val DEEP_OBD_TTL_MS = 10_000L
-    /** What the demo's readings answer: everything but the fuel flow. */
-    private val DEMO_FRESH = setOf(Pid.SPEED, Pid.RPM, Pid.THROTTLE, Pid.LOAD, Pid.COOLANT, Pid.INTAKE, Pid.FUEL_LEVEL, Pid.VOLTS)
     private const val SUPPORTED_RETRY_POLLS = 20
 
     /**
@@ -1199,10 +1205,12 @@ object ObdBluetoothManager {
     private var silentCommands = 0
     private const val MAX_SILENT_COMMANDS = 8
 
-    /** [DemoMode]'s readings, shown as if an adapter were connected. */
-    internal fun demoWrite(data: ObdData, lamp: EngineLamp?, pending: Set<String>) {
+    /**
+     * [DemoMode]'s adapter: connected, with a lamp and fault codes. Its readings are not here: they are on the bus, from
+     * the demo source.
+     */
+    internal fun demoWrite(lamp: EngineLamp?, pending: Set<String>) {
         _connectionState.value = ObdConnectionState.CONNECTED
-        setData(data, DEMO_FRESH, voltsFromEcu = true)
         _lamp.value = lamp
         _pending.value = pending
     }
@@ -1211,7 +1219,6 @@ object ObdBluetoothManager {
     internal fun endDemo(lamp: EngineLamp?, pending: Set<String>) {
         val linked = socket?.isConnected == true || ((_viaPhone.value || _viaUsb.value) && outputStream != null) || (DeepObdSource.owns() && DeepObdSource.live)
         _connectionState.value = if (linked) ObdConnectionState.CONNECTED else ObdConnectionState.DISCONNECTED
-        setData(ObdData())
         _lamp.value = lamp
         _pending.value = pending
     }

@@ -53,9 +53,6 @@ object Tyres {
     const val TPMS_PACKAGE = "com.syt.tmps"
     private const val ACTION = "TPMS_APP_STATE_SEND"
 
-    private val _tyres = MutableStateFlow<Map<TyrePos, Tyre>>(emptyMap())
-    val tyres: StateFlow<Map<TyrePos, Tyre>> = _tyres
-
     /** The TPMS app on the vehicle bus: every tyre it has heard, as one state. */
     private val busPublisher = Vehicle.bus.register(Source("tpms", SourceKind.VEHICLE_APP, "TPMS app"))
 
@@ -99,14 +96,6 @@ object Tyres {
         }
     }
 
-    /** Whether this unit has the TPMS app that reports the tyres. */
-    val available: Boolean get() = started
-
-    /** When a tyre last said anything real (a pressure, its sensor heard), [SystemClock.elapsedRealtime]; 0: not yet. */
-    @Volatile
-    var heardAt = 0L
-        private set
-
     fun start(context: Context) {
         if (started) return
         val app = context.applicationContext
@@ -136,20 +125,10 @@ object Tyres {
                 at = SystemClock.elapsedRealtime()
             )
             pressureUnit(intent.getStringExtra("presunit"))?.let { _unit.value = it }
-            if (!tyre.noSignal && tyre.kPa > 0) heardAt = tyre.at
             live.heard()
             val all = synchronized(heard) { heard[pos] = tyre; heard.toMap() }
-            // The demo shows its own tyres; the sensors' next word puts them back once it's over.
-            if (DemoMode.isOn) return
             busPublisher.put(K.TYRES, all)
-            // The old store, for [DemoMode] putting the real tyres back.
-            _tyres.value = all
         }
-    }
-
-    /** [DemoMode]'s tyres, and the real ones put back when it ends (the bus has the demo's from [DemoMode] itself). */
-    internal fun demoWrite(tyres: Map<TyrePos, Tyre>) {
-        _tyres.value = tyres
     }
 
     /** For [AlertPreview]: made-up tyres, one of them low. */

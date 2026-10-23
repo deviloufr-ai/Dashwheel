@@ -21,8 +21,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -58,7 +56,7 @@ object CarBox {
      * ROM's car app), so it still moves once the driver turned those lines off.
      */
     private const val TRACE_INDEX = "KeyDefaultTraceAngle"
-    /** After the broadcast or the log ([steeringWrite]), the coarser line picture keeps out of the way this long. */
+    /** After the broadcast or the log ([steeringFromLog]), the coarser line picture keeps out of the way this long. */
     private const val FINE_ANGLE_MS = 3_000L
     /** The ROM's own reverse flag, "true" while reverse is engaged. */
     private const val REVERSE_FLAG = "sys.qf.backcar_state"
@@ -96,30 +94,9 @@ object CarBox {
     private val bodyLive = SourceLiveness(
         BODY_SILENT_MS, scope, onBack = {}, onSilent = {
             synchronized(stated) { stated.clear() }
-            for (key in listOf(K.HEADLIGHTS, K.DRIVER_BELT, K.HANDBRAKE)) busPublisher.put(key, null)
+            for (key in listOf(K.HEADLIGHTS, K.LIGHTS, K.DRIVER_BELT, K.HANDBRAKE)) busPublisher.put(key, null)
         }
     )
-
-    private val _body = MutableStateFlow<CarBody?>(null)
-    val body: StateFlow<CarBody?> = _body
-    /** When [body] was heard ([SystemClock.elapsedRealtime]). */
-    internal var bodyAt = 0L
-        private set
-
-    private val _climate = MutableStateFlow<Climate?>(null)
-    /** The climate control; a new value each time it changes. */
-    val climate: StateFlow<Climate?> = _climate
-
-    private val _radar = MutableStateFlow<Radar?>(null)
-    val radar: StateFlow<Radar?> = _radar
-
-    private val _reversing = MutableStateFlow(false)
-    /** Reverse gear engaged: the ROM's reversing camera is on screen. */
-    val reversing: StateFlow<Boolean> = _reversing
-
-    private val _steering = MutableStateFlow<Float?>(null)
-    /** The steering wheel's angle in degrees, right positive, once the car has sent it ([ReverseView]). */
-    val steering: StateFlow<Float?> = _steering
 
     /** When the broadcast or the log last gave the angle ([SystemClock.elapsedRealtime]). */
     @Volatile private var fineAngleAt = 0L
@@ -143,16 +120,17 @@ object CarBox {
     }
 
     /**
-     * The angle read from the car app's log ([StockLines]), when its broadcast is off.
+     * The angle read from the car app's own log ([ReverseView]'s reader), when its broadcast is off. It stays a call
+     * into this provider rather than a source of its own: it is the same car app saying the same angle, and which of
+     * its two ways is the finer one ([FINE_ANGLE_MS]) is the provider's business.
      */
-    internal fun steeringWrite(degrees: Float) {
+    internal fun steeringFromLog(degrees: Float) {
         fineAngleAt = SystemClock.elapsedRealtime()
         setSteering(degrees)
     }
 
-    /** The car app's angle: the old store and the bus. It says it on a change only, and a wheel can stay put through a whole manoeuvre, so it is kept long. */
+    /** The car app's angle, on the bus. It says it on a change only, and a wheel can stay put through a whole manoeuvre, so it is kept long. */
     private fun setSteering(degrees: Float) {
-        _steering.value = degrees
         busPublisher.put(K.STEERING_ANGLE, degrees.toDouble(), ttlMs = STEERING_HOLD_MS)
     }
 
@@ -163,7 +141,7 @@ object CarBox {
             fullLockDeg = rate
             context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putFloat(PREF_FULL_LOCK, rate).apply()
         }
-        steeringWrite(broadcastDegrees(intent.getIntExtra(EXTRA_STEERING, 0), rawRate, fullLockDeg))
+        steeringFromLog(broadcastDegrees(intent.getIntExtra(EXTRA_STEERING, 0), rawRate, fullLockDeg))
     }
 
     /** Whether this unit's car app shares the car's data (the QF firmware). */
@@ -247,9 +225,8 @@ object CarBox {
         }
     }
 
-    /** The car app's reverse: the old store and the bus. */
+    /** The car app's reverse, on the bus. */
     private fun setReversing(on: Boolean) {
-        _reversing.value = on
         busPublisher.put(K.REVERSE, on)
     }
 
@@ -262,27 +239,21 @@ object CarBox {
         busPublisher.put(key, value)
     }
 
-    /** What the body says, on the bus (the old store has the whole record). */
+    /** What the body says, on the bus. */
     private fun publishBody(b: CarBody, range: Int?) {
         busPublisher.put(K.VEHICLE_SPEED, b.speedKmh?.let(SpeedCorrection::corrected)?.toDouble(), ttlMs = FRESH_MS)
         busPublisher.put(K.RPM, b.rpm?.toDouble(), ttlMs = FRESH_MS)
         // The lights count as on from the side lights up: the unit's own headlight signal is the illumination wire.
         putState(K.HEADLIGHTS, b.highBeam || b.dippedBeam || b.sidelights)
+        putState(K.LIGHTS, lightsOn(b))
         putState(K.DRIVER_BELT, b.driverBeltUnfastened)
         putState(K.HANDBRAKE, b.handbrake)
+        busPublisher.put(K.FUEL_CONSUMPTION, b.instantConsumption?.toDouble(), ttlMs = FRESH_MS)
         // The car says these on a change, so a parked car's last word stands for hours (a tile shows it until the next).
         busPublisher.put(K.FUEL_LEVEL, fuelPercentToPublish(fuelPercentOf(b), range)?.toDouble(), ttlMs = FUEL_HOLD_MS)
         busPublisher.put(K.RANGE, range?.toDouble(), ttlMs = FUEL_HOLD_MS)
         busPublisher.put(K.ODOMETER, b.odometer?.takeIf { it > 0f }?.toDouble())
-    }
-
-    /** The body data while it's current, else null. */
-    fun freshBody(): CarBody? = _body.value?.takeIf { SystemClock.elapsedRealtime() - bodyAt <= FRESH_MS }
-
-    /** [DemoMode]'s body, heard [at]; and the real one put back when it ends. */
-    internal fun demoWrite(body: CarBody?, at: Long = SystemClock.elapsedRealtime()) {
-        _body.value = body
-        bodyAt = at
+        busPublisher.put(K.TRIP_DISTANCE, b.trip1?.toDouble())
     }
 
     private val receiver = object : BroadcastReceiver() {
@@ -292,7 +263,7 @@ object CarBox {
                     .onFailure { Log.w(TAG, "unreadable shared data", it) }
                 ACTION_RADAR -> runCatching {
                     @Suppress("DEPRECATION")
-                    intent.getParcelableExtra<RadarState>(EXTRA_RADAR)?.let { setRadar(it.toRadar()) }
+                    intent.getParcelableExtra<RadarState>(EXTRA_RADAR)?.let { busPublisher.put(K.RADAR, it.toRadar()) }
                 }.onFailure { Log.w(TAG, "unreadable radar", it) }
                 ACTION_REVERSE_ON -> {
                     traceSteering(context)
@@ -322,30 +293,14 @@ object CarBox {
             SHARE_BODY -> parseCarBody(data!!)?.let {
                 bodyLive.heard()
                 val range = it.range?.takeIf { r -> r in 1f..MAX_RANGE_KM }?.roundToInt()
-                // McuReader keeps the real fuel and range through the demo by itself.
                 McuReader.carBoxWrite(fuelPercentOf(it), range)
-                // The demo shows its own body; the car's next message brings the real one back.
-                if (DemoMode.isOn) return
-                _body.value = it
-                bodyAt = SystemClock.elapsedRealtime()
                 publishBody(it, range)
             }
-            SHARE_AC -> parseClimate(data!!)?.let {
-                _climate.value = it
-                busPublisher.put(K.CLIMATE, it)
-            }
-            SHARE_RADAR -> parseRadar(data!!)?.let { setRadar(it) }
+            SHARE_AC -> parseClimate(data!!)?.let { busPublisher.put(K.CLIMATE, it) }
+            SHARE_RADAR -> parseRadar(data!!)?.let { busPublisher.put(K.RADAR, it) }
             // Sent when a door changes, so the doors are only known from the first change on.
-            SHARE_DOORS -> parseDoorBits(data!!)?.let {
-                McuReader.carBoxDoors(it)
-                busPublisher.put(K.DOORS, McuReader.doorsOf(it))
-            }
+            SHARE_DOORS -> parseDoorBits(data!!)?.let { busPublisher.put(K.DOORS, McuReader.doorsOf(it)) }
         }
-    }
-
-    private fun setRadar(radar: Radar) {
-        _radar.value = radar
-        busPublisher.put(K.RADAR, radar)
     }
 
     private const val MAX_RANGE_KM = 2_000f

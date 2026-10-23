@@ -1,5 +1,6 @@
 package com.openauto.dash.vehicle
 
+import com.openauto.dash.CarLight
 import com.openauto.dash.Climate
 import com.openauto.dash.McuReader
 import com.openauto.dash.Radar
@@ -41,6 +42,8 @@ object K {
     val BATTERY_VOLTS = Key.Measurement<Double>("battery_volts", Domain.ENERGY, WARNING, 60 * S, unit = "V")
     val FUEL_LEVEL = Key.Measurement<Double>("fuel_level", Domain.ENERGY, WARNING, 120 * S, unit = "%")
     val RANGE = Key.Measurement<Double>("range", Domain.ENERGY, DISPLAY, 120 * S, unit = "km")
+    /** What the car's trip computer says it is using now, in L/100 km (0 off the throttle). */
+    val FUEL_CONSUMPTION = Key.Measurement<Double>("fuel_consumption", Domain.ENERGY, DISPLAY, 10 * S, unit = "L/100 km")
 
     // --- Environment
     /** The car's own sensor. */
@@ -52,6 +55,8 @@ object K {
     val DOORS = Key.State<McuReader.DoorState>("doors", Domain.BODY, WARNING)
     val REVERSE = Key.State<Boolean>("reverse", Domain.BODY, SAFETY)
     val HEADLIGHTS = Key.State<Boolean>("headlights", Domain.BODY, DISPLAY)
+    /** Which lights are on, as the driver would say it ([CarLight]); [HEADLIGHTS] is the one the appearance follows. */
+    val LIGHTS = Key.State<List<CarLight>>("lights", Domain.BODY, DISPLAY)
     val HANDBRAKE = Key.State<Boolean>("handbrake", Domain.BODY, DISPLAY)
     /** True = unfastened. */
     val DRIVER_BELT = Key.State<Boolean>("driver_belt", Domain.BODY, WARNING)
@@ -63,11 +68,13 @@ object K {
 
     // --- Trip
     val ODOMETER = Key.Counter("odometer", Domain.TRIP, DISPLAY, unit = "km")
+    /** The car's own trip counter: the driver resets it, so it is a reading, not a counter. */
+    val TRIP_DISTANCE = Key.Measurement<Double>("trip_distance", Domain.TRIP, DISPLAY, 6 * HOUR, unit = "km")
 
     /** The whole catalogue (the BestOf ones are read-only). */
     val all: List<Key<*>> = listOf(
         VEHICLE_SPEED, GPS_SPEED, SPEED, STEERING_ANGLE, RPM, THROTTLE, ENGINE_LOAD, COOLANT_TEMP, INTAKE_TEMP,
-        ENGINE_RUNNING, GEAR, IGNITION, FUEL_FLOW, BATTERY_VOLTS, FUEL_LEVEL, RANGE, OUTSIDE_TEMP, FORECAST_TEMP,
-        AMBIENT_TEMP, DOORS, REVERSE, HEADLIGHTS, HANDBRAKE, DRIVER_BELT, CLIMATE, RADAR, TYRES, ODOMETER
+        ENGINE_RUNNING, GEAR, IGNITION, FUEL_FLOW, BATTERY_VOLTS, FUEL_LEVEL, RANGE, FUEL_CONSUMPTION, OUTSIDE_TEMP, FORECAST_TEMP,
+        AMBIENT_TEMP, DOORS, REVERSE, HEADLIGHTS, LIGHTS, HANDBRAKE, DRIVER_BELT, CLIMATE, RADAR, TYRES, ODOMETER, TRIP_DISTANCE
     )
 }

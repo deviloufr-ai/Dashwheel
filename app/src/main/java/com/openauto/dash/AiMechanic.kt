@@ -564,7 +564,7 @@ object AiMechanic {
                 // New: not seen for days. A scan that missed a code doesn't make it new next time.
                 val fresh = newCodes(list, seen, now)
                 prefs.edit().putString(KEY_KNOWN, formatKnown(remembered(list, seen, now))).apply()
-                rescan.scanned(ObdBluetoothManager.data.value.rpm)
+                rescan.scanned(ObdBluetoothManager.readings().rpm)
                 _state.value = State(codes = list)
                 if (fresh.isNotEmpty()) _newFaultAt.value = now
                 if (list.isNotEmpty()) explain(context, list, fresh = if (announce) fresh else emptyList())
@@ -652,7 +652,7 @@ object AiMechanic {
         }
         val resources = config.language.resources(context)
         val car = CarProfileStore.current
-        val readings = ObdBluetoothManager.data.value
+        val readings = ObdBluetoothManager.readings()
         // The car's own rules have the last word on how serious it is (MechanicVerdict.kt).
         val floor = SeverityFloor.of(codes, readings.coolantTempC, car.hotC)
         val bounded: (Diagnosis) -> Diagnosis = { d -> SeverityFloor.apply(d, floor) { MechanicLines.ruleVerdict(it).text(resources) } }

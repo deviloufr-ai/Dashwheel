@@ -1209,12 +1209,10 @@ private fun fuelPricesFace(): WidgetFace {
 
 @Composable
 private fun carStatusFace(): WidgetFace {
-    val body by CarBox.body.collectAsState()
     val trip = rememberPsaTrip()
-    val b = body
-    val rows = carStatusRows(b, trip)
+    val rows = carStatusRows(trip)
     if (rows.isEmpty()) return idleFace(Icons.Filled.DirectionsCarFilled, BuiltinKind.CAR_STATUS.label, stringResource(R.string.car_status_waiting))
-    val lights = b?.let { lightsOn(it) }.orEmpty()
+    val lights = rememberVehicle(K.LIGHTS).orEmpty()
     val u = LocalUnits.current
     // The PSA trip computer sends no mileage: its range leads instead.
     val odometer = rememberVehicle(K.ODOMETER)?.takeIf { it > 0.0 }

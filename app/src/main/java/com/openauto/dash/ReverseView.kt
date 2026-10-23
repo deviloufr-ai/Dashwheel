@@ -459,7 +459,7 @@ internal object StockLines {
                             val g = m.groupValues
                             deg = if (g[1].isNotEmpty()) -int16(g[1], g[2]) / 10f else int16(g[3], g[4]).toFloat()
                         }
-                        deg?.let { CarBox.steeringWrite(it) }
+                        deg?.let { CarBox.steeringFromLog(it) }
                     }
                 }
             }.onFailure { ReverseView.log("log reader stopped", it) }

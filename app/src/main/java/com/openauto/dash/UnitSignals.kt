@@ -52,9 +52,6 @@ object UnitSignals {
     private const val OUT_TEMP_KEEP_MS = 2 * 3_600_000L
 
     private var outTempLogged = false
-    private val _outsideTempC = MutableStateFlow<Double?>(null)
-    /** The car's outside temperature sensor in °C, or null when the car doesn't send one. */
-    val outsideTempC: StateFlow<Double?> = _outsideTempC
 
     /**
      * The firmware's broadcasts and properties on the vehicle bus: the headlight state and the CAN app's outside
@@ -71,27 +68,15 @@ object UnitSignals {
     /** The phone as the unit's Bluetooth knows it: [battery] 0..5, or null when not reported. */
     data class UnitPhone(val name: String, val battery: Int?)
 
-    private val _headlightsOn = MutableStateFlow(false)
-    val headlightsOn: StateFlow<Boolean> = _headlightsOn
-
     /** The headlights from the MCU's own message ([McuFeed]), the same wire the broadcast tells of. */
     internal fun mcuHeadlights(on: Boolean) {
-        _headlightsOn.value = on
         busPublisher.put(K.HEADLIGHTS, on)
     }
 
-    private val _handbrake = MutableStateFlow<Boolean?>(null)
-    /** The handbrake wire as the MCU reads it, or null until it says (many installs leave it unwired). */
-    val handbrake: StateFlow<Boolean?> = _handbrake
-
+    /** The handbrake wire as the MCU reads it (many installs leave it unwired, and then it says nothing). */
     internal fun mcuHandbrake(on: Boolean) {
-        _handbrake.value = on
         busPublisher.put(K.HANDBRAKE, on)
     }
-
-    private val _volts = MutableStateFlow<Double?>(null)
-    /** The supply voltage as the MCU last sent it ([McuFeed]); [supplyVolts] reads the firmware's copy. */
-    val volts: StateFlow<Double?> = _volts
 
     /**
      * The MCU on the vehicle bus: the supply voltage its power board measures ([mcuVolts]), the headlight wire and
@@ -103,7 +88,6 @@ object UnitSignals {
 
     internal fun mcuVolts(v: Double) {
         if (v in 9.0..16.0) {
-            _volts.value = v
             mcuVoltsAt = android.os.SystemClock.elapsedRealtime()
             busPublisher.put(K.BATTERY_VOLTS, v, ttlMs = MCU_VOLTS_KEEP_MS)
         }
@@ -149,7 +133,6 @@ object UnitSignals {
         if (UnitPlatform.adapter.family != UnitFamily.QF || UnitPlatform.adapter.ignition == null) return
         appContext = app
         systemProperty("sys.qf.vehicle.headlight_state").let { state ->
-            _headlightsOn.value = state == "true"
             if (state != null) broadcastPublisher.put(K.HEADLIGHTS, state == "true")
         }
         _projection.value = systemProperty("sys.qf.carplay.connect") == "true" || systemProperty("sys.qf.bt.aa.connect") == "true"
@@ -185,9 +168,7 @@ object UnitSignals {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
                 ACTION_HEADLIGHT -> {
-                    UnitPlatform.markUsed(Cap.HEADLIGHTS)
                     val on = intent.getBooleanExtra("extra_headlight_state", false)
-                    _headlightsOn.value = on
                     broadcastPublisher.put(K.HEADLIGHTS, on)
                 }
                 ACTION_BATTERY -> _phone.value = _phone.value?.copy(battery = intent.getIntExtra("EXTRA_BATTERY", -1).takeIf { it in 0..5 })
@@ -204,7 +185,6 @@ object UnitSignals {
 
     private fun onOutsideTemp(context: Context, text: String?) {
         val c = parseOutsideTemp(text)
-        if (c != null) UnitPlatform.markUsed(Cap.OUTSIDE_TEMP)
         // In the unit's log: whether this car's CAN box sends its sensor at all (else the bar shows the
         // weather's). The first reading of each start only, and when it goes, as it is sent on change.
         if (!outTempLogged || c == null) {
@@ -225,9 +205,8 @@ object UnitSignals {
         if (age in 0..OUT_TEMP_KEEP_MS) setOutsideTemp(p.getFloat(KEY_OUT_TEMP, 0f).toDouble(), ageMs = age)
     }
 
-    /** The car app's temperature: the old store, and the bus, as old as it already is ([ageMs]) so its 2 hours run out when they would have. */
+    /** The car app's temperature on the bus, as old as it already is ([ageMs]) so its 2 hours run out when they would have. */
     private fun setOutsideTemp(c: Double?, ageMs: Long = 0L) {
-        _outsideTempC.value = c
         broadcastPublisher.put(K.OUTSIDE_TEMP, c, atMs = broadcastPublisher.clock() - ageMs)
     }
 
@@ -247,12 +226,7 @@ object UnitSignals {
         }
     }
 
-    /**
-     * The car's supply voltage as the unit's own power board measures it (the
-     * figure in the firmware's status bar, tenths of a volt), or null off this firmware.
-     */
-    fun supplyVolts(): Double? = _volts.value ?: propertyVolts()
-
+    /** The supply voltage as the unit's own power board measures it (the figure in the firmware's status bar, tenths of a volt). */
     private fun propertyVolts(): Double? =
         systemProperty("sys.qf.update_battery_power")?.toIntOrNull()?.div(10.0)?.takeIf { it in 9.0..16.0 }
 

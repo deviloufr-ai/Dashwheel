@@ -915,7 +915,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         mapsDocked = half,
         dockApps = TemplatePlacer.dockApps(pages, appsByPackage.keys),
         canbox = shellAccess.root,
-        tyres = Tyres.available
+        tyres = UnitPlatform.delivers(Cap.TYRES)
     )
 
     // What the moment on Home shows: laid out for this screen, worked out once per moment and arrangement.

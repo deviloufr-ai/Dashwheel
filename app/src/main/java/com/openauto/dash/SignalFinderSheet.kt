@@ -120,6 +120,8 @@ private fun SignalList(onDismiss: () -> Unit, onFind: (CarSignal) -> Unit, onSni
     // What the car itself says (the built-in sources, never a learned one): whether a signal needs teaching at all.
     val doorSources by remember { Vehicle.bus.candidates(K.DOORS) }.collectAsState()
     val beltSources by remember { Vehicle.bus.candidates(K.DRIVER_BELT) }.collectAsState()
+    val reverseSources by remember { Vehicle.bus.candidates(K.REVERSE) }.collectAsState()
+    val lightSources by remember { Vehicle.bus.candidates(K.HEADLIGHTS) }.collectAsState()
     val camera by LearnedSignals.cameraId.collectAsState()
     var picking by remember { mutableStateOf(false) }
 
@@ -148,7 +150,8 @@ private fun SignalList(onDismiss: () -> Unit, onFind: (CarSignal) -> Unit, onSni
                 // Read again whenever the doors change; only the car's own count, not a learned one.
                 signal.isDoor -> builtInDoors(doorSources) != null
                 signal == CarSignal.DRIVER_BELT -> beltSources.any { it.source.kind.rank >= 0 }
-                else -> CarBox.available
+                signal == CarSignal.REVERSE -> reverseSources.any { it.source.kind.rank >= 0 }
+                else -> lightSources.any { it.source.kind.rank >= 0 }
             }
             val detail = when {
                 probe != null -> stringResource(R.string.signals_learned, describe(context, probe))

@@ -550,21 +550,19 @@ private fun serviceText(car: CarProfile): String = listOfNotNull(
 ).joinToString(" / ")
 
 /**
- * The car's own state: the range, the mileage and the parking brake from the
- * bus ([K.RANGE], [K.ODOMETER], [K.HANDBRAKE]), and from the car app's body ([CarBox])
- * what has no key of its own: the consumption, the trip and which lights are on, as the
- * car's trip computer counts them (on a Peugeot, Citroën or DS read off the CAN box
+ * The car's own state, from the bus: the range, the consumption, the trip, the mileage, which lights
+ * are on and the parking brake ([K.RANGE], [K.FUEL_CONSUMPTION], [K.TRIP_DISTANCE], [K.ODOMETER], [K.LIGHTS],
+ * [K.HANDBRAKE]), as the car's trip computer counts them (on a Peugeot, Citroën or DS read off the CAN box
  * stream, [PsaTripComputer]). A value the car doesn't send is left out. The
  * car's messages are on the Car problems tile ([CarMessages]).
  */
 @Composable
 internal fun CarStatusCard(modifier: Modifier = Modifier) {
-    val body by CarBox.body.collectAsState()
     val trip = rememberPsaTrip()
     Card(modifier = modifier) {
         Column(modifier = Modifier.fillMaxSize().padding(DashSpace.Lg), verticalArrangement = Arrangement.spacedBy(5.dp)) {
             TileHeader(stringResource(R.string.car_status_title))
-            val rows = carStatusRows(body, trip)
+            val rows = carStatusRows(trip)
             if (rows.isEmpty()) {
                 Hint(stringResource(R.string.car_status_waiting))
             } else {
@@ -592,15 +590,17 @@ internal fun rememberPsaTrip(): PsaTrip? {
 
 /** The Car status rows: label and value, only those the car reports. */
 @Composable
-internal fun carStatusRows(b: CarBody?, trip: PsaTrip? = null): List<Pair<String, String>> {
-    val lights = b?.let { lightsOn(it) }?.map { stringResource(it.labelRes) }
+internal fun carStatusRows(trip: PsaTrip? = null): List<Pair<String, String>> {
+    val lights = rememberVehicle(K.LIGHTS)?.map { stringResource(it.labelRes) }
     // The car's own range: the Car status card never shows the estimate worked from the tank (the fuel tiles do).
     val carRange by remember { Vehicle.bus.sample(K.RANGE).map { s -> s?.takeUnless { it.quality == Quality.ESTIMATED }?.value } }.collectAsState(null)
     val odometer = rememberVehicle(K.ODOMETER)
     val handbrake = rememberVehicle(K.HANDBRAKE)
+    val carConsumption = rememberVehicle(K.FUEL_CONSUMPTION)
+    val carTrip = rememberVehicle(K.TRIP_DISTANCE)
     val u = LocalUnits.current
     val km = if (u.imperial) u.distanceUnit else stringResource(R.string.car_status_km)
-    val consumption = b?.instantConsumption ?: trip?.instantL100
+    val consumption = carConsumption?.toFloat() ?: trip?.instantL100
     val range = carRange?.toFloat()?.takeIf { it > 0f } ?: trip?.rangeKm?.toFloat()
     // What a driver looks for first comes first: a small tile keeps its first rows.
     return listOfNotNull(
@@ -608,7 +608,7 @@ internal fun carStatusRows(b: CarBody?, trip: PsaTrip? = null): List<Pair<String
         consumption?.let { stringResource(R.string.car_status_consumption) to consumptionText(it) },
         trip?.trip1?.let { tripPageRow(1, it) },
         trip?.trip2?.let { tripPageRow(2, it) },
-        b?.trip1?.let { stringResource(R.string.car_status_trip) to "${decimal(u.distance(it.toDouble()), 1)} $km" },
+        carTrip?.let { stringResource(R.string.car_status_trip) to "${decimal(u.distance(it), 1)} $km" },
         // 0 is the box not sending it, as for the upkeep and the fuel tiles: left out, not "0 km".
         odometer?.takeIf { it > 0.0 }?.let { stringResource(R.string.car_status_odometer) to "${NumberFormat.getIntegerInstance().format(u.distance(it).toLong())} $km" },
         lights?.let { stringResource(R.string.car_status_lights) to (it.joinToString(", ").ifEmpty { stringResource(R.string.car_status_lights_off) }) },

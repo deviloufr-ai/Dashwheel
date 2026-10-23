@@ -208,10 +208,7 @@ object LearnedSignals {
     /** Hands [signal]'s new state in [now] to what shows it. */
     private fun publish(now: Map<CarSignal, Boolean>, signal: CarSignal) {
         when {
-            signal.isDoor -> {
-                McuReader.learnedDoorsWrite(now.filterKeys { it.isDoor })
-                doors.learned(now)
-            }
+            signal.isDoor -> doors.learned(now)
             signal == CarSignal.REVERSE -> busPublisher.put(K.REVERSE, now[signal])
             signal == CarSignal.HEADLIGHTS -> busPublisher.put(K.HEADLIGHTS, now[signal])
             // The belt reminder reads the key, with the car's speed.

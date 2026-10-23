@@ -437,7 +437,7 @@ object DashboardStore {
             mapsDocked = half,
             dockApps = emptyList(),
             canbox = PrivilegedShell.access.value.root,
-            tyres = Tyres.available
+            tyres = UnitPlatform.delivers(Cap.TYRES)
         ),
         only = ROW.toSet()
     )

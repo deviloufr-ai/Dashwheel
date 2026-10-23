@@ -61,23 +61,10 @@ object UnitBus {
         scope.launch { source.listening.collect { if (!it) live.stopped() } }
     }
 
-    /** What the compatibility report calls what a key delivered ([UnitPlatform.markUsed]). */
-    private fun capOf(key: Key<*>): Cap? = when (key) {
-        K.VEHICLE_SPEED, K.RPM -> Cap.SPEED_RPM
-        K.DOORS -> Cap.DOORS
-        K.REVERSE -> Cap.REVERSE
-        K.HEADLIGHTS -> Cap.HEADLIGHTS
-        K.BATTERY_VOLTS -> Cap.VOLTS
-        K.OUTSIDE_TEMP -> Cap.OUTSIDE_TEMP
-        K.STEERING_ANGLE -> Cap.STEERING
-        else -> null
-    }
-
     /** The adapter's handle: everything it puts is word from the bus (and brings the source back up after a silence). */
     private class WatchedPublisher(private val inner: Publisher, private val live: SourceLiveness) : Publisher by inner {
         override fun <T : Any> put(key: Key<T>, value: T?, quality: Quality, atMs: Long, ttlMs: Long?) {
             live.heard()
-            if (value != null) capOf(key)?.let(UnitPlatform::markUsed)
             inner.put(key, value, quality, atMs, ttlMs)
         }
     }
