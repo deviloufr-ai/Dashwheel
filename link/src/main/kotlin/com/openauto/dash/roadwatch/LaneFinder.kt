@@ -34,9 +34,8 @@ class Luma(val w: Int, val h: Int, val px: IntArray = IntArray(w * h)) {
          * of a few of the frame's under it, so a thin far marking is not missed.
          */
         fun fromRgba(rgba: ByteBuffer, width: Int, height: Int, rowStride: Int, rotation: Int, outW: Int): Luma {
-            val turned = rotation == 90 || rotation == 270
-            val uprightW = if (turned) height else width
-            val uprightH = if (turned) width else height
+            val uprightW = Upright.width(width, height, rotation)
+            val uprightH = Upright.height(width, height, rotation)
             val w = outW.coerceIn(1, uprightW)
             val h = max(1, (w.toLong() * uprightH / uprightW).toInt())
             val out = Luma(w, h)
@@ -50,16 +49,7 @@ class Luma(val w: Int, val h: Int, val px: IntArray = IntArray(w * h)) {
                         val v = min(uprightH - 1, ((oy + (sy + 0.5f) / SUBSAMPLES) * blockH).toInt())
                         for (sx in 0 until SUBSAMPLES) {
                             val u = min(uprightW - 1, ((ox + (sx + 0.5f) / SUBSAMPLES) * blockW).toInt())
-                            // The frame's own pixel under the upright one.
-                            val x: Int
-                            val y: Int
-                            when (rotation) {
-                                90 -> { x = v; y = height - 1 - u }
-                                180 -> { x = width - 1 - u; y = height - 1 - v }
-                                270 -> { x = width - 1 - v; y = u }
-                                else -> { x = u; y = v }
-                            }
-                            val i = y * rowStride + x * 4
+                            val i = Upright.index(u, v, width, height, rowStride, rotation)
                             val r = rgba.get(i).toInt() and 0xFF
                             val g = rgba.get(i + 1).toInt() and 0xFF
                             val b = rgba.get(i + 2).toInt() and 0xFF
@@ -75,6 +65,31 @@ class Luma(val w: Int, val h: Int, val px: IntArray = IntArray(w * h)) {
 
         /** Points sampled across and down each output pixel. */
         private const val SUBSAMPLES = 3
+    }
+}
+
+/** The camera's frames as they stand upright, whichever way the phone holds its sensor. */
+object Upright {
+    /** The upright frame's width for a [width] x [height] frame turned by [rotation]. */
+    fun width(width: Int, height: Int, rotation: Int): Int = if (rotation == 90 || rotation == 270) height else width
+
+    fun height(width: Int, height: Int, rotation: Int): Int = if (rotation == 90 || rotation == 270) width else height
+
+    /**
+     * Where in an RGBA frame ([width] x [height], rows [rowStride] bytes
+     * apart) the upright frame's pixel ([u], [v]) is, as a byte index;
+     * [rotation]: the degrees the frame turns clockwise to stand upright.
+     */
+    fun index(u: Int, v: Int, width: Int, height: Int, rowStride: Int, rotation: Int): Int {
+        val x: Int
+        val y: Int
+        when (rotation) {
+            90 -> { x = v; y = height - 1 - u }
+            180 -> { x = width - 1 - u; y = height - 1 - v }
+            270 -> { x = width - 1 - v; y = u }
+            else -> { x = u; y = v }
+        }
+        return y * rowStride + x * 4
     }
 }
 

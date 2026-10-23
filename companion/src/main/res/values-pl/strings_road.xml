@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="road_title">Strażnik drogi</string>
+    <string name="road_detail">Umieść telefon w uchwycie za przednią szybą: jego aparat obserwuje drogę, a samochód ostrzega, gdy auto z przodu szybko się zbliża, koło najeżdża na linię albo jedziesz za blisko.</string>
+    <string name="road_start">Uruchom Strażnika drogi</string>
+    <string name="road_model_get">Pobierz wykrywacz pojazdów, 4,6 MB</string>
+    <string name="road_model_retry">Spróbuj ponownie</string>
+    <string name="road_model_getting">Pobieranie wykrywacza: %1$d%%</string>
+    <string name="road_model_failed">Nie udało się pobrać wykrywacza pojazdów. Sprawdź internet w telefonie i spróbuj ponownie.</string>
+    <string name="road_model_none">Bez wykrywacza pojazdów obserwowany jest tylko pas ruchu.</string>
+    <string name="road_note">Pomoc, a nie system bezpieczeństwa: patrz na drogę. Trzymaj telefon na ładowaniu i z dala od mocnego słońca.</string>
+    <string name="road_camera_needed">Strażnik drogi potrzebuje aparatu, by widzieć drogę.</string>
+    <string name="road_allow_camera">Zezwól na aparat</string>
+    <string name="road_linked">Ostrzeżenia na %1$s</string>
+    <string name="road_not_linked">Brak połączonego auta: ostrzeżenia na tym telefonie</string>
+    <string name="road_lane_seen">Pas znaleziony</string>
+    <string name="road_lane_looking">Szukanie pasa</string>
+    <string name="road_speed">%1$d km/h</string>
+    <string name="road_horizon_hint">Przeciągnij kropkowaną linię na horyzont</string>
+    <string name="road_lead_m">%1$d m</string>
+    <string name="road_warn_collision">Hamuj</string>
+    <string name="road_warn_lane">Uważaj na pas</string>
+    <string name="road_warn_close">Za blisko</string>
+    <string name="road_warn_moved_off">Ruch rusza</string>
+    <string name="road_dim">Przyciemnij</string>
+    <string name="road_bright">Rozjaśnij</string>
+    <string name="road_stop">Zatrzymaj</string>
+</resources>

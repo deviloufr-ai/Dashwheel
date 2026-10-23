@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="road_title">Straßenwächter</string>
+    <string name="road_detail">Setzen Sie das Handy in eine Halterung hinter der Windschutzscheibe: Seine Kamera beobachtet die Straße, und das Auto warnt Sie, wenn ein Auto vorne schnell näher kommt, ein Rad auf der Linie ist oder der Abstand zu klein ist.</string>
+    <string name="road_start">Straßenwächter starten</string>
+    <string name="road_model_get">Fahrzeugerkennung laden, 4,6 MB</string>
+    <string name="road_model_retry">Erneut versuchen</string>
+    <string name="road_model_getting">Fahrzeugerkennung wird geladen: %1$d %%</string>
+    <string name="road_model_failed">Die Fahrzeugerkennung konnte nicht geladen werden. Prüfen Sie das Internet des Handys und versuchen Sie es erneut.</string>
+    <string name="road_model_none">Ohne Fahrzeugerkennung wird nur die Spur beobachtet.</string>
+    <string name="road_note">Eine Hilfe, kein Sicherheitssystem: Behalten Sie die Straße im Blick. Lassen Sie das Handy laden und halten Sie es aus der prallen Sonne.</string>
+    <string name="road_camera_needed">Der Straßenwächter braucht die Kamera, um die Straße zu sehen.</string>
+    <string name="road_allow_camera">Kamera erlauben</string>
+    <string name="road_linked">Warnungen auf %1$s</string>
+    <string name="road_not_linked">Kein Auto verbunden: Warnungen auf diesem Handy</string>
+    <string name="road_lane_seen">Spur erkannt</string>
+    <string name="road_lane_looking">Suche nach der Spur</string>
+    <string name="road_speed">%1$d km/h</string>
+    <string name="road_horizon_hint">Ziehen Sie die gepunktete Linie auf den Horizont</string>
+    <string name="road_lead_m">%1$d m</string>
+    <string name="road_warn_collision">Bremsen</string>
+    <string name="road_warn_lane">Spur halten</string>
+    <string name="road_warn_close">Zu dicht</string>
+    <string name="road_warn_moved_off">Es geht weiter</string>
+    <string name="road_dim">Abdunkeln</string>
+    <string name="road_bright">Aufhellen</string>
+    <string name="road_stop">Beenden</string>
+</resources>

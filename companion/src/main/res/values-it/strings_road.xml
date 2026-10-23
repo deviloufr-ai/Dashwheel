@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="road_title">Vedetta strada</string>
+    <string name="road_detail">Metti il telefono in un supporto dietro il parabrezza: la sua fotocamera osserva la strada e l\'auto ti avvisa se un\'auto davanti si avvicina in fretta, se una ruota è sulla linea o se sei troppo vicino.</string>
+    <string name="road_start">Avvia Vedetta strada</string>
+    <string name="road_model_get">Scarica il rilevatore di veicoli, 4,6 MB</string>
+    <string name="road_model_retry">Riprova</string>
+    <string name="road_model_getting">Download del rilevatore: %1$d%%</string>
+    <string name="road_model_failed">Impossibile scaricare il rilevatore di veicoli. Controlla la connessione del telefono e riprova.</string>
+    <string name="road_model_none">Senza il rilevatore di veicoli, si osserva solo la corsia.</string>
+    <string name="road_note">Un aiuto, non un sistema di sicurezza: tieni gli occhi sulla strada. Tieni il telefono in carica e lontano dal sole forte.</string>
+    <string name="road_camera_needed">Vedetta strada ha bisogno della fotocamera per vedere la strada.</string>
+    <string name="road_allow_camera">Consenti la fotocamera</string>
+    <string name="road_linked">Avvisi su %1$s</string>
+    <string name="road_not_linked">Nessuna auto collegata: avvisi su questo telefono</string>
+    <string name="road_lane_seen">Corsia trovata</string>
+    <string name="road_lane_looking">Ricerca della corsia</string>
+    <string name="road_speed">%1$d km/h</string>
+    <string name="road_horizon_hint">Trascina la linea tratteggiata sull\'orizzonte</string>
+    <string name="road_lead_m">%1$d m</string>
+    <string name="road_warn_collision">Frena</string>
+    <string name="road_warn_lane">Attento alla corsia</string>
+    <string name="road_warn_close">Troppo vicino</string>
+    <string name="road_warn_moved_off">Il traffico riparte</string>
+    <string name="road_dim">Scurisci</string>
+    <string name="road_bright">Schiarisci</string>
+    <string name="road_stop">Ferma</string>
+</resources>
