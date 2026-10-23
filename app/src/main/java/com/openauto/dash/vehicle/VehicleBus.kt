@@ -199,6 +199,8 @@ class VehicleBus(
     private inner class Slot<T : Any>(val key: Key<T>) {
         private val cands = HashMap<String, Sample<T>>()
         private val lastCounter = HashMap<String, Double>()
+        /** A source's own lifetime for its current value ([Publisher.put]'s ttlMs), instead of the key's. */
+        private val ttlOverride = HashMap<String, Long>()
         private var choice: String? = null
         private val pinned = HashMap<SourceKind, Out<T>>()
         private var truth: Sample<T>? = null
@@ -236,10 +238,11 @@ class VehicleBus(
             members?.forEach { it.choose(sourceId) }
         }
 
-        fun put(source: Source, value: T?, quality: Quality, atMs: Long) {
+        fun put(source: Source, value: T?, quality: Quality, atMs: Long, ttlMs: Long?) {
             if (value == null) {
                 cands.remove(source.id)
                 lastCounter.remove(source.id)
+                ttlOverride.remove(source.id)
             } else {
                 if (key is Key.Counter) {
                     val v = value as Double
@@ -248,12 +251,13 @@ class VehicleBus(
                     lastCounter[source.id] = v
                 }
                 cands[source.id] = Sample(value, source, atMs, quality)
+                if (ttlMs != null && this.ttlMs != null) ttlOverride[source.id] = ttlMs else ttlOverride.remove(source.id)
             }
             refresh(clock())
         }
 
         private fun live(now: Long): List<Sample<T>> = cands.values.filter {
-            sources[it.source.id]?.up != false && (ttlMs == null || now - it.atMs <= ttlMs)
+            sources[it.source.id]?.up != false && (ttlMs == null || now - it.atMs <= (ttlOverride[it.source.id] ?: ttlMs))
         }
 
         /** The winner among live values (of one source [kind] when pinned); the driver's choice only counts unpinned. */
@@ -306,9 +310,9 @@ class VehicleBus(
         override val clock: () -> Long get() = this@VehicleBus.clock
         override val wanted: StateFlow<Set<Key<*>>> get() = this@VehicleBus.wanted
 
-        override fun <T : Any> put(key: Key<T>, value: T?, quality: Quality, atMs: Long) {
+        override fun <T : Any> put(key: Key<T>, value: T?, quality: Quality, atMs: Long, ttlMs: Long?) {
             require(key !is Key.BestOf<*>) { "${key.id} is a BestOf: publish to one of its members" }
-            synchronized(lock) { slotOf(key).put(source, value, quality, atMs) }
+            synchronized(lock) { slotOf(key).put(source, value, quality, atMs, ttlMs) }
         }
 
         override fun up(isUp: Boolean) = synchronized(lock) {
@@ -340,8 +344,12 @@ interface Publisher {
     val source: Source
     /** The bus clock, for stamping a value that was measured earlier than it is published. */
     val clock: () -> Long
-    /** Publishes [value] for [key]; null withdraws it (unknown is null, never 0). */
-    fun <T : Any> put(key: Key<T>, value: T?, quality: Quality = Quality.GOOD, atMs: Long = clock())
+    /**
+     * Publishes [value] for [key]; null withdraws it (unknown is null, never 0).
+     * [ttlMs] replaces the Measurement key's lifetime for this value only: for a source that says a
+     * value on a change and knows its own cadence (the car app's body, a unit bus). Ignored for other kinds of key.
+     */
+    fun <T : Any> put(key: Key<T>, value: T?, quality: Quality = Quality.GOOD, atMs: Long = clock(), ttlMs: Long? = null)
     /** Down: every value of this source drops out at once; up brings back what has not expired. */
     fun up(isUp: Boolean)
     /** The keys somebody listens to, for providers that pay per value (poll only these). */

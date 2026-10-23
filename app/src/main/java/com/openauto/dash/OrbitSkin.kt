@@ -1,5 +1,7 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.K
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -379,7 +381,7 @@ internal fun OrbitTopBar(m: TopBarModel) {
                     }
                 }
                 Row(modifier = Modifier.layoutId(BarRank.ALERTS), verticalAlignment = Alignment.CenterVertically) {
-                    VehicleAlerts(m.obdConnection, m.obd)
+                    VehicleAlerts()
                 }
                 Box(Modifier.layoutId(BarRank.PHONE).padding(end = 10.dp)) { PhonePill() }
                 Box(Modifier.layoutId(BarRank.OBD).fillMaxHeight()) {
@@ -535,7 +537,7 @@ private class Satellite(val fraction: Float, val color: Color, val value: String
 private fun OrbitTelemetry(env: SkinTileEnv) {
     val connected = env.obdConnection == ObdConnectionState.CONNECTED
     val idle = env.obdConnection.isIdle
-    val data = env.obdData
+    val data = rememberReadings(K.SPEED, K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
     val warn = connected && speedOver(data.speedKmh)
     val teal = DashColors.Secondary
     val units = LocalUnits.current
@@ -1602,7 +1604,7 @@ private fun OrbitWeatherBubble(d: Float, weather: Weather?, offline: Boolean, fe
  */
 @Composable
 private fun OrbitRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     if (fuel == null) {
         StandardSkinnedTile(item, env)
         return

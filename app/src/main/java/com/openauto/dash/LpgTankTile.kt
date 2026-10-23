@@ -1,6 +1,8 @@
 package com.openauto.dash
 
 import androidx.compose.foundation.background
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.rememberGauge
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -291,7 +293,7 @@ internal fun LpgTankSheet(onDismiss: () -> Unit) {
             context.getString(if (it == LpgMethod.AVERAGE) R.string.lpg_method_average else R.string.lpg_method_engine)
         }) { edit(draft.copy(method = it)) }
         if (draft.method == LpgMethod.ENGINE) {
-            val obd by ObdBluetoothManager.data.collectAsState()
+            val flowLh = rememberGauge(K.FUEL_FLOW)
             Text(stringResource(R.string.lpg_method_engine_detail), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
             LpgNumber(stringResource(R.string.lpg_factor), draft.factor, Modifier.fillMaxWidth()) { edit(draft.copy(factor = it?.takeIf { v -> v > 0 })) }
             val use = LpgRules.use(draft, state.fills, CarProfileStore.current.typicalUse).first
@@ -299,7 +301,7 @@ internal fun LpgTankSheet(onDismiss: () -> Unit) {
                 Text(stringResource(R.string.lpg_factor_learned, String.format(Locale.getDefault(), "%.2f", it)), color = DashColors.TextPrimary, style = MaterialTheme.typography.bodySmall)
             }
             Text(
-                obd.fuelFlowLh?.let { stringResource(R.string.lpg_flow_now, String.format(Locale.getDefault(), "%.1f", it)) } ?: stringResource(R.string.lpg_flow_none),
+                flowLh?.let { stringResource(R.string.lpg_flow_now, String.format(Locale.getDefault(), "%.1f", it)) } ?: stringResource(R.string.lpg_flow_none),
                 color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall
             )
         }

@@ -149,6 +149,41 @@ class VehicleBusTest {
     }
 
     @Test
+    fun aPutCanCarryItsOwnTtl() {
+        val c = bus.register(canbox)
+        c.put(K.VEHICLE_SPEED, 80.0, ttlMs = 6_000)     // the key's own ttl is 3 s
+        t = 5_999
+        bus.expireNow()
+        assertEquals(80.0, read(K.VEHICLE_SPEED)!!, 0.0)
+        t = 6_001
+        bus.expireNow()
+        assertNull(read(K.VEHICLE_SPEED))
+    }
+
+    @Test
+    fun theOverrideBelongsToThatValueAndThatSource() {
+        val c = bus.register(canbox)
+        val o = bus.register(obd)
+        c.put(K.VEHICLE_SPEED, 80.0, ttlMs = 6_000)
+        o.put(K.VEHICLE_SPEED, 70.0)
+        t = 3_500
+        bus.expireNow()
+        assertEquals("canbox", sourceOf(K.VEHICLE_SPEED))   // obd's 70 went by the key's 3 s
+        c.put(K.VEHICLE_SPEED, 81.0)                          // no override this time: back to the key's ttl
+        t = 7_000
+        bus.expireNow()
+        assertNull(read(K.VEHICLE_SPEED))
+    }
+
+    @Test
+    fun anOverrideOnAStateKeyIsIgnored() {
+        bus.register(canbox).put(K.REVERSE, true, ttlMs = 1_000)
+        t = 10_000
+        bus.expireNow()
+        assertEquals(true, read(K.REVERSE))
+    }
+
+    @Test
     fun expiredValueFallsBackToALowerSource() {
         bus.register(canbox).put(K.RPM, 800.0)
         t = 2_000

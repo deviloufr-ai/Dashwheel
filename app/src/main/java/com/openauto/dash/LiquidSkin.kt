@@ -540,7 +540,7 @@ internal fun LiquidTopBar(m: TopBarModel) {
                     Box(Modifier.layoutId(BarRank.SETUP).padding(start = 8.dp)) { SetupPill(onClick = { m.onSetup(false) }, compact = narrow) }
                 }
                 Row(modifier = Modifier.layoutId(BarRank.ALERTS).padding(start = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    VehicleAlerts(m.obdConnection, m.obd)
+                    VehicleAlerts()
                 }
                 Box(Modifier.layoutId(BarRank.PHONE).padding(start = 8.dp)) { PhonePill() }
                 if (narrow) Box(Modifier.layoutId(BarRank.CLOCK).padding(start = 6.dp)) { PagePositionChip() }

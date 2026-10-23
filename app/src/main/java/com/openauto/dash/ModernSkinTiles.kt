@@ -1,5 +1,7 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.K
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -520,7 +522,7 @@ internal fun ModernTelemetry(env: SkinTileEnv) {
         ) { w, h -> EngineIdle(state, w, h) }
         return
     }
-    val d = env.obdData
+    val d = rememberReadings(K.SPEED, K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
     val units = LocalUnits.current
     val chips = listOf(
         EngineChip(stringResource(R.string.info_speed_title), "${units.speed(d.speedKmh)}", speedOver(d.speedKmh)),
@@ -660,7 +662,7 @@ private fun EngineChipView(chip: EngineChip, height: Dp, modifier: Modifier) {
  */
 @Composable
 internal fun ModernRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     if (fuel == null) {
         StandardSkinnedTile(item, env)
         return

@@ -1,5 +1,7 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.K
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -875,7 +877,7 @@ private fun ClayTelemetry(env: SkinTileEnv) {
                     val numSize = clayFit("8 888", FontWeight.Black, innerW * 0.9f, innerH - wellsH - (readSize * 2.2f).dp, 26f, 140f)
                     ClayLine(rpm?.let { groupThousands(it) } ?: "--", clayText(numSize, tint.ink, FontWeight.Black, figure = true), overflow = TextOverflow.Clip)
                     if (wellsH > 0.dp) {
-                        val d = env.obdData
+                        val d = rememberReadings(K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
                         ClayFitRow(10.dp) {
                             if (d.coolantTempC > 0) ClayReadout(tint, stringResource(R.string.clay_coolant), "${units.temp(d.coolantTempC)}°", d.coolantTempC >= COOLANT_WARNING_C, readSize)
                             if (d.voltage > 0.0) ClayReadout(tint, stringResource(R.string.clay_battery), String.format(Locale.getDefault(), "%.1f V", d.voltage), d.voltage !in BATTERY_OK_V, readSize)
@@ -916,7 +918,7 @@ private fun ClayTelemetry(env: SkinTileEnv) {
  */
 @Composable
 private fun ClayRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     if (fuel == null) {
         Box(Modifier.fillMaxSize().clay(ClayHue.MINT.tint, editing = env.editing)) { StandardSkinnedTile(item, env) }
         return

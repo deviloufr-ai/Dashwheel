@@ -1,5 +1,7 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.K
 import android.location.Location
 import android.os.SystemClock
 import androidx.compose.foundation.Image
@@ -395,7 +397,7 @@ internal fun MsTelemetry(env: SkinTileEnv) {
     val state = env.obdConnection
     val connected = state == ObdConnectionState.CONNECTED
     val idle = state.isIdle
-    val d = env.obdData
+    val d = rememberReadings(K.SPEED, K.RPM, K.COOLANT_TEMP, K.INTAKE_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
     val units = LocalUnits.current
     val positions = listOf(TyrePos.FRONT_LEFT, TyrePos.FRONT_RIGHT, TyrePos.REAR_LEFT, TyrePos.REAR_RIGHT)
     val now = SystemClock.elapsedRealtime()
@@ -1463,7 +1465,7 @@ private fun CompoundBadge(compound: Compound, size: Dp) {
  */
 @Composable
 internal fun MsPitBoard(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     if (fuel == null) {
         StandardSkinnedTile(item, env)
         return

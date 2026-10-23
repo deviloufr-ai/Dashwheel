@@ -1,5 +1,7 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.K
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -638,7 +640,7 @@ private fun TrTelemetry(env: SkinTileEnv) {
             Spacer(Modifier.weight(1f))
             when (state) {
                 ObdConnectionState.CONNECTED -> {
-                    val d = env.obdData
+                    val d = rememberReadings(K.COOLANT_TEMP, K.BATTERY_VOLTS)
                     val gear by rememberGear()
                     TrFitRow(22.dp) {
                         if (d.coolantTempC > 0) {

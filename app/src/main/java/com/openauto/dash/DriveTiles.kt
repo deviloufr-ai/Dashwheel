@@ -186,7 +186,7 @@ internal fun HeroNumber(text: String, size: Int, modifier: Modifier = Modifier, 
 
 /** Just the speed, as large as the tile allows. OBD when connected, GPS otherwise. */
 @Composable
-internal fun SpeedHudCard(obdData: ObdData, obdConnected: Boolean, modifier: Modifier = Modifier) {
+internal fun SpeedHudCard(obdConnected: Boolean, modifier: Modifier = Modifier) {
     val kmh = rememberSpeedKmh()
     val source = when {
         obdConnected -> "OBD"

@@ -1,5 +1,7 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.K
 import android.graphics.Bitmap
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
@@ -1001,7 +1003,7 @@ private fun TelemetryChips(env: SkinTileEnv, ink: Color) {
     val units = LocalUnits.current
     when (state) {
         ObdConnectionState.CONNECTED -> {
-            val d = env.obdData
+            val d = rememberReadings(K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
             ExFitRow(10.dp) {
                 if (d.coolantTempC > 0) {
                     ExChip("${stringResource(R.string.expressive_coolant)} ${units.temp(d.coolantTempC)}°", if (d.coolantTempC >= COOLANT_WARNING_C) DashColors.Warning else DashColors.Good, 17f)

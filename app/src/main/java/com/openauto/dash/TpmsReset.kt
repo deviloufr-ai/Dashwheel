@@ -1,5 +1,6 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.Vehicle
 import android.content.Context
 import android.hardware.usb.UsbManager
 import android.os.SystemClock
@@ -58,6 +59,8 @@ internal object TpmsReset {
         // A new drive may reset again.
         scope.launch { CarPower.ignition.collect { if (it == true) resetThisDrive = false } }
         scope.launch {
+            // The GPS speed is read by snapshot in [check]: it stays wanted for as long as the watch runs.
+            Vehicle.bus.hold(K.GPS_SPEED)
             while (true) {
                 delay(CHECK_MS)
                 check(app)

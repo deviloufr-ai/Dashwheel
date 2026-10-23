@@ -25,12 +25,13 @@ internal enum class AlertLevel { WARNING, CRITICAL }
 internal data class VehicleAlert(val key: String, val level: AlertLevel, val icon: ImageVector, val text: String)
 
 /**
- * The alerts [obdData] calls for right now, worst first. The battery's comes
- * from [battery] (a steady judgement, [BatteryJudge]), never from one reading.
+ * The alerts the readings call for right now, worst first: the coolant's from
+ * [coolantC] (null = no reading, no alert), the battery's from [battery] (a steady
+ * judgement, [BatteryJudge]), never from one reading.
  */
 internal fun vehicleAlerts(
     context: Context,
-    obdData: ObdData,
+    coolantC: Int?,
     battery: BatteryState,
     units: UnitSystem = Units.current.value
 ): List<VehicleAlert> {
@@ -38,9 +39,9 @@ internal fun vehicleAlerts(
     battery.level?.let { level ->
         alerts += VehicleAlert(KEY_BATTERY, level, Icons.Filled.BatteryAlert, context.getString(R.string.dash_alert_battery, battery.volts))
     }
-    val temp = obdData.coolantTempC
     val hotC = CarProfileStore.current.hotC
-    if (temp >= coolantWarningC(hotC)) {
+    if (coolantC != null && coolantC >= coolantWarningC(hotC)) {
+        val temp = coolantC
         val level = if (temp >= coolantCriticalC(hotC)) AlertLevel.CRITICAL else AlertLevel.WARNING
         val text = context.getString(if (units.fahrenheit) R.string.units_alert_coolant_f else R.string.dash_alert_coolant, units.temp(temp))
         alerts += VehicleAlert(KEY_COOLANT, level, Icons.Filled.Thermostat, text)
@@ -77,11 +78,15 @@ internal class BatteryJudge {
     private var tripMin: Double? = null
     private var tripMax: Double? = null
 
-    fun feed(d: ObdData, now: Long): BatteryState {
+    /**
+     * One look at the car: the revs and the volts on the bus now (null = not known), and whether the
+     * volts are [trusted] (the engine computer's or the unit's own measurement, not an adapter's pin).
+     */
+    fun feed(rpm: Int?, v: Double?, trusted: Boolean, now: Long): BatteryState {
         // A gap (adapter dropped) empties the window: its readings are no longer "the last 30 s".
         if (lastAt.let { it != null && now - it > GAP_MS }) clearWindow()
         lastAt = now
-        val running = d.rpm > RUNNING_RPM
+        val running = rpm != null && rpm > RUNNING_RPM
         if (!running) {
             runningSince = null
             clearWindow()
@@ -93,9 +98,7 @@ internal class BatteryJudge {
             tripMin = null
             tripMax = null
         }
-        val v = d.voltage
-        val trusted = d.voltageFromEcu && v in MIN_PLAUSIBLE_V..MAX_PLAUSIBLE_V
-        if (trusted && now - since >= GRACE_MS) {
+        if (v != null && trusted && v in MIN_PLAUSIBLE_V..MAX_PLAUSIBLE_V && now - since >= GRACE_MS) {
             times.addLast(now)
             volts.addLast(v)
             while (times.isNotEmpty() && now - times.first() > WINDOW_MS) {
@@ -138,15 +141,15 @@ internal class BatteryJudge {
     }
 }
 
-/** The one [BatteryJudge], fed by every OBD poll. */
+/** The one [BatteryJudge], fed from the bus by [VehicleMonitor]. */
 internal object BatteryWatch {
     private val judge = BatteryJudge()
     private val _state = MutableStateFlow(BatteryState())
     val state: StateFlow<BatteryState> = _state
 
     @Synchronized
-    fun feed(d: ObdData, now: Long) {
-        _state.value = judge.feed(d, now)
+    fun feed(rpm: Int?, volts: Double?, trusted: Boolean, now: Long) {
+        _state.value = judge.feed(rpm, volts, trusted, now)
     }
 }
 
@@ -179,10 +182,10 @@ internal object AlertCenter {
      * Judges the readings now ([VehicleMonitor], for the whole process): with
      * Maps or CarPlay full screen the bar is not drawn, and a reading that went
      * critical meanwhile must still be up, and logged, when the driver comes
-     * back. Main thread. [connected] false clears the warnings: no reading, no amber.
+     * back. Main thread. No coolant reading ([coolantC] null) clears the warnings: no reading, no amber.
      */
-    fun evaluate(context: Context, obdData: ObdData, battery: BatteryState, connected: Boolean) {
-        val live = if (connected) vehicleAlerts(context, obdData, battery) else emptyList()
+    fun evaluate(context: Context, coolantC: Int?, battery: BatteryState) {
+        val live = vehicleAlerts(context, coolantC, battery)
         live.filter { it.level == AlertLevel.CRITICAL }.forEach { raise(it) }
         val amber = live.filter { it.level == AlertLevel.WARNING }
         noteWarnings(amber)

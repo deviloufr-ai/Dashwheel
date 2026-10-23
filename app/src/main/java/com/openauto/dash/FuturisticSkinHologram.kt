@@ -1,5 +1,7 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.K
 import android.graphics.Bitmap
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -325,8 +327,8 @@ private fun rememberHoloCallouts(env: SkinTileEnv): List<FutHoloCallout> {
     val units = LocalUnits.current
     val locale = Locale.getDefault()
     val connected = env.obdConnection == ObdConnectionState.CONNECTED
-    val d = env.obdData
-    val fuel = rememberFuel(d, env.obdConnection)
+    val d = rememberReadings(K.RPM, K.COOLANT_TEMP, K.BATTERY_VOLTS)
+    val fuel = rememberFuel()
     val doors by McuReader.doorState.collectAsState()
     val tyres by Tyres.tyres.collectAsState()
     val problems by Tyres.problems.collectAsState()

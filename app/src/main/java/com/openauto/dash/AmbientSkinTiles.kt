@@ -1,5 +1,7 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.K
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -665,7 +667,7 @@ private fun AmTelemetry(env: SkinTileEnv) {
         Column(Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
             when (state) {
                 ObdConnectionState.CONNECTED -> {
-                    val d = env.obdData
+                    val d = rememberReadings(K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
                     Row {
                         AmLine(groupThousands(d.rpm), amText(bigSize, DashColors.TextPrimary, heroWeight(bigSize)), Modifier.alignByBaseline(), overflow = TextOverflow.Clip)
                         Spacer(Modifier.width(8.dp))
@@ -704,7 +706,7 @@ private fun AmTelemetry(env: SkinTileEnv) {
  */
 @Composable
 private fun AmRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     if (fuel == null) {
         Box(Modifier.fillMaxSize().ambientFallbackPanel()) { StandardSkinnedTile(item, env) }
         return

@@ -1,5 +1,6 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.Vehicle
 import android.content.Context
 import android.location.Location
 import com.openauto.dash.link.CarLocation
@@ -32,6 +33,8 @@ internal object CarWhereabouts {
     suspend fun report(context: Context, send: (CarLocation) -> Unit) {
         // The GPS feed is counted on the main thread, as the tiles do.
         val acquired = withContext(Dispatchers.Main) { LocationFeed.acquire(context) }
+        // The car's speed is read by snapshot per fix: it stays wanted while the link is up.
+        val hold = Vehicle.bus.hold(K.VEHICLE_SPEED)
         try {
             coroutineScope {
                 launch {
@@ -67,6 +70,7 @@ internal object CarWhereabouts {
                 }
             }
         } finally {
+            hold.release()
             if (acquired) withContext(NonCancellable + Dispatchers.Main) { LocationFeed.release() }
         }
     }

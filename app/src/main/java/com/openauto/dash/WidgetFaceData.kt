@@ -1,5 +1,9 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberGauges
+import com.openauto.dash.vehicle.rememberGaugeInt
+import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.K
 import android.Manifest
 import android.content.Intent
 import android.location.Location
@@ -202,7 +206,7 @@ private fun engineGauges(d: ObdData, rpmFirst: Boolean): List<FaceGauge> {
 private fun telemetryFace(env: SkinTileEnv): WidgetFace {
     val u = LocalUnits.current
     if (env.obdConnection != ObdConnectionState.CONNECTED) return obdIdle(BuiltinKind.TELEMETRY, env, u.speedUnit)
-    val d = env.obdData
+    val d = rememberReadings(K.SPEED, K.RPM, K.COOLANT_TEMP, K.BATTERY_VOLTS, K.ENGINE_LOAD, K.THROTTLE)
     return WidgetFace(
         icon = Icons.Filled.Speed,
         title = BuiltinKind.TELEMETRY.label,
@@ -228,7 +232,7 @@ private fun telemetryFace(env: SkinTileEnv): WidgetFace {
 private fun obdAllFace(env: SkinTileEnv): WidgetFace {
     if (env.obdConnection != ObdConnectionState.CONNECTED) return obdIdle(BuiltinKind.OBD_ALL, env, "rpm")
     val u = LocalUnits.current
-    val d = env.obdData
+    val d = rememberReadings(K.SPEED, K.RPM, K.COOLANT_TEMP, K.INTAKE_TEMP, K.THROTTLE, K.ENGINE_LOAD, K.FUEL_LEVEL, K.BATTERY_VOLTS)
     return WidgetFace(
         icon = Icons.Filled.Sensors,
         title = BuiltinKind.OBD_ALL.label,
@@ -253,7 +257,7 @@ private fun rangeFace(env: SkinTileEnv): WidgetFace {
     var showRangeFinder by remember { mutableStateOf(false) }
     if (showRangeFinder) RangeFinderDialog(onDismiss = { showRangeFinder = false })
     val u = LocalUnits.current
-    val fuel = rememberFuel(env) ?: return idleFace(
+    val fuel = rememberFuel() ?: return idleFace(
         Icons.Filled.LocalGasStation, BuiltinKind.RANGE.label, stringResource(R.string.design_range_unknown), u.distanceUnit,
         FaceAction(Icons.Filled.Tune, stringResource(R.string.vehicle_find_range_signal), primary = true, onClick = { showRangeFinder = true })
     )
@@ -970,7 +974,7 @@ private fun warmupFace(env: SkinTileEnv): WidgetFace {
     val car by CarProfileStore.profile.collectAsState()
     val care by CarCare.state.collectAsState()
     // The coolant moves a degree at a time: follow it, not every OBD sample.
-    val t by remember(env) { derivedStateOf { env.obdData.coolantTempC } }
+    val t = rememberGaugeInt(K.COOLANT_TEMP) ?: 0
     val u = LocalUnits.current
     if (env.obdConnection != ObdConnectionState.CONNECTED) return obdIdle(BuiltinKind.WARMUP, env, u.tempUnit)
     if (t == 0) return idleFace(kindIcon(BuiltinKind.WARMUP), BuiltinKind.WARMUP.label, stringResource(R.string.car_waiting_obd), u.tempUnit)
@@ -996,9 +1000,10 @@ private fun warmupFace(env: SkinTileEnv): WidgetFace {
 @Composable
 private fun batteryFace(env: SkinTileEnv): WidgetFace {
     val car by CarProfileStore.profile.collectAsState()
-    // The voltage and whether the engine runs, not every OBD sample (the revs move several times a second).
-    val v by remember(env) { derivedStateOf { env.obdData.voltage } }
-    val engineRuns by remember(env) { derivedStateOf { env.obdData.rpm > LiveWatch.RUNNING_RPM } }
+    // The voltage and whether the engine runs.
+    val g = rememberGauges(K.BATTERY_VOLTS, K.RPM)
+    val v = g.voltage ?: 0.0
+    val engineRuns = (g.rpm ?: 0) > LiveWatch.RUNNING_RPM
     if (env.obdConnection != ObdConnectionState.CONNECTED) return obdIdle(BuiltinKind.BATTERY, env, "V")
     if (v < LiveWatch.MIN_PLAUSIBLE_V || v > LiveWatch.MAX_PLAUSIBLE_V) {
         return idleFace(kindIcon(BuiltinKind.BATTERY), BuiltinKind.BATTERY.label, stringResource(R.string.car_waiting_obd), "V")

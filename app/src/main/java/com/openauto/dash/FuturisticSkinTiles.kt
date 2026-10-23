@@ -1,5 +1,7 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.K
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -438,7 +440,7 @@ private fun FutSpeedRing(speedKmh: Int?, caption: String, captionColor: Color, s
  */
 @Composable
 private fun FutDriveStats(env: SkinTileEnv, modifier: Modifier) {
-    val d = env.obdData
+    val d = rememberReadings(K.SPEED, K.RPM, K.FUEL_FLOW)
     val connected = env.obdConnection == ObdConnectionState.CONNECTED
     val units = LocalUnits.current
     val locale = Locale.getDefault()
@@ -516,7 +518,7 @@ private fun TelemetryHologram(env: SkinTileEnv) {
 @Composable
 private fun TelemetrySpeed(env: SkinTileEnv, height: Dp, capsDp: Float, modifier: Modifier) {
     val connected = env.obdConnection == ObdConnectionState.CONNECTED
-    val d = env.obdData
+    val d = rememberReadings(K.SPEED, K.RPM)
     val units = LocalUnits.current
     val locale = Locale.getDefault()
     val over = connected && speedOver(d.speedKmh)
@@ -589,7 +591,7 @@ private fun TelemetryPanel(env: SkinTileEnv) {
     val state = env.obdConnection
     val connected = state == ObdConnectionState.CONNECTED
     val idle = state.isIdle
-    val d = env.obdData
+    val d = rememberReadings(K.SPEED, K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
     val units = LocalUnits.current
     val locale = Locale.getDefault()
     BoxWithConstraints(
@@ -1266,7 +1268,7 @@ private fun FutIconRing(icon: ImageVector, size: Dp) {
  */
 @Composable
 private fun FutRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     if (fuel == null) {
         StandardSkinnedTile(item, env)
         return

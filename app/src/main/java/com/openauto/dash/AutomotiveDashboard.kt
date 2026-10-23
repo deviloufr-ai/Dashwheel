@@ -223,7 +223,6 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     val updateManager = remember { UpdateManager(context) }
     // The live readings stay States: reading them here would recompose the whole
     // dashboard on every OBD sample. Tiles read them where they draw them.
-    val obd = ObdBluetoothManager.data.collectAsState()
     // The link's state too: it flips at every dial while the adapter is out of
     // reach, and read here that would recompose the whole dashboard each time.
     val obdConnection = ObdBluetoothManager.connectionState.collectAsState()
@@ -1229,7 +1228,6 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         clock = clock,
         versionName = updateManager.currentVersionName,
         obdConnectionState = obdConnection,
-        obd = obd,
         editing = editing,
         layout = layout,
         onLayout = { next ->
@@ -1398,7 +1396,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     val previewTile: @Composable (DashboardItem) -> Unit = { item ->
         TileContent(
             item = item, editing = item.standsIn(), appsByPackage = appsByPackage, media = media, mediaController = mediaController,
-            hasMediaAccess = mediaAccess, context = context, obd = obd, obdConnection = obdConnection,
+            hasMediaAccess = mediaAccess, context = context, obdConnection = obdConnection,
             onConnectObd = {}, onPickDevice = {}, onLaunchApp = {}, onLaunchSplitPair = { _, _ -> },
             onEditLaunchBar = {}, onModelTouch = {}
         )
@@ -1492,8 +1490,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                     media = media,
                     mediaController = mediaController,
                     hasMediaAccess = mediaAccess,
-                    obd = obd,
-                    obdConnection = obdConnection,
+                                obdConnection = obdConnection,
                     onConnectObd = onConnectObd,
                     onPickDevice = onPickDevice,
                     onLaunchApp = onLaunchApp,
@@ -1749,7 +1746,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                                     aspect = (widget.w * 1.1f) / widget.h,
                                     env = SkinTileEnv(
                                         editing = false, appsByPackage = appsByPackage, media = media, mediaController = mediaController,
-                                        hasMediaAccess = mediaAccess, context = context, obd = obd, obdConnectionState = obdConnection,
+                                        hasMediaAccess = mediaAccess, context = context, obdConnectionState = obdConnection,
                                         onConnectObd = onConnectObd, onPickDevice = onPickDevice, onLaunchApp = onLaunchApp, onEditLaunchBar = {}
                                     ),
                                     standardPreview = {
@@ -1757,7 +1754,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                                         TileContent(
                                             item = widget.copy(design = WidgetDesign.STANDARD), editing = true, appsByPackage = appsByPackage,
                                             media = media, mediaController = mediaController, hasMediaAccess = mediaAccess,
-                                            context = context, obd = obd, obdConnection = obdConnection, onConnectObd = onConnectObd,
+                                            context = context, obdConnection = obdConnection, onConnectObd = onConnectObd,
                                             onPickDevice = onPickDevice, onLaunchApp = onLaunchApp, onLaunchSplitPair = onLaunchSplitPair,
                                             onEditLaunchBar = {}, onModelTouch = {}
                                         )
@@ -1834,7 +1831,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                         TileContent(
                             item = item, editing = true, appsByPackage = appsByPackage,
                             media = media, mediaController = mediaController, hasMediaAccess = mediaAccess,
-                            context = context, obd = obd, obdConnection = obdConnection, onConnectObd = onConnectObd,
+                            context = context, obdConnection = obdConnection, onConnectObd = onConnectObd,
                             onPickDevice = onPickDevice, onLaunchApp = onLaunchApp, onLaunchSplitPair = onLaunchSplitPair,
                             onEditLaunchBar = {}, onModelTouch = {}
                         )

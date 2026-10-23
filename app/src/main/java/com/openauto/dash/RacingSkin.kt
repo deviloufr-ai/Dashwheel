@@ -1,5 +1,7 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.K
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -609,7 +611,7 @@ internal fun RacingTopBar(m: TopBarModel) {
                     }
                 }
                 Row(modifier = Modifier.layoutId(BarRank.ALERTS), verticalAlignment = Alignment.CenterVertically) {
-                    VehicleAlerts(m.obdConnection, m.obd)
+                    VehicleAlerts()
                 }
                 Box(Modifier.layoutId(BarRank.PHONE)) { PhonePill() }
                 if (!narrow) Box(Modifier.layoutId(BarRank.TEMP)) { BarFinish() }
@@ -1718,7 +1720,7 @@ private fun StageCells(env: SkinTileEnv, modifier: Modifier) {
     val trip by LocationFeed.trip.collectAsState()
     val units = LocalUnits.current
     val best = rememberBest0to100()
-    val d = env.obdData
+    val d = rememberReadings(K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
     val live = env.obdConnection == ObdConnectionState.CONNECTED
     val cyan = Cyan
     val ink = DashColors.TextPrimary
@@ -2370,7 +2372,7 @@ private fun WeatherGlyph(code: Int, size: Dp) {
  */
 @Composable
 private fun RaceRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     if (fuel == null) {
         StandardSkinnedTile(item, env)
         return

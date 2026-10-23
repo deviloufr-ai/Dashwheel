@@ -1,5 +1,9 @@
 package com.openauto.dash
 
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlin.math.roundToInt
+import com.openauto.dash.vehicle.Vehicle
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -130,10 +134,10 @@ internal fun rememberGear(): State<GearReading> {
         var lastGear: Gear = Gear.Unknown
         var lastGearAt = 0L
         var learned = 0
-        combine(ObdBluetoothManager.connectionState, ObdBluetoothManager.data, CarBox.body, CarBox.reversing, speedKmhFlow(K.VEHICLE_SPEED)) { conn, obd, _, reversing, speed ->
+        val rpmFlow = Vehicle.bus.value(K.RPM).map { it?.roundToInt() }.distinctUntilChanged()
+        combine(rpmFlow, CarBox.body, CarBox.reversing, speedKmhFlow(K.VEHICLE_SPEED)) { obdRpm, _, reversing, speed ->
             val box = CarBox.freshBody()
-            val connected = conn == ObdConnectionState.CONNECTED
-            val rpm = if (connected && obd.rpm > 0) obd.rpm else box?.rpm
+            val rpm = if (obdRpm != null && obdRpm > 0) obdRpm else box?.rpm
             Triple(reversing, rpm, speed)
         }.collect { (reversing, rpm, speed) ->
             val now = System.currentTimeMillis()

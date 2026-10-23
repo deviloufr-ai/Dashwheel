@@ -52,7 +52,7 @@ private const val BADGE_TURN_MS = 60_000
  */
 @Composable
 internal fun ExRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val hero = maxWidth >= 300.dp && maxHeight >= 240.dp
         when {

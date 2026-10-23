@@ -1,5 +1,7 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.K
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -467,7 +469,7 @@ private class Reading(val text: String, val dot: Color)
 private fun TelemetryPanel(env: SkinTileEnv, glass: Boolean, modifier: Modifier) {
     val state = env.obdConnection
     val connected = state == ObdConnectionState.CONNECTED
-    val d = env.obdData
+    val d = rememberReadings(K.SPEED, K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
     val units = LocalUnits.current
     val context = env.context
     val readings = if (connected) buildList {
@@ -538,7 +540,7 @@ private fun TelemetryPanel(env: SkinTileEnv, glass: Boolean, modifier: Modifier)
  */
 @Composable
 private fun SimpleRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     if (fuel == null) {
         StandardSkinnedTile(item, env)
         return

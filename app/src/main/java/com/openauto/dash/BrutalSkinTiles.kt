@@ -1,5 +1,8 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberGauge
+import com.openauto.dash.vehicle.rememberGaugeInt
+import com.openauto.dash.vehicle.K
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.compose.foundation.Image
@@ -683,15 +686,15 @@ private class BrReading(val label: String, val value: String, val warn: Boolean 
  */
 @Composable
 private fun BrReadings(item: DashboardItem, env: SkinTileEnv, telemetry: Boolean) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     if (!telemetry && fuel == null) {
         Box(Modifier.fillMaxSize().brutalFallbackPanel()) { StandardSkinnedTile(item, env) }
         return
     }
     val units = LocalUnits.current
     val connected = env.obdConnection == ObdConnectionState.CONNECTED
-    val coolant by remember(env) { derivedStateOf { if (env.obdConnection == ObdConnectionState.CONNECTED) env.obdData.coolantTempC else 0 } }
-    val voltage by remember(env) { derivedStateOf { if (env.obdConnection == ObdConnectionState.CONNECTED) env.obdData.voltage else 0.0 } }
+    val coolant = rememberGaugeInt(K.COOLANT_TEMP) ?: 0
+    val voltage = rememberGauge(K.BATTERY_VOLTS) ?: 0.0
     val c = brColors(BrTone.WHITE)
     val idle = env.obdConnection.isIdle
     BoxWithConstraints(Modifier.fillMaxSize()) {

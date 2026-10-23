@@ -1,5 +1,7 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.K
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -703,7 +705,7 @@ private fun ChromeDisc(ms: MediaState, size: Dp) {
  */
 @Composable
 private fun ChromeRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     val units = LocalUnits.current
     if (fuel == null) {
         Box(Modifier.fillMaxSize().graphicsLayer().chromeHolo(editing = env.editing)) { StandardSkinnedTile(item, env) }
@@ -834,7 +836,7 @@ private fun ChromeTelemetry(env: SkinTileEnv) {
         }
         return
     }
-    val d = env.obdData
+    val d = rememberReadings(K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
     val readings = ArrayList<Triple<String, String, Boolean>>(4)
     readings += Triple(stringResource(R.string.chrome_revs), groupThousands(d.rpm), false)
     if (d.coolantTempC > 0) readings += Triple(stringResource(R.string.chrome_coolant), "${units.temp(d.coolantTempC)}°", d.coolantTempC >= COOLANT_WARNING_C)

@@ -27,10 +27,11 @@ import androidx.compose.ui.unit.dp
 /**
  * What a skinned tile needs: the same values [TileContent] receives.
  *
- * The live readings arrive as [State]s and are only read through [obdData] /
- * [obdConnection] / [mediaState], so an OBD sample, a dial of the adapter or
- * a song change recomposes just the tiles that show it, not every tile on
- * the page.
+ * The live readings arrive as [State]s and are only read through
+ * [obdConnection] / [mediaState], so a dial of the adapter or a song change
+ * recomposes just the tiles that show it, not every tile on the page. The car's
+ * gauges are not here: a tile reads the keys it shows (rememberGauges), which
+ * is also what makes the OBD poll ask for them.
  */
 @Stable
 internal class SkinTileEnv(
@@ -40,7 +41,6 @@ internal class SkinTileEnv(
     val mediaController: CarMediaController,
     val hasMediaAccess: Boolean,
     val context: Context,
-    private val obd: State<ObdData>,
     private val obdConnectionState: State<ObdConnectionState>,
     val onConnectObd: () -> Unit,
     val onPickDevice: () -> Unit,
@@ -48,7 +48,6 @@ internal class SkinTileEnv(
     val onEditLaunchBar: () -> Unit
 ) {
     val mediaState: MediaState get() = media.value
-    val obdData: ObdData get() = obd.value
     val obdConnection: ObdConnectionState get() = obdConnectionState.value
 }
 
@@ -265,13 +264,13 @@ internal fun StandardSkinnedTile(item: DashboardItem, env: SkinTileEnv) {
         }
         is DashboardItem.LaunchBar -> LaunchBarTile(item, env.appsByPackage, env.editing, env.onLaunchApp, env.onEditLaunchBar, full)
         is DashboardItem.BuiltinWidget -> when (item.kind) {
-            BuiltinKind.TELEMETRY -> ObdCard(env.obdData, env.obdConnection, env.onConnectObd, env.onPickDevice, full)
-            BuiltinKind.SPEED_HUD -> SpeedHudCard(env.obdData, env.obdConnection == ObdConnectionState.CONNECTED, full)
+            BuiltinKind.TELEMETRY -> ObdCard(env.obdConnection, env.onConnectObd, env.onPickDevice, full)
+            BuiltinKind.SPEED_HUD -> SpeedHudCard(env.obdConnection == ObdConnectionState.CONNECTED, full)
             BuiltinKind.MEDIA -> MediaCard(env.mediaState, env.mediaController, env.hasMediaAccess, env.context, full)
             BuiltinKind.NAVIGATION -> DirectionsCard(env.hasMediaAccess, env.context, full)
             BuiltinKind.CLOCK -> ClockCard(full)
             BuiltinKind.WEATHER -> WeatherCard(full)
-            BuiltinKind.RANGE -> RangeCard(env.obdData, env.obdConnection, env.onConnectObd, full)
+            BuiltinKind.RANGE -> RangeCard(env.obdConnection, env.onConnectObd, full)
             else -> Unit
         }
         else -> Unit

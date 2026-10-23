@@ -6,9 +6,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.Dispatchers
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SpeedTest {
@@ -67,63 +65,5 @@ class SpeedTest {
         assertEquals(61, displaySpeedKmh(bus.sample(K.SPEED).value, plus3))
         g.put(K.GPS_SPEED, null)
         assertNull(displaySpeedKmh(bus.sample(K.SPEED).value, plus3))
-    }
-
-    // --- SteadySpeed ---------------------------------------------------------
-
-    private fun steady(holdMs: Long = 6_000L): Pair<SteadySpeed, Publisher> {
-        val p = bus.register(Source("qf.car_app", SourceKind.VEHICLE_APP, "QF car app"))
-        // The loop is not started by these tests (tick is driven by hand): a scope that never runs.
-        return SteadySpeed(p, holdMs, scope = CoroutineScope(Job().also { it.cancel() })) to p
-    }
-
-    @Test
-    fun aReadingIsPublishedAtOnce() {
-        val (s, _) = steady()
-        s.set(88.0)
-        assertEquals(88.0, bus.now(K.VEHICLE_SPEED)!!, 0.0)
-    }
-
-    @Test
-    fun aSteadySpeedIsKeptAliveBeyondTheKeysTtl() {
-        val (s, _) = steady()
-        s.set(88.0)
-        for (sec in 1..5) {
-            t = sec * 1_000L
-            assertTrue(s.tick(t))
-            bus.expireNow()
-            assertEquals(88.0, bus.now(K.VEHICLE_SPEED)!!, 0.0)
-        }
-    }
-
-    @Test
-    fun aSilentSourceIsWithdrawnAfterTheHold() {
-        val (s, _) = steady(holdMs = 6_000L)
-        s.set(88.0)
-        t = 6_000L
-        assertTrue(s.tick(t))
-        t = 6_001L
-        assertFalse(s.tick(t))
-        assertNull(bus.now(K.VEHICLE_SPEED))
-    }
-
-    @Test
-    fun aNewReadingRestartsTheHold() {
-        val (s, _) = steady(holdMs = 6_000L)
-        s.set(88.0)
-        t = 5_000L
-        s.set(90.0)
-        t = 10_000L
-        assertTrue(s.tick(t))
-        assertEquals(90.0, bus.now(K.VEHICLE_SPEED)!!, 0.0)
-    }
-
-    @Test
-    fun nullWithdrawsAtOnce() {
-        val (s, _) = steady()
-        s.set(88.0)
-        s.set(null)
-        assertNull(bus.now(K.VEHICLE_SPEED))
-        assertFalse(s.tick(100L))
     }
 }

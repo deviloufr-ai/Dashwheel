@@ -1,5 +1,9 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberGauge
+import com.openauto.dash.vehicle.rememberGaugeInt
+import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.K
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -706,7 +710,7 @@ private fun LqTelemetry(env: SkinTileEnv) {
         Column(Modifier.fillMaxSize().padding(pad), verticalArrangement = Arrangement.Center) {
             when (state) {
                 ObdConnectionState.CONNECTED -> {
-                    val d = env.obdData
+                    val d = rememberReadings(K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
                     val units = LocalUnits.current
                     val revs = stringResource(R.string.liquid_revs)
                     if (tall) {
@@ -759,7 +763,7 @@ private fun LqTelemetry(env: SkinTileEnv) {
  */
 @Composable
 private fun LqRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val stage = maxWidth >= LQ_HERO_MIN_W && maxHeight >= LQ_HERO_MIN_H
         when {
@@ -1019,6 +1023,6 @@ private fun LqLaunchBar(item: DashboardItem.LaunchBar, env: SkinTileEnv) {
 /** The coolant in °C while the link is up (0 otherwise), followed alone so a chip redraws when its own reading changes. */
 @Composable
 internal fun rememberCoolantC(env: SkinTileEnv): Int {
-    val coolant by remember(env) { derivedStateOf { if (env.obdConnection == ObdConnectionState.CONNECTED) env.obdData.coolantTempC else 0 } }
+    val coolant = rememberGaugeInt(K.COOLANT_TEMP) ?: 0
     return coolant
 }

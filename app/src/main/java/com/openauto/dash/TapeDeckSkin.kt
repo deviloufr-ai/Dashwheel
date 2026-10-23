@@ -1,5 +1,7 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.K
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -430,7 +432,7 @@ internal fun TapeDeckTopBar(m: TopBarModel) {
                     }
                 }
                 Row(modifier = Modifier.layoutId(BarRank.ALERTS), verticalAlignment = Alignment.CenterVertically) {
-                    VehicleAlerts(m.obdConnection, m.obd)
+                    VehicleAlerts()
                 }
                 Box(Modifier.layoutId(BarRank.PHONE)) { PhonePill() }
                 if (!narrow) Box(Modifier.layoutId(BarRank.TEMP)) { OutsideTemp() }
@@ -1127,7 +1129,7 @@ private fun TapeTelemetry(env: SkinTileEnv) {
     val state = env.obdConnection
     val live = state == ObdConnectionState.CONNECTED
     val idle = state.isIdle
-    val d = env.obdData
+    val d = rememberReadings(K.SPEED, K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
     val speedColor = if (live && speedOver(d.speedKmh)) DashColors.Warning else cyan
     val volts = live && d.voltage > 0.0
     val units = LocalUnits.current
@@ -2176,7 +2178,7 @@ private fun TapeWeather() {
  */
 @Composable
 private fun TapeRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     if (fuel == null) {
         StandardSkinnedTile(item, env)
         return

@@ -1,5 +1,8 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberGauge
+import com.openauto.dash.vehicle.rememberGaugeInt
+import com.openauto.dash.vehicle.K
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
@@ -248,14 +251,11 @@ internal fun BarReadouts(items: List<BarItem>, m: TopBarModel, modifier: Modifie
 
 @Composable
 private fun BarReadout(item: BarItem, m: TopBarModel) {
-    val connected = m.obdConnection == ObdConnectionState.CONNECTED
-    // Read where a readout uses it: the clock or the phone's battery doesn't follow the car's readings.
-    val obd by m.obd
     val units = LocalUnits.current
     when (item) {
         BarItem.FUEL -> {
             // The fuel, coolant and battery readouts follow their own value, not every OBD sample.
-            val fuel = rememberFuel(m.obd, m.obdConnection)
+            val fuel = rememberFuel()
             MistralSegments(stringResource(item.label), item.icon, fuel?.percent?.let { it / 100f }, fuel?.percent?.let { "$it %" }, cells = 10,
                 warnBelow = 0.2f, alarmBelow = 0.1f)
         }
@@ -271,21 +271,24 @@ private fun BarReadout(item: BarItem, m: TopBarModel) {
                 Caption(units.speedUnit, Modifier.padding(bottom = 5.dp))
             }
         }
-        BarItem.REVS -> MistralSegments(
-            stringResource(item.label), item.icon, if (connected) obd.rpm / 7000f else null,
-            if (connected) String.format(Locale.getDefault(), "%,d", obd.rpm) else null, cells = 10, hotAbove = 0.75f
-        )
-        BarItem.COOLANT -> {
-            val coolantC by remember(m.obd) { derivedStateOf { m.obd.value.coolantTempC } }
+        BarItem.REVS -> {
+            // Read where a readout uses it: the clock or the phone's battery doesn't follow the car's readings.
+            val rpm = rememberGaugeInt(K.RPM)
             MistralSegments(
-                stringResource(item.label), item.icon, if (connected && coolantC > 0) coolantC / 120f else null,
-                if (connected && coolantC > 0) "${units.temp(coolantC)}°" else null, cells = 6,
+                stringResource(item.label), item.icon, rpm?.let { it / 7000f },
+                rpm?.let { String.format(Locale.getDefault(), "%,d", it) }, cells = 10, hotAbove = 0.75f
+            )
+        }
+        BarItem.COOLANT -> {
+            val coolantC = rememberGaugeInt(K.COOLANT_TEMP)
+            MistralSegments(
+                stringResource(item.label), item.icon, coolantC?.let { it / 120f },
+                coolantC?.let { "${units.temp(it)}°" }, cells = 6,
                 hotAbove = COOLANT_WARNING_C / 120f
             )
         }
         BarItem.BATTERY -> {
-            val voltage by remember(m.obd) { derivedStateOf { m.obd.value.voltage } }
-            val v = voltage.takeIf { connected && it > 0.0 }
+            val v = rememberGauge(K.BATTERY_VOLTS)
             MistralSegments(
                 stringResource(item.label), item.icon, v?.let { ((it - 11.0) / 4.0).toFloat() },
                 v?.let { String.format(Locale.getDefault(), "%.1f V", it) }, cells = 6,
@@ -293,7 +296,7 @@ private fun BarReadout(item: BarItem, m: TopBarModel) {
             )
         }
         BarItem.RANGE -> {
-            val fuel = rememberFuel(m.obd, m.obdConnection)
+            val fuel = rememberFuel()
             ValueReadout(item, fuel?.let { units.distanceText(it.rangeKm) } ?: "–")
         }
         BarItem.CLOCK -> if (!m.merged) {
@@ -312,7 +315,7 @@ private fun BarReadout(item: BarItem, m: TopBarModel) {
             val viaPhone by ObdBluetoothManager.viaPhone.collectAsState()
             val viaUsb by ObdBluetoothManager.viaUsb.collectAsState()
             // The adapter counts only when it is on this unit's Bluetooth.
-            val linked = phone != null || (connected && !viaPhone && !viaUsb)
+            val linked = phone != null || (m.obdConnection == ObdConnectionState.CONNECTED && !viaPhone && !viaUsb)
             RadioReadout(
                 when {
                     !on -> Icons.Filled.BluetoothDisabled

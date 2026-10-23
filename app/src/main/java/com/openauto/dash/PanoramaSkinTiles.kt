@@ -1,5 +1,9 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberGauge
+import com.openauto.dash.vehicle.rememberGaugeInt
+import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.K
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -584,8 +588,8 @@ private fun PanoLimitSign(limit: Int, d: Dp) {
 /** The band's right: FUEL with the range, the fuel's segments lit from the end, the coolant under them. */
 @Composable
 private fun BandFuel(env: SkinTileEnv, h: Dp, readSize: Float) {
-    val fuel = rememberFuel(env)
-    val coolant by remember(env) { androidx.compose.runtime.derivedStateOf { if (env.obdConnection == ObdConnectionState.CONNECTED) env.obdData.coolantTempC else 0 } }
+    val fuel = rememberFuel()
+    val coolant = rememberGaugeInt(K.COOLANT_TEMP) ?: 0
     val units = LocalUnits.current
     val low = fuel != null && fuel.percent <= SKIN_LOW_FUEL_PCT
     val label = fuel?.let { stringResource(R.string.skin_panorama_fuel_range, units.distanceText(it.rangeKm)) } ?: stringResource(R.string.skin_panorama_fuel)
@@ -685,7 +689,7 @@ private fun CardRevScale(modifier: Modifier) {
 
 @Composable
 private fun CardFuelScale(env: SkinTileEnv, modifier: Modifier) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     val lit = fuel?.let { (it.percent / 100f * 8).roundToInt().coerceIn(if (it.percent > 0) 1 else 0, 8) } ?: 0
     Column(modifier, horizontalAlignment = Alignment.End) {
         PanoLabel(stringResource(R.string.skin_panorama_fuel), align = TextAlign.End)
@@ -763,7 +767,7 @@ private fun TelemetryReadouts(env: SkinTileEnv, size: Float) {
     val units = LocalUnits.current
     when (state) {
         ObdConnectionState.CONNECTED -> {
-            val d = env.obdData
+            val d = rememberReadings(K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
             FitRow(18.dp) {
                 if (d.coolantTempC > 0) {
                     PanoReadout(stringResource(R.string.skin_panorama_coolant), "${units.temp(d.coolantTempC)}°", d.coolantTempC >= COOLANT_WARNING_C, size)
@@ -828,7 +832,7 @@ private fun PanoPillButton(text: String, filled: Boolean, enabled: Boolean, onCl
  */
 @Composable
 private fun PanoRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     BoxWithConstraints(Modifier.fillMaxSize().graphicsLayer()) {
         val stage = maxWidth >= PANO_HERO_MIN_W && maxHeight >= PANO_HERO_MIN_H
         when {
@@ -848,7 +852,7 @@ private fun rememberCallouts(env: SkinTileEnv, fuel: FuelInfo?): List<PanoCallou
     val problems by Tyres.problems.collectAsState()
     val pressureUnit by Tyres.unit.collectAsState()
     val upkeep by Maintenance.state.collectAsState()
-    val voltage by remember(env) { androidx.compose.runtime.derivedStateOf { if (env.obdConnection == ObdConnectionState.CONNECTED) env.obdData.voltage else 0.0 } }
+    val voltage = rememberGauge(K.BATTERY_VOLTS) ?: 0.0
     val doorsLabel = stringResource(R.string.skin_panorama_doors)
     val closed = stringResource(R.string.skin_panorama_doors_closed)
     val openWord = stringResource(R.string.skin_panorama_doors_open)

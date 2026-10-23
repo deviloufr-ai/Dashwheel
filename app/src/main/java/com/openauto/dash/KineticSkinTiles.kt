@@ -1,5 +1,7 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.K
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
@@ -553,7 +555,7 @@ private fun KnTelemetry(env: SkinTileEnv) {
             }
             return@BoxWithConstraints
         }
-        val d = env.obdData
+        val d = rememberReadings(K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
         val rpm = gear.rpm
         val rpmText = rpm?.let { groupThousands(it) } ?: "--"
         val labelSize = (maxHeight.value * 0.06f).coerceIn(14f, 20f)
@@ -808,7 +810,7 @@ private fun KnWeather(env: SkinTileEnv) {
  */
 @Composable
 private fun KnRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     BoxWithConstraints(Modifier.fillMaxSize().graphicsLayer()) {
         val strip = maxWidth >= 460.dp && maxWidth >= maxHeight * 2f && maxHeight >= 100.dp
         val stage = !strip && maxWidth >= 300.dp && maxHeight >= 220.dp

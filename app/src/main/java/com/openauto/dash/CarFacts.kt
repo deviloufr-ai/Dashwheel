@@ -1,6 +1,8 @@
 package com.openauto.dash
 
 import android.content.Context
+import com.openauto.dash.vehicle.fuelLevelPctNow
+import com.openauto.dash.vehicle.gaugesNow
 import com.openauto.dash.vehicle.speedKmhNow
 import org.json.JSONArray
 import org.json.JSONObject
@@ -64,10 +66,11 @@ internal object CarFacts {
         put("ignition_on") { CarPower.ignition.value }
         put("speed_kmh") { speedKmhNow() }
         put("obd_adapter") { ObdBluetoothManager.connectionState.value.name }
-        put("obd_readings") { ObdBluetoothManager.data.value.takeIf { obdOn } }
+        // The gauges the poll always reads ([VehicleMonitor.POLL_FLOOR]): the snapshot holds nothing of its own.
+        put("obd_readings") { gaugesNow(VehicleMonitor.POLL_FLOOR).toObdData().takeIf { obdOn } }
         put("engine_warning_lamp") { ObdBluetoothManager.lamp.value }
         put("fuel") {
-            carFuelInfo(McuReader.fuelPercent.value, ObdBluetoothManager.data.value.fuelLevelPct, McuReader.rangeKm.value)?.let {
+            carFuelInfo(McuReader.fuelPercent.value, fuelLevelPctNow(), McuReader.rangeKm.value)?.let {
                 "percent=${it.percent}, range_km=${it.rangeKm}, liters_left=%.1f, from=${it.source}".format(Locale.ROOT, it.liters)
             }
         }

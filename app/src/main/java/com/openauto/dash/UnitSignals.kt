@@ -8,9 +8,21 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import androidx.core.content.ContextCompat
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Source
+import com.openauto.dash.vehicle.SourceKind
+import com.openauto.dash.vehicle.Vehicle
 import com.openauto.unitproto.UnitFamily
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 /*
  * Small things the QF firmware (ROCO K706) tells every app, read once at the
@@ -72,9 +84,27 @@ object UnitSignals {
     /** The supply voltage as the MCU last sent it ([McuFeed]); [supplyVolts] reads the firmware's copy. */
     val volts: StateFlow<Double?> = _volts
 
+    /**
+     * The unit on the vehicle bus: the supply voltage its power board measures ([mcuVolts], the MCU's
+     * message; else the firmware's copy of the figure, read while somebody wants it). A MCU source: it
+     * outranks the OBD adapter's volts whenever it has one.
+     */
+    private val busPublisher = Vehicle.bus.register(Source("qf.mcu", SourceKind.MCU, "Unit MCU"))
+
     internal fun mcuVolts(v: Double) {
-        if (v in 9.0..16.0) _volts.value = v
+        if (v in 9.0..16.0) {
+            _volts.value = v
+            mcuVoltsAt = android.os.SystemClock.elapsedRealtime()
+            busPublisher.put(K.BATTERY_VOLTS, v, ttlMs = MCU_VOLTS_KEEP_MS)
+        }
     }
+
+    @Volatile private var mcuVoltsAt = Long.MIN_VALUE / 2
+
+    /** The MCU says its volts now and then (on a change, it seems): a figure is believed for this long. */
+    private const val MCU_VOLTS_KEEP_MS = 10 * 60_000L
+    /** How often the firmware's copy of the supply voltage is read while the key is wanted (and the MCU has not said). */
+    private const val PROP_VOLTS_EVERY_MS = 5_000L
 
     private val _phone = MutableStateFlow<UnitPhone?>(null)
     /** The phone connected to the unit for calls, or null. */
@@ -125,6 +155,22 @@ object UnitSignals {
             addAction(ACTION_OUT_TEMP)
         }
         ContextCompat.registerReceiver(app, receiver, filter, ContextCompat.RECEIVER_EXPORTED)
+        watchPropertyVolts()
+    }
+
+    /** While the volts are wanted and the MCU has not sent any, the firmware's copy of them goes on the bus. */
+    private fun watchPropertyVolts() {
+        CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
+            Vehicle.bus.wanted.map { K.BATTERY_VOLTS in it }.distinctUntilChanged().collectLatest { wanted ->
+                if (!wanted) return@collectLatest
+                while (true) {
+                    if (android.os.SystemClock.elapsedRealtime() - mcuVoltsAt > MCU_VOLTS_KEEP_MS) {
+                        busPublisher.put(K.BATTERY_VOLTS, propertyVolts(), ttlMs = 3 * PROP_VOLTS_EVERY_MS)
+                    }
+                    delay(PROP_VOLTS_EVERY_MS)
+                }
+            }
+        }
     }
 
     private val receiver = object : BroadcastReceiver() {
@@ -194,7 +240,9 @@ object UnitSignals {
      * The car's supply voltage as the unit's own power board measures it (the
      * figure in the firmware's status bar, tenths of a volt), or null off this firmware.
      */
-    fun supplyVolts(): Double? = _volts.value ?:
+    fun supplyVolts(): Double? = _volts.value ?: propertyVolts()
+
+    private fun propertyVolts(): Double? =
         systemProperty("sys.qf.update_battery_power")?.toIntOrNull()?.div(10.0)?.takeIf { it in 9.0..16.0 }
 
     private fun refreshPhone(context: Context) {

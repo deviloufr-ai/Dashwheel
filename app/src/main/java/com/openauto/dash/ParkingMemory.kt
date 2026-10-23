@@ -1,5 +1,7 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.K
 import android.graphics.Bitmap
 import android.os.SystemClock
 import androidx.compose.ui.geometry.Offset
@@ -105,22 +107,28 @@ internal object ParkingMotion {
 
     private suspend fun followManoeuvre() {
         var last = SystemClock.elapsedRealtime()
-        while (true) {
-            delay(TICK_MS)
-            val now = SystemClock.elapsedRealtime()
-            val dt = (now - last) / 1000f
-            last = now
-            if (_pose.value == null || ReverseView.preview.value) continue
-            val reversing = CarBox.reversing.value
-            val kmh = speedKmh()
-            if (reversing) lastReverseAt = now
-            else if (now - lastReverseAt > KEEP_MS || (kmh ?: 0f) > DRIVING_KMH) {
-                end()
-                continue
+        // The speed is read by snapshot below: it stays wanted for the manoeuvre.
+        val hold = Vehicle.bus.hold(K.SPEED)
+        try {
+            while (true) {
+                delay(TICK_MS)
+                val now = SystemClock.elapsedRealtime()
+                val dt = (now - last) / 1000f
+                last = now
+                if (_pose.value == null || ReverseView.preview.value) continue
+                val reversing = CarBox.reversing.value
+                val kmh = speedKmh()
+                if (reversing) lastReverseAt = now
+                else if (now - lastReverseAt > KEEP_MS || (kmh ?: 0f) > DRIVING_KMH) {
+                    end()
+                    continue
+                }
+                if (now - cameraAt < CAMERA_FRESH_MS) continue
+                val v = (kmh ?: 0f) / 3.6f
+                if (v > 0f) move(v * dt * if (reversing) -1f else 1f)
             }
-            if (now - cameraAt < CAMERA_FRESH_MS) continue
-            val v = (kmh ?: 0f) / 3.6f
-            if (v > 0f) move(v * dt * if (reversing) -1f else 1f)
+        } finally {
+            hold.release()
         }
     }
 

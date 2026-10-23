@@ -1,5 +1,7 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.K
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -333,7 +335,7 @@ private fun WsWeatherTag(env: SkinTileEnv) {
  */
 @Composable
 private fun WsRangeTag(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     if (fuel == null) {
         Box(Modifier.fillMaxSize().wsSmoke(WS_CARD, editing = env.editing)) { StandardSkinnedTile(item, env) }
         return
@@ -490,7 +492,7 @@ private fun WsTelemetry(env: SkinTileEnv) {
             WsLine(stringResource(R.string.windshield_engine), wsText((size * 0.75f).coerceAtLeast(14f), DashColors.TextSecondary, FontWeight.Medium, caps = true), caps = true)
             when (state) {
                 ObdConnectionState.CONNECTED -> {
-                    val d = env.obdData
+                    val d = rememberReadings(K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
                     Row {
                         WsLine(groupThousands(d.rpm), wsText(size * 2.2f, DashColors.TextPrimary, FontWeight.SemiBold), Modifier.alignByBaseline(), overflow = TextOverflow.Clip)
                         Spacer(Modifier.width(8.dp))

@@ -1,5 +1,7 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.K
 import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -763,7 +765,7 @@ private fun PaperTelemetry(env: SkinTileEnv) {
         val rowH = size * 1.2f + 8f
         Column(Modifier.fillMaxSize().padding(pad), verticalArrangement = Arrangement.Center) {
             if (connected) {
-                val d = env.obdData
+                val d = rememberReadings(K.RPM, K.COOLANT_TEMP, K.INTAKE_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
                 val rows = buildList {
                     add(Triple(stringResource(R.string.paper_coolant), if (d.coolantTempC > 0) units.tempText(d.coolantTempC) else "--", d.coolantTempC >= COOLANT_WARNING_C))
                     add(Triple(stringResource(R.string.paper_battery), if (d.voltage > 0.0) String.format(Locale.getDefault(), "%.1f V", d.voltage) else "--", d.voltage > 0.0 && d.voltage !in BATTERY_OK_V))
@@ -799,7 +801,7 @@ private fun PaperTelemetry(env: SkinTileEnv) {
  */
 @Composable
 private fun PaperRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     if (fuel == null) {
         Box(Modifier.fillMaxSize().paperFallbackPanel()) { StandardSkinnedTile(item, env) }
         return

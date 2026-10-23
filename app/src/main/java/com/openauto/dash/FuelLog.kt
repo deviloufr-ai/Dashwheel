@@ -1,5 +1,8 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.fuelLevelPctNow
+import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.K
 import android.content.Context
 import com.openauto.dash.link.FuelFill
 import com.openauto.dash.link.FuelFills
@@ -111,15 +114,21 @@ internal object FuelLog {
     }
 
     private suspend fun follow() {
-        while (true) {
-            delay(TICK_MS)
-            if (DemoMode.isOn) continue
-            val info = carFuelInfo(McuReader.fuelPercent.value, ObdBluetoothManager.data.value.fuelLevelPct, McuReader.rangeKm.value) ?: continue
-            val before = gauge.baseline
-            val (next, rise) = FuelLogRules.step(gauge, info.percent, System.currentTimeMillis())
-            gauge = next
-            if (next.baseline != before) appContext?.let { prefs(it).edit().putInt("baseline", next.baseline ?: -1).apply() }
-            if (rise != null) logRise(rise, info)
+        // The fuel level is read by snapshot below: the key stays wanted while the loop runs.
+        val hold = Vehicle.bus.hold(K.FUEL_LEVEL)
+        try {
+            while (true) {
+                delay(TICK_MS)
+                if (DemoMode.isOn) continue
+                val info = carFuelInfo(McuReader.fuelPercent.value, fuelLevelPctNow(), McuReader.rangeKm.value) ?: continue
+                val before = gauge.baseline
+                val (next, rise) = FuelLogRules.step(gauge, info.percent, System.currentTimeMillis())
+                gauge = next
+                if (next.baseline != before) appContext?.let { prefs(it).edit().putInt("baseline", next.baseline ?: -1).apply() }
+                if (rise != null) logRise(rise, info)
+            }
+        } finally {
+            hold.release()
         }
     }
 

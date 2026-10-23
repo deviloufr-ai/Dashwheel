@@ -1,5 +1,7 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.K
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -763,7 +765,7 @@ internal fun HorizonTopBar(m: TopBarModel) {
                     }
                 }
                 Row(modifier = Modifier.layoutId(BarRank.ALERTS), verticalAlignment = Alignment.CenterVertically) {
-                    VehicleAlerts(m.obdConnection, m.obd)
+                    VehicleAlerts()
                 }
                 Box(Modifier.layoutId(BarRank.PHONE)) { PhonePill() }
                 Box(Modifier.layoutId(BarRank.OBD)) { HorizonObdDot(m.obdConnection, m.onConnectObd) }
@@ -917,6 +919,7 @@ private fun HorizonTelemetry(env: SkinTileEnv, side: Side) {
     val state = env.obdConnection
     val connected = state == ObdConnectionState.CONNECTED
     val idle = state.isIdle
+    val d = rememberReadings(K.SPEED, K.RPM, K.COOLANT_TEMP, K.BATTERY_VOLTS, K.ENGINE_LOAD)
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
@@ -928,7 +931,7 @@ private fun HorizonTelemetry(env: SkinTileEnv, side: Side) {
         val lineSp = (maxWidth.value / 24f).coerceIn(12f, 20f)
         val lineStyle = ui(lineSp, if (connected || state == ObdConnectionState.CONNECTING) DashColors.TextSecondary else DashColors.Accent)
         val line = when (state) {
-            ObdConnectionState.CONNECTED -> firstFitting(telemetryLines(env.obdData, env.context, LocalUnits.current), lineStyle, maxWidth)
+            ObdConnectionState.CONNECTED -> firstFitting(telemetryLines(d, env.context, LocalUnits.current), lineStyle, maxWidth)
             ObdConnectionState.CONNECTING -> stringResource(R.string.horizon_obd_connecting)
             ObdConnectionState.ERROR -> stringResource(R.string.horizon_obd_error_retry)
             ObdConnectionState.DISCONNECTED -> stringResource(R.string.horizon_obd_tap_connect)
@@ -936,7 +939,7 @@ private fun HorizonTelemetry(env: SkinTileEnv, side: Side) {
         val figureW = maxWidth
         val figureH = maxHeight - (lineSp * 1.3f + 8f).dp
         Column(horizontalAlignment = side.h) {
-            SpeedFigure(if (connected) env.obdData.speedKmh else null, figureW, figureH)
+            SpeedFigure(if (connected) d.speedKmh else null, figureW, figureH)
             Spacer(Modifier.height(4.dp))
             SceneText(line, lineStyle, align = side.text)
         }
@@ -1396,7 +1399,7 @@ private fun HorizonWeather(side: Side) {
 /** Fuel & range: serif "480 km", "range · 62% fuel" and a thin mint gauge; unknown fuel falls back to the standard tile. */
 @Composable
 private fun HorizonRange(item: DashboardItem, env: SkinTileEnv, side: Side) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     if (fuel == null) {
         StandardSkinnedTile(item, env)
         return

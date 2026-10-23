@@ -1,5 +1,7 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.K
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -381,7 +383,7 @@ private fun SpNavigation(item: DashboardItem, env: SkinTileEnv) {
 @Composable
 private fun SpRoute(nav: NavState, item: DashboardItem, env: SkinTileEnv) {
     val context = env.context
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     var picked by remember { mutableStateOf(SpNavTab.TURN) }
     LaunchedEffect(picked) {
         if (picked != SpNavTab.TURN) {
@@ -877,7 +879,7 @@ private fun SpTelemetry(env: SkinTileEnv) {
             Spacer(Modifier.height(12.dp))
             when (state) {
                 ObdConnectionState.CONNECTED -> {
-                    val d = env.obdData
+                    val d = rememberReadings(K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
                     FitRow(20.dp) {
                         if (d.coolantTempC > 0) {
                             SpReadout(stringResource(R.string.spatial_coolant), "${units.temp(d.coolantTempC)}°", d.coolantTempC >= COOLANT_WARNING_C, readSize)
@@ -918,7 +920,7 @@ private fun SpReadout(label: String, value: String, warn: Boolean, size: Float) 
  */
 @Composable
 private fun SpRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     if (fuel == null) {
         Box(Modifier.fillMaxSize().spatialGlass(editing = env.editing)) { StandardSkinnedTile(item, env) }
         return

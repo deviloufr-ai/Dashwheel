@@ -760,7 +760,7 @@ internal fun AnimeTopBar(m: TopBarModel) {
                     }
                 }
                 Row(modifier = Modifier.layoutId(BarRank.ALERTS), verticalAlignment = Alignment.CenterVertically) {
-                    VehicleAlerts(m.obdConnection, m.obd)
+                    VehicleAlerts()
                 }
                 Box(Modifier.layoutId(BarRank.PHONE).padding(end = 6.dp)) { PhonePill() }
                 Box(Modifier.layoutId(BarRank.OBD).padding(end = 8.dp)) { AnimeObdSticker(m.obdConnection, m.onConnectObd) }

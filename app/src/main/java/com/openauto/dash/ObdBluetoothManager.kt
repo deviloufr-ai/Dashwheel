@@ -49,7 +49,7 @@ data class ObdData(
      * ATRV. Only the former is trusted for alerts: clone adapters misread ATRV.
      */
     val voltageFromEcu: Boolean = false,
-    /** Petrol the engine computer asks for, litres an hour; null when not read (see [ObdBluetoothManager.wantFuelFlow]). */
+    /** Petrol the engine computer asks for, litres an hour; null when not read (read only while something wants the fuel flow key, see [obdPollPlan]). */
     val fuelFlowLh: Double? = null
 )
 
@@ -181,23 +181,28 @@ object ObdBluetoothManager {
     private val _connectionState = MutableStateFlow(ObdConnectionState.DISCONNECTED)
     val connectionState: StateFlow<ObdConnectionState> = _connectionState.asStateFlow()
 
-    /** This adapter on the vehicle bus: the speed (already corrected) while linked; nothing once it is not. */
-    private val busPublisher = Vehicle.bus.register(Source("obd", SourceKind.OBD, "OBD"))
+    /**
+     * This adapter on the vehicle bus: the gauges it has answered, from every write of the readings
+     * (ELM327, Deep OBD, the phone relay, the demo) while linked; nothing once it is not.
+     */
+    private val gaugeOut = ObdGaugePublisher(Vehicle.bus.register(Source("obd", SourceKind.OBD, "OBD")))
 
     init {
-        // Every route (ELM327, Deep OBD, the phone relay, the demo) ends in a connection state and in [data].
-        CoroutineScope(SupervisorJob() + Dispatchers.Default).launch { _connectionState.collect { publishSpeed() } }
+        // Every route ends in a connection state and in [data]; a link that is gone takes its readings off the bus.
+        CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
+            _connectionState.collect { if (it != ObdConnectionState.CONNECTED) gaugeOut.withdrawAll() }
+        }
     }
 
-    /** Sets [data] and tells the bus its speed; every write of the readings goes through here. */
-    private fun setData(data: ObdData) {
+    /**
+     * Sets [data] and tells the bus the [fresh] readings in it (the ones the adapter answered just now);
+     * every write of the readings goes through here. A write with nothing fresh (a cleared record) takes them off.
+     */
+    private fun setData(data: ObdData, fresh: Set<Pid> = emptySet(), voltsFromEcu: Boolean = data.voltageFromEcu, minTtlMs: Long = 0L) {
         _data.value = data
-        publishSpeed()
-    }
-
-    private fun publishSpeed() {
-        val kmh = _data.value.speedKmh.takeIf { _connectionState.value == ObdConnectionState.CONNECTED }
-        busPublisher.put(K.VEHICLE_SPEED, kmh?.toDouble())
+        if (_connectionState.value != ObdConnectionState.CONNECTED) gaugeOut.withdrawAll()
+        else if (fresh.isNotEmpty()) gaugeOut.publish(data, fresh, voltsFromEcu, minTtlMs)
+        else if (data.fuelFlowLh == null) gaugeOut.publish(data, emptySet())
     }
 
     /** The engine lamp from the last fault-code scan; null until one ran or if the car didn't say. */
@@ -273,12 +278,11 @@ object ObdBluetoothManager {
     fun canDial(): Boolean = DeepObdSource.owns() || usesUsb() || usesPhone() || savedDeviceAddress() != null
 
     /** [DeepObdSource]'s readings, shown as if an adapter were connected. */
-    internal fun deepObdWrite(data: ObdData) {
+    internal fun deepObdWrite(data: ObdData, fresh: Set<Pid>) {
         if (DemoMode.isOn) return
         _lastError.value = null
-        setData(data)
         _connectionState.value = ObdConnectionState.CONNECTED
-        BatteryWatch.feed(data, System.currentTimeMillis())
+        setData(data, fresh, minTtlMs = DEEP_OBD_TTL_MS)
     }
 
     /** Deep OBD stopped sending: nothing is read any more. */
@@ -849,10 +853,6 @@ object ObdBluetoothManager {
         if (route() == ObdRoute.UNIT || route() == ObdRoute.PHONE) setRoute(ObdRoute.AUTO)
     }
 
-    /** Read the engine's fuel flow too ([ObdData.fuelFlowLh]): set by the LPG tank when it counts with it. */
-    @Volatile
-    var wantFuelFlow: Boolean = false
-
     /** Polls speed, RPM and coolant temperature once, updating [data]. */
     suspend fun poll(): Unit = withContext(Dispatchers.IO) {
         if (DemoMode.isOn || DeepObdSource.owns() || _connectionState.value != ObdConnectionState.CONNECTED) return@withContext
@@ -862,16 +862,17 @@ object ObdBluetoothManager {
     }
 
     /**
-     * One poll. Speed and revs are asked every time; throttle and load every
-     * fourth poll each; the slow readings (temperatures, fuel, voltage) take turns,
-     * one per poll. Each request is a round trip to the car, so fewer of them
-     * means fresher speed and revs. The first poll asks for everything.
+     * One poll: what [obdPollPlan] says for the keys somebody wants (speed every time, then revs,
+     * throttle, load, fuel flow and the slow readings in their rhythm), and only those. Each request
+     * is a round trip to the car, so fewer of them means fresher speed and revs. The first poll asks
+     * for every wanted reading. What answered goes on the bus ([ObdGaugePublisher]).
      */
     private fun pollLocked() {
         val cycle = pollCount++
         val first = cycle == 0
+        val plan = obdPollPlan(Vehicle.bus.wanted.value, cycle).toSet()
         val speed = sendCommand("010D")?.let { ObdParser.parseSpeed(it) }
-        val rpm = sendCommand("010C")?.let { ObdParser.parseRpm(it) }
+        val rpm = if (Pid.RPM in plan) sendCommand("010C")?.let { ObdParser.parseRpm(it) } else null
         val alive = speed != null || rpm != null
         silentPolls = if (alive) 0 else silentPolls + 1
         if (alive) lastAliveAt = SystemClock.elapsedRealtime()
@@ -881,36 +882,27 @@ object ObdBluetoothManager {
             supported = ObdParser.supportedPids { sendCommand(it) }
         }
 
-        // Throttle and load every fourth poll each, on alternate polls: one round trip
-        // in two instead of one in every, so the revs and the speed come round sooner.
-        val throttle = if (first || cycle % 4 == 0) read(0x11, alive, cycle) { ObdParser.percentFrom(it, "4111") } else null
-        val load = if (first || cycle % 4 == 2) read(0x04, alive, cycle) { ObdParser.percentFrom(it, "4104") } else null
-        // The fuel the engine asks for, only while the LPG tank counts with it: the engine's own
-        // fuel rate where it serves one, else worked out from the air flow.
-        val flow = if (wantFuelFlow && (first || cycle % 2 == 1)) {
+        val throttle = if (Pid.THROTTLE in plan) read(0x11, alive, cycle) { ObdParser.percentFrom(it, "4111") } else null
+        val load = if (Pid.LOAD in plan) read(0x04, alive, cycle) { ObdParser.percentFrom(it, "4104") } else null
+        // The fuel the engine asks for, only while something wants it (the LPG tank counting with it): the
+        // engine's own fuel rate where it serves one, else worked out from the air flow.
+        val wantFlow = Pid.FUEL_FLOW in plan
+        val flow = if (wantFlow) {
             read(0x5E, alive, cycle) { ObdParser.parseFuelRate(it) } ?: read(0x10, alive, cycle) { ObdParser.parseMafAsPetrol(it) }
         } else null
-        val slot = cycle % SLOW_SLOTS
-        val coolant = if (first || slot == 0) read(0x05, alive, cycle) { ObdParser.parseCoolant(it) } else null
-        val intake = if (first || slot == 1) read(0x0F, alive, cycle) { ObdParser.tempFrom(it, "410F") } else null
-        val fuel = if (first || slot == 2) read(0x2F, alive, cycle) { ObdParser.percentFrom(it, "412F") } else null
+        val coolant = if (Pid.COOLANT in plan) read(0x05, alive, cycle) { ObdParser.parseCoolant(it) } else null
+        val intake = if (Pid.INTAKE in plan) read(0x0F, alive, cycle) { ObdParser.tempFrom(it, "410F") } else null
+        val fuel = if (Pid.FUEL_LEVEL in plan) read(0x2F, alive, cycle) { ObdParser.percentFrom(it, "412F") } else null
         var ecuVolt: Double? = null
         var volt: Double? = null
-        if (first || slot == 3) {
+        if (Pid.VOLTS in plan) {
             // Prefer the ECU's control-module voltage (PID 0142) — it reads the real
             // bus voltage. Many ELM327 clones report a miscalibrated ATRV (e.g. 16.9V
             // when the bus is ~14.5V), so ATRV is only a fallback when 0142 is
             // unsupported (then it is the only request, not a second one each time).
+            // The unit's own supply voltage is not mixed in here: it is a source of its own on the bus.
             ecuVolt = read(0x42, alive, cycle) { ObdParser.parseControlModuleVoltage(it) }
             volt = ecuVolt ?: sendCommand("ATRV")?.let { ObdParser.parseVoltage(it) }
-            // Engine running, and the OBD figure is far from what the unit itself measures on the
-            // car's supply (12.3 V "not charging" against 14.3 V in the bar): the OBD figure is the
-            // one that's off, so the unit's is used, and trusted like the ECU's.
-            val unitVolt = UnitSignals.supplyVolts()
-            if (unitVolt != null && (rpm ?: _data.value.rpm) > BatteryJudge.RUNNING_RPM && (volt ?: _data.value.voltage).let { it > 0.0 && Math.abs(it - unitVolt) > UNIT_VOLT_DISAGREES_V }) {
-                volt = unitVolt
-                ecuVolt = unitVolt
-            }
         }
 
         val d = _data.value
@@ -925,15 +917,30 @@ object ObdBluetoothManager {
             fuelLevelPct = fuel ?: d.fuelLevelPct,
             voltage = volt ?: d.voltage,
             voltageFromEcu = if (volt != null) ecuVolt != null else d.voltageFromEcu,
-            fuelFlowLh = if (wantFuelFlow) flow ?: d.fuelFlowLh else null
+            fuelFlowLh = if (wantFlow) flow ?: d.fuelFlowLh else null
         )
+        val fresh = buildSet {
+            if (speed != null) add(Pid.SPEED)
+            if (rpm != null) add(Pid.RPM)
+            if (throttle != null) add(Pid.THROTTLE)
+            if (load != null) add(Pid.LOAD)
+            if (coolant != null) add(Pid.COOLANT)
+            if (intake != null) add(Pid.INTAKE)
+            if (fuel != null) add(Pid.FUEL_LEVEL)
+            if (volt != null) add(Pid.VOLTS)
+            if (flow != null) add(Pid.FUEL_FLOW)
+        }
         // Engine off with the key in accessory: every PID says NO DATA while the
         // adapter stays linked. The last revs and speed would otherwise stay up
         // for good (a drive that never ends, a battery judged on old readings);
         // the temperatures, fuel and voltage keep their last value, as a gauge would.
         val silentFor = SystemClock.elapsedRealtime() - lastAliveAt
-        setData(if (silentPolls >= STALE_POLLS && silentFor >= STALE_MS) next.engineStopped() else next)
-        BatteryWatch.feed(_data.value, System.currentTimeMillis())
+        if (silentPolls >= STALE_POLLS && silentFor >= STALE_MS) {
+            // The car really is stopped: speed, revs, throttle and load are 0 on the bus, not unknown.
+            setData(next.engineStopped(), fresh + setOf(Pid.SPEED, Pid.RPM, Pid.THROTTLE, Pid.LOAD))
+        } else {
+            setData(next, fresh, voltsFromEcu = next.voltageFromEcu)
+        }
     }
 
     /**
@@ -962,10 +969,10 @@ object ObdBluetoothManager {
     /** An unlisted PID that stopped answering is tried again this often (~1 min). */
     private const val RETRY_DROPPED_POLLS = 120
     private const val MAX_MISSES = 3
-    /** The slow readings share this many polls, one each. */
-    private const val SLOW_SLOTS = 4
-    /** OBD and unit voltages further apart than this: the unit's is believed. */
-    private const val UNIT_VOLT_DISAGREES_V = 1.0
+    /** Deep OBD says a page when it has read it, seconds apart: its readings live this long on the bus. */
+    private const val DEEP_OBD_TTL_MS = 10_000L
+    /** What the demo's readings answer: everything but the fuel flow. */
+    private val DEMO_FRESH = setOf(Pid.SPEED, Pid.RPM, Pid.THROTTLE, Pid.LOAD, Pid.COOLANT, Pid.INTAKE, Pid.FUEL_LEVEL, Pid.VOLTS)
     private const val SUPPORTED_RETRY_POLLS = 20
 
     /**
@@ -1194,7 +1201,7 @@ object ObdBluetoothManager {
     /** [DemoMode]'s readings, shown as if an adapter were connected. */
     internal fun demoWrite(data: ObdData, lamp: EngineLamp?, pending: Set<String>) {
         _connectionState.value = ObdConnectionState.CONNECTED
-        setData(data)
+        setData(data, DEMO_FRESH, voltsFromEcu = true)
         _lamp.value = lamp
         _pending.value = pending
     }

@@ -1,5 +1,8 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberGaugeInt
+import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.K
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import android.Manifest
@@ -320,7 +323,7 @@ private fun CanvasSpeed(env: SkinTileEnv) {
                 Label(units.speedUnit, (d.value * 0.075f).coerceAtLeast(13f))
                 if (connected && d >= 200.dp) {
                     Spacer(Modifier.height(4.dp))
-                    Label(String.format(Locale.getDefault(), "%,d rpm", env.obdData.rpm), 14f, DashColors.Muted)
+                    Label(String.format(Locale.getDefault(), "%,d rpm", rememberGaugeInt(K.RPM) ?: 0), 14f, DashColors.Muted)
                 }
             }
         }
@@ -337,8 +340,8 @@ private class CarLine(val label: String, val value: String, val warn: Boolean)
 @Composable
 private fun CanvasCar(env: SkinTileEnv) {
     val connected = env.obdConnection == ObdConnectionState.CONNECTED
-    val d = env.obdData
-    val fuel = rememberFuel(d, env.obdConnection)
+    val d = rememberReadings(K.COOLANT_TEMP, K.BATTERY_VOLTS)
+    val fuel = rememberFuel()
     val tyres by Tyres.tyres.collectAsState()
     val problems by Tyres.problems.collectAsState()
     val unit by Tyres.unit.collectAsState()
@@ -372,7 +375,7 @@ private fun CanvasCar(env: SkinTileEnv) {
 /** Range as one big number, the tank as a bar under it, the level in words. */
 @Composable
 private fun CanvasRange(env: SkinTileEnv) {
-    val fuel = rememberFuel(env) ?: return StandardSkinnedTile(DashboardItem.BuiltinWidget(BuiltinKind.RANGE), env)
+    val fuel = rememberFuel() ?: return StandardSkinnedTile(DashboardItem.BuiltinWidget(BuiltinKind.RANGE), env)
     val low = fuel.percent <= 10
     Column(modifier = Modifier.fillMaxSize().then(canvasGlass()).padding(20.dp), verticalArrangement = Arrangement.SpaceBetween) {
         Row(verticalAlignment = Alignment.CenterVertically) {

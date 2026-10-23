@@ -1,5 +1,8 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberGauge
+import com.openauto.dash.vehicle.rememberGaugeInt
+import com.openauto.dash.vehicle.K
 import android.graphics.Bitmap
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -261,9 +264,9 @@ private fun GlyphTelemetry(env: SkinTileEnv) {
     val state = env.obdConnection
     val connected = state == ObdConnectionState.CONNECTED
     val units = LocalUnits.current
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     val speed = rememberSpeedKmh()
-    val coolant by remember(env) { derivedStateOf { if (env.obdConnection == ObdConnectionState.CONNECTED) env.obdData.coolantTempC else 0 } }
+    val coolant = rememberGaugeInt(K.COOLANT_TEMP) ?: 0
     val hot = coolant >= COOLANT_WARNING_C
     val rangeLabel = stringResource(R.string.glyph_label_range)
     val coolantLabel = stringResource(R.string.glyph_label_coolant, units.tempUnit)
@@ -647,7 +650,7 @@ private fun GlyphEq(playing: Boolean, modifier: Modifier) {
  */
 @Composable
 private fun GlyphRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     val units = LocalUnits.current
     BoxWithConstraints(Modifier.fillMaxSize().graphicsLayer()) {
         val hero = maxWidth >= GLYPH_HERO_MIN_W && maxHeight >= GLYPH_HERO_MIN_H

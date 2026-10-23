@@ -2,7 +2,7 @@ package com.openauto.dash
 
 import com.openauto.dash.vehicle.Source
 import com.openauto.dash.vehicle.SourceKind
-import com.openauto.dash.vehicle.SteadySpeed
+import com.openauto.dash.vehicle.K
 import com.openauto.dash.vehicle.Vehicle
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,9 +23,9 @@ object CarFeed : CarSink {
 
     /**
      * The unit's bus on the vehicle bus: its speed, with the driver's correction. A bus says it on a
-     * change (or now and then), so the last one is held a while ([SteadySpeed]).
+     * change (or now and then), so each value lives [BUS_HOLD_MS] instead of the key's 3 s.
      */
-    private val speedOut = SteadySpeed(Vehicle.bus.register(Source("unit.bus", SourceKind.CANBOX, "Unit bus")), holdMs = BUS_HOLD_MS)
+    private val busPublisher = Vehicle.bus.register(Source("unit.bus", SourceKind.CANBOX, "Unit bus"))
     private const val BUS_HOLD_MS = 10_000L
 
     private val _rpm = MutableStateFlow<Int?>(null)
@@ -58,7 +58,7 @@ object CarFeed : CarSink {
     override fun speedKmh(v: Float?) {
         if (v != null) UnitPlatform.markUsed(Cap.SPEED_RPM)
         _speedKmh.value = v
-        speedOut.set(v?.let { SpeedCorrection.corrected(it.roundToInt()) }?.toDouble())
+        busPublisher.put(K.VEHICLE_SPEED, v?.let { SpeedCorrection.corrected(it.roundToInt()) }?.toDouble(), ttlMs = BUS_HOLD_MS)
     }
 
     override fun rpm(v: Int?) {

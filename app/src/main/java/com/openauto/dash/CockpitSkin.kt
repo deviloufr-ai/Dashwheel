@@ -1,5 +1,7 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.K
 import android.graphics.Bitmap
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -480,7 +482,7 @@ internal fun CockpitTopBar(m: TopBarModel) {
                     }
                 }
                 Row(modifier = Modifier.layoutId(BarRank.ALERTS), verticalAlignment = Alignment.CenterVertically) {
-                    VehicleAlerts(m.obdConnection, m.obd)
+                    VehicleAlerts()
                 }
                 Box(Modifier.layoutId(BarRank.PHONE)) { PhonePill() }
                 if (!narrow) Box(Modifier.layoutId(BarRank.TEMP)) { OutsideTempLcd() }
@@ -1277,8 +1279,8 @@ private fun CockpitTelemetry(env: SkinTileEnv) {
     val state = env.obdConnection
     val connected = state == ObdConnectionState.CONNECTED
     val idle = state.isIdle
-    val d = env.obdData
-    val fuel = rememberFuel(d, state)
+    val d = rememberReadings(K.SPEED, K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
+    val fuel = rememberFuel()
     val speed = if (connected) d.speedKmh else null
     val rpm = if (connected) d.rpm else null
     val ink = LcdInk
@@ -1375,7 +1377,7 @@ private fun CockpitTelemetry(env: SkinTileEnv) {
 /** The warning-lamp column between the two dials; says how to connect while OBD is off. */
 @Composable
 private fun TelemetryTellTales(env: SkinTileEnv, speed: Int?, idle: Boolean, modifier: Modifier) {
-    val d = env.obdData
+    val d = rememberReadings(K.COOLANT_TEMP, K.BATTERY_VOLTS)
     val connected = env.obdConnection == ObdConnectionState.CONNECTED
     val warn = DashColors.Warning
     Column(
@@ -2181,7 +2183,7 @@ private fun CockpitWeather() {
  */
 @Composable
 private fun CockpitRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     if (fuel == null) {
         StandardSkinnedTile(item, env)
         return

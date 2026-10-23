@@ -1,5 +1,8 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberGaugeInt
+import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.K
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -335,7 +338,7 @@ private fun AnimeTelemetry(env: SkinTileEnv) {
         return
     }
     val t = animeTones
-    val d = env.obdData
+    val d = rememberReadings(K.SPEED, K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
     val units = LocalUnits.current
     val rpmWord = stringResource(R.string.skin_anime_rpm)
     val batteryWord = stringResource(R.string.skin_anime_battery)
@@ -410,7 +413,7 @@ private fun AnimeLiveTag(env: SkinTileEnv, modifier: Modifier) {
  */
 @Composable
 private fun AnimeRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     if (fuel == null) {
         StandardSkinnedTile(item, env)
         return
@@ -422,7 +425,7 @@ private fun AnimeRange(item: DashboardItem, env: SkinTileEnv) {
     val toGo = stringResource(R.string.skin_anime_to_go)
     val connected = env.obdConnection == ObdConnectionState.CONNECTED
     // The coolant temperature only, not every OBD sample (the revs move several times a second).
-    val coolantC by remember(env) { derivedStateOf { env.obdData.coolantTempC } }
+    val coolantC = rememberGaugeInt(K.COOLANT_TEMP) ?: 0
     val coolant = if (connected) coolantChip(coolantC, units) else null
     BoxWithConstraints(Modifier.fillMaxSize().padding(TILE_PAD)) {
         val chips = buildList {

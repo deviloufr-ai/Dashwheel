@@ -1,5 +1,6 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberGaugeInt
 import android.content.Context
 import android.content.Intent
 import android.location.Location
@@ -349,43 +350,22 @@ internal fun rememberWeatherWait(): WeatherWait {
 }
 
 /**
- * Fuel from the CANbox when learned, else the OBD fuel PID, with the car's own
+ * Fuel from the CANbox when learned, else the OBD fuel PID ([K.FUEL_LEVEL]), with the car's own
  * distance to empty when its CANbox signal is known; null when none of them is
  * (the standard [RangeCard] explains how to learn them). Keeps the CANbox
- * stream running while on screen.
+ * stream running while on screen. Only the fuel level is followed, so a range
+ * tile redraws when its own reading changes.
  */
 @Composable
-internal fun rememberFuel(obdData: ObdData, connection: ObdConnectionState): FuelInfo? =
-    rememberFuelFrom(obdData.fuelLevelPct, connection)
-
-/**
- * [rememberFuel] for a skin's tile. Only the OBD fuel level is followed, not
- * every OBD sample (the revs move several times a second), so a range tile
- * redraws when its own reading changes.
- */
-@Composable
-internal fun rememberFuel(env: SkinTileEnv): FuelInfo? {
-    val obdFuel by remember(env) { derivedStateOf { env.obdData.fuelLevelPct } }
-    return rememberFuelFrom(obdFuel, env.obdConnection)
-}
-
-/** [rememberFuel] from the OBD feed's state, following its fuel level only. */
-@Composable
-internal fun rememberFuel(obd: State<ObdData>, connection: ObdConnectionState): FuelInfo? {
-    val obdFuel by remember(obd) { derivedStateOf { obd.value.fuelLevelPct } }
-    return rememberFuelFrom(obdFuel, connection)
-}
-
-@Composable
-private fun rememberFuelFrom(obdFuelPct: Int, connection: ObdConnectionState): FuelInfo? {
+internal fun rememberFuel(): FuelInfo? {
+    val obdFuelPct = rememberGaugeInt(K.FUEL_LEVEL) ?: 0
     DisposableEffect(Unit) {
         McuReader.start()
         onDispose { McuReader.stop() }
     }
     val canFuel by McuReader.fuelPercent.collectAsState()
     val canRange by McuReader.rangeKm.collectAsState()
-    val obdFuel = if (connection == ObdConnectionState.CONNECTED) obdFuelPct else 0
-    return carFuelInfo(canFuel, obdFuel, canRange)
+    return carFuelInfo(canFuel, obdFuelPct, canRange)
 }
 
 /** Playback progress 0..1, and 0 while the duration is unknown. */

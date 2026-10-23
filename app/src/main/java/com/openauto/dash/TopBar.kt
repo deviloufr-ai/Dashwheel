@@ -2,6 +2,8 @@
 
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.rememberGauges
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.annotation.StringRes
@@ -124,9 +126,9 @@ import kotlin.math.roundToInt
 
 /**
  * Everything a top bar shows and can do; each skin's bar arranges the same model.
- * The OBD readings and the link's state are [State]s, read only where they
- * are drawn ([obdData], [obdConnection]), so a new sample or a dial of the
- * adapter does not recompose the whole bar.
+ * The link's state is a [State], read only where it is drawn ([obdConnection]),
+ * so a dial of the adapter does not recompose the whole bar. The readings are
+ * not in the model: the parts of the bar that show one read its key.
  *
  * A data class: the dashboard builds a fresh model on each of its own
  * recompositions, and only one that differs in a value (the callbacks are
@@ -137,7 +139,6 @@ internal data class TopBarModel(
     val clock: String,
     val versionName: String,
     val obdConnectionState: State<ObdConnectionState>,
-    val obd: State<ObdData>,
     val editing: Boolean,
     val layout: DashLayout,
     val onLayout: (DashLayout) -> Unit,
@@ -175,7 +176,6 @@ internal data class TopBarModel(
     /** Opens Moments (MomentsScreen.kt). */
     val onMoments: () -> Unit = {}
 ) {
-    val obdData: ObdData get() = obd.value
     val obdConnection: ObdConnectionState get() = obdConnectionState.value
 }
 
@@ -242,7 +242,7 @@ internal fun StandardTopBar(m: TopBarModel) {
                     BarReadouts(items, m, Modifier.weight(1f).padding(horizontal = 8.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         if (m.demo) Box(Modifier.padding(end = 6.dp)) { DemoBadge(onStop = m.onDemo, compact = true) }
-                        VehicleAlerts(m.obdConnection, m.obd)
+                        VehicleAlerts()
                         if (m.setupPending) Box(Modifier.padding(end = 6.dp)) { SetupPill(onClick = { m.onSetup(false) }, compact = true) }
                         MorePicker(m, geminiInBar = true) { open ->
                             BarButton(onClick = open, description = stringResource(R.string.dash_more)) {
@@ -284,7 +284,7 @@ internal fun StandardTopBar(m: TopBarModel) {
                         }
                     }
                     Row(modifier = Modifier.layoutId(BarRank.ALERTS), verticalAlignment = Alignment.CenterVertically) {
-                        VehicleAlerts(m.obdConnection, m.obd)
+                        VehicleAlerts()
                     }
                     Box(Modifier.layoutId(BarRank.PHONE).padding(end = 6.dp)) { PhonePill() }
                     if (m.setupPending) {
@@ -449,20 +449,20 @@ private fun BarClock(clock: String, style: TextStyle = MaterialTheme.typography.
 @Composable
 private fun ClusterReadout(m: TopBarModel) {
     // The readings are read here, so they recompose the readout alone.
-    ClusterReadout(rememberSpeedKmh() ?: 0, m.obdData, m.obdConnection)
+    ClusterReadout(rememberSpeedKmh() ?: 0)
 }
 
 @Composable
-private fun ClusterReadout(speedKmh: Int, obd: ObdData, connection: ObdConnectionState) {
-    val connected = connection == ObdConnectionState.CONNECTED
+private fun ClusterReadout(speedKmh: Int) {
+    val g = rememberGauges(K.RPM, K.COOLANT_TEMP)
     // The same fuel as the Fuel & Range tile: the CANbox's level first (many
     // cars, the C4 Picasso among them, don't answer the OBD fuel PID), then OBD.
-    val fuel = rememberFuel(obd, connection)
+    val fuel = rememberFuel()
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(18.dp)) {
         FuelSegmentBar(label = stringResource(R.string.vehicle_fuel), percent = fuel?.percent)
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                val lit = if (connected) (obd.rpm / 7000f * TACHO_SEGMENTS).toInt().coerceIn(0, TACHO_SEGMENTS) else 0
+                val lit = g.rpm?.let { (it / 7000f * TACHO_SEGMENTS).toInt().coerceIn(0, TACHO_SEGMENTS) } ?: 0
                 repeat(TACHO_SEGMENTS) { i ->
                     val colour = when {
                         i >= lit -> DashColors.CardHi
@@ -497,9 +497,9 @@ private fun ClusterReadout(speedKmh: Int, obd: ObdData, connection: ObdConnectio
         }
         SegmentBar(
             label = stringResource(R.string.vehicle_coolant),
-            fraction = if (connected) obd.coolantTempC / 120f else 0f,
-            hot = obd.coolantTempC >= COOLANT_WARNING_C,
-            value = if (connected) "${LocalUnits.current.temp(obd.coolantTempC)}°" else null
+            fraction = (g.coolantTempC ?: 0) / 120f,
+            hot = (g.coolantTempC ?: 0) >= COOLANT_WARNING_C,
+            value = g.coolantTempC?.let { "${LocalUnits.current.temp(it)}°" }
         )
     }
 }
@@ -1153,9 +1153,8 @@ private fun MenuIcon(icon: ImageVector, enabled: Boolean = true) {
  * out of range, red ones for a critical reading, kept until tapped. Nothing
  * shows while everything is normal or OBD is off.
  */
-@Suppress("UNUSED_PARAMETER")
 @Composable
-internal fun VehicleAlerts(obdConnection: ObdConnectionState, obd: State<ObdData>) {
+internal fun VehicleAlerts() {
     // Judged for the whole process (AlertCenter.evaluate, from VehicleMonitor),
     // so an alert raised behind a full-screen app is here when the bar comes back.
     val held = AlertCenter.critical

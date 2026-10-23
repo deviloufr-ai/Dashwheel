@@ -407,7 +407,7 @@ internal fun WindshieldTopBar(m: TopBarModel) {
             Box(Modifier.layoutId(BarRank.TEMP).padding(end = 14.dp)) { WsBandTemp() }
             if (m.demo) Box(Modifier.layoutId(BarRank.DEMO).padding(end = 8.dp)) { DemoBadge(onStop = m.onDemo, compact = true) }
             if (m.setupPending) Box(Modifier.layoutId(BarRank.SETUP).padding(end = 8.dp)) { SetupPill(onClick = { m.onSetup(false) }, compact = true) }
-            Row(Modifier.layoutId(BarRank.ALERTS), verticalAlignment = Alignment.CenterVertically) { VehicleAlerts(m.obdConnection, m.obd) }
+            Row(Modifier.layoutId(BarRank.ALERTS), verticalAlignment = Alignment.CenterVertically) { VehicleAlerts() }
             Box(Modifier.layoutId(BarRank.PHONE).padding(end = 8.dp)) { PhonePill() }
             Box(Modifier.layoutId(BarRank.OBD)) { WsBandTalk() }
             Box(Modifier.layoutId(BarRank.OBD)) { WsBandObd(m.obdConnection, m.onConnectObd) }

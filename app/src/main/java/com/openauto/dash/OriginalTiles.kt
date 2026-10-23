@@ -1,5 +1,8 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberDisplaySpeedKmh
+import com.openauto.dash.vehicle.rememberGauges
+import com.openauto.dash.vehicle.K
 import android.content.Context
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -239,13 +242,15 @@ private fun OriginalMediaProgress(mediaState: MediaState, controller: CarMediaCo
 
 @Composable
 internal fun OriginalObdCard(
-    obdData: ObdData,
     connection: ObdConnectionState,
     onConnect: () -> Unit,
     onPickDevice: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val connected = connection == ObdConnectionState.CONNECTED
+    // The speed as the bar shows it and the engine's gauges; null = not answered ("--").
+    val speed = rememberDisplaySpeedKmh()
+    val g = rememberGauges(K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
     Card(modifier = modifier) {
         Column(modifier = Modifier.fillMaxSize().padding(14.dp)) {
             // Header: title + live connection status / connect button.
@@ -295,27 +300,27 @@ internal fun OriginalObdCard(
                 val u = LocalUnits.current
                 val top = u.speedScale(220)
                 OriginalAnalogGauge(
-                    value = if (connected) u.speed(obdData.speedKmh).toFloat() else 0f,
+                    value = speed?.let { u.speed(it).toFloat() } ?: 0f,
                     maxValue = top.toFloat(),
-                    valueText = if (connected) u.speed(obdData.speedKmh).toString() else "--",
+                    valueText = speed?.let { u.speed(it).toString() } ?: "--",
                     label = stringResource(R.string.info_speed_title),
                     unit = u.speedUnit,
                     accent = DashColors.Accent,
                     redlineAccent = DashColors.Warning,
                     redlineFraction = u.speed(SPEED_WARNING_KMH) / top.toFloat(),
-                    dimmed = !connected,
+                    dimmed = speed == null,
                     modifier = Modifier.weight(1.15f).fillMaxHeight()
                 )
                 OriginalAnalogGauge(
-                    value = if (connected) obdData.rpm.toFloat() else 0f,
+                    value = g.rpm?.toFloat() ?: 0f,
                     maxValue = 7000f,
-                    valueText = if (connected) obdData.rpm.toString() else "--",
+                    valueText = g.rpm?.toString() ?: "--",
                     label = stringResource(R.string.info_gauge_rpm),
                     unit = stringResource(R.string.info_unit_rpm),
                     accent = DashColors.Secondary,
                     redlineAccent = DashColors.Warning,
                     redlineFraction = 0.82f,
-                    dimmed = !connected,
+                    dimmed = g.rpm == null,
                     modifier = Modifier.weight(1f).fillMaxHeight()
                 )
             }
@@ -329,26 +334,26 @@ internal fun OriginalObdCard(
             ) {
                 OriginalMeterChip(
                     label = stringResource(R.string.info_chip_coolant),
-                    valueText = if (connected) "${LocalUnits.current.temp(obdData.coolantTempC)}°" else "--",
-                    fraction = (obdData.coolantTempC / 120f),
-                    color = coolantColor(obdData.coolantTempC),
-                    dimmed = !connected,
+                    valueText = g.coolantTempC?.let { "${LocalUnits.current.temp(it)}°" } ?: "--",
+                    fraction = ((g.coolantTempC ?: 0) / 120f),
+                    color = coolantColor(g.coolantTempC ?: 0),
+                    dimmed = g.coolantTempC == null,
                     modifier = Modifier.weight(1f)
                 )
                 OriginalMeterChip(
                     label = stringResource(R.string.info_chip_load),
-                    valueText = if (connected) "${obdData.engineLoadPct}%" else "--",
-                    fraction = obdData.engineLoadPct / 100f,
+                    valueText = g.engineLoadPct?.let { "$it%" } ?: "--",
+                    fraction = (g.engineLoadPct ?: 0) / 100f,
                     color = DashColors.Accent,
-                    dimmed = !connected,
+                    dimmed = g.engineLoadPct == null,
                     modifier = Modifier.weight(1f)
                 )
                 OriginalMeterChip(
                     label = stringResource(R.string.info_chip_battery),
-                    valueText = if (connected) "%.1fV".format(obdData.voltage) else "--",
-                    fraction = batteryFraction(obdData.voltage),
-                    color = batteryColor(obdData.voltage),
-                    dimmed = !connected,
+                    valueText = g.voltage?.let { "%.1fV".format(it) } ?: "--",
+                    fraction = batteryFraction(g.voltage ?: 0.0),
+                    color = batteryColor(g.voltage ?: 0.0),
+                    dimmed = g.voltage == null,
                     modifier = Modifier.weight(1f)
                 )
             }

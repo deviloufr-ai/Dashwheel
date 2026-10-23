@@ -1,5 +1,8 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberGauges
+import com.openauto.dash.vehicle.rememberGaugeInt
+import com.openauto.dash.vehicle.K
 import android.text.format.DateUtils
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Canvas
@@ -143,9 +146,7 @@ internal fun rememberFuelToDest(): FuelToDest? {
     val nav by NavDirections.state.collectAsState()
     val canFuel by McuReader.fuelPercent.collectAsState()
     val canRange by McuReader.rangeKm.collectAsState()
-    // Only the fuel level counts here, not every OBD sample.
-    val obd = ObdBluetoothManager.data.collectAsState()
-    val obdFuel by remember { derivedStateOf { obd.value.fuelLevelPct } }
+    val obdFuel = rememberGaugeInt(K.FUEL_LEVEL) ?: 0
     val car by CarProfileStore.profile.collectAsState()
     val range = remember(canFuel, canRange, obdFuel, car) { carFuelInfo(canFuel, obdFuel, canRange)?.rangeKm } ?: return null
     return FuelToDest(range, if (nav.active) CareRules.remainingKm(nav.eta) else null)
@@ -294,13 +295,13 @@ internal fun FilterCareCard(modifier: Modifier = Modifier) {
 // --- Engine warm-up -------------------------------------------------------------
 
 @Composable
-internal fun WarmupCard(obd: ObdData, connected: Boolean, modifier: Modifier = Modifier) {
+internal fun WarmupCard(modifier: Modifier = Modifier) {
     val car by CarProfileStore.profile.collectAsState()
     val care by CarCare.state.collectAsState()
     CareCard(stringResource(R.string.car_warmup_title), modifier) {
-        val t = obd.coolantTempC
+        val t = rememberGaugeInt(K.COOLANT_TEMP)
         val u = LocalUnits.current
-        if (!connected || t == 0) {
+        if (t == null) {
             Reading("--", u.tempUnit, dimmed = true)
             Hint(stringResource(R.string.car_waiting_obd))
             return@CareCard
@@ -316,18 +317,19 @@ internal fun WarmupCard(obd: ObdData, connected: Boolean, modifier: Modifier = M
 // --- Battery --------------------------------------------------------------------
 
 @Composable
-internal fun BatteryCard(obd: ObdData, connected: Boolean, modifier: Modifier = Modifier) {
+internal fun BatteryCard(modifier: Modifier = Modifier) {
     val car by CarProfileStore.profile.collectAsState()
     val watch by BatteryWatch.state.collectAsState()
     CareCard(stringResource(R.string.car_battery_title), modifier) {
-        val v = obd.voltage
-        if (!connected || v < LiveWatch.MIN_PLAUSIBLE_V || v > LiveWatch.MAX_PLAUSIBLE_V) {
+        val g = rememberGauges(K.BATTERY_VOLTS, K.RPM)
+        val v = g.voltage
+        if (v == null || v < LiveWatch.MIN_PLAUSIBLE_V || v > LiveWatch.MAX_PLAUSIBLE_V) {
             Reading("--", "V", dimmed = true)
             Hint(stringResource(R.string.car_waiting_obd))
             return@CareCard
         }
         Reading(decimal(v), "V")
-        val running = obd.rpm > LiveWatch.RUNNING_RPM
+        val running = (g.rpm ?: 0) > LiveWatch.RUNNING_RPM
         val call = batteryCall(v, running)
         Meter(batteryCareFraction(v), call.tone.color)
         Status(stringResource(call.text), call.tone)
