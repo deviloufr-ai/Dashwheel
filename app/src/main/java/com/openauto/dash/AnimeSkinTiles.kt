@@ -1,7 +1,8 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.any
 import com.openauto.dash.vehicle.rememberGaugeInt
-import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.rememberPanelGauges
 import com.openauto.dash.vehicle.K
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -322,7 +323,9 @@ private fun AnimeSpeed(env: SkinTileEnv) {
 @Composable
 private fun AnimeTelemetry(env: SkinTileEnv) {
     val state = env.obdConnection
-    if (state != ObdConnectionState.CONNECTED) {
+    // Whatever the car answers is shown, adapter or not (the unit's volts, the car app's revs).
+    val g = rememberPanelGauges(K.SPEED, K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
+    if (state != ObdConnectionState.CONNECTED && !g.any) {
         val hint = stringResource(
             when (state) {
                 ObdConnectionState.CONNECTING -> R.string.horizon_obd_connecting
@@ -338,21 +341,18 @@ private fun AnimeTelemetry(env: SkinTileEnv) {
         return
     }
     val t = animeTones
-    val d = rememberReadings(K.SPEED, K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
     val units = LocalUnits.current
     val rpmWord = stringResource(R.string.skin_anime_rpm)
     val batteryWord = stringResource(R.string.skin_anime_battery)
     val loadWord = stringResource(R.string.skin_anime_load)
-    val coolant = coolantChip(d.coolantTempC, units)
     BoxWithConstraints(Modifier.fillMaxSize().padding(TILE_PAD)) {
         val withCar = maxHeight >= 250.dp && maxWidth >= 300.dp
         val withLoad = maxWidth >= 600.dp
         val chips = buildList {
-            add(AnimeChipSpec("${units.speed(d.speedKmh)}", units.speedUnit, t.lemon))
-            add(AnimeChipSpec(groupThousands(d.rpm), rpmWord, t.sky))
-            add(coolant)
-            if (d.voltage > 0.0) {
-                val v = d.voltage
+            g.speedKmh?.let { add(AnimeChipSpec("${units.speed(it)}", units.speedUnit, t.lemon)) }
+            g.rpm?.let { add(AnimeChipSpec(groupThousands(it), rpmWord, t.sky)) }
+            g.coolantTempC?.let { add(coolantChip(it, units)) }
+            g.voltage?.let { v ->
                 val fill = when (v) {
                     in BATTERY_OK_V -> t.mint
                     in BATTERY_WARNING_V -> DashColors.Warning
@@ -360,12 +360,12 @@ private fun AnimeTelemetry(env: SkinTileEnv) {
                 }
                 add(AnimeChipSpec("%.1f V".format(v), batteryWord, fill, pop = v !in BATTERY_WARNING_V))
             }
-            if (withLoad) add(AnimeChipSpec("${d.engineLoadPct}%", loadWord, t.paper))
+            if (withLoad) g.engineLoadPct?.let { add(AnimeChipSpec("$it%", loadWord, t.paper)) }
         }
         if (withCar) {
             Column {
                 Box(Modifier.fillMaxWidth().weight(0.42f)) {
-                    AnimeCarScene(d.speedKmh > 2, Modifier.fillMaxSize())
+                    AnimeCarScene((g.speedKmh ?: 0) > 2, Modifier.fillMaxSize())
                     AnimeLiveTag(env, Modifier.align(Alignment.TopStart))
                 }
                 Spacer(Modifier.height(10.dp))
@@ -423,10 +423,9 @@ private fun AnimeRange(item: DashboardItem, env: SkinTileEnv) {
     val low = fuel.percent <= SKIN_LOW_FUEL_PCT
     val fuelWord = stringResource(if (low) R.string.skin_anime_fuel_low else R.string.skin_anime_fuel)
     val toGo = stringResource(R.string.skin_anime_to_go)
-    val connected = env.obdConnection == ObdConnectionState.CONNECTED
-    // The coolant temperature only, not every OBD sample (the revs move several times a second).
-    val coolantC = rememberGaugeInt(K.COOLANT_TEMP) ?: 0
-    val coolant = if (connected) coolantChip(coolantC, units) else null
+    // The coolant temperature only, not every OBD sample (the revs move several times a second); a chip once the car answers it.
+    val coolantC = rememberGaugeInt(K.COOLANT_TEMP)
+    val coolant = coolantC?.let { coolantChip(it, units) }
     BoxWithConstraints(Modifier.fillMaxSize().padding(TILE_PAD)) {
         val chips = buildList {
             add(AnimeChipSpec((if (fuel.percentEstimated) "≈" else "") + "${fuel.percent}%", fuelWord, if (low) DashColors.Warning else t.mint, pop = low))

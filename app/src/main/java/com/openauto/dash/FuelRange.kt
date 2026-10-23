@@ -29,23 +29,22 @@ internal class FuelInfo(
 private val SANE_L_PER_100KM = 3.0..20.0
 
 /**
- * Combines what's known: the learned CANbox fuel level [canFuel], the OBD fuel
- * PID [obdFuel] (0 = none), and the car's own distance to empty [canRange].
- * [tankL] and [typicalUse] are the car profile's tank and everyday consumption.
+ * Combines what's known: the fuel level in percent [fuelPct] (the resolved [com.openauto.dash.vehicle.K.FUEL_LEVEL]:
+ * the learned CANbox byte, else the car app's litres, else the OBD PID, by rank) and the car's own distance
+ * to empty [rangeKm]. [fromObd] says the level is the adapter's, for the label under it. [tankL] and
+ * [typicalUse] are the car profile's tank and everyday consumption.
  * Pure, so it's unit-tested. null when nothing is known yet.
  */
 internal fun fuelInfo(
-    canFuel: Int?,
-    obdFuel: Int,
-    canRange: Int?,
+    fuelPct: Int?,
+    rangeKm: Int?,
     tankL: Double = TANK_LITERS,
-    typicalUse: Double = AVG_L_PER_100KM
+    typicalUse: Double = AVG_L_PER_100KM,
+    fromObd: Boolean = false
 ): FuelInfo? {
-    // An empty tank while the car still counts on driving on: the car sends no
-    // level at all (its car app reads 0 L on some models), so it's left out.
-    val can = canFuel?.takeUnless { it == 0 && canRange != null && canRange > 0 }
-    val measured = can ?: obdFuel.takeIf { it > 0 }
-    val source = if (can != null || measured == null) "CANbox" else "OBD"
+    val measured = fuelPct
+    val source = if (fromObd && measured != null) "OBD" else "CANbox"
+    val canRange = rangeKm
     if (canRange == null) {
         val pct = measured ?: return null
         val liters = pct / 100.0 * tankL
@@ -64,9 +63,14 @@ internal fun fuelInfo(
     return FuelInfo(pct, canRange, source, liters, typicalUse, rangeFromCar = true, percentEstimated = true, tankL = tankL)
 }
 
-/** [fuelInfo] with the saved car's tank and consumption. */
-internal fun carFuelInfo(canFuel: Int?, obdFuel: Int, canRange: Int?): FuelInfo? =
-    CarProfileStore.current.let { fuelInfo(canFuel, obdFuel, canRange, it.tank, it.typicalUse) }
+/**
+ * The level a car source puts on the bus: an empty tank while the car still counts on driving on is
+ * the car sending no level at all (its car app reads 0 L on some models), so it is left out
+ * and the next source by rank speaks (the adapter's, else the level worked back from the range).
+ * The one place this rule lives, for the providers that have it ([CarBox], [McuReader]).
+ */
+internal fun fuelPercentToPublish(percent: Int?, rangeKm: Int?): Int? =
+    percent?.takeUnless { it == 0 && rangeKm != null && rangeKm > 0 }
 
 /**
  * Where the car's distance to empty sits in the CANbox stream: a 16-bit word at

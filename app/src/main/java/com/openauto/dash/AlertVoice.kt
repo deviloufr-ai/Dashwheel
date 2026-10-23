@@ -4,6 +4,9 @@ import android.content.Context
 import android.os.SystemClock
 import com.openauto.dash.link.CallState
 import com.openauto.dash.link.ConversationLine
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.reversingFlow
 import com.openauto.dash.vehicle.speedKmhFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -42,7 +45,7 @@ object AlertVoice {
         val app = context.applicationContext
         CarVoice.setContext(app)
         // Quiet while reversing: the parking sensors come first; what waited is said after.
-        scope.launch { CarBox.reversing.collect { CarVoice.hold(it) } }
+        scope.launch { reversingFlow().collect { CarVoice.hold(it) } }
         // Quiet during a call, through the companion or the unit's own Bluetooth, whoever shows it.
         scope.launch {
             combine(PhoneLink.call, UnitPhone.call) { link, unit -> talking(link) || talking(unit) }
@@ -63,7 +66,7 @@ object AlertVoice {
 
         // The GPS speed only while it's needed: a door open, and doors spoken.
         scope.launch {
-            combine(RomPopups.replaced, AlertStyleStore.spoken, McuReader.doorState) { replaced, spoken, doors ->
+            combine(RomPopups.replaced, AlertStyleStore.spoken, Vehicle.bus.value(K.DOORS)) { replaced, spoken, doors ->
                 RomPopups.Kind.DOORS in replaced && AlertKind.DOORS in spoken && doors?.anyOpen == true
             }.distinctUntilChanged().collect { want ->
                 if (want && !gpsHeld) gpsHeld = LocationFeed.acquire(app)
@@ -78,7 +81,7 @@ object AlertVoice {
             val speed = speedKmhFlow()
             var before: Set<String> = emptySet()
             var wasMoving = false
-            combine(McuReader.doorState, speed) { doors, kmh -> doors to kmh }.collect { (doors, kmh) ->
+            combine(Vehicle.bus.value(K.DOORS), speed) { doors, kmh -> doors to kmh }.collect { (doors, kmh) ->
                 val open = doors?.openNames() ?: return@collect
                 val moving = isMoving(kmh, wasMoving)
                 val wanted = RomPopups.Kind.DOORS in RomPopups.replaced.value && !DemoMode.isOn

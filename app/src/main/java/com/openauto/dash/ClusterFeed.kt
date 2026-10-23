@@ -14,7 +14,7 @@ import com.openauto.dash.vehicle.K
 import com.openauto.dash.vehicle.Key
 import com.openauto.dash.vehicle.Vehicle
 import com.openauto.dash.vehicle.displaySpeedKmh
-import com.openauto.dash.vehicle.fuelLevelPctNow
+import com.openauto.dash.vehicle.fuelInfoNow
 import com.openauto.dash.vehicle.gaugesNow
 import com.openauto.dash.vehicle.holdAll
 import kotlin.math.roundToInt
@@ -148,8 +148,8 @@ internal object ClusterFeed {
         // The car's speed comes corrected already; the GPS's only once moving
         // (SpeedCorrection.correctedGps): a stopped car's 1 km/h of GPS drift must not read 9.
         val speed = displaySpeedKmh(Vehicle.bus.sample(K.SPEED).value)
-        val fuel = carFuelInfo(McuReader.fuelPercent.value, fuelLevelPctNow(), McuReader.rangeKm.value)
-        val doors = McuReader.doorState.value
+        val fuel = fuelInfoNow()
+        val doors = Vehicle.bus.now(K.DOORS)
         val open = if (doors == null) emptyList() else listOfNotNull(
             R.string.vehicle_door_front_left.takeIf { doors.frontLeft },
             R.string.vehicle_door_front_right.takeIf { doors.frontRight },
@@ -174,10 +174,10 @@ internal object ClusterFeed {
             speedKmh = speed,
             rpm = Vehicle.bus.now(K.RPM)?.roundToInt(),
             coolantC = Vehicle.bus.now(K.COOLANT_TEMP)?.roundToInt(),
-            // As the dashboard's bar reads it (carFuelInfo): a car that sends 0 % with a range
+            // As the dashboard's bar reads it (fuelInfo): a car that sends 0 % with a range
             // left sends no level at all, and the level is worked out from the range.
             fuelPct = fuel?.percent,
-            rangeKm = fuel?.rangeKm ?: McuReader.rangeKm.value,
+            rangeKm = fuel?.rangeKm ?: Vehicle.bus.now(K.RANGE)?.roundToInt(),
             open = open,
             doorsKnown = doors != null,
             // The date under the clock, as the clock widget writes it, in Dashwheel's language.

@@ -1,6 +1,7 @@
 package com.openauto.dash
 
-import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.any
+import com.openauto.dash.vehicle.rememberPanelGauges
 import com.openauto.dash.vehicle.K
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -513,8 +514,9 @@ private class EngineChip(val label: String, val value: String, val warn: Boolean
 @Composable
 internal fun ModernTelemetry(env: SkinTileEnv) {
     val state = env.obdConnection
-    val connected = state == ObdConnectionState.CONNECTED
-    if (!connected) {
+    // Whatever the car answers is shown, adapter or not.
+    val g = rememberPanelGauges(K.SPEED, K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
+    if (state != ObdConnectionState.CONNECTED && !g.any) {
         ModernCard(
             env,
             onClick = if (state.isIdle) env.onConnectObd else null,
@@ -522,17 +524,16 @@ internal fun ModernTelemetry(env: SkinTileEnv) {
         ) { w, h -> EngineIdle(state, w, h) }
         return
     }
-    val d = rememberReadings(K.SPEED, K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
     val units = LocalUnits.current
     val chips = listOf(
-        EngineChip(stringResource(R.string.info_speed_title), "${units.speed(d.speedKmh)}", speedOver(d.speedKmh)),
-        EngineChip(stringResource(R.string.info_chip_coolant), "${units.temp(d.coolantTempC)}°", d.coolantTempC >= 105),
+        EngineChip(stringResource(R.string.info_speed_title), g.speedKmh?.let { "${units.speed(it)}" } ?: "--", speedOver(g.speedKmh)),
+        EngineChip(stringResource(R.string.info_chip_coolant), g.coolantTempC?.let { "${units.temp(it)}°" } ?: "--", (g.coolantTempC ?: 0) >= 105),
         EngineChip(
             stringResource(R.string.info_chip_battery),
-            if (d.voltage > 0.0) String.format(Locale.getDefault(), "%.1f V", d.voltage) else "--",
-            d.voltage > 0.0 && d.voltage < 11.8
+            g.voltage?.let { String.format(Locale.getDefault(), "%.1f V", it) } ?: "--",
+            g.voltage != null && g.voltage < 11.8
         ),
-        EngineChip(stringResource(R.string.info_chip_load), "${d.engineLoadPct} %", false)
+        EngineChip(stringResource(R.string.info_chip_load), g.engineLoadPct?.let { "$it %" } ?: "--", false)
     )
     ModernCard(env) { w, h ->
         val capsSize = (min(w.value, h.value) * 0.07f).coerceIn(12f, 16f)
@@ -542,7 +543,7 @@ internal fun ModernTelemetry(env: SkinTileEnv) {
         val chipH = (h.value * if (grid) 0.17f else 0.27f).coerceIn(48f, 84f).dp
         val chipsH = chipH * rows + 8.dp * (rows - 1)
         val heroH = h - (capsSize * 1.4f).dp - chipsH - 8.dp - 22.dp
-        val rpm = groupThousands(d.rpm)
+        val rpm = g.rpm?.let { groupThousands(it) } ?: "--"
         val rpmUnit = stringResource(R.string.skin_modern_rpm)
         val heroSize = fitText(digitsTemplate(rpm) + " " + rpmUnit, Face.NUMBER, FontWeight.ExtraBold, w, heroH, 22f, 180f)
         Column(Modifier.fillMaxSize()) {
@@ -557,7 +558,7 @@ internal fun ModernTelemetry(env: SkinTileEnv) {
                 MText(rpmUnit, (heroSize * 0.3f).coerceIn(12f, 28f), DashColors.Muted, Modifier.alignByBaseline(), weight = FontWeight.SemiBold)
             }
             Spacer(Modifier.height(6.dp))
-            RevBar(d.rpm / SKIN_RPM_MAX, Modifier.fillMaxWidth().height(14.dp))
+            RevBar((g.rpm ?: 0) / SKIN_RPM_MAX, Modifier.fillMaxWidth().height(14.dp))
             Spacer(Modifier.height(10.dp))
             val shown = chips.take(perRow * rows)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

@@ -262,7 +262,6 @@ private fun GlyphClock(env: SkinTileEnv) {
 @Composable
 private fun GlyphTelemetry(env: SkinTileEnv) {
     val state = env.obdConnection
-    val connected = state == ObdConnectionState.CONNECTED
     val units = LocalUnits.current
     val fuel = rememberFuel()
     val speed = rememberSpeedKmh()
@@ -278,7 +277,7 @@ private fun GlyphTelemetry(env: SkinTileEnv) {
         val rows = buildList {
             add(Triple(speedLabel, speed?.let { units.speed(it).toString() } ?: "--", glyphRed))
             add(Triple(rangeLabel, fuel?.let { units.distance(it.rangeKm).toString() } ?: "--", if (fuel != null && fuel.percent <= SKIN_LOW_FUEL_PCT) glyphRed else DashColors.TextPrimary))
-            add(Triple(coolantLabel, if (connected && coolant > 0) units.temp(coolant).toString() else "--", if (hot) DashColors.Warning else DashColors.TextPrimary))
+            add(Triple(coolantLabel, if (coolant > 0) units.temp(coolant).toString() else "--", if (hot) DashColors.Warning else DashColors.TextPrimary))
         }
         val roomRows = ((maxHeight - LABEL_H - keyH) / 54.dp).toInt().coerceIn(1, 3)
         // The design's order, range first, when all three fit; the speed first when only some do.

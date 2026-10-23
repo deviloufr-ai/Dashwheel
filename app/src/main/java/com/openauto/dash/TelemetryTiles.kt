@@ -3,6 +3,7 @@
 package com.openauto.dash
 
 import com.openauto.dash.vehicle.rememberDisplaySpeedKmh
+import com.openauto.dash.vehicle.rememberFuelInfo
 import com.openauto.dash.vehicle.rememberGaugeInt
 import com.openauto.dash.vehicle.rememberGauges
 import com.openauto.dash.vehicle.K
@@ -903,7 +904,7 @@ internal fun RangeCard(
     val canRange by McuReader.rangeKm.collectAsState()
     val obdConnected = connection == ObdConnectionState.CONNECTED
     val obdFuel = rememberGaugeInt(K.FUEL_LEVEL) ?: 0
-    val fuel = carFuelInfo(canFuel, obdFuel, canRange)
+    val fuel = rememberFuelInfo()
     val fromCan = canFuel != null || canRange != null
     val source = if (fromCan) stringResource(R.string.vehicle_via_canbox)
         else if (obdFuel > 0) stringResource(R.string.vehicle_via_obd) else null

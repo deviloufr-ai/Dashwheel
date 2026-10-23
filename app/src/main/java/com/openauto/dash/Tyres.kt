@@ -12,9 +12,15 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Source
+import com.openauto.dash.vehicle.SourceKind
+import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.tyresFlow
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -50,6 +56,9 @@ object Tyres {
     private val _tyres = MutableStateFlow<Map<TyrePos, Tyre>>(emptyMap())
     val tyres: StateFlow<Map<TyrePos, Tyre>> = _tyres
 
+    /** The TPMS app on the vehicle bus: every tyre it has heard, as one state. */
+    private val busPublisher = Vehicle.bus.register(Source("tpms", SourceKind.VEHICLE_APP, "TPMS app"))
+
     private val _unit = MutableStateFlow(PressureUnit.BAR)
     val unit: StateFlow<PressureUnit> = _unit
 
@@ -57,12 +66,28 @@ object Tyres {
     /**
      * What's wrong, tyre by tyre ([tyreProblems]): the one judgement the
      * alert, its voice and every tile share, so none says "fine" while
-     * another says "low".
+     * another says "low". It is made from [K.TYRES] on the vehicle bus (so
+     * from whichever source is resolved: the TPMS app, or the demo), again
+     * at each change of the tyres or the car profile, and now and then
+     * while there are tyres, so a sensor that went quiet stops holding a
+     * warning up.
      */
     val problems: StateFlow<Map<TyrePos, TyreProblem>> = _problems
 
     private var started = false
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    init {
+        scope.launch {
+            combine(tyresFlow(), CarProfileStore.profile) { tyres, _ -> tyres }.collectLatest { tyres ->
+                judge(tyres)
+                while (tyres.isNotEmpty()) {
+                    delay(STALE_CHECK_MS)
+                    judge(tyres)
+                }
+            }
+        }
+    }
 
     /** Whether this unit has the TPMS app that reports the tyres. */
     val available: Boolean get() = started
@@ -80,22 +105,13 @@ object Tyres {
         ContextCompat.registerReceiver(app, receiver, IntentFilter(ACTION), ContextCompat.RECEIVER_EXPORTED)
         // The TPMS box gone quiet while driving: plugged in again by itself ([TpmsReset]).
         TpmsReset.start(app)
-        // Judged again at each reading, when the car's pressures change, and
-        // now and then so a sensor that went quiet stops holding a warning up.
-        scope.launch { combine(_tyres, CarProfileStore.profile) { _, _ -> }.collect { judge() } }
-        scope.launch {
-            while (true) {
-                delay(STALE_CHECK_MS)
-                if (_tyres.value.isNotEmpty()) judge()
-            }
-        }
     }
 
     private const val STALE_CHECK_MS = 15_000L
 
     @Synchronized
-    private fun judge() {
-        _problems.value = tyreProblems(_tyres.value, _problems.value, SystemClock.elapsedRealtime(), CarProfileStore.current)
+    private fun judge(tyres: Map<TyrePos, Tyre>) {
+        _problems.value = tyreProblems(tyres, _problems.value, SystemClock.elapsedRealtime(), CarProfileStore.current)
     }
 
     private val receiver = object : BroadcastReceiver() {
@@ -114,14 +130,13 @@ object Tyres {
             // The demo shows its own tyres; the sensors fill them in again once it's over.
             if (DemoMode.isOn) return
             _tyres.update { it + (pos to tyre) }
+            busPublisher.put(K.TYRES, _tyres.value)
         }
     }
 
-    /** [DemoMode]'s tyres, and the real ones put back when it ends. */
+    /** [DemoMode]'s tyres, and the real ones put back when it ends (the bus has the demo's from [DemoMode] itself). */
     internal fun demoWrite(tyres: Map<TyrePos, Tyre>) {
         _tyres.value = tyres
-        // Judged at once, on a unit without the TPMS app (no collector) too.
-        judge()
     }
 
     /** For [AlertPreview]: made-up tyres, one of them low. */

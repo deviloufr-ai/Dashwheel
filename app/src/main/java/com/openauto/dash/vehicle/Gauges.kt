@@ -63,6 +63,11 @@ private fun gaugesOf(s: Map<Key<Double>, Sample<Double>?>): Gauges = Gauges(
     fuelFlowLh = s[K.FUEL_FLOW]?.value
 )
 
+/** Whether any gauge has a value: the panel has something to show, adapter or not. */
+val Gauges.any: Boolean
+    get() = speedKmh != null || rpm != null || throttlePct != null || engineLoadPct != null || coolantTempC != null ||
+        intakeTempC != null || fuelLevelPct != null || voltage != null || fuelFlowLh != null
+
 /** The asked-for gauges now; null for the rest. A snapshot reader that needs it fresh holds the keys ([holdAll]). */
 fun gaugesNow(keys: Collection<Key<Double>> = GAUGE_KEYS): Gauges =
     gaugesOf(keys.associateWith { Vehicle.bus.sample(it).value })
@@ -104,12 +109,6 @@ fun VehicleBus.holdAll(keys: Collection<Key<*>>): Hold {
     return Hold { holds.forEach { it.release() } }
 }
 
-/** The fuel level as [com.openauto.dash.fuelInfo] takes the OBD one: whole percent, 0 = none. Hold [K.FUEL_LEVEL] while you rely on it. */
-fun fuelLevelPctNow(): Int = Vehicle.bus.now(K.FUEL_LEVEL)?.roundToInt() ?: 0
-
-/** [fuelLevelPctNow] as it changes. */
-fun fuelLevelPctFlow(): Flow<Int> = Vehicle.bus.value(K.FUEL_LEVEL).map { it?.roundToInt() ?: 0 }.distinctUntilChanged()
-
 /**
  * The gauges of [keys] in the old readings record, with 0 for what is unknown: for the tiles that
  * were drawn against [ObdData] and map "no answer" to their old default at the edge. The speed is the
@@ -121,4 +120,16 @@ fun rememberReadings(vararg keys: Key<Double>): ObdData {
     val g = rememberGauges(*rest)
     val speed = if (K.SPEED in keys) rememberDisplaySpeedKmh() else null
     return g.copy(speedKmh = speed).toObdData()
+}
+
+/**
+ * [rememberGauges] for the skins' panels: the speed is the one the bar shows ([rememberDisplaySpeedKmh]) when
+ * [K.SPEED] is asked for, and every gauge the car does not answer stays null (a panel shows "--" for it, or leaves it out).
+ */
+@Composable
+fun rememberPanelGauges(vararg keys: Key<Double>): Gauges {
+    val rest = keys.filter { it != K.SPEED }.toTypedArray()
+    val g = rememberGauges(*rest)
+    val speed = if (K.SPEED in keys) rememberDisplaySpeedKmh() else null
+    return if (speed != null) g.copy(speedKmh = speed) else g
 }

@@ -69,6 +69,9 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.ignitionFlow
+import com.openauto.dash.vehicle.rememberVehicle
 import kotlin.math.abs
 import androidx.compose.runtime.key
 import androidx.compose.foundation.layout.width
@@ -992,7 +995,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     var clock by remember { mutableStateOf(currentClock(units)) }
     // Started again at each switch-on: the wait below stands still while the
     // unit sleeps, and the bar showed last night's time for up to a minute.
-    val ignition by CarPower.ignition.collectAsState()
+    val ignition = rememberVehicle(K.IGNITION)
     LaunchedEffect(units.clock24, ignition) {
         while (true) {
             clock = currentClock(units)
@@ -1068,7 +1071,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     // ignition on, and every six hours awake. Never in the Play edition: its
     // updates come from Google Play (UpdateManager stays Idle there anyway).
     if (Edition.full) LaunchedEffect(Unit) {
-        launch { CarPower.ignition.drop(1).filter { it == true }.collect { updateManager.checkForUpdate() } }
+        launch { ignitionFlow().drop(1).filter { it == true }.collect { updateManager.checkForUpdate() } }
         while (true) {
             updateManager.checkForUpdate()
             delay(UPDATE_CHECK_EVERY_MS)

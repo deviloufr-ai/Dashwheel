@@ -1,9 +1,15 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.any
+import com.openauto.dash.vehicle.rememberDoors
 import com.openauto.dash.vehicle.rememberGauges
 import com.openauto.dash.vehicle.rememberGaugeInt
-import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.rememberPanelGauges
 import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.rememberSpeedSourceKind
+import com.openauto.dash.vehicle.rememberTyres
+import com.openauto.dash.vehicle.rememberVehicle
+import com.openauto.dash.vehicle.speedSourceWord
 import android.Manifest
 import android.content.Intent
 import android.location.Location
@@ -205,8 +211,10 @@ private fun engineGauges(d: ObdData, rpmFirst: Boolean): List<FaceGauge> {
 @Composable
 private fun telemetryFace(env: SkinTileEnv): WidgetFace {
     val u = LocalUnits.current
-    if (env.obdConnection != ObdConnectionState.CONNECTED) return obdIdle(BuiltinKind.TELEMETRY, env, u.speedUnit)
-    val d = rememberReadings(K.SPEED, K.RPM, K.COOLANT_TEMP, K.BATTERY_VOLTS, K.ENGINE_LOAD, K.THROTTLE)
+    // Whatever the car answers is shown, adapter or not (what it does not answer reads 0, as the face always drew it).
+    val g = rememberPanelGauges(K.SPEED, K.RPM, K.COOLANT_TEMP, K.BATTERY_VOLTS, K.ENGINE_LOAD, K.THROTTLE)
+    if (env.obdConnection != ObdConnectionState.CONNECTED && !g.any) return obdIdle(BuiltinKind.TELEMETRY, env, u.speedUnit)
+    val d = g.toObdData()
     return WidgetFace(
         icon = Icons.Filled.Speed,
         title = BuiltinKind.TELEMETRY.label,
@@ -230,9 +238,10 @@ private fun telemetryFace(env: SkinTileEnv): WidgetFace {
 
 @Composable
 private fun obdAllFace(env: SkinTileEnv): WidgetFace {
-    if (env.obdConnection != ObdConnectionState.CONNECTED) return obdIdle(BuiltinKind.OBD_ALL, env, "rpm")
+    val g = rememberPanelGauges(K.SPEED, K.RPM, K.COOLANT_TEMP, K.INTAKE_TEMP, K.THROTTLE, K.ENGINE_LOAD, K.FUEL_LEVEL, K.BATTERY_VOLTS)
+    if (env.obdConnection != ObdConnectionState.CONNECTED && !g.any) return obdIdle(BuiltinKind.OBD_ALL, env, "rpm")
     val u = LocalUnits.current
-    val d = rememberReadings(K.SPEED, K.RPM, K.COOLANT_TEMP, K.INTAKE_TEMP, K.THROTTLE, K.ENGINE_LOAD, K.FUEL_LEVEL, K.BATTERY_VOLTS)
+    val d = g.toObdData()
     return WidgetFace(
         icon = Icons.Filled.Sensors,
         title = BuiltinKind.OBD_ALL.label,
@@ -356,7 +365,7 @@ private fun doorsFace(): WidgetFace {
         McuReader.start()
         onDispose { McuReader.stop() }
     }
-    val doors by McuReader.doorState.collectAsState()
+    val doors = rememberDoors()
     val d = doors ?: return idleFace(Icons.Filled.SensorDoor, BuiltinKind.DOORS.label, stringResource(R.string.vehicle_waiting_mcu))
     val open = stringResource(R.string.vehicle_door_open_caps)
     val closed = stringResource(R.string.vehicle_door_closed)
@@ -415,11 +424,8 @@ private fun canMonitorFace(): WidgetFace {
 private fun speedFace(env: SkinTileEnv): WidgetFace {
     val u = LocalUnits.current
     val speed = rememberSpeedKmh()
-    val source = when {
-        env.obdConnection == ObdConnectionState.CONNECTED -> "OBD"
-        speed != null -> "GPS"
-        else -> stringResource(R.string.info_speed_no_signal)
-    }
+    // Where the speed comes from, as the bus resolved it.
+    val source = speedSourceWord(rememberSpeedSourceKind()) ?: stringResource(R.string.info_speed_no_signal)
     return WidgetFace(
         icon = Icons.Filled.Speed,
         title = BuiltinKind.SPEED_HUD.label,
@@ -976,8 +982,11 @@ private fun warmupFace(env: SkinTileEnv): WidgetFace {
     // The coolant moves a degree at a time: follow it, not every OBD sample.
     val t = rememberGaugeInt(K.COOLANT_TEMP) ?: 0
     val u = LocalUnits.current
-    if (env.obdConnection != ObdConnectionState.CONNECTED) return obdIdle(BuiltinKind.WARMUP, env, u.tempUnit)
-    if (t == 0) return idleFace(kindIcon(BuiltinKind.WARMUP), BuiltinKind.WARMUP.label, stringResource(R.string.car_waiting_obd), u.tempUnit)
+    // A coolant reading from any source shows; with none, the adapter's state says what to do.
+    if (t == 0) {
+        if (env.obdConnection != ObdConnectionState.CONNECTED) return obdIdle(BuiltinKind.WARMUP, env, u.tempUnit)
+        return idleFace(kindIcon(BuiltinKind.WARMUP), BuiltinKind.WARMUP.label, stringResource(R.string.car_waiting_obd), u.tempUnit)
+    }
     val call = warmupCall(t, car)
     // Ticks each second only while a drive runs, for its "running for" line.
     val runningFor = care.drive?.let { d ->
@@ -1004,8 +1013,9 @@ private fun batteryFace(env: SkinTileEnv): WidgetFace {
     val g = rememberGauges(K.BATTERY_VOLTS, K.RPM)
     val v = g.voltage ?: 0.0
     val engineRuns = (g.rpm ?: 0) > LiveWatch.RUNNING_RPM
-    if (env.obdConnection != ObdConnectionState.CONNECTED) return obdIdle(BuiltinKind.BATTERY, env, "V")
+    // Volts from any source show (the unit's own, without an adapter); with none, the adapter's state says what to do.
     if (v < LiveWatch.MIN_PLAUSIBLE_V || v > LiveWatch.MAX_PLAUSIBLE_V) {
+        if (env.obdConnection != ObdConnectionState.CONNECTED) return obdIdle(BuiltinKind.BATTERY, env, "V")
         return idleFace(kindIcon(BuiltinKind.BATTERY), BuiltinKind.BATTERY.label, stringResource(R.string.car_waiting_obd), "V")
     }
     val running = engineRuns
@@ -1202,16 +1212,16 @@ private fun carStatusFace(): WidgetFace {
     val body by CarBox.body.collectAsState()
     val trip = rememberPsaTrip()
     val b = body
-    if (b == null && trip == null) return idleFace(Icons.Filled.DirectionsCarFilled, BuiltinKind.CAR_STATUS.label, stringResource(R.string.car_status_waiting))
     val rows = carStatusRows(b, trip)
+    if (rows.isEmpty()) return idleFace(Icons.Filled.DirectionsCarFilled, BuiltinKind.CAR_STATUS.label, stringResource(R.string.car_status_waiting))
     val lights = b?.let { lightsOn(it) }.orEmpty()
     val u = LocalUnits.current
     // The PSA trip computer sends no mileage: its range leads instead.
-    val odometer = b?.odometer?.takeIf { it > 0f }
+    val odometer = rememberVehicle(K.ODOMETER)?.takeIf { it > 0.0 }
     return WidgetFace(
         icon = Icons.Filled.DirectionsCarFilled,
         title = BuiltinKind.CAR_STATUS.label,
-        value = odometer?.let { NumberFormat.getIntegerInstance().format(u.distance(it.toDouble()).toLong()) }
+        value = odometer?.let { NumberFormat.getIntegerInstance().format(u.distance(it).toLong()) }
             ?: trip?.rangeKm?.let { u.distance(it.toDouble()).toInt().toString() } ?: "--",
         unit = if (u.imperial) u.distanceUnit else stringResource(R.string.car_status_km),
         caption = rows.firstOrNull()?.second.orEmpty(),
@@ -1223,7 +1233,7 @@ private fun carStatusFace(): WidgetFace {
 
 @Composable
 private fun tyresFace(): WidgetFace {
-    val tyres by Tyres.tyres.collectAsState()
+    val tyres = rememberTyres()
     val judged by Tyres.problems.collectAsState()
     val unit by Tyres.unit.collectAsState()
     if (tyres.isEmpty()) return idleFace(Icons.Filled.TireRepair, BuiltinKind.TYRES.label, stringResource(R.string.car_tyres_waiting))

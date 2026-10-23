@@ -46,3 +46,19 @@ fun speedKmhFlow(key: Key<Double> = K.SPEED): Flow<Int?> =
 
 /** [key]'s speed in whole km/h now, for code that is not a flow; null while unknown. */
 fun speedKmhNow(key: Key<Double> = K.SPEED): Int? = Vehicle.bus.now(key)?.roundToInt()
+
+/** The kind of source the resolved [K.SPEED] comes from, null while there is no speed. */
+@Composable
+fun rememberSpeedSourceKind(): SourceKind? {
+    val flow = remember { Vehicle.bus.sample(K.SPEED) }
+    val sample by flow.collectAsState()
+    return sample?.source?.kind
+}
+
+/** What a speed tile says about where its number comes from: "OBD", "GPS", or "CAR" (the car app, the unit's bus); null for no speed. */
+fun speedSourceWord(kind: SourceKind?): String? = when (kind) {
+    null -> null
+    SourceKind.OBD -> "OBD"
+    SourceKind.GPS -> "GPS"
+    else -> "CAR"
+}

@@ -13,6 +13,7 @@ import com.openauto.dash.vehicle.K
 import com.openauto.dash.vehicle.Source
 import com.openauto.dash.vehicle.SourceKind
 import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.ignitionNow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -401,7 +402,7 @@ object ObdBluetoothManager {
             // Tapped by the driver: switch it on rather than send them looking for the setting.
             // By itself too, with the ignition on: the QF firmware leaves it off after a
             // restart. Once in a while only, so Bluetooth switched off by hand stays off.
-            val auto = !byDriver && CarPower.ignition.value != false && autoBtOnDue()
+            val auto = !byDriver && ignitionNow() != false && autoBtOnDue()
             if (!byDriver && !auto) return fail(R.string.vehicle_err_bt_off)
             if (auto) lastAutoBtOnAt = SystemClock.elapsedRealtime()
             if (!switchBluetoothOn(adapter)) return fail(R.string.vehicle_err_bt_still_off)

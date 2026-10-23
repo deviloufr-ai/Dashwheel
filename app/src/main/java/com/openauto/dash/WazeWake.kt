@@ -6,6 +6,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.SystemClock
 import android.util.Log
+import com.openauto.dash.vehicle.ignitionNow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -131,11 +132,11 @@ object WazeWake {
 
     private suspend fun restartLater(context: Context, delayS: Int) {
         delay(delayS * 1_000L)
-        if (CarPower.ignition.value == false) return
+        if (ignitionNow() == false) return
         val until = SystemClock.elapsedRealtime() + READY_WAIT_MS
         while (!ready(context) && SystemClock.elapsedRealtime() < until) delay(READY_EVERY_MS)
         // Switched off again meanwhile, or turned off in Settings.
-        if (CarPower.ignition.value == false || !_setting.value.on) return
+        if (ignitionNow() == false || !_setting.value.on) return
         restart(context)
     }
 

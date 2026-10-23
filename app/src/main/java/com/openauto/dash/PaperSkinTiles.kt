@@ -1,6 +1,7 @@
 package com.openauto.dash
 
-import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.any
+import com.openauto.dash.vehicle.rememberPanelGauges
 import com.openauto.dash.vehicle.K
 import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
@@ -749,8 +750,10 @@ private fun PaperMedia(env: SkinTileEnv) {
 @Composable
 private fun PaperTelemetry(env: SkinTileEnv) {
     val state = env.obdConnection
-    val connected = state == ObdConnectionState.CONNECTED
     val units = LocalUnits.current
+    // Whatever the car answers is shown, adapter or not.
+    val g = rememberPanelGauges(K.RPM, K.COOLANT_TEMP, K.INTAKE_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
+    val live = state == ObdConnectionState.CONNECTED || g.any
     BoxWithConstraints(
         Modifier
             .fillMaxSize()
@@ -764,14 +767,13 @@ private fun PaperTelemetry(env: SkinTileEnv) {
         val size = (innerW.value / 18f).coerceIn(15f, 22f)
         val rowH = size * 1.2f + 8f
         Column(Modifier.fillMaxSize().padding(pad), verticalArrangement = Arrangement.Center) {
-            if (connected) {
-                val d = rememberReadings(K.RPM, K.COOLANT_TEMP, K.INTAKE_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
+            if (live) {
                 val rows = buildList {
-                    add(Triple(stringResource(R.string.paper_coolant), if (d.coolantTempC > 0) units.tempText(d.coolantTempC) else "--", d.coolantTempC >= COOLANT_WARNING_C))
-                    add(Triple(stringResource(R.string.paper_battery), if (d.voltage > 0.0) String.format(Locale.getDefault(), "%.1f V", d.voltage) else "--", d.voltage > 0.0 && d.voltage !in BATTERY_OK_V))
-                    add(Triple(stringResource(R.string.paper_revs), "${groupThousands(d.rpm)} ${stringResource(R.string.paper_rpm)}", false))
-                    add(Triple(stringResource(R.string.paper_load), "${d.engineLoadPct} %", false))
-                    if (d.intakeTempC != 0) add(Triple(stringResource(R.string.paper_intake), units.tempText(d.intakeTempC), false))
+                    add(Triple(stringResource(R.string.paper_coolant), g.coolantTempC?.let { units.tempText(it) } ?: "--", (g.coolantTempC ?: 0) >= COOLANT_WARNING_C))
+                    add(Triple(stringResource(R.string.paper_battery), g.voltage?.let { String.format(Locale.getDefault(), "%.1f V", it) } ?: "--", g.voltage != null && g.voltage !in BATTERY_OK_V))
+                    add(Triple(stringResource(R.string.paper_revs), g.rpm?.let { "${groupThousands(it)} ${stringResource(R.string.paper_rpm)}" } ?: "--", false))
+                    add(Triple(stringResource(R.string.paper_load), g.engineLoadPct?.let { "$it %" } ?: "--", false))
+                    g.intakeTempC?.let { add(Triple(stringResource(R.string.paper_intake), units.tempText(it), false)) }
                 }
                 val fit = (innerH.value / rowH).toInt().coerceIn(1, rows.size)
                 rows.take(fit).forEach { (l, v, warn) -> PaperRow(l, v, size, warn) }

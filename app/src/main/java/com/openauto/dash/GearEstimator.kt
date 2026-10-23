@@ -13,6 +13,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.reversingFlow
 import com.openauto.dash.vehicle.speedKmhFlow
 import kotlinx.coroutines.flow.combine
 import kotlin.math.abs
@@ -135,9 +136,8 @@ internal fun rememberGear(): State<GearReading> {
         var lastGearAt = 0L
         var learned = 0
         val rpmFlow = Vehicle.bus.value(K.RPM).map { it?.roundToInt() }.distinctUntilChanged()
-        combine(rpmFlow, CarBox.body, CarBox.reversing, speedKmhFlow(K.VEHICLE_SPEED)) { obdRpm, _, reversing, speed ->
-            val box = CarBox.freshBody()
-            val rpm = if (obdRpm != null && obdRpm > 0) obdRpm else box?.rpm
+        // The revs are whatever the bus resolves: the car app's or a unit bus's, else the adapter's.
+        combine(rpmFlow, reversingFlow(), speedKmhFlow(K.VEHICLE_SPEED)) { rpm, reversing, speed ->
             Triple(reversing, rpm, speed)
         }.collect { (reversing, rpm, speed) ->
             val now = System.currentTimeMillis()

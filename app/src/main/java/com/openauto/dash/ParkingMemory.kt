@@ -7,6 +7,8 @@ import android.os.SystemClock
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import com.openauto.dash.vehicle.reversingFlow
+import com.openauto.dash.vehicle.reversingNow
 import com.openauto.dash.vehicle.speedKmhNow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -83,7 +85,7 @@ internal object ParkingMotion {
         if (started) return
         started = true
         scope.launch {
-            CarBox.reversing.collect { reversing ->
+            reversingFlow().collect { reversing ->
                 if (reversing) {
                     lastReverseAt = SystemClock.elapsedRealtime()
                     if (_pose.value == null) begin()
@@ -116,7 +118,7 @@ internal object ParkingMotion {
                 val dt = (now - last) / 1000f
                 last = now
                 if (_pose.value == null || ReverseView.preview.value) continue
-                val reversing = CarBox.reversing.value
+                val reversing = reversingNow()
                 val kmh = speedKmh()
                 if (reversing) lastReverseAt = now
                 else if (now - lastReverseAt > KEEP_MS || (kmh ?: 0f) > DRIVING_KMH) {

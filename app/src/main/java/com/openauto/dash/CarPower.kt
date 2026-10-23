@@ -18,6 +18,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Source
+import com.openauto.dash.vehicle.SourceKind
+import com.openauto.dash.vehicle.Vehicle
 
 /*
  * The ignition, as the head unit's firmware announces it to every app
@@ -49,6 +53,14 @@ object CarPower {
     private val _ignition = MutableStateFlow<Boolean?>(null)
     /** Ignition on / off as the unit last said it; null where the unit says nothing. */
     val ignition: StateFlow<Boolean?> = _ignition
+
+    /** The unit's power signals on the vehicle bus: the ignition, as the firmware announces it. */
+    private val busPublisher = Vehicle.bus.register(Source("power", SourceKind.VEHICLE_APP, "Unit power"))
+
+    private fun setIgnition(on: Boolean?) {
+        _ignition.value = on
+        busPublisher.put(K.IGNITION, on)
+    }
 
     /** When this process saw the car switched on (elapsedRealtime), 0 if it hasn't. */
     @Volatile
@@ -86,7 +98,7 @@ object CarPower {
         appContext = app
         // Broadcasts only (no property to read): unknown until the first one, as on a unit that says nothing.
         val on = acc == true
-        _ignition.value = acc
+        setIgnition(acc)
         val prefs = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         // Read before [noteBoot] marks the ignition on.
         val wokeUp = acc != null && startedBySwitchOn(on, prefs.getLong(KEY_OFF_AT, 0L), prefs.getLong(KEY_ON_AT, 0L))
@@ -169,7 +181,7 @@ object CarPower {
 
     private fun switchedOn(context: Context) {
         UnitPlatform.markUsed(Cap.IGNITION)
-        _ignition.value = true
+        setIgnition(true)
         switchedOnAt = SystemClock.elapsedRealtime()
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val offAt = prefs.getLong(KEY_OFF_AT, 0L).takeIf { it > 0 }
@@ -195,7 +207,7 @@ object CarPower {
 
     private fun switchedOff(context: Context) {
         UnitPlatform.markUsed(Cap.IGNITION)
-        _ignition.value = false
+        setIgnition(false)
         val now = System.currentTimeMillis()
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putLong(KEY_OFF_AT, now).apply()
         Log.i(TAG, "ignition off")

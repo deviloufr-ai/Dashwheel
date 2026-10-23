@@ -21,6 +21,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.SourceKind
+import com.openauto.dash.vehicle.Vehicle
 import com.openauto.dash.vehicle.speedKmhFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -66,19 +68,21 @@ object BeltAlertOverlay {
         val app = AppLanguage.wrap(context.applicationContext)
         scope.launch {
             var wasMoving = false
-            combine(CarBox.body, LearnedSignals.state, speedKmhFlow(K.VEHICLE_SPEED)) { body, learned, kmh -> Triple(body, learned[CarSignal.DRIVER_BELT], kmh) }.collect { (body, learnedOpen, kmh) ->
+            // The belt as the bus resolves it: one the driver taught Dashwheel wins over the car app's.
+            combine(Vehicle.bus.value(K.DRIVER_BELT), speedKmhFlow(K.VEHICLE_SPEED)) { open, kmh -> open to kmh }.collect { (open, kmh) ->
                 // The car's own speed, never the GPS's.
                 val moving = isMoving(kmh, wasMoving)
                 wasMoving = moving
-                // A belt the driver taught Dashwheel wins over the car box's.
-                _unbuckledMoving.value = beltReminder((learnedOpen ?: body?.driverBeltUnfastened) == true, moving)
+                _unbuckledMoving.value = beltReminder(open == true, moving)
             }
         }
-        // The car box gone quiet mid-drive (its app stopped, the unit slept on):
+        // The car app gone quiet mid-drive (its app stopped, the unit slept on):
         // nothing would ever say "buckled" or "stopped", and the alert stood for good.
+        // A belt the driver taught is not the car app's to go quiet.
         scope.launch {
             _unbuckledMoving.collectLatest { on ->
                 if (!on) return@collectLatest
+                if (Vehicle.bus.sample(K.DRIVER_BELT).value?.source?.kind != SourceKind.VEHICLE_APP) return@collectLatest
                 while (SystemClock.elapsedRealtime() - CarBox.bodyAt < BODY_SILENT_MS) delay(5_000)
                 _unbuckledMoving.value = false
             }

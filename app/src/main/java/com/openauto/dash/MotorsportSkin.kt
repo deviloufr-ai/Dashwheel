@@ -276,7 +276,7 @@ internal enum class MsFlag { GREEN, YELLOW, RED }
  */
 @Composable
 internal fun rememberMsFlag(): State<MsFlag> {
-    val doors = McuReader.doorState.collectAsState()
+    val doors = remember { Vehicle.bus.value(K.DOORS) }.collectAsState(null)
     val tyres = Tyres.problems.collectAsState()
     return remember(doors, tyres) {
         derivedStateOf {
@@ -573,18 +573,6 @@ private fun ledColor(i: Int): Color = when {
 private const val LEDS = 15
 
 /**
- * The revs as the bar knows them: the bus's ([K.RPM], the adapter's) while it reports, else the car's
- * own (CANbox) while fresh; 0 with the adapter linked and the engine off;
- * null with neither.
- */
-private fun liveRpm(obdRpm: Int?, body: CarBody?): Int? = when {
-    obdRpm != null && obdRpm > 0 -> obdRpm
-    body?.rpm != null && CarBox.freshBody() != null -> body.rpm
-    obdRpm != null -> 0
-    else -> null
-}
-
-/**
  * The shift-light housing: a glossy black pill holding fifteen round lights
  * that come on one by one as the revs climb towards the shift point (about
  * 3 500 r/min on the 1.6 HDi, from the car's red line when its profile has
@@ -596,13 +584,12 @@ private fun liveRpm(obdRpm: Int?, body: CarBody?): Int? = when {
 private fun ShiftLights(m: TopBarModel, modifier: Modifier) {
     val context = LocalContext.current
     androidx.compose.runtime.LaunchedEffect(Unit) { CarBox.start(context) }
-    val body = CarBox.body.collectAsState()
     // A State, read only in the draw below: the revs move many times a second.
-    val obdRpm = remember { Vehicle.bus.value(K.RPM).map { it?.roundToInt() }.distinctUntilChanged() }.collectAsState(null)
+    val revs = remember { Vehicle.bus.value(K.RPM).map { it?.roundToInt() }.distinctUntilChanged() }.collectAsState(null)
     val redline = CarProfileStore.current.redlineRpm ?: 4_500
     val shift = (redline * 0.78f).coerceIn(2_500f, 7_000f)
     val start = shift * 0.36f
-    val rpm = remember(obdRpm, body) { { liveRpm(obdRpm.value, body.value) } }
+    val rpm = remember(revs) { { revs.value } }
     val atLimit by remember(rpm, shift) { derivedStateOf { (rpm() ?: 0) >= shift } }
     val idle by remember(rpm) { derivedStateOf { rpm() == null } }
     val flash = if (atLimit) rememberBlink(80L) else null

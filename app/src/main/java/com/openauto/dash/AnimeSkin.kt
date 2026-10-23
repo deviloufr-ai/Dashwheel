@@ -80,6 +80,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.rememberVehicle
 import kotlin.math.PI
 import kotlin.math.asin
 import kotlin.math.max
@@ -818,14 +820,13 @@ private fun AnimeBarPill(
     }
 }
 
-/** The bar's clock tag ("09:24 · 14°"), the temperature once the car's sensor or the weather gives one. */
+/** The bar's clock tag ("09:24 · 14°"), the temperature once the car's sensor or the forecast gives one ([K.AMBIENT_TEMP]). */
 @Composable
 private fun AnimeClockTag(clock: String) {
     val t = animeTones
-    val weather by WeatherRepo.weather.collectAsState()
-    val car by UnitSignals.outsideTempC.collectAsState()
+    val outside = rememberVehicle(K.AMBIENT_TEMP)
     val units = LocalUnits.current
-    val text = (weather?.tempC ?: car?.takeUnless { DemoMode.isOn })?.let { "$clock · ${units.temp(it)}°" } ?: clock
+    val text = outside?.let { "$clock · ${units.temp(it)}°" } ?: clock
     AnimeSticker(
         modifier = Modifier.height(BAR_STICKER),
         fill = t.paper,

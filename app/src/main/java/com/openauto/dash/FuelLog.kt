@@ -1,6 +1,6 @@
 package com.openauto.dash
 
-import com.openauto.dash.vehicle.fuelLevelPctNow
+import com.openauto.dash.vehicle.fuelInfoNow
 import com.openauto.dash.vehicle.Vehicle
 import com.openauto.dash.vehicle.K
 import android.content.Context
@@ -120,7 +120,7 @@ internal object FuelLog {
             while (true) {
                 delay(TICK_MS)
                 if (DemoMode.isOn) continue
-                val info = carFuelInfo(McuReader.fuelPercent.value, fuelLevelPctNow(), McuReader.rangeKm.value) ?: continue
+                val info = fuelInfoNow() ?: continue
                 val before = gauge.baseline
                 val (next, rise) = FuelLogRules.step(gauge, info.percent, System.currentTimeMillis())
                 gauge = next

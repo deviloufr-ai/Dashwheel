@@ -265,7 +265,7 @@ internal fun StandardSkinnedTile(item: DashboardItem, env: SkinTileEnv) {
         is DashboardItem.LaunchBar -> LaunchBarTile(item, env.appsByPackage, env.editing, env.onLaunchApp, env.onEditLaunchBar, full)
         is DashboardItem.BuiltinWidget -> when (item.kind) {
             BuiltinKind.TELEMETRY -> ObdCard(env.obdConnection, env.onConnectObd, env.onPickDevice, full)
-            BuiltinKind.SPEED_HUD -> SpeedHudCard(env.obdConnection == ObdConnectionState.CONNECTED, full)
+            BuiltinKind.SPEED_HUD -> SpeedHudCard(full)
             BuiltinKind.MEDIA -> MediaCard(env.mediaState, env.mediaController, env.hasMediaAccess, env.context, full)
             BuiltinKind.NAVIGATION -> DirectionsCard(env.hasMediaAccess, env.context, full)
             BuiltinKind.CLOCK -> ClockCard(full)

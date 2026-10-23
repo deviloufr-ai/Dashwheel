@@ -13,6 +13,11 @@ import android.location.LocationManager
 import android.os.SystemClock
 import com.openauto.dash.link.DriveSummary
 import com.openauto.dash.link.RecentCall
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Key
+import com.openauto.dash.vehicle.Source
+import com.openauto.dash.vehicle.SourceKind
+import com.openauto.dash.vehicle.Vehicle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -59,6 +64,18 @@ object DemoMode {
     val media: StateFlow<MediaState> = _media.asStateFlow()
 
     private const val TICK_MS = 250L
+
+    /**
+     * The demo on the vehicle bus, for the body, fuel, tyres and temperature it shows (the OBD gauges still go
+     * through the adapter's source): a DEMO source outranks every real one, so the real car's values can keep
+     * arriving without showing, and [withdrawBus] takes the demo's away when it ends.
+     */
+    private val busPublisher = Vehicle.bus.register(Source("demo", SourceKind.DEMO, "Demo"))
+    private val busKeys: List<Key<*>> = listOf(K.DOORS, K.FUEL_LEVEL, K.RANGE, K.HANDBRAKE, K.DRIVER_BELT, K.ODOMETER, K.TYRES, K.OUTSIDE_TEMP)
+
+    private fun withdrawBus() {
+        for (key in busKeys) busPublisher.put(key, null)
+    }
     /** The car's "left rear brake bulb out" message (PsaWarnings). */
     private const val DEMO_BULB = 0x84
     /** Place de la Concorde: where the fake drive sets off. */
@@ -110,6 +127,7 @@ object DemoMode {
         // Off first: a real event from here on publishes itself, and the feeds
         // that kept their real state up to date meanwhile hand it back below.
         _active.value = false
+        withdrawBus()
         before?.restore()
         before = null
         _media.value = MediaState()
@@ -445,6 +463,12 @@ object DemoMode {
             // CANbox: doors shut, fuel and range going down with the kilometres.
             val rangeKm = (612 - tripM / 1000).roundToInt()
             McuReader.demoWrite(McuReader.DoorState(), fuelPercent = 58, rangeKm = rangeKm)
+            busPublisher.put(K.DOORS, McuReader.DoorState())
+            busPublisher.put(K.FUEL_LEVEL, 58.0)
+            busPublisher.put(K.RANGE, rangeKm.toDouble())
+            busPublisher.put(K.HANDBRAKE, false)
+            busPublisher.put(K.DRIVER_BELT, false)
+            busPublisher.put(K.ODOMETER, DEMO_ODOMETER_KM + tripM / 1000)
             // A Peugeot or Citroën's own trip computer, with a brake bulb out: Car problems shows it on the car.
             PsaTripComputer.demoWrite(
                 PsaTrip(instantL100 = 5.9f, rangeKm = rangeKm, warnings = listOf(DEMO_BULB), at = android.os.SystemClock.elapsedRealtime())
@@ -481,15 +505,17 @@ object DemoMode {
             val warm = (4 * (1 - exp(-t / 120))).roundToInt()
             val leaky = (DEMO_LEAKY_KPA - (t / DEMO_LEAK_S_PER_KPA).toInt()).coerceAtLeast(DEMO_LEAKY_FLOOR_KPA)
             val heard = SystemClock.elapsedRealtime()
-            Tyres.demoWrite(
-                mapOf(
-                    TyrePos.FRONT_LEFT to Tyre(leaky, 22 + warm, false, false, false, heard),
-                    TyrePos.FRONT_RIGHT to Tyre(DEMO_TYRE_KPA + 2, 23 + warm, false, false, false, heard),
-                    TyrePos.REAR_LEFT to Tyre(DEMO_TYRE_KPA - 3, 21 + warm, false, false, false, heard),
-                    TyrePos.REAR_RIGHT to Tyre(DEMO_TYRE_KPA, 21 + warm, false, false, false, heard)
-                )
+            val demoTyres = mapOf(
+                TyrePos.FRONT_LEFT to Tyre(leaky, 22 + warm, false, false, false, heard),
+                TyrePos.FRONT_RIGHT to Tyre(DEMO_TYRE_KPA + 2, 23 + warm, false, false, false, heard),
+                TyrePos.REAR_LEFT to Tyre(DEMO_TYRE_KPA - 3, 21 + warm, false, false, false, heard),
+                TyrePos.REAR_RIGHT to Tyre(DEMO_TYRE_KPA, 21 + warm, false, false, false, heard)
             )
+            Tyres.demoWrite(demoTyres)
+            busPublisher.put(K.TYRES, demoTyres)
             WeatherRepo.demoWrite(weather, error = null)
+            // The demo's outside temperature is the weather's, whatever the car's own sensor says.
+            busPublisher.put(K.OUTSIDE_TEMP, weather.tempC)
             // Written once: one cleared or swiped away stays gone for the rest of the demo.
             if (notifications == null) NotificationFeed.demoWrite(demoNotifications(context, startedAt).also { notifications = it })
             navigate(context, metres, now)

@@ -1,6 +1,8 @@
 package com.openauto.dash
 
-import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.Gauges
+import com.openauto.dash.vehicle.any
+import com.openauto.dash.vehicle.rememberPanelGauges
 import com.openauto.dash.vehicle.K
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Canvas
@@ -899,27 +901,30 @@ private fun SpeedFigure(speed: Int?, maxW: Dp, maxH: Dp) {
 private const val THIN_SPACE = '\u2009'
 
 /** The stats line under the telemetry speed, longest first. */
-private fun telemetryLines(d: ObdData, context: android.content.Context, units: UnitSystem): List<String> {
-    val rpm = context.getString(R.string.horizon_rpm_value, groupThousands(d.rpm, THIN_SPACE))
-    val coolantDeg = units.temp(d.coolantTempC)
-    val coolant = context.getString(R.string.horizon_coolant_value, coolantDeg)
-    val volts = if (d.voltage > 0.0) "%.1f V".format(d.voltage) else null
+private fun telemetryLines(g: Gauges, context: android.content.Context, units: UnitSystem): List<String> {
+    val rpm = g.rpm?.let { context.getString(R.string.horizon_rpm_value, groupThousands(it, THIN_SPACE)) }
+    val coolantDeg = g.coolantTempC?.let { units.temp(it) }
+    val coolant = coolantDeg?.let { context.getString(R.string.horizon_coolant_value, it) }
+    val volts = g.voltage?.let { "%.1f V".format(it) }
     val core = listOfNotNull(rpm, coolant, volts)
-    return listOf(
-        (core + context.getString(R.string.horizon_load_value, d.engineLoadPct)).joinToString(DOT),
+    val load = g.engineLoadPct?.let { context.getString(R.string.horizon_load_value, it) }
+    // Only what the car answers; the shorter lines drop the least important first.
+    return listOfNotNull(
+        (core + listOfNotNull(load)).joinToString(DOT),
         core.joinToString(DOT),
-        "$rpm$DOT$coolantDeg°",
+        if (rpm != null && coolantDeg != null) "$rpm$DOT$coolantDeg°" else null,
         rpm
-    )
+    ).distinct().ifEmpty { listOf("--") }
 }
 
 /** Telemetry: the OBD speed as huge serif type, then rpm · coolant · battery (· load) in sans. */
 @Composable
 private fun HorizonTelemetry(env: SkinTileEnv, side: Side) {
     val state = env.obdConnection
-    val connected = state == ObdConnectionState.CONNECTED
     val idle = state.isIdle
-    val d = rememberReadings(K.SPEED, K.RPM, K.COOLANT_TEMP, K.BATTERY_VOLTS, K.ENGINE_LOAD)
+    // Whatever the car answers is shown, adapter or not.
+    val g = rememberPanelGauges(K.SPEED, K.RPM, K.COOLANT_TEMP, K.BATTERY_VOLTS, K.ENGINE_LOAD)
+    val live = state == ObdConnectionState.CONNECTED || g.any
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
@@ -929,17 +934,17 @@ private fun HorizonTelemetry(env: SkinTileEnv, side: Side) {
         contentAlignment = side.box
     ) {
         val lineSp = (maxWidth.value / 24f).coerceIn(12f, 20f)
-        val lineStyle = ui(lineSp, if (connected || state == ObdConnectionState.CONNECTING) DashColors.TextSecondary else DashColors.Accent)
-        val line = when (state) {
-            ObdConnectionState.CONNECTED -> firstFitting(telemetryLines(d, env.context, LocalUnits.current), lineStyle, maxWidth)
-            ObdConnectionState.CONNECTING -> stringResource(R.string.horizon_obd_connecting)
-            ObdConnectionState.ERROR -> stringResource(R.string.horizon_obd_error_retry)
-            ObdConnectionState.DISCONNECTED -> stringResource(R.string.horizon_obd_tap_connect)
+        val lineStyle = ui(lineSp, if (live || state == ObdConnectionState.CONNECTING) DashColors.TextSecondary else DashColors.Accent)
+        val line = when {
+            live -> firstFitting(telemetryLines(g, env.context, LocalUnits.current), lineStyle, maxWidth)
+            state == ObdConnectionState.CONNECTING -> stringResource(R.string.horizon_obd_connecting)
+            state == ObdConnectionState.ERROR -> stringResource(R.string.horizon_obd_error_retry)
+            else -> stringResource(R.string.horizon_obd_tap_connect)
         }
         val figureW = maxWidth
         val figureH = maxHeight - (lineSp * 1.3f + 8f).dp
         Column(horizontalAlignment = side.h) {
-            SpeedFigure(if (connected) d.speedKmh else null, figureW, figureH)
+            SpeedFigure(g.speedKmh, figureW, figureH)
             Spacer(Modifier.height(4.dp))
             SceneText(line, lineStyle, align = side.text)
         }

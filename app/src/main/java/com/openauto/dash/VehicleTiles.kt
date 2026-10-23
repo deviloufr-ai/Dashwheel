@@ -37,6 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.openauto.dash.vehicle.rememberDoors
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.setValue
@@ -48,7 +49,7 @@ import androidx.compose.runtime.setValue
 /** Live door status decoded from the MCU door bitfield (65 / 0C / 38, byte 4). */
 @Composable
 internal fun DoorsCard(modifier: Modifier = Modifier) {
-    val doors by McuReader.doorState.collectAsState()
+    val doors = rememberDoors()
     DisposableEffect(Unit) {
         McuReader.start()
         onDispose { McuReader.stop() }

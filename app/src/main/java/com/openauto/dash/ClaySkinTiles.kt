@@ -1,6 +1,7 @@
 package com.openauto.dash
 
-import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.any
+import com.openauto.dash.vehicle.rememberPanelGauges
 import com.openauto.dash.vehicle.K
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -857,15 +858,18 @@ private fun ClayTelemetry(env: SkinTileEnv) {
     val state = env.obdConnection
     val tint = ClayHue.AQUA.tint
     val units = LocalUnits.current
+    // Whatever the car answers is shown, adapter or not.
+    val g = rememberPanelGauges(K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
+    val gear by rememberGear()
+    val live = state == ObdConnectionState.CONNECTED || g.any || gear.rpm != null
     BoxWithConstraints(Modifier.fillMaxSize().graphicsLayer().clay(tint, editing = env.editing)) {
         val pad = padFor(maxWidth, maxHeight)
         val innerW = maxWidth - pad * 2
         val innerH = maxHeight - pad * 2
         val readSize = min(innerW.value / 18f, innerH.value * 0.12f).coerceIn(15f, 22f)
         Column(Modifier.fillMaxSize().padding(pad), verticalArrangement = Arrangement.SpaceBetween) {
-            when (state) {
-                ObdConnectionState.CONNECTED -> {
-                    val gear by rememberGear()
+            when {
+                live -> {
                     val rpm = gear.rpm
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         ClayLine(stringResource(R.string.clay_rpm), clayText(readSize, DashColors.TextSecondary, FontWeight.Bold), Modifier.weight(1f))
@@ -877,11 +881,10 @@ private fun ClayTelemetry(env: SkinTileEnv) {
                     val numSize = clayFit("8 888", FontWeight.Black, innerW * 0.9f, innerH - wellsH - (readSize * 2.2f).dp, 26f, 140f)
                     ClayLine(rpm?.let { groupThousands(it) } ?: "--", clayText(numSize, tint.ink, FontWeight.Black, figure = true), overflow = TextOverflow.Clip)
                     if (wellsH > 0.dp) {
-                        val d = rememberReadings(K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
                         ClayFitRow(10.dp) {
-                            if (d.coolantTempC > 0) ClayReadout(tint, stringResource(R.string.clay_coolant), "${units.temp(d.coolantTempC)}°", d.coolantTempC >= COOLANT_WARNING_C, readSize)
-                            if (d.voltage > 0.0) ClayReadout(tint, stringResource(R.string.clay_battery), String.format(Locale.getDefault(), "%.1f V", d.voltage), d.voltage !in BATTERY_OK_V, readSize)
-                            ClayReadout(tint, stringResource(R.string.clay_load), "${d.engineLoadPct} %", false, readSize)
+                            g.coolantTempC?.let { ClayReadout(tint, stringResource(R.string.clay_coolant), "${units.temp(it)}°", it >= COOLANT_WARNING_C, readSize) }
+                            g.voltage?.let { ClayReadout(tint, stringResource(R.string.clay_battery), String.format(Locale.getDefault(), "%.1f V", it), it !in BATTERY_OK_V, readSize) }
+                            g.engineLoadPct?.let { ClayReadout(tint, stringResource(R.string.clay_load), "$it %", false, readSize) }
                         }
                     }
                 }

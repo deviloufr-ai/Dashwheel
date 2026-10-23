@@ -1,6 +1,6 @@
 package com.openauto.dash
 
-import com.openauto.dash.vehicle.fuelLevelPctFlow
+import com.openauto.dash.vehicle.fuelInfoFlow
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
@@ -410,9 +410,8 @@ internal fun FollowTabTriggers(tabs: List<CanvasTab>, onTrigger: (TabTrigger) ->
         LaunchedEffect(Unit) {
             // The car's own range, as the spoken warning reads it (CarCare): once on the way down.
             // Collecting the fuel level is what keeps it asked for.
-            combine(McuReader.fuelPercent, McuReader.rangeKm, fuelLevelPctFlow()) { percent, range, obdFuel ->
-                carFuelInfo(percent, obdFuel, range)?.rangeKm.let { it != null && it in 1..LowFuel.WARN_KM }
-            }.distinctUntilChanged().drop(1).collect { if (it) fire(TabTrigger.LOW_FUEL) }
+            fuelInfoFlow().map { info -> info?.rangeKm.let { it != null && it in 1..LowFuel.WARN_KM } }
+                .distinctUntilChanged().drop(1).collect { if (it) fire(TabTrigger.LOW_FUEL) }
         }
     }
 }

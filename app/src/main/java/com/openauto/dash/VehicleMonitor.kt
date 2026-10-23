@@ -27,6 +27,8 @@ import com.openauto.dash.vehicle.Key
 import com.openauto.dash.vehicle.Vehicle
 import com.openauto.dash.vehicle.gaugesNow
 import com.openauto.dash.vehicle.holdAll
+import com.openauto.dash.vehicle.ignitionFlow
+import com.openauto.dash.vehicle.ignitionNow
 import kotlin.math.roundToInt
 
 /**
@@ -145,7 +147,7 @@ internal object VehicleMonitor {
             if (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR) != BluetoothAdapter.STATE_ON) return
             scope.launch {
                 delay(BLUETOOTH_SETTLE_MS)
-                if (redials(foreground.value || secondScreen.value, CarPower.ignition.value)) connectSaved()
+                if (redials(foreground.value || secondScreen.value, ignitionNow())) connectSaved()
             }
         }
     }
@@ -173,7 +175,7 @@ internal object VehicleMonitor {
                 val wrongSide = state == ObdConnectionState.CONNECTED && ObdBluetoothManager.viaUsb.value != ObdBluetoothManager.usesUsb()
                 if (wrongSide) ObdBluetoothManager.disconnect()
             }
-            if (redials(foreground.value || secondScreen.value, CarPower.ignition.value)) connectSaved()
+            if (redials(foreground.value || secondScreen.value, ignitionNow())) connectSaved()
         }
     }
 
@@ -201,7 +203,7 @@ internal object VehicleMonitor {
         if (!ObdBluetoothManager.autoConnect.value) return
         // CarPlay or Android Auto starting: it needs the unit's Bluetooth to itself for a moment.
         if (projectionStarting(UnitSignals.projectionOnScreen.value, UnitSignals.projection.value, projectionSince, SystemClock.elapsedRealtime())) return
-        if (CarPower.ignition.value == false) return
+        if (ignitionNow() == false) return
         if (!ObdBluetoothManager.connectionState.value.isIdle) return
         // Which way to dial asks the USB service (and the phone's offer): off the main thread, like the dial itself.
         scope.launch(Dispatchers.IO) { dialSaved(context) }
@@ -235,7 +237,7 @@ internal object VehicleMonitor {
                 calling = now
                 if (!ended) return@collect
                 delay(CALL_SETTLE_MS)
-                if (redials(foreground.value || secondScreen.value, CarPower.ignition.value)) connectSaved()
+                if (redials(foreground.value || secondScreen.value, ignitionNow())) connectSaved()
             }
     }
 
@@ -262,7 +264,7 @@ internal object VehicleMonitor {
                 val wrongSide = connected && withContext(Dispatchers.IO) { ObdBluetoothManager.viaPhone.value != ObdBluetoothManager.usesPhone() }
                 if (!offerChanged && !wrongSide) return@collect
                 if (wrongSide) ObdBluetoothManager.disconnect()
-                if (redials(foreground.value || secondScreen.value, CarPower.ignition.value)) connectSaved()
+                if (redials(foreground.value || secondScreen.value, ignitionNow())) connectSaved()
             }
     }
 
@@ -309,7 +311,7 @@ internal object VehicleMonitor {
      * Wanted again, or a link that was up and dropped, starts over at 5 s.
      */
     private suspend fun reconnectWhileWanted() {
-        combine(foreground, secondScreen, CarPower.ignition) { inFront, cluster, ignition -> redials(inFront || cluster, ignition) }
+        combine(foreground, secondScreen, ignitionFlow()) { inFront, cluster, ignition -> redials(inFront || cluster, ignition) }
             .distinctUntilChanged()
             .collectLatest { wanted ->
                 if (!wanted) {

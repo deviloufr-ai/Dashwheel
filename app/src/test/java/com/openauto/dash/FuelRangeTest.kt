@@ -11,12 +11,12 @@ class FuelRangeTest {
 
     @Test
     fun nothingKnownIsNull() {
-        assertNull(fuelInfo(canFuel = null, obdFuel = 0, canRange = null))
+        assertNull(fuelInfo(fuelPct = null, rangeKm = null))
     }
 
     @Test
     fun fuelAloneEstimatesTheRange() {
-        val f = fuelInfo(canFuel = 50, obdFuel = 0, canRange = null)!!
+        val f = fuelInfo(fuelPct = 50, rangeKm = null)!!
         assertEquals(461, f.rangeKm) // 30 L at 6.5 L/100 km
         assertFalse(f.rangeFromCar)
         assertEquals("CANbox", f.source)
@@ -24,8 +24,8 @@ class FuelRangeTest {
 
     @Test
     fun theCarsRangeWinsAndGivesTheRealConsumption() {
-        // 44% of 60 L = 26.4 L; the car says 520 km → it's counting on ~5.1 L/100 km.
-        val f = fuelInfo(canFuel = 44, obdFuel = 0, canRange = 520)!!
+        // 44% of 60 L = 26.4 L; the car says 520 km -> it's counting on ~5.1 L/100 km.
+        val f = fuelInfo(fuelPct = 44, rangeKm = 520)!!
         assertEquals(520, f.rangeKm)
         assertEquals(44, f.percent)
         assertTrue(f.rangeFromCar)
@@ -35,14 +35,14 @@ class FuelRangeTest {
 
     @Test
     fun anImplausibleConsumptionFallsBackToTheUsualOne() {
-        val f = fuelInfo(canFuel = 5, obdFuel = 0, canRange = 600)!!
+        val f = fuelInfo(fuelPct = 5, rangeKm = 600)!!
         assertEquals(AVG_L_PER_100KM, f.avgUse, 0.0)
         assertEquals(600, f.rangeKm)
     }
 
     @Test
     fun rangeAloneWorksTheLevelBack() {
-        val f = fuelInfo(canFuel = null, obdFuel = 0, canRange = 520)!!
+        val f = fuelInfo(fuelPct = null, rangeKm = 520)!!
         assertEquals(520, f.rangeKm)
         assertEquals(56, f.percent) // 33.8 L of 60
         assertTrue(f.percentEstimated)
@@ -50,26 +50,38 @@ class FuelRangeTest {
     }
 
     @Test
-    fun anEmptyTankWithRangeLeftIsNoLevelAtAll() {
-        // The car app sends 0 L while the trip computer says 330 km: worked back from the range.
-        val f = fuelInfo(canFuel = 0, obdFuel = 0, canRange = 330)!!
-        assertEquals(330, f.rangeKm)
-        assertEquals(36, f.percent) // 21.5 L of 60
-        assertEquals(21.45, f.liters, 0.01)
-        assertTrue(f.percentEstimated)
-        assertEquals("CANbox", f.source)
-        // The OBD's level, when there is one, is used instead.
-        assertEquals(50, fuelInfo(canFuel = 0, obdFuel = 50, canRange = 330)!!.percent)
-        // Without a range, an empty tank is taken as it reads.
-        assertEquals(0, fuelInfo(canFuel = 0, obdFuel = 0, canRange = null)!!.percent)
+    fun withoutARangeAnEmptyTankIsTakenAsItReads() {
+        assertEquals(0, fuelInfo(fuelPct = 0, rangeKm = null)!!.percent)
     }
 
     @Test
     fun obdFuelWithTheCarsRange() {
-        val f = fuelInfo(canFuel = null, obdFuel = 50, canRange = 400)!!
+        val f = fuelInfo(fuelPct = 50, rangeKm = 400, fromObd = true)!!
         assertEquals("OBD", f.source)
         assertEquals(400, f.rangeKm)
         assertEquals(7.5, f.avgUse, 0.01)
+    }
+
+    @Test
+    fun theSourceIsOnlyObdWhenTheLevelIsKnown() {
+        // The adapter's level was not a reading: the range alone speaks, and it is the car's.
+        assertEquals("CANbox", fuelInfo(fuelPct = null, rangeKm = 400, fromObd = true)!!.source)
+    }
+
+    @Test
+    fun anEmptyTankWithRangeLeftIsNotPublishedAsALevel() {
+        // The car app sends 0 L while the trip computer says 330 km: that is no level at all (the provider drops it).
+        assertNull(fuelPercentToPublish(0, 330))
+        assertEquals(0, fuelPercentToPublish(0, null))
+        assertEquals(0, fuelPercentToPublish(0, 0))
+        assertEquals(5, fuelPercentToPublish(5, 330))
+        assertNull(fuelPercentToPublish(null, 330))
+        // ...so the level is worked back from the range, as before.
+        val f = fuelInfo(fuelPct = fuelPercentToPublish(0, 330), rangeKm = 330)!!
+        assertEquals(330, f.rangeKm)
+        assertEquals(36, f.percent) // 21.5 L of 60
+        assertEquals(21.45, f.liters, 0.01)
+        assertTrue(f.percentEstimated)
     }
 
     @Test

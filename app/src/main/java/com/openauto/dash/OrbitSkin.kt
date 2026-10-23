@@ -1,6 +1,7 @@
 package com.openauto.dash
 
-import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.any
+import com.openauto.dash.vehicle.rememberPanelGauges
 import com.openauto.dash.vehicle.K
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -535,27 +536,31 @@ private class Satellite(val fraction: Float, val color: Color, val value: String
  */
 @Composable
 private fun OrbitTelemetry(env: SkinTileEnv) {
-    val connected = env.obdConnection == ObdConnectionState.CONNECTED
     val idle = env.obdConnection.isIdle
-    val data = rememberReadings(K.SPEED, K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
-    val warn = connected && speedOver(data.speedKmh)
+    // Whatever the car answers is shown, adapter or not; the rest reads "--".
+    val g = rememberPanelGauges(K.SPEED, K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
+    val connected = env.obdConnection == ObdConnectionState.CONNECTED || g.any
+    val warn = speedOver(g.speedKmh)
     val teal = DashColors.Secondary
     val units = LocalUnits.current
+    val coolantC = g.coolantTempC ?: 0
+    val volts = g.voltage ?: 0.0
+    val load = g.engineLoadPct ?: 0
     val satellites = listOf(
         Satellite(
-            (data.coolantTempC - 40) / 90f,
-            if (data.coolantTempC >= 105) DashColors.Warning else teal,
-            if (connected) "${units.temp(data.coolantTempC)}°" else "--",
+            (coolantC - 40) / 90f,
+            if (coolantC >= 105) DashColors.Warning else teal,
+            g.coolantTempC?.let { "${units.temp(it)}°" } ?: "--",
             stringResource(R.string.orbit_sat_coolant)
         ),
         Satellite(
-            batteryFraction(data.voltage),
-            batteryColor(data.voltage),
-            if (connected && data.voltage > 0.0) "%.1fV".format(data.voltage) else "--",
+            batteryFraction(volts),
+            batteryColor(volts),
+            if (volts > 0.0) "%.1fV".format(volts) else "--",
             stringResource(R.string.orbit_sat_battery)
         ),
         Satellite(
-            data.engineLoadPct / 100f, DashColors.Accent2, if (connected) "${data.engineLoadPct}%" else "--",
+            load / 100f, DashColors.Accent2, g.engineLoadPct?.let { "$it%" } ?: "--",
             stringResource(R.string.orbit_sat_load)
         )
     )
@@ -566,19 +571,19 @@ private fun OrbitTelemetry(env: SkinTileEnv) {
         val d = layout.dial
         OrbitDial(
             diameter = d,
-            speedFraction = if (connected) data.speedKmh / DIAL_MAX_KMH else 0f,
-            outerFraction = if (connected) data.rpm / SKIN_RPM_MAX else 0f,
+            speedFraction = g.speedKmh?.let { it / DIAL_MAX_KMH } ?: 0f,
+            outerFraction = g.rpm?.let { it / SKIN_RPM_MAX } ?: 0f,
             active = connected,
             warn = warn,
             onClick = if (idle && !env.editing) env.onConnectObd else null,
             modifier = Modifier.offset((layout.center.x - d / 2).dp, (layout.center.y - d / 2).dp)
         ) {
             OrbitText(
-                if (connected) "${units.speed(data.speedKmh)}" else "--",
+                g.speedKmh?.let { "${units.speed(it)}" } ?: "--",
                 d * 0.30f,
                 when {
                     warn -> DashColors.Warning
-                    connected -> DashColors.TextPrimary
+                    g.speedKmh != null -> DashColors.TextPrimary
                     else -> DashColors.Muted
                 },
                 weight = FontWeight.SemiBold,
@@ -588,7 +593,8 @@ private fun OrbitTelemetry(env: SkinTileEnv) {
             Spacer(Modifier.height((d * 0.025f).dp))
             OrbitText(
                 when {
-                    connected -> stringResource(R.string.orbit_rpm_value, groupThousands(data.rpm))
+                    g.rpm != null -> stringResource(R.string.orbit_rpm_value, groupThousands(g.rpm))
+                    connected -> ""
                     idle -> stringResource(R.string.orbit_tap_to_connect)
                     else -> stringResource(R.string.orbit_connecting)
                 },
@@ -610,7 +616,7 @@ private fun OrbitTelemetry(env: SkinTileEnv) {
                 color = s.color,
                 value = s.value,
                 label = s.label,
-                dimmed = !connected,
+                dimmed = s.value == "--",
                 modifier = Modifier.offset((c.x - b / 2).dp, (c.y - b / 2).dp)
             )
         }

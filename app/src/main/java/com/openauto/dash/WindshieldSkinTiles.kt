@@ -1,6 +1,7 @@
 package com.openauto.dash
 
-import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.any
+import com.openauto.dash.vehicle.rememberPanelGauges
 import com.openauto.dash.vehicle.K
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -477,6 +478,9 @@ private fun WsSpeedHud(env: SkinTileEnv) {
 private fun WsTelemetry(env: SkinTileEnv) {
     val state = env.obdConnection
     val units = LocalUnits.current
+    // Whatever the car answers is shown, adapter or not.
+    val g = rememberPanelGauges(K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
+    val live = state == ObdConnectionState.CONNECTED || g.any
     BoxWithConstraints(
         Modifier
             .fillMaxSize()
@@ -490,21 +494,20 @@ private fun WsTelemetry(env: SkinTileEnv) {
         val load = maxWidth >= 340.dp
         Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween) {
             WsLine(stringResource(R.string.windshield_engine), wsText((size * 0.75f).coerceAtLeast(14f), DashColors.TextSecondary, FontWeight.Medium, caps = true), caps = true)
-            when (state) {
-                ObdConnectionState.CONNECTED -> {
-                    val d = rememberReadings(K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
+            when {
+                live -> {
                     Row {
-                        WsLine(groupThousands(d.rpm), wsText(size * 2.2f, DashColors.TextPrimary, FontWeight.SemiBold), Modifier.alignByBaseline(), overflow = TextOverflow.Clip)
+                        WsLine(g.rpm?.let { groupThousands(it) } ?: "--", wsText(size * 2.2f, DashColors.TextPrimary, FontWeight.SemiBold), Modifier.alignByBaseline(), overflow = TextOverflow.Clip)
                         Spacer(Modifier.width(8.dp))
                         WsLine(stringResource(R.string.windshield_rpm), wsText(size * 0.9f, DashColors.TextSecondary), Modifier.alignByBaseline())
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                        if (d.coolantTempC > 0) WsReadout(stringResource(R.string.windshield_coolant), "${units.temp(d.coolantTempC)}°", d.coolantTempC >= COOLANT_WARNING_C, size)
-                        if (d.voltage > 0.0 && battery) WsReadout(stringResource(R.string.windshield_battery), String.format(Locale.getDefault(), "%.1f V", d.voltage), d.voltage !in BATTERY_OK_V, size)
-                        if (load) WsReadout(stringResource(R.string.windshield_load), "${d.engineLoadPct} %", false, size)
+                        g.coolantTempC?.let { WsReadout(stringResource(R.string.windshield_coolant), "${units.temp(it)}°", it >= COOLANT_WARNING_C, size) }
+                        if (battery) g.voltage?.let { WsReadout(stringResource(R.string.windshield_battery), String.format(Locale.getDefault(), "%.1f V", it), it !in BATTERY_OK_V, size) }
+                        if (load) g.engineLoadPct?.let { WsReadout(stringResource(R.string.windshield_load), "$it %", false, size) }
                     }
                 }
-                ObdConnectionState.CONNECTING -> WsLine(stringResource(R.string.horizon_obd_connecting), wsText(size, DashColors.AccentInk, FontWeight.Medium))
+                state == ObdConnectionState.CONNECTING -> WsLine(stringResource(R.string.horizon_obd_connecting), wsText(size, DashColors.AccentInk, FontWeight.Medium))
                 else -> Column {
                     WsLine(stringResource(R.string.horizon_connect_obd), wsText(size * 1.2f, DashColors.AccentInk, FontWeight.SemiBold))
                     if (state == ObdConnectionState.ERROR) {

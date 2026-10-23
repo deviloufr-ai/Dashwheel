@@ -1,5 +1,6 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.fuelInfoNow
 import com.openauto.dash.vehicle.gaugesNow
 import java.util.Locale
 
@@ -143,7 +144,7 @@ internal fun currentCarSnapshot(now: Long = System.currentTimeMillis()): CarSnap
     val car = CarProfileStore.current
     val live = DemoMode.isOn || ObdBluetoothManager.connectionState.value == ObdConnectionState.CONNECTED
     val g = gaugesNow(VehicleMonitor.POLL_FLOOR)
-    val fuel = carFuelInfo(McuReader.fuelPercent.value, g.fuelLevelPct ?: 0, McuReader.rangeKm.value)
+    val fuel = fuelInfoNow()
     val ai = AiMechanic.state.value
     val explained = ai.diagnosis?.codes?.map { it.code }.orEmpty()
     return CarSnapshot(

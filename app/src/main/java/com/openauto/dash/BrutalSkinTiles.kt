@@ -692,7 +692,6 @@ private fun BrReadings(item: DashboardItem, env: SkinTileEnv, telemetry: Boolean
         return
     }
     val units = LocalUnits.current
-    val connected = env.obdConnection == ObdConnectionState.CONNECTED
     val coolant = rememberGaugeInt(K.COOLANT_TEMP) ?: 0
     val voltage = rememberGauge(K.BATTERY_VOLTS) ?: 0.0
     val c = brColors(BrTone.WHITE)
@@ -708,7 +707,7 @@ private fun BrReadings(item: DashboardItem, env: SkinTileEnv, telemetry: Boolean
             innerW >= 240.dp -> 2
             else -> 1
         }
-        val third = if (count >= 3) rememberThirdReading(telemetry, fuel, voltage, connected) else null
+        val third = if (count >= 3) rememberThirdReading(telemetry, fuel, voltage) else null
         val readings = buildList {
             add(
                 BrReading(
@@ -780,7 +779,7 @@ private fun BrRule(horizontal: Boolean, color: Color) {
  * else the battery or, on a telemetry tile, the fuel left.
  */
 @Composable
-private fun rememberThirdReading(telemetry: Boolean, fuel: FuelInfo?, voltage: Double, connected: Boolean): BrReading? {
+private fun rememberThirdReading(telemetry: Boolean, fuel: FuelInfo?, voltage: Double): BrReading? {
     val context = androidx.compose.ui.platform.LocalContext.current
     val units = LocalUnits.current
     val located = remember(context) {
@@ -791,7 +790,7 @@ private fun rememberThirdReading(telemetry: Boolean, fuel: FuelInfo?, voltage: D
     if (best != null) return BrReading("${nearby.grade.label} ${FuelPrices.CURRENCY}", FuelPrices.formatPrice(best.price))
     val outside = rememberOutsideTempC()
     if (outside != null) return BrReading(stringResource(R.string.brutal_outside), "${units.temp(outside)}°")
-    if (connected && voltage > 0.0) {
+    if (voltage > 0.0) {
         return BrReading(stringResource(R.string.brutal_battery), String.format(Locale.getDefault(), "%.1f V", voltage), voltage !in BATTERY_OK_V)
     }
     if (telemetry && fuel != null) return BrReading(stringResource(R.string.brutal_fuel), "${fuel.percent}%", fuel.percent <= SKIN_LOW_FUEL_PCT)

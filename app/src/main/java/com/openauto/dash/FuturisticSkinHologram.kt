@@ -1,7 +1,10 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberDoors
+import com.openauto.dash.vehicle.rememberGaugeInt
 import com.openauto.dash.vehicle.rememberReadings
 import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.rememberTyres
 import android.graphics.Bitmap
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -299,7 +302,7 @@ internal fun FutHologram(env: SkinTileEnv, callouts: Boolean, modifier: Modifier
         if (v == null || value != null) return@produceState
         value = withContext(Dispatchers.Default) { runCatching { buildGlow(v) }.getOrNull() }?.also { FutHoloGlowCache.put(v, it) }
     }
-    val items = if (callouts) rememberHoloCallouts(env) else emptyList()
+    val items = if (callouts) rememberHoloCallouts() else emptyList()
     val doorsOpen = items.any { it.slot == FutHoloSlot.ROOF && it.alert }
     val anchors = remember(view) { anchorsOf(view) }
     BoxWithConstraints(modifier) {
@@ -323,14 +326,14 @@ internal fun FutHologram(env: SkinTileEnv, callouts: Boolean, modifier: Modifier
  * which shows "--" until OBD answers.
  */
 @Composable
-private fun rememberHoloCallouts(env: SkinTileEnv): List<FutHoloCallout> {
+private fun rememberHoloCallouts(): List<FutHoloCallout> {
     val units = LocalUnits.current
     val locale = Locale.getDefault()
-    val connected = env.obdConnection == ObdConnectionState.CONNECTED
-    val d = rememberReadings(K.RPM, K.COOLANT_TEMP, K.BATTERY_VOLTS)
+    val d = rememberReadings(K.COOLANT_TEMP, K.BATTERY_VOLTS)
+    val revs = rememberGaugeInt(K.RPM)
     val fuel = rememberFuel()
-    val doors by McuReader.doorState.collectAsState()
-    val tyres by Tyres.tyres.collectAsState()
+    val doors = rememberDoors()
+    val tyres = rememberTyres()
     val problems by Tyres.problems.collectAsState()
     val pressureUnit by Tyres.unit.collectAsState()
     val engine = stringResource(R.string.skin_futuristic_engine)
@@ -344,17 +347,17 @@ private fun rememberHoloCallouts(env: SkinTileEnv): List<FutHoloCallout> {
     val list = ArrayList<FutHoloCallout>(4)
     list += FutHoloCallout(
         FutHoloSlot.FRONT, engine,
-        listOf(if (connected && d.coolantTempC > 0) units.tempTight(d.coolantTempC) else "--"),
-        connected && d.coolantTempC >= COOLANT_WARNING_C
+        listOf(if (d.coolantTempC > 0) units.tempTight(d.coolantTempC) else "--"),
+        d.coolantTempC >= COOLANT_WARNING_C
     )
     val tyre = problems.keys.firstNotNullOfOrNull { tyres[it] }
         ?: tyres.filterKeys { it != TyrePos.SPARE }.values.minByOrNull { it.kPa }
     when {
         tyre != null -> list += FutHoloCallout(FutHoloSlot.WHEEL, tyresLabel, listOf(formatPressure(tyre.kPa, pressureUnit)), problems.isNotEmpty())
-        connected && d.voltage > 0.0 -> list += FutHoloCallout(
+        d.voltage > 0.0 -> list += FutHoloCallout(
             FutHoloSlot.WHEEL, battery, listOf(String.format(locale, "%.1f V", d.voltage)), d.voltage < 11.8
         )
-        connected -> list += FutHoloCallout(FutHoloSlot.WHEEL, rpm, listOf(groupThousands(d.rpm)), false)
+        revs != null -> list += FutHoloCallout(FutHoloSlot.WHEEL, rpm, listOf(groupThousands(revs)), false)
     }
     if (fuel != null) {
         val range = "${units.distance(fuel.rangeKm)} ${units.distanceUnit}"

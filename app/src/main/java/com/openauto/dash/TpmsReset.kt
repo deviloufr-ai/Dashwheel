@@ -8,6 +8,7 @@ import android.util.Log
 import android.widget.Toast
 import com.hoho.android.usbserial.driver.UsbSerialProber
 import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.ignitionFlow
 import com.openauto.dash.vehicle.speedKmhNow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -57,7 +58,7 @@ internal object TpmsReset {
         started = true
         val app = context.applicationContext
         // A new drive may reset again.
-        scope.launch { CarPower.ignition.collect { if (it == true) resetThisDrive = false } }
+        scope.launch { ignitionFlow().collect { if (it == true) resetThisDrive = false } }
         scope.launch {
             // The GPS speed is read by snapshot in [check]: it stays wanted for as long as the watch runs.
             Vehicle.bus.hold(K.GPS_SPEED)

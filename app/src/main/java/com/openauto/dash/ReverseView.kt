@@ -69,6 +69,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.reversingFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -100,7 +104,7 @@ import kotlin.math.tan
  * the camera ([AlertWindow]); up while reverse is engaged, gone with it.
  *
  * The steering angle comes from the car app's own broadcast for its guide
- * lines ([CarBox.steering]), which it only sends while those lines are on;
+ * lines ([K.STEERING_ANGLE]), which it only sends while those lines are on;
  * with them off, from the line picture the car app saves at every step of the
  * wheel. Hidden from here, it's also read, finer, from the car app's log of
  * the CAN box's frames (root, see [StockLines]).
@@ -209,7 +213,7 @@ internal object ReverseView {
 
     /** The reverse view is wanted on screen now. */
     val wanted: StateFlow<Boolean> =
-        combine(_on, CarBox.reversing, _preview) { on, reversing, preview -> preview || on && reversing }
+        combine(_on, reversingFlow(), _preview) { on, reversing, preview -> preview || on && reversing }
             .stateIn(scope, SharingStarted.Eagerly, false)
 
     /**
@@ -220,7 +224,7 @@ internal object ReverseView {
      * picture is the head unit's ([ReverseCamera.mirror]): without it, the radar.
      */
     val secondScreenShown: StateFlow<ReverseLayout?> =
-        combine(CarBox.reversing, _preview, _secondScreen, SecondScreenStore.config) { reversing, preview, shown, config ->
+        combine(reversingFlow(), _preview, _secondScreen, SecondScreenStore.config) { reversing, preview, shown, config ->
             // Whether the screen streams or draws its own cluster: in reverse it streams this ([SecondScreenRules.output]).
             shown?.takeIf { (reversing || preview) && config.mode != SecondScreenMode.OFF }
         }.stateIn(scope, SharingStarted.Eagerly, null)
@@ -231,12 +235,12 @@ internal object ReverseView {
 
     /** Steering wheel degrees, right positive, scaled and mirrored if asked. */
     val steering: StateFlow<Float?> =
-        combine(CarBox.steering, previewSteering, _preview, _calibration) { real, fake, preview, cal ->
+        combine(Vehicle.bus.value(K.STEERING_ANGLE).map { it?.toFloat() }, previewSteering, _preview, _calibration) { real, fake, preview, cal ->
             (if (preview) fake else real?.times(cal.steer))?.let { if (cal.mirror) -it else it }
         }.stateIn(scope, SharingStarted.Eagerly, null)
 
     val radar: StateFlow<Radar?> =
-        combine(CarBox.radar, previewRadar, _preview) { real, fake, preview -> if (preview) fake else real }
+        combine(Vehicle.bus.value(K.RADAR), previewRadar, _preview) { real, fake, preview -> if (preview) fake else real }
             .stateIn(scope, SharingStarted.Eagerly, null)
 
     fun start(context: Context) {
@@ -266,7 +270,7 @@ internal object ReverseView {
         }
         // The car app's log is only read while it's needed: reversing with its lines hidden.
         scope.launch {
-            combine(CarBox.reversing, _hideStock, _on) { r, hide, on -> r && hide && on }.collect { read ->
+            combine(reversingFlow(), _hideStock, _on) { r, hide, on -> r && hide && on }.collect { read ->
                 if (read) StockLines.readAngles(app) else StockLines.stopReading()
             }
         }

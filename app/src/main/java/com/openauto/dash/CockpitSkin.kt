@@ -1,5 +1,7 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.any
+import com.openauto.dash.vehicle.rememberPanelGauges
 import com.openauto.dash.vehicle.rememberReadings
 import com.openauto.dash.vehicle.K
 import android.graphics.Bitmap
@@ -1277,18 +1279,19 @@ private fun SpeedLcd(speed: Int?, caption: String, modifier: Modifier) {
 @Composable
 private fun CockpitTelemetry(env: SkinTileEnv) {
     val state = env.obdConnection
-    val connected = state == ObdConnectionState.CONNECTED
     val idle = state.isIdle
-    val d = rememberReadings(K.SPEED, K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
+    // Whatever the car answers is shown, adapter or not.
+    val g = rememberPanelGauges(K.SPEED, K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
+    val live = state == ObdConnectionState.CONNECTED || g.any
     val fuel = rememberFuel()
-    val speed = if (connected) d.speedKmh else null
-    val rpm = if (connected) d.rpm else null
+    val speed = g.speedKmh
+    val rpm = g.rpm
     val ink = LcdInk
     val speedColor = if (speedOver(speed)) DashColors.Warning else ink
-    val coolant = if (connected && d.coolantTempC > 0) ((d.coolantTempC - 50f) / 80f) else null
+    val coolant = g.coolantTempC?.let { (it - 50f) / 80f }
     val fuelFrac = fuel?.let { it.percent / 100f }
-    val volts = if (connected && d.voltage > 0.0) ((d.voltage - 8.0) / 8.0).toFloat() else null
-    val load = if (connected) d.engineLoadPct / 100f else null
+    val volts = g.voltage?.let { ((it - 8.0) / 8.0).toFloat() }
+    val load = g.engineLoadPct?.let { it / 100f }
     val words = dialWords()
     val rpmUnit = stringResource(R.string.cockpit_unit_rpm)
     val units = LocalUnits.current
@@ -1316,7 +1319,7 @@ private fun CockpitTelemetry(env: SkinTileEnv) {
                 face = face,
                 fraction = rpm?.let { it / SKIN_RPM_MAX },
                 subFractions = if (fuel != null) listOf(coolant, fuelFrac) else listOf(coolant),
-                live = connected,
+                live = live,
                 readout = rpm?.toString() ?: "--",
                 unit = rpmUnit,
                 lcdColor = ink,
@@ -1335,7 +1338,7 @@ private fun CockpitTelemetry(env: SkinTileEnv) {
                 face = face,
                 fraction = speed?.let { speedoFraction(it, units) },
                 subFractions = listOf(volts, load),
-                live = connected,
+                live = live,
                 readout = if (revs) rpm?.toString() ?: "--" else null,
                 unit = rpmUnit,
                 lcdColor = speedColor,
@@ -1346,7 +1349,7 @@ private fun CockpitTelemetry(env: SkinTileEnv) {
         when {
             min(w, h) < 120.dp -> SpeedLcd(
                 speed,
-                if (connected) stringResource(R.string.cockpit_speed_rpm_caption, rpm ?: 0) else stringResource(R.string.cockpit_obd_off),
+                if (live) stringResource(R.string.cockpit_speed_rpm_caption, rpm ?: 0) else stringResource(R.string.cockpit_obd_off),
                 Modifier.fillMaxSize()
             )
             wide -> {
@@ -1378,7 +1381,6 @@ private fun CockpitTelemetry(env: SkinTileEnv) {
 @Composable
 private fun TelemetryTellTales(env: SkinTileEnv, speed: Int?, idle: Boolean, modifier: Modifier) {
     val d = rememberReadings(K.COOLANT_TEMP, K.BATTERY_VOLTS)
-    val connected = env.obdConnection == ObdConnectionState.CONNECTED
     val warn = DashColors.Warning
     Column(
         modifier = modifier,
@@ -1397,11 +1399,11 @@ private fun TelemetryTellTales(env: SkinTileEnv, speed: Int?, idle: Boolean, mod
         )
         TellTale(
             Icons.Filled.BatteryAlert,
-            if (connected && d.voltage > 0.0 && d.voltage !in 12.0..15.0) warn else null,
+            if (d.voltage > 0.0 && d.voltage !in 12.0..15.0) warn else null,
             stringResource(R.string.cockpit_battery)
         )
         TellTale(
-            Icons.Filled.Thermostat, if (connected && d.coolantTempC >= 105) warn else null,
+            Icons.Filled.Thermostat, if (d.coolantTempC >= 105) warn else null,
             stringResource(R.string.cockpit_coolant)
         )
         TellTale(

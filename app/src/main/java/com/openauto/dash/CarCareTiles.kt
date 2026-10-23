@@ -1,8 +1,10 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberFuelInfo
 import com.openauto.dash.vehicle.rememberGauges
 import com.openauto.dash.vehicle.rememberGaugeInt
 import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.rememberVehicle
 import android.text.format.DateUtils
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Canvas
@@ -144,11 +146,7 @@ internal class FuelToDest(val rangeKm: Int, val toGoKm: Double?) {
 @Composable
 internal fun rememberFuelToDest(): FuelToDest? {
     val nav by NavDirections.state.collectAsState()
-    val canFuel by McuReader.fuelPercent.collectAsState()
-    val canRange by McuReader.rangeKm.collectAsState()
-    val obdFuel = rememberGaugeInt(K.FUEL_LEVEL) ?: 0
-    val car by CarProfileStore.profile.collectAsState()
-    val range = remember(canFuel, canRange, obdFuel, car) { carFuelInfo(canFuel, obdFuel, canRange)?.rangeKm } ?: return null
+    val range = rememberFuelInfo()?.rangeKm ?: return null
     return FuelToDest(range, if (nav.active) CareRules.remainingKm(nav.eta) else null)
 }
 
@@ -549,9 +547,10 @@ private fun serviceText(car: CarProfile): String = listOfNotNull(
 ).joinToString(" / ")
 
 /**
- * The car's own state from its CAN box ([CarBox]): the range, the
- * consumption, the trips, the mileage and the lights, as the car's trip
- * computer counts them (on a Peugeot, Citroën or DS read off the CAN box
+ * The car's own state: the range, the mileage and the parking brake from the
+ * bus ([K.RANGE], [K.ODOMETER], [K.HANDBRAKE]), and from the car app's body ([CarBox])
+ * what has no key of its own: the consumption, the trip and which lights are on, as the
+ * car's trip computer counts them (on a Peugeot, Citroën or DS read off the CAN box
  * stream, [PsaTripComputer]). A value the car doesn't send is left out. The
  * car's messages are on the Car problems tile ([CarMessages]).
  */
@@ -561,12 +560,12 @@ internal fun CarStatusCard(modifier: Modifier = Modifier) {
     val trip = rememberPsaTrip()
     Card(modifier = modifier) {
         Column(modifier = Modifier.fillMaxSize().padding(DashSpace.Lg), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-            val b = body
             TileHeader(stringResource(R.string.car_status_title))
-            if (b == null && trip == null) {
+            val rows = carStatusRows(body, trip)
+            if (rows.isEmpty()) {
                 Hint(stringResource(R.string.car_status_waiting))
             } else {
-                carStatusRows(b, trip).forEach { (label, value) -> InfoRow(label, value) }
+                rows.forEach { (label, value) -> InfoRow(label, value) }
             }
         }
     }
@@ -592,10 +591,13 @@ internal fun rememberPsaTrip(): PsaTrip? {
 @Composable
 internal fun carStatusRows(b: CarBody?, trip: PsaTrip? = null): List<Pair<String, String>> {
     val lights = b?.let { lightsOn(it) }?.map { stringResource(it.labelRes) }
+    val carRange = rememberVehicle(K.RANGE)
+    val odometer = rememberVehicle(K.ODOMETER)
+    val handbrake = rememberVehicle(K.HANDBRAKE)
     val u = LocalUnits.current
     val km = if (u.imperial) u.distanceUnit else stringResource(R.string.car_status_km)
     val consumption = b?.instantConsumption ?: trip?.instantL100
-    val range = b?.range?.takeIf { it > 0f } ?: trip?.rangeKm?.toFloat()
+    val range = carRange?.toFloat()?.takeIf { it > 0f } ?: trip?.rangeKm?.toFloat()
     // What a driver looks for first comes first: a small tile keeps its first rows.
     return listOfNotNull(
         range?.let { stringResource(R.string.car_status_range) to "${u.distance(it.toDouble()).toInt()} $km" },
@@ -604,9 +606,9 @@ internal fun carStatusRows(b: CarBody?, trip: PsaTrip? = null): List<Pair<String
         trip?.trip2?.let { tripPageRow(2, it) },
         b?.trip1?.let { stringResource(R.string.car_status_trip) to "${decimal(u.distance(it.toDouble()), 1)} $km" },
         // 0 is the box not sending it, as for the upkeep and the fuel tiles: left out, not "0 km".
-        b?.odometer?.takeIf { it > 0f }?.let { stringResource(R.string.car_status_odometer) to "${NumberFormat.getIntegerInstance().format(u.distance(it.toDouble()).toLong())} $km" },
+        odometer?.takeIf { it > 0.0 }?.let { stringResource(R.string.car_status_odometer) to "${NumberFormat.getIntegerInstance().format(u.distance(it).toLong())} $km" },
         lights?.let { stringResource(R.string.car_status_lights) to (it.joinToString(", ").ifEmpty { stringResource(R.string.car_status_lights_off) }) },
-        b?.let { stringResource(R.string.car_status_parking_brake) to stringResource(if (it.handbrake) R.string.car_status_on else R.string.car_status_off) }
+        handbrake?.let { stringResource(R.string.car_status_parking_brake) to stringResource(if (it) R.string.car_status_on else R.string.car_status_off) }
     )
 }
 

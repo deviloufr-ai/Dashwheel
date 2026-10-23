@@ -1,6 +1,7 @@
 package com.openauto.dash
 
-import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.any
+import com.openauto.dash.vehicle.rememberPanelGauges
 import com.openauto.dash.vehicle.K
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -850,8 +851,11 @@ private fun SpLimitSign(limit: Int, d: Dp) {
 @Composable
 private fun SpTelemetry(env: SkinTileEnv) {
     val state = env.obdConnection
-    val connected = state == ObdConnectionState.CONNECTED
     val units = LocalUnits.current
+    // Whatever the car answers is shown, adapter or not.
+    val g = rememberPanelGauges(K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
+    val gear by rememberGear()
+    val live = state == ObdConnectionState.CONNECTED || g.any || gear.rpm != null
     BoxWithConstraints(
         Modifier
             .fillMaxSize()
@@ -863,11 +867,10 @@ private fun SpTelemetry(env: SkinTileEnv) {
         val innerH = maxHeight - pad * 2
         val readSize = min(innerW.value / 16f, innerH.value * 0.12f).coerceIn(15f, 22f)
         Column(Modifier.fillMaxSize().padding(pad)) {
-            val gear by rememberGear()
-            val rpm = gear.rpm.takeIf { connected || it != null }
+            val rpm = gear.rpm
             Row(verticalAlignment = Alignment.CenterVertically) {
                 SpLabel(stringResource(R.string.spatial_rpm), Modifier.weight(1f))
-                if (connected) {
+                if (live) {
                     val chip = (readSize * 2.3f).coerceIn(36f, 52f).dp
                     SpChip(chip) { SpLine(gearMark(gear.gear), spText(chip.value * 0.5f, chipInk, FontWeight.SemiBold), overflow = TextOverflow.Clip) }
                 }
@@ -877,20 +880,19 @@ private fun SpTelemetry(env: SkinTileEnv) {
             val big = spFit("8 888", FontWeight.Light, innerW * 0.9f, bigH, 26f, 110f)
             SpLine(rpm?.let { groupThousands(it) } ?: "--", spText(big, DashColors.TextPrimary, FontWeight.Light, figure = true), overflow = TextOverflow.Clip)
             Spacer(Modifier.height(12.dp))
-            when (state) {
-                ObdConnectionState.CONNECTED -> {
-                    val d = rememberReadings(K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
+            when {
+                live -> {
                     FitRow(20.dp) {
-                        if (d.coolantTempC > 0) {
-                            SpReadout(stringResource(R.string.spatial_coolant), "${units.temp(d.coolantTempC)}°", d.coolantTempC >= COOLANT_WARNING_C, readSize)
+                        g.coolantTempC?.let {
+                            SpReadout(stringResource(R.string.spatial_coolant), "${units.temp(it)}°", it >= COOLANT_WARNING_C, readSize)
                         }
-                        if (d.voltage > 0.0) {
-                            SpReadout(stringResource(R.string.spatial_battery), String.format(Locale.getDefault(), "%.1f V", d.voltage), d.voltage !in BATTERY_OK_V, readSize)
+                        g.voltage?.let {
+                            SpReadout(stringResource(R.string.spatial_battery), String.format(Locale.getDefault(), "%.1f V", it), it !in BATTERY_OK_V, readSize)
                         }
-                        SpReadout(stringResource(R.string.spatial_load), "${d.engineLoadPct} %", false, readSize)
+                        g.engineLoadPct?.let { SpReadout(stringResource(R.string.spatial_load), "$it %", false, readSize) }
                     }
                 }
-                ObdConnectionState.CONNECTING -> SpLine(stringResource(R.string.horizon_obd_connecting), spText(readSize, DashColors.AccentInk, FontWeight.Medium))
+                state == ObdConnectionState.CONNECTING -> SpLine(stringResource(R.string.horizon_obd_connecting), spText(readSize, DashColors.AccentInk, FontWeight.Medium))
                 else -> FitRow(10.dp) {
                     SpPillButton(stringResource(R.string.horizon_connect_obd), filled = true, enabled = !env.editing, onClick = env.onConnectObd)
                     if (state == ObdConnectionState.ERROR) {

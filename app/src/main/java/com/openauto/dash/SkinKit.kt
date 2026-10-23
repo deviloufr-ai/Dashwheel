@@ -1,5 +1,6 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberFuelInfo
 import com.openauto.dash.vehicle.rememberGaugeInt
 import android.content.Context
 import android.content.Intent
@@ -18,6 +19,7 @@ import androidx.compose.runtime.getValue
 import com.openauto.dash.vehicle.K
 import com.openauto.dash.vehicle.Vehicle
 import com.openauto.dash.vehicle.rememberDisplaySpeedKmh
+import com.openauto.dash.vehicle.rememberVehicle
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import androidx.compose.runtime.mutableFloatStateOf
@@ -89,7 +91,7 @@ internal fun rememberWallClock(stepMs: Long): LongState {
     val now = remember { mutableLongStateOf(System.currentTimeMillis()) }
     val active = LocalPageActive.current
     // The wait below stands still while the unit sleeps: read again at each switch-on.
-    val ignition by CarPower.ignition.collectAsState()
+    val ignition = rememberVehicle(K.IGNITION)
     LaunchedEffect(stepMs, active, ignition) {
         if (!active) return@LaunchedEffect
         now.longValue = System.currentTimeMillis()
@@ -313,13 +315,12 @@ internal fun rememberHasSpeed(): Boolean {
 internal fun rememberLocationCell(vararg perDegree: Int): State<Location?> =
     remember { LocationFeed.cell(*perDegree) }.collectAsState(initial = remember { LocationFeed.location.value })
 
-/** Weather at the car, refreshed the way the standard weather tile does it; null until the first fetch. */
+/** Keeps the forecast at the car fresh while composed, the way the standard weather tile does; reads nothing. */
 @Composable
-internal fun rememberWeather(): Weather? {
+internal fun KeepWeatherFresh() {
     UseLocationFeed()
     // The fetch is keyed on the position to 1/20 degree: nothing else of it is read.
     val location by rememberLocationCell(20)
-    val weather by WeatherRepo.weather.collectAsState()
     LaunchedEffect(location?.latitude?.let { (it * 20).roundToInt() }, location?.longitude?.let { (it * 20).roundToInt() }) {
         val l = location ?: return@LaunchedEffect
         while (true) {
@@ -327,18 +328,25 @@ internal fun rememberWeather(): Weather? {
             delay(60_000)
         }
     }
+}
+
+/** Weather at the car, refreshed the way the standard weather tile does it ([KeepWeatherFresh]); null until the first fetch. */
+@Composable
+internal fun rememberWeather(): Weather? {
+    KeepWeatherFresh()
+    val weather by WeatherRepo.weather.collectAsState()
     return weather
 }
 
 /**
- * The outside temperature in °C: the car's own sensor when it sends one
- * (offline too), else the weather's; null until either is known.
+ * The outside temperature in °C ([K.AMBIENT_TEMP]): the car's own sensor when it sends one
+ * (offline too), else the forecast's; null until either is known. The forecast is kept fresh
+ * for as long as this is composed, since it is what shows when the car says nothing.
  */
 @Composable
 internal fun rememberOutsideTempC(): Double? {
-    val weather = rememberWeather()
-    val car by UnitSignals.outsideTempC.collectAsState()
-    return weather?.tempC ?: car?.takeUnless { DemoMode.isOn }
+    KeepWeatherFresh()
+    return rememberVehicle(K.AMBIENT_TEMP)
 }
 
 /** Why [rememberWeather] has nothing yet, so a skin says "no GPS" or "offline" in its own words and not "loading" all drive. */
@@ -350,22 +358,18 @@ internal fun rememberWeatherWait(): WeatherWait {
 }
 
 /**
- * Fuel from the CANbox when learned, else the OBD fuel PID ([K.FUEL_LEVEL]), with the car's own
- * distance to empty when its CANbox signal is known; null when none of them is
+ * The fuel level ([K.FUEL_LEVEL]: the learned CANbox byte, else the car app's, else the OBD PID, by
+ * rank) with the car's own distance to empty ([K.RANGE]) when it is known; null when none of them is
  * (the standard [RangeCard] explains how to learn them). Keeps the CANbox
- * stream running while on screen. Only the fuel level is followed, so a range
- * tile redraws when its own reading changes.
+ * stream running while on screen.
  */
 @Composable
 internal fun rememberFuel(): FuelInfo? {
-    val obdFuelPct = rememberGaugeInt(K.FUEL_LEVEL) ?: 0
     DisposableEffect(Unit) {
         McuReader.start()
         onDispose { McuReader.stop() }
     }
-    val canFuel by McuReader.fuelPercent.collectAsState()
-    val canRange by McuReader.rangeKm.collectAsState()
-    return carFuelInfo(canFuel, obdFuelPct, canRange)
+    return rememberFuelInfo()
 }
 
 /** Playback progress 0..1, and 0 while the duration is unknown. */

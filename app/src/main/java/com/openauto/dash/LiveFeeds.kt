@@ -27,6 +27,7 @@ import com.openauto.dash.vehicle.K
 import com.openauto.dash.vehicle.Source
 import com.openauto.dash.vehicle.SourceKind
 import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.reversingNow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -205,7 +206,7 @@ object LocationFeed {
             restoredAt = null
             if (HeadingTracker.distanceM(at, fix) > RESTORE_WITHIN_M) _headingDeg.value = null
         }
-        val next = heading.next(_headingDeg.value, fix, CarBox.reversing.value)
+        val next = heading.next(_headingDeg.value, fix, reversingNow())
         if (next == _headingDeg.value) return
         _headingDeg.value = next
         val now = SystemClock.elapsedRealtime()

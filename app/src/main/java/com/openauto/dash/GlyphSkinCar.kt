@@ -45,6 +45,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import com.openauto.dash.vehicle.rememberDoors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.Locale
@@ -283,7 +284,7 @@ private const val SCAN_MS = 6_500
 internal fun GlyphCarHero(env: SkinTileEnv, fuel: FuelInfo?, modifier: Modifier = Modifier) {
     val mine by MyCarLook.shown.collectAsState()
     val profile by CarProfileStore.profile.collectAsState()
-    val doors by McuReader.doorState.collectAsState()
+    val doors = rememberDoors()
     val view = mine?.portrait
     val light = DashColors.Light
     val effects = DashColors.Effects

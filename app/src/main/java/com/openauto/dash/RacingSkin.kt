@@ -1,6 +1,7 @@
 package com.openauto.dash
 
-import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.any
+import com.openauto.dash.vehicle.rememberPanelGauges
 import com.openauto.dash.vehicle.K
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -1720,8 +1721,8 @@ private fun StageCells(env: SkinTileEnv, modifier: Modifier) {
     val trip by LocationFeed.trip.collectAsState()
     val units = LocalUnits.current
     val best = rememberBest0to100()
-    val d = rememberReadings(K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
-    val live = env.obdConnection == ObdConnectionState.CONNECTED
+    // Whatever the car answers is shown, adapter or not.
+    val g = rememberPanelGauges(K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
     val cyan = Cyan
     val ink = DashColors.TextPrimary
     val tripLabel = stringResource(R.string.info_trip_title).caps()
@@ -1735,16 +1736,16 @@ private fun StageCells(env: SkinTileEnv, modifier: Modifier) {
         add(StageCell(tripLabel, "%.1f".format(units.distance(trip.distanceM / 1000.0)), units.distanceUnit.caps(), cyan, ink))
         add(StageCell(timeLabel, stageTime(trip.movingMs), "", cyan, ink))
         if (best != null) add(StageCell(bestLabel, "%.1f".format(best / 1000.0), "S", RaYellowInk, ink))
-        if (live) {
-            add(StageCell(rpmLabel, groupThousands(d.rpm), "", cyan, ink))
-            val hot = d.coolantTempC >= 105
-            add(StageCell(tempLabel, "${units.temp(d.coolantTempC)}", units.tempUnit, if (hot) DashColors.Warning else cyan, if (hot) DashColors.Warning else ink))
-            if (d.voltage > 0.0) {
-                val bad = d.voltage !in 12.0..15.0
-                add(StageCell(battLabel, "%.1f".format(d.voltage), "V", if (bad) DashColors.Warning else cyan, if (bad) DashColors.Warning else ink))
-            }
-            add(StageCell(loadLabel, "${d.engineLoadPct}", "%", cyan, ink))
+        g.rpm?.let { add(StageCell(rpmLabel, groupThousands(it), "", cyan, ink)) }
+        g.coolantTempC?.let { c ->
+            val hot = c >= 105
+            add(StageCell(tempLabel, "${units.temp(c)}", units.tempUnit, if (hot) DashColors.Warning else cyan, if (hot) DashColors.Warning else ink))
         }
+        g.voltage?.let { v ->
+            val bad = v !in 12.0..15.0
+            add(StageCell(battLabel, "%.1f".format(v), "V", if (bad) DashColors.Warning else cyan, if (bad) DashColors.Warning else ink))
+        }
+        g.engineLoadPct?.let { add(StageCell(loadLabel, "$it", "%", cyan, ink)) }
     }
     BoxWithConstraints(modifier) {
         val n = cells.size

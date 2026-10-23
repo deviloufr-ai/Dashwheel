@@ -62,6 +62,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.openauto.dash.vehicle.reversingFlow
+import com.openauto.dash.vehicle.reversingNow
 import com.openauto.dash.vehicle.speedKmhFlow
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -163,7 +165,7 @@ internal object GeminiLive {
             }
         }
         scope.launch {
-            CarBox.reversing.collect {
+            reversingFlow().collect {
                 reversing = it
                 // Dashwheel's own Gemini would talk through the manoeuvre, its alert out of sight: it ends.
                 if (it && own) end(app) else render(app)
@@ -252,7 +254,7 @@ internal object GeminiLive {
             return
         }
         // Not while reversing: the driver listens for the parking sensors.
-        if (CarBox.reversing.value) return
+        if (reversingNow()) return
         AlertPreview.stop()
         own = true
         _active.value = true
