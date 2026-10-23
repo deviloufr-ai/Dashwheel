@@ -91,7 +91,11 @@ object Overlay {
         g.dispose()
     }
 
-    /** Tenths of the width along the bonnet's row, and the row itself, to read a label's figures off. */
+    /**
+     * Tenths of the width along the bonnet's row, and the row itself, to read a
+     * label's figures off; and the height's fractions down the left edge, to
+     * read the horizon's (--horizon) and the bonnet's (--bonnet) off a frame.
+     */
     private fun ruler(g: Graphics2D, w: Int, h: Int, band: RoadBand, unit: Float) {
         val y = (band.bonnetY * h).toInt()
         g.color = Color(255, 255, 255, 200)
@@ -102,6 +106,11 @@ object Overlay {
             val x = w * i / 10
             g.drawLine(x, y - 14, x, y + 14)
             g.drawString("%.1f".format(i / 10f), x + 3, y - 18)
+        }
+        for (i in 4..19) {
+            val yy = h * i / 20
+            g.drawLine(0, yy, if (i % 2 == 0) 40 else 22, yy)
+            if (i % 2 == 0) g.drawString("%.2f".format(i / 20f), 46, yy + 5)
         }
     }
 
