@@ -345,7 +345,8 @@ private fun RoadWarningBanner(warning: RoadWarning, modifier: Modifier) {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+// Kotlin's OptIn by name: this file's OptIn import is androidx's, for the Camera2 interop.
+@kotlin.OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun RoadControls(watch: RoadWatch, onDim: (Boolean) -> Unit, onModel: () -> Unit, onClose: () -> Unit) {
     val context = LocalContext.current
