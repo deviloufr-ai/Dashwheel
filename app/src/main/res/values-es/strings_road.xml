@@ -2,8 +2,8 @@
 <resources>
     <string name="alert_kind_road">Vigía de carretera</string>
     <string name="alert_kind_road_title">Avisos de Vigía de carretera</string>
-    <string name="alert_road_detail">Avisos de la cámara del teléfono detrás del parabrisas</string>
-    <string name="alert_road_how">Inicia Vigía de carretera en Dashwheel Companion, con el teléfono en su soporte detrás del parabrisas. Siempre se avisa de un coche delante que se acerca rápido.</string>
+    <string name="alert_road_detail">Experimental. Avisos de la cámara del teléfono detrás del parabrisas</string>
+    <string name="alert_road_how">Experimental. Inicia Vigía de carretera en Dashwheel Companion, con el teléfono en su soporte detrás del parabrisas. Siempre se avisa de un coche delante que se acerca rápido.</string>
     <string name="alert_road_lanes">Avisos de carril</string>
     <string name="alert_road_lanes_detail">Una rueda sobre la línea desde 60 km/h, nunca con el intermitente puesto</string>
     <string name="alert_road_moved_off">El tráfico avanza</string>

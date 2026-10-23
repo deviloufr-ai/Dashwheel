@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="road_experimental">Experimentell</string>
+    <string name="rec_title">Straße aufzeichnen</string>
+    <string name="rec_detail">Während der Straßenwächter läuft, bleiben die letzten zwei Minuten Straße auf diesem Handy. Ein Stoß, eine Vollbremsung, eine Warnung, die Warnblinker oder ein Tipp behalten einen Clip von einer Minute, mit Uhrzeit, Ort und der Geschwindigkeit des Autos im Bild.</string>
+    <string name="rec_legal">In den meisten Ländern erlaubt, in einigen eingeschränkt (Österreich, Portugal). Clips bleiben auf diesem Handy, nichts wird irgendwohin gesendet, und es wird kein Ton aufgenommen.</string>
+    <string name="rec_clips_title">Clips</string>
+    <string name="rec_no_clips">Noch keine Clips. Einer wird behalten, wenn etwas passiert oder wenn Sie auf Clip behalten tippen.</string>
+    <string name="rec_keep">Clip behalten</string>
+    <string name="rec_state_recording">Aufnahme</string>
+    <string name="rec_state_keeping">Clip wird gespeichert</string>
+    <string name="rec_state_hot">Zu heiß: Aufnahme pausiert</string>
+    <string name="rec_state_full">Handy voll: Aufnahme pausiert</string>
+    <string name="rec_state_unsupported">Dieses Handy kann nicht aufnehmen, während es die Straße beobachtet</string>
+    <string name="rec_trigger_impact">Aufprall</string>
+    <string name="rec_trigger_brake">Vollbremsung</string>
+    <string name="rec_trigger_collision">Kollisionswarnung</string>
+    <string name="rec_trigger_hazard">Warnblinker</string>
+    <string name="rec_trigger_button">Von Hand behalten</string>
+    <string name="rec_share">Teilen</string>
+    <string name="rec_notes">Notizen</string>
+    <string name="rec_delete">Löschen</string>
+    <string name="rec_length">%1$d s, %2$d MB</string>
+    <string name="rec_state_low">Akku schwach: Aufnahme pausiert</string>
+    <string name="road_plug_in">Handy anschließen: %1$d %%</string>
+</resources>

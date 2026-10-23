@@ -50,7 +50,9 @@ data class RoadView(
     val vehicles: Boolean = false,
     val speedKmh: Float? = null,
     /** Frames read a second. */
-    val fps: Int = 0
+    val fps: Int = 0,
+    /** The driver has put the horizon line where it belongs, once: the hint to do so is no longer shown. */
+    val horizonSet: Boolean = true
 )
 
 class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
@@ -77,6 +79,9 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
     private val _view = MutableStateFlow(RoadView())
     val view: StateFlow<RoadView> = _view
 
+    /** The road recorder running beside it, when the driver turned it on: it gets the position, the frames' rotation, and the collision warning. */
+    @Volatile var recorder: RoadRecorder? = null
+
     private var sentAt = 0L
     private var frames = 0
     private var framesSince = 0L
@@ -91,6 +96,7 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         override fun onLocationChanged(location: Location) {
             speedKmh = if (location.hasSpeed()) location.speed * 3.6f else null
             speedAt = SystemClock.elapsedRealtime()
+            recorder?.location(location)
         }
         @Deprecated("Deprecated in Java")
         override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) = Unit
@@ -108,8 +114,11 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
     /** The driver moved the horizon line on the screen. */
     fun setHorizon(y: Float) {
         band = band.copy(horizonY = y.coerceIn(0.25f, 0.7f))
-        prefs.edit().putFloat(KEY_HORIZON, band.horizonY).apply()
+        horizonSet = true
+        prefs.edit().putFloat(KEY_HORIZON, band.horizonY).putBoolean(KEY_HORIZON_SET, true).apply()
     }
+
+    @Volatile private var horizonSet = prefs.getBoolean(KEY_HORIZON_SET, false)
 
     @SuppressLint("MissingPermission")
     fun start() {
@@ -178,6 +187,7 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         }
         val hfov = if (tall) hfovTall else hfovWide
         leads.hfovDeg = hfov
+        recorder?.rotation(rotation)
 
         val luma = Luma.fromRgba(buffer, w, h, plane.rowStride, rotation, LUMA_WIDTH)
         val speed = speedKmh?.takeIf { now - speedAt < SPEED_FRESH_MS }
@@ -216,7 +226,7 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         _view.value = RoadView(
             frameW = uprightW, frameH = uprightH,
             band = band, lane = lane, lead = lead, warning = warning,
-            vehicles = vehicles != null, speedKmh = speed, fps = fps
+            vehicles = vehicles != null, speedKmh = speed, fps = fps, horizonSet = horizonSet
         )
     }
 
@@ -224,7 +234,10 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
     private fun warnHere(warning: RoadWarning?) {
         val before = shownWarning
         shownWarning = warning
-        if (warning == null || warning == before || LinkServer.state.value is LinkState.Connected) return
+        if (warning == null || warning == before) return
+        // A collision warning is a moment the recorder keeps, whoever sounds it.
+        if (warning == RoadWarning.COLLISION) recorder?.keep("collision")
+        if (LinkServer.state.value is LinkState.Connected) return
         val tone = beeper ?: runCatching { ToneGenerator(AudioManager.STREAM_ALARM, 90) }.getOrNull()?.also { beeper = it } ?: return
         when (warning) {
             RoadWarning.COLLISION -> tone.startTone(ToneGenerator.TONE_CDMA_EMERGENCY_RINGBACK, 1_200)
@@ -239,6 +252,7 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
     private companion object {
         const val PREFS = "road_watch"
         const val KEY_HORIZON = "horizon"
+        const val KEY_HORIZON_SET = "horizon_set"
         const val KEY_CAR_X = "car_x"
         const val KEY_CAR_X_TALL = "car_x_tall"
         const val KEY_HFOV = "hfov"

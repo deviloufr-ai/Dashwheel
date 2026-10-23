@@ -2,8 +2,8 @@
 <resources>
     <string name="alert_kind_road">Wegwachter</string>
     <string name="alert_kind_road_title">Waarschuwingen van Wegwachter</string>
-    <string name="alert_road_detail">Waarschuwingen van de telefooncamera achter de voorruit</string>
-    <string name="alert_road_how">Start Wegwachter in Dashwheel Companion, met de telefoon in zijn houder achter de voorruit. Voor een auto die voor je snel dichterbij komt wordt altijd gewaarschuwd.</string>
+    <string name="alert_road_detail">Experimenteel. Waarschuwingen van de telefooncamera achter de voorruit</string>
+    <string name="alert_road_how">Experimenteel. Start Wegwachter in Dashwheel Companion, met de telefoon in zijn houder achter de voorruit. Voor een auto die voor je snel dichterbij komt wordt altijd gewaarschuwd.</string>
     <string name="alert_road_lanes">Rijstrookwaarschuwingen</string>
     <string name="alert_road_lanes_detail">Een wiel op de lijn vanaf 60 km/u, nooit met de richtingaanwijzer aan</string>
     <string name="alert_road_moved_off">Het verkeer rijdt</string>

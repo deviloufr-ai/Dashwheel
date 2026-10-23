@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="road_experimental">Экспериментально</string>
+    <string name="rec_title">Записывать дорогу</string>
+    <string name="rec_detail">Пока работает Дозор дороги, последние две минуты дороги хранятся на этом телефоне. Удар, резкое торможение, предупреждение, аварийка или нажатие сохраняют минутный клип с временем, местом и скоростью машины, вписанными в кадр.</string>
+    <string name="rec_legal">Разрешено в большинстве стран, ограничено в некоторых (Австрия, Португалия). Клипы остаются на этом телефоне, никуда не отправляются, звук не записывается.</string>
+    <string name="rec_clips_title">Клипы</string>
+    <string name="rec_no_clips">Клипов пока нет. Клип сохраняется, когда что-то происходит, или когда вы нажимаете «Сохранить клип».</string>
+    <string name="rec_keep">Сохранить клип</string>
+    <string name="rec_state_recording">Запись</string>
+    <string name="rec_state_keeping">Сохранение клипа</string>
+    <string name="rec_state_hot">Слишком горячо: запись приостановлена</string>
+    <string name="rec_state_full">Телефон заполнен: запись приостановлена</string>
+    <string name="rec_state_unsupported">Этот телефон не может записывать, следя за дорогой</string>
+    <string name="rec_trigger_impact">Удар</string>
+    <string name="rec_trigger_brake">Резкое торможение</string>
+    <string name="rec_trigger_collision">Предупреждение о столкновении</string>
+    <string name="rec_trigger_hazard">Аварийка</string>
+    <string name="rec_trigger_button">Сохранён вручную</string>
+    <string name="rec_share">Поделиться</string>
+    <string name="rec_notes">Заметки</string>
+    <string name="rec_delete">Удалить</string>
+    <string name="rec_length">%1$d с, %2$d МБ</string>
+    <string name="rec_state_low">Батарея разряжена: запись приостановлена</string>
+    <string name="road_plug_in">Подключите телефон к зарядке: %1$d%%</string>
+</resources>

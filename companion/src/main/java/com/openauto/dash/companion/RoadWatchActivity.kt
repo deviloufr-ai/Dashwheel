@@ -3,10 +3,13 @@ package com.openauto.dash.companion
 import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.os.BatteryManager
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.display.DisplayManager
 import android.os.Bundle
+import android.util.Log
 import android.util.Size
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -20,6 +23,7 @@ import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
+import androidx.camera.core.UseCaseGroup
 import androidx.camera.core.resolutionselector.AspectRatioStrategy
 import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.core.resolutionselector.ResolutionStrategy
@@ -27,6 +31,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,17 +39,20 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BrightnessHigh
 import androidx.compose.material.icons.filled.BrightnessLow
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -80,6 +88,9 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.openauto.dash.roadwatch.RoadWarning
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -99,6 +110,8 @@ class RoadWatchActivity : ComponentActivity() {
     private lateinit var watch: RoadWatch
     private lateinit var frames: ExecutorService
     private var analysis: ImageAnalysis? = null
+    /** The road recorder, once the camera is bound with it (the driver turned recording on). */
+    private val recorder = MutableStateFlow<RoadRecorder?>(null)
 
     private val displays = object : DisplayManager.DisplayListener {
         override fun onDisplayAdded(displayId: Int) = Unit
@@ -124,6 +137,7 @@ class RoadWatchActivity : ComponentActivity() {
             CompanionTheme {
                 RoadWatchScreen(
                     watch,
+                    recorder,
                     onCamera = { view -> bind(view) },
                     onDim = { dim -> dim(dim) },
                     onModel = { onFrames { watch.modelArrived() } },
@@ -140,6 +154,7 @@ class RoadWatchActivity : ComponentActivity() {
     }
 
     override fun onStop() {
+        recorder.value?.stop()
         // On the frames' own thread, after the frame being read.
         onFrames { watch.stop() }
         super.onStop()
@@ -148,6 +163,7 @@ class RoadWatchActivity : ComponentActivity() {
     override fun onDestroy() {
         getSystemService(DisplayManager::class.java)?.unregisterDisplayListener(displays)
         analysis?.clearAnalyzer()
+        recorder.value?.close()
         frames.execute { watch.close() }
         frames.shutdown()
         super.onDestroy()
@@ -187,10 +203,26 @@ class RoadWatchActivity : ComponentActivity() {
             reader.targetRotation = ContextCompat.getDisplayOrDefault(this@RoadWatchActivity).rotation
             analysis = reader
             provider.unbindAll()
-            val camera = runCatching {
-                provider.bindToLifecycle(this@RoadWatchActivity, CameraSelector.DEFAULT_BACK_CAMERA, preview, reader)
-            }.getOrNull() ?: return@addListener
-            fieldOfView(camera)?.let { (wide, tall) -> watch.fieldOfView(wide, tall) }
+            val back = CameraSelector.DEFAULT_BACK_CAMERA
+            // The recorder's video beside the frames, when the driver turned recording on; some phones can't
+            // run the three together, and then the road is watched without being recorded.
+            val rec = if (RoadClips.enabled.value) RoadRecorder(this).also { recorder.value = it; watch.recorder = it } else null
+            var camera: Camera? = rec?.let { r ->
+                runCatching {
+                    val group = UseCaseGroup.Builder().addUseCase(preview).addUseCase(reader).addUseCase(r.videoCapture).addEffect(r.overlay).build()
+                    provider.bindToLifecycle(this@RoadWatchActivity, back, group)
+                }.onFailure {
+                    Log.w("RoadWatch", "no recording beside Road watch on this phone", it)
+                    provider.unbindAll()
+                    r.unsupported()
+                }.getOrNull()
+            }
+            if (camera != null) {
+                rec?.start()
+            } else {
+                camera = runCatching { provider.bindToLifecycle(this@RoadWatchActivity, back, preview, reader) }.getOrNull() ?: return@addListener
+            }
+            fieldOfView(camera ?: return@addListener)?.let { (wide, tall) -> watch.fieldOfView(wide, tall) }
         }, ContextCompat.getMainExecutor(this))
     }
 
@@ -221,6 +253,7 @@ class RoadWatchActivity : ComponentActivity() {
 @Composable
 private fun RoadWatchScreen(
     watch: RoadWatch,
+    recorder: StateFlow<RoadRecorder?>,
     onCamera: (PreviewView) -> Unit,
     onDim: (Boolean) -> Unit,
     onModel: () -> Unit,
@@ -233,10 +266,32 @@ private fun RoadWatchScreen(
     val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted = it }
     LaunchedEffect(Unit) { if (!granted) ask.launch(Manifest.permission.CAMERA) }
 
+    // The car shows the warnings: once linked, the phone's screen dims by itself, and a tap brings it back.
+    var dimmed by remember { mutableStateOf(false) }
+    val link by LinkServer.state.collectAsState()
+    val linked = link is LinkState.Connected
+    val setDimmed: (Boolean) -> Unit = { on -> dimmed = on; onDim(on) }
+    LaunchedEffect(linked, dimmed) {
+        if (linked && !dimmed) {
+            delay(AUTO_DIM_MS)
+            setDimmed(true)
+        }
+    }
+    // The battery, every half minute: a word when it goes down with no charger, and the recorder paused before the phone dies.
+    var battery by remember { mutableStateOf<Pair<Int, Boolean>?>(null) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            val b = batteryNow(context)
+            battery = b
+            recorder.value?.lowPower(b != null && !b.second && b.first < RECORDER_MIN_PERCENT)
+            delay(30_000L)
+        }
+    }
+
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         if (granted) {
             CameraBinder(onCamera)
-            RoadDrawing(watch)
+            RoadDrawing(watch, onTap = { if (dimmed) setDimmed(false) })
         } else {
             Column(Modifier.align(Alignment.Center).padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(stringResource(R.string.road_camera_needed), color = Color.White)
@@ -244,7 +299,49 @@ private fun RoadWatchScreen(
                 Button(onClick = { ask.launch(Manifest.permission.CAMERA) }) { Text(stringResource(R.string.road_allow_camera)) }
             }
         }
-        RoadControls(watch, onDim, onModel, onClose)
+        RoadControls(watch, recorder, dimmed, setDimmed, battery, onModel, onClose)
+    }
+}
+
+/** Linked to a car, the screen dims after this long. */
+private const val AUTO_DIM_MS = 30_000L
+/** Under this, with no charger, the recorder stops so Road watch itself lasts longer. */
+private const val RECORDER_MIN_PERCENT = 10
+/** Under this, with no charger, the screen says to plug the phone in. */
+private const val PLUG_IN_PERCENT = 20
+
+/** The battery as a share and whether it charges, or null when Android doesn't say. */
+private fun batteryNow(context: Context): Pair<Int, Boolean>? {
+    val i = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED)) ?: return null
+    val level = i.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+    val scale = i.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+    if (level < 0 || scale <= 0) return null
+    val status = i.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
+    val charging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL ||
+        i.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) != 0
+    return level * 100 / scale to charging
+}
+
+/** The recorder's light, top right: recording, keeping a clip, or why not. */
+@Composable
+private fun RecorderBadge(recorder: RoadRecorder, modifier: Modifier) {
+    val state by recorder.state.collectAsState()
+    val keeping by recorder.keeping.collectAsState()
+    val (text, tint) = when {
+        state == RoadRecorder.State.OFF -> return
+        keeping > 0 -> stringResource(R.string.rec_state_keeping) to CompanionColors.Amber
+        state == RoadRecorder.State.RECORDING -> stringResource(R.string.rec_state_recording) to CompanionColors.Red
+        state == RoadRecorder.State.PAUSED_HOT -> stringResource(R.string.rec_state_hot) to CompanionColors.Amber
+        state == RoadRecorder.State.PAUSED_FULL -> stringResource(R.string.rec_state_full) to CompanionColors.Amber
+        state == RoadRecorder.State.PAUSED_LOW -> stringResource(R.string.rec_state_low) to CompanionColors.Amber
+        else -> stringResource(R.string.rec_state_unsupported) to CompanionColors.Muted
+    }
+    Surface(color = Color.Black.copy(alpha = 0.55f), shape = RoundedCornerShape(12.dp), modifier = modifier) {
+        Row(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(10.dp).background(tint, CircleShape))
+            Spacer(Modifier.width(8.dp))
+            Text(text, color = Color.White, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
+        }
     }
 }
 
@@ -266,7 +363,7 @@ private fun frameRect(w: Float, h: Float, frameW: Int, frameH: Int): Rect {
 }
 
 @Composable
-private fun RoadDrawing(watch: RoadWatch) {
+private fun RoadDrawing(watch: RoadWatch, onTap: () -> Unit) {
     val view by watch.view.collectAsState()
     var horizon by remember { mutableFloatStateOf(watch.band.horizonY) }
     val density = LocalDensity.current
@@ -277,11 +374,13 @@ private fun RoadDrawing(watch: RoadWatch) {
         fun at(x: Float, y: Float) = Offset(frame.left + x * frame.width, frame.top + y * frame.height)
         val warn = view.warning
         Canvas(
-            Modifier.fillMaxSize().pointerInput(frame) {
-                detectVerticalDragGestures(onDragEnd = { watch.setHorizon(horizon) }) { _, dy ->
-                    horizon = (horizon + dy / frame.height).coerceIn(0.25f, 0.7f)
+            Modifier.fillMaxSize()
+                .pointerInput(Unit) { detectTapGestures { onTap() } }
+                .pointerInput(frame) {
+                    detectVerticalDragGestures(onDragEnd = { watch.setHorizon(horizon) }) { _, dy ->
+                        horizon = (horizon + dy / frame.height).coerceIn(0.25f, 0.7f)
+                    }
                 }
-            }
         ) {
             // The horizon, to drag where the road meets the sky.
             val hy = frame.top + horizon * frame.height
@@ -348,13 +447,21 @@ private fun RoadWarningBanner(warning: RoadWarning, modifier: Modifier) {
 // Kotlin's OptIn by name: this file's OptIn import is androidx's, for the Camera2 interop.
 @kotlin.OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun RoadControls(watch: RoadWatch, onDim: (Boolean) -> Unit, onModel: () -> Unit, onClose: () -> Unit) {
+private fun RoadControls(
+    watch: RoadWatch,
+    recorder: StateFlow<RoadRecorder?>,
+    dimmed: Boolean,
+    setDimmed: (Boolean) -> Unit,
+    battery: Pair<Int, Boolean>?,
+    onModel: () -> Unit,
+    onClose: () -> Unit
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val view by watch.view.collectAsState()
+    val rec by recorder.collectAsState()
     val link by LinkServer.state.collectAsState()
     val model by RoadModel.state.collectAsState()
-    var dimmed by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { RoadModel.check(context) }
     Box(Modifier.fillMaxSize().padding(16.dp)) {
         // What it reads, top left: the car it warns, the lane, the vehicle finder.
@@ -372,15 +479,30 @@ private fun RoadControls(watch: RoadWatch, onDim: (Boolean) -> Unit, onModel: ()
                 view.speedKmh?.let {
                     Text(stringResource(R.string.road_speed, it.roundToInt()), color = CompanionColors.Muted, style = MaterialTheme.typography.bodySmall)
                 }
-                if (view.frameW > 4) Text(stringResource(R.string.road_horizon_hint), color = CompanionColors.Muted, style = MaterialTheme.typography.bodySmall)
+                if (!view.horizonSet) Text(stringResource(R.string.road_horizon_hint), color = CompanionColors.Muted, style = MaterialTheme.typography.bodySmall)
+                battery?.let { (percent, charging) ->
+                    if (!charging && percent < PLUG_IN_PERCENT) {
+                        Text(stringResource(R.string.road_plug_in, percent), color = CompanionColors.Amber, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
+                    }
+                }
             }
         }
+        rec?.let { RecorderBadge(it, Modifier.align(Alignment.TopEnd)) }
         // The buttons wrap onto a second line on an upright phone.
         FlowRow(
             Modifier.align(Alignment.BottomEnd),
             horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.End),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            val r = rec
+            val recState = r?.state?.collectAsState()?.value
+            if (r != null && recState == RoadRecorder.State.RECORDING) {
+                FilledTonalButton(onClick = { r.keep("button") }) {
+                    Icon(Icons.Filled.Videocam, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.rec_keep))
+                }
+            }
             when (val m = model) {
                 RoadModel.State.Ready -> Unit
                 is RoadModel.State.Getting -> Text(
@@ -393,7 +515,7 @@ private fun RoadControls(watch: RoadWatch, onDim: (Boolean) -> Unit, onModel: ()
                     Text(stringResource(if (m == RoadModel.State.Failed) R.string.road_model_retry else R.string.road_model_get))
                 }
             }
-            FilledTonalButton(onClick = { dimmed = !dimmed; onDim(dimmed) }) {
+            FilledTonalButton(onClick = { setDimmed(!dimmed) }) {
                 Icon(if (dimmed) Icons.Filled.BrightnessHigh else Icons.Filled.BrightnessLow, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
                 Text(stringResource(if (dimmed) R.string.road_bright else R.string.road_dim))

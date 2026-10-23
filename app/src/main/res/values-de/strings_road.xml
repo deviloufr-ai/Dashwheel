@@ -2,8 +2,8 @@
 <resources>
     <string name="alert_kind_road">Straßenwächter</string>
     <string name="alert_kind_road_title">Warnungen des Straßenwächters</string>
-    <string name="alert_road_detail">Warnungen der Handykamera hinter der Windschutzscheibe</string>
-    <string name="alert_road_how">Starten Sie den Straßenwächter in Dashwheel Companion, das Handy in seiner Halterung hinter der Windschutzscheibe. Vor einem Auto, das vorne schnell näher kommt, wird immer gewarnt.</string>
+    <string name="alert_road_detail">Experimentell. Warnungen der Handykamera hinter der Windschutzscheibe</string>
+    <string name="alert_road_how">Experimentell. Starten Sie den Straßenwächter in Dashwheel Companion, das Handy in seiner Halterung hinter der Windschutzscheibe. Vor einem Auto, das vorne schnell näher kommt, wird immer gewarnt.</string>
     <string name="alert_road_lanes">Spurwarnungen</string>
     <string name="alert_road_lanes_detail">Ein Rad auf der Linie ab 60 km/h, nie mit gesetztem Blinker</string>
     <string name="alert_road_moved_off">Es geht weiter</string>

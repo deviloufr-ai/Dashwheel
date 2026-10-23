@@ -379,6 +379,7 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
                     item { SectionTitle(stringResource(R.string.tab_car), top = 2.dp) }
                     item { ObdRelayCard(onPick = { pick(BluetoothPick.OBD) }) }
                     item { RoadWatchCard(connected) }
+                    item { ClipsCard() }
                     item {
                         CarLookCard(
                             connected, onFromPhotos = { fromPhotos = true }, onFromModel = { fromModel = true },

@@ -37,6 +37,8 @@ import com.openauto.dash.link.Reply
 import com.openauto.dash.link.SecureChannel
 import com.openauto.dash.link.PhotoAnswer
 import com.openauto.dash.link.RescueResult
+import com.openauto.dash.link.CarTelemetry
+import com.openauto.dash.link.KeepClip
 import com.openauto.dash.link.TypeResult
 import com.openauto.dash.link.TypingAccess
 import com.openauto.dash.link.UnknownPairingException
@@ -284,6 +286,9 @@ object LinkServer {
             is FuelReport -> FuelJournal.update(context, message.fill)
             is CarNotices -> main.post { CarNewsStore.update(context, message) }
             is SendText -> main.post { send(TextSent(message.id, TextSender.send(context, message.number, message.text))) }
+            // The car's own speed and indicators, for the road recorder's picture and notes; and its word to keep a clip.
+            is CarTelemetry -> RoadTelemetry.update(message)
+            is KeepClip -> RoadRecorder.active?.keep(message.reason)
             else -> Unit
         }
     }

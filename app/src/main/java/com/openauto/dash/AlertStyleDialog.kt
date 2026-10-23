@@ -236,6 +236,8 @@ private fun ShownRow(kind: AlertKind, onOpen: () -> Unit) {
         on && kind.romKind in failed -> stringResource(R.string.settings_rom_needs_root)
         on && kind == AlertKind.VOLUME && !volumeHidden -> stringResource(R.string.settings_rom_volume_next_start)
         on && kind == AlertKind.RADAR && !a11y -> stringResource(R.string.settings_rom_radar_needs_access)
+        // Road watch has no switch here (it starts on the phone): its row says what it is, and that it is experimental.
+        on && kind == AlertKind.ROAD -> stringResource(R.string.alert_road_detail)
         on -> stringResource(styles.of(kind).title)
         else -> stringResource(kind.offDetail)
     }

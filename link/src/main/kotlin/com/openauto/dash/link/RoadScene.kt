@@ -33,3 +33,32 @@ data class RoadScene(
     /** The phone has the model that finds vehicles: without it, only the lane is watched. */
     val vehicles: Boolean = true
 ) : LinkMessage
+
+/**
+ * Head unit → phone, a few times a second while Road watch runs on the
+ * phone: what the car says of itself, for the phone to write into its
+ * recording of the road (RoadRecorder) and keep beside a clip. Only what the
+ * car gives; a field the car doesn't say stays null. A phone too old to know
+ * it skips it.
+ */
+@Serializable
+@SerialName("car_telemetry")
+data class CarTelemetry(
+    /** The car's own speed (the OBD adapter, the CAN box), not the phone's GPS. */
+    val speedKmh: Int? = null,
+    val rpm: Int? = null,
+    val turnLeft: Boolean = false,
+    val turnRight: Boolean = false,
+    val hazard: Boolean = false,
+    /** The headlights (dipped or main beam) are on. */
+    val lights: Boolean = false
+) : LinkMessage
+
+/**
+ * Head unit → phone: keep a clip of the road around now (the hazard lights
+ * went on, a button was pressed). [reason] names why, for the clip's notes:
+ * "hazard", "button".
+ */
+@Serializable
+@SerialName("keep_clip")
+data class KeepClip(val reason: String) : LinkMessage

@@ -114,6 +114,9 @@ dependencies {
     implementation("androidx.camera:camera-camera2:1.4.1")
     implementation("androidx.camera:camera-lifecycle:1.4.1")
     implementation("androidx.camera:camera-view:1.4.1")
+    // The road recorder: the camera's video in segments, with the time, place and speed drawn into it.
+    implementation("androidx.camera:camera-video:1.4.1")
+    implementation("androidx.camera:camera-effects:1.4.1")
     implementation("com.google.ai.edge.litert:litert:1.4.0")
     // JVM unit tests (companion/src/test): telling a call notification's buttons apart.
     testImplementation("junit:junit:4.13.2")
