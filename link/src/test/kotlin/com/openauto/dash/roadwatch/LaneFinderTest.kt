@@ -48,6 +48,22 @@ class LaneFinderTest {
     }
 
     @Test
+    fun anUprightPhoneSeesTheSameLaneWider() {
+        // Upright, the frame spans a 51° view instead of 66°: the lane fills it, and the markings are wider.
+        val wider = widthShare(1f, 51f)
+        val img = road(left = 0.5f - 0.35f * wider, right = 0.5f + 0.35f * wider, lineWidth = 0.03f * wider, w = 120, h = 160)
+        val got = LaneFinder.find(img, band, hfovDeg = 51f)
+        assertNear(0.5f - 0.35f * wider, got.left?.bottomX)
+        assertNear(0.5f + 0.35f * wider, got.right?.bottomX)
+    }
+
+    @Test
+    fun theWidthShareFollowsTheView() {
+        assertEquals(0.1f, widthShare(0.1f, REFERENCE_HFOV), 0.0001f)
+        assertEquals(0.136f, widthShare(0.1f, 51f), 0.002f)
+    }
+
+    @Test
     fun aRoadWithoutMarkingsHasNoLane() {
         val got = LaneFinder.find(road(lines = emptyList()), band)
         assertNull(got.left)
@@ -175,6 +191,8 @@ internal fun road(
     right: Float = 0.85f,
     lines: List<Float> = listOf(left, right),
     dashedLeft: Boolean = false,
+    /** A line's width at the bonnet's row, a share of the picture's width. */
+    lineWidth: Float = 0.03f,
     w: Int = 160,
     h: Int = 120,
     horizonY: Float = 0.5f,
@@ -200,7 +218,7 @@ internal fun road(
             if (y >= yh && y <= yb && t > 0f) {
                 lines.forEachIndexed { i, at ->
                     val cx = vx + (at * w - vx) * t
-                    val half = max(0.5f, 0.03f * w * t / 2)
+                    val half = max(0.5f, lineWidth * w * t / 2)
                     // Dashes 3 m long every 9 m: on or off by distance, which goes as 1/t.
                     val on = !(dashedLeft && i == 0) || ((1f / t) * 2f).roundToInt() % 3 == 0
                     if (on && abs(x + 0.5f - cx) <= half) v = lineGrey + rnd.nextInt(-10, 11)

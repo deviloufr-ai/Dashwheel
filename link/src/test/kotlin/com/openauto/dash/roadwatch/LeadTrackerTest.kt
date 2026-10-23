@@ -68,6 +68,14 @@ class LeadTrackerTest {
     }
 
     @Test
+    fun theCorridorAheadIsWiderOnAnUprightPhone() {
+        // Near the bonnet, 0.38 of the width off the middle: outside a lane seen at 66°, inside one seen at 51°.
+        val box = Box(0.83f, 0.7f, 0.93f, 0.9f)
+        assertEquals(false, inLane(box, noLane, band, 0.5f, 66f))
+        assertEquals(true, inLane(box, noLane, band, 0.5f, 51f))
+    }
+
+    @Test
     fun aCarCuttingInStartsItsOwnHistory() {
         val t = LeadTracker()
         for (i in 0..10) t.update(listOf(car(30f - i)), noLane, band, 0.5f, i * 100L)

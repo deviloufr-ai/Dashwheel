@@ -5,6 +5,7 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.math.tan
 
 /*
  * Road watch's eyes for the lane: the two lines of the car's own lane in a
@@ -94,6 +95,18 @@ object Upright {
 }
 
 /**
+ * The view across the upright frame the widths here were set for: a phone's
+ * main camera across its long side. Upright, the frame's width spans the
+ * camera's narrower side (about 50°), so everything on the road takes a
+ * bigger share of it.
+ */
+const val REFERENCE_HFOV = 66f
+
+/** [share] of the frame's width at [REFERENCE_HFOV], as the share it is at [hfovDeg]. */
+fun widthShare(share: Float, hfovDeg: Float): Float =
+    share * (tan(Math.toRadians(REFERENCE_HFOV / 2.0)) / tan(Math.toRadians(hfovDeg.coerceIn(20f, 150f) / 2.0))).toFloat()
+
+/**
  * Where the road is in the frame, in fractions of its height: the horizon,
  * and the bottom of the road seen above the bonnet. The driver sets the
  * horizon on the phone once the phone is in its holder.
@@ -132,7 +145,7 @@ data class LaneSighting(
 )
 
 object LaneFinder {
-    /** A marking at the bonnet's row, as a share of the frame's width (15 cm of a lane that fills most of it). */
+    /** A marking at the bonnet's row, as a share of the frame's width at [REFERENCE_HFOV] (15 cm of a lane that fills most of it). */
     private const val MARK_WIDTH = 0.035f
     /** Rows nearer the top than this take no part in the vote: there a point fits any line. */
     private const val MIN_S = 0.1f
@@ -143,9 +156,11 @@ object LaneFinder {
 
     /**
      * The car's lane in [img]. [carX]: where the car's middle is, as a
-     * fraction of the width (the phone is seldom in the middle of the windscreen).
+     * fraction of the width (the phone is seldom in the middle of the
+     * windscreen). [hfovDeg]: the camera's view across the frame, which
+     * sets how wide a marking looks (narrower upright than sideways).
      */
-    fun find(img: Luma, band: RoadBand = RoadBand(), carX: Float = 0.5f): LaneSighting {
+    fun find(img: Luma, band: RoadBand = RoadBand(), carX: Float = 0.5f, hfovDeg: Float = REFERENCE_HFOV): LaneSighting {
         val w = img.w
         val h = img.h
         val y0 = (band.topY * h).roundToInt().coerceIn(0, h - 2)
@@ -172,7 +187,7 @@ object LaneFinder {
             val s = (y - y0).toFloat() / rows
             if (s < MIN_S) continue
             val depth = ((y - horizon) / (y1 - horizon)).coerceAtLeast(0f)
-            val mark = max(1, (MARK_WIDTH * w * depth).roundToInt())
+            val mark = max(1, (widthShare(MARK_WIDTH, hfovDeg) * w * depth).roundToInt())
             val d = mark + 1
             response.fill(0)
             for (x in d until w - d) {

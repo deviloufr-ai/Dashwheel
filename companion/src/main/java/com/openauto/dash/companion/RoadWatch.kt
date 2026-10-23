@@ -59,8 +59,17 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
 
     @Volatile var band = RoadBand(horizonY = prefs.getFloat(KEY_HORIZON, 0.5f))
         private set
-    private val lanes = LaneTracker(prefs.getFloat(KEY_CAR_X, 0.5f))
+    /**
+     * The frame stands taller than wide: the phone upright in its holder.
+     * Its width then spans the camera's narrower side, and the car sits
+     * elsewhere in it, so the upright phone has its own view and its own
+     * learned place in the lane.
+     */
+    private var tall = false
+    private var lanes = LaneTracker(prefs.getFloat(KEY_CAR_X, 0.5f))
     private val leads = LeadTracker(prefs.getFloat(KEY_HFOV, DEFAULT_HFOV))
+    @Volatile private var hfovWide = prefs.getFloat(KEY_HFOV, DEFAULT_HFOV)
+    @Volatile private var hfovTall = prefs.getFloat(KEY_HFOV_TALL, DEFAULT_HFOV_TALL)
     private val rules = RoadRules()
     private var detector: RoadDetector? = null
     @Volatile private var detectorTried = false
@@ -89,10 +98,11 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         override fun onProviderDisabled(provider: String) = Unit
     }
 
-    /** The camera's field of view across the upright frame, once the camera is known. */
-    fun fieldOfView(degrees: Float) {
-        leads.hfovDeg = degrees
-        prefs.edit().putFloat(KEY_HFOV, degrees).apply()
+    /** The camera's view across its long side ([wideDeg]) and its short one ([tallDeg]), once the camera is known. */
+    fun fieldOfView(wideDeg: Float, tallDeg: Float) {
+        hfovWide = wideDeg
+        hfovTall = tallDeg
+        prefs.edit().putFloat(KEY_HFOV, wideDeg).putFloat(KEY_HFOV_TALL, tallDeg).apply()
     }
 
     /** The driver moved the horizon line on the screen. */
@@ -115,7 +125,7 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
     fun stop() {
         locations?.let { runCatching { it.removeUpdates(listener) } }
         locations = null
-        prefs.edit().putFloat(KEY_CAR_X, lanes.carX).apply()
+        prefs.edit().putFloat(carXKey(tall), lanes.carX).apply()
         rules.clear()
         lanes.reset()
         leads.forget()
@@ -156,14 +166,29 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
             detector?.close()
             detector = RoadDetector.open(app)
         }
+        val uprightW = Upright.width(w, h, rotation)
+        val uprightH = Upright.height(w, h, rotation)
+        // The phone turned upright, or back: the other view, and the other learned place in the lane.
+        val isTall = uprightH > uprightW
+        if (isTall != tall) {
+            prefs.edit().putFloat(carXKey(tall), lanes.carX).apply()
+            tall = isTall
+            lanes = LaneTracker(prefs.getFloat(carXKey(tall), 0.5f))
+            leads.forget()
+        }
+        val hfov = if (tall) hfovTall else hfovWide
+        leads.hfovDeg = hfov
 
         val luma = Luma.fromRgba(buffer, w, h, plane.rowStride, rotation, LUMA_WIDTH)
         val speed = speedKmh?.takeIf { now - speedAt < SPEED_FRESH_MS }
         val steady = speed != null && speed >= LEARN_KMH
-        val sighting = LaneFinder.find(luma, band, lanes.carX)
+        val sighting = LaneFinder.find(luma, band, lanes.carX, hfov)
         val lane = lanes.update(sighting, now, learn = steady && lanes.laneWidth > 0f)
         val vehicles = detector
-        val lead = vehicles?.let { leads.update(it.detect(buffer, w, h, plane.rowStride, rotation), lane, band, lanes.carX, now) }
+        val lead = vehicles?.let {
+            val found = it.detect(buffer, w, h, plane.rowStride, rotation, (band.horizonY + band.bonnetY) / 2)
+            leads.update(found, lane, band, lanes.carX, now)
+        }
 
         val scene = RoadScene(
             offset = lane.offset,
@@ -189,7 +214,7 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
             framesSince = now
         }
         _view.value = RoadView(
-            frameW = Upright.width(w, h, rotation), frameH = Upright.height(w, h, rotation),
+            frameW = uprightW, frameH = uprightH,
             band = band, lane = lane, lead = lead, warning = warning,
             vehicles = vehicles != null, speedKmh = speed, fps = fps
         )
@@ -208,13 +233,19 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         }
     }
 
+    /** Where the car's place in the lane is kept: the upright phone's apart from the sideways one's. */
+    private fun carXKey(tall: Boolean) = if (tall) KEY_CAR_X_TALL else KEY_CAR_X
+
     private companion object {
         const val PREFS = "road_watch"
         const val KEY_HORIZON = "horizon"
         const val KEY_CAR_X = "car_x"
+        const val KEY_CAR_X_TALL = "car_x_tall"
         const val KEY_HFOV = "hfov"
-        /** A phone's main camera across its wide side, near enough until the camera says. */
+        const val KEY_HFOV_TALL = "hfov_tall"
+        /** A phone's main camera across its wide side, and its short one, near enough until the camera says. */
         const val DEFAULT_HFOV = 66f
+        const val DEFAULT_HFOV_TALL = 51f
         /** The lane is looked for in a picture this wide: plenty for lines, and quick. */
         const val LUMA_WIDTH = 160
         const val SEND_EVERY_MS = 100L

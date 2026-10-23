@@ -85,7 +85,7 @@ class LeadTracker(var hfovDeg: Float = 66f) {
      */
     fun update(detections: List<Detection>, lane: LaneState, band: RoadBand, carX: Float, now: Long): Lead? {
         val ahead = detections
-            .filter { it.box.bottom > band.horizonY + 0.01f && inLane(it.box, lane, band, carX) }
+            .filter { it.box.bottom > band.horizonY + 0.01f && inLane(it.box, lane, band, carX, hfovDeg) }
             .maxByOrNull { it.box.bottom }
         if (ahead == null) {
             if (now - seenAt > LOST_MS) forget()
@@ -162,7 +162,7 @@ class LeadTracker(var hfovDeg: Float = 66f) {
  * lines at its bottom row, or, without both lines, in a corridor as wide as
  * a lane in front of [carX].
  */
-internal fun inLane(box: Box, lane: LaneState, band: RoadBand, carX: Float): Boolean {
+internal fun inLane(box: Box, lane: LaneState, band: RoadBand, carX: Float, hfovDeg: Float = REFERENCE_HFOV): Boolean {
     val y = box.bottom
     val l = lane.left
     val r = lane.right
@@ -170,9 +170,9 @@ internal fun inLane(box: Box, lane: LaneState, band: RoadBand, carX: Float): Boo
         val s = band.s(y)
         return box.centerX in l.xAt(s)..r.xAt(s)
     }
-    val half = CORRIDOR_HALF * band.depth(y)
+    val half = widthShare(CORRIDOR_HALF, hfovDeg) * band.depth(y)
     return abs(box.centerX - carX) <= half
 }
 
-/** Half a lane at the bonnet's row, as a share of the frame's width. */
+/** Half a lane at the bonnet's row, as a share of the frame's width at [REFERENCE_HFOV]. */
 private const val CORRIDOR_HALF = 0.32f

@@ -115,11 +115,13 @@
             </intent-filter>
         </activity>
 
-        <!-- Road watch's camera screen: the phone lies sideways in its holder, either way up. -->
+        <!-- Road watch's camera screen: the phone sits in its holder sideways or
+             upright, any way up, and turning it keeps the camera running. -->
         <activity
             android:name=".RoadWatchActivity"
             android:exported="false"
-            android:screenOrientation="sensorLandscape"
+            android:screenOrientation="fullSensor"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout"
             android:theme="@style/Theme.Companion" />
 
         <!-- The QR scanner follows the phone's orientation instead of forcing landscape. -->

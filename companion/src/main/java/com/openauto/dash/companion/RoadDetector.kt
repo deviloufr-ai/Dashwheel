@@ -19,6 +19,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.MessageDigest
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 /**
  * The vehicle finder Road watch uses: EfficientDet-Lite0, a small detector
@@ -104,9 +105,9 @@ object RoadModel {
 
 /**
  * The vehicles in a camera frame, from [RoadModel]. The detector looks at a
- * square from the middle of the upright frame, where the road ahead is, so
- * a wide frame isn't squashed; the boxes come back in the whole upright
- * frame's fractions. Not thread-safe: one frame at a time.
+ * square of the upright frame, as wide as its shorter side and set on the
+ * road ahead, so a wide or a tall frame isn't squashed; the boxes come back
+ * in the whole upright frame's fractions. Not thread-safe: one frame at a time.
  */
 class RoadDetector private constructor(private val interpreter: Interpreter) {
     private val input = ByteBuffer.allocateDirect(SIZE * SIZE * 3).order(ByteOrder.nativeOrder())
@@ -115,13 +116,18 @@ class RoadDetector private constructor(private val interpreter: Interpreter) {
     private val scores = Array(1) { FloatArray(MAX) }
     private val count = FloatArray(1)
 
-    /** The vehicles in the RGBA frame [rgba] (see [Upright.index] for the other arguments). */
-    fun detect(rgba: ByteBuffer, width: Int, height: Int, rowStride: Int, rotation: Int): List<Detection> {
+    /**
+     * The vehicles in the RGBA frame [rgba] (see [Upright.index] for the
+     * other arguments). [centreY]: where the road ahead is, a fraction of the
+     * upright frame's height, for a tall frame to be looked at there rather
+     * than in its middle.
+     */
+    fun detect(rgba: ByteBuffer, width: Int, height: Int, rowStride: Int, rotation: Int, centreY: Float = 0.5f): List<Detection> {
         val uw = Upright.width(width, height, rotation)
         val uh = Upright.height(width, height, rotation)
         val side = min(uw, uh)
         val left = (uw - side) / 2
-        val top = (uh - side) / 2
+        val top = ((centreY * uh).roundToInt() - side / 2).coerceIn(0, uh - side)
         input.rewind()
         for (y in 0 until SIZE) {
             val v = top + y * side / SIZE

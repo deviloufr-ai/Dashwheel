@@ -28,9 +28,14 @@ EfficientDet-Lite0 (COCO, Apache 2.0) from TensorFlow's model storage, 4.6 MB, w
 | Too close | From 50 km/h, under 0.8 s behind for 3 s. At most every 30 s. |
 | Traffic moving | Stopped 3 s or more behind a vehicle within 12 m, which then moves 4 m away. Once per stop. |
 
+## Phone sideways or upright
+
+Either works, and turning the phone in its holder keeps the camera running. Upright, the frame's width spans the camera's narrower side (about 51° against 66°), so a marking, a lane and the corridor ahead all take a bigger share of the width: the shares in `LaneFinder` and `LeadTracker` are set for 66° and scaled by `widthShare` from the camera's real view, which `RoadWatchActivity` reads off the sensor's size and focal length for both sides. The detector looks at a square set on the road (around the horizon and the bonnet) rather than the middle of a tall frame. The car's learned place in its lane is kept separately for each orientation.
+
 ## What to try on a real drive
 
 - The horizon line set right (drag it on the phone's screen): the lane is searched below it.
+- The phone upright as well as sideways: the lane found, the car ahead boxed, and the buttons reachable.
 - Lanes at night, in rain, on worn markings; false lane warnings on a slip road or at roadworks.
 - Collision warnings in stop-and-go traffic (false alarms) and approaching a queue at speed (late or missing).
 - The phone's temperature after an hour in the sun.

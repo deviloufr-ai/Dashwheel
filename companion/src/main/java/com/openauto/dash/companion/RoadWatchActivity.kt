@@ -32,7 +32,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -84,11 +85,12 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.math.atan
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 /**
- * Road watch's screen: the phone in its holder behind the windscreen, the
- * camera's picture full screen with what it reads drawn over it (the lane,
+ * Road watch's screen: the phone in its holder behind the windscreen,
+ * sideways or upright, the camera's picture full screen with what it reads drawn over it (the lane,
  * the vehicle ahead and how far it is), a line to drag onto the horizon, and
  * a warning across the screen when no car is linked to give it. The screen
  * stays on; it can be dimmed.
@@ -101,7 +103,7 @@ class RoadWatchActivity : ComponentActivity() {
     private val displays = object : DisplayManager.DisplayListener {
         override fun onDisplayAdded(displayId: Int) = Unit
         override fun onDisplayRemoved(displayId: Int) = Unit
-        // Turned round in its holder (landscape one way, then the other): no restart, so the frames are told.
+        // Turned in its holder (sideways, upright, either way up): no restart, so the frames are told.
         override fun onDisplayChanged(displayId: Int) {
             analysis?.targetRotation = ContextCompat.getDisplayOrDefault(this@RoadWatchActivity).rotation
         }
@@ -188,19 +190,26 @@ class RoadWatchActivity : ComponentActivity() {
             val camera = runCatching {
                 provider.bindToLifecycle(this@RoadWatchActivity, CameraSelector.DEFAULT_BACK_CAMERA, preview, reader)
             }.getOrNull() ?: return@addListener
-            fieldOfView(camera)?.let(watch::fieldOfView)
+            fieldOfView(camera)?.let { (wide, tall) -> watch.fieldOfView(wide, tall) }
         }, ContextCompat.getMainExecutor(this))
     }
 
-    /** The camera's view across its long side, which is the upright frame's width in landscape. */
+    /**
+     * The camera's view across its long side and across its short one: the
+     * upright frame's width with the phone sideways, then with it upright.
+     */
     @OptIn(ExperimentalCamera2Interop::class)
-    private fun fieldOfView(camera: Camera): Float? = runCatching {
+    private fun fieldOfView(camera: Camera): Pair<Float, Float>? = runCatching {
         val info = Camera2CameraInfo.from(camera.cameraInfo)
         val focal = info.getCameraCharacteristic(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS)?.firstOrNull() ?: return null
         val sensor = info.getCameraCharacteristic(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE) ?: return null
-        val wide = max(sensor.width, sensor.height)
-        Math.toDegrees(2 * atan(wide / (2.0 * focal))).toFloat().takeIf { it in 30f..120f }
+        val wide = viewDegrees(max(sensor.width, sensor.height), focal) ?: return null
+        val tall = viewDegrees(min(sensor.width, sensor.height), focal) ?: return null
+        wide to tall
     }.getOrNull()
+
+    private fun viewDegrees(sensorMm: Float, focalMm: Float): Float? =
+        Math.toDegrees(2 * atan(sensorMm / (2.0 * focalMm))).toFloat().takeIf { it in 25f..120f }
 
     companion object {
         fun open(context: Context) {
@@ -336,6 +345,7 @@ private fun RoadWarningBanner(warning: RoadWarning, modifier: Modifier) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun RoadControls(watch: RoadWatch, onDim: (Boolean) -> Unit, onModel: () -> Unit, onClose: () -> Unit) {
     val context = LocalContext.current
@@ -364,7 +374,12 @@ private fun RoadControls(watch: RoadWatch, onDim: (Boolean) -> Unit, onModel: ()
                 if (view.frameW > 4) Text(stringResource(R.string.road_horizon_hint), color = CompanionColors.Muted, style = MaterialTheme.typography.bodySmall)
             }
         }
-        Row(Modifier.align(Alignment.BottomEnd), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+        // The buttons wrap onto a second line on an upright phone.
+        FlowRow(
+            Modifier.align(Alignment.BottomEnd),
+            horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.End),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             when (val m = model) {
                 RoadModel.State.Ready -> Unit
                 is RoadModel.State.Getting -> Text(
