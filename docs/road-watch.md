@@ -7,17 +7,54 @@ Experimental, and marked so in both apps. The phone, in a holder behind the wind
 | Part | Where | What it does |
 |---|---|---|
 | `LaneFinder`, `LaneTracker` | `link/.../roadwatch/` | The car's lane in each frame: bright stripes on the road, voted into straight lines (Hough), followed from frame to frame. Learns where the car usually drives in its lane, so a phone off the middle of the windscreen still reads 0. |
+| `SeenRoad`, `SeenLanes`, `LaneCount` | `link/.../roadwatch/` | The lane model's two masks (lane lines, drivable road) laid over the lane picture; the car's lane lines followed on them; how many lanes there are and which the car is in. Replay only for now. Below. |
 | `LeadTracker` | `link/.../roadwatch/` | The vehicle ahead in the lane, from the detector's boxes. Distance from its apparent width (rough); time to reach it from how fast it grows (does not depend on the guessed width). |
 | `RoadRules` | `link/.../roadwatch/` | When to warn: collision, lane, following too close, traffic moving off. |
 | `RoadScene` | `link/.../link/` | Phone to head unit, about ten times a second while Road watch runs. |
 | `RoadWatch`, `RoadDetector`, `RoadWatchActivity` | `companion/` | The camera (CameraX), the vehicle detector (LiteRT), the screen over the camera's picture. |
 | `RoadWatch`, `RoadAlertOverlay` | `app/` | Applies `RoadRules` with the car's own speed and indicators, shows `AlertKind.ROAD`, plays the tones. |
 
-The shared part is plain Kotlin, tested on the JVM with drawn roads (`link/src/test/.../roadwatch/`).
+The shared part is plain Kotlin, tested on the JVM with drawn roads (`link/src/test/.../roadwatch/`), and replayed over recorded drives with `tools/roadwatch-replay` (its README): every change to the lane or vehicle logic is judged there, on real clips, by numbers.
 
 ## The vehicle detector
 
 EfficientDet-Lite0 (COCO, Apache 2.0) from TensorFlow's model storage, 4.6 MB, with the detection post-processing built in: input 320 x 320 RGB uint8; outputs boxes `[1,25,4]` (ymin, xmin, ymax, xmax), classes `[1,25]` (0-based COCO: 2 car, 3 motorcycle, 5 bus, 7 truck, 1 bicycle), scores `[1,25]`, count `[1]`. Fetched once on the driver's request and checked against its SHA-256 (`RoadModel`). It looks at a square from the middle of the frame, so a 4:3 frame isn't squashed.
+
+## The lane model
+
+The idea is [YOLOPv2](https://github.com/CAIC-AD/YOLOPv2)'s (arXiv 2208.11434, MIT): one network that gives the vehicle boxes, the drivable area and the lane lines of a frame, trained on BDD100K's 100,000 drives. Its released model, taken apart on 2026-10-24: 38.95 M parameters; a YOLOv7 backbone (E-ELAN blocks, SPPCSPC) and FPN/PAN neck feeding three heads; the vehicle head (YOLOv7's `IDetect`, 3 anchors at strides 8/16/32) on the PAN's three outputs, the drivable-area head (upsampling, 2-class softmax) on the FPN at 1/16, the lane head (SE attention, transposed convolutions, one sigmoid channel) on the FPN at 1/8. Input 640 x 384; 72 GFLOPs a frame (18 at 320 x 192), 274 ms on four desktop cores. Too heavy for a phone that is also filming, and the vehicles are already found by EfficientDet-Lite0.
+
+So Road watch takes the same two masks from a network built for them, small enough for a phone: TwinLiteNet (Che et al. 2023, MIT, commit `524141821c37`), trained for YOLOPv2's drivable-area and lane-line tasks on the same BDD100K drives, 0.44 M parameters. At 320 x 176 it costs 1.9 GFLOPs, 14 ms on four desktop cores. It is `tools/roadwatch-replay/road_lanes.tflite` (0.9 MB, its licence beside it), built by `tools/roadwatch-replay/lanes_model.py`, which refuses a conversion that disagrees with PyTorch (onnx2tf once mis-ordered the attention block's tensors). Input `[1,176,320,3]` float RGB 0..1, a 16:9 band of the upright frame as wide as the frame and set on the road; output `[1,2,176,320]`, the chance each pixel is road (plane 0) and lane line (plane 1).
+
+Not on the phone yet: it runs in the replay (`lanes.py`, then `--lanes`), and goes on the phone once it beats the brightness finder there. `SeenRoad.fromModel` lays the two planes over the 160-wide lane picture, each pixel the most likely of the model's under it.
+
+`SeenLanes` finds the car's lane on them. Each side's line is followed rather than voted for: from the line pixel nearest the car low in the picture, row by row up the road, each row taking the line pixels nearest where the line was heading (a few rows' gap allowed for a dash), then a curve (x = a + b s + c s²) through the followed points in the near part of the road: where it meets the bonnet's row is the line's place, and the lane line runs on from there the way the curve heads. A side with no line follows the road's edge the same way (a country lane has no markings). Vehicle boxes hide what is inside them. LaneFinder's straight lines voted up to the horizon did badly on the model's lines, which bend with the road and meet below the horizon over a crest.
+
+`LaneCount` says how many lanes the road has and which the car is in (1 the leftmost). In a few rows near the car: out from the car to the road's edges (vehicles count as road), the lane lines between, and each gap as many lanes as the car's own lane (`LaneTracker.laneWidth`) fits in it, so a worn or hidden line still counts; the answer most rows agree on, held steady over 1.5 s by `LanePlaceTracker`. The replay shows it as "lane 2 of 3" and counts it in its summary. The car's place in its lane is the lane offset, as before.
+
+On YOLOPv2's own sample frame (a New York expressway, concrete, dashed lines), the brightness finder found the right line only (21 % of the rows); the model, both, backed by 62 % and 55 % of the rows.
+
+### On a recorded drive
+
+5,000 frames, 2 min 52 s of elevated ramps and an urban motorway in Jakarta, `--speed 90`. The horizon matters more than anything else: the drive had been replayed with `--horizon 0.5`, but where the lane's two lines meet, over 2,203 frames, is at 0.59 of the height (quartiles 0.57 and 0.61).
+
+| | Brightness, horizon 0.5 | Brightness, 0.59 set by hand | Brightness, learning from 0.5 | Model, learning from 0.5 |
+|---|---|---|---|---|
+| Both lines kept | 64 % | 91 % | 80 % | 84 % |
+| False lane warnings | 4 (3 in the toll plaza, a curb at 17.9 s) | 1 (a curb at 20.8 s) | 4 (3 in the toll plaza, a curb) | 1 (a curb at 17.3 s) |
+| The lane change right at 139.5 s, and back | caught | caught | caught | caught, once each |
+
+What it took for the model: each line followed rather than voted for (above); the follow started from the line point nearest the car anywhere in the lower half of the road, not the first row that has one, or a dash's gap at the bonnet handed the side to the next lane's line and one lane change warned three times; and the road's edge taken for a side only within 1.4 lanes, not past a shoulder. Not yet: a junction's curb taken for the lane's left line (17.3 s, as the brightness finder).
+
+The lane count: "1 of 1" on the single-lane ramps (most of the drive, right), "2 of 3" on the motorway at 170 s (right), "1 of 1" in the middle of three lanes at 150 s (wrong: the model's road mask covers the whole width there, so the road's edges are off the picture); unsure 15 % of the time.
+
+## The horizon, learned
+
+`HorizonLearner` (link): a lane's two lines run to a point on the horizon, so while the car drives on steadily (50 km/h and up), where the best line on each side meet (`LaneSighting.meetY`, taken before the lines are checked against the horizon: one set too high makes the real lines cross under it) goes into a histogram that fades over two minutes, and the horizon is its median. A crest puts the point low and a dip high, sometimes for a minute of ramps, which an average follows and a median over two minutes does not. The driver's drag sets where it starts, worth 3 s of driving; once 20 s of driving went in, the hint to drag the line goes, and the learned horizon is kept for the next drive. The phone's dotted line follows it.
+
+On the drive above, from 0.4, 0.5 and 0.7: the brightness finder ends at 0.60, 0.60 and 0.62, but from too high slowly (2 minutes or more: with the horizon too high it finds fewer pairs); the model, from 0.5, is at 0.59 within 40 s. A wrong start costs one drive; the next starts where the last one ended.
+
+`LaneTracker` learns where the car drives in its lane only while the car is within 0.3 of a lane of the middle: learning while it straddles a line drew its place along with the line, which then never passed under the car (the model run's car drifted from 0.50 to 0.31 of the width after one lane change, and took the left line for the right one).
 
 ## Warning limits
 

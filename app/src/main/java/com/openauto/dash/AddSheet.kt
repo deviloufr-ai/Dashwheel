@@ -228,11 +228,11 @@ private fun WidgetsTab(
     val unsorted = BuiltinKind.entries.filter { kind ->
         kind.offered && access.allows(kind) &&
             // Only the QF firmware's car app shares the car's data.
-            (kind != BuiltinKind.CAR_STATUS || CarBox.available) &&
+            (kind != BuiltinKind.CAR_STATUS || UnitPlatform.delivers(Cap.BODY_TRIP)) &&
             // The doors: from the CAN box stream with root, else from the car app's data.
-            (kind != BuiltinKind.DOORS || access.root || CarBox.available) &&
+            (kind != BuiltinKind.DOORS || access.root || UnitPlatform.delivers(Cap.DOORS)) &&
             // Only with the head unit's TPMS app, or a USB tyre receiver chosen in Settings.
-            (kind != BuiltinKind.TYRES || Tyres.available) &&
+            (kind != BuiltinKind.TYRES || UnitPlatform.delivers(Cap.TYRES) || UsbTpms.on) &&
             // Only where Android lets Dashwheel open another app on its own display (PMPatch in Magisk).
             (kind != BuiltinKind.MAPS_INSIDE || EmbeddedApp.allowed(context)) &&
             // The Canvas rail over an app is that bar already.

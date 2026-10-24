@@ -69,6 +69,9 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.ignitionFlow
+import com.openauto.dash.vehicle.rememberVehicle
 import kotlin.math.abs
 import androidx.compose.runtime.key
 import androidx.compose.foundation.layout.width
@@ -224,7 +227,6 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     val updateManager = remember { UpdateManager(context) }
     // The live readings stay States: reading them here would recompose the whole
     // dashboard on every OBD sample. Tiles read them where they draw them.
-    val obd = ObdBluetoothManager.data.collectAsState()
     // The link's state too: it flips at every dial while the adapter is out of
     // reach, and read here that would recompose the whole dashboard each time.
     val obdConnection = ObdBluetoothManager.connectionState.collectAsState()
@@ -907,6 +909,8 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     }
 
     val screenConfig = LocalConfiguration.current
+    // What the car says now, from any source: the templates leave out only the tiles no source can feed.
+    val suppliedKeys by UnitPlatform.supplied.collectAsState(initial = UnitPlatform.suppliedKeys())
     /** The car and screen a template is placed for, in the full-width ([half] false) or docked arrangement. */
     fun templateScreen(half: Boolean): TemplateScreen = TemplateScreen.of(
         // Upright, the Maps dock sits above or below the pages and takes height, not width.
@@ -915,11 +919,12 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         pageHeightDp = screenConfig.screenHeightDp * (if (ScreenShape.vertical) 0.9f else 0.8f) *
             if (half && ScreenShape.vertical) 1f - dockFraction.floatValue else 1f,
         obdPaired = obdAdapter.value.canDial || obdConnection.value == ObdConnectionState.CONNECTED,
+        carKeys = suppliedKeys,
         driverOnRight = CarProfileStore.current.driverOnRight,
         mapsDocked = half,
         dockApps = TemplatePlacer.dockApps(pages, appsByPackage.keys),
         canbox = shellAccess.root,
-        tyres = Tyres.available
+        tyres = UnitPlatform.delivers(Cap.TYRES)
     )
 
     // What the moment on Home shows: laid out for this screen, worked out once per moment and arrangement.
@@ -999,7 +1004,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     var clock by remember { mutableStateOf(currentClock(units)) }
     // Started again at each switch-on: the wait below stands still while the
     // unit sleeps, and the bar showed last night's time for up to a minute.
-    val ignition by CarPower.ignition.collectAsState()
+    val ignition = rememberVehicle(K.IGNITION)
     LaunchedEffect(units.clock24, ignition) {
         while (true) {
             clock = currentClock(units)
@@ -1076,7 +1081,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     // ignition on, and every six hours awake. Never in the Play edition: its
     // updates come from Google Play (UpdateManager stays Idle there anyway).
     if (Edition.full) LaunchedEffect(Unit) {
-        launch { CarPower.ignition.drop(1).filter { it == true }.collect { updateManager.checkForUpdate() } }
+        launch { ignitionFlow().drop(1).filter { it == true }.collect { updateManager.checkForUpdate() } }
         while (true) {
             updateManager.checkForUpdate()
             delay(UPDATE_CHECK_EVERY_MS)
@@ -1236,7 +1241,6 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         clock = clock,
         versionName = updateManager.currentVersionName,
         obdConnectionState = obdConnection,
-        obd = obd,
         editing = editing,
         layout = layout,
         onLayout = { next ->
@@ -1405,7 +1409,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     val previewTile: @Composable (DashboardItem) -> Unit = { item ->
         TileContent(
             item = item, editing = item.standsIn(), appsByPackage = appsByPackage, media = media, mediaController = mediaController,
-            hasMediaAccess = mediaAccess, context = context, obd = obd, obdConnection = obdConnection,
+            hasMediaAccess = mediaAccess, context = context, obdConnection = obdConnection,
             onConnectObd = {}, onPickDevice = {}, onLaunchApp = {}, onLaunchSplitPair = { _, _ -> },
             onEditLaunchBar = {}, onModelTouch = {}
         )
@@ -1504,8 +1508,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                     media = media,
                     mediaController = mediaController,
                     hasMediaAccess = mediaAccess,
-                    obd = obd,
-                    obdConnection = obdConnection,
+                                obdConnection = obdConnection,
                     onConnectObd = onConnectObd,
                     onPickDevice = onPickDevice,
                     onLaunchApp = onLaunchApp,
@@ -1773,7 +1776,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                                     aspect = (widget.w * 1.1f) / widget.h,
                                     env = SkinTileEnv(
                                         editing = false, appsByPackage = appsByPackage, media = media, mediaController = mediaController,
-                                        hasMediaAccess = mediaAccess, context = context, obd = obd, obdConnectionState = obdConnection,
+                                        hasMediaAccess = mediaAccess, context = context, obdConnectionState = obdConnection,
                                         onConnectObd = onConnectObd, onPickDevice = onPickDevice, onLaunchApp = onLaunchApp, onEditLaunchBar = {}
                                     ),
                                     standardPreview = {
@@ -1781,7 +1784,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                                         TileContent(
                                             item = widget.copy(design = WidgetDesign.STANDARD), editing = true, appsByPackage = appsByPackage,
                                             media = media, mediaController = mediaController, hasMediaAccess = mediaAccess,
-                                            context = context, obd = obd, obdConnection = obdConnection, onConnectObd = onConnectObd,
+                                            context = context, obdConnection = obdConnection, onConnectObd = onConnectObd,
                                             onPickDevice = onPickDevice, onLaunchApp = onLaunchApp, onLaunchSplitPair = onLaunchSplitPair,
                                             onEditLaunchBar = {}, onModelTouch = {}
                                         )
@@ -1858,7 +1861,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                         TileContent(
                             item = item, editing = true, appsByPackage = appsByPackage,
                             media = media, mediaController = mediaController, hasMediaAccess = mediaAccess,
-                            context = context, obd = obd, obdConnection = obdConnection, onConnectObd = onConnectObd,
+                            context = context, obdConnection = obdConnection, onConnectObd = onConnectObd,
                             onPickDevice = onPickDevice, onLaunchApp = onLaunchApp, onLaunchSplitPair = onLaunchSplitPair,
                             onEditLaunchBar = {}, onModelTouch = {}
                         )

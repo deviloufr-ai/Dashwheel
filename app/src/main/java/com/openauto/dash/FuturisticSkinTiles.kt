@@ -1,5 +1,7 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberPanelGauges
+import com.openauto.dash.vehicle.K
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -292,12 +294,12 @@ private fun FutEmpty(title: String, hint: String, tone: Color, editing: Boolean,
  */
 @Composable
 private fun FutSpeed(env: SkinTileEnv) {
-    val speed = rememberSpeedKmh(env)
+    val speed = rememberSpeedKmh()
     val obd = env.obdConnection == ObdConnectionState.CONNECTED
     val idle = env.obdConnection.isIdle
     val canConnect = speed == null && idle && !env.editing
     val noSignal = stringResource(R.string.info_speed_no_signal)
-    val source = speedSource(obd, speed, noSignal).uppercase(Locale.getDefault())
+    val source = speedSource(noSignal).uppercase(Locale.getDefault())
     BoxWithConstraints(
         Modifier
             .fillMaxSize()
@@ -440,14 +442,14 @@ private fun FutSpeedRing(speedKmh: Int?, caption: String, captionColor: Color, s
  */
 @Composable
 private fun FutDriveStats(env: SkinTileEnv, modifier: Modifier) {
-    val d = env.obdData
-    val connected = env.obdConnection == ObdConnectionState.CONNECTED
+    val g = rememberPanelGauges(K.SPEED, K.RPM, K.FUEL_FLOW)
     val units = LocalUnits.current
     val locale = Locale.getDefault()
     val gear by rememberGear()
-    val flow = d.fuelFlowLh
-    val eco = if (connected && flow != null && d.speedKmh >= 5) {
-        units.economy(flow / d.speedKmh * 100.0)?.let { String.format(locale, "%.1f", it) } ?: "--"
+    val flow = g.fuelFlowLh
+    val kmh = g.speedKmh
+    val eco = if (flow != null && kmh != null && kmh >= 5) {
+        units.economy(flow / kmh * 100.0)?.let { String.format(locale, "%.1f", it) } ?: "--"
     } else "--"
     BoxWithConstraints(modifier) {
         val labelDp = (maxWidth.value / 20f).coerceIn(11f, 14f)
@@ -456,10 +458,10 @@ private fun FutDriveStats(env: SkinTileEnv, modifier: Modifier) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 FutText(stringResource(R.string.skin_futuristic_rpm).uppercase(locale), futCaps(labelDp))
                 Spacer(Modifier.weight(1f))
-                FutText(if (connected) groupThousands(d.rpm) else "--", futNum(labelDp * 1.3f))
+                FutText(g.rpm?.let { groupThousands(it) } ?: "--", futNum(labelDp * 1.3f))
             }
             Spacer(Modifier.height(8.dp))
-            FutBar(if (connected) d.rpm / SKIN_RPM_MAX else 0f, Modifier.fillMaxWidth())
+            FutBar(g.rpm?.let { it / SKIN_RPM_MAX } ?: 0f, Modifier.fillMaxWidth())
             Spacer(Modifier.height(12.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Box(Modifier.weight(1f).futPanel(DashColors.Accent).padding(horizontal = 12.dp, vertical = 8.dp)) {
@@ -517,22 +519,21 @@ private fun TelemetryHologram(env: SkinTileEnv) {
 /** The OBD speed in wide numerals with its unit, and the revs after it, all on one line. */
 @Composable
 private fun TelemetrySpeed(env: SkinTileEnv, height: Dp, capsDp: Float, modifier: Modifier) {
-    val connected = env.obdConnection == ObdConnectionState.CONNECTED
-    val d = env.obdData
+    val g = rememberPanelGauges(K.SPEED, K.RPM)
     val units = LocalUnits.current
     val locale = Locale.getDefault()
-    val over = connected && speedOver(d.speedKmh)
+    val over = speedOver(g.speedKmh)
     val numDp = futFitSp("188", futNum(100f), 200.dp, height * 0.9f, 18f, 80f)
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
         FutText(
-            if (connected) units.speed(d.speedKmh).toString() else "--",
+            g.speedKmh?.let { units.speed(it).toString() } ?: "--",
             futNum(numDp, if (over) DashColors.Warning else DashColors.TextPrimary),
             overflow = TextOverflow.Clip
         )
         Spacer(Modifier.width(8.dp))
         Column {
             FutText(units.speedUnit.uppercase(locale), futCaps(capsDp, DashColors.AccentInk))
-            if (connected) FutText("${groupThousands(d.rpm)} ${stringResource(R.string.skin_futuristic_rpm).uppercase(locale)}", futCaps(capsDp))
+            g.rpm?.let { FutText("${groupThousands(it)} ${stringResource(R.string.skin_futuristic_rpm).uppercase(locale)}", futCaps(capsDp)) }
         }
     }
 }
@@ -589,9 +590,9 @@ private fun PickAdapterTarget(env: SkinTileEnv, modifier: Modifier) {
 @Composable
 private fun TelemetryPanel(env: SkinTileEnv) {
     val state = env.obdConnection
-    val connected = state == ObdConnectionState.CONNECTED
     val idle = state.isIdle
-    val d = env.obdData
+    // Whatever the car answers is shown, adapter or not; the rest reads "--".
+    val g = rememberPanelGauges(K.SPEED, K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
     val units = LocalUnits.current
     val locale = Locale.getDefault()
     BoxWithConstraints(
@@ -606,11 +607,11 @@ private fun TelemetryPanel(env: SkinTileEnv) {
         val tiny = maxHeight < 120.dp
         val wide = maxWidth >= maxHeight * 2.1f
         val capsDp = (maxHeight.value * 0.07f).coerceIn(11f, 15f)
-        val volts = connected && d.voltage > 0.0
+        val volts = g.voltage
         val readouts = listOf(
-            Triple(stringResource(R.string.vehicle_coolant), if (connected) units.tempTight(d.coolantTempC) else "--", connected && d.coolantTempC >= COOLANT_WARNING_C),
-            Triple(stringResource(R.string.info_chip_battery), if (volts) String.format(locale, "%.1f V", d.voltage) else "--", volts && d.voltage < 11.8),
-            Triple(stringResource(R.string.skin_futuristic_load), if (connected) "${d.engineLoadPct}%" else "--", false)
+            Triple(stringResource(R.string.vehicle_coolant), g.coolantTempC?.let { units.tempTight(it) } ?: "--", (g.coolantTempC ?: 0) >= COOLANT_WARNING_C),
+            Triple(stringResource(R.string.info_chip_battery), volts?.let { String.format(locale, "%.1f V", it) } ?: "--", volts != null && volts < 11.8),
+            Triple(stringResource(R.string.skin_futuristic_load), g.engineLoadPct?.let { "$it%" } ?: "--", false)
         )
         Column(Modifier.fillMaxSize().padding(pad)) {
             if (!tiny) {
@@ -625,8 +626,8 @@ private fun TelemetryPanel(env: SkinTileEnv) {
                     val numDp = futFitSp("188", futNum(100f), maxWidth * 0.66f, maxHeight, 16f, 220f)
                     Row(verticalAlignment = Alignment.Bottom) {
                         FutText(
-                            if (connected) units.speed(d.speedKmh).toString() else "--",
-                            futNum(numDp, if (connected && speedOver(d.speedKmh)) DashColors.Warning else DashColors.TextPrimary),
+                            g.speedKmh?.let { units.speed(it).toString() } ?: "--",
+                            futNum(numDp, if (speedOver(g.speedKmh)) DashColors.Warning else DashColors.TextPrimary),
                             overflow = TextOverflow.Clip
                         )
                         Spacer(Modifier.width(6.dp))
@@ -645,7 +646,7 @@ private fun TelemetryPanel(env: SkinTileEnv) {
                     speedBlock(Modifier.weight(0.9f).fillMaxHeight())
                     Spacer(Modifier.width(14.dp))
                     Column(Modifier.weight(1.1f)) {
-                        RpmLine(connected, d.rpm, capsDp)
+                        RpmLine(g.rpm, capsDp)
                         Spacer(Modifier.height(10.dp))
                         readoutRow()
                     }
@@ -653,7 +654,7 @@ private fun TelemetryPanel(env: SkinTileEnv) {
             } else {
                 speedBlock(Modifier.weight(1f).fillMaxWidth())
                 Spacer(Modifier.height(6.dp))
-                RpmLine(connected, d.rpm, capsDp)
+                RpmLine(g.rpm, capsDp)
                 if (boxH >= 210.dp) {
                     Spacer(Modifier.height(10.dp))
                     readoutRow()
@@ -666,16 +667,16 @@ private fun TelemetryPanel(env: SkinTileEnv) {
 
 /** "RPM 2 100" over the revs bar. */
 @Composable
-private fun RpmLine(connected: Boolean, rpm: Int, capsDp: Float) {
+private fun RpmLine(rpm: Int?, capsDp: Float) {
     val locale = Locale.getDefault()
     Column(Modifier.fillMaxWidth()) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             FutText(stringResource(R.string.skin_futuristic_rpm).uppercase(locale), futCaps(capsDp))
             Spacer(Modifier.weight(1f))
-            FutText(if (connected) groupThousands(rpm) else "--", futNum(capsDp * 1.3f))
+            FutText(rpm?.let { groupThousands(it) } ?: "--", futNum(capsDp * 1.3f))
         }
         Spacer(Modifier.height(4.dp))
-        FutBar(if (connected) rpm / SKIN_RPM_MAX else 0f, Modifier.fillMaxWidth())
+        FutBar(rpm?.let { it / SKIN_RPM_MAX } ?: 0f, Modifier.fillMaxWidth())
     }
 }
 
@@ -1268,7 +1269,7 @@ private fun FutIconRing(icon: ImageVector, size: Dp) {
  */
 @Composable
 private fun FutRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     if (fuel == null) {
         StandardSkinnedTile(item, env)
         return

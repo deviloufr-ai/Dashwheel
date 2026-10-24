@@ -7,13 +7,10 @@ import org.junit.Test
 /** The bar's battery alert: steady problems only, never a single reading. */
 class BatteryJudgeTest {
 
-    private fun reading(volts: Double, rpm: Int = 850, fromEcu: Boolean = true) =
-        ObdData(rpm = rpm, voltage = volts, voltageFromEcu = fromEcu)
-
     /** Feeds one reading a second from [fromS] to [toS] (inclusive); returns the last state. */
     private fun BatteryJudge.run(fromS: Int, toS: Int, volts: (Int) -> Double, rpm: Int = 850, fromEcu: Boolean = true): BatteryState {
         var last = BatteryState()
-        for (s in fromS..toS) last = feed(reading(volts(s), rpm, fromEcu), s * 1000L)
+        for (s in fromS..toS) last = feed(rpm, volts(s), fromEcu, s * 1000L)
         return last
     }
 

@@ -1,5 +1,8 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberGauge
+import com.openauto.dash.vehicle.rememberGaugeInt
+import com.openauto.dash.vehicle.K
 import android.graphics.Bitmap
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,7 +28,6 @@ import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -259,11 +261,10 @@ private fun GlyphClock(env: SkinTileEnv) {
 @Composable
 private fun GlyphTelemetry(env: SkinTileEnv) {
     val state = env.obdConnection
-    val connected = state == ObdConnectionState.CONNECTED
     val units = LocalUnits.current
-    val fuel = rememberFuel(env)
-    val speed = rememberSpeedKmh(env.obdData, state)
-    val coolant by remember(env) { derivedStateOf { if (env.obdConnection == ObdConnectionState.CONNECTED) env.obdData.coolantTempC else 0 } }
+    val fuel = rememberFuel()
+    val speed = rememberSpeedKmh()
+    val coolant = rememberGaugeInt(K.COOLANT_TEMP) ?: 0
     val hot = coolant >= COOLANT_WARNING_C
     val rangeLabel = stringResource(R.string.glyph_label_range)
     val coolantLabel = stringResource(R.string.glyph_label_coolant, units.tempUnit)
@@ -275,7 +276,7 @@ private fun GlyphTelemetry(env: SkinTileEnv) {
         val rows = buildList {
             add(Triple(speedLabel, speed?.let { units.speed(it).toString() } ?: "--", glyphRed))
             add(Triple(rangeLabel, fuel?.let { units.distance(it.rangeKm).toString() } ?: "--", if (fuel != null && fuel.percent <= SKIN_LOW_FUEL_PCT) glyphRed else DashColors.TextPrimary))
-            add(Triple(coolantLabel, if (connected && coolant > 0) units.temp(coolant).toString() else "--", if (hot) DashColors.Warning else DashColors.TextPrimary))
+            add(Triple(coolantLabel, if (coolant > 0) units.temp(coolant).toString() else "--", if (hot) DashColors.Warning else DashColors.TextPrimary))
         }
         val roomRows = ((maxHeight - LABEL_H - keyH) / 54.dp).toInt().coerceIn(1, 3)
         // The design's order, range first, when all three fit; the speed first when only some do.
@@ -348,7 +349,7 @@ private fun GlyphMonoKey(text: String, enabled: Boolean, onClick: () -> Unit) {
 @Composable
 private fun GlyphSpeed(env: SkinTileEnv) {
     val units = LocalUnits.current
-    val speed = rememberSpeedKmh(env)
+    val speed = rememberSpeedKmh()
     val connected = env.obdConnection == ObdConnectionState.CONNECTED
     GlyphModuleBox(env.editing) {
         val text = speed?.let { units.speed(it).toString() } ?: "--"
@@ -360,7 +361,7 @@ private fun GlyphSpeed(env: SkinTileEnv) {
                 GlyphDotText(text, pitch, if (speed != null) glyphRed else glyphOff)
             }
             Spacer(Modifier.weight(1f))
-            GlyphLine(speedSource(connected, speed, stringResource(R.string.glyph_no_speed)), glyphMono(14f, DashColors.Muted, caps = true), Modifier.fillMaxWidth(), align = TextAlign.Center)
+            GlyphLine(speedSource(stringResource(R.string.glyph_no_speed)), glyphMono(14f, DashColors.Muted, caps = true), Modifier.fillMaxWidth(), align = TextAlign.Center)
         }
     }
 }
@@ -647,7 +648,7 @@ private fun GlyphEq(playing: Boolean, modifier: Modifier) {
  */
 @Composable
 private fun GlyphRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     val units = LocalUnits.current
     BoxWithConstraints(Modifier.fillMaxSize().graphicsLayer()) {
         val hero = maxWidth >= GLYPH_HERO_MIN_W && maxHeight >= GLYPH_HERO_MIN_H

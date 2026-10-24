@@ -1,5 +1,6 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.fuelInfoFlow
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
@@ -84,7 +85,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
@@ -408,9 +408,9 @@ internal fun FollowTabTriggers(tabs: List<CanvasTab>, onTrigger: (TabTrigger) ->
     if (TabTrigger.LOW_FUEL in wanted) {
         LaunchedEffect(Unit) {
             // The car's own range, as the spoken warning reads it (CarCare): once on the way down.
-            combine(McuReader.fuelPercent, McuReader.rangeKm, ObdBluetoothManager.data) { percent, range, obd ->
-                carFuelInfo(percent, obd.fuelLevelPct, range)?.rangeKm.let { it != null && it in 1..LowFuel.WARN_KM }
-            }.distinctUntilChanged().drop(1).collect { if (it) fire(TabTrigger.LOW_FUEL) }
+            // Collecting the fuel level is what keeps it asked for.
+            fuelInfoFlow().map { info -> info?.rangeKm.let { it != null && it in 1..LowFuel.WARN_KM } }
+                .distinctUntilChanged().drop(1).collect { if (it) fire(TabTrigger.LOW_FUEL) }
         }
     }
 }

@@ -73,7 +73,7 @@ internal fun HeadUnitSheet(onDismiss: () -> Unit) {
     val scope = rememberCoroutineScope()
     val family by UnitPlatform.family.collectAsState()
     val chosen by UnitPlatform.override.collectAsState()
-    val used by UnitPlatform.used.collectAsState()
+    val used by UnitPlatform.used.collectAsState(UnitPlatform.usedNow())
     val access by PrivilegedShell.access.collectAsState()
     val adapter = UnitPlatform.adapter
     val detected = UnitPlatform.detected

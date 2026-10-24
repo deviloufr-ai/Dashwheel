@@ -144,12 +144,15 @@ class RoadRules(var lanes: Boolean = true, var movedOff: Boolean = true) {
         val first = offsets.first()
         val drifting = now - first.at >= DRIFT_MIN_MS && abs(offset) - abs(first.value) >= DRIFT
         val signalled = now - indicatedAt < INDICATOR_GRACE_MS
+        // Over the line in the last few scenes running, not in one: a single frame's misreading is not a drift.
+        val overRight = offsets.size >= LINE_SCENES && offsets.takeLast(LINE_SCENES).all { it.value >= LINE_OFFSET }
+        val overLeft = offsets.size >= LINE_SCENES && offsets.takeLast(LINE_SCENES).all { it.value <= -LINE_OFFSET }
         if (!drifting || signalled) return
-        if (offset >= LINE_OFFSET && rightArmed) {
+        if (overRight && rightArmed) {
             rightArmed = false
             laneSide = RoadWarning.LANE_RIGHT
             laneUntil = now + LANE_SHOW_MS
-        } else if (offset <= -LINE_OFFSET && leftArmed) {
+        } else if (overLeft && leftArmed) {
             leftArmed = false
             laneSide = RoadWarning.LANE_LEFT
             laneUntil = now + LANE_SHOW_MS
@@ -199,6 +202,8 @@ class RoadRules(var lanes: Boolean = true, var movedOff: Boolean = true) {
         const val LANE_KMH = 60f
         /** A wheel on the line, for a car of usual width in a usual lane. */
         const val LINE_OFFSET = 0.22f
+        /** Scenes running (about a third of a second) the car must be over the line for. */
+        const val LINE_SCENES = 3
         const val BACK_OFFSET = 0.15f
         const val REARM_OFFSET = 0.12f
         /** Moving out by this much over the last half second: drifting, not driving along the line. */

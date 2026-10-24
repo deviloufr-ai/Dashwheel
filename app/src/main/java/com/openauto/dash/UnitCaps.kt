@@ -1,6 +1,8 @@
 package com.openauto.dash
 
 import androidx.annotation.StringRes
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Key
 
 /**
  * What a head unit's firmware lets Dashwheel do, one capability at a time:
@@ -8,15 +10,22 @@ import androidx.annotation.StringRes
  * with what each needs (a shell, root, the settings permission). The Settings
  * card and the compatibility report read them; the features themselves ask
  * their adapter, not this list.
+ *
+ * A capability that is a kind of car data names its [key]: it is live when the vehicle bus has
+ * that key ([com.openauto.dash.vehicle.VehicleBus.has]), whoever says it, and nobody marks it.
+ * The others (the platform's own: keys, bridges, takeovers) are marked by what they do ([UnitPlatform.markUsed]).
  */
-enum class Cap {
+enum class Cap(val key: Key<*>? = null) {
     /** The ignition, on and off, as the unit announces it. */
     IGNITION,
     /** A "going to sleep" warning before the unit sleeps. */
     SLEEP_SOON,
     /** The car's data bus (CAN box frames or the vendor car service). */
     VEHICLE_BUS,
-    DOORS, REVERSE, STEERING, RADAR, CLIMATE, BODY_TRIP, SPEED_RPM, VOLTS, HEADLIGHTS, OUTSIDE_TEMP,
+    DOORS(K.DOORS), REVERSE(K.REVERSE), STEERING(K.STEERING_ANGLE), RADAR(K.RADAR), CLIMATE(K.CLIMATE),
+    /** The car app's body and trip computer: the mileage stands for it. */
+    BODY_TRIP(K.ODOMETER),
+    SPEED_RPM(K.VEHICLE_SPEED), VOLTS(K.BATTERY_VOLTS), HEADLIGHTS(K.HEADLIGHTS), OUTSIDE_TEMP(K.OUTSIDE_TEMP),
     /** The unit's own keys (steering wheel, panel) as the firmware hands them out. */
     UNIT_KEYS,
     /** Which app the unit's NAVI / voice / custom keys open. */
@@ -39,7 +48,7 @@ enum class Cap {
     FREEFORM_BAR,
     BOOT_LOGO,
     /** Tyre pressures from the unit's TPMS app. */
-    TYRES
+    TYRES(K.TYRES)
 }
 
 /** What a capability needs before it works here. */

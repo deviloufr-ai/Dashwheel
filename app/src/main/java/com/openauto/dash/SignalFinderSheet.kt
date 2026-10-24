@@ -54,6 +54,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.rememberDoors
 import com.openauto.unitproto.UnitFamily
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -116,8 +119,11 @@ private fun SignalList(onDismiss: () -> Unit, onFind: (CarSignal) -> Unit, onSni
     val mapped by LearnedSignals.mapped.collectAsState()
     val values by SignalSources.values.collectAsState()
     val canReadable by SignalSources.canReadable.collectAsState()
-    val doors by McuReader.doorState.collectAsState()
-    val body by CarBox.body.collectAsState()
+    // What the car itself says (the built-in sources, never a learned one): whether a signal needs teaching at all.
+    val doorSources by remember { Vehicle.bus.candidates(K.DOORS) }.collectAsState()
+    val beltSources by remember { Vehicle.bus.candidates(K.DRIVER_BELT) }.collectAsState()
+    val reverseSources by remember { Vehicle.bus.candidates(K.REVERSE) }.collectAsState()
+    val lightSources by remember { Vehicle.bus.candidates(K.HEADLIGHTS) }.collectAsState()
     val camera by LearnedSignals.cameraId.collectAsState()
     var picking by remember { mutableStateOf(false) }
 
@@ -144,9 +150,10 @@ private fun SignalList(onDismiss: () -> Unit, onFind: (CarSignal) -> Unit, onSni
             val probe = mapped[signal]
             val builtIn = when {
                 // Read again whenever the doors change; only the car's own count, not a learned one.
-                signal.isDoor -> doors.let { McuReader.ownDoorsKnown }
-                signal == CarSignal.DRIVER_BELT -> body != null
-                else -> CarBox.available
+                signal.isDoor -> builtInDoors(doorSources) != null
+                signal == CarSignal.DRIVER_BELT -> beltSources.any { it.source.kind.rank >= 0 }
+                signal == CarSignal.REVERSE -> reverseSources.any { it.source.kind.rank >= 0 }
+                else -> lightSources.any { it.source.kind.rank >= 0 }
             }
             val detail = when {
                 probe != null -> stringResource(R.string.signals_learned, describe(context, probe))

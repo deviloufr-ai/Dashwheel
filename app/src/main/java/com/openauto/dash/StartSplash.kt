@@ -521,7 +521,7 @@ internal class StartSplashView(
         // The time, and the temperature outside when the car says it.
         val facts = ease(prog(t, 2.8f, 0.6f))
         val units = Units.current.value
-        val outside = UnitSignals.outsideTempC.value?.let { units.tempTight(it) }
+        val outside = com.openauto.dash.vehicle.Vehicle.bus.now(com.openauto.dash.vehicle.K.OUTSIDE_TEMP)?.let { units.tempTight(it) }
         val time = units.time(java.util.Date())
         drawText(c, if (outside != null) "$time      $outside" else time, cx, sy + 136 * s + 24 * s * (1 - facts), 24 * s, alpha(INK, 0.6f), facts, medium)
         c.restore()

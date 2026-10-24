@@ -8,6 +8,7 @@ import android.os.IBinder
 import android.os.Parcel
 import android.os.SystemClock
 import android.util.Log
+import com.openauto.dash.vehicle.ignitionFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -225,7 +226,7 @@ object PsaTripComputer {
         val app = context.applicationContext
         scope.launch {
             // An ignition the unit doesn't tell (null) counts as on.
-            CarPower.ignition.collectLatest { on ->
+            ignitionFlow().collectLatest { on ->
                 if (on == false) return@collectLatest
                 delay(FIRST_ASK_MS)
                 while (isActive) {

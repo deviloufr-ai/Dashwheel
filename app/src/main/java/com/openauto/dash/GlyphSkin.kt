@@ -396,7 +396,7 @@ private fun glyphPageAt(fy: Float, light: Boolean, effects: DashEffects, page: C
 @Composable
 internal fun GlyphTopBar(m: TopBarModel) {
     val context = LocalContext.current
-    val fuel = rememberFuel(m.obd, m.obdConnection)
+    val fuel = rememberFuel()
     BoxWithConstraints(Modifier.fillMaxWidth().height(GLYPH_BAR).graphicsLayer()) {
         val narrow = maxWidth < NARROW_BAR
         val key = if (narrow) 60.dp else 68.dp
@@ -435,7 +435,7 @@ internal fun GlyphTopBar(m: TopBarModel) {
                     Box(Modifier.layoutId(BarRank.DEMO).padding(end = 8.dp)) { DemoBadge(onStop = m.onDemo, compact = true) }
                 }
                 Row(modifier = Modifier.layoutId(BarRank.ALERTS), verticalAlignment = Alignment.CenterVertically) {
-                    VehicleAlerts(m.obdConnection, m.obd)
+                    VehicleAlerts()
                 }
                 Box(Modifier.layoutId(BarRank.PHONE).padding(end = 8.dp)) { PhonePill() }
                 if (m.setupPending) {

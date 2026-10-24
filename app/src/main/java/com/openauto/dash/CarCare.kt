@@ -1,6 +1,12 @@
 package com.openauto.dash
 
 import android.content.Context
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.fuelInfoFlow
+import com.openauto.dash.vehicle.fuelInfoNow
+import com.openauto.dash.vehicle.ignitionNow
+import com.openauto.dash.vehicle.speedKmhNow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -11,6 +17,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -319,24 +326,30 @@ object CarCare {
 
     /**
      * Driving time for the break reminder while the OBD adapter is not
-     * connected: from the car box's speed, else the GPS's (held only then).
+     * connected: from the car's speed (car app, unit bus), else the GPS's (held only then).
      * With the adapter, [watch] counts it with the rest of the drive. A gap in
      * the adapter's link used to count as a stop and start the 2 hours again.
      */
     private suspend fun watchRestWithoutObd() {
         val speed = carSpeedKmh().stateIn(scope, SharingStarted.Eagerly, 0)
-        while (true) {
-            delay(REST_TICK_MS)
-            val context = appContext ?: continue
-            val obd = ObdBluetoothManager.connectionState.value == ObdConnectionState.CONNECTED
-            val wantGps = !obd && CarBox.freshBody()?.speedKmh == null && CarPower.ignition.value != false
-            if (wantGps && !gpsHeld) gpsHeld = LocationFeed.acquire(context)
-            else if (!wantGps && gpsHeld) {
-                LocationFeed.release()
-                gpsHeld = false
+        // The loop below asks "does the car report a speed" by snapshot, so the key stays wanted while it runs.
+        val hold = Vehicle.bus.hold(K.VEHICLE_SPEED)
+        try {
+            while (true) {
+                delay(REST_TICK_MS)
+                val context = appContext ?: continue
+                val obd = ObdBluetoothManager.connectionState.value == ObdConnectionState.CONNECTED
+                val wantGps = !obd && speedKmhNow(K.VEHICLE_SPEED) == null && ignitionNow() != false
+                if (wantGps && !gpsHeld) gpsHeld = LocationFeed.acquire(context)
+                else if (!wantGps && gpsHeld) {
+                    LocationFeed.release()
+                    gpsHeld = false
+                }
+                if (obd || DemoMode.isOn || ignitionNow() == false) continue
+                restTick(speed.value, System.currentTimeMillis())
             }
-            if (obd || DemoMode.isOn || CarPower.ignition.value == false) continue
-            restTick(speed.value, System.currentTimeMillis())
+        } finally {
+            hold.release()
         }
     }
 
@@ -359,9 +372,7 @@ object CarCare {
      * the car's own, and the speed whichever source has one ([carSpeedKmh]).
      */
     private suspend fun watchFuel() {
-        val fuel = combine(McuReader.fuelPercent, McuReader.rangeKm, ObdBluetoothManager.data) { percent, range, obd ->
-            carFuelInfo(percent, obd.fuelLevelPct, range)?.rangeKm
-        }
+        val fuel = fuelInfoFlow().map { it?.rangeKm }
         combine(fuel, carSpeedKmh()) { range, kmh -> range to (kmh >= MOVING_KMH) }
             .distinctUntilChanged()
             .collect { (range, moving) ->
@@ -409,6 +420,7 @@ object CarCare {
         _state.value = state
     }
 
+    /** One look at the car's gauges ([VehicleMonitor] builds [data] from the bus; 0 = unknown, as the rules were written). */
     fun watch(data: ObdData) {
         if (DemoMode.isOn) return
         val now = System.currentTimeMillis()
@@ -486,9 +498,9 @@ object CarCare {
         }
     }
 
-    /** The range as the fuel tiles show it. */
+    /** The range as the fuel tiles show it (the fuel level is held by the poll's floor, [VehicleMonitor]). */
     internal fun currentRange(): Int? {
-        return carFuelInfo(McuReader.fuelPercent.value, ObdBluetoothManager.data.value.fuelLevelPct, McuReader.rangeKm.value)?.rangeKm
+        return fuelInfoNow()?.rangeKm
     }
 
     private fun line(e: CareEvent, car: CarProfile): SpokenLine = when (e) {

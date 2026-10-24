@@ -9,14 +9,22 @@ import android.net.Uri
 import android.os.SystemClock
 import android.util.Log
 import androidx.core.content.ContextCompat
+import com.openauto.dash.vehicle.FUEL_HOLD_MS
+import com.openauto.dash.vehicle.Indicators
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Key
+import com.openauto.dash.vehicle.Source
+import com.openauto.dash.vehicle.SourceKind
+import com.openauto.dash.vehicle.SourceLiveness
+import com.openauto.dash.vehicle.Vehicle
 import com.qf.vehicle.entity.RadarState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -49,39 +57,47 @@ object CarBox {
      * ROM's car app), so it still moves once the driver turned those lines off.
      */
     private const val TRACE_INDEX = "KeyDefaultTraceAngle"
-    /** After the broadcast or the log ([steeringWrite]), the coarser line picture keeps out of the way this long. */
+    /** After the broadcast or the log ([steeringFromLog]), the coarser line picture keeps out of the way this long. */
     private const val FINE_ANGLE_MS = 3_000L
     /** The ROM's own reverse flag, "true" while reverse is engaged. */
     private const val REVERSE_FLAG = "sys.qf.backcar_state"
     /** While reversing, the flag is read again this often ([watchReverse]). */
     private const val REVERSE_REREAD_MS = 2_000L
+    /** How long the car app's steering angle is believed without a new one: it sends only when the line picture changes. */
+    private const val STEERING_HOLD_MS = 60 * 60_000L
 
     /** Body data older than this is stale (the car app sends it every two seconds while it changes). */
     private const val FRESH_MS = 6_000L
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /**
+     * The car app on the vehicle bus: the body's numbers (speed with the driver's correction, revs, fuel, range,
+     * mileage) good while the body is fresh ([FRESH_MS]), its states on a change ([putState]), and the climate,
+     * the parking sensors, reverse and the steering angle as it says them.
+     */
+    private val busPublisher = Vehicle.bus.register(Source("qf.car_app", SourceKind.VEHICLE_APP, "QF car app"))
+    /** What the body last said for the states it puts on a change only. */
+    private val stated = HashMap<Key<*>, Any>()
     private var started = false
 
-    private val _body = MutableStateFlow<CarBody?>(null)
-    val body: StateFlow<CarBody?> = _body
-    /** When [body] was heard ([SystemClock.elapsedRealtime]). */
-    internal var bodyAt = 0L
-        private set
+    /** No share of the body for this long: what the body last said about the lights, the belt and the handbrake no longer holds. */
+    internal const val BODY_SILENT_MS = 30_000L
 
-    private val _climate = MutableStateFlow<Climate?>(null)
-    /** The climate control; a new value each time it changes. */
-    val climate: StateFlow<Climate?> = _climate
-
-    private val _radar = MutableStateFlow<Radar?>(null)
-    val radar: StateFlow<Radar?> = _radar
-
-    private val _reversing = MutableStateFlow(false)
-    /** Reverse gear engaged: the ROM's reversing camera is on screen. */
-    val reversing: StateFlow<Boolean> = _reversing
-
-    private val _steering = MutableStateFlow<Float?>(null)
-    /** The steering wheel's angle in degrees, right positive, once the car has sent it ([ReverseView]). */
-    val steering: StateFlow<Float?> = _steering
+    /**
+     * The car app's liveness is its body, which it sends every two seconds while anything in it changes. After
+     * [BODY_SILENT_MS] without one, the states the body puts (lights, belt, handbrake) are withdrawn, so nothing
+     * says "belt unfastened" or "handbrake on" for a car app that stopped; the next body puts them again. The car
+     * app is not taken down as a whole: its doors, climate, radar and steering come only on a change (a parked car
+     * says nothing for hours) and its fuel, range and mileage are believed for hours on purpose, and the speed and
+     * revs it puts expire on their own after [FRESH_MS]. Reverse has its own failsafe ([watchReverse]).
+     */
+    private val bodyLive = SourceLiveness(
+        BODY_SILENT_MS, scope, onBack = {}, onSilent = {
+            synchronized(stated) { stated.clear() }
+            for (key in listOf(K.HEADLIGHTS, K.LIGHTS, K.INDICATORS, K.DRIVER_BELT, K.HANDBRAKE)) busPublisher.put(key, null)
+        }
+    )
 
     /** When the broadcast or the log last gave the angle ([SystemClock.elapsedRealtime]). */
     @Volatile private var fineAngleAt = 0L
@@ -101,13 +117,22 @@ object CarBox {
     private fun traceSteering(context: Context) {
         if (SystemClock.elapsedRealtime() - fineAngleAt < FINE_ANGLE_MS) return
         val index = runCatching { android.provider.Settings.Global.getInt(context.contentResolver, TRACE_INDEX) }.getOrNull() ?: return
-        traceIndexDegrees(index, fullLockDeg)?.let { _steering.value = it }
+        traceIndexDegrees(index, fullLockDeg)?.let { setSteering(it) }
     }
 
-    /** The angle read from the car app's log ([StockLines]), when its broadcast is off. */
-    internal fun steeringWrite(degrees: Float) {
+    /**
+     * The angle read from the car app's own log ([ReverseView]'s reader), when its broadcast is off. It stays a call
+     * into this provider rather than a source of its own: it is the same car app saying the same angle, and which of
+     * its two ways is the finer one ([FINE_ANGLE_MS]) is the provider's business.
+     */
+    internal fun steeringFromLog(degrees: Float) {
         fineAngleAt = SystemClock.elapsedRealtime()
-        _steering.value = degrees
+        setSteering(degrees)
+    }
+
+    /** The car app's angle, on the bus. It says it on a change only, and a wheel can stay put through a whole manoeuvre, so it is kept long. */
+    private fun setSteering(degrees: Float) {
+        busPublisher.put(K.STEERING_ANGLE, degrees.toDouble(), ttlMs = STEERING_HOLD_MS)
     }
 
     private fun onSteeringBroadcast(context: Context, intent: Intent) {
@@ -117,7 +142,7 @@ object CarBox {
             fullLockDeg = rate
             context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putFloat(PREF_FULL_LOCK, rate).apply()
         }
-        steeringWrite(broadcastDegrees(intent.getIntExtra(EXTRA_STEERING, 0), rawRate, fullLockDeg))
+        steeringFromLog(broadcastDegrees(intent.getIntExtra(EXTRA_STEERING, 0), rawRate, fullLockDeg))
     }
 
     /** Whether this unit's car app shares the car's data (the QF firmware). */
@@ -129,7 +154,7 @@ object CarBox {
         if (!UnitPlatform.hasPackage(app, RomPopups.VEHICLE_PACKAGE)) return
         started = true
         flagSeenOn = systemProperty(REVERSE_FLAG) == "true"
-        _reversing.value = flagSeenOn
+        setReversing(flagSeenOn)
         watchReverse()
         fullLockDeg = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getFloat(PREF_FULL_LOCK, DEFAULT_FULL_LOCK_DEG)
         traceSteering(app)
@@ -178,38 +203,59 @@ object CarBox {
 
     /**
      * Reverse ends on one broadcast only: missed, the voice would stay held,
-     * the alerts away and the reverse view up. So while reversing the ROM's
-     * flag is read again every few seconds, and ends it ([ReverseReads]).
+     * the alerts away and the reverse view up. So while the bus says reverse (whichever source said it: the car
+     * app's broadcast, the driver's taught signal) the ROM's flag is read again every few seconds and the speed
+     * looked at, and [ReverseReads] ends it: a reverse on the bus never outlives its evidence. Ending it is the
+     * car app saying "not reversing" and the taught signal withdrawn ([LearnedSignals.reverseEnded]).
      */
     private fun watchReverse() {
         scope.launch {
-            _reversing.collectLatest { on ->
+            Vehicle.bus.value(K.REVERSE).map { it == true }.distinctUntilChanged().collectLatest { on ->
                 var reads = ReverseReads(seenOn = flagSeenOn)
                 while (on) {
                     delay(REVERSE_REREAD_MS)
-                    reads = reads.next(systemProperty(REVERSE_FLAG) == "true")
+                    reads = reads.next(systemProperty(REVERSE_FLAG) == "true", Vehicle.bus.now(K.SPEED))
                     flagSeenOn = reads.seenOn
                     if (reads.over) {
                         Log.w(TAG, "reverse ended without its broadcast")
-                        _reversing.value = false
+                        setReversing(false)
+                        LearnedSignals.reverseEnded()
                     }
                 }
             }
         }
     }
 
-    /** Reverse as the driver taught it ([LearnedSignals]), for a car whose box or ROM doesn't say. */
-    internal fun reverseWrite(on: Boolean) {
-        _reversing.value = on
+    /** The car app's reverse, on the bus. */
+    private fun setReversing(on: Boolean) {
+        busPublisher.put(K.REVERSE, on)
     }
 
-    /** The body data while it's current, else null. */
-    fun freshBody(): CarBody? = _body.value?.takeIf { SystemClock.elapsedRealtime() - bodyAt <= FRESH_MS }
+    /** Puts a state when it changed since the body last said it: the newest change among equals is the one that stands. */
+    private fun <T : Any> putState(key: Key<T>, value: T) {
+        synchronized(stated) {
+            if (stated[key] == value) return
+            stated[key] = value
+        }
+        busPublisher.put(key, value)
+    }
 
-    /** [DemoMode]'s body, heard [at]; and the real one put back when it ends. */
-    internal fun demoWrite(body: CarBody?, at: Long = SystemClock.elapsedRealtime()) {
-        _body.value = body
-        bodyAt = at
+    /** What the body says, on the bus. */
+    private fun publishBody(b: CarBody, range: Int?) {
+        busPublisher.put(K.VEHICLE_SPEED, b.speedKmh?.let(SpeedCorrection::corrected)?.toDouble(), ttlMs = FRESH_MS)
+        busPublisher.put(K.RPM, b.rpm?.toDouble(), ttlMs = FRESH_MS)
+        // The lights count as on from the side lights up: the unit's own headlight signal is the illumination wire.
+        putState(K.HEADLIGHTS, b.highBeam || b.dippedBeam || b.sidelights)
+        putState(K.LIGHTS, lightsOn(b))
+        putState(K.INDICATORS, Indicators(b.turnLeft, b.turnRight))
+        putState(K.DRIVER_BELT, b.driverBeltUnfastened)
+        putState(K.HANDBRAKE, b.handbrake)
+        busPublisher.put(K.FUEL_CONSUMPTION, b.instantConsumption?.toDouble(), ttlMs = FRESH_MS)
+        // The car says these on a change, so a parked car's last word stands for hours (a tile shows it until the next).
+        busPublisher.put(K.FUEL_LEVEL, fuelPercentToPublish(fuelPercentOf(b), range)?.toDouble(), ttlMs = FUEL_HOLD_MS)
+        busPublisher.put(K.RANGE, range?.toDouble(), ttlMs = FUEL_HOLD_MS)
+        busPublisher.put(K.ODOMETER, b.odometer?.takeIf { it > 0f }?.toDouble())
+        busPublisher.put(K.TRIP_DISTANCE, b.trip1?.toDouble())
     }
 
     private val receiver = object : BroadcastReceiver() {
@@ -219,14 +265,14 @@ object CarBox {
                     .onFailure { Log.w(TAG, "unreadable shared data", it) }
                 ACTION_RADAR -> runCatching {
                     @Suppress("DEPRECATION")
-                    intent.getParcelableExtra<RadarState>(EXTRA_RADAR)?.let { _radar.value = it.toRadar() }
+                    intent.getParcelableExtra<RadarState>(EXTRA_RADAR)?.let { busPublisher.put(K.RADAR, it.toRadar()) }
                 }.onFailure { Log.w(TAG, "unreadable radar", it) }
                 ACTION_REVERSE_ON -> {
                     traceSteering(context)
-                    _reversing.value = true
+                    setReversing(true)
                     logSteeringSource(context)
                 }
-                ACTION_REVERSE_OFF -> _reversing.value = false
+                ACTION_REVERSE_OFF -> setReversing(false)
                 ACTION_STEERING -> if (intent.hasExtra(EXTRA_STEERING)) onSteeringBroadcast(context, intent)
             }
         }
@@ -247,18 +293,15 @@ object CarBox {
         SignalSources.shared(data)
         when (shareType(data)) {
             SHARE_BODY -> parseCarBody(data!!)?.let {
-                // McuReader keeps the real fuel and range through the demo by itself.
-                McuReader.carBoxWrite(fuelPercentOf(it), it.range?.takeIf { r -> r in 1f..MAX_RANGE_KM }?.roundToInt())
-                // The demo shows its own body; the car's next message brings the real one back.
-                if (DemoMode.isOn) return
-                _body.value = it
-                bodyAt = SystemClock.elapsedRealtime()
-                it.odometer?.let { km -> Maintenance.carOdometer(km.toInt()) }
+                bodyLive.heard()
+                val range = it.range?.takeIf { r -> r in 1f..MAX_RANGE_KM }?.roundToInt()
+                McuReader.carBoxWrite(fuelPercentOf(it), range)
+                publishBody(it, range)
             }
-            SHARE_AC -> parseClimate(data!!)?.let { _climate.value = it }
-            SHARE_RADAR -> parseRadar(data!!)?.let { _radar.value = it }
+            SHARE_AC -> parseClimate(data!!)?.let { busPublisher.put(K.CLIMATE, it) }
+            SHARE_RADAR -> parseRadar(data!!)?.let { busPublisher.put(K.RADAR, it) }
             // Sent when a door changes, so the doors are only known from the first change on.
-            SHARE_DOORS -> parseDoorBits(data!!)?.let { McuReader.carBoxDoors(it) }
+            SHARE_DOORS -> parseDoorBits(data!!)?.let { busPublisher.put(K.DOORS, McuReader.doorsOf(it)) }
         }
     }
 
@@ -316,14 +359,24 @@ internal fun traceIndexDegrees(index: Int, fullLockDeg: Float): Float? =
 /**
  * What the ROM's reverse flag said each time it was read again during a
  * reverse. Reverse is [over] once the flag, seen on before, has read off
- * three times in a row: a unit that never sets it ends nothing, and neither
+ * three times in a row: a unit that never sets it ends nothing by that, and neither
  * do the moments Dashwheel clears it itself to take the camera ([ReverseCamera]).
+ * Whatever the flag says, a car at [REVERSE_MAX_KMH] or more on three looks in a row
+ * is not in reverse: the one end a unit without the flag has.
  */
-internal data class ReverseReads(val seenOn: Boolean = false, val offInARow: Int = 0) {
-    fun next(on: Boolean) = ReverseReads(seenOn || on, if (on) 0 else offInARow + 1)
+internal data class ReverseReads(val seenOn: Boolean = false, val offInARow: Int = 0, val fastInARow: Int = 0) {
+    /** [speedKmh]: the car's speed at this look, when it has one. */
+    fun next(on: Boolean, speedKmh: Double? = null) = ReverseReads(
+        seenOn || on,
+        if (on) 0 else offInARow + 1,
+        if (speedKmh != null && speedKmh >= REVERSE_MAX_KMH) fastInARow + 1 else 0
+    )
 
-    val over: Boolean get() = seenOn && offInARow >= 3
+    val over: Boolean get() = seenOn && offInARow >= 3 || fastInARow >= 3
 }
+
+/** No car reverses this fast. */
+internal const val REVERSE_MAX_KMH = 30.0
 
 /** The car app's radar object, in [Radar]'s terms: -1 is a sensor the car doesn't have. */
 private fun RadarState.toRadar(): Radar {

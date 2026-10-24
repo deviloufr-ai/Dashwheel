@@ -1,5 +1,9 @@
 package com.openauto.dash
 
+import kotlin.math.roundToInt
+import com.openauto.dash.vehicle.holdAll
+import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.K
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -51,15 +55,19 @@ internal object EngineTemps {
         if (started) return
         started = true
         scope.launch {
-            while (true) {
-                val now = System.currentTimeMillis()
-                val sample = if (DemoMode.isOn) demo(now) else {
-                    val connected = ObdBluetoothManager.connectionState.value == ObdConnectionState.CONNECTED
-                    val d = ObdBluetoothManager.data.value
-                    TempSample(now, d.coolantTempC.takeIf { connected && it != 0 }, d.intakeTempC.takeIf { connected && it != 0 })
+            // Read by snapshot: the temperatures stay wanted for as long as the log runs.
+            val hold = Vehicle.bus.holdAll(listOf(K.COOLANT_TEMP, K.INTAKE_TEMP))
+            try {
+                while (true) {
+                    val now = System.currentTimeMillis()
+                    val sample = if (DemoMode.isOn) demo(now) else {
+                        TempSample(now, Vehicle.bus.now(K.COOLANT_TEMP)?.roundToInt(), Vehicle.bus.now(K.INTAKE_TEMP)?.roundToInt())
+                    }
+                    _samples.value = (_samples.value + sample).filter { now - it.at <= WINDOW_MS }
+                    delay(EVERY_MS)
                 }
-                _samples.value = (_samples.value + sample).filter { now - it.at <= WINDOW_MS }
-                delay(EVERY_MS)
+            } finally {
+                hold.release()
             }
         }
     }

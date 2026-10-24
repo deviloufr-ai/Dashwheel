@@ -1,6 +1,5 @@
 package com.openauto.dash
 
-import android.os.SystemClock
 import android.content.Context
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,14 +19,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.speedKmhFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -64,23 +64,17 @@ object BeltAlertOverlay {
         val app = AppLanguage.wrap(context.applicationContext)
         scope.launch {
             var wasMoving = false
-            CarBox.body.combine(LearnedSignals.state) { body, learned -> body to learned[CarSignal.DRIVER_BELT] }.collect { (body, learnedOpen) ->
-                // The car box's own speed: it comes with the belt, from the same frames.
-                val moving = isMoving(body?.speedKmh, wasMoving)
+            // The belt as the bus resolves it: one the driver taught Dashwheel wins over the car app's.
+            combine(Vehicle.bus.value(K.DRIVER_BELT), speedKmhFlow(K.VEHICLE_SPEED)) { open, kmh -> open to kmh }.collect { (open, kmh) ->
+                // The car's own speed, never the GPS's.
+                val moving = isMoving(kmh, wasMoving)
                 wasMoving = moving
-                // A belt the driver taught Dashwheel wins over the car box's.
-                _unbuckledMoving.value = beltReminder((learnedOpen ?: body?.driverBeltUnfastened) == true, moving)
+                _unbuckledMoving.value = beltReminder(open == true, moving)
             }
         }
-        // The car box gone quiet mid-drive (its app stopped, the unit slept on):
-        // nothing would ever say "buckled" or "stopped", and the alert stood for good.
-        scope.launch {
-            _unbuckledMoving.collectLatest { on ->
-                if (!on) return@collectLatest
-                while (SystemClock.elapsedRealtime() - CarBox.bodyAt < BODY_SILENT_MS) delay(5_000)
-                _unbuckledMoving.value = false
-            }
-        }
+        // The car app gone quiet mid-drive (its app stopped, the unit slept on) takes its belt state off the bus
+        // ([CarBox.BODY_SILENT_MS]): nothing is left to say "unfastened", and the alert ends. A belt the driver
+        // taught is not the car app's to go quiet.
         scope.launch {
             alert.collect { on ->
                 if (on && AlertPreview.belt.value.not()) AlertVoice.sayBelt(app)
@@ -94,9 +88,6 @@ object BeltAlertOverlay {
         }
     }
 }
-
-/** No word from the car box for this long, moving: what it last said about the belt no longer holds. */
-private const val BODY_SILENT_MS = 30_000L
 
 /** Remind only on the move: buckling up while parked is nobody's business yet. */
 internal fun beltReminder(driverUnbuckled: Boolean, moving: Boolean): Boolean = driverUnbuckled && moving

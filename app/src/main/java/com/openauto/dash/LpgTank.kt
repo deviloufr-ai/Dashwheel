@@ -1,6 +1,9 @@
 package com.openauto.dash
 
 import android.content.Context
+import com.openauto.dash.vehicle.Hold
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Vehicle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -392,22 +395,27 @@ internal object LpgTank {
         warnIfLow()
     }
 
-    /** The coolant temperature while the adapter answers; null without one. */
-    private fun coolant(): Int? {
-        if (ObdBluetoothManager.connectionState.value != ObdConnectionState.CONNECTED) return null
-        return ObdBluetoothManager.data.value.coolantTempC.takeIf { it != 0 }
-    }
+    /** The coolant temperature while somebody reports one ([askFlow] keeps it asked for); null without. */
+    private fun coolant(): Int? = Vehicle.bus.now(K.COOLANT_TEMP)?.roundToInt()
 
     /** The petrol the engine asks for while the adapter answers; null without that reading. */
-    private fun flowLh(): Double? {
-        if (ObdBluetoothManager.connectionState.value != ObdConnectionState.CONNECTED) return null
-        return ObdBluetoothManager.data.value.fuelFlowLh
-    }
+    private fun flowLh(): Double? = Vehicle.bus.now(K.FUEL_FLOW)
 
-    /** The OBD poll reads the fuel flow only while this tank counts with it. */
+    private var coolantHold: Hold? = null
+    private var flowHold: Hold? = null
+
+    /**
+     * What the tank reads from the car, kept wanted on the vehicle bus for as long as it counts: the
+     * coolant (its warm-up check) while it is on, and the fuel flow while it counts with the engine's.
+     */
     private fun askFlow() {
         val s = _settings.value
-        ObdBluetoothManager.wantFuelFlow = s.enabled && s.method == LpgMethod.ENGINE
+        val coolant = s.enabled
+        val flow = s.enabled && s.method == LpgMethod.ENGINE
+        if (coolant && coolantHold == null) coolantHold = Vehicle.bus.hold(K.COOLANT_TEMP)
+        else if (!coolant) coolantHold = coolantHold?.let { it.release(); null }
+        if (flow && flowHold == null) flowHold = Vehicle.bus.hold(K.FUEL_FLOW)
+        else if (!flow) flowHold = flowHold?.let { it.release(); null }
     }
 
     private fun refresh() {

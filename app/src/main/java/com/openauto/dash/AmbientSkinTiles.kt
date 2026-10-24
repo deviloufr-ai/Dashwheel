@@ -1,5 +1,8 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.any
+import com.openauto.dash.vehicle.rememberPanelGauges
+import com.openauto.dash.vehicle.K
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -228,7 +231,7 @@ private fun AmSpeed(env: SkinTileEnv) {
         SpeedLimit.start(context)
         onDispose { SpeedLimit.stop() }
     }
-    val speed = rememberSpeedKmh(env)
+    val speed = rememberSpeedKmh()
     val limit by SpeedLimit.limit.collectAsState()
     val units = LocalUnits.current
     val over = speedOver(speed)
@@ -656,6 +659,9 @@ private fun AmWeather(env: SkinTileEnv) {
 private fun AmTelemetry(env: SkinTileEnv) {
     val state = env.obdConnection
     val units = LocalUnits.current
+    // Whatever the car answers is shown, adapter or not.
+    val g = rememberPanelGauges(K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
+    val live = state == ObdConnectionState.CONNECTED || g.any
     BoxWithConstraints(Modifier.fillMaxSize().graphicsLayer().amEditing(env.editing), contentAlignment = Alignment.CenterStart) {
         val bigSize = min(maxHeight.value * 0.26f, maxWidth.value * 0.18f).coerceIn(24f, 72f)
         val lineSize = (bigSize * 0.34f).coerceIn(15f, 22f)
@@ -663,18 +669,17 @@ private fun AmTelemetry(env: SkinTileEnv) {
         val buttons = maxHeight >= 110.dp
         val twoButtons = maxWidth >= 420.dp
         Column(Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
-            when (state) {
-                ObdConnectionState.CONNECTED -> {
-                    val d = env.obdData
+            when {
+                live -> {
                     Row {
-                        AmLine(groupThousands(d.rpm), amText(bigSize, DashColors.TextPrimary, heroWeight(bigSize)), Modifier.alignByBaseline(), overflow = TextOverflow.Clip)
+                        AmLine(g.rpm?.let { groupThousands(it) } ?: "--", amText(bigSize, DashColors.TextPrimary, heroWeight(bigSize)), Modifier.alignByBaseline(), overflow = TextOverflow.Clip)
                         Spacer(Modifier.width(8.dp))
                         AmLine(stringResource(R.string.ambient_rpm), amText(lineSize, DashColors.TextSecondary), Modifier.alignByBaseline())
                     }
                     val rows = buildList {
-                        if (d.coolantTempC > 0) add(stringResource(R.string.ambient_coolant, "${units.temp(d.coolantTempC)}°") to (d.coolantTempC >= COOLANT_WARNING_C))
-                        if (d.voltage > 0.0) add(stringResource(R.string.ambient_battery, String.format(Locale.getDefault(), "%.1f V", d.voltage)) to (d.voltage !in BATTERY_OK_V))
-                        add(stringResource(R.string.ambient_load, "${d.engineLoadPct} %") to false)
+                        g.coolantTempC?.let { add(stringResource(R.string.ambient_coolant, "${units.temp(it)}°") to (it >= COOLANT_WARNING_C)) }
+                        g.voltage?.let { add(stringResource(R.string.ambient_battery, String.format(Locale.getDefault(), "%.1f V", it)) to (it !in BATTERY_OK_V)) }
+                        g.engineLoadPct?.let { add(stringResource(R.string.ambient_load, "$it %") to false) }
                     }
                     rows.take(lines).forEach { (text, warn) ->
                         AmLine(text, amText(lineSize, if (warn) DashColors.Warning else DashColors.TextSecondary, if (warn) FontWeight.Medium else FontWeight.Light))
@@ -704,7 +709,7 @@ private fun AmTelemetry(env: SkinTileEnv) {
  */
 @Composable
 private fun AmRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     if (fuel == null) {
         Box(Modifier.fillMaxSize().ambientFallbackPanel()) { StandardSkinnedTile(item, env) }
         return

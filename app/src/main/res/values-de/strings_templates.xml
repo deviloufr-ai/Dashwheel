@@ -8,7 +8,7 @@
     <string name="templates_road_trip_blurb">Große Karte, Reichweite, Wetter und Stopps für lange Fahrten</string>
     <string name="templates_car_health">Fahrzeugzustand</string>
     <string name="templates_car_health_blurb">Fahrzeugdaten und Fehlercodes auf der Startseite</string>
-    <string name="templates_no_obd">Noch kein OBD-Adapter gewählt, daher fehlen die Fahrzeugdaten-Widgets.</string>
+    <string name="templates_no_car_data">Noch keine Quelle für Fahrzeugdaten, daher fehlen die Fahrzeugdaten-Widgets.</string>
     <string name="templates_fill_this">Dieses Dashboard füllen</string>
     <string name="templates_fill_this_hint">Nur die Vorlagenseite für %1$s kommt darauf.</string>
     <string name="templates_fill">Füllen</string>

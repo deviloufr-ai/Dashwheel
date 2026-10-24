@@ -49,17 +49,30 @@ class RoadRulesTest {
         var t = 0L
         fun at(offset: Float, indicating: Boolean = false) = r.update(RoadScene(offset = offset, lines = 2), 100f, indicating, t).also { t += 100 }
         repeat(5) { assertNull(at(0f)) }
-        // Drifting right onto the line.
-        listOf(0.05f, 0.10f, 0.15f, 0.20f).forEach { assertNull(at(it)) }
-        assertEquals(RoadWarning.LANE_RIGHT, at(0.24f))
-        assertEquals(RoadWarning.LANE_RIGHT, at(0.26f))
+        // Drifting right onto the line: told once it has been over it a few scenes running.
+        listOf(0.05f, 0.10f, 0.15f, 0.20f, 0.24f, 0.26f).forEach { assertNull(at(it)) }
+        assertEquals(RoadWarning.LANE_RIGHT, at(0.27f))
+        assertEquals(RoadWarning.LANE_RIGHT, at(0.28f))
         // Back in the lane: it goes; along the line again later without coming back first: nothing new.
         assertNull(at(0.14f))
-        listOf(0.18f, 0.22f, 0.26f).forEach { assertNull(at(it)) }
+        listOf(0.18f, 0.22f, 0.26f, 0.27f, 0.28f).forEach { assertNull(at(it)) }
         // Back in the middle, then onto the left line: told.
         repeat(3) { at(0f) }
-        listOf(-0.08f, -0.14f, -0.19f).forEach { assertNull(at(it)) }
-        assertEquals(RoadWarning.LANE_LEFT, at(-0.25f))
+        listOf(-0.08f, -0.14f, -0.19f, -0.25f, -0.26f).forEach { assertNull(at(it)) }
+        assertEquals(RoadWarning.LANE_LEFT, at(-0.27f))
+    }
+
+    @Test
+    fun oneSceneOverTheLineIsAMisreadingNotADrift() {
+        val r = RoadRules()
+        var t = 0L
+        fun at(offset: Float) = r.update(RoadScene(offset = offset, lines = 2), 100f, false, t).also { t += 100 }
+        repeat(5) { assertNull(at(0f)) }
+        // The far edge of the road taken for the lane's line, for a frame.
+        assertNull(at(0.42f))
+        assertNull(at(0f))
+        assertNull(at(0.41f))
+        repeat(5) { assertNull(at(-0.01f)) }
     }
 
     @Test

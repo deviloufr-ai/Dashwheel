@@ -1,5 +1,8 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.any
+import com.openauto.dash.vehicle.rememberPanelGauges
+import com.openauto.dash.vehicle.K
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -430,7 +433,7 @@ internal fun TapeDeckTopBar(m: TopBarModel) {
                     }
                 }
                 Row(modifier = Modifier.layoutId(BarRank.ALERTS), verticalAlignment = Alignment.CenterVertically) {
-                    VehicleAlerts(m.obdConnection, m.obd)
+                    VehicleAlerts()
                 }
                 Box(Modifier.layoutId(BarRank.PHONE)) { PhonePill() }
                 if (!narrow) Box(Modifier.layoutId(BarRank.TEMP)) { OutsideTemp() }
@@ -1088,11 +1091,11 @@ private fun ReadoutRow(items: List<TdReadout>, valueSize: TextUnit, modifier: Mo
 
 /** "RPM" + a 24-LED bar (green, yellow, magenta) lit up to rpm / SKIN_RPM_MAX + the reading. */
 @Composable
-private fun RpmLeds(rpm: Int, live: Boolean, labelSize: TextUnit, modifier: Modifier) {
+private fun RpmLeds(rpm: Int?, labelSize: TextUnit, modifier: Modifier) {
     val cyan = DashColors.Accent
     val green = DashColors.Good
     val magenta = DashColors.Accent2
-    val lit = if (live) (rpm / SKIN_RPM_MAX * RPM_LEDS).roundToInt().coerceIn(0, RPM_LEDS) else 0
+    val lit = if (rpm != null) (rpm / SKIN_RPM_MAX * RPM_LEDS).roundToInt().coerceIn(0, RPM_LEDS) else 0
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
         Text(stringResource(R.string.tape_rpm_caps), style = vfdText(cyan, labelSize), maxLines = 1)
         Spacer(Modifier.width(8.dp))
@@ -1105,7 +1108,7 @@ private fun RpmLeds(rpm: Int, live: Boolean, labelSize: TextUnit, modifier: Modi
         }
         Spacer(Modifier.width(8.dp))
         Text(
-            if (live) rpm.toString() else "----",
+            rpm?.toString() ?: "----",
             style = vfdText(cyan, labelSize),
             maxLines = 1,
             textAlign = TextAlign.End,
@@ -1127,15 +1130,16 @@ private fun TapeTelemetry(env: SkinTileEnv) {
     val state = env.obdConnection
     val live = state == ObdConnectionState.CONNECTED
     val idle = state.isIdle
-    val d = env.obdData
-    val speedColor = if (live && speedOver(d.speedKmh)) DashColors.Warning else cyan
-    val volts = live && d.voltage > 0.0
+    // Whatever the car answers is shown, adapter or not; "live" is only the adapter's own link (the LIVE tag and its picker).
+    val g = rememberPanelGauges(K.SPEED, K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
+    val speedColor = if (speedOver(g.speedKmh)) DashColors.Warning else cyan
+    val volts = g.voltage
     val units = LocalUnits.current
     val speedUnit = units.speedUnit.uppercase()
     val readouts = listOf(
-        TdReadout(stringResource(R.string.tape_temp_caps), if (live) units.tempTight(d.coolantTempC) else "--", live && d.coolantTempC >= 105),
-        TdReadout(stringResource(R.string.tape_batt_caps), if (volts) "%.1fV".format(d.voltage) else "--", volts && d.voltage !in 12.0..15.0),
-        TdReadout(stringResource(R.string.tape_load_caps), if (live) "${d.engineLoadPct}%" else "--")
+        TdReadout(stringResource(R.string.tape_temp_caps), g.coolantTempC?.let { units.tempTight(it) } ?: "--", (g.coolantTempC ?: 0) >= 105),
+        TdReadout(stringResource(R.string.tape_batt_caps), volts?.let { "%.1fV".format(it) } ?: "--", volts != null && volts !in 12.0..15.0),
+        TdReadout(stringResource(R.string.tape_load_caps), g.engineLoadPct?.let { "$it%" } ?: "--")
     )
     val chooseAdapter = stringResource(R.string.tape_cd_choose_adapter)
     Box(
@@ -1152,7 +1156,7 @@ private fun TapeTelemetry(env: SkinTileEnv) {
             val valueSize = (maxHeight.value * 0.085f).coerceIn(15f, 40f).sp
             val side = maxWidth > maxHeight * 2.4f
             val showReadouts = maxHeight >= 200.dp
-            val digits = speedDigits(if (live) units.speed(d.speedKmh) else null)
+            val digits = speedDigits(g.speedKmh?.let { units.speed(it) })
             Column(Modifier.fillMaxSize()) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text(stringResource(R.string.tape_telemetry_caps), style = chromeText(magenta, label), maxLines = 1)
@@ -1171,14 +1175,14 @@ private fun TapeTelemetry(env: SkinTileEnv) {
                         SegValue(null, digits, speedUnit, speedColor, label, Modifier.weight(1f).fillMaxHeight())
                         Spacer(Modifier.width(16.dp))
                         Column(Modifier.weight(1.1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            RpmLeds(d.rpm, live, label, Modifier.fillMaxWidth().height(ledH))
+                            RpmLeds(g.rpm, label, Modifier.fillMaxWidth().height(ledH))
                             ReadoutRow(readouts, valueSize, Modifier.fillMaxWidth())
                         }
                     }
                 } else {
                     SegValue(null, digits, speedUnit, speedColor, label, Modifier.weight(1f).fillMaxWidth())
                     Spacer(Modifier.height(8.dp))
-                    RpmLeds(d.rpm, live, label, Modifier.fillMaxWidth().height(ledH))
+                    RpmLeds(g.rpm, label, Modifier.fillMaxWidth().height(ledH))
                     if (showReadouts) {
                         Spacer(Modifier.height(8.dp))
                         ReadoutRow(readouts, valueSize, Modifier.fillMaxWidth())
@@ -1202,11 +1206,10 @@ private fun TapeTelemetry(env: SkinTileEnv) {
 /** Speed alone: seven-segment digits + KM/H on a cyan VFD, the source top right; magenta over the limit. */
 @Composable
 private fun TapeSpeedHud(env: SkinTileEnv) {
-    val speed = rememberSpeedKmh(env)
+    val speed = rememberSpeedKmh()
     val cyan = DashColors.Accent
     val magenta = DashColors.Accent2
-    val source = speedSource(
-        env.obdConnection == ObdConnectionState.CONNECTED, speed, stringResource(R.string.info_speed_no_signal).uppercase()
+    val source = speedSource(stringResource(R.string.info_speed_no_signal).uppercase()
     )
     val over = speedOver(speed)
     val color = if (over) DashColors.Warning else cyan
@@ -2176,7 +2179,7 @@ private fun TapeWeather() {
  */
 @Composable
 private fun TapeRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     if (fuel == null) {
         StandardSkinnedTile(item, env)
         return

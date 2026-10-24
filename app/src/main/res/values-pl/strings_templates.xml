@@ -8,7 +8,7 @@
     <string name="templates_road_trip_blurb">Duża mapa, zasięg, pogoda i postoje na długie trasy</string>
     <string name="templates_car_health">Stan auta</string>
     <string name="templates_car_health_blurb">Dane samochodu i kody błędów na ekranie głównym</string>
-    <string name="templates_no_obd">Nie wybrano jeszcze adaptera OBD, więc widżety danych auta są pominięte.</string>
+    <string name="templates_no_car_data">Brak jeszcze źródła danych auta, więc widżety danych auta są pominięte.</string>
     <string name="templates_fill_this">Wypełnij ten pulpit</string>
     <string name="templates_fill_this_hint">Trafia na niego tylko strona szablonu dla %1$s.</string>
     <string name="templates_fill">Wypełnij</string>

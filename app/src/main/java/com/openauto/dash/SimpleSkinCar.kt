@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import com.openauto.dash.vehicle.rememberDoors
 
 /*
  * Simple skin, the showroom: the driver's own car (MyCarLook.kt, its 3/4
@@ -115,7 +116,7 @@ private fun carRect(size: Size, aspect: Float, reflection: Boolean): Rect {
 @Composable
 internal fun SimpleShowroomCar(modifier: Modifier) {
     val mine by MyCarLook.shown.collectAsState()
-    val doors by McuReader.doorState.collectAsState()
+    val doors = rememberDoors()
     val view = mine?.portrait
     val open = doors?.anyOpen == true
     val light = DashColors.Light

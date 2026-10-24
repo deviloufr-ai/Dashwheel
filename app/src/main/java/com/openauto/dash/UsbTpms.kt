@@ -21,6 +21,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Source
+import com.openauto.dash.vehicle.SourceKind
+import com.openauto.dash.vehicle.SourceLiveness
+import com.openauto.dash.vehicle.Vehicle
 import java.io.IOException
 import kotlin.math.roundToInt
 
@@ -34,8 +39,11 @@ import kotlin.math.roundToInt
  * pressure × 3.44 kPa, temperature − 50 °C, tyre 00 front left, 01 front
  * right, 10 rear left, 11 rear right (worked out by github.com/danderik88/
  * usb-tpms-home-assistant, one sensor unscrewed at a time). Its readings go
- * into [Tyres], so the Tyres tile, the tyre alert and its voice show them as
- * they would the head unit's TPMS app.
+ * go onto the vehicle bus as [K.TYRES] from their own source, "tpms.usb": a
+ * receiver the driver chose by hand outranks (LEARNED, the driver's own beats
+ * the built-in) the head unit's TPMS app, which may be reading another one,
+ * so the two never alternate. The Tyres tile, the tyre alert and its voice
+ * read the resolved tyres, as for the TPMS app.
  *
  * Only the device the driver picked in Settings is ever opened: the same
  * chip is in OBD cables, and the head unit's own TPMS app may be reading a
@@ -73,6 +81,15 @@ internal object UsbTpms {
     val on: Boolean get() = _device.value != null
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /** The receiver on the vehicle bus; the driver's own choice, so it beats the unit's TPMS app. */
+    private val busPublisher = Vehicle.bus.register(Source("tpms.usb", SourceKind.LEARNED, "USB TPMS receiver"))
+
+    /** Gone quiet for [TYRE_STALE_MS], unplugged or forgotten: its tyres are withdrawn, so the app's (if any) stand. */
+    private val live = SourceLiveness.of(busPublisher, TYRE_STALE_MS, scope)
+
+    /** What the receiver has said, tyre by tyre, put on the bus whole. */
+    private val heard = HashMap<TyrePos, Tyre>()
     private var loaded = false
     private var job: Job? = null
     private val wake = Channel<Unit>(Channel.CONFLATED)
@@ -104,7 +121,7 @@ internal object UsbTpms {
         job?.cancel()
         job = null
         _state.value = UsbTpmsState.OFF
-        Tyres.receiverGone()
+        gone()
     }
 
     fun setUnit(context: Context, unit: PressureUnit) {
@@ -120,6 +137,19 @@ internal object UsbTpms {
     }
 
     private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+
+    /** [tyre] at [pos]; any thread. */
+    internal fun heard(pos: TyrePos, tyre: Tyre) {
+        live.heard()
+        val all = synchronized(heard) { heard[pos] = tyre; heard.toMap() }
+        busPublisher.put(K.TYRES, all)
+    }
+
+    /** The receiver let go: its last readings leave too. */
+    private fun gone() {
+        synchronized(heard) { heard.clear() }
+        live.stopped()
+    }
 
     /**
      * The CH340 plugged in opens [UsbTpmsAttachActivity], so Android can let
@@ -138,7 +168,6 @@ internal object UsbTpms {
 
     @Synchronized
     private fun listen(app: Context) {
-        Tyres.judgeFromNowOn()
         if (!Tyres.fromApp) Tyres.setUnit(_unit.value)
         if (job?.isActive == true) {
             wake.trySend(Unit)
@@ -190,12 +219,13 @@ internal object UsbTpms {
                 for (frame in frames.feed(buffer, n)) {
                     val pos = frame.tyre ?: continue
                     _state.value = UsbTpmsState.RECEIVING
-                    Tyres.heard(pos, frame.toTyre(SystemClock.elapsedRealtime()))
+                    heard(pos, frame.toTyre(SystemClock.elapsedRealtime()))
                 }
             }
         } catch (e: IOException) {
             Log.i(TAG, "USB ${adapter.key}: ${e.message}")
             _state.value = UsbTpmsState.UNPLUGGED
+            gone()
         } finally {
             runCatching { port.close() }
         }

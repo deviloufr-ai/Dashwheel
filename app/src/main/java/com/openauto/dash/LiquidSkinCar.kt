@@ -34,6 +34,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.openauto.dash.vehicle.rememberDoors
 import kotlin.math.min
 
 /*
@@ -61,7 +62,7 @@ private val CHIP_ROW = 86.dp
 @Composable
 internal fun LqHero(env: SkinTileEnv, fuel: FuelInfo?, modifier: Modifier) {
     val mine by MyCarLook.shown.collectAsState()
-    val doors by McuReader.doorState.collectAsState()
+    val doors = rememberDoors()
     val model = rememberCar3DModel()
     val onScreen = LocalPageOnScreen.current
     val live3d = model != null && !env.editing && onScreen

@@ -8,7 +8,6 @@ import com.openauto.dash.CameraControl
 import com.openauto.dash.Cap
 import com.openauto.dash.CapClaim
 import com.openauto.dash.CarBox
-import com.openauto.dash.CarSink
 import com.openauto.dash.DockShell
 import com.openauto.dash.HeadUnitKeys
 import com.openauto.dash.HeadUnitMedia
@@ -34,6 +33,7 @@ import com.openauto.dash.UnitCaps
 import com.openauto.dash.UnitKeyPress
 import com.openauto.dash.UnitPlatform
 import com.openauto.dash.VehicleBusSource
+import com.openauto.dash.vehicle.Publisher
 import com.openauto.dash.VolumeControl
 import com.openauto.dash.VolumeShown
 import com.openauto.dash.VolumeSource
@@ -153,9 +153,12 @@ internal object QfIgnition : IgnitionSource {
     }
 }
 
-/** The car app's shared data ([CarBox]) and the MCU's stream ([McuFeed]): each starts only where its hook is. */
+/**
+ * The car app's shared data ([CarBox]) and the MCU's stream ([McuFeed]): each starts only where its hook is. They are
+ * sources of their own on the vehicle bus (`qf.car_app`, `qf.mcu`, `qf.broadcast`), so the `unit.bus` publisher is not used here.
+ */
 internal object QfBus : VehicleBusSource {
-    override fun start(context: Context, sink: CarSink) {
+    override fun start(context: Context, publisher: Publisher, raw: (String, String) -> Unit) {
         CarBox.start(context)
         McuFeed.start(context)
     }

@@ -1,5 +1,6 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.fuelInfoNow
 import android.Manifest
 import android.content.ContentUris
 import android.content.Context
@@ -261,7 +262,7 @@ object StartupBriefing {
             val facts = BriefingFacts(
                 hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY),
                 weather = WeatherRepo.weather.value?.takeIf { now - it.fetchedAt < 3 * 3_600_000L },
-                fuel = carFuelInfo(McuReader.fuelPercent.value, ObdBluetoothManager.data.value.fuelLevelPct, McuReader.rangeKm.value),
+                fuel = fuelInfoNow(),
                 faults = engine.codes,
                 faultTitles = engine.codes?.let { spokenFaultTitles(resources, it) }.orEmpty(),
                 faultSummary = engine.diagnosis?.summary,
@@ -317,7 +318,7 @@ object StartupBriefing {
                 combine(McuReader.fuelPercent, McuReader.rangeKm) { f, r -> (!wantFuel || f != null) && (!wantRange || r != null) }
                     .first { it }
             }
-            return carFuelInfo(McuReader.fuelPercent.value, 0, McuReader.rangeKm.value)
+            return fuelInfoNow()
         } finally {
             McuReader.stop()
         }

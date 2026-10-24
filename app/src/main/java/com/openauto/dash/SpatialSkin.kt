@@ -540,7 +540,7 @@ internal fun SpatialTopBar(m: TopBarModel) {
                 Box(Modifier.layoutId(BarRank.DEMO).padding(end = 8.dp)) { DemoBadge(onStop = m.onDemo, compact = true) }
             }
             Row(modifier = Modifier.layoutId(BarRank.ALERTS), verticalAlignment = Alignment.CenterVertically) {
-                VehicleAlerts(m.obdConnection, m.obd)
+                VehicleAlerts()
             }
             Box(Modifier.layoutId(BarRank.PHONE).padding(end = 8.dp)) { PhonePill() }
             if (m.setupPending) {

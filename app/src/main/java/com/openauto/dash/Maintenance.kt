@@ -2,12 +2,15 @@ package com.openauto.dash
 
 import android.content.Context
 import androidx.annotation.StringRes
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Vehicle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -332,6 +335,8 @@ object Maintenance {
         load()
         scope.launch { CarProfileStore.profile.collect { onCar(it) } }
         scope.launch { followGps() }
+        // The car's own odometer, from whichever source has it ([K.ODOMETER]; the car app's today).
+        scope.launch { Vehicle.bus.value(K.ODOMETER).filterNotNull().collect { carOdometer(it.toInt()) } }
     }
 
     /** Without OBD, the GPS trip's kilometres advance the mileage instead. */
@@ -414,7 +419,7 @@ object Maintenance {
     }
 
     /**
-     * The car's own odometer, from its CAN box ([CarBox]): the mileage keeps
+     * The car's own odometer, from the bus ([K.ODOMETER]): the mileage keeps
      * itself up to date, nothing to type. Written when it moved a whole
      * kilometre from what the planner has (typed or counted).
      */

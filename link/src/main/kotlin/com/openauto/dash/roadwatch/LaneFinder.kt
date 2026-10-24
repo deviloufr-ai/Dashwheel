@@ -141,7 +141,13 @@ data class LaneSighting(
     val right: LaneLine? = null,
     /** The share of the road's rows on the line, 0..1: a solid line near 1, a dashed one less. */
     val leftSupport: Float = 0f,
-    val rightSupport: Float = 0f
+    val rightSupport: Float = 0f,
+    /**
+     * Where the best line on each side meet, a fraction of the height, taken
+     * before they are checked against the horizon: a horizon set too high
+     * makes the real lines cross under it, which is how [HorizonLearner] sees it.
+     */
+    val meetY: Float? = null
 )
 
 object LaneFinder {
@@ -153,14 +159,26 @@ object LaneFinder {
     private const val MAX_POINTS_PER_ROW = 10
     /** A line needs points on this share of the road's rows. */
     private const val MIN_SUPPORT = 0.18f
+    /** The car's own line is at most this far from the car at the bonnet's row (a share of the width at [REFERENCE_HFOV]): a lane and a half. */
+    private const val MAX_LINE_DISTANCE = 0.55f
+    /** A line extended to the horizon meets it at most this far from the car (a share of the width at [REFERENCE_HFOV]): room for a bend. */
+    private const val MAX_VANISH_OFF = 0.25f
 
     /**
      * The car's lane in [img]. [carX]: where the car's middle is, as a
      * fraction of the width (the phone is seldom in the middle of the
      * windscreen). [hfovDeg]: the camera's view across the frame, which
      * sets how wide a marking looks (narrower upright than sideways).
+     * [vehicles]: the detector's boxes in this frame; nothing inside them is
+     * the road (a van's white pillars between dark windows look like lines).
      */
-    fun find(img: Luma, band: RoadBand = RoadBand(), carX: Float = 0.5f, hfovDeg: Float = REFERENCE_HFOV): LaneSighting {
+    fun find(
+        img: Luma,
+        band: RoadBand = RoadBand(),
+        carX: Float = 0.5f,
+        hfovDeg: Float = REFERENCE_HFOV,
+        vehicles: List<Box> = emptyList()
+    ): LaneSighting {
         val w = img.w
         val h = img.h
         val y0 = (band.topY * h).roundToInt().coerceIn(0, h - 2)
@@ -196,6 +214,13 @@ object LaneFinder {
                 val b = img[x + d, y]
                 if (c - a >= threshold && c - b >= threshold) response[x] = 2 * c - a - b
             }
+            val fy = (y + 0.5f) / h
+            for (v in vehicles) {
+                if (fy < v.top || fy > v.bottom) continue
+                val from = max(0, (v.left * w).toInt() - d)
+                val to = min(w, (v.right * w).toInt() + d + 1)
+                if (from < to) response.fill(0, from, to)
+            }
             // One point per stripe: its brightest pixel.
             var found = 0
             var x = d
@@ -220,10 +245,18 @@ object LaneFinder {
         val peaks = peaks(votes, nTop, nBot, minVotes)
         val car = carX * w
         fun line(p: Peak) = LaneLine((botMin + p.j * botStep) / w, (topMin + p.i * topStep) / w)
-        // A lane's line leans in towards the horizon; of the strong ones on a side, the nearest to the car.
+        // A lane's line leans in towards the horizon; of the strong lines on a side, the nearest to the car.
+        // No line further than a lane and a half away is the car's own, however solid: the road's far edge
+        // must not stand in for a dashed line while a gap in the dashes thins its points.
+        val reach = widthShare(MAX_LINE_DISTANCE, hfovDeg) * w
+        // A marking runs to the point ahead on the horizon; a pole or a post stands upright wherever it is.
+        val horizonS = band.s(band.horizonY)
+        val vanishOff = widthShare(MAX_VANISH_OFF, hfovDeg)
+        fun leans(p: Peak) = abs(line(p).xAt(horizonS) - carX) <= vanishOff
         fun nearest(candidates: List<Peak>, distance: (Peak) -> Float): Peak? {
-            val strongest = candidates.maxOfOrNull { it.votes } ?: return null
-            return candidates.filter { it.votes * 2 >= strongest }.minByOrNull(distance)
+            val near = candidates.filter { distance(it) <= reach && leans(it) }
+            val strongest = near.maxOfOrNull { it.votes } ?: return null
+            return near.filter { it.votes * 2 >= strongest }.minByOrNull(distance)
         }
         val left = nearest(peaks.filter { p ->
             val l = line(p)
@@ -236,6 +269,7 @@ object LaneFinder {
 
         var l = left?.let(::line)
         var r = right?.let(::line)
+        val meet = if (l != null && r != null) HorizonLearner.meetY(l, r, band) else null
         // Two lines that cross before the horizon are not one lane: keep the better backed.
         if (l != null && r != null && (r.topX < l.topX - 0.06f || r.bottomX - l.bottomX < 0.25f)) {
             if (left!!.votes >= right!!.votes) r = null else l = null
@@ -244,7 +278,8 @@ object LaneFinder {
             left = l,
             right = r,
             leftSupport = if (l != null) min(1f, left!!.votes.toFloat() / rows) else 0f,
-            rightSupport = if (r != null) min(1f, right!!.votes.toFloat() / rows) else 0f
+            rightSupport = if (r != null) min(1f, right!!.votes.toFloat() / rows) else 0f,
+            meetY = meet
         )
     }
 
@@ -317,6 +352,8 @@ class LaneTracker(carX: Float = 0.5f) {
         var line: LaneLine? = null
         var hits = 0
         var seenAt = 0L
+        /** When the line followed now was first taken up. */
+        var since = 0L
         var pending: LaneLine? = null
         var pendingHits = 0
 
@@ -332,7 +369,10 @@ class LaneTracker(carX: Float = 0.5f) {
                         current.bottomX + SMOOTH * (seen.bottomX - current.bottomX),
                         current.topX + SMOOTH * (seen.topX - current.topX)
                     )
-                    if (current == null) hits = 0
+                    if (current == null) {
+                        hits = 0
+                        since = now
+                    }
                     hits++
                     seenAt = now
                     pending = null
@@ -342,10 +382,13 @@ class LaneTracker(carX: Float = 0.5f) {
                     val p = pending
                     if (p != null && abs(seen.bottomX - p.bottomX) < JUMP) pendingHits++ else pendingHits = 1
                     pending = seen
-                    if (pendingHits >= CONFIRM) {
+                    // A line elsewhere is believed only once it has stayed a while: a lane change takes
+                    // seconds, while the road's edge standing in for a dashed line's gap lasts a few frames.
+                    if (pendingHits >= CONFIRM_JUMP) {
                         line = seen
                         hits = CONFIRM
                         seenAt = now
+                        since = now
                         pending = null
                         pendingHits = 0
                     }
@@ -367,8 +410,14 @@ class LaneTracker(carX: Float = 0.5f) {
     fun update(sighting: LaneSighting, now: Long, learn: Boolean = false): LaneState {
         left.update(sighting.left, now)
         right.update(sighting.right, now)
-        val l = left.confirmed
-        val r = right.confirmed
+        var l = left.confirmed
+        var r = right.confirmed
+        // Each side is followed on its own, so the pair is checked here too: lines that cross before the
+        // horizon, or a lane much narrower than the one learned, are not the car's lane. The line taken up
+        // last is the one that is wrong (a van's edge, a pole); it is left out until the pair agrees again.
+        if (l != null && r != null && (r.topX < l.topX - CROSS || r.bottomX - l.bottomX < max(MIN_WIDTH, NARROW * laneWidth))) {
+            if (right.since >= left.since) r = null else l = null
+        }
         if (l != null && r != null) {
             val width = r.bottomX - l.bottomX
             laneWidth = if (laneWidth == 0f) width else laneWidth + WIDTH_SMOOTH * (width - laneWidth)
@@ -379,7 +428,9 @@ class LaneTracker(carX: Float = 0.5f) {
             r != null && laneWidth > 0f -> r.bottomX - laneWidth / 2
             else -> null
         }
-        if (learn && l != null && r != null && centre != null) {
+        // Only near the lane's middle: learning while the car straddles a line, changing lanes, drags its place along with
+        // the line, which then never passes under the car to the other side.
+        if (learn && l != null && r != null && centre != null && abs(carX - centre) <= LEARN_OFFSET * laneWidth) {
             carX = (carX + LEARN * (centre - carX)).coerceIn(MIN_CAR_X, MAX_CAR_X)
         }
         val offset = if (centre != null && laneWidth > 0f) (carX - centre) / laneWidth else null
@@ -399,10 +450,20 @@ class LaneTracker(carX: Float = 0.5f) {
         const val JUMP = 0.08f
         /** Frames running a new line must be seen in. */
         const val CONFIRM = 3
+        /** Frames running a line that jumped aside must be seen in before it replaces the one followed. */
+        const val CONFIRM_JUMP = 8
         const val SMOOTH = 0.5f
+        /** The pair's tops this far the wrong way round: they crossed before the horizon. */
+        const val CROSS = 0.06f
+        /** No lane is narrower at the bonnet than this share of the width. */
+        const val MIN_WIDTH = 0.25f
+        /** Nor narrower than this share of the lane learned (a roadworks lane is about 0.7 of a motorway one). */
+        const val NARROW = 0.6f
         const val WIDTH_SMOOTH = 0.05f
         /** About a minute of steady driving to move the car's place all the way. */
         const val LEARN = 0.003f
+        /** Learned from only this near the lane's middle, a share of its width: a phone well off the windscreen's middle still is. */
+        const val LEARN_OFFSET = 0.3f
         const val MIN_CAR_X = 0.3f
         const val MAX_CAR_X = 0.7f
     }

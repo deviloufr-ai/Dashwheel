@@ -40,6 +40,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.openauto.dash.vehicle.rememberDoors
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -94,7 +95,7 @@ private fun carRect(size: Size, aspect: Float, share: Float): Rect {
 @Composable
 internal fun PanoHero(callouts: List<PanoCallout>, modifier: Modifier = Modifier) {
     val mine by MyCarLook.shown.collectAsState()
-    val doors by McuReader.doorState.collectAsState()
+    val doors = rememberDoors()
     val view = mine?.portrait
     val open = doors?.anyOpen == true
     val aspect = view?.aspect ?: PANO_CAR_ASPECT

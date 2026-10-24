@@ -48,6 +48,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.openauto.dash.carphoto.CarPart
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.reversingFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -86,7 +89,7 @@ object DoorAlertOverlay {
 
     /** The doors to show, or null when there's no alert: the style picker's made-up ones while it is tried. */
     val alert: StateFlow<McuReader.DoorState?> =
-        combine(RomPopups.replaced, McuReader.doorState, dismissed, AlertPreview.doors, CarBox.reversing) { replaced, doors, hidden, preview, reversing ->
+        combine(RomPopups.replaced, Vehicle.bus.value(K.DOORS), dismissed, AlertPreview.doors, reversingFlow()) { replaced, doors, hidden, preview, reversing ->
             val open = doors?.openNames().orEmpty()
             // Held while reversing (the camera comes first), shown after if still open.
             preview ?: doors.takeIf { RomPopups.Kind.DOORS in replaced && !reversing && open.isNotEmpty() && !hidden.containsAll(open) }
@@ -119,7 +122,7 @@ object DoorAlertOverlay {
         val app = AppLanguage.wrap(context.applicationContext)
         // All shut: the next opening shows again, even the same door.
         scope.launch {
-            McuReader.doorState.collect { if (it?.anyOpen != true) dismissed.value = emptySet() }
+            Vehicle.bus.value(K.DOORS).collect { if (it?.anyOpen != true) dismissed.value = emptySet() }
         }
         scope.launch {
             style.collect { style ->
@@ -140,7 +143,7 @@ object DoorAlertOverlay {
             AlertPreview.stop()
             return
         }
-        dismissed.value = McuReader.doorState.value?.openNames().orEmpty()
+        dismissed.value = Vehicle.bus.now(K.DOORS)?.openNames().orEmpty()
     }
 
     internal fun enlarge() = onTheMove.enlarge()

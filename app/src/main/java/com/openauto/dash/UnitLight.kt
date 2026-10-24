@@ -35,6 +35,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.openauto.dash.vehicle.headlightsFlow
+import com.openauto.dash.vehicle.headlightsNow
+import com.openauto.dash.vehicle.rememberHeadlights
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -70,7 +73,7 @@ object UnitLight {
     val follow: StateFlow<Boolean> = _follow
 
     /** Night by the headlights. */
-    val isNight: Boolean get() = UnitSignals.headlightsOn.value
+    val isNight: Boolean get() = headlightsNow()
 
     fun start(context: Context) {
         if (started) return
@@ -81,7 +84,7 @@ object UnitLight {
         _night.value = p.getInt(KEY_NIGHT, 60)
         _follow.value = p.getBoolean(KEY_FOLLOW, false)
         scope.launch {
-            UnitSignals.headlightsOn.collect { if (_follow.value) apply(app) }
+            headlightsFlow().collect { if (_follow.value) apply(app) }
         }
     }
 
@@ -137,7 +140,7 @@ internal fun UnitLightCard(modifier: Modifier = Modifier) {
     val day by UnitLight.day.collectAsState()
     val night by UnitLight.night.collectAsState()
     val follow by UnitLight.follow.collectAsState()
-    val isNight by UnitSignals.headlightsOn.collectAsState()
+    val isNight = rememberHeadlights()
     val level = if (isNight) night else day
     var dragged by remember(level) { mutableFloatStateOf(level.toFloat()) }
     Card(modifier = modifier) {
@@ -187,7 +190,7 @@ internal fun unitLightFace(): WidgetFace {
     DisposableEffect(Unit) { UnitLight.start(context); onDispose { } }
     val day by UnitLight.day.collectAsState()
     val night by UnitLight.night.collectAsState()
-    val isNight by UnitSignals.headlightsOn.collectAsState()
+    val isNight = rememberHeadlights()
     val level = if (isNight) night else day
     return WidgetFace(
         icon = if (isNight) Icons.Filled.DarkMode else Icons.Filled.LightMode,

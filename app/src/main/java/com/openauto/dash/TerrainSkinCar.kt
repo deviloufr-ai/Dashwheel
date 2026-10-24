@@ -79,7 +79,7 @@ private val HEADER_H = 40.dp
  */
 @Composable
 internal fun TerrainRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val stage = maxWidth >= HERO_MIN_W && maxHeight >= HERO_MIN_H
         when {

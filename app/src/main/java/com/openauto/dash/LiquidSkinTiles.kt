@@ -1,5 +1,10 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.any
+import com.openauto.dash.vehicle.rememberGauge
+import com.openauto.dash.vehicle.rememberGaugeInt
+import com.openauto.dash.vehicle.rememberPanelGauges
+import com.openauto.dash.vehicle.K
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -34,7 +39,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -227,7 +231,7 @@ private fun LqSpeed(env: SkinTileEnv) {
         SpeedLimit.start(context)
         onDispose { SpeedLimit.stop() }
     }
-    val speed = rememberSpeedKmh(env)
+    val speed = rememberSpeedKmh()
     val limit by SpeedLimit.limit.collectAsState()
     val units = LocalUnits.current
     val over = speedOver(speed)
@@ -692,6 +696,9 @@ private fun LqProgress(ms: MediaState, controller: CarMediaController, modifier:
 @Composable
 private fun LqTelemetry(env: SkinTileEnv) {
     val state = env.obdConnection
+    // Whatever the car answers is shown, adapter or not.
+    val g = rememberPanelGauges(K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
+    val live = state == ObdConnectionState.CONNECTED || g.any
     BoxWithConstraints(
         Modifier
             .fillMaxSize()
@@ -704,32 +711,31 @@ private fun LqTelemetry(env: SkinTileEnv) {
         val tall = innerH >= 200.dp
         val size = min(innerW.value / 7.5f, innerH.value * (if (tall) 0.2f else 0.32f)).coerceIn(20f, 34f)
         Column(Modifier.fillMaxSize().padding(pad), verticalArrangement = Arrangement.Center) {
-            when (state) {
-                ObdConnectionState.CONNECTED -> {
-                    val d = env.obdData
+            when {
+                live -> {
                     val units = LocalUnits.current
                     val revs = stringResource(R.string.liquid_revs)
                     if (tall) {
                         val big = lqFit("8 888", FontWeight.SemiBold, innerW * 0.7f, innerH * 0.36f, 30f, 96f)
                         LqLine(revs, lqText((big * 0.2f).coerceAtLeast(14f), lqSoft))
                         Row {
-                            LqLine(groupThousands(d.rpm), lqText(big, DashColors.TextPrimary, FontWeight.SemiBold, figure = true), Modifier.alignByBaseline(), overflow = TextOverflow.Clip)
+                            LqLine(g.rpm?.let { groupThousands(it) } ?: "--", lqText(big, DashColors.TextPrimary, FontWeight.SemiBold, figure = true), Modifier.alignByBaseline(), overflow = TextOverflow.Clip)
                             Spacer(Modifier.width(8.dp))
                             LqLine(stringResource(R.string.liquid_rpm), lqText((big * 0.26f).coerceAtLeast(15f), lqSoft), Modifier.alignByBaseline())
                         }
                         Spacer(Modifier.height(14.dp))
                     }
                     val items = ArrayList<Triple<String, String, Boolean>>(4)
-                    if (!tall) items += Triple(revs, groupThousands(d.rpm), false)
-                    if (d.voltage > 0.0) items += Triple(stringResource(R.string.liquid_battery), String.format(Locale.getDefault(), "%.1f V", d.voltage), d.voltage !in BATTERY_OK_V)
-                    items += Triple(stringResource(R.string.liquid_load), "${d.engineLoadPct} %", false)
-                    if (d.coolantTempC > 0) items += Triple(stringResource(R.string.liquid_coolant), "${units.temp(d.coolantTempC)}°", d.coolantTempC >= COOLANT_WARNING_C)
+                    if (!tall) g.rpm?.let { items += Triple(revs, groupThousands(it), false) }
+                    g.voltage?.let { items += Triple(stringResource(R.string.liquid_battery), String.format(Locale.getDefault(), "%.1f V", it), it !in BATTERY_OK_V) }
+                    g.engineLoadPct?.let { items += Triple(stringResource(R.string.liquid_load), "$it %", false) }
+                    g.coolantTempC?.let { items += Triple(stringResource(R.string.liquid_coolant), "${units.temp(it)}°", it >= COOLANT_WARNING_C) }
                     val fits = (innerW.value / (size * 4.2f)).toInt().coerceIn(1, items.size)
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                         items.take(fits).forEach { (label, value, warn) -> LqReading(label, value, warn, size, Modifier.weight(1f)) }
                     }
                 }
-                ObdConnectionState.CONNECTING -> {
+                state == ObdConnectionState.CONNECTING -> {
                     LqLine(stringResource(R.string.liquid_engine), lqText(15f, lqSoft))
                     LqLine(stringResource(R.string.horizon_obd_connecting), lqText(size * 0.75f, DashColors.AccentInk, FontWeight.Medium))
                 }
@@ -759,7 +765,7 @@ private fun LqTelemetry(env: SkinTileEnv) {
  */
 @Composable
 private fun LqRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val stage = maxWidth >= LQ_HERO_MIN_W && maxHeight >= LQ_HERO_MIN_H
         when {
@@ -1019,6 +1025,6 @@ private fun LqLaunchBar(item: DashboardItem.LaunchBar, env: SkinTileEnv) {
 /** The coolant in °C while the link is up (0 otherwise), followed alone so a chip redraws when its own reading changes. */
 @Composable
 internal fun rememberCoolantC(env: SkinTileEnv): Int {
-    val coolant by remember(env) { derivedStateOf { if (env.obdConnection == ObdConnectionState.CONNECTED) env.obdData.coolantTempC else 0 } }
+    val coolant = rememberGaugeInt(K.COOLANT_TEMP) ?: 0
     return coolant
 }
