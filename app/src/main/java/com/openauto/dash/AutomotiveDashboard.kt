@@ -1655,16 +1655,20 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                 // gap between Maps and the tiles (asked on the forum), and the dock's
                 // width is set like the tiles' places.
                 divider = {
-                    if (editing) DockDivider(
-                        vertical = vertical,
-                        onDrag = { d ->
-                            val delta = d / splitLengthPx.coerceAtLeast(1)
-                            val signed = if (dockSide == Alignment.Start) delta else -delta
-                            dockFraction.floatValue = (dockFraction.floatValue + signed)
-                                .coerceIn(DashLayoutStore.MIN_DOCK_FRACTION, DashLayoutStore.MAX_DOCK_FRACTION)
-                        },
-                        onDragEnd = { DashLayoutStore.saveDockFraction(context, dockFraction.floatValue) }
-                    )
+                    if (editing) {
+                        // Arranging can end in the middle of a drag, which then never ends: the width is kept all the same.
+                        DisposableEffect(Unit) { onDispose { DashLayoutStore.saveDockFraction(context, dockFraction.floatValue) } }
+                        DockDivider(
+                            vertical = vertical,
+                            onDrag = { d ->
+                                val delta = d / splitLengthPx.coerceAtLeast(1)
+                                val signed = if (dockSide == Alignment.Start) delta else -delta
+                                dockFraction.floatValue = (dockFraction.floatValue + signed)
+                                    .coerceIn(DashLayoutStore.MIN_DOCK_FRACTION, DashLayoutStore.MAX_DOCK_FRACTION)
+                            },
+                            onDragEnd = { DashLayoutStore.saveDockFraction(context, dockFraction.floatValue) }
+                        )
+                    }
                 },
                 pane = pagesPane
             )

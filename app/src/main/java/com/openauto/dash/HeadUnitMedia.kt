@@ -7,9 +7,11 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.media.session.MediaController
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.KeyEvent
 import com.openauto.dash.link.NowPlaying
 import androidx.core.content.ContextCompat
 import java.util.concurrent.CopyOnWriteArraySet
@@ -201,22 +203,76 @@ object HeadUnitMedia {
         if (radioAlive()) context.sendBroadcast(Intent(RADIO_CLOSE)) else openRadio(context)
     }
 
-    fun next(context: Context, pkg: String) {
+    /** [session]: the radio's own media session when one is listed, for [stepRadio]'s media key. */
+    fun next(context: Context, pkg: String, session: MediaController? = null) {
         if (pkg == BT_PACKAGE) return btCommand(context, BT_NEXT)
-        if (radioAlive()) context.sendBroadcast(Intent(RADIO_NEXT)) else openRadio(context)
+        if (radioAlive()) stepRadio(context, RADIO_NEXT, KeyEvent.KEYCODE_MEDIA_NEXT, session) else openRadio(context)
     }
 
-    fun previous(context: Context, pkg: String) {
+    fun previous(context: Context, pkg: String, session: MediaController? = null) {
         if (pkg == BT_PACKAGE) return btCommand(context, BT_PREVIOUS)
-        if (radioAlive()) context.sendBroadcast(Intent(RADIO_PREVIOUS)) else openRadio(context)
+        if (radioAlive()) stepRadio(context, RADIO_PREVIOUS, KeyEvent.KEYCODE_MEDIA_PREVIOUS, session) else openRadio(context)
     }
+
+    // --- A radio that ignores its step action ------------------------------
+    //
+    // A tile stood on 99.9 MHz while the wheel's buttons changed the station:
+    // that radio ignored the step action. When the tuner reports no other
+    // station soon after, the step goes again as a media key to the radio
+    // alone, and its steps go as keys from then on. Keys unheard as well: back
+    // to the action. Only the tuner's frequency counts, never its RDS text,
+    // which scrolls by itself on many stations.
+
+    /** The radio ignored its step action and took a media key, for as long as the app runs. */
+    @Volatile private var radioStepsByKey = false
+    private val radioStepCheck = Any()
+    /** Keys for the steps sent since the watched one started, sent again if none was heard. */
+    private val unheardSteps = ArrayList<Int>()
+    private var stepsFrom: RadioStation? = null
+
+    private fun stepRadio(context: Context, action: String, keyCode: Int, session: MediaController?) {
+        val byKey = radioStepsByKey
+        if (byKey) radioKey(context, keyCode, session) else context.sendBroadcast(Intent(action))
+        // Taps in a row are watched as one: from the station before the first, every step counted.
+        if (unheardSteps.isEmpty()) stepsFrom = radio
+        unheardSteps += keyCode
+        main.removeCallbacksAndMessages(radioStepCheck)
+        main.postDelayed({
+            val steps = unheardSteps.toList()
+            unheardSteps.clear()
+            // Something else since (demo on, the radio closed): nothing to send again.
+            if (stepHeard(stepsFrom, radio) || DemoMode.isOn || !radioAlive()) return@postDelayed
+            if (byKey) {
+                radioStepsByKey = false
+                DebugLog.note(context, "radio step: the media key went unheard too, back to the step action")
+            } else {
+                radioStepsByKey = true
+                DebugLog.note(context, "radio step: the step action went unheard, sent as a media key")
+                steps.forEach { radioKey(context, it, session) }
+            }
+        }, radioStepCheck, RADIO_STEP_ANSWER_MS)
+    }
+
+    /** A media key for the radio only: to its session when listed, else to its media button receiver. */
+    private fun radioKey(context: Context, keyCode: Int, session: MediaController?) {
+        listOf(KeyEvent.ACTION_DOWN, KeyEvent.ACTION_UP).forEach { action ->
+            val event = KeyEvent(action, keyCode)
+            val sent = session?.takeIf { isStock(it.packageName) && it.packageName != BT_PACKAGE }
+                ?.let { runCatching { it.dispatchMediaButtonEvent(event) }.getOrDefault(false) } == true
+            if (!sent) runCatching {
+                context.sendBroadcast(Intent(Intent.ACTION_MEDIA_BUTTON).setPackage(RADIO_PACKAGE).putExtra(Intent.EXTRA_KEY_EVENT, event))
+            }
+        }
+    }
+
+    /** How long the tuner has to report another station after a step; a seek takes a moment. */
+    private const val RADIO_STEP_ANSWER_MS = 4_000L
 
     private fun btCommand(context: Context, command: Int) {
         context.sendBroadcast(Intent(ACTION_BT_CONTROL).putExtra("command", command))
     }
 
-    /** The radio is playing, and so takes its step actions (or ignores them: [CarMediaController] watches). */
-    internal fun radioAlive(): Boolean = systemProperty("sys.qf.radio.status") == "true"
+    private fun radioAlive(): Boolean = systemProperty("sys.qf.radio.status") == "true"
 
     private fun openRadio(context: Context) {
         context.launchSafely(Intent().setComponent(ComponentName(RADIO_PACKAGE, RADIO_ACTIVITY)))
@@ -241,3 +297,7 @@ internal fun bandLabel(band: Int): String? = when (band) {
     in 3..5 -> "AM${band - 2}"
     else -> null
 }
+
+/** Whether a step reached the tuner: another frequency or band than before it. */
+internal fun stepHeard(before: HeadUnitMedia.RadioStation?, now: HeadUnitMedia.RadioStation?): Boolean =
+    before?.freq != now?.freq || before?.band != now?.band
