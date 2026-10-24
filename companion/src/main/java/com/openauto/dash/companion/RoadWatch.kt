@@ -16,6 +16,7 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.core.content.ContextCompat
 import com.openauto.dash.link.RoadScene
+import com.openauto.dash.roadwatch.HorizonLearner
 import com.openauto.dash.roadwatch.LaneFinder
 import com.openauto.dash.roadwatch.LaneState
 import com.openauto.dash.roadwatch.LaneTracker
@@ -61,6 +62,10 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
 
     @Volatile var band = RoadBand(horizonY = prefs.getFloat(KEY_HORIZON, 0.5f))
         private set
+    /** The horizon, learned from where the lane's lines meet while the car drives on; the driver's drag sets where it starts. */
+    private val horizon = HorizonLearner(band.horizonY)
+    /** A drag not yet handed to [horizon], which the camera's thread alone touches. */
+    @Volatile private var dragged: Float? = null
     /**
      * The frame stands taller than wide: the phone upright in its holder.
      * Its width then spans the camera's narrower side, and the car sits
@@ -114,6 +119,7 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
     /** The driver moved the horizon line on the screen. */
     fun setHorizon(y: Float) {
         band = band.copy(horizonY = y.coerceIn(0.25f, 0.7f))
+        dragged = band.horizonY
         horizonSet = true
         prefs.edit().putFloat(KEY_HORIZON, band.horizonY).putBoolean(KEY_HORIZON_SET, true).apply()
     }
@@ -134,7 +140,7 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
     fun stop() {
         locations?.let { runCatching { it.removeUpdates(listener) } }
         locations = null
-        prefs.edit().putFloat(carXKey(tall), lanes.carX).apply()
+        prefs.edit().putFloat(carXKey(tall), lanes.carX).putFloat(KEY_HORIZON, band.horizonY).apply()
         rules.clear()
         lanes.reset()
         leads.forget()
@@ -197,6 +203,16 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         val found = vehicles?.detect(buffer, w, h, plane.rowStride, rotation, (band.horizonY + band.bonnetY) / 2)
         val sighting = LaneFinder.find(luma, band, lanes.carX, hfov, found.orEmpty().map { it.box })
         val lane = lanes.update(sighting, now, learn = steady && lanes.laneWidth > 0f)
+        dragged?.let {
+            horizon.set(it)
+            dragged = null
+        }
+        this.band = band.copy(horizonY = horizon.update(sighting, now, learn = steady))
+        // Learned: the driver no longer needs telling to drag the line.
+        if (horizon.settled && !horizonSet) {
+            horizonSet = true
+            prefs.edit().putFloat(KEY_HORIZON, band.horizonY).putBoolean(KEY_HORIZON_SET, true).apply()
+        }
         val lead = found?.let { leads.update(it, lane, band, lanes.carX, now) }
 
         val scene = RoadScene(

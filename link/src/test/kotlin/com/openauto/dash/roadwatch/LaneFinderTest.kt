@@ -194,6 +194,15 @@ class LaneFinderTest {
     }
 
     @Test
+    fun changingLanesTeachesNothing() {
+        val t = LaneTracker()
+        repeat(200) { t.update(LaneSighting(LaneLine(0.15f, 0.47f), LaneLine(0.85f, 0.53f)), it * 100L, learn = true) }
+        // Ten seconds straddling the right line: the car is 0.4 of a lane off the middle.
+        repeat(100) { t.update(LaneSighting(LaneLine(-0.13f, 0.46f), LaneLine(0.57f, 0.51f)), 20_000 + it * 100L, learn = true) }
+        assertEquals(0.5f, t.carX, 0.005f)
+    }
+
+    @Test
     fun anUprightFrameFromAPhoneHeldSideways() {
         // 3 x 2 frame, pixel values 10, 20, ... by position; the camera turns it 90° clockwise.
         val w = 3

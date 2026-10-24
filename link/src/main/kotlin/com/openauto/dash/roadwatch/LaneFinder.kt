@@ -141,7 +141,13 @@ data class LaneSighting(
     val right: LaneLine? = null,
     /** The share of the road's rows on the line, 0..1: a solid line near 1, a dashed one less. */
     val leftSupport: Float = 0f,
-    val rightSupport: Float = 0f
+    val rightSupport: Float = 0f,
+    /**
+     * Where the best line on each side meet, a fraction of the height, taken
+     * before they are checked against the horizon: a horizon set too high
+     * makes the real lines cross under it, which is how [HorizonLearner] sees it.
+     */
+    val meetY: Float? = null
 )
 
 object LaneFinder {
@@ -263,6 +269,7 @@ object LaneFinder {
 
         var l = left?.let(::line)
         var r = right?.let(::line)
+        val meet = if (l != null && r != null) HorizonLearner.meetY(l, r, band) else null
         // Two lines that cross before the horizon are not one lane: keep the better backed.
         if (l != null && r != null && (r.topX < l.topX - 0.06f || r.bottomX - l.bottomX < 0.25f)) {
             if (left!!.votes >= right!!.votes) r = null else l = null
@@ -271,7 +278,8 @@ object LaneFinder {
             left = l,
             right = r,
             leftSupport = if (l != null) min(1f, left!!.votes.toFloat() / rows) else 0f,
-            rightSupport = if (r != null) min(1f, right!!.votes.toFloat() / rows) else 0f
+            rightSupport = if (r != null) min(1f, right!!.votes.toFloat() / rows) else 0f,
+            meetY = meet
         )
     }
 
@@ -420,7 +428,9 @@ class LaneTracker(carX: Float = 0.5f) {
             r != null && laneWidth > 0f -> r.bottomX - laneWidth / 2
             else -> null
         }
-        if (learn && l != null && r != null && centre != null) {
+        // Only near the lane's middle: learning while the car straddles a line, changing lanes, drags its place along with
+        // the line, which then never passes under the car to the other side.
+        if (learn && l != null && r != null && centre != null && abs(carX - centre) <= LEARN_OFFSET * laneWidth) {
             carX = (carX + LEARN * (centre - carX)).coerceIn(MIN_CAR_X, MAX_CAR_X)
         }
         val offset = if (centre != null && laneWidth > 0f) (carX - centre) / laneWidth else null
@@ -452,6 +462,8 @@ class LaneTracker(carX: Float = 0.5f) {
         const val WIDTH_SMOOTH = 0.05f
         /** About a minute of steady driving to move the car's place all the way. */
         const val LEARN = 0.003f
+        /** Learned from only this near the lane's middle, a share of its width: a phone well off the windscreen's middle still is. */
+        const val LEARN_OFFSET = 0.3f
         const val MIN_CAR_X = 0.3f
         const val MAX_CAR_X = 0.7f
     }

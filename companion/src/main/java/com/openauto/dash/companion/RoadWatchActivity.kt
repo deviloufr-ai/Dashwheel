@@ -63,7 +63,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -365,7 +364,9 @@ private fun frameRect(w: Float, h: Float, frameW: Int, frameH: Int): Rect {
 @Composable
 private fun RoadDrawing(watch: RoadWatch, onTap: () -> Unit) {
     val view by watch.view.collectAsState()
-    var horizon by remember { mutableFloatStateOf(watch.band.horizonY) }
+    // The learned horizon, or where the driver is dragging it.
+    var dragged by remember { mutableStateOf<Float?>(null) }
+    val horizon = dragged ?: view.band.horizonY
     val density = LocalDensity.current
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val w = with(density) { maxWidth.toPx() }
@@ -377,8 +378,12 @@ private fun RoadDrawing(watch: RoadWatch, onTap: () -> Unit) {
             Modifier.fillMaxSize()
                 .pointerInput(Unit) { detectTapGestures { onTap() } }
                 .pointerInput(frame) {
-                    detectVerticalDragGestures(onDragEnd = { watch.setHorizon(horizon) }) { _, dy ->
-                        horizon = (horizon + dy / frame.height).coerceIn(0.25f, 0.7f)
+                    detectVerticalDragGestures(
+                        onDragStart = { dragged = watch.band.horizonY },
+                        onDragEnd = { dragged?.let(watch::setHorizon); dragged = null },
+                        onDragCancel = { dragged = null }
+                    ) { _, dy ->
+                        dragged = ((dragged ?: watch.band.horizonY) + dy / frame.height).coerceIn(0.25f, 0.7f)
                     }
                 }
         ) {

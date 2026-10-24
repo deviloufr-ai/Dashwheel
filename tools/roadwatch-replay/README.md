@@ -14,11 +14,16 @@ The road recorder in Dashwheel Companion keeps clips (`clip.mp4` with `clip.json
 # 1. The vehicles, with the phone's own model and crop (once per clip; slow-ish).
 python -I tools/roadwatch-replay/detect.py clip.mp4 clip.detections.jsonl --horizon 0.5
 
-# 2. The replay: the annotated video, the report and the timeline.
-./gradlew :roadreplay:run --args="clip.mp4 --detections clip.detections.jsonl --clip clip.json --horizon 0.5 --out clip.seen.mp4 --report clip.report.json"
+# 2. The lane model, with the model the companion ships (once per clip; every other frame, as the phone).
+python -I tools/roadwatch-replay/lanes.py clip.mp4 clip.lanes --horizon 0.5
+
+# 3. The replay: the annotated video, the report and the timeline.
+./gradlew :roadreplay:run --args="clip.mp4 --detections clip.detections.jsonl --lanes clip.lanes --clip clip.json --horizon 0.5 --out clip.seen.mp4 --report clip.report.json"
 ```
 
-`--horizon` is where the horizon is in the picture (the dotted line on the phone); it matters, set it from a frame. `--hfov` is the camera's view across the picture (66° sideways on most phones, about 51° upright); `--car-x` where the car's middle is across it.
+Leave out `--lanes` to see what a phone without the lane model does (lines found by brightness); the video then shows no green road and red lines.
+
+`--horizon` is where the horizon starts in the picture (the dotted line on the phone); the replay then learns it from where the lane's lines meet, as the phone does, and the summary says where it ended (`--learn-horizon no` keeps it put). It matters: start near it, from a frame. `--hfov` is the camera's view across the picture (66° sideways on most phones, about 51° upright); `--car-x` where the car's middle is across it.
 
 The summary prints at the end:
 
@@ -31,7 +36,7 @@ warnings: 2
   LANE_RIGHT at 52.9 s (frame 1587)
 ```
 
-`clip.report.csv` has every frame: speed, lines, offset, where each line is, the car ahead's distance, closing speed and time to collision, the warning. Plot it, or diff two runs.
+`clip.report.csv` has every frame: speed, lines, offset, where each line is, the car ahead's distance, closing speed and time to collision, the warning, and with `--lanes` the lanes and which the car is in; then the horizon and the car's place across the picture, as learned. Plot it, or diff two runs.
 
 ## Label frames to measure errors
 

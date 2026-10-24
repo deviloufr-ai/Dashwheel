@@ -19,7 +19,10 @@ import java.io.DataInputStream
 import java.io.EOFException
 import java.io.File
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import java.nio.FloatBuffer
 import java.util.Locale
+import java.util.zip.Inflater
 import javax.imageio.ImageIO
 import kotlin.system.exitProcess
 
@@ -27,9 +30,11 @@ import kotlin.system.exitProcess
  * roadreplay <video.mp4> [options]: Road watch's code over a recorded drive.
  *
  *   --detections <file.jsonl>   the vehicles per frame, from detect.py (none: the lane only)
+ *   --lanes <file.lanes>        what the lane model saw, from lanes.py (none: lines found by brightness)
  *   --clip <clip.json>          the recorder's notes beside the clip: its speeds and indicators
  *   --speed <km/h>              a steady speed instead, when there are no notes
- *   --horizon <0..1>            where the horizon is in the picture (default 0.5)
+ *   --horizon <0..1>            where the horizon starts in the picture (default 0.5); it is then learned from the lane
+ *   --learn-horizon no          keep it where it was set
  *   --bonnet <0..1>             where the bonnet begins (default 0.92)
  *   --hfov <degrees>            the camera's view across the picture (default 66)
  *   --car-x <0..1>              where the car's middle is across the picture (default 0.5)
@@ -45,7 +50,7 @@ import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
     if (args.isEmpty()) {
-        System.err.println("usage: roadreplay <video.mp4> [--detections f.jsonl] [--clip clip.json] [--speed kmh] [--horizon y] [--bonnet y] [--hfov deg] [--car-x x] [--labels f.csv] [--out annotated.mp4] [--report report.json] [--dump dir --every n] [--max n]")
+        System.err.println("usage: roadreplay <video.mp4> [--detections f.jsonl] [--lanes f.lanes] [--clip clip.json] [--speed kmh] [--horizon y] [--bonnet y] [--hfov deg] [--car-x x] [--labels f.csv] [--out annotated.mp4] [--report report.json] [--dump dir --every n] [--max n]")
         exitProcess(2)
     }
     val video = File(args[0])
@@ -60,8 +65,9 @@ fun main(args: Array<String>) {
         i += 2
     }
     val band = RoadBand(horizonY = o["horizon"]?.toFloat() ?: 0.5f, bonnetY = o["bonnet"]?.toFloat() ?: 0.92f)
-    val session = ReplaySession(band, carX = o["car-x"]?.toFloat() ?: 0.5f, hfovDeg = o["hfov"]?.toFloat() ?: 66f)
+    val session = ReplaySession(band, carX = o["car-x"]?.toFloat() ?: 0.5f, hfovDeg = o["hfov"]?.toFloat() ?: 66f, learnHorizon = o["learn-horizon"] != "no")
     val detections = o["detections"]?.let { readDetections(File(it)) } ?: emptyMap()
+    val lanes = o["lanes"]?.let { readLanes(File(it)) }
     val notes = o["clip"]?.let { readNotes(File(it)) } ?: emptyList()
     val steady = o["speed"]?.toFloat()
     val labels = o["labels"]?.let { readLabels(File(it)) } ?: emptyList()
@@ -93,10 +99,10 @@ fun main(args: Array<String>) {
             }
             val timeMs = (index * 1000L / fps)
             val telemetry = telemetryAt(notes, timeMs, steady)
-            val result = session.frame(index, timeMs, ByteBuffer.wrap(bytes), width, height, width * 4, detections[index] ?: emptyList(), telemetry)
+            val result = session.frame(index, timeMs, ByteBuffer.wrap(bytes), width, height, width * 4, detections[index] ?: emptyList(), telemetry, lanes?.at(index))
             if (sink != null || (dump != null && index % every == 0)) {
                 toImage(bytes, pixels, image)
-                Overlay.draw(image, result, band, ruler = dump != null && index % every == 0)
+                Overlay.draw(image, result, session.band, ruler = dump != null && index % every == 0, seen = session.seen)
                 if (dump != null && index % every == 0) ImageIO.write(image, "png", File(dump, "f%05d.png".format(index)))
                 if (sink != null) {
                     fromImage(image, pixels, bytes)
@@ -143,6 +149,42 @@ private fun readDetections(file: File): Map<Int, List<Detection>> {
         }
     }
     return out
+}
+
+/** lanes.py's file (see there): the band the model looked at, and each frame it looked at, still packed. */
+private class LaneFile(val top: Float, val height: Float, val packed: Map<Int, ByteArray>) {
+    fun at(frame: Int): ModelFrame? {
+        val bytes = packed[frame] ?: return null
+        val inflater = Inflater()
+        inflater.setInput(bytes)
+        val raw = ByteArray(2 * W * H)
+        var n = 0
+        while (n < raw.size && !inflater.finished()) n += inflater.inflate(raw, n, raw.size - n)
+        inflater.end()
+        val chances = FloatBuffer.allocate(raw.size)
+        for (b in raw) chances.put((b.toInt() and 0xFF) / 255f)
+        chances.rewind()
+        return ModelFrame(chances, W, H, top, height)
+    }
+
+    companion object {
+        const val W = 320
+        const val H = 176
+    }
+}
+
+private fun readLanes(file: File): LaneFile {
+    val buf = ByteBuffer.wrap(file.readBytes()).order(ByteOrder.LITTLE_ENDIAN)
+    val magic = ByteArray(8).also { buf.get(it) }
+    require(String(magic) == "DWLANES1") { "not a lanes.py file: $file" }
+    val top = buf.float
+    val height = buf.float
+    val packed = HashMap<Int, ByteArray>()
+    while (buf.remaining() >= 8) {
+        val frame = buf.int
+        packed[frame] = ByteArray(buf.int).also { buf.get(it) }
+    }
+    return LaneFile(top, height, packed)
 }
 
 /** One row of the recorder's notes: when (ms into the clip), the speed the car gave, else the GPS's, and the indicators. */
@@ -207,13 +249,13 @@ private fun reportJson(r: Report): String = buildString {
 }
 
 private fun timelineCsv(results: List<FrameResult>): String = buildString {
-    appendLine("frame,time_s,speed_kmh,lines,offset,left_x,right_x,lead_m,closing_mps,ttc_s,warning")
+    appendLine("frame,time_s,speed_kmh,lines,offset,left_x,right_x,lead_m,closing_mps,ttc_s,warning,lanes,lane,horizon,car_x")
     for (r in results) {
         appendLine(
             listOf(
                 r.index, "%.3f".format(Locale.ROOT, r.timeMs / 1000.0), r.speedKmh ?: "", r.lane.lines, r.lane.offset ?: "",
                 r.lane.left?.bottomX ?: "", r.lane.right?.bottomX ?: "",
-                r.lead?.distanceM ?: "", r.lead?.closingMps ?: "", r.lead?.ttcS ?: "", r.warning ?: ""
+                r.lead?.distanceM ?: "", r.lead?.closingMps ?: "", r.lead?.ttcS ?: "", r.warning ?: "", r.place?.lanes ?: "", r.place?.lane ?: "", r.horizonY ?: "", r.carX ?: ""
             ).joinToString(",")
         )
     }

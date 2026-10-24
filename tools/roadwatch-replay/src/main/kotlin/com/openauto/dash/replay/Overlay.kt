@@ -2,6 +2,7 @@ package com.openauto.dash.replay
 
 import com.openauto.dash.roadwatch.RoadBand
 import com.openauto.dash.roadwatch.RoadWarning
+import com.openauto.dash.roadwatch.SeenRoad
 import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Font
@@ -20,11 +21,26 @@ object Overlay {
     private val amber = Color(245, 185, 66)
     private val red = Color(248, 113, 113)
     private val ink = Color(0, 0, 0, 150)
+    private val roadTint = Color(34, 197, 94, 60)
+    private val laneTint = Color(239, 68, 68, 120)
 
-    fun draw(image: BufferedImage, result: FrameResult, band: RoadBand, ruler: Boolean = false) {
+    fun draw(image: BufferedImage, result: FrameResult, band: RoadBand, ruler: Boolean = false, seen: SeenRoad? = null) {
         val w = image.width
         val h = image.height
         val g = image.createGraphics()
+        // What the lane model saw, faint: the road green, the lane lines red.
+        if (seen != null) {
+            val sw = seen.road.w
+            val sh = seen.road.h
+            for (y in 0 until sh) for (x in 0 until sw) {
+                g.color = when {
+                    seen.lane[x, y] >= 128 -> laneTint
+                    seen.road[x, y] >= 128 -> roadTint
+                    else -> continue
+                }
+                g.fillRect(x * w / sw, y * h / sh, (x + 1) * w / sw - x * w / sw, (y + 1) * h / sh - y * h / sh)
+            }
+        }
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
         val unit = h / 36f
@@ -84,6 +100,7 @@ object Overlay {
             result.speedKmh?.let { append("  ${it.toInt()} km/h") }
             append("  lines ${lane.lines}")
             lane.offset?.let { append("  offset ${"%+.2f".format(it)}") }
+            result.place?.let { append("  lane ${it.lane} of ${it.lanes}") }
         }
         tag(g, figures, 12, 12 + (unit * 0.9f).toInt(), unit * 0.9f)
 
