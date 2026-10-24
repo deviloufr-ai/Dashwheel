@@ -194,6 +194,28 @@ class LaneFinderTest {
     }
 
     @Test
+    fun aJunctionsFarEdgeIsNotTheLanesLine() {
+        val t = LaneTracker()
+        repeat(20) { t.update(LaneSighting(LaneLine(0.3f, 0.47f), LaneLine(0.67f, 0.53f)), it * 100L) }
+        // At a junction the right line jumps out to the road's far edge: the lane would be 1.9 times as wide.
+        var state = LaneState()
+        repeat(10) { state = t.update(LaneSighting(LaneLine(0.29f, 0.47f), LaneLine(1.0f, 0.56f)), 2_000 + it * 100L) }
+        assertNull(state.right)
+        assertNear(0.29f, state.left?.bottomX)
+        assertEquals("the car is still in the middle of its lane", 0.05f, state.offset!!, 0.06f)
+    }
+
+    @Test
+    fun aRoadThatStaysWiderIsTakenUp() {
+        val t = LaneTracker()
+        repeat(20) { t.update(LaneSighting(LaneLine(0.3f, 0.47f), LaneLine(0.67f, 0.53f)), it * 100L) }
+        // A slip road joining a motorway: the lane is wider from here on.
+        var state = LaneState()
+        repeat(40) { state = t.update(LaneSighting(LaneLine(0.2f, 0.46f), LaneLine(0.8f, 0.54f)), 2_000 + it * 100L) }
+        assertNear(0.8f, state.right?.bottomX)
+    }
+
+    @Test
     fun changingLanesTeachesNothing() {
         val t = LaneTracker()
         repeat(200) { t.update(LaneSighting(LaneLine(0.15f, 0.47f), LaneLine(0.85f, 0.53f)), it * 100L, learn = true) }
