@@ -8,7 +8,7 @@
     <string name="templates_road_trip_blurb">Didelis žemėlapis, atstumas, orai ir sustojimai ilgoms kelionėms</string>
     <string name="templates_car_health">Auto būklė</string>
     <string name="templates_car_health_blurb">Automobilio duomenys ir gedimų kodai pagrindiniame skydelyje</string>
-    <string name="templates_no_obd">OBD adapteris dar nepasirinktas, todėl automobilio duomenų valdikliai praleisti.</string>
+    <string name="templates_no_car_data">Automobilio duomenų šaltinio dar nėra, todėl automobilio duomenų valdikliai praleisti.</string>
     <string name="templates_fill_this">Užpildyti šį skydelį</string>
     <string name="templates_fill_this_hint">Į jį dedamas tik šablono puslapis, skirtas %1$s.</string>
     <string name="templates_fill">Užpildyti</string>

@@ -1,5 +1,6 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.K
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -161,5 +162,63 @@ class DashTemplatesTest {
         assertEquals(listOf(BuiltinKind.TELEMETRY), TemplatePlacer.kindsFor(page, noRoot))
         // The pages still tile the screen without them.
         for (template in DashTemplate.entries) TemplatePlacer.pages(template, noRoot).forEach { assertTiled(it, noRoot.minCols) }
+    }
+
+    // --- Car data from any source, not only an OBD adapter
+
+    private val bare = full.copy(obdPaired = false, canbox = false, carKeys = emptySet())
+    private val canboxUnit = bare.copy(
+        carKeys = setOf(K.VEHICLE_SPEED, K.RPM, K.COOLANT_TEMP, K.BATTERY_VOLTS, K.FUEL_LEVEL, K.DOORS, K.ODOMETER)
+    )
+    /** The QF car app: the body and the trip computer, no engine readings. */
+    private val qfApp = bare.copy(carKeys = setOf(K.ODOMETER, K.FUEL_CONSUMPTION, K.TRIP_DISTANCE, K.LIGHTS, K.DOORS))
+
+    @Test
+    fun aCanboxOnlyUnitKeepsTheGaugesSpeedAndFuelTiles() {
+        val page = TemplatePage(listOf(BuiltinKind.TELEMETRY, BuiltinKind.BATTERY, BuiltinKind.WARMUP, BuiltinKind.RANGE, BuiltinKind.DOORS, BuiltinKind.ECO_DRIVE))
+        assertEquals(page.kinds, TemplatePlacer.kindsFor(page, canboxUnit))
+        // What only an adapter can read stays out.
+        val dtc = TemplatePage(listOf(BuiltinKind.OBD_DTC, BuiltinKind.OBD_ALL, BuiltinKind.SERVICE))
+        assertEquals(listOf(BuiltinKind.SERVICE), TemplatePlacer.kindsFor(dtc, canboxUnit))
+    }
+
+    @Test
+    fun anObdAdapterAloneStillFeedsItsTiles() {
+        val page = TemplatePage(listOf(BuiltinKind.TELEMETRY, BuiltinKind.OBD_DTC, BuiltinKind.BATTERY, BuiltinKind.WARMUP, BuiltinKind.FILTER_CARE))
+        assertEquals(page.kinds, TemplatePlacer.kindsFor(page, bare.copy(obdPaired = true)))
+    }
+
+    @Test
+    fun withNoSourceTheCarDataTilesAreLeftOutAndTheNoteShows() {
+        val page = TemplatePage(listOf(BuiltinKind.TELEMETRY, BuiltinKind.BATTERY, BuiltinKind.RANGE, BuiltinKind.SERVICE))
+        assertEquals(listOf(BuiltinKind.TRIP, BuiltinKind.SERVICE), TemplatePlacer.kindsFor(page, bare))
+        for (template in DashTemplate.entries) {
+            assertTrue("$template", TemplatePlacer.leavesOutCarData(template, bare))
+            assertFalse("$template", TemplatePlacer.leavesOutCarData(template, full))
+        }
+    }
+
+    @Test
+    fun theNoteIsShownOnlyWhenSomethingIsLeftOut() {
+        // The car app gives the mileage (the range's stand-in) and doors, no engine readings: the gauges still go.
+        assertTrue(TemplatePlacer.leavesOutCarData(DashTemplate.DAILY, qfApp))
+        val tripPage = mapOf(1 to TemplatePage(listOf(BuiltinKind.RANGE, BuiltinKind.CAR_STATUS, BuiltinKind.DOORS)))
+        val page = tripPage.getValue(1)
+        assertEquals(page.kinds, TemplatePlacer.kindsFor(page, qfApp))
+        // Nothing to leave out, no note: a unit that gives all of it (and the adapter for the rest).
+        assertFalse(TemplatePlacer.leavesOutCarData(DashTemplate.DAILY, canboxUnit.copy(obdPaired = true)))
+    }
+
+    @Test
+    fun theWidgetToKeyMappingIsOneListForTheSheetAndTheTemplates() {
+        assertEquals(null, BuiltinKind.WEATHER.carDataKeys)
+        assertTrue(BuiltinKind.WEATHER.carDataFrom(obd = false, keys = emptySet()))
+        assertFalse(BuiltinKind.OBD_DTC.carDataFrom(obd = false, keys = setOf(K.VEHICLE_SPEED, K.RPM)))
+        assertTrue(BuiltinKind.OBD_DTC.carDataFrom(obd = true, keys = emptySet()))
+        assertTrue(BuiltinKind.WARMUP.carDataFrom(obd = false, keys = setOf(K.COOLANT_TEMP)))
+        assertFalse(BuiltinKind.WARMUP.carDataFrom(obd = false, keys = setOf(K.BATTERY_VOLTS)))
+        // The doors are not an adapter's.
+        assertFalse(BuiltinKind.DOORS.carDataFrom(obd = true, keys = emptySet()))
+        assertTrue(BuiltinKind.DOORS.carDataFrom(obd = false, keys = setOf(K.DOORS)))
     }
 }

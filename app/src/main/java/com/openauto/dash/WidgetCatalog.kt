@@ -4,6 +4,8 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import androidx.annotation.StringRes
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Key
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -116,19 +118,60 @@ enum class WidgetSource(@StringRes val needsRes: Int) {
 }
 
 /**
- * The sources this kind needs to show anything. A kind that can do with the
- * adapter or the car box counts the box as there when the firmware shares it.
+ * The kinds of car data a car-data tile can show, by the bus keys that feed it (any one will do), whoever supplies them:
+ * a canbox, the unit's bus, the car app, the MCU, the adapter. Null for a tile that is not about the car; empty for one
+ * only the adapter can fill (fault codes, raw readings). The one list the add sheet's chips and the templates both ask
+ * ([carDataFrom]). The mileage stands in for the car app's body and trip computer (as [Cap.BODY_TRIP] does).
+ */
+internal val BuiltinKind.carDataKeys: Set<Key<*>>?
+    get() = when (this) {
+        BuiltinKind.TELEMETRY -> setOf(K.VEHICLE_SPEED, K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
+        BuiltinKind.WARMUP -> setOf(K.COOLANT_TEMP)
+        BuiltinKind.BATTERY -> setOf(K.BATTERY_VOLTS)
+        BuiltinKind.ENGINE_TEMPS -> setOf(K.COOLANT_TEMP, K.INTAKE_TEMP)
+        BuiltinKind.ECO_DRIVE -> setOf(K.VEHICLE_SPEED, K.RPM)
+        BuiltinKind.BREAK_TIMER -> setOf(K.VEHICLE_SPEED, K.RPM, K.ENGINE_RUNNING)
+        BuiltinKind.FILTER_CARE -> setOf(K.VEHICLE_SPEED, K.COOLANT_TEMP)
+        BuiltinKind.RANGE, BuiltinKind.FUEL_TO_DEST -> setOf(K.RANGE, K.FUEL_LEVEL, K.ODOMETER)
+        BuiltinKind.GEAR -> setOf(K.GEAR, K.ODOMETER)
+        BuiltinKind.DOORS -> setOf(K.DOORS)
+        BuiltinKind.CAR_STATUS -> setOf(K.ODOMETER)
+        BuiltinKind.OBD_DTC, BuiltinKind.OBD_ALL, BuiltinKind.MY_READINGS, BuiltinKind.CAN_MON -> emptySet()
+        else -> null
+    }
+
+/** The car-data tiles an OBD adapter can fill whatever the other sources say. */
+private val OBD_FED = setOf(
+    BuiltinKind.TELEMETRY, BuiltinKind.OBD_DTC, BuiltinKind.OBD_ALL, BuiltinKind.WARMUP, BuiltinKind.BATTERY,
+    BuiltinKind.FILTER_CARE, BuiltinKind.ECO_DRIVE, BuiltinKind.BREAK_TIMER, BuiltinKind.ENGINE_TEMPS,
+    BuiltinKind.MY_READINGS, BuiltinKind.RANGE, BuiltinKind.FUEL_TO_DEST, BuiltinKind.GEAR
+)
+
+/**
+ * Whether this car can supply the tile's data from some source: an OBD adapter ([obd]: chosen, dialable or
+ * connected) for the tiles it fills, or any non-OBD source delivering one of the tile's keys ([keys], see
+ * [UnitPlatform.suppliedKeys]). A tile that is not about the car is always fed.
+ */
+internal fun BuiltinKind.carDataFrom(obd: Boolean, keys: Set<Key<*>>): Boolean {
+    val wanted = carDataKeys ?: return true
+    return (obd && this in OBD_FED) || wanted.any { it in keys }
+}
+
+/**
+ * The sources this kind needs to show anything. A car-data kind that something other than the adapter can feed
+ * (the box, the unit's bus, the car app) no longer asks for the adapter ([carDataFrom]).
  */
 internal val BuiltinKind.needs: Set<WidgetSource>
     get() = when (this) {
         BuiltinKind.TELEMETRY, BuiltinKind.OBD_DTC, BuiltinKind.OBD_ALL, BuiltinKind.WARMUP, BuiltinKind.BATTERY,
-        BuiltinKind.FILTER_CARE, BuiltinKind.ECO_DRIVE, BuiltinKind.ENGINE_TEMPS, BuiltinKind.MY_READINGS -> setOf(WidgetSource.OBD)
-        BuiltinKind.RANGE, BuiltinKind.FUEL_TO_DEST, BuiltinKind.GEAR -> if (UnitPlatform.delivers(Cap.BODY_TRIP)) emptySet() else setOf(WidgetSource.OBD)
+        BuiltinKind.FILTER_CARE, BuiltinKind.ECO_DRIVE, BuiltinKind.ENGINE_TEMPS, BuiltinKind.MY_READINGS,
+        BuiltinKind.BREAK_TIMER, BuiltinKind.RANGE, BuiltinKind.FUEL_TO_DEST, BuiltinKind.GEAR ->
+            if (carDataFrom(obd = false, keys = UnitPlatform.suppliedKeys())) emptySet() else setOf(WidgetSource.OBD)
         BuiltinKind.SHARE_ETA -> setOf(WidgetSource.PHONE)
         BuiltinKind.WEATHER, BuiltinKind.WEATHER_ALERTS, BuiltinKind.FUEL_PRICES, BuiltinKind.SPEED_CAMERAS,
         BuiltinKind.SPEED_LIMIT, BuiltinKind.HOME_WORK -> setOf(WidgetSource.INTERNET)
         BuiltinKind.CAN_MON -> setOf(WidgetSource.ROOT)
-        BuiltinKind.DOORS -> if (UnitPlatform.delivers(Cap.DOORS)) emptySet() else setOf(WidgetSource.ROOT)
+        BuiltinKind.DOORS -> if (carDataFrom(obd = false, keys = UnitPlatform.suppliedKeys())) emptySet() else setOf(WidgetSource.ROOT)
         BuiltinKind.CAR_STATUS -> setOf(WidgetSource.CARBOX)
         else -> emptySet()
     }
@@ -150,7 +193,7 @@ internal fun rememberAvailableSources(): Set<WidgetSource> {
         if (phone is PhoneLinkState.Connected) add(WidgetSource.PHONE)
         if (online) add(WidgetSource.INTERNET)
         if (access.root) add(WidgetSource.ROOT)
-        if (UnitPlatform.delivers(Cap.BODY_TRIP)) add(WidgetSource.CARBOX)
+        if (UnitPlatform.suppliedKeys().contains(K.ODOMETER)) add(WidgetSource.CARBOX)
     }
 }
 

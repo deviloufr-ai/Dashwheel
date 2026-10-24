@@ -903,6 +903,8 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     }
 
     val screenConfig = LocalConfiguration.current
+    // What the car says now, from any source: the templates leave out only the tiles no source can feed.
+    val suppliedKeys by UnitPlatform.supplied.collectAsState(initial = UnitPlatform.suppliedKeys())
     /** The car and screen a template is placed for, in the full-width ([half] false) or docked arrangement. */
     fun templateScreen(half: Boolean): TemplateScreen = TemplateScreen.of(
         // Upright, the Maps dock sits above or below the pages and takes height, not width.
@@ -911,6 +913,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         pageHeightDp = screenConfig.screenHeightDp * (if (ScreenShape.vertical) 0.9f else 0.8f) *
             if (half && ScreenShape.vertical) 1f - dockFraction.floatValue else 1f,
         obdPaired = obdAdapter.value.canDial || obdConnection.value == ObdConnectionState.CONNECTED,
+        carKeys = suppliedKeys,
         driverOnRight = CarProfileStore.current.driverOnRight,
         mapsDocked = half,
         dockApps = TemplatePlacer.dockApps(pages, appsByPackage.keys),

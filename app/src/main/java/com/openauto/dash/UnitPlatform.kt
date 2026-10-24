@@ -9,6 +9,8 @@ import com.openauto.dash.unit.PlainAdapters
 import com.openauto.dash.unit.QfAdapter
 import com.openauto.dash.unit.fyt.FytAdapter
 import com.openauto.dash.unit.mtc.MtcAdapter
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Key
 import com.openauto.dash.vehicle.Vehicle
 import com.openauto.unitproto.Detection
 import com.openauto.unitproto.UnitDetector
@@ -71,6 +73,25 @@ object UnitPlatform {
      * leave a parked car's tiles out.
      */
     fun delivers(cap: Cap): Boolean = adapter.caps.has(cap) || cap.key?.let { Vehicle.bus.has(it).value } == true
+
+    /**
+     * The kinds of car data this car can give, whoever supplies them: the keys the firmware claims ([Cap.key]; a
+     * claimed speed and revs stand for the revs too) and the keys the bus has now (a canbox, the unit's bus, the car
+     * app, the MCU, an adapter). What decides which car-data tiles are offered ([carDataFrom]), so a parked car with
+     * the canbox silent still counts.
+     */
+    fun suppliedKeys(): Set<Key<*>> = buildSet {
+        for (cap in dataCaps) if (adapter.caps.has(cap)) {
+            add(cap.key!!)
+            if (cap == Cap.SPEED_RPM) add(K.RPM)
+        }
+        for (key in K.all) if (Vehicle.bus.has(key).value) add(key)
+    }
+
+    /** [suppliedKeys] as the bus changes (the claims are fixed for the run). */
+    val supplied: Flow<Set<Key<*>>> by lazy {
+        combine(K.all.map { Vehicle.bus.has(it) }) { suppliedKeys() }.distinctUntilChanged()
+    }
 
     private val packages = ConcurrentHashMap<String, Boolean>()
     @Volatile private var appContext: Context? = null
