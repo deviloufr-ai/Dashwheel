@@ -38,6 +38,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
@@ -63,6 +64,7 @@ object SecondScreenBrightness {
         val minutes = flow { while (true) { emit(System.currentTimeMillis()); delay(60_000L) } }
         val choice = combine(AutoLight.by, AutoLight.from, AutoLight.to) { by, from, to -> Triple(by, from, to) }
         scope.launch {
+            var first = true
             combine(UnitSignals.headlightsOn, AutoLight.place, minutes, choice) { headlights, place, now, (by, from, to) ->
                 val sun = sunUp(now, place?.first, place?.second)
                 when (by) {
@@ -70,7 +72,13 @@ object SecondScreenBrightness {
                     AutoLightBy.SUN -> sun
                     AutoLightBy.TIMES -> dayByClock(now, from, to)
                 }
-            }.distinctUntilChanged().collect { _day.value = it }
+            }.distinctUntilChanged().collectLatest { isDay ->
+                // Auto headlights flick on and off under trees and bridges; each switch presses the
+                // monitor's buttons and opens its bar, so only a change that lasts is followed.
+                if (!first) delay(DAY_HOLD_MS)
+                first = false
+                _day.value = isDay
+            }
         }
         scope.launch {
             combine(DisplayLink.state, SecondScreenStore.config, _day) { link, config, isDay ->
@@ -89,6 +97,8 @@ object SecondScreenBrightness {
             }
         }
     }
+
+    private const val DAY_HOLD_MS = 120_000L
 
     /** Moves the level in use now (day or night) by [delta]. */
     fun nudge(context: Context, delta: Int) {
