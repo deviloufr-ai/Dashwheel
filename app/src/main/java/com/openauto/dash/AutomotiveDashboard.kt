@@ -119,10 +119,11 @@ private const val TEMPLATE_UNDO_MS = 15_000L
 internal const val MAX_UNDO = 30
 
 /**
- * Gap between the docked Maps window and the divider. The system claims the
- * 30 dp band around a freeform window as its resize handle (WindowManager's
- * RESIZE_HANDLE_WIDTH_IN_DP) and swallows drags that start in it; the divider
- * has to start outside that band to receive its drag at all.
+ * Gap between the docked Maps window and the divider, or the pages when the
+ * divider is away. The system claims the 30 dp band around a freeform window
+ * as its resize handle (WindowManager's RESIZE_HANDLE_WIDTH_IN_DP) and
+ * swallows drags that start in it; the divider, and a page swipe, have to
+ * start outside that band to be received at all.
  */
 private val DOCK_RESIZE_CLEARANCE = 32.dp
 
@@ -1473,8 +1474,8 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
             }
             // Upright, the dock sits above the pages (MAPS_LEFT) or below them (MAPS_RIGHT).
             val vertical = ScreenShape.vertical
-            // Drag the divider to trade room between the dock and the pages; the
-            // dock re-measures itself, so the Maps window follows once released.
+            // While arranging, drag the divider to trade room between the dock and
+            // the pages; the dock re-measures itself, so the Maps window follows once released.
             var splitLengthPx by remember { mutableIntStateOf(1) }
             /** One dashboard, by its index into pages. */
             val dashboardPage: @Composable (Int) -> Unit = { page ->
@@ -1650,8 +1651,11 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
                         PipAnchorCard(modifier = Modifier.fillMaxSize(), isDock = true)
                     }
                 },
+                // Only while arranging: the rest of the time its band was one more
+                // gap between Maps and the tiles (asked on the forum), and the dock's
+                // width is set like the tiles' places.
                 divider = {
-                    DockDivider(
+                    if (editing) DockDivider(
                         vertical = vertical,
                         onDrag = { d ->
                             val delta = d / splitLengthPx.coerceAtLeast(1)
@@ -2522,7 +2526,8 @@ private fun RemoveDashboardDialog(name: String, canTakeOut: Boolean, onEmpty: ()
 
 /**
  * The Maps dock, its divider and the pages side by side, or above one another
- * on an upright screen ([vertical]); without [docked], the pages alone. The
+ * on an upright screen ([vertical]); without [docked], the pages alone. A
+ * divider that draws nothing takes no room. The
  * dock's share is read while measuring, so dragging the divider re-measures
  * the panes without recomposing the dashboard. The three keep their places in
  * composition whichever side the dock is on ([dockFirst]): moving it never

@@ -120,6 +120,7 @@ class CarMediaController(private val context: Context) {
         HeadUnitMedia.removeListener(stockChanged)
         PlayerNotifications.removeListener(playerNotified)
         main.removeCallbacks(stockTick)
+        main.removeCallbacksAndMessages(skipCheck)
         // Or the next start finds "already shown" and never ticks again: the radio's tile then stood still.
         stockShown = null
         runCatching { sessionManager.removeOnActiveSessionsChangedListener(sessionsChangedListener) }
@@ -408,16 +409,65 @@ class CarMediaController(private val context: Context) {
         }
     }
 
-    fun next() {
-        if (DemoMode.isOn) return DemoMode.next()
-        stockShown?.let { return HeadUnitMedia.next(context, it) }
-        activeController?.transportControls?.skipToNext()
+    fun next() = skip(KeyEvent.KEYCODE_MEDIA_NEXT)
+
+    fun previous() = skip(KeyEvent.KEYCODE_MEDIA_PREVIOUS)
+
+    // --- A step the player doesn't take -----------------------------------
+    //
+    // A tile stood on 99.9 MHz while the wheel's buttons changed the station:
+    // the radio ignored the step the tile sent it. Where a step may go unheard
+    // (the unit's radio, a session that lists no skip), what plays is watched;
+    // when nothing changed soon after, the step goes again as a media key, the
+    // way the wheel sends it, and that player gets keys from then on.
+
+    /** Players that ignored a step and took the media key, for as long as the app runs. */
+    private val skipsByKey = HashSet<String>()
+    private val skipCheck = Any()
+
+    private fun skip(keyCode: Int) {
+        val forward = keyCode == KeyEvent.KEYCODE_MEDIA_NEXT
+        if (DemoMode.isOn) return if (forward) DemoMode.next() else DemoMode.previous()
+        val stock = stockShown
+        val controller = activeController
+        val player = stock ?: controller?.packageName
+        val unsure = when {
+            stock == HeadUnitMedia.BT_PACKAGE -> false
+            // A radio that isn't playing is opened by the step instead.
+            stock != null -> HeadUnitMedia.radioAlive()
+            controller != null -> controller.playbackState?.actions?.let { (it and skipAction(forward)) == 0L } ?: true
+            else -> false
+        }
+        if (unsure && player != null && player in skipsByKey) {
+            sendMediaKey(keyCode)
+            // Keys unheard as well (a player only slow to show its step the first time): back to its own step.
+            return watchSkip { skipsByKey.remove(player) }
+        }
+        when {
+            stock != null -> if (forward) HeadUnitMedia.next(context, stock) else HeadUnitMedia.previous(context, stock)
+            controller != null -> controller.transportControls.run { if (forward) skipToNext() else skipToPrevious() }
+            else -> return
+        }
+        if (unsure && player != null) watchSkip {
+            skipsByKey.add(player)
+            DebugLog.note(context, "media skip: $player took no step, sent as a media key")
+            sendMediaKey(keyCode)
+        }
     }
 
-    fun previous() {
-        if (DemoMode.isOn) return DemoMode.previous()
-        stockShown?.let { return HeadUnitMedia.previous(context, it) }
-        activeController?.transportControls?.skipToPrevious()
+    /** [unanswered] when what plays is still the same a moment after a step; a newer step replaces the watch. */
+    private fun watchSkip(unanswered: () -> Unit) {
+        val before = _mediaState.value
+        main.removeCallbacksAndMessages(skipCheck)
+        main.postDelayed({ if (!skipAnswered(before, _mediaState.value)) unanswered() }, skipCheck, SKIP_ANSWER_MS)
+    }
+
+    /** Routed like a wheel's media button: to the app holding the media button session. */
+    private fun sendMediaKey(keyCode: Int) {
+        val audio = MediaVolume.audio(context)
+        listOf(KeyEvent.ACTION_DOWN, KeyEvent.ACTION_UP).forEach { action ->
+            runCatching { audio.dispatchMediaKeyEvent(KeyEvent(action, keyCode)) }
+        }
     }
 
     companion object {
@@ -431,6 +481,9 @@ class CarMediaController(private val context: Context) {
             sharedInstance ?: synchronized(this) {
                 sharedInstance ?: CarMediaController(context.applicationContext).also { sharedInstance = it }
             }
+
+        /** How long a step has to change what plays before it goes again as a media key; a radio's seek takes a moment. */
+        private const val SKIP_ANSWER_MS = 3_000L
 
         /** How often the head unit player's play state and position are read again while it's shown. */
         private const val STOCK_TICK_MS = 1_000L
@@ -498,3 +551,10 @@ internal fun withStation(state: MediaState): MediaState {
     if (station.isEmpty() || state.artist.contains(station, ignoreCase = true)) return state
     return state.copy(artist = listOf(state.artist, station).filter { it.isNotBlank() }.joinToString(" · "))
 }
+
+private fun skipAction(forward: Boolean): Long =
+    if (forward) PlaybackState.ACTION_SKIP_TO_NEXT else PlaybackState.ACTION_SKIP_TO_PREVIOUS
+
+/** Whether a step was heard: another song or station is shown, or the player stopped showing one. */
+internal fun skipAnswered(before: MediaState, now: MediaState): Boolean =
+    before.title != now.title || before.artist != now.artist || before.station != now.station || before.hasMedia != now.hasMedia

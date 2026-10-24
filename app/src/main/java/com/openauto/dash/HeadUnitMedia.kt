@@ -215,7 +215,8 @@ object HeadUnitMedia {
         context.sendBroadcast(Intent(ACTION_BT_CONTROL).putExtra("command", command))
     }
 
-    private fun radioAlive(): Boolean = systemProperty("sys.qf.radio.status") == "true"
+    /** The radio is playing, and so takes its step actions (or ignores them: [CarMediaController] watches). */
+    internal fun radioAlive(): Boolean = systemProperty("sys.qf.radio.status") == "true"
 
     private fun openRadio(context: Context) {
         context.launchSafely(Intent().setComponent(ComponentName(RADIO_PACKAGE, RADIO_ACTIVITY)))
