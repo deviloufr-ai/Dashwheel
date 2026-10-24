@@ -21,4 +21,6 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "Dashwheel"
-include(":app", ":companion", ":link", ":display", ":unitproto", ":fakeunit", ":baselineprofile")
+include(":app", ":companion", ":link", ":display", ":unitproto", ":fakeunit", ":baselineprofile", ":roadreplay")
+// Road watch's replay harness: a PC tool over recorded drives (tools/roadwatch-replay/README.md).
+project(":roadreplay").projectDir = file("tools/roadwatch-replay")

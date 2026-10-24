@@ -56,7 +56,7 @@ jobs:
         run: ./gradlew :app:lintPlayDebug :companion:lintPlayDebug --stacktrace
 
       - name: Unit tests, GitHub edition
-        run: ./gradlew :app:testGithubDebugUnitTest :companion:testGithubDebugUnitTest :link:test :display:test :unitproto:test --stacktrace
+        run: ./gradlew :app:testGithubDebugUnitTest :companion:testGithubDebugUnitTest :link:test :display:test :unitproto:test :roadreplay:test --stacktrace
 
       - name: Unit tests, Play edition
         run: ./gradlew :app:testPlayDebugUnitTest --stacktrace
