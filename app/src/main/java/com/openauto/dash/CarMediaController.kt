@@ -410,13 +410,13 @@ class CarMediaController(private val context: Context) {
 
     fun next() {
         if (DemoMode.isOn) return DemoMode.next()
-        stockShown?.let { return HeadUnitMedia.next(context, it) }
+        stockShown?.let { return HeadUnitMedia.next(context, it, activeController) }
         activeController?.transportControls?.skipToNext()
     }
 
     fun previous() {
         if (DemoMode.isOn) return DemoMode.previous()
-        stockShown?.let { return HeadUnitMedia.previous(context, it) }
+        stockShown?.let { return HeadUnitMedia.previous(context, it, activeController) }
         activeController?.transportControls?.skipToPrevious()
     }
 
