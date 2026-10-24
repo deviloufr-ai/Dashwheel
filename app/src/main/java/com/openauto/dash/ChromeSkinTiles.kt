@@ -1,5 +1,8 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.any
+import com.openauto.dash.vehicle.rememberPanelGauges
+import com.openauto.dash.vehicle.K
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -405,7 +408,7 @@ private fun ChromeSpeed(env: SkinTileEnv) {
         SpeedLimit.start(context)
         onDispose { SpeedLimit.stop() }
     }
-    val speed = rememberSpeedKmh(env)
+    val speed = rememberSpeedKmh()
     val limit by SpeedLimit.limit.collectAsState()
     val units = LocalUnits.current
     val over = speedOver(speed)
@@ -703,7 +706,7 @@ private fun ChromeDisc(ms: MediaState, size: Dp) {
  */
 @Composable
 private fun ChromeRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     val units = LocalUnits.current
     if (fuel == null) {
         Box(Modifier.fillMaxSize().graphicsLayer().chromeHolo(editing = env.editing)) { StandardSkinnedTile(item, env) }
@@ -813,7 +816,9 @@ private fun ChromeWeather(env: SkinTileEnv) {
 private fun ChromeTelemetry(env: SkinTileEnv) {
     val state = env.obdConnection
     val units = LocalUnits.current
-    if (state != ObdConnectionState.CONNECTED) {
+    // Whatever the car answers is shown, adapter or not.
+    val g = rememberPanelGauges(K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
+    if (state != ObdConnectionState.CONNECTED && !g.any) {
         BoxWithConstraints(Modifier.fillMaxSize().graphicsLayer().chromeHolo(editing = env.editing)) {
             val pad = (min(maxWidth.value, maxHeight.value) * 0.08f).coerceIn(12f, 22f).dp
             val roomy = maxWidth >= 380.dp
@@ -834,12 +839,11 @@ private fun ChromeTelemetry(env: SkinTileEnv) {
         }
         return
     }
-    val d = env.obdData
     val readings = ArrayList<Triple<String, String, Boolean>>(4)
-    readings += Triple(stringResource(R.string.chrome_revs), groupThousands(d.rpm), false)
-    if (d.coolantTempC > 0) readings += Triple(stringResource(R.string.chrome_coolant), "${units.temp(d.coolantTempC)}°", d.coolantTempC >= COOLANT_WARNING_C)
-    if (d.voltage > 0.0) readings += Triple(stringResource(R.string.chrome_battery), String.format(Locale.getDefault(), "%.1f V", d.voltage), d.voltage !in BATTERY_OK_V)
-    readings += Triple(stringResource(R.string.chrome_load), "${d.engineLoadPct} %", false)
+    g.rpm?.let { readings += Triple(stringResource(R.string.chrome_revs), groupThousands(it), false) }
+    g.coolantTempC?.let { readings += Triple(stringResource(R.string.chrome_coolant), "${units.temp(it)}°", it >= COOLANT_WARNING_C) }
+    g.voltage?.let { readings += Triple(stringResource(R.string.chrome_battery), String.format(Locale.getDefault(), "%.1f V", it), it !in BATTERY_OK_V) }
+    g.engineLoadPct?.let { readings += Triple(stringResource(R.string.chrome_load), "$it %", false) }
     BoxWithConstraints(Modifier.fillMaxSize().graphicsLayer()) {
         val gap = 10.dp
         // Chips at least 140 dp wide; one row on a wide or low tile, else two by two.

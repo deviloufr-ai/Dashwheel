@@ -1,5 +1,8 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.any
+import com.openauto.dash.vehicle.rememberPanelGauges
+import com.openauto.dash.vehicle.K
 import android.graphics.Bitmap
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
@@ -423,7 +426,7 @@ private fun ExSpeed(env: SkinTileEnv) {
         SpeedLimit.start(context)
         onDispose { SpeedLimit.stop() }
     }
-    val speed = rememberSpeedKmh(env)
+    val speed = rememberSpeedKmh()
     val limit by SpeedLimit.limit.collectAsState()
     val units = LocalUnits.current
     val over = speedOver(speed)
@@ -945,7 +948,6 @@ private fun ExWeather(env: SkinTileEnv) {
 @Composable
 private fun ExTelemetry(env: SkinTileEnv) {
     val state = env.obdConnection
-    val connected = state == ObdConnectionState.CONNECTED
     val fill = ExTone.lilac
     val ink = ExTone.onLilac
     val interaction = remember { MutableInteractionSource() }
@@ -964,7 +966,7 @@ private fun ExTelemetry(env: SkinTileEnv) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 TelemetryGear(flower, ink, fill)
                 Spacer(Modifier.width(18.dp))
-                TelemetryRevs(connected, innerW - flower - 18.dp, flower, ink)
+                TelemetryRevs(innerW - flower - 18.dp, flower, ink)
             }
             if (innerH >= 150.dp) {
                 Spacer(Modifier.height(10.dp))
@@ -983,9 +985,9 @@ private fun TelemetryGear(size: Dp, ink: Color, fill: Color) {
 }
 
 @Composable
-private fun TelemetryRevs(connected: Boolean, w: Dp, h: Dp, ink: Color) {
+private fun TelemetryRevs(w: Dp, h: Dp, ink: Color) {
     val gear by rememberGear()
-    val rpm = gear.rpm.takeIf { connected || it != null }
+    val rpm = gear.rpm
     val size = exFit("8 888", true, w * 0.8f, h * 0.7f, 26f, 110f)
     Row {
         ExLine(rpm?.let { groupThousands(it) } ?: "--", exText(size, ink, hero = true), Modifier.alignByBaseline(), overflow = TextOverflow.Clip)
@@ -999,20 +1001,22 @@ private fun TelemetryRevs(connected: Boolean, w: Dp, h: Dp, ink: Color) {
 private fun TelemetryChips(env: SkinTileEnv, ink: Color) {
     val state = env.obdConnection
     val units = LocalUnits.current
-    when (state) {
-        ObdConnectionState.CONNECTED -> {
-            val d = env.obdData
+    // Whatever the car answers is shown, adapter or not.
+    val g = rememberPanelGauges(K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
+    val gear by rememberGear()
+    when {
+        state == ObdConnectionState.CONNECTED || g.any || gear.rpm != null -> {
             ExFitRow(10.dp) {
-                if (d.coolantTempC > 0) {
-                    ExChip("${stringResource(R.string.expressive_coolant)} ${units.temp(d.coolantTempC)}°", if (d.coolantTempC >= COOLANT_WARNING_C) DashColors.Warning else DashColors.Good, 17f)
+                g.coolantTempC?.let {
+                    ExChip("${stringResource(R.string.expressive_coolant)} ${units.temp(it)}°", if (it >= COOLANT_WARNING_C) DashColors.Warning else DashColors.Good, 17f)
                 }
-                if (d.voltage > 0.0) {
-                    ExChip(String.format(Locale.getDefault(), "%s %.1f V", stringResource(R.string.expressive_battery), d.voltage), if (d.voltage !in BATTERY_OK_V) DashColors.Warning else DashColors.Good, 17f)
+                g.voltage?.let {
+                    ExChip(String.format(Locale.getDefault(), "%s %.1f V", stringResource(R.string.expressive_battery), it), if (it !in BATTERY_OK_V) DashColors.Warning else DashColors.Good, 17f)
                 }
-                ExChip("${stringResource(R.string.expressive_load)} ${d.engineLoadPct} %", ExTone.dotRain, 17f)
+                g.engineLoadPct?.let { ExChip("${stringResource(R.string.expressive_load)} $it %", ExTone.dotRain, 17f) }
             }
         }
-        ObdConnectionState.CONNECTING -> ExLine(stringResource(R.string.horizon_obd_connecting), exText(18f, ink, FontWeight.Bold))
+        state == ObdConnectionState.CONNECTING -> ExLine(stringResource(R.string.horizon_obd_connecting), exText(18f, ink, FontWeight.Bold))
         else -> ExFitRow(10.dp) {
             ExPillButton(stringResource(R.string.horizon_connect_obd), ink, ExTone.lilac, !env.editing, env.onConnectObd)
             if (state == ObdConnectionState.ERROR) {

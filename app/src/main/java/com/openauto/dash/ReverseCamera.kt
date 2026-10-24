@@ -21,6 +21,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
+import com.openauto.dash.vehicle.reversingNow
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -274,7 +275,7 @@ internal object ReverseCamera {
             withContext(NonCancellable) { if (after.back.isNotEmpty()) runCatching { DockShell.shell(context, after.back.joinToString("; ")) } }
             throw e
         }
-        val still = CarBox.reversing.value
+        val still = reversingNow()
         DockShell.shell(context, (after.back + if (still) listOf("setprop sys.qf.backcar_state true", "echo 2 > $INPUT_SWITCH") else listOf("true")).joinToString("; "))
         still
     }.onFailure {
@@ -376,8 +377,8 @@ internal object ReverseCamera {
         // Given up for this reverse. Once reverse is over (it ended while the
         // camera was being taken) there is nothing to give up, and "failed"
         // would only be met by the next reverse, which then didn't even try.
-        _state.value = if (CarBox.reversing.value) State.FAILED else State.OFF
-        if (romStopped && CarBox.reversing.value) {
+        _state.value = if (reversingNow()) State.FAILED else State.OFF
+        if (romStopped && reversingNow()) {
             romStopped = false
             scope.launch {
                 runCatching { DockShell.shell(context, "am broadcast -a com.qf.action.BACKCAR_START -p $ROM_APP") }

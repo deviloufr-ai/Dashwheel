@@ -1,7 +1,10 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.K
 import android.content.Context
 import android.media.AudioManager
+import com.openauto.dash.vehicle.speedKmhNow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -153,6 +156,8 @@ object SpeedVolume {
     /** Runs while the feature is on; switched off, it gives back what it added. */
     private suspend fun follow(app: Context) {
         var gps = false
+        // The speed is read by snapshot in [tick]: it stays wanted while the feature runs.
+        val hold = Vehicle.bus.hold(K.SPEED)
         try {
             while (true) {
                 if (!gps) gps = LocationFeed.acquire(app)
@@ -160,6 +165,7 @@ object SpeedVolume {
                 delay(TICK_MS)
             }
         } finally {
+            hold.release()
             if (gps) LocationFeed.release()
             giveBack(app)
         }
@@ -207,9 +213,7 @@ object SpeedVolume {
         boost = 0
     }
 
-    private fun speedKmh(): Int? =
-        if (ObdBluetoothManager.connectionState.value == ObdConnectionState.CONNECTED) ObdBluetoothManager.data.value.speedKmh
-        else LocationFeed.freshSpeedKmh.value
+    private fun speedKmh(): Int? = speedKmhNow()
 
     private fun inCall(audio: AudioManager): Boolean =
         audio.mode == AudioManager.MODE_IN_CALL || audio.mode == AudioManager.MODE_IN_COMMUNICATION

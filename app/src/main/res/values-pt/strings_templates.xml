@@ -8,7 +8,7 @@
     <string name="templates_road_trip_blurb">Mapa grande, autonomia, meteorologia e paragens para viagens longas</string>
     <string name="templates_car_health">Saúde do carro</string>
     <string name="templates_car_health_blurb">Dados do carro e códigos de avaria no Início</string>
-    <string name="templates_no_obd">Ainda não escolheu um adaptador OBD, por isso os widgets de dados do carro ficam de fora.</string>
+    <string name="templates_no_car_data">Ainda não há nenhuma fonte de dados do carro, por isso os widgets de dados do carro ficam de fora.</string>
     <string name="templates_fill_this">Preencher este painel</string>
     <string name="templates_fill_this_hint">Só a página do modelo para %1$s vai para ele.</string>
     <string name="templates_fill">Preencher</string>

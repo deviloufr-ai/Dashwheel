@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.openauto.dash.vehicle.reversingNow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -168,7 +169,7 @@ object VolumeOverlay {
                     val w = window ?: AlertWindow(
                         app, "volume", AlertKind.VOLUME.cardAt.gravity,
                         // Turned while reversing: above the camera, where the firmware's showed too.
-                        aboveCamera = { CarBox.reversing.value },
+                        aboveCamera = { reversingNow() },
                         rank = AlertKind.VOLUME.rank
                     ).also { window = it }
                     if (w.canShow()) w.show(style) { VolumeAlertContent(style) }

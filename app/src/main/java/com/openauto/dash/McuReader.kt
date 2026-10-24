@@ -24,6 +24,13 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
+import com.openauto.dash.vehicle.FUEL_HOLD_MS
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Source
+import com.openauto.dash.vehicle.SourceLiveness
+import com.openauto.dash.vehicle.SourceKind
+import com.openauto.dash.vehicle.Vehicle
+import kotlin.math.roundToInt
 
 /**
  * Reads the head unit's **CANbox/MCU** stream: straight from the MCU service
@@ -41,6 +48,17 @@ object McuReader {
 
     data class Entry(val key: String, val cmdId: Int, val bytes: List<Int>, val hex: String, val changedAt: Long)
 
+    /** The MCU on the vehicle bus: the doors of its status frame (65 .. 0C 38), as the car says them. */
+    private val busPublisher = Vehicle.bus.register(Source("qf.mcu", SourceKind.MCU, "Unit MCU"))
+
+    /**
+     * The fuel byte and the range word the driver taught ([saveFuelMapping], [saveRangeMapping]) on the vehicle bus.
+     * They are the driver's own reading, so they outrank the car app's litres and the adapter's PID, as they always did.
+     */
+    private val learnedPublisher = Vehicle.bus.register(Source("learned.can", SourceKind.LEARNED, "Learned fuel and range"))
+    @Volatile private var learnedFuel: Int? = null
+    @Volatile private var learnedRange: Int? = null
+
     private val _entries = MutableStateFlow<List<Entry>>(emptyList())
     val entries: StateFlow<List<Entry>> = _entries.asStateFlow()
 
@@ -53,15 +71,9 @@ object McuReader {
     val changes: SharedFlow<Change> = _changes.asSharedFlow()
 
     /**
-     * The door bitfield byte from the MCU status frame `41 FD 0C 38 <bits> …`
-     * (cmdId 65, sub 0x0C, subtype 0x38). Confirmed on the C4 Picasso: bit 0x80
-     * = front-left door. Other bits map to the other doors (to be confirmed).
-     * null until first seen.
+     * Decoded door open/closed state (C4 Picasso bit map, confirmed 2026-09-20), from the door bitfield byte of the MCU
+     * status frame `41 FD 0C 38 <bits> …` (cmdId 65, sub 0x0C, subtype 0x38; bit 0x80 = front left).
      */
-    private val _doorBits = MutableStateFlow<Int?>(null)
-    val doorBits: StateFlow<Int?> = _doorBits.asStateFlow()
-
-    /** Decoded door open/closed state (C4 Picasso bit map, confirmed 2026-09-20). */
     data class DoorState(
         val frontLeft: Boolean = false,
         val frontRight: Boolean = false,
@@ -72,9 +84,6 @@ object McuReader {
     ) {
         val anyOpen: Boolean get() = frontLeft || frontRight || rearLeft || rearRight || tailgate || bonnet
     }
-
-    private val _doorState = MutableStateFlow<DoorState?>(null)
-    val doorState: StateFlow<DoorState?> = _doorState.asStateFlow()
 
     // --- Fuel (CANbox) ------------------------------------------------------
     // The C4 Picasso's OBD does not report fuel level, but the CANbox does —
@@ -128,7 +137,7 @@ object McuReader {
     /** Persist the learned range word; decodes from the frame already seen, else the next one. */
     internal fun saveRangeMapping(m: RangeMapping) {
         rangeMapping = m
-        setRange(_entries.value.firstOrNull { it.key == m.key }?.let { m.decode(it.bytes) })
+        setLearnedRange(_entries.value.firstOrNull { it.key == m.key }?.let { m.decode(it.bytes) })
         appContext?.getSharedPreferences(PREFS, Context.MODE_PRIVATE)?.edit()
             ?.putString("range_key", m.key)
             ?.putInt("range_byte", m.index)
@@ -140,7 +149,7 @@ object McuReader {
     /** Forget the learned range word (e.g. to pick another one). */
     fun clearRangeMapping() {
         rangeMapping = null
-        setRange(null)
+        setLearnedRange(null)
         appContext?.getSharedPreferences(PREFS, Context.MODE_PRIVATE)?.edit()
             ?.remove("range_key")?.remove("range_byte")?.remove("range_be")?.remove("range_scale")?.apply()
     }
@@ -205,50 +214,42 @@ object McuReader {
     /** Forget the learned fuel byte (e.g. to re-run the finder). */
     fun clearFuelMapping() {
         fuelMapping = null
-        setFuel(null)
+        setLearnedFuel(null)
         appContext?.getSharedPreferences(PREFS, Context.MODE_PRIVATE)?.edit()
             ?.remove("fuel_key")?.remove("fuel_byte")?.remove("fuel_fullraw")?.apply()
     }
 
-    // The car's real doors, fuel and range, kept up to date while the demo shows
-    // its own and put back when it ends.
-    @Volatile private var realDoors: DoorState? = null
-    @Volatile private var realFuel: Int? = null
-    @Volatile private var realRange: Int? = null
-
-    // The car's own doors, before the learned ones ([LearnedSignals]) are laid over them.
-    @Volatile private var builtInDoors: DoorState? = null
-    @Volatile private var learnedDoors: Map<CarSignal, Boolean> = emptyMap()
-
-    private fun setDoors(v: DoorState?) {
-        builtInDoors = v
-        publishDoors()
-    }
-
-    /** The car itself tells its doors (the car box or its app), learned ones aside. */
-    internal val ownDoorsKnown: Boolean get() = builtInDoors != null
-
-    /** The doors the Signal Finder learned ([LearnedSignals]), over the car's own. */
-    internal fun learnedDoorsWrite(learned: Map<CarSignal, Boolean>) {
-        learnedDoors = learned
-        publishDoors()
-    }
-
-    @Synchronized
-    private fun publishDoors() {
-        val v = mergeDoors(builtInDoors, learnedDoors)
-        realDoors = v
-        if (!DemoMode.isOn) _doorState.value = v
-    }
-
     private fun setFuel(v: Int?) {
-        realFuel = v
-        if (!DemoMode.isOn) _fuelPercent.value = v
+        _fuelPercent.value = v
     }
 
     private fun setRange(v: Int?) {
-        realRange = v
-        if (!DemoMode.isOn) _rangeKm.value = v
+        _rangeKm.value = v
+    }
+
+    /** The learned fuel byte's reading: the store, and the bus as the learned source. */
+    private fun setLearnedFuel(v: Int?) {
+        setFuel(v)
+        if (learnedFuel == v) return
+        learnedFuel = v
+        publishLearned()
+    }
+
+    private fun setLearnedRange(v: Int?) {
+        setRange(v)
+        if (learnedRange == v) return
+        learnedRange = v
+        publishLearned()
+    }
+
+    /**
+     * Fuel and range together, as an empty tank is judged against the range ([fuelPercentToPublish]): the range
+     * the learned word gives, else the one on the bus. Said on a change, and a parked car says nothing, so they are kept long.
+     */
+    private fun publishLearned() {
+        val range = learnedRange ?: Vehicle.bus.sample(K.RANGE).value?.takeUnless { it.source.kind == SourceKind.COMPUTED }?.value?.roundToInt()
+        learnedPublisher.put(K.FUEL_LEVEL, fuelPercentToPublish(learnedFuel, range)?.toDouble(), ttlMs = FUEL_HOLD_MS)
+        learnedPublisher.put(K.RANGE, learnedRange?.toDouble(), ttlMs = FUEL_HOLD_MS)
     }
 
     /**
@@ -260,21 +261,23 @@ object McuReader {
         if (rangeMapping == null && rangeKm != null) setRange(rangeKm)
     }
 
-    /** [DemoMode]'s doors, fuel and range. */
-    internal fun demoWrite(doors: DoorState?, fuelPercent: Int?, rangeKm: Int?) {
-        _doorState.value = doors
-        _fuelPercent.value = fuelPercent
-        _rangeKm.value = rangeKm
-    }
-
-    /** The demo is over: the car's doors, fuel and range back, as they are now. */
-    internal fun endDemo() {
-        _doorState.value = realDoors
-        _fuelPercent.value = realFuel
-        _rangeKm.value = realRange
-    }
-
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+    /**
+     * The MCU's liveness, for what it puts as `qf.mcu` here and in [UnitSignals] (doors, volts, headlights, handbrake). The
+     * MCU says most of those on a change, and a car without a CAN box says little else, so only a long silence means the
+     * MCU is gone: [MCU_SILENCE_MS], as long as the volts are believed. With a CAN box its frames repeat several times a
+     * second, and the stream stops at once with the service ([mcuStopped]). Silent: everything it put is withdrawn.
+     */
+    private val mcuLive = SourceLiveness.of(busPublisher, MCU_SILENCE_MS, scope)
+
+    /** Any message from the MCU, by its service ([McuFeed]) or by the root logcat. */
+    internal fun heardMcu() = mcuLive.heard()
+
+    /** The MCU service went away ([McuFeed]): what it said no longer holds. */
+    internal fun mcuStopped() = mcuLive.stopped()
+
+    internal const val MCU_SILENCE_MS = 10 * 60_000L
     // All guarded by this object's lock.
     private var job: Job? = null
     private var process: Process? = null
@@ -294,8 +297,8 @@ object McuReader {
     /** A logcat that ran this long was working: the next failure starts the backoff over. */
     private const val HEALTHY_MS = 60_000L
 
-    /** What the CAN monitor lists: the MCU stream's frames, then the values of another family's bus ([CarFeed]). */
-    val monitorEntries: StateFlow<List<Entry>> = combine(_entries, CarFeed.rawEntries) { mcu, bus -> mcu + bus }
+    /** What the CAN monitor lists: the MCU stream's frames, then the values of another family's bus ([UnitBus]). */
+    val monitorEntries: StateFlow<List<Entry>> = combine(_entries, UnitBus.rawEntries) { mcu, bus -> mcu + bus }
         // Only while the monitor shows: the list was joined again at every changed frame for nobody.
         .stateIn(scope, SharingStarted.WhileSubscribed(), emptyList())
 
@@ -415,6 +418,7 @@ object McuReader {
     private fun parse(line: String, live: Boolean = true) {
         val m = regex.find(line) ?: return
         val cmdId = m.groupValues[1].toIntOrNull() ?: return
+        if (live) heardMcu()
         val bytes = m.groupValues[2].trim().split(whitespace)
             .filter { it.isNotEmpty() }
             .mapNotNull { it.toIntOrNull(16) }
@@ -463,30 +467,23 @@ object McuReader {
         // Fuel: the learned CANbox byte → percent, calibrated against a full tank.
         fuelMapping?.let { fm ->
             if (key == fm.key && bytes.size > fm.byteIndex && fm.fullRaw > 0) {
-                setFuel((bytes[fm.byteIndex] * 100 / fm.fullRaw).coerceIn(0, 100))
+                setLearnedFuel((bytes[fm.byteIndex] * 100 / fm.fullRaw).coerceIn(0, 100))
             }
         }
 
         // Range: the learned 16-bit word → km, straight from the car's trip computer.
         rangeMapping?.let { rm ->
-            if (key == rm.key) rm.decode(bytes)?.let { setRange(it) }
+            if (key == rm.key) rm.decode(bytes)?.let { setLearnedRange(it) }
         }
 
         // Door bitfield: cmdId 65, [.. 0C 38 <bits> ..] → byte index 4.
         if (cmdId == 65 && bytes.size > 4 && bytes[2] == 0x0C && bytes[3] == 0x38) {
             val b = bytes[4]
-            _doorBits.value = b
-            setDoors(doorsOf(b))
+            busPublisher.put(K.DOORS, doorsOf(b))
         }
     }
 
-    /** The doors from the car app's shared data ([CarBox]), the same bits as the MCU frame's. */
-    internal fun carBoxDoors(bits: Int) = setDoors(doorsOf(bits))
-
-    /** The doors as another family's bus decoded them ([CarFeed]). */
-    internal fun busDoorsWrite(state: DoorState) = setDoors(state)
-
-    private fun doorsOf(b: Int) = DoorState(
+    internal fun doorsOf(b: Int) = DoorState(
         frontLeft = b and 0x80 != 0,
         frontRight = b and 0x40 != 0,
         rearLeft = b and 0x20 != 0,

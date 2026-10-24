@@ -1,5 +1,9 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberFuelInfo
+import com.openauto.dash.vehicle.rememberGaugeInt
+import com.openauto.dash.vehicle.rememberSpeedSourceKind
+import com.openauto.dash.vehicle.speedSourceWord
 import android.content.Context
 import android.content.Intent
 import android.location.Location
@@ -14,6 +18,10 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.rememberDisplaySpeedKmh
+import com.openauto.dash.vehicle.rememberVehicle
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import androidx.compose.runtime.mutableFloatStateOf
@@ -85,7 +93,7 @@ internal fun rememberWallClock(stepMs: Long): LongState {
     val now = remember { mutableLongStateOf(System.currentTimeMillis()) }
     val active = LocalPageActive.current
     // The wait below stands still while the unit sleeps: read again at each switch-on.
-    val ignition by CarPower.ignition.collectAsState()
+    val ignition = rememberVehicle(K.IGNITION)
     LaunchedEffect(stepMs, active, ignition) {
         if (!active) return@LaunchedEffect
         now.longValue = System.currentTimeMillis()
@@ -162,12 +170,12 @@ internal fun Dp.fixedSp(): TextUnit = fixedSp(value)
 internal fun groupThousands(n: Int, separator: Char = '\u202F'): String =
     if (n < 1000) "$n" else "${n / 1000}$separator${(n % 1000).toString().padStart(3, '0')}"
 
-/** Where a speed readout comes from: "OBD", "GPS", or the skin's own [none] wording when there is no speed. */
-internal fun speedSource(obd: Boolean, speed: Int?, none: String): String = when {
-    obd -> "OBD"
-    speed != null -> "GPS"
-    else -> none
-}
+/**
+ * Where a speed readout comes from, named from the resolved speed's source ([speedSourceWord]: "OBD", "GPS" or "CAR"),
+ * or the skin's own [none] wording when there is no speed.
+ */
+@Composable
+internal fun speedSource(none: String): String = speedSourceWord(rememberSpeedSourceKind()) ?: none
 
 /** Fuel at or under this share (%) reads as the reserve in every skin. */
 internal const val SKIN_LOW_FUEL_PCT = 12
@@ -280,47 +288,23 @@ internal fun Modifier.cachedDraw(vararg keys: Any?, block: CacheDrawScope.() -> 
     this then remember(*keys) { Modifier.drawWithCache(block) }
 
 /**
- * Speed in km/h from OBD when connected, else from a GPS fix under 5 s old,
- * else null; both with the driver's correction ([SpeedCorrection]). Keeps
- * the GPS feed running while on screen.
+ * The speed to show, in km/h: the car's (OBD, car app, unit bus), else a GPS fix
+ * under 5 s old, else null; with the driver's correction ([rememberDisplaySpeedKmh]).
+ * Keeps the GPS feed running while on screen.
  */
 @Composable
-internal fun rememberSpeedKmh(obdData: ObdData, connection: ObdConnectionState): Int? = rememberSpeedKmhFrom(obdData.speedKmh, connection)
-
-/**
- * [rememberSpeedKmh] for a skin's tile. Only the OBD speed is followed, not
- * every OBD sample (the revs move several times a second), so a speed tile
- * redraws when the speed changes.
- */
-@Composable
-internal fun rememberSpeedKmh(env: SkinTileEnv): Int? {
-    val obdSpeed by remember(env) { derivedStateOf { env.obdData.speedKmh } }
-    return rememberSpeedKmhFrom(obdSpeed, env.obdConnection)
-}
-
-/** [rememberSpeedKmh] from the OBD feed's state, following its speed only. */
-@Composable
-internal fun rememberSpeedKmh(obd: State<ObdData>, connection: ObdConnectionState): Int? {
-    val obdSpeed by remember(obd) { derivedStateOf { obd.value.speedKmh } }
-    return rememberSpeedKmhFrom(obdSpeed, connection)
-}
-
-@Composable
-internal fun rememberSpeedKmhFrom(obdSpeedKmh: Int, connection: ObdConnectionState): Int? {
+internal fun rememberSpeedKmh(): Int? {
     UseLocationFeed()
-    val gpsKmh by LocationFeed.freshSpeedKmh.collectAsState()
-    // Followed, so a change in Settings shows at once.
-    SpeedCorrection.offsetKmh.collectAsState().value
-    return if (connection == ObdConnectionState.CONNECTED) obdSpeedKmh else gpsKmh?.let(SpeedCorrection::correctedGps)
+    return rememberDisplaySpeedKmh()
 }
 
 /** Whether [rememberSpeedKmh] has a speed to give, without following the speed itself (it changes at every reading). */
 @Composable
-internal fun rememberHasSpeed(connection: ObdConnectionState): Boolean {
+internal fun rememberHasSpeed(): Boolean {
     UseLocationFeed()
-    val gps by remember { LocationFeed.freshSpeedKmh.map { it != null }.distinctUntilChanged() }
-        .collectAsState(initial = remember { LocationFeed.freshSpeedKmh.value != null })
-    return connection == ObdConnectionState.CONNECTED || gps
+    val has by remember { Vehicle.bus.value(K.SPEED).map { it != null }.distinctUntilChanged() }
+        .collectAsState(initial = remember { Vehicle.bus.now(K.SPEED) != null })
+    return has
 }
 
 /**
@@ -333,13 +317,12 @@ internal fun rememberHasSpeed(connection: ObdConnectionState): Boolean {
 internal fun rememberLocationCell(vararg perDegree: Int): State<Location?> =
     remember { LocationFeed.cell(*perDegree) }.collectAsState(initial = remember { LocationFeed.location.value })
 
-/** Weather at the car, refreshed the way the standard weather tile does it; null until the first fetch. */
+/** Keeps the forecast at the car fresh while composed, the way the standard weather tile does; reads nothing. */
 @Composable
-internal fun rememberWeather(): Weather? {
+internal fun KeepWeatherFresh() {
     UseLocationFeed()
     // The fetch is keyed on the position to 1/20 degree: nothing else of it is read.
     val location by rememberLocationCell(20)
-    val weather by WeatherRepo.weather.collectAsState()
     LaunchedEffect(location?.latitude?.let { (it * 20).roundToInt() }, location?.longitude?.let { (it * 20).roundToInt() }) {
         val l = location ?: return@LaunchedEffect
         while (true) {
@@ -347,18 +330,25 @@ internal fun rememberWeather(): Weather? {
             delay(60_000)
         }
     }
+}
+
+/** Weather at the car, refreshed the way the standard weather tile does it ([KeepWeatherFresh]); null until the first fetch. */
+@Composable
+internal fun rememberWeather(): Weather? {
+    KeepWeatherFresh()
+    val weather by WeatherRepo.weather.collectAsState()
     return weather
 }
 
 /**
- * The outside temperature in °C: the car's own sensor when it sends one
- * (offline too), else the weather's; null until either is known.
+ * The outside temperature in °C ([K.AMBIENT_TEMP]): the car's own sensor when it sends one
+ * (offline too), else the forecast's; null until either is known. The forecast is kept fresh
+ * for as long as this is composed, since it is what shows when the car says nothing.
  */
 @Composable
 internal fun rememberOutsideTempC(): Double? {
-    val weather = rememberWeather()
-    val car by UnitSignals.outsideTempC.collectAsState()
-    return weather?.tempC ?: car?.takeUnless { DemoMode.isOn }
+    KeepWeatherFresh()
+    return rememberVehicle(K.AMBIENT_TEMP)
 }
 
 /** Why [rememberWeather] has nothing yet, so a skin says "no GPS" or "offline" in its own words and not "loading" all drive. */
@@ -370,43 +360,18 @@ internal fun rememberWeatherWait(): WeatherWait {
 }
 
 /**
- * Fuel from the CANbox when learned, else the OBD fuel PID, with the car's own
- * distance to empty when its CANbox signal is known; null when none of them is
+ * The fuel level ([K.FUEL_LEVEL]: the learned CANbox byte, else the car app's, else the OBD PID, by
+ * rank) with the car's own distance to empty ([K.RANGE]) when it is known; null when none of them is
  * (the standard [RangeCard] explains how to learn them). Keeps the CANbox
  * stream running while on screen.
  */
 @Composable
-internal fun rememberFuel(obdData: ObdData, connection: ObdConnectionState): FuelInfo? =
-    rememberFuelFrom(obdData.fuelLevelPct, connection)
-
-/**
- * [rememberFuel] for a skin's tile. Only the OBD fuel level is followed, not
- * every OBD sample (the revs move several times a second), so a range tile
- * redraws when its own reading changes.
- */
-@Composable
-internal fun rememberFuel(env: SkinTileEnv): FuelInfo? {
-    val obdFuel by remember(env) { derivedStateOf { env.obdData.fuelLevelPct } }
-    return rememberFuelFrom(obdFuel, env.obdConnection)
-}
-
-/** [rememberFuel] from the OBD feed's state, following its fuel level only. */
-@Composable
-internal fun rememberFuel(obd: State<ObdData>, connection: ObdConnectionState): FuelInfo? {
-    val obdFuel by remember(obd) { derivedStateOf { obd.value.fuelLevelPct } }
-    return rememberFuelFrom(obdFuel, connection)
-}
-
-@Composable
-private fun rememberFuelFrom(obdFuelPct: Int, connection: ObdConnectionState): FuelInfo? {
+internal fun rememberFuel(): FuelInfo? {
     DisposableEffect(Unit) {
         McuReader.start()
         onDispose { McuReader.stop() }
     }
-    val canFuel by McuReader.fuelPercent.collectAsState()
-    val canRange by McuReader.rangeKm.collectAsState()
-    val obdFuel = if (connection == ObdConnectionState.CONNECTED) obdFuelPct else 0
-    return carFuelInfo(canFuel, obdFuel, canRange)
+    return rememberFuelInfo()
 }
 
 /** Playback progress 0..1, and 0 while the duration is unknown. */

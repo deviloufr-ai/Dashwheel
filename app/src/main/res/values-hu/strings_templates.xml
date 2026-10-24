@@ -8,7 +8,7 @@
     <string name="templates_road_trip_blurb">Nagy térkép, hatótáv, időjárás és megállók hosszú utakra</string>
     <string name="templates_car_health">Autó állapota</string>
     <string name="templates_car_health_blurb">Autóadatok és hibakódok a Kezdőlapon</string>
-    <string name="templates_no_obd">Még nincs kiválasztott OBD-adapter, ezért az autóadat-widgetek kimaradnak.</string>
+    <string name="templates_no_car_data">Még nincs autóadat-forrás, ezért az autóadat-widgetek kimaradnak.</string>
     <string name="templates_fill_this">Műszerfal feltöltése</string>
     <string name="templates_fill_this_hint">Csak a sablon %1$s oldala kerül rá.</string>
     <string name="templates_fill">Feltöltés</string>

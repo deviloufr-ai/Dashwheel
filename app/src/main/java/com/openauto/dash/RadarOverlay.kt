@@ -38,6 +38,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.reversingFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -78,7 +81,7 @@ object RadarOverlay {
 
     /** The car's radar as it would show, before the driver sends it away. */
     private val carRadar: StateFlow<Radar?> =
-        combine(RomPopups.replaced, CarBox.radar, CarBox.reversing, ReverseView.covering) { replaced, radar, reversing, reverseView ->
+        combine(RomPopups.replaced, Vehicle.bus.value(K.RADAR), reversingFlow(), ReverseView.covering) { replaced, radar, reversing, reverseView ->
             // The reverse view has its own radar.
             radar.takeIf {
                 !reverseView && RomPopups.Kind.RADAR in replaced && it != null && it.present && (reversing || it.active)
@@ -120,7 +123,7 @@ object RadarOverlay {
             var wasReversing = false
             var nearest = Int.MAX_VALUE
             var quiet: Job? = null
-            combine(carRadar, CarBox.reversing) { r, reversing -> r to reversing }.collect { (r, reversing) ->
+            combine(carRadar, reversingFlow()) { r, reversing -> r to reversing }.collect { (r, reversing) ->
                 // Gone, or a new reverse: whatever was sent away comes back next time.
                 if (r == null || (reversing && !wasReversing)) snoozedAt.value = null
                 wasReversing = reversing

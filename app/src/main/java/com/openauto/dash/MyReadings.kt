@@ -285,7 +285,7 @@ object MyReadings {
     /** The values Dashwheel reads itself, by the names formulas use. */
     private fun builtIn(): Map<String, Double?> {
         val linked = ObdBluetoothManager.connectionState.value == ObdConnectionState.CONNECTED
-        val d = ObdBluetoothManager.data.value
+        val d = ObdBluetoothManager.readings()
         fun obd(v: Number) = if (linked) v.toDouble() else null
         return mapOf(
             "speed" to obd(d.speedKmh),
@@ -356,7 +356,7 @@ object MyReadings {
      * and that load would draw through a 1.6 L engine. Null for the others.
      */
     private fun demoAnswer(request: String): Double? {
-        val d = ObdBluetoothManager.data.value
+        val d = ObdBluetoothManager.readings()
         return when (request) {
             "010D" -> d.speedKmh.toDouble()
             "010C" -> d.rpm.toDouble()

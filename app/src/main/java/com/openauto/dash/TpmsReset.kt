@@ -6,6 +6,11 @@ import android.os.SystemClock
 import android.util.Log
 import android.widget.Toast
 import com.hoho.android.usbserial.driver.UsbSerialProber
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.SourceKind
+import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.ignitionFlow
+import com.openauto.dash.vehicle.speedKmhNow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -49,13 +54,22 @@ internal object TpmsReset {
     private var resetAt = 0L
     private var resetThisDrive = false
 
+    /**
+     * When a tyre last said anything real (a pressure, its sensor heard), [SystemClock.elapsedRealtime]; 0: not yet.
+     * Looked up in the bus's tyres at each check and kept here, since the bus drops them after a minute of silence
+     * ([TYRE_STALE_MS]) and this is what notices that silence.
+     */
+    private var heardAt = 0L
+
     fun start(context: Context) {
         if (started) return
         started = true
         val app = context.applicationContext
         // A new drive may reset again.
-        scope.launch { CarPower.ignition.collect { if (it == true) resetThisDrive = false } }
+        scope.launch { ignitionFlow().collect { if (it == true) resetThisDrive = false } }
         scope.launch {
+            // The GPS speed is read by snapshot in [check]: it stays wanted for as long as the watch runs.
+            Vehicle.bus.hold(K.GPS_SPEED)
             while (true) {
                 delay(CHECK_MS)
                 check(app)
@@ -68,20 +82,29 @@ internal object TpmsReset {
 
     private suspend fun check(context: Context) {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        if (Tyres.heardAt > 0 && !prefs.getBoolean(KEY_HEARD, false)) prefs.edit().putBoolean(KEY_HEARD, true).apply()
+        lookAtTyres()
+        if (heardAt > 0 && !prefs.getBoolean(KEY_HEARD, false)) prefs.edit().putBoolean(KEY_HEARD, true).apply()
         // A TPMS app with no box behind it: nothing to plug in again.
         if (!prefs.getBoolean(KEY_HEARD, false)) return
         // The speed says when the wheels turn; kept up while the unit runs, as the drive log keeps it.
         if (!gps) gps = LocationFeed.acquire(context)
         val now = SystemClock.elapsedRealtime()
-        val speed = LocationFeed.freshSpeedKmh.value
+        val speed = speedKmhNow(K.GPS_SPEED)
         drivingSince = if (speed != null && speed >= DRIVING_KMH) drivingSince.takeIf { it > 0 } ?: now else 0L
-        if (!stuck(now, drivingSince, Tyres.heardAt, resetThisDrive, resetAt, SPACING_MS) || DemoMode.isOn) return
+        if (!stuck(now, drivingSince, heardAt, resetThisDrive, resetAt, SPACING_MS) || DemoMode.isOn) return
         resetThisDrive = true
         resetAt = now
         val done = reset(context)
         DebugLog.note(context, "TPMS: no tyre heard for ${QUIET_MS / 1000} s while driving; box reset: $done")
         if (done) Toast.makeText(context, R.string.tpms_box_reset, Toast.LENGTH_LONG).show()
+    }
+
+    /** What the tyres on the bus say about when one was last heard; the demo's, made up, do not count. */
+    private fun lookAtTyres() {
+        // Only the TPMS box's own tyres ("tpms"): a USB receiver the driver chose says nothing about the box.
+        val sample = Vehicle.bus.sample(K.TYRES, SourceKind.VEHICLE_APP).value ?: return
+        if (sample.source.id != "tpms") return
+        sample.value.values.filter { !it.noSignal && it.kPa > 0 }.maxOfOrNull { it.at }?.let { heardAt = maxOf(heardAt, it) }
     }
 
     /**

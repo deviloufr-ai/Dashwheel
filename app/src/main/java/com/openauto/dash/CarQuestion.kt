@@ -1,5 +1,7 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.fuelInfoNow
+import com.openauto.dash.vehicle.gaugesNow
 import java.util.Locale
 
 /**
@@ -134,24 +136,26 @@ internal object CarQuestionPrompt {
 /** An extra reading older than this is no longer "now". */
 private const val EXTRA_FRESH_MS = 2 * 60_000L
 
-/** The snapshot from what the dashboard already has: nothing is waited for (in the demo, its own drive). */
+/**
+ * The snapshot from what the dashboard already has: nothing is waited for (in the demo, its own drive).
+ * The gauges are read from the bus by snapshot and only those the poll always reads ([VehicleMonitor.POLL_FLOOR]).
+ */
 internal fun currentCarSnapshot(now: Long = System.currentTimeMillis()): CarSnapshot {
     val car = CarProfileStore.current
     val live = DemoMode.isOn || ObdBluetoothManager.connectionState.value == ObdConnectionState.CONNECTED
-    val d = ObdBluetoothManager.data.value
-    val fuel = carFuelInfo(McuReader.fuelPercent.value, if (live) d.fuelLevelPct else 0, McuReader.rangeKm.value)
+    val g = gaugesNow(VehicleMonitor.POLL_FLOOR)
+    val fuel = fuelInfoNow()
     val ai = AiMechanic.state.value
     val explained = ai.diagnosis?.codes?.map { it.code }.orEmpty()
     return CarSnapshot(
         car = car.promptDescription(),
         obdLive = live,
-        rpm = d.rpm.takeIf { live },
-        speedKmh = d.speedKmh.takeIf { live },
-        // Zero is what the adapter leaves when it doesn't report.
-        coolantC = d.coolantTempC.takeIf { live && it != 0 },
+        rpm = g.rpm,
+        speedKmh = g.speedKmh,
+        coolantC = g.coolantTempC,
         hotC = car.hotC,
-        volts = d.voltage.takeIf { live && it > 0.0 },
-        voltsFromEcu = d.voltageFromEcu,
+        volts = g.voltage,
+        voltsFromEcu = g.voltsTrusted,
         fuelPercent = fuel?.takeUnless { it.percentEstimated }?.percent,
         rangeKm = fuel?.rangeKm,
         rangeFromCar = fuel?.rangeFromCar == true,

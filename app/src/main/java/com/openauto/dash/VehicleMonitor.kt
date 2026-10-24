@@ -22,6 +22,14 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Key
+import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.gaugesNow
+import com.openauto.dash.vehicle.holdAll
+import com.openauto.dash.vehicle.ignitionFlow
+import com.openauto.dash.vehicle.ignitionNow
+import kotlin.math.roundToInt
 
 /**
  * Keeps the car link working for the whole process rather than for one
@@ -37,6 +45,17 @@ internal object VehicleMonitor {
      * the second screen while the car's own counter climbed.
      */
     private const val POLL_MS = 100L
+    private const val BATTERY_LOOK_MS = 500L
+
+    /**
+     * What the poll keeps reading whenever it runs, besides the speed (always asked): what the watchers
+     * that run off it need, whether or not a tile shows it. The AI mechanic's live watch (revs, coolant,
+     * volts) and its scan's readings (intake too), car care's eco, filter and clutch rules (revs, load,
+     * coolant) and its fuel range. The alerts' coolant and the battery judge hold their own keys.
+     */
+    internal val POLL_FLOOR: List<Key<Double>> = listOf(
+        K.SPEED, K.RPM, K.COOLANT_TEMP, K.INTAKE_TEMP, K.ENGINE_LOAD, K.FUEL_LEVEL, K.BATTERY_VOLTS
+    )
     private const val FIRST_RETRY_MS = 5_000L
     private const val MAX_RETRY_MS = 60_000L
     /** The paired devices load just after Bluetooth says it's on. */
@@ -82,13 +101,30 @@ internal object VehicleMonitor {
         // The bar's alerts, judged at every reading whatever is on screen (the demo's too).
         // The application context, not [context]: this runs for good and must not keep the first screen alive.
         val app = context.applicationContext
+        // Collecting the coolant is what keeps the poll reading it; with no reading there is no alert.
         scope.launch {
-            combine(ObdBluetoothManager.connectionState, ObdBluetoothManager.data, BatteryWatch.state) { connection, data, battery ->
-                Triple(connection == ObdConnectionState.CONNECTED, data, battery)
+            combine(Vehicle.bus.value(K.COOLANT_TEMP).map { it?.roundToInt() }.distinctUntilChanged(), BatteryWatch.state) { coolantC, battery ->
+                coolantC to battery
+            }.collect { (coolantC, battery) -> AlertCenter.evaluate(strings(app), coolantC, battery) }
+        }
+        scope.launch(Dispatchers.Default) { feedBatteryWatch() }
+    }
+
+    /**
+     * The battery's judge looks at the car's revs and volts on the bus twice a second. It holds both keys
+     * for as long as the monitor lives, so the OBD poll keeps reading them (the unit's own volts come
+     * without asking). Volts that are an adapter's own pin ([Quality.DEGRADED]) are not trusted.
+     */
+    private suspend fun feedBatteryWatch() {
+        val hold = Vehicle.bus.holdAll(listOf(K.RPM, K.BATTERY_VOLTS))
+        try {
+            while (true) {
+                delay(BATTERY_LOOK_MS)
+                val g = gaugesNow(listOf(K.RPM, K.BATTERY_VOLTS))
+                BatteryWatch.feed(g.rpm, g.voltage, g.voltsTrusted, System.currentTimeMillis())
             }
-                // Only the coolant and the battery's judgement count (vehicleAlerts): not every reading's revs.
-                .distinctUntilChanged { a, b -> a.first == b.first && a.third == b.third && a.second.coolantTempC == b.second.coolantTempC }
-                .collect { (connected, data, battery) -> AlertCenter.evaluate(strings(app), data, battery, connected) }
+        } finally {
+            hold.release()
         }
     }
 
@@ -111,7 +147,7 @@ internal object VehicleMonitor {
             if (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR) != BluetoothAdapter.STATE_ON) return
             scope.launch {
                 delay(BLUETOOTH_SETTLE_MS)
-                if (redials(foreground.value || secondScreen.value, CarPower.ignition.value)) connectSaved()
+                if (redials(foreground.value || secondScreen.value, ignitionNow())) connectSaved()
             }
         }
     }
@@ -139,7 +175,7 @@ internal object VehicleMonitor {
                 val wrongSide = state == ObdConnectionState.CONNECTED && ObdBluetoothManager.viaUsb.value != ObdBluetoothManager.usesUsb()
                 if (wrongSide) ObdBluetoothManager.disconnect()
             }
-            if (redials(foreground.value || secondScreen.value, CarPower.ignition.value)) connectSaved()
+            if (redials(foreground.value || secondScreen.value, ignitionNow())) connectSaved()
         }
     }
 
@@ -167,7 +203,7 @@ internal object VehicleMonitor {
         if (!ObdBluetoothManager.autoConnect.value) return
         // CarPlay or Android Auto starting: it needs the unit's Bluetooth to itself for a moment.
         if (projectionStarting(UnitSignals.projectionOnScreen.value, UnitSignals.projection.value, projectionSince, SystemClock.elapsedRealtime())) return
-        if (CarPower.ignition.value == false) return
+        if (ignitionNow() == false) return
         if (!ObdBluetoothManager.connectionState.value.isIdle) return
         // Which way to dial asks the USB service (and the phone's offer): off the main thread, like the dial itself.
         scope.launch(Dispatchers.IO) { dialSaved(context) }
@@ -201,7 +237,7 @@ internal object VehicleMonitor {
                 calling = now
                 if (!ended) return@collect
                 delay(CALL_SETTLE_MS)
-                if (redials(foreground.value || secondScreen.value, CarPower.ignition.value)) connectSaved()
+                if (redials(foreground.value || secondScreen.value, ignitionNow())) connectSaved()
             }
     }
 
@@ -228,7 +264,7 @@ internal object VehicleMonitor {
                 val wrongSide = connected && withContext(Dispatchers.IO) { ObdBluetoothManager.viaPhone.value != ObdBluetoothManager.usesPhone() }
                 if (!offerChanged && !wrongSide) return@collect
                 if (wrongSide) ObdBluetoothManager.disconnect()
-                if (redials(foreground.value || secondScreen.value, CarPower.ignition.value)) connectSaved()
+                if (redials(foreground.value || secondScreen.value, ignitionNow())) connectSaved()
             }
     }
 
@@ -240,23 +276,30 @@ internal object VehicleMonitor {
             .distinctUntilChanged()
             .collectLatest { live ->
                 if (!live) return@collectLatest
-                coroutineScope {
-                    // The AI mechanic checks for fault codes by itself once the first
-                    // readings are in (it only speaks about codes it hasn't heard before).
-                    launch {
-                        delay(3000)
-                        if (!DeepObdSource.owns()) AiMechanic.autoScan()
-                    }
-                    // Ten times a second: the rules and the saves run off the main thread.
-                    withContext(Dispatchers.Default) {
-                        while (true) {
-                            ObdBluetoothManager.poll()
-                            AiMechanic.watch(ObdBluetoothManager.data.value)
-                            CarCare.watch(ObdBluetoothManager.data.value)
-                            SensorWatch.watch(ObdBluetoothManager.data.value)
-                            delay(POLL_MS)
+                // The watchers below read the bus by snapshot: their keys stay wanted while they run.
+                val floor = Vehicle.bus.holdAll(POLL_FLOOR)
+                try {
+                    coroutineScope {
+                        // The AI mechanic checks for fault codes by itself once the first
+                        // readings are in (it only speaks about codes it hasn't heard before).
+                        launch {
+                            delay(3000)
+                            if (!DeepObdSource.owns()) AiMechanic.autoScan()
+                        }
+                        // Ten times a second: the rules and the saves run off the main thread.
+                        withContext(Dispatchers.Default) {
+                            while (true) {
+                                ObdBluetoothManager.poll()
+                                val readings = gaugesNow(POLL_FLOOR).toObdData()
+                                AiMechanic.watch(readings)
+                                CarCare.watch(readings)
+                                SensorWatch.watch(readings)
+                                delay(POLL_MS)
+                            }
                         }
                     }
+                } finally {
+                    floor.release()
                 }
             }
     }
@@ -269,7 +312,7 @@ internal object VehicleMonitor {
      * Wanted again, or a link that was up and dropped, starts over at 5 s.
      */
     private suspend fun reconnectWhileWanted() {
-        combine(foreground, secondScreen, CarPower.ignition) { inFront, cluster, ignition -> redials(inFront || cluster, ignition) }
+        combine(foreground, secondScreen, ignitionFlow()) { inFront, cluster, ignition -> redials(inFront || cluster, ignition) }
             .distinctUntilChanged()
             .collectLatest { wanted ->
                 if (!wanted) {

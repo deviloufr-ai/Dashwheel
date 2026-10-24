@@ -1,6 +1,8 @@
 package com.openauto.dash
 
 import android.content.Context
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Vehicle
 import androidx.annotation.StringRes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -365,7 +367,7 @@ internal object SensorWatch {
         if (lastFeed > 0 && now - lastFeed > DriveSampler.GAP_MS * 12) closeDrive()
         lastFeed = now
         val s = sampler ?: DriveSampler(CarProfileStore.current.hotC).also { sampler = it }
-        s.feed(d, now, UnitSignals.outsideTempC.value ?: WeatherRepo.weather.value?.tempC)
+        s.feed(d, now, Vehicle.bus.now(K.OUTSIDE_TEMP) ?: WeatherRepo.weather.value?.tempC)
         followFilter(now)
         // Said once the engine has run a minute: not over the start-up briefing, nor to a car being left.
         if (d.rpm > LiveWatch.RUNNING_RPM) {

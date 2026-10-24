@@ -102,7 +102,6 @@ private fun ClusterFrame(config: SecondScreenConfig, shown: ClusterPage, all: Li
 internal fun rememberClusterEnv(): SkinTileEnv {
     val context = LocalContext.current
     val mediaController = remember { CarMediaController.shared(context) }
-    val obd = ObdBluetoothManager.data.collectAsState()
     val obdConnection = ObdBluetoothManager.connectionState.collectAsState()
     val demo = DemoMode.active.collectAsState()
     val realMedia = mediaController.mediaState.collectAsState()
@@ -115,7 +114,6 @@ internal fun rememberClusterEnv(): SkinTileEnv {
         mediaController = mediaController,
         hasMediaAccess = remember { CarMediaController.hasNotificationAccess(context) },
         context = context,
-        obd = obd,
         obdConnectionState = obdConnection,
         // Nothing on this screen can be touched.
         onConnectObd = {},

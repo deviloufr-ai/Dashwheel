@@ -9,8 +9,17 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Publisher
+import com.openauto.dash.vehicle.Sample
+import com.openauto.dash.vehicle.Source
+import com.openauto.dash.vehicle.SourceKind
+import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.VehicleBus
 
 /** What the Signal Finder can teach Dashwheel: each with the action that turns it on and off. */
 enum class CarSignal(@StringRes val title: Int, @StringRes val onPrompt: Int, @StringRes val offPrompt: Int) {
@@ -45,12 +54,53 @@ internal fun mergeDoors(builtIn: McuReader.DoorState?, learned: Map<CarSignal, B
     )
 }
 
+/** The car's own doors among the bus's candidates: the best of the built-in sources, never a learned or demo one. */
+internal fun builtInDoors(candidates: List<Sample<McuReader.DoorState>>): McuReader.DoorState? =
+    candidates.firstOrNull { it.source.kind.rank >= 0 }?.value
+
+/**
+ * The learned doors on the bus. Doors are per door: a learned door overrides the car's own for that door
+ * only, so one candidate for the whole state would wrongly hide the doors the driver did not teach. The
+ * provider therefore publishes its merged view ([mergeDoors]): the learned doors over the car's own state,
+ * which it follows from the bus's candidates ([follow]). It is a LEARNED source, so that view wins over every
+ * built-in one; with no learned door it publishes nothing and the car's own state stands.
+ */
+internal class LearnedDoors(private val out: Publisher) {
+    private var learned: Map<CarSignal, Boolean> = emptyMap()
+    private var builtIn: McuReader.DoorState? = null
+
+    /** The learned doors' states now (any other signals in [state] are ignored). */
+    @Synchronized
+    fun learned(state: Map<CarSignal, Boolean>) {
+        learned = state.filterKeys { it.isDoor }
+        publish()
+    }
+
+    /** The car's own doors changed. */
+    @Synchronized
+    fun builtIn(state: McuReader.DoorState?) {
+        if (state == builtIn) return
+        builtIn = state
+        publish()
+    }
+
+    /** Follows the car's own doors on [bus] for as long as it runs. */
+    suspend fun follow(bus: VehicleBus) {
+        bus.candidates(K.DOORS).map { builtInDoors(it) }.distinctUntilChanged().collect { builtIn(it) }
+    }
+
+    private fun publish() {
+        out.put(K.DOORS, if (learned.isEmpty()) null else mergeDoors(builtIn, learned))
+    }
+}
+
 /**
  * The signals the driver taught Dashwheel with the Signal Finder: which
  * piece of which value stands for each ([SignalProbe]), read a few times a
- * second and handed to what shows them: the doors to [McuReader], reverse to
- * [CarBox], the headlights to [UnitSignals], the belt to [BeltAlertOverlay].
- * Also the camera the reverse view opens.
+ * second and handed to what shows them: put on the vehicle bus as the learned
+ * source (doors ([LearnedDoors]), reverse, headlights, the driver's belt),
+ * which outranks the built-in decoding, and still into [McuReader], [CarBox]
+ * and [UnitSignals] for what reads those. Also the camera the reverse view opens.
  */
 object LearnedSignals {
     private const val PREFS = "car_signals"
@@ -61,6 +111,9 @@ object LearnedSignals {
     private var appContext: Context? = null
     private var job: Job? = null
     private var holdsCan = false
+
+    private val busPublisher = Vehicle.bus.register(Source("learned", SourceKind.LEARNED, "Signal Finder"))
+    private val doors = LearnedDoors(busPublisher)
 
     private val _mapped = MutableStateFlow<Map<CarSignal, SignalProbe>>(emptyMap())
     /** What stands for each learned signal. */
@@ -82,6 +135,7 @@ object LearnedSignals {
         val p = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         _mapped.value = CarSignal.entries.mapNotNull { s -> SignalProbe.decode(p.getString(s.name, null))?.let { s to it } }.toMap()
         _cameraId.value = p.getString(KEY_CAMERA, null)
+        scope.launch { doors.follow(Vehicle.bus) }
         follow()
     }
 
@@ -120,8 +174,12 @@ object LearnedSignals {
         if (probes.isEmpty()) {
             job?.cancel()
             job = null
+            // Nothing is read any more: nothing is said, and the source is down until the driver teaches one again.
+            busPublisher.clear()
+            busPublisher.up(false)
             return
         }
+        busPublisher.up(true)
         if (job?.isActive == true) return
         job = scope.launch {
             while (isActive) {
@@ -139,13 +197,22 @@ object LearnedSignals {
         }
     }
 
+    /**
+     * The reverse failsafe ([CarBox]) found no evidence of a reverse the taught signal still says: withdrawn, until the
+     * signal changes (a new reading of "on" after an "off").
+     */
+    internal fun reverseEnded() {
+        busPublisher.put(K.REVERSE, null)
+    }
+
     /** Hands [signal]'s new state in [now] to what shows it. */
     private fun publish(now: Map<CarSignal, Boolean>, signal: CarSignal) {
         when {
-            signal.isDoor -> McuReader.learnedDoorsWrite(now.filterKeys { it.isDoor })
-            signal == CarSignal.REVERSE -> now[signal]?.let { CarBox.reverseWrite(it) }
-            signal == CarSignal.HEADLIGHTS -> now[signal]?.let { UnitSignals.headlightsWrite(it) }
-            // The belt reminder reads [state] itself, with the car's speed.
+            signal.isDoor -> doors.learned(now)
+            signal == CarSignal.REVERSE -> busPublisher.put(K.REVERSE, now[signal])
+            signal == CarSignal.HEADLIGHTS -> busPublisher.put(K.HEADLIGHTS, now[signal])
+            // The belt reminder reads the key, with the car's speed.
+            signal == CarSignal.DRIVER_BELT -> busPublisher.put(K.DRIVER_BELT, now[signal])
             else -> Unit
         }
     }

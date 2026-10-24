@@ -216,9 +216,9 @@ internal fun TemplateShowroom(
                 }
                 Spacer(Modifier.width(18.dp))
                 Column(horizontalAlignment = Alignment.End) {
-                    if (!screen.obdPaired) {
+                    if (TemplatePlacer.leavesOutCarData(chosen, screen, onlyPage?.let { setOf(it) })) {
                         Text(
-                            stringResource(R.string.templates_no_obd),
+                            stringResource(R.string.templates_no_car_data),
                             color = DashColors.Warning,
                             style = MaterialTheme.typography.bodySmall,
                             maxLines = 2,

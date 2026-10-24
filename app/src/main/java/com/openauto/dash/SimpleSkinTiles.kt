@@ -1,5 +1,9 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.any
+import com.openauto.dash.vehicle.rememberDoors
+import com.openauto.dash.vehicle.rememberPanelGauges
+import com.openauto.dash.vehicle.K
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -302,7 +306,7 @@ private fun SimpleSpeed(env: SkinTileEnv) {
 /** The glass speed card; in its own scope, so a new reading redraws the card and not the car beside it. */
 @Composable
 private fun SpeedCard(env: SkinTileEnv, modifier: Modifier) {
-    val speed = rememberSpeedKmh(env)
+    val speed = rememberSpeedKmh()
     val limit by SpeedLimit.limit.collectAsState()
     val units = LocalUnits.current
     val idle = env.obdConnection.isIdle
@@ -365,7 +369,7 @@ private fun SpeedCard(env: SkinTileEnv, modifier: Modifier) {
                     SpeedScale(speed, limit, color, Modifier.fillMaxWidth().height(7.dp))
                     Spacer(Modifier.height(10.dp))
                     SimpleLine(
-                        speedSource(env.obdConnection == ObdConnectionState.CONNECTED, speed, ""),
+                        speedSource(""),
                         simpleText(sourceSize, DashColors.Muted, FontWeight.Medium).copy(letterSpacing = 0.2.em)
                     )
                 }
@@ -466,24 +470,25 @@ private class Reading(val text: String, val dot: Color)
 @Composable
 private fun TelemetryPanel(env: SkinTileEnv, glass: Boolean, modifier: Modifier) {
     val state = env.obdConnection
-    val connected = state == ObdConnectionState.CONNECTED
-    val d = env.obdData
+    // Whatever the car answers is shown, adapter or not.
+    val g = rememberPanelGauges(K.SPEED, K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
+    val live = state == ObdConnectionState.CONNECTED || g.any
     val units = LocalUnits.current
     val context = env.context
-    val readings = if (connected) buildList {
-        add(Reading(context.getString(R.string.horizon_rpm_value, groupThousands(d.rpm)), DashColors.Secondary))
-        if (d.coolantTempC > 0) {
+    val readings = if (live) buildList {
+        g.rpm?.let { add(Reading(context.getString(R.string.horizon_rpm_value, groupThousands(it)), DashColors.Secondary)) }
+        g.coolantTempC?.let { c ->
             val dot = when {
-                d.coolantTempC >= 105 -> DashColors.Warning
-                d.coolantTempC < 60 -> DashColors.Secondary
+                c >= 105 -> DashColors.Warning
+                c < 60 -> DashColors.Secondary
                 else -> DashColors.Good
             }
-            add(Reading(context.getString(R.string.horizon_coolant_value, units.temp(d.coolantTempC)), dot))
+            add(Reading(context.getString(R.string.horizon_coolant_value, units.temp(c)), dot))
         }
-        if (d.voltage > 0.0) {
-            add(Reading(String.format(Locale.getDefault(), "%.1f V", d.voltage), if (d.voltage < 11.8 || d.voltage > 15.0) DashColors.Warning else DashColors.Good))
+        g.voltage?.let { v ->
+            add(Reading(String.format(Locale.getDefault(), "%.1f V", v), if (v < 11.8 || v > 15.0) DashColors.Warning else DashColors.Good))
         }
-        add(Reading(context.getString(R.string.horizon_load_value, d.engineLoadPct), DashColors.Muted))
+        g.engineLoadPct?.let { add(Reading(context.getString(R.string.horizon_load_value, it), DashColors.Muted)) }
     } else emptyList()
     BoxWithConstraints(
         modifier = modifier
@@ -495,15 +500,15 @@ private fun TelemetryPanel(env: SkinTileEnv, glass: Boolean, modifier: Modifier)
         val innerH = maxHeight - pad * 2
         val chipSize = (min(innerW.value / 16f, innerH.value * 0.09f)).coerceIn(14f, 21f)
         val belowH = when {
-            connected -> (chipSize * 2.3f + 12f).dp
+            live -> (chipSize * 2.3f + 12f).dp
             else -> (DashSize.TouchPrimary.value + 12f).dp
         }
         val numSize = simpleFit("188", simpleText(100f, weight = FontWeight.SemiBold, figure = true), innerW * 0.68f, innerH - belowH, 28f, 220f)
         val unitSize = (numSize * 0.24f).coerceIn(14f, 36f)
         Column(Modifier.fillMaxSize().padding(pad), verticalArrangement = Arrangement.Center) {
             Row {
-                if (connected) {
-                    SimpleLine(units.speed(d.speedKmh).toString(), simpleText(numSize, DashColors.TextPrimary, FontWeight.SemiBold, figure = true), Modifier.alignByBaseline(), overflow = TextOverflow.Clip)
+                if (g.speedKmh != null) {
+                    SimpleLine(units.speed(g.speedKmh).toString(), simpleText(numSize, DashColors.TextPrimary, FontWeight.SemiBold, figure = true), Modifier.alignByBaseline(), overflow = TextOverflow.Clip)
                 } else {
                     SimpleLine("–", simpleText(numSize * 0.5f, DashColors.Muted, FontWeight.SemiBold, figure = true), Modifier.alignByBaseline(), overflow = TextOverflow.Clip)
                 }
@@ -511,11 +516,11 @@ private fun TelemetryPanel(env: SkinTileEnv, glass: Boolean, modifier: Modifier)
                 SimpleLine(units.speedUnit, simpleText(unitSize, DashColors.Muted, FontWeight.Light), Modifier.alignByBaseline().weight(1f, fill = false))
             }
             Spacer(Modifier.height(12.dp))
-            when (state) {
-                ObdConnectionState.CONNECTED -> FitRow(10.dp) {
+            when {
+                live -> FitRow(10.dp) {
                     readings.forEach { SimpleChip(it.text, it.dot, chipSize) }
                 }
-                ObdConnectionState.CONNECTING -> SimpleChip(stringResource(R.string.horizon_obd_connecting), DashColors.Accent, chipSize)
+                state == ObdConnectionState.CONNECTING -> SimpleChip(stringResource(R.string.horizon_obd_connecting), DashColors.Accent, chipSize)
                 else -> FitRow(10.dp) {
                     SimplePillButton(stringResource(R.string.horizon_connect_obd), null, gold = true, enabled = !env.editing, onClick = env.onConnectObd)
                     if (state == ObdConnectionState.ERROR) {
@@ -538,12 +543,12 @@ private fun TelemetryPanel(env: SkinTileEnv, glass: Boolean, modifier: Modifier)
  */
 @Composable
 private fun SimpleRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     if (fuel == null) {
         StandardSkinnedTile(item, env)
         return
     }
-    val doors by McuReader.doorState.collectAsState()
+    val doors = rememberDoors()
     BoxWithConstraints(Modifier.fillMaxSize().graphicsLayer()) {
         val host = rememberSimpleCarHost(SIMPLE_CAR_RANGE, maxWidth >= 340.dp && maxHeight >= 250.dp)
         if (host) RangeShowroom(fuel, doors, maxWidth, maxHeight)

@@ -8,6 +8,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import com.openauto.dash.vehicle.rememberHeadlights
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -152,7 +153,7 @@ internal fun rememberAutoDay(): Boolean {
     val to by AutoLight.to.collectAsState()
     // All read every time, whatever the choice, so the composition keeps one shape.
     val systemDark = isSystemInDarkTheme()
-    val headlights by UnitSignals.headlightsOn.collectAsState()
+    val headlights = rememberHeadlights()
     val sun = rememberSunUp()
     val now = rememberWallClock(60_000L).longValue
     val byClock = remember(now, from, to) { dayByClock(now, from, to) }

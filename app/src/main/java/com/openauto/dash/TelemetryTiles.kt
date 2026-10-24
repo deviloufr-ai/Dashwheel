@@ -2,6 +2,11 @@
 
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberDisplaySpeedKmh
+import com.openauto.dash.vehicle.rememberFuelInfo
+import com.openauto.dash.vehicle.rememberGaugeInt
+import com.openauto.dash.vehicle.rememberGauges
+import com.openauto.dash.vehicle.K
 import android.Manifest
 import android.os.Build
 import androidx.compose.animation.core.animateFloatAsState
@@ -213,18 +218,20 @@ internal fun PhoneAaHelpDialog(onConnect: () -> Unit, onDismiss: () -> Unit) {
 
 @Composable
 internal fun ObdCard(
-    obdData: ObdData,
     connection: ObdConnectionState,
     onConnect: () -> Unit,
     onPickDevice: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (DashColors.Original) {
-        OriginalObdCard(obdData, connection, onConnect, onPickDevice, modifier)
+        OriginalObdCard(connection, onConnect, onPickDevice, modifier)
         return
     }
     val connected = connection == ObdConnectionState.CONNECTED
     var speedFix by remember { mutableStateOf(false) }
+    // What the tile shows: the speed as the bar shows it, and the engine's gauges; null = not answered ("--").
+    val speed = rememberDisplaySpeedKmh()
+    val g = rememberGauges(K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
     Card(modifier = modifier) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(DashSpace.Lg)) {
             // Short tiles drop the secondary chips; tall tiles stack the RPM bar
@@ -292,46 +299,46 @@ internal fun ObdCard(
                     // 0-220 km/h labelled every 20, or 0-140 mph the same way.
                     val top = u.speedScale(220)
                     AnalogGauge(
-                        value = if (connected) u.speed(obdData.speedKmh).toFloat() else 0f,
+                        value = speed?.let { u.speed(it).toFloat() } ?: 0f,
                         maxValue = top.toFloat(),
-                        valueText = if (connected) u.speed(obdData.speedKmh).toString() else "--",
+                        valueText = speed?.let { u.speed(it).toString() } ?: "--",
                         label = stringResource(R.string.vehicle_speed_caps),
                         unit = u.speedUnit,
                         accent = DashColors.Accent,
                         redlineAccent = DashColors.Critical,
                         redlineFraction = u.speed(SPEED_WARNING_KMH) / top.toFloat(),
-                        dimmed = !connected,
+                        dimmed = speed == null,
                         majorTicks = top / 20 + 1,
                         hero = true,
                         modifier = m
                     )
                 }
                 val rpm: @Composable (Modifier) -> Unit = { m ->
-                    RpmBar(rpm = obdData.rpm, maxRpm = 7000f, dimmed = !connected, modifier = m)
+                    RpmBar(rpm = g.rpm ?: 0, maxRpm = 7000f, dimmed = g.rpm == null, modifier = m)
                 }
                 val chips: @Composable (Modifier) -> Unit = { m ->
                     MeterChip(
                         label = stringResource(R.string.vehicle_coolant),
-                        valueText = if (connected) "${LocalUnits.current.temp(obdData.coolantTempC)}\u00b0" else "--",
-                        fraction = (obdData.coolantTempC / 120f),
-                        color = coolantColor(obdData.coolantTempC),
-                        dimmed = !connected,
+                        valueText = g.coolantTempC?.let { "${LocalUnits.current.temp(it)}°" } ?: "--",
+                        fraction = ((g.coolantTempC ?: 0) / 120f),
+                        color = coolantColor(g.coolantTempC ?: 0),
+                        dimmed = g.coolantTempC == null,
                         modifier = m
                     )
                     MeterChip(
                         label = stringResource(R.string.vehicle_load),
-                        valueText = if (connected) "${obdData.engineLoadPct}%" else "--",
-                        fraction = obdData.engineLoadPct / 100f,
+                        valueText = g.engineLoadPct?.let { "$it%" } ?: "--",
+                        fraction = (g.engineLoadPct ?: 0) / 100f,
                         color = DashColors.Accent,
-                        dimmed = !connected,
+                        dimmed = g.engineLoadPct == null,
                         modifier = m
                     )
                     MeterChip(
                         label = stringResource(R.string.vehicle_battery),
-                        valueText = if (connected) "%.1fV".format(obdData.voltage) else "--",
-                        fraction = batteryFraction(obdData.voltage),
-                        color = batteryColor(obdData.voltage),
-                        dimmed = !connected,
+                        valueText = g.voltage?.let { "%.1fV".format(it) } ?: "--",
+                        fraction = batteryFraction(g.voltage ?: 0.0),
+                        color = batteryColor(g.voltage ?: 0.0),
+                        dimmed = g.voltage == null,
                         modifier = m
                     )
                 }
@@ -366,7 +373,7 @@ internal fun ObdCard(
             }
         }
     }
-    if (speedFix) SpeedCorrectionDialog(obdData.speedKmh.takeIf { connected }, onDismiss = { speedFix = false })
+    if (speedFix) SpeedCorrectionDialog(speed, onDismiss = { speedFix = false })
 }
 
 /**
@@ -818,7 +825,6 @@ internal fun MeterChip(
 /** Shows every OBD value currently available. */
 @Composable
 internal fun ObdAllCard(
-    obdData: ObdData,
     connection: ObdConnectionState,
     onConnect: () -> Unit,
     modifier: Modifier = Modifier,
@@ -833,21 +839,39 @@ internal fun ObdAllCard(
                 ObdNotConnected(connection, onConnect, onPickDevice)
             } else {
                 val u = LocalUnits.current
-                MeterChip(stringResource(R.string.vehicle_speed), u.speedText(obdData.speedKmh), obdData.speedKmh / 220f, DashColors.Accent, false, Modifier.fillMaxWidth())
-                Spacer(Modifier.height(8.dp))
-                MeterChip(stringResource(R.string.vehicle_rpm), "${obdData.rpm}", obdData.rpm / 7000f, DashColors.Tacho, false, Modifier.fillMaxWidth())
-                Spacer(Modifier.height(8.dp))
-                MeterChip(stringResource(R.string.vehicle_coolant), u.tempText(obdData.coolantTempC), obdData.coolantTempC / 120f, coolantColor(obdData.coolantTempC), false, Modifier.fillMaxWidth())
-                Spacer(Modifier.height(8.dp))
-                MeterChip(stringResource(R.string.vehicle_intake_air), u.tempText(obdData.intakeTempC), obdData.intakeTempC / 80f, DashColors.Accent, false, Modifier.fillMaxWidth())
-                Spacer(Modifier.height(8.dp))
-                MeterChip(stringResource(R.string.vehicle_throttle), "${obdData.throttlePct} %", obdData.throttlePct / 100f, DashColors.Accent, false, Modifier.fillMaxWidth())
-                Spacer(Modifier.height(8.dp))
-                MeterChip(stringResource(R.string.vehicle_engine_load), "${obdData.engineLoadPct} %", obdData.engineLoadPct / 100f, DashColors.Tacho, false, Modifier.fillMaxWidth())
-                Spacer(Modifier.height(8.dp))
-                MeterChip(stringResource(R.string.vehicle_fuel_level), "${obdData.fuelLevelPct} %", obdData.fuelLevelPct / 100f, DashColors.Good, false, Modifier.fillMaxWidth())
-                Spacer(Modifier.height(8.dp))
-                MeterChip(stringResource(R.string.vehicle_battery), "%.1f V".format(obdData.voltage), batteryFraction(obdData.voltage), batteryColor(obdData.voltage), false, Modifier.fillMaxWidth())
+                // Every reading the car has answered; the ones it hasn't are left out, not shown as 0.
+                val g = rememberGauges(K.SPEED, K.RPM, K.COOLANT_TEMP, K.INTAKE_TEMP, K.THROTTLE, K.ENGINE_LOAD, K.FUEL_LEVEL, K.BATTERY_VOLTS)
+                g.speedKmh?.let {
+                    MeterChip(stringResource(R.string.vehicle_speed), u.speedText(it), it / 220f, DashColors.Accent, false, Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(8.dp))
+                }
+                g.rpm?.let {
+                    MeterChip(stringResource(R.string.vehicle_rpm), "$it", it / 7000f, DashColors.Tacho, false, Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(8.dp))
+                }
+                g.coolantTempC?.let {
+                    MeterChip(stringResource(R.string.vehicle_coolant), u.tempText(it), it / 120f, coolantColor(it), false, Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(8.dp))
+                }
+                g.intakeTempC?.let {
+                    MeterChip(stringResource(R.string.vehicle_intake_air), u.tempText(it), it / 80f, DashColors.Accent, false, Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(8.dp))
+                }
+                g.throttlePct?.let {
+                    MeterChip(stringResource(R.string.vehicle_throttle), "$it %", it / 100f, DashColors.Accent, false, Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(8.dp))
+                }
+                g.engineLoadPct?.let {
+                    MeterChip(stringResource(R.string.vehicle_engine_load), "$it %", it / 100f, DashColors.Tacho, false, Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(8.dp))
+                }
+                g.fuelLevelPct?.let {
+                    MeterChip(stringResource(R.string.vehicle_fuel_level), "$it %", it / 100f, DashColors.Good, false, Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(8.dp))
+                }
+                g.voltage?.let {
+                    MeterChip(stringResource(R.string.vehicle_battery), "%.1f V".format(it), batteryFraction(it), batteryColor(it), false, Modifier.fillMaxWidth())
+                }
             }
         }
     }
@@ -862,7 +886,6 @@ internal fun ObdAllCard(
  */
 @Composable
 internal fun RangeCard(
-    obdFuelPct: Int,
     connection: ObdConnectionState,
     onConnect: () -> Unit,
     modifier: Modifier = Modifier
@@ -876,8 +899,8 @@ internal fun RangeCard(
     val canFuel by McuReader.fuelPercent.collectAsState()
     val canRange by McuReader.rangeKm.collectAsState()
     val obdConnected = connection == ObdConnectionState.CONNECTED
-    val obdFuel = if (obdConnected) obdFuelPct else 0
-    val fuel = carFuelInfo(canFuel, obdFuel, canRange)
+    val obdFuel = rememberGaugeInt(K.FUEL_LEVEL) ?: 0
+    val fuel = rememberFuelInfo()
     val fromCan = canFuel != null || canRange != null
     val source = if (fromCan) stringResource(R.string.vehicle_via_canbox)
         else if (obdFuel > 0) stringResource(R.string.vehicle_via_obd) else null

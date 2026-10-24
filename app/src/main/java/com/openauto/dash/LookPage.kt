@@ -286,7 +286,8 @@ private fun rememberLookHome(mode: DashThemeMode): Pair<List<DashboardItem>, Flo
     val vertical = ScreenShape.vertical
     val canDial = adapter.canDial
     val root = access.root
-    return remember(mode, config.screenWidthDp, config.screenHeightDp, vertical, canDial, root) {
+    val carKeys by UnitPlatform.supplied.collectAsState(initial = UnitPlatform.suppliedKeys())
+    return remember(mode, config.screenWidthDp, config.screenHeightDp, vertical, canDial, root, carKeys) {
         // As the dashboard measures it (templateScreen): the Maps dock takes about half the width, or half the height upright.
         val half = DashLayoutStore.load(context) != DashLayout.GRID
         val dock = if (half) 0.5f else 1f
@@ -294,12 +295,13 @@ private fun rememberLookHome(mode: DashThemeMode): Pair<List<DashboardItem>, Flo
             pageWidthDp = config.screenWidthDp * if (vertical) 1f else dock,
             pageHeightDp = config.screenHeightDp * (if (vertical) 0.9f else 0.8f) * if (vertical) dock else 1f,
             obdPaired = canDial,
+            carKeys = carKeys,
             driverOnRight = CarProfileStore.current.driverOnRight,
             mapsDocked = half,
             // The driver's own apps fill the dock row; one stands for them in the picture.
             dockApps = listOf(DOCK_STAND_IN),
             canbox = root,
-            tyres = Tyres.available
+            tyres = UnitPlatform.delivers(Cap.TYRES)
         )
         val items = runCatching { skinHome(layout, screen) }.getOrDefault(emptyList())
         val aspect = (screen.cellAspect * GRID_COLS / GRID_ROWS).toFloat().coerceIn(0.4f, 4f)

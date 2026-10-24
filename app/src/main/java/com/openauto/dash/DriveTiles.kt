@@ -70,6 +70,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.openauto.dash.link.FuelFills
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.rememberSpeedSourceKind
+import com.openauto.dash.vehicle.rememberVehicle
+import com.openauto.dash.vehicle.speedSourceWord
 import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
@@ -182,19 +186,15 @@ internal fun HeroNumber(text: String, size: Int, modifier: Modifier = Modifier, 
 
 // --- Speed HUD ------------------------------------------------------------------
 
-/** Just the speed, as large as the tile allows. OBD when connected, GPS otherwise. */
+/** Just the speed, as large as the tile allows, with where it comes from (the adapter, the car, the GPS) as the bus resolved it. */
 @Composable
-internal fun SpeedHudCard(obdSpeedKmh: Int, obdConnected: Boolean, modifier: Modifier = Modifier) {
-    val kmh = rememberSpeedKmhFrom(obdSpeedKmh, if (obdConnected) ObdConnectionState.CONNECTED else ObdConnectionState.DISCONNECTED)
-    val source = when {
-        obdConnected -> "OBD"
-        kmh != null -> "GPS"
-        else -> stringResource(R.string.info_speed_no_signal)
-    }
+internal fun SpeedHudCard(modifier: Modifier = Modifier) {
+    val kmh = rememberSpeedKmh()
+    val source = speedSourceWord(rememberSpeedSourceKind()) ?: stringResource(R.string.info_speed_no_signal)
     val over = speedOver(kmh)
     val u = LocalUnits.current
     val speed = kmh?.let { u.speed(it) }
-    // The source (OBD or GPS) is said for two seconds when it changes, not worn
+    // The source (OBD, CAR or GPS) is said for two seconds when it changes, not worn
     // as a badge; "No signal" stays while there is no speed to show.
     var saidSource by remember { mutableStateOf<String?>(null) }
     var lastSource by remember { mutableStateOf(source) }
@@ -358,7 +358,7 @@ internal fun CompassCard(modifier: Modifier = Modifier) {
 private fun CompassFooter(locationState: State<Location?>) {
     val location = locationState.value
     // From a fresh fix only: in a tunnel the footer reads "--", not the speed the car went in with.
-    val speedKmh by LocationFeed.freshSpeedKmh.collectAsState()
+    val speedKmh = rememberVehicle(K.GPS_SPEED)?.roundToInt()
     val u = LocalUnits.current
     Row(
         modifier = Modifier.fillMaxWidth(),

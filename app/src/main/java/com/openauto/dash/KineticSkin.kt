@@ -1,5 +1,8 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberGauge
+import com.openauto.dash.vehicle.rememberGaugeInt
+import com.openauto.dash.vehicle.K
 import android.graphics.Typeface
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
@@ -31,7 +34,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -421,7 +423,7 @@ internal fun KineticTopBar(m: TopBarModel) {
             Row(Modifier.weight(1f).fillMaxHeight().clipToBounds(), verticalAlignment = Alignment.CenterVertically) {
                 KnTicker(m, Modifier.weight(1f).fillMaxHeight().padding(horizontal = 14.dp))
                 if (narrow) PagePositionChip(Modifier.padding(end = 6.dp))
-                VehicleAlerts(m.obdConnection, m.obd)
+                VehicleAlerts()
                 PhonePill(Modifier.padding(end = 6.dp))
                 if (m.setupPending) SetupPill(onClick = { m.onSetup(false) }, modifier = Modifier.padding(end = 6.dp), compact = true)
                 if (m.demo) DemoBadge(onStop = m.onDemo, modifier = Modifier.padding(end = 6.dp), compact = true)
@@ -523,8 +525,8 @@ private fun rememberTickerItems(m: TopBarModel): List<String> {
     val units = LocalUnits.current
     val media by remember { CarMediaController.shared(context).mediaState }.collectAsState()
     val nav by NavDirections.state.collectAsState()
-    val coolant by remember(m) { derivedStateOf { if (m.obdConnection == ObdConnectionState.CONNECTED) m.obdData.coolantTempC else 0 } }
-    val fuel = rememberFuel(m.obd, m.obdConnection)
+    val coolant = rememberGaugeInt(K.COOLANT_TEMP) ?: 0
+    val fuel = rememberFuel()
     val weather = rememberWeather()
     val tempC = rememberOutsideTempC()
     val agenda = rememberAgendaSource()

@@ -12,9 +12,15 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Source
+import com.openauto.dash.vehicle.SourceKind
+import com.openauto.dash.vehicle.SourceLiveness
+import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.tyresFlow
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -53,8 +59,12 @@ object Tyres {
     const val TPMS_PACKAGE = "com.syt.tmps"
     private const val ACTION = "TPMS_APP_STATE_SEND"
 
-    private val _tyres = MutableStateFlow<Map<TyrePos, Tyre>>(emptyMap())
-    val tyres: StateFlow<Map<TyrePos, Tyre>> = _tyres
+    /** The TPMS app on the vehicle bus: every tyre it has heard, as one state. */
+    private val busPublisher = Vehicle.bus.register(Source("tpms", SourceKind.VEHICLE_APP, "TPMS app"))
+    // A USB receiver of the driver's own is the source "tpms.usb" ([UsbTpms]); see there for how it ranks.
+
+    /** What the TPMS app has told, tyre by tyre, as it comes: the receiver's own memory, put on the bus whole. */
+    private val heard = HashMap<TyrePos, Tyre>()
 
     private val _unit = MutableStateFlow(PressureUnit.BAR)
     val unit: StateFlow<PressureUnit> = _unit
@@ -63,7 +73,11 @@ object Tyres {
     /**
      * What's wrong, tyre by tyre ([tyreProblems]): the one judgement the
      * alert, its voice and every tile share, so none says "fine" while
-     * another says "low".
+     * another says "low". It is made from [K.TYRES] on the vehicle bus (so
+     * from whichever source is resolved: the TPMS app, or the demo), again
+     * at each change of the tyres or the car profile, and now and then
+     * while there are tyres, so a sensor that went quiet stops holding a
+     * warning up.
      */
     val problems: StateFlow<Map<TyrePos, TyreProblem>> = _problems
 
@@ -73,19 +87,38 @@ object Tyres {
     private var limitsLoaded = false
 
     private var started = false
-    private var judging = false
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     /** Whether this unit has the TPMS app that reports the tyres. */
     val fromApp: Boolean get() = started
 
+    /**
+     * Whether the tyres on the bus right now come from the unit's TPMS app (source "tpms") and not a USB receiver
+     * ("tpms.usb"): only the app's sensors report a battery, so only then is a battery mark shown.
+     */
+    fun sampleFromApp(): Boolean = Vehicle.bus.sample(K.TYRES).value?.source?.id == "tpms"
+
     /** Whether something reports the tyres: the unit's TPMS app, or a USB receiver the driver chose ([UsbTpms]). */
     val available: Boolean get() = started || UsbTpms.on
 
-    /** When a tyre last said anything real (a pressure, its sensor heard), [SystemClock.elapsedRealtime]; 0: not yet. */
-    @Volatile
-    var heardAt = 0L
-        private set
+    /**
+     * The TPMS app's liveness: it tells every tyre about every four seconds, so a minute of nothing from all of them
+     * ([TYRE_STALE_MS], the time after which a sensor says nothing about its tyre any more) is an app that stopped or
+     * sensors all gone. Then the tyres are withdrawn and the source is down, whatever the old pressures were.
+     */
+    private val live = SourceLiveness.of(busPublisher, TYRE_STALE_MS, scope)
+
+    init {
+        scope.launch {
+            combine(tyresFlow(), CarProfileStore.profile, _limits) { tyres, _, _ -> tyres }.collectLatest { tyres ->
+                judge(tyres)
+                while (tyres.isNotEmpty()) {
+                    delay(STALE_CHECK_MS)
+                    judge(tyres)
+                }
+            }
+        }
+    }
 
     fun start(context: Context) {
         val app = context.applicationContext
@@ -102,42 +135,19 @@ object Tyres {
         ContextCompat.registerReceiver(app, receiver, IntentFilter(ACTION), ContextCompat.RECEIVER_EXPORTED)
         // The TPMS box gone quiet while driving: plugged in again by itself ([TpmsReset]).
         TpmsReset.start(app)
-        judgeFromNowOn()
-    }
-
-    /** The warnings worked out from the readings, once something reports them. */
-    internal fun judgeFromNowOn() {
-        scope.launch {
-            if (judging) return@launch
-            judging = true
-            judgeLoops()
-        }
-    }
-
-    private fun judgeLoops() {
-        // Judged again at each reading, when the car's pressures change, and
-        // now and then so a sensor that went quiet stops holding a warning up.
-        scope.launch { combine(_tyres, CarProfileStore.profile, _limits) { _, _, _ -> }.collect { judge() } }
-        scope.launch {
-            while (true) {
-                delay(STALE_CHECK_MS)
-                if (_tyres.value.isNotEmpty()) judge()
-            }
-        }
     }
 
     private const val STALE_CHECK_MS = 15_000L
 
     @Synchronized
-    private fun judge() {
-        _problems.value = tyreProblems(_tyres.value, _problems.value, SystemClock.elapsedRealtime(), CarProfileStore.current, _limits.value)
+    private fun judge(tyres: Map<TyrePos, Tyre>) {
+        _problems.value = tyreProblems(tyres, _problems.value, SystemClock.elapsedRealtime(), CarProfileStore.current, _limits.value)
     }
 
     /** The driver's alarm limits, kept and judged by at once. */
     fun setLimits(context: Context, limits: TyreLimits) {
         prefs(context).edit().putInt(KEY_LOW, limits.lowKpa).putInt(KEY_HIGH, limits.highKpa).putInt(KEY_HOT, limits.hotC).apply()
         _limits.value = limits
-        judge()
     }
 
     private const val PREFS = "tyres"
@@ -158,33 +168,15 @@ object Tyres {
                 at = SystemClock.elapsedRealtime()
             )
             pressureUnit(intent.getStringExtra("presunit"))?.let { _unit.value = it }
-            heard(pos, tyre)
+            live.heard()
+            val all = synchronized(heard) { heard[pos] = tyre; heard.toMap() }
+            busPublisher.put(K.TYRES, all)
         }
-    }
-
-    /** [tyre] at [pos], from the TPMS app or the USB receiver; any thread. */
-    internal fun heard(pos: TyrePos, tyre: Tyre) {
-        if (!tyre.noSignal && tyre.kPa > 0) heardAt = tyre.at
-        // The demo shows its own tyres; the sensors fill them in again once it's over.
-        if (DemoMode.isOn) return
-        _tyres.update { it + (pos to tyre) }
-    }
-
-    /** The USB receiver let go: its last readings leave too, unless the TPMS app keeps reporting. */
-    internal fun receiverGone() {
-        if (!started && !DemoMode.isOn) _tyres.value = emptyMap()
     }
 
     /** The unit the driver chose for the USB receiver's pressures; the TPMS app, where there is one, sets its own. */
     internal fun setUnit(unit: PressureUnit) {
         _unit.value = unit
-    }
-
-    /** [DemoMode]'s tyres, and the real ones put back when it ends. */
-    internal fun demoWrite(tyres: Map<TyrePos, Tyre>) {
-        _tyres.value = tyres
-        // Judged at once, on a unit without the TPMS app (no collector) too.
-        judge()
     }
 
     /** For [AlertPreview]: made-up tyres, one of them low. */

@@ -32,6 +32,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.openauto.dash.vehicle.rememberTyres
+import com.openauto.dash.vehicle.reversingFlow
+import com.openauto.dash.vehicle.tyresFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -66,11 +69,11 @@ object TyreAlertOverlay {
 
     /** The tyres to show, or null when there's no warning: the picker's made-up ones while it is tried. */
     val alert: StateFlow<Map<TyrePos, Tyre>?> =
-        combine(RomPopups.replaced, Tyres.tyres, problems, dismissed, AlertPreview.tyres) { replaced, tyres, problems, hidden, preview ->
+        combine(RomPopups.replaced, tyresFlow(), problems, dismissed, AlertPreview.tyres) { replaced, tyres, problems, hidden, preview ->
             preview ?: tyres.takeIf {
                 RomPopups.Kind.TYRES in replaced && problems.isNotEmpty() && !problems.all { (pos, p) -> hidden[pos] == p }
             }
-        }.combine(CarBox.reversing) { tyres, reversing -> tyres.takeIf { !reversing || AlertPreview.tyres.value != null } }
+        }.combine(reversingFlow()) { tyres, reversing -> tyres.takeIf { !reversing || AlertPreview.tyres.value != null } }
             .stateIn(scope, SharingStarted.Eagerly, null)
 
     private val onTheMove = ShrinkOnTheMove()
@@ -267,7 +270,7 @@ internal val TyreProblem.labelRes: Int
 /** The Tyres tile: the four tyres, from the TPMS sensors. */
 @Composable
 internal fun TyresCard(modifier: Modifier = Modifier) {
-    val tyres by Tyres.tyres.collectAsState()
+    val tyres = rememberTyres()
     val problems by Tyres.problems.collectAsState()
     val unit by Tyres.unit.collectAsState()
     Card(modifier = modifier) {

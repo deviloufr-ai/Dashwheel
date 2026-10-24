@@ -1,5 +1,8 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.rememberGauge
+import com.openauto.dash.vehicle.rememberGaugeInt
+import com.openauto.dash.vehicle.K
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.compose.foundation.Image
@@ -34,7 +37,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -363,7 +365,7 @@ private fun BrSpeed(env: SkinTileEnv) {
         SpeedLimit.start(context)
         onDispose { SpeedLimit.stop() }
     }
-    val speed = rememberSpeedKmh(env)
+    val speed = rememberSpeedKmh()
     val limit by SpeedLimit.limit.collectAsState()
     val units = LocalUnits.current
     val over = speedOver(speed)
@@ -376,7 +378,7 @@ private fun BrSpeed(env: SkinTileEnv) {
     val canConnect = speed == null && env.obdConnection.isIdle && !env.editing
     val said = speed?.let { "${units.speed(it)} ${units.speedUnit}" } ?: stringResource(R.string.info_speed_no_signal)
     val label = stringResource(R.string.brutal_speed, units.speedUnit)
-    val source = speedSource(env.obdConnection == ObdConnectionState.CONNECTED, speed, stringResource(R.string.info_speed_no_signal))
+    val source = speedSource(stringResource(R.string.info_speed_no_signal))
     BoxWithConstraints(Modifier.fillMaxSize()) {
         BrBlock(
             BrTone.WHITE, Modifier.fillMaxSize().semantics(mergeDescendants = true) { contentDescription = said },
@@ -683,15 +685,14 @@ private class BrReading(val label: String, val value: String, val warn: Boolean 
  */
 @Composable
 private fun BrReadings(item: DashboardItem, env: SkinTileEnv, telemetry: Boolean) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     if (!telemetry && fuel == null) {
         Box(Modifier.fillMaxSize().brutalFallbackPanel()) { StandardSkinnedTile(item, env) }
         return
     }
     val units = LocalUnits.current
-    val connected = env.obdConnection == ObdConnectionState.CONNECTED
-    val coolant by remember(env) { derivedStateOf { if (env.obdConnection == ObdConnectionState.CONNECTED) env.obdData.coolantTempC else 0 } }
-    val voltage by remember(env) { derivedStateOf { if (env.obdConnection == ObdConnectionState.CONNECTED) env.obdData.voltage else 0.0 } }
+    val coolant = rememberGaugeInt(K.COOLANT_TEMP) ?: 0
+    val voltage = rememberGauge(K.BATTERY_VOLTS) ?: 0.0
     val c = brColors(BrTone.WHITE)
     val idle = env.obdConnection.isIdle
     BoxWithConstraints(Modifier.fillMaxSize()) {
@@ -705,7 +706,7 @@ private fun BrReadings(item: DashboardItem, env: SkinTileEnv, telemetry: Boolean
             innerW >= 240.dp -> 2
             else -> 1
         }
-        val third = if (count >= 3) rememberThirdReading(telemetry, fuel, voltage, connected) else null
+        val third = if (count >= 3) rememberThirdReading(telemetry, fuel, voltage) else null
         val readings = buildList {
             add(
                 BrReading(
@@ -777,7 +778,7 @@ private fun BrRule(horizontal: Boolean, color: Color) {
  * else the battery or, on a telemetry tile, the fuel left.
  */
 @Composable
-private fun rememberThirdReading(telemetry: Boolean, fuel: FuelInfo?, voltage: Double, connected: Boolean): BrReading? {
+private fun rememberThirdReading(telemetry: Boolean, fuel: FuelInfo?, voltage: Double): BrReading? {
     val context = androidx.compose.ui.platform.LocalContext.current
     val units = LocalUnits.current
     val located = remember(context) {
@@ -788,7 +789,7 @@ private fun rememberThirdReading(telemetry: Boolean, fuel: FuelInfo?, voltage: D
     if (best != null) return BrReading("${nearby.grade.label} ${FuelPrices.CURRENCY}", FuelPrices.formatPrice(best.price))
     val outside = rememberOutsideTempC()
     if (outside != null) return BrReading(stringResource(R.string.brutal_outside), "${units.temp(outside)}°")
-    if (connected && voltage > 0.0) {
+    if (voltage > 0.0) {
         return BrReading(stringResource(R.string.brutal_battery), String.format(Locale.getDefault(), "%.1f V", voltage), voltage !in BATTERY_OK_V)
     }
     if (telemetry && fuel != null) return BrReading(stringResource(R.string.brutal_fuel), "${fuel.percent}%", fuel.percent <= SKIN_LOW_FUEL_PCT)

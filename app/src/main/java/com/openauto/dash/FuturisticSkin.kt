@@ -555,7 +555,7 @@ internal fun FuturisticTopBar(m: TopBarModel) {
                     }
                 }
                 Row(modifier = Modifier.layoutId(BarRank.ALERTS), verticalAlignment = Alignment.CenterVertically) {
-                    VehicleAlerts(m.obdConnection, m.obd)
+                    VehicleAlerts()
                 }
                 Box(Modifier.layoutId(BarRank.PHONE)) { PhonePill() }
                 if (!narrow) Box(Modifier.layoutId(BarRank.TEMP)) { FutOutsideTemp() }

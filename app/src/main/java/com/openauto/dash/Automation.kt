@@ -6,6 +6,8 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.util.Log
 import androidx.core.content.ContextCompat
+import com.openauto.dash.vehicle.ignitionFlow
+import com.openauto.dash.vehicle.reversingFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -128,11 +130,11 @@ object Automation {
     /** The car's events, each told once as it changes (never the state at start-up). */
     private fun watchEvents(context: Context) {
         scope.launch {
-            CarPower.ignition.filterNotNull().distinctUntilChanged().drop(1)
+            ignitionFlow().filterNotNull().distinctUntilChanged().drop(1)
                 .collect { tell(context, if (it) Event.IGNITION_ON else Event.IGNITION_OFF) }
         }
         scope.launch {
-            CarBox.reversing.drop(1)
+            reversingFlow().drop(1)
                 .collect { tell(context, if (it) Event.REVERSE_ON else Event.REVERSE_OFF) }
         }
         scope.launch {

@@ -8,7 +8,7 @@
     <string name="templates_road_trip_blurb">Большая карта, запас хода, погода и остановки для долгих поездок</string>
     <string name="templates_car_health">Состояние автомобиля</string>
     <string name="templates_car_health_blurb">Данные автомобиля и коды ошибок на Главной</string>
-    <string name="templates_no_obd">OBD-адаптер ещё не выбран, поэтому виджеты данных автомобиля не добавлены.</string>
+    <string name="templates_no_car_data">Источника данных автомобиля пока нет, поэтому виджеты данных автомобиля не добавлены.</string>
     <string name="templates_fill_this">Заполнить эту панель</string>
     <string name="templates_fill_this_hint">На неё одну ставится страница шаблона для %1$s.</string>
     <string name="templates_fill">Заполнить</string>

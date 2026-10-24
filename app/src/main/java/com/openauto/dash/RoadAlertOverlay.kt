@@ -33,6 +33,9 @@ import com.openauto.dash.link.KeepClip
 import com.openauto.dash.link.RoadScene
 import com.openauto.dash.roadwatch.RoadRules
 import com.openauto.dash.roadwatch.RoadWarning
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.speedKmhFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -47,6 +50,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 /*
  * Road watch on the car: the phone behind the windscreen sends what its
@@ -100,7 +104,7 @@ object RoadWatch {
         scope.launch { carSpeed().collect { carKmh = it } }
         // The hazard lights going on while the phone watches: a moment for its recorder to keep.
         scope.launch {
-            CarBox.body.map { it?.hazard == true }.distinctUntilChanged().collect { on ->
+            Vehicle.bus.value(K.LIGHTS).map { CarLight.HAZARD in it.orEmpty() }.distinctUntilChanged().collect { on ->
                 if (on && _live.value) PhoneLink.send(KeepClip("hazard"))
             }
         }
@@ -130,15 +134,16 @@ object RoadWatch {
             // And the car's word back to the phone, for the picture and the notes of its recording.
             if (now - telemetryAt >= TELEMETRY_MS) {
                 telemetryAt = now
-                val body = CarBox.freshBody()
+                val lights = Vehicle.bus.now(K.LIGHTS).orEmpty()
+                val turn = Vehicle.bus.now(K.INDICATORS)
                 PhoneLink.send(
                     CarTelemetry(
                         speedKmh = carKmh,
-                        rpm = body?.rpm,
-                        turnLeft = body?.turnLeft == true,
-                        turnRight = body?.turnRight == true,
-                        hazard = body?.hazard == true,
-                        lights = body?.dippedBeam == true || body?.highBeam == true
+                        rpm = Vehicle.bus.now(K.RPM)?.roundToInt(),
+                        turnLeft = turn?.left == true,
+                        turnRight = turn?.right == true,
+                        hazard = CarLight.HAZARD in lights,
+                        lights = CarLight.DIPPED in lights || CarLight.MAIN_BEAM in lights
                     )
                 )
             }
@@ -161,17 +166,11 @@ object RoadWatch {
         context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(key, on).apply()
 
     /** An indicator, or the hazards, on: from the CAN box, which says so on the QF units. */
-    private fun indicating(): Boolean = CarBox.freshBody()?.let { it.turnLeft || it.turnRight || it.hazard } == true
+    private fun indicating(): Boolean =
+        Vehicle.bus.now(K.INDICATORS)?.let { it.left || it.right } == true || CarLight.HAZARD in Vehicle.bus.now(K.LIGHTS).orEmpty()
 
     /** The car's own speed, null when nothing in the car says it (the GPS is the phone's job here). */
-    private fun carSpeed(): Flow<Int?> = combine(
-        ObdBluetoothManager.connectionState,
-        ObdBluetoothManager.data,
-        CarBox.body,
-        CarFeed.speedKmh
-    ) { connection, obd, _, bus ->
-        if (connection == ObdConnectionState.CONNECTED) obd.speedKmh else CarBox.freshBody()?.speedKmh ?: bus?.toInt()
-    }
+    private fun carSpeed(): Flow<Int?> = speedKmhFlow(K.VEHICLE_SPEED)
 }
 
 object RoadAlertOverlay {

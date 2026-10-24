@@ -62,6 +62,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.openauto.dash.vehicle.reversingFlow
+import com.openauto.dash.vehicle.reversingNow
+import com.openauto.dash.vehicle.speedKmhFlow
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -70,7 +73,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -152,9 +154,7 @@ internal object GeminiLive {
         val app = AppLanguage.wrap(context.applicationContext)
         scope.launch {
             var was = false
-            combine(ObdBluetoothManager.connectionState, ObdBluetoothManager.data, CarBox.body, LocationFeed.freshSpeedKmh) { connection, obd, _, gps ->
-                if (connection == ObdConnectionState.CONNECTED) obd.speedKmh else CarBox.freshBody()?.speedKmh ?: gps
-            }.collect { kmh ->
+            speedKmhFlow().collect { kmh ->
                 val now = isMoving(kmh, was)
                 was = now
                 if (now != moving) {
@@ -164,7 +164,7 @@ internal object GeminiLive {
             }
         }
         scope.launch {
-            CarBox.reversing.collect {
+            reversingFlow().collect {
                 reversing = it
                 // Dashwheel's own Gemini would talk through the manoeuvre, its alert out of sight: it ends.
                 if (it && own) end(app) else render(app)
@@ -253,7 +253,7 @@ internal object GeminiLive {
             return
         }
         // Not while reversing: the driver listens for the parking sensors.
-        if (CarBox.reversing.value) return
+        if (reversingNow()) return
         AlertPreview.stop()
         own = true
         _active.value = true

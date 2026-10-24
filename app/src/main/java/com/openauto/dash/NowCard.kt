@@ -304,9 +304,7 @@ internal fun rememberNowView(pending: PendingActionState): NowView {
     // The car: faults, fuel, driving time.
     val ai by AiMechanic.state.collectAsState()
     val newFaultAt by AiMechanic.newFaultAt.collectAsState()
-    val obd = ObdBluetoothManager.data.collectAsState()
-    val connection by ObdBluetoothManager.connectionState.collectAsState()
-    val fuel = rememberFuel(obd, connection)
+    val fuel = rememberFuel()
     val care = CarCare.state.collectAsState()
     // The rest timer moves every second: only its minute is read.
     val drivingMin by remember { derivedStateOf { care.value.rest.drivingMs / 60_000L } }
