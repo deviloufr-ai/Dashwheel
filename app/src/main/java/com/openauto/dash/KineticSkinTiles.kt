@@ -1,5 +1,8 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.any
+import com.openauto.dash.vehicle.rememberPanelGauges
+import com.openauto.dash.vehicle.K
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
@@ -478,7 +481,7 @@ private fun KnSpeed(env: SkinTileEnv) {
         SpeedLimit.start(context)
         onDispose { SpeedLimit.stop() }
     }
-    val speed = rememberSpeedKmh(env)
+    val speed = rememberSpeedKmh()
     val limit by SpeedLimit.limit.collectAsState()
     val units = LocalUnits.current
     val over = speedOver(speed)
@@ -528,6 +531,9 @@ private fun KnTelemetry(env: SkinTileEnv) {
     val state = env.obdConnection
     val units = LocalUnits.current
     val gear by rememberGear()
+    // Whatever the car answers is shown, adapter or not.
+    val g = rememberPanelGauges(K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
+    val live = state == ObdConnectionState.CONNECTED || g.any || gear.rpm != null
     BoxWithConstraints(
         Modifier
             .fillMaxSize()
@@ -536,7 +542,7 @@ private fun KnTelemetry(env: SkinTileEnv) {
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
         val readSize = (min(maxWidth.value / 14f, maxHeight.value * 0.12f)).coerceIn(18f, 34f)
-        if (state != ObdConnectionState.CONNECTED) {
+        if (!live) {
             Column(Modifier.align(Alignment.CenterStart)) {
                 KnLabel(stringResource(R.string.dash_obd_short))
                 KnLine(
@@ -553,7 +559,6 @@ private fun KnTelemetry(env: SkinTileEnv) {
             }
             return@BoxWithConstraints
         }
-        val d = env.obdData
         val rpm = gear.rpm
         val rpmText = rpm?.let { groupThousands(it) } ?: "--"
         val labelSize = (maxHeight.value * 0.06f).coerceIn(14f, 20f)
@@ -563,9 +568,9 @@ private fun KnTelemetry(env: SkinTileEnv) {
             KnLine(rpmText, knText(numSize, DashColors.TextPrimary, KnFace.HERO, squeeze = 0.7f), overflow = TextOverflow.Clip)
             Spacer(Modifier.weight(1f))
             KnFitRow(28.dp) {
-                if (d.coolantTempC > 0) KnReadout(stringResource(R.string.kinetic_coolant), "${units.temp(d.coolantTempC)}°", d.coolantTempC >= COOLANT_WARNING_C, readSize)
-                if (d.voltage > 0.0) KnReadout(stringResource(R.string.kinetic_battery), String.format(Locale.getDefault(), "%.1f V", d.voltage), d.voltage !in BATTERY_OK_V, readSize)
-                KnReadout(stringResource(R.string.kinetic_load), "${d.engineLoadPct} %", false, readSize)
+                g.coolantTempC?.let { KnReadout(stringResource(R.string.kinetic_coolant), "${units.temp(it)}°", it >= COOLANT_WARNING_C, readSize) }
+                g.voltage?.let { KnReadout(stringResource(R.string.kinetic_battery), String.format(Locale.getDefault(), "%.1f V", it), it !in BATTERY_OK_V, readSize) }
+                g.engineLoadPct?.let { KnReadout(stringResource(R.string.kinetic_load), "$it %", false, readSize) }
             }
         }
     }
@@ -808,7 +813,7 @@ private fun KnWeather(env: SkinTileEnv) {
  */
 @Composable
 private fun KnRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     BoxWithConstraints(Modifier.fillMaxSize().graphicsLayer()) {
         val strip = maxWidth >= 460.dp && maxWidth >= maxHeight * 2f && maxHeight >= 100.dp
         val stage = !strip && maxWidth >= 300.dp && maxHeight >= 220.dp

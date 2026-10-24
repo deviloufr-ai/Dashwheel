@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.openauto.dash.vehicle.rememberTyres
 
 /** The USB tyre receiver's row in Settings, Car: what it is doing now. */
 @Composable
@@ -53,7 +54,7 @@ internal fun UsbTpmsSheet(onDismiss: () -> Unit) {
     val chosen by UsbTpms.device.collectAsState()
     val state by UsbTpms.state.collectAsState()
     val unit by UsbTpms.unit.collectAsState()
-    val tyres by Tyres.tyres.collectAsState()
+    val tyres = rememberTyres()
     val shownUnit by Tyres.unit.collectAsState()
     val limits by Tyres.limits.collectAsState()
     val u = LocalUnits.current

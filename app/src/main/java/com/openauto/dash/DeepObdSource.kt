@@ -23,7 +23,10 @@ enum class ObdSource {
 }
 
 /** The readings Dashwheel takes from Deep OBD's pages. */
-internal enum class ObdField { SPEED, RPM, COOLANT, INTAKE, THROTTLE, LOAD, FUEL, VOLTAGE }
+internal enum class ObdField(val pid: Pid) {
+    SPEED(Pid.SPEED), RPM(Pid.RPM), COOLANT(Pid.COOLANT), INTAKE(Pid.INTAKE), THROTTLE(Pid.THROTTLE),
+    LOAD(Pid.LOAD), FUEL(Pid.FUEL_LEVEL), VOLTAGE(Pid.VOLTS)
+}
 
 /** One line of a Deep OBD page: its label, the job result behind it and the text it shows. */
 internal data class DeepItem(val name: String, val result: String, val value: String)
@@ -213,7 +216,10 @@ internal object DeepObdSource {
         _seen.value = _seen.value.filter { it.item.name !in names } + seen
         lastFrameAt = android.os.SystemClock.elapsedRealtime()
         live = true
-        ObdBluetoothManager.deepObdWrite(DeepObdParser.apply(ObdBluetoothManager.data.value, readings, SpeedCorrection::corrected))
+        ObdBluetoothManager.deepObdWrite(
+            DeepObdParser.apply(ObdBluetoothManager.data.value, readings, SpeedCorrection::corrected),
+            readings.keys.map { it.pid }.toSet()
+        )
     }
 
     private fun down() {

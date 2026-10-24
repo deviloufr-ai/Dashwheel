@@ -1,5 +1,8 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.any
+import com.openauto.dash.vehicle.rememberPanelGauges
+import com.openauto.dash.vehicle.K
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -622,6 +625,10 @@ private fun TrMediaKeys(env: SkinTileEnv, d: Dp, prev: Boolean, spread: Boolean)
 private fun TrTelemetry(env: SkinTileEnv) {
     val state = env.obdConnection
     val units = LocalUnits.current
+    // Whatever the car answers is shown, adapter or not.
+    val g = rememberPanelGauges(K.COOLANT_TEMP, K.BATTERY_VOLTS)
+    val gear by rememberGear()
+    val live = state == ObdConnectionState.CONNECTED || g.any || gear.rpm != null
     BoxWithConstraints(
         Modifier
             .fillMaxSize()
@@ -636,21 +643,19 @@ private fun TrTelemetry(env: SkinTileEnv) {
         Column(Modifier.fillMaxSize().padding(pad)) {
             TrLabel(trJoin(stringResource(R.string.terrain_engine), stringResource(R.string.dash_obd_short)))
             Spacer(Modifier.weight(1f))
-            when (state) {
-                ObdConnectionState.CONNECTED -> {
-                    val d = env.obdData
-                    val gear by rememberGear()
+            when {
+                live -> {
                     TrFitRow(22.dp) {
-                        if (d.coolantTempC > 0) {
-                            TrReadout(stringResource(R.string.skin_panorama_coolant), "${units.temp(d.coolantTempC)}", "°", d.coolantTempC >= COOLANT_WARNING_C, numSize)
+                        g.coolantTempC?.let {
+                            TrReadout(stringResource(R.string.skin_panorama_coolant), "${units.temp(it)}", "°", it >= COOLANT_WARNING_C, numSize)
                         }
-                        if (d.voltage > 0.0) {
-                            TrReadout(stringResource(R.string.skin_panorama_battery), String.format(Locale.getDefault(), "%.1f", d.voltage), "V", d.voltage !in BATTERY_OK_V, numSize)
+                        g.voltage?.let {
+                            TrReadout(stringResource(R.string.skin_panorama_battery), String.format(Locale.getDefault(), "%.1f", it), "V", it !in BATTERY_OK_V, numSize)
                         }
                         TrReadout(stringResource(R.string.skin_panorama_revs), gear.rpm?.let { groupThousands(it) } ?: "--", stringResource(R.string.skin_panorama_rpm), false, numSize)
                     }
                 }
-                ObdConnectionState.CONNECTING -> TrLine(stringResource(R.string.horizon_obd_connecting), trText(18f, DashColors.AccentInk, FontWeight.Medium))
+                state == ObdConnectionState.CONNECTING -> TrLine(stringResource(R.string.horizon_obd_connecting), trText(18f, DashColors.AccentInk, FontWeight.Medium))
                 else -> TrFitRow(10.dp) {
                     TrPill(stringResource(R.string.horizon_connect_obd), filled = true, enabled = !env.editing, onClick = env.onConnectObd)
                     if (state == ObdConnectionState.ERROR) {
@@ -689,7 +694,7 @@ private fun TrSpeed(env: SkinTileEnv) {
         SpeedLimit.start(context)
         onDispose { SpeedLimit.stop() }
     }
-    val speed = rememberSpeedKmh(env)
+    val speed = rememberSpeedKmh()
     val limit by SpeedLimit.limit.collectAsState()
     val units = LocalUnits.current
     val over = speedOver(speed)
@@ -700,7 +705,7 @@ private fun TrSpeed(env: SkinTileEnv) {
     }
     val canConnect = speed == null && env.obdConnection.isIdle && !env.editing
     val said = speed?.let { "${units.speed(it)} ${units.speedUnit}" } ?: stringResource(R.string.info_speed_no_signal)
-    val source = speedSource(env.obdConnection == ObdConnectionState.CONNECTED, speed, "")
+    val source = speedSource("")
     BoxWithConstraints(
         Modifier
             .fillMaxSize()

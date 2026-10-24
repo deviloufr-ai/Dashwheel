@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.LocalParking
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Warning
+import com.openauto.dash.vehicle.ignitionFlow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -216,7 +217,7 @@ private fun MomentFeeds(active: androidx.compose.runtime.MutableState<Set<Moment
     UseLocationFeed()
     // Switched on again (the unit wakes with the key): the engine-on Home, once more.
     LaunchedEffect(Unit) {
-        CarPower.ignition.drop(1).collect { if (it == true) engineOnAt = System.currentTimeMillis() }
+        ignitionFlow().drop(1).collect { if (it == true) engineOnAt = System.currentTimeMillis() }
     }
     LaunchedEffect(engineOnAt) {
         if (engineOnAt == 0L) return@LaunchedEffect

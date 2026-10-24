@@ -433,11 +433,12 @@ object DashboardStore {
             pageWidthDp = if (ScreenShape.vertical) 720f else if (half) 640f else 1280f,
             pageHeightDp = if (ScreenShape.vertical) (if (half) 560f else 1120f) else 576f,
             obdPaired = ObdBluetoothManager.adapter.value.canDial,
+            carKeys = UnitPlatform.suppliedKeys(),
             driverOnRight = CarProfileStore.current.driverOnRight,
             mapsDocked = half,
             dockApps = emptyList(),
             canbox = PrivilegedShell.access.value.root,
-            tyres = Tyres.available
+            tyres = UnitPlatform.delivers(Cap.TYRES)
         ),
         only = ROW.toSet()
     )

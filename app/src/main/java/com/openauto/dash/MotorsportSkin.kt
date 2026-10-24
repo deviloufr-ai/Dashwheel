@@ -1,5 +1,9 @@
 package com.openauto.dash
 
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.K
 import android.graphics.Bitmap
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -272,7 +276,7 @@ internal enum class MsFlag { GREEN, YELLOW, RED }
  */
 @Composable
 internal fun rememberMsFlag(): State<MsFlag> {
-    val doors = McuReader.doorState.collectAsState()
+    val doors = remember { Vehicle.bus.value(K.DOORS) }.collectAsState(null)
     val tyres = Tyres.problems.collectAsState()
     return remember(doors, tyres) {
         derivedStateOf {
@@ -447,7 +451,7 @@ internal fun MotorsportTopBar(m: TopBarModel) {
                     }
                 }
                 Row(modifier = Modifier.layoutId(BarRank.ALERTS), verticalAlignment = Alignment.CenterVertically) {
-                    VehicleAlerts(m.obdConnection, m.obd)
+                    VehicleAlerts()
                 }
                 Box(Modifier.layoutId(BarRank.PHONE)) { PhonePill() }
                 // The frame says the same, so the tag is the first to step aside.
@@ -569,18 +573,6 @@ private fun ledColor(i: Int): Color = when {
 private const val LEDS = 15
 
 /**
- * The revs as the bar knows them: the OBD's while it reports, else the car's
- * own (CANbox) while fresh; 0 with the adapter linked and the engine off;
- * null with neither.
- */
-private fun liveRpm(obd: ObdData, conn: ObdConnectionState, body: CarBody?): Int? = when {
-    conn == ObdConnectionState.CONNECTED && obd.rpm > 0 -> obd.rpm
-    body?.rpm != null && CarBox.freshBody() != null -> body.rpm
-    conn == ObdConnectionState.CONNECTED -> 0
-    else -> null
-}
-
-/**
  * The shift-light housing: a glossy black pill holding fifteen round lights
  * that come on one by one as the revs climb towards the shift point (about
  * 3 500 r/min on the 1.6 HDi, from the car's red line when its profile has
@@ -592,13 +584,12 @@ private fun liveRpm(obd: ObdData, conn: ObdConnectionState, body: CarBody?): Int
 private fun ShiftLights(m: TopBarModel, modifier: Modifier) {
     val context = LocalContext.current
     androidx.compose.runtime.LaunchedEffect(Unit) { CarBox.start(context) }
-    val body = CarBox.body.collectAsState()
-    val obd = m.obd
-    val conn = m.obdConnectionState
+    // A State, read only in the draw below: the revs move many times a second.
+    val revs = remember { Vehicle.bus.value(K.RPM).map { it?.roundToInt() }.distinctUntilChanged() }.collectAsState(null)
     val redline = CarProfileStore.current.redlineRpm ?: 4_500
     val shift = (redline * 0.78f).coerceIn(2_500f, 7_000f)
     val start = shift * 0.36f
-    val rpm = remember(obd, conn, body) { { liveRpm(obd.value, conn.value, body.value) } }
+    val rpm = remember(revs) { { revs.value } }
     val atLimit by remember(rpm, shift) { derivedStateOf { (rpm() ?: 0) >= shift } }
     val idle by remember(rpm) { derivedStateOf { rpm() == null } }
     val flash = if (atLimit) rememberBlink(80L) else null

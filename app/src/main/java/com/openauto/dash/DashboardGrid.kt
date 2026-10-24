@@ -90,7 +90,6 @@ import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.runtime.derivedStateOf
 
 /*
  * The free-placement tile grid: page layout, drag / resize tiles, tile content routing.
@@ -129,7 +128,6 @@ internal fun DashboardPage(
     media: State<MediaState>,
     mediaController: CarMediaController,
     hasMediaAccess: Boolean,
-    obd: State<ObdData>,
     obdConnection: State<ObdConnectionState>,
     onConnectObd: () -> Unit,
     onPickDevice: () -> Unit,
@@ -179,7 +177,6 @@ internal fun DashboardPage(
                 mediaController = mediaController,
                 hasMediaAccess = hasMediaAccess,
                 context = context,
-                obd = obd,
                 obdConnection = obdConnection,
                 onConnectObd = onConnectObd,
                 onPickDevice = onPickDevice,
@@ -623,7 +620,6 @@ internal fun TileContent(
     mediaController: CarMediaController,
     hasMediaAccess: Boolean,
     context: android.content.Context,
-    obd: State<ObdData>,
     obdConnection: State<ObdConnectionState>,
     onConnectObd: () -> Unit,
     onPickDevice: () -> Unit,
@@ -634,10 +630,10 @@ internal fun TileContent(
     /** Grid only: grow this tile to at least the given pixel size (a docked window's minimum). */
     onFitToWindow: ((Int, Int) -> Unit)? = null
 ) {
-    val env = remember(editing, appsByPackage, media, mediaController, hasMediaAccess, context, obd, obdConnection, onConnectObd, onPickDevice, onLaunchApp, onEditLaunchBar) {
+    val env = remember(editing, appsByPackage, media, mediaController, hasMediaAccess, context, obdConnection, onConnectObd, onPickDevice, onLaunchApp, onEditLaunchBar) {
         SkinTileEnv(
             editing, appsByPackage, media, mediaController, hasMediaAccess, context,
-            obd, obdConnection, onConnectObd, onPickDevice, onLaunchApp, onEditLaunchBar
+            obdConnection, onConnectObd, onPickDevice, onLaunchApp, onEditLaunchBar
         )
     }
     // A tile's own design beats the skin; its standard look is this same
@@ -646,7 +642,7 @@ internal fun TileContent(
         DesignedTile(item, env) {
             TileContent(
                 item.copy(design = WidgetDesign.STANDARD), editing, appsByPackage, media, mediaController, hasMediaAccess,
-                context, obd, obdConnection, onConnectObd, onPickDevice, onLaunchApp, onLaunchSplitPair, onEditLaunchBar,
+                context, obdConnection, onConnectObd, onPickDevice, onLaunchApp, onLaunchSplitPair, onEditLaunchBar,
                 onModelTouch, onFitToWindow
             )
         }
@@ -725,7 +721,6 @@ internal fun TileContent(
                 onPickDevice = onPickDevice
             )
             BuiltinKind.OBD_ALL -> ObdAllCard(
-                obdData = obd.value,
                 connection = obdConnection.value,
                 onConnect = onConnectObd,
                 modifier = Modifier.fillMaxSize(),
@@ -780,8 +775,8 @@ internal fun TileContent(
             BuiltinKind.LPG_TANK -> LpgTankCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.MY_READINGS -> MyReadingsCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.FILTER_CARE -> FilterCareCard(modifier = Modifier.fillMaxSize())
-            BuiltinKind.WARMUP -> WarmupCard(remember(obd) { derivedStateOf { obd.value.coolantTempC } }.value, obdConnection.value == ObdConnectionState.CONNECTED, Modifier.fillMaxSize())
-            BuiltinKind.BATTERY -> BatteryCard(obd.value, obdConnection.value == ObdConnectionState.CONNECTED, Modifier.fillMaxSize())
+            BuiltinKind.WARMUP -> WarmupCard(Modifier.fillMaxSize())
+            BuiltinKind.BATTERY -> BatteryCard(Modifier.fillMaxSize())
             BuiltinKind.MY_CAR -> MyCarCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.ECO_DRIVE -> EcoDriveCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.BREAK_TIMER -> BreakCard(modifier = Modifier.fillMaxSize())

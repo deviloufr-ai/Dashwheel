@@ -34,6 +34,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.reversingFlow
+import com.openauto.dash.vehicle.reversingNow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -85,9 +89,9 @@ object ClimateOverlay {
         val app = AppLanguage.wrap(context.applicationContext)
         // A change, not the state the car app reports first after a start.
         scope.launch {
-            CarBox.climate.filterNotNull().drop(1).collect { climate ->
+            Vehicle.bus.value(K.CLIMATE).filterNotNull().drop(1).collect { climate ->
                 // Not over the reversing camera: a change made meanwhile is just not shown.
-                if (RomPopups.Kind.AC !in RomPopups.replaced.value || CarBox.reversing.value) return@collect
+                if (RomPopups.Kind.AC !in RomPopups.replaced.value || reversingNow()) return@collect
                 shown.value = climate
                 timer?.cancel()
                 timer = launch {
@@ -97,7 +101,7 @@ object ClimateOverlay {
             }
         }
         scope.launch {
-            CarBox.reversing.collect { if (it) shown.value = null }
+            reversingFlow().collect { if (it) shown.value = null }
         }
         scope.launch {
             style.collect { style ->

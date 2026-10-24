@@ -446,7 +446,7 @@ internal fun BrutalTopBar(m: TopBarModel) {
                     if (m.setupPending) {
                         Box(Modifier.layoutId(BarRank.SETUP).padding(end = 8.dp)) { SetupPill(onClick = { m.onSetup(false) }, compact = narrow || shared) }
                     }
-                    Row(Modifier.layoutId(BarRank.ALERTS), verticalAlignment = Alignment.CenterVertically) { VehicleAlerts(m.obdConnection, m.obd) }
+                    Row(Modifier.layoutId(BarRank.ALERTS), verticalAlignment = Alignment.CenterVertically) { VehicleAlerts() }
                     Box(Modifier.layoutId(BarRank.PHONE).padding(end = 4.dp)) { PhonePill() }
                 }
             }

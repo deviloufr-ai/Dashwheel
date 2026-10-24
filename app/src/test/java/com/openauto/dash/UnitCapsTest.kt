@@ -51,6 +51,19 @@ class UnitCapsTest {
     }
 
     @Test
+    fun theKindsOfCarData_nameTheirKey_thePlatformCapsDoNot() {
+        val data = Cap.entries.filter { it.key != null }
+        assertEquals(
+            setOf(Cap.DOORS, Cap.REVERSE, Cap.STEERING, Cap.RADAR, Cap.CLIMATE, Cap.BODY_TRIP, Cap.SPEED_RPM, Cap.VOLTS, Cap.HEADLIGHTS, Cap.OUTSIDE_TEMP, Cap.TYRES),
+            data.toSet()
+        )
+        // A key someone can put: not a BestOf, which nobody publishes to.
+        assertTrue(data.none { it.key is com.openauto.dash.vehicle.Key.BestOf<*> })
+        assertTrue(data.all { it.key in com.openauto.dash.vehicle.K.all })
+        assertTrue(listOf(Cap.IGNITION, Cap.UNIT_KEYS, Cap.PHONE_BRIDGE, Cap.FREEFORM_BAR, Cap.KEY_TARGETS).all { it.key == null })
+    }
+
+    @Test
     fun theEmptyCaps_claimNothing() {
         assertTrue(UnitCaps.NONE.claimed.isEmpty())
         assertEquals(CapState.ABSENT, UnitCaps.NONE.state(Cap.IGNITION, Access.ROOT, settingsGranted = true, used = emptySet()))

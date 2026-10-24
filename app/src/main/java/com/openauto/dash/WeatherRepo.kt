@@ -8,6 +8,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Source
+import com.openauto.dash.vehicle.SourceKind
+import com.openauto.dash.vehicle.Vehicle
 import okhttp3.Request
 import org.json.JSONObject
 import java.io.IOException
@@ -61,10 +65,14 @@ data class Weather(
 
 object WeatherRepo {
     private val _weather = MutableStateFlow<Weather?>(null)
-    /** The weather, its temperature from the car's own sensor when the car sends one ([UnitSignals.outsideTempC]). */
+    /** The weather: the forecast as fetched, its temperature the forecast's own (the car's sensor is [K.OUTSIDE_TEMP]). */
     val weather: StateFlow<Weather?> = _weather
-    /** What was last published (fetched, or the demo's), before the car's temperature goes over it. */
-    @Volatile private var base: Weather? = null
+
+    /**
+     * The forecast on the vehicle bus: the fetched temperature, as old as the fetch (it goes after the key's 3 h). A
+     * forecast is a number with an age and no feed that can go quiet: no silence rule beyond those 3 hours.
+     */
+    private val busPublisher = Vehicle.bus.register(Source("weather", SourceKind.NETWORK, "Weather forecast"))
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
@@ -112,9 +120,9 @@ object WeatherRepo {
     internal const val REFRESH_MS = 15 * 60_000L
     private const val MOVE_DEG = 0.05   // ~5 km: refresh sooner when the car has moved on
 
-    /** [DemoMode]'s weather. */
+    /** [DemoMode]'s weather: the picture of it; its temperature goes on the bus through the demo source. */
     internal fun demoWrite(weather: Weather?, error: String?) {
-        show(weather)
+        _weather.value = weather
         _error.value = error
     }
 
@@ -133,13 +141,10 @@ object WeatherRepo {
         _error.value = error
     }
 
-    /** The car's temperature changed: shown over the fetched one. */
-    internal fun carTempChanged() = show(base)
-
     private fun show(weather: Weather?) {
-        base = weather
-        val car = UnitSignals.outsideTempC.value
-        _weather.value = if (weather == null || car == null || DemoMode.isOn) weather else weather.copy(tempC = car)
+        _weather.value = weather
+        val age = weather?.let { (System.currentTimeMillis() - it.fetchedAt).coerceAtLeast(0L) } ?: 0L
+        busPublisher.put(K.FORECAST_TEMP, weather?.tempC, atMs = busPublisher.clock() - age)
     }
 
     /** Fetches when the last result is stale or the car has moved; cheap to call often. */

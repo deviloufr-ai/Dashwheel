@@ -32,6 +32,7 @@ import com.openauto.dash.BuiltinKind.TRIP
 import com.openauto.dash.BuiltinKind.TYRES
 import com.openauto.dash.BuiltinKind.WARMUP
 import com.openauto.dash.BuiltinKind.WEATHER
+import com.openauto.dash.vehicle.Key
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -109,7 +110,9 @@ enum class DashTemplate(@StringRes val titleRes: Int, @StringRes val blurbRes: I
  *
  * @param cellAspect a grid cell's width / height as drawn, so a tile's real shape is known
  * @param minCols narrowest a widget may be, in cells, to stay readable
- * @param obdPaired an OBD adapter has been chosen; without one the car-data tiles are held back
+ * @param obdPaired an OBD adapter has been chosen (or can be dialled); it can fill the car-data tiles
+ * @param carKeys the car data something other than an adapter supplies ([UnitPlatform.suppliedKeys]); a car-data tile is
+ *   held back only when neither the adapter nor any of these can feed it ([carDataFrom])
  * @param driverOnRight right-hand drive (the car profile's setting): the most important tiles go on the right
  * @param mapsDocked Google Maps is docked beside the pages, so the in-app map is left out
  * @param dockApps apps for the Home page's dock; none means no dock
@@ -118,12 +121,13 @@ data class TemplateScreen(
     val cellAspect: Double,
     val minCols: Int = MIN_COLS,
     val obdPaired: Boolean = true,
+    val carKeys: Set<Key<*>> = emptySet(),
     val driverOnRight: Boolean = false,
     val mapsDocked: Boolean = false,
     val dockApps: List<String> = emptyList(),
     /** The CANbox stream can be read (root, see [PrivilegedShell]): the door and CAN tiles have something to show. */
     val canbox: Boolean = true,
-    /** The head unit has the TPMS app that reports the tyres ([Tyres.available]). */
+    /** The head unit has the TPMS app that reports the tyres ([UnitPlatform.delivers] of [Cap.TYRES]). */
     val tyres: Boolean = true
 ) {
     companion object {
@@ -146,7 +150,8 @@ data class TemplateScreen(
             mapsDocked: Boolean,
             dockApps: List<String>,
             canbox: Boolean = true,
-            tyres: Boolean = true
+            tyres: Boolean = true,
+            carKeys: Set<Key<*>> = emptySet()
         ): TemplateScreen {
             val cellW = (pageWidthDp / GRID_COLS).coerceAtLeast(1f)
             val cellH = (pageHeightDp / GRID_ROWS).coerceAtLeast(1f)
@@ -154,6 +159,7 @@ data class TemplateScreen(
                 cellAspect = (cellW / cellH).toDouble(),
                 minCols = maxOf(MIN_COLS, ceil(MIN_TILE_WIDTH_DP / cellW).toInt()).coerceAtMost(GRID_COLS),
                 obdPaired = obdPaired,
+                carKeys = carKeys,
                 driverOnRight = driverOnRight,
                 mapsDocked = mapsDocked,
                 dockApps = dockApps,
@@ -205,6 +211,20 @@ object TemplatePlacer {
     /** Whether [kind] is one of the car tiles a template holds back without an adapter (and [addCarTiles] adds). */
     fun needsObd(kind: BuiltinKind): Boolean = kind in NEEDS_OBD
 
+    /** Whether the car can supply [kind]'s data on [screen] from any source: the adapter, or another source's keys. */
+    private fun fed(kind: BuiltinKind, screen: TemplateScreen, obd: Boolean = screen.obdPaired) = kind.carDataFrom(obd, screen.carKeys)
+
+    /**
+     * Whether [template] holds car-data tiles that [screen] leaves out because no source can supply them (the
+     * showroom's note). Only the car's data counts: a CAN-monitor tile without root is not a missing source of data.
+     */
+    fun leavesOutCarData(template: DashTemplate, screen: TemplateScreen, only: Set<Int>? = null): Boolean =
+        template.pages.any { (p, page) ->
+            (only == null || p in only) && kindsFor(page, screen).let { kept -> page.kinds.any { it in CAR_DATA && it !in kept } }
+        }
+
+    private val CAR_DATA = NEEDS_OBD + setOf(RANGE, FUEL_TO_DEST, DOORS, CAR_STATUS)
+
     /** Tiles fed by the CANbox stream alone, which only root can read: nothing stands in for them. */
     private val NEEDS_CANBOX = setOf(DOORS, CAN_MON, CAR_STATUS)
 
@@ -230,10 +250,10 @@ object TemplatePlacer {
         for (kind in page.kinds) {
             val use = when {
                 screen.mapsDocked && kind == NAVMAP -> null
-                !screen.canbox && kind in NEEDS_CANBOX -> null
-                !screen.canbox && !screen.obdPaired && kind in NEEDS_FUEL -> null
+                !screen.canbox && kind in NEEDS_CANBOX && !fed(kind, screen, obd = false) -> null
+                !screen.canbox && kind in NEEDS_FUEL && !fed(kind, screen) -> null
                 !screen.tyres && kind == TYRES -> null
-                !screen.obdPaired && kind in NEEDS_OBD -> WITHOUT_OBD[kind]?.takeIf { it !in page.kinds }
+                kind in NEEDS_OBD && !fed(kind, screen) -> WITHOUT_OBD[kind]?.takeIf { it !in page.kinds }
                 else -> kind
             }
             if (use != null && use !in out) out += use

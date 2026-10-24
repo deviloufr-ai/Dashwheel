@@ -1,8 +1,11 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.Vehicle
 import android.content.Context
 import android.location.Location
 import com.openauto.dash.link.CarLocation
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.speedKmhNow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.coroutineScope
@@ -30,6 +33,8 @@ internal object CarWhereabouts {
     suspend fun report(context: Context, send: (CarLocation) -> Unit) {
         // The GPS feed is counted on the main thread, as the tiles do.
         val acquired = withContext(Dispatchers.Main) { LocationFeed.acquire(context) }
+        // The car's speed is read by snapshot per fix: it stays wanted while the link is up.
+        val hold = Vehicle.bus.hold(K.VEHICLE_SPEED)
         try {
             coroutineScope {
                 launch {
@@ -65,20 +70,18 @@ internal object CarWhereabouts {
                 }
             }
         } finally {
+            hold.release()
             if (acquired) withContext(NonCancellable + Dispatchers.Main) { LocationFeed.release() }
         }
     }
 
     /**
-     * The car's speed at [fix]: OBD's when the adapter is linked, else the fix's
+     * The car's speed at [fix]: the car's own when a source has it, else the fix's
      * own. Null for a fix without a speed (a network position), which can't
      * tell a stop from a drive.
      */
-    private fun speedKmh(fix: Location): Int? = when {
-        ObdBluetoothManager.connectionState.value == ObdConnectionState.CONNECTED -> ObdBluetoothManager.data.value.speedKmh
-        fix.hasSpeed() -> Math.round(fix.speed * 3.6f)
-        else -> null
-    }
+    private fun speedKmh(fix: Location): Int? =
+        speedKmhNow(K.VEHICLE_SPEED) ?: if (fix.hasSpeed()) Math.round(fix.speed * 3.6f) else null
 
     private fun Location.toCarLocation() = CarLocation(latitude, longitude, time)
 }

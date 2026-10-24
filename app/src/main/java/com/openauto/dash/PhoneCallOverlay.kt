@@ -50,6 +50,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.openauto.dash.link.CallCommand
 import com.openauto.dash.link.CallState
+import com.openauto.dash.vehicle.reversingFlow
+import com.openauto.dash.vehicle.reversingNow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -101,7 +103,7 @@ object PhoneCallOverlay {
 
     /** The design the call shows in now: null when there's no call. */
     val style: StateFlow<AlertStyle?> =
-        combine(call, AlertStyleStore.styles, CarBox.reversing, shrunk) { call, styles, reversing, shrunk ->
+        combine(call, AlertStyleStore.styles, reversingFlow(), shrunk) { call, styles, reversing, shrunk ->
             call?.let { callStyle(it, styles.of(AlertKind.CALL), reversing, shrunk) }
         }.arbitrated(AlertKind.CALL).stateIn(scope, SharingStarted.Eagerly, null)
 
@@ -149,9 +151,9 @@ object PhoneCallOverlay {
         scope.launch { call.collect { if (it == null) shrunk.value = false } }
         scope.launch {
             // Again when reverse is engaged: the same design then moves above the camera.
-            combine(style, CarBox.reversing) { style, _ -> style }.collect { style ->
+            combine(style, reversingFlow()) { style, _ -> style }.collect { style ->
                 if (style != null && !Settings.canDrawOverlays(app)) PipAnchor.grantOverlayPermission(app)
-                val w = window ?: AlertWindow(app, "call", AlertKind.CALL.cardAt.gravity, aboveCamera = { CarBox.reversing.value }, rank = AlertKind.CALL.rank).also { window = it }
+                val w = window ?: AlertWindow(app, "call", AlertKind.CALL.cardAt.gravity, aboveCamera = { reversingNow() }, rank = AlertKind.CALL.rank).also { window = it }
                 if (style != null && w.canShow()) {
                     _showing.value = w.show(style) { CallAlertContent(style) }
                 } else {

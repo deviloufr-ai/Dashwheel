@@ -23,6 +23,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.openauto.dash.link.ConversationLine
 import com.openauto.dash.link.PhoneNotification
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Source
+import com.openauto.dash.vehicle.SourceKind
+import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.reversingNow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -113,19 +118,26 @@ object LocationFeed {
     private var restoredAt: HeadingTracker.Fix? = null
     private var headingSavedAt = 0L
 
+    /** The GPS on the vehicle bus: its speed, raw (the driver's correction is applied where it is shown). */
+    private val busPublisher = Vehicle.bus.register(Source("gps", SourceKind.GPS, "GPS"))
+
     /**
-     * Speed in km/h from a fix under [FRESH_MS] old, else null. Unlike
-     * [location] (the last known position, kept for weather or fuel prices),
-     * this goes back to null by itself when fixes stop, in a tunnel or a car park.
+     * Tells the bus the speed from a fix under [FRESH_MS] old; null (stale, no fix, released) withdraws it. Unlike
+     * [location] (the last known position, kept for weather or fuel prices), it goes back to null by itself when
+     * fixes stop, in a tunnel or a car park.
      */
-    private val _freshSpeedKmh = MutableStateFlow<Int?>(null)
-    val freshSpeedKmh: StateFlow<Int?> = _freshSpeedKmh
+    private fun setFreshSpeed(kmh: Int?) {
+        // No fix, a stale one or a released GPS: the source is down (its speed is all it says), up with the next fix.
+        if (kmh != null) busPublisher.up(true)
+        busPublisher.put(K.GPS_SPEED, kmh?.toDouble())
+        if (kmh == null) busPublisher.up(false)
+    }
 
     private const val FRESH_MS = 5_000L
     /** A GPS fix this recent stands against a network fix. */
     private const val GPS_KEPT_NS = 10_000_000_000L
     private val main = Handler(Looper.getMainLooper())
-    private val expire = Runnable { _freshSpeedKmh.value = null }
+    private val expire = Runnable { setFreshSpeed(null) }
 
     private var refs = 0
     private var manager: LocationManager? = null
@@ -172,7 +184,7 @@ object LocationFeed {
         manager?.removeUpdates(listener)
         manager = null
         main.removeCallbacks(expire)
-        _freshSpeedKmh.value = null
+        setFreshSpeed(null)
     }
 
     fun resetTrip() {
@@ -192,7 +204,7 @@ object LocationFeed {
             restoredAt = null
             if (HeadingTracker.distanceM(at, fix) > RESTORE_WITHIN_M) _headingDeg.value = null
         }
-        val next = heading.next(_headingDeg.value, fix, CarBox.reversing.value)
+        val next = heading.next(_headingDeg.value, fix, reversingNow())
         if (next == _headingDeg.value) return
         _headingDeg.value = next
         val now = SystemClock.elapsedRealtime()
@@ -219,12 +231,11 @@ object LocationFeed {
     /** The first fix farther than this from where the saved heading was taken drops it: the car was moved. */
     private const val RESTORE_WITHIN_M = 50.0
 
-    /** [DemoMode]'s position and trip (and, when it ends, the real ones back). */
+    /** [DemoMode]'s position and trip (and, when it ends, the real ones back); its speed goes through the demo source. */
     internal fun demoWrite(location: Location?, trip: TripState, heading: Float?) {
         setLocation(location)
         _trip.value = trip
         _headingDeg.value = heading
-        publishSpeed(location)
     }
 
     /** Publishes [l]'s speed if the fix is recent, and schedules it to expire. */
@@ -237,17 +248,17 @@ object LocationFeed {
             SpeedReading.Keep -> Unit
             SpeedReading.None -> {
                 main.removeCallbacks(expire)
-                _freshSpeedKmh.value = null
+                setFreshSpeed(null)
             }
             is SpeedReading.Kmh -> {
                 main.removeCallbacks(expire)
-                _freshSpeedKmh.value = reading.value
+                setFreshSpeed(reading.value)
                 main.postAtTime(expire, SystemClock.uptimeMillis() + (FRESH_MS - age.coerceAtLeast(0L)))
             }
         }
     }
 
-    /** What a fix does to [freshSpeedKmh]: a new value, nothing at all, or none. */
+    /** What a fix does to the GPS speed on the bus: a new value, nothing at all, or none. */
     internal sealed interface SpeedReading {
         /** The fix has no speed (a Wi-Fi / cell fix between two GPS ones): the shown speed stays. */
         data object Keep : SpeedReading

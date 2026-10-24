@@ -34,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.openauto.dash.link.DisplayBrightness
+import com.openauto.dash.vehicle.headlightsFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -63,7 +64,7 @@ object SecondScreenBrightness {
         val minutes = flow { while (true) { emit(System.currentTimeMillis()); delay(60_000L) } }
         val choice = combine(AutoLight.by, AutoLight.from, AutoLight.to) { by, from, to -> Triple(by, from, to) }
         scope.launch {
-            combine(UnitSignals.headlightsOn, AutoLight.place, minutes, choice) { headlights, place, now, (by, from, to) ->
+            combine(headlightsFlow(), AutoLight.place, minutes, choice) { headlights, place, now, (by, from, to) ->
                 val sun = sunUp(now, place?.first, place?.second)
                 when (by) {
                     AutoLightBy.CAR -> !headlights && sun

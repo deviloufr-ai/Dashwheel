@@ -1,6 +1,15 @@
 package com.openauto.dash
 
 import android.content.Context
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.fuelInfoNow
+import com.openauto.dash.vehicle.gaugesNow
+import com.openauto.dash.vehicle.headlightsNow
+import com.openauto.dash.vehicle.ignitionNow
+import com.openauto.dash.vehicle.reversingNow
+import com.openauto.dash.vehicle.speedKmhNow
+import com.openauto.dash.vehicle.tyresNow
 import org.json.JSONArray
 import org.json.JSONObject
 import java.text.SimpleDateFormat
@@ -60,29 +69,37 @@ internal object CarFacts {
         put("time") { SimpleDateFormat("EEEE d MMMM yyyy, HH:mm", Locale.getDefault()).format(Date(now)) }
         put("units") { Units.current.value }
         put("car") { CarProfileStore.current }
-        put("ignition_on") { CarPower.ignition.value }
-        put("speed_kmh") {
-            if (obdOn) ObdBluetoothManager.data.value.speedKmh else CarBox.freshBody()?.speedKmh ?: LocationFeed.freshSpeedKmh.value
-        }
+        put("ignition_on") { ignitionNow() }
+        put("speed_kmh") { speedKmhNow() }
         put("obd_adapter") { ObdBluetoothManager.connectionState.value.name }
-        put("obd_readings") { ObdBluetoothManager.data.value.takeIf { obdOn } }
+        // The gauges the poll always reads ([VehicleMonitor.POLL_FLOOR]): the snapshot holds nothing of its own.
+        put("obd_readings") { gaugesNow(VehicleMonitor.POLL_FLOOR).toObdData().takeIf { obdOn } }
         put("engine_warning_lamp") { ObdBluetoothManager.lamp.value }
         put("fuel") {
-            carFuelInfo(McuReader.fuelPercent.value, ObdBluetoothManager.data.value.fuelLevelPct, McuReader.rangeKm.value)?.let {
+            fuelInfoNow()?.let {
                 "percent=${it.percent}, range_km=${it.rangeKm}, liters_left=%.1f, from=${it.source}".format(Locale.ROOT, it.liters)
             }
         }
-        put("car_body_trip_computer") { CarBox.freshBody() }
+        put("car_trip_computer") {
+            listOfNotNull(
+                Vehicle.bus.now(K.FUEL_CONSUMPTION)?.let { "consumption_l_per_100km=%.1f".format(Locale.ROOT, it) },
+                Vehicle.bus.now(K.TRIP_DISTANCE)?.let { "trip_km=%.1f".format(Locale.ROOT, it) },
+                Vehicle.bus.now(K.ODOMETER)?.takeIf { it > 0.0 }?.let { "odometer_km=%.0f".format(Locale.ROOT, it) },
+                Vehicle.bus.now(K.LIGHTS)?.let { "lights=${it.joinToString().ifEmpty { "off" }}" },
+                Vehicle.bus.now(K.HANDBRAKE)?.let { "handbrake_on=$it" },
+                Vehicle.bus.now(K.DRIVER_BELT)?.let { "driver_belt_unfastened=$it" }
+            ).joinToString(", ").ifEmpty { null }
+        }
         put("psa_trip_computer") { PsaTripComputer.fresh()?.let { t -> t.copy(at = 0L).toString() + t.warnings.joinToString(prefix = ", messages=") { c -> PsaWarnings.of(c)?.let { w -> context.getString(w.textRes) } ?: "code $c" } } }
-        put("climate") { CarBox.climate.value }
-        put("parking_sensors") { CarBox.radar.value }
-        put("reverse_gear") { CarBox.reversing.value }
-        put("doors") { McuReader.doorState.value }
-        put("tyres") { Tyres.tyres.value }
+        put("climate") { Vehicle.bus.now(K.CLIMATE) }
+        put("parking_sensors") { Vehicle.bus.now(K.RADAR) }
+        put("reverse_gear") { reversingNow() }
+        put("doors") { Vehicle.bus.now(K.DOORS) }
+        put("tyres") { tyresNow() }
         put("tyre_problems") { Tyres.problems.value }
         put("battery") { BatteryWatch.state.value }
-        put("unit_supply_volts") { UnitSignals.supplyVolts() }
-        put("headlights_on") { UnitSignals.headlightsOn.value }
+        put("battery_volts") { Vehicle.bus.now(K.BATTERY_VOLTS) }
+        put("headlights_on") { headlightsNow() }
         put("fault_codes") {
             AiMechanic.state.value.let { s -> s.codes?.let { "codes=$it, diagnosis=${s.diagnosis}" } }
         }

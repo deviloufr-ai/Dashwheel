@@ -1,5 +1,9 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.any
+import com.openauto.dash.vehicle.rememberPanelGauges
+import com.openauto.dash.vehicle.rememberReadings
+import com.openauto.dash.vehicle.K
 import android.graphics.Bitmap
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -480,7 +484,7 @@ internal fun CockpitTopBar(m: TopBarModel) {
                     }
                 }
                 Row(modifier = Modifier.layoutId(BarRank.ALERTS), verticalAlignment = Alignment.CenterVertically) {
-                    VehicleAlerts(m.obdConnection, m.obd)
+                    VehicleAlerts()
                 }
                 Box(Modifier.layoutId(BarRank.PHONE)) { PhonePill() }
                 if (!narrow) Box(Modifier.layoutId(BarRank.TEMP)) { OutsideTempLcd() }
@@ -1275,18 +1279,19 @@ private fun SpeedLcd(speed: Int?, caption: String, modifier: Modifier) {
 @Composable
 private fun CockpitTelemetry(env: SkinTileEnv) {
     val state = env.obdConnection
-    val connected = state == ObdConnectionState.CONNECTED
     val idle = state.isIdle
-    val d = env.obdData
-    val fuel = rememberFuel(d, state)
-    val speed = if (connected) d.speedKmh else null
-    val rpm = if (connected) d.rpm else null
+    // Whatever the car answers is shown, adapter or not.
+    val g = rememberPanelGauges(K.SPEED, K.RPM, K.COOLANT_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
+    val live = state == ObdConnectionState.CONNECTED || g.any
+    val fuel = rememberFuel()
+    val speed = g.speedKmh
+    val rpm = g.rpm
     val ink = LcdInk
     val speedColor = if (speedOver(speed)) DashColors.Warning else ink
-    val coolant = if (connected && d.coolantTempC > 0) ((d.coolantTempC - 50f) / 80f) else null
+    val coolant = g.coolantTempC?.let { (it - 50f) / 80f }
     val fuelFrac = fuel?.let { it.percent / 100f }
-    val volts = if (connected && d.voltage > 0.0) ((d.voltage - 8.0) / 8.0).toFloat() else null
-    val load = if (connected) d.engineLoadPct / 100f else null
+    val volts = g.voltage?.let { ((it - 8.0) / 8.0).toFloat() }
+    val load = g.engineLoadPct?.let { it / 100f }
     val words = dialWords()
     val rpmUnit = stringResource(R.string.cockpit_unit_rpm)
     val units = LocalUnits.current
@@ -1314,7 +1319,7 @@ private fun CockpitTelemetry(env: SkinTileEnv) {
                 face = face,
                 fraction = rpm?.let { it / SKIN_RPM_MAX },
                 subFractions = if (fuel != null) listOf(coolant, fuelFrac) else listOf(coolant),
-                live = connected,
+                live = live,
                 readout = rpm?.toString() ?: "--",
                 unit = rpmUnit,
                 lcdColor = ink,
@@ -1333,7 +1338,7 @@ private fun CockpitTelemetry(env: SkinTileEnv) {
                 face = face,
                 fraction = speed?.let { speedoFraction(it, units) },
                 subFractions = listOf(volts, load),
-                live = connected,
+                live = live,
                 readout = if (revs) rpm?.toString() ?: "--" else null,
                 unit = rpmUnit,
                 lcdColor = speedColor,
@@ -1344,7 +1349,7 @@ private fun CockpitTelemetry(env: SkinTileEnv) {
         when {
             min(w, h) < 120.dp -> SpeedLcd(
                 speed,
-                if (connected) stringResource(R.string.cockpit_speed_rpm_caption, rpm ?: 0) else stringResource(R.string.cockpit_obd_off),
+                if (live) stringResource(R.string.cockpit_speed_rpm_caption, rpm ?: 0) else stringResource(R.string.cockpit_obd_off),
                 Modifier.fillMaxSize()
             )
             wide -> {
@@ -1375,8 +1380,7 @@ private fun CockpitTelemetry(env: SkinTileEnv) {
 /** The warning-lamp column between the two dials; says how to connect while OBD is off. */
 @Composable
 private fun TelemetryTellTales(env: SkinTileEnv, speed: Int?, idle: Boolean, modifier: Modifier) {
-    val d = env.obdData
-    val connected = env.obdConnection == ObdConnectionState.CONNECTED
+    val d = rememberReadings(K.COOLANT_TEMP, K.BATTERY_VOLTS)
     val warn = DashColors.Warning
     Column(
         modifier = modifier,
@@ -1395,11 +1399,11 @@ private fun TelemetryTellTales(env: SkinTileEnv, speed: Int?, idle: Boolean, mod
         )
         TellTale(
             Icons.Filled.BatteryAlert,
-            if (connected && d.voltage > 0.0 && d.voltage !in 12.0..15.0) warn else null,
+            if (d.voltage > 0.0 && d.voltage !in 12.0..15.0) warn else null,
             stringResource(R.string.cockpit_battery)
         )
         TellTale(
-            Icons.Filled.Thermostat, if (connected && d.coolantTempC >= 105) warn else null,
+            Icons.Filled.Thermostat, if (d.coolantTempC >= 105) warn else null,
             stringResource(R.string.cockpit_coolant)
         )
         TellTale(
@@ -1421,9 +1425,8 @@ private fun TelemetryTellTales(env: SkinTileEnv, speed: Int?, idle: Boolean, mod
 /** A single speedometer fed by OBD or GPS, the digits in its LCD window; wide tiles put them on a big LCD beside it. */
 @Composable
 private fun CockpitSpeedHud(env: SkinTileEnv) {
-    val speed = rememberSpeedKmh(env)
-    val source = speedSource(
-        env.obdConnection == ObdConnectionState.CONNECTED, speed, stringResource(R.string.info_speed_no_signal).uppercase()
+    val speed = rememberSpeedKmh()
+    val source = speedSource(stringResource(R.string.info_speed_no_signal).uppercase()
     )
     val color = if (speedOver(speed)) DashColors.Warning else LcdInk
     val words = dialWords()
@@ -2181,7 +2184,7 @@ private fun CockpitWeather() {
  */
 @Composable
 private fun CockpitRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     if (fuel == null) {
         StandardSkinnedTile(item, env)
         return

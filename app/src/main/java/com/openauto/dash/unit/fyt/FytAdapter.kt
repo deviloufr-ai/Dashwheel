@@ -9,7 +9,6 @@ import com.openauto.dash.CameraControl
 import com.openauto.dash.link.CallState
 import com.openauto.dash.Cap
 import com.openauto.dash.CapClaim
-import com.openauto.dash.CarSink
 import com.openauto.dash.DockShell
 import com.openauto.dash.IgnitionEvent
 import com.openauto.dash.IgnitionSource
@@ -29,6 +28,9 @@ import com.openauto.dash.UnitCaps
 import com.openauto.dash.UnitKeyPress
 import com.openauto.dash.UnitPlatform
 import com.openauto.dash.VehicleBusSource
+import com.openauto.dash.unitBusRpm
+import com.openauto.dash.unitBusSpeed
+import com.openauto.dash.vehicle.Publisher
 import com.openauto.dash.VolumeControl
 import com.openauto.unitproto.UnitFamily
 import com.openauto.unitproto.fyt.FytBt
@@ -113,7 +115,15 @@ internal class FytCanbusSource(private val toolkit: FytToolkit) : VehicleBusSour
     private val _listening = MutableStateFlow(false)
     override val listening: StateFlow<Boolean> = _listening
 
-    private var sink: CarSink? = null
+    /**
+     * The module calls back on every change of a code it was asked for, and the generic codes (speed, revs, the
+     * decoder id) move whenever the car does: half a minute of nothing is a car that is off or a module that is gone.
+     * What speed and revs it put would have aged out after 10 s anyway.
+     */
+    override val silenceMs: Long = 30_000L
+
+    private var out: Publisher? = null
+    private var raw: ((String, String) -> Unit)? = null
     private var module: FytToolkit.FytModule? = null
     private val watched = LinkedHashSet<Int>()
     private val registered = HashSet<Int>()
@@ -122,9 +132,10 @@ internal class FytCanbusSource(private val toolkit: FytToolkit) : VehicleBusSour
 
     private val callback by lazy { FytToolkit.FytCallback(toolkit.feed, ::onUpdate) }
 
-    override fun start(context: Context, sink: CarSink) {
-        if (this.sink != null) return
-        this.sink = sink
+    override fun start(context: Context, publisher: Publisher, raw: (String, String) -> Unit) {
+        if (out != null) return
+        out = publisher
+        this.raw = raw
         toolkit.onConnection { up -> if (up) subscribe() else dropped() }
         toolkit.connect()
     }
@@ -173,9 +184,10 @@ internal class FytCanbusSource(private val toolkit: FytToolkit) : VehicleBusSour
     }
 
     private fun onUpdate(code: Int, ints: IntArray?, flts: FloatArray?, strs: Array<String?>?) {
-        val s = sink ?: return
+        val o = out ?: return
+        val r = raw ?: return
         UnitPlatform.markUsed(Cap.VEHICLE_BUS)
-        for ((k, v) in FytKey.values(FytModules.CANBUS, code, ints, flts, strs)) s.raw(k, v)
+        for ((k, v) in FytKey.values(FytModules.CANBUS, code, ints, flts, strs)) r(k, v)
         when (code) {
             FytCanbus.U_CANBUS_ID -> ints?.firstOrNull()?.let { id ->
                 if (canbusId != id) {
@@ -183,8 +195,8 @@ internal class FytCanbusSource(private val toolkit: FytToolkit) : VehicleBusSour
                     Log.i(TAG, "CAN decoder 0x${Integer.toHexString(id)}: box ${FytCanbus.decoderOf(id)}, car ${FytCanbus.carOf(id)}")
                 }
             }
-            FytCanbus.U_CUR_SPEED -> s.speedKmh(FytCanbus.speedKmh(ints))
-            FytCanbus.U_ENGINE_SPEED -> s.rpm(FytCanbus.rpm(ints))
+            FytCanbus.U_CUR_SPEED -> unitBusSpeed(o, FytCanbus.speedKmh(ints))
+            FytCanbus.U_ENGINE_SPEED -> unitBusRpm(o, FytCanbus.rpm(ints))
         }
     }
 

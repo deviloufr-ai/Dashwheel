@@ -1,5 +1,9 @@
 package com.openauto.dash
 
+import com.openauto.dash.vehicle.any
+import com.openauto.dash.vehicle.rememberDoors
+import com.openauto.dash.vehicle.rememberPanelGauges
+import com.openauto.dash.vehicle.K
 import android.location.Location
 import android.os.SystemClock
 import androidx.compose.foundation.Image
@@ -77,6 +81,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.openauto.dash.carphoto.CarPart
 import com.openauto.dash.link.DriveSummary
+import com.openauto.dash.vehicle.rememberTyres
 import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.max
@@ -107,7 +112,7 @@ private const val REV_BLOCKS = 14
  */
 @Composable
 internal fun MsDriverDisplay(env: SkinTileEnv) {
-    val speed = rememberSpeedKmh(env)
+    val speed = rememberSpeedKmh()
     val gear = rememberGear()
     val vs = rememberVsUsual()
     val idle = env.obdConnection.isIdle
@@ -246,7 +251,7 @@ private fun SpeedBlock(speed: Int?, obd: Boolean, gear: State<GearReading>, redl
         }
         val numSp = msFitSp("188", msHero(100.sp, color), maxWidth, numH.coerceAtLeast(20f).dp, 22f, 280f)
         val noSignal = stringResource(R.string.info_speed_no_signal).uppercase()
-        val source = speedSource(obd, speed, if (idle) stringResource(R.string.skin_motorsport_tap_connect_caps) else noSignal)
+        val source = speedSource(if (idle) stringResource(R.string.skin_motorsport_tap_connect_caps) else noSignal)
         Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween) {
             Column {
                 if (showCaps) {
@@ -386,16 +391,18 @@ private const val CAR_Y = 35f
  */
 @Composable
 internal fun MsTelemetry(env: SkinTileEnv) {
-    val tyres by Tyres.tyres.collectAsState()
+    val tyres = rememberTyres()
     val problems by Tyres.problems.collectAsState()
     val pUnit by Tyres.unit.collectAsState()
-    val doors by McuReader.doorState.collectAsState()
+    val doors = rememberDoors()
     val mine by MyCarLook.shown.collectAsState()
     val carStyle by MyCarLook.style.collectAsState()
     val state = env.obdConnection
     val connected = state == ObdConnectionState.CONNECTED
     val idle = state.isIdle
-    val d = env.obdData
+    // Whatever the car answers is shown, adapter or not; the rest reads "--".
+    val g = rememberPanelGauges(K.SPEED, K.RPM, K.COOLANT_TEMP, K.INTAKE_TEMP, K.ENGINE_LOAD, K.BATTERY_VOLTS)
+    val live = connected || g.any
     val units = LocalUnits.current
     val positions = listOf(TyrePos.FRONT_LEFT, TyrePos.FRONT_RIGHT, TyrePos.REAR_LEFT, TyrePos.REAR_RIGHT)
     val now = SystemClock.elapsedRealtime()
@@ -409,8 +416,10 @@ internal fun MsTelemetry(env: SkinTileEnv) {
     val batt = stringResource(R.string.skin_motorsport_batt_caps)
     val air = stringResource(R.string.skin_motorsport_air_caps)
     val load = stringResource(R.string.skin_motorsport_load_caps)
-    val coolant = if (connected && d.coolantTempC > 0) "${units.temp(d.coolantTempC)}°" else null
-    val volts = if (connected && d.voltage > 0.0) String.format(Locale.getDefault(), "%.1f V", d.voltage) else null
+    val coolantC = g.coolantTempC?.takeIf { it > 0 }
+    val voltage = g.voltage?.takeIf { it > 0.0 }
+    val coolant = coolantC?.let { "${units.temp(it)}°" }
+    val volts = voltage?.let { String.format(Locale.getDefault(), "%.1f V", it) }
     val muted = DashColors.Muted
     val chips = if (hasTyres) {
         positions.mapIndexed { i, pos ->
@@ -435,8 +444,8 @@ internal fun MsTelemetry(env: SkinTileEnv) {
                 coolant ?: "--", water,
                 when {
                     coolant == null -> muted
-                    d.coolantTempC >= 115 -> DashColors.Critical
-                    d.coolantTempC >= 105 -> DashColors.Warning
+                    (coolantC ?: 0) >= 115 -> DashColors.Critical
+                    (coolantC ?: 0) >= 105 -> DashColors.Warning
                     else -> DashColors.Good
                 }
             ),
@@ -444,23 +453,26 @@ internal fun MsTelemetry(env: SkinTileEnv) {
                 volts?.replace(" ", "") ?: "--", batt,
                 when {
                     volts == null -> muted
-                    d.voltage < 11.8 || d.voltage > 15.2 -> DashColors.Warning
+                    (voltage ?: 0.0) < 11.8 || (voltage ?: 0.0) > 15.2 -> DashColors.Warning
                     else -> DashColors.Good
                 }
             ),
-            MsChip(if (connected) "${units.temp(d.intakeTempC)}°" else "--", air, if (connected) DashColors.Good else muted),
-            MsChip(if (connected) "${d.engineLoadPct}%" else "--", load, if (connected) DashColors.Good else muted)
+            MsChip(g.intakeTempC?.let { "${units.temp(it)}°" } ?: "--", air, if (g.intakeTempC != null) DashColors.Good else muted),
+            MsChip(g.engineLoadPct?.let { "$it%" } ?: "--", load, if (g.engineLoadPct != null) DashColors.Good else muted)
         )
     }
-    val caption = when (state) {
-        ObdConnectionState.CONNECTING -> stringResource(R.string.skin_motorsport_connecting_caps)
-        ObdConnectionState.ERROR -> stringResource(R.string.skin_motorsport_obd_error_caps)
-        ObdConnectionState.DISCONNECTED -> stringResource(R.string.skin_motorsport_tap_connect_caps)
-        ObdConnectionState.CONNECTED -> if (hasTyres) {
+    val caption = when {
+        live -> if (hasTyres) {
             listOfNotNull(coolant?.let { "$water $it" }, volts?.let { "$batt $it" }).joinToString(DOT)
         } else {
-            "${d.rpm} ${stringResource(R.string.skin_motorsport_rpm_caps)}$DOT${units.speedText(d.speedKmh).uppercase()}"
+            listOfNotNull(
+                g.rpm?.let { "$it ${stringResource(R.string.skin_motorsport_rpm_caps)}" },
+                g.speedKmh?.let { units.speedText(it).uppercase() }
+            ).joinToString(DOT)
         }
+        state == ObdConnectionState.CONNECTING -> stringResource(R.string.skin_motorsport_connecting_caps)
+        state == ObdConnectionState.ERROR -> stringResource(R.string.skin_motorsport_obd_error_caps)
+        else -> stringResource(R.string.skin_motorsport_tap_connect_caps)
     }
     val connectLabel = stringResource(R.string.skin_motorsport_connect_obd)
     val chooseAdapter = stringResource(R.string.skin_motorsport_choose_adapter)
@@ -1463,7 +1475,7 @@ private fun CompoundBadge(compound: Compound, size: Dp) {
  */
 @Composable
 internal fun MsPitBoard(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     if (fuel == null) {
         StandardSkinnedTile(item, env)
         return

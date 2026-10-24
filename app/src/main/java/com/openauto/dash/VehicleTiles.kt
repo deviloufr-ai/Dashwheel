@@ -26,7 +26,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +36,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.openauto.dash.vehicle.rememberDoors
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.setValue
@@ -48,7 +48,7 @@ import androidx.compose.runtime.setValue
 /** Live door status decoded from the MCU door bitfield (65 / 0C / 38, byte 4). */
 @Composable
 internal fun DoorsCard(modifier: Modifier = Modifier) {
-    val doors by McuReader.doorState.collectAsState()
+    val doors = rememberDoors()
     DisposableEffect(Unit) {
         McuReader.start()
         onDispose { McuReader.stop() }
@@ -107,10 +107,10 @@ internal fun CanMonitorCard(modifier: Modifier = Modifier) {
     val scope = rememberCoroutineScope()
     DisposableEffect(Unit) {
         McuReader.start()
-        CarFeed.sniff(true)
+        UnitBus.sniff(true)
         onDispose {
             McuReader.stop()
-            CarFeed.sniff(false)
+            UnitBus.sniff(false)
         }
     }
 

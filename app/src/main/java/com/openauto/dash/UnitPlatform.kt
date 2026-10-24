@@ -9,12 +9,18 @@ import com.openauto.dash.unit.PlainAdapters
 import com.openauto.dash.unit.QfAdapter
 import com.openauto.dash.unit.fyt.FytAdapter
 import com.openauto.dash.unit.mtc.MtcAdapter
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Key
+import com.openauto.dash.vehicle.Vehicle
 import com.openauto.unitproto.Detection
 import com.openauto.unitproto.UnitDetector
 import com.openauto.unitproto.UnitFamily
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.update
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.system.exitProcess
@@ -25,8 +31,9 @@ import kotlin.system.exitProcess
  * Settings when the detector got it wrong ([setOverride]); the choice takes
  * effect at the next start ([restart]).
  *
- * What the adapter's pieces actually delivered this run is kept in [used],
- * for the Settings card and the compatibility report.
+ * What the adapter's pieces actually delivered this run is [used], for the
+ * Settings card and the compatibility report: the platform's own pieces mark themselves
+ * ([markUsed]), and a kind of car data is there while the vehicle bus has its key ([Cap.key]).
  */
 object UnitPlatform {
     private const val TAG = "UnitPlatform"
@@ -49,9 +56,42 @@ object UnitPlatform {
     /** The adapter for [family]; the empty one until [init] ran (nothing then claims anything). */
     val adapter: UnitAdapter get() = _adapter ?: GenericAdapter.EMPTY
 
-    private val _used = MutableStateFlow<Set<Cap>>(emptySet())
-    /** The capabilities that delivered something this run. */
-    val used: StateFlow<Set<Cap>> = _used.asStateFlow()
+    private val marked = MutableStateFlow<Set<Cap>>(emptySet())
+    private val dataCaps = Cap.entries.filter { it.key != null }
+
+    /** The capabilities that delivered something: the ones marked this run, and the kinds of car data the bus has now. */
+    fun usedNow(): Set<Cap> = marked.value + dataCaps.filter { Vehicle.bus.has(it.key!!).value }
+
+    /** [usedNow] as it changes. */
+    val used: Flow<Set<Cap>> by lazy {
+        combine(listOf<Flow<Any?>>(marked) + dataCaps.map { Vehicle.bus.has(it.key!!) }) { usedNow() }.distinctUntilChanged()
+    }
+
+    /**
+     * Whether this unit can give [cap]'s data: its firmware claims it, or some source says it now (a unit bus, the
+     * car app). For what is offered before any data came (the tiles to add, the first layout), where "has data now" would
+     * leave a parked car's tiles out.
+     */
+    fun delivers(cap: Cap): Boolean = adapter.caps.has(cap) || cap.key?.let { Vehicle.bus.has(it).value } == true
+
+    /**
+     * The kinds of car data this car can give, whoever supplies them: the keys the firmware claims ([Cap.key]; a
+     * claimed speed and revs stand for the revs too) and the keys the bus has now (a canbox, the unit's bus, the car
+     * app, the MCU, an adapter). What decides which car-data tiles are offered ([carDataFrom]), so a parked car with
+     * the canbox silent still counts.
+     */
+    fun suppliedKeys(): Set<Key<*>> = buildSet {
+        for (cap in dataCaps) if (adapter.caps.has(cap)) {
+            add(cap.key!!)
+            if (cap == Cap.SPEED_RPM) add(K.RPM)
+        }
+        for (key in K.all) if (Vehicle.bus.has(key).value) add(key)
+    }
+
+    /** [suppliedKeys] as the bus changes (the claims are fixed for the run). */
+    val supplied: Flow<Set<Key<*>>> by lazy {
+        combine(K.all.map { Vehicle.bus.has(it) }) { suppliedKeys() }.distinctUntilChanged()
+    }
 
     private val packages = ConcurrentHashMap<String, Boolean>()
     @Volatile private var appContext: Context? = null
@@ -105,8 +145,8 @@ object UnitPlatform {
 
     /** A capability delivered something: the card shows it live, the report says it was used. */
     fun markUsed(cap: Cap) {
-        if (cap in _used.value) return
-        _used.update { it + cap }
+        if (cap in marked.value) return
+        marked.update { it + cap }
     }
 
     /** Whether [pkg] is installed, asked once per package (the firmware's apps don't come and go). */
@@ -122,12 +162,13 @@ object UnitPlatform {
             "Firmware" to (family.name + if (chosen != null && chosen != d.family) " (chosen; detected ${d.family})" else ""),
             d.evidence.takeIf { it.isNotEmpty() }?.let { "Evidence" to it.take(5).joinToString(", ") },
             d.runnersUp.takeIf { it.isNotEmpty() }?.let { "Also like" to it.entries.joinToString(", ") { "${it.key} ${it.value}" } },
-            "Caps used" to _used.value.sorted().joinToString(", ").ifEmpty { "none" },
+            "Caps used" to usedNow().sorted().joinToString(", ").ifEmpty { "none" },
             run {
                 val access = PrivilegedShell.access.value
                 val granted = PrivilegedShell.settingsGranted
-                val rest = adapter.caps.claimed - _used.value
-                val locked = rest.filter { adapter.caps.state(it, access, granted, _used.value) == CapState.LOCKED }
+                val used = usedNow()
+                val rest = adapter.caps.claimed - used
+                val locked = rest.filter { adapter.caps.state(it, access, granted, used) == CapState.LOCKED }
                 "Caps waiting" to (rest - locked.toSet()).sorted().joinToString(", ").ifEmpty { "none" } +
                     (if (locked.isNotEmpty()) "; locked: ${locked.sorted().joinToString(", ") { "$it (${adapter.caps.need(it)})" }}" else "")
             },

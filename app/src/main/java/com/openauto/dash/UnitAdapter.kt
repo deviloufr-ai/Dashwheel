@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.view.KeyEvent
 import androidx.annotation.StringRes
+import com.openauto.dash.vehicle.Publisher
+import com.openauto.dash.vehicle.SourceKind
 import com.openauto.unitproto.UnitFamily
 import kotlinx.coroutines.flow.StateFlow
 
@@ -49,25 +51,25 @@ interface IgnitionSource {
     fun decode(intent: Intent): IgnitionEvent?
 }
 
-/** Where a vehicle bus pushes what it decodes; [CarFeed] is the one implementation. */
-interface CarSink {
-    fun doors(state: McuReader.DoorState)
-    fun reverse(on: Boolean)
-    fun headlights(on: Boolean)
-    fun speedKmh(v: Float?)
-    fun rpm(v: Int?)
-    fun volts(v: Double)
-    fun outsideTempC(c: Double?)
-    fun steeringDeg(d: Float)
-    /** A raw value for the Signal Finder, under its source key ("fyt:7:1031#0"). */
-    fun raw(key: String, value: String)
-}
-
-/** The car's data bus of one family: started once, pushing into a [CarSink]. */
+/**
+ * The car's data bus of one family, started once ([UnitBus] does). It decodes what its firmware says and puts
+ * the keys itself, as the source `unit.bus` ([SourceKind.CANBOX]): [publisher] is that source's handle (what it
+ * puts counts as word from the bus, and the speed it puts is already the driver's to correct: see
+ * [unitBusSpeed]). The Signal Finder's raw values are no key, so they go to [raw] under their source key
+ * ("fyt:7:1031#0"), also as word from the bus.
+ *
+ * A bus that goes quiet is dropped by [silenceMs], and one whose feed is lost says so by flipping [listening]
+ * to false: either way everything it put is withdrawn and the source goes down, back up with its next word.
+ */
 interface VehicleBusSource {
-    fun start(context: Context, sink: CarSink)
+    fun start(context: Context, publisher: Publisher, raw: (key: String, value: String) -> Unit)
     fun stop()
     val listening: StateFlow<Boolean>
+    /**
+     * How long this family's bus may say nothing before it counts as gone. Chosen per family from how often it
+     * speaks; a family that puts through other sources (the QF firmware's) has no use for it.
+     */
+    val silenceMs: Long get() = UnitBus.DEFAULT_SILENCE_MS
     /** The Signal Finder's learned keys ([LearnedSignals]): a bus that has to ask for each value follows these for good. */
     fun watch(keys: Set<String>) = Unit
     /** The finder's sniffer opened ([on]) or closed: a bus that has to ask for each value asks for everything meanwhile. */

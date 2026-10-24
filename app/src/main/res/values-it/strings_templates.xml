@@ -8,7 +8,7 @@
     <string name="templates_road_trip_blurb">Mappa grande, autonomia, meteo e soste per i lunghi viaggi</string>
     <string name="templates_car_health">Salute auto</string>
     <string name="templates_car_health_blurb">Dati dell\'auto e codici guasto nella Home</string>
-    <string name="templates_no_obd">Nessun adattatore OBD scelto: i widget dei dati auto sono esclusi.</string>
+    <string name="templates_no_car_data">Ancora nessuna fonte di dati auto: i widget dei dati auto sono esclusi.</string>
     <string name="templates_fill_this">Riempi questo pannello</string>
     <string name="templates_fill_this_hint">Solo la pagina del modello per %1$s vi è collocata.</string>
     <string name="templates_fill">Riempi</string>

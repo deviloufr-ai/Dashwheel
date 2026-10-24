@@ -7,6 +7,17 @@ import androidx.compose.ui.graphics.toArgb
 import com.openauto.dash.link.ClusterArt
 import com.openauto.dash.link.ClusterFace
 import com.openauto.dash.link.ClusterState
+import com.openauto.dash.vehicle.Gauges
+import com.openauto.dash.vehicle.GAUGE_KEYS
+import com.openauto.dash.vehicle.Hold
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Key
+import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.displaySpeedKmh
+import com.openauto.dash.vehicle.fuelInfoNow
+import com.openauto.dash.vehicle.gaugesNow
+import com.openauto.dash.vehicle.holdAll
+import kotlin.math.roundToInt
 import java.io.ByteArrayOutputStream
 import java.security.MessageDigest
 import java.text.SimpleDateFormat
@@ -36,21 +47,45 @@ internal object ClusterFeed {
         // context stays in the unit's); looked up again now and then for a new choice.
         var words = AppLanguage.wrap(context)
         var wordsAt = System.currentTimeMillis()
-        while (isActive) {
-            if (System.currentTimeMillis() - wordsAt > WORDS_MS) {
-                words = AppLanguage.wrap(context)
-                wordsAt = System.currentTimeMillis()
+        // The snapshot reads the bus by value: what it sends stays wanted while it runs, and the
+        // Measures page's readings only while a page or a board slot shows them.
+        val always = Vehicle.bus.holdAll(SENT_KEYS)
+        var measuresHold: Hold? = null
+        try {
+            while (isActive) {
+                val showsMeasures = measuresShown(page.value)
+                if (showsMeasures && measuresHold == null) measuresHold = Vehicle.bus.holdAll(MEASURE_KEYS)
+                else if (!showsMeasures) measuresHold = measuresHold?.let { it.release(); null }
+                if (System.currentTimeMillis() - wordsAt > WORDS_MS) {
+                    words = AppLanguage.wrap(context)
+                    wordsAt = System.currentTimeMillis()
+                }
+                sendArtIfNew(context)
+                val state = snapshot(words, page.value)
+                // The clock, the playing position and the fix's age move on their own: they don't make a change.
+                val key = state.copy(clock = 0, media = state.media?.copy(positionMs = 0), position = state.position?.copy(ageMs = null))
+                if (throttle.shouldSend(key, System.currentTimeMillis())) DisplayLink.send(state)
+                // A new GPS fix goes out at once rather than at the next sample: the display's
+                // map carries the car on from it, and every millisecond it waits shows as a jolt.
+                val fix = LocationFeed.location.value
+                withTimeoutOrNull(SAMPLE_MS) { LocationFeed.location.first { it !== fix } }
             }
-            sendArtIfNew(context)
-            val state = snapshot(words, page.value)
-            // The clock, the playing position and the fix's age move on their own: they don't make a change.
-            val key = state.copy(clock = 0, media = state.media?.copy(positionMs = 0), position = state.position?.copy(ageMs = null))
-            if (throttle.shouldSend(key, System.currentTimeMillis())) DisplayLink.send(state)
-            // A new GPS fix goes out at once rather than at the next sample: the display's
-            // map carries the car on from it, and every millisecond it waits shows as a jolt.
-            val fix = LocationFeed.location.value
-            withTimeoutOrNull(SAMPLE_MS) { LocationFeed.location.first { it !== fix } }
+        } finally {
+            measuresHold?.release()
+            always.release()
         }
+    }
+
+    /** What every sample carries: the speed, the revs, the coolant and the fuel level. */
+    private val SENT_KEYS: List<Key<*>> = listOf(K.SPEED, K.RPM, K.COOLANT_TEMP, K.FUEL_LEVEL)
+
+    /** What the Measures page lists. */
+    private val MEASURE_KEYS: List<Key<*>> = GAUGE_KEYS - K.FUEL_FLOW
+
+    /** Whether [page], or a slot on the board, shows the Measures face. */
+    private fun measuresShown(page: ClusterPage): Boolean {
+        val layout = SecondScreenRules.layoutMessage(SecondScreenStore.config.value.layoutFor(page, simple = true))
+        return page == ClusterPage.OBD || layout?.faces?.contains(ClusterFace.MEASURES) == true
     }
 
     /** A fix older than this is sent without its age: something stalled, and the display is better off not trusting it. */
@@ -112,12 +147,11 @@ internal object ClusterFeed {
         val wordsOnce = display != null && SecondScreenRules.readsWordsOnce(display.protocol)
         val config = SecondScreenStore.config.value
         val obdLive = ObdBluetoothManager.connectionState.value == ObdConnectionState.CONNECTED || DemoMode.isOn
-        val obd = ObdBluetoothManager.data.value
-        // The OBD speed comes corrected already (ObdBluetoothManager); the GPS's only once moving
+        // The car's speed comes corrected already; the GPS's only once moving
         // (SpeedCorrection.correctedGps): a stopped car's 1 km/h of GPS drift must not read 9.
-        val speed = if (obdLive) obd.speedKmh else LocationFeed.freshSpeedKmh.value?.let(SpeedCorrection::correctedGps)
-        val fuel = carFuelInfo(McuReader.fuelPercent.value, if (obdLive) obd.fuelLevelPct else 0, McuReader.rangeKm.value)
-        val doors = McuReader.doorState.value
+        val speed = displaySpeedKmh(Vehicle.bus.sample(K.SPEED).value)
+        val fuel = fuelInfoNow()
+        val doors = Vehicle.bus.now(K.DOORS)
         val open = if (doors == null) emptyList() else listOfNotNull(
             R.string.vehicle_door_front_left.takeIf { doors.frontLeft },
             R.string.vehicle_door_front_right.takeIf { doors.frontRight },
@@ -140,12 +174,12 @@ internal object ClusterFeed {
             clock = System.currentTimeMillis(),
             page = page.name,
             speedKmh = speed,
-            rpm = obd.rpm.takeIf { obdLive },
-            coolantC = obd.coolantTempC.takeIf { obdLive && it != 0 },
-            // As the dashboard's bar reads it (carFuelInfo): a car that sends 0 % with a range
+            rpm = Vehicle.bus.now(K.RPM)?.roundToInt(),
+            coolantC = Vehicle.bus.now(K.COOLANT_TEMP)?.roundToInt(),
+            // As the dashboard's bar reads it (fuelInfo): a car that sends 0 % with a range
             // left sends no level at all, and the level is worked out from the range.
             fuelPct = fuel?.percent,
-            rangeKm = fuel?.rangeKm ?: McuReader.rangeKm.value,
+            rangeKm = fuel?.rangeKm ?: Vehicle.bus.now(K.RANGE)?.roundToInt(),
             open = open,
             doorsKnown = doors != null,
             // The date under the clock, as the clock widget writes it, in Dashwheel's language.
@@ -178,7 +212,7 @@ internal object ClusterFeed {
             design = config.design.name,
             // Only for a page that shows them (the Measures page, or a board slot with the face): five
             // times a second, the rest of the time, for nothing.
-            measures = if (obdLive && (page == ClusterPage.OBD || layout?.faces?.contains(ClusterFace.MEASURES) == true)) measures(context, obd, units) else emptyList(),
+            measures = if (obdLive && (page == ClusterPage.OBD || layout?.faces?.contains(ClusterFace.MEASURES) == true)) measures(context, gaugesNow(), units) else emptyList(),
             // The turn as the navigation knows it (in-app), so the display needn't read the words.
             maneuver = nav.maneuver,
             // Readings only go to a screen that draws its own pages: the simple display's.
@@ -219,15 +253,15 @@ internal object ClusterFeed {
     }
 
     /** The Measures page's readings: those of the dashboard's "All readings" tile, in its words and units. */
-    private fun measures(context: Context, d: ObdData, u: UnitSystem): List<ClusterState.Measure> = listOfNotNull(
-        ClusterState.Measure(context.getString(R.string.info_unit_rpm), d.rpm.toString()),
-        ClusterState.Measure(context.getString(R.string.vehicle_speed), u.speedText(d.speedKmh)),
-        ClusterState.Measure(context.getString(R.string.vehicle_coolant), u.tempText(d.coolantTempC)),
-        ClusterState.Measure(context.getString(R.string.vehicle_intake_air), u.tempText(d.intakeTempC)),
-        ClusterState.Measure(context.getString(R.string.vehicle_throttle), "${d.throttlePct} %"),
-        ClusterState.Measure(context.getString(R.string.vehicle_engine_load), "${d.engineLoadPct} %"),
-        ClusterState.Measure(context.getString(R.string.vehicle_battery), String.format(java.util.Locale.getDefault(), "%.1f V", d.voltage)),
-        d.fuelLevelPct.takeIf { it > 0 }?.let { ClusterState.Measure(context.getString(R.string.vehicle_fuel_level), "$it %") }
+    private fun measures(context: Context, g: Gauges, u: UnitSystem): List<ClusterState.Measure> = listOfNotNull(
+        g.rpm?.let { ClusterState.Measure(context.getString(R.string.info_unit_rpm), it.toString()) },
+        g.speedKmh?.let { ClusterState.Measure(context.getString(R.string.vehicle_speed), u.speedText(it)) },
+        g.coolantTempC?.let { ClusterState.Measure(context.getString(R.string.vehicle_coolant), u.tempText(it)) },
+        g.intakeTempC?.let { ClusterState.Measure(context.getString(R.string.vehicle_intake_air), u.tempText(it)) },
+        g.throttlePct?.let { ClusterState.Measure(context.getString(R.string.vehicle_throttle), "$it %") },
+        g.engineLoadPct?.let { ClusterState.Measure(context.getString(R.string.vehicle_engine_load), "$it %") },
+        g.voltage?.let { ClusterState.Measure(context.getString(R.string.vehicle_battery), String.format(java.util.Locale.getDefault(), "%.1f V", it)) },
+        g.fuelLevelPct?.takeIf { it > 0 }?.let { ClusterState.Measure(context.getString(R.string.vehicle_fuel_level), "$it %") }
     )
 
 }

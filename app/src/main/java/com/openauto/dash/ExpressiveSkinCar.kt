@@ -28,6 +28,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.openauto.dash.vehicle.rememberDoors
 import java.util.Date
 import kotlin.math.min
 
@@ -52,7 +53,7 @@ private const val BADGE_TURN_MS = 60_000
  */
 @Composable
 internal fun ExRange(item: DashboardItem, env: SkinTileEnv) {
-    val fuel = rememberFuel(env)
+    val fuel = rememberFuel()
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val hero = maxWidth >= 300.dp && maxHeight >= 240.dp
         when {
@@ -76,7 +77,7 @@ private fun ExCarBadge(env: SkinTileEnv, fuel: FuelInfo?, w: Dp, h: Dp) {
     val chips = rememberBadgeChips(fuel)
     val chipH = 48.dp
     val stageH = if (chips.isEmpty()) h else h - chipH - 12.dp
-    val doors by McuReader.doorState.collectAsState()
+    val doors = rememberDoors()
     val open = doors?.anyOpen == true
     val said = stringResource(R.string.expressive_car_cd)
     // While arranging, the dashed outline of the skin's cards says the stage can be moved.
