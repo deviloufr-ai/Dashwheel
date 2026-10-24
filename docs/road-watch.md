@@ -60,7 +60,7 @@ On the drive above, from 0.4, 0.5 and 0.7: the brightness finder ends at 0.60, 0
 
 | Warning | When |
 |---|---|
-| Collision | Closing at 2 m/s or more, and 2.4 s or less to impact from 30 km/h (1.5 s from 8 km/h), two frames running. Closing faster than the car drives is ignored as a jumpy box. |
+| Collision | Closing at 2 m/s or more, and 2.4 s or less to impact from 30 km/h (1.5 s from 8 km/h), two frames running. Closing faster than the car drives is ignored as a jumpy box. A box reaching below the bonnet or filling three quarters of the height is not a vehicle ahead (a finger over the lens while the phone is moved set one off). |
 | Lane | From 60 km/h, a wheel on the line (offset 0.22 of the lane) and still drifting out, no indicator in the last 2 s. Once per side until the car is back in the middle. |
 | Too close | From 50 km/h, under 0.8 s behind for 3 s. At most every 30 s. |
 | Traffic moving | Stopped 3 s or more behind a vehicle within 12 m, which then moves 4 m away. Once per stop. |

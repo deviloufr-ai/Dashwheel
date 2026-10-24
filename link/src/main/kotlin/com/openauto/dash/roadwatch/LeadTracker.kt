@@ -85,7 +85,7 @@ class LeadTracker(var hfovDeg: Float = 66f) {
      */
     fun update(detections: List<Detection>, lane: LaneState, band: RoadBand, carX: Float, now: Long): Lead? {
         val ahead = detections
-            .filter { it.box.bottom > band.horizonY + 0.01f && inLane(it.box, lane, band, carX, hfovDeg) }
+            .filter { it.box.bottom > band.horizonY + 0.01f && onTheRoad(it.box, band) && inLane(it.box, lane, band, carX, hfovDeg) }
             .maxByOrNull { it.box.bottom }
         if (ahead == null) {
             if (now - seenAt > LOST_MS) forget()
@@ -142,6 +142,14 @@ class LeadTracker(var hfovDeg: Float = 66f) {
         return Lead(ahead.box, ahead.kind, distance, closing, ttc)
     }
 
+    /**
+     * Nothing on the road ahead reaches below the bonnet or fills most of the
+     * picture's height (a truck that close is already being warned of): a box
+     * that does is in the car, a finger on the lens or the dashboard while the
+     * phone is moved, and its growth would read as a vehicle closing in.
+     */
+    private fun onTheRoad(box: Box, band: RoadBand) = box.bottom <= band.bonnetY + BELOW_BONNET && box.height <= MAX_HEIGHT
+
     private companion object {
         /** A vehicle unseen this long (the detector missed it in a few frames) is let go. */
         const val LOST_MS = 500L
@@ -154,6 +162,10 @@ class LeadTracker(var hfovDeg: Float = 66f) {
         /** Slower than this, the boxes' jitter, not a closing vehicle. */
         const val MIN_CLOSING_MPS = 1f
         const val MAX_TTC_S = 10f
+        /** How far below the bonnet's row a box's bottom may reach, a share of the height: a near car's box is a little loose. */
+        const val BELOW_BONNET = 0.03f
+        /** The most of the picture's height a vehicle ahead fills. */
+        const val MAX_HEIGHT = 0.75f
     }
 }
 

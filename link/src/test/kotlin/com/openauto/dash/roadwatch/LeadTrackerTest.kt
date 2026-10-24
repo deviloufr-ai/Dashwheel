@@ -21,6 +21,17 @@ class LeadTrackerTest {
     }
 
     @Test
+    fun aFingerOnTheLensIsNoCar() {
+        // The phone moved in its holder: a finger over the lens, boxed as a car from the top of the frame to below the bonnet.
+        val finger = Detection(Box(0.24f, 0.02f, 0.78f, 0.97f), VehicleKind.CAR, 0.6f)
+        assertNull(LeadTracker().update(listOf(finger), noLane, band, 0.5f, 0))
+        // The same with the bonnet set lower than this car's dashboard: the box still fills nearly the whole height.
+        val shorter = Detection(Box(0.22f, 0.05f, 0.75f, 0.95f), VehicleKind.CAR, 0.6f)
+        assertNull(LeadTracker().update(listOf(shorter), noLane, RoadBand(horizonY = 0.5f, bonnetY = 0.95f), 0.5f, 0))
+        assertNotNull("a car ahead still is", LeadTracker().update(listOf(finger, car(20f)), noLane, band, 0.5f, 0))
+    }
+
+    @Test
     fun aCarAheadIsAsFarAsItLooksWide() {
         val lead = LeadTracker().update(listOf(car(20f)), noLane, band, 0.5f, 0)
         assertEquals(20f, lead!!.distanceM, 0.1f)
