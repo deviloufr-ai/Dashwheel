@@ -140,7 +140,11 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
     fun stop() {
         locations?.let { runCatching { it.removeUpdates(listener) } }
         locations = null
-        prefs.edit().putFloat(carXKey(tall), lanes.carX).putFloat(KEY_HORIZON, band.horizonY).apply()
+        // The horizon only once learned: a few seconds of single sightings would start the next drive
+        // there, and a wrong start keeps away the lines that would correct it. A drag saves itself.
+        val edit = prefs.edit().putFloat(carXKey(tall), lanes.carX)
+        if (horizon.settled) edit.putFloat(KEY_HORIZON, band.horizonY)
+        edit.apply()
         rules.clear()
         lanes.reset()
         leads.forget()
