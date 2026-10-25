@@ -166,6 +166,8 @@ class MainActivity : ComponentActivity() {
         ObdRelay.load(this)
         FuelJournal.load(this)
         CarNewsStore.load(this)
+        // The car's link may be off (at home after a drive): the computer can still fetch the clips.
+        ClipServer.start(this)
         takeOffer(intent)
         setContent {
             CompanionTheme {
