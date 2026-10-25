@@ -1,6 +1,7 @@
 package com.openauto.dash
 
 import android.content.Context
+import android.os.SystemClock
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -42,6 +43,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -51,7 +53,8 @@ import kotlin.math.roundToInt
  * links, at each day/night switch and when a level changes. Night is told
  * as the Auto look tells it ([AutoLight]: the headlights or the sun down,
  * the sun alone, or two set times), whatever look the dashboard wears: a
- * dark theme by day still wants a bright screen.
+ * dark theme by day still wants a bright screen. A switch is taken once it
+ * has held [SETTLE_MS] ([SettledDay]).
  */
 object SecondScreenBrightness {
 
@@ -61,17 +64,19 @@ object SecondScreenBrightness {
 
     fun start(scope: CoroutineScope, context: Context) {
         AutoLight.start(context)
-        val minutes = flow { while (true) { emit(System.currentTimeMillis()); delay(60_000L) } }
+        // Often enough that a switch held [SETTLE_MS] is taken soon after.
+        val ticks = flow { while (true) { emit(System.currentTimeMillis()); delay(TICK_MS) } }
         val choice = combine(AutoLight.by, AutoLight.from, AutoLight.to) { by, from, to -> Triple(by, from, to) }
+        val settled = SettledDay(SETTLE_MS)
         scope.launch {
-            combine(headlightsFlow(), AutoLight.place, minutes, choice) { headlights, place, now, (by, from, to) ->
+            combine(headlightsFlow(), AutoLight.place, ticks, choice) { headlights, place, now, (by, from, to) ->
                 val sun = sunUp(now, place?.first, place?.second)
                 when (by) {
                     AutoLightBy.CAR -> !headlights && sun
                     AutoLightBy.SUN -> sun
                     AutoLightBy.TIMES -> dayByClock(now, from, to)
                 }
-            }.distinctUntilChanged().collect { _day.value = it }
+            }.map { settled.next(it, SystemClock.elapsedRealtime()) }.distinctUntilChanged().collect { _day.value = it }
         }
         scope.launch {
             combine(DisplayLink.state, SecondScreenStore.config, _day) { link, config, isDay ->
@@ -98,6 +103,36 @@ object SecondScreenBrightness {
             val level = (SecondScreenRules.brightness(c, isDay) + delta).coerceIn(DisplayBrightness.MIN, DisplayBrightness.MAX)
             if (isDay) c.copy(brightnessDay = level) else c.copy(brightnessNight = level)
         }
+    }
+
+    /** A day/night switch moves the second screen once it has held this long. */
+    private const val SETTLE_MS = 2 * 60_000L
+    /** How often the day is asked again: the sun, the set times and a switch waiting out [SETTLE_MS]. */
+    private const val TICK_MS = 15_000L
+}
+
+/**
+ * Day or night for the backlight, taken only once it has held [holdMs]: each
+ * switch is seconds of presses on the monitor's buttons, and in the car the
+ * headlights come on in a tunnel, flash, or go unheard for a moment (the car
+ * on 2026-10-25: the screen went between its day and night levels on the move).
+ */
+internal class SettledDay(private val holdMs: Long) {
+    private var settled: Boolean? = null
+    private var otherSince: Long? = null
+
+    /** The day to use for [raw] at [nowMs] (monotonic); the first answer is taken at once. */
+    fun next(raw: Boolean, nowMs: Long): Boolean {
+        val was = settled ?: return raw.also { settled = it }
+        if (raw == was) {
+            otherSince = null
+            return was
+        }
+        val since = otherSince ?: nowMs.also { otherSince = it }
+        if (nowMs - since < holdMs) return was
+        settled = raw
+        otherSince = null
+        return raw
     }
 }
 
