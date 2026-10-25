@@ -25,4 +25,6 @@
     <string name="road_dim">Przyciemnij</string>
     <string name="road_bright">Rozjaśnij</string>
     <string name="road_stop">Zatrzymaj</string>
+    <string name="road_wide_title">Szeroki widok</string>
+    <string name="road_wide_detail">Obserwuje przez obiektyw ultraszerokokątny: obie strony wąskiej ulicy w kadrze, dalekie auta widoczne później. Lepszy w mieście niż na szybkich drogach.</string>
 </resources>

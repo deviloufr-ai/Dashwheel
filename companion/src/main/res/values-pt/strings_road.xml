@@ -25,4 +25,6 @@
     <string name="road_dim">Escurecer</string>
     <string name="road_bright">Clarear</string>
     <string name="road_stop">Parar</string>
+    <string name="road_wide_title">Vista ampla</string>
+    <string name="road_wide_detail">Vigia com a lente ultra grande angular: os dois lados de uma rua estreita à vista, os carros distantes vistos mais tarde. Melhor na cidade do que em vias rápidas.</string>
 </resources>

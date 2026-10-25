@@ -26,4 +26,6 @@
     <string name="road_dim">Dim</string>
     <string name="road_bright">Brighten</string>
     <string name="road_stop">Stop</string>
+    <string name="road_wide_title">Wide view</string>
+    <string name="road_wide_detail">Watches through the ultra-wide lens: both sides of a narrow street in view, cars far ahead seen later. Better in town than on fast roads.</string>
 </resources>

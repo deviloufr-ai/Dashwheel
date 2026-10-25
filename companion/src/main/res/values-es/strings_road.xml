@@ -25,4 +25,6 @@
     <string name="road_dim">Atenuar</string>
     <string name="road_bright">Iluminar</string>
     <string name="road_stop">Detener</string>
+    <string name="road_wide_title">Vista amplia</string>
+    <string name="road_wide_detail">Vigila con la lente ultra gran angular: los dos lados de una calle estrecha a la vista, los coches lejanos se ven más tarde. Mejor en ciudad que en vías rápidas.</string>
 </resources>

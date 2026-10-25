@@ -221,18 +221,32 @@ class RoadWatchActivity : ComponentActivity() {
             } else {
                 camera = runCatching { provider.bindToLifecycle(this@RoadWatchActivity, back, preview, reader) }.getOrNull() ?: return@addListener
             }
-            fieldOfView(camera ?: return@addListener)?.let { (wide, tall) -> watch.fieldOfView(wide, tall) }
+            val bound = camera ?: return@addListener
+            fieldOfView(bound, zoom(bound))?.let { (wide, tall) -> watch.fieldOfView(wide, tall) }
         }, ContextCompat.getMainExecutor(this))
     }
 
     /**
-     * The camera's view across its long side and across its short one: the
-     * upright frame's width with the phone sideways, then with it upright.
+     * With the wide view on, the camera zoomed out to its ultra-wide lens
+     * (0.6 on most phones that have one); the ratio it ends at, 1 without one.
+     */
+    private fun zoom(camera: Camera): Float {
+        if (!wide(this)) return 1f
+        val least = camera.cameraInfo.zoomState.value?.minZoomRatio ?: return 1f
+        if (least >= 1f) return 1f
+        val ratio = max(least, WIDE_ZOOM)
+        camera.cameraControl.setZoomRatio(ratio)
+        return ratio
+    }
+
+    /**
+     * The camera's view across its long side and across its short one, at
+     * [zoom]: the upright frame's width with the phone sideways, then with it upright.
      */
     @OptIn(ExperimentalCamera2Interop::class)
-    private fun fieldOfView(camera: Camera): Pair<Float, Float>? = runCatching {
+    private fun fieldOfView(camera: Camera, zoom: Float): Pair<Float, Float>? = runCatching {
         val info = Camera2CameraInfo.from(camera.cameraInfo)
-        val focal = info.getCameraCharacteristic(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS)?.firstOrNull() ?: return null
+        val focal = (info.getCameraCharacteristic(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS)?.firstOrNull() ?: return null) * zoom
         val sensor = info.getCameraCharacteristic(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE) ?: return null
         val wide = viewDegrees(max(sensor.width, sensor.height), focal) ?: return null
         val tall = viewDegrees(min(sensor.width, sensor.height), focal) ?: return null
@@ -243,8 +257,20 @@ class RoadWatchActivity : ComponentActivity() {
         Math.toDegrees(2 * atan(sensorMm / (2.0 * focalMm))).toFloat().takeIf { it in 25f..120f }
 
     companion object {
+        private const val PREFS = "road_watch"
+        private const val KEY_WIDE = "wide"
+        /** The S25's ultra-wide and most others': 104° across against the main camera's 74°. */
+        private const val WIDE_ZOOM = 0.6f
+
         fun open(context: Context) {
             context.startActivity(Intent(context, RoadWatchActivity::class.java))
+        }
+
+        /** Road watch looks through the ultra-wide lens: both sides of a narrow street in view, cars far ahead seen later. */
+        fun wide(context: Context): Boolean = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_WIDE, false)
+
+        fun setWide(context: Context, on: Boolean) {
+            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_WIDE, on).apply()
         }
     }
 }

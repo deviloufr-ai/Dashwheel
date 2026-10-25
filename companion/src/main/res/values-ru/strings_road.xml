@@ -25,4 +25,6 @@
     <string name="road_dim">Затемнить</string>
     <string name="road_bright">Ярче</string>
     <string name="road_stop">Стоп</string>
+    <string name="road_wide_title">Широкий обзор</string>
+    <string name="road_wide_detail">Следит через сверхширокоугольный объектив: обе стороны узкой улицы в кадре, дальние машины видны позже. Лучше в городе, чем на быстрых дорогах.</string>
 </resources>

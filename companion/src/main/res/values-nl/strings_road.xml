@@ -25,4 +25,6 @@
     <string name="road_dim">Dimmen</string>
     <string name="road_bright">Helderder</string>
     <string name="road_stop">Stoppen</string>
+    <string name="road_wide_title">Brede blik</string>
+    <string name="road_wide_detail">Kijkt door de ultragroothoeklens: beide kanten van een smalle straat in beeld, auto’s ver vooruit worden later gezien. Beter in de stad dan op snelle wegen.</string>
 </resources>

@@ -25,4 +25,6 @@
     <string name="road_dim">Sötétítés</string>
     <string name="road_bright">Világosítás</string>
     <string name="road_stop">Leállítás</string>
+    <string name="road_wide_title">Széles látkép</string>
+    <string name="road_wide_detail">Az ultraszéles objektívvel figyel: egy szűk utca mindkét oldala látszik, a távoli autókat később látja. Városban jobb, mint gyors utakon.</string>
 </resources>

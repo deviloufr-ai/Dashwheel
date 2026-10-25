@@ -25,4 +25,6 @@
     <string name="road_dim">Assombrir</string>
     <string name="road_bright">Éclaircir</string>
     <string name="road_stop">Arrêter</string>
+    <string name="road_wide_title">Vue large</string>
+    <string name="road_wide_detail">Surveille avec l’objectif ultra grand-angle : les deux côtés d’une rue étroite visibles, les voitures lointaines vues plus tard. Mieux en ville que sur route rapide.</string>
 </resources>

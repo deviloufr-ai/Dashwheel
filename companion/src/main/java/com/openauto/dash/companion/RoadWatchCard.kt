@@ -31,6 +31,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,6 +58,7 @@ internal fun RoadWatchCard(connected: Boolean) {
     val model by RoadModel.state.collectAsState()
     val recording by RoadClips.enabled.collectAsState()
     val fetching by ClipServer.on.collectAsState()
+    var wide by remember { mutableStateOf(RoadWatchActivity.wide(context)) }
     LaunchedEffect(Unit) {
         RoadModel.check(context)
         RoadClips.load(context)
@@ -86,6 +90,16 @@ internal fun RoadWatchCard(connected: Boolean) {
                 }
             }
             Text(stringResource(R.string.road_note), style = MaterialTheme.typography.bodySmall, color = CompanionColors.Muted)
+
+            // The ultra-wide lens, for towns: taken when Road watch next starts.
+            Row(Modifier.fillMaxWidth().padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.road_wide_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.road_wide_detail), style = MaterialTheme.typography.bodySmall, color = CompanionColors.Muted)
+                }
+                Spacer(Modifier.width(12.dp))
+                Switch(checked = wide, onCheckedChange = { wide = it; RoadWatchActivity.setWide(context, it) })
+            }
 
             // The road recorder: its switch, and what the driver should know before turning it on.
             Row(Modifier.fillMaxWidth().padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {

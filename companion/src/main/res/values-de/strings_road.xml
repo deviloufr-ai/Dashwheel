@@ -25,4 +25,6 @@
     <string name="road_dim">Abdunkeln</string>
     <string name="road_bright">Aufhellen</string>
     <string name="road_stop">Beenden</string>
+    <string name="road_wide_title">Weitwinkel</string>
+    <string name="road_wide_detail">Beobachtet mit dem Ultraweitwinkel: beide Seiten einer engen Straße im Bild, entfernte Autos werden später erkannt. Besser in der Stadt als auf schnellen Straßen.</string>
 </resources>

@@ -25,4 +25,6 @@
     <string name="road_dim">Scurisci</string>
     <string name="road_bright">Schiarisci</string>
     <string name="road_stop">Ferma</string>
+    <string name="road_wide_title">Vista ampia</string>
+    <string name="road_wide_detail">Osserva con l’obiettivo ultra grandangolare: entrambi i lati di una strada stretta in vista, le auto lontane viste più tardi. Meglio in città che su strade veloci.</string>
 </resources>

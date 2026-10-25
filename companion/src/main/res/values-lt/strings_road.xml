@@ -25,4 +25,6 @@
     <string name="road_dim">Pritemdyti</string>
     <string name="road_bright">Pašviesinti</string>
     <string name="road_stop">Stabdyti</string>
+    <string name="road_wide_title">Platus vaizdas</string>
+    <string name="road_wide_detail">Stebi per itin plataus kampo objektyvą: matomos abi siauros gatvės pusės, toli esantys automobiliai pastebimi vėliau. Geriau mieste nei greituose keliuose.</string>
 </resources>
