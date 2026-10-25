@@ -118,6 +118,9 @@ dependencies {
     implementation("androidx.camera:camera-video:1.4.1")
     implementation("androidx.camera:camera-effects:1.4.1")
     implementation("com.google.ai.edge.litert:litert:1.4.0")
+    // The detector on the phone's graphics chip where it can run there (RoadDetector).
+    implementation("com.google.ai.edge.litert:litert-gpu:1.4.0")
+    implementation("com.google.ai.edge.litert:litert-gpu-api:1.4.0")
     // JVM unit tests (companion/src/test): telling a call notification's buttons apart.
     testImplementation("junit:junit:4.13.2")
 }

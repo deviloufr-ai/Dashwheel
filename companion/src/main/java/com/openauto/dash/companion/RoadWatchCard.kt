@@ -58,6 +58,7 @@ internal fun RoadWatchCard(connected: Boolean) {
     LaunchedEffect(Unit) {
         RoadModel.check(context)
         RoadClips.load(context)
+        RoadModel.upgrade(context)
         ClipServer.load(context)
     }
     Panel {

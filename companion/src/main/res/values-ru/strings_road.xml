@@ -3,7 +3,7 @@
     <string name="road_title">Дозор дороги</string>
     <string name="road_detail">Поставьте телефон в держатель за лобовым стеклом: его камера следит за дорогой, а машина предупредит, если машина впереди быстро приближается, колесо на разметке или дистанция слишком мала.</string>
     <string name="road_start">Запустить Дозор дороги</string>
-    <string name="road_model_get">Загрузить распознавание машин, 4,6 МБ</string>
+    <string name="road_model_get">Загрузить распознавание машин, 7,6 МБ</string>
     <string name="road_model_retry">Повторить</string>
     <string name="road_model_getting">Загрузка распознавания: %1$d%%</string>
     <string name="road_model_failed">Не удалось загрузить распознавание машин. Проверьте интернет на телефоне и повторите.</string>

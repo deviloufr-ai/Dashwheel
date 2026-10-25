@@ -3,7 +3,7 @@
     <string name="road_title">Vigie route</string>
     <string name="road_detail">Placez le téléphone dans un support derrière le pare-brise : sa caméra surveille la route, et la voiture vous avertit d\'une voiture devant qui approche vite, d\'une roue sur la ligne, ou d\'une distance trop courte.</string>
     <string name="road_start">Lancer Vigie route</string>
-    <string name="road_model_get">Obtenir le détecteur de véhicules, 4,6 Mo</string>
+    <string name="road_model_get">Obtenir le détecteur de véhicules, 7,6 Mo</string>
     <string name="road_model_retry">Réessayer</string>
     <string name="road_model_getting">Téléchargement du détecteur : %1$d %%</string>
     <string name="road_model_failed">Le détecteur de véhicules n\'a pas pu être téléchargé. Vérifiez l\'internet du téléphone, puis réessayez.</string>

@@ -18,7 +18,24 @@ The shared part is plain Kotlin, tested on the JVM with drawn roads (`link/src/t
 
 ## The vehicle detector
 
-EfficientDet-Lite0 (COCO, Apache 2.0) from TensorFlow's model storage, 4.6 MB, with the detection post-processing built in: input 320 x 320 RGB uint8; outputs boxes `[1,25,4]` (ymin, xmin, ymax, xmax), classes `[1,25]` (0-based COCO: 2 car, 3 motorcycle, 5 bus, 7 truck, 1 bicycle), scores `[1,25]`, count `[1]`. Fetched once on the driver's request and checked against its SHA-256 (`RoadModel`). It looks at a square from the middle of the frame, so a 4:3 frame isn't squashed.
+EfficientDet-Lite2 (COCO, Apache 2.0) from TensorFlow's model storage, 7.6 MB, with the detection post-processing built in: input 448 x 448 RGB uint8; outputs boxes `[1,25,4]` (ymin, xmin, ymax, xmax), classes `[1,25]` (0-based COCO: 2 car, 3 motorcycle, 5 bus, 7 truck, 1 bicycle), scores `[1,25]`, count `[1]`. Fetched once on the driver's request and checked against its SHA-256 (`RoadModel`); a phone that had Lite0 fetches it by itself. It runs on the graphics chip where LiteRT's GPU delegate takes it, on four processor threads otherwise.
+
+It looks at the road in turns. On one frame it takes a square as wide as the 4:3 picture is tall, so the picture isn't squashed. On the next frame it takes the middle half of that square around the horizon, at twice the detail, for far vehicles. Boxes cut off by that look's edge are dropped: those are near vehicles, which the square sees whole. Each frame's vehicles are its own plus those from the frame before (`withBefore`).
+
+### How it was chosen (2026-10-26)
+
+Measured against a big model run on the PC (YOLOPv2, trained on BDD100K dashcam drives; `tools/roadwatch-replay/eval/`), on the Jakarta drive and three of the user's village drives. The score is the share of the reference's vehicles found, for the nearest one straight ahead:
+
+| Detector | 15-30 m | 30-50 m | 50-80 m | Boxes invented / 100 frames |
+|---|---|---|---|---|
+| Lite0, the square only (before) | 78 % | 22 % | 0 % | 3.9 |
+| Lite0 + the horizon look | 96 % | 84 % | 21 % | 6.6 |
+| **Lite2 + the horizon look** | **99 %** | **93 %** | **60 %** | **8.2** |
+| YOLOX-tiny + the horizon look | 98 % | 94 % | 86 % | 16.9 |
+
+On the village drives alone, Lite2 with the horizon look found the car ahead 100 / 96 / 52 % of the time at those distances, against 51 / 9 / 0 % before. YOLOX-tiny (Apache 2.0) sees furthest. It also invents twice as many boxes, is about four times heavier, and would need converting and hosting. A threshold of 0.3 instead of 0.4 found more and invented about three times as much. Requiring a box on 3 frames running halved what was invented but lost range, and the collision warning already waits for several frames. The ultra-wide lens (zoom 0.6) was tried too, and it made vehicles too small for these models (draft PR #82).
+
+The replay's `detect.py` crops as the phone does: the square is 0.75 of a sideways 16:9 recording's width and reaches above and below it. Before 2026-10-26 it took a square as tall as the recording, which made vehicles look a third bigger than the phone sees them.
 
 ## The lane model
 

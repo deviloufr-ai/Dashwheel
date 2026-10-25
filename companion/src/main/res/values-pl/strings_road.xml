@@ -3,7 +3,7 @@
     <string name="road_title">Strażnik drogi</string>
     <string name="road_detail">Umieść telefon w uchwycie za przednią szybą: jego aparat obserwuje drogę, a samochód ostrzega, gdy auto z przodu szybko się zbliża, koło najeżdża na linię albo jedziesz za blisko.</string>
     <string name="road_start">Uruchom Strażnika drogi</string>
-    <string name="road_model_get">Pobierz wykrywacz pojazdów, 4,6 MB</string>
+    <string name="road_model_get">Pobierz wykrywacz pojazdów, 7,6 MB</string>
     <string name="road_model_retry">Spróbuj ponownie</string>
     <string name="road_model_getting">Pobieranie wykrywacza: %1$d%%</string>
     <string name="road_model_failed">Nie udało się pobrać wykrywacza pojazdów. Sprawdź internet w telefonie i spróbuj ponownie.</string>

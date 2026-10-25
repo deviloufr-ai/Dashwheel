@@ -3,7 +3,7 @@
     <string name="road_title">Straßenwächter</string>
     <string name="road_detail">Setzen Sie das Handy in eine Halterung hinter der Windschutzscheibe: Seine Kamera beobachtet die Straße, und das Auto warnt Sie, wenn ein Auto vorne schnell näher kommt, ein Rad auf der Linie ist oder der Abstand zu klein ist.</string>
     <string name="road_start">Straßenwächter starten</string>
-    <string name="road_model_get">Fahrzeugerkennung laden, 4,6 MB</string>
+    <string name="road_model_get">Fahrzeugerkennung laden, 7,6 MB</string>
     <string name="road_model_retry">Erneut versuchen</string>
     <string name="road_model_getting">Fahrzeugerkennung wird geladen: %1$d %%</string>
     <string name="road_model_failed">Die Fahrzeugerkennung konnte nicht geladen werden. Prüfen Sie das Internet des Handys und versuchen Sie es erneut.</string>

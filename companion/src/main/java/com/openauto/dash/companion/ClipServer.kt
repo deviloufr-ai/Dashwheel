@@ -25,7 +25,8 @@ import kotlin.concurrent.thread
  * address and carrying the key get an answer: GET /clips lists the clips,
  * GET /clips/<name>/clip.mp4 (or clip.json) sends one, from a byte offset
  * when asked with a Range header, so a fetch cut off on mobile data resumes.
- * GET /cameras says what the phone's cameras can do ([CameraReport]).
+ * GET /cameras says what the phone's cameras can do ([CameraReport]), GET /roadwatch how
+ * Road watch last ran ([RoadStats]).
  * Started by [LinkService] with the sharing, or by its switch.
  */
 object ClipServer {
@@ -119,8 +120,9 @@ object ClipServer {
                     head(out, "200 OK", "application/json", body.size.toLong())
                     out.write(body)
                 }
-                Route.Cameras -> {
-                    val body = CameraReport.json(context).toString(2).toByteArray()
+                Route.Cameras, Route.RoadWatch -> {
+                    val json = if (r == Route.Cameras) CameraReport.json(context) else RoadStats.json()
+                    val body = json.toString(2).toByteArray()
                     head(out, "200 OK", "application/json", body.size.toLong())
                     out.write(body)
                 }
@@ -150,6 +152,7 @@ object ClipServer {
     internal sealed interface Route {
         data class Listing(val clips: List<File>) : Route
         data object Cameras : Route
+        data object RoadWatch : Route
         data class Send(val file: File, val from: Long) : Route
         data class Refused(val status: String) : Route
     }
@@ -163,6 +166,7 @@ object ClipServer {
             return Route.Refused("403 Forbidden")
         }
         if (path == "/cameras") return Route.Cameras
+        if (path == "/roadwatch") return Route.RoadWatch
         val clips = dir.listFiles { f -> File(f, "clip.mp4").isFile }?.sortedBy { it.name } ?: emptyList()
         if (path == "/clips") return Route.Listing(clips)
         // Only a listed clip's own two files: the path picks among them, it never names a file itself.

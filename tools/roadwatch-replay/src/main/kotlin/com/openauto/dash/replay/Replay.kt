@@ -18,6 +18,7 @@ import com.openauto.dash.roadwatch.RoadRules
 import com.openauto.dash.roadwatch.RoadWarning
 import com.openauto.dash.roadwatch.SeenLanes
 import com.openauto.dash.roadwatch.SeenRoad
+import com.openauto.dash.roadwatch.withBefore
 import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 import kotlin.math.abs
@@ -74,6 +75,8 @@ class ReplaySession(
     private val _results = ArrayList<FrameResult>()
     val results: List<FrameResult> get() = _results
 
+    private var before: List<Detection> = emptyList()
+
     /** What the lane model saw last: like the phone, it looks at every other frame, and the frames between keep this. */
     var seen: SeenRoad? = null
         private set
@@ -87,8 +90,11 @@ class ReplaySession(
         return frame(index, timeMs, luma, detections, telemetry, lanes?.let { SeenRoad.fromModel(it.chances, it.w, it.h, it.top, it.height, luma.w, luma.h) })
     }
 
-    fun frame(index: Int, timeMs: Long, luma: Luma, detections: List<Detection>, telemetry: Telemetry, fresh: SeenRoad? = null): FrameResult {
+    fun frame(index: Int, timeMs: Long, luma: Luma, found: List<Detection>, telemetry: Telemetry, fresh: SeenRoad? = null): FrameResult {
         if (fresh != null) seen = fresh
+        // As the phone: this frame's look and the other one's just before (detect.py takes the looks in turns).
+        val detections = withBefore(found, before)
+        before = found
         val speed = telemetry.speedKmh
         val steady = speed != null && speed >= LEARN_KMH
         val boxes = detections.map { it.box }
