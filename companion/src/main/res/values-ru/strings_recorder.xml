@@ -23,4 +23,7 @@
     <string name="rec_length">%1$d с, %2$d МБ</string>
     <string name="rec_state_low">Батарея разряжена: запись приостановлена</string>
     <string name="road_plug_in">Подключите телефон к зарядке: %1$d%%</string>
+    <string name="rec_fetch_title">Мой компьютер забирает клипы</string>
+    <string name="rec_fetch_detail">Только через Tailscale, для вашего компьютера. Дайте ему этот адрес, в нём есть ключ.</string>
+    <string name="rec_fetch_no_tailscale">Включите Tailscale на этом телефоне, чтобы получить адрес.</string>
 </resources>

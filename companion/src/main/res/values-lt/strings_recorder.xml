@@ -23,4 +23,7 @@
     <string name="rec_length">%1$d s, %2$d MB</string>
     <string name="rec_state_low">Senka baterija: įrašymas pristabdytas</string>
     <string name="road_plug_in">Įkraukite telefoną: %1$d%%</string>
+    <string name="rec_fetch_title">Mano kompiuteris parsisiunčia klipus</string>
+    <string name="rec_fetch_detail">Tik per Tailscale, jūsų kompiuteriui. Duokite jam šį adresą, jame yra raktas.</string>
+    <string name="rec_fetch_no_tailscale">Įjunkite Tailscale šiame telefone, kad gautumėte adresą.</string>
 </resources>
