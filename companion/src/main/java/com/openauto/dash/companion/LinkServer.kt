@@ -1,5 +1,6 @@
 package com.openauto.dash.companion
 
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothServerSocket
@@ -245,6 +246,7 @@ object LinkServer {
      * it is paired with this phone. Bluetooth being off, or its permission not
      * granted yet, is waited out rather than given up on.
      */
+    @SuppressLint("MissingPermission") // a missing grant throws SecurityException, caught below
     private fun bluetoothLoop(context: Context, mine: Int) {
         while (running && generation == mine) {
             val listening = try {

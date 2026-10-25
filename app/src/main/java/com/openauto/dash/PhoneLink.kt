@@ -1,5 +1,6 @@
 package com.openauto.dash
 
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothClass
 import android.bluetooth.BluetoothDevice
@@ -511,6 +512,7 @@ object PhoneLink {
      * the other devices paired here. No hotspot refusals are counted from
      * here: a paired phone of another driver refusing says nothing about ours.
      */
+    @SuppressLint("MissingPermission") // a missing grant throws SecurityException, caught below
     private fun dialBluetooth(context: Context, candidates: List<PairedPhone>, pendingId: String?): Reach {
         val adapter = context.getSystemService(BluetoothManager::class.java)?.adapter ?: return Reach.UNAVAILABLE
         val phones = try {
@@ -548,11 +550,13 @@ object PhoneLink {
     }
 
     /** The paired devices that are phones, the one that linked last first. The OBD adapter and the rest are left alone. */
+    @SuppressLint("MissingPermission") // a missing grant throws SecurityException, caught below
     private fun bondedPhones(adapter: BluetoothAdapter): List<BluetoothDevice> =
         adapter.bondedDevices.orEmpty()
             .filter { it.bluetoothClass?.majorDeviceClass == BluetoothClass.Device.Major.PHONE }
             .sortedByDescending { it.address == lastBluetoothPhone }
 
+    @SuppressLint("MissingPermission") // a missing grant throws SecurityException, caught below
     private fun connectBluetooth(device: BluetoothDevice, phone: PairedPhone): Opened {
         val socket = device.createRfcommSocketToServiceRecord(UUID.fromString(LINK_BLUETOOTH_UUID))
         // connect() has no timeout of its own; the guard closes the socket if it takes too long.
