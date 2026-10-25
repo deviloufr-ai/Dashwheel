@@ -348,6 +348,9 @@ class LaneTracker(carX: Float = 0.5f) {
     var laneWidth = 0f
         private set
 
+    /** Since when the pair seen makes a lane much wider than the one learned, ms; -1 while it does not. */
+    private var wideSince = -1L
+
     private class Side {
         var line: LaneLine? = null
         var hits = 0
@@ -413,9 +416,14 @@ class LaneTracker(carX: Float = 0.5f) {
         var l = left.confirmed
         var r = right.confirmed
         // Each side is followed on its own, so the pair is checked here too: lines that cross before the
-        // horizon, or a lane much narrower than the one learned, are not the car's lane. The line taken up
-        // last is the one that is wrong (a van's edge, a pole); it is left out until the pair agrees again.
-        if (l != null && r != null && (r.topX < l.topX - CROSS || r.bottomX - l.bottomX < max(MIN_WIDTH, NARROW * laneWidth))) {
+        // horizon, or a lane much narrower or wider than the one learned, are not the car's lane. The line taken
+        // up last is the one that is wrong (a van's edge, a pole, the road's far edge at a junction); it is left
+        // out until the pair agrees again. A lane that stays wider for a while is the road's own: a slip road
+        // joining a motorway.
+        val wide = l != null && r != null && laneWidth > 0f && r.bottomX - l.bottomX > WIDE * laneWidth
+        if (!wide) wideSince = -1L else if (wideSince < 0) wideSince = now
+        val tooWide = wide && now - wideSince < WIDE_FOR_MS
+        if (l != null && r != null && (tooWide || r.topX < l.topX - CROSS || r.bottomX - l.bottomX < max(MIN_WIDTH, NARROW * laneWidth))) {
             if (right.since >= left.since) r = null else l = null
         }
         if (l != null && r != null) {
@@ -459,6 +467,10 @@ class LaneTracker(carX: Float = 0.5f) {
         const val MIN_WIDTH = 0.25f
         /** Nor narrower than this share of the lane learned (a roadworks lane is about 0.7 of a motorway one). */
         const val NARROW = 0.6f
+        /** Nor wider than this many times the lane learned (a junction's far edge taken for the line)... */
+        const val WIDE = 1.5f
+        /** ...unless it stays so this long, ms: then the road itself widened. */
+        const val WIDE_FOR_MS = 3_000L
         const val WIDTH_SMOOTH = 0.05f
         /** About a minute of steady driving to move the car's place all the way. */
         const val LEARN = 0.003f
