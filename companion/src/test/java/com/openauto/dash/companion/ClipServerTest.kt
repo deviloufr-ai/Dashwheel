@@ -64,6 +64,7 @@ class ClipServerTest {
     @Test
     fun theCameraReportNeedsTheKeyToo() {
         assertEquals(Route.Cameras, get("/cameras?k=abc"))
+        assertEquals(Route.RoadWatch, get("/roadwatch?k=abc"))
         assertEquals(Route.Refused("403 Forbidden"), get("/cameras"))
     }
 

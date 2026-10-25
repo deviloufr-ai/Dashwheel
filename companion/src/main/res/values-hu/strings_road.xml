@@ -3,7 +3,7 @@
     <string name="road_title">Útfigyelő</string>
     <string name="road_detail">Tegye a telefont egy tartóba a szélvédő mögé: a kamerája figyeli az utat, az autó pedig figyelmeztet, ha egy elöl haladó autó gyorsan közeledik, egy kerék a vonalon van, vagy túl közel követ.</string>
     <string name="road_start">Útfigyelő indítása</string>
-    <string name="road_model_get">Járműfelismerő letöltése, 4,6 MB</string>
+    <string name="road_model_get">Járműfelismerő letöltése, 7,6 MB</string>
     <string name="road_model_retry">Újra</string>
     <string name="road_model_getting">Járműfelismerő letöltése: %1$d%%</string>
     <string name="road_model_failed">A járműfelismerőt nem sikerült letölteni. Ellenőrizze a telefon internetét, majd próbálja újra.</string>

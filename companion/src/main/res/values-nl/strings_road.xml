@@ -3,7 +3,7 @@
     <string name="road_title">Wegwachter</string>
     <string name="road_detail">Zet de telefoon in een houder achter de voorruit: de camera houdt de weg in de gaten en de auto waarschuwt als een auto voor je snel dichterbij komt, een wiel op de lijn staat of je te dicht volgt.</string>
     <string name="road_start">Wegwachter starten</string>
-    <string name="road_model_get">Voertuigherkenning ophalen, 4,6 MB</string>
+    <string name="road_model_get">Voertuigherkenning ophalen, 7,6 MB</string>
     <string name="road_model_retry">Opnieuw</string>
     <string name="road_model_getting">Voertuigherkenning ophalen: %1$d%%</string>
     <string name="road_model_failed">De voertuigherkenning kon niet worden opgehaald. Controleer het internet van de telefoon en probeer het opnieuw.</string>

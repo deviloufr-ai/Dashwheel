@@ -34,3 +34,6 @@ captures/
 
 # Kotlin 2 compiler session files
 .kotlin/
+
+# detect.py fetches the vehicle model itself, checked against its fingerprint.
+tools/roadwatch-replay/efficientdet_*.tflite

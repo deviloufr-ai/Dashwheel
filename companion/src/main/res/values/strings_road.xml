@@ -4,7 +4,7 @@
     <string name="road_title">Road watch</string>
     <string name="road_detail">Put the phone in a holder behind the windscreen: its camera watches the road, and the car warns you of a car ahead coming up fast, a wheel on the line, or following too close.</string>
     <string name="road_start">Start Road watch</string>
-    <string name="road_model_get">Get the vehicle finder, 4.6 MB</string>
+    <string name="road_model_get">Get the vehicle finder, 7.6 MB</string>
     <string name="road_model_retry">Try again</string>
     <string name="road_model_getting">Getting the vehicle finder: %1$d%%</string>
     <string name="road_model_failed">The vehicle finder could not be fetched. Check the phone\'s internet, then try again.</string>

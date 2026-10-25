@@ -3,7 +3,7 @@
     <string name="road_title">Vigía de carretera</string>
     <string name="road_detail">Pon el teléfono en un soporte detrás del parabrisas: su cámara vigila la carretera y el coche te avisa de un coche delante que se acerca rápido, de una rueda sobre la línea o de ir demasiado cerca.</string>
     <string name="road_start">Iniciar Vigía de carretera</string>
-    <string name="road_model_get">Descargar el detector de vehículos, 4,6 MB</string>
+    <string name="road_model_get">Descargar el detector de vehículos, 7,6 MB</string>
     <string name="road_model_retry">Reintentar</string>
     <string name="road_model_getting">Descargando el detector: %1$d %%</string>
     <string name="road_model_failed">No se pudo descargar el detector de vehículos. Revisa la conexión a internet del teléfono y vuelve a intentarlo.</string>

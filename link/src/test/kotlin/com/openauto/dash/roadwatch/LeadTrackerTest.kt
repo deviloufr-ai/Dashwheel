@@ -115,6 +115,15 @@ class LeadTrackerTest {
     }
 
     @Test
+    fun aFrameKeepsWhatTheOtherLookFoundJustBefore() {
+        val near = car(10f)
+        val far = car(60f)
+        // The square saw the near car; the horizon look before it saw the far one and the near one cut off.
+        val before = listOf(far, Detection(Box(near.box.left, near.box.top, near.box.right - 0.01f, near.box.bottom), VehicleKind.CAR, 0.5f))
+        assertEquals(listOf(near, far), withBefore(listOf(near), before))
+    }
+
+    @Test
     fun aCarCuttingInStartsItsOwnHistory() {
         val t = LeadTracker()
         for (i in 0..10) t.update(listOf(car(30f - i)), noLane, band, 0.5f, i * 100L)

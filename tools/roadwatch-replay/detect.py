@@ -5,8 +5,10 @@ and the phone's own crop, for roadreplay to read (--detections).
 Usage: python -I detect.py <video.mp4> <out.jsonl> [--horizon 0.5] [--bonnet 0.92] [--every 1]
 
 Needs ffmpeg on the PATH and: pip install ai-edge-litert numpy
-The model (EfficientDet-Lite0, 4.6 MB) is fetched once next to this script
-and checked against the same SHA-256 the phone checks.
+The model (EfficientDet-Lite2, 7.6 MB) is fetched once next to this script
+and checked against the same SHA-256 the phone checks. As on the phone, every
+other frame looks at the middle of the square around the horizon at twice the
+detail (far vehicles); roadreplay merges each frame with the one before.
 """
 import argparse
 import hashlib
@@ -19,14 +21,15 @@ import urllib.request
 import numpy as np
 
 MODEL_URL = ("https://storage.googleapis.com/download.tensorflow.org/models/tflite/task_library/"
-             "object_detection/android/lite-model_efficientdet_lite0_detection_metadata_1.tflite")
-MODEL_SHA256 = "2e04c53bfeac0ac2a30c057c7e2a777594ce39baaac35a92f74fb1e8c4fc4e0b"
-SIZE = 320
+             "object_detection/android/lite-model_efficientdet_lite2_detection_metadata_1.tflite")
+MODEL_SHA256 = "6fd32c84ab1eb0f7e7f3a7a20a20d7df1530daa8378728f7c79571096286bd52"
+SIZE = 448
 MIN_SCORE = 0.4  # as RoadDetector.MIN_SCORE on the phone
+EDGE = 0.01  # a horizon look's box cut off by its edge is a near vehicle the square has whole
 
 
 def model_path():
-    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "efficientdet_lite0.tflite")
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "efficientdet_lite2.tflite")
     if not os.path.exists(path):
         print("fetching the model", file=sys.stderr)
         urllib.request.urlretrieve(MODEL_URL, path)
@@ -64,10 +67,25 @@ def main():
     count_i = outs["StatefulPartitionedCall:0"]
 
     w, h = probe(a.video)
-    # The phone's crop (RoadDetector.detect): a square as wide as the shorter side, set on the road.
-    side = min(w, h)
-    left = (w - side) // 2
-    top = min(max(int(round((a.horizon + a.bonnet) / 2 * h)) - side // 2, 0), h - side)
+    # The phone's crop (RoadDetector.detect): a square as wide as the shorter side of the 4:3 picture
+    # Road watch analyses, set on the road. A sideways 16:9 recording is that picture with its top and
+    # bottom cut: the square is 0.75 of its width and reaches above and below it (grey), so vehicles
+    # come out as small as the phone sees them. Upright, the 4:3 picture is as wide as the recording.
+    if w > h:
+        side = round(0.75 * w)
+        left = (w - side) // 2
+        top = (h - side) // 2
+        upright_h = side  # the 4:3 picture's height
+    else:
+        side = w
+        left = 0
+        top = min(max(int(round((a.horizon + a.bonnet) / 2 * h)) - side // 2, 0), h - side)
+        upright_h = h
+    # The horizon look (RoadDetector.detect with horizonY): half the square, a third of it above the horizon.
+    tside = side // 2
+    tleft = (w - tside) // 2
+    ttop = int(round(a.horizon * h - tside / 3))
+    ttop = min(max(ttop, top), top + upright_h - tside) if w > h else min(max(ttop, 0), h - tside)
     dec = subprocess.Popen(["ffmpeg", "-v", "error", "-i", a.video, "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
                            stdout=subprocess.PIPE, bufsize=1 << 20)
     n = 0
@@ -78,11 +96,15 @@ def main():
                 break
             if n % a.every == 0:
                 frame = np.frombuffer(raw, dtype=np.uint8).reshape(h, w, 3)
-                crop = frame[top:top + side, left:left + side]
-                # Nearest-neighbour to 320, as the phone samples it.
-                ys = (np.arange(SIZE) * side // SIZE)
-                xs = (np.arange(SIZE) * side // SIZE)
-                small = crop[ys][:, xs]
+                horizon_look = (n // a.every) % 2 == 1
+                sx, sy, ss = (tleft, ttop, tside) if horizon_look else (left, top, side)
+                # Nearest-neighbour to the model's size, as the phone samples it; outside the recording, grey.
+                ys = sy + np.arange(SIZE) * ss // SIZE
+                xs = sx + np.arange(SIZE) * ss // SIZE
+                small = np.full((SIZE, SIZE, 3), 114, np.uint8)
+                vy = (ys >= 0) & (ys < h)
+                vx = (xs >= 0) & (xs < w)
+                small[np.ix_(vy, vx)] = frame[np.ix_(ys[vy], xs[vx])]
                 it.set_tensor(inp, small[None])
                 it.invoke()
                 boxes = it.get_tensor(boxes_i)[0]
@@ -94,8 +116,10 @@ def main():
                     if scores[k] < MIN_SCORE:
                         continue
                     ymin, xmin, ymax, xmax = [float(v) for v in boxes[k]]
-                    found.append([round((left + xmin * side) / w, 4), round((top + ymin * side) / h, 4),
-                                  round((left + xmax * side) / w, 4), round((top + ymax * side) / h, 4),
+                    if horizon_look and (xmin < EDGE or ymin < EDGE or xmax > 1 - EDGE or ymax > 1 - EDGE):
+                        continue
+                    found.append([round((sx + xmin * ss) / w, 4), round((sy + ymin * ss) / h, 4),
+                                  round((sx + xmax * ss) / w, 4), round((sy + ymax * ss) / h, 4),
                                   int(classes[k]), round(float(scores[k]), 3)])
                 out.write(json.dumps({"frame": n, "boxes": found}) + "\n")
                 if n % 300 == 0:

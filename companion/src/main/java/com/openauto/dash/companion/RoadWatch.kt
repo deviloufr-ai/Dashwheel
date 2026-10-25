@@ -27,6 +27,8 @@ import com.openauto.dash.roadwatch.RoadBand
 import com.openauto.dash.roadwatch.RoadRules
 import com.openauto.dash.roadwatch.RoadWarning
 import com.openauto.dash.roadwatch.Upright
+import com.openauto.dash.roadwatch.Detection
+import com.openauto.dash.roadwatch.withBefore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -79,6 +81,9 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
     @Volatile private var hfovTall = prefs.getFloat(KEY_HFOV_TALL, DEFAULT_HFOV_TALL)
     private val rules = RoadRules()
     private var detector: RoadDetector? = null
+    /** The detector looks at the horizon closely every other frame ([withBefore]); what it found on the frame before. */
+    private var horizonLook = false
+    private var lookedBefore: List<Detection> = emptyList()
     @Volatile private var detectorTried = false
 
     private val _view = MutableStateFlow(RoadView())
@@ -204,7 +209,9 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         val steady = speed != null && speed >= LEARN_KMH
         val vehicles = detector
         // The vehicles first: the lane is looked for around them, not on them.
-        val found = vehicles?.detect(buffer, w, h, plane.rowStride, rotation, (band.horizonY + band.bonnetY) / 2)
+        val found = vehicles?.detect(buffer, w, h, plane.rowStride, rotation, (band.horizonY + band.bonnetY) / 2, band.horizonY.takeIf { horizonLook })
+            ?.let { now -> withBefore(now, lookedBefore).also { lookedBefore = now } }
+        horizonLook = !horizonLook
         val sighting = LaneFinder.find(luma, band, lanes.carX, hfov, found.orEmpty().map { it.box })
         val lane = lanes.update(sighting, now, learn = steady && lanes.laneWidth > 0f)
         dragged?.let {
@@ -241,6 +248,7 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
             fps = frames
             frames = 0
             framesSince = now
+            RoadStats.update(fps, vehicles)
         }
         _view.value = RoadView(
             frameW = uprightW, frameH = uprightH,
@@ -286,4 +294,25 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         /** Driving steadily on: where the car is in its lane is where the driver keeps it. */
         const val LEARN_KMH = 50f
     }
+}
+
+/** How Road watch last ran, for the driver's computer ([ClipServer], GET /roadwatch): its speed and where the model ran. */
+object RoadStats {
+    @Volatile private var fps = 0
+    @Volatile private var runMs = 0f
+    @Volatile private var gpu: Boolean? = null
+    @Volatile private var at = 0L
+
+    fun update(fps: Int, detector: RoadDetector?) {
+        this.fps = fps
+        runMs = detector?.runMs ?: 0f
+        gpu = detector?.onGpu
+        at = System.currentTimeMillis()
+    }
+
+    fun json(): org.json.JSONObject = org.json.JSONObject()
+        .put("fps", fps)
+        .put("modelMs", runMs.toDouble())
+        .put("gpu", gpu)
+        .put("at", at)
 }

@@ -3,7 +3,7 @@
     <string name="road_title">Vigia da estrada</string>
     <string name="road_detail">Coloque o telemóvel num suporte atrás do para-brisas: a câmara vigia a estrada e o carro avisa-o de um carro à frente a aproximar-se depressa, de uma roda sobre a linha ou de ir demasiado perto.</string>
     <string name="road_start">Iniciar Vigia da estrada</string>
-    <string name="road_model_get">Obter o detetor de veículos, 4,6 MB</string>
+    <string name="road_model_get">Obter o detetor de veículos, 7,6 MB</string>
     <string name="road_model_retry">Tentar de novo</string>
     <string name="road_model_getting">A obter o detetor: %1$d%%</string>
     <string name="road_model_failed">Não foi possível obter o detetor de veículos. Verifique a internet do telemóvel e tente de novo.</string>

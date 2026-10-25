@@ -224,3 +224,18 @@ internal fun inLane(box: Box, lane: LaneState, band: RoadBand, carX: Float, hfov
 
 /** Half a lane at the bonnet's row, as a share of the frame's width at [REFERENCE_HFOV]. */
 private const val CORRIDOR_HALF = 0.32f
+
+/**
+ * The phone's detector looks at the road in turns: the whole square on one
+ * frame, the horizon at twice the detail on the next. A frame's vehicles
+ * are its own and those of the frame [before] that none of its own
+ * overlaps, so a far car seen only at the horizon isn't lost every other
+ * frame. The car ahead at 30 to 50 m was found 84 % of the time this way,
+ * against 22 % from the square alone (the replay against a big model,
+ * 2026-10-26).
+ */
+fun withBefore(now: List<Detection>, before: List<Detection>): List<Detection> =
+    now + before.filter { b -> now.none { it.box.iou(b.box) > SAME_LOOK_IOU } }
+
+/** A vehicle seen by both looks overlaps itself at least this much. */
+private const val SAME_LOOK_IOU = 0.3f

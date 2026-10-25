@@ -3,7 +3,7 @@
     <string name="road_title">Kelio sargas</string>
     <string name="road_detail">Įdėkite telefoną į laikiklį už priekinio stiklo: jo kamera stebi kelią, o automobilis įspėja, kai priekyje esantis automobilis greitai artėja, ratas užvažiuoja ant linijos ar važiuojate per arti.</string>
     <string name="road_start">Paleisti Kelio sargą</string>
-    <string name="road_model_get">Atsisiųsti transporto atpažinimą, 4,6 MB</string>
+    <string name="road_model_get">Atsisiųsti transporto atpažinimą, 7,6 MB</string>
     <string name="road_model_retry">Bandyti dar kartą</string>
     <string name="road_model_getting">Siunčiamas atpažinimas: %1$d%%</string>
     <string name="road_model_failed">Nepavyko atsisiųsti transporto atpažinimo. Patikrinkite telefono internetą ir bandykite dar kartą.</string>

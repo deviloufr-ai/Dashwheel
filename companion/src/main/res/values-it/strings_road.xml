@@ -3,7 +3,7 @@
     <string name="road_title">Vedetta strada</string>
     <string name="road_detail">Metti il telefono in un supporto dietro il parabrezza: la sua fotocamera osserva la strada e l\'auto ti avvisa se un\'auto davanti si avvicina in fretta, se una ruota è sulla linea o se sei troppo vicino.</string>
     <string name="road_start">Avvia Vedetta strada</string>
-    <string name="road_model_get">Scarica il rilevatore di veicoli, 4,6 MB</string>
+    <string name="road_model_get">Scarica il rilevatore di veicoli, 7,6 MB</string>
     <string name="road_model_retry">Riprova</string>
     <string name="road_model_getting">Download del rilevatore: %1$d%%</string>
     <string name="road_model_failed">Impossibile scaricare il rilevatore di veicoli. Controlla la connessione del telefono e riprova.</string>
