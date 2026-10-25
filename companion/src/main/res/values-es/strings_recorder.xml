@@ -23,4 +23,7 @@
     <string name="rec_length">%1$d s, %2$d MB</string>
     <string name="rec_state_low">Batería baja: grabación en pausa</string>
     <string name="road_plug_in">Conecta el teléfono: %1$d %%</string>
+    <string name="rec_fetch_title">Mi ordenador recoge los clips</string>
+    <string name="rec_fetch_detail">Solo por Tailscale, para tu propio ordenador. Dale esta dirección, que lleva la clave.</string>
+    <string name="rec_fetch_no_tailscale">Activa Tailscale en este teléfono para obtener la dirección.</string>
 </resources>

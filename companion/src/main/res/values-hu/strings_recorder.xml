@@ -23,4 +23,7 @@
     <string name="rec_length">%1$d mp, %2$d MB</string>
     <string name="rec_state_low">Alacsony töltöttség: a felvétel szünetel</string>
     <string name="road_plug_in">Dugja be a telefont: %1$d%%</string>
+    <string name="rec_fetch_title">A számítógépem letölti a klipeket</string>
+    <string name="rec_fetch_detail">Csak Tailscale-en, a saját számítógépének. Adja meg neki ezt a címet, ez tartalmazza a kulcsot.</string>
+    <string name="rec_fetch_no_tailscale">Kapcsolja be a Tailscale-t ezen a telefonon a címhez.</string>
 </resources>

@@ -23,4 +23,7 @@
     <string name="rec_length">%1$d s, %2$d MB</string>
     <string name="rec_state_low">Bateria fraca: gravação em pausa</string>
     <string name="road_plug_in">Ligue o telemóvel ao carregador: %1$d%%</string>
+    <string name="rec_fetch_title">O meu computador obtém os clipes</string>
+    <string name="rec_fetch_detail">Só por Tailscale, para o seu próprio computador. Dê-lhe este endereço, que contém a chave.</string>
+    <string name="rec_fetch_no_tailscale">Ative o Tailscale neste telemóvel para obter o endereço.</string>
 </resources>

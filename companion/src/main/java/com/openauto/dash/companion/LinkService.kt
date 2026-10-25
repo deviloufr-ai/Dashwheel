@@ -53,6 +53,7 @@ class LinkService : Service() {
         PhoneMedia.start(this)
         PhoneBatteryWatch.start(this)
         PhoneGpsShare.start(this)
+        ClipServer.start(this)
         // The app is seldom opened once set up: sharing starting is the other time to look for a new build.
         CompanionUpdate.check(this)
         scope.launch {
@@ -78,6 +79,7 @@ class LinkService : Service() {
         PhoneMedia.stop()
         PhoneBatteryWatch.stop()
         PhoneGpsShare.stop()
+        ClipServer.stop()
         LinkServer.stop()
         super.onDestroy()
     }

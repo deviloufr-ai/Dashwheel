@@ -23,4 +23,7 @@
     <string name="rec_length">%1$d s, %2$d MB</string>
     <string name="rec_state_low">Batterij bijna leeg: opname gepauzeerd</string>
     <string name="road_plug_in">Sluit de telefoon aan: %1$d%%</string>
+    <string name="rec_fetch_title">Mijn computer haalt de clips op</string>
+    <string name="rec_fetch_detail">Alleen via Tailscale, voor je eigen computer. Geef hem dit adres, met de sleutel erin.</string>
+    <string name="rec_fetch_no_tailscale">Zet Tailscale aan op deze telefoon om het adres te krijgen.</string>
 </resources>

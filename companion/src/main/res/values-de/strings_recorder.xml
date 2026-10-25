@@ -23,4 +23,7 @@
     <string name="rec_length">%1$d s, %2$d MB</string>
     <string name="rec_state_low">Akku schwach: Aufnahme pausiert</string>
     <string name="road_plug_in">Handy anschließen: %1$d %%</string>
+    <string name="rec_fetch_title">Mein Computer holt die Clips</string>
+    <string name="rec_fetch_detail">Nur über Tailscale, für Ihren eigenen Computer. Geben Sie ihm diese Adresse, sie enthält den Schlüssel.</string>
+    <string name="rec_fetch_no_tailscale">Schalten Sie Tailscale auf diesem Handy ein, um die Adresse zu erhalten.</string>
 </resources>

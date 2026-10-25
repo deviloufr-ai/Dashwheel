@@ -54,9 +54,11 @@ internal fun RoadWatchCard(connected: Boolean) {
     val scope = rememberCoroutineScope()
     val model by RoadModel.state.collectAsState()
     val recording by RoadClips.enabled.collectAsState()
+    val fetching by ClipServer.on.collectAsState()
     LaunchedEffect(Unit) {
         RoadModel.check(context)
         RoadClips.load(context)
+        ClipServer.load(context)
     }
     Panel {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -95,6 +97,33 @@ internal fun RoadWatchCard(connected: Boolean) {
                 Switch(checked = recording, onCheckedChange = { RoadClips.setEnabled(context, it) })
             }
             Text(stringResource(R.string.rec_legal), style = MaterialTheme.typography.bodySmall, color = CompanionColors.Amber)
+
+            // The driver's own computer fetching the clips over Tailscale ([ClipServer]).
+            Row(Modifier.fillMaxWidth().padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.rec_fetch_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.rec_fetch_detail), style = MaterialTheme.typography.bodySmall, color = CompanionColors.Muted)
+                }
+                Spacer(Modifier.width(12.dp))
+                Switch(checked = fetching, onCheckedChange = { ClipServer.setOn(context, it) })
+            }
+            if (fetching) {
+                val address = ClipServer.address()
+                if (address == null) {
+                    Text(stringResource(R.string.rec_fetch_no_tailscale), style = MaterialTheme.typography.bodySmall, color = CompanionColors.Amber)
+                } else {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(address, style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
+                        // Handed on as text, to reach the computer by mail, a note or Quick Share.
+                        IconButton(onClick = {
+                            val send = Intent(Intent.ACTION_SEND).apply { type = "text/plain"; putExtra(Intent.EXTRA_TEXT, address) }
+                            runCatching { context.startActivity(Intent.createChooser(send, null)) }
+                        }) {
+                            Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.rec_share), tint = CompanionColors.Blue)
+                        }
+                    }
+                }
+            }
         }
     }
 }
