@@ -124,21 +124,51 @@ class ClipRing(
  * enough to be an impact, and braking hard enough to be an emergency, by
  * the GPS speed. Thresholds as dashcams use them; a pothole stays under.
  */
-class ImpactDetector {
+class ImpactDetector(private val hasGravity: Boolean = true) {
     private var lastImpactAt = Long.MIN_VALUE / 2
     private var lastBrakeAt = Long.MIN_VALUE / 2
     private var speedAt = 0L
     private var speedKmh = Float.NaN
 
+    private class Gravity(val at: Long, val x: Float, val y: Float, val z: Float)
+    private val gravities = ArrayDeque<Gravity>()
+    private var pendingAt: Long? = null
+
     /**
      * The phone's acceleration without gravity ([ax], [ay], [az] in m/s²) at
-     * [atMs]: true for an impact (once per event).
+     * [atMs]: true for an impact kept at once (once per event). A knock that
+     * isn't hard enough to be sure waits for [gravity] to tell whether the
+     * phone turned around it.
      */
     fun acceleration(ax: Float, ay: Float, az: Float, atMs: Long): Boolean {
         val g = Math.sqrt((ax * ax + ay * ay + az * az).toDouble()) / 9.81
         if (g < IMPACT_G || atMs - lastImpactAt < REPEAT_MS) return false
         lastImpactAt = atMs
-        return true
+        if (g >= SURE_G || !hasGravity) return true
+        pendingAt = atMs
+        return false
+    }
+
+    /**
+     * Gravity in the phone's axes at [atMs]: the time of a knock now known to
+     * be an impact, or null. A phone taken from its holder, pressed into it or
+     * tipping back turns as it is knocked; in a crash the holder keeps it
+     * pointing at the road. Clips of the car parked with a hand on the phone
+     * were most of the "impacts" on the road (2026-10-24/25).
+     */
+    fun gravity(x: Float, y: Float, z: Float, atMs: Long): Long? {
+        gravities.addLast(Gravity(atMs, x, y, z))
+        while (atMs - gravities.first().at > GRAVITY_KEEP_MS) gravities.removeFirst()
+        val at = pendingAt ?: return null
+        if (atMs - at < TURN_WINDOW_MS) return null
+        pendingAt = null
+        val before = gravities.firstOrNull { it.at >= at - TURN_WINDOW_MS } ?: return at
+        val now = gravities.last()
+        val dot = before.x * now.x + before.y * now.y + before.z * now.z
+        val norms = Math.sqrt(((before.x * before.x + before.y * before.y + before.z * before.z) * (now.x * now.x + now.y * now.y + now.z * now.z)).toDouble())
+        if (norms <= 0.0) return at
+        val turnedDeg = Math.toDegrees(Math.acos((dot / norms).coerceIn(-1.0, 1.0)))
+        return if (turnedDeg <= MAX_TURN_DEG) at else null
     }
 
     /** The GPS speed, once a second or so: true for a hard brake (once per event). */
@@ -157,6 +187,14 @@ class ImpactDetector {
     private companion object {
         /** About what a dashcam's G-sensor on its middle setting fires at; a pothole gives about 1 g. */
         const val IMPACT_G = 2.2
+        // shortcut: SURE_G and MAX_TURN_DEG are judged, not measured on a crash; revisit with the clips' sensor data.
+        /** Harder than this, an impact whatever the phone did: a crash may throw it from its holder. */
+        const val SURE_G = 4.0
+        /** How far before and after a knock the phone's turn is measured. */
+        const val TURN_WINDOW_MS = 1_000L
+        const val GRAVITY_KEEP_MS = 3_000L
+        /** A phone turned more than this around a knock was in a hand. */
+        const val MAX_TURN_DEG = 20.0
         /** Emergency braking on dry tarmac is 7 to 9 m/s²; firm braking 3 to 4. */
         const val HARD_BRAKE_MPS2 = 6.0
         /** Slower than this, a stop is not a brake worth a clip. */

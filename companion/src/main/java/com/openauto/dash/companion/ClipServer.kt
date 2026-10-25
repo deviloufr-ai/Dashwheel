@@ -25,6 +25,7 @@ import kotlin.concurrent.thread
  * address and carrying the key get an answer: GET /clips lists the clips,
  * GET /clips/<name>/clip.mp4 (or clip.json) sends one, from a byte offset
  * when asked with a Range header, so a fetch cut off on mobile data resumes.
+ * GET /cameras says what the phone's cameras can do ([CameraReport]).
  * Started by [LinkService] with the sharing, or by its switch.
  */
 object ClipServer {
@@ -62,7 +63,8 @@ object ClipServer {
     fun start(context: Context) {
         load(context)
         if (!_on.value || server != null) return
-        val dir = RoadClips.dir(context.applicationContext)
+        val app = context.applicationContext
+        val dir = RoadClips.dir(app)
         val socket = try {
             ServerSocket(PORT)
         } catch (e: IOException) {
@@ -73,7 +75,7 @@ object ClipServer {
         thread(name = "clip-server", isDaemon = true) {
             while (!socket.isClosed) {
                 val client = try { socket.accept() } catch (e: IOException) { break }
-                pool.execute { serve(client, dir) }
+                pool.execute { serve(client, app, dir) }
             }
         }
     }
@@ -96,7 +98,7 @@ object ClipServer {
         return NetworkInterface.getByInetAddress(address)?.name?.startsWith("tun") == true
     }
 
-    private fun serve(client: Socket, dir: File) = client.use { s ->
+    private fun serve(client: Socket, context: Context, dir: File) = client.use { s ->
         runCatching {
             // The phone's Wi-Fi, hotspot or mobile network never get an answer, not even a refusal.
             if (!onTailnet(s.localAddress)) return@runCatching
@@ -114,6 +116,11 @@ object ClipServer {
                 is Route.Listing -> {
                     val body = JSONArray(r.clips.map { JSONObject().put("name", it.name).put("bytes", File(it, "clip.mp4").length()) })
                         .toString().toByteArray()
+                    head(out, "200 OK", "application/json", body.size.toLong())
+                    out.write(body)
+                }
+                Route.Cameras -> {
+                    val body = CameraReport.json(context).toString(2).toByteArray()
                     head(out, "200 OK", "application/json", body.size.toLong())
                     out.write(body)
                 }
@@ -142,6 +149,7 @@ object ClipServer {
 
     internal sealed interface Route {
         data class Listing(val clips: List<File>) : Route
+        data object Cameras : Route
         data class Send(val file: File, val from: Long) : Route
         data class Refused(val status: String) : Route
     }
@@ -154,6 +162,7 @@ object ClipServer {
         if (key.isEmpty() || given == null || !MessageDigest.isEqual(given.toByteArray(), key.toByteArray())) {
             return Route.Refused("403 Forbidden")
         }
+        if (path == "/cameras") return Route.Cameras
         val clips = dir.listFiles { f -> File(f, "clip.mp4").isFile }?.sortedBy { it.name } ?: emptyList()
         if (path == "/clips") return Route.Listing(clips)
         // Only a listed clip's own two files: the path picks among them, it never names a file itself.

@@ -150,7 +150,7 @@ object RoadClips {
 class RoadRecorder(context: Context) {
     private val app = context.applicationContext
     private val ring = ClipRing(RING_MS, BEFORE_MS, AFTER_MS)
-    private val impacts = ImpactDetector()
+    private val impacts = ImpactDetector(app.getSystemService(SensorManager::class.java)?.getDefaultSensor(Sensor.TYPE_GRAVITY) != null)
     private val worker = Executors.newSingleThreadExecutor()
     private val thread = HandlerThread("road-recorder").apply { start() }
     private val handler = Handler(thread.looper)
@@ -199,7 +199,12 @@ class RoadRecorder(context: Context) {
     private val sensors = app.getSystemService(SensorManager::class.java)
     private val shock = object : SensorEventListener {
         override fun onSensorChanged(e: SensorEvent) {
-            if (impacts.acceleration(e.values[0], e.values[1], e.values[2], SystemClock.elapsedRealtime())) keep("impact")
+            val now = SystemClock.elapsedRealtime()
+            if (e.sensor.type == Sensor.TYPE_GRAVITY) {
+                impacts.gravity(e.values[0], e.values[1], e.values[2], now)?.let { keep("impact", it) }
+            } else if (impacts.acceleration(e.values[0], e.values[1], e.values[2], now)) {
+                keep("impact")
+            }
         }
         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
     }
@@ -230,6 +235,7 @@ class RoadRecorder(context: Context) {
         ringDir.mkdirs()
         ringDir.listFiles()?.forEach { it.delete() }
         sensors?.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)?.let { sensors.registerListener(shock, it, SensorManager.SENSOR_DELAY_GAME) }
+        sensors?.getDefaultSensor(Sensor.TYPE_GRAVITY)?.let { sensors.registerListener(shock, it, SensorManager.SENSOR_DELAY_UI) }
         runCatching { power?.addThermalStatusListener(heat) }
         handler.post {
             sample()
@@ -278,9 +284,8 @@ class RoadRecorder(context: Context) {
         rotation = degrees
     }
 
-    /** Keep the minute around now; [trigger] says why ("impact", "brake", "collision", "hazard", "button"). */
-    fun keep(trigger: String) {
-        val now = SystemClock.elapsedRealtime()
+    /** Keep the minute around [now]; [trigger] says why ("impact", "brake", "collision", "hazard", "button"). */
+    fun keep(trigger: String, now: Long = SystemClock.elapsedRealtime()) {
         handler.post {
             if (_state.value != State.RECORDING) return@post
             if (ring.keep(now, trigger)) {
