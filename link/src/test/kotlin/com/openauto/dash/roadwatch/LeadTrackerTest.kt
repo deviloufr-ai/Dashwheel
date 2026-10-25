@@ -87,6 +87,34 @@ class LeadTrackerTest {
     }
 
     @Test
+    fun aParkedCarBesideThePathIsPassedNotHit() {
+        // A street without lines: the lane takes in a car parked 2.2 m to the side, closed on at 10 m/s.
+        val t = LeadTracker()
+        var lead: Lead? = null
+        for (i in 0..10) lead = t.update(listOf(car(20f - i, dx = 2.2f)), noLane, band, 0.5f, i * 100L)
+        assertEquals(2.2f, lead!!.lateralM!!, 0.1f)
+        assertNotNull(lead.closingMps)
+        assertNull("no time to impact: it is driven past", lead.ttcS)
+    }
+
+    @Test
+    fun aStoppedCarInThePathStillHasItsTimeToImpact() {
+        val t = LeadTracker()
+        var lead: Lead? = null
+        for (i in 0..10) lead = t.update(listOf(car(20f - i, dx = 0.5f)), noLane, band, 0.5f, i * 100L)
+        assertEquals(0.5f, lead!!.lateralM!!, 0.1f)
+        assertNotNull(lead.ttcS)
+    }
+
+    @Test
+    fun aCarKeptAtTheSameDistanceHasNoSideToTell() {
+        val t = LeadTracker()
+        var lead: Lead? = null
+        for (i in 0..10) lead = t.update(listOf(car(15f, dx = 2.2f)), noLane, band, 0.5f, i * 100L)
+        assertNull(lead!!.lateralM)
+    }
+
+    @Test
     fun aCarCuttingInStartsItsOwnHistory() {
         val t = LeadTracker()
         for (i in 0..10) t.update(listOf(car(30f - i)), noLane, band, 0.5f, i * 100L)

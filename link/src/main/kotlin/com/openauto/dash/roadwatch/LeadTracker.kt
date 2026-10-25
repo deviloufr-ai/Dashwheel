@@ -60,19 +60,22 @@ data class Detection(val box: Box, val kind: VehicleKind, val score: Float)
 /**
  * The vehicle ahead in the car's lane: about [distanceM] away, coming
  * nearer at [closingMps] (null while that isn't known yet, negative when it
- * pulls away), reached in [ttcS] seconds at this rate (null when not closing).
+ * pulls away), reached in [ttcS] seconds at this rate (null when not closing,
+ * or when it is passed beside), [lateralM] to the side of the camera's line
+ * of travel (null until it has grown enough to tell).
  */
 data class Lead(
     val box: Box,
     val kind: VehicleKind,
     val distanceM: Float,
     val closingMps: Float? = null,
-    val ttcS: Float? = null
+    val ttcS: Float? = null,
+    val lateralM: Float? = null
 )
 
 /** [hfovDeg]: the camera's field of view across the upright frame, from the phone's camera. */
 class LeadTracker(var hfovDeg: Float = 66f) {
-    private class Sample(val at: Long, val distanceM: Float)
+    private class Sample(val at: Long, val distanceM: Float, val width: Float, val centerX: Float)
 
     private var box: Box? = null
     private var kind: VehicleKind? = null
@@ -98,7 +101,7 @@ class LeadTracker(var hfovDeg: Float = 66f) {
         kind = ahead.kind
         seenAt = now
         val distance = distanceM(ahead.box.width, ahead.kind)
-        samples.addLast(Sample(now, distance))
+        samples.addLast(Sample(now, distance, ahead.box.width, ahead.box.centerX))
         while (samples.isNotEmpty() && now - samples.first().at > WINDOW_MS) samples.removeFirst()
         return trend(ahead, distance, now)
     }
@@ -139,7 +142,36 @@ class LeadTracker(var hfovDeg: Float = 66f) {
         val distance = max(0.5, md - slope * mt).toFloat()
         val closing = (-slope).toFloat()
         val ttc = if (closing >= MIN_CLOSING_MPS) min(MAX_TTC_S, distance / closing) else null
-        return Lead(ahead.box, ahead.kind, distance, closing, ttc)
+        val lateral = lateralM(ahead.kind)
+        val beside = lateral != null && abs(lateral) >= ahead.kind.widthM / 2 + OWN_HALF_WIDTH_M
+        return Lead(ahead.box, ahead.kind, distance, closing, ttc.takeUnless { beside }, lateral)
+    }
+
+    /**
+     * How far to the side of the camera's line of travel the vehicle is, from
+     * the last second: one standing in the car's way stays put in the picture
+     * as it grows, one beside its path slides outward, its middle moving
+     * [lateralM] / its width for every bit it widens, whatever the camera's
+     * aim or place in the car. A street without lines lets the lane take in a
+     * car parked at its edge or one coming the other way in its own half; the
+     * car drives past those (the user's village drives, 2026-10-24/25: 14 of
+     * 20 replayed false alarms 1.8 m or more aside). Null while the vehicle
+     * hasn't grown enough to tell, then the warning stands.
+     */
+    private fun lateralM(kind: VehicleKind): Float? {
+        if (samples.size < MIN_SAMPLES) return null
+        val widest = samples.maxOf { it.width }
+        val narrowest = samples.minOf { it.width }
+        if (narrowest <= 0f || widest / narrowest < MIN_GROWTH) return null
+        val mw = samples.sumOf { it.width.toDouble() } / samples.size
+        val mx = samples.sumOf { it.centerX.toDouble() } / samples.size
+        var cov = 0.0
+        var vw = 0.0
+        for (s in samples) {
+            cov += (s.width - mw) * (s.centerX - mx)
+            vw += (s.width - mw) * (s.width - mw)
+        }
+        return (cov / vw * kind.widthM).toFloat()
     }
 
     /**
@@ -162,6 +194,10 @@ class LeadTracker(var hfovDeg: Float = 66f) {
         /** Slower than this, the boxes' jitter, not a closing vehicle. */
         const val MIN_CLOSING_MPS = 1f
         const val MAX_TTC_S = 10f
+        /** The widening over the last second that tells a vehicle's side from the boxes' jitter. */
+        const val MIN_GROWTH = 1.1f
+        /** Half the car's own width: a vehicle further aside than this and its own half width is passed, not hit. */
+        const val OWN_HALF_WIDTH_M = 0.9f
         /** How far below the bonnet's row a box's bottom may reach, a share of the height: a near car's box is a little loose. */
         const val BELOW_BONNET = 0.03f
         /** The most of the picture's height a vehicle ahead fills. */

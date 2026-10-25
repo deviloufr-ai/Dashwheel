@@ -62,6 +62,12 @@ class ClipServerTest {
     }
 
     @Test
+    fun theCameraReportNeedsTheKeyToo() {
+        assertEquals(Route.Cameras, get("/cameras?k=abc"))
+        assertEquals(Route.Refused("403 Forbidden"), get("/cameras"))
+    }
+
+    @Test
     fun onlyGet() {
         assertEquals(Route.Refused("405 Method Not Allowed"), ClipServer.route("POST /clips?k=abc HTTP/1.1", null, "abc", dir))
     }

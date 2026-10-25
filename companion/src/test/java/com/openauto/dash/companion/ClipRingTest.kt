@@ -68,7 +68,8 @@ class ClipRingTest {
 
     @Test
     fun aKnockIsAnImpactOnceAndAPotholeIsNot() {
-        val d = ImpactDetector()
+        // Without a gravity sensor a knock is kept at once; with one, ImpactDetectorTest.
+        val d = ImpactDetector(hasGravity = false)
         assertFalse(d.acceleration(0f, 9f, 3f, 1_000L))
         assertTrue(d.acceleration(0f, 24f, 5f, 2_000L))
         assertFalse("the same knock, the next sample", d.acceleration(0f, 25f, 0f, 2_050L))
