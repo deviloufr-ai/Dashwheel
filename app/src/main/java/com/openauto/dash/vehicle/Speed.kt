@@ -30,6 +30,23 @@ fun displaySpeedKmh(sample: Sample<Double>?, correctGps: (Int) -> Int = SpeedCor
     return if (sample.source.kind == SourceKind.GPS) correctGps(kmh) else kmh
 }
 
+/**
+ * A car speed is believed once the source has said the car moves. A car app or a unit bus with no speed
+ * from the car (a CAN box that does not carry it, or no CAN box at all) still sends 0, for ever; as a car
+ * source it outranked the GPS, and the speed stayed at 0 on a GPS-only car. So a provider passes each
+ * speed through [believe]: null (nothing said) until a speed above 0 has come once, then every speed, a
+ * stop's 0 too. One per provider, for the life of the app.
+ */
+class CarSpeedProof {
+    @Volatile private var moved = false
+
+    /** [kmh] if this source's speed is believed, else null. */
+    fun believe(kmh: Int?): Int? {
+        if (kmh != null && kmh > 0) moved = true
+        return kmh?.takeIf { moved }
+    }
+}
+
 /** The speed to show ([displaySpeedKmh]); recomposes when the speed or the driver's correction changes. */
 @Composable
 fun rememberDisplaySpeedKmh(): Int? {

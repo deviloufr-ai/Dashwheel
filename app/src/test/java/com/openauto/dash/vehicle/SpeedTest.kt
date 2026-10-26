@@ -43,6 +43,25 @@ class SpeedTest {
         assertEquals(50, displaySpeedKmh(sample(50.4, car), plus3))
     }
 
+    // --- CarSpeedProof ---------------------------------------------------------
+
+    @Test
+    fun aCarSpeedThatNeverMovedIsNotSaid() {
+        val proof = CarSpeedProof()
+        repeat(3) { assertNull(proof.believe(0)) }
+        assertNull(proof.believe(null))
+    }
+
+    @Test
+    fun onceMovedEveryCarSpeedIsSaidAStopToo() {
+        val proof = CarSpeedProof()
+        assertNull(proof.believe(0))
+        assertEquals(12, proof.believe(12))
+        assertEquals(0, proof.believe(0))
+        assertNull(proof.believe(null))
+        assertEquals(0, proof.believe(0))
+    }
+
     // --- The bus's resolution of SPEED (what the display helper is handed) ------
 
     private var t = 0L
@@ -65,5 +84,23 @@ class SpeedTest {
         assertEquals(61, displaySpeedKmh(bus.sample(K.SPEED).value, plus3))
         g.put(K.GPS_SPEED, null)
         assertNull(displaySpeedKmh(bus.sample(K.SPEED).value, plus3))
+    }
+
+    @Test
+    fun aCarAppThatOnlySaysZeroLeavesTheGpsSpeed() {
+        // The forum report: GPS only, a car app with no speed from the car, and the speed stuck at 0.
+        val app = bus.register(Source("qf.car_app", SourceKind.VEHICLE_APP, "QF car app"))
+        val g = bus.register(gps)
+        val proof = CarSpeedProof()
+        app.put(K.VEHICLE_SPEED, proof.believe(0)?.toDouble())
+        g.put(K.GPS_SPEED, 58.0)
+        assertEquals(61, displaySpeedKmh(bus.sample(K.SPEED).value, plus3))
+        app.put(K.VEHICLE_SPEED, proof.believe(0)?.toDouble())
+        assertEquals("gps", bus.sample(K.SPEED).value!!.source.id)
+        // A car app that does carry the speed takes over at the first move, and keeps its stops.
+        app.put(K.VEHICLE_SPEED, proof.believe(60)?.toDouble())
+        assertEquals(60, displaySpeedKmh(bus.sample(K.SPEED).value, plus3))
+        app.put(K.VEHICLE_SPEED, proof.believe(0)?.toDouble())
+        assertEquals(0, displaySpeedKmh(bus.sample(K.SPEED).value, plus3))
     }
 }

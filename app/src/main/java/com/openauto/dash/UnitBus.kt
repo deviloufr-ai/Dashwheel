@@ -1,6 +1,7 @@
 package com.openauto.dash
 
 import android.content.Context
+import com.openauto.dash.vehicle.CarSpeedProof
 import com.openauto.dash.vehicle.K
 import com.openauto.dash.vehicle.Key
 import com.openauto.dash.vehicle.Publisher
@@ -41,6 +42,8 @@ object UnitBus {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val publisher = Vehicle.bus.register(Source("unit.bus", SourceKind.CANBOX, "Unit bus"))
+    /** The bus's speed, believed once it has moved ([unitBusSpeed]). */
+    internal val speedProof = CarSpeedProof()
     private var started = false
 
     // Guarded by itself: the bus calls raw from its own thread.
@@ -102,9 +105,12 @@ object UnitBus {
     }
 }
 
-/** The bus's speed in km/h, with the driver's correction ([SpeedCorrection]) as every car-speed provider puts it; null withdraws. */
+/**
+ * The bus's speed in km/h, with the driver's correction ([SpeedCorrection]) as every car-speed provider puts it; null withdraws.
+ * Not said until it has once moved ([CarSpeedProof]): a bus without the car's speed says 0 for ever.
+ */
 internal fun unitBusSpeed(out: Publisher, kmh: Float?) {
-    out.put(K.VEHICLE_SPEED, kmh?.let { SpeedCorrection.corrected(it.roundToInt()) }?.toDouble(), ttlMs = UnitBus.SAY_HOLD_MS)
+    out.put(K.VEHICLE_SPEED, UnitBus.speedProof.believe(kmh?.roundToInt())?.let(SpeedCorrection::corrected)?.toDouble(), ttlMs = UnitBus.SAY_HOLD_MS)
 }
 
 internal fun unitBusRpm(out: Publisher, rpm: Int?) {

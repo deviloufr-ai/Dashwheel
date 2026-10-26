@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.SystemClock
 import android.util.Log
 import androidx.core.content.ContextCompat
+import com.openauto.dash.vehicle.CarSpeedProof
 import com.openauto.dash.vehicle.FUEL_HOLD_MS
 import com.openauto.dash.vehicle.Indicators
 import com.openauto.dash.vehicle.K
@@ -77,6 +78,8 @@ object CarBox {
      * the parking sensors, reverse and the steering angle as it says them.
      */
     private val busPublisher = Vehicle.bus.register(Source("qf.car_app", SourceKind.VEHICLE_APP, "QF car app"))
+    /** The body's speed is 0 for ever where the CAN box does not carry it: not said until it has moved. */
+    private val speedProof = CarSpeedProof()
     /** What the body last said for the states it puts on a change only. */
     private val stated = HashMap<Key<*>, Any>()
     private var started = false
@@ -242,7 +245,7 @@ object CarBox {
 
     /** What the body says, on the bus. */
     private fun publishBody(b: CarBody, range: Int?) {
-        busPublisher.put(K.VEHICLE_SPEED, b.speedKmh?.let(SpeedCorrection::corrected)?.toDouble(), ttlMs = FRESH_MS)
+        busPublisher.put(K.VEHICLE_SPEED, speedProof.believe(b.speedKmh)?.let(SpeedCorrection::corrected)?.toDouble(), ttlMs = FRESH_MS)
         busPublisher.put(K.RPM, b.rpm?.toDouble(), ttlMs = FRESH_MS)
         // The lights count as on from the side lights up: the unit's own headlight signal is the illumination wire.
         putState(K.HEADLIGHTS, b.highBeam || b.dippedBeam || b.sidelights)
