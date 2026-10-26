@@ -18,13 +18,13 @@ import kotlin.math.tan
  * second gives the closing speed and the time left as well as the camera can.
  */
 
-/** What the detector can see that a car can run into, and how wide each usually is. */
-enum class VehicleKind(val widthM: Float) {
-    CAR(1.8f),
-    TRUCK(2.5f),
-    BUS(2.55f),
-    MOTORCYCLE(0.8f),
-    BICYCLE(0.6f);
+/** What the detector can see that a car can run into, how wide and how tall each usually is (a rider included). */
+enum class VehicleKind(val widthM: Float, val heightM: Float) {
+    CAR(1.8f, 1.5f),
+    TRUCK(2.5f, 3.2f),
+    BUS(2.55f, 3.0f),
+    MOTORCYCLE(0.8f, 1.4f),
+    BICYCLE(0.6f, 1.7f);
 
     companion object {
         /** The vehicle behind a class of the COCO list the detector was trained on (0 = person), or null. */
@@ -73,9 +73,12 @@ data class Lead(
     val lateralM: Float? = null
 )
 
-/** [hfovDeg]: the camera's field of view across the upright frame, from the phone's camera. */
-class LeadTracker(var hfovDeg: Float = 66f) {
-    private class Sample(val at: Long, val distanceM: Float, val width: Float, val centerX: Float)
+/**
+ * [hfovDeg]: the camera's field of view across the upright frame, from the
+ * phone's camera; [aspect]: the upright frame's height over its width.
+ */
+class LeadTracker(var hfovDeg: Float = 66f, var aspect: Float = 0.75f) {
+    private class Sample(val at: Long, val distanceM: Float, val box: Box)
 
     private var box: Box? = null
     private var kind: VehicleKind? = null
@@ -101,7 +104,7 @@ class LeadTracker(var hfovDeg: Float = 66f) {
         kind = ahead.kind
         seenAt = now
         val distance = distanceM(ahead.box.width, ahead.kind)
-        samples.addLast(Sample(now, distance, ahead.box.width, ahead.box.centerX))
+        samples.addLast(Sample(now, distance, ahead.box))
         while (samples.isNotEmpty() && now - samples.first().at > WINDOW_MS) samples.removeFirst()
         return trend(ahead, distance, now)
     }
@@ -142,36 +145,50 @@ class LeadTracker(var hfovDeg: Float = 66f) {
         val distance = max(0.5, md - slope * mt).toFloat()
         val closing = (-slope).toFloat()
         val ttc = if (closing >= MIN_CLOSING_MPS) min(MAX_TTC_S, distance / closing) else null
-        val lateral = lateralM(ahead.kind)
-        val beside = lateral != null && abs(lateral) >= ahead.kind.widthM / 2 + OWN_HALF_WIDTH_M
-        return Lead(ahead.box, ahead.kind, distance, closing, ttc.takeUnless { beside }, lateral)
+        val edges = edgesM(ahead.kind)
+        // Its side nearer the path: one car's width in from its outer side, which is its back corner. The inner
+        // side of the box is its far front corner, the flank between them: further off, it reads too near the path.
+        val middle = edges?.let { (it.first + it.second) / 2 }
+        val inner = edges?.let { if (middle!! > 0f) it.second - ahead.kind.widthM else it.first + ahead.kind.widthM }
+        // Wholly to one side of the car's path: driven past, not into.
+        val beside = inner != null && (middle!! > 0f && inner >= PATH_HALF_M || middle < 0f && inner <= -PATH_HALF_M)
+        return Lead(ahead.box, ahead.kind, distance, closing, ttc.takeUnless { beside }, middle)
     }
 
     /**
-     * How far to the side of the camera's line of travel the vehicle is, from
-     * the last second: one standing in the car's way stays put in the picture
-     * as it grows, one beside its path slides outward, its middle moving
-     * [lateralM] / its width for every bit it widens, whatever the camera's
-     * aim or place in the car. A street without lines lets the lane take in a
-     * car parked at its edge or one coming the other way in its own half; the
-     * car drives past those (the user's village drives, 2026-10-24/25: 14 of
-     * 20 replayed false alarms 1.8 m or more aside). Null while the vehicle
-     * hasn't grown enough to tell, then the warning stands.
+     * Where the vehicle's left and right sides are, metres to the side of the
+     * camera's line of travel (+ right), from the last second: what stands in
+     * the car's way stays put in the picture as it grows, what is beside its
+     * path slides outward, each side moving its distance aside over the
+     * vehicle's height for every bit the vehicle grows taller, whatever the
+     * camera's aim or place in the car. Its height, not its width: a car
+     * parked at the edge shows its flank as well as its back, so its box is
+     * wider than the car, which read it nearer the path than it was (the
+     * user's village drives, 2026-10-24/26: parked cars read 1 to 1.5 m
+     * aside). The box's inner side is the flank's far end: only the outer
+     * side is the vehicle's back, at the depth its height says.
+     * Null while the vehicle hasn't grown enough to tell, then the warning stands.
      */
-    private fun lateralM(kind: VehicleKind): Float? {
+    private fun edgesM(kind: VehicleKind): Pair<Float, Float>? {
         if (samples.size < MIN_SAMPLES) return null
-        val widest = samples.maxOf { it.width }
-        val narrowest = samples.minOf { it.width }
-        if (narrowest <= 0f || widest / narrowest < MIN_GROWTH) return null
-        val mw = samples.sumOf { it.width.toDouble() } / samples.size
-        val mx = samples.sumOf { it.centerX.toDouble() } / samples.size
-        var cov = 0.0
-        var vw = 0.0
+        val tallest = samples.maxOf { it.box.height }
+        val shortest = samples.minOf { it.box.height }
+        if (shortest <= 0f || tallest / shortest < MIN_GROWTH) return null
+        val mh = samples.sumOf { it.box.height.toDouble() } / samples.size
+        val ml = samples.sumOf { it.box.left.toDouble() } / samples.size
+        val mr = samples.sumOf { it.box.right.toDouble() } / samples.size
+        var covL = 0.0
+        var covR = 0.0
+        var vh = 0.0
         for (s in samples) {
-            cov += (s.width - mw) * (s.centerX - mx)
-            vw += (s.width - mw) * (s.width - mw)
+            val dh = s.box.height - mh
+            covL += dh * (s.box.left - ml)
+            covR += dh * (s.box.right - mr)
+            vh += dh * dh
         }
-        return (cov / vw * kind.widthM).toFloat()
+        // x moves (side / height) * aspect for each share of the frame's height the vehicle grows.
+        val perHeight = kind.heightM / aspect
+        return (covL / vh * perHeight).toFloat() to (covR / vh * perHeight).toFloat()
     }
 
     /**
@@ -196,8 +213,8 @@ class LeadTracker(var hfovDeg: Float = 66f) {
         const val MAX_TTC_S = 10f
         /** The widening over the last second that tells a vehicle's side from the boxes' jitter. */
         const val MIN_GROWTH = 1.1f
-        /** Half the car's own width: a vehicle further aside than this and its own half width is passed, not hit. */
-        const val OWN_HALF_WIDTH_M = 0.9f
+        /** Half the car's own path: its half width and a little room. A vehicle wholly further aside is passed, not hit. */
+        const val PATH_HALF_M = 1.1f
         /** How far below the bonnet's row a box's bottom may reach, a share of the height: a near car's box is a little loose. */
         const val BELOW_BONNET = 0.03f
         /** The most of the picture's height a vehicle ahead fills. */

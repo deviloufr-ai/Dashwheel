@@ -69,6 +69,17 @@ class ClipServerTest {
     }
 
     @Test
+    fun theSignFacesAreListedAndSentByName() {
+        val signs = tmp.newFolder("road_signs")
+        val face = File(signs, "1-30.png").apply { writeBytes(ByteArray(10)) }
+        fun signs(path: String) = ClipServer.route("GET $path HTTP/1.1", null, "abc", dir, signs)
+        assertEquals(Route.Signs(listOf(face)), signs("/signs?k=abc"))
+        assertEquals(Route.Send(face, 0), signs("/signs/1-30.png?k=abc"))
+        assertEquals(Route.Refused("404 Not Found"), signs("/signs/../secret.txt?k=abc"))
+        assertEquals(Route.Refused("403 Forbidden"), signs("/signs"))
+    }
+
+    @Test
     fun onlyGet() {
         assertEquals(Route.Refused("405 Method Not Allowed"), ClipServer.route("POST /clips?k=abc HTTP/1.1", null, "abc", dir))
     }

@@ -1,5 +1,6 @@
 package com.openauto.dash.companion
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.os.SystemClock
 import com.google.mlkit.vision.common.InputImage
@@ -8,7 +9,9 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.openauto.dash.roadwatch.SignConfirm
 import com.openauto.dash.roadwatch.SignSpot
 import com.openauto.dash.roadwatch.Upright
+import java.io.File
 import java.nio.ByteBuffer
+import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -18,10 +21,11 @@ import java.util.concurrent.atomic.AtomicBoolean
  * while one is being read, the next waits for a later frame. What it reads
  * goes to [RoadSigns], believed once read twice ([SignConfirm]).
  */
-class SignReader {
+class SignReader(private val dir: File) {
     private val client = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
     private val busy = AtomicBoolean(false)
     private val confirm = SignConfirm()
+    private val saver = Executors.newSingleThreadExecutor()
 
     /** Reads [spot] in the RGBA frame [rgba] (see [Upright.index]); the pixels are copied before this returns. */
     fun read(rgba: ByteBuffer, width: Int, height: Int, rowStride: Int, rotation: Int, spot: SignSpot) {
@@ -29,16 +33,35 @@ class SignReader {
         val bitmap = middle(rgba, width, height, rowStride, rotation, spot)
         client.process(InputImage.fromBitmap(bitmap, 0))
             .addOnSuccessListener { text ->
+                keep(bitmap, text.text)
                 val kmh = SignConfirm.limitIn(text.text) ?: return@addOnSuccessListener
                 synchronized(confirm) { confirm.read(kmh, SystemClock.elapsedRealtime()) }?.let { RoadSigns.seen(it) }
             }
-            .addOnCompleteListener {
-                bitmap.recycle()
-                busy.set(false)
-            }
+            .addOnFailureListener { keep(bitmap, "failed") }
+            .addOnCompleteListener { busy.set(false) }
     }
 
-    fun close() = client.close()
+    /**
+     * The face read and what was read on it, kept as a picture ([KEPT] at
+     * most, the oldest going): the driver's computer fetches them (GET /signs)
+     * to see what was misread.
+     */
+    private fun keep(bitmap: Bitmap, read: String) {
+        saver.execute {
+            runCatching {
+                dir.mkdirs()
+                val label = read.filter { it.isLetterOrDigit() }.take(12).ifEmpty { "nothing" }
+                File(dir, "${System.currentTimeMillis()}-$label.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+                dir.listFiles()?.sortedByDescending { it.name }?.drop(KEPT)?.forEach { it.delete() }
+            }
+            bitmap.recycle()
+        }
+    }
+
+    fun close() {
+        client.close()
+        saver.shutdown()
+    }
 
     /** The sign's face inside its ring, [READ_SIDE] pixels across: the recognizer reads small text badly. */
     private fun middle(rgba: ByteBuffer, width: Int, height: Int, rowStride: Int, rotation: Int, spot: SignSpot): Bitmap {
@@ -59,10 +82,14 @@ class SignReader {
         return Bitmap.createBitmap(pixels, READ_SIDE, READ_SIDE, Bitmap.Config.ARGB_8888)
     }
 
-    private companion object {
-        const val READ_SIDE = 160
+    companion object {
+        /** Where the faces read are kept. */
+        fun dir(context: Context): File = File(context.cacheDir, "road_signs")
+
+        private const val KEPT = 120
+        private const val READ_SIDE = 160
         /** The face inside the ring, a share of the sign's width: the number with a little white round it. */
-        const val FACE = 0.74f
+        private const val FACE = 0.74f
     }
 }
 

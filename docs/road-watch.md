@@ -37,15 +37,21 @@ On the village drives alone, Lite2 with the horizon look found the car ahead 100
 
 The replay's `detect.py` crops as the phone does: the square is 0.75 of a sideways 16:9 recording's width and reaches above and below it. Before 2026-10-26 it took a square as tall as the recording, which made vehicles look a third bigger than the phone sees them.
 
+## A car beside the path, not in it
+
+A car parked at the edge of a street without lines, or coming the other way in its own half, sits inside the guessed lane. As the car closes in, `LeadTracker` measures how far its sides slide across the picture for each bit it grows taller. That gives each side's distance aside in metres, whatever the camera's aim. The height is used, not the width: a car beside the path shows its flank, which widens its box towards the path. The inner side of the box is the far front corner, so the side read is the outer one (the back corner), and the inner side is one car's width in from it. A car wholly more than 1.1 m from the middle of the path (half the car's width and 20 cm) is driven past: it gets no time to impact.
+
+On the 13 collision clips of 2026-10-24/26 (all false alarms), this cut the alarms from 23 to 15. Measured by the width, the remaining parked cars had read 1 to 1.5 m aside. On Jakarta, a closing car ahead kept its time to impact 96 % of the time (94 % before). Taking the car's turn out with the gyroscope (draft PR #85) made no difference on these clips.
+
 ## Speed-limit signs
 
-Every third frame, `SignFinder` (link, plain image maths) looks over the picture above the bonnet for round red signs. It samples every other pixel and marks the strongly red, well coloured ones. It groups those that touch, and keeps the groups that are round, ring-shaped (red over 20 to 65 % of their square) and light in the middle. That last test is what rules out brick walls, red cars and tail lights. The biggest sign at least 16 pixels across goes to `SignReader`. It copies the sign's face inside the ring, enlarges it to 160 pixels, and reads it with ML Kit's text recognizer on the phone, with no network. Only a speed limit counts (10 to 130 km/h), and `SignConfirm` believes it once it has been read twice within 3 s.
+Every third frame, and on every frame for 1.5 s once one is seen, `SignFinder` (link, plain image maths) looks over the picture above the bonnet for round red signs. It samples every other pixel and marks the strongly red, well coloured ones. It groups those that touch, and keeps the groups that are round, ring-shaped (red over 20 to 65 % of their square) and light in the middle. That last test is what rules out brick walls, red cars and tail lights. The biggest sign at least 16 pixels across goes to `SignReader`. It copies the sign's face inside the ring, enlarges it to 160 pixels, and reads it with ML Kit's text recognizer on the phone, with no network. Only a speed limit counts (10 to 130 km/h), and `SignConfirm` believes it once it has been read twice within 3 s.
 
 The limit goes to the car in `RoadScene.signKmh` for 2 s after it is read. The car's `SpeedLimit` holds it over OpenStreetMap's limit for the next 2 km, or until the next sign. The phone shows it in a corner of Road watch, and the recorder notes it (`signKmh`).
 
 Road watch analyses the picture at 1280 x 960 since 2026-10-26, against 640 x 480 before. At 640, a 30 or a 90 was only readable in the last moments before the car passed it.
 
-On the user's drives (`roadreplay --signs dir` dumps what the finder finds), it found the 30 and 90 signs, the round signs without a number, the give-way triangles and a village name sign, with no brick walls. The reading itself only runs on the phone: check it with `signKmh` in the clip notes or `GET /roadwatch`.
+On the user's drives (`roadreplay --signs dir` dumps what the finder finds), it found the 30 and 90 signs, the round signs without a number, the give-way triangles and a village name sign, with no brick walls. The reading itself only runs on the phone. Each face it tried to read is kept with what it read (the last 120, `GET /signs`), and `GET /roadwatch` gives the time each part of a frame takes. On the first drive (2026-10-26), a sharp 90 passed at 80 km/h without being read: looking every third frame at 10 fps gave it one or two tries.
 
 ## The lane model
 
