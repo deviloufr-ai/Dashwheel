@@ -31,7 +31,7 @@ import kotlin.math.abs
  */
 
 /** What the phone knows beside the picture at one frame: its speed, and whether an indicator is on. */
-data class Telemetry(val speedKmh: Float?, val indicating: Boolean = false)
+data class Telemetry(val speedKmh: Float?, val indicating: Boolean = false, val headingRad: Float? = null)
 
 /** What the pipeline made of one frame. */
 data class FrameResult(
@@ -101,7 +101,7 @@ class ReplaySession(
         val sighting = seen?.let { SeenLanes.find(it, band, lanes.carX, hfovDeg, boxes, lanes.laneWidth) } ?: LaneFinder.find(luma, band, lanes.carX, hfovDeg, boxes)
         val lane = lanes.update(sighting, timeMs, learn = steady && lanes.laneWidth > 0f)
         if (learnHorizon) band = band.copy(horizonY = horizon.update(sighting, timeMs, learn = steady))
-        val lead = leads.update(detections, lane, band, lanes.carX, timeMs)
+        val lead = leads.update(detections, lane, band, lanes.carX, timeMs, telemetry.headingRad)
         val scene = RoadScene(
             offset = lane.offset, lines = lane.lines,
             leadM = lead?.distanceM, closingMps = lead?.closingMps, ttcS = lead?.ttcS,

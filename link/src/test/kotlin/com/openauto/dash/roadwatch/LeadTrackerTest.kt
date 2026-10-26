@@ -107,6 +107,26 @@ class LeadTrackerTest {
     }
 
     @Test
+    fun aStoppedCarAheadOnABendIsNotTakenForOneBeside() {
+        // Closing on a car stopped in the path while turning right: the turn slides it left across the picture.
+        val perRad = 1f / (2 * half)
+        fun turning(i: Int): Pair<Detection, Float> {
+            val heading = 0.02f * i
+            val c = car(20f - i)
+            val shift = heading * perRad
+            return Detection(Box(c.box.left - shift, c.box.top, c.box.right - shift, c.box.bottom), c.kind, c.score) to heading
+        }
+        val blind = LeadTracker()
+        var lead: Lead? = null
+        for (i in 0..10) lead = blind.update(listOf(turning(i).first), noLane, band, 0.5f, i * 100L)
+        assertNull("without the heading the turn reads as a car beside", lead!!.ttcS)
+        val t = LeadTracker()
+        for (i in 0..10) turning(i).let { (d, h) -> lead = t.update(listOf(d), noLane, band, 0.5f, i * 100L, h) }
+        assertEquals(0f, lead!!.lateralM!!, 0.2f)
+        assertNotNull("with it, the stopped car is still in the way", lead!!.ttcS)
+    }
+
+    @Test
     fun aCarKeptAtTheSameDistanceHasNoSideToTell() {
         val t = LeadTracker()
         var lead: Lead? = null

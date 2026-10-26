@@ -25,6 +25,29 @@ class LaneFinderTest {
     }
 
     @Test
+    fun aBendIsFollowedUpTheRoad() {
+        val bending = 0.12f
+        val got = LaneFinder.find(road(left = 0.15f, right = 0.85f, bend = bending, h = 160), band)
+        // Near the car the lines are where they were; far up the road they have swung right with it.
+        assertNear(0.15f, got.left?.bottomX)
+        assertNear(0.85f, got.right?.bottomX)
+        for ((line, start) in listOf(got.left!! to 0.15f, got.right!! to 0.85f)) {
+            val y = band.topY + 0.15f * (band.bonnetY - band.topY)
+            val t = band.depth(y)
+            val truth = 0.5f + (start - 0.5f) * t + bending * (1 - t) * (1 - t)
+            assertTrue("bent towards the bend: " + line.bend, line.bend > 0f)
+            assertEquals("far up the road", truth, line.xAt(0.15f), 0.04f)
+        }
+    }
+
+    @Test
+    fun aStraightRoadStaysStraight() {
+        val got = LaneFinder.find(road(left = 0.15f, right = 0.85f), band)
+        assertEquals(0f, got.left!!.bend, 0.03f)
+        assertEquals(0f, got.right!!.bend, 0.03f)
+    }
+
+    @Test
     fun aDashedLineIsStillALine() {
         val got = LaneFinder.find(road(left = 0.2f, right = 0.8f, dashedLeft = true), band)
         assertNear(0.2f, got.left?.bottomX)
@@ -270,6 +293,8 @@ internal fun road(
     dashedLeft: Boolean = false,
     /** A line's width at the bonnet's row, a share of the picture's width. */
     lineWidth: Float = 0.03f,
+    /** How far the road bends aside by the horizon, a share of the width (+ right): 0 straight. */
+    bend: Float = 0f,
     w: Int = 160,
     h: Int = 120,
     horizonY: Float = 0.5f,
@@ -294,7 +319,7 @@ internal fun road(
             }
             if (y >= yh && y <= yb && t > 0f) {
                 lines.forEachIndexed { i, at ->
-                    val cx = vx + (at * w - vx) * t
+                    val cx = vx + (at * w - vx) * t + bend * w * (1 - t) * (1 - t)
                     val half = max(0.5f, lineWidth * w * t / 2)
                     // Dashes 3 m long every 9 m: on or off by distance, which goes as 1/t.
                     val on = !(dashedLeft && i == 0) || ((1f / t) * 2f).roundToInt() % 3 == 0

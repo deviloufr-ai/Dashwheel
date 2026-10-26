@@ -74,6 +74,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size as GeoSize
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -398,8 +399,15 @@ private fun RoadDrawing(watch: RoadWatch, onTap: () -> Unit) {
                 RoadWarning.LANE_LEFT, RoadWarning.LANE_RIGHT -> CompanionColors.Amber
                 else -> CompanionColors.Teal
             }
+            // Each line as the road runs, in short pieces so a bend shows.
             listOfNotNull(view.lane.left, view.lane.right).forEach { line ->
-                drawLine(laneColor, at(line.topX, band.topY), at(line.bottomX, band.bonnetY), strokeWidth = 10f)
+                for (k in 0 until LINE_PIECES) {
+                    val s0 = k.toFloat() / LINE_PIECES
+                    val s1 = (k + 1f) / LINE_PIECES
+                    val y0 = band.topY + s0 * (band.bonnetY - band.topY)
+                    val y1 = band.topY + s1 * (band.bonnetY - band.topY)
+                    drawLine(laneColor, at(line.xAt(s0), y0), at(line.xAt(s1), y1), strokeWidth = 10f, cap = StrokeCap.Round)
+                }
             }
             view.lead?.let { lead ->
                 val b = lead.box
@@ -533,3 +541,6 @@ private fun RoadControls(
         }
     }
 }
+
+/** The pieces a lane line is drawn in. */
+private const val LINE_PIECES = 8

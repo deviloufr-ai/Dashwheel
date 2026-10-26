@@ -75,7 +75,7 @@ data class Lead(
 
 /** [hfovDeg]: the camera's field of view across the upright frame, from the phone's camera. */
 class LeadTracker(var hfovDeg: Float = 66f) {
-    private class Sample(val at: Long, val distanceM: Float, val width: Float, val centerX: Float)
+    private class Sample(val at: Long, val distanceM: Float, val width: Float, val centerX: Float, val headingRad: Float?)
 
     private var box: Box? = null
     private var kind: VehicleKind? = null
@@ -84,9 +84,11 @@ class LeadTracker(var hfovDeg: Float = 66f) {
 
     /**
      * The lead vehicle among [detections] (the frame at [now], ms), in the lane
-     * [lane] when it is known, else in a corridor ahead of [carX].
+     * [lane] when it is known, else in a corridor ahead of [carX]. [headingRad]:
+     * which way the car points, turning clockwise as it turns right (a
+     * compass's sense, from any start), when the phone knows it.
      */
-    fun update(detections: List<Detection>, lane: LaneState, band: RoadBand, carX: Float, now: Long): Lead? {
+    fun update(detections: List<Detection>, lane: LaneState, band: RoadBand, carX: Float, now: Long, headingRad: Float? = null): Lead? {
         val ahead = detections
             .filter { it.box.bottom > band.horizonY + 0.01f && onTheRoad(it.box, band) && inLane(it.box, lane, band, carX, hfovDeg) }
             .maxByOrNull { it.box.bottom }
@@ -101,7 +103,7 @@ class LeadTracker(var hfovDeg: Float = 66f) {
         kind = ahead.kind
         seenAt = now
         val distance = distanceM(ahead.box.width, ahead.kind)
-        samples.addLast(Sample(now, distance, ahead.box.width, ahead.box.centerX))
+        samples.addLast(Sample(now, distance, ahead.box.width, ahead.box.centerX, headingRad))
         while (samples.isNotEmpty() && now - samples.first().at > WINDOW_MS) samples.removeFirst()
         return trend(ahead, distance, now)
     }
@@ -157,18 +159,27 @@ class LeadTracker(var hfovDeg: Float = 66f) {
      * car drives past those (the user's village drives, 2026-10-24/25: 14 of
      * 20 replayed false alarms 1.8 m or more aside). Null while the vehicle
      * hasn't grown enough to tell, then the warning stands.
+     *
+     * On a bend everything slides across the picture as the car turns, a
+     * parked car on the inside of it slipping towards the middle: with the
+     * car's heading known, that turn is taken out of each sample first.
      */
     private fun lateralM(kind: VehicleKind): Float? {
         if (samples.size < MIN_SAMPLES) return null
         val widest = samples.maxOf { it.width }
         val narrowest = samples.minOf { it.width }
         if (narrowest <= 0f || widest / narrowest < MIN_GROWTH) return null
+        // A turn of one radian moves what is ahead this share of the picture's width.
+        val perRad = 1.0 / (2 * tan(Math.toRadians(hfovDeg / 2.0)))
+        val start = samples.first().headingRad
+        val turned = start != null && samples.all { it.headingRad != null }
+        fun x(s: Sample) = if (turned) s.centerX + (s.headingRad!! - start!!) * perRad else s.centerX.toDouble()
         val mw = samples.sumOf { it.width.toDouble() } / samples.size
-        val mx = samples.sumOf { it.centerX.toDouble() } / samples.size
+        val mx = samples.sumOf { x(it) } / samples.size
         var cov = 0.0
         var vw = 0.0
         for (s in samples) {
-            cov += (s.width - mw) * (s.centerX - mx)
+            cov += (s.width - mw) * (x(s) - mx)
             vw += (s.width - mw) * (s.width - mw)
         }
         return (cov / vw * kind.widthM).toFloat()

@@ -5,7 +5,9 @@ import com.openauto.dash.roadwatch.Detection
 import com.openauto.dash.roadwatch.RoadBand
 import com.openauto.dash.roadwatch.VehicleKind
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.floatOrNull
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonArray
@@ -187,25 +189,86 @@ private fun readLanes(file: File): LaneFile {
     return LaneFile(top, height, packed)
 }
 
-/** One row of the recorder's notes: when (ms into the clip), the speed the car gave, else the GPS's, and the indicators. */
-private data class Note(val offsetMs: Long, val speedKmh: Float?, val indicating: Boolean)
+/**
+ * One row of the recorder's notes: when (ms into the clip), the speed the car gave, else the GPS's, the
+ * indicators, and which way the car pointed (radians, turning clockwise as it turns right), once known.
+ */
+private data class Note(val offsetMs: Long, val speedKmh: Float?, val indicating: Boolean, val headingRad: Double? = null)
 
 private fun readNotes(file: File): List<Note> {
     val obj = Json.parseToJsonElement(file.readText()).jsonObject
-    return obj["samples"]?.jsonArray?.map { s ->
-        val o = s.jsonObject
+    val rows = obj["samples"]?.jsonArray?.map { it.jsonObject }?.sortedBy { it["offsetMs"]?.jsonPrimitive?.longOrNull ?: 0L } ?: emptyList()
+    val notes = rows.map { o ->
         Note(
             offsetMs = o["offsetMs"]?.jsonPrimitive?.longOrNull ?: 0L,
             speedKmh = o["carKmh"]?.jsonPrimitive?.floatOrNull ?: o["gpsKmh"]?.jsonPrimitive?.floatOrNull,
             indicating = listOf("turnLeft", "turnRight", "hazard").any { o[it]?.jsonPrimitive?.booleanOrNull == true }
         )
-    }?.sortedBy { it.offsetMs } ?: emptyList()
+    }
+    // The phone's own heading (its gyroscope, in clips since 2026-10-26), else the way the GPS moved.
+    val gyro = rows.map { it["headingDeg"]?.jsonPrimitive?.doubleOrNull }
+    val headings = if (gyro.all { it != null }) gyro.map { Math.toRadians(it!!) } else gpsHeadings(rows)
+    return notes.mapIndexed { i, n -> n.copy(headingRad = headings[i]) }
 }
+
+/**
+ * The car's heading at each row from the GPS track: the bearing between fixes at least [MIN_MOVE_M] apart,
+ * unwound so it doesn't jump at north, and held from the last move while the car stands.
+ */
+private fun gpsHeadings(rows: List<JsonObject>): List<Double?> {
+    val fixes = rows.map { o ->
+        val lat = o["lat"]?.jsonPrimitive?.doubleOrNull
+        val lng = o["lng"]?.jsonPrimitive?.doubleOrNull
+        if (lat != null && lng != null) lat to lng else null
+    }
+    val known = ArrayList<Pair<Long, Double>>()
+    var from: Int? = null
+    var last: Double? = null
+    for (i in fixes.indices) {
+        val p = fixes[i] ?: continue
+        val f = from
+        if (f == null) { from = i; continue }
+        val q = fixes[f]!!
+        val north = (p.first - q.first) * 111_320.0
+        val east = (p.second - q.second) * 111_320.0 * Math.cos(Math.toRadians(p.first))
+        if (Math.hypot(north, east) < MIN_MOVE_M) continue
+        var bearing = Math.atan2(east, north)
+        last?.let { while (bearing - it > Math.PI) bearing -= 2 * Math.PI; while (bearing - it < -Math.PI) bearing += 2 * Math.PI }
+        last = bearing
+        val at = ((rows[f]["offsetMs"]?.jsonPrimitive?.longOrNull ?: 0L) + (rows[i]["offsetMs"]?.jsonPrimitive?.longOrNull ?: 0L)) / 2
+        known += at to bearing
+        from = i
+    }
+    if (known.isEmpty()) return rows.map { null }
+    return rows.map { o ->
+        val t = o["offsetMs"]?.jsonPrimitive?.longOrNull ?: 0L
+        val k = known.indexOfFirst { it.first >= t }
+        when {
+            k == 0 -> known.first().second
+            k < 0 -> known.last().second
+            else -> {
+                val (t0, h0) = known[k - 1]
+                val (t1, h1) = known[k]
+                h0 + (h1 - h0) * (t - t0) / (t1 - t0).coerceAtLeast(1)
+            }
+        }
+    }
+}
+
+/** GPS fixes nearer than this give no heading: the fix's own wander would be read as a turn. */
+private const val MIN_MOVE_M = 4.0
 
 private fun telemetryAt(notes: List<Note>, timeMs: Long, steady: Float?): Telemetry {
     if (notes.isEmpty()) return Telemetry(steady)
     val n = notes.minByOrNull { Math.abs(it.offsetMs - timeMs) }!!
-    return Telemetry(n.speedKmh ?: steady, n.indicating)
+    // The heading between two rows, so a turn moves smoothly from frame to frame.
+    val k = notes.indexOfFirst { it.offsetMs >= timeMs }
+    val heading = if (k > 0) {
+        val a = notes[k - 1]
+        val b = notes[k]
+        if (a.headingRad != null && b.headingRad != null) a.headingRad + (b.headingRad - a.headingRad) * (timeMs - a.offsetMs) / (b.offsetMs - a.offsetMs).coerceAtLeast(1) else n.headingRad
+    } else n.headingRad
+    return Telemetry(n.speedKmh ?: steady, n.indicating, heading?.toFloat())
 }
 
 /** frame,left,right,lead_m with a header line; an empty cell is "not labelled". */

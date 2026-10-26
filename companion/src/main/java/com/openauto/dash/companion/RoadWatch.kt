@@ -139,12 +139,14 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
             runCatching { lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1_000L, 0f, listener, Looper.getMainLooper()) }
                 .onSuccess { locations = lm }
         }
+        PhoneHeading.start(app)
     }
 
     /** The camera stopped: nothing more goes to the car, and the car's warnings end with the scenes. */
     fun stop() {
         locations?.let { runCatching { it.removeUpdates(listener) } }
         locations = null
+        PhoneHeading.stop(app)
         // The horizon only once learned: a few seconds of single sightings would start the next drive
         // there, and a wrong start keeps away the lines that would correct it. A drag saves itself.
         val edit = prefs.edit().putFloat(carXKey(tall), lanes.carX)
@@ -224,7 +226,7 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
             horizonSet = true
             prefs.edit().putFloat(KEY_HORIZON, band.horizonY).putBoolean(KEY_HORIZON_SET, true).apply()
         }
-        val lead = found?.let { leads.update(it, lane, band, lanes.carX, now) }
+        val lead = found?.let { leads.update(it, lane, band, lanes.carX, now, PhoneHeading.radians) }
 
         val scene = RoadScene(
             offset = lane.offset,

@@ -127,12 +127,23 @@ data class RoadBand(val horizonY: Float = 0.5f, val bonnetY: Float = 0.92f) {
 }
 
 /**
- * One lane line, where it crosses the top ([topX]) and the bottom ([bottomX])
- * of the [RoadBand], in fractions of the frame's width.
+ * One lane line, where the straight line through it crosses the top
+ * ([topX]) and the bottom ([bottomX]) of the [RoadBand], in fractions of the
+ * frame's width; on a bend, how far the line has swung aside of that by the
+ * top ([bend]: 0 straight). The straight line is what the lane offset, the
+ * tracking and the warnings read; the bend only says where the lane runs far
+ * ahead, for the vehicles in it.
  */
-data class LaneLine(val bottomX: Float, val topX: Float) {
-    /** Where it is at [s]: 0 the top of the band, 1 its bottom (more is below it, extended). */
-    fun xAt(s: Float): Float = topX + (bottomX - topX) * s
+data class LaneLine(val bottomX: Float, val topX: Float, val bend: Float = 0f) {
+    /**
+     * Where it is at [s]: 0 the top of the band, 1 its bottom (more is below
+     * it, extended). Above the band it runs on straight the way it heads there:
+     * a bend guessed past the last point seen would swing anywhere.
+     */
+    fun xAt(s: Float): Float {
+        if (s >= 0f) return topX + (bottomX - topX) * s + bend * (1 - s) * (1 - s)
+        return topX + bend + (bottomX - topX - 2 * bend) * s
+    }
 }
 
 /** What one frame shows of the car's lane: its line on either side, and how many points of the road back each. */
@@ -163,6 +174,16 @@ object LaneFinder {
     private const val MAX_LINE_DISTANCE = 0.55f
     /** A line extended to the horizon meets it at most this far from the car (a share of the width at [REFERENCE_HFOV]): room for a bend. */
     private const val MAX_VANISH_OFF = 0.25f
+    /** A row's point follows the line when it is this many pixels of the lane picture from where the line heads, or two markings. */
+    private const val BEND_TOLERANCE_PX = 3f
+    /** Points followed before the first curve is drawn through them. */
+    private const val BEND_FIRST_FIT = 6
+    /** The points followed must reach this far up the road (s) for a bend to be read from them. */
+    private const val BEND_REACH_S = 0.45f
+    /** More bow than this between the band's top and bottom (a share of the width) is not a road's. */
+    private const val MAX_BEND = 0.35f
+    /** How hard a bend is held towards none, per point. */
+    private const val BEND_RIDGE = 0.001
 
     /**
      * The car's lane in [img]. [carX]: where the car's middle is, as a
@@ -200,6 +221,7 @@ object LaneFinder {
         val nBot = ((2.6f * w) / botStep).toInt() + 1
         val votes = IntArray(nTop * nBot)
         val response = IntArray(w)
+        val points = ArrayList<Stripe>()
 
         for (y in y0..y1) {
             val s = (y - y0).toFloat() / rows
@@ -234,6 +256,7 @@ object LaneFinder {
                     if (best) {
                         found++
                         vote(votes, x + 0.5f, s, topMin, topStep, nTop, botMin, botStep, nBot)
+                        points += Stripe(x + 0.5f, s, mark)
                         x += mark
                     }
                 }
@@ -274,6 +297,9 @@ object LaneFinder {
         if (l != null && r != null && (r.topX < l.topX - 0.06f || r.bottomX - l.bottomX < 0.25f)) {
             if (left!!.votes >= right!!.votes) r = null else l = null
         }
+        // The lines as the road runs, bends and all: what is in the lane far ahead depends on it.
+        l = l?.let { bent(it, points, w, minVotes) }
+        r = r?.let { bent(it, points, w, minVotes) }
         return LaneSighting(
             left = l,
             right = r,
@@ -281,6 +307,58 @@ object LaneFinder {
             rightSupport = if (r != null) min(1f, right!!.votes.toFloat() / rows) else 0f,
             meetY = meet
         )
+    }
+
+    private class Stripe(val x: Float, val s: Float, val mark: Int)
+
+    /**
+     * [line], the straight line the vote found, bent to follow its points up
+     * the road: from the bonnet's row up, each row takes its point nearest
+     * where the line is heading (a dash's gap skipped), and a curve
+     * x = a + b s + c s² followed through them; the bend is how far that
+     * curve is off the straight line at the top of the road searched. The straight line stands alone
+     * when too few points follow it or when the bend is more than a road's.
+     */
+    private fun bent(line: LaneLine, points: List<Stripe>, w: Int, minVotes: Int): LaneLine {
+        var fit = doubleArrayOf(line.topX * w.toDouble(), (line.bottomX - line.topX) * w.toDouble(), 0.0)
+        val taken = ArrayList<Stripe>()
+        val rows = points.groupBy { it.s }.toSortedMap(reverseOrder())
+        for ((s, row) in rows) {
+            val heading = fit[0] + fit[1] * s + fit[2] * s * s
+            val near = row.minByOrNull { abs(it.x - heading) } ?: continue
+            if (abs(near.x - heading) > max(BEND_TOLERANCE_PX, 2f * near.mark)) continue
+            taken += near
+            if (taken.size >= BEND_FIRST_FIT && taken.size % 2 == 0) fit = quadratic(taken) ?: fit
+        }
+        if (taken.size < minVotes || taken.minOf { it.s } > BEND_REACH_S) return line
+        // How far the followed line is from the straight one at the top of the road searched.
+        val q = quadratic(taken) ?: return line
+        val bend = (q[0] / w).toFloat() - line.topX
+        return if (abs(bend) > MAX_BEND) line else line.copy(bend = bend)
+    }
+
+    /** a, b, c of x = a + b s + c s² through [pts], c held a little towards 0 so a few points don't make a bend. */
+    private fun quadratic(pts: List<Stripe>): DoubleArray? {
+        val m = Array(3) { DoubleArray(4) }
+        for (p in pts) {
+            val v = doubleArrayOf(1.0, p.s.toDouble(), p.s.toDouble() * p.s)
+            for (i in 0..2) {
+                for (j in 0..2) m[i][j] += v[i] * v[j]
+                m[i][3] += v[i] * p.x
+            }
+        }
+        m[2][2] += BEND_RIDGE * pts.size
+        // Gauss-Jordan elimination with partial pivoting.
+        for (c in 0..2) {
+            val piv = (c..2).maxByOrNull { abs(m[it][c]) }!!
+            if (abs(m[piv][c]) < 1e-9) return null
+            val t = m[c]; m[c] = m[piv]; m[piv] = t
+            for (r in 0..2) if (r != c) {
+                val f = m[r][c] / m[c][c]
+                for (k in c..3) m[r][k] -= f * m[c][k]
+            }
+        }
+        return DoubleArray(3) { m[it][3] / m[it][it] }
     }
 
     private fun vote(votes: IntArray, x: Float, s: Float, topMin: Float, topStep: Float, nTop: Int, botMin: Float, botStep: Float, nBot: Int) {
@@ -370,7 +448,8 @@ class LaneTracker(carX: Float = 0.5f) {
                 current == null || abs(seen.bottomX - current.bottomX) < JUMP && abs(seen.topX - current.topX) < JUMP -> {
                     line = if (current == null) seen else LaneLine(
                         current.bottomX + SMOOTH * (seen.bottomX - current.bottomX),
-                        current.topX + SMOOTH * (seen.topX - current.topX)
+                        current.topX + SMOOTH * (seen.topX - current.topX),
+                        current.bend + SMOOTH * (seen.bend - current.bend)
                     )
                     if (current == null) {
                         hits = 0

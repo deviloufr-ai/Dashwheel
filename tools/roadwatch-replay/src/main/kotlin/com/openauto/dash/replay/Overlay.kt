@@ -51,12 +51,14 @@ object Overlay {
         val hy = (band.horizonY * h).toInt()
         g.drawLine(0, hy, w, hy)
 
-        // The lane's lines, from the top of the searched band to the bonnet's row.
+        // The lane's lines, from the top of the searched band to the bonnet's row, bends and all.
         val warn = result.warning
         g.stroke = BasicStroke(unit * 0.35f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
         listOfNotNull(result.lane.left?.let { it to (warn == RoadWarning.LANE_LEFT) }, result.lane.right?.let { it to (warn == RoadWarning.LANE_RIGHT) }).forEach { (line, hot) ->
             g.color = if (hot) amber else teal
-            g.drawLine((line.topX * w).toInt(), (band.topY * h).toInt(), (line.bottomX * w).toInt(), (band.bonnetY * h).toInt())
+            val xs = IntArray(9) { k -> (line.xAt(k / 8f) * w).toInt() }
+            val ys = IntArray(9) { k -> ((band.topY + k / 8f * (band.bonnetY - band.topY)) * h).toInt() }
+            g.drawPolyline(xs, ys, 9)
         }
 
         // The car ahead.

@@ -188,7 +188,8 @@ class RoadRecorder(context: Context) {
     private class Sample(
         val elapsedMs: Long, val wallMs: Long,
         val lat: Double?, val lng: Double?, val gpsKmh: Float?,
-        val car: CarTelemetry?
+        val car: CarTelemetry?,
+        val headingRad: Float? = null
     )
 
     private val samples = ArrayDeque<Sample>()
@@ -370,7 +371,7 @@ class RoadRecorder(context: Context) {
     private fun sample() {
         val now = SystemClock.elapsedRealtime()
         val l = location?.takeIf { now - locationAt < 5_000L }
-        samples.addLast(Sample(now, System.currentTimeMillis(), l?.latitude, l?.longitude, l?.speed?.takeIf { l.hasSpeed() }?.times(3.6f), RoadTelemetry.fresh(now)))
+        samples.addLast(Sample(now, System.currentTimeMillis(), l?.latitude, l?.longitude, l?.speed?.takeIf { l.hasSpeed() }?.times(3.6f), RoadTelemetry.fresh(now), PhoneHeading.radians))
         while (samples.isNotEmpty() && now - samples.first().elapsedMs > RING_MS + AFTER_MS) samples.removeFirst()
         handler.postDelayed(::sample, SAMPLE_MS)
     }
@@ -483,6 +484,7 @@ class RoadRecorder(context: Context) {
                     .put("turnRight", s.car?.turnRight ?: JSONObject.NULL)
                     .put("hazard", s.car?.hazard ?: JSONObject.NULL)
                     .put("lights", s.car?.lights ?: JSONObject.NULL)
+                    .put("headingDeg", s.headingRad?.let { Math.toDegrees(it.toDouble()) } ?: JSONObject.NULL)
             }))
     }
 
