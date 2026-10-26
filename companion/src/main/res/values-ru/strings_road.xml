@@ -25,4 +25,21 @@
     <string name="road_dim">Затемнить</string>
     <string name="road_bright">Ярче</string>
     <string name="road_stop">Стоп</string>
+    <string name="road_place_title">Установите телефон</string>
+    <string name="road_place_moved">Телефон сдвинулся: установите его заново</string>
+    <string name="road_place_level_ok">Ровно</string>
+    <string name="road_place_level_left">Опустите немного левый край</string>
+    <string name="road_place_level_right">Опустите немного правый край</string>
+    <string name="road_place_aim_ok">Направлен на дорогу</string>
+    <string name="road_place_aim_down">Наклоните камеру немного вниз</string>
+    <string name="road_place_aim_up">Наклоните камеру немного вверх</string>
+    <string name="road_place_dash_ok">Мало приборной панели в кадре</string>
+    <string name="road_place_dash">Слишком много приборной панели: поднимите телефон выше</string>
+    <string name="road_place_pillar_ok">По бокам свободно</string>
+    <string name="road_place_pillar">Стойка лобового стекла в кадре: сдвиньте телефон ближе к середине</string>
+    <string name="road_place_dark">Слишком темно, чтобы проверить сейчас</string>
+    <string name="road_place_keeps">Сохранится само, когда всё станет зелёным</string>
+    <string name="road_place_done">Готово</string>
+    <string name="road_place_later">Позже</string>
+    <string name="road_place_button">Установить</string>
 </resources>

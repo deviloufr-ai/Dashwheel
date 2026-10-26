@@ -16,6 +16,20 @@ Experimental, and marked so in both apps. The phone, in a holder behind the wind
 
 The shared part is plain Kotlin, tested on the JVM with drawn roads (`link/src/test/.../roadwatch/`), and replayed over recorded drives with `tools/roadwatch-replay` (its README): every change to the lane or vehicle logic is judged there, on real clips, by numbers.
 
+## Placing the phone
+
+The first time Road watch opens, a guide helps the driver place the phone. It comes back from the Place button, and by itself when the phone has turned more than 6° in its holder for 3 s, once the car is stopped. It never comes up while driving. It checks four things live (`Mount` in link):
+
+- **Level:** gravity's lean across the screen, within 3°.
+- **Aim:** the horizon gravity predicts, for the camera's view, sits between 33 and 50 % of the picture's height. This works parked, with no lane in sight.
+- **Dashboard:** the dark band along the bottom, compared with the road just under the horizon, covers at most 22 % of the height.
+- **Pillar:** the dark columns running in from either side, above the road, cover at most 8 % of the width.
+
+The last two say "too dark" at night rather than guess. Each check shows what to do. The horizon gravity predicts is drawn over the band it belongs in, leaning as the phone leans. Once all are good for 3 s, the guide keeps:
+- the predicted horizon, as the horizon learner's start;
+- where the dashboard starts, as the road band's bottom (`bonnetY`, which had been a fixed 0.92 and was too low for the user's car);
+- gravity's direction, to notice the phone moved.
+
 ## The vehicle detector
 
 EfficientDet-Lite2 (COCO, Apache 2.0) from TensorFlow's model storage, 7.6 MB, with the detection post-processing built in: input 448 x 448 RGB uint8; outputs boxes `[1,25,4]` (ymin, xmin, ymax, xmax), classes `[1,25]` (0-based COCO: 2 car, 3 motorcycle, 5 bus, 7 truck, 1 bicycle), scores `[1,25]`, count `[1]`. Fetched once on the driver's request and checked against its SHA-256 (`RoadModel`); a phone that had Lite0 fetches it by itself. When Road watch starts it times the model for 40 frames on the graphics chip (LiteRT's GPU delegate, where the phone takes it) and 40 on four processor threads, and keeps the faster. On the S25 in a warm car the graphics chip took 106 ms a frame, against 48 ms cool.

@@ -25,4 +25,21 @@
     <string name="road_dim">Abdunkeln</string>
     <string name="road_bright">Aufhellen</string>
     <string name="road_stop">Beenden</string>
+    <string name="road_place_title">Handy ausrichten</string>
+    <string name="road_place_moved">Das Handy hat sich bewegt: neu ausrichten</string>
+    <string name="road_place_level_ok">Waagerecht</string>
+    <string name="road_place_level_left">Linke Seite etwas senken</string>
+    <string name="road_place_level_right">Rechte Seite etwas senken</string>
+    <string name="road_place_aim_ok">Auf die Straße gerichtet</string>
+    <string name="road_place_aim_down">Kamera etwas nach unten neigen</string>
+    <string name="road_place_aim_up">Kamera etwas nach oben neigen</string>
+    <string name="road_place_dash_ok">Wenig Armaturenbrett im Bild</string>
+    <string name="road_place_dash">Zu viel Armaturenbrett: Handy höher anbringen</string>
+    <string name="road_place_pillar_ok">Seiten frei</string>
+    <string name="road_place_pillar">Die A-Säule ist im Bild: Handy weiter zur Mitte setzen</string>
+    <string name="road_place_dark">Zu dunkel, um das jetzt zu prüfen</string>
+    <string name="road_place_keeps">Wird gespeichert, sobald alles grün ist</string>
+    <string name="road_place_done">Fertig</string>
+    <string name="road_place_later">Später</string>
+    <string name="road_place_button">Ausrichten</string>
 </resources>

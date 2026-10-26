@@ -25,4 +25,21 @@
     <string name="road_dim">Sötétítés</string>
     <string name="road_bright">Világosítás</string>
     <string name="road_stop">Leállítás</string>
+    <string name="road_place_title">Telefon elhelyezése</string>
+    <string name="road_place_moved">A telefon elmozdult: helyezze el újra</string>
+    <string name="road_place_level_ok">Vízszintes</string>
+    <string name="road_place_level_left">Engedje le kicsit a bal szélét</string>
+    <string name="road_place_level_right">Engedje le kicsit a jobb szélét</string>
+    <string name="road_place_aim_ok">Az útra néz</string>
+    <string name="road_place_aim_down">Döntse a kamerát kicsit lefelé</string>
+    <string name="road_place_aim_up">Döntse a kamerát kicsit felfelé</string>
+    <string name="road_place_dash_ok">Kevés műszerfal a képen</string>
+    <string name="road_place_dash">Túl sok műszerfal: tegye feljebb a telefont</string>
+    <string name="road_place_pillar_ok">Oldalt szabad</string>
+    <string name="road_place_pillar">A szélvédő oszlopa a képen van: tegye a telefont közelebb a középhez</string>
+    <string name="road_place_dark">Túl sötét, hogy most ellenőrizze</string>
+    <string name="road_place_keeps">Magától eltárolja, ha minden zöld</string>
+    <string name="road_place_done">Kész</string>
+    <string name="road_place_later">Később</string>
+    <string name="road_place_button">Elhelyezés</string>
 </resources>

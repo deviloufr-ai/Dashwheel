@@ -25,4 +25,21 @@
     <string name="road_dim">Scurisci</string>
     <string name="road_bright">Schiarisci</string>
     <string name="road_stop">Ferma</string>
+    <string name="road_place_title">Posiziona il telefono</string>
+    <string name="road_place_moved">Il telefono si è mosso: riposizionalo</string>
+    <string name="road_place_level_ok">In piano</string>
+    <string name="road_place_level_left">Abbassa un po’ il lato sinistro</string>
+    <string name="road_place_level_right">Abbassa un po’ il lato destro</string>
+    <string name="road_place_aim_ok">Puntato sulla strada</string>
+    <string name="road_place_aim_down">Inclina un po’ la fotocamera verso il basso</string>
+    <string name="road_place_aim_up">Inclina un po’ la fotocamera verso l’alto</string>
+    <string name="road_place_dash_ok">Poco cruscotto nell’immagine</string>
+    <string name="road_place_dash">Troppo cruscotto: monta il telefono più in alto</string>
+    <string name="road_place_pillar_ok">Lati liberi</string>
+    <string name="road_place_pillar">Il montante del parabrezza è nell’immagine: sposta il telefono verso il centro</string>
+    <string name="road_place_dark">Troppo buio per controllarlo ora</string>
+    <string name="road_place_keeps">Si salva da solo quando è tutto verde</string>
+    <string name="road_place_done">Fatto</string>
+    <string name="road_place_later">Più tardi</string>
+    <string name="road_place_button">Posiziona</string>
 </resources>

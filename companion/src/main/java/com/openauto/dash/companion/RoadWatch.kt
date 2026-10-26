@@ -18,6 +18,7 @@ import androidx.core.content.ContextCompat
 import com.openauto.dash.link.RoadScene
 import com.openauto.dash.roadwatch.HorizonLearner
 import com.openauto.dash.roadwatch.LaneFinder
+import com.openauto.dash.roadwatch.Mount
 import com.openauto.dash.roadwatch.LaneState
 import com.openauto.dash.roadwatch.LaneTracker
 import com.openauto.dash.roadwatch.Lead
@@ -58,15 +59,26 @@ data class RoadView(
     /** The driver has put the horizon line where it belongs, once: the hint to do so is no longer shown. */
     val horizonSet: Boolean = true,
     /** The speed limit last read off a sign, km/h. */
-    val signKmh: Int? = null
+    val signKmh: Int? = null,
+    /** The camera's view across the picture's height, degrees: where gravity puts the horizon in it. */
+    val vfovDeg: Float = 46f,
+    /** While the driver places the phone: where the dashboard starts and how much of the side the pillar covers ([Mount]). */
+    val dashboardTop: Float? = null,
+    val pillar: Float? = null
 )
 
 class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
     private val app = context.applicationContext
     private val prefs = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
-    @Volatile var band = RoadBand(horizonY = prefs.getFloat(KEY_HORIZON, 0.5f))
+    @Volatile var band = RoadBand(horizonY = prefs.getFloat(KEY_HORIZON, 0.5f), bonnetY = prefs.getFloat(KEY_BONNET, RoadBand().bonnetY))
         private set
+    /** The dashboard's top found when the phone was placed, not yet in [band], which the camera's thread alone writes. */
+    @Volatile private var newBonnet: Float? = null
+    /** The driver is placing the phone: the picture is looked at for the dashboard and the pillar. */
+    @Volatile var placing = false
+    private var dashboardTop: Float? = null
+    private var pillar: Float? = null
     /** The horizon, learned from where the lane's lines meet while the car drives on; the driver's drag sets where it starts. */
     private val horizon = HorizonLearner(band.horizonY)
     /** A drag not yet handed to [horizon], which the camera's thread alone touches. */
@@ -140,6 +152,21 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         prefs.edit().putFloat(KEY_HFOV, wideDeg).putFloat(KEY_HFOV_TALL, tallDeg).apply()
     }
 
+    /** Which way gravity pointed in the phone when the driver last placed it; null until placed once. */
+    fun placedUp(): FloatArray? =
+        prefs.getString(KEY_PLACED_UP, null)?.split(',')?.mapNotNull { it.toFloatOrNull() }?.takeIf { it.size == 3 }?.toFloatArray()
+
+    /** The driver placed the phone with gravity pointing [up] in it: turned from there, it has moved. */
+    fun placed(up: FloatArray) {
+        prefs.edit().putString(KEY_PLACED_UP, up.joinToString(",")).apply()
+    }
+
+    /** Where the dashboard starts in the picture, found when the phone was placed: the road's lines stop there. */
+    fun setBonnet(y: Float) {
+        newBonnet = y.coerceIn(0.6f, 0.95f)
+        prefs.edit().putFloat(KEY_BONNET, newBonnet!!).apply()
+    }
+
     /** The driver moved the horizon line on the screen. */
     fun setHorizon(y: Float) {
         band = band.copy(horizonY = y.coerceIn(0.25f, 0.7f))
@@ -208,6 +235,10 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         val rotation = image.imageInfo.rotationDegrees
         val w = image.width
         val h = image.height
+        newBonnet?.let {
+            band = band.copy(bonnetY = it)
+            newBonnet = null
+        }
         val band = band
         if (!detectorTried) {
             detectorTried = true
@@ -232,6 +263,13 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         recorder?.rotation(rotation)
 
         val luma = Luma.fromRgba(buffer, w, h, plane.rowStride, rotation, LUMA_WIDTH)
+        if (placing && frameCount % PLACING_EVERY == 0L) {
+            dashboardTop = Mount.dashboardTop(luma, band.horizonY)
+            pillar = Mount.pillar(luma, band.horizonY)
+        } else if (!placing) {
+            dashboardTop = null
+            pillar = null
+        }
         val speed = speedKmh?.takeIf { now - speedAt < SPEED_FRESH_MS }
         val steady = speed != null && speed >= LEARN_KMH
         val vehicles = detector
@@ -312,7 +350,10 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
             frameW = uprightW, frameH = uprightH,
             band = band, lane = lane, lead = lead, warning = warning,
             vehicles = vehicles != null, speedKmh = speed, fps = fps, horizonSet = horizonSet,
-            signKmh = RoadSigns.kmh
+            signKmh = RoadSigns.kmh,
+            vfovDeg = if (tall) hfovWide else hfovTall,
+            dashboardTop = dashboardTop,
+            pillar = pillar
         )
     }
 
@@ -339,6 +380,10 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         const val PREFS = "road_watch"
         const val KEY_HORIZON = "horizon"
         const val KEY_HORIZON_SET = "horizon_set"
+        const val KEY_BONNET = "bonnet"
+        const val KEY_PLACED_UP = "placed_up"
+        /** While the phone is being placed, the picture is looked at on every this many frames. */
+        const val PLACING_EVERY = 5L
         const val KEY_CAR_X = "car_x"
         const val KEY_CAR_X_TALL = "car_x_tall"
         const val KEY_HFOV = "hfov"

@@ -25,4 +25,21 @@
     <string name="road_dim">Atenuar</string>
     <string name="road_bright">Iluminar</string>
     <string name="road_stop">Detener</string>
+    <string name="road_place_title">Colocar el teléfono</string>
+    <string name="road_place_moved">El teléfono se ha movido: colócalo de nuevo</string>
+    <string name="road_place_level_ok">Nivelado</string>
+    <string name="road_place_level_left">Baja un poco el lado izquierdo</string>
+    <string name="road_place_level_right">Baja un poco el lado derecho</string>
+    <string name="road_place_aim_ok">Apuntando a la carretera</string>
+    <string name="road_place_aim_down">Inclina la cámara un poco hacia abajo</string>
+    <string name="road_place_aim_up">Inclina la cámara un poco hacia arriba</string>
+    <string name="road_place_dash_ok">Poco salpicadero en la imagen</string>
+    <string name="road_place_dash">Demasiado salpicadero: sube el teléfono</string>
+    <string name="road_place_pillar_ok">Laterales despejados</string>
+    <string name="road_place_pillar">El montante del parabrisas sale en la imagen: acerca el teléfono al centro</string>
+    <string name="road_place_dark">Demasiado oscuro para comprobarlo ahora</string>
+    <string name="road_place_keeps">Se guarda solo cuando todo está en verde</string>
+    <string name="road_place_done">Hecho</string>
+    <string name="road_place_later">Más tarde</string>
+    <string name="road_place_button">Colocar</string>
 </resources>

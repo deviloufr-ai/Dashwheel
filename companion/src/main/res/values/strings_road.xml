@@ -26,4 +26,21 @@
     <string name="road_dim">Dim</string>
     <string name="road_bright">Brighten</string>
     <string name="road_stop">Stop</string>
+    <string name="road_place_title">Place the phone</string>
+    <string name="road_place_moved">The phone has moved: place it again</string>
+    <string name="road_place_level_ok">Level</string>
+    <string name="road_place_level_left">Lower the left end a little</string>
+    <string name="road_place_level_right">Lower the right end a little</string>
+    <string name="road_place_aim_ok">Aimed at the road</string>
+    <string name="road_place_aim_down">Tilt the camera down a little</string>
+    <string name="road_place_aim_up">Tilt the camera up a little</string>
+    <string name="road_place_dash_ok">Little dashboard in the picture</string>
+    <string name="road_place_dash">Too much dashboard: mount the phone higher</string>
+    <string name="road_place_pillar_ok">Clear at the sides</string>
+    <string name="road_place_pillar">The windscreen pillar is in the picture: move the phone towards the middle</string>
+    <string name="road_place_dark">Too dark to check this now</string>
+    <string name="road_place_keeps">Kept by itself once all is green</string>
+    <string name="road_place_done">Done</string>
+    <string name="road_place_later">Later</string>
+    <string name="road_place_button">Place</string>
 </resources>
