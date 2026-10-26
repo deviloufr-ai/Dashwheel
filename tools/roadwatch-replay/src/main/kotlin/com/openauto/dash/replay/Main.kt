@@ -67,7 +67,11 @@ fun main(args: Array<String>) {
         i += 2
     }
     val band = RoadBand(horizonY = o["horizon"]?.toFloat() ?: 0.5f, bonnetY = o["bonnet"]?.toFloat() ?: 0.92f)
-    val session = ReplaySession(band, carX = o["car-x"]?.toFloat() ?: 0.5f, hfovDeg = o["hfov"]?.toFloat() ?: 66f, learnHorizon = o["learn-horizon"] != "no")
+    // A clip filmed zoomed in (its notes say how much) sees less across than the camera does.
+    val zoom = o["clip"]?.let { Json.parseToJsonElement(File(it).readText()).jsonObject["zoom"]?.jsonPrimitive?.floatOrNull } ?: 1f
+    val hfov = Math.toDegrees(2 * Math.atan(Math.tan(Math.toRadians((o["hfov"]?.toDouble() ?: 66.0) / 2)) / zoom)).toFloat()
+    if (zoom != 1f) System.err.println("zoomed $zoom: ${"%.1f".format(Locale.ROOT, hfov)}° across")
+    val session = ReplaySession(band, carX = o["car-x"]?.toFloat() ?: 0.5f, hfovDeg = hfov, learnHorizon = o["learn-horizon"] != "no")
     val detections = o["detections"]?.let { readDetections(File(it)) } ?: emptyMap()
     val lanes = o["lanes"]?.let { readLanes(File(it)) }
     val notes = o["clip"]?.let { readNotes(File(it)) } ?: emptyList()

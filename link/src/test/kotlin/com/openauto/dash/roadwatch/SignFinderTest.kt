@@ -106,5 +106,10 @@ class SignFinderTest {
         assertNull(SignConfirm.limitIn("STOP"))
         assertNull(SignConfirm.limitIn("35"))
         assertNull(SignConfirm.limitIn("3.5t"))
+        // Read upside down, as ML Kit sometimes does.
+        assertEquals(90, SignConfirm.limitIn("06"))
+        assertEquals(80, SignConfirm.limitIn("08"))
+        assertEquals(110, SignConfirm.limitIn("011"))
+        assertNull(SignConfirm.limitIn("07"))
     }
 }

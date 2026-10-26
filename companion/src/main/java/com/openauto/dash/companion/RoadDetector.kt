@@ -194,10 +194,14 @@ class RoadDetector private constructor(private val interpreter: Interpreter, pri
         private const val MIN_SCORE = 0.4f
 
         /** The detector, or null without the model (or if this phone can't run it). */
-        fun open(context: Context): RoadDetector? {
+        /**
+         * The detector on the graphics chip where it can run there and [onGpu] asks for it, on four
+         * processor threads otherwise. Which is faster depends on the phone and how hot it is:
+         * Road watch times both ([RoadWatch]).
+         */
+        fun open(context: Context, onGpu: Boolean = true): RoadDetector? {
             if (!RoadModel.check(context)) return null
-            // The graphics chip runs the model several times faster where it can take it; the processor otherwise.
-            val gpu = runCatching {
+            val gpu = if (!onGpu) null else runCatching {
                 val phone = CompatibilityList()
                 if (phone.isDelegateSupportedOnThisDevice) GpuDelegate(phone.bestOptionsForThisDevice) else null
             }.getOrNull()

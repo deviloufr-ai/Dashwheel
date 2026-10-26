@@ -141,7 +141,11 @@ class SignConfirm {
                     else -> it
                 }
             }.filter { it.isDigit() }.joinToString("")
-            return digits.toIntOrNull()?.takeIf { it in LIMITS }
+            digits.toIntOrNull()?.takeIf { it in LIMITS }?.let { return it }
+            // Read as if upside down: a 90 comes back "06" (seen on the road, 2026-10-26). Turned round, 6 and 9 swap.
+            if (digits.isEmpty() || digits.any { it !in "01689" }) return null
+            val turned = digits.reversed().map { if (it == '6') '9' else if (it == '9') '6' else it }.joinToString("")
+            return turned.toIntOrNull()?.takeIf { it in LIMITS }
         }
     }
 }

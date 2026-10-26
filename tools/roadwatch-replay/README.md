@@ -23,7 +23,7 @@ python -I tools/roadwatch-replay/lanes.py clip.mp4 clip.lanes --horizon 0.5
 
 Leave out `--lanes` to see what a phone without the lane model does (lines found by brightness); the video then shows no green road and red lines.
 
-`--horizon` is where the horizon starts in the picture (the dotted line on the phone); the replay then learns it from where the lane's lines meet, as the phone does, and the summary says where it ended (`--learn-horizon no` keeps it put). It matters: start near it, from a frame. `--hfov` is the camera's view across the picture (66° sideways on most phones, about 51° upright); `--car-x` where the car's middle is across it.
+`--hfov` is the camera's own view; a clip filmed zoomed in (`zoom` in its notes, 1.3 since 2026-10-26) narrows it by itself. `--horizon` is where the horizon starts in the picture (the dotted line on the phone); the replay then learns it from where the lane's lines meet, as the phone does, and the summary says where it ended (`--learn-horizon no` keeps it put). It matters: start near it, from a frame. `--hfov` is the camera's view across the picture (66° sideways on most phones, about 51° upright); `--car-x` where the car's middle is across it.
 
 The summary prints at the end:
 

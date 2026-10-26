@@ -471,6 +471,7 @@ class RoadRecorder(context: Context) {
             .put("momentOffsetMs", clip.atMs - first)
             .put("durationMs", durationMs)
             .put("noSound", true)
+            .put("zoom", RoadStats.zoom.toDouble())
             .put("segments", JSONArray(parts.map { JSONObject().put("name", it.name).put("bytes", it.length()).put("sha256", sha256(it)) }))
             .put("samples", JSONArray(rows.map { s ->
                 JSONObject()
