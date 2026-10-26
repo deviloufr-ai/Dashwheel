@@ -86,6 +86,7 @@ class ReplaySession(
      * [lanes] what the lane model saw in it, null for a frame it skipped.
      */
     fun frame(index: Int, timeMs: Long, rgba: ByteBuffer, width: Int, height: Int, rowStride: Int, detections: List<Detection>, telemetry: Telemetry, lanes: ModelFrame? = null): FrameResult {
+        leads.aspect = height.toFloat() / width
         val luma = Luma.fromRgba(rgba, width, height, rowStride, 0, lumaWidth)
         return frame(index, timeMs, luma, detections, telemetry, lanes?.let { SeenRoad.fromModel(it.chances, it.w, it.h, it.top, it.height, luma.w, luma.h) })
     }

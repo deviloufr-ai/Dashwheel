@@ -26,7 +26,8 @@ import kotlin.concurrent.thread
  * GET /clips/<name>/clip.mp4 (or clip.json) sends one, from a byte offset
  * when asked with a Range header, so a fetch cut off on mobile data resumes.
  * GET /cameras says what the phone's cameras can do ([CameraReport]), GET /roadwatch how
- * Road watch last ran ([RoadStats]).
+ * Road watch last ran ([RoadStats]), GET /signs the signs it tried to read
+ * (GET /signs/<name> one of them, a picture).
  * Started by [LinkService] with the sharing, or by its switch.
  */
 object ClipServer {
@@ -66,6 +67,7 @@ object ClipServer {
         if (!_on.value || server != null) return
         val app = context.applicationContext
         val dir = RoadClips.dir(app)
+        val signs = SignReader.dir(app)
         val socket = try {
             ServerSocket(PORT)
         } catch (e: IOException) {
@@ -76,7 +78,7 @@ object ClipServer {
         thread(name = "clip-server", isDaemon = true) {
             while (!socket.isClosed) {
                 val client = try { socket.accept() } catch (e: IOException) { break }
-                pool.execute { serve(client, app, dir) }
+                pool.execute { serve(client, app, dir, signs) }
             }
         }
     }
@@ -99,7 +101,7 @@ object ClipServer {
         return NetworkInterface.getByInetAddress(address)?.name?.startsWith("tun") == true
     }
 
-    private fun serve(client: Socket, context: Context, dir: File) = client.use { s ->
+    private fun serve(client: Socket, context: Context, dir: File, signs: File) = client.use { s ->
         runCatching {
             // The phone's Wi-Fi, hotspot or mobile network never get an answer, not even a refusal.
             if (!onTailnet(s.localAddress)) return@runCatching
@@ -113,10 +115,15 @@ object ClipServer {
                 if (header.startsWith("range:", ignoreCase = true)) range = header.substringAfter(':').trim()
             }
             val out = s.getOutputStream().buffered()
-            when (val r = route(line, range, key, dir)) {
+            when (val r = route(line, range, key, dir, signs)) {
                 is Route.Listing -> {
                     val body = JSONArray(r.clips.map { JSONObject().put("name", it.name).put("bytes", File(it, "clip.mp4").length()) })
                         .toString().toByteArray()
+                    head(out, "200 OK", "application/json", body.size.toLong())
+                    out.write(body)
+                }
+                is Route.Signs -> {
+                    val body = JSONArray(r.faces.map { it.name }).toString().toByteArray()
                     head(out, "200 OK", "application/json", body.size.toLong())
                     out.write(body)
                 }
@@ -128,7 +135,11 @@ object ClipServer {
                 }
                 is Route.Send -> {
                     val length = r.file.length()
-                    val type = if (r.file.name.endsWith(".json")) "application/json" else "video/mp4"
+                    val type = when {
+                        r.file.name.endsWith(".json") -> "application/json"
+                        r.file.name.endsWith(".png") -> "image/png"
+                        else -> "video/mp4"
+                    }
                     if (r.from > 0) {
                         head(out, "206 Partial Content", type, length - r.from, "Content-Range: bytes ${r.from}-${length - 1}/$length")
                     } else {
@@ -153,11 +164,12 @@ object ClipServer {
         data class Listing(val clips: List<File>) : Route
         data object Cameras : Route
         data object RoadWatch : Route
+        data class Signs(val faces: List<File>) : Route
         data class Send(val file: File, val from: Long) : Route
         data class Refused(val status: String) : Route
     }
 
-    internal fun route(requestLine: String, range: String?, key: String, dir: File): Route {
+    internal fun route(requestLine: String, range: String?, key: String, dir: File, signs: File? = null): Route {
         val parts = requestLine.split(' ')
         if (parts.size < 2 || parts[0] != "GET") return Route.Refused("405 Method Not Allowed")
         val path = parts[1].substringBefore('?')
@@ -167,6 +179,13 @@ object ClipServer {
         }
         if (path == "/cameras") return Route.Cameras
         if (path == "/roadwatch") return Route.RoadWatch
+        if (signs != null && (path == "/signs" || path.startsWith("/signs/"))) {
+            // The faces Road watch tried to read; a name from the listing, never a path.
+            val faces = signs.listFiles { f -> f.isFile && f.name.endsWith(".png") }?.sortedBy { it.name } ?: emptyList()
+            if (path == "/signs") return Route.Signs(faces)
+            val face = faces.firstOrNull { it.name == path.removePrefix("/signs/") } ?: return Route.Refused("404 Not Found")
+            return Route.Send(face, 0)
+        }
         val clips = dir.listFiles { f -> File(f, "clip.mp4").isFile }?.sortedBy { it.name } ?: emptyList()
         if (path == "/clips") return Route.Listing(clips)
         // Only a listed clip's own two files: the path picks among them, it never names a file itself.

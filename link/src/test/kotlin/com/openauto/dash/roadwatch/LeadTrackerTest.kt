@@ -11,13 +11,19 @@ class LeadTrackerTest {
     private val noLane = LaneState()
     private val half = tan(Math.toRadians(33.0)).toFloat()
 
-    /** A car [d] metres ahead, [dx] metres aside, as the detector boxes it. */
-    private fun car(d: Float, dx: Float = 0f): Detection {
-        val wide = 1.8f / (2 * half * d)
-        val cx = 0.5f + dx / (2 * half * d)
+    /**
+     * A car [d] metres ahead, [dx] metres aside, as the detector boxes it in a 4:3 frame. Beside the
+     * path its flank shows: the box reaches to its far front corner, [flankM] further off.
+     */
+    private fun car(d: Float, dx: Float = 0f, flankM: Float = 0f): Detection {
+        fun x(lateral: Float, depth: Float) = 0.5f + lateral / (2 * half * depth)
+        var left = x(dx - 0.9f, d)
+        var right = x(dx + 0.9f, d)
+        if (dx > 0f) left = x(dx - 0.9f, d + flankM) else if (dx < 0f) right = x(dx + 0.9f, d + flankM)
+        val tall = 1.5f / (2 * half * d) / 0.75f
         // Its wheels on the road, lower in the frame the nearer it is.
         val bottom = 0.5f + 0.42f * (6f / d).coerceAtMost(1.2f)
-        return Detection(Box(cx - wide / 2, bottom - wide * 0.8f, cx + wide / 2, bottom), VehicleKind.CAR, 0.8f)
+        return Detection(Box(left, bottom - tall, right, bottom), VehicleKind.CAR, 0.8f)
     }
 
     @Test
@@ -95,6 +101,15 @@ class LeadTrackerTest {
         assertEquals(2.2f, lead!!.lateralM!!, 0.1f)
         assertNotNull(lead.closingMps)
         assertNull("no time to impact: it is driven past", lead.ttcS)
+    }
+
+    @Test
+    fun aParkedCarShowingItsFlankIsStillBeside() {
+        // Parked 2.2 m aside: its flank widens its box towards the path, 4 m of it.
+        val t = LeadTracker()
+        var lead: Lead? = null
+        for (i in 0..10) lead = t.update(listOf(car(20f - i, dx = 2.2f, flankM = 4f)), noLane, band, 0.5f, i * 100L)
+        assertNull("its back corner says it is beside: passed, not hit", lead!!.ttcS)
     }
 
     @Test

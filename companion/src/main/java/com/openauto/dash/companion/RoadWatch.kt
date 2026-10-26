@@ -85,8 +85,12 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
     private val rules = RoadRules()
     private var detector: RoadDetector? = null
     /** Speed-limit signs: found every few frames, their number read by ML Kit. */
-    private val signs = SignReader()
+    private val signs = SignReader(SignReader.dir(app))
     private var frameCount = 0L
+    /** A sign was seen: until then, signs are looked for on every frame, not every few. */
+    private var signBurstUntil = 0L
+    /** How long each part of a frame takes, ms (running averages): for the speed report. */
+    private val took = FloatArray(4)
     /** The detector looks at the horizon closely every other frame ([withBefore]); what it found on the frame before. */
     private var horizonLook = false
     private var lookedBefore: List<Detection> = emptyList()
@@ -189,6 +193,7 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
 
     private fun read(image: ImageProxy) {
         val now = SystemClock.elapsedRealtime()
+        val started = SystemClock.elapsedRealtimeNanos()
         val plane = image.planes[0]
         val buffer = plane.buffer
         val rotation = image.imageInfo.rotationDegrees
@@ -212,23 +217,27 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         }
         val hfov = if (tall) hfovTall else hfovWide
         leads.hfovDeg = hfov
+        leads.aspect = uprightH.toFloat() / uprightW
         recorder?.rotation(rotation)
 
         val luma = Luma.fromRgba(buffer, w, h, plane.rowStride, rotation, LUMA_WIDTH)
         val speed = speedKmh?.takeIf { now - speedAt < SPEED_FRESH_MS }
         val steady = speed != null && speed >= LEARN_KMH
         val vehicles = detector
+        val beforeVehicles = SystemClock.elapsedRealtimeNanos()
         // The vehicles first: the lane is looked for around them, not on them.
         val found = vehicles?.detect(buffer, w, h, plane.rowStride, rotation, (band.horizonY + band.bonnetY) / 2, band.horizonY.takeIf { horizonLook })
             ?.let { now -> withBefore(now, lookedBefore).also { lookedBefore = now } }
         horizonLook = !horizonLook
-        // A round red sign big enough to read: the biggest one goes to the reader.
-        if (frameCount++ % SIGN_EVERY == 0L) {
-            SignFinder.find(buffer, w, h, plane.rowStride, rotation, band.bonnetY)
-                .filter { it.sidePx >= SignFinder.MIN_SIDE_PX }
-                .maxByOrNull { it.sidePx }
-                ?.let { signs.read(buffer, w, h, plane.rowStride, rotation, it) }
+        val beforeSigns = SystemClock.elapsedRealtimeNanos()
+        // A round red sign big enough to read: the biggest one goes to the reader. Once one is seen, every
+        // frame is looked at for a while: at 80 km/h a sign is big enough to read for under a second.
+        if (frameCount++ % SIGN_EVERY == 0L || now < signBurstUntil) {
+            val spots = SignFinder.find(buffer, w, h, plane.rowStride, rotation, band.bonnetY).filter { it.sidePx >= SignFinder.MIN_SIDE_PX }
+            if (spots.isNotEmpty()) signBurstUntil = now + SIGN_BURST_MS
+            spots.maxByOrNull { it.sidePx }?.let { signs.read(buffer, w, h, plane.rowStride, rotation, it) }
         }
+        val beforeLane = SystemClock.elapsedRealtimeNanos()
         val sighting = LaneFinder.find(luma, band, lanes.carX, hfov, found.orEmpty().map { it.box })
         val lane = lanes.update(sighting, now, learn = steady && lanes.laneWidth > 0f)
         dragged?.let {
@@ -261,12 +270,15 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         val warning = rules.update(scene, null, false, now)
         warnHere(warning)
 
+        val done = SystemClock.elapsedRealtimeNanos()
+        val parts = floatArrayOf((beforeSigns - beforeVehicles) / 1e6f, (beforeLane - beforeSigns) / 1e6f, (done - beforeLane) / 1e6f, (done - started) / 1e6f)
+        for (k in took.indices) took[k] = if (took[k] == 0f) parts[k] else took[k] * 0.9f + parts[k] * 0.1f
         frames++
         if (now - framesSince >= 1_000L) {
             fps = frames
             frames = 0
             framesSince = now
-            RoadStats.update(fps, vehicles)
+            RoadStats.update(fps, vehicles, took)
         }
         _view.value = RoadView(
             frameW = uprightW, frameH = uprightH,
@@ -316,6 +328,8 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         const val SIGN_EVERY = 3L
         /** A sign's limit goes to the car for this long after it is read. */
         const val SIGN_SEND_MS = 2_000L
+        /** Once a sign is seen, every frame is looked at for this long. */
+        const val SIGN_BURST_MS = 1_500L
     }
 }
 
@@ -325,11 +339,14 @@ object RoadStats {
     @Volatile private var runMs = 0f
     @Volatile private var gpu: Boolean? = null
     @Volatile private var at = 0L
+    /** Vehicles, signs, lane and the rest, the whole frame, ms. */
+    @Volatile private var took = FloatArray(4)
 
-    fun update(fps: Int, detector: RoadDetector?) {
+    fun update(fps: Int, detector: RoadDetector?, took: FloatArray) {
         this.fps = fps
         runMs = detector?.runMs ?: 0f
         gpu = detector?.onGpu
+        this.took = took.copyOf()
         at = System.currentTimeMillis()
     }
 
@@ -338,5 +355,9 @@ object RoadStats {
         .put("modelMs", runMs.toDouble())
         .put("gpu", gpu)
         .put("signKmh", RoadSigns.kmh)
+        .put("vehiclesMs", took[0].toDouble())
+        .put("signsMs", took[1].toDouble())
+        .put("laneMs", took[2].toDouble())
+        .put("frameMs", took[3].toDouble())
         .put("at", at)
 }
