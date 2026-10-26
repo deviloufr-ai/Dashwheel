@@ -25,4 +25,21 @@
     <string name="road_dim">Escurecer</string>
     <string name="road_bright">Clarear</string>
     <string name="road_stop">Parar</string>
+    <string name="road_place_title">Posicionar o telemóvel</string>
+    <string name="road_place_moved">O telemóvel mexeu-se: posicione-o de novo</string>
+    <string name="road_place_level_ok">Nivelado</string>
+    <string name="road_place_level_left">Baixe um pouco o lado esquerdo</string>
+    <string name="road_place_level_right">Baixe um pouco o lado direito</string>
+    <string name="road_place_aim_ok">Apontado à estrada</string>
+    <string name="road_place_aim_down">Incline um pouco a câmara para baixo</string>
+    <string name="road_place_aim_up">Incline um pouco a câmara para cima</string>
+    <string name="road_place_dash_ok">Pouco tablier na imagem</string>
+    <string name="road_place_dash">Tablier a mais: monte o telemóvel mais acima</string>
+    <string name="road_place_pillar_ok">Lados livres</string>
+    <string name="road_place_pillar">O pilar do para-brisas está na imagem: aproxime o telemóvel do centro</string>
+    <string name="road_place_dark">Demasiado escuro para verificar agora</string>
+    <string name="road_place_keeps">Fica guardado sozinho quando tudo estiver verde</string>
+    <string name="road_place_done">Feito</string>
+    <string name="road_place_later">Mais tarde</string>
+    <string name="road_place_button">Posicionar</string>
 </resources>

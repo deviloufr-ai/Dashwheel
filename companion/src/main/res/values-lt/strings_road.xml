@@ -25,4 +25,21 @@
     <string name="road_dim">Pritemdyti</string>
     <string name="road_bright">Pašviesinti</string>
     <string name="road_stop">Stabdyti</string>
+    <string name="road_place_title">Pastatykite telefoną</string>
+    <string name="road_place_moved">Telefonas pasislinko: pastatykite jį iš naujo</string>
+    <string name="road_place_level_ok">Lygiai</string>
+    <string name="road_place_level_left">Šiek tiek nuleiskite kairį kraštą</string>
+    <string name="road_place_level_right">Šiek tiek nuleiskite dešinį kraštą</string>
+    <string name="road_place_aim_ok">Nukreiptas į kelią</string>
+    <string name="road_place_aim_down">Šiek tiek palenkite kamerą žemyn</string>
+    <string name="road_place_aim_up">Šiek tiek palenkite kamerą aukštyn</string>
+    <string name="road_place_dash_ok">Mažai prietaisų skydelio vaizde</string>
+    <string name="road_place_dash">Per daug prietaisų skydelio: pakelkite telefoną aukščiau</string>
+    <string name="road_place_pillar_ok">Šonai laisvi</string>
+    <string name="road_place_pillar">Priekinio stiklo statramstis vaizde: perkelkite telefoną arčiau vidurio</string>
+    <string name="road_place_dark">Per tamsu patikrinti dabar</string>
+    <string name="road_place_keeps">Išsaugoma savaime, kai viskas žalia</string>
+    <string name="road_place_done">Atlikta</string>
+    <string name="road_place_later">Vėliau</string>
+    <string name="road_place_button">Pastatyti</string>
 </resources>

@@ -25,4 +25,21 @@
     <string name="road_dim">Przyciemnij</string>
     <string name="road_bright">Rozjaśnij</string>
     <string name="road_stop">Zatrzymaj</string>
+    <string name="road_place_title">Ustaw telefon</string>
+    <string name="road_place_moved">Telefon się przesunął: ustaw go ponownie</string>
+    <string name="road_place_level_ok">Poziomo</string>
+    <string name="road_place_level_left">Obniż trochę lewą stronę</string>
+    <string name="road_place_level_right">Obniż trochę prawą stronę</string>
+    <string name="road_place_aim_ok">Skierowany na drogę</string>
+    <string name="road_place_aim_down">Pochyl aparat trochę w dół</string>
+    <string name="road_place_aim_up">Pochyl aparat trochę w górę</string>
+    <string name="road_place_dash_ok">Mało deski rozdzielczej w kadrze</string>
+    <string name="road_place_dash">Za dużo deski rozdzielczej: zamontuj telefon wyżej</string>
+    <string name="road_place_pillar_ok">Boki wolne</string>
+    <string name="road_place_pillar">Słupek szyby jest w kadrze: przesuń telefon bliżej środka</string>
+    <string name="road_place_dark">Za ciemno, by to teraz sprawdzić</string>
+    <string name="road_place_keeps">Zapisuje się sam, gdy wszystko jest zielone</string>
+    <string name="road_place_done">Gotowe</string>
+    <string name="road_place_later">Później</string>
+    <string name="road_place_button">Ustaw</string>
 </resources>

@@ -25,4 +25,21 @@
     <string name="road_dim">Assombrir</string>
     <string name="road_bright">Éclaircir</string>
     <string name="road_stop">Arrêter</string>
+    <string name="road_place_title">Placer le téléphone</string>
+    <string name="road_place_moved">Le téléphone a bougé : replacez-le</string>
+    <string name="road_place_level_ok">De niveau</string>
+    <string name="road_place_level_left">Baissez un peu le côté gauche</string>
+    <string name="road_place_level_right">Baissez un peu le côté droit</string>
+    <string name="road_place_aim_ok">Tourné vers la route</string>
+    <string name="road_place_aim_down">Inclinez un peu la caméra vers le bas</string>
+    <string name="road_place_aim_up">Inclinez un peu la caméra vers le haut</string>
+    <string name="road_place_dash_ok">Peu de tableau de bord à l’image</string>
+    <string name="road_place_dash">Trop de tableau de bord : montez le téléphone</string>
+    <string name="road_place_pillar_ok">Rien sur les côtés</string>
+    <string name="road_place_pillar">Le montant du pare-brise est dans l’image : rapprochez le téléphone du milieu</string>
+    <string name="road_place_dark">Trop sombre pour vérifier maintenant</string>
+    <string name="road_place_keeps">Gardé tout seul quand tout est vert</string>
+    <string name="road_place_done">Terminé</string>
+    <string name="road_place_later">Plus tard</string>
+    <string name="road_place_button">Placer</string>
 </resources>

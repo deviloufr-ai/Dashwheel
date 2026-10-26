@@ -25,4 +25,21 @@
     <string name="road_dim">Dimmen</string>
     <string name="road_bright">Helderder</string>
     <string name="road_stop">Stoppen</string>
+    <string name="road_place_title">Telefoon plaatsen</string>
+    <string name="road_place_moved">De telefoon is verschoven: plaats hem opnieuw</string>
+    <string name="road_place_level_ok">Waterpas</string>
+    <string name="road_place_level_left">Linkerkant iets omlaag</string>
+    <string name="road_place_level_right">Rechterkant iets omlaag</string>
+    <string name="road_place_aim_ok">Op de weg gericht</string>
+    <string name="road_place_aim_down">Camera iets omlaag kantelen</string>
+    <string name="road_place_aim_up">Camera iets omhoog kantelen</string>
+    <string name="road_place_dash_ok">Weinig dashboard in beeld</string>
+    <string name="road_place_dash">Te veel dashboard: plaats de telefoon hoger</string>
+    <string name="road_place_pillar_ok">Zijkanten vrij</string>
+    <string name="road_place_pillar">De voorruitstijl staat in beeld: zet de telefoon meer naar het midden</string>
+    <string name="road_place_dark">Te donker om dit nu te controleren</string>
+    <string name="road_place_keeps">Wordt vanzelf bewaard zodra alles groen is</string>
+    <string name="road_place_done">Klaar</string>
+    <string name="road_place_later">Later</string>
+    <string name="road_place_button">Plaatsen</string>
 </resources>

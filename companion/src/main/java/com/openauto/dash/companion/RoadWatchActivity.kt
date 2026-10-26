@@ -98,6 +98,16 @@ import kotlin.math.atan
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material.icons.filled.Straighten
+import com.openauto.dash.roadwatch.Mount
+import kotlin.math.tan
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.TextButton
 
 /**
  * Road watch's screen: the phone in its holder behind the windscreen,
@@ -112,6 +122,14 @@ class RoadWatchActivity : ComponentActivity() {
     private var analysis: ImageAnalysis? = null
     /** The road recorder, once the camera is bound with it (the driver turned recording on). */
     private val recorder = MutableStateFlow<RoadRecorder?>(null)
+    /** Gravity in the phone's axes (pointing up), for placing the phone and noticing it moved. */
+    private val up = MutableStateFlow<FloatArray?>(null)
+    private val gravity = object : SensorEventListener {
+        override fun onSensorChanged(e: SensorEvent) {
+            up.value = e.values.copyOf()
+        }
+        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
+    }
 
     private val displays = object : DisplayManager.DisplayListener {
         override fun onDisplayAdded(displayId: Int) = Unit
@@ -138,6 +156,7 @@ class RoadWatchActivity : ComponentActivity() {
                 RoadWatchScreen(
                     watch,
                     recorder,
+                    up,
                     onCamera = { view -> bind(view) },
                     onDim = { dim -> dim(dim) },
                     onModel = { onFrames { watch.modelArrived() } },
@@ -149,11 +168,15 @@ class RoadWatchActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
+        getSystemService(SensorManager::class.java)?.let { s ->
+            s.getDefaultSensor(Sensor.TYPE_GRAVITY)?.let { s.registerListener(gravity, it, SensorManager.SENSOR_DELAY_UI) }
+        }
         // On the frames' thread like stop, so a quick stop and start keep their order.
         onFrames { watch.start() }
     }
 
     override fun onStop() {
+        getSystemService(SensorManager::class.java)?.unregisterListener(gravity)
         recorder.value?.stop()
         // On the frames' own thread, after the frame being read.
         onFrames { watch.stop() }
@@ -268,6 +291,7 @@ class RoadWatchActivity : ComponentActivity() {
 private fun RoadWatchScreen(
     watch: RoadWatch,
     recorder: StateFlow<RoadRecorder?>,
+    up: StateFlow<FloatArray?>,
     onCamera: (PreviewView) -> Unit,
     onDim: (Boolean) -> Unit,
     onModel: () -> Unit,
@@ -303,10 +327,38 @@ private fun RoadWatchScreen(
         }
     }
 
+    // Placing the phone: the first time, when asked, and when it has turned in its holder (once the car stands).
+    var placing by remember { mutableStateOf(watch.placedUp() == null) }
+    var moved by remember { mutableStateOf(false) }
+    var putOff by remember { mutableStateOf(false) }
+    LaunchedEffect(placing) { watch.placing = placing }
+    LaunchedEffect(Unit) {
+        var turnedFor = 0
+        while (true) {
+            delay(1_000L)
+            val saved = watch.placedUp()
+            val now = up.value
+            val turned = saved != null && now != null && Mount.turnedDeg(saved, now) > Mount.MOVED_DEG
+            turnedFor = if (turned) turnedFor + 1 else 0
+            val still = (watch.view.value.speedKmh ?: 0f) < STILL_KMH
+            if (turnedFor >= MOVED_SECONDS && still && !placing && !putOff) {
+                moved = true
+                placing = true
+            }
+        }
+    }
+
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         if (granted) {
             CameraBinder(onCamera)
             RoadDrawing(watch, onTap = { if (dimmed) setDimmed(false) })
+            if (placing) {
+                PlacementGuide(
+                    watch, up, moved,
+                    onDone = { placing = false; moved = false },
+                    onLater = { placing = false; putOff = true }
+                )
+            }
         } else {
             Column(Modifier.align(Alignment.Center).padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(stringResource(R.string.road_camera_needed), color = Color.White)
@@ -314,9 +366,123 @@ private fun RoadWatchScreen(
                 Button(onClick = { ask.launch(Manifest.permission.CAMERA) }) { Text(stringResource(R.string.road_allow_camera)) }
             }
         }
-        RoadControls(watch, recorder, dimmed, setDimmed, battery, onModel, onClose)
+        RoadControls(watch, recorder, dimmed, setDimmed, battery, onModel, onClose, onPlace = { moved = false; placing = true })
     }
 }
+
+/** Turned this long, the phone has moved in its holder, not shaken over a bump. */
+private const val MOVED_SECONDS = 3
+/** Slower than this the car stands: the guide may come up. */
+private const val STILL_KMH = 5f
+
+/**
+ * The guide to placing the phone: level, aimed with the horizon a little
+ * above the middle, little dashboard and no windscreen pillar in the
+ * picture, each with what to do. The horizon gravity says, over the band it
+ * belongs in. All good for a few seconds, it keeps itself: the horizon to
+ * start from, where the dashboard starts, and how the phone sits, to notice
+ * it moved.
+ */
+@Composable
+private fun PlacementGuide(watch: RoadWatch, up: StateFlow<FloatArray?>, moved: Boolean, onDone: () -> Unit, onLater: () -> Unit) {
+    val context = LocalContext.current
+    val view by watch.view.collectAsState()
+    val gravity by up.collectAsState()
+    val displayDeg = ContextCompat.getDisplayOrDefault(context).rotation * 90
+    val reading = gravity?.let { Mount.read(it, displayDeg, view.vfovDeg) }
+    val dashboardOk = view.dashboardTop?.let { 1f - it <= Mount.MAX_DASHBOARD }
+    val pillarOk = view.pillar?.let { it <= Mount.MAX_PILLAR }
+    val allOk = reading != null && reading.level && reading.aimed && dashboardOk != false && pillarOk != false
+    val keep = {
+        reading?.let { watch.setHorizon(it.horizonY) }
+        view.dashboardTop?.let { if (it < 0.98f) watch.setBonnet(it - 0.01f) }
+        gravity?.let { watch.placed(it.copyOf()) }
+        onDone()
+    }
+    LaunchedEffect(allOk) {
+        if (allOk) {
+            delay(KEEP_AFTER_MS)
+            keep()
+        }
+    }
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val density = LocalDensity.current
+        val w = with(density) { maxWidth.toPx() }
+        val h = with(density) { maxHeight.toPx() }
+        val frame = frameRect(w, h, view.frameW, view.frameH)
+        Canvas(Modifier.fillMaxSize()) {
+            // Where the horizon belongs, and where gravity says it is, leaning as the phone leans.
+            drawRect(
+                Color(0xFF2E7D32).copy(alpha = 0.18f),
+                topLeft = Offset(frame.left, frame.top + Mount.HORIZON_TOP * frame.height),
+                size = GeoSize(frame.width, (Mount.HORIZON_BOTTOM - Mount.HORIZON_TOP) * frame.height)
+            )
+            reading?.let { r ->
+                val cy = frame.top + r.horizonY * frame.height
+                val dy = tan(Math.toRadians(r.rollDeg.toDouble())).toFloat() * frame.width / 2
+                drawLine(
+                    if (r.level && r.aimed) CompanionColors.Teal else CompanionColors.Amber,
+                    Offset(frame.left, cy - dy), Offset(frame.right, cy + dy), strokeWidth = 8f
+                )
+            }
+        }
+        Surface(
+            color = Color.Black.copy(alpha = 0.7f), shape = RoundedCornerShape(14.dp),
+            modifier = Modifier.align(Alignment.TopCenter).padding(top = 12.dp).widthIn(max = 420.dp)
+        ) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    stringResource(if (moved) R.string.road_place_moved else R.string.road_place_title),
+                    color = Color.White, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold
+                )
+                PlaceRow(reading?.level, when {
+                    reading == null || reading.level -> R.string.road_place_level_ok
+                    reading.rollDeg > 0f -> R.string.road_place_level_right
+                    else -> R.string.road_place_level_left
+                })
+                PlaceRow(reading?.aimed, when {
+                    reading == null || reading.aimed -> R.string.road_place_aim_ok
+                    reading.horizonY > Mount.HORIZON_BOTTOM -> R.string.road_place_aim_down
+                    else -> R.string.road_place_aim_up
+                })
+                PlaceRow(dashboardOk, when (dashboardOk) {
+                    null -> R.string.road_place_dark
+                    true -> R.string.road_place_dash_ok
+                    false -> R.string.road_place_dash
+                })
+                PlaceRow(pillarOk, when (pillarOk) {
+                    null -> R.string.road_place_dark
+                    true -> R.string.road_place_pillar_ok
+                    false -> R.string.road_place_pillar
+                })
+                Text(stringResource(R.string.road_place_keeps), color = CompanionColors.Muted, style = MaterialTheme.typography.bodySmall)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    TextButton(onClick = onLater) { Text(stringResource(R.string.road_place_later)) }
+                    Spacer(Modifier.width(8.dp))
+                    Button(onClick = keep) { Text(stringResource(R.string.road_place_done)) }
+                }
+            }
+        }
+    }
+}
+
+/** One check of the guide: green when good, amber with what to do, grey when it can't be told. */
+@Composable
+private fun PlaceRow(ok: Boolean?, text: Int) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        val color = when (ok) {
+            true -> CompanionColors.Teal
+            false -> CompanionColors.Amber
+            null -> CompanionColors.Muted
+        }
+        Box(Modifier.size(12.dp).background(color, CircleShape))
+        Spacer(Modifier.width(10.dp))
+        Text(stringResource(text), color = Color.White, style = MaterialTheme.typography.bodyMedium)
+    }
+}
+
+/** All good this long, the guide keeps the placing by itself. */
+private const val KEEP_AFTER_MS = 3_000L
 
 /** Linked to a car, the screen dims after this long. */
 private const val AUTO_DIM_MS = 30_000L
@@ -487,7 +653,8 @@ private fun RoadControls(
     setDimmed: (Boolean) -> Unit,
     battery: Pair<Int, Boolean>?,
     onModel: () -> Unit,
-    onClose: () -> Unit
+    onClose: () -> Unit,
+    onPlace: () -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -547,6 +714,11 @@ private fun RoadControls(
                     Spacer(Modifier.width(8.dp))
                     Text(stringResource(if (m == RoadModel.State.Failed) R.string.road_model_retry else R.string.road_model_get))
                 }
+            }
+            FilledTonalButton(onClick = onPlace) {
+                Icon(Icons.Filled.Straighten, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.road_place_button))
             }
             FilledTonalButton(onClick = { setDimmed(!dimmed) }) {
                 Icon(if (dimmed) Icons.Filled.BrightnessHigh else Icons.Filled.BrightnessLow, contentDescription = null, modifier = Modifier.size(18.dp))
