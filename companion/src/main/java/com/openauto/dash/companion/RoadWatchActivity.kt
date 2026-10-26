@@ -31,6 +31,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -185,7 +186,8 @@ class RoadWatchActivity : ComponentActivity() {
             val provider = runCatching { future.get() }.getOrNull() ?: return@addListener
             val fourByThree = ResolutionSelector.Builder()
                 .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
-                .setResolutionStrategy(ResolutionStrategy(Size(640, 480), ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER))
+                // 1280 across: a speed-limit sign is readable about twice as far off as at 640.
+                .setResolutionStrategy(ResolutionStrategy(Size(1280, 960), ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER))
                 .build()
             val preview = Preview.Builder()
                 .setResolutionSelector(
@@ -427,6 +429,18 @@ private fun RoadDrawing(watch: RoadWatch, onTap: () -> Unit) {
             }
         }
         warn?.let { RoadWarningBanner(it, Modifier.align(Alignment.Center)) }
+        view.signKmh?.let { SignBadge(it, Modifier.align(Alignment.TopEnd).padding(12.dp)) }
+    }
+}
+
+/** The speed limit last read off a sign, drawn as the sign. */
+@Composable
+private fun SignBadge(kmh: Int, modifier: Modifier) {
+    Box(
+        modifier.size(64.dp).background(Color.White, CircleShape).border(7.dp, Color(0xFFD32F2F), CircleShape),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(kmh.toString(), color = Color.Black, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
     }
 }
 

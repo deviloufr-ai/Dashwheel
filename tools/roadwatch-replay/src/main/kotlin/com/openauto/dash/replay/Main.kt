@@ -3,6 +3,7 @@ package com.openauto.dash.replay
 import com.openauto.dash.roadwatch.Box
 import com.openauto.dash.roadwatch.Detection
 import com.openauto.dash.roadwatch.RoadBand
+import com.openauto.dash.roadwatch.SignFinder
 import com.openauto.dash.roadwatch.VehicleKind
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.booleanOrNull
@@ -24,6 +25,7 @@ import java.nio.FloatBuffer
 import java.util.Locale
 import java.util.zip.Inflater
 import javax.imageio.ImageIO
+import kotlin.math.min
 import kotlin.system.exitProcess
 
 /*
@@ -74,6 +76,8 @@ fun main(args: Array<String>) {
     val max = o["max"]?.toInt() ?: Int.MAX_VALUE
     val dump = o["dump"]?.let { File(it).also { d -> d.mkdirs() } }
     val every = o["every"]?.toInt() ?: 30
+    val signs = o["signs"]?.let { File(it).also { d -> d.mkdirs() } }
+    val signRows = StringBuilder("frame,left,top,right,bottom,side_px\n")
 
     val (width, height, fps) = probe(video)
     System.err.println("$video: ${width}x$height at $fps fps")
@@ -100,6 +104,7 @@ fun main(args: Array<String>) {
             val timeMs = (index * 1000L / fps)
             val telemetry = telemetryAt(notes, timeMs, steady)
             val result = session.frame(index, timeMs, ByteBuffer.wrap(bytes), width, height, width * 4, detections[index] ?: emptyList(), telemetry, lanes?.at(index))
+            if (signs != null && index % SIGN_EVERY == 0) findSigns(bytes, width, height, index, signs, signRows)
             if (sink != null || (dump != null && index % every == 0)) {
                 toImage(bytes, pixels, image)
                 Overlay.draw(image, result, session.band, ruler = dump != null && index % every == 0, seen = session.seen)
@@ -117,6 +122,7 @@ fun main(args: Array<String>) {
         sink?.close()
         encoder?.waitFor()
     }
+    signs?.let { File(it, "signs.csv").writeText(signRows.toString()) }
     val report = session.report(labels)
     print(report.summary())
     o["report"]?.let { path ->
@@ -258,5 +264,37 @@ private fun timelineCsv(results: List<FrameResult>): String = buildString {
                 r.lead?.distanceM ?: "", r.lead?.closingMps ?: "", r.lead?.ttcS ?: "", r.warning ?: "", r.place?.lanes ?: "", r.place?.lane ?: "", r.horizonY ?: "", r.carX ?: ""
             ).joinToString(",")
         )
+    }
+}
+
+/** The phone looks for signs every few frames. */
+private const val SIGN_EVERY = 3
+/** The phone's picture: 1280 across the camera's width (Road watch's 1280 x 960). */
+private const val PHONE_WIDTH = 1280
+
+/**
+ * The round red signs in a frame, found as the phone finds them: the frame shrunk to the phone's width,
+ * [SignFinder] on it, and each sign's square written out four times bigger, to look at.
+ */
+private fun findSigns(rgba: ByteArray, width: Int, height: Int, index: Int, dir: File, rows: StringBuilder) {
+    val pw = min(PHONE_WIDTH, width)
+    val ph = height * pw / width
+    val small = ByteArray(pw * ph * 4)
+    for (y in 0 until ph) for (x in 0 until pw) {
+        val from = ((y * height / ph) * width + x * width / pw) * 4
+        System.arraycopy(rgba, from, small, (y * pw + x) * 4, 4)
+    }
+    for (spot in SignFinder.find(ByteBuffer.wrap(small), pw, ph, pw * 4, 0, bottomY = 0.85f)) {
+        val b = spot.box
+        rows.append("$index,${b.left},${b.top},${b.right},${b.bottom},${spot.sidePx}\n")
+        val x0 = (b.left * pw).toInt().coerceIn(0, pw - 1)
+        val y0 = (b.top * ph).toInt().coerceIn(0, ph - 1)
+        val side = spot.sidePx.coerceAtMost(min(pw - x0, ph - y0))
+        val img = BufferedImage(side * 4, side * 4, BufferedImage.TYPE_INT_RGB)
+        for (y in 0 until side * 4) for (x in 0 until side * 4) {
+            val i = ((y0 + y / 4) * pw + x0 + x / 4) * 4
+            img.setRGB(x, y, (small[i].toInt() and 0xFF shl 16) or (small[i + 1].toInt() and 0xFF shl 8) or (small[i + 2].toInt() and 0xFF))
+        }
+        ImageIO.write(img, "png", File(dir, "f%05d-%d.png".format(index, (b.left * 1000).toInt())))
     }
 }

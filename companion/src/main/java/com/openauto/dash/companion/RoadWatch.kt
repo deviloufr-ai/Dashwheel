@@ -26,6 +26,7 @@ import com.openauto.dash.roadwatch.Luma
 import com.openauto.dash.roadwatch.RoadBand
 import com.openauto.dash.roadwatch.RoadRules
 import com.openauto.dash.roadwatch.RoadWarning
+import com.openauto.dash.roadwatch.SignFinder
 import com.openauto.dash.roadwatch.Upright
 import com.openauto.dash.roadwatch.Detection
 import com.openauto.dash.roadwatch.withBefore
@@ -55,7 +56,9 @@ data class RoadView(
     /** Frames read a second. */
     val fps: Int = 0,
     /** The driver has put the horizon line where it belongs, once: the hint to do so is no longer shown. */
-    val horizonSet: Boolean = true
+    val horizonSet: Boolean = true,
+    /** The speed limit last read off a sign, km/h. */
+    val signKmh: Int? = null
 )
 
 class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
@@ -81,6 +84,9 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
     @Volatile private var hfovTall = prefs.getFloat(KEY_HFOV_TALL, DEFAULT_HFOV_TALL)
     private val rules = RoadRules()
     private var detector: RoadDetector? = null
+    /** Speed-limit signs: found every few frames, their number read by ML Kit. */
+    private val signs = SignReader()
+    private var frameCount = 0L
     /** The detector looks at the horizon closely every other frame ([withBefore]); what it found on the frame before. */
     private var horizonLook = false
     private var lookedBefore: List<Detection> = emptyList()
@@ -146,6 +152,7 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
     fun stop() {
         locations?.let { runCatching { it.removeUpdates(listener) } }
         locations = null
+        RoadSigns.clear()
         PhoneHeading.stop(app)
         // The horizon only once learned: a few seconds of single sightings would start the next drive
         // there, and a wrong start keeps away the lines that would correct it. A drag saves itself.
@@ -169,6 +176,7 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         stop()
         detector?.close()
         detector = null
+        signs.close()
     }
 
     override fun analyze(image: ImageProxy) {
@@ -214,6 +222,13 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         val found = vehicles?.detect(buffer, w, h, plane.rowStride, rotation, (band.horizonY + band.bonnetY) / 2, band.horizonY.takeIf { horizonLook })
             ?.let { now -> withBefore(now, lookedBefore).also { lookedBefore = now } }
         horizonLook = !horizonLook
+        // A round red sign big enough to read: the biggest one goes to the reader.
+        if (frameCount++ % SIGN_EVERY == 0L) {
+            SignFinder.find(buffer, w, h, plane.rowStride, rotation, band.bonnetY)
+                .filter { it.sidePx >= SignFinder.MIN_SIDE_PX }
+                .maxByOrNull { it.sidePx }
+                ?.let { signs.read(buffer, w, h, plane.rowStride, rotation, it) }
+        }
         val sighting = LaneFinder.find(luma, band, lanes.carX, hfov, found.orEmpty().map { it.box })
         val lane = lanes.update(sighting, now, learn = steady && lanes.laneWidth > 0f)
         dragged?.let {
@@ -236,7 +251,8 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
             ttcS = lead?.ttcS,
             leadKind = lead?.kind?.name?.lowercase(),
             speedKmh = speed,
-            vehicles = vehicles != null
+            vehicles = vehicles != null,
+            signKmh = RoadSigns.fresh(SIGN_SEND_MS, now)
         )
         if (now - sentAt >= SEND_EVERY_MS) {
             sentAt = now
@@ -255,7 +271,8 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         _view.value = RoadView(
             frameW = uprightW, frameH = uprightH,
             band = band, lane = lane, lead = lead, warning = warning,
-            vehicles = vehicles != null, speedKmh = speed, fps = fps, horizonSet = horizonSet
+            vehicles = vehicles != null, speedKmh = speed, fps = fps, horizonSet = horizonSet,
+            signKmh = RoadSigns.kmh
         )
     }
 
@@ -295,6 +312,10 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         const val SPEED_FRESH_MS = 3_000L
         /** Driving steadily on: where the car is in its lane is where the driver keeps it. */
         const val LEARN_KMH = 50f
+        /** Signs are looked for on every this many frames: a sign stays in view for a second or more. */
+        const val SIGN_EVERY = 3L
+        /** A sign's limit goes to the car for this long after it is read. */
+        const val SIGN_SEND_MS = 2_000L
     }
 }
 
@@ -316,5 +337,6 @@ object RoadStats {
         .put("fps", fps)
         .put("modelMs", runMs.toDouble())
         .put("gpu", gpu)
+        .put("signKmh", RoadSigns.kmh)
         .put("at", at)
 }

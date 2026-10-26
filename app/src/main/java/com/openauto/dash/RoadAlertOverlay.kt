@@ -129,6 +129,7 @@ object RoadWatch {
             val now = SystemClock.elapsedRealtime()
             sceneAt = now
             _live.value = true
+            scene.signKmh?.let { SpeedLimit.sign(it) }
             // The car's own speed when it gives one (the OBD, the CAN box), else the phone's GPS in the scene.
             _warning.value = rules.update(scene, carKmh?.toFloat(), indicating(), now)
             // And the car's word back to the phone, for the picture and the notes of its recording.

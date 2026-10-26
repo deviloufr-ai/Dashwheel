@@ -155,7 +155,9 @@ internal class LimitNag(
  * car is on is found by position and course. Staying over the limit is said
  * out loud when the driver asked for it ([SpokenEvent.SPEED_LIMIT], off until
  * then; the tile's button is the same switch), once per limit ([LimitNag]).
- * Legal everywhere, unlike camera warnings.
+ * Legal everywhere, unlike camera warnings. A limit Road watch read off a
+ * sign ([sign]) stands over the map's for the next [SIGN_HOLD_M]: signs are
+ * newer than the map, and roadworks put up their own.
  */
 internal object SpeedLimit {
     private const val TAG = "SpeedLimit"
@@ -175,6 +177,10 @@ internal object SpeedLimit {
     @Volatile private var fetching = false
     @Volatile private var failedAt = 0L
     private val nag = LimitNag(tolerance = TOLERANCE_KMH)
+    /** The camera's sign, where it was read: it holds for [SIGN_HOLD_M] from there. */
+    @Volatile private var signKmh: Int? = null
+    @Volatile private var signAt: Location? = null
+    private const val SIGN_HOLD_M = 2_000f
 
     private val _limit = MutableStateFlow<Int?>(null)
     val limit: StateFlow<Int?> = _limit
@@ -189,6 +195,13 @@ internal object SpeedLimit {
             launch { carSpeedKmh().collect { kmh = it } }
             LocationFeed.location.collect { loc -> if (loc != null) onLocation(app, loc, kmh) }
         }
+    }
+
+    /** Road watch read [kmh] off a sign here: it is the limit until [SIGN_HOLD_M] further on, or the next sign. */
+    fun sign(kmh: Int) {
+        signKmh = kmh
+        signAt = LocationFeed.location.value
+        if (users > 0) _limit.value = kmh
     }
 
     @Synchronized
@@ -213,10 +226,13 @@ internal object SpeedLimit {
             }
         }
         val road = roadAt(loc.latitude, loc.longitude, if (loc.hasBearing() && loc.speed > 2f) loc.bearing else null, roads)
-        _limit.value = road?.limitKmh
-        if (nag.step(road?.limitKmh, kmh, System.currentTimeMillis()) && road != null && SpokenEvents.isOn(context, SpokenEvent.SPEED_LIMIT)) {
+        val sign = signKmh?.takeIf { signAt?.let { at -> at.distanceTo(loc) < SIGN_HOLD_M } ?: true }
+        if (sign == null) signKmh = null
+        val limit = sign ?: road?.limitKmh
+        _limit.value = limit
+        if (nag.step(limit, kmh, System.currentTimeMillis()) && limit != null && SpokenEvents.isOn(context, SpokenEvent.SPEED_LIMIT)) {
             val app = AppLanguage.wrap(context)
-            CarVoice.announce(app.getString(R.string.widgets_limit_say, Units.current.value.speed(road.limitKmh)), InAppNav.locale(context))
+            CarVoice.announce(app.getString(R.string.widgets_limit_say, Units.current.value.speed(limit)), InAppNav.locale(context))
         }
     }
 

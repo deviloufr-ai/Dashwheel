@@ -38,6 +38,10 @@ warnings: 2
 
 `clip.report.csv` has every frame: speed, lines, offset, where each line is, the car ahead's distance, closing speed and time to collision, the warning, and with `--lanes` the lanes and which the car is in; then the horizon and the car's place across the picture, as learned. Plot it, or diff two runs.
 
+## Look at the signs it finds
+
+`--signs dir` runs `SignFinder` as the phone does: every third frame, shrunk to 1280 across. It writes each round red sign found, four times bigger, into `dir`, with `signs.csv` (frame, box, size in pixels). The number on the sign is read by ML Kit on the phone only.
+
 ## Measure the vehicle finder against a big model
 
 `eval/` scores detectors by distance, with no hand labels. `reference.py` runs YOLOPv2 (its `yolopv2.pt` from the YOLOPv2 release; needs `torch` and `torchvision`) over every 6th frame, on the whole picture and on its middle at twice the detail. `detect_x.py` runs a candidate as the phone would: an EfficientDet `.tflite` or a YOLOX `.onnx`, `--tile` for the horizon look. `score.py` prints, by distance, how much of the reference each candidate and mode found (the car ahead apart), and how many boxes it invented:
