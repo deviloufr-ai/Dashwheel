@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tab_tools">Strumenti</string>
+    <string name="settings_title">Impostazioni</string>
+    <string name="settings_connection">Connessione</string>
+    <string name="scan_code">Scansiona un codice</string>
+    <string name="back">Indietro</string>
+    <string name="tools_fix">Chiedi e risolvi</string>
+    <string name="tools_yours">Su misura</string>
+    <string name="tools_data">Dati dell\'auto</string>
+    <string name="tools_photo_detail">Una spia, o una pagina del libretto di manutenzione</string>
+    <string name="tools_look_detail">Da 3 foto, un modello 3D o un file</string>
+    <string name="tools_reg_detail">Targa, VIN e prima immatricolazione per l\'auto</string>
+    <string name="tools_send_detail">In qualsiasi app, condividi un luogo o un testo con Invia all\'auto: il luogo diventa la sua destinazione, il testo viene scritto sul suo schermo.</string>
+    <string name="drives_all">Tutti i viaggi</string>
+    <string name="road_home_detail">Il telefono nel supporto dietro il parabrezza osserva la strada.</string>
+    <string name="road_finder_ready">Rilevatore di veicoli pronto</string>
+    <string name="pair_setup_later">Niente da consentire per ora: associata l\'auto, Impostazioni chiede ciò che serve.</string>
+</resources>

@@ -195,7 +195,6 @@
     <!-- Tabs and the companion's own updates. -->
     <string name="tab_home">Pradžia</string>
     <string name="permissions_title">Leidimai</string>
-    <string name="tab_car">Automobilis</string>
     <string name="update_section">Naujiniai</string>
     <string name="update_title">Nauja versija</string>
     <string name="update_available">Išleista versija %1$s.</string>

@@ -16,6 +16,7 @@ import android.text.format.DateUtils
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -45,7 +46,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardReturn
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Support
+import androidx.compose.material.icons.filled.Traffic
 import androidx.compose.material.icons.filled.BatteryAlert
 import androidx.compose.material.icons.filled.BatteryFull
 import androidx.compose.material.icons.filled.Build
@@ -142,9 +149,12 @@ import java.util.Date
 import kotlinx.coroutines.launch
 
 /**
- * The companion's only screen: is the car connected, what still needs
- * allowing, and which cars are paired. Pairing is scanning the code the
- * launcher shows (or opening its dashwheel://pair link), then confirming.
+ * The companion's only screen. Before a car is paired, only the pairing:
+ * scanning the code the launcher shows (or opening its dashwheel://pair
+ * link), then confirming. Then four tabs: Home, which follows the moment
+ * (the car linked: Road watch, typing, help; parked: where it is, the last
+ * drive), Drives, Road watch and Tools; Settings (the link, what the car is
+ * allowed, the paired cars, updates) opens from the gear above them.
  */
 /** The companion's own download, which the launcher's pairing screen also shows as a QR code. */
 private const val COMPANION_APK = "dashwheel-companion.apk"
@@ -292,53 +302,34 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
         return
     }
 
-    // Paired, the screen splits in tabs; before that there is only pairing and setup.
+    // Paired, the screen splits in tabs; before that there is only the pairing.
     var tab by rememberSaveable { mutableStateOf(Tab.HOME) }
     val shown = if (paired) tab else Tab.HOME
+    // Settings and a tool open over the tabs; Back closes them.
+    var settings by rememberSaveable { mutableStateOf(false) }
+    var tool by rememberSaveable { mutableStateOf<Tool?>(null) }
+    val opened = tool?.takeIf { paired }
+    BackHandler(enabled = settings || opened != null) { if (opened != null) tool = null else settings = false }
     val update by CompanionUpdate.status.collectAsState()
-    val hero: LazyListScope.() -> Unit = {
-        item {
-            HeroCard(
-                look = when {
-                    !paired -> StatusLook.NO_CAR
-                    !enabled -> StatusLook.OFF
-                    connected -> StatusLook.CONNECTED
-                    carBluetooth != null && !inCar -> StatusLook.ASLEEP
-                    state == LinkState.Unavailable -> StatusLook.UNAVAILABLE
-                    else -> StatusLook.WAITING
-                },
-                carName = (state as? LinkState.Connected)?.unitName?.takeIf { it.isNotBlank() } ?: units.firstOrNull()?.name,
-                carBluetooth = carBluetooth?.name,
-                onAuto = onAuto,
-                enabled = enabled,
-                canToggle = paired,
-                onToggle = {
-                    enabled = it
-                    PairedUnits.setEnabled(context, it)
-                    LinkService.sync(context)
-                },
-                onPair = startScan
-            )
-        }
+    // A dot on the gear where something waits: setup left to allow (once there is a car to allow it for), an update to install.
+    val flagged = (paired && setup.missing > 0) || update is CompanionUpdate.Status.Ready
+    val onToggle: (Boolean) -> Unit = {
+        enabled = it
+        PairedUnits.setEnabled(context, it)
+        LinkService.sync(context)
     }
 
     Scaffold(
         containerColor = CompanionColors.Background,
         bottomBar = {
-            if (paired) {
+            if (paired && !settings && opened == null) {
                 NavigationBar(containerColor = CompanionColors.Surface) {
                     Tab.entries.forEach { t ->
-                        // A dot where something waits: setup left to allow, an update to install.
-                        val flagged = t == Tab.SETUP && (setup.missing > 0 || update is CompanionUpdate.Status.Ready)
                         NavigationBarItem(
                             selected = shown == t,
                             onClick = { tab = t },
-                            icon = {
-                                BadgedBox(badge = { if (flagged) Badge(containerColor = CompanionColors.Amber) }) {
-                                    Icon(t.icon, contentDescription = null)
-                                }
-                            },
-                            label = { Text(stringResource(t.label)) },
+                            icon = { Icon(t.icon, contentDescription = null) },
+                            label = { Text(stringResource(t.label), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                             colors = NavigationBarItemDefaults.colors(indicatorColor = CompanionColors.Blue.copy(alpha = 0.22f))
                         )
                     }
@@ -348,23 +339,87 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding).imePadding(),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 28.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 28.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            when (shown) {
-                Tab.HOME -> {
-                    hero()
-                    updateCard(context, update)
-                    if (!paired) {
-                        item { SetupPanel(setup) }
-                    } else {
-                        if (setup.missing > 0) item { SetupNudge(setup.missing, onOpen = { tab = Tab.SETUP }) }
-                        if (news.isNotEmpty()) item { CarNewsCard(news) }
-                        item { KeyboardCard(typed, onField = { typed = it }, connected = connected) }
-                        item { CarSpotCard() }
+            when {
+                opened != null -> {
+                    item { BackRow(stringResource(R.string.tab_tools), onBack = { tool = null }) }
+                    item {
+                        when (opened) {
+                            Tool.PHOTO -> PhotoAskCard(connected)
+                            Tool.RESCUE -> RescueCard(connected)
+                            Tool.LOOK -> CarLookCard(
+                                connected, onFromPhotos = { fromPhotos = true }, onFromModel = { fromModel = true },
+                                onModelChosen = { modelChosen = true; fromModel = true }
+                            )
+                            Tool.REGISTRATION -> RegistrationCard(connected)
+                            Tool.OBD -> ObdRelayCard(onPick = { pick(BluetoothPick.OBD) })
+                        }
                     }
                 }
-                Tab.DRIVES -> {
+                settings -> {
+                    item { BackRow(stringResource(R.string.settings_title), onBack = { settings = false }) }
+                    if (paired) {
+                        item { SectionTitle(stringResource(R.string.settings_connection), top = 2.dp) }
+                        item { ConnectionCard(enabled, onToggle, carBluetooth?.name, onAuto) }
+                    }
+                    item { SectionTitle(stringResource(R.string.setup_title), top = if (paired) 14.dp else 2.dp) }
+                    item { SetupPanel(setup) }
+                    if (paired) {
+                        item { SectionTitle(stringResource(R.string.cars_title)) }
+                        items(units, key = { it.id }) { unit -> CarRow(unit, onRemove = { removing = unit }) }
+                        item {
+                            TextButton(onClick = startScan, modifier = Modifier.fillMaxWidth()) {
+                                Icon(Icons.Filled.QrCodeScanner, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text(stringResource(R.string.pair_another))
+                            }
+                        }
+                    }
+                    item { SectionTitle(stringResource(R.string.update_section)) }
+                    item { AppVersionCard(update) }
+                }
+                shown == Tab.HOME -> {
+                    item { TopRow(onScan = startScan, onSettings = { settings = true }, flagged = flagged) }
+                    item {
+                        HeroCard(
+                            look = when {
+                                !paired -> StatusLook.NO_CAR
+                                !enabled -> StatusLook.OFF
+                                connected -> StatusLook.CONNECTED
+                                carBluetooth != null && !inCar -> StatusLook.ASLEEP
+                                state == LinkState.Unavailable -> StatusLook.UNAVAILABLE
+                                else -> StatusLook.WAITING
+                            },
+                            carName = (state as? LinkState.Connected)?.unitName?.takeIf { it.isNotBlank() } ?: units.firstOrNull()?.name,
+                            carBluetooth = carBluetooth?.name,
+                            enabled = enabled,
+                            canToggle = paired,
+                            onToggle = onToggle,
+                            onPair = startScan
+                        )
+                    }
+                    updateCard(context, update)
+                    if (!paired) {
+                        // Nothing is asked before there is a car to give it to.
+                        item { HintCard(stringResource(R.string.pair_setup_later)) }
+                    } else {
+                        if (setup.missing > 0) item { SetupNudge(setup.missing, onOpen = { settings = true }) }
+                        if (news.isNotEmpty()) item { CarNewsCard(news) }
+                        if (connected) {
+                            // In the car: what is used on the way.
+                            item { RoadWatchStartCard() }
+                            item { KeyboardCard(typed, onField = { typed = it }, connected = connected) }
+                            item { QuickTools(onOpen = { tool = it }) }
+                        } else {
+                            // Parked: where the car is, and how the last drive went.
+                            item { CarSpotCard() }
+                            drives.firstOrNull()?.let { latest -> item { LastDriveGlance(latest, onAll = { tab = Tab.DRIVES }) } }
+                        }
+                    }
+                }
+                shown == Tab.DRIVES -> {
                     item { SectionTitle(stringResource(R.string.drives_title), top = 2.dp) }
                     val latest = drives.firstOrNull()
                     if (latest == null) {
@@ -377,35 +432,35 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
                         driveHistory(drives.drop(1).take(PAST_DRIVES_SHOWN))
                     }
                 }
-                Tab.CAR -> {
-                    item { SectionTitle(stringResource(R.string.tab_car), top = 2.dp) }
-                    item { ObdRelayCard(onPick = { pick(BluetoothPick.OBD) }) }
+                shown == Tab.ROAD -> {
+                    item { SectionTitle(stringResource(R.string.road_title), top = 2.dp) }
                     item { RoadWatchCard(connected) }
                     item { ClipsCard() }
+                }
+                else -> {
+                    item { SectionTitle(stringResource(R.string.tab_tools), top = 2.dp) }
                     item {
-                        CarLookCard(
-                            connected, onFromPhotos = { fromPhotos = true }, onFromModel = { fromModel = true },
-                            onModelChosen = { modelChosen = true; fromModel = true }
-                        )
-                    }
-                    item { PhotoAskCard(connected) }
-                    item { RegistrationCard(connected) }
-                    item { RescueCard(connected) }
-                    item { SectionTitle(stringResource(R.string.cars_title)) }
-                    items(units, key = { it.id }) { unit -> CarRow(unit, onRemove = { removing = unit }) }
-                    item {
-                        TextButton(onClick = startScan, modifier = Modifier.fillMaxWidth()) {
-                            Icon(Icons.Filled.QrCodeScanner, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text(stringResource(R.string.pair_another))
+                        ToolGroup(stringResource(R.string.tools_fix)) {
+                            ToolRow(Icons.Filled.PhotoCamera, stringResource(R.string.photo_title), stringResource(R.string.tools_photo_detail)) { tool = Tool.PHOTO }
+                            ToolRow(Icons.Filled.Support, stringResource(R.string.rescue_title), stringResource(R.string.rescue_detail), CompanionColors.Red) { tool = Tool.RESCUE }
                         }
                     }
-                }
-                Tab.SETUP -> {
-                    item { SectionTitle(stringResource(R.string.setup_title), top = 2.dp) }
-                    item { SetupPanel(setup) }
-                    item { SectionTitle(stringResource(R.string.update_section)) }
-                    item { AppVersionCard(update) }
+                    item {
+                        ToolGroup(stringResource(R.string.tools_yours)) {
+                            ToolRow(Icons.Filled.Image, stringResource(R.string.car_look_title), stringResource(R.string.tools_look_detail), CompanionColors.Teal) { tool = Tool.LOOK }
+                            ToolRow(Icons.Filled.Description, stringResource(R.string.reg_title), stringResource(R.string.tools_reg_detail), CompanionColors.Teal) { tool = Tool.REGISTRATION }
+                        }
+                    }
+                    item {
+                        ToolGroup(stringResource(R.string.tools_data)) {
+                            val (line, tint) = obdRelayLine()
+                            ToolRow(Icons.Filled.Speed, stringResource(R.string.obd_relay_title), line, tint) { tool = Tool.OBD }
+                        }
+                    }
+                    item {
+                        // Not a tool to open: the phone's own share sheet ([SendToCarActivity]), said here so it is found.
+                        Panel { ToolRow(Icons.Filled.Share, stringResource(R.string.send_to_car), stringResource(R.string.tools_send_detail), onClick = null) }
+                    }
                 }
             }
         }
@@ -486,15 +541,147 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
     }
 }
 
-/** The screen's tabs, once a car is paired. */
+/** The screen's tabs, once a car is paired; Settings opens from the gear on Home. */
 private enum class Tab(val label: Int, val icon: ImageVector) {
     HOME(R.string.tab_home, Icons.Filled.Home),
     DRIVES(R.string.drives_title, Icons.Filled.Route),
-    CAR(R.string.tab_car, Icons.Filled.DirectionsCar),
-    SETUP(R.string.setup_title, Icons.Filled.Settings)
+    ROAD(R.string.road_title, Icons.Filled.Traffic),
+    TOOLS(R.string.tab_tools, Icons.Filled.Build)
 }
 
-/** Home's pointer to the Setup tab while something is left to allow. */
+/** What the Tools tab opens over itself: one card, full screen. */
+private enum class Tool { PHOTO, RESCUE, LOOK, REGISTRATION, OBD }
+
+/** The top of Home: the scanner for any of the car's codes, and Settings with its dot. */
+@Composable
+private fun TopRow(onScan: () -> Unit, onSettings: () -> Unit, flagged: Boolean) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+        Text(
+            "DASHWHEEL", style = MaterialTheme.typography.labelMedium, letterSpacing = 3.sp,
+            color = CompanionColors.Muted, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f).padding(start = 4.dp)
+        )
+        // Pairing, a second screen's code, a dashboard's: the scan tells them apart.
+        IconButton(onClick = onScan) {
+            Icon(Icons.Filled.QrCodeScanner, contentDescription = stringResource(R.string.scan_code))
+        }
+        IconButton(onClick = onSettings) {
+            BadgedBox(badge = { if (flagged) Badge(containerColor = CompanionColors.Amber) }) {
+                Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settings_title))
+            }
+        }
+    }
+}
+
+/** The top of a screen opened over the tabs: back, and where it goes back to. */
+@Composable
+private fun BackRow(title: String, onBack: () -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+        IconButton(onClick = onBack) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+        }
+        Spacer(Modifier.width(4.dp))
+        Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+    }
+}
+
+/** Two tiles under Home's typing while the car is linked: the help most wanted in the car. */
+@Composable
+private fun QuickTools(onOpen: (Tool) -> Unit) {
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        QuickTile(Icons.Filled.PhotoCamera, stringResource(R.string.photo_title), CompanionColors.Blue, Modifier.weight(1f)) { onOpen(Tool.PHOTO) }
+        QuickTile(Icons.Filled.Support, stringResource(R.string.rescue_title), CompanionColors.Red, Modifier.weight(1f)) { onOpen(Tool.RESCUE) }
+    }
+}
+
+@Composable
+private fun QuickTile(icon: ImageVector, label: String, tint: Color, modifier: Modifier, onClick: () -> Unit) {
+    Panel(modifier = modifier, onClick = onClick) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Surface(shape = CircleShape, color = tint.copy(alpha = 0.16f), modifier = Modifier.size(40.dp)) {
+                Box(contentAlignment = Alignment.Center) { Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(22.dp)) }
+            }
+            Text(label, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, maxLines = 2)
+        }
+    }
+}
+
+/** One group of the Tools tab: its name, then its rows on one card. */
+@Composable
+private fun ToolGroup(title: String, rows: @Composable () -> Unit) {
+    Column {
+        Text(
+            title.uppercase(), style = MaterialTheme.typography.labelMedium, letterSpacing = 1.sp, fontWeight = FontWeight.Bold,
+            color = CompanionColors.Muted, modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
+        )
+        Panel { rows() }
+    }
+}
+
+/** A row of the Tools tab, opening its tool; [onClick] null for one that only says where to find it. */
+@Composable
+private fun ToolRow(icon: ImageVector, title: String, detail: String, tint: Color = CompanionColors.Blue, onClick: (() -> Unit)?) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            .padding(start = 18.dp, end = 12.dp, top = 14.dp, bottom = 14.dp)
+    ) {
+        Box(Modifier.weight(1f)) { CardHeading(icon, title, detail, tint) }
+        if (onClick != null) Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = CompanionColors.Muted)
+    }
+}
+
+/** Settings' link card: the sharing switch, and "Start in the car" while sharing is on. */
+@Composable
+private fun ConnectionCard(enabled: Boolean, onToggle: (Boolean) -> Unit, carBluetooth: String?, onAuto: (Boolean) -> Unit) {
+    Panel {
+        Column(Modifier.padding(18.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.weight(1f)) {
+                    CardHeading(
+                        Icons.Filled.Wifi, stringResource(R.string.share_toggle),
+                        // On, Home says how the link is doing; off, what that means.
+                        if (enabled) null else stringResource(R.string.status_off_detail),
+                        if (enabled) CompanionColors.Teal else CompanionColors.Muted
+                    )
+                }
+                Spacer(Modifier.width(12.dp))
+                val label = stringResource(R.string.share_toggle)
+                Switch(checked = enabled, onCheckedChange = onToggle, modifier = Modifier.semantics { contentDescription = label })
+            }
+            if (enabled) StartInCarRow(carBluetooth, onAuto)
+        }
+    }
+}
+
+/** "Start in the car": sharing follows the car's Bluetooth instead of running all day. */
+@Composable
+private fun StartInCarRow(carBluetooth: String?, onAuto: (Boolean) -> Unit) {
+    val label = stringResource(R.string.car_auto_title)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .padding(top = 14.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(CompanionColors.Background.copy(alpha = 0.45f))
+            .padding(start = 14.dp, end = 10.dp, top = 8.dp, bottom = 8.dp)
+    ) {
+        Icon(Icons.Filled.Bluetooth, contentDescription = null, tint = CompanionColors.Blue, modifier = Modifier.size(20.dp))
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            Text(label, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+            Text(
+                carBluetooth?.let { stringResource(R.string.car_auto_on, it) } ?: stringResource(R.string.car_auto_off),
+                style = MaterialTheme.typography.bodySmall, color = CompanionColors.Muted
+            )
+        }
+        Switch(checked = carBluetooth != null, onCheckedChange = onAuto, modifier = Modifier.semantics { contentDescription = label })
+    }
+}
+
+/** Home's pointer to Settings while something is left to allow. */
 @Composable
 private fun SetupNudge(missing: Int, onOpen: () -> Unit) {
     Panel(onClick = onOpen) {
@@ -600,9 +787,10 @@ private fun UpdatePanel(update: CompanionUpdate.Status, canDismiss: Boolean) {
 private enum class StatusLook { NO_CAR, OFF, ASLEEP, WAITING, UNAVAILABLE, CONNECTED }
 
 /**
- * The top of the screen: the car's name, the link's state in its colour with
- * what to do about it, and the sharing switch. With no car paired, the button
- * to pair one. The link's technical last event stays behind "Details".
+ * Home's status: the car's name, the link's state in its colour with what to
+ * do about it, and the sharing switch ("Start in the car" is in Settings).
+ * With no car paired, the button to pair one. The link's technical last
+ * event stays behind "Details".
  */
 @Composable
 private fun HeroCard(
@@ -610,7 +798,6 @@ private fun HeroCard(
     carName: String?,
     /** The car's Bluetooth sharing is tied to ("Start in the car"), or null. */
     carBluetooth: String?,
-    onAuto: (Boolean) -> Unit,
     enabled: Boolean,
     canToggle: Boolean,
     onToggle: (Boolean) -> Unit,
@@ -650,17 +837,6 @@ private fun HeroCard(
     ) {
         Column(Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "DASHWHEEL", style = MaterialTheme.typography.labelMedium, letterSpacing = 3.sp,
-                    color = CompanionColors.Muted, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f)
-                )
-                if (canToggle) {
-                    // The switch speaks for itself to TalkBack: "Share with the car, on".
-                    val label = stringResource(R.string.share_toggle)
-                    Switch(checked = enabled, onCheckedChange = onToggle, modifier = Modifier.semantics { contentDescription = label })
-                }
-            }
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = if (canToggle) 4.dp else 14.dp)) {
                 Surface(shape = CircleShape, color = tint.copy(alpha = 0.18f), modifier = Modifier.size(52.dp)) {
                     Box(contentAlignment = Alignment.Center) { Icon(Icons.Filled.DirectionsCar, contentDescription = null, tint = tint, modifier = Modifier.size(28.dp)) }
                 }
@@ -677,32 +853,14 @@ private fun HeroCard(
                         Text(status, style = MaterialTheme.typography.titleSmall, color = tint, fontWeight = FontWeight.SemiBold)
                     }
                 }
-            }
-            Text(detail, style = MaterialTheme.typography.bodyMedium, color = CompanionColors.Muted, modifier = Modifier.padding(top = 14.dp))
-            if (canToggle && enabled) {
-                // "Start in the car": sharing follows the car's Bluetooth instead of running all day.
-                val label = stringResource(R.string.car_auto_title)
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .padding(top = 14.dp)
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(CompanionColors.Background.copy(alpha = 0.45f))
-                        .padding(start = 14.dp, end = 10.dp, top = 8.dp, bottom = 8.dp)
-                ) {
-                    Icon(Icons.Filled.Bluetooth, contentDescription = null, tint = CompanionColors.Blue, modifier = Modifier.size(20.dp))
+                if (canToggle) {
+                    // The switch speaks for itself to TalkBack: "Share with the car, on".
+                    val label = stringResource(R.string.share_toggle)
                     Spacer(Modifier.width(12.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text(label, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                        Text(
-                            carBluetooth?.let { stringResource(R.string.car_auto_on, it) } ?: stringResource(R.string.car_auto_off),
-                            style = MaterialTheme.typography.bodySmall, color = CompanionColors.Muted
-                        )
-                    }
-                    Switch(checked = carBluetooth != null, onCheckedChange = onAuto, modifier = Modifier.semantics { contentDescription = label })
+                    Switch(checked = enabled, onCheckedChange = onToggle, modifier = Modifier.semantics { contentDescription = label })
                 }
             }
+            Text(detail, style = MaterialTheme.typography.bodyMedium, color = CompanionColors.Muted, modifier = Modifier.padding(top = 14.dp))
             if ((look == StatusLook.WAITING || look == StatusLook.UNAVAILABLE) && lastEvent != null) {
                 TextButton(onClick = { details = !details }, contentPadding = PaddingValues(horizontal = 0.dp)) {
                     Text(stringResource(R.string.status_details), style = MaterialTheme.typography.labelLarge)
@@ -750,7 +908,7 @@ private fun KeyboardCard(field: TextFieldValue, onField: (TextFieldValue) -> Uni
 
     Panel {
         Column(Modifier.padding(18.dp)) {
-            // Without the car the card stays, greyed: what was typed is still on the car's field.
+            // Home shows it only while the car is linked; greyed for the moment the link drops, the text kept for its return.
             CardHeading(
                 Icons.Filled.Keyboard, stringResource(R.string.keyboard_title),
                 stringResource(if (connected) R.string.keyboard_detail else R.string.keyboard_not_connected),
@@ -951,6 +1109,26 @@ private val OBD_NAMES = listOf("OBD", "ELM", "V-LINK", "VLINK", "VGATE", "KONNWE
 private fun ObdRelayCard(onPick: () -> Unit) {
     val context = LocalContext.current
     val adapter by ObdRelay.adapter.collectAsState()
+    val (line, tint) = obdRelayLine()
+    Panel {
+        Column(Modifier.padding(18.dp)) {
+            CardHeading(Icons.Filled.Speed, stringResource(R.string.obd_relay_title), line, tint)
+            Row(Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (adapter == null) {
+                    Button(onClick = onPick) { Text(stringResource(R.string.obd_relay_choose)) }
+                } else {
+                    OutlinedButton(onClick = onPick) { Text(stringResource(R.string.obd_relay_change)) }
+                    TextButton(onClick = { ObdRelay.choose(context, null) }) { Text(stringResource(R.string.obd_relay_stop)) }
+                }
+            }
+        }
+    }
+}
+
+/** What the OBD relay is doing, in words and its colour: its card and its row on the Tools tab. */
+@Composable
+private fun obdRelayLine(): Pair<String, Color> {
+    val adapter by ObdRelay.adapter.collectAsState()
     val status by ObdRelay.status.collectAsState()
     val a = adapter
     val line = when {
@@ -966,19 +1144,7 @@ private fun ObdRelayCard(onPick: () -> Unit) {
         status == ObdRelay.Status.FAILED -> CompanionColors.Amber
         else -> CompanionColors.Blue
     }
-    Panel {
-        Column(Modifier.padding(18.dp)) {
-            CardHeading(Icons.Filled.Speed, stringResource(R.string.obd_relay_title), line, tint)
-            Row(Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (a == null) {
-                    Button(onClick = onPick) { Text(stringResource(R.string.obd_relay_choose)) }
-                } else {
-                    OutlinedButton(onClick = onPick) { Text(stringResource(R.string.obd_relay_change)) }
-                    TextButton(onClick = { ObdRelay.choose(context, null) }) { Text(stringResource(R.string.obd_relay_stop)) }
-                }
-            }
-        }
-    }
+    return line to tint
 }
 
 /** The phone's paired Bluetooth devices to pick one from; the likeliest ones first. */

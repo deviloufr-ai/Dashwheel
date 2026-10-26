@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -43,7 +44,34 @@ import kotlinx.coroutines.launch
 import java.io.File
 
 /**
- * Road watch on the Car tab: what it does, the vehicle finder to fetch once
+ * Home's way into Road watch while the car is linked: the camera one tap
+ * away, and whether the vehicle finder is there; the rest is on its tab.
+ */
+@Composable
+internal fun RoadWatchStartCard() {
+    val context = LocalContext.current
+    val model by RoadModel.state.collectAsState()
+    LaunchedEffect(Unit) { RoadModel.check(context) }
+    val ready = model == RoadModel.State.Ready
+    Panel {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            CardHeading(Icons.Filled.Traffic, stringResource(R.string.road_title), stringResource(R.string.road_home_detail), CompanionColors.Teal)
+            ExperimentalMark()
+            Button(onClick = { RoadWatchActivity.open(context) }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                Icon(Icons.Filled.Videocam, contentDescription = null, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.road_start))
+            }
+            Text(
+                stringResource(if (ready) R.string.road_finder_ready else R.string.road_model_none),
+                style = MaterialTheme.typography.bodySmall, color = if (ready) CompanionColors.Teal else CompanionColors.Muted
+            )
+        }
+    }
+}
+
+/**
+ * Road watch on its tab: what it does, the vehicle finder to fetch once
  * ([RoadModel]), the road recorder's switch ([RoadClips]), and the button
  * that opens the camera ([RoadWatchActivity]). Both are experimental, and
  * say so.

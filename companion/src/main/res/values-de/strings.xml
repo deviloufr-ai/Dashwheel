@@ -193,7 +193,6 @@
 
     <string name="tab_home">Start</string>
     <string name="permissions_title">Berechtigungen</string>
-    <string name="tab_car">Auto</string>
     <string name="update_section">Updates</string>
     <string name="update_title">Neue Version</string>
     <string name="update_available">Version %1$s ist da.</string>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tab_tools">Eszközök</string>
+    <string name="settings_title">Beállítások</string>
+    <string name="settings_connection">Kapcsolat</string>
+    <string name="scan_code">Kód beolvasása</string>
+    <string name="back">Vissza</string>
+    <string name="tools_fix">Kérdezés és javítás</string>
+    <string name="tools_yours">A saját képére</string>
+    <string name="tools_data">Autóadatok</string>
+    <string name="tools_photo_detail">Egy figyelmeztető lámpa vagy a szervizkönyv egy oldala</string>
+    <string name="tools_look_detail">3 fotóból, 3D modellből vagy fájlból</string>
+    <string name="tools_reg_detail">Rendszám, alvázszám és első forgalomba helyezés az autónak</string>
+    <string name="tools_send_detail">Bármelyik appban ossza meg egy helyet vagy szöveget a Küldés az autóra paranccsal: a hely lesz az autó úti célja, a szöveg a képernyőjére kerül.</string>
+    <string name="drives_all">Minden út</string>
+    <string name="road_home_detail">A szélvédő mögötti tartóban lévő telefon figyeli az utat.</string>
+    <string name="road_finder_ready">Járműfelismerő kész</string>
+    <string name="pair_setup_later">Még nincs mit engedélyezni: az autó párosítása után a Beállítások kérik, ami kell.</string>
+</resources>

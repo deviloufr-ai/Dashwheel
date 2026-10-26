@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The screen's layout: Home, Drives, Road watch and Tools, and Settings behind the gear. -->
+<resources>
+    <string name="tab_tools">Tools</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_connection">Connection</string>
+    <string name="scan_code">Scan a code</string>
+    <string name="back">Back</string>
+    <string name="tools_fix">Ask and fix</string>
+    <string name="tools_yours">Make it yours</string>
+    <string name="tools_data">Car data</string>
+    <string name="tools_photo_detail">A warning light, or a page of the service booklet</string>
+    <string name="tools_look_detail">From 3 photos, a 3D model or a file</string>
+    <string name="tools_reg_detail">Plate, VIN and first registration for the car</string>
+    <string name="tools_send_detail">In any app, share a place or some text with Send to car: the place becomes the car\'s destination, the text is typed on its screen.</string>
+    <string name="drives_all">All drives</string>
+    <string name="road_home_detail">The phone in its holder behind the windscreen watches the road.</string>
+    <string name="road_finder_ready">Vehicle finder ready</string>
+    <string name="pair_setup_later">Nothing to allow yet: once the car is paired, Settings asks for what it needs.</string>
+</resources>

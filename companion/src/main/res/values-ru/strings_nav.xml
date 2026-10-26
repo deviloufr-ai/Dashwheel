@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tab_tools">Инструменты</string>
+    <string name="settings_title">Настройки</string>
+    <string name="settings_connection">Подключение</string>
+    <string name="scan_code">Сканировать код</string>
+    <string name="back">Назад</string>
+    <string name="tools_fix">Спросить и исправить</string>
+    <string name="tools_yours">На свой вкус</string>
+    <string name="tools_data">Данные автомобиля</string>
+    <string name="tools_photo_detail">Сигнальная лампа или страница сервисной книжки</string>
+    <string name="tools_look_detail">Из 3 фото, 3D-модели или файла</string>
+    <string name="tools_reg_detail">Номер, VIN и дата первой регистрации для автомобиля</string>
+    <string name="tools_send_detail">В любом приложении поделитесь местом или текстом через «В автомобиль»: место станет пунктом назначения, текст будет набран на его экране.</string>
+    <string name="drives_all">Все поездки</string>
+    <string name="road_home_detail">Телефон в держателе за лобовым стеклом следит за дорогой.</string>
+    <string name="road_finder_ready">Распознавание машин готово</string>
+    <string name="pair_setup_later">Пока ничего разрешать не нужно: после сопряжения автомобиля Настройки попросят нужное.</string>
+</resources>

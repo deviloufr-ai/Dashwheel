@@ -43,3 +43,9 @@ Shared by all three:
 
 Start from **C's Shares screen** (it fixes the permission and hidden-feature problems on its own and fits any of the
 three) with **A's tabs and adaptive Home**. B is the safest fallback if a single home is preferred.
+
+## Decision
+
+**A was chosen** and is built in `MainActivity.kt`: Home · Drives · Road watch · Tools, Settings behind the gear on
+Home, Home following the link (in the car or parked), and nothing asked before a car is paired. Permissions still
+sit in one list (Settings › Setup) rather than being asked feature by feature; that is the next step.

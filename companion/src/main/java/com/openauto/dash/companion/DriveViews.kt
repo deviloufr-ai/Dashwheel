@@ -244,6 +244,25 @@ private fun Stat(value: String, label: String, tint: Color? = null) {
     }
 }
 
+/** Home's word on the last drive while parked: distance, time and eco score; a tap opens the Drives tab. */
+@Composable
+internal fun LastDriveGlance(d: DriveSummary, onAll: () -> Unit) {
+    Panel(onClick = onAll) {
+        Column(Modifier.padding(18.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.drive_last), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                Text(stringResource(R.string.drives_all), style = MaterialTheme.typography.labelLarge, color = CompanionColors.Blue)
+            }
+            Text(dateText(d.startedAt), style = MaterialTheme.typography.bodySmall, color = CompanionColors.Muted, modifier = Modifier.padding(top = 2.dp))
+            Row(Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                Stat(kmText(d.distanceKm), stringResource(R.string.drive_km))
+                Stat(durationText(d.elapsedMs), stringResource(R.string.drive_time))
+                Stat(d.ecoScore?.toString() ?: "--", stringResource(R.string.week_eco), d.ecoScore?.let { ecoTint(it) })
+            }
+        }
+    }
+}
+
 /** The latest drive in full (see [DriveJournal]): the trip computer's figures around the eco-driving ring. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

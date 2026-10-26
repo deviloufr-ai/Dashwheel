@@ -195,7 +195,6 @@
     <!-- Tabs and the companion's own updates. -->
     <string name="tab_home">Kezdőlap</string>
     <string name="permissions_title">Engedélyek</string>
-    <string name="tab_car">Autó</string>
     <string name="update_section">Frissítések</string>
     <string name="update_title">Új verzió</string>
     <string name="update_available">Megjelent a(z) %1$s verzió.</string>

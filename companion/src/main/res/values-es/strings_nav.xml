@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tab_tools">Herramientas</string>
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_connection">Conexión</string>
+    <string name="scan_code">Escanear un código</string>
+    <string name="back">Atrás</string>
+    <string name="tools_fix">Preguntar y arreglar</string>
+    <string name="tools_yours">A tu gusto</string>
+    <string name="tools_data">Datos del coche</string>
+    <string name="tools_photo_detail">Un testigo, o una página del libro de mantenimiento</string>
+    <string name="tools_look_detail">Con 3 fotos, un modelo 3D o un archivo</string>
+    <string name="tools_reg_detail">Matrícula, VIN y primera matriculación para el coche</string>
+    <string name="tools_send_detail">En cualquier app, comparte un lugar o un texto con Enviar al coche: el lugar pasa a ser su destino, el texto se escribe en su pantalla.</string>
+    <string name="drives_all">Todos los trayectos</string>
+    <string name="road_home_detail">El teléfono en su soporte tras el parabrisas vigila la carretera.</string>
+    <string name="road_finder_ready">Detector de vehículos listo</string>
+    <string name="pair_setup_later">Nada que permitir todavía: con el coche vinculado, Ajustes pide lo que necesita.</string>
+</resources>
