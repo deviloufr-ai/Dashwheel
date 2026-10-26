@@ -223,18 +223,31 @@ class RoadWatchActivity : ComponentActivity() {
             } else {
                 camera = runCatching { provider.bindToLifecycle(this@RoadWatchActivity, back, preview, reader) }.getOrNull() ?: return@addListener
             }
-            fieldOfView(camera ?: return@addListener)?.let { (wide, tall) -> watch.fieldOfView(wide, tall) }
+            val bound = camera ?: return@addListener
+            fieldOfView(bound, zoom(bound))?.let { (wide, tall) -> watch.fieldOfView(wide, tall) }
         }, ContextCompat.getMainExecutor(this))
     }
 
     /**
-     * The camera's view across its long side and across its short one: the
-     * upright frame's width with the phone sideways, then with it upright.
+     * The camera zoomed in a little ([ROAD_ZOOM]): less dashboard and sky, and
+     * the road ahead in more of the sensor's detail. The ratio it ends at.
+     */
+    private fun zoom(camera: Camera): Float {
+        val state = camera.cameraInfo.zoomState.value ?: return 1f
+        val ratio = ROAD_ZOOM.coerceIn(state.minZoomRatio, state.maxZoomRatio)
+        camera.cameraControl.setZoomRatio(ratio)
+        RoadStats.zoom = ratio
+        return ratio
+    }
+
+    /**
+     * The camera's view across its long side and across its short one, at
+     * [zoom]: the upright frame's width with the phone sideways, then with it upright.
      */
     @OptIn(ExperimentalCamera2Interop::class)
-    private fun fieldOfView(camera: Camera): Pair<Float, Float>? = runCatching {
+    private fun fieldOfView(camera: Camera, zoom: Float): Pair<Float, Float>? = runCatching {
         val info = Camera2CameraInfo.from(camera.cameraInfo)
-        val focal = info.getCameraCharacteristic(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS)?.firstOrNull() ?: return null
+        val focal = (info.getCameraCharacteristic(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS)?.firstOrNull() ?: return null) * zoom
         val sensor = info.getCameraCharacteristic(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE) ?: return null
         val wide = viewDegrees(max(sensor.width, sensor.height), focal) ?: return null
         val tall = viewDegrees(min(sensor.width, sensor.height), focal) ?: return null
@@ -548,3 +561,11 @@ private fun RoadControls(
         }
     }
 }
+
+/**
+ * Road watch's zoom on the main camera. On the user's recorded drives (2026-10-26) a 1.3 zoom found the
+ * car ahead at 50 to 80 m 80 % of the time against 60 %, invented half as many boxes and gave 13 false
+ * collision warnings against 15, signs as readable; the lane lines came out better on some drives,
+ * worse on others.
+ */
+private const val ROAD_ZOOM = 1.3f

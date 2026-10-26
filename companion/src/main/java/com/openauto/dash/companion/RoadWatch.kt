@@ -95,6 +95,15 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
     private var horizonLook = false
     private var lookedBefore: List<Detection> = emptyList()
     @Volatile private var detectorTried = false
+    /**
+     * The first frames time the vehicle finder on the graphics chip, the next
+     * ones on the processor, and the faster stays: on the S25 in a warm car
+     * the graphics chip took 106 ms a frame (2026-10-26), against 48 ms cool.
+     */
+    private var trial = Trial.GPU
+    private var trialFrames = 0
+    private var gpuMs = 0f
+    private enum class Trial { GPU, CPU, DONE }
 
     private val _view = MutableStateFlow(RoadView())
     val view: StateFlow<RoadView> = _view
@@ -204,6 +213,8 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
             detectorTried = true
             detector?.close()
             detector = RoadDetector.open(app)
+            trial = if (detector?.onGpu == true) Trial.GPU else Trial.DONE
+            trialFrames = 0
         }
         val uprightW = Upright.width(w, h, rotation)
         val uprightH = Upright.height(w, h, rotation)
@@ -229,6 +240,23 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         val found = vehicles?.detect(buffer, w, h, plane.rowStride, rotation, (band.horizonY + band.bonnetY) / 2, band.horizonY.takeIf { horizonLook })
             ?.let { now -> withBefore(now, lookedBefore).also { lookedBefore = now } }
         horizonLook = !horizonLook
+        if (vehicles != null && trial != Trial.DONE && ++trialFrames >= TRIAL_FRAMES) {
+            trialFrames = 0
+            if (trial == Trial.GPU) {
+                gpuMs = vehicles.runMs
+                vehicles.close()
+                detector = RoadDetector.open(app, onGpu = false)
+                trial = Trial.CPU
+            } else {
+                // The processor's time against the graphics chip's: back to the chip if it was faster.
+                if (gpuMs < vehicles.runMs) {
+                    vehicles.close()
+                    detector = RoadDetector.open(app, onGpu = true)
+                }
+                RoadStats.trial(gpuMs, vehicles.runMs)
+                trial = Trial.DONE
+            }
+        }
         val beforeSigns = SystemClock.elapsedRealtimeNanos()
         // A round red sign big enough to read: the biggest one goes to the reader. Once one is seen, every
         // frame is looked at for a while: at 80 km/h a sign is big enough to read for under a second.
@@ -330,6 +358,8 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         const val SIGN_SEND_MS = 2_000L
         /** Once a sign is seen, every frame is looked at for this long. */
         const val SIGN_BURST_MS = 1_500L
+        /** Frames the vehicle finder is timed on each of the graphics chip and the processor. */
+        const val TRIAL_FRAMES = 40
     }
 }
 
@@ -341,6 +371,16 @@ object RoadStats {
     @Volatile private var at = 0L
     /** Vehicles, signs, lane and the rest, the whole frame, ms. */
     @Volatile private var took = FloatArray(4)
+    /** The vehicle finder's time on the graphics chip and on the processor when Road watch started, ms. */
+    @Volatile private var gpuMs = 0f
+    @Volatile private var cpuMs = 0f
+    /** The camera's zoom. */
+    @Volatile var zoom = 1f
+
+    fun trial(gpuMs: Float, cpuMs: Float) {
+        this.gpuMs = gpuMs
+        this.cpuMs = cpuMs
+    }
 
     fun update(fps: Int, detector: RoadDetector?, took: FloatArray) {
         this.fps = fps
@@ -359,5 +399,8 @@ object RoadStats {
         .put("signsMs", took[1].toDouble())
         .put("laneMs", took[2].toDouble())
         .put("frameMs", took[3].toDouble())
+        .put("trialGpuMs", gpuMs.toDouble())
+        .put("trialCpuMs", cpuMs.toDouble())
+        .put("zoom", zoom.toDouble())
         .put("at", at)
 }
