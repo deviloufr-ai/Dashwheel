@@ -267,13 +267,14 @@ private fun RoadWatchScreen(
     val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted = it }
     LaunchedEffect(Unit) { if (!granted) ask.launch(Manifest.permission.CAMERA) }
 
-    // The car shows the warnings: once linked, the phone's screen dims by itself, and a tap brings it back.
+    // The car shows the warnings: once linked, the phone's screen dims by itself, and a tap brings it back;
+    // not while Road watch is experimental, when the driver wants to see what it sees.
     var dimmed by remember { mutableStateOf(false) }
     val link by LinkServer.state.collectAsState()
     val linked = link is LinkState.Connected
     val setDimmed: (Boolean) -> Unit = { on -> dimmed = on; onDim(on) }
     LaunchedEffect(linked, dimmed) {
-        if (linked && !dimmed) {
+        if (linked && !dimmed && !ROAD_WATCH_EXPERIMENTAL) {
             delay(AUTO_DIM_MS)
             setDimmed(true)
         }
