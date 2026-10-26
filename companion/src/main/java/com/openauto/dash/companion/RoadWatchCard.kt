@@ -129,9 +129,16 @@ internal fun RoadWatchCard(connected: Boolean) {
     }
 }
 
+/**
+ * Road watch is still a trial: it says "Experimental", and the screen doesn't
+ * dim by itself, so the driver sees what it sees. Off once it has proved itself.
+ */
+internal const val ROAD_WATCH_EXPERIMENTAL = true
+
 /** "Experimental", so nobody takes it for a safety system. */
 @Composable
 internal fun ExperimentalMark() {
+    if (!ROAD_WATCH_EXPERIMENTAL) return
     Text(
         stringResource(R.string.road_experimental),
         color = CompanionColors.Amber, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold,
