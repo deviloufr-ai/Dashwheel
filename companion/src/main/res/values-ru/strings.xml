@@ -195,7 +195,6 @@
     <!-- Tabs and the companion's own updates. -->
     <string name="tab_home">Главная</string>
     <string name="permissions_title">Разрешения</string>
-    <string name="tab_car">Автомобиль</string>
     <string name="update_section">Обновления</string>
     <string name="update_title">Новая версия</string>
     <string name="update_available">Вышла версия %1$s.</string>

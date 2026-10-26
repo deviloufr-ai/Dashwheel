@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tab_tools">Įrankiai</string>
+    <string name="settings_title">Nustatymai</string>
+    <string name="settings_connection">Ryšys</string>
+    <string name="scan_code">Nuskaityti kodą</string>
+    <string name="back">Atgal</string>
+    <string name="tools_fix">Paklausti ir pataisyti</string>
+    <string name="tools_yours">Pagal save</string>
+    <string name="tools_data">Automobilio duomenys</string>
+    <string name="tools_photo_detail">Įspėjamoji lemputė arba aptarnavimo knygelės puslapis</string>
+    <string name="tools_look_detail">Iš 3 nuotraukų, 3D modelio arba failo</string>
+    <string name="tools_reg_detail">Numeris, VIN ir pirmoji registracija automobiliui</string>
+    <string name="tools_send_detail">Bet kurioje programėlėje pasidalykite vieta ar tekstu per Siųsti į automobilį: vieta tampa automobilio tikslu, tekstas įrašomas jo ekrane.</string>
+    <string name="drives_all">Visi važiavimai</string>
+    <string name="road_home_detail">Telefonas laikiklyje už priekinio stiklo stebi kelią.</string>
+    <string name="road_finder_ready">Transporto atpažinimas paruoštas</string>
+    <string name="pair_setup_later">Kol kas nieko leisti nereikia: susiejus automobilį, Nustatymai paprašys, ko reikia.</string>
+</resources>

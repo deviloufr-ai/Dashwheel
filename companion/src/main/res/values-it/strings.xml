@@ -193,7 +193,6 @@
 
     <string name="tab_home">Home</string>
     <string name="permissions_title">Autorizzazioni</string>
-    <string name="tab_car">Auto</string>
     <string name="update_section">Aggiornamenti</string>
     <string name="update_title">Nuova versione</string>
     <string name="update_available">È uscita la versione %1$s.</string>

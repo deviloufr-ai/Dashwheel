@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tab_tools">Outils</string>
+    <string name="settings_title">Réglages</string>
+    <string name="settings_connection">Connexion</string>
+    <string name="scan_code">Scanner un code</string>
+    <string name="back">Retour</string>
+    <string name="tools_fix">Demander et réparer</string>
+    <string name="tools_yours">À votre image</string>
+    <string name="tools_data">Données de la voiture</string>
+    <string name="tools_photo_detail">Un voyant, ou une page du carnet d\'entretien</string>
+    <string name="tools_look_detail">À partir de 3 photos, d\'un modèle 3D ou d\'un fichier</string>
+    <string name="tools_reg_detail">Plaque, VIN et première immatriculation pour la voiture</string>
+    <string name="tools_send_detail">Dans n\'importe quelle appli, partagez un lieu ou un texte avec Envoyer à la voiture : le lieu devient sa destination, le texte est saisi sur son écran.</string>
+    <string name="drives_all">Tous les trajets</string>
+    <string name="road_home_detail">Le téléphone dans son support derrière le pare-brise surveille la route.</string>
+    <string name="road_finder_ready">Détecteur de véhicules prêt</string>
+    <string name="pair_setup_later">Rien à autoriser pour l\'instant : une fois la voiture associée, les Réglages demandent ce qu\'il faut.</string>
+</resources>

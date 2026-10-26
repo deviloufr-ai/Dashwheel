@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tab_tools">Werkzeuge</string>
+    <string name="settings_title">Einstellungen</string>
+    <string name="settings_connection">Verbindung</string>
+    <string name="scan_code">Code scannen</string>
+    <string name="back">Zurück</string>
+    <string name="tools_fix">Fragen und beheben</string>
+    <string name="tools_yours">Ganz Ihres</string>
+    <string name="tools_data">Fahrzeugdaten</string>
+    <string name="tools_photo_detail">Eine Warnleuchte oder eine Seite des Servicehefts</string>
+    <string name="tools_look_detail">Aus 3 Fotos, einem 3D-Modell oder einer Datei</string>
+    <string name="tools_reg_detail">Kennzeichen, FIN und Erstzulassung für das Auto</string>
+    <string name="tools_send_detail">In jeder App einen Ort oder Text mit An Auto senden teilen: der Ort wird das Ziel des Autos, der Text wird auf seinem Bildschirm getippt.</string>
+    <string name="drives_all">Alle Fahrten</string>
+    <string name="road_home_detail">Das Handy in seiner Halterung hinter der Windschutzscheibe beobachtet die Straße.</string>
+    <string name="road_finder_ready">Fahrzeugerkennung bereit</string>
+    <string name="pair_setup_later">Noch nichts zu erlauben: sobald das Auto gekoppelt ist, fragen die Einstellungen nach dem Nötigen.</string>
+</resources>

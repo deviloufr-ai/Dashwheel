@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tab_tools">Ferramentas</string>
+    <string name="settings_title">Definições</string>
+    <string name="settings_connection">Ligação</string>
+    <string name="scan_code">Ler um código</string>
+    <string name="back">Voltar</string>
+    <string name="tools_fix">Perguntar e resolver</string>
+    <string name="tools_yours">À sua medida</string>
+    <string name="tools_data">Dados do carro</string>
+    <string name="tools_photo_detail">Uma luz de aviso, ou uma página do livro de revisões</string>
+    <string name="tools_look_detail">A partir de 3 fotos, um modelo 3D ou um ficheiro</string>
+    <string name="tools_reg_detail">Matrícula, VIN e primeira matrícula para o carro</string>
+    <string name="tools_send_detail">Em qualquer app, partilhe um local ou um texto com Enviar para o carro: o local passa a ser o destino, o texto é escrito no seu ecrã.</string>
+    <string name="drives_all">Todas as viagens</string>
+    <string name="road_home_detail">O telemóvel no suporte atrás do para-brisas vigia a estrada.</string>
+    <string name="road_finder_ready">Detetor de veículos pronto</string>
+    <string name="pair_setup_later">Nada a permitir por agora: com o carro associado, as Definições pedem o que for preciso.</string>
+</resources>

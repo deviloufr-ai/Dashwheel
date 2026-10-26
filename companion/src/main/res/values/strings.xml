@@ -195,7 +195,6 @@
     <!-- Tabs and the companion's own updates. -->
     <string name="tab_home">Home</string>
     <string name="permissions_title">Permissions</string>
-    <string name="tab_car">Car</string>
     <string name="update_section">Updates</string>
     <string name="update_title">New version</string>
     <string name="update_available">Version %1$s is out.</string>

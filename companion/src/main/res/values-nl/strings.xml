@@ -193,7 +193,6 @@
 
     <string name="tab_home">Start</string>
     <string name="permissions_title">Toestemmingen</string>
-    <string name="tab_car">Auto</string>
     <string name="update_section">Updates</string>
     <string name="update_title">Nieuwe versie</string>
     <string name="update_available">Versie %1$s is uit.</string>

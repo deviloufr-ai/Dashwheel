@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tab_tools">Hulpmiddelen</string>
+    <string name="settings_title">Instellingen</string>
+    <string name="settings_connection">Verbinding</string>
+    <string name="scan_code">Code scannen</string>
+    <string name="back">Terug</string>
+    <string name="tools_fix">Vragen en oplossen</string>
+    <string name="tools_yours">Helemaal van jou</string>
+    <string name="tools_data">Autogegevens</string>
+    <string name="tools_photo_detail">Een waarschuwingslampje, of een pagina uit het onderhoudsboekje</string>
+    <string name="tools_look_detail">Uit 3 foto\'s, een 3D-model of een bestand</string>
+    <string name="tools_reg_detail">Kenteken, VIN en eerste toelating voor de auto</string>
+    <string name="tools_send_detail">Deel in elke app een plek of tekst met Naar auto sturen: de plek wordt de bestemming van de auto, de tekst wordt op zijn scherm getypt.</string>
+    <string name="drives_all">Alle ritten</string>
+    <string name="road_home_detail">De telefoon in zijn houder achter de voorruit houdt de weg in de gaten.</string>
+    <string name="road_finder_ready">Voertuigherkenning klaar</string>
+    <string name="pair_setup_later">Nog niets toe te staan: zodra de auto gekoppeld is, vraagt Instellingen wat nodig is.</string>
+</resources>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tab_tools">Narzędzia</string>
+    <string name="settings_title">Ustawienia</string>
+    <string name="settings_connection">Połączenie</string>
+    <string name="scan_code">Zeskanuj kod</string>
+    <string name="back">Wstecz</string>
+    <string name="tools_fix">Zapytaj i napraw</string>
+    <string name="tools_yours">Po swojemu</string>
+    <string name="tools_data">Dane auta</string>
+    <string name="tools_photo_detail">Kontrolka albo strona książki serwisowej</string>
+    <string name="tools_look_detail">Z 3 zdjęć, modelu 3D albo pliku</string>
+    <string name="tools_reg_detail">Tablica, VIN i pierwsza rejestracja dla auta</string>
+    <string name="tools_send_detail">W dowolnej aplikacji udostępnij miejsce lub tekst przez Wyślij do auta: miejsce staje się celem auta, tekst jest wpisywany na jego ekranie.</string>
+    <string name="drives_all">Wszystkie jazdy</string>
+    <string name="road_home_detail">Telefon w uchwycie za przednią szybą obserwuje drogę.</string>
+    <string name="road_finder_ready">Wykrywacz pojazdów gotowy</string>
+    <string name="pair_setup_later">Na razie nic do zezwolenia: po sparowaniu auta Ustawienia poproszą o to, czego trzeba.</string>
+</resources>
