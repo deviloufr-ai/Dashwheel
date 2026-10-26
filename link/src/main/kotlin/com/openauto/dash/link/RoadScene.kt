@@ -31,7 +31,12 @@ data class RoadScene(
     /** The phone's GPS speed, for a car that doesn't give its own. */
     val speedKmh: Float? = null,
     /** The phone has the model that finds vehicles: without it, only the lane is watched. */
-    val vehicles: Boolean = true
+    val vehicles: Boolean = true,
+    /**
+     * A speed limit just read off a sign, km/h: sent for a couple of seconds
+     * after it is read, null otherwise. The car holds it for the road ahead.
+     */
+    val signKmh: Int? = null
 ) : LinkMessage
 
 /**

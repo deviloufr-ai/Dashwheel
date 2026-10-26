@@ -37,6 +37,16 @@ On the village drives alone, Lite2 with the horizon look found the car ahead 100
 
 The replay's `detect.py` crops as the phone does: the square is 0.75 of a sideways 16:9 recording's width and reaches above and below it. Before 2026-10-26 it took a square as tall as the recording, which made vehicles look a third bigger than the phone sees them.
 
+## Speed-limit signs
+
+Every third frame, `SignFinder` (link, plain image maths) looks over the picture above the bonnet for round red signs. It samples every other pixel and marks the strongly red, well coloured ones. It groups those that touch, and keeps the groups that are round, ring-shaped (red over 20 to 65 % of their square) and light in the middle. That last test is what rules out brick walls, red cars and tail lights. The biggest sign at least 16 pixels across goes to `SignReader`. It copies the sign's face inside the ring, enlarges it to 160 pixels, and reads it with ML Kit's text recognizer on the phone, with no network. Only a speed limit counts (10 to 130 km/h), and `SignConfirm` believes it once it has been read twice within 3 s.
+
+The limit goes to the car in `RoadScene.signKmh` for 2 s after it is read. The car's `SpeedLimit` holds it over OpenStreetMap's limit for the next 2 km, or until the next sign. The phone shows it in a corner of Road watch, and the recorder notes it (`signKmh`).
+
+Road watch analyses the picture at 1280 x 960 since 2026-10-26, against 640 x 480 before. At 640, a 30 or a 90 was only readable in the last moments before the car passed it.
+
+On the user's drives (`roadreplay --signs dir` dumps what the finder finds), it found the 30 and 90 signs, the round signs without a number, the give-way triangles and a village name sign, with no brick walls. The reading itself only runs on the phone: check it with `signKmh` in the clip notes or `GET /roadwatch`.
+
 ## The lane model
 
 The idea is [YOLOPv2](https://github.com/CAIC-AD/YOLOPv2)'s (arXiv 2208.11434, MIT): one network that gives the vehicle boxes, the drivable area and the lane lines of a frame, trained on BDD100K's 100,000 drives. Its released model, taken apart on 2026-10-24: 38.95 M parameters; a YOLOv7 backbone (E-ELAN blocks, SPPCSPC) and FPN/PAN neck feeding three heads; the vehicle head (YOLOv7's `IDetect`, 3 anchors at strides 8/16/32) on the PAN's three outputs, the drivable-area head (upsampling, 2-class softmax) on the FPN at 1/16, the lane head (SE attention, transposed convolutions, one sigmoid channel) on the FPN at 1/8. Input 640 x 384; 72 GFLOPs a frame (18 at 320 x 192), 274 ms on four desktop cores. Too heavy for a phone that is also filming, and the vehicles are already found by EfficientDet-Lite0.
