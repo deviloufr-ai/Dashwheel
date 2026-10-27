@@ -36,7 +36,14 @@ data class RoadScene(
      * A speed limit just read off a sign, km/h: sent for a couple of seconds
      * after it is read, null otherwise. The car holds it for the road ahead.
      */
-    val signKmh: Int? = null
+    val signKmh: Int? = null,
+    /**
+     * The sign that ends a limit (the number struck through, or the bars of
+     * "end of all restrictions") was just passed: true for a couple of
+     * seconds after it is seen. The car drops the sign's limit and goes back
+     * to the map's. A car too old to know it keeps the limit, as before.
+     */
+    val signEnd: Boolean = false
 ) : LinkMessage
 
 /**

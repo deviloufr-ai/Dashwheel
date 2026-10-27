@@ -30,18 +30,50 @@ class SignFinderTest {
     }
 
     /** A speed-limit sign [d] pixels across at ([cx], [cy]): a red ring, a white face, two black digits. */
-    private fun sign(buf: ByteBuffer, cx: Int, cy: Int, d: Int) {
+    private fun sign(buf: ByteBuffer, cx: Int, cy: Int, d: Int, digits: Boolean = true) {
         val r = d / 2f
         for (y in cy - d..cy + d) for (x in cx - d..cx + d) {
             val e = hypot((x - cx).toFloat(), (y - cy).toFloat())
             when {
                 e <= 0.78f * r -> {
-                    val digit = kotlin.math.abs(y - cy) < 0.4f * r && (kotlin.math.abs(x - cx + 0.25f * r) < 0.12f * r || kotlin.math.abs(x - cx - 0.25f * r) < 0.12f * r)
+                    val digit = digits && kotlin.math.abs(y - cy) < 0.4f * r && (kotlin.math.abs(x - cx + 0.25f * r) < 0.12f * r || kotlin.math.abs(x - cx - 0.25f * r) < 0.12f * r)
                     if (digit) set(buf, x, y, 30, 30, 30) else set(buf, x, y, 225, 225, 220)
                 }
                 e <= r -> set(buf, x, y, 200, 30, 40)
             }
         }
+    }
+
+    /**
+     * An end-of-limit sign [d] pixels across at ([cx], [cy]): a white face in a
+     * thin black rim, two digits, and a black bar corner to corner, [rising]
+     * to the right (the Continent) or falling (Britain).
+     */
+    private fun endSign(buf: ByteBuffer, cx: Int, cy: Int, d: Int, rising: Boolean = true, digits: Boolean = true, grey: Boolean = false, barDeg: Float = 45f) {
+        val r = d / 2f
+        val ink = if (grey) 125 else 30
+        // The bar's direction, [barDeg] up from the horizontal, rising or falling to the right.
+        val bx = kotlin.math.cos(Math.toRadians(barDeg.toDouble())).toFloat()
+        val by = kotlin.math.sin(Math.toRadians(barDeg.toDouble())).toFloat() * (if (rising) -1 else 1)
+        for (y in cy - d..cy + d) for (x in cx - d..cx + d) {
+            val e = hypot((x - cx).toFloat(), (y - cy).toFloat())
+            if (e > r) continue
+            val ex = x - cx
+            val ey = y - cy
+            val offBar = kotlin.math.abs(ex * by - ey * bx)
+            val digit = digits && kotlin.math.abs(ey) < 0.4f * r && (kotlin.math.abs(ex + 0.25f * r) < 0.12f * r || kotlin.math.abs(ex - 0.25f * r) < 0.12f * r)
+            when {
+                e > 0.92f * r -> set(buf, x, y, ink, ink, ink)
+                offBar < 0.07f * d -> set(buf, x, y, ink, ink, ink)
+                digit -> set(buf, x, y, ink, ink, ink)
+                else -> set(buf, x, y, 225, 225, 220)
+            }
+        }
+    }
+
+    /** An overcast sky across the top of the street. */
+    private fun sky(buf: ByteBuffer) {
+        for (y in 0 until 240) for (x in 0 until w) set(buf, x, y, 205, 208, 212)
     }
 
     @Test
@@ -50,8 +82,95 @@ class SignFinderTest {
         sign(buf, 500, 150, 40)
         val got = SignFinder.find(buf, w, h, w * 4, 0)
         assertEquals(1, got.size)
+        assertEquals(SignKind.LIMIT, got[0].kind)
         assertEquals(500f / w, got[0].box.centerX, 0.01f)
         assertTrue("about 40 px across: ${got[0].sidePx}", got[0].sidePx in 36..44)
+    }
+
+    @Test
+    fun anEndOfLimitSignIsFound() {
+        val buf = street()
+        sky(buf)
+        endSign(buf, 500, 150, 40)
+        val got = SignFinder.find(buf, w, h, w * 4, 0)
+        assertEquals(got.toString(), 1, got.size)
+        assertEquals(SignKind.END, got[0].kind)
+        assertEquals(500f / w, got[0].box.centerX, 0.02f)
+        assertEquals(150f / h, (got[0].box.top + got[0].box.bottom) / 2, 0.02f)
+        assertTrue("about 40 px across: ${got[0].sidePx}", got[0].sidePx in 32..48)
+    }
+
+    @Test
+    fun anEndSignIsFoundAgainstTheStreetAndWithoutDigits() {
+        val buf = street()
+        endSign(buf, 300, 300, 32, digits = false)
+        val got = SignFinder.find(buf, w, h, w * 4, 0)
+        assertEquals(got.toString(), 1, got.size)
+        assertEquals(SignKind.END, got[0].kind)
+    }
+
+    @Test
+    fun aBritishEndSignFallsToTheRight() {
+        val buf = street()
+        sky(buf)
+        endSign(buf, 200, 120, 48, rising = false)
+        val got = SignFinder.find(buf, w, h, w * 4, 0)
+        assertEquals(got.toString(), 1, got.size)
+        assertEquals(SignKind.END, got[0].kind)
+    }
+
+    @Test
+    fun anEndSignLeaningInTheHolderIsFound() {
+        // The phone a little turned, or the sign seen from the side: the bar is not quite at 45°.
+        for (deg in floatArrayOf(37f, 53f)) {
+            val buf = street()
+            sky(buf)
+            endSign(buf, 500, 150, 40, barDeg = deg)
+            val got = SignFinder.find(buf, w, h, w * 4, 0)
+            assertEquals("at $deg°: $got", 1, got.size)
+            assertEquals(SignKind.END, got[0].kind)
+        }
+    }
+
+    @Test
+    fun aGreyEndSignIsFound() {
+        // Germany's: grey ink, not black.
+        val buf = street()
+        sky(buf)
+        endSign(buf, 400, 100, 44, grey = true)
+        val got = SignFinder.find(buf, w, h, w * 4, 0)
+        assertEquals(got.toString(), 1, got.size)
+        assertEquals(SignKind.END, got[0].kind)
+    }
+
+    @Test
+    fun anEndSignTooSmallIsLeft() {
+        val buf = street()
+        sky(buf)
+        endSign(buf, 500, 150, 14)
+        assertEquals(0, SignFinder.find(buf, w, h, w * 4, 0).size)
+    }
+
+    @Test
+    fun aTwigAgainstTheSkyIsNoEndSign() {
+        val buf = street()
+        sky(buf)
+        // A dark branch at 45°, as long as a sign's bar, with nothing round it.
+        for (k in 0 until 40) for (t in 0 until 4) set(buf, 480 + k + t, 170 - k, 35, 30, 25)
+        assertEquals(0, SignFinder.find(buf, w, h, w * 4, 0).size)
+    }
+
+    @Test
+    fun aDigitsStrokeInALimitSignIsNoEndSign() {
+        // A big "7": its stroke is a dark bar, inside a red ring.
+        val buf = street()
+        sky(buf)
+        sign(buf, 320, 160, 80, digits = false)
+        for (k in 0 until 32) for (t in 0 until 5) set(buf, 320 - 24 + k + t, 160 + 16 - k, 30, 30, 30)
+        for (x in 296..316) for (t in 0 until 5) set(buf, x, 144 + t, 30, 30, 30)
+        val got = SignFinder.find(buf, w, h, w * 4, 0)
+        assertEquals(got.toString(), 1, got.size)
+        assertEquals(SignKind.LIMIT, got[0].kind)
     }
 
     @Test
@@ -92,6 +211,9 @@ class SignFinderTest {
         assertEquals(30, c.read(30, 400))
         // A blur read as 80 once doesn't change it.
         assertNull(c.read(80, 800))
+        // An end sign, seen on two frames, ends it.
+        assertNull(c.read(SignConfirm.END, 1_200))
+        assertEquals(SignConfirm.END, c.read(SignConfirm.END, 1_500))
         // Seconds apart, two reads don't make one.
         val d = SignConfirm()
         assertNull(d.read(50, 0))

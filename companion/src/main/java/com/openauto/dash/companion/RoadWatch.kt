@@ -28,6 +28,7 @@ import com.openauto.dash.roadwatch.RoadBand
 import com.openauto.dash.roadwatch.RoadRules
 import com.openauto.dash.roadwatch.RoadWarning
 import com.openauto.dash.roadwatch.SignFinder
+import com.openauto.dash.roadwatch.SignKind
 import com.openauto.dash.roadwatch.Upright
 import com.openauto.dash.roadwatch.Detection
 import com.openauto.dash.roadwatch.withBefore
@@ -60,6 +61,8 @@ data class RoadView(
     val horizonSet: Boolean = true,
     /** The speed limit last read off a sign, km/h. */
     val signKmh: Int? = null,
+    /** The sign ending the limit was just passed: shown for a moment in the limit's place. */
+    val signEnd: Boolean = false,
     /** The camera's view across the picture's height, degrees: where gravity puts the horizon in it. */
     val vfovDeg: Float = 46f,
     /** While the driver places the phone: where the dashboard starts and how much of the side the pillar covers ([Mount]). */
@@ -298,10 +301,13 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         val beforeSigns = SystemClock.elapsedRealtimeNanos()
         // A round red sign big enough to read: the biggest one goes to the reader. Once one is seen, every
         // frame is looked at for a while: at 80 km/h a sign is big enough to read for under a second.
+        // The sign that ends a limit needs no reading: seen, it goes to the reader's count straight away.
         if (frameCount++ % SIGN_EVERY == 0L || now < signBurstUntil) {
-            val spots = SignFinder.find(buffer, w, h, plane.rowStride, rotation, band.bonnetY).filter { it.sidePx >= SignFinder.MIN_SIDE_PX }
+            val spots = SignFinder.find(buffer, w, h, plane.rowStride, rotation, band.bonnetY)
+                .filter { it.kind == SignKind.END || it.sidePx >= SignFinder.MIN_SIDE_PX }
             if (spots.isNotEmpty()) signBurstUntil = now + SIGN_BURST_MS
-            spots.maxByOrNull { it.sidePx }?.let { signs.read(buffer, w, h, plane.rowStride, rotation, it) }
+            spots.filter { it.kind == SignKind.LIMIT }.maxByOrNull { it.sidePx }?.let { signs.read(buffer, w, h, plane.rowStride, rotation, it) }
+            if (spots.any { it.kind == SignKind.END }) signs.sawEnd()
         }
         val beforeLane = SystemClock.elapsedRealtimeNanos()
         val sighting = LaneFinder.find(luma, band, lanes.carX, hfov, found.orEmpty().map { it.box })
@@ -327,7 +333,8 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
             leadKind = lead?.kind?.name?.lowercase(),
             speedKmh = speed,
             vehicles = vehicles != null,
-            signKmh = RoadSigns.fresh(SIGN_SEND_MS, now)
+            signKmh = RoadSigns.fresh(SIGN_SEND_MS, now),
+            signEnd = RoadSigns.endFresh(SIGN_SEND_MS, now)
         )
         if (now - sentAt >= SEND_EVERY_MS) {
             sentAt = now
@@ -351,6 +358,7 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
             band = band, lane = lane, lead = lead, warning = warning,
             vehicles = vehicles != null, speedKmh = speed, fps = fps, horizonSet = horizonSet,
             signKmh = RoadSigns.kmh,
+            signEnd = RoadSigns.endFresh(SIGN_SHOW_MS, now),
             vfovDeg = if (tall) hfovWide else hfovTall,
             dashboardTop = dashboardTop,
             pillar = pillar
@@ -399,8 +407,10 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         const val LEARN_KMH = 50f
         /** Signs are looked for on every this many frames: a sign stays in view for a second or more. */
         const val SIGN_EVERY = 3L
-        /** A sign's limit goes to the car for this long after it is read. */
+        /** A sign's limit goes to the car for this long after it is read; so does the end of one. */
         const val SIGN_SEND_MS = 2_000L
+        /** The end sign stays on the phone's screen this long, where the limit was. */
+        const val SIGN_SHOW_MS = 4_000L
         /** Once a sign is seen, every frame is looked at for this long. */
         const val SIGN_BURST_MS = 1_500L
         /** Frames the vehicle finder is timed on each of the graphics chip and the processor. */
@@ -440,6 +450,7 @@ object RoadStats {
         .put("modelMs", runMs.toDouble())
         .put("gpu", gpu)
         .put("signKmh", RoadSigns.kmh)
+        .put("signEndAgoMs", if (RoadSigns.endAt == 0L) null else SystemClock.elapsedRealtime() - RoadSigns.endAt)
         .put("vehiclesMs", took[0].toDouble())
         .put("signsMs", took[1].toDouble())
         .put("laneMs", took[2].toDouble())
