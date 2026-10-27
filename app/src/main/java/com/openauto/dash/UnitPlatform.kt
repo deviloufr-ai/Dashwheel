@@ -2,6 +2,7 @@ package com.openauto.dash
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.util.Log
 import com.openauto.dash.unit.GenericAdapter
@@ -176,10 +177,35 @@ object UnitPlatform {
                 val app = appContext
                 "Vendor apps" to if (app == null) pkgs.joinToString(", ")
                 else pkgs.joinToString(", ") { if (hasPackage(app, it)) it else "$it (absent)" }
+            },
+            // A firmware no family knows: its own apps (the car box's among them) are what names it (#96).
+            appContext?.takeIf { family == UnitFamily.GENERIC }?.let { app ->
+                firmwareApps(app.packageManager).takeIf { it.isNotEmpty() }?.let { "Firmware apps" to it.joinToString(", ") }
             }
         )
     }
 }
+
+/**
+ * The firmware's own launchable apps, the car-looking ones first: the system
+ * apps that are not Google's nor plain Android's (a `com.android.` one only
+ * when it looks like the car's: some firmwares name their CAN app so). At most [max].
+ */
+internal fun firmwareApps(pm: PackageManager, max: Int = 20): List<String> = runCatching {
+    val launcher = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
+    pm.queryIntentActivities(launcher, 0)
+        .mapNotNull { it.activityInfo?.applicationInfo }
+        .filter { it.flags and ApplicationInfo.FLAG_SYSTEM != 0 }
+        .map { it.packageName }
+        .distinct()
+        .filterNot { FIRMWARE_APPS_SKIP.containsMatchIn(it) }
+        .filter { !it.startsWith("com.android.") || CAR_APP.containsMatchIn(it.removePrefix("com.android.")) }
+        .sortedWith(compareByDescending<String> { CAR_APP.containsMatchIn(it) }.thenBy { it })
+        .take(max)
+}.getOrDefault(emptyList())
+
+private val FIRMWARE_APPS_SKIP = Regex("^(android|com\\.google|com\\.openauto)(\\.|$)")
+private val CAR_APP = Regex("can|car|mcu|vehicle|auto", RegexOption.IGNORE_CASE)
 
 /** Whether [pkg] is installed, through [pm]. */
 internal fun isPackageInstalled(pm: PackageManager, pkg: String): Boolean =
