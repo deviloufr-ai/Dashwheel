@@ -58,7 +58,7 @@ The replay's `detect.py` crops as the phone does: the square is 0.75 of a sidewa
 
 The detector sees each frame on its own: a car it misses for a frame is gone, a box it invents for a frame is a car, and every box shakes a little. `VehicleTracker` (link, the idea of ByteTrack, Zhang et al. 2022) follows each vehicle from frame to frame:
 
-- a vehicle counts once it has been seen on two frames, and has a steady `Detection.id`, which `LeadTracker` keys its history on instead of box overlap;
+- a vehicle counts once it has been seen on two frames, and has a steady `Detection.id`, which `LeadTracker` keys its history on instead of box overlap (together with its kind: a far car taken for a truck, then for a car, has its distance rescaled from 2.5 to 1.8 m of width, which read as closing at 26 m/s on the motorway on 2026-10-27, so a change of kind starts the history afresh);
 - one missed for a moment goes on where it was heading, for half a second;
 - the detector's doubtful boxes (score 0.2 to 0.4; `RoadDetector` now keeps everything from 0.2) count only where a vehicle already is, so far cars, which they mostly are, are kept without the things they invent;
 - each box is smoothed with its own motion (an alpha-beta filter, 0.5 of each sighting into the box, 0.05 into its motion), so the growth the time to impact is read from is the car's, not the box's shaking. 0.2 into the motion made the closing speed twice as jumpy as before; 0.05 leaves it a third jumpier;
@@ -126,7 +126,7 @@ On the user's drives (`roadreplay --signs dir` dumps what the finder finds), it 
 
 The first drive with it (2026-10-27) showed gravity leaning with the car, not only with the phone: `tiltDeg` read 11° under 4.5 m/s² of braking, 8-10° for eight seconds after each stop, 10° in a bend, while the gyroscope's nod stayed under 1°. The hold would have muted the warnings exactly when braking. Since then it starts only once the gyroscope saw the phone nod or roll (`turnedDeg`, fading like the nod, past 3°), and gravity only keeps it while the phone stays turned.
 
-The same drive fired "the car ahead moved off" twice at 0 km/h from a single frame: queued at 4.4 m behind a car at a red light, one frame read 9.7 m; parking, six frames slid from 7 to 6 m before the cars at 12 m. Since then a distance counts, as the queue or as the move, only once it has been read for 300 ms without a jump of more than 1 m from the frame before. The replay of that drive keeps the one real nudge, the car at the light pulling away 8 s later.
+The same drive fired "the car ahead moved off" twice at 0 km/h from a single frame: queued at 4.4 m behind a car at a red light, one frame read 9.7 m; parking, six frames slid from 7 to 6 m before the cars at 12 m. Since then a distance counts, as the queue or as the move, only once it has been read for 300 ms without a jump of more than 1 m from the frame before. The replay of that drive keeps the one real nudge, the car at the light pulling away 8 s later. The afternoon's drive added a third: parked at the kerb as the drive began, a van 12 m ahead whose box slid away as the phone was placed. A queue is something the car drove into, so the nudge now waits until Road watch has seen the car drive (10 km/h) since it started.
 
 ## Night
 

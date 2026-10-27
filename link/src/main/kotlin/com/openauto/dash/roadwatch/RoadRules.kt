@@ -50,6 +50,7 @@ class RoadRules(var lanes: Boolean = true, var movedOff: Boolean = true) {
     private var rightArmed = true
     private var indicatedAt = Long.MIN_VALUE / 2
 
+    private var driven = false
     private var stoppedSince = -1L
     private var nearestStopped: Float? = null
     private var lastStoppedLead: Float? = null
@@ -69,6 +70,7 @@ class RoadRules(var lanes: Boolean = true, var movedOff: Boolean = true) {
             return null
         }
         if (indicating) indicatedAt = now
+        if (kmh >= DRIVEN_KMH) driven = true
         collision(scene, kmh, now)
         tooClose(scene, kmh, now)
         lane(scene, kmh, now)
@@ -93,6 +95,7 @@ class RoadRules(var lanes: Boolean = true, var movedOff: Boolean = true) {
         laneUntil = 0L
         leftArmed = true
         rightArmed = true
+        driven = false
         stoppedSince = -1L
         nearestStopped = null
         movedOffUntil = 0L
@@ -174,7 +177,9 @@ class RoadRules(var lanes: Boolean = true, var movedOff: Boolean = true) {
             stoppedSince = now
             movedOffTold = false
         }
-        if (!movedOff) return
+        // A queue is something the car drove into: parked at the kerb at the start of a drive, the van 12 m ahead
+        // "moved off" as the phone was placed in its holder (2026-10-27).
+        if (!movedOff || !driven) return
         val lead = scene.leadM ?: return
         // A reading that jumps from the frame before, or has only just settled, is a box's flicker to the
         // car beyond, not the car ahead (4.4 m read 9.7 m for one frame at a red light; six frames at 6-7 m
@@ -225,6 +230,8 @@ class RoadRules(var lanes: Boolean = true, var movedOff: Boolean = true) {
         const val INDICATOR_GRACE_MS = 2_000L
 
         const val STOPPED_KMH = 2f
+        /** Driven this fast since Road watch started: the next stop can be a queue. */
+        const val DRIVEN_KMH = 10f
         const val STOPPED_FOR_MS = 3_000L
         /** Queued behind it: no further than this. */
         const val QUEUE_M = 12f
