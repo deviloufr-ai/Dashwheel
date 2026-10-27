@@ -52,6 +52,8 @@ class RoadRules(var lanes: Boolean = true, var movedOff: Boolean = true) {
 
     private var stoppedSince = -1L
     private var nearestStopped: Float? = null
+    private var lastStoppedLead: Float? = null
+    private var steadySince = 0L
     private var movedOffTold = false
     private var movedOffUntil = 0L
 
@@ -164,6 +166,7 @@ class RoadRules(var lanes: Boolean = true, var movedOff: Boolean = true) {
             // Driving again: the driver saw it.
             stoppedSince = -1L
             nearestStopped = null
+            lastStoppedLead = null
             movedOffUntil = 0L
             return
         }
@@ -173,6 +176,13 @@ class RoadRules(var lanes: Boolean = true, var movedOff: Boolean = true) {
         }
         if (!movedOff) return
         val lead = scene.leadM ?: return
+        // A reading that jumps from the frame before, or has only just settled, is a box's flicker to the
+        // car beyond, not the car ahead (4.4 m read 9.7 m for one frame at a red light; six frames at 6-7 m
+        // before the cars at 12 m in a car park, 2026-10-27): neither the queue nor a move.
+        val last = lastStoppedLead
+        lastStoppedLead = lead
+        if (last == null || abs(lead - last) > STEADY_M) steadySince = now
+        if (now - steadySince < STEADY_FOR_MS) return
         val nearest = nearestStopped
         if (nearest == null || lead < nearest) nearestStopped = lead
         val near = nearestStopped ?: return
@@ -219,6 +229,10 @@ class RoadRules(var lanes: Boolean = true, var movedOff: Boolean = true) {
         /** Queued behind it: no further than this. */
         const val QUEUE_M = 12f
         const val MOVED_M = 4f
+        /** Frame to frame, a car's distance moves less than this; a jump is another box. */
+        const val STEADY_M = 1f
+        /** Read without a jump for this long: the car, not a box that flickered. */
+        const val STEADY_FOR_MS = 300L
         const val MOVED_OFF_SHOW_MS = 3_000L
     }
 }

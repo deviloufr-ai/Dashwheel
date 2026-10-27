@@ -124,6 +124,10 @@ On the user's drives (`roadreplay --signs dir` dumps what the finder finds), it 
 
 `PhoneHeading` (companion) reads the gyroscope and gravity while Road watch runs. Since 2026-10-27 a clip's notes carry, beside `headingDeg`: `pitchDeg`, the camera's nod over the last couple of seconds (the gyroscope turned about the picture's horizontal, fading with 2 s; a bump, a crest), and `tiltDeg`, how far the phone has turned in its holder since the driver placed it. Turned more than 6° for a second, the phone holds its warnings: the picture no longer shows the road as set up, and the guide comes up by itself once the car stands. Shifting the horizon by the nod frame by frame is not done yet: with `pitchDeg` in the notes it can first be judged on recorded drives.
 
+The first drive with it (2026-10-27) showed gravity leaning with the car, not only with the phone: `tiltDeg` read 11° under 4.5 m/s² of braking, 8-10° for eight seconds after each stop, 10° in a bend, while the gyroscope's nod stayed under 1°. The hold would have muted the warnings exactly when braking. Since then it starts only once the gyroscope saw the phone nod or roll (`turnedDeg`, fading like the nod, past 3°), and gravity only keeps it while the phone stays turned.
+
+The same drive fired "the car ahead moved off" twice at 0 km/h from a single frame: queued at 4.4 m behind a car at a red light, one frame read 9.7 m; parking, six frames slid from 7 to 6 m before the cars at 12 m. Since then a distance counts, as the queue or as the move, only once it has been read for 300 ms without a jump of more than 1 m from the frame before. The replay of that drive keeps the one real nudge, the car at the light pulling away 8 s later.
+
 ## Night
 
 When the road between the horizon and the bonnet has been darker than 50 of 255 for 5 s, the camera is told to expose half a stop less (CameraX exposure compensation), so oncoming headlights don't open the exposure and wash out the car ahead's lights and the lane's lines; over 80 for 5 s, back to normal. Not yet tried on the road.
