@@ -19,6 +19,13 @@ const val PROTOCOL_VERSION = 1
 /** TCP port the companion app listens on, on the phone's hotspot address. */
 const val LINK_PORT = 47810
 
+/**
+ * The Bluetooth (RFCOMM) service the companion app offers for a head unit that
+ * has no hotspot to dial: the same encrypted channel, carried by Bluetooth.
+ */
+const val LINK_BLUETOOTH_NAME = "Dashwheel"
+const val LINK_BLUETOOTH_UUID = "5d1c7a4e-8b36-4f0a-9c52-d6e3a7b1f408"
+
 @Serializable
 sealed interface LinkMessage
 
