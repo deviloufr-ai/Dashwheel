@@ -9,6 +9,8 @@
   window types, bounds and owning package names; of the window content, only the
   view with the keyboard focus, when text comes from the phone, to type it there
   (PhoneKeyboard).
+  canPerformGestures: the phone's touchpad (PhoneMouse) taps, holds and
+  scrolls where its pointer is on the car's screen; nothing else touches it.
   notificationTimeout batches the events: a split settles in several window
   changes, and only the swap button's show / hide follows them, so a fraction
   of a second later costs nothing and saves a window-list fetch per change.
@@ -32,5 +34,6 @@
     android:accessibilityFlags="flagDefault|flagRetrieveInteractiveWindows|flagRequestFilterKeyEvents"
     android:canRequestFilterKeyEvents="true"
     android:canRetrieveWindowContent="true"
+    android:canPerformGestures="true"
     android:notificationTimeout="300"
     android:description="@string/split_a11y_description" />

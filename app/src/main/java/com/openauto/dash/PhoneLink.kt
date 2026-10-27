@@ -75,6 +75,7 @@ import com.openauto.dash.link.SecureChannel
 import com.openauto.dash.link.ServiceEntries
 import com.openauto.dash.link.StoredPairing
 import com.openauto.dash.link.TypeText
+import com.openauto.dash.link.PhonePointer
 import com.openauto.dash.link.UnknownPairingException
 import com.openauto.dash.link.RoadScene
 import kotlinx.coroutines.CoroutineScope
@@ -743,6 +744,8 @@ object PhoneLink {
             is CallState -> _call.value = toPhoneCall(context, message)
             is TypeText -> PhoneKeyboard.type(context, message) { send(it) }
             EnableTyping -> PhoneKeyboard.enable(context) { send(it) }
+            // The phone's touchpad: the pointer on the car's screen, and its taps.
+            is PhonePointer -> PhoneMouse.handle(message) { send(it) }
             is PhoneContacts -> {
                 phoneDials = true
                 val favourites = message.favourites.map { Favourite(it.name, it.number, it.photoPng?.let(::bitmapOf)) }

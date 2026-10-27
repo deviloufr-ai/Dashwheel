@@ -355,6 +355,41 @@ data object EnableTyping : LinkMessage
 @SerialName("typing_access")
 data class TypingAccess(val on: Boolean) : LinkMessage
 
+/**
+ * Phone → head unit: the phone as the car's mouse. The companion's touchpad
+ * moves a pointer on the car's screen ([Kind.MOVE], by [dx], [dy] in the
+ * phone's dp; the head unit scales them to its own screen) and taps, holds
+ * or scrolls ([Kind.SCROLL], the fingers' [dx], [dy]) where it points,
+ * through the head unit's accessibility service, the one typing uses
+ * ([EnableTyping] turns it on). Sent many times a second while a finger
+ * moves, so never answered, except [Kind.SHOW] (the touchpad opened) and a
+ * tap the head unit could not make, answered with [PointerAccess].
+ */
+@Serializable
+@SerialName("pointer")
+data class PhonePointer(val kind: Kind, val dx: Float = 0f, val dy: Float = 0f) : LinkMessage {
+    @Serializable
+    enum class Kind {
+        /** The touchpad opened: the pointer shows, and the head unit says whether it can tap. */
+        SHOW,
+        MOVE,
+        TAP,
+        /** A long press where the pointer is. */
+        HOLD,
+        SCROLL,
+        /** The system's Back and Home. */
+        BACK,
+        HOME,
+        /** The touchpad closed: the pointer goes. */
+        HIDE
+    }
+}
+
+/** Head unit → phone: whether the pointer from the phone can tap on the car's screen; see [PhonePointer]. */
+@Serializable
+@SerialName("pointer_access")
+data class PointerAccess(val on: Boolean) : LinkMessage
+
 /*
  * OBD through the phone: the phone holds the Bluetooth link to the car's
  * ELM327 adapter and passes its serial bytes both ways, so the head unit's

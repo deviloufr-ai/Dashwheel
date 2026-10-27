@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="access_a11y_title">Accès à l\'accessibilité</string>
-    <string name="access_a11y_body">Dashwheel utilise le service d\'accessibilité d\'Android pour mettre deux applis côte à côte, faire faire aux boutons du volant ce que vous avez choisi, comme Retour, et taper dans le champ sélectionné ce que vous dictez sur le téléphone.\n\nPour cela, il voit quelles applis sont ouvertes et où, les boutons pressés et le champ où vous tapez. Il ne lit rien d\'autre à l\'écran. Rien n\'est enregistré, envoyé ni partagé : tout reste sur cet autoradio.</string>
+    <string name="access_a11y_body">Dashwheel utilise le service d\'accessibilité d\'Android pour mettre deux applis côte à côte, faire faire aux boutons du volant ce que vous avez choisi, comme Retour, et taper dans le champ sélectionné ce que vous dictez sur le téléphone.\n\nPour cela, il voit quelles applis sont ouvertes et où, les boutons pressés et le champ où vous tapez. Il ne lit rien d\'autre à l\'écran. Rien n\'est enregistré, envoyé ni partagé : tout reste sur cet autoradio.\n\nAvec le pavé tactile du Companion, il touche aussi et fait défiler là où est le pointeur de votre téléphone, et seulement alors.</string>
     <string name="access_notif_title">Accès aux notifications</string>
     <string name="access_notif_body">Dashwheel lit les notifications pour afficher la lecture en cours, la prochaine direction et les nouveaux messages sur le tableau de bord. Elles restent sur cet autoradio.</string>
     <string name="access_open_settings">Ouvrir les réglages</string>

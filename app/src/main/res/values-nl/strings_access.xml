@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="access_a11y_title">Toegankelijkheidstoegang</string>
-    <string name="access_a11y_body">Dashwheel gebruikt de toegankelijkheidsdienst van Android om twee apps naast elkaar te zetten, de stuurwielknoppen te laten doen wat u instelde, zoals Terug, en wat u op de telefoon dicteert in het gekozen veld te typen.\n\nDaarvoor ziet het welke apps open zijn en waar, de knoppen die u indrukt en het veld waarin u typt. Verder leest het niets op het scherm. Niets wordt bewaard, verstuurd of gedeeld: alles blijft op dit apparaat.</string>
+    <string name="access_a11y_body">Dashwheel gebruikt de toegankelijkheidsdienst van Android om twee apps naast elkaar te zetten, de stuurwielknoppen te laten doen wat u instelde, zoals Terug, en wat u op de telefoon dicteert in het gekozen veld te typen.\n\nDaarvoor ziet het welke apps open zijn en waar, de knoppen die u indrukt en het veld waarin u typt. Verder leest het niets op het scherm. Niets wordt bewaard, verstuurd of gedeeld: alles blijft op dit apparaat.\n\nMet het touchpad van de Companion tikt en scrolt het ook waar de aanwijzer van uw telefoon staat, en alleen dan.</string>
     <string name="access_notif_title">Meldingstoegang</string>
     <string name="access_notif_body">Dashwheel leest meldingen om te tonen wat er speelt, de volgende afslag en nieuwe berichten op het dashboard. Ze blijven op dit apparaat.</string>
     <string name="access_open_settings">Instellingen openen</string>

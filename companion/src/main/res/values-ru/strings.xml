@@ -77,6 +77,12 @@
     <string name="keyboard_turning_on">Включение в автомобиле…</string>
     <string name="keyboard_typing_on">Ввод включён: выберите поле на экране автомобиля и печатайте здесь.</string>
     <string name="keyboard_turn_on_failed">Автомобиль не смог его включить: в автомобиле откройте Настройки, Спец. возможности и включите Dashwheel.</string>
+    <string name="touchpad_title">Тачпад</string>
+    <string name="touchpad_detail">Телефон как мышь для экрана машины.</string>
+    <string name="touchpad_hint">Ведите пальцем, чтобы двигать указатель на экране машины. Коснитесь, чтобы нажать, задержите палец для долгого нажатия, прокручивайте двумя пальцами.</string>
+    <string name="touchpad_back">Назад</string>
+    <string name="touchpad_home">Домой</string>
+    <string name="touchpad_off">Машина не может нажимать за телефон: её служба специальных возможностей выключена.</string>
     <string name="send_to_car">В автомобиль</string>
     <string name="sent_to_car">Отправлено на экран автомобиля</string>
     <string name="place_sent">Маршрут отправлен в автомобиль: %1$s</string>

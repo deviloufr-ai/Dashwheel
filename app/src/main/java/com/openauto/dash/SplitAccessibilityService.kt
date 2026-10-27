@@ -723,6 +723,21 @@ class SplitAccessibilityService : AccessibilityService() {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) runCatching { node.recycle() }
         }
 
+        /**
+         * Whether the service may touch the screen ([gesture]): bound, and
+         * granted it (a service bound before an update that asked for it
+         * waits for Android to bind it again).
+         */
+        fun canGesture(): Boolean = instance?.let { s ->
+            runCatching {
+                s.serviceInfo.capabilities and android.accessibilityservice.AccessibilityServiceInfo.CAPABILITY_CAN_PERFORM_GESTURES != 0
+            }.getOrDefault(false)
+        } ?: false
+
+        /** A touch on the screen, where the phone's pointer points ([PhoneMouse]); false when it could not be sent. */
+        fun gesture(gesture: android.accessibilityservice.GestureDescription): Boolean =
+            instance?.let { runCatching { it.dispatchGesture(gesture, null, null) }.getOrDefault(false) } ?: false
+
         /** Any `GLOBAL_ACTION_*` (back, recents, notifications...); false when the service is not bound. */
         fun globalAction(action: Int): Boolean =
             instance?.let { runCatching { it.performGlobalAction(action) }.getOrDefault(false) } ?: false

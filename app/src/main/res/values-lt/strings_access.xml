@@ -2,7 +2,7 @@
 <resources>
     <!-- The Play edition\'s disclosure dialogs before a system access page (AccessDisclosure.kt). -->
     <string name="access_a11y_title">Pritaikymo neįgaliesiems prieiga</string>
-    <string name="access_a11y_body">Dashwheel naudoja Android pritaikymo neįgaliesiems paslaugą, kad galėtų rodyti dvi programas greta, kad vairo mygtukai darytų tai, ką nustatėte, pvz., Atgal, ir kad į pasirinktą lauką įvestų tai, ką padiktuojate telefonu.\n\nTam ji mato, kurios programos atidarytos ir kur, kokius mygtukus spaudžiate ir kuriame lauke rašote. Nieko kito ekrane neskaito. Niekas nesaugoma, nesiunčiama ir nebendrinama: viskas lieka šioje magnetoloje.</string>
+    <string name="access_a11y_body">Dashwheel naudoja Android pritaikymo neįgaliesiems paslaugą, kad galėtų rodyti dvi programas greta, kad vairo mygtukai darytų tai, ką nustatėte, pvz., Atgal, ir kad į pasirinktą lauką įvestų tai, ką padiktuojate telefonu.\n\nTam ji mato, kurios programos atidarytos ir kur, kokius mygtukus spaudžiate ir kuriame lauke rašote. Nieko kito ekrane neskaito. Niekas nesaugoma, nesiunčiama ir nebendrinama: viskas lieka šioje magnetoloje.\n\nSu Companion jutikliniu kilimėliu ji taip pat spaudžia ir slenka ten, kur yra telefono žymeklis, ir tik tada.</string>
     <string name="access_notif_title">Prieiga prie pranešimų</string>
     <string name="access_notif_body">Dashwheel skaito pranešimus, kad skydelyje rodytų, kas groja, kitą posūkį ir naujas žinutes. Jie lieka šioje magnetoloje.</string>
     <string name="access_open_settings">Atidaryti nustatymus</string>

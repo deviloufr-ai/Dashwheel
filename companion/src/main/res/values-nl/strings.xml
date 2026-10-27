@@ -76,6 +76,12 @@
     <string name="keyboard_turning_on">Wordt ingeschakeld in de auto…</string>
     <string name="keyboard_typing_on">Typen staat aan: kies een veld op het autoscherm en typ hier.</string>
     <string name="keyboard_turn_on_failed">De auto kon het niet inschakelen: open in de auto Instellingen, Toegankelijkheid, en zet Dashwheel aan.</string>
+    <string name="touchpad_title">Touchpad</string>
+    <string name="touchpad_detail">Je telefoon als muis voor het autoscherm.</string>
+    <string name="touchpad_hint">Schuif met een vinger om de aanwijzer op het autoscherm te bewegen. Tik om te tikken, houd je vinger neer voor lang drukken, scrol met twee vingers.</string>
+    <string name="touchpad_back">Terug</string>
+    <string name="touchpad_home">Start</string>
+    <string name="touchpad_off">De auto kan niet tikken voor de telefoon: zijn toegankelijkheidsdienst staat uit.</string>
     <string name="send_to_car">Naar auto sturen</string>
     <string name="sent_to_car">Naar het autoscherm gestuurd</string>
     <string name="place_sent">Route naar de auto gestuurd: %1$s</string>

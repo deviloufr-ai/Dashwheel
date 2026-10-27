@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="access_a11y_title">Zugriff auf Bedienungshilfen</string>
-    <string name="access_a11y_body">Dashwheel nutzt den Bedienungshilfen-Dienst von Android, um zwei Apps nebeneinander zu zeigen, die Lenkradtasten das Eingestellte tun zu lassen, etwa Zurück, und das am Telefon Diktierte in das ausgewählte Feld zu tippen.\n\nDafür sieht es, welche Apps wo geöffnet sind, die gedrückten Tasten und das Feld, in das Sie tippen. Sonst liest es nichts auf dem Bildschirm. Nichts wird gespeichert, gesendet oder geteilt: Alles bleibt auf diesem Gerät.</string>
+    <string name="access_a11y_body">Dashwheel nutzt den Bedienungshilfen-Dienst von Android, um zwei Apps nebeneinander zu zeigen, die Lenkradtasten das Eingestellte tun zu lassen, etwa Zurück, und das am Telefon Diktierte in das ausgewählte Feld zu tippen.\n\nDafür sieht es, welche Apps wo geöffnet sind, die gedrückten Tasten und das Feld, in das Sie tippen. Sonst liest es nichts auf dem Bildschirm. Nichts wird gespeichert, gesendet oder geteilt: Alles bleibt auf diesem Gerät.\n\nMit dem Touchpad des Companion tippt und scrollt es außerdem dort, wo der Zeiger Ihres Handys steht, und nur dann.</string>
     <string name="access_notif_title">Benachrichtigungszugriff</string>
     <string name="access_notif_body">Dashwheel liest Benachrichtigungen, um die laufende Wiedergabe, die nächste Abbiegung und neue Nachrichten auf dem Dashboard zu zeigen. Sie bleiben auf diesem Gerät.</string>
     <string name="access_open_settings">Einstellungen öffnen</string>

@@ -76,6 +76,12 @@
     <string name="keyboard_turning_on">Activando en el coche…</string>
     <string name="keyboard_typing_on">Escritura activada: selecciona un campo en la pantalla del coche y escribe aquí.</string>
     <string name="keyboard_turn_on_failed">El coche no pudo activarla: en el coche, abre Ajustes, Accesibilidad, y activa Dashwheel.</string>
+    <string name="touchpad_title">Panel táctil</string>
+    <string name="touchpad_detail">Tu teléfono como ratón de la pantalla del coche.</string>
+    <string name="touchpad_hint">Desliza un dedo para mover el puntero en la pantalla del coche. Toca para tocar, mantén el dedo para una pulsación larga, usa dos dedos para desplazarte.</string>
+    <string name="touchpad_back">Atrás</string>
+    <string name="touchpad_home">Inicio</string>
+    <string name="touchpad_off">El coche no puede tocar por el teléfono: su servicio de accesibilidad está desactivado.</string>
     <string name="send_to_car">Enviar al coche</string>
     <string name="sent_to_car">Enviado a la pantalla del coche</string>
     <string name="place_sent">Ruta enviada al coche: %1$s</string>

@@ -2,7 +2,7 @@
 <resources>
     <!-- The Play edition\'s disclosure dialogs before a system access page (AccessDisclosure.kt). -->
     <string name="access_a11y_title">Accessibility access</string>
-    <string name="access_a11y_body">Dashwheel uses Android\'s accessibility service to put two apps side by side, to make the steering wheel buttons do what you set, like Back, and to type what you dictate on your phone into the selected field.\n\nFor this it sees which apps are open and where, the buttons you press and the field you type in. It reads nothing else on the screen. Nothing is stored, sent or shared: it all stays on this unit.</string>
+    <string name="access_a11y_body">Dashwheel uses Android\'s accessibility service to put two apps side by side, to make the steering wheel buttons do what you set, like Back, and to type what you dictate on your phone into the selected field.\n\nFor this it sees which apps are open and where, the buttons you press and the field you type in. It reads nothing else on the screen. Nothing is stored, sent or shared: it all stays on this unit.\n\nWith the Companion\'s touchpad, it also taps and scrolls where your phone\'s pointer is on the screen, and only then.</string>
     <string name="access_notif_title">Notification access</string>
     <string name="access_notif_body">Dashwheel reads notifications to show what is playing, the next turn and new messages on the dashboard. They stay on this unit.</string>
     <string name="access_open_settings">Open settings</string>

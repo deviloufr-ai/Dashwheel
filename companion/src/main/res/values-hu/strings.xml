@@ -77,6 +77,12 @@
     <string name="keyboard_turning_on">Bekapcsolás az autóban…</string>
     <string name="keyboard_typing_on">A gépelés be van kapcsolva: válasszon ki egy mezőt az autó képernyőjén, majd gépeljen itt.</string>
     <string name="keyboard_turn_on_failed">Az autó nem tudta bekapcsolni: az autóban nyissa meg a Beállítások, Kisegítő lehetőségek menüt, és kapcsolja be a Dashwheelt.</string>
+    <string name="touchpad_title">Érintőpad</string>
+    <string name="touchpad_detail">A telefon egérként az autó képernyőjéhez.</string>
+    <string name="touchpad_hint">Húzza az ujját a mutató mozgatásához az autó képernyőjén. Koppintson a koppintáshoz, tartsa lent az ujját a hosszú nyomáshoz, két ujjal görgessen.</string>
+    <string name="touchpad_back">Vissza</string>
+    <string name="touchpad_home">Kezdőlap</string>
+    <string name="touchpad_off">Az autó nem tud koppintani a telefon helyett: a kisegítő szolgáltatása ki van kapcsolva.</string>
     <string name="send_to_car">Küldés az autóra</string>
     <string name="sent_to_car">Elküldve az autó képernyőjére</string>
     <string name="place_sent">Útvonal elküldve az autónak: %1$s</string>

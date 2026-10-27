@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="access_a11y_title">Accesso all\'accessibilità</string>
-    <string name="access_a11y_body">Dashwheel usa il servizio di accessibilità di Android per affiancare due app, far fare ai tasti del volante ciò che hai scelto, come Indietro, e scrivere nel campo selezionato ciò che detti sul telefono.\n\nPer farlo vede quali app sono aperte e dove, i tasti premuti e il campo in cui scrivi. Non legge nient\'altro sullo schermo. Niente viene salvato, inviato o condiviso: tutto resta su questa unità.</string>
+    <string name="access_a11y_body">Dashwheel usa il servizio di accessibilità di Android per affiancare due app, far fare ai tasti del volante ciò che hai scelto, come Indietro, e scrivere nel campo selezionato ciò che detti sul telefono.\n\nPer farlo vede quali app sono aperte e dove, i tasti premuti e il campo in cui scrivi. Non legge nient\'altro sullo schermo. Niente viene salvato, inviato o condiviso: tutto resta su questa unità.\n\nCon il touchpad del Companion, tocca e scorre anche dove si trova il puntatore del telefono, e solo allora.</string>
     <string name="access_notif_title">Accesso alle notifiche</string>
     <string name="access_notif_body">Dashwheel legge le notifiche per mostrare cosa è in riproduzione, la prossima svolta e i nuovi messaggi sul cruscotto. Restano su questa unità.</string>
     <string name="access_open_settings">Apri impostazioni</string>

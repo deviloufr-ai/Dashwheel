@@ -77,6 +77,12 @@
     <string name="keyboard_turning_on">Įjungiama automobilyje…</string>
     <string name="keyboard_typing_on">Rašymas įjungtas: pasirinkite lauką automobilio ekrane, tada rašykite čia.</string>
     <string name="keyboard_turn_on_failed">Automobiliui nepavyko to įjungti: automobilyje atidarykite Nustatymai, Pritaikymas neįgaliesiems ir įjunkite Dashwheel.</string>
+    <string name="touchpad_title">Jutiklinis kilimėlis</string>
+    <string name="touchpad_detail">Telefonas kaip automobilio ekrano pelė.</string>
+    <string name="touchpad_hint">Braukite pirštu, kad judintumėte žymeklį automobilio ekrane. Bakstelėkite, kad paspaustumėte, palaikykite pirštą ilgam paspaudimui, slinkite dviem pirštais.</string>
+    <string name="touchpad_back">Atgal</string>
+    <string name="touchpad_home">Pradžia</string>
+    <string name="touchpad_off">Automobilis negali spausti už telefoną: jo pritaikymo neįgaliesiems paslauga išjungta.</string>
     <string name="send_to_car">Siųsti į automobilį</string>
     <string name="sent_to_car">Išsiųsta į automobilio ekraną</string>
     <string name="place_sent">Maršrutas išsiųstas į automobilį: %1$s</string>

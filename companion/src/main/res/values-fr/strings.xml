@@ -76,6 +76,12 @@
     <string name="keyboard_turning_on">Activation sur la voiture…</string>
     <string name="keyboard_typing_on">Saisie activée : sélectionnez un champ sur l\'écran de la voiture, puis tapez ici.</string>
     <string name="keyboard_turn_on_failed">La voiture n\'a pas pu l\'activer : sur la voiture, ouvrez Paramètres, Accessibilité, et activez Dashwheel.</string>
+    <string name="touchpad_title">Pavé tactile</string>
+    <string name="touchpad_detail">Votre téléphone comme souris de l\'écran de la voiture.</string>
+    <string name="touchpad_hint">Glissez un doigt pour bouger le pointeur sur l\'écran de la voiture. Touchez pour toucher, gardez le doigt posé pour un appui long, deux doigts pour faire défiler.</string>
+    <string name="touchpad_back">Retour</string>
+    <string name="touchpad_home">Accueil</string>
+    <string name="touchpad_off">La voiture ne peut pas toucher pour le téléphone : son service d\'accessibilité est désactivé.</string>
     <string name="send_to_car">Envoyer à la voiture</string>
     <string name="sent_to_car">Envoyé à l\'écran de la voiture</string>
     <string name="place_sent">Guidage envoyé à la voiture : %1$s</string>

@@ -76,6 +76,12 @@
     <string name="keyboard_turning_on">A ligar no carro…</string>
     <string name="keyboard_typing_on">Escrita ligada: selecione um campo no ecrã do carro e escreva aqui.</string>
     <string name="keyboard_turn_on_failed">O carro não conseguiu ligá-la: no carro, abra Definições, Acessibilidade, e ligue o Dashwheel.</string>
+    <string name="touchpad_title">Touchpad</string>
+    <string name="touchpad_detail">O seu telemóvel como rato do ecrã do carro.</string>
+    <string name="touchpad_hint">Deslize um dedo para mover o ponteiro no ecrã do carro. Toque para tocar, mantenha o dedo pousado para um toque longo, use dois dedos para deslocar.</string>
+    <string name="touchpad_back">Voltar</string>
+    <string name="touchpad_home">Início</string>
+    <string name="touchpad_off">O carro não pode tocar pelo telemóvel: o serviço de acessibilidade está desligado.</string>
     <string name="send_to_car">Enviar para o carro</string>
     <string name="sent_to_car">Enviado para o ecrã do carro</string>
     <string name="place_sent">Rota enviada para o carro: %1$s</string>
