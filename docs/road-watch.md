@@ -81,6 +81,19 @@ The alarms left are parked and oncoming cars in villages, as before. Jakarta gai
 - **People as leads** (COCO's person class; a pedestrian in the path in town). They set off 6 of 19 alarms: people walking beside the road, inside the corridor, and inside the "lane" too, since a village street without a centre line gives a lane as wide as the road. Left out.
 - **Distance from where the box meets the road** (the camera's height over the horizon's row, class-free). On a stationary car the true distance falls by exactly speed × time: over 1,219 one-second windows the width-based distance fell 0.86 of that, the ground-plane one 0.05. At the phone's view the horizon's row must be right to a fraction of a percent of the height, and the learned horizon isn't. Width stays.
 
+### A detector trained on dashcam drives (2026-10-27)
+
+YOLOX-tiny (Apache 2.0) fine-tuned on the user's 33 phone clips and the Jakarta hour, labelled by YOLOPv2 on the PC's graphics card (`eval/reference.py --device cuda`; 17,479 frames, 101,475 boxes, one class), 30 epochs on the 3080 Ti. Scored as the phone would run it (`eval/detect_x.py`, the horizon look on alternate frames) on three clips kept out of the training, against Lite2 and the stock YOLOX-tiny, the share of the car ahead found:
+
+| Detector, score floor | 15-30 m | 30-50 m | 50-80 m | 80 m + | Boxes invented / 100 frames |
+|---|---|---|---|---|---|
+| Lite2, 0.4 (the phone's) | 94 % | 86 % | 57 % | 3 % | 4.4 |
+| YOLOX-tiny stock, 0.4 | 95 % | 94 % | 85 % | 47 % | 11.1 |
+| YOLOX-tiny fine-tuned, 0.4 | 77 % | 84 % | 74 % | 61 % | 24.2 |
+| YOLOX-tiny fine-tuned, 0.6 | 74 % | 82 % | 72 % | 56 % | 9.8 |
+
+It sees furthest, and it is worse than the stock model up to 50 m and invents more: trained on whole frames shrunk to 416 pixels, it has not learned the near, big cars the phone's square shows. Not on the phone: it would need near frames in the training (the phone's own crops), the ONNX-to-TFLite conversion, a YOLOX decoder in `RoadDetector`, hosting, and the NPU for its cost (twice Lite2's). The stock YOLOX-tiny remains the better candidate for the range alone.
+
 ## A car beside the path, not in it
 
 A car parked at the edge of a street without lines, or coming the other way in its own half, sits inside the guessed lane. As the car closes in, `LeadTracker` measures how far its sides slide across the picture for each bit it grows taller. That gives each side's distance aside in metres, whatever the camera's aim. The height is used, not the width: a car beside the path shows its flank, which widens its box towards the path. The inner side of the box is the far front corner, so the side read is the outer one (the back corner), and the inner side is one car's width in from it. A car wholly more than 1.1 m from the middle of the path (half the car's width and 20 cm) is driven past: it gets no time to impact.

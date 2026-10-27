@@ -49,7 +49,7 @@ Add a night clip and a rain clip to the eval set before #2, #8 or #9, or their g
 | # | Outcome |
 |---|---|
 | 1 NPU | Not built. LiteRT 2.3 has `litert-npu-runtime-qualcomm` on Maven (0.5 MB), but the Hexagon libraries must be bundled from Qualcomm's SDK under its licence, the detector would move to the CompiledModel API, and nothing can be tested here. |
-| 2 Dashcam-trained detector | YOLOX-tiny fine-tuned on YOLOPv2 pseudo-labels of the 33 phone clips and the Jakarta hour (17,479 frames, 101,475 boxes) on the 3080 Ti. Scored against Lite2 and the stock YOLOX-tiny on three held-out clips: see docs/road-watch.md. Not on the phone: it needs the ONNX-to-TFLite conversion, a YOLOX decoder in `RoadDetector`, hosting, and the NPU for its cost. |
+| 2 Dashcam-trained detector | YOLOX-tiny fine-tuned on YOLOPv2 pseudo-labels of the 33 phone clips and the Jakarta hour (17,479 frames, 101,475 boxes) on the 3080 Ti. On three held-out clips it finds the car ahead past 80 m 61 % of the time (Lite2 3 %, stock YOLOX-tiny 47 %) but is worse up to 50 m and invents more; details in docs/road-watch.md. Not on the phone: it needs the ONNX-to-TFLite conversion, a YOLOX decoder in `RoadDetector`, hosting, and the NPU for its cost. |
 | 3 Tracker | Built: `VehicleTracker`. False collision alarms 21 → 14 on 15 clips, car ahead seen 50.6 → 55.1 %, time to impact on 31 % more frames. |
 | 4 Ground-plane distance | Built, tested, dropped: it fell 0.05 of the true distance against 0.86 for the width. The horizon isn't known to the fraction of a percent it needs. |
 | 5 Gyro pitch | `pitchDeg` and `tiltDeg` in the clip notes; warnings held while the phone has turned in its holder. The horizon shift waits for drives with pitch in the notes. |
