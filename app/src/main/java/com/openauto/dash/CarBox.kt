@@ -9,7 +9,7 @@ import android.net.Uri
 import android.os.SystemClock
 import android.util.Log
 import androidx.core.content.ContextCompat
-import com.openauto.dash.vehicle.CarSpeedProof
+import com.openauto.dash.vehicle.CarValueProof
 import com.openauto.dash.vehicle.FUEL_HOLD_MS
 import com.openauto.dash.vehicle.Indicators
 import com.openauto.dash.vehicle.K
@@ -78,8 +78,12 @@ object CarBox {
      * the parking sensors, reverse and the steering angle as it says them.
      */
     private val busPublisher = Vehicle.bus.register(Source("qf.car_app", SourceKind.VEHICLE_APP, "QF car app"))
-    /** The body's speed is 0 for ever where the CAN box does not carry it: not said until it has moved. */
-    private val speedProof = CarSpeedProof()
+    /** The body's numbers are 0 for ever where the CAN box does not carry them: each not said until it has once been above 0. */
+    private val speedProof = CarValueProof()
+    private val rpmProof = CarValueProof()
+    private val fuelProof = CarValueProof()
+    private val consumptionProof = CarValueProof()
+    private val tripProof = CarValueProof()
     /** What the body last said for the states it puts on a change only. */
     private val stated = HashMap<Key<*>, Any>()
     private var started = false
@@ -244,21 +248,21 @@ object CarBox {
     }
 
     /** What the body says, on the bus. */
-    private fun publishBody(b: CarBody, range: Int?) {
+    private fun publishBody(b: CarBody, range: Int?, fuelPct: Int?) {
         busPublisher.put(K.VEHICLE_SPEED, speedProof.believe(b.speedKmh)?.let(SpeedCorrection::corrected)?.toDouble(), ttlMs = FRESH_MS)
-        busPublisher.put(K.RPM, b.rpm?.toDouble(), ttlMs = FRESH_MS)
+        busPublisher.put(K.RPM, rpmProof.believe(b.rpm)?.toDouble(), ttlMs = FRESH_MS)
         // The lights count as on from the side lights up: the unit's own headlight signal is the illumination wire.
         putState(K.HEADLIGHTS, b.highBeam || b.dippedBeam || b.sidelights)
         putState(K.LIGHTS, lightsOn(b))
         putState(K.INDICATORS, Indicators(b.turnLeft, b.turnRight))
         putState(K.DRIVER_BELT, b.driverBeltUnfastened)
         putState(K.HANDBRAKE, b.handbrake)
-        busPublisher.put(K.FUEL_CONSUMPTION, b.instantConsumption?.toDouble(), ttlMs = FRESH_MS)
+        busPublisher.put(K.FUEL_CONSUMPTION, consumptionProof.believe(b.instantConsumption)?.toDouble(), ttlMs = FRESH_MS)
         // The car says these on a change, so a parked car's last word stands for hours (a tile shows it until the next).
-        busPublisher.put(K.FUEL_LEVEL, fuelPercentToPublish(fuelPercentOf(b), range)?.toDouble(), ttlMs = FUEL_HOLD_MS)
+        busPublisher.put(K.FUEL_LEVEL, fuelPercentToPublish(fuelPct, range)?.toDouble(), ttlMs = FUEL_HOLD_MS)
         busPublisher.put(K.RANGE, range?.toDouble(), ttlMs = FUEL_HOLD_MS)
         busPublisher.put(K.ODOMETER, b.odometer?.takeIf { it > 0f }?.toDouble())
-        busPublisher.put(K.TRIP_DISTANCE, b.trip1?.toDouble())
+        busPublisher.put(K.TRIP_DISTANCE, tripProof.believe(b.trip1)?.toDouble())
     }
 
     private val receiver = object : BroadcastReceiver() {
@@ -298,8 +302,9 @@ object CarBox {
             SHARE_BODY -> parseCarBody(data!!)?.let {
                 bodyLive.heard()
                 val range = it.range?.takeIf { r -> r in 1f..MAX_RANGE_KM }?.roundToInt()
-                McuReader.carBoxWrite(fuelPercentOf(it), range)
-                publishBody(it, range)
+                val fuelPct = fuelPercentOf(fuelProof.believe(it.fuelLeft))
+                McuReader.carBoxWrite(fuelPct, range)
+                publishBody(it, range, fuelPct)
             }
             SHARE_AC -> parseClimate(data!!)?.let { busPublisher.put(K.CLIMATE, it) }
             SHARE_RADAR -> parseRadar(data!!)?.let { busPublisher.put(K.RADAR, it) }
@@ -315,8 +320,8 @@ object CarBox {
      * litres (what the car app's trip computer counts on most cars); null
      * when it can't be litres of that tank.
      */
-    private fun fuelPercentOf(body: CarBody): Int? {
-        val litres = body.fuelLeft ?: return null
+    private fun fuelPercentOf(litres: Float?): Int? {
+        if (litres == null) return null
         val tank = CarProfileStore.current.tank
         if (tank <= 0 || litres < 0 || litres > tank * 1.1) return null
         return (litres / tank * 100).roundToInt().coerceIn(0, 100)
