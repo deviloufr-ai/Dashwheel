@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="split_a11y_description">Lehetővé teszi, hogy a Dashwheel osztott képernyőn nyisson meg alkalmazásokat a műszerfal mellett, ugyanazzal a rendszerszintű felosztással, amelyet a legutóbbi alkalmazások képernyője használ. A képernyő tartalmából csak a kijelölt szövegmezőt használja, hogy beírja a telefonról küldött szöveget. Megkapja a hardvergombokat is, így a Kezdőképernyő és a Vissza gomb akkor is működik, amikor egy alkalmazás csempében fut, a kiválasztott kormánygombok pedig lapozzák a második képernyőt; a többi gomb érintetlenül továbbhalad.</string>
+    <string name="split_a11y_description">Lehetővé teszi, hogy a Dashwheel osztott képernyőn nyisson meg alkalmazásokat a műszerfal mellett, ugyanazzal a rendszerszintű felosztással, amelyet a legutóbbi alkalmazások képernyője használ. A képernyő tartalmából csak a kijelölt szövegmezőt használja, hogy beírja a telefonról küldött szöveget. Megkapja a hardvergombokat is, így a Kezdőképernyő és a Vissza gomb akkor is működik, amikor egy alkalmazás csempében fut, a kiválasztott kormánygombok pedig lapozzák a második képernyőt; a többi gomb érintetlenül továbbhalad. A telefon érintőpadjával oda koppint és ott görget, ahol a telefon mutatója van a képernyőn.</string>
 
     <!-- Language picker; each language is listed under its own name. -->
     <string name="language_menu">Nyelv</string>

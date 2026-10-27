@@ -76,6 +76,12 @@
     <string name="keyboard_turning_on">Wird im Auto eingeschaltet…</string>
     <string name="keyboard_typing_on">Tippen ist an: Wähle ein Feld auf dem Autobildschirm und tippe hier.</string>
     <string name="keyboard_turn_on_failed">Das Auto konnte es nicht einschalten: Öffne im Auto Einstellungen, Bedienungshilfen, und schalte Dashwheel ein.</string>
+    <string name="touchpad_title">Touchpad</string>
+    <string name="touchpad_detail">Ihr Handy als Maus für den Bildschirm im Auto.</string>
+    <string name="touchpad_hint">Mit einem Finger wischen bewegt den Zeiger auf dem Bildschirm im Auto. Tippen tippt, Finger liegen lassen drückt lange, mit zwei Fingern scrollen.</string>
+    <string name="touchpad_back">Zurück</string>
+    <string name="touchpad_home">Start</string>
+    <string name="touchpad_off">Das Auto kann nicht für das Handy tippen: Sein Bedienungshilfen-Dienst ist aus.</string>
     <string name="send_to_car">An Auto senden</string>
     <string name="sent_to_car">An den Autobildschirm gesendet</string>
     <string name="place_sent">Route ans Auto gesendet: %1$s</string>

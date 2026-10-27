@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="access_a11y_title">Acesso à acessibilidade</string>
-    <string name="access_a11y_body">O Dashwheel usa o serviço de acessibilidade do Android para pôr duas apps lado a lado, fazer os botões do volante cumprirem o que escolheu, como Voltar, e escrever no campo selecionado o que dita no telemóvel.\n\nPara isso vê que apps estão abertas e onde, os botões premidos e o campo onde escreve. Não lê mais nada no ecrã. Nada é guardado, enviado ou partilhado: tudo fica nesta unidade.</string>
+    <string name="access_a11y_body">O Dashwheel usa o serviço de acessibilidade do Android para pôr duas apps lado a lado, fazer os botões do volante cumprirem o que escolheu, como Voltar, e escrever no campo selecionado o que dita no telemóvel.\n\nPara isso vê que apps estão abertas e onde, os botões premidos e o campo onde escreve. Não lê mais nada no ecrã. Nada é guardado, enviado ou partilhado: tudo fica nesta unidade.\n\nCom o touchpad do Companion, também toca e desloca onde está o ponteiro do seu telemóvel, e só então.</string>
     <string name="access_notif_title">Acesso às notificações</string>
     <string name="access_notif_body">O Dashwheel lê as notificações para mostrar o que está a tocar, a próxima curva e as mensagens novas no painel. Ficam nesta unidade.</string>
     <string name="access_open_settings">Abrir definições</string>

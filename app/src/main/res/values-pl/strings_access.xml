@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="access_a11y_title">Dostęp do ułatwień dostępu</string>
-    <string name="access_a11y_body">Dashwheel używa usługi ułatwień dostępu Androida, by ustawić dwie aplikacje obok siebie, sprawić, by przyciski kierownicy robiły to, co ustawisz, np. Wstecz, i wpisywać w wybrane pole to, co dyktujesz w telefonie.\n\nW tym celu widzi, które aplikacje są otwarte i gdzie, naciskane przyciski oraz pole, w którym piszesz. Nie czyta niczego innego na ekranie. Nic nie jest zapisywane, wysyłane ani udostępniane: wszystko zostaje w tym urządzeniu.</string>
+    <string name="access_a11y_body">Dashwheel używa usługi ułatwień dostępu Androida, by ustawić dwie aplikacje obok siebie, sprawić, by przyciski kierownicy robiły to, co ustawisz, np. Wstecz, i wpisywać w wybrane pole to, co dyktujesz w telefonie.\n\nW tym celu widzi, które aplikacje są otwarte i gdzie, naciskane przyciski oraz pole, w którym piszesz. Nie czyta niczego innego na ekranie. Nic nie jest zapisywane, wysyłane ani udostępniane: wszystko zostaje w tym urządzeniu.\n\nZ touchpadem aplikacji Companion dotyka też i przewija tam, gdzie jest wskaźnik telefonu, i tylko wtedy.</string>
     <string name="access_notif_title">Dostęp do powiadomień</string>
     <string name="access_notif_body">Dashwheel czyta powiadomienia, by pokazać, co gra, następny zakręt i nowe wiadomości na pulpicie. Zostają w tym urządzeniu.</string>
     <string name="access_open_settings">Otwórz ustawienia</string>

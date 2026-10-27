@@ -104,6 +104,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Mouse
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.ChevronRight
@@ -302,6 +303,13 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
         return
     }
 
+    // The touchpad takes the whole screen too, while the car is linked.
+    var touchpad by rememberSaveable { mutableStateOf(false) }
+    if (touchpad && paired) {
+        TouchpadScreen(connected, onClose = { touchpad = false })
+        return
+    }
+
     // Paired, the screen splits in tabs; before that there is only the pairing.
     var tab by rememberSaveable { mutableStateOf(Tab.HOME) }
     val shown = if (paired) tab else Tab.HOME
@@ -411,6 +419,7 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
                             // In the car: what is used on the way.
                             item { RoadWatchStartCard() }
                             item { KeyboardCard(typed, onField = { typed = it }, connected = connected) }
+                            item { Panel { ToolRow(Icons.Filled.Mouse, stringResource(R.string.touchpad_title), stringResource(R.string.touchpad_detail)) { touchpad = true } } }
                             item { QuickTools(onOpen = { tool = it }) }
                         } else {
                             // Parked: where the car is, and how the last drive went.

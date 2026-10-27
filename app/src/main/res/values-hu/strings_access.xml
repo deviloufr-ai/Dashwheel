@@ -4,7 +4,7 @@
     <string name="access_a11y_title">Kisegítő hozzáférés</string>
     <string name="access_a11y_body">A Dashwheel az Android kisegítő szolgáltatásával tesz két alkalmazást egymás mellé, végezteti el a kormánygombokkal a beállított műveletet, például a Vissza gombot, és írja be a kiválasztott mezőbe, amit a telefonon diktál.
 
-Ehhez látja, mely alkalmazások vannak megnyitva és hol, milyen gombokat nyom meg, és melyik mezőbe ír. A képernyőn semmi mást nem olvas. Semmit nem tárol, nem küld el és nem oszt meg: minden ezen a fejegységen marad.</string>
+Ehhez látja, mely alkalmazások vannak megnyitva és hol, milyen gombokat nyom meg, és melyik mezőbe ír. A képernyőn semmi mást nem olvas. Semmit nem tárol, nem küld el és nem oszt meg: minden ezen a fejegységen marad.\n\nA Companion érintőpadjával oda is koppint és ott görget, ahol a telefon mutatója van, és csak akkor.</string>
     <string name="access_notif_title">Értesítési hozzáférés</string>
     <string name="access_notif_body">A Dashwheel az értesítésekből mutatja a műszerfalon, mi szól éppen, a következő kanyart és az új üzeneteket. Ezek ezen a fejegységen maradnak.</string>
     <string name="access_open_settings">Beállítások</string>

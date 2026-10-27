@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="split_a11y_description">Leidžia Dashwheel atidaryti programas padalytame ekrane šalia skydelio, naudojant tą patį sistemos padalijimą kaip naujausių programų ekranas. Iš ekrano turinio naudojamas tik pasirinktas teksto laukas, kad būtų įvestas iš telefono atsiųstas tekstas. Jis taip pat gauna aparatinius mygtukus, kad Home ir Atgal veiktų, kol programa veikia plytelėje, o jūsų pasirinkti vairo mygtukai verčia antrojo ekrano puslapį; kiti mygtukai veikia kaip įprasta.</string>
+    <string name="split_a11y_description">Leidžia Dashwheel atidaryti programas padalytame ekrane šalia skydelio, naudojant tą patį sistemos padalijimą kaip naujausių programų ekranas. Iš ekrano turinio naudojamas tik pasirinktas teksto laukas, kad būtų įvestas iš telefono atsiųstas tekstas. Jis taip pat gauna aparatinius mygtukus, kad Home ir Atgal veiktų, kol programa veikia plytelėje, o jūsų pasirinkti vairo mygtukai verčia antrojo ekrano puslapį; kiti mygtukai veikia kaip įprasta. Su telefono jutikliniu kilimėliu jis spaudžia ir slenka ten, kur ekrane yra telefono žymeklis.</string>
 
     <!-- Language picker; each language is listed under its own name. -->
     <string name="language_menu">Kalba</string>

@@ -49,6 +49,7 @@ import com.openauto.dash.link.CarTelemetry
 import com.openauto.dash.link.KeepClip
 import com.openauto.dash.link.TypeResult
 import com.openauto.dash.link.TypingAccess
+import com.openauto.dash.link.PointerAccess
 import com.openauto.dash.link.UnknownPairingException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -414,7 +415,11 @@ object LinkServer {
             is DriveSync -> DriveJournal.sync(context, message.drives)
             is DriveReport -> DriveJournal.update(context, message.drive)
             is TypeResult -> CarKeyboard.answered(message)
-            is TypingAccess -> CarKeyboard.accessChanged(message)
+            is TypingAccess -> {
+                CarKeyboard.accessChanged(message)
+                CarTouchpad.accessChanged(message)
+            }
+            is PointerAccess -> CarTouchpad.answered(message)
             is RescueResult -> CarRescue.answered(message)
             is PhotoAnswer -> PhotoQuestions.answered(message)
             ObdOpen -> ObdRelay.open(context)
