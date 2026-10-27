@@ -8,6 +8,7 @@ Experimental, and marked so in both apps. The phone, in a holder behind the wind
 |---|---|---|
 | `LaneFinder`, `LaneTracker` | `link/.../roadwatch/` | The car's lane in each frame: bright stripes on the road, voted into straight lines (Hough), followed from frame to frame. Learns where the car usually drives in its lane, so a phone off the middle of the windscreen still reads 0. |
 | `SeenRoad`, `SeenLanes`, `LaneCount` | `link/.../roadwatch/` | The lane model's two masks (lane lines, drivable road) laid over the lane picture; the car's lane lines followed on them; how many lanes there are and which the car is in. Replay only for now. Below. |
+| `VehicleTracker` | `link/.../roadwatch/` | Each vehicle followed from frame to frame: seen twice before it counts, carried over the frames a look misses it, its box smoothed; the detector's doubtful boxes count only where a vehicle already is. Below. |
 | `LeadTracker` | `link/.../roadwatch/` | The vehicle ahead in the lane, from the detector's boxes. Distance from its apparent width (rough); time to reach it from how fast it grows (does not depend on the guessed width). |
 | `RoadRules` | `link/.../roadwatch/` | When to warn: collision, lane, following too close, traffic moving off. |
 | `RoadScene` | `link/.../link/` | Phone to head unit, about ten times a second while Road watch runs. |
@@ -36,7 +37,7 @@ EfficientDet-Lite2 (COCO, Apache 2.0) from TensorFlow's model storage, 7.6 MB, w
 
 The main camera is zoomed 1.3 times: less dashboard and sky, and the road ahead in more of the sensor's detail. On the recorded drives (cropped to match), the car ahead was found at 50 to 80 m 80 % of the time against 60 %, half as many boxes were invented, the false collision warnings went from 15 to 13, and signs stayed as readable. Both lane lines came out better on some drives and worse on others.
 
-It looks at the road in turns. On one frame it takes a square as wide as the 4:3 picture is tall, so the picture isn't squashed. On the next frame it takes the middle half of that square around the horizon, at twice the detail, for far vehicles. Boxes cut off by that look's edge are dropped: those are near vehicles, which the square sees whole. Each frame's vehicles are its own plus those from the frame before (`withBefore`).
+It looks at the road in turns. On one frame it takes a square as wide as the 4:3 picture is tall, so the picture isn't squashed. On the next frame it takes the middle half of that square around the horizon, at twice the detail, for far vehicles. Boxes cut off by that look's edge are dropped: those are near vehicles, which the square sees whole. Each frame's vehicles go to `VehicleTracker` (below), which carries a vehicle over the frames the other look misses it. Taking the horizon look two frames in three while nothing was within 40 m was tried on 2026-10-27 (`detect.py --looks both` writes both looks' boxes, tagged, and the replay takes the look the phone would): the car ahead was seen 57.1 % → 57.5 % of the time, with three more false collision alarms on the village drives, so it stays at every other frame.
 
 ### How it was chosen (2026-10-26)
 
@@ -52,6 +53,46 @@ Measured against a big model run on the PC (YOLOPv2, trained on BDD100K dashcam 
 On the village drives alone, Lite2 with the horizon look found the car ahead 100 / 96 / 52 % of the time at those distances, against 51 / 9 / 0 % before. YOLOX-tiny (Apache 2.0) sees furthest. It also invents twice as many boxes, is about four times heavier, and would need converting and hosting. A threshold of 0.3 instead of 0.4 found more and invented about three times as much. Requiring a box on 3 frames running halved what was invented but lost range, and the collision warning already waits for several frames. The ultra-wide lens (zoom 0.6) was tried too, and it made vehicles too small for these models (draft PR #82).
 
 The replay's `detect.py` crops as the phone does: the square is 0.75 of a sideways 16:9 recording's width and reaches above and below it. Before 2026-10-26 it took a square as tall as the recording, which made vehicles look a third bigger than the phone sees them.
+
+## Following the vehicles
+
+The detector sees each frame on its own: a car it misses for a frame is gone, a box it invents for a frame is a car, and every box shakes a little. `VehicleTracker` (link, the idea of ByteTrack, Zhang et al. 2022) follows each vehicle from frame to frame:
+
+- a vehicle counts once it has been seen on two frames, and has a steady `Detection.id`, which `LeadTracker` keys its history on instead of box overlap;
+- one missed for a moment goes on where it was heading, for half a second;
+- the detector's doubtful boxes (score 0.2 to 0.4; `RoadDetector` now keeps everything from 0.2) count only where a vehicle already is, so far cars, which they mostly are, are kept without the things they invent;
+- each box is smoothed with its own motion (an alpha-beta filter, 0.5 of each sighting into the box, 0.05 into its motion), so the growth the time to impact is read from is the car's, not the box's shaking. 0.2 into the motion made the closing speed twice as jumpy as before; 0.05 leaves it a third jumpier;
+- only the sure boxes (0.4 and up) hide the road from the lane finder: the doubtful ones took lane lines with them.
+
+On the 14 collision clips of 2026-10-24/26 (all false alarms) and 100 s of Jakarta, against main on the same boxes (2026-10-27):
+
+| | Main | Tracker |
+|---|---|---|
+| False collision alarms | 21 | 14 |
+| Car ahead seen (mean of the clips) | 50.6 % | 55.1 % |
+| Frames with a time to impact | 2018 | 2648 |
+| Closing speed, mean change frame to frame | 0.46 m/s | 0.61 m/s |
+| Both lane lines kept | 66.6 % | 65.0 % |
+
+The alarms left are parked and oncoming cars in villages, as before. Jakarta gained one (at 18.9 s, in slow traffic replayed at a fixed 90 km/h, which means nothing there).
+
+### Tried the same day and dropped
+
+- **People as leads** (COCO's person class; a pedestrian in the path in town). They set off 6 of 19 alarms: people walking beside the road, inside the corridor, and inside the "lane" too, since a village street without a centre line gives a lane as wide as the road. Left out.
+- **Distance from where the box meets the road** (the camera's height over the horizon's row, class-free). On a stationary car the true distance falls by exactly speed × time: over 1,219 one-second windows the width-based distance fell 0.86 of that, the ground-plane one 0.05. At the phone's view the horizon's row must be right to a fraction of a percent of the height, and the learned horizon isn't. Width stays.
+
+### A detector trained on dashcam drives (2026-10-27)
+
+YOLOX-tiny (Apache 2.0) fine-tuned on the user's 33 phone clips and the Jakarta hour, labelled by YOLOPv2 on the PC's graphics card (`eval/reference.py --device cuda`; 17,479 frames, 101,475 boxes, one class), 30 epochs on the 3080 Ti. Scored as the phone would run it (`eval/detect_x.py`, the horizon look on alternate frames) on three clips kept out of the training, against Lite2 and the stock YOLOX-tiny, the share of the car ahead found:
+
+| Detector, score floor | 15-30 m | 30-50 m | 50-80 m | 80 m + | Boxes invented / 100 frames |
+|---|---|---|---|---|---|
+| Lite2, 0.4 (the phone's) | 94 % | 86 % | 57 % | 3 % | 4.4 |
+| YOLOX-tiny stock, 0.4 | 95 % | 94 % | 85 % | 47 % | 11.1 |
+| YOLOX-tiny fine-tuned, 0.4 | 77 % | 84 % | 74 % | 61 % | 24.2 |
+| YOLOX-tiny fine-tuned, 0.6 | 74 % | 82 % | 72 % | 56 % | 9.8 |
+
+It sees furthest, and it is worse than the stock model up to 50 m and invents more: trained on whole frames shrunk to 416 pixels, it has not learned the near, big cars the phone's square shows. Not on the phone: it would need near frames in the training (the phone's own crops), the ONNX-to-TFLite conversion, a YOLOX decoder in `RoadDetector`, hosting, and the NPU for its cost (twice Lite2's). The stock YOLOX-tiny remains the better candidate for the range alone.
 
 ## A car beside the path, not in it
 
@@ -75,7 +116,17 @@ Judged on drawn signs only so far (`SignFinderTest`: black and grey ink, against
 
 Road watch analyses the picture at 1280 x 960 since 2026-10-26, against 640 x 480 before. At 640, a 30 or a 90 was only readable in the last moments before the car passed it.
 
+Since 2026-10-27 the face goes first to `SignClassifier` (companion): a small network (`tools/roadwatch-replay/signs_model.py`, 1 MB in the companion's assets) that says in under a millisecond what a 32 × 32 picture of the face shows: a limit from 20 to 130, the end of a limit, another sign, or no sign. Sure (0.8 and up), its word stands and the text recognizer is skipped; else the text recognizer reads as before. It was trained on GTSRB (the German sign benchmark, 43 classes), with every limit from 20 to 130 written over real limit signs (the number wiped, a new one drawn: France's 40, 90, 110 and 130 have no German sign) and weight and height limits (3,5t, 2,6m) written the same way into "other" (a 3,5t had read as 110), plus crops of road pictures that are no sign. On GTSRB's test split it reads 99.0 % of the signs and 98.0 % of the limits; on the 120 faces the phone had kept, it read every 90 and 40 the text recognizer had read (43 of 43), six more it had not (they were too small for it), the 3,5t as "other", and no limit on the give-way triangles and lights.
+
 On the user's drives (`roadreplay --signs dir` dumps what the finder finds), it found the 30 and 90 signs, the round signs without a number, the give-way triangles and a village name sign, with no brick walls. The reading itself only runs on the phone. Each face it tried to read is kept with what it read (the last 120, `GET /signs`), and `GET /roadwatch` gives the time each part of a frame takes. On the first drive (2026-10-26), a sharp 90 passed at 80 km/h without being read: looking every third frame at 10 fps gave it one or two tries.
+
+## The phone's nod and tilt
+
+`PhoneHeading` (companion) reads the gyroscope and gravity while Road watch runs. Since 2026-10-27 a clip's notes carry, beside `headingDeg`: `pitchDeg`, the camera's nod over the last couple of seconds (the gyroscope turned about the picture's horizontal, fading with 2 s; a bump, a crest), and `tiltDeg`, how far the phone has turned in its holder since the driver placed it. Turned more than 6° for a second, the phone holds its warnings: the picture no longer shows the road as set up, and the guide comes up by itself once the car stands. Shifting the horizon by the nod frame by frame is not done yet: with `pitchDeg` in the notes it can first be judged on recorded drives.
+
+## Night
+
+When the road between the horizon and the bonnet has been darker than 50 of 255 for 5 s, the camera is told to expose half a stop less (CameraX exposure compensation), so oncoming headlights don't open the exposure and wash out the car ahead's lights and the lane's lines; over 80 for 5 s, back to normal. Not yet tried on the road.
 
 ## The lane model
 

@@ -45,7 +45,8 @@ class Lite:
 
 
 class Yolox:
-    """YOLOX ONNX (Megvii release): BGR float 0-255 in, raw grid out, decoded and NMSed here."""
+    """YOLOX ONNX (Megvii release, or one fine-tuned on dashcam frames with a single vehicle class, which comes
+    out as COCO's car): BGR float 0-255 in, raw grid out, decoded and NMSed here."""
     def __init__(self, path):
         import onnxruntime as ort
         self.s = ort.InferenceSession(path, providers=["CPUExecutionProvider"])
@@ -67,6 +68,8 @@ class Yolox:
         wh = np.exp(p[:, 2:4]) * self.stride
         cls = p[:, 5:].argmax(1)
         score = p[:, 4] * p[np.arange(len(p)), 5 + cls]
+        if p.shape[1] == 6:
+            cls = np.full(len(p), 2)
         keep = (score >= min_score) & np.isin(cls, list(VEHICLES_COCO))
         xy, wh, cls, score = xy[keep], wh[keep], cls[keep], score[keep]
         b = np.concatenate([xy - wh / 2, xy + wh / 2], 1) / self.size

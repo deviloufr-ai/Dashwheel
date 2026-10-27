@@ -6,6 +6,7 @@ import com.openauto.dash.roadwatch.Box
 import com.openauto.dash.roadwatch.Detection
 import com.openauto.dash.roadwatch.Upright
 import com.openauto.dash.roadwatch.VehicleKind
+import com.openauto.dash.roadwatch.VehicleTracker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -191,7 +192,8 @@ class RoadDetector private constructor(private val interpreter: Interpreter, pri
         private const val SIZE = 448
         private const val EDGE = 0.01f
         private const val MAX = 25
-        private const val MIN_SCORE = 0.4f
+        /** Down to the doubtful boxes: [VehicleTracker] keeps those only where a vehicle already is (0.4 started a vehicle outright before). */
+        private const val MIN_SCORE = VehicleTracker.LOW
 
         /** The detector, or null without the model (or if this phone can't run it). */
         /**

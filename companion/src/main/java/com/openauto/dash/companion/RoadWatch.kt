@@ -22,6 +22,7 @@ import com.openauto.dash.roadwatch.Mount
 import com.openauto.dash.roadwatch.LaneState
 import com.openauto.dash.roadwatch.LaneTracker
 import com.openauto.dash.roadwatch.Lead
+import com.openauto.dash.roadwatch.horizonLookAt
 import com.openauto.dash.roadwatch.LeadTracker
 import com.openauto.dash.roadwatch.Luma
 import com.openauto.dash.roadwatch.RoadBand
@@ -30,8 +31,7 @@ import com.openauto.dash.roadwatch.RoadWarning
 import com.openauto.dash.roadwatch.SignFinder
 import com.openauto.dash.roadwatch.SignKind
 import com.openauto.dash.roadwatch.Upright
-import com.openauto.dash.roadwatch.Detection
-import com.openauto.dash.roadwatch.withBefore
+import com.openauto.dash.roadwatch.VehicleTracker
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -67,7 +67,9 @@ data class RoadView(
     val vfovDeg: Float = 46f,
     /** While the driver places the phone: where the dashboard starts and how much of the side the pillar covers ([Mount]). */
     val dashboardTop: Float? = null,
-    val pillar: Float? = null
+    val pillar: Float? = null,
+    /** The road is dark (night): the camera is told to expose a little less, so oncoming lights don't wash out the car ahead's. */
+    val dark: Boolean = false
 )
 
 class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
@@ -100,15 +102,19 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
     private val rules = RoadRules()
     private var detector: RoadDetector? = null
     /** Speed-limit signs: found every few frames, their number read by ML Kit. */
-    private val signs = SignReader(SignReader.dir(app))
+    private val signs = SignReader(app, SignReader.dir(app))
     private var frameCount = 0L
     /** A sign was seen: until then, signs are looked for on every frame, not every few. */
     private var signBurstUntil = 0L
     /** How long each part of a frame takes, ms (running averages): for the speed report. */
     private val took = FloatArray(4)
-    /** The detector looks at the horizon closely every other frame ([withBefore]); what it found on the frame before. */
+    /** The detector looks at the horizon closely every other frame; the tracker carries each vehicle over the frames a look misses it. */
     private var horizonLook = false
-    private var lookedBefore: List<Detection> = emptyList()
+    /** Night, from the road's brightness: on under [DARK_LUMA] for a while, off again over [LIGHT_LUMA]. */
+    private var dark = false
+    private var darkSince = -1L
+    private var lightSince = -1L
+    private val tracks = VehicleTracker()
     @Volatile private var detectorTried = false
     /**
      * The first frames time the vehicle finder on the graphics chip, the next
@@ -162,7 +168,11 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
     /** The driver placed the phone with gravity pointing [up] in it: turned from there, it has moved. */
     fun placed(up: FloatArray) {
         prefs.edit().putString(KEY_PLACED_UP, up.joinToString(",")).apply()
+        PhoneHeading.reference = up
     }
+
+    /** Since when the phone has been turned in its holder past where it was placed; -1 while it sits as placed. */
+    private var tiltedSince = -1L
 
     /** Where the dashboard starts in the picture, found when the phone was placed: the road's lines stop there. */
     fun setBonnet(y: Float) {
@@ -188,6 +198,7 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
             runCatching { lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1_000L, 0f, listener, Looper.getMainLooper()) }
                 .onSuccess { locations = lm }
         }
+        PhoneHeading.reference = placedUp()
         PhoneHeading.start(app)
     }
 
@@ -204,6 +215,7 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         edit.apply()
         rules.clear()
         lanes.reset()
+        tracks.forget()
         leads.forget()
         beeper?.release()
         beeper = null
@@ -258,6 +270,7 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
             prefs.edit().putFloat(carXKey(tall), lanes.carX).apply()
             tall = isTall
             lanes = LaneTracker(prefs.getFloat(carXKey(tall), 0.5f))
+            tracks.forget()
             leads.forget()
         }
         val hfov = if (tall) hfovTall else hfovWide
@@ -266,6 +279,7 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         recorder?.rotation(rotation)
 
         val luma = Luma.fromRgba(buffer, w, h, plane.rowStride, rotation, LUMA_WIDTH)
+        night(luma, band, now)
         if (placing && frameCount % PLACING_EVERY == 0L) {
             dashboardTop = Mount.dashboardTop(luma, band.horizonY)
             pillar = Mount.pillar(luma, band.horizonY)
@@ -279,8 +293,8 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         val beforeVehicles = SystemClock.elapsedRealtimeNanos()
         // The vehicles first: the lane is looked for around them, not on them.
         val found = vehicles?.detect(buffer, w, h, plane.rowStride, rotation, (band.horizonY + band.bonnetY) / 2, band.horizonY.takeIf { horizonLook })
-            ?.let { now -> withBefore(now, lookedBefore).also { lookedBefore = now } }
-        horizonLook = !horizonLook
+            ?.let { tracks.update(it, now) }
+        horizonLook = horizonLookAt(frameCount + 1)
         if (vehicles != null && trial != Trial.DONE && ++trialFrames >= TRIAL_FRAMES) {
             trialFrames = 0
             if (trial == Trial.GPU) {
@@ -310,7 +324,8 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
             if (spots.any { it.kind == SignKind.END }) signs.sawEnd()
         }
         val beforeLane = SystemClock.elapsedRealtimeNanos()
-        val sighting = LaneFinder.find(luma, band, lanes.carX, hfov, found.orEmpty().map { it.box })
+        // Only the sure vehicles hide the road from the lane finder: a doubtful box would take a line with it.
+        val sighting = LaneFinder.find(luma, band, lanes.carX, hfov, found.orEmpty().filter { it.score >= VehicleTracker.HIGH }.map { it.box })
         val lane = lanes.update(sighting, now, learn = steady && lanes.laneWidth > 0f)
         dragged?.let {
             horizon.set(it)
@@ -340,7 +355,13 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
             sentAt = now
             LinkServer.send(scene)
         }
-        val warning = rules.update(scene, null, false, now)
+        // The phone turned in its holder since it was placed: the picture no longer shows the road as set up,
+        // so nothing is warned of until it sits as placed again (the guide comes up once the car stands).
+        val tilted = (PhoneHeading.tiltDeg ?: 0f) > Mount.MOVED_DEG
+        tiltedSince = if (!tilted) -1L else if (tiltedSince < 0) now else tiltedSince
+        val held = tiltedSince >= 0 && now - tiltedSince >= HELD_AFTER_MS
+        if (held) rules.clear()
+        val warning = if (held) null else rules.update(scene, null, false, now)
         warnHere(warning)
 
         val done = SystemClock.elapsedRealtimeNanos()
@@ -361,8 +382,22 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
             signEnd = RoadSigns.endFresh(SIGN_SHOW_MS, now),
             vfovDeg = if (tall) hfovWide else hfovTall,
             dashboardTop = dashboardTop,
-            pillar = pillar
+            pillar = pillar,
+            dark = dark
         )
+    }
+
+    /** Whether it is night, from the road's mean brightness between the horizon and the bonnet, held a few seconds either way. */
+    private fun night(luma: Luma, band: RoadBand, now: Long) {
+        val top = (band.horizonY * luma.h).toInt().coerceIn(0, luma.h - 1)
+        val bottom = (band.bonnetY * luma.h).toInt().coerceIn(top + 1, luma.h)
+        var sum = 0L
+        for (y in top until bottom) for (x in 0 until luma.w) sum += luma[x, y]
+        val mean = sum / ((bottom - top) * luma.w)
+        darkSince = if (mean < DARK_LUMA) (if (darkSince < 0) now else darkSince) else -1L
+        lightSince = if (mean > LIGHT_LUMA) (if (lightSince < 0) now else lightSince) else -1L
+        if (!dark && darkSince >= 0 && now - darkSince >= NIGHT_FOR_MS) dark = true
+        if (dark && lightSince >= 0 && now - lightSince >= NIGHT_FOR_MS) dark = false
     }
 
     /** No car linked: the phone beeps for itself as a warning comes up. A linked car sounds its own. */
@@ -415,6 +450,13 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         const val SIGN_BURST_MS = 1_500L
         /** Frames the vehicle finder is timed on each of the graphics chip and the processor. */
         const val TRIAL_FRAMES = 40
+        /** Turned this long: moved in its holder, not shaken over a bump. */
+        const val HELD_AFTER_MS = 1_000L
+        /** The road's mean brightness (0..255) under which it is night, and over which it is day again. */
+        const val DARK_LUMA = 50
+        const val LIGHT_LUMA = 80
+        /** Either way for this long: a tunnel or a bright shop front doesn't flip the exposure. */
+        const val NIGHT_FOR_MS = 5_000L
     }
 }
 

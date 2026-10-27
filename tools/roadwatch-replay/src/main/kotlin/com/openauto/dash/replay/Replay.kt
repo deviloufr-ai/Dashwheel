@@ -18,7 +18,7 @@ import com.openauto.dash.roadwatch.RoadRules
 import com.openauto.dash.roadwatch.RoadWarning
 import com.openauto.dash.roadwatch.SeenLanes
 import com.openauto.dash.roadwatch.SeenRoad
-import com.openauto.dash.roadwatch.withBefore
+import com.openauto.dash.roadwatch.VehicleTracker
 import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 import kotlin.math.abs
@@ -75,7 +75,7 @@ class ReplaySession(
     private val _results = ArrayList<FrameResult>()
     val results: List<FrameResult> get() = _results
 
-    private var before: List<Detection> = emptyList()
+    private val tracks = VehicleTracker()
 
     /** What the lane model saw last: like the phone, it looks at every other frame, and the frames between keep this. */
     var seen: SeenRoad? = null
@@ -93,12 +93,12 @@ class ReplaySession(
 
     fun frame(index: Int, timeMs: Long, luma: Luma, found: List<Detection>, telemetry: Telemetry, fresh: SeenRoad? = null): FrameResult {
         if (fresh != null) seen = fresh
-        // As the phone: this frame's look and the other one's just before (detect.py takes the looks in turns).
-        val detections = withBefore(found, before)
-        before = found
+        // As the phone: the vehicles followed over the frames (detect.py takes the two looks in turns, as the phone).
+        val detections = tracks.update(found, timeMs)
         val speed = telemetry.speedKmh
         val steady = speed != null && speed >= LEARN_KMH
-        val boxes = detections.map { it.box }
+        // Only the sure vehicles hide the road from the lane finder: a doubtful box would take a line with it.
+        val boxes = detections.filter { it.score >= VehicleTracker.HIGH }.map { it.box }
         val sighting = seen?.let { SeenLanes.find(it, band, lanes.carX, hfovDeg, boxes, lanes.laneWidth) } ?: LaneFinder.find(luma, band, lanes.carX, hfovDeg, boxes)
         val lane = lanes.update(sighting, timeMs, learn = steady && lanes.laneWidth > 0f)
         if (learnHorizon) band = band.copy(horizonY = horizon.update(sighting, timeMs, learn = steady))
