@@ -82,7 +82,8 @@ class FuelRangeTest {
     fun anEmptyTankWithRangeLeftIsNotPublishedAsALevel() {
         // The car app sends 0 L while the trip computer says 330 km: that is no level at all (the provider drops it).
         assertNull(fuelPercentToPublish(0, 330))
-        assertEquals(0, fuelPercentToPublish(0, null))
+        // Nor is 0 L with no range: the box never fills either, and it outranked the adapter's real level.
+        assertNull(fuelPercentToPublish(0, null))
         assertEquals(0, fuelPercentToPublish(0, 0))
         assertEquals(5, fuelPercentToPublish(5, 330))
         assertNull(fuelPercentToPublish(null, 330))

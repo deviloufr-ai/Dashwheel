@@ -65,13 +65,14 @@ internal fun fuelInfo(
 }
 
 /**
- * The level a car source puts on the bus: an empty tank while the car still counts on driving on is
- * the car sending no level at all (its car app reads 0 L on some models), so it is left out
- * and the next source by rank speaks (the adapter's, else the level worked back from the range).
+ * The level a car source puts on the bus: an empty tank while the car still counts on driving on, or
+ * says no range at all, is the car sending no level (its car app reads 0 L on some models, the bytes
+ * its CAN box never fills), so it is left out and the next source by rank speaks (the adapter's,
+ * else the level worked back from the range). Only an empty tank with a 0 km range is believed.
  * The one place this rule lives, for the providers that have it ([CarBox], [McuReader]).
  */
 internal fun fuelPercentToPublish(percent: Int?, rangeKm: Int?): Int? =
-    percent?.takeUnless { it == 0 && rangeKm != null && rangeKm > 0 }
+    percent?.takeUnless { it == 0 && (rangeKm == null || rangeKm > 0) }
 
 /**
  * Where the car's distance to empty sits in the CANbox stream: a 16-bit word at
