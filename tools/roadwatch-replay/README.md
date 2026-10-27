@@ -11,7 +11,9 @@ The road recorder in Dashwheel Companion keeps clips (`clip.mp4` with `clip.json
 ## Run it
 
 ```sh
-# 1. The vehicles, with the phone's own model and crop (once per clip; slow-ish).
+# 1. The vehicles, with the phone's own model and crop (once per clip; slow-ish). Boxes down to score 0.2, as the
+#    phone keeps them: the tracker sorts them out. --looks both writes both looks' boxes on every frame, tagged, and
+#    the replay takes the look the phone would (for trying another schedule of the looks).
 python -I tools/roadwatch-replay/detect.py clip.mp4 clip.detections.jsonl --horizon 0.5
 
 # 2. The lane model, with the model the companion ships (once per clip; every other frame, as the phone).
@@ -44,13 +46,17 @@ warnings: 2
 
 ## Measure the vehicle finder against a big model
 
-`eval/` scores detectors by distance, with no hand labels. `reference.py` runs YOLOPv2 (its `yolopv2.pt` from the YOLOPv2 release; needs `torch` and `torchvision`) over every 6th frame, on the whole picture and on its middle at twice the detail. `detect_x.py` runs a candidate as the phone would: an EfficientDet `.tflite` or a YOLOX `.onnx`, `--tile` for the horizon look. `score.py` prints, by distance, how much of the reference each candidate and mode found (the car ahead apart), and how many boxes it invented:
+`eval/` scores detectors by distance, with no hand labels. `reference.py` runs YOLOPv2 (its `yolopv2.pt` from the YOLOPv2 release; needs `torch` and `torchvision`; on a CUDA card it is 50 to 100 times faster than on the CPU) over every 6th frame, on the whole picture and on its middle at twice the detail. `detect_x.py` runs a candidate as the phone would: an EfficientDet `.tflite` or a YOLOX `.onnx`, `--tile` for the horizon look. `score.py` prints, by distance, how much of the reference each candidate and mode found (the car ahead apart), and how many boxes it invented:
 
 ```sh
 python eval/reference.py yolopv2.pt clip.mp4 eval-dir/ref/clip.jsonl
 python -I eval/detect_x.py efficientdet_lite2.tflite clip.mp4 eval-dir/det/clip.lite2.jsonl --horizon 0.6 --tile
 python -I eval/score.py eval-dir --models lite2
 ```
+
+## The sign classifier
+
+`signs_model.py` trains the companion's `sign_faces.tflite` (what a round red sign's face shows: a limit, the end of one, another sign, no sign) on GTSRB and tests it on the faces the phone kept (`GET /signs`); its docstring says what it needs. Run it again after changing the classes or the drawn signs, and copy the model into `companion/src/main/assets/`.
 
 ## Label frames to measure errors
 

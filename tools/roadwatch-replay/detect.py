@@ -2,7 +2,7 @@
 """The vehicles in every frame of a recorded drive, with the phone's own model
 and the phone's own crop, for roadreplay to read (--detections).
 
-Usage: python -I detect.py <video.mp4> <out.jsonl> [--horizon 0.5] [--bonnet 0.92] [--every 1]
+Usage: python -I detect.py <video.mp4> <out.jsonl> [--horizon 0.5] [--bonnet 0.92] [--every 1] [--min-score 0.2]
 
 Needs ffmpeg on the PATH and: pip install ai-edge-litert numpy
 The model (EfficientDet-Lite2, 7.6 MB) is fetched once next to this script
@@ -24,7 +24,6 @@ MODEL_URL = ("https://storage.googleapis.com/download.tensorflow.org/models/tfli
              "object_detection/android/lite-model_efficientdet_lite2_detection_metadata_1.tflite")
 MODEL_SHA256 = "6fd32c84ab1eb0f7e7f3a7a20a20d7df1530daa8378728f7c79571096286bd52"
 SIZE = 448
-MIN_SCORE = 0.4  # as RoadDetector.MIN_SCORE on the phone
 EDGE = 0.01  # a horizon look's box cut off by its edge is a near vehicle the square has whole
 
 
@@ -54,6 +53,10 @@ def main():
     ap.add_argument("--horizon", type=float, default=0.5)
     ap.add_argument("--bonnet", type=float, default=0.92)
     ap.add_argument("--every", type=int, default=1, help="run the model on every nth frame")
+    ap.add_argument("--min-score", type=float, default=0.2, help="as RoadDetector.MIN_SCORE on the phone: the tracker sorts the boxes out")
+    ap.add_argument("--looks", default="turns", choices=["turns", "both"],
+                    help="turns: one look a frame, as the phone did before the far look; both: both looks every frame, each box "
+                         "tagged with its look (0 square, 1 horizon), and roadreplay takes the look the phone would")
     a = ap.parse_args()
 
     from ai_edge_litert.interpreter import Interpreter
@@ -96,31 +99,35 @@ def main():
                 break
             if n % a.every == 0:
                 frame = np.frombuffer(raw, dtype=np.uint8).reshape(h, w, 3)
-                horizon_look = (n // a.every) % 2 == 1
-                sx, sy, ss = (tleft, ttop, tside) if horizon_look else (left, top, side)
-                # Nearest-neighbour to the model's size, as the phone samples it; outside the recording, grey.
-                ys = sy + np.arange(SIZE) * ss // SIZE
-                xs = sx + np.arange(SIZE) * ss // SIZE
-                small = np.full((SIZE, SIZE, 3), 114, np.uint8)
-                vy = (ys >= 0) & (ys < h)
-                vx = (xs >= 0) & (xs < w)
-                small[np.ix_(vy, vx)] = frame[np.ix_(ys[vy], xs[vx])]
-                it.set_tensor(inp, small[None])
-                it.invoke()
-                boxes = it.get_tensor(boxes_i)[0]
-                classes = it.get_tensor(classes_i)[0]
-                scores = it.get_tensor(scores_i)[0]
-                count = int(it.get_tensor(count_i)[0])
+                looks = [False, True] if a.looks == "both" else [(n // a.every) % 2 == 1]
                 found = []
-                for k in range(min(count, len(scores))):
-                    if scores[k] < MIN_SCORE:
-                        continue
-                    ymin, xmin, ymax, xmax = [float(v) for v in boxes[k]]
-                    if horizon_look and (xmin < EDGE or ymin < EDGE or xmax > 1 - EDGE or ymax > 1 - EDGE):
-                        continue
-                    found.append([round((sx + xmin * ss) / w, 4), round((sy + ymin * ss) / h, 4),
-                                  round((sx + xmax * ss) / w, 4), round((sy + ymax * ss) / h, 4),
-                                  int(classes[k]), round(float(scores[k]), 3)])
+                for horizon_look in looks:
+                    sx, sy, ss = (tleft, ttop, tside) if horizon_look else (left, top, side)
+                    # Nearest-neighbour to the model's size, as the phone samples it; outside the recording, grey.
+                    ys = sy + np.arange(SIZE) * ss // SIZE
+                    xs = sx + np.arange(SIZE) * ss // SIZE
+                    small = np.full((SIZE, SIZE, 3), 114, np.uint8)
+                    vy = (ys >= 0) & (ys < h)
+                    vx = (xs >= 0) & (xs < w)
+                    small[np.ix_(vy, vx)] = frame[np.ix_(ys[vy], xs[vx])]
+                    it.set_tensor(inp, small[None])
+                    it.invoke()
+                    boxes = it.get_tensor(boxes_i)[0]
+                    classes = it.get_tensor(classes_i)[0]
+                    scores = it.get_tensor(scores_i)[0]
+                    count = int(it.get_tensor(count_i)[0])
+                    for k in range(min(count, len(scores))):
+                        if scores[k] < a.min_score:
+                            continue
+                        ymin, xmin, ymax, xmax = [float(v) for v in boxes[k]]
+                        if horizon_look and (xmin < EDGE or ymin < EDGE or xmax > 1 - EDGE or ymax > 1 - EDGE):
+                            continue
+                        box = [round((sx + xmin * ss) / w, 4), round((sy + ymin * ss) / h, 4),
+                               round((sx + xmax * ss) / w, 4), round((sy + ymax * ss) / h, 4),
+                               int(classes[k]), round(float(scores[k]), 3)]
+                        if a.looks == "both":
+                            box.append(1 if horizon_look else 0)
+                        found.append(box)
                 out.write(json.dumps({"frame": n, "boxes": found}) + "\n")
                 if n % 300 == 0:
                     print(f"frame {n}", file=sys.stderr)

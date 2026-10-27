@@ -27,7 +27,12 @@ enum class VehicleKind(val widthM: Float, val heightM: Float) {
     BICYCLE(0.6f, 1.7f);
 
     companion object {
-        /** The vehicle behind a class of the COCO list the detector was trained on (0 = person), or null. */
+        /**
+         * The vehicle behind a class of the COCO list the detector was trained on, or null. People (0) are
+         * left out: taken as leads, those walking beside the road set off 6 of 19 collision alarms on the
+         * village drives (2026-10-27), even between two known lines, since a street without a centre line
+         * gives a lane as wide as the road.
+         */
         fun ofCoco(id: Int): VehicleKind? = when (id) {
             1 -> BICYCLE
             2 -> CAR
@@ -55,7 +60,8 @@ data class Box(val left: Float, val top: Float, val right: Float, val bottom: Fl
     }
 }
 
-data class Detection(val box: Box, val kind: VehicleKind, val score: Float)
+/** [id]: the same vehicle from frame to frame ([VehicleTracker]); 0 when not followed. */
+data class Detection(val box: Box, val kind: VehicleKind, val score: Float, val id: Int = 0)
 
 /**
  * The vehicle ahead in the car's lane: about [distanceM] away, coming
@@ -82,6 +88,7 @@ class LeadTracker(var hfovDeg: Float = 66f, var aspect: Float = 0.75f) {
 
     private var box: Box? = null
     private var kind: VehicleKind? = null
+    private var id = 0
     private var seenAt = 0L
     private val samples = ArrayDeque<Sample>()
 
@@ -99,9 +106,11 @@ class LeadTracker(var hfovDeg: Float = 66f, var aspect: Float = 0.75f) {
         }
         val before = box
         // Another vehicle than the one followed (it changed lanes, one cut in): its own history.
-        if (before == null || before.iou(ahead.box) < SAME_IOU || kind != ahead.kind) samples.clear()
+        val same = if (ahead.id != 0) ahead.id == id else before != null && before.iou(ahead.box) >= SAME_IOU && kind == ahead.kind
+        if (!same) samples.clear()
         box = ahead.box
         kind = ahead.kind
+        id = ahead.id
         seenAt = now
         val distance = distanceM(ahead.box.width, ahead.kind)
         samples.addLast(Sample(now, distance, ahead.box))
@@ -112,6 +121,7 @@ class LeadTracker(var hfovDeg: Float = 66f, var aspect: Float = 0.75f) {
     fun forget() {
         box = null
         kind = null
+        id = 0
         samples.clear()
     }
 
@@ -243,16 +253,9 @@ internal fun inLane(box: Box, lane: LaneState, band: RoadBand, carX: Float, hfov
 private const val CORRIDOR_HALF = 0.32f
 
 /**
- * The phone's detector looks at the road in turns: the whole square on one
- * frame, the horizon at twice the detail on the next. A frame's vehicles
- * are its own and those of the frame [before] that none of its own
- * overlaps, so a far car seen only at the horizon isn't lost every other
- * frame. The car ahead at 30 to 50 m was found 84 % of the time this way,
- * against 22 % from the square alone (the replay against a big model,
- * 2026-10-26).
+ * Whether frame [frame] takes the horizon look (the middle of the square at
+ * twice the detail) rather than the square: every other frame. Taking it two
+ * frames in three while nothing was near was tried on 2026-10-27: the car
+ * ahead was seen 57.1 -> 57.5 % of the time, with three more false alarms.
  */
-fun withBefore(now: List<Detection>, before: List<Detection>): List<Detection> =
-    now + before.filter { b -> now.none { it.box.iou(b.box) > SAME_LOOK_IOU } }
-
-/** A vehicle seen by both looks overlaps itself at least this much. */
-private const val SAME_LOOK_IOU = 0.3f
+fun horizonLookAt(frame: Long): Boolean = frame % 2 == 1L

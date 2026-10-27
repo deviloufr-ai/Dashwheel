@@ -16,13 +16,16 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Reads the number on a round sign [com.openauto.dash.roadwatch.SignFinder]
- * found: its middle copied out of the camera's frame, made bigger, and read by
- * ML Kit's text recognizer on the phone, no network. One sign at a time:
- * while one is being read, the next waits for a later frame. What it reads
- * goes to [RoadSigns], believed once read twice ([SignConfirm]).
+ * found: its middle copied out of the camera's frame, made bigger, and read
+ * first by [SignClassifier] (a limit, the end of one, another sign, no sign;
+ * under a millisecond), then, when that isn't sure, by ML Kit's text
+ * recognizer on the phone, no network. One sign at a time: while one is
+ * being read, the next waits for a later frame. What it reads goes to
+ * [RoadSigns], believed once read twice ([SignConfirm]).
  */
-class SignReader(private val dir: File) {
+class SignReader(context: Context, private val dir: File) {
     private val client = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+    private val classifier = runCatching { SignClassifier(context) }.getOrNull()
     private val busy = AtomicBoolean(false)
     private val confirm = SignConfirm()
     private val saver = Executors.newSingleThreadExecutor()
@@ -31,6 +34,14 @@ class SignReader(private val dir: File) {
     fun read(rgba: ByteBuffer, width: Int, height: Int, rowStride: Int, rotation: Int, spot: SignSpot) {
         if (!busy.compareAndSet(false, true)) return
         val bitmap = middle(rgba, width, height, rowStride, rotation, spot)
+        val reading = classifier?.let { runCatching { it.read(bitmap) }.getOrNull() }
+        if (reading != null && reading.sure >= SignClassifier.SURE) {
+            // Sure: a limit counts, and the rest (the end of a limit, another sign, no sign) needs no reading.
+            keep(bitmap, "c" + reading.label)
+            reading.kmh?.let { kmh -> synchronized(confirm) { confirm.read(kmh, SystemClock.elapsedRealtime()) }?.let { RoadSigns.seen(it) } }
+            busy.set(false)
+            return
+        }
         client.process(InputImage.fromBitmap(bitmap, 0))
             .addOnSuccessListener { text ->
                 keep(bitmap, text.text)
@@ -60,6 +71,7 @@ class SignReader(private val dir: File) {
 
     fun close() {
         client.close()
+        classifier?.close()
         saver.shutdown()
     }
 
