@@ -43,18 +43,26 @@ class SpeedTest {
         assertEquals(50, displaySpeedKmh(sample(50.4, car), plus3))
     }
 
-    // --- CarSpeedProof ---------------------------------------------------------
+    // --- CarValueProof ---------------------------------------------------------
 
     @Test
     fun aCarSpeedThatNeverMovedIsNotSaid() {
-        val proof = CarSpeedProof()
+        val proof = CarValueProof()
         repeat(3) { assertNull(proof.believe(0)) }
         assertNull(proof.believe(null))
     }
 
     @Test
+    fun aBodyFuelThatWasNeverAboveZeroIsNotSaidThenEveryReadingIs() {
+        val proof = CarValueProof()
+        assertNull(proof.believe(0f))
+        assertEquals(42.5f, proof.believe(42.5f))
+        assertEquals(0f, proof.believe(0f))
+    }
+
+    @Test
     fun onceMovedEveryCarSpeedIsSaidAStopToo() {
-        val proof = CarSpeedProof()
+        val proof = CarValueProof()
         assertNull(proof.believe(0))
         assertEquals(12, proof.believe(12))
         assertEquals(0, proof.believe(0))
@@ -91,7 +99,7 @@ class SpeedTest {
         // The forum report: GPS only, a car app with no speed from the car, and the speed stuck at 0.
         val app = bus.register(Source("qf.car_app", SourceKind.VEHICLE_APP, "QF car app"))
         val g = bus.register(gps)
-        val proof = CarSpeedProof()
+        val proof = CarValueProof()
         app.put(K.VEHICLE_SPEED, proof.believe(0)?.toDouble())
         g.put(K.GPS_SPEED, 58.0)
         assertEquals(61, displaySpeedKmh(bus.sample(K.SPEED).value, plus3))

@@ -31,19 +31,20 @@ fun displaySpeedKmh(sample: Sample<Double>?, correctGps: (Int) -> Int = SpeedCor
 }
 
 /**
- * A car speed is believed once the source has said the car moves. A car app or a unit bus with no speed
+ * A car's number is believed once the source has said one above 0. A car app or a unit bus with no speed
  * from the car (a CAN box that does not carry it, or no CAN box at all) still sends 0, for ever; as a car
- * source it outranked the GPS, and the speed stayed at 0 on a GPS-only car. So a provider passes each
- * speed through [believe]: null (nothing said) until a speed above 0 has come once, then every speed, a
- * stop's 0 too. One per provider, for the life of the app.
+ * source it outranked the GPS, and the speed stayed at 0 on a GPS-only car. The body's revs, fuel,
+ * consumption and trip are the same: the K706's PSA parser leaves them at 0, and 0 outranked OBD and the
+ * estimates. So a provider passes each through [believe]: null (nothing said) until a value above 0 has
+ * come once, then every value, a stop's 0 too. One per number and provider, for the life of the app.
  */
-class CarSpeedProof {
-    @Volatile private var moved = false
+class CarValueProof {
+    @Volatile private var seen = false
 
-    /** [kmh] if this source's speed is believed, else null. */
-    fun believe(kmh: Int?): Int? {
-        if (kmh != null && kmh > 0) moved = true
-        return kmh?.takeIf { moved }
+    /** [value] if this source's number is believed, else null. */
+    fun <T : Number> believe(value: T?): T? {
+        if (value != null && value.toDouble() > 0) seen = true
+        return value?.takeIf { seen }
     }
 }
 
