@@ -628,7 +628,20 @@ private fun RoadDrawing(watch: RoadWatch, onTap: () -> Unit) {
             }
         }
         warn?.let { RoadWarningBanner(it, Modifier.align(Alignment.Center)) }
-        view.signKmh?.let { SignBadge(it, Modifier.align(Alignment.TopEnd).padding(12.dp)) }
+        val limit = view.signKmh
+        when {
+            limit != null -> SignBadge(limit, Modifier.align(Alignment.TopEnd).padding(12.dp))
+            view.signEnd -> EndBadge(Modifier.align(Alignment.TopEnd).padding(12.dp))
+        }
+    }
+}
+
+/** The sign that ended the limit, drawn as the sign: a bar across an empty face. */
+@Composable
+private fun EndBadge(modifier: Modifier) {
+    Canvas(modifier.size(64.dp).background(Color.White, CircleShape).border(3.dp, Color.Black, CircleShape)) {
+        val inset = size.minDimension * 0.18f
+        drawLine(Color.Black, Offset(inset, size.height - inset), Offset(size.width - inset, inset), strokeWidth = size.minDimension * 0.11f)
     }
 }
 

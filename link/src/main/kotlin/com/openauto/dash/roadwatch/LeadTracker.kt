@@ -50,6 +50,9 @@ data class Box(val left: Float, val top: Float, val right: Float, val bottom: Fl
     val height: Float get() = bottom - top
     val centerX: Float get() = (left + right) / 2
 
+    /** The point ([x], [y]) lies in this box. */
+    fun contains(x: Float, y: Float): Boolean = x in left..right && y in top..bottom
+
     /** How much [other] overlaps this one: 0 not at all, 1 the same box. */
     fun iou(other: Box): Float {
         val w = min(right, other.right) - max(left, other.left)

@@ -1,5 +1,10 @@
 package com.openauto.dash.companion
 
+import android.annotation.SuppressLint
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothServerSocket
+import android.bluetooth.BluetoothSocket
 import android.content.Context
 import android.os.Build
 import android.os.Handler
@@ -18,6 +23,9 @@ import com.openauto.dash.link.Dismiss
 import com.openauto.dash.link.DriveReport
 import com.openauto.dash.link.DriveSync
 import com.openauto.dash.link.Hello
+import com.openauto.dash.link.IdleGuard
+import com.openauto.dash.link.LINK_BLUETOOTH_NAME
+import com.openauto.dash.link.LINK_BLUETOOTH_UUID
 import com.openauto.dash.link.LINK_PORT
 import com.openauto.dash.link.LinkMessage
 import com.openauto.dash.link.LinkSession
@@ -45,28 +53,32 @@ import com.openauto.dash.link.UnknownPairingException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
+import java.util.UUID
 import java.util.concurrent.Executors
 import java.util.concurrent.Semaphore
 
 sealed interface LinkState {
     data object Off : LinkState
-    /** Listening: waiting for the head unit to join the hotspot and dial in. */
+    /** Listening: waiting for the head unit to dial in, over the hotspot or over Bluetooth. */
     data object Waiting : LinkState
-    /** The port could not be opened: nothing is listening, the car can't reach this phone. */
+    /** Neither the port nor Bluetooth could be opened: nothing is listening, the car can't reach this phone. */
     data object Unavailable : LinkState
     data class Connected(val unitName: String) : LinkState
 }
 
 /**
- * The phone's end of the link: a TCP server on [LINK_PORT]. The head unit, on
- * this phone's hotspot, dials the hotspot gateway (this phone), proves it
- * holds a pairing secret, then receives the notifications and sends back
- * replies. Nothing gets further without that secret. One head unit at a time;
- * a new connection replaces the old one. Run by [LinkService], which keeps
- * the process alive.
+ * The phone's end of the link: a TCP server on [LINK_PORT] and a Bluetooth
+ * (RFCOMM) service. The head unit, on this phone's hotspot, dials the hotspot
+ * gateway (this phone); or, with no hotspot, dials this phone over Bluetooth.
+ * Either way it proves it holds a pairing secret, then receives the
+ * notifications and sends back replies. Nothing gets further without that
+ * secret. One head unit at a time; a new connection replaces the old one.
+ * Run by [LinkService], which keeps the process alive.
  */
 object LinkServer {
     private const val TAG = "LinkServer"
@@ -75,6 +87,8 @@ object LinkServer {
     private const val IDLE_TIMEOUT_MS = 45_000
     /** Connections still proving their pairing at once; more are turned away. */
     private const val MAX_HANDSHAKES = 4
+    /** Bluetooth off, or not allowed yet: looked at again this often, so switching it on is enough. */
+    private const val BLUETOOTH_RETRY_MS = 15_000L
 
     private val _state = MutableStateFlow<LinkState>(LinkState.Off)
     val state: StateFlow<LinkState> = _state
@@ -98,11 +112,27 @@ object LinkServer {
     private val sender = Executors.newSingleThreadExecutor()
     private val handshakes = Semaphore(MAX_HANDSHAKES)
     private var server: ServerSocket? = null
+    private var bluetoothServer: BluetoothServerSocket? = null
+    /** Listening at all (over the port, over Bluetooth, or both). */
+    @Volatile private var running = false
+    /** Told apart per start, so a Bluetooth loop left over from before a stop() ends instead of doubling up. */
+    @Volatile private var generation = 0
     @Volatile private var session: LinkSession? = null
+
+    /** One head unit's connection, whatever carries it. */
+    private class Conn(
+        /** Who it is, for the log line. */
+        val label: String,
+        val input: InputStream,
+        val output: OutputStream,
+        val close: () -> Unit,
+        /** TCP ends a blocked read with a socket timeout. Bluetooth has none: null, an [IdleGuard] watches it instead. */
+        val setReadTimeout: ((Int) -> Unit)?
+    )
 
     @Synchronized
     fun start(context: Context) {
-        if (server != null) return
+        if (running) return
         val app = context.applicationContext
         val socket = try {
             ServerSocket().apply {
@@ -112,19 +142,33 @@ object LinkServer {
         } catch (e: IOException) {
             Log.w(TAG, "cannot listen on $LINK_PORT", e)
             note("cannot listen on port $LINK_PORT: ${e.message.orEmpty()}")
+            null
+        }
+        // No Bluetooth on this phone and no port: nothing can reach it.
+        if (socket == null && bluetoothAdapter(app) == null) {
             _state.value = LinkState.Unavailable
             return
         }
         server = socket
+        running = true
+        val mine = ++generation
         _state.value = LinkState.Waiting
-        note("listening on port $LINK_PORT")
-        Thread({ acceptLoop(app, socket) }, "link-accept").start()
+        if (socket != null) {
+            note("listening on port $LINK_PORT")
+            Thread({ acceptLoop(app, socket) }, "link-accept").start()
+        }
+        // For a head unit with no hotspot to dial: the same link over Bluetooth.
+        Thread({ bluetoothLoop(app, mine) }, "link-bluetooth").start()
     }
 
     @Synchronized
     fun stop() {
+        running = false
+        generation++
         runCatching { server?.close() }
         server = null
+        runCatching { bluetoothServer?.close() }
+        bluetoothServer = null
         session?.close()
         session = null
         // The session's own end no longer sees itself as the current one, and skips this.
@@ -174,44 +218,135 @@ object LinkServer {
                 continue
             }
             note("$from: connected, checking the pairing")
-            Thread({ serve(context, client) }, "link-session").start()
+            Thread({ serveTcp(context, client, from) }, "link-session").start()
         }
     }
 
-    private fun serve(context: Context, client: Socket) {
-        val link = try {
-            client.soTimeout = HANDSHAKE_TIMEOUT_MS
+    private fun serveTcp(context: Context, client: Socket, from: String) {
+        val conn = try {
             client.tcpNoDelay = true
+            Conn(
+                from, client.getInputStream(), client.getOutputStream(),
+                close = { runCatching { client.close() } },
+                setReadTimeout = { client.soTimeout = it }
+            )
+        } catch (e: IOException) {
+            handshakes.release()
+            runCatching { client.close() }
+            return
+        }
+        serve(context, conn)
+    }
+
+    private fun bluetoothAdapter(context: Context): BluetoothAdapter? =
+        context.getSystemService(BluetoothManager::class.java)?.adapter
+
+    /**
+     * Offers the link as a Bluetooth service (RFCOMM) the head unit can dial once
+     * it is paired with this phone. Bluetooth being off, or its permission not
+     * granted yet, is waited out rather than given up on.
+     */
+    @SuppressLint("MissingPermission") // a missing grant throws SecurityException, caught below
+    private fun bluetoothLoop(context: Context, mine: Int) {
+        while (running && generation == mine) {
+            val listening = try {
+                bluetoothAdapter(context)?.listenUsingRfcommWithServiceRecord(LINK_BLUETOOTH_NAME, UUID.fromString(LINK_BLUETOOTH_UUID))
+            } catch (e: IOException) {
+                null // Bluetooth is off.
+            } catch (e: SecurityException) {
+                note("Bluetooth: not allowed on this phone")
+                null
+            }
+            if (listening == null) {
+                try {
+                    Thread.sleep(BLUETOOTH_RETRY_MS)
+                } catch (e: InterruptedException) {
+                    return
+                }
+                continue
+            }
+            synchronized(this) {
+                if (!running || generation != mine) {
+                    runCatching { listening.close() }
+                    return
+                }
+                bluetoothServer = listening
+            }
+            note("listening on Bluetooth")
+            try {
+                while (running && generation == mine) {
+                    val client = listening.accept()
+                    // A flood of connections that never finish their handshake is turned away.
+                    if (!handshakes.tryAcquire()) {
+                        note("Bluetooth: busy, turned away")
+                        runCatching { client.close() }
+                        continue
+                    }
+                    note("Bluetooth: connected, checking the pairing")
+                    Thread({ serveBluetooth(context, client) }, "link-bt-session").start()
+                }
+            } catch (e: IOException) {
+                // Closed by stop(), or Bluetooth was switched off: listen again once it is back.
+            } finally {
+                runCatching { listening.close() }
+                synchronized(this) { if (bluetoothServer === listening) bluetoothServer = null }
+            }
+        }
+    }
+
+    private fun serveBluetooth(context: Context, client: BluetoothSocket) {
+        val conn = try {
+            Conn(
+                "Bluetooth", client.inputStream, client.outputStream,
+                close = { runCatching { client.close() } },
+                setReadTimeout = null
+            )
+        } catch (e: IOException) {
+            handshakes.release()
+            runCatching { client.close() }
+            return
+        }
+        serve(context, conn)
+    }
+
+    private fun serve(context: Context, conn: Conn) {
+        // Bluetooth has no read timeout: a guard closes a link that went quiet instead.
+        val guard = if (conn.setReadTimeout == null) IdleGuard(HANDSHAKE_TIMEOUT_MS.toLong(), conn.close).start() else null
+        val link = try {
+            conn.setReadTimeout?.invoke(HANDSHAKE_TIMEOUT_MS)
             SecureChannel.server(
-                client.getInputStream(), client.getOutputStream(),
+                conn.input, conn.output,
                 secretFor = { PairedUnits.secretFor(context, it) },
-                onClose = { runCatching { client.close() } }
+                onClose = { guard?.stop(); conn.close() }
             )
         } catch (e: UnknownPairingException) {
-            note("${client.inetAddress?.hostAddress}: car's code not paired here")
-            runCatching { client.close() }
+            note("${conn.label}: car's code not paired here")
+            guard?.stop()
+            conn.close()
             return
         } catch (e: Exception) {
             Log.i(TAG, "handshake failed", e)
-            note("${client.inetAddress?.hostAddress}: ${e.javaClass.simpleName} ${e.message.orEmpty()}")
-            runCatching { client.close() }
+            note("${conn.label}: ${e.javaClass.simpleName} ${e.message.orEmpty()}")
+            guard?.stop()
+            conn.close()
             return
         } finally {
             handshakes.release()
         }
-        client.soTimeout = IDLE_TIMEOUT_MS
+        conn.setReadTimeout?.invoke(IDLE_TIMEOUT_MS)
+        guard?.timeoutMs = IDLE_TIMEOUT_MS.toLong()
         val unitName = PairedUnits.nameOf(context, link.pairingId) ?: "?"
         // Published under the lock, so a stop() during the handshake is never missed.
         val replaced: LinkSession?
         synchronized(this) {
-            if (server == null) {
+            if (!running) {
                 link.close()
                 return
             }
             replaced = session
             session = link
             _state.value = LinkState.Connected(unitName)
-            note("${client.inetAddress?.hostAddress}: linked")
+            note("${conn.label}: linked")
         }
         replaced?.close()
 
@@ -225,7 +360,9 @@ object LinkServer {
         PhoneBatteryWatch.current(context)?.let(::send)
         try {
             while (true) {
-                val message = link.receive() ?: continue
+                val received = link.receive()
+                guard?.kick()
+                val message = received ?: continue
                 // One message that can't be handled is skipped, rather than ending the app.
                 try {
                     handle(context, link, message)
@@ -236,11 +373,12 @@ object LinkServer {
         } catch (e: IOException) {
             // Link gone: the head unit left the hotspot, stopped, or went quiet.
         } finally {
+            guard?.stop()
             link.close()
             synchronized(this) {
                 if (session === link) {
                     session = null
-                    if (server != null) _state.value = LinkState.Waiting
+                    if (running) _state.value = LinkState.Waiting
                     // No head unit to relay to: the OBD adapter is let go for the next start.
                     ObdRelay.close()
                 }

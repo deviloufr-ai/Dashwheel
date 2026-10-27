@@ -16,12 +16,17 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Reads the number on a round sign [com.openauto.dash.roadwatch.SignFinder]
+/**
+ * Reads the number on a round sign [com.openauto.dash.roadwatch.SignFinder]
  * found: its middle copied out of the camera's frame, made bigger, and read
  * first by [SignClassifier] (a limit, the end of one, another sign, no sign;
  * under a millisecond), then, when that isn't sure, by ML Kit's text
  * recognizer on the phone, no network. One sign at a time: while one is
  * being read, the next waits for a later frame. What it reads goes to
- * [RoadSigns], believed once read twice ([SignConfirm]).
+ * [RoadSigns], believed once read twice ([SignConfirm]). An end sign needs
+ * no reading: seen twice ([sawEnd], or the classifier's word), it ends the limit.
+ */
+class SignReader(context: Context, private val dir: File) {
  */
 class SignReader(context: Context, private val dir: File) {
     private val client = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
@@ -39,6 +44,7 @@ class SignReader(context: Context, private val dir: File) {
             // Sure: a limit counts, and the rest (the end of a limit, another sign, no sign) needs no reading.
             keep(bitmap, "c" + reading.label)
             reading.kmh?.let { kmh -> synchronized(confirm) { confirm.read(kmh, SystemClock.elapsedRealtime()) }?.let { RoadSigns.seen(it) } }
+            if (reading.label == "end") sawEnd()
             busy.set(false)
             return
         }
@@ -50,6 +56,11 @@ class SignReader(context: Context, private val dir: File) {
             }
             .addOnFailureListener { keep(bitmap, "failed") }
             .addOnCompleteListener { busy.set(false) }
+    }
+
+    /** The finder saw the sign that ends a limit on this frame; twice within a few seconds is believed. */
+    fun sawEnd() {
+        synchronized(confirm) { confirm.read(SignConfirm.END, SystemClock.elapsedRealtime()) }?.let { RoadSigns.ended() }
     }
 
     /**
@@ -107,7 +118,8 @@ class SignReader(context: Context, private val dir: File) {
 
 /**
  * The speed limit last read off a sign, for the car ([com.openauto.dash.link.RoadScene.signKmh]),
- * the recorder's notes and the speed report.
+ * the recorder's notes and the speed report; and the end sign last passed,
+ * which takes the limit away ([com.openauto.dash.link.RoadScene.signEnd]).
  */
 object RoadSigns {
     @Volatile var kmh: Int? = null
@@ -115,17 +127,33 @@ object RoadSigns {
     /** When it was read (elapsedRealtime, ms). */
     @Volatile var at = 0L
         private set
+    /** When the sign ending the limit was last seen (elapsedRealtime, ms), 0 for never. */
+    @Volatile var endAt = 0L
+        private set
 
     fun seen(kmh: Int) {
         this.kmh = kmh
         at = SystemClock.elapsedRealtime()
+        // A limit read after the end sign: the end is history, and mustn't take the new limit away.
+        endAt = 0L
+    }
+
+    /** The limit ends here: none from a sign until the next one. */
+    fun ended() {
+        kmh = null
+        at = 0L
+        endAt = SystemClock.elapsedRealtime()
     }
 
     /** The limit read in the last [withinMs], or null. */
     fun fresh(withinMs: Long, now: Long = SystemClock.elapsedRealtime()): Int? = kmh?.takeIf { now - at < withinMs }
 
+    /** An end sign was seen in the last [withinMs]. */
+    fun endFresh(withinMs: Long, now: Long = SystemClock.elapsedRealtime()): Boolean = endAt != 0L && now - endAt < withinMs
+
     fun clear() {
         kmh = null
         at = 0L
+        endAt = 0L
     }
 }

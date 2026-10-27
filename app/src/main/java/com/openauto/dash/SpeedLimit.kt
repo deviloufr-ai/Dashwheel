@@ -177,10 +177,12 @@ internal object SpeedLimit {
     @Volatile private var fetching = false
     @Volatile private var failedAt = 0L
     private val nag = LimitNag(tolerance = TOLERANCE_KMH)
-    /** The camera's sign, where it was read: it holds for [SIGN_HOLD_M] from there. */
+    /** The camera's sign, where it was read: it holds for [SIGN_HOLD_M] from there, or until the sign that ends it. */
     @Volatile private var signKmh: Int? = null
     @Volatile private var signAt: Location? = null
     private const val SIGN_HOLD_M = 2_000f
+    /** The map's limit where the car last was, for when a sign's limit ends. */
+    @Volatile private var roadKmh: Int? = null
 
     private val _limit = MutableStateFlow<Int?>(null)
     val limit: StateFlow<Int?> = _limit
@@ -197,11 +199,18 @@ internal object SpeedLimit {
         }
     }
 
-    /** Road watch read [kmh] off a sign here: it is the limit until [SIGN_HOLD_M] further on, or the next sign. */
+    /** Road watch read [kmh] off a sign here: it is the limit until [SIGN_HOLD_M] further on, the next sign, or the sign that ends it. */
     fun sign(kmh: Int) {
         signKmh = kmh
         signAt = LocationFeed.location.value
         if (users > 0) _limit.value = kmh
+    }
+
+    /** Road watch passed the sign that ends the limit: the map's limit again, from here. */
+    fun endSign() {
+        signKmh = null
+        signAt = null
+        if (users > 0) _limit.value = roadKmh
     }
 
     @Synchronized
@@ -226,6 +235,7 @@ internal object SpeedLimit {
             }
         }
         val road = roadAt(loc.latitude, loc.longitude, if (loc.hasBearing() && loc.speed > 2f) loc.bearing else null, roads)
+        roadKmh = road?.limitKmh
         val sign = signKmh?.takeIf { signAt?.let { at -> at.distanceTo(loc) < SIGN_HOLD_M } ?: true }
         if (sign == null) signKmh = null
         val limit = sign ?: road?.limitKmh

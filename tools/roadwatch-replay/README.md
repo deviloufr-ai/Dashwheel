@@ -42,7 +42,7 @@ warnings: 2
 
 ## Look at the signs it finds
 
-`--signs dir` runs `SignFinder` as the phone does: every third frame, shrunk to 1280 across. It writes each round red sign found, four times bigger, into `dir`, with `signs.csv` (frame, box, size in pixels). The number on the sign is read by ML Kit on the phone only.
+`--signs dir` runs `SignFinder` as the phone does: every third frame, shrunk to 1280 across. It writes each round sign found (a red ring, `limit`; a light disc struck through, `end`), four times bigger, into `dir`, with `signs.csv` (frame, kind, box, size in pixels). The number on a limit sign is read by ML Kit on the phone only.
 
 ## Measure the vehicle finder against a big model
 

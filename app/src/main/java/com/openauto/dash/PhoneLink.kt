@@ -1,7 +1,14 @@
 package com.openauto.dash
 
+import android.annotation.SuppressLint
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothClass
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothManager
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
@@ -27,6 +34,8 @@ import com.openauto.dash.link.Dismiss
 import com.openauto.dash.link.DisplayPair
 import com.openauto.dash.link.EnableTyping
 import com.openauto.dash.link.Hello
+import com.openauto.dash.link.IdleGuard
+import com.openauto.dash.link.LINK_BLUETOOTH_UUID
 import com.openauto.dash.link.LINK_PORT
 import com.openauto.dash.link.LinkMessage
 import com.openauto.dash.link.LinkSession
@@ -51,6 +60,7 @@ import com.openauto.dash.link.RescueCommand
 import com.openauto.dash.link.RescueResult
 import com.openauto.dash.link.TextSent
 import kotlinx.coroutines.CompletableDeferred
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 import com.openauto.dash.link.PairingOffer
@@ -102,6 +112,11 @@ import java.util.concurrent.atomic.AtomicReference
  * favourites, last calls and agenda for the Quick dial and Agenda tiles
  * ([PhoneLists]), calls a favourite through the phone, and starts guidance to
  * a place shared on the phone ([Destination]).
+ *
+ * With no hotspot (the unit has its own SIM), the same link runs over
+ * Bluetooth: the phone offers the link as an RFCOMM service, and this side dials
+ * the phones the unit is Bluetooth-paired with. The channel, the pairing secret
+ * and everything on top are the same; only the carrier differs.
  */
 
 /** A phone the driver paired by scanning the QR code with the companion app. */
@@ -163,6 +178,14 @@ object PhoneLink {
     private const val PREFS = "phone_link"
     private const val KEY_PHONES = "phones"
     private const val CONNECT_TIMEOUT_MS = 3_000
+    /** Bluetooth's connect() has no timeout of its own: a phone that is off or far away would hold it for ~20 s. */
+    private const val BLUETOOTH_CONNECT_TIMEOUT_MS = 8_000L
+    /**
+     * A Bluetooth device connecting looks for the phone at once, but at most this
+     * often: dialling a phone with no companion running connects and drops the radio
+     * link itself, which would otherwise look like another device and start a loop.
+     */
+    private const val BLUETOOTH_WAKE_GAP_MS = 30_000L
     private const val HANDSHAKE_TIMEOUT_MS = 10_000
     /** Two missed pongs: the phone is gone, and the OBD relay and the tiles should know sooner than after three. */
     private const val READ_TIMEOUT_MS = 30_000
@@ -243,6 +266,16 @@ object PhoneLink {
 
     private enum class Attempt { LINKED, REFUSED, UNREACHABLE }
 
+    /** An open link, and for Bluetooth the guard that closes it when it goes quiet (it has no read timeout). */
+    private class Opened(val link: LinkSession, val idle: IdleGuard? = null)
+
+    /** How the Bluetooth try went: no radio or no paired phone, nobody answering, or a phone that did. */
+    private enum class Reach { UNAVAILABLE, NOBODY, ANSWERED }
+
+    /** The Bluetooth address of the phone that linked last: tried first next time. */
+    @Volatile private var lastBluetoothPhone: String? = null
+    @Volatile private var lastBluetoothWake = 0L
+
     fun start(context: Context) {
         val app = context.applicationContext
         synchronized(this) {
@@ -257,6 +290,25 @@ object PhoneLink {
                 override fun onLost(network: Network) = wake.update { it + 1 }
             }
         )
+        // The phone connecting by Bluetooth, or Bluetooth being switched on: look for it now.
+        // Never unregistered on purpose: start() runs once and this lives as long as the process.
+        runCatching {
+            val receiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context, intent: Intent) {
+                    val now = SystemClock.elapsedRealtime()
+                    if (session == null && now - lastBluetoothWake > BLUETOOTH_WAKE_GAP_MS) {
+                        lastBluetoothWake = now
+                        wake.update { it + 1 }
+                    }
+                }
+            }
+            val filter = IntentFilter().apply {
+                addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
+                addAction(BluetoothAdapter.ACTION_STATE_CHANGED)
+            }
+            if (Build.VERSION.SDK_INT >= 33) app.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
+            else app.registerReceiver(receiver, filter)
+        }
         scope.launch {
             for ((link, message) in outbox) {
                 sending = link to android.os.SystemClock.elapsedRealtime()
@@ -379,9 +431,17 @@ object PhoneLink {
             // pairing was then dropped for good while its own phone still held it.
             val candidates = listOfNotNull(pending?.let { PairedPhone(it.id, it.secret, "", 0) }) + _phones.value
             val gateway = if (candidates.isEmpty()) null else hotspotGateway(context)
-            val answered = gateway != null && dial(context, gateway, candidates, pending?.id)
+            var answered = gateway != null && dial(context, gateway, candidates, pending?.id)
             if (gateway == null && candidates.isNotEmpty()) note("no Wi-Fi gateway: not on a phone hotspot")
-            misses = if (answered || gateway == null) 0 else misses + 1
+            // No hotspot, or nobody on it: the phone may be reachable over Bluetooth.
+            var bluetooth = Reach.UNAVAILABLE
+            if (!answered && candidates.isNotEmpty()) {
+                bluetooth = dialBluetooth(context, candidates, pending?.id)
+                answered = bluetooth == Reach.ANSWERED
+            }
+            // Tries that cost nothing (no Wi-Fi gateway, Bluetooth off) stay quick; ones that reached out for nobody back off.
+            val free = gateway == null && bluetooth == Reach.UNAVAILABLE
+            misses = if (answered || free) 0 else misses + 1
             refreshIdleState()
             val wait = if (_pending.value != null) RETRY_PAIRING_MS else retryDelay(misses)
             // A network change or a new pairing code: look again at once, and quickly.
@@ -418,10 +478,17 @@ object PhoneLink {
     }
 
     /** One attempt with one pairing. */
-    private fun tryPhone(context: Context, gateway: InetAddress, phone: PairedPhone, isPending: Boolean): Attempt {
-        val what = "${gateway.hostAddress}:$LINK_PORT ${if (isPending) "new code" else "paired"}"
-        val link = try {
-            connect(gateway, phone)
+    private fun tryPhone(context: Context, gateway: InetAddress, phone: PairedPhone, isPending: Boolean): Attempt =
+        attempt(context, "${gateway.hostAddress}:$LINK_PORT ${if (isPending) "new code" else "paired"}", gateway, phone, isPending) {
+            Opened(connect(gateway, phone))
+        }
+
+    /** Opens a link with [open] and runs it until it ends; [gateway] is null over Bluetooth. */
+    private fun attempt(
+        context: Context, what: String, gateway: InetAddress?, phone: PairedPhone, isPending: Boolean, open: () -> Opened
+    ): Attempt {
+        val opened = try {
+            open()
         } catch (e: UnknownPairingException) {
             note("$what: phone does not know this code")
             return Attempt.REFUSED
@@ -435,8 +502,82 @@ object PhoneLink {
             return Attempt.UNREACHABLE
         }
         note("$what: linked")
-        runSession(context, gateway, link, phone, isPending)
+        runSession(context, gateway, opened.link, phone, isPending, opened.idle)
         return Attempt.LINKED
+    }
+
+    /**
+     * Dials the phones this unit is Bluetooth-paired with, for a unit that has
+     * no hotspot to reach the phone by. Only phones: never the OBD adapter or
+     * the other devices paired here. No hotspot refusals are counted from
+     * here: a paired phone of another driver refusing says nothing about ours.
+     */
+    @SuppressLint("MissingPermission") // a missing grant throws SecurityException, caught below
+    private fun dialBluetooth(context: Context, candidates: List<PairedPhone>, pendingId: String?): Reach {
+        val adapter = context.getSystemService(BluetoothManager::class.java)?.adapter ?: return Reach.UNAVAILABLE
+        val phones = try {
+            if (!adapter.isEnabled) return Reach.UNAVAILABLE
+            bondedPhones(adapter)
+        } catch (e: SecurityException) {
+            note("Bluetooth: not allowed on this unit")
+            return Reach.UNAVAILABLE
+        }
+        if (phones.isEmpty()) {
+            note("Bluetooth: no paired phone")
+            return Reach.UNAVAILABLE
+        }
+        // A search under way makes every connection slow.
+        runCatching { adapter.cancelDiscovery() }
+        var answered = false
+        for (device in phones) {
+            for (phone in candidates) {
+                val isPending = phone.id == pendingId
+                val what = "Bluetooth ${if (isPending) "new code" else "paired"}"
+                when (attempt(context, what, null, phone, isPending) { connectBluetooth(device, phone) }) {
+                    Attempt.LINKED -> {
+                        lastBluetoothPhone = device.address
+                        return Reach.ANSWERED
+                    }
+                    Attempt.REFUSED -> answered = true
+                    // Nobody on this device (no companion running, or out of range): its other codes would meet the same.
+                    Attempt.UNREACHABLE -> break
+                }
+            }
+        }
+        // The last line the log keeps: refused (a phone answered, wrong code) is not nobody answering.
+        note(if (answered) "Bluetooth: phone answered but does not know this code" else "Bluetooth: ${phones.size} paired phone(s), nobody answering")
+        return if (answered) Reach.ANSWERED else Reach.NOBODY
+    }
+
+    /** The paired devices that are phones, the one that linked last first. The OBD adapter and the rest are left alone. */
+    @SuppressLint("MissingPermission") // a missing grant throws SecurityException, caught below
+    private fun bondedPhones(adapter: BluetoothAdapter): List<BluetoothDevice> =
+        adapter.bondedDevices.orEmpty()
+            .filter { it.bluetoothClass?.majorDeviceClass == BluetoothClass.Device.Major.PHONE }
+            .sortedByDescending { it.address == lastBluetoothPhone }
+
+    @SuppressLint("MissingPermission") // a missing grant throws SecurityException, caught below
+    private fun connectBluetooth(device: BluetoothDevice, phone: PairedPhone): Opened {
+        val socket = device.createRfcommSocketToServiceRecord(UUID.fromString(LINK_BLUETOOTH_UUID))
+        // connect() has no timeout of its own; the guard closes the socket if it takes too long.
+        val guard = IdleGuard(BLUETOOTH_CONNECT_TIMEOUT_MS, { runCatching { socket.close() } }).start()
+        try {
+            socket.connect()
+            guard.timeoutMs = HANDSHAKE_TIMEOUT_MS.toLong()
+            guard.kick()
+            val link = SecureChannel.client(
+                socket.inputStream, socket.outputStream, phone.id, phone.secret,
+                onClose = { guard.stop(); runCatching { socket.close() } }
+            )
+            // Bluetooth has no read timeout: from here the guard ends a link that went quiet.
+            guard.timeoutMs = READ_TIMEOUT_MS.toLong()
+            guard.kick()
+            return Opened(link, guard)
+        } catch (e: Exception) {
+            guard.stop()
+            runCatching { socket.close() }
+            throw e
+        }
     }
 
     private fun note(line: String) {
@@ -468,7 +609,9 @@ object PhoneLink {
     }
 
     /** Runs an open link until it ends. */
-    private fun runSession(context: Context, gateway: InetAddress, link: LinkSession, phone: PairedPhone, isPending: Boolean) {
+    private fun runSession(
+        context: Context, gateway: InetAddress?, link: LinkSession, phone: PairedPhone, isPending: Boolean, idle: IdleGuard? = null
+    ) {
         if (!link.sendOrClose(Hello(unitName(context), BuildConfig.VERSION_NAME))) return
         session = link
         val pinger = scope.launch {
@@ -491,7 +634,8 @@ object PhoneLink {
             }
         }
         // While a pairing code is on screen, keep asking the phone whether it now knows it.
-        val prober = if (isPending) null else scope.launch { probePending(gateway, link) }
+        // (Over Bluetooth there is no second link to try the code on: a new phone waits for this one to end.)
+        val prober = if (isPending || gateway == null) null else scope.launch { probePending(gateway, link) }
         // Where the car stops, for the phone's "where's my car".
         val whereabouts = scope.launch { CarWhereabouts.report(context) { send(it) } }
         // The drives it logged, and the one under way, for the phone's drive journal.
@@ -504,7 +648,9 @@ object PhoneLink {
         ParkingClock.resend()
         try {
             while (true) {
-                val message = link.receive() ?: continue
+                val received = link.receive()
+                idle?.kick()
+                val message = received ?: continue
                 // One message this build can't make sense of is skipped: thrown out of
                 // here, it ended the launcher (nothing above catches it).
                 try {
@@ -516,6 +662,7 @@ object PhoneLink {
         } catch (e: IOException) {
             Log.i(TAG, "link ended: ${e.message}")
         } finally {
+            idle?.stop()
             pinger.cancel()
             watchdog.cancel()
             prober?.cancel()
