@@ -81,7 +81,7 @@ fun main(args: Array<String>) {
     val dump = o["dump"]?.let { File(it).also { d -> d.mkdirs() } }
     val every = o["every"]?.toInt() ?: 30
     val signs = o["signs"]?.let { File(it).also { d -> d.mkdirs() } }
-    val signRows = StringBuilder("frame,left,top,right,bottom,side_px\n")
+    val signRows = StringBuilder("frame,kind,left,top,right,bottom,side_px\n")
 
     val (width, height, fps) = probe(video)
     System.err.println("$video: ${width}x$height at $fps fps")
@@ -277,8 +277,9 @@ private const val SIGN_EVERY = 3
 private const val PHONE_WIDTH = 1280
 
 /**
- * The round red signs in a frame, found as the phone finds them: the frame shrunk to the phone's width,
- * [SignFinder] on it, and each sign's square written out four times bigger, to look at.
+ * The round signs in a frame (red rings, and the struck-through discs that end a limit), found as the
+ * phone finds them: the frame shrunk to the phone's width, [SignFinder] on it, and each sign's square
+ * written out four times bigger, to look at.
  */
 private fun findSigns(rgba: ByteArray, width: Int, height: Int, index: Int, dir: File, rows: StringBuilder) {
     val pw = min(PHONE_WIDTH, width)
@@ -290,7 +291,7 @@ private fun findSigns(rgba: ByteArray, width: Int, height: Int, index: Int, dir:
     }
     for (spot in SignFinder.find(ByteBuffer.wrap(small), pw, ph, pw * 4, 0, bottomY = 0.85f)) {
         val b = spot.box
-        rows.append("$index,${b.left},${b.top},${b.right},${b.bottom},${spot.sidePx}\n")
+        rows.append("$index,${spot.kind.name.lowercase()},${b.left},${b.top},${b.right},${b.bottom},${spot.sidePx}\n")
         val x0 = (b.left * pw).toInt().coerceIn(0, pw - 1)
         val y0 = (b.top * ph).toInt().coerceIn(0, ph - 1)
         val side = spot.sidePx.coerceAtMost(min(pw - x0, ph - y0))
@@ -299,6 +300,6 @@ private fun findSigns(rgba: ByteArray, width: Int, height: Int, index: Int, dir:
             val i = ((y0 + y / 4) * pw + x0 + x / 4) * 4
             img.setRGB(x, y, (small[i].toInt() and 0xFF shl 16) or (small[i + 1].toInt() and 0xFF shl 8) or (small[i + 2].toInt() and 0xFF))
         }
-        ImageIO.write(img, "png", File(dir, "f%05d-%d.png".format(index, (b.left * 1000).toInt())))
+        ImageIO.write(img, "png", File(dir, "f%05d-%d-%s.png".format(index, (b.left * 1000).toInt(), spot.kind.name.lowercase())))
     }
 }
