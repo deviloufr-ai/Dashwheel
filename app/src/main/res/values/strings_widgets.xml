@@ -114,6 +114,7 @@
     <string name="widgets_fuel_last">%1$s L on %2$s</string>
     <string name="widgets_fuel_per100">per 100 km</string>
     <string name="widgets_fuel_save">Save</string>
+    <string name="widgets_fuel_set_price">Set the price paid</string>
     <string name="widgets_wx">Weather alerts</string>
     <string name="widgets_wx_blurb">Weather warnings where you are and where you are going</string>
     <string name="widgets_wx_none">No warning here</string>

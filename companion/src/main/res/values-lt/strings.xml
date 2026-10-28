@@ -136,6 +136,9 @@
     <string name="report_per100">L/100 km</string>
     <string name="report_estimated">Apskaičiuota pagal įprastas sąnaudas: šį mėnesį neužregistruota pildymų.</string>
     <string name="report_last_fill">Paskutinis pildymas: %1$s L · %2$s</string>
+    <string name="fuel_set_price">Įvesti sumokėtą kainą</string>
+    <string name="fuel_price_per_litre">Litro kaina (%1$s)</string>
+    <string name="fuel_price_save">Išsaugoti</string>
     <string name="report_share">Bendrinti</string>
     <string name="report_share_subject">Automobilio ataskaita: %1$s</string>
     <string name="report_earlier">Ankstesnis mėnuo</string>

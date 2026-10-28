@@ -105,7 +105,18 @@ internal object FuelLog {
     fun litersPer100(): Double? = FuelFills.litersPer100(_fills.value)
 
     /** The price paid at the last refuel, where it is known. */
-    fun lastPrice(): Double? = _fills.value.firstNotNullOfOrNull { it.pricePerL }
+    fun lastPrice(): Double? = FuelFills.lastPrice(_fills.value)
+
+    /** What a litre costs now: the last price paid, else the driver's figure in "My car". */
+    fun price(car: CarProfile): Double = lastPrice() ?: car.fuelPrice
+
+    /** The driver says what they paid a litre at the refuel made at [at] (here, or from the phone). */
+    fun setPrice(context: Context, at: Long, pricePerL: Double) {
+        if (pricePerL <= 0) return
+        val fills = FuelFills.priced(_fills.value, at, pricePerL) ?: return
+        save(context.applicationContext, fills)
+        fills.firstOrNull { it.at == at }?.let { reports.tryEmit(it) }
+    }
 
     /** Runs for as long as the link is up (cancel it when the link ends), handing each message to [send]. */
     suspend fun report(send: (LinkMessage) -> Unit) {
@@ -139,14 +150,17 @@ internal object FuelLog {
         if (liters < FuelLogRules.MIN_LITERS) return
         val here = LocationFeed.location.value
         val station = here?.let { FuelPriceRepo.stations.value?.let { s -> FuelLogRules.stationAt(s, it.latitude, it.longitude, FuelPrices.gradesFor(car)) } }
+        // Away from a station the feed knows, prices change too often for a fixed
+        // figure: the last price paid stands in until the driver gives this one.
         val fill = FuelFill(
             at = System.currentTimeMillis(),
             liters = liters,
-            pricePerL = station?.second ?: car.fuelPrice,
+            pricePerL = station?.second ?: price(car),
             currency = if (station != null) FuelPrices.CURRENCY else car.currency,
             odometerKm = Maintenance.state.value.odometer?.nowKm,
             station = station?.first?.label,
-            estimated = info.percentEstimated
+            estimated = info.percentEstimated,
+            priceGuessed = station == null
         )
         record(app, fill)
     }
@@ -167,9 +181,13 @@ internal object FuelLog {
     }
 
     private fun record(app: Context, fill: FuelFill) {
-        _fills.value = FuelFills.merge(_fills.value, fill)
-        prefs(app).edit().putString("fills", FuelFills.encode(_fills.value)).apply()
+        save(app, FuelFills.merge(_fills.value, fill))
         reports.tryEmit(fill)
+    }
+
+    private fun save(app: Context, fills: List<FuelFill>) {
+        _fills.value = fills
+        prefs(app).edit().putString("fills", FuelFills.encode(fills)).apply()
     }
 
     private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)

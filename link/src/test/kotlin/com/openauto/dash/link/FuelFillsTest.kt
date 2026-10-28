@@ -46,4 +46,24 @@ class FuelFillsTest {
         assertEquals(listOf(b, a), FuelFills.merge(FuelFills.merge(emptyList(), a), b))
         assertEquals(listOf(b.copy(liters = 21.0), a), FuelFills.merge(listOf(b, a), b.copy(liters = 21.0)))
     }
+
+    @Test
+    fun aPriceGivenReplacesTheGuessAndBecomesTheLastPrice() {
+        val paid = FuelFill(1, 40.0, pricePerL = 1.65)
+        val guessed = FuelFill(2, 30.0, pricePerL = 1.65, priceGuessed = true)
+        // A guess is only the last price paid again: the paid one counts first.
+        assertEquals(1.65, FuelFills.lastPrice(listOf(guessed.copy(pricePerL = 1.70), paid))!!, 0.0)
+        val priced = FuelFills.priced(listOf(guessed, paid), at = 2, pricePerL = 1.82)!!
+        assertEquals(guessed.copy(pricePerL = 1.82, priceGuessed = false), priced.first())
+        assertEquals(1.82, FuelFills.lastPrice(priced)!!, 0.0)
+        assertNull(FuelFills.priced(priced, at = 3, pricePerL = 1.9))
+    }
+
+    @Test
+    fun aPriceFromThePhoneRoundTrips() {
+        val msg = FuelPrice(at = 2, pricePerL = 1.82)
+        assertEquals(msg, LinkCodec.decode(LinkCodec.encode(msg)))
+        // A refuel kept by an older app, without the flag, reads as priced.
+        assertEquals(false, FuelFills.decode("""[{"at":1,"liters":40.0,"pricePerL":1.7}]""").single().priceGuessed)
+    }
 }

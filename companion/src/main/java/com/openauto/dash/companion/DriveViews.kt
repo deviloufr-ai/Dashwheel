@@ -42,6 +42,13 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.IconButton
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -160,6 +167,13 @@ internal fun MonthCard(drives: List<DriveSummary>, fills: List<FuelFill>) {
     )
     val shareSubject = stringResource(R.string.report_share_subject, title)
     val estimatedNote = stringResource(R.string.report_estimated)
+    var pricing by remember { mutableStateOf<FuelFill?>(null) }
+    pricing?.let { f ->
+        FuelPriceDialog(f, onDismiss = { pricing = null }) { price ->
+            FuelJournal.setPrice(context, f.at, price)
+            pricing = null
+        }
+    }
 
     Panel {
         Column(Modifier.padding(18.dp)) {
@@ -186,11 +200,13 @@ internal fun MonthCard(drives: List<DriveSummary>, fills: List<FuelFill>) {
                 Text(estimatedNote, style = MaterialTheme.typography.bodySmall, color = CompanionColors.Muted, modifier = Modifier.padding(top = 10.dp))
             }
             fills.firstOrNull()?.let { f ->
-                val price = f.pricePerL?.let { decimal(it, 3) + " " + f.currency.orEmpty() + "/L" }
+                val price = f.pricePerL?.let { decimal(it, 3) + " " + f.currency.orEmpty() + "/L" + if (f.priceGuessed) "?" else "" }
                 Text(
                     stringResource(R.string.report_last_fill, decimal(f.liters, 0), listOfNotNull(price, f.station, whenShort(f.at)).joinToString(" · ")),
                     style = MaterialTheme.typography.bodySmall, color = CompanionColors.Muted, modifier = Modifier.padding(top = 6.dp)
                 )
+                // Prices change by the day: a refuel away from a known pump asks what was paid.
+                if (f.priceGuessed) TextButton(onClick = { pricing = f }) { Text(stringResource(R.string.fuel_set_price)) }
             }
             TextButton(
                 onClick = {
@@ -214,6 +230,28 @@ internal fun MonthCard(drives: List<DriveSummary>, fills: List<FuelFill>) {
             }
         }
     }
+}
+
+/** What was paid a litre at [fill], typed; the guess to start from. */
+@Composable
+private fun FuelPriceDialog(fill: FuelFill, onDismiss: () -> Unit, onSave: (Double) -> Unit) {
+    var text by rememberSaveable { mutableStateOf(fill.pricePerL?.let { decimal(it, 3) }.orEmpty()) }
+    // A comma or a point, whichever the keyboard gives.
+    val price = text.trim().replace(',', '.').toDoubleOrNull()?.takeIf { it > 0 && it < 100 }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = CompanionColors.SurfaceHigh,
+        title = { Text(stringResource(R.string.fuel_set_price)) },
+        text = {
+            OutlinedTextField(
+                value = text, onValueChange = { text = it }, singleLine = true,
+                label = { Text(stringResource(R.string.fuel_price_per_litre, fill.currency.orEmpty())) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+            )
+        },
+        confirmButton = { Button(onClick = { price?.let(onSave) }, enabled = price != null) { Text(stringResource(R.string.fuel_price_save)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } }
+    )
 }
 
 private class ReportLabels(val km: String, val drives: String, val time: String, val eco: String, val fuel: String, val per100: String)

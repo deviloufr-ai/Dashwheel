@@ -113,6 +113,7 @@
     <string name="widgets_fuel_last">%1$s L op %2$s</string>
     <string name="widgets_fuel_per100">per 100 km</string>
     <string name="widgets_fuel_save">Opslaan</string>
+    <string name="widgets_fuel_set_price">Betaalde prijs invullen</string>
     <string name="widgets_wx">Weeralarmen</string>
     <string name="widgets_wx_blurb">Weerwaarschuwingen waar je bent en waar je heen gaat</string>
     <string name="widgets_wx_none">Geen waarschuwing hier</string>

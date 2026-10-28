@@ -135,6 +135,9 @@
     <string name="report_per100">L/100 km</string>
     <string name="report_estimated">Estimé d\'après la consommation habituelle : aucun plein noté ce mois-ci.</string>
     <string name="report_last_fill">Dernier plein : %1$s L · %2$s</string>
+    <string name="fuel_set_price">Indiquer le prix payé</string>
+    <string name="fuel_price_per_litre">Prix au litre (%1$s)</string>
+    <string name="fuel_price_save">Enregistrer</string>
     <string name="report_share">Partager</string>
     <string name="report_share_subject">Bilan voiture : %1$s</string>
     <string name="report_earlier">Mois précédent</string>

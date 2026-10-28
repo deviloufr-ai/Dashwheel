@@ -113,6 +113,7 @@
     <string name="widgets_fuel_last">%1$s L em %2$s</string>
     <string name="widgets_fuel_per100">aos 100 km</string>
     <string name="widgets_fuel_save">Guardar</string>
+    <string name="widgets_fuel_set_price">Indicar o preço pago</string>
     <string name="widgets_wx">Avisos meteorológicos</string>
     <string name="widgets_wx_blurb">Avisos meteorológicos onde está e para onde vai</string>
     <string name="widgets_wx_none">Nenhum aviso aqui</string>

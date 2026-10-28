@@ -136,6 +136,9 @@
     <string name="report_per100">L/100 km</string>
     <string name="report_estimated">A szokásos fogyasztásból becsülve: ebben a hónapban nincs rögzített tankolás.</string>
     <string name="report_last_fill">Utolsó tankolás: %1$s L · %2$s</string>
+    <string name="fuel_set_price">Fizetett ár megadása</string>
+    <string name="fuel_price_per_litre">Literenkénti ár (%1$s)</string>
+    <string name="fuel_price_save">Mentés</string>
     <string name="report_share">Megosztás</string>
     <string name="report_share_subject">Autós jelentés: %1$s</string>
     <string name="report_earlier">Előző hónap</string>

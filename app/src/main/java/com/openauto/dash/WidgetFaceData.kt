@@ -1067,7 +1067,7 @@ private fun ecoFace(): WidgetFace {
             if (car.gearbox == GearboxType.ROBOTISED) FaceStat(stringResource(R.string.car_eco_clutch), drive.clutchHolds.toString()) else null,
             FaceStat(
                 stringResource(if (u.imperial) R.string.units_eco_fuel_mi else R.string.car_eco_fuel, fmt("%.1f", u.distance(drive.distanceKm))),
-                stringResource(R.string.car_eco_fuel_value, fmt("%.1f", liters), fmt(if (moving) "%.0f" else "%.2f", liters * car.fuelPrice), car.currency)
+                stringResource(R.string.car_eco_fuel_value, fmt("%.1f", liters), fmt(if (moving) "%.0f" else "%.2f", liters * FuelLog.price(car)), car.currency)
             )
         )
     )

@@ -136,6 +136,9 @@
     <string name="report_per100">л/100 км</string>
     <string name="report_estimated">Оценка по обычному расходу: в этом месяце нет записанных заправок.</string>
     <string name="report_last_fill">Последняя заправка: %1$s л · %2$s</string>
+    <string name="fuel_set_price">Указать уплаченную цену</string>
+    <string name="fuel_price_per_litre">Цена за литр (%1$s)</string>
+    <string name="fuel_price_save">Сохранить</string>
     <string name="report_share">Поделиться</string>
     <string name="report_share_subject">Отчёт по автомобилю: %1$s</string>
     <string name="report_earlier">Предыдущий месяц</string>

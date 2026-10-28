@@ -46,6 +46,7 @@ import com.openauto.dash.link.NotificationSync
 import com.openauto.dash.link.ObdOffer
 import com.openauto.dash.link.ObdRelayState
 import com.openauto.dash.link.ObdRx
+import com.openauto.dash.link.FuelPrice
 import com.openauto.dash.link.NowPlaying
 import com.openauto.dash.link.PhoneAbilities
 import com.openauto.dash.link.PhoneBattery
@@ -766,6 +767,7 @@ object PhoneLink {
             is ObdOffer -> PhoneObd.onOffer(message)
             is ObdRelayState -> PhoneObd.onState(message)
             is ObdRx -> PhoneObd.onRx(message)
+            is FuelPrice -> main.post { FuelLog.setPrice(context, message.at, message.pricePerL) }
             is PhoneAbilities -> _textsOn.value = message.sendsTexts
             is TextSent -> textsWaiting[message.id]?.complete(message.sent)
             is CarLogAck -> logsWaiting[message.id]?.complete(message.ok)

@@ -114,6 +114,7 @@
     <string name="widgets_fuel_last">%1$s L, %2$s</string>
     <string name="widgets_fuel_per100">100 km-enként</string>
     <string name="widgets_fuel_save">Mentés</string>
+    <string name="widgets_fuel_set_price">Fizetett ár megadása</string>
     <string name="widgets_wx">Időjárás-riasztás</string>
     <string name="widgets_wx_blurb">Időjárási figyelmeztetések ott, ahol van, és ahová tart</string>
     <string name="widgets_wx_none">Itt nincs figyelmeztetés</string>

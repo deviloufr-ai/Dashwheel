@@ -116,6 +116,7 @@
     <string name="widgets_fuel_last">%1$s л, %2$s</string>
     <string name="widgets_fuel_per100">на 100 км</string>
     <string name="widgets_fuel_save">Сохранить</string>
+    <string name="widgets_fuel_set_price">Указать уплаченную цену</string>
     <string name="widgets_wx">Погодные предупреждения</string>
     <string name="widgets_wx_blurb">Погодные предупреждения там, где вы, и там, куда едете</string>
     <string name="widgets_wx_none">Здесь предупреждений нет</string>

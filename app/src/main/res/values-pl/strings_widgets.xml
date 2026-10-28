@@ -115,6 +115,7 @@
     <string name="widgets_fuel_last">%1$s L, %2$s</string>
     <string name="widgets_fuel_per100">na 100 km</string>
     <string name="widgets_fuel_save">Zapisz</string>
+    <string name="widgets_fuel_set_price">Podaj zapłaconą cenę</string>
     <string name="widgets_wx">Ostrzeżenia pogodowe</string>
     <string name="widgets_wx_blurb">Ostrzeżenia pogodowe tam, gdzie jesteś i dokąd jedziesz</string>
     <string name="widgets_wx_none">Brak ostrzeżeń</string>

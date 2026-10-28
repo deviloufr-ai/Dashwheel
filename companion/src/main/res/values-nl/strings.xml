@@ -135,6 +135,9 @@
     <string name="report_per100">L/100 km</string>
     <string name="report_estimated">Geschat op het gewone verbruik: deze maand geen tankbeurt vastgelegd.</string>
     <string name="report_last_fill">Laatste tankbeurt: %1$s L · %2$s</string>
+    <string name="fuel_set_price">Betaalde prijs invullen</string>
+    <string name="fuel_price_per_litre">Prijs per liter (%1$s)</string>
+    <string name="fuel_price_save">Opslaan</string>
     <string name="report_share">Delen</string>
     <string name="report_share_subject">Autoverslag: %1$s</string>
     <string name="report_earlier">Eerdere maand</string>

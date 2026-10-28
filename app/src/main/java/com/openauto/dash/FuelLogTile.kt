@@ -62,15 +62,18 @@ internal fun FuelLogCard(modifier: Modifier = Modifier) {
     val fills by FuelLog.fills.collectAsState()
     val units by Units.current.collectAsState()
     var adding by remember { mutableStateOf(false) }
+    // The refuel whose price is being set (a guess: the pump wasn't known).
+    var pricing by remember { mutableStateOf<FuelFill?>(null) }
     // The steppers are an entry task: parked only, and put away as soon as the car moves.
     val lock = LocalDriveLock.current
     if (adding) ParkedOnly { adding = false }
+    if (pricing != null) ParkedOnly { pricing = null }
     Card(modifier = modifier) {
         Column(modifier = Modifier.fillMaxSize().padding(DashSpace.Lg), verticalArrangement = Arrangement.SpaceBetween) {
             TileHeader(stringResource(R.string.widgets_fuel)) {
-                IconButton(onClick = { if (adding) adding = false else lock.whenParked { adding = true } }) {
+                IconButton(onClick = { if (adding || pricing != null) { adding = false; pricing = null } else lock.whenParked { adding = true } }) {
                     Icon(
-                        if (adding) Icons.Filled.Close else Icons.Filled.Add,
+                        if (adding || pricing != null) Icons.Filled.Close else Icons.Filled.Add,
                         contentDescription = stringResource(R.string.widgets_fuel_add), tint = DashColors.Accent
                     )
                 }
@@ -79,6 +82,13 @@ internal fun FuelLogCard(modifier: Modifier = Modifier) {
                 AddFill(lastPrice = FuelLog.lastPrice() ?: CarProfileStore.current.fuelPrice) { liters, price ->
                     FuelLog.addManual(context, liters, price)
                     adding = false
+                }
+                return@Column
+            }
+            pricing?.let { fill ->
+                SetPrice(fill.pricePerL ?: FuelLog.price(CarProfileStore.current)) { price ->
+                    FuelLog.setPrice(context, fill.at, price)
+                    pricing = null
                 }
                 return@Column
             }
@@ -95,6 +105,10 @@ internal fun FuelLogCard(modifier: Modifier = Modifier) {
                 ),
                 color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium
             )
+            // Prices change by the day: a refuel away from a known pump asks what was paid.
+            if (last.priceGuessed) {
+                StepButton(stringResource(R.string.widgets_fuel_set_price), Modifier.fillMaxWidth()) { lock.whenParked { pricing = last } }
+            }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Column {
                     Text(units.economyUnit, color = DashColors.TextSecondary, style = MaterialTheme.typography.labelSmall)
@@ -121,12 +135,28 @@ private fun AddFill(lastPrice: Double, onSave: (Double, Double) -> Unit) {
     var cents by remember { mutableDoubleStateOf(Math.round(lastPrice * 100).toDouble()) }
     Column(verticalArrangement = Arrangement.spacedBy(DashSpace.Sm)) {
         Stepper("$liters L", onMinus = { liters = (liters - 5).coerceAtLeast(5) }, onPlus = { liters = (liters + 5).coerceAtMost(120) })
-        Stepper(
-            String.format(Locale.getDefault(), "%.2f / L", cents / 100),
-            onMinus = { cents = (cents - 1).coerceAtLeast(50.0) }, onPlus = { cents = cents + 1 }
-        )
+        PriceStepper(cents) { cents = it }
         StepButton(stringResource(R.string.widgets_fuel_save), Modifier.fillMaxWidth(), primary = true) { onSave(liters.toDouble(), cents / 100) }
     }
+}
+
+/** The price paid a litre at a refuel the gauge logged, starting from the guess. */
+@Composable
+private fun SetPrice(guess: Double, onSave: (Double) -> Unit) {
+    var cents by remember { mutableDoubleStateOf(Math.round(guess * 100).toDouble()) }
+    Column(verticalArrangement = Arrangement.spacedBy(DashSpace.Sm)) {
+        Text(stringResource(R.string.widgets_fuel_set_price), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
+        PriceStepper(cents) { cents = it }
+        StepButton(stringResource(R.string.widgets_fuel_save), Modifier.fillMaxWidth(), primary = true) { onSave(cents / 100) }
+    }
+}
+
+@Composable
+private fun PriceStepper(cents: Double, onChange: (Double) -> Unit) {
+    Stepper(
+        String.format(Locale.getDefault(), "%.2f / L", cents / 100),
+        onMinus = { onChange((cents - 1).coerceAtLeast(50.0)) }, onPlus = { onChange(cents + 1) }
+    )
 }
 
 @Composable

@@ -229,7 +229,7 @@ internal object DriveLog {
         return DriveLogRules.summary(
             trip, DriveLogRules.ecoFor(trip, CarCare.state.value), car, ongoing,
             use = FuelLog.litersPer100() ?: car.typicalUse,
-            price = FuelLog.lastPrice() ?: car.fuelPrice,
+            price = FuelLog.price(car),
             endLat = here?.latitude, endLng = here?.longitude
         )
     }

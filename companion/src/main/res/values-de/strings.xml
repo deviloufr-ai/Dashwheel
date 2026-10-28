@@ -135,6 +135,9 @@
     <string name="report_per100">L/100 km</string>
     <string name="report_estimated">Geschätzt aus dem üblichen Verbrauch: in diesem Monat kein Tanken erfasst.</string>
     <string name="report_last_fill">Letztes Tanken: %1$s L · %2$s</string>
+    <string name="fuel_set_price">Bezahlten Preis eingeben</string>
+    <string name="fuel_price_per_litre">Preis pro Liter (%1$s)</string>
+    <string name="fuel_price_save">Speichern</string>
     <string name="report_share">Teilen</string>
     <string name="report_share_subject">Autobericht: %1$s</string>
     <string name="report_earlier">Früherer Monat</string>

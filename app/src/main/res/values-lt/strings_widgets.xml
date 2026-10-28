@@ -116,6 +116,7 @@
     <string name="widgets_fuel_last">%1$s L, %2$s</string>
     <string name="widgets_fuel_per100">100 km</string>
     <string name="widgets_fuel_save">Išsaugoti</string>
+    <string name="widgets_fuel_set_price">Įvesti sumokėtą kainą</string>
     <string name="widgets_wx">Orų įspėjimai</string>
     <string name="widgets_wx_blurb">Orų įspėjimai ten, kur esate, ir ten, kur važiuojate</string>
     <string name="widgets_wx_none">Čia įspėjimų nėra</string>

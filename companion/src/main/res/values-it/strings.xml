@@ -135,6 +135,9 @@
     <string name="report_per100">L/100 km</string>
     <string name="report_estimated">Stimato dal consumo abituale: nessun rifornimento registrato questo mese.</string>
     <string name="report_last_fill">Ultimo rifornimento: %1$s L · %2$s</string>
+    <string name="fuel_set_price">Inserisci il prezzo pagato</string>
+    <string name="fuel_price_per_litre">Prezzo al litro (%1$s)</string>
+    <string name="fuel_price_save">Salva</string>
     <string name="report_share">Condividi</string>
     <string name="report_share_subject">Resoconto auto: %1$s</string>
     <string name="report_earlier">Mese precedente</string>

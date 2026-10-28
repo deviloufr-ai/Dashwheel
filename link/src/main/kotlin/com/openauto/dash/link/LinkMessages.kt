@@ -432,6 +432,8 @@ data class ObdRx(val data: String) : LinkMessage
  * how much went in, at what price where known, and the mileage then, from
  * which the companion works out the real consumption and the spending.
  * [estimated]: the level was worked back from the car's range, so the litres are rough.
+ * [priceGuessed]: the pump wasn't known, so [pricePerL] is the last price paid
+ * until the driver says what they paid this time ([FuelPrice]).
  */
 @Serializable
 data class FuelFill(
@@ -441,7 +443,8 @@ data class FuelFill(
     val currency: String? = null,
     val odometerKm: Int? = null,
     val station: String? = null,
-    val estimated: Boolean = false
+    val estimated: Boolean = false,
+    val priceGuessed: Boolean = false
 ) {
     val cost: Double? get() = pricePerL?.let { it * liters }
 }
@@ -456,6 +459,14 @@ data class FuelSync(val fills: List<FuelFill>) : LinkMessage
 @SerialName("fuel")
 data class FuelReport(val fill: FuelFill) : LinkMessage
 
+/**
+ * Phone → head unit: what the driver paid a litre at the refuel made at [at].
+ * The head unit answers with the refuel as it now stands ([FuelReport]).
+ */
+@Serializable
+@SerialName("fuel_price")
+data class FuelPrice(val at: Long, val pricePerL: Double) : LinkMessage
+
 /** The refuels each app keeps, and the sums over them: the same on both sides. */
 object FuelFills {
     private val json = Json { ignoreUnknownKeys = true }
@@ -468,6 +479,16 @@ object FuelFills {
 
     fun mergeAll(fills: List<FuelFill>, more: List<FuelFill>, max: Int = MAX): List<FuelFill> =
         more.fold(fills) { acc, f -> merge(acc, f, max) }
+
+    /** [fills] with the refuel made at [at] priced at [pricePerL], no longer a guess; null when there is none then. */
+    fun priced(fills: List<FuelFill>, at: Long, pricePerL: Double): List<FuelFill>? {
+        val fill = fills.firstOrNull { it.at == at } ?: return null
+        return merge(fills, fill.copy(pricePerL = pricePerL, priceGuessed = false))
+    }
+
+    /** The price paid at the last refuel whose price is known; a guess only when nothing better is there. */
+    fun lastPrice(fills: List<FuelFill>): Double? =
+        fills.firstOrNull { it.pricePerL != null && !it.priceGuessed }?.pricePerL ?: fills.firstNotNullOfOrNull { it.pricePerL }
 
     /**
      * Litres per 100 km over the refuels with a mileage: what went in after

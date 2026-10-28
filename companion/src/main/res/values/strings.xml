@@ -136,6 +136,9 @@
     <string name="report_per100">L/100 km</string>
     <string name="report_estimated">Estimated from the usual consumption: no fill-up logged this month.</string>
     <string name="report_last_fill">Last fill-up: %1$s L · %2$s</string>
+    <string name="fuel_set_price">Set the price paid</string>
+    <string name="fuel_price_per_litre">Price per litre (%1$s)</string>
+    <string name="fuel_price_save">Save</string>
     <string name="report_share">Share</string>
     <string name="report_share_subject">Car report: %1$s</string>
     <string name="report_earlier">Earlier month</string>

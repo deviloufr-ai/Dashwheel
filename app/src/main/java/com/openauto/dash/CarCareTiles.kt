@@ -384,7 +384,7 @@ internal fun EcoDriveCard(modifier: Modifier = Modifier) {
         val cents = if (LocalDriveLock.current.moving) 0 else 2
         InfoRow(
             stringResource(if (u.imperial) R.string.units_eco_fuel_mi else R.string.car_eco_fuel, decimal(u.distance(drive.distanceKm))),
-            stringResource(R.string.car_eco_fuel_value, decimal(liters), decimal(liters * car.fuelPrice, cents), car.currency)
+            stringResource(R.string.car_eco_fuel_value, decimal(liters), decimal(liters * FuelLog.price(car), cents), car.currency)
         )
     }
 }
