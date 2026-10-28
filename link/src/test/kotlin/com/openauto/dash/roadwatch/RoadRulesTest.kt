@@ -119,20 +119,47 @@ class RoadRulesTest {
 
     @Test
     fun theCarAheadDrivesOffAtTheLights() {
-        val r = RoadRules()
+        val r = RoadRules().driven()
         assertNull(r.update(RoadScene(leadM = 6f), 0f, false, 0))
         assertNull(r.update(RoadScene(leadM = 6f), 0f, false, 3_500))
-        assertEquals(RoadWarning.MOVED_OFF, r.update(RoadScene(leadM = 11f), 0f, false, 4_000))
+        // Pulling away: a little further each frame.
+        assertNull(r.update(RoadScene(leadM = 8f), 0f, false, 3_600))
+        assertNull(r.update(RoadScene(leadM = 10f), 0f, false, 3_700))
+        assertNull(r.update(RoadScene(leadM = 11f), 0f, false, 3_800))
+        assertEquals(RoadWarning.MOVED_OFF, r.update(RoadScene(leadM = 12f), 0f, false, 4_100))
         // The driver sets off: gone, and not said again before the next stop.
         assertNull(r.update(RoadScene(leadM = 12f), 10f, false, 4_500))
     }
 
     @Test
+    fun aFramesFlickerToTheCarBeyondIsNotTheCarAheadMovingOff() {
+        val r = RoadRules().driven()
+        for (t in 0..3_500 step 100) assertNull(r.update(RoadScene(leadM = 4.4f), 0f, false, t.toLong()))
+        assertNull(r.update(RoadScene(leadM = 9.7f), 0f, false, 3_600))
+        for (t in 3_700..5_000 step 100) assertNull(r.update(RoadScene(leadM = 4.4f), 0f, false, t.toLong()))
+        // Nor is the queue a box that slid from 7 to 6 m for a fifth of a second before the parked cars at 12 m.
+        val p = RoadRules().driven()
+        for (t in 0..200 step 33) assertNull(p.update(RoadScene(leadM = 7f - t / 200f), 0f, false, t.toLong()))
+        for (t in 233..5_000 step 33) assertNull(p.update(RoadScene(leadM = 12f), 0f, false, t.toLong()))
+    }
+
+    @Test
     fun noWordWhenTheCarAheadOnlyEdgesForward() {
-        val r = RoadRules()
+        val r = RoadRules().driven()
         r.update(RoadScene(leadM = 6f), 0f, false, 0)
         assertNull(r.update(RoadScene(leadM = 8f), 0f, false, 4_000))
     }
+
+    @Test
+    fun noWordBeforeTheCarHasDriven() {
+        // Parked at the kerb as the drive starts, a van 12 m ahead whose box slides away as the phone is placed.
+        val r = RoadRules()
+        for (t in 0..3_500 step 100) assertNull(r.update(RoadScene(leadM = 12f), 0f, false, t.toLong()))
+        for (t in 3_600..5_000 step 100) assertNull(r.update(RoadScene(leadM = 12f + (t - 3_500) / 250f), 0f, false, t.toLong()))
+    }
+
+    /** Road watch has seen the car drive: its next stop can be a queue. */
+    private fun RoadRules.driven() = apply { update(RoadScene(), 50f, false, -10_000) }
 
     @Test
     fun withoutAnySpeedNothingIsJudged() {

@@ -357,8 +357,11 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         }
         // The phone turned in its holder since it was placed: the picture no longer shows the road as set up,
         // so nothing is warned of until it sits as placed again (the guide comes up once the car stands).
+        // Gravity also leans with braking, pulling away and bends, so the hold only starts once the
+        // gyroscope saw the phone itself turn (half the angle: what it saw fades over two seconds).
         val tilted = (PhoneHeading.tiltDeg ?: 0f) > Mount.MOVED_DEG
-        tiltedSince = if (!tilted) -1L else if (tiltedSince < 0) now else tiltedSince
+        val turned = (PhoneHeading.turnedDeg ?: 0f) >= Mount.MOVED_DEG / 2
+        tiltedSince = if (!tilted) -1L else if (tiltedSince >= 0) tiltedSince else if (turned) now else -1L
         val held = tiltedSince >= 0 && now - tiltedSince >= HELD_AFTER_MS
         if (held) rules.clear()
         val warning = if (held) null else rules.update(scene, null, false, now)

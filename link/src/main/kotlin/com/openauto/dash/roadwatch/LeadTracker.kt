@@ -108,8 +108,10 @@ class LeadTracker(var hfovDeg: Float = 66f, var aspect: Float = 0.75f) {
             return null
         }
         val before = box
-        // Another vehicle than the one followed (it changed lanes, one cut in): its own history.
-        val same = if (ahead.id != 0) ahead.id == id else before != null && before.iou(ahead.box) >= SAME_IOU && kind == ahead.kind
+        // Another vehicle than the one followed (it changed lanes, one cut in): its own history. So is the same
+        // vehicle read as another kind: its distance is scaled by that kind's width, and a car far ahead that
+        // went from truck to car (2.5 to 1.8 m) read as closing at 26 m/s on the motorway (2026-10-27).
+        val same = kind == ahead.kind && if (ahead.id != 0) ahead.id == id else before != null && before.iou(ahead.box) >= SAME_IOU
         if (!same) samples.clear()
         box = ahead.box
         kind = ahead.kind

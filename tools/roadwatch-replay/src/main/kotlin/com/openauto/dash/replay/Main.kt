@@ -271,14 +271,14 @@ private fun reportJson(r: Report): String = buildString {
 }
 
 private fun timelineCsv(results: List<FrameResult>): String = buildString {
-    appendLine("frame,time_s,speed_kmh,lines,offset,left_x,right_x,lead_m,closing_mps,ttc_s,warning,lanes,lane,horizon,car_x,lead_kind")
+    appendLine("frame,time_s,speed_kmh,lines,offset,left_x,right_x,lead_m,closing_mps,ttc_s,warning,lanes,lane,horizon,car_x,lead_kind,lead_x,lead_w,lateral_m")
     for (r in results) {
         appendLine(
             listOf(
                 r.index, "%.3f".format(Locale.ROOT, r.timeMs / 1000.0), r.speedKmh ?: "", r.lane.lines, r.lane.offset ?: "",
                 r.lane.left?.bottomX ?: "", r.lane.right?.bottomX ?: "",
                 r.lead?.distanceM ?: "", r.lead?.closingMps ?: "", r.lead?.ttcS ?: "", r.warning ?: "", r.place?.lanes ?: "", r.place?.lane ?: "", r.horizonY ?: "", r.carX ?: "",
-                r.lead?.kind ?: ""
+                r.lead?.kind ?: "", r.lead?.box?.centerX ?: "", r.lead?.box?.width ?: "", r.lead?.lateralM ?: ""
             ).joinToString(",")
         )
     }

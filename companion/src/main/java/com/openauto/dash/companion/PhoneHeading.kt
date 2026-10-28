@@ -6,6 +6,7 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import com.openauto.dash.roadwatch.Mount
+import kotlin.math.hypot
 import kotlin.math.sqrt
 
 /**
@@ -22,7 +23,13 @@ import kotlin.math.sqrt
  *   the horizon by it on recorded drives before the phone does.
  * - [tiltDeg]: how far the phone has turned in its holder since the driver
  *   placed it ([reference]): the picture no longer shows what was set up, so
- *   Road watch holds its warnings. In the notes as tiltDeg.
+ *   Road watch holds its warnings. In the notes as tiltDeg. Gravity alone also
+ *   leans with the car (11° under hard braking, 8-10° for the seconds after a
+ *   stop, 10° in a bend, on the drive of 2026-10-27), so Road watch starts the
+ *   hold only once [turnedDeg] saw the phone itself turn.
+ * - [turnedDeg]: how much the gyroscope saw the phone nod or roll over the last
+ *   couple of seconds, fading like [pitchDeg]: braking leans gravity but turns
+ *   nothing, a hand on the phone does.
  *
  * Null without a gyroscope, or while Road watch is off.
  */
@@ -31,6 +38,9 @@ object PhoneHeading {
         private set
     @Volatile var pitchDeg: Float? = null
         private set
+    @Volatile private var rollDeg: Float? = null
+    val turnedDeg: Float?
+        get() = pitchDeg?.let { p -> rollDeg?.let { r -> hypot(p, r) } }
     @Volatile var tiltDeg: Float? = null
         private set
     /** Gravity in the phone when the driver placed it, from Road watch; null until placed. */
@@ -64,12 +74,13 @@ object PhoneHeading {
                     val hy = g[0]
                     val hn = sqrt(hx * hx + hy * hy)
                     val nod = if (hn > 0.1f) (e.values[0] * hx + e.values[1] * hy) / hn else 0f
+                    // The line of sight: across gravity and the picture's horizontal (g × h).
+                    val roll = if (hn > 0.1f) (e.values[0] * -g[2] * g[0] + e.values[1] * -g[2] * g[1] + e.values[2] * hn * hn) / (hn * norm) else 0f
                     if (lastNs != 0L) {
                         val dt = (e.timestamp - lastNs) / 1e9f
                         radians = (radians ?: 0f) + yaw * dt
-                        val p = (pitchDeg ?: 0f) + Math.toDegrees(nod.toDouble()).toFloat() * dt
-                        // Fading: what is left is the last couple of seconds' nod, not the drift of the gyroscope.
-                        pitchDeg = p * (1f - (dt / PITCH_FADE_S).coerceAtMost(1f))
+                        pitchDeg = faded((pitchDeg ?: 0f) + Math.toDegrees(nod.toDouble()).toFloat() * dt, dt)
+                        rollDeg = faded((rollDeg ?: 0f) + Math.toDegrees(roll.toDouble()).toFloat() * dt, dt)
                     }
                     lastNs = e.timestamp
                 }
@@ -78,6 +89,9 @@ object PhoneHeading {
 
         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
     }
+
+    /** Fading: what is left is the last couple of seconds' turn, not the drift of the gyroscope. */
+    private fun faded(deg: Float, dt: Float): Float = deg * (1f - (dt / PITCH_FADE_S).coerceAtMost(1f))
 
     private fun tilt(now: FloatArray?, placed: FloatArray?): Float? =
         if (now != null && placed != null) Mount.turnedDeg(placed, now) else null
@@ -94,6 +108,7 @@ object PhoneHeading {
         context.getSystemService(SensorManager::class.java)?.unregisterListener(listener)
         radians = null
         pitchDeg = null
+        rollDeg = null
         tiltDeg = null
         up = null
         lastNs = 0L

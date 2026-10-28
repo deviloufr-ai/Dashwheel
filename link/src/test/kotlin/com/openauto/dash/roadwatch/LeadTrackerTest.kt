@@ -137,4 +137,16 @@ class LeadTrackerTest {
         val cut = t.update(listOf(car(8f)), noLane, band, 0.5f, 1_100)
         assertNull(cut!!.closingMps)
     }
+
+    @Test
+    fun aVehicleReadAsAnotherKindStartsItsOwnHistory() {
+        val t = LeadTracker()
+        // The same far vehicle (id 7), taken for a truck, then for a car: the width it is scaled by shrinks.
+        var lead: Lead? = null
+        for (i in 0..10) lead = t.update(listOf(car(60f).copy(kind = VehicleKind.TRUCK, id = 7)), noLane, band, 0.5f, i * 100L)
+        assertNotNull("steady so far", lead!!.closingMps)
+        val asCar = t.update(listOf(car(60f).copy(id = 7)), noLane, band, 0.5f, 1_100)
+        assertEquals(60f, asCar!!.distanceM, 0.5f)
+        assertNull("the drop from 83 to 60 m is the kind, not a closing vehicle", asCar.closingMps)
+    }
 }
