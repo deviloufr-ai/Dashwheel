@@ -163,7 +163,7 @@ internal object SecondScreenController {
                 relief.value = 0
             }
         }
-        scope.launch { DisplayLink.keyFrameRequests.collect { stream?.requestKeyFrame() } }
+        scope.launch { DisplayLink.keyFrameRequests.collect { askKeyFrame() } }
         scope.launch {
             var lastHealth = DisplayHealth.UNKNOWN
             DisplayLink.stats.collect { report ->
@@ -304,7 +304,19 @@ internal object SecondScreenController {
         val s = stream ?: return
         DisplayLink.send(DisplayMode(DisplayMode.Mode.VIDEO, SecondScreenStore.config.value.upsideDown))
         s.videoConfig?.let(DisplayLink::send)
-        s.requestKeyFrame()
+        askKeyFrame()
+    }
+
+    /**
+     * A key frame from the encoder. The unit's encoder (SPRD) ignores "repeat the
+     * last frame", so a still picture (parked) gives it nothing to encode and the
+     * request waited forever: a Pi that reconnected stayed on its logo. Redrawing
+     * the cluster hands it a frame.
+     * shortcut: an app moved onto the display (VIDEO_APP) is not redrawn; nudge it too if one stays blank.
+     */
+    private fun askKeyFrame() {
+        stream?.requestKeyFrame() ?: return
+        presentation?.window?.decorView?.invalidate()
     }
 
     private suspend fun makeStream(w: Int, h: Int, fps: Int, kbps: Int): StreamDisplay? {
