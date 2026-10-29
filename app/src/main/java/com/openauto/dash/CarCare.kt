@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONObject
@@ -354,11 +355,13 @@ object CarCare {
     }
 
     private fun restTick(kmh: Int, now: Long) {
-        val before = _state.value
         val events = mutableListOf<CareEvent>()
-        val rest = CareRules.restStep(before.rest, ObdData(speedKmh = kmh), now, events)
-        val next = before.copy(rest = rest)
-        _state.value = next
+        // Set atomically against [watch], which runs on another thread: a copy of
+        // the state made before its write would carry the old drive back.
+        val next = _state.updateAndGet { before ->
+            events.clear()
+            before.copy(rest = CareRules.restStep(before.rest, ObdData(speedKmh = kmh), now, events))
+        }
         if (now - savedAt >= SAVE_EVERY_MS) save(next, now)
         events.forEach { say(line(it, CarProfileStore.current)) }
     }
@@ -424,9 +427,16 @@ object CarCare {
     fun watch(data: ObdData) {
         if (DemoMode.isOn) return
         val now = System.currentTimeMillis()
-        val before = _state.value
-        val (next, events) = CareRules.step(before, data, now, CarProfileStore.current)
-        _state.value = next
+        val car = CarProfileStore.current
+        var before = _state.value
+        var events: List<CareEvent> = emptyList()
+        // Atomic against [restTick] and the demo on the main thread (see restTick); the rules are pure, so a retry costs nothing.
+        val next = _state.updateAndGet { b ->
+            before = b
+            val (n, ev) = CareRules.step(b, data, now, car)
+            events = ev
+            n
+        }
         if (next.filter != before.filter || next.lastDrive !== before.lastDrive || now - savedAt >= SAVE_EVERY_MS) save(next, now)
         // The servicing planner's mileage advances with the kilometres of this drive.
         val drive = next.drive

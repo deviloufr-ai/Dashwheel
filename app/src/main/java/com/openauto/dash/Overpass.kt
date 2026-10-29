@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 import okhttp3.FormBody
 import okhttp3.Request
 import org.json.JSONObject
+import java.util.concurrent.TimeUnit
 
 /**
  * OpenStreetMap's Overpass servers, for the speed limits, the speed cameras
@@ -35,6 +36,14 @@ internal object Overpass {
     /** When each server last failed (elapsedRealtime), by address; absent or 0 for never. */
     private val failedAt = HashMap<String, Long>()
     @Volatile private var preferred: String? = null
+
+    /**
+     * The shared client, given longer to read: the queries ask the server for
+     * up to 25 s of work ([timeout:25]), and a client that hangs up at 15 s
+     * marks a server that was about to answer as failed, then sends the same
+     * heavy query to the next one, which is as slow for the same reason.
+     */
+    private val client by lazy { Http.client.newBuilder().readTimeout(35, TimeUnit.SECONDS).build() }
 
     private val _down = MutableStateFlow(false)
     /** The last query found no server answering: the tiles' blank is the server's, not the road's. */
@@ -75,7 +84,7 @@ internal object Overpass {
         val request = Request.Builder().url(server)
             .header("User-Agent", OVERPASS_AGENT)
             .post(FormBody.Builder().add("data", query).build()).build()
-        Http.client.newCall(request).execute().use { resp ->
+        client.newCall(request).execute().use { resp ->
             if (!resp.isSuccessful) error("HTTP ${resp.code}")
             return JSONObject(resp.body?.string() ?: "{}")
         }

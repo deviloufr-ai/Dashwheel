@@ -112,11 +112,14 @@ private fun CabinHeader(f: WidgetFace, look: FaceLook, m: FaceMetrics, trailing:
  * widget waits for its reading: its "--" comes with a fraction of 0, which is
  * not a 0 to chart.
  */
+/** The leading number of a face's text; compiled once, the Trend faces ask at every reading. */
+private val FACE_NUMBER = Regex("-?\\d+(?:[.,]\\d+)?")
+
 internal fun faceNumber(f: WidgetFace): Float? {
     if (f.idle) return null
     f.number?.takeIf { it.isFinite() }?.let { return it }
     if (!f.textValue) {
-        val lead = Regex("-?\\d+(?:[.,]\\d+)?").find(f.value.replace(" ", "").replace(" ", ""))?.value
+        val lead = FACE_NUMBER.find(f.value.replace(" ", "").replace(" ", ""))?.value
         lead?.replace(',', '.')?.toFloatOrNull()?.let { return it }
     }
     return f.fraction?.takeIf { it.isFinite() }?.let { it * 100f }

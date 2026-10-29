@@ -22,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -265,7 +266,8 @@ internal object DashAssistant {
                 val call = calls.optJSONObject(i) ?: continue
                 val name = call.optString("name")
                 val args = call.optJSONObject("args") ?: JSONObject()
-                Log.i(TAG, "tool $name $args")
+                // The name only: the arguments carry what the driver said (a contact, a destination).
+                Log.i(TAG, "tool $name")
                 val result = runCatching {
                     withContext(Dispatchers.Main) { AssistantTools.run(context, name, args) }
                 }.getOrElse { JSONObject().put("error", it.message ?: it.toString()) }
@@ -309,7 +311,9 @@ internal object DashAssistant {
         try {
             record.startRecording()
             val buffer = ByteArray(bytes)
-            while (scope.isActive && session?.isActive == true) {
+            // This coroutine's own job: the object's scope is never cancelled, so
+            // the loop would have read and sent on after converse() cancelled it.
+            while (currentCoroutineContext().isActive && session?.isActive == true) {
                 val n = record.read(buffer, 0, buffer.size)
                 if (n < 0) {
                     // An error, at every read from now on: asking again at once only spun a core.

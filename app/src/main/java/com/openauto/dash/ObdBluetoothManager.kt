@@ -102,6 +102,8 @@ object ObdBluetoothManager {
 
     /** Upper bound for a single command's reply read, in milliseconds. */
     private const val READ_TIMEOUT_MS = 2000L
+    /** How long a late prompt from the last command is waited for before the next is sent. */
+    private const val LATE_PROMPT_MS = 500L
 
     /** Fault-code requests are slower: several computers may answer, and clones take their time. */
     private const val DTC_TIMEOUT_MS = 6000L
@@ -502,6 +504,9 @@ object ObdBluetoothManager {
     private fun freshLink() {
         closeQuietly()
         _phoneBlocking.value = false
+        // The last link's readings would show as this one's (another car's coolant, fuel, volts) until each PID is read again.
+        _data.value = ObdData()
+        promptPending = false
         silentCommands = 0
         supported = null
         supportedAskedAt = 0
@@ -1087,9 +1092,11 @@ object ObdBluetoothManager {
                 for (request in requests) {
                     currentCoroutineContext().ensureActive()
                     // Opened once, and again only if a slow answer may have let it lapse.
-                    if (header != null && session != null && System.currentTimeMillis() - sessionAt > SESSION_KEEP_MS) {
+                    // On the clock that only goes forward (see sendCommand): set back by GPS
+                    // mid-batch, the wall clock kept the session from being opened again.
+                    if (header != null && session != null && SystemClock.elapsedRealtime() - sessionAt > SESSION_KEEP_MS) {
                         sendCommand(session, timeoutMs)
-                        sessionAt = System.currentTimeMillis()
+                        sessionAt = SystemClock.elapsedRealtime()
                     }
                     replies += sendCommand(request, timeoutMs)
                 }
@@ -1156,6 +1163,23 @@ object ObdBluetoothManager {
             // A reply that came in after its command gave up would otherwise be
             // read as the answer to this one.
             while (input.available() > 0) input.read(buffer)
+            // The last command's prompt never came (the adapter was still searching
+            // for the car, or printing "UNABLE TO CONNECT" after the wait ran out):
+            // what it still has to say would be taken for this command's reply, and
+            // from then on every reply would be read one command late. Its prompt is
+            // waited for, briefly, before anything new is asked.
+            if (promptPending) {
+                val until = SystemClock.elapsedRealtime() + LATE_PROMPT_MS
+                while (SystemClock.elapsedRealtime() < until) {
+                    if (input.available() > 0) {
+                        val read = input.read(buffer)
+                        if (read <= 0 || String(buffer, 0, read).contains('>')) break
+                    } else {
+                        Thread.sleep(5)
+                    }
+                }
+                promptPending = false
+            }
             out.write((command + "\r").toByteArray())
             out.flush()
 
@@ -1176,6 +1200,7 @@ object ObdBluetoothManager {
                 }
             }
             if (response.isEmpty()) unanswered(command) else silentCommands = 0
+            promptPending = !response.contains(">")
             response.toString().replace(">", "").trim().ifEmpty { null }
         } catch (e: IOException) {
             // The link is gone: drop it so the retry opens a fresh one.
@@ -1203,6 +1228,8 @@ object ObdBluetoothManager {
 
     /** Commands in a row without a single byte back (only touched under commandMutex). */
     private var silentCommands = 0
+    /** The last reply came without the adapter's '>' prompt: the rest of it is still to come. */
+    private var promptPending = false
     private const val MAX_SILENT_COMMANDS = 8
 
     /**

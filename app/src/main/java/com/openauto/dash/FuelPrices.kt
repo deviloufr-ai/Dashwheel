@@ -246,6 +246,8 @@ object FuelPriceRepo {
     private var lastLng = Double.NaN
     private var lastGrade: FuelGrade? = null
     private var lastFetch = 0L
+    /** Fetches that failed in a row: the next is tried after a wait that doubles each time ([Backoff]). */
+    private var failures = 0
 
     // The real answer, kept while the demo shows its own and put back when it ends.
     @Volatile private var realStations: List<FuelStation>? = null
@@ -254,6 +256,8 @@ object FuelPriceRepo {
 
     /** One refresh interval: a list older than this is shown with its time. */
     internal const val REFRESH_MS = 30 * 60_000L
+    /** The first retry after a failed fetch; each further failure in a row doubles it. */
+    private const val RETRY_MS = 60_000L
     private const val MOVE_DEG = 0.03   // ~3 km: the neighbourhood has changed
 
     /** [DemoMode]'s stations. */
@@ -287,6 +291,7 @@ object FuelPriceRepo {
     /** The next [refresh] fetches whatever the list's age: the key changed. */
     fun forget() {
         lastFetch = 0L
+        failures = 0
     }
 
     /** [stations] with their names, asking OpenStreetMap only about the unnamed ones not looked up before. */
@@ -343,14 +348,18 @@ object FuelPriceRepo {
                     FuelPlan.NEEDS_TANKERKOENIG_KEY -> emptyList()
                 }
             }.onSuccess {
+                failures = 0
                 publish(it, null, fetchedAt = now)
                 // Prices first; the names follow when OpenStreetMap answers.
                 val named = withNames(it)
                 if (named != it && realStations === it) publish(named, null)
             }.onFailure {
                 publish(realStations, it.message.orEmpty())
-                // Allow a retry before the normal interval.
-                lastFetch = now - REFRESH_MS + 60_000L
+                // Tried again before the normal interval, but not once a minute for
+                // the whole drive: a refused key or a feed that is down looks the
+                // same at every minute, and Tankerkönig asks for sparing use.
+                failures++
+                lastFetch = now - REFRESH_MS + Backoff.doubling(RETRY_MS, REFRESH_MS, failures)
             }
         }
     }

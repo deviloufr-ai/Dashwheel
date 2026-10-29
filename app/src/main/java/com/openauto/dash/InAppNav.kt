@@ -76,6 +76,8 @@ object InAppNav {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var reroute: Job? = null
     private var lastReroute = 0L
+    /** New routes refused in a row (offline, the router down): each one waits longer for the next ([Backoff]). */
+    private var rerouteFailures = 0
     private var arrival: Job? = null
     private var appContext: Context? = null
 
@@ -141,6 +143,7 @@ object InAppNav {
     /** Ends the guidance; the turn banners go back to Google Maps' or Waze's, if they guide. */
     fun stop() {
         reroute?.cancel(); reroute = null
+        rerouteFailures = 0
         arrival?.cancel(); arrival = null
         _navigation.value?.let { nav ->
             runCatching {
@@ -240,7 +243,7 @@ object InAppNav {
         val context = appContext ?: return
         if (g.arrived || reroute?.isActive == true) return
         val now = System.currentTimeMillis()
-        if (now - lastReroute < REROUTE_GAP_MS) return
+        if (now - lastReroute < Backoff.doubling(REROUTE_GAP_MS, REROUTE_GAP_MAX_MS, rerouteFailures)) return
         lastReroute = now
         _guidance.value = g.copy(rerouting = true)
         reroute = scope.launch {
@@ -251,10 +254,12 @@ object InAppNav {
             val fresh = result.getOrNull()?.routes?.firstOrNull()
             val current = _guidance.value ?: return@launch
             if (fresh == null) {
+                rerouteFailures++
                 Log.w("InAppNav", "reroute failed: ${result.exceptionOrNull()?.message}")
                 _guidance.value = current.copy(rerouting = false)
                 return@launch
             }
+            rerouteFailures = 0
             _guidance.value = current.copy(route = fresh, rerouting = false)
             runCatching { _navigation.value?.startNavigation(fresh) }
                 .onFailure { Log.w("InAppNav", "reroute refused: ${it.message}") }
@@ -294,4 +299,6 @@ object InAppNav {
     private const val ARRIVED_HOLD_MS = 20_000L
     /** Least time between two new routes, so a car parked off the line doesn't hammer the server. */
     private const val REROUTE_GAP_MS = 8_000L
+    /** The gap grows to this while the router cannot be reached (a tunnel, the hotspot gone). */
+    private const val REROUTE_GAP_MAX_MS = 60_000L
 }

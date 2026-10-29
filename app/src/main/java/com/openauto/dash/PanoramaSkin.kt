@@ -622,7 +622,7 @@ private fun PanoRimObd(state: ObdConnectionState, onConnect: () -> Unit, size: F
 @Composable
 private fun PanoTalkButton(size: Float) {
     val context = LocalContext.current
-    val gemini = remember { GeminiLive.available(context) }
+    val gemini = GeminiLive.rememberAvailable(context)
     val active by GeminiLive.active.collectAsState()
     val effects = DashColors.Effects
     val light = DashColors.Light

@@ -609,7 +609,7 @@ private fun ClayObdKey(state: ObdConnectionState, onConnect: () -> Unit, size: D
 @Composable
 private fun ClayTalk(height: Dp, round: Boolean) {
     val context = LocalContext.current
-    val gemini = remember { GeminiLive.available(context) }
+    val gemini = GeminiLive.rememberAvailable(context)
     val active by GeminiLive.active.collectAsState()
     val word = stringResource(if (active) R.string.ai_gemini_live_end else R.string.clay_talk)
     val description = stringResource(if (active) R.string.ai_gemini_live_end else R.string.clay_talk_cd)

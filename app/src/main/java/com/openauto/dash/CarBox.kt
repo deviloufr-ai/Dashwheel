@@ -261,7 +261,9 @@ object CarBox {
         // The car says these on a change, so a parked car's last word stands for hours (a tile shows it until the next).
         busPublisher.put(K.FUEL_LEVEL, fuelPercentToPublish(fuelPct, range)?.toDouble(), ttlMs = FUEL_HOLD_MS)
         busPublisher.put(K.RANGE, range?.toDouble(), ttlMs = FUEL_HOLD_MS)
-        busPublisher.put(K.ODOMETER, b.odometer?.takeIf { it > 0f }?.toDouble())
+        // A garbage reading (the planner drops them too) would stand as the counter's
+        // high-water mark on the bus, and every real one after it be refused as a step back.
+        busPublisher.put(K.ODOMETER, b.odometer?.takeIf { it > 0f && it <= MAX_ODOMETER_KM.toFloat() }?.toDouble())
         busPublisher.put(K.TRIP_DISTANCE, tripProof.believe(b.trip1)?.toDouble())
     }
 

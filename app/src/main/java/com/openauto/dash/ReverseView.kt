@@ -449,6 +449,13 @@ internal object StockLines {
                 // Only what's written from now on, only the car app's frames.
                 val p = ProcessBuilder("logcat", "-v", "raw", "-T", "1", "[VehicleService]:D", "*:S").redirectErrorStream(true).start()
                 process = p
+                // stopReading ran between the launch and the start: it found no process
+                // to end, and this one would have lived on, blocked on a quiet log.
+                if (!isActive) {
+                    p.destroy()
+                    process = null
+                    return@launch
+                }
                 BufferedReader(InputStreamReader(p.inputStream)).use { lines ->
                     while (isActive) {
                         val line = lines.readLine() ?: break

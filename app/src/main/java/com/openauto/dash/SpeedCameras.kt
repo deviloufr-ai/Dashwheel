@@ -35,7 +35,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -102,11 +101,15 @@ internal object SpeedCameras {
         val resting = android.os.SystemClock.elapsedRealtime() - failedAt < RETRY_AFTER_MS && failedAt != 0L
         if (!fetching && !resting && (last == null || last.distanceTo(loc) > REFETCH_M)) {
             fetching = true
-            val found = withContext(Dispatchers.IO) { runCatching { fetch(loc.latitude, loc.longitude) } }
-            fetching = false
-            found.onSuccess { cameras = it; fetchedAt = loc; failedAt = 0L }.onFailure {
-                failedAt = android.os.SystemClock.elapsedRealtime()
-                Log.w(TAG, "cameras unread: ${it.message}")
+            // Beside the fixes, not in their way (see SpeedLimit): the cameras already
+            // read keep being matched against the car while the servers are tried.
+            scope.launch(Dispatchers.IO) {
+                val found = runCatching { fetch(loc.latitude, loc.longitude) }
+                found.onSuccess { cameras = it; fetchedAt = loc; failedAt = 0L }.onFailure {
+                    failedAt = android.os.SystemClock.elapsedRealtime()
+                    Log.w(TAG, "cameras unread: ${it.message}")
+                }
+                fetching = false
             }
         }
         val next = nearestAhead(loc, cameras)

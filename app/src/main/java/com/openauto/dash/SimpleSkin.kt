@@ -567,7 +567,7 @@ private fun SimpleObdPill(state: ObdConnectionState, onConnect: () -> Unit) {
 @Composable
 private fun SimpleTalkButton(compact: Boolean) {
     val context = LocalContext.current
-    val gemini = remember { GeminiLive.available(context) }
+    val gemini = GeminiLive.rememberAvailable(context)
     val active by GeminiLive.active.collectAsState()
     val effects = DashColors.Effects
     val light = DashColors.Light

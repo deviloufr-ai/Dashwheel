@@ -118,7 +118,8 @@ internal fun MsDriverDisplay(env: SkinTileEnv) {
     val idle = env.obdConnection.isIdle
     val obd = env.obdConnection == ObdConnectionState.CONNECTED
     val canConnect = speed == null && idle && !env.editing
-    val redline = CarProfileStore.current.redlineRpm ?: 4_500
+    val profile by CarProfileStore.profile.collectAsState()
+    val redline = profile.redlineRpm ?: 4_500
     BoxWithConstraints(
         Modifier
             .fillMaxSize()

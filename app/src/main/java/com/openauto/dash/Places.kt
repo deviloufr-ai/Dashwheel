@@ -126,7 +126,8 @@ internal object PlacesStore {
 internal object PlaceSearch {
     private const val SEARCH_URL = "https://nominatim.openstreetmap.org/search"
     private const val REVERSE_URL = "https://nominatim.openstreetmap.org/reverse"
-    private const val USER_AGENT = "OpenAutoDash/1.0 (car launcher)"
+    // Nominatim's policy asks for a way to reach the app's author: the same name as for Overpass.
+    private const val USER_AGENT = OVERPASS_AGENT
 
     /**
      * The first place found for [query], under the name typed; null when nothing

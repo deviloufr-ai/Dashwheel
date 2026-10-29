@@ -669,7 +669,7 @@ private fun ChromeBarKeyBox(description: String, onClick: () -> Unit, icon: @Com
 @Composable
 private fun ChromeTalkButton() {
     val context = LocalContext.current
-    val gemini = remember { GeminiLive.available(context) }
+    val gemini = GeminiLive.rememberAvailable(context)
     val active by GeminiLive.active.collectAsState()
     ChromeMetalButton(
         icon = if (active) Icons.Filled.Close else Icons.Filled.Mic,

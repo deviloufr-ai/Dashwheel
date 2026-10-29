@@ -78,6 +78,10 @@ data class AiConfig(
 object AiSettings {
     private const val PREFS = "ai_prefs"
 
+    private val _revision = MutableStateFlow(0)
+    /** Counts the saves: what read the settings once (the skins' Gemini button) reads them again. */
+    val revision: StateFlow<Int> = _revision.asStateFlow()
+
     fun load(context: Context): AiConfig {
         val p = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         // The shared key that came with an activation code is withdrawn: the
@@ -97,6 +101,7 @@ object AiSettings {
             .apply { config.languageChoice?.let { putString("language", it.name) } ?: remove("language") }
             .putBoolean("own_live", config.ownLive)
             .apply()
+        _revision.value++
     }
 }
 

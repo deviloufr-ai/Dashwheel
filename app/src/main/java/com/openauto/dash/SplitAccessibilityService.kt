@@ -69,7 +69,13 @@ class SplitAccessibilityService : AccessibilityService() {
         updateOverlayForSplit()
         if (Edition.full) {
             wazeWatch?.cancel()
-            wazeWatch = mainScope.launch { NavDirections.running.collect { wazeRuns = it == WazeScreen.PACKAGE; watchContent(wazeRuns || mapsInFront) } }
+            // Waze guiding inside a tile is read by TileText, not here: its content
+            // changes (a binder call per batch, the whole trip) are not asked for then.
+            wazeWatch = mainScope.launch {
+                combine(NavDirections.running, EmbeddedApp.hosted) { running, hosted ->
+                    running == WazeScreen.PACKAGE && WazeScreen.PACKAGE !in hosted
+                }.distinctUntilChanged().collect { wazeRuns = it; watchContent(wazeRuns || mapsInFront) }
+            }
         }
         keyWatch?.cancel()
         keyWatch = mainScope.launch {
@@ -165,7 +171,9 @@ class SplitAccessibilityService : AccessibilityService() {
         when (event.eventType) {
             AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED,
             AccessibilityEvent.TYPE_WINDOWS_CHANGED -> {
-                updateOverlayForSplit()
+                // The panes are measured (two window listings, a root per window) only when a
+                // split can concern the dashboard: it shares the screen, or the button is up.
+                if (MainActivity.inMultiWindowNow() || overlayView != null) updateOverlayForSplit()
                 checkProjectionOnScreen()
                 if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED && event.packageName != null) {
                     // A tile's app torn off its tile shows here before the dashboard even pauses.

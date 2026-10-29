@@ -42,6 +42,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
@@ -1709,12 +1710,10 @@ private fun ObdWord(state: ObdConnectionState, sizeSp: Float) {
 @Composable
 private fun rememberBest0to100(): Long? {
     val context = LocalContext.current
+    // The timer loads its bests only while its own tile shows: asked to once here, off the frame.
+    LaunchedEffect(Unit) { PerfTimer.loadBest(context) }
     val best by PerfTimer.best.collectAsState()
-    // The timer loads its bests only while its own tile shows: read what it saved otherwise.
-    val saved = remember(best) {
-        context.getSharedPreferences("perf_timer", android.content.Context.MODE_PRIVATE).getLong("to100", 0L).takeIf { it > 0L }
-    }
-    return best.to100 ?: saved
+    return best.to100
 }
 
 /** The card's cells, in their own scope: a GPS fix or an OBD sample recomposes only them. */

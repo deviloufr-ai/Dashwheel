@@ -525,4 +525,19 @@ class DashboardStoreTest {
         val saved = DashboardStore.serializePages(List(DashboardStore.PAGE_COUNT) { emptyList() })
         assertFalse(saved.contains("hologram"))
     }
+
+    @Test
+    fun peekingAtALayoutChangesNothing() {
+        // The tiles kept for this layout's next save stay as they were...
+        DashboardStore.parsePages("""{"v":1,"pages":[[{"t":"hologram","gx":0,"gy":0,"gw":3,"gh":2}],[],[]]}""")
+        val before = DashboardStore.placedKinds.value
+        val peeked = DashboardStore.peekItems("""{"v":1,"pages":[[{"t":"builtin","k":"CLOCK","gx":0,"gy":0,"gw":3,"gh":2},{"t":"stranger"}],[],[]]}""")
+        assertEquals(listOf(BuiltinKind.CLOCK), peeked?.filterIsInstance<DashboardItem.BuiltinWidget>()?.map { it.kind })
+        // ...and so do the kinds the add sheet marks as placed.
+        assertEquals(before, DashboardStore.placedKinds.value)
+        val saved = DashboardStore.serializePages(List(DashboardStore.PAGE_COUNT) { emptyList() })
+        assertTrue(saved.contains("hologram"))
+        assertFalse(saved.contains("stranger"))
+        assertNull(DashboardStore.peekItems("not a layout"))
+    }
 }

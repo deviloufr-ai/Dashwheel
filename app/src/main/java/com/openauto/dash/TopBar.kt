@@ -315,7 +315,7 @@ internal fun StandardTopBar(m: TopBarModel) {
 @Composable
 private fun GeminiBarButton() {
     val context = LocalContext.current
-    val installed = remember { GeminiLive.available(context) }
+    val installed = GeminiLive.rememberAvailable(context)
     if (!installed) return
     val active by GeminiLive.active.collectAsState()
     val label = stringResource(if (active) R.string.ai_gemini_live_end else R.string.ai_gemini_live)

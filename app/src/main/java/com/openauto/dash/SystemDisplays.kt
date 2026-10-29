@@ -88,8 +88,11 @@ internal object SystemDisplays {
         withTimeoutOrNull(START_TIMEOUT_MS + 1_000) { _state.first { it != State.STARTING } }
     }
 
-    private fun spawn(app: Context) {
-        if (!SystemInstaller.isRootAvailable()) {
+    private suspend fun spawn(app: Context) {
+        // The dashboard's own probe says whether there is root: a second `su` here
+        // alongside it meant two Magisk prompts on a fresh grant, two 8 s waits without root.
+        val access = PrivilegedShell.access.first { it != PrivilegedShell.Access.UNKNOWN }
+        if (!access.root) {
             Log.i(TAG, "no root: the tile displays stay Dashwheel's own")
             main.post { if (_state.value == State.STARTING) _state.value = State.GONE }
             return

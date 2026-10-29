@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -352,13 +354,13 @@ object Maintenance {
     /** The plan follows the car: a new car gets the defaults and, given a key, the maker's intervals. */
     private fun onCar(car: CarProfile) {
         val registeredAt = car.registeredOn?.atStartOfDay(java.time.ZoneId.systemDefault())?.toInstant()?.toEpochMilli()
-        if (_state.value.registeredAt != registeredAt) _state.value = _state.value.copy(registeredAt = registeredAt)
+        if (_state.value.registeredAt != registeredAt) _state.update { it.copy(registeredAt = registeredAt) }
         val hash = car.promptDescription().hashCode()
         if (ownUnmarked) {
             ownUnmarked = false
             // Saved before the driver's figures were marked: on a plan the AI never filled, what differs from the defaults is theirs.
             val defaults = UpkeepRules.defaultPlan(car).associateBy { it.kind }
-            _state.value = _state.value.copy(plan = _state.value.plan.map { it.copy(own = it.known && it != defaults[it.kind]) })
+            _state.update { s -> s.copy(plan = s.plan.map { it.copy(own = it.known && it != defaults[it.kind]) }) }
             save()
         }
         val s = _state.value
@@ -366,7 +368,7 @@ object Maintenance {
             // What the driver typed stays, for the items the car still has.
             val fresh = UpkeepRules.defaultPlan(car)
             val plan = UpkeepRules.keepOwn(fresh, s.plan).filter { kept -> fresh.any { it.kind == kept.kind } }
-            _state.value = s.copy(plan = plan, planFromAi = false)
+            _state.update { it.copy(plan = plan, planFromAi = false) }
             planFor = hash
             save()
         }
@@ -397,22 +399,23 @@ object Maintenance {
     suspend fun fetchPlan(car: CarProfile = CarProfileStore.current, hash: Int = car.promptDescription().hashCode()): Result<Unit> =
         fetchMutex.withLock {
             val context = appContext ?: return Result.failure(IllegalStateException("no context"))
-            _state.value = _state.value.copy(fetching = true, fetchError = null)
+            _state.update { it.copy(fetching = true, fetchError = null) }
             val result = UpkeepPlan.fetch(context, car)
             result.onSuccess { ai ->
                 val plan = UpkeepRules.keepOwn(UpkeepRules.merge(UpkeepRules.defaultPlan(car), ai), _state.value.plan)
-                _state.value = _state.value.copy(plan = plan, planFromAi = true, fetching = false)
+                _state.update { it.copy(plan = plan, planFromAi = true, fetching = false) }
                 planFor = hash
                 save()
             }.onFailure {
-                _state.value = _state.value.copy(fetching = false, fetchError = it.message)
+                _state.update { s -> s.copy(fetching = false, fetchError = it.message) }
             }
             result.map { }
         }
 
     /** The driver read the dashboard: [km] as of now. */
+    @Synchronized
     fun setOdometer(km: Int) {
-        _state.value = _state.value.copy(odometer = Odometer(km, System.currentTimeMillis()))
+        _state.update { it.copy(odometer = Odometer(km, System.currentTimeMillis())) }
         drivenUnsaved = 0.0
         drivenUnpublished = 0.0
         save()
@@ -433,18 +436,22 @@ object Maintenance {
     /** The driver's own interval for its kind (added when the plan had none); emptied, the maker's may fill it in again. */
     fun setInterval(interval: UpkeepInterval) {
         val typed = interval.copy(own = interval.known)
-        val plan = _state.value.plan
-        _state.value = _state.value.copy(
-            plan = if (plan.any { it.kind == typed.kind }) plan.map { if (it.kind == typed.kind) typed else it } else plan + typed
-        )
+        _state.update { s ->
+            val plan = s.plan
+            s.copy(plan = if (plan.any { it.kind == typed.kind }) plan.map { if (it.kind == typed.kind) typed else it } else plan + typed)
+        }
         save()
     }
 
     fun setDone(kind: UpkeepKind, done: UpkeepDone?) {
         val before = _state.value.done[kind]?.at
-        val map = _state.value.done.toMutableMap()
-        if (done == null || (done.km == null && done.at == null)) map.remove(kind) else map[kind] = done
-        _state.value = _state.value.copy(done = map)
+        // Set atomically: the drive monitor advances the odometer on another
+        // thread, and its copy of the state could carry the old list back.
+        val map = _state.updateAndGet { s ->
+            val all = s.done.toMutableMap()
+            if (done == null || (done.km == null && done.at == null)) all.remove(kind) else all[kind] = done
+            s.copy(done = all)
+        }.done
         // Done again: the next reminder for it is news again.
         spoken = spoken - kind
         save()
@@ -462,15 +469,17 @@ object Maintenance {
         setDone(UpkeepKind.INSPECTION, done)
     }
 
-    /** The drive monitor counted [km] more kilometres. */
+    /** The drive monitor counted [km] more kilometres. From the monitor's thread: the counters are kept under the same lock as [setOdometer]. */
+    @Synchronized
     fun drove(km: Double) {
         if (km <= 0.0 || DemoMode.isOn) return
-        val odo = _state.value.odometer ?: return
+        if (_state.value.odometer == null) return
         drivenUnpublished += km
         drivenUnsaved += km
         // Published every 100 m: at every reading, each upkeep tile redrew for a few metres.
         if (drivenUnpublished < 0.1 && drivenUnsaved < 1.0) return
-        _state.value = _state.value.copy(odometer = odo.copy(drivenSince = odo.drivenSince + drivenUnpublished))
+        val add = drivenUnpublished
+        _state.update { s -> s.odometer?.let { odo -> s.copy(odometer = odo.copy(drivenSince = odo.drivenSince + add)) } ?: s }
         drivenUnpublished = 0.0
         if (drivenUnsaved >= 1.0) {
             drivenUnsaved = 0.0
@@ -550,4 +559,5 @@ object Maintenance {
 }
 
 /** Above this an odometer reading is garbage, not a car. */
-private const val MAX_ODOMETER_KM = 2_000_000
+/** An odometer reading above this is garbage (a CANbox frame misread); none is published or kept. */
+internal const val MAX_ODOMETER_KM = 2_000_000

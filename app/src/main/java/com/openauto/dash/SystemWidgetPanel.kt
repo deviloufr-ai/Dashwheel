@@ -87,6 +87,9 @@ object WidgetHostHolder {
     private fun retired(context: Context): Set<String> =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getStringSet(KEY_RETIRED, null).orEmpty()
 
+    /** Whether any widget id is waiting to be let go of: when none is, [sweep] has nothing to look at. */
+    fun hasRetired(context: Context): Boolean = retired(context).isNotEmpty()
+
     /**
      * A widget taken off a page: its id is let go of later, by [sweep], once
      * nothing can show it again. Deleted on the spot, Undo brought the tile

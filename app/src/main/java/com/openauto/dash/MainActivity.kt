@@ -18,7 +18,6 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.LocalView
@@ -483,8 +482,10 @@ fun OpenAutoDashTheme(content: @Composable () -> Unit) {
     val view = LocalView.current
     val light = DashColors.Light
     if (!view.isInEditMode) {
-        SideEffect {
-            val window = (view.context as? android.app.Activity)?.window ?: return@SideEffect
+        // Only when day turns to night or back: the theme recomposes at every
+        // frame of a palette fade, and this is a system call each time.
+        LaunchedEffect(light) {
+            val window = (view.context as? android.app.Activity)?.window ?: return@LaunchedEffect
             WindowInsetsControllerCompat(window, view).isAppearanceLightStatusBars = light
         }
     }

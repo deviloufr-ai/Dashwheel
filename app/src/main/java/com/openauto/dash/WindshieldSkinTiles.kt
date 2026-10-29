@@ -766,7 +766,7 @@ private fun WsQuickSelect(item: DashboardItem.LaunchBar, env: SkinTileEnv) {
 /** Talk as a QuickSelect key: the microphone in the lit ink; red with an end mark while a conversation is open. */
 @Composable
 private fun WsTalkKey(size: Dp, context: android.content.Context) {
-    val gemini = remember { GeminiLive.available(context) }
+    val gemini = GeminiLive.rememberAvailable(context)
     val active by GeminiLive.active.collectAsState()
     val label = stringResource(if (active) R.string.ai_gemini_live_end else R.string.windshield_talk_cd)
     WsSquareKey(size, false, label, false, { if (gemini || active) GeminiLive.toggle(context) else startVoiceAssistant(context) }) {

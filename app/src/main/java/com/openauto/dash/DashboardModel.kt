@@ -662,7 +662,29 @@ object DashboardStore {
      * pages of tiles; null if the text is not a layout at all. Unknown tiles
      * are stashed in [retained] ([variant]'s) for the next [save].
      */
-    internal fun parsePages(raw: String, variant: String = ""): List<List<DashboardItem>>? = runCatching {
+    internal fun parsePages(raw: String, variant: String = ""): List<List<DashboardItem>>? =
+        parseItems(raw, retained(variant))
+
+    /**
+     * The tiles saved for [variant], read without changing anything: not the
+     * tiles kept for its next save, not the layout's backup, not the kinds the
+     * add sheet marks as placed. For looking at the other screen direction's
+     * arrangement, which [load] would have taken for this one's. Null when
+     * none is saved or it cannot be read.
+     */
+    fun peek(context: Context, variant: String): List<DashboardItem>? {
+        val raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(pagesKey(variant), null) ?: return null
+        return peekItems(raw)
+    }
+
+    /** The tiles in a saved layout's text, read without side effects ([peek]); null if it is not a layout. */
+    internal fun peekItems(raw: String): List<DashboardItem>? = parseItems(raw, retained = null)?.flatten()
+
+    /**
+     * The pages of tiles in [raw]; the tiles this build does not understand go
+     * to [retained] (emptied first) when one is given, and are dropped otherwise.
+     */
+    private fun parseItems(raw: String, retained: HashMap<Int, MutableList<JSONObject>>?): List<List<DashboardItem>>? = runCatching {
         val trimmed = raw.trim()
         val pages = if (trimmed.startsWith("{")) {
             val obj = JSONObject(trimmed)
@@ -672,15 +694,14 @@ object DashboardStore {
         } else {
             JSONArray(trimmed)
         }
-        val retained = retained(variant)
-        retained.clear()
+        retained?.clear()
         (0 until pages.length()).map { p ->
             val page = pages.optJSONArray(p) ?: JSONArray()
             (0 until page.length()).mapNotNull { i ->
                 val o = page.optJSONObject(i) ?: return@mapNotNull null
                 if (o.isDroppedBuiltin()) return@mapNotNull null
                 o.toItem() ?: run {
-                    retained.getOrPut(p) { mutableListOf() }.add(o)
+                    retained?.getOrPut(p) { mutableListOf() }?.add(o)
                     null
                 }
             }

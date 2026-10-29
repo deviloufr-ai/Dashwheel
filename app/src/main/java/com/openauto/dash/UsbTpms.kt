@@ -228,6 +228,8 @@ internal object UsbTpms {
             gone()
         } finally {
             runCatching { port.close() }
+            // Another receiver chosen: this one's four tyres would have stayed on the bus until they went stale.
+            if (_device.value != adapter.key) gone()
         }
     }
 }

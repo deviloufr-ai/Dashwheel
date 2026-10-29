@@ -112,7 +112,7 @@ import java.util.Locale
 // Free, no-key services by default: OpenFreeMap's dark / positron styles, Nominatim
 // geocoding ([PlaceSearch]) and the public Valhalla router; the map style and the
 // router can be pointed at the driver's own servers ([MapServers]).
-private const val USER_AGENT = "OpenAutoDash/1.0 (car launcher)"
+private const val USER_AGENT = OVERPASS_AGENT
 
 private val Accent = Color(0xFF8AB4F8)
 private val OverlayBg = Color(0xE6141518)

@@ -768,7 +768,7 @@ private const val SHEEN_SHARE = 0.3f
 @Composable
 private fun TalkKey() {
     val context = LocalContext.current
-    val gemini = remember { GeminiLive.available(context) }
+    val gemini = GeminiLive.rememberAvailable(context)
     val active by GeminiLive.active.collectAsState()
     val glowK = if (active) 1f else if (DashColors.Light) 0.5f * DashColors.Effects.scale else DashColors.Effects.scale
     val tap = rememberTapFeedback()

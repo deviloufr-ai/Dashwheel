@@ -405,7 +405,7 @@ private fun TrBarKey(onClick: () -> Unit, description: String, label: String? = 
 @Composable
 private fun TrTalkKey() {
     val context = LocalContext.current
-    val gemini = remember { GeminiLive.available(context) }
+    val gemini = GeminiLive.rememberAvailable(context)
     val active by GeminiLive.active.collectAsState()
     val description = stringResource(if (active) R.string.ai_gemini_live_end else R.string.terrain_talk_cd)
     val ink = if (active) DashColors.Critical else DashColors.Accent

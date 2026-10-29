@@ -33,7 +33,11 @@ object WindowListing {
 
     /** Managed freeform windows whose tile is not on screen: they should not exist. */
     internal fun strayWindows(listing: String, managed: Set<String>, active: Set<String>): List<FloatingWindow> =
-        allFloatingWindows(listing).filter { it.mode == "freeform" && it.packageName in managed && it.packageName !in active }
+        strayWindows(allFloatingWindows(listing), managed, active)
+
+    /** [strayWindows] of a listing already parsed ([allFloatingWindows]). */
+    internal fun strayWindows(windows: List<FloatingWindow>, managed: Set<String>, active: Set<String>): List<FloatingWindow> =
+        windows.filter { it.mode == "freeform" && it.packageName in managed && it.packageName !in active }
 
     /** True when [b] lies inside [limit] (a few pixels of slack for rounding). */
     internal fun withinArea(b: ScreenRect, limit: ScreenRect?, slack: Int = 4): Boolean =
@@ -77,8 +81,12 @@ object WindowListing {
         return insideX && insideY && w / tw in 0.6f..1.4f
     }
 
-    internal fun parseFloatingWindow(output: String, selfPackage: String = "com.openauto.dash", packageName: String? = null): FloatingWindow? {
-        val found = allFloatingWindows(output, selfPackage).filter { packageName == null || it.packageName == packageName }
+    internal fun parseFloatingWindow(output: String, selfPackage: String = "com.openauto.dash", packageName: String? = null): FloatingWindow? =
+        pickFloatingWindow(allFloatingWindows(output, selfPackage), packageName)
+
+    /** [packageName]'s window among [windows] (any app's when null); a listing already parsed. */
+    internal fun pickFloatingWindow(windows: List<FloatingWindow>, packageName: String?): FloatingWindow? {
+        val found = windows.filter { packageName == null || it.packageName == packageName }
         // A freeform window carries the full app UI; prefer it over a PiP.
         return found.firstOrNull { it.mode == "freeform" } ?: found.firstOrNull()
     }

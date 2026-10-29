@@ -177,6 +177,9 @@ class RoadWatchActivity : ComponentActivity() {
         }
         // On the frames' thread like stop, so a quick stop and start keep their order.
         onFrames { watch.start() }
+        // Stopped with the screen (a call over it, the power button): the camera comes
+        // back by itself, the recorder did not, and no clip was kept for the rest of the drive.
+        recorder.value?.start()
     }
 
     override fun onStop() {

@@ -224,6 +224,7 @@ object ShizukuShell {
         if (missing.isEmpty()) { granted = true; return }
         granted = true
         thread(isDaemon = true, name = "shizuku-grant") {
+            var all = true
             for (perm in missing) {
                 val res = runCatching { run("pm grant ${context.packageName} $perm", 10) }.getOrNull()
                 when {
@@ -231,7 +232,10 @@ object ShizukuShell {
                     res.exit != 0 -> Log.w(TAG, "Shizuku could not grant $perm: ${res.all.trim().lines().firstOrNull()}")
                     else -> Log.i(TAG, "granted $perm through Shizuku")
                 }
+                if (res == null || res.exit != 0) all = false
             }
+            // A grant that failed (the service not bound in time, Shizuku gone) is tried again at the next refresh, not given up on for the process.
+            if (!all) granted = false
             // A grant just made counts at once where the permission is read each time.
             PrivilegedShell.recheck()
         }

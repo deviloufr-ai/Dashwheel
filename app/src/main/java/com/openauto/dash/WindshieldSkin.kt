@@ -569,7 +569,7 @@ private fun WsBandTemp() {
 @Composable
 private fun WsBandTalk() {
     val context = LocalContext.current
-    val gemini = remember { GeminiLive.available(context) }
+    val gemini = GeminiLive.rememberAvailable(context)
     val active by GeminiLive.active.collectAsState()
     val description = stringResource(if (active) R.string.ai_gemini_live_end else R.string.windshield_talk_cd)
     val pulse = if (active) rememberLoop(900, reverse = true, status = true) else null

@@ -386,7 +386,8 @@ class UpdateManager(private val context: Context) {
                     }
                 }
             } ?: return false
-            delay(400)
+            // A content-provider query each time: once a second is plenty for a percentage.
+            delay(1_000)
         }
     }
 

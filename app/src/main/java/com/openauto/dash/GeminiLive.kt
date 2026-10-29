@@ -147,6 +147,17 @@ internal object GeminiLive {
     fun available(context: Context): Boolean =
         isPackageInstalled(context, GEMINI_PACKAGE) || AiSettings.load(context).apiKey.isNotBlank()
 
+    /**
+     * [available] for a skin's bar: read again when the AI settings are saved
+     * (a key typed in, or taken out), where `remember { available(context) }`
+     * froze the answer for the life of the dashboard.
+     */
+    @Composable
+    fun rememberAvailable(context: Context): Boolean {
+        val revision by AiSettings.revision.collectAsState()
+        return remember(revision) { available(context) }
+    }
+
     /** Follows the car (speed, reverse gear, calls) and the alert's "Try it". From the dashboard's start. */
     fun start(context: Context) {
         if (started) return
