@@ -294,7 +294,9 @@ internal object UsbObd {
         }
 
         private companion object {
-            const val AVAILABLE_POLL_MS = 10
+            // available() is asked before every command (ObdBluetoothManager drains a late
+            // reply): with nothing waiting, 10 ms here was 30-50 ms of dead time per poll.
+            const val AVAILABLE_POLL_MS = 1
             const val BLOCKING_POLL_MS = 200
         }
     }

@@ -3,6 +3,7 @@ package com.openauto.dash
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.os.SystemClock
 import android.util.LruCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Semaphore
@@ -12,6 +13,7 @@ import okhttp3.Request
 import org.json.JSONArray
 import java.io.File
 import java.text.Normalizer
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
 /** A car make, with the file name ([slug]) its logos go by in the logo dataset. */
@@ -71,6 +73,13 @@ internal object CarLogos {
     private val thumbs = LruCache<String, Bitmap>(120)
     // A scrolling grid asks for dozens at once; a few downloads at a time is plenty.
     private val gate = Semaphore(4)
+    /**
+     * Logos that could not be fetched, by path, with when (elapsed realtime):
+     * a brand the dataset lacks, or no network. Without this, every cell of
+     * the picker asked again at every scroll, offline too.
+     */
+    private val failedAt = ConcurrentHashMap<String, Long>()
+    private const val RETRY_MS = 5 * 60_000L
 
     fun cachedThumb(slug: String): Bitmap? = thumbs.get(slug)
 
@@ -85,7 +94,15 @@ internal object CarLogos {
     private suspend fun load(context: Context, size: String, slug: String, maxPx: Int): Bitmap? = withContext(Dispatchers.IO) {
         val file = File(context.cacheDir, "car_logos/$size/$slug.png")
         if (!file.exists()) {
-            gate.withPermit { runCatching { download("$BASE/$size/$slug.png", file) } }
+            val path = "$size/$slug"
+            val failed = failedAt[path]
+            if (failed == null || SystemClock.elapsedRealtime() - failed >= RETRY_MS) {
+                gate.withPermit {
+                    runCatching { download("$BASE/$path.png", file) }
+                        .onSuccess { failedAt.remove(path) }
+                        .onFailure { failedAt[path] = SystemClock.elapsedRealtime() }
+                }
+            }
         }
         if (file.exists()) decode(file, maxPx) else null
     }

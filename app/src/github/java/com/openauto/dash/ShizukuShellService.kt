@@ -30,6 +30,8 @@ class ShizukuShellService : IShizukuShell.Stub() {
             Log.w(TAG, "could not start `$cmd`: ${e.message}")
             return result.apply { putString(OUT, "Error: ${e.message}"); putInt(EXIT, -1) }
         }
+        // Nothing is ever typed to it: a command that reads its input would otherwise wait for the timeout.
+        runCatching { process.outputStream.close() }
         // Read on its own thread, so the wait below can run out while the command still prints.
         val out = StringBuilder()
         val reader = Thread({

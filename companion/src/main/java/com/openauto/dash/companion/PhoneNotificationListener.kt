@@ -48,13 +48,21 @@ class PhoneNotificationListener : NotificationListenerService() {
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         if (PhoneCalls.onNotificationPosted(this, sbn)) return
         val item = toPhoneNotification(sbn) ?: return
-        LinkServer.send(NotificationPosted(item))
+        // The app's icon (a few KB, encrypted and sent) goes with its first notification
+        // only: the head unit keeps one per app, as the sync on connecting already does.
+        val first = synchronized(sent) { sent.keys.add(item.key); sent.icons.add(item.packageName) }
+        LinkServer.send(NotificationPosted(if (first) item else item.copy(iconPng = null)))
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification) {
         PhoneCalls.onNotificationRemoved(sbn.key)
-        LinkServer.send(NotificationRemoved(sbn.key))
+        // Only for one the car was told of: most removals are of ongoing, summary or media notifications it never saw.
+        if (synchronized(sent) { sent.keys.remove(sbn.key) }) LinkServer.send(NotificationRemoved(sbn.key))
     }
+
+    /** What the car has been sent since the last sync: the notifications by key, and the apps whose icon went with one. */
+    private class Sent(val keys: HashSet<String> = HashSet(), val icons: HashSet<String> = HashSet())
+    private val sent = Sent()
 
     /** Answers the conversation [key] with [text]. False when it can't be answered. */
     fun reply(key: String, text: String): Boolean {
@@ -180,7 +188,15 @@ class PhoneNotificationListener : NotificationListenerService() {
                 .mapNotNull { listener.toPhoneNotification(it) }
                 .take(NotificationSync.MAX_ITEMS)
                 .toList()
-            return NotificationSync.of(newest)
+            val sync = NotificationSync.of(newest)
+            // A fresh start for the link: what this sync carries is what the car has.
+            synchronized(listener.sent) {
+                listener.sent.keys.clear()
+                listener.sent.keys.addAll(sync.notifications.map { it.key })
+                listener.sent.icons.clear()
+                listener.sent.icons.addAll(sync.notifications.filter { it.iconPng != null }.map { it.packageName })
+            }
+            return sync
         }
 
         /** The action that takes a typed answer, as Android Auto finds it. */

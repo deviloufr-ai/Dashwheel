@@ -34,6 +34,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import okhttp3.Request
@@ -112,6 +114,8 @@ internal object WeatherAlerts {
     /** A warning with no end given is remembered this long. */
     private const val SAID_DEFAULT_MS = 24 * 3_600_000L
     private const val REFRESH_MS = 30 * 60_000L
+    /** After a read that could not be made (no place yet, the geocoder or the feed unreachable), the next try. */
+    private const val RETRY_MS = 60_000L
     private const val FEED = "https://feeds.meteoalarm.org/feeds/meteoalarm-legacy-atom-"
     private const val REVERSE = "https://nominatim.openstreetmap.org/reverse"
 
@@ -124,6 +128,7 @@ internal object WeatherAlerts {
     /** The warnings said, by key, with when each expires (wall clock). */
     private var said: MutableMap<String, Long>? = null
     private var areaCache: Pair<Pair<Int, Int>, Area>? = null
+    private var destCache: Pair<Pair<Int, Int>, Area>? = null
 
     private val _here = MutableStateFlow<List<WeatherWarning>>(emptyList())
     /** In force where the car is, the worst first. */
@@ -138,9 +143,17 @@ internal object WeatherAlerts {
         if (job?.isActive == true) return
         val app = context.applicationContext
         job = scope.launch {
+            var failures = 0
             while (isActive) {
-                runCatching { refresh(app) }.onFailure { Log.w(TAG, "warnings unread: ${it.message}") }
-                delay(REFRESH_MS)
+                // At a cold start the first fix comes after the tile: waiting for
+                // it, rather than finding none and sleeping half an hour, is what
+                // gets a red warning said before the car has left the street.
+                LocationFeed.location.filterNotNull().first()
+                val read = runCatching { refresh(app) }
+                    .onFailure { Log.w(TAG, "warnings unread: ${it.message}") }
+                    .getOrDefault(false)
+                failures = if (read) 0 else failures + 1
+                delay(if (read) REFRESH_MS else Backoff.doubling(RETRY_MS, REFRESH_MS, failures))
             }
         }
     }
@@ -152,11 +165,12 @@ internal object WeatherAlerts {
         job = null
     }
 
-    private fun refresh(context: Context) {
-        val loc = LocationFeed.location.value ?: return
-        val hereArea = area(loc.latitude, loc.longitude, cache = true) ?: return
+    /** Reads the warnings; false when it could not (no fix, or the place could not be named), to be tried again soon. */
+    private fun refresh(context: Context): Boolean {
+        val loc = LocationFeed.location.value ?: return false
+        val hereArea = area(loc.latitude, loc.longitude, cache = true) ?: return false
         val dest = InAppNav.guidance.value?.destination
-        val destArea = dest?.let { area(it.latitude(), it.longitude(), cache = false) }
+        val destArea = dest?.let { destinationArea(it.latitude(), it.longitude()) }
         val feeds = HashMap<String, List<WeatherWarning>>()
         fun warnings(a: Area): List<WeatherWarning> = feeds.getOrPut(a.country) {
             val slug = WeatherWarnings.feedFor(a.country) ?: return@getOrPut emptyList()
@@ -171,12 +185,20 @@ internal object WeatherAlerts {
         _here.value = now
         _ahead.value = destArea?.let { a -> worst(warnings(a).filter { WeatherWarnings.inArea(it, a.names) }) }.orEmpty()
         val fresh = (now + _ahead.value).filter { it.level >= 2 && markSaid(context, w = it) }
-        if (fresh.isEmpty() || !SpokenEvents.isOn(context, SpokenEvent.WEATHER)) return
+        if (fresh.isEmpty() || !SpokenEvents.isOn(context, SpokenEvent.WEATHER)) return true
         val app = AppLanguage.wrap(context)
         fresh.forEach { w ->
             val colour = app.getString(if (w.level >= 3) R.string.widgets_wx_red else R.string.widgets_wx_orange)
             CarVoice.announce(app.getString(R.string.widgets_wx_say, colour, hazardName(app, w), w.area), InAppNav.locale(context))
         }
+        return true
+    }
+
+    /** The destination's area, looked up once per destination cell rather than at every refresh of a long drive. */
+    private fun destinationArea(lat: Double, lng: Double): Area? {
+        val key = (lat * 10).toInt() to (lng * 10).toInt()
+        destCache?.takeIf { it.first == key }?.let { return it.second }
+        return area(lat, lng, cache = false)?.also { destCache = key to it }
     }
 
     /** Notes [w] as said; false when it already was (and still is in force). Saved, so a restart remembers. */

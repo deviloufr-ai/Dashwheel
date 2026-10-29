@@ -45,6 +45,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.withFrameMillis
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -606,14 +607,16 @@ private fun chromeText(color: Color, size: TextUnit, glow: Boolean = false) = Te
 @Composable
 private fun rememberFlicker(): State<Float> {
     val alpha = remember { mutableFloatStateOf(1f) }
-    val still = DashColors.Effects == DashEffects.NONE
-    LaunchedEffect(still) {
+    // Steady with effects off, on a page off screen, and while the car moves (decoration holds its frame then, as SkinKit says).
+    val run = DashColors.Effects != DashEffects.NONE && LocalPageActive.current && !LocalCarMoving.current
+    LaunchedEffect(run) {
         alpha.floatValue = 1f
-        if (still) return@LaunchedEffect
+        if (!run) return@LaunchedEffect
         val rnd = Random(System.nanoTime())
         while (true) {
             delay(3_500L + rnd.nextLong(4_500L))
-            alpha.floatValue = 0.78f
+            // On a frame: in the background the loop sleeps here instead of waking.
+            withFrameMillis { alpha.floatValue = 0.78f }
             delay(60L)
             alpha.floatValue = 1f
             delay(110L)

@@ -457,7 +457,8 @@ object McuReader {
         val prev = latest[key]
         // The CANbox repeats most frames several times a second; only a new
         // value is worth a new entry and waking every collector for.
-        if (prev == null || prev.hex != hex) {
+        val changed = prev == null || prev.hex != hex
+        if (changed) {
             val entry = Entry(key, cmdId, bytes, hex, System.currentTimeMillis())
             latest[key] = entry
             _entries.value = latest.values.toList()
@@ -476,8 +477,9 @@ object McuReader {
             if (key == rm.key) rm.decode(bytes)?.let { setLearnedRange(it) }
         }
 
-        // Door bitfield: cmdId 65, [.. 0C 38 <bits> ..] → byte index 4.
-        if (cmdId == 65 && bytes.size > 4 && bytes[2] == 0x0C && bytes[3] == 0x38) {
+        // Door bitfield: cmdId 65, [.. 0C 38 <bits> ..] → byte index 4. Only on a new
+        // frame: the box repeats it several times a second, and each put woke the bus.
+        if (changed && cmdId == 65 && bytes.size > 4 && bytes[2] == 0x0C && bytes[3] == 0x38) {
             val b = bytes[4]
             busPublisher.put(K.DOORS, doorsOf(b))
         }

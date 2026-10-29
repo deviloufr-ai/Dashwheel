@@ -41,6 +41,8 @@ internal object ShadowRoute {
     private const val OFF_ROUTE_M = 60.0
     private const val OFF_ROUTE_MS = 8_000L
     private const val REROUTE_GAP_MS = 20_000L
+    /** Offline, the gap grows to this: one request every few minutes instead of three a minute. */
+    private const val REROUTE_GAP_MAX_MS = 3 * 60_000L
     /** This close to the destination the trip is over. */
     private const val ARRIVED_M = 60.0
     /** A handed-off destination still counts this long without the navigation app running (it is starting). */
@@ -91,6 +93,7 @@ internal object ShadowRoute {
     private suspend fun follow(context: Context, target: NavHandoff.Target) {
         var plan: Plan? = null
         var lastRequest = 0L
+        var failures = 0
         var offSince = 0L
         val dest = resolve(target) ?: run {
             Log.i(TAG, "no position for ${target.name}: no shadow route")
@@ -103,9 +106,10 @@ internal object ShadowRoute {
             val off = fix != null && fix.offM > OFF_ROUTE_M
             if (off) { if (offSince == 0L) offSince = now } else offSince = 0L
             val stale = off && now - offSince > OFF_ROUTE_MS
-            if ((current == null || stale) && now - lastRequest > REROUTE_GAP_MS) {
+            if ((current == null || stale) && now - lastRequest > Backoff.doubling(REROUTE_GAP_MS, REROUTE_GAP_MAX_MS, failures)) {
                 lastRequest = now
                 val fresh = withContext(Dispatchers.IO) { runCatching { plan(context, here, dest) }.onFailure { Log.w(TAG, "no route: ${it.message}") }.getOrNull() }
+                failures = if (fresh == null) failures + 1 else 0
                 if (fresh != null) {
                     plan = fresh
                     offSince = 0L

@@ -30,6 +30,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Locale
 
 /** One run's times, in milliseconds from moving off; null until reached. */
@@ -116,13 +117,25 @@ internal object PerfTimer {
     private val _best = MutableStateFlow(PerfResult())
     val best: StateFlow<PerfResult> = _best
 
-    @Synchronized
-    fun start(context: Context) {
+    private fun readBest(context: Context): PerfResult {
         val p = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        _best.value = PerfResult(
+        return PerfResult(
             p.getLong("to50", 0).takeIf { it > 0 }, p.getLong("to100", 0).takeIf { it > 0 },
             p.getLong("quarter", 0).takeIf { it > 0 }, p.getInt("quarter_kmh", 0).takeIf { it > 0 }
         )
+    }
+
+    /** The saved bests into [best] without running the timer (a skin shows the 0-100 without the tile), read off the main thread. */
+    suspend fun loadBest(context: Context) {
+        if (_best.value != PerfResult()) return
+        val app = context.applicationContext
+        val saved = withContext(Dispatchers.IO) { readBest(app) }
+        if (_best.value == PerfResult()) _best.value = saved
+    }
+
+    @Synchronized
+    fun start(context: Context) {
+        _best.value = readBest(context)
         if (users++ > 0) return
         val app = context.applicationContext
         job = scope.launch {

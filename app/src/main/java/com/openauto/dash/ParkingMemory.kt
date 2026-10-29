@@ -48,6 +48,7 @@ internal data class Pose(val x: Float = 0f, val y: Float = 0f, val heading: Floa
         y - cx * sin(heading) + cy * cos(heading)
     )
 
+
     fun toCar(w: Offset): Offset {
         val dx = w.x - x
         val dy = w.y - y
@@ -178,6 +179,8 @@ internal object ObstacleMemory {
     private const val SAME_M = 0.15f
     /** A sensor's beam, each side of its axis. */
     private const val HALF_BEAM_DEG = 18f
+    /** The beam's half-angle as a tangent, once: it was taken anew for every point of every sensor. */
+    private val HALF_BEAM_TAN = tan(Math.toRadians(HALF_BEAM_DEG.toDouble())).toFloat()
 
     private val points = mutableListOf<Seen>()
     private val _version = MutableStateFlow(0)
@@ -227,7 +230,7 @@ internal object ObstacleMemory {
                     val c = pose.toCar(s.at) - pos
                     val along = c.x * dir.x + c.y * dir.y
                     val across = abs(c.x * dir.y - c.y * dir.x)
-                    along > 0f && along < reach && across < along * tan(Math.toRadians(HALF_BEAM_DEG.toDouble())).toFloat()
+                    along > 0f && along < reach && across < along * HALF_BEAM_TAN
                 }
                 if (near) {
                     val d = metres(level!!)
@@ -304,6 +307,8 @@ internal object GroundMemory {
     val filled: StateFlow<Boolean> = _filled.asStateFlow()
 
     private var previous: IntArray? = null
+    /** The picture before [previous], kept to be written over next ([onFrame]). */
+    private var spare: IntArray? = null
     private var lookup: IntArray? = null
     private var lookupKey: Any? = null
     private var fanLookup: IntArray? = null
@@ -329,12 +334,14 @@ internal object GroundMemory {
     @Synchronized
     fun onFrame(frame: IntArray, fw: Int, fh: Int, viewW: Float, viewH: Float, cal: ReverseCalibration, moved: (Float?) -> Pose?) {
         val map = lookupFor(fw, fh, viewW, viewH, cal)
-        val luma = IntArray(COLS * ROWS)
+        // Two buffers, swapped: the last picture's is written over, not left to the collector five times a second.
+        val luma = spare?.takeIf { it.size == COLS * ROWS } ?: IntArray(COLS * ROWS)
         for (i in luma.indices) {
             val idx = map[i]
             luma[i] = if (idx < 0) -1 else frame[idx].let { ((it shr 16 and 0xFF) * 3 + (it shr 8 and 0xFF) * 6 + (it and 0xFF)) / 10 }
         }
         val step = previous?.let { shiftBetween(it, luma) }
+        spare = previous
         previous = luma
         val pose = moved(step) ?: return
 
@@ -346,14 +353,20 @@ internal object GroundMemory {
             originY = centre.y + SIZE * RES / 2f
         }
         val fan = fanLookup ?: return
+        // The heading's cosine and sine once for the whole fan: 40 000 cells
+        // five times a second cost 800 000 trigonometric calls a second before.
+        val ch = cos(pose.heading)
+        val sh = sin(pose.heading)
         for (r in 0 until FAN_ROWS) {
-            val z = r * RES
+            val cy = -CarShape.REAR_OVERHANG - r * RES
             for (c in 0 until FAN_COLS) {
                 val idx = fan[r * FAN_COLS + c]
                 if (idx < 0) continue
-                val w = pose.toWorld(-FAN_M + c * RES, -CarShape.REAR_OVERHANG - z)
-                val u = ((w.x - originX) / RES).toInt()
-                val v = ((originY - w.y) / RES).toInt()
+                val cx = -FAN_M + c * RES
+                val wx = pose.x + cx * ch + cy * sh
+                val wy = pose.y - cx * sh + cy * ch
+                val u = ((wx - originX) / RES).toInt()
+                val v = ((originY - wy) / RES).toInt()
                 if (u in 0 until SIZE && v in 0 until SIZE) pixels[v * SIZE + u] = frame[idx] or (0xFF shl 24)
             }
         }

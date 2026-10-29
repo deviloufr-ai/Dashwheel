@@ -118,11 +118,22 @@ internal object VehicleMonitor {
     private suspend fun feedBatteryWatch() {
         val hold = Vehicle.bus.holdAll(listOf(K.RPM, K.BATTERY_VOLTS))
         try {
-            while (true) {
-                delay(BATTERY_LOOK_MS)
-                val g = gaugesNow(listOf(K.RPM, K.BATTERY_VOLTS))
-                BatteryWatch.feed(g.rpm, g.voltage, g.voltsTrusted, System.currentTimeMillis())
-            }
+            // Looked at only while the bus has revs or volts to judge: parked
+            // with no adapter, the judge was woken twice a second for nothing.
+            combine(Vehicle.bus.value(K.RPM), Vehicle.bus.value(K.BATTERY_VOLTS)) { rpm, volts -> rpm != null || volts != null }
+                .distinctUntilChanged()
+                .collectLatest { any ->
+                    if (!any) {
+                        // Told once that the readings are gone: the window empties, as at a gap.
+                        BatteryWatch.feed(null, null, false, System.currentTimeMillis())
+                        return@collectLatest
+                    }
+                    while (true) {
+                        delay(BATTERY_LOOK_MS)
+                        val g = gaugesNow(listOf(K.RPM, K.BATTERY_VOLTS))
+                        BatteryWatch.feed(g.rpm, g.voltage, g.voltsTrusted, System.currentTimeMillis())
+                    }
+                }
         } finally {
             hold.release()
         }

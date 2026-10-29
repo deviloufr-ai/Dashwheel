@@ -294,8 +294,8 @@ private fun gearMark(gear: Gear): String = when (gear) {
 }
 
 /** The revs where the scale turns amber: the car's redline when known, else a diesel's. */
-private fun warmSegment(count: Int): Int {
-    val redline = CarProfileStore.current.redlineRpm ?: 4_500
+internal fun warmSegment(count: Int, redlineRpm: Int?): Int {
+    val redline = redlineRpm ?: 4_500
     return (redline / SKIN_RPM_MAX * count).roundToInt().coerceIn(1, count)
 }
 
@@ -474,7 +474,9 @@ private fun BandRevs(h: Dp, readSize: Float) {
     val rpm = gear.rpm
     val count = REV_SEGMENTS
     val lit = revSegments(rpm, count)
-    val warmFrom = remember { warmSegment(count) }
+    // From the profile as state: a red line set in the car's settings used to hold until the skin was built again.
+    val profile by CarProfileStore.profile.collectAsState()
+    val warmFrom = remember(profile.redlineRpm) { warmSegment(count, profile.redlineRpm) }
     val rpmUnit = stringResource(R.string.skin_panorama_rpm)
     val gearWord = stringResource(R.string.skin_panorama_gear, gearMark(gear.gear))
     BoxWithConstraints {
@@ -683,7 +685,8 @@ private fun CardGear(size: Dp) {
 private fun CardRevScale(modifier: Modifier) {
     val gear by rememberGear()
     val lit = revSegments(gear.rpm, 12)
-    val warmFrom = remember { warmSegment(12) }
+    val profile by CarProfileStore.profile.collectAsState()
+    val warmFrom = remember(profile.redlineRpm) { warmSegment(12, profile.redlineRpm) }
     Column(modifier) {
         PanoLabel(stringResource(R.string.skin_panorama_revs))
         Spacer(Modifier.height(5.dp))
@@ -746,7 +749,8 @@ private fun TelemetryRevs(innerH: Dp, readSize: Float) {
     val gear by rememberGear()
     val rpm = gear.rpm
     val lit = revSegments(rpm, REV_SEGMENTS)
-    val warmFrom = remember { warmSegment(REV_SEGMENTS) }
+    val profile by CarProfileStore.profile.collectAsState()
+    val warmFrom = remember(profile.redlineRpm) { warmSegment(REV_SEGMENTS, profile.redlineRpm) }
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
             PanoLabel(stringResource(R.string.skin_panorama_revs), Modifier.weight(1f))

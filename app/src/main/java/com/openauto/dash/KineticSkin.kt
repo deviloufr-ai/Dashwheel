@@ -37,6 +37,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.withFrameMillis
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -507,7 +508,7 @@ private fun KnObdKey(state: ObdConnectionState, onConnect: () -> Unit) {
 @Composable
 private fun KnTalkKey() {
     val context = LocalContext.current
-    val gemini = remember { GeminiLive.available(context) }
+    val gemini = GeminiLive.rememberAvailable(context)
     val active by GeminiLive.active.collectAsState()
     val word = stringResource(if (active) R.string.ai_gemini_live_end else R.string.kinetic_talk)
     val description = stringResource(if (active) R.string.ai_gemini_live_end else R.string.kinetic_talk_cd)
@@ -630,7 +631,8 @@ private fun KnTickerSteps(items: List<String>, style: TextStyle, slash: Color, a
         if (!active) return@LaunchedEffect
         while (true) {
             delay(TICKER_STEP_MS)
-            step.intValue = (step.intValue + 1) % latest.coerceAtLeast(1)
+            // On a frame: with the dashboard behind another app the loop sleeps here.
+            withFrameMillis { step.intValue = (step.intValue + 1) % latest.coerceAtLeast(1) }
         }
     }
     val n = step.intValue % items.size

@@ -10,6 +10,7 @@ import android.media.MediaRecorder
 import android.os.Build
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONArray
 import org.json.JSONObject
@@ -292,7 +294,12 @@ object AskMechanic {
             val r = QuestionRecorder(app)
             try {
                 holdFocus(app)
-                r.start()
+                // Setting the recorder up takes the encoder a good part of a second on these units: not on the frame.
+                withContext(Dispatchers.IO) { r.start() }
+            } catch (e: CancellationException) {
+                // The sheet closed meanwhile (cancel() set Idle): not a microphone failure.
+                r.release()
+                throw e
             } catch (e: Exception) {
                 releaseFocus(app)
                 val why = aiText.getString(R.string.ai_ask_mic_error)
@@ -317,7 +324,7 @@ object AskMechanic {
     fun send() {
         if (_state.value != State.Listening || recorder == null) return
         job?.cancel()
-        finish(heard = true)
+        job = scope.launch { finish(heard = true) }
     }
 
     /** The microphone permission was refused. */
@@ -328,7 +335,8 @@ object AskMechanic {
     /** The sheet closed, or the answer was put away: stop listening or waiting, forget what was on screen. */
     fun cancel() {
         job?.cancel()
-        recorder?.release()
+        // Stopping the recorder flushes its file: off the main thread, like starting it.
+        recorder?.let { r -> scope.launch(Dispatchers.IO) { r.release() } }
         recorder = null
         question?.let { releaseFocus(it.context) }
         _state.value = State.Idle
@@ -341,9 +349,10 @@ object AskMechanic {
         CarVoice.speak(answered.exchange.answer, language.locale)
     }
 
-    private fun finish(heard: Boolean) {
-        val audio = recorder?.stop()
+    private suspend fun finish(heard: Boolean) {
+        val r = recorder
         recorder = null
+        val audio = r?.let { withContext(Dispatchers.IO) { it.stop() } }
         val q = question ?: return
         releaseFocus(q.context)
         val config = AiSettings.load(q.context)

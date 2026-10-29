@@ -92,11 +92,11 @@ data class CarProfile(
     /** The car's name for a header or a tile, or "Your car" while none was entered. */
     fun displayName(context: Context): String = name.ifBlank { context.getString(R.string.setup_car_title) }
 
-    /** Tank size, or a typical family car's. */
-    val tank: Double get() = tankL ?: TANK_LITERS
+    /** Tank size, or a typical family car's. A zero typed in the car's settings would have divided the level by it. */
+    val tank: Double get() = tankL?.takeIf { it > 0.0 } ?: TANK_LITERS
 
-    /** Everyday consumption, or the old rough figure. */
-    val typicalUse: Double get() = consumptionL100 ?: AVG_L_PER_100KM
+    /** Everyday consumption, or the old rough figure; zero would have made the range infinite. */
+    val typicalUse: Double get() = consumptionL100?.takeIf { it > 0.0 } ?: AVG_L_PER_100KM
 
     /** Coolant temperature the engine runs at once warm. */
     val hotC: Int get() = operatingTempC ?: 90

@@ -62,6 +62,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.withFrameMillis
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.asImageBitmap
@@ -689,10 +690,14 @@ private fun audioFace(): WidgetFace {
     LaunchedEffect(Unit) { MediaVolume.check(audio) }
     // Whether anything plays: the level meter only bounces then.
     var playing by remember { mutableStateOf(audio.isMusicActive) }
-    LaunchedEffect(Unit) {
+    // Held on a page off screen, like the volume poll above: each composed face asked the audio service every 2 s.
+    val pageActive = LocalPageActive.current
+    LaunchedEffect(pageActive) {
+        if (!pageActive) return@LaunchedEffect
+        playing = audio.isMusicActive
         while (true) {
             delay(2_000)
-            playing = audio.isMusicActive
+            withFrameMillis { playing = audio.isMusicActive }
         }
     }
     // Where the volume keys are pressed instead (MediaVolume), the level isn't known.

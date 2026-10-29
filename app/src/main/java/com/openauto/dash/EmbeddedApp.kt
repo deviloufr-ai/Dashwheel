@@ -1906,7 +1906,7 @@ internal object EmbeddedApp {
             runsTwice(found, id) && (restartedAt == 0L || SystemClock.elapsedRealtime() - restartedAt > RESTART_COOLDOWN_MS)
 
         private suspend fun shell(cmd: String, what: String) {
-            val out = runCatching { DockShell.shell(context, cmd) }.getOrElse { "failed: ${it.message}" }
+            val out = runGuarded { DockShell.shell(context, cmd) }.getOrElse { "failed: ${it.message}" }
             Log.i(TAG, "$what: ${out.trim()}")
         }
 
@@ -1914,7 +1914,7 @@ internal object EmbeddedApp {
             openedAt = SystemClock.elapsedRealtime()
             startCommand?.let { cmd ->
                 startCommand = null
-                val ok = runCatching { DockShell.shell(context, "$cmd --display ${vd.displayId}") }
+                val ok = runGuarded { DockShell.shell(context, "$cmd --display ${vd.displayId}") }
                     .onFailure { Log.w(TAG, "$packageName refused its start command", it) }
                     .isSuccess
                 _status.value = if (ok) Status.SHOWN else Status.BLOCKED
@@ -1978,7 +1978,7 @@ internal object EmbeddedApp {
         /** A fresh `am stack list`, or null (logged) when the shell cannot list. */
         private suspend fun rawListing(): String? {
             DockShell.forgetListing()
-            return runCatching { DockShell.listStacks(context) }
+            return runGuarded { DockShell.listStacks(context) }
                 .onFailure { Log.w(TAG, "can't list the windows", it) }
                 .getOrNull()
         }
@@ -1989,7 +1989,7 @@ internal object EmbeddedApp {
         /** The app's stacks right now, empty ones included, or null (logged) when the shell cannot list them. */
         private suspend fun allStacks(): List<WindowListing.AppStack>? {
             DockShell.forgetListing()
-            return runCatching { WindowListing.appStacks(DockShell.listStacks(context), windowPackage) }
+            return runGuarded { WindowListing.appStacks(DockShell.listStacks(context), windowPackage) }
                 .onFailure { Log.w(TAG, "can't see where $packageName is", it) }
                 .getOrNull()
         }
@@ -2336,4 +2336,18 @@ private fun picturePixels(view: TextureView): IntArray? {
     copy.getPixels(pixels, 0, copy.width, 0, 0, copy.width, copy.height)
     copy.recycle()
     return pixels
+}
+
+/**
+ * [runCatching] that lets a cancellation through. The shell calls suspend, so a
+ * placing cancelled by the next one (a new song, the display lost) surfaced its
+ * cancellation inside them; caught, the host went on to start the app on a
+ * display already let go of, or marked the tile blocked for good.
+ */
+private inline fun <T> runGuarded(block: () -> T): Result<T> = try {
+    Result.success(block())
+} catch (e: CancellationException) {
+    throw e
+} catch (e: Throwable) {
+    Result.failure(e)
 }

@@ -509,7 +509,7 @@ private fun PaperObdMark(state: ObdConnectionState, onConnect: () -> Unit) {
 @Composable
 private fun PaperTalkButton() {
     val context = LocalContext.current
-    val gemini = remember { GeminiLive.available(context) }
+    val gemini = GeminiLive.rememberAvailable(context)
     val active by GeminiLive.active.collectAsState()
     val word = stringResource(if (active) R.string.ai_gemini_live_end else R.string.paper_talk)
     val description = stringResource(if (active) R.string.ai_gemini_live_end else R.string.paper_talk_cd)

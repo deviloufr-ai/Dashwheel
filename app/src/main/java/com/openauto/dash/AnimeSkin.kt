@@ -719,7 +719,7 @@ private val BAR_STICKER = 52.dp
 internal fun AnimeTopBar(m: TopBarModel) {
     val t = animeTones
     val context = LocalContext.current
-    val gemini = remember { GeminiLive.available(context) }
+    val gemini = GeminiLive.rememberAvailable(context)
     BoxWithConstraints(modifier = Modifier.fillMaxWidth().height(64.dp)) {
         val narrow = maxWidth < NARROW_BAR
         val labels = maxWidth >= LABELLED_BAR

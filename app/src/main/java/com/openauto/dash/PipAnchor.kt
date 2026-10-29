@@ -166,7 +166,9 @@ object PipAnchor {
      * their app still has a tile on another page, closed once it has none.
      */
     private suspend fun handleStrays(context: Context, listing: String) {
-        for (stray in WindowListing.strayWindows(listing, managedPackages(context), activePackages())) {
+        // The windows [lookUp] just parsed out of this very listing, when it is the same text.
+        val windows = lastParsed?.takeIf { it.first == listing }?.second ?: WindowListing.allFloatingWindows(listing, context.packageName)
+        for (stray in WindowListing.strayWindows(windows, managedPackages(context), activePackages())) {
             if (isLent(stray.packageName)) continue
             if (isPlaced(stray.packageName)) park(context, stray, "no tile on screen")
             else closeWindow(context, stray, "no tile left")
@@ -1043,8 +1045,14 @@ object PipAnchor {
             lastListing = listing
         }
         lastSeen = WindowListing.summarizeStacks(listing)
-        return listing to WindowListing.parseFloatingWindow(listing, context.packageName, packageName)
+        // Parsed once per poll; the stray check right after reads the same list.
+        val windows = WindowListing.allFloatingWindows(listing, context.packageName)
+        lastParsed = listing to windows
+        return listing to WindowListing.pickFloatingWindow(windows, packageName)
     }
+
+    /** The last listing [lookUp] read and the windows parsed out of it, for [handleStrays]. */
+    @Volatile private var lastParsed: Pair<String, List<FloatingWindow>>? = null
 
     /** Shows [e] on the tile; [context] resolves the message in the UI language (shell errors stay as the system wrote them). */
     private fun publishError(context: Context, packageName: String, e: Throwable) {

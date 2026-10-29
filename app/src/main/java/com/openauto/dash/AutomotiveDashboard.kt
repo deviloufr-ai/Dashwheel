@@ -277,9 +277,11 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     // A system widget taken off a page keeps its id while Undo, or another
     // arrangement showing the same widget, can still bring it up.
     LaunchedEffect(pages, history) {
-        WidgetHostHolder.sweep(context) {
-            DashboardStore.savedWidgetIds(context)?.plus(DashboardStore.widgetIds(pages + history.flatMap { it.pages }))
-        }
+        if (!WidgetHostHolder.hasRetired(context)) return@LaunchedEffect
+        // Every saved layout and backup parsed: off the main thread, which was
+        // doing it inside the drop's own frame for the 30 edits an id waits.
+        val saved = withContext(Dispatchers.IO) { DashboardStore.savedWidgetIds(context) }
+        WidgetHostHolder.sweep(context) { saved?.plus(DashboardStore.widgetIds(pages + history.flatMap { it.pages })) }
     }
 
     val shellAccess = shellAccess()
@@ -692,11 +694,8 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
      * kept until it can change (a layout switch or a template), not on every swipe.
      */
     fun windowAppsEverywhere(): Set<String> {
-        val other = otherLayoutWindows ?: run {
-            val variant = otherVariant()
-            (if (DashboardStore.exists(context, variant)) tileWindowApps(DashboardStore.load(context, variant).flatten()) else emptySet())
-                .also { otherLayoutWindows = it }
-        }
+        val other = otherLayoutWindows ?: tileWindowApps(DashboardStore.peek(context, otherVariant()).orEmpty())
+            .also { otherLayoutWindows = it }
         return windowApps(pages.flatten()) + other
     }
 
@@ -713,10 +712,10 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     // One the arrangement on screen shows in a window instead (Maps docked
     // beside the pages) is let go, so that window can have it.
     LaunchedEffect(pages, layout, tabsMode, mapApp) {
-        val other = withContext(Dispatchers.IO) {
-            val variant = otherVariant()
-            if (DashboardStore.exists(context, variant)) DashboardStore.load(context, variant).flatten() else emptyList()
-        }
+        // A look at the other arrangement, not a load: loading it marked its
+        // kinds as the placed ones in the add sheet and swapped its unknown
+        // tiles into this arrangement's next save.
+        val other = withContext(Dispatchers.IO) { DashboardStore.peek(context, otherVariant()).orEmpty() }
         fun insideApps(items: List<DashboardItem>) = items.mapNotNullTo(HashSet()) {
             when {
                 it is DashboardItem.BuiltinWidget && it.kind == BuiltinKind.MAPS_INSIDE -> EmbeddedApp.MAPS_PACKAGE

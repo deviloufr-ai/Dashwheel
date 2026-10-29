@@ -164,6 +164,7 @@ class RoadRecorder(context: Context) {
     private var segmentStartedAt = 0L
     private var segmentFile: File? = null
     @Volatile private var running = false
+    private var startedOnce = false
     @Volatile private var tooHot = false
 
     private val _state = MutableStateFlow(State.OFF)
@@ -232,20 +233,30 @@ class RoadRecorder(context: Context) {
         overlay.setOnDrawListener { frame -> draw(frame); true }
     }
 
-    /** The camera is bound with the video use case: the ring starts rolling. */
+    /** The camera is bound with the video use case: the ring starts rolling. Again after [stop], when the screen comes back. */
     fun start() {
+        if (running || _state.value == State.UNSUPPORTED) return
+        generation++
         active = this
         running = true
         ringDir.mkdirs()
-        ringDir.listFiles()?.forEach { it.delete() }
+        // The first time only: after a stop the ring still lists the segments on disk,
+        // and a clip kept soon after the restart wants the minute before it.
+        if (!startedOnce) ringDir.listFiles()?.forEach { it.delete() }
+        startedOnce = true
         sensors?.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)?.let { sensors.registerListener(shock, it, SensorManager.SENSOR_DELAY_GAME) }
         sensors?.getDefaultSensor(Sensor.TYPE_GRAVITY)?.let { sensors.registerListener(shock, it, SensorManager.SENSOR_DELAY_UI) }
         runCatching { power?.addThermalStatusListener(heat) }
         handler.post {
+            // After a stop whose work left the sampling running (see stop): one loop, not two.
+            handler.removeCallbacks(sampleTick)
             sample()
             if (!tooHot) resume()
         }
     }
+
+    /** Which start or stop was the last: a stop's work, run later on the recorder's thread, must not undo a start that came after it. */
+    private var generation = 0
 
     /** The camera couldn't take the video use case beside Road watch's: no recording on this phone. */
     fun unsupported() {
@@ -254,16 +265,20 @@ class RoadRecorder(context: Context) {
 
     fun stop() {
         running = false
+        val gen = ++generation
         if (active === this) active = null
         sensors?.unregisterListener(shock)
         runCatching { power?.removeThermalStatusListener(heat) }
         handler.post {
-            handler.removeCallbacksAndMessages(null)
+            // Started again meanwhile (the screen off and on at once): the start's own
+            // work is queued behind this and must stay; only the old segment ends here.
+            val last = gen == generation
+            if (last) handler.removeCallbacksAndMessages(null)
             recording?.stop()
             recording = null
             // A clip still waiting for its after-segments keeps what it has.
             ring.stopped().forEach { build(it) }
-            _state.value = State.OFF
+            if (last) _state.value = State.OFF
         }
     }
 
@@ -323,6 +338,9 @@ class RoadRecorder(context: Context) {
         if (!running || recording != null || tooHot || lowPower) return
         if (freeBytes() < MIN_FREE_BYTES) {
             _state.value = State.PAUSED_FULL
+            // Room is made by the phone's own clean-up or the driver: looked at again in a while,
+            // as docs/road-watch.md promises. Nothing else would have called back here.
+            handler.postDelayed({ if (running) resume() }, RETRY_FULL_MS)
             return
         }
         val file = File(ringDir, "seg-${SystemClock.elapsedRealtime()}.mp4")
@@ -347,8 +365,11 @@ class RoadRecorder(context: Context) {
     private fun onEvent(event: VideoRecordEvent) {
         when (event) {
             is VideoRecordEvent.Start -> {
-                segmentStartedAt = SystemClock.elapsedRealtime()
-                _state.value = State.RECORDING
+                // A segment paused (heat, battery) before its start was reported: not recording.
+                if (recording != null) {
+                    segmentStartedAt = SystemClock.elapsedRealtime()
+                    _state.value = State.RECORDING
+                }
             }
             is VideoRecordEvent.Finalize -> {
                 recording = null
@@ -376,8 +397,10 @@ class RoadRecorder(context: Context) {
         val l = location?.takeIf { now - locationAt < 5_000L }
         samples.addLast(Sample(now, System.currentTimeMillis(), l?.latitude, l?.longitude, l?.speed?.takeIf { l.hasSpeed() }?.times(3.6f), RoadTelemetry.fresh(now), PhoneHeading.radians, RoadSigns.kmh, PhoneHeading.pitchDeg, PhoneHeading.tiltDeg))
         while (samples.isNotEmpty() && now - samples.first().elapsedMs > RING_MS + AFTER_MS) samples.removeFirst()
-        handler.postDelayed(::sample, SAMPLE_MS)
+        handler.postDelayed(sampleTick, SAMPLE_MS)
     }
+
+    private val sampleTick = Runnable { sample() }
 
     private val strip = Paint().apply { color = Color.argb(150, 0, 0, 0) }
     private val text = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE; typeface = android.graphics.Typeface.create("sans-serif", android.graphics.Typeface.BOLD) }
@@ -517,6 +540,8 @@ class RoadRecorder(context: Context) {
         /** 1080p at this rate: about 45 MB a minute, plates readable. */
         const val BIT_RATE = 6_000_000
         const val MIN_FREE_BYTES = 400L * 1024 * 1024
+        /** Paused for want of room: how long until the room is looked at again. */
+        const val RETRY_FULL_MS = 30_000L
 
         /**
          * [parts], recorded one after another by the same encoder, joined into

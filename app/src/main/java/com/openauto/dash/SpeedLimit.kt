@@ -43,7 +43,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sqrt
@@ -227,11 +226,16 @@ internal object SpeedLimit {
         val resting = failedAt != 0L && android.os.SystemClock.elapsedRealtime() - failedAt < RETRY_AFTER_MS
         if (!fetching && !resting && (last == null || last.distanceTo(loc) > REFETCH_M)) {
             fetching = true
-            val got = withContext(Dispatchers.IO) { runCatching { fetch(loc.latitude, loc.longitude) } }
-            fetching = false
-            got.onSuccess { roads = it; fetchedAt = loc; failedAt = 0L }.onFailure {
-                failedAt = android.os.SystemClock.elapsedRealtime()
-                Log.w(TAG, "limits unread: ${it.message}")
+            // Fetched beside the fixes, not in their way: every Overpass server tried
+            // in turn on a dead link is a minute and more, during which the limit of
+            // the roads already read must still follow the car.
+            scope.launch(Dispatchers.IO) {
+                val got = runCatching { fetch(loc.latitude, loc.longitude) }
+                got.onSuccess { roads = it; fetchedAt = loc; failedAt = 0L }.onFailure {
+                    failedAt = android.os.SystemClock.elapsedRealtime()
+                    Log.w(TAG, "limits unread: ${it.message}")
+                }
+                fetching = false
             }
         }
         val road = roadAt(loc.latitude, loc.longitude, if (loc.hasBearing() && loc.speed > 2f) loc.bearing else null, roads)
