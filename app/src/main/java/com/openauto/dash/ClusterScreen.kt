@@ -90,6 +90,8 @@ private fun ClusterFrame(config: SecondScreenConfig, shown: ClusterPage, all: Li
                 }
             }
         }
+        // The steering wheel's dashboard buttons turn these pages: the dot says so.
+        ScreenFocusMark(screen = 2, accent = palette.Accent)
         // An alert up on the dashboard covers the page, in the dashboard's own look.
         SecondScreenAlertLayer()
         // Reversing: the camera, the radar or both, over everything else.

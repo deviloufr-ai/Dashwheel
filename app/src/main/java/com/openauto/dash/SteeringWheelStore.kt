@@ -97,7 +97,8 @@ internal enum class WheelZone { LEFT, RIGHT, STALK, PANEL, UNPLACED }
  * none the unit can see), the name the driver gave it (empty: named after
  * its signal), where it sits and what it does (null: nothing yet, it only
  * lights up when pressed). [unitIgnores]: a CAN box button the unit itself
- * does nothing with any more ([FirmwareKeyTable]).
+ * does nothing with any more ([FirmwareKeyTable]). [second]: what it does
+ * instead in mode 2 ([ScreenFocus]); null: the same as in mode 1.
  */
 internal data class WheelButton(
     val uid: String,
@@ -105,8 +106,18 @@ internal data class WheelButton(
     val name: String = "",
     val zone: WheelZone = WheelZone.UNPLACED,
     val assignment: WheelAssignment? = null,
-    val unitIgnores: Boolean = false
-)
+    val unitIgnores: Boolean = false,
+    val second: WheelAssignment? = null
+) {
+    /** The button that switches between mode 1 and mode 2: it does the same in both, or nothing could switch back. */
+    val switchesMode: Boolean get() = assignment == WheelAssignment.Preset(SteeringWheelAction.SCREEN_FOCUS)
+
+    /** Does something in one mode or the other. */
+    val isBound: Boolean get() = assignment != null || second != null
+
+    /** What a press runs in mode 2 ([mode2]) or mode 1: its second action, where it has one, else its own. */
+    fun actionFor(mode2: Boolean): WheelAssignment? = if (mode2 && second != null && !switchesMode) second else assignment
+}
 
 /**
  * Tells a steering wheel button apart from the rest of the CAN stream: a frame
@@ -296,6 +307,8 @@ internal object SteeringWheelStore {
 
     fun assign(uid: String, assignment: WheelAssignment?) = update(uid) { it.copy(assignment = assignment) }
 
+    fun assignSecond(uid: String, assignment: WheelAssignment?) = update(uid) { it.copy(second = assignment) }
+
     fun setUnitIgnores(uid: String, ignores: Boolean) = update(uid) { it.copy(unitIgnores = ignores) }
 
     /** Whether the unit can be told to ignore [key]: a CAN box code, on a rooted QF unit. */
@@ -349,7 +362,7 @@ internal object SteeringWheelStore {
 
     private fun known(key: WheelKey): WheelButton? = _buttons.value.firstOrNull { it.key?.id == key.id }
 
-    private fun bound(key: WheelKey): WheelAssignment? = known(key)?.assignment
+    private fun bound(key: WheelKey): WheelAssignment? = known(key)?.actionFor(ScreenFocus.second.value)
 
     /** A press counted on the map: its button lights, or it becomes one. */
     private fun count(key: WheelKey) {
@@ -413,7 +426,7 @@ internal object SteeringWheelStore {
 
     /** The root readers run only while they can be needed: the map open, or a button bound to them. */
     private fun updateReaders() {
-        val bound = _buttons.value.filter { it.assignment != null }.mapNotNull { it.key }
+        val bound = _buttons.value.filter { it.isBound }.mapNotNull { it.key }
         val can = _mapping.value || bound.any { it.canKey != null || it.vendor == CarBoxKeys.VENDOR }
         if (can != holdsReader) {
             holdsReader = can
@@ -807,13 +820,24 @@ private fun WheelButton.toJson(): JSONObject {
         if (k.input != null) obj.put("input", k.input)
         if (k.vendor != null) obj.put("vendor", k.vendor).put("vendorCode", k.vendorCode)
     }
-    when (val a = assignment) {
-        is WheelAssignment.Preset -> obj.put("t", "preset").put("a", a.action.name)
-        is WheelAssignment.LaunchApp -> obj.put("t", "app").put("pkg", a.packageName).put("label", a.appLabel)
-        null -> Unit
-    }
+    assignment?.let { obj.putAssignment(it, "") }
+    // Mode 2's action under the same names with a 2: a map saved before mode 2 reads as having none.
+    second?.let { obj.putAssignment(it, "2") }
     if (unitIgnores) obj.put("unitIgnores", true)
     return obj
+}
+
+private fun JSONObject.putAssignment(a: WheelAssignment, suffix: String) {
+    when (a) {
+        is WheelAssignment.Preset -> put("t$suffix", "preset").put("a$suffix", a.action.name)
+        is WheelAssignment.LaunchApp -> put("t$suffix", "app").put("pkg$suffix", a.packageName).put("label$suffix", a.appLabel)
+    }
+}
+
+private fun JSONObject.assignment(suffix: String): WheelAssignment? = when (optString("t$suffix")) {
+    "preset" -> runCatching { SteeringWheelAction.valueOf(optString("a$suffix")) }.getOrNull()?.let { WheelAssignment.Preset(it) }
+    "app" -> optString("pkg$suffix").takeIf { it.isNotBlank() }?.let { WheelAssignment.LaunchApp(it, optString("label$suffix")) }
+    else -> null
 }
 
 private fun JSONObject.toButton(): WheelButton {
@@ -826,18 +850,14 @@ private fun JSONObject.toButton(): WheelButton {
         has("keyCode") -> WheelKey(optInt("keyCode", KeyEvent.KEYCODE_UNKNOWN), optInt("scanCode", 0))
         else -> null
     }
-    val assignment = when (optString("t")) {
-        "preset" -> runCatching { SteeringWheelAction.valueOf(optString("a")) }.getOrNull()?.let { WheelAssignment.Preset(it) }
-        "app" -> optString("pkg").takeIf { it.isNotBlank() }?.let { WheelAssignment.LaunchApp(it, optString("label")) }
-        else -> null
-    }
     return WheelButton(
         uid = optString("uid").ifEmpty { key?.id ?: newWheelUid() },
         key = key,
         name = optString("name"),
         zone = runCatching { WheelZone.valueOf(optString("zone")) }.getOrDefault(WheelZone.UNPLACED),
-        assignment = assignment,
-        unitIgnores = optBoolean("unitIgnores", false)
+        assignment = assignment(""),
+        unitIgnores = optBoolean("unitIgnores", false),
+        second = assignment("2")
     )
 }
 

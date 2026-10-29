@@ -226,7 +226,10 @@ internal object ClusterFeed {
                 )
             },
             // How the display's own map is seen.
-            mapView = ClusterState.MapView(config.mapTilted, config.mapTilt.name, config.mapDistance.name, config.mapBuildings)
+            mapView = ClusterState.MapView(config.mapTilted, config.mapTilt.name, config.mapDistance.name, config.mapBuildings),
+            // The steering wheel's dashboard buttons move this screen: its dot, and its frame just after the switch.
+            focused = ScreenFocus.marked() == 2,
+            focusFlash = ScreenFocus.marked() == 2 && ScreenFocus.flashing()
         )
     }
 

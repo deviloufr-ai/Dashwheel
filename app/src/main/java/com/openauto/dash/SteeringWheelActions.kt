@@ -152,8 +152,9 @@ internal enum class SteeringWheelAction(
             PREVIOUS_DASHBOARD -> if (!ScreenFocus.step(-1) && !showDashboard(context)) MainActivity.dashboardStep.value = System.currentTimeMillis() to -1
             DASHBOARD_UP -> if (!ScreenFocus.step(-1) && !showDashboard(context)) MainActivity.dashboardClimb.value = System.currentTimeMillis() to -1
             DASHBOARD_DOWN -> if (!ScreenFocus.step(1) && !showDashboard(context)) MainActivity.dashboardClimb.value = System.currentTimeMillis() to 1
-            SECOND_SCREEN_NEXT -> SecondScreenController.turnPage(1)
-            SECOND_SCREEN_PREVIOUS -> SecondScreenController.turnPage(-1)
+            // With a button that switches the focus, the second screen's page buttons follow it too: on screen 1 they move its dashboards.
+            SECOND_SCREEN_NEXT -> if (ScreenFocus.unitFocused()) NEXT_DASHBOARD.run(context) else SecondScreenController.turnPage(1)
+            SECOND_SCREEN_PREVIOUS -> if (ScreenFocus.unitFocused()) PREVIOUS_DASHBOARD.run(context) else SecondScreenController.turnPage(-1)
             NOTIFICATIONS -> SplitAccessibilityService.globalAction(AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS)
             QUICK_SETTINGS -> SplitAccessibilityService.globalAction(AccessibilityService.GLOBAL_ACTION_QUICK_SETTINGS)
             VOICE_ASSISTANT -> startVoiceAssistant(context)

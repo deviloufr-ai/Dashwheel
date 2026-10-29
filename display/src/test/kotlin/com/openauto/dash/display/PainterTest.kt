@@ -184,6 +184,23 @@ class PainterTest {
     }
 
     @Test
+    fun theScreenInTheWheelsFocusCarriesADotInItsCorner() {
+        val painter = Painter(1024, 600, overscanPct = 5)
+        // The dot's middle: 2 % of the short side in from the overscan, the dot 2.4 % across.
+        val unit = 6f
+        val margin = 30 + (2 * unit).toInt()
+        val dot = (2.4f * unit).toInt()
+        val x = 1024 - margin - dot / 2
+        val y = margin + dot / 2
+        val accent = 0x4FC3F7
+        fun at(state: ClusterState) = painter.paintCluster(state, 0).getRGB(x, y) and 0xFFFFFF
+        assertFalse(at(ClusterState(clock = 0)) == accent)
+        assertEquals(accent, at(ClusterState(clock = 0, focused = true)))
+        // An alert over the page hides it.
+        assertFalse(at(ClusterState(clock = 0, focused = true, alert = ClusterState.Alert("Doors", level = ClusterState.Alert.WARN))) == accent)
+    }
+
+    @Test
     fun theDoorWarningIsDarkerOnTheDayPalette() {
         val painter = Painter(1024, 600, overscanPct = 5)
         fun colours(night: Boolean): Set<Int> {

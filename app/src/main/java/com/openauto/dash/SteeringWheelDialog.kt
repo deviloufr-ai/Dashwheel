@@ -81,6 +81,8 @@ internal fun SteeringWheelDialog(onDismiss: () -> Unit) {
 
     var step by remember { mutableStateOf(WheelStep.MAP) }
     var editing by remember { mutableStateOf<String?>(null) }
+    // The action being picked is mode 2's ([WheelButton.second]), not the button's own.
+    var pickingSecond by remember { mutableStateOf(false) }
 
     // The map listens for as long as the screen is up, whichever step shows:
     // pressing the button being edited lights it there too.
@@ -136,7 +138,8 @@ internal fun SteeringWheelDialog(onDismiss: () -> Unit) {
                 WheelStep.BUTTON -> button?.let {
                     WheelButtonDetail(
                         button = it,
-                        onPickAction = { step = WheelStep.PICK_ACTION },
+                        onPickAction = { pickingSecond = false; step = WheelStep.PICK_ACTION },
+                        onPickSecond = { pickingSecond = true; step = WheelStep.PICK_ACTION },
                         onListen = {
                             SteeringWheelStore.listenFor(it.uid)
                             step = WheelStep.MAP
@@ -150,14 +153,16 @@ internal fun SteeringWheelDialog(onDismiss: () -> Unit) {
                 WheelStep.PICK_ACTION, WheelStep.PICK_APP -> button?.let {
                     WheelActionPicker(
                         keyLabel = buttonName(it),
-                        hasExisting = it.assignment != null,
+                        second = pickingSecond,
+                        hasExisting = (if (pickingSecond) it.second else it.assignment) != null,
                         onPick = { action ->
-                            SteeringWheelStore.assign(it.uid, WheelAssignment.Preset(action))
+                            if (pickingSecond) SteeringWheelStore.assignSecond(it.uid, WheelAssignment.Preset(action))
+                            else SteeringWheelStore.assign(it.uid, WheelAssignment.Preset(action))
                             step = WheelStep.BUTTON
                         },
                         onPickApp = { step = WheelStep.PICK_APP },
                         onRemove = {
-                            SteeringWheelStore.assign(it.uid, null)
+                            if (pickingSecond) SteeringWheelStore.assignSecond(it.uid, null) else SteeringWheelStore.assign(it.uid, null)
                             step = WheelStep.BUTTON
                         }
                     )
@@ -173,7 +178,10 @@ internal fun SteeringWheelDialog(onDismiss: () -> Unit) {
         AppPickerDialog(
             apps = apps,
             onPick = { app ->
-                editing?.let { uid -> SteeringWheelStore.assign(uid, WheelAssignment.LaunchApp(app.packageName, app.label)) }
+                editing?.let { uid ->
+                    val launch = WheelAssignment.LaunchApp(app.packageName, app.label)
+                    if (pickingSecond) SteeringWheelStore.assignSecond(uid, launch) else SteeringWheelStore.assign(uid, launch)
+                }
                 step = WheelStep.BUTTON
             },
             onDismiss = { step = WheelStep.PICK_ACTION }
@@ -207,7 +215,7 @@ private fun WheelMap(buttons: List<WheelButton>, onOpen: (String) -> Unit, onAdd
         Spacer(Modifier.width(6.dp))
         Text(stringResource(R.string.wheel_add_silent))
     }
-    if (buttons.any { it.assignment != null }) AccessibilityReminder()
+    if (buttons.any { it.isBound }) AccessibilityReminder()
     HorizontalDivider(color = DashColors.Line)
     MonitorPanel()
     if (buttons.isNotEmpty()) ResetButton()
@@ -359,7 +367,7 @@ private fun ButtonChip(button: WheelButton, onClick: () -> Unit, wide: Boolean =
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun WheelButtonDetail(button: WheelButton, onPickAction: () -> Unit, onListen: () -> Unit, onRemove: () -> Unit) {
+private fun WheelButtonDetail(button: WheelButton, onPickAction: () -> Unit, onPickSecond: () -> Unit, onListen: () -> Unit, onRemove: () -> Unit) {
     ButtonChip(button, onClick = {}, wide = true)
     var name by remember(button.uid) { mutableStateOf(button.name) }
     OutlinedTextField(
@@ -387,6 +395,17 @@ private fun WheelButtonDetail(button: WheelButton, onPickAction: () -> Unit, onL
         null,
         onPickAction
     )
+    // What it does in mode 2 instead (ScreenFocus); the button that switches the mode keeps to it.
+    if (!button.switchesMode) {
+        SettingsSection(stringResource(R.string.wheel_does_second))
+        val second = button.second
+        SettingsRow(
+            if (second is WheelAssignment.Preset) second.action.icon else if (second != null) Icons.Filled.Apps else SteeringWheelAction.SCREEN_FOCUS.icon,
+            second?.let { assignmentSummary(it) } ?: stringResource(R.string.wheel_second_same),
+            null,
+            onPickSecond
+        )
+    }
     val key = button.key
     if (key != null && key.keyCode >= HeadUnitKeys.FIRST_VENDOR_KEY) {
         Text(stringResource(R.string.wheel_unit_also_acts), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
@@ -485,6 +504,7 @@ private fun AccessibilityReminder() {
 @Composable
 private fun WheelActionPicker(
     keyLabel: String,
+    second: Boolean,
     hasExisting: Boolean,
     onPick: (SteeringWheelAction) -> Unit,
     onPickApp: () -> Unit,
@@ -492,7 +512,7 @@ private fun WheelActionPicker(
 ) {
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
-            stringResource(R.string.wheel_assign_prompt, keyLabel),
+            stringResource(if (second) R.string.wheel_assign_prompt_second else R.string.wheel_assign_prompt, keyLabel),
             color = DashColors.TextPrimary,
             fontWeight = FontWeight.SemiBold,
             style = MaterialTheme.typography.bodyLarge,
@@ -518,7 +538,7 @@ private fun WheelActionPicker(
         if (hasExisting) {
             Spacer(Modifier.height(8.dp))
             TextButton(onClick = onRemove) {
-                Text(stringResource(R.string.wheel_no_action), color = DashColors.Critical)
+                Text(stringResource(if (second) R.string.wheel_second_same else R.string.wheel_no_action), color = DashColors.Critical)
             }
         }
     }
