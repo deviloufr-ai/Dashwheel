@@ -72,8 +72,11 @@
     <string name="wheel_action_previous_dashboard">Poprzedni pulpit</string>
     <string name="wheel_action_second_screen_next">Następna strona na drugim ekranie</string>
     <string name="wheel_action_second_screen_previous">Poprzednia strona na drugim ekranie</string>
-    <string name="wheel_action_screen_focus">Przełącz aktywny ekran</string>
-    <string name="wheel_focus_no_second">Brak drugiego ekranu. Zostaje ekran 1.</string>
+    <string name="wheel_action_screen_focus">Tryb 1 / 2</string>
+    <string name="wheel_focus_no_second">W trybie 2 nie ma nic do zrobienia: brak drugiego ekranu i drugiej akcji.</string>
+    <string name="wheel_does_second">W trybie 2</string>
+    <string name="wheel_second_same">Jak w trybie 1</string>
+    <string name="wheel_assign_prompt_second">Co ma robić %1$s w trybie 2?</string>
     <string name="wheel_group_car">Samochód</string>
     <string name="wheel_group_navigation">Nawigacja</string>
     <string name="wheel_action_status">Powiedz, jak się ma auto</string>

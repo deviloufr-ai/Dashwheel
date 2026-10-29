@@ -82,7 +82,7 @@ class SplitAccessibilityService : AccessibilityService() {
                 val status = values[4] as SecondScreenStatus
                 keysWanted(
                     learning = values[0] as Boolean,
-                    wheelBound = (values[1] as List<*>).any { (it as? WheelButton)?.assignment != null },
+                    wheelBound = (values[1] as List<*>).any { (it as? WheelButton)?.isBound == true },
                     unitKeys = values[2] as Boolean,
                     clusterKeys = (config.pageKeys.isNotEmpty() || config.mediaKeysTurnPages) &&
                         (status.output == SecondScreenOutput.VIDEO_CLUSTER || status.output == SecondScreenOutput.DATA),

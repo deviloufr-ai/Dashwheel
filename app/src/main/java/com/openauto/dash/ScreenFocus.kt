@@ -32,10 +32,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /*
- * Which screen the wheel's dashboard buttons move: the unit's own (1), or the
- * second screen's cluster (2). A wheel button set to "Switch screen focus"
- * goes from one to the other, without a word: the screen in focus carries a
- * dot in its corner, and a frame lights round it for a moment as it gets it.
+ * The steering wheel's mode 1 and mode 2. A wheel button set to "Mode 1 / 2"
+ * goes from one to the other, without a word. In mode 2 each button does its
+ * second action (WheelButton.second); one with none does its own, and its
+ * page buttons then move the second screen's cluster: the focus goes there.
+ * The screen in focus carries a dot in its corner, and a frame lights round
+ * it for a moment as it gets it; with one screen, the dot means mode 2.
  */
 
 internal object ScreenFocus {
@@ -59,11 +61,16 @@ internal object ScreenFocus {
         output == SecondScreenOutput.VIDEO_CLUSTER || output == SecondScreenOutput.DATA
 
     /**
-     * The screen to mark, or null when no screen is: only with a wheel button
-     * that switches the focus, and a second screen to switch to.
+     * The screen to mark, or null when none is: only with a wheel button that
+     * switches the mode. With a second screen, the one in focus; with one
+     * screen, the unit's own, in mode 2 only.
      */
-    fun mark(bound: Boolean, chosenSecond: Boolean, output: SecondScreenOutput): Int? =
-        if (bound && clusterShown(output)) focused(chosenSecond, output) else null
+    fun mark(bound: Boolean, chosenSecond: Boolean, output: SecondScreenOutput): Int? = when {
+        !bound -> null
+        clusterShown(output) -> focused(chosenSecond, output)
+        chosenSecond -> 1
+        else -> null
+    }
 
     /** [mark] as things stand, for the second screen's feed. */
     fun marked(): Int? = mark(bound(SteeringWheelStore.buttons.value), _second.value, SecondScreenController.status.value.output)
@@ -73,15 +80,19 @@ internal object ScreenFocus {
         _switchedAt.value > 0 && now - _switchedAt.value < FLASH_MS
 
     fun bound(buttons: List<WheelButton>): Boolean =
-        buttons.any { it.assignment == WheelAssignment.Preset(SteeringWheelAction.SCREEN_FOCUS) }
+        buttons.any { it.switchesMode }
 
     val onSecond: Boolean
         get() = focused(_second.value, SecondScreenController.status.value.output) == 2
 
-    /** From 1 to 2 and back; with no cluster on a second screen it stays on 1, and a short note says so. */
+    /**
+     * From mode 1 to mode 2 and back. With neither a cluster on a second
+     * screen nor a button with a second action, mode 2 would do nothing: it
+     * stays on 1, and a short note says so.
+     */
     fun toggle(context: Context) {
-        val next = !onSecond
-        if (next && !clusterShown(SecondScreenController.status.value.output)) {
+        val next = !_second.value
+        if (next && !clusterShown(SecondScreenController.status.value.output) && SteeringWheelStore.buttons.value.none { it.second != null }) {
             _second.value = false
             val app = context.applicationContext
             Toast.makeText(app, AppLanguage.wrap(app).resources.getString(R.string.wheel_focus_no_second), Toast.LENGTH_SHORT).show()

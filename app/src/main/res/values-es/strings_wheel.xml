@@ -70,8 +70,11 @@
     <string name="wheel_action_previous_dashboard">Panel anterior</string>
     <string name="wheel_action_second_screen_next">Página siguiente en la segunda pantalla</string>
     <string name="wheel_action_second_screen_previous">Página anterior en la segunda pantalla</string>
-    <string name="wheel_action_screen_focus">Cambiar de pantalla</string>
-    <string name="wheel_focus_no_second">No hay segunda pantalla. Sigue la pantalla 1.</string>
+    <string name="wheel_action_screen_focus">Modo 1 / 2</string>
+    <string name="wheel_focus_no_second">Nada que hacer en el modo 2: sin segunda pantalla ni segunda acción.</string>
+    <string name="wheel_does_second">En el modo 2</string>
+    <string name="wheel_second_same">Igual que en el modo 1</string>
+    <string name="wheel_assign_prompt_second">En el modo 2, ¿qué debe hacer %1$s?</string>
     <string name="wheel_group_car">Coche</string>
     <string name="wheel_group_navigation">Navegación</string>
     <string name="wheel_action_status">Decir cómo está el coche</string>
