@@ -30,6 +30,7 @@ import com.openauto.unitproto.AccBroadcasts
 import com.openauto.unitproto.KeyBroadcasts
 import com.openauto.unitproto.UnitFamily
 import com.openauto.unitproto.fyt.FytProtocol
+import com.openauto.unitproto.hcn.HcnProtocol
 import com.openauto.unitproto.mtc.MtcProtocol
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -49,13 +50,13 @@ internal object PlainAdapters {
 
     /** Every vendor package any adapter talks to: declared in the manifest's queries (QueriesCoverageTest). */
     val ALL_VENDOR_PACKAGES: Set<String>
-        get() = TOPWAY_PACKAGES + REGLINK_PACKAGES + FytProtocol.PACKAGES + MtcProtocol.PACKAGES +
+        get() = TOPWAY_PACKAGES + REGLINK_PACKAGES + HcnProtocol.PACKAGES + FytProtocol.PACKAGES + MtcProtocol.PACKAGES +
             setOf(QfAdapter.VEHICLE_PACKAGE, QfAdapter.BT_PACKAGE, QfAdapter.RADIO_PACKAGE, "com.qf.backcar", "com.qf.framework", "com.syt.tmps")
 
     /** Every family's broadcasts: what the Signal Finder's sniffer hears whatever the unit was taken for. */
     val ALL_BROADCASTS: Set<String>
         get() = AccBroadcasts.ALL + KeyBroadcasts.ACTIONS + MtcProtocol.BROADCASTS +
-            setOf(FytProtocol.ACTION_ACC_ON, FytProtocol.ACTION_ACC_OFF, FytProtocol.ACTION_EXTERNAL_COMMAND) + QfAdapter.BROADCASTS
+            setOf(FytProtocol.ACTION_ACC_ON, FytProtocol.ACTION_ACC_OFF, FytProtocol.ACTION_EXTERNAL_COMMAND) + QfAdapter.BROADCASTS + HcnProtocol.BROADCASTS
 
     private val plainCatalogue = SignalCatalogue(broadcasts = AccBroadcasts.ALL + KeyBroadcasts.ACTIONS)
 

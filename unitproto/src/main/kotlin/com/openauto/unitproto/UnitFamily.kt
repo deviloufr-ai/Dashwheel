@@ -22,6 +22,8 @@ enum class UnitFamily {
     ALLWINNER,
     /** Nowadays (NWD) units: persist.nwd.launcher.default. */
     NWD,
+    /** HCN (hcn2000): Junsun and other units with the CarInfo CAN app (com.hcn.autocan); MT8163, AC8257, UIS8581. */
+    HCN,
     /** Nothing recognised: plain Android. */
     GENERIC,
     /** Not probed yet. */

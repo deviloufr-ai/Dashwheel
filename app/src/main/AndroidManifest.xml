@@ -125,6 +125,11 @@
         <package android:name="com.reglink.services" />
         <package android:name="com.reglink.launcher4" />
         <package android:name="com.baony.avm360" />
+        <!-- The HCN firmware's own apps (Junsun...): its CarInfo CAN app, radio and Bluetooth service, which name the
+             family to UnitPlatform (unit/HcnAdapter). -->
+        <package android:name="com.hcn.autocan" />
+        <package android:name="com.hcn.autoradio" />
+        <package android:name="com.hcn.bluetoothservice" />
         <!-- Deep OBD, which can report the car's readings in place of an adapter (DeepObdSource). -->
         <package android:name="de.holeschak.bmw_deep_obd" />
         <intent>

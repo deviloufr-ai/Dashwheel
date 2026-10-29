@@ -27,6 +27,7 @@
     <string name="unit_family_topway">Topway TS</string>
     <string name="unit_family_reglink">Reglink (MediaTek)</string>
     <string name="unit_family_allwinner">Allwinner</string>
+    <string name="unit_family_hcn">HCN (Junsun)</string>
     <string name="unit_family_nwd">Nowadays</string>
     <string name="unit_family_generic">Android simple</string>
     <string name="unit_cap_ignition">Contact</string>
