@@ -71,10 +71,7 @@
     <string name="wheel_action_second_screen_next">Pagina successiva sul secondo schermo</string>
     <string name="wheel_action_second_screen_previous">Pagina precedente sul secondo schermo</string>
     <string name="wheel_action_screen_focus">Cambia schermo attivo</string>
-    <string name="wheel_focus_screen_1">Schermo 1</string>
-    <string name="wheel_focus_screen_2">Schermo 2</string>
     <string name="wheel_focus_no_second">Nessun secondo schermo. Resta lo schermo 1.</string>
-    <string name="wheel_focus_badge">Il volante muove lo schermo %1$d</string>
     <string name="wheel_group_car">Auto</string>
     <string name="wheel_group_navigation">Navigazione</string>
     <string name="wheel_action_status">Dire come sta l\'auto</string>

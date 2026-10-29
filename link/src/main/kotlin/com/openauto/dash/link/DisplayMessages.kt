@@ -338,7 +338,14 @@ data class ClusterState(
     /** Where the car is, for the map the display draws itself ([ClusterFace.MAP]); null without a fix. */
     val position: Position? = null,
     /** How that map is seen; null from an older head unit: the display's default ([MapView] as it comes). */
-    val mapView: MapView? = null
+    val mapView: MapView? = null,
+    /**
+     * The steering wheel's dashboard buttons move this screen: the display
+     * marks it with a dot. False with one screen in use, and from an older head unit.
+     */
+    val focused: Boolean = false,
+    /** The focus has just come here: a frame round the screen, for a moment. */
+    val focusFlash: Boolean = false
 ) : LinkMessage {
     /**
      * How the display's own map is seen: tilted and turned with the car, the

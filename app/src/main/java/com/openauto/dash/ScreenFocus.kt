@@ -1,21 +1,31 @@
 package com.openauto.dash
 
 import android.content.Context
+import android.os.SystemClock
+import android.widget.Toast
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,13 +34,21 @@ import kotlinx.coroutines.flow.asStateFlow
 /*
  * Which screen the wheel's dashboard buttons move: the unit's own (1), or the
  * second screen's cluster (2). A wheel button set to "Switch screen focus"
- * goes from one to the other; the bar's dashboard chip carries a 1 or a 2.
+ * goes from one to the other, without a word: the screen in focus carries a
+ * dot in its corner, and a frame lights round it for a moment as it gets it.
  */
 
 internal object ScreenFocus {
+    /** How long the frame shows round the screen that just got the focus. */
+    const val FLASH_MS = 700L
+
     private val _second = MutableStateFlow(false)
     /** The driver chose the second screen. It counts only while that screen shows the cluster ([focused]). */
     val second: StateFlow<Boolean> = _second.asStateFlow()
+
+    private val _switchedAt = MutableStateFlow(0L)
+    /** When the focus last moved ([SystemClock.elapsedRealtime]); 0: not yet. */
+    val switchedAt: StateFlow<Long> = _switchedAt.asStateFlow()
 
     /** The screen the dashboard buttons move: 2 while the second screen is chosen and shows the cluster, else 1. */
     fun focused(chosenSecond: Boolean, output: SecondScreenOutput): Int =
@@ -40,21 +58,37 @@ internal object ScreenFocus {
     fun clusterShown(output: SecondScreenOutput): Boolean =
         output == SecondScreenOutput.VIDEO_CLUSTER || output == SecondScreenOutput.DATA
 
+    /**
+     * The screen to mark, or null when no screen is: only with a wheel button
+     * that switches the focus, and a second screen to switch to.
+     */
+    fun mark(bound: Boolean, chosenSecond: Boolean, output: SecondScreenOutput): Int? =
+        if (bound && clusterShown(output)) focused(chosenSecond, output) else null
+
+    /** [mark] as things stand, for the second screen's feed. */
+    fun marked(): Int? = mark(bound(SteeringWheelStore.buttons.value), _second.value, SecondScreenController.status.value.output)
+
+    /** The frame is still up round the screen that just got the focus. */
+    fun flashing(now: Long = SystemClock.elapsedRealtime()): Boolean =
+        _switchedAt.value > 0 && now - _switchedAt.value < FLASH_MS
+
+    fun bound(buttons: List<WheelButton>): Boolean =
+        buttons.any { it.assignment == WheelAssignment.Preset(SteeringWheelAction.SCREEN_FOCUS) }
+
     val onSecond: Boolean
         get() = focused(_second.value, SecondScreenController.status.value.output) == 2
 
-    /** From 1 to 2 and back, said out loud; with no cluster on a second screen it stays on 1 and says so. */
+    /** From 1 to 2 and back; with no cluster on a second screen it stays on 1, and a short note says so. */
     fun toggle(context: Context) {
-        if (onSecond) {
+        val next = !onSecond
+        if (next && !clusterShown(SecondScreenController.status.value.output)) {
             _second.value = false
-            HandsFree.say(context, R.string.wheel_focus_screen_1)
-        } else if (!clusterShown(SecondScreenController.status.value.output)) {
-            _second.value = false
-            HandsFree.say(context, R.string.wheel_focus_no_second)
-        } else {
-            _second.value = true
-            HandsFree.say(context, R.string.wheel_focus_screen_2)
+            val app = context.applicationContext
+            Toast.makeText(app, AppLanguage.wrap(app).resources.getString(R.string.wheel_focus_no_second), Toast.LENGTH_SHORT).show()
+            return
         }
+        _second.value = next
+        _switchedAt.value = SystemClock.elapsedRealtime()
     }
 
     /** A dashboard button pressed: on the second screen while it has the focus. False when it is the unit's own to move. */
@@ -66,32 +100,40 @@ internal object ScreenFocus {
 }
 
 /**
- * The focused screen's number in a small square, for the bars' dashboard
- * chip: lit on 2, plain on 1. Only once a wheel button switches the focus,
- * so a bar without one isn't cluttered with it.
+ * Over the whole of [screen] (1: the dashboard, 2: the streamed cluster):
+ * while it has the wheel's focus, a dot in its top right corner, and a frame
+ * in [accent] round it for a moment when the focus has just come to it.
+ * Nothing at all with one screen in use. Takes no touches.
  */
 @Composable
-internal fun ScreenFocusBadge(modifier: Modifier = Modifier) {
+internal fun ScreenFocusMark(screen: Int, accent: Color = DashColors.Accent) {
     val buttons by SteeringWheelStore.buttons.collectAsState()
-    if (buttons.none { it.assignment == WheelAssignment.Preset(SteeringWheelAction.SCREEN_FOCUS) }) return
     val chosen by ScreenFocus.second.collectAsState()
     val status by SecondScreenController.status.collectAsState()
-    val screen = ScreenFocus.focused(chosen, status.output)
-    val label = stringResource(R.string.wheel_focus_badge, screen)
+    val switchedAt by ScreenFocus.switchedAt.collectAsState()
+    val marked = ScreenFocus.mark(ScreenFocus.bound(buttons), chosen, status.output)
+    val here by rememberUpdatedState(marked == screen)
+    val flash = remember { Animatable(0f) }
+    LaunchedEffect(switchedAt) {
+        if (switchedAt == 0L || !here) return@LaunchedEffect
+        flash.snapTo(1f)
+        flash.animateTo(0f, tween(ScreenFocus.FLASH_MS.toInt()))
+    }
+    if (marked == null) return
     Box(
-        modifier = modifier
-            .size(22.dp)
-            .clip(DashShape.Small)
-            .background(if (screen == 2) DashColors.Accent else DashColors.CardHi)
-            .semantics { contentDescription = label },
-        contentAlignment = Alignment.Center
+        Modifier.fillMaxSize().drawBehind {
+            // Read while drawing: the fade redraws the frame, not the screen under it.
+            val a = flash.value
+            if (a <= 0f) return@drawBehind
+            val w = 4.dp.toPx()
+            drawRoundRect(
+                accent.copy(alpha = a), Offset(w / 2, w / 2), Size(size.width - w, size.height - w),
+                CornerRadius(12.dp.toPx()), style = Stroke(w)
+            )
+        }
     ) {
-        Text(
-            screen.toString(),
-            color = if (screen == 2) DashColors.OnAccent else DashColors.TextPrimary,
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.labelLarge,
-            maxLines = 1
-        )
+        if (marked == screen) {
+            Box(Modifier.align(Alignment.TopEnd).padding(8.dp).size(10.dp).clip(CircleShape).background(accent))
+        }
     }
 }

@@ -25,6 +25,9 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.WindowInsetsCompat
@@ -279,7 +282,11 @@ open class MainActivity : ComponentActivity() {
                     // Android can say "multi-window" while Dashwheel still has the whole width: a
                     // split the firmware left half done kept the split's layout, its swap button
                     // and its edit limits on a full screen. Only a pane that really is narrow counts.
-                    AutomotiveDashboard(inSplitMode = inMultiWindow.value && isNarrowPane(config.screenWidthDp, config.screenHeightDp))
+                    Box(Modifier.fillMaxSize()) {
+                        AutomotiveDashboard(inSplitMode = inMultiWindow.value && isNarrowPane(config.screenWidthDp, config.screenHeightDp))
+                        // The steering wheel's dashboard buttons move this screen, with a second one to switch to.
+                        ScreenFocusMark(screen = 1)
+                    }
                 }
             }
         }

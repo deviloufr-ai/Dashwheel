@@ -152,6 +152,12 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
     }
 
     private fun paintClusterNow(state: ClusterState, now: Long) = draw { g ->
+        paintClusterBody(g, state, now)
+        // Over the page, never over an alert: the steering wheel's dashboard buttons move this screen.
+        if (state.alert == null) paintFocus(g, state)
+    }
+
+    private fun paintClusterBody(g: Graphics2D, state: ClusterState, now: Long) {
         chaseMoving = false
         val design = Design.of(state.design)
         val p = Palette(state.night, Color(state.accent.toInt(), false), design)
@@ -167,7 +173,7 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
             g.color = p.bg
             g.fillRect(box.x, box.y, box.width, box.height)
             paintFace(g, ClusterFace.MAP, box, state, text, p, design, rest.second)
-            return@draw
+            return
         }
         mapBox = null
         g.color = p.bg
@@ -180,7 +186,7 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
         // An alert up on the head unit takes the whole screen while it lasts.
         state.alert?.let { alert ->
             paintAlert(g, alert, text.clock(now, zone), left, right, top, p)
-            return@draw
+            return
         }
 
         // Top line: the clock, and what the car is warning about in an amber pill. A board
@@ -222,7 +228,7 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
                     if (face == ClusterFace.MAP && mapBox == null) mapBox = box
                     paintFace(g, face, box, state, text, p, design, clock)
                 }
-                return@draw
+                return
             }
         }
         when (state.page) {
@@ -235,6 +241,25 @@ class Painter(val width: Int, val height: Int, private val overscanPct: Int, pri
                 Design.RETRO -> paintRetro(g, state, text, body, p)
                 Design.CARDS -> paintDrive(g, state, text, body, p)
             }
+        }
+    }
+
+    /**
+     * The steering wheel's focus on this screen ([ClusterState.focused]): a dot
+     * in the top right corner, clear of the doors' pill, and a frame round the
+     * screen for a moment when the focus has just come here.
+     */
+    private fun paintFocus(g: Graphics2D, s: ClusterState) {
+        if (!s.focused) return
+        val p = Palette(s.night, Color(s.accent.toInt(), false), Design.of(s.design))
+        g.color = p.accent
+        val dot = (2.4f * unit).roundToInt().coerceAtLeast(6)
+        val margin = inset + (2 * unit).roundToInt()
+        g.fillOval(width - margin - dot, margin, dot, dot)
+        if (s.focusFlash) {
+            val frame = (1.2f * unit).roundToInt().coerceAtLeast(2)
+            g.stroke = BasicStroke(frame.toFloat())
+            g.drawRoundRect(inset + frame, inset + frame, width - 2 * (inset + frame), height - 2 * (inset + frame), (8 * unit).roundToInt(), (8 * unit).roundToInt())
         }
     }
 
