@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.util.Log
 import com.openauto.dash.unit.GenericAdapter
+import com.openauto.dash.unit.HcnAdapter
 import com.openauto.dash.unit.PlainAdapters
 import com.openauto.dash.unit.QfAdapter
 import com.openauto.dash.unit.fyt.FytAdapter
@@ -115,6 +116,7 @@ object UnitPlatform {
             UnitFamily.QF -> QfAdapter(app)
             UnitFamily.FYT -> FytAdapter(app)
             UnitFamily.MTC -> MtcAdapter(app)
+            UnitFamily.HCN -> HcnAdapter(app)
             // Topway, Reglink, Allwinner, NWD and the unrecognised: plain Android plus their few hooks.
             else -> PlainAdapters.forFamily(app, family)
         }

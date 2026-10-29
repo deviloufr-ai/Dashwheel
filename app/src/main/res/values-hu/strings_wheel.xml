@@ -70,11 +70,11 @@
     <string name="wheel_action_previous_dashboard">Előző műszerfal</string>
     <string name="wheel_action_second_screen_next">Következő oldal a második kijelzőn</string>
     <string name="wheel_action_second_screen_previous">Előző oldal a második kijelzőn</string>
-    <string name="wheel_action_screen_focus">Aktív kijelző váltása</string>
-    <string name="wheel_focus_screen_1">1. kijelző</string>
-    <string name="wheel_focus_screen_2">2. kijelző</string>
-    <string name="wheel_focus_no_second">Nincs második kijelző. Az 1. marad.</string>
-    <string name="wheel_focus_badge">Kormány: %1$d. kijelző</string>
+    <string name="wheel_action_screen_focus">1. / 2. mód</string>
+    <string name="wheel_focus_no_second">A 2. módban nincs teendő: nincs második kijelző, nincs második művelet.</string>
+    <string name="wheel_does_second">A 2. módban</string>
+    <string name="wheel_second_same">Mint az 1. módban</string>
+    <string name="wheel_assign_prompt_second">%1$s: mit csináljon a 2. módban?</string>
     <string name="wheel_group_car">Autó</string>
     <string name="wheel_group_navigation">Navigáció</string>
     <string name="wheel_action_status">Az autó állapotának bemondása</string>

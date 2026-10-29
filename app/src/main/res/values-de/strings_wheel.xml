@@ -70,11 +70,11 @@
     <string name="wheel_action_previous_dashboard">Vorheriges Dashboard</string>
     <string name="wheel_action_second_screen_next">Nächste Seite auf dem zweiten Bildschirm</string>
     <string name="wheel_action_second_screen_previous">Vorherige Seite auf dem zweiten Bildschirm</string>
-    <string name="wheel_action_screen_focus">Bildschirm wechseln</string>
-    <string name="wheel_focus_screen_1">Bildschirm 1</string>
-    <string name="wheel_focus_screen_2">Bildschirm 2</string>
-    <string name="wheel_focus_no_second">Kein zweiter Bildschirm. Bildschirm 1 bleibt.</string>
-    <string name="wheel_focus_badge">Lenkrad steuert Bildschirm %1$d</string>
+    <string name="wheel_action_screen_focus">Modus 1 / 2</string>
+    <string name="wheel_focus_no_second">Im Modus 2 gibt es nichts zu tun: kein zweiter Bildschirm, keine zweite Aktion.</string>
+    <string name="wheel_does_second">Im Modus 2</string>
+    <string name="wheel_second_same">Wie im Modus 1</string>
+    <string name="wheel_assign_prompt_second">Was soll %1$s im Modus 2 tun?</string>
     <string name="wheel_group_car">Auto</string>
     <string name="wheel_group_navigation">Navigation</string>
     <string name="wheel_action_status">Zustand des Autos ansagen</string>

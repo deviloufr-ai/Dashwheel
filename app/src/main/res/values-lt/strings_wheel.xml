@@ -72,11 +72,11 @@
     <string name="wheel_action_previous_dashboard">Ankstesnis skydelis</string>
     <string name="wheel_action_second_screen_next">Kitas antrojo ekrano puslapis</string>
     <string name="wheel_action_second_screen_previous">Ankstesnis antrojo ekrano puslapis</string>
-    <string name="wheel_action_screen_focus">Perjungti aktyvų ekraną</string>
-    <string name="wheel_focus_screen_1">1 ekranas</string>
-    <string name="wheel_focus_screen_2">2 ekranas</string>
-    <string name="wheel_focus_no_second">Antrojo ekrano nėra. Lieka 1 ekranas.</string>
-    <string name="wheel_focus_badge">Vairas valdo %1$d ekraną</string>
+    <string name="wheel_action_screen_focus">1 / 2 režimas</string>
+    <string name="wheel_focus_no_second">2 režime nėra ką daryti: nėra antrojo ekrano ir antrojo veiksmo.</string>
+    <string name="wheel_does_second">2 režime</string>
+    <string name="wheel_second_same">Kaip 1 režime</string>
+    <string name="wheel_assign_prompt_second">Ką %1$s turi daryti 2 režime?</string>
     <string name="wheel_group_car">Automobilis</string>
     <string name="wheel_group_navigation">Navigacija</string>
     <string name="wheel_action_status">Pasakyti automobilio būklę</string>

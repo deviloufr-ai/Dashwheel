@@ -70,11 +70,11 @@
     <string name="wheel_action_previous_dashboard">Vorig dashboard</string>
     <string name="wheel_action_second_screen_next">Volgende pagina op het tweede scherm</string>
     <string name="wheel_action_second_screen_previous">Vorige pagina op het tweede scherm</string>
-    <string name="wheel_action_screen_focus">Ander scherm bedienen</string>
-    <string name="wheel_focus_screen_1">Scherm 1</string>
-    <string name="wheel_focus_screen_2">Scherm 2</string>
-    <string name="wheel_focus_no_second">Geen tweede scherm. Scherm 1 blijft.</string>
-    <string name="wheel_focus_badge">Stuur bedient scherm %1$d</string>
+    <string name="wheel_action_screen_focus">Modus 1 / 2</string>
+    <string name="wheel_focus_no_second">Niets te doen in modus 2: geen tweede scherm, geen tweede actie.</string>
+    <string name="wheel_does_second">In modus 2</string>
+    <string name="wheel_second_same">Zoals in modus 1</string>
+    <string name="wheel_assign_prompt_second">Wat moet %1$s doen in modus 2?</string>
     <string name="wheel_group_car">Auto</string>
     <string name="wheel_group_navigation">Navigatie</string>
     <string name="wheel_action_status">Zeggen hoe de auto ervoor staat</string>

@@ -1,5 +1,7 @@
 package com.openauto.unitproto
 
+import com.openauto.unitproto.hcn.HcnProtocol
+
 /**
  * What the detector may ask of the unit. Implemented on Android over
  * SystemProperties, PackageManager, ServiceManager and the file system; in
@@ -123,6 +125,12 @@ object UnitDetector {
             Rule("class", "android.microntek.CarManager", strong = false) { p ->
                 if (p.hasClass("android.microntek.CarManager")) "present" else null
             }
+        ),
+        UnitFamily.HCN to listOf(
+            pkg(HcnProtocol.PACKAGE_CAN, strong = true),
+            pkg(HcnProtocol.PACKAGE_RADIO, strong = true),
+            pkg(HcnProtocol.PACKAGE_BT, strong = true),
+            prop(HcnProtocol.PROP_PORT, strong = false)
         ),
         UnitFamily.TOPWAY to listOf(
             pkg("com.tw.car", strong = true),

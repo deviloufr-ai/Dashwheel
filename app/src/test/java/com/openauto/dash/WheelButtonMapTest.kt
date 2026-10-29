@@ -30,7 +30,11 @@ class WheelButtonMapTest {
             // A button with no signal: nothing but its name and place.
             WheelButton("d4", null, "Cruise", WheelZone.LEFT),
             // A CAN box button the unit is told to ignore.
-            WheelButton("e5", WheelKey.vendor(CarBoxKeys.VENDOR, 0x29), "Voice", WheelZone.LEFT, unitIgnores = true)
+            WheelButton("e5", WheelKey.vendor(CarBoxKeys.VENDOR, 0x29), "Voice", WheelZone.LEFT, unitIgnores = true),
+            // Something else in mode 2: an action, or an app.
+            WheelButton("f6", WheelKey(KeyEvent.KEYCODE_MEDIA_PREVIOUS, 165), "Back", WheelZone.RIGHT,
+                WheelAssignment.Preset(SteeringWheelAction.PREVIOUS_DASHBOARD), second = WheelAssignment.Preset(SteeringWheelAction.SECOND_SCREEN_PREVIOUS)),
+            WheelButton("g7", WheelKey.can("65.0C", "08 00"), "", WheelZone.RIGHT, second = WheelAssignment.LaunchApp("com.waze", "Waze"))
         )
         assertEquals(buttons, wheelButtonsFromJson(wheelButtonsToJson(buttons)))
     }
