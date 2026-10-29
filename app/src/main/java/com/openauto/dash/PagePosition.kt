@@ -105,6 +105,8 @@ fun PagePositionChip(modifier: Modifier = Modifier) {
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
+        // Which screen the wheel's dashboard buttons move, once one of them switches it.
+        ScreenFocusBadge()
     }
     if (picking) {
         PageJumpDialog(

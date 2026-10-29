@@ -72,6 +72,11 @@
     <string name="wheel_action_previous_dashboard">Предыдущая панель</string>
     <string name="wheel_action_second_screen_next">Следующая страница второго экрана</string>
     <string name="wheel_action_second_screen_previous">Предыдущая страница второго экрана</string>
+    <string name="wheel_action_screen_focus">Сменить активный экран</string>
+    <string name="wheel_focus_screen_1">Экран 1</string>
+    <string name="wheel_focus_screen_2">Экран 2</string>
+    <string name="wheel_focus_no_second">Второго экрана нет. Остаётся экран 1.</string>
+    <string name="wheel_focus_badge">Руль управляет экраном %1$d</string>
     <string name="wheel_group_car">Автомобиль</string>
     <string name="wheel_group_navigation">Навигация</string>
     <string name="wheel_action_status">Сказать состояние авто</string>

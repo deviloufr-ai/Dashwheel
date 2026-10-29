@@ -70,6 +70,11 @@
     <string name="wheel_action_previous_dashboard">Painel anterior</string>
     <string name="wheel_action_second_screen_next">Página seguinte no segundo ecrã</string>
     <string name="wheel_action_second_screen_previous">Página anterior no segundo ecrã</string>
+    <string name="wheel_action_screen_focus">Mudar de ecrã</string>
+    <string name="wheel_focus_screen_1">Ecrã 1</string>
+    <string name="wheel_focus_screen_2">Ecrã 2</string>
+    <string name="wheel_focus_no_second">Sem segundo ecrã. Fica o ecrã 1.</string>
+    <string name="wheel_focus_badge">O volante move o ecrã %1$d</string>
     <string name="wheel_group_car">Carro</string>
     <string name="wheel_group_navigation">Navegação</string>
     <string name="wheel_action_status">Dizer como está o carro</string>
