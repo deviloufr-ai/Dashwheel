@@ -26,7 +26,7 @@
     <string name="canvas_tab_done">Готово</string>
     <string name="canvas_tab_name">Название</string>
     <string name="canvas_tab_when">Открывается сама, когда</string>
-    <string name="canvas_tab_when_hint">«На стоянке» значит при запуске или после 2 минут без движения. Нажмите выбранный пункт ещё раз, чтобы отключить его.</string>
+    <string name="canvas_tab_when_hint">«На стоянке» значит 2 минуты без движения после поездки, но не при запуске. Нажмите выбранный пункт ещё раз, чтобы отключить его.</string>
     <string name="canvas_map_title">Под панелью</string>
     <string name="canvas_map_builtin">Встроенная карта</string>
     <string name="canvas_map_builtin_hint">Собственная карта Dashwheel с панелями, которые листаются.</string>

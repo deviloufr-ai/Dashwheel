@@ -23,6 +23,32 @@ class CanvasTest {
         assertEquals(65, etaMinutes("1 h 5 min · 92 km"))
         assertEquals(120, etaMinutes("2 h · 180 km"))
         assertNull(etaMinutes("18 km"))
+        // Written short, as Waze and Maps in French do: hours and two digits of minutes, not a clock time.
+        assertEquals(65, etaMinutes("1h05 min · 92 km · 15:37"))
+        // Alone in its part it is a clock time, as the Directions tile reads it ("9h05").
+        assertNull(etaMinutes("1h05 · 92 km"))
+    }
+
+    @Test
+    fun aDurationWrittenShortIsNotTheArrival() {
+        val now = today(14, 32)
+        // "1h05 min" once read as five past one, and the line ran to tomorrow.
+        assertEquals(today(15, 37), arrivalMs("1h05 min · 92 km · 15:37", now))
+        assertEquals(now + 65 * 60_000L, arrivalMs("1h05 min · 92 km", now))
+        // A clock time that makes up its own part is the arrival, worded or not.
+        assertEquals(today(15, 37), arrivalMs("26 min · Arrivée : 15:37", now))
+        assertEquals(today(13, 51), arrivalMs("ETA 1:51 PM · 1.2 mi", today(13, 20)))
+    }
+
+    @Test
+    fun anArrivalJustGoneByIsNowNotTomorrow() {
+        // Maps posts "14:58" a minute or two after the clock passed it: the car is about there.
+        val now = today(15, 0)
+        assertEquals(now, arrivalMs("14:58 · 0.2 km", now))
+        // The minutes left, when the line still gives some, rather than a day on.
+        assertEquals(now + 2 * 60_000L, arrivalMs("2 min · 0.4 km · 14:58", now))
+        // A quarter of a day past still is: only a clock gone round midnight is tomorrow's.
+        assertEquals(now, arrivalMs("9:30", now))
     }
 
     @Test

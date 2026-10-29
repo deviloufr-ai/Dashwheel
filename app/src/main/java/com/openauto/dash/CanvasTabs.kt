@@ -510,8 +510,8 @@ internal fun CanvasTabRail(m: TopBarModel, bar: DashBarModel, onAdd: () -> Unit,
         modifier = modifier
             .fillMaxHeight()
             .padding(8.dp)
-            .width(88.dp)
-            .then(canvasGlass(RoundedCornerShape(30.dp)))
+            .width(CANVAS_RAIL_WIDTH)
+            .then(canvasGlass(CanvasRailShape))
             .padding(vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -539,7 +539,7 @@ internal fun CanvasTabRail(m: TopBarModel, bar: DashBarModel, onAdd: () -> Unit,
         }
         MorePicker(m) { open -> RailIcon(Icons.Filled.MoreVert, stringResource(R.string.dash_more)) { tap(); open() } }
         if (!m.merged) {
-            Text(m.clock, color = DashColors.TextSecondary, fontWeight = FontWeight.SemiBold, fontSize = fixedSp(17f), maxLines = 1)
+            Text(m.clock, color = DashColors.TextSecondary, fontWeight = FontWeight.SemiBold, fontSize = fixedSp(17f), style = Tabular, maxLines = 1)
         }
     }
 }

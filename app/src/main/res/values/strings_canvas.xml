@@ -26,7 +26,7 @@
     <string name="canvas_tab_done">Done</string>
     <string name="canvas_tab_name">Name</string>
     <string name="canvas_tab_when">Shows by itself when</string>
-    <string name="canvas_tab_when_hint">Parked means at start-up, or stopped for 2 minutes. Tap a chosen one again to turn it off.</string>
+    <string name="canvas_tab_when_hint">Parked means stopped for 2 minutes after a drive, never at start-up. Tap a chosen one again to turn it off.</string>
     <string name="canvas_map_title">Under the dashboard</string>
     <string name="canvas_map_builtin">Built-in map</string>
     <string name="canvas_map_builtin_hint">Dashwheel\'s own map, with dashboards you swipe.</string>

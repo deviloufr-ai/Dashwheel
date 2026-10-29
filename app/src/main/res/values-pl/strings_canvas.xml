@@ -25,7 +25,7 @@
     <string name="canvas_tab_done">Gotowe</string>
     <string name="canvas_tab_name">Nazwa</string>
     <string name="canvas_tab_when">Pokazuje się sama</string>
-    <string name="canvas_tab_when_hint">Postój: przy uruchomieniu lub po 2 minutach bez ruchu. Stuknij wybór ponownie, aby go wyłączyć.</string>
+    <string name="canvas_tab_when_hint">Postój: 2 minuty bez ruchu po jeździe, nigdy przy uruchomieniu. Stuknij wybór ponownie, aby go wyłączyć.</string>
     <string name="canvas_map_title">Pod pulpitem</string>
     <string name="canvas_map_builtin">Własna mapa</string>
     <string name="canvas_map_builtin_hint">Mapa Dashwheel, z pulpitami do przesuwania.</string>

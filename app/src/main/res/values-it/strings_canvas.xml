@@ -25,7 +25,7 @@
     <string name="canvas_tab_done">Fatto</string>
     <string name="canvas_tab_name">Nome</string>
     <string name="canvas_tab_when">Appare da solo</string>
-    <string name="canvas_tab_when_hint">Parcheggiata: all\'avvio, o ferma da 2 minuti. Tocca di nuovo una scelta per toglierla.</string>
+    <string name="canvas_tab_when_hint">Parcheggiata: ferma da 2 minuti dopo aver guidato, mai all\'avvio. Tocca di nuovo una scelta per toglierla.</string>
     <string name="canvas_map_title">Sotto il cruscotto</string>
     <string name="canvas_map_builtin">Mappa interna</string>
     <string name="canvas_map_builtin_hint">La mappa di Dashwheel, con cruscotti da scorrere.</string>
