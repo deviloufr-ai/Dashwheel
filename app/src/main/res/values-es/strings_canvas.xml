@@ -25,7 +25,7 @@
     <string name="canvas_tab_done">Listo</string>
     <string name="canvas_tab_name">Nombre</string>
     <string name="canvas_tab_when">Aparece sola</string>
-    <string name="canvas_tab_when_hint">Aparcado: al arrancar, o parado 2 minutos. Toca otra vez una opción para quitarla.</string>
+    <string name="canvas_tab_when_hint">Aparcado: parado 2 minutos tras conducir, nunca al arrancar. Toca otra vez una opción para quitarla.</string>
     <string name="canvas_map_title">Bajo el panel</string>
     <string name="canvas_map_builtin">Mapa propio</string>
     <string name="canvas_map_builtin_hint">El mapa de Dashwheel, con paneles que se deslizan.</string>

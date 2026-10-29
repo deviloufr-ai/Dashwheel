@@ -26,7 +26,7 @@
     <string name="canvas_tab_done">Atlikta</string>
     <string name="canvas_tab_name">Pavadinimas</string>
     <string name="canvas_tab_when">Pasirodo pats, kai</string>
-    <string name="canvas_tab_when_hint">Stovint reiškia paleidus arba stovint 2 minutes. Palieskite pasirinktą dar kartą, kad išjungtumėte.</string>
+    <string name="canvas_tab_when_hint">Stovint reiškia 2 minutes stovint po kelionės, bet ne paleidus. Palieskite pasirinktą dar kartą, kad išjungtumėte.</string>
     <string name="canvas_map_title">Po skydeliu</string>
     <string name="canvas_map_builtin">Integruotas žemėlapis</string>
     <string name="canvas_map_builtin_hint">Paties Dashwheel žemėlapis su perbraukiamais skydeliais.</string>

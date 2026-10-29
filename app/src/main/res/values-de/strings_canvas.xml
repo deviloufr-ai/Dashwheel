@@ -25,7 +25,7 @@
     <string name="canvas_tab_done">Fertig</string>
     <string name="canvas_tab_name">Name</string>
     <string name="canvas_tab_when">Erscheint von selbst</string>
-    <string name="canvas_tab_when_hint">Geparkt heißt: beim Start oder nach 2 Minuten Stillstand. Zum Abwählen erneut tippen.</string>
+    <string name="canvas_tab_when_hint">Geparkt heißt: nach einer Fahrt 2 Minuten Stillstand, nie beim Start. Zum Abwählen erneut tippen.</string>
     <string name="canvas_map_title">Unter dem Dashboard</string>
     <string name="canvas_map_builtin">Eigene Karte</string>
     <string name="canvas_map_builtin_hint">Die Karte von Dashwheel, mit Dashboards zum Wischen.</string>
