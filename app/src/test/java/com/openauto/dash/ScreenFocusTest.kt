@@ -29,4 +29,12 @@ class ScreenFocusTest {
         assertNull(ScreenFocus.mark(bound = true, chosenSecond = false, output = SecondScreenOutput.NONE))
         assertNull(ScreenFocus.mark(bound = true, chosenSecond = true, output = SecondScreenOutput.VIDEO_APP))
     }
+
+    @Test
+    fun everyPageButtonFollowsTheFocusOnceAButtonSwitchesIt() {
+        assertEquals(1, ScreenFocus.pageTarget(bound = true, onSecond = false))
+        assertEquals(2, ScreenFocus.pageTarget(bound = true, onSecond = true))
+        // No focus button: each page button keeps to the screen it names.
+        assertNull(ScreenFocus.pageTarget(bound = false, onSecond = false))
+    }
 }

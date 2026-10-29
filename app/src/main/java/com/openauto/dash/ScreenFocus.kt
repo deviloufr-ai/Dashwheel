@@ -91,6 +91,16 @@ internal object ScreenFocus {
         _switchedAt.value = SystemClock.elapsedRealtime()
     }
 
+    /**
+     * A second screen page button pressed: the unit's dashboards move instead
+     * while a wheel button switches the focus and screen 1 has it. Without
+     * one, the button keeps to the second screen as it always did.
+     */
+    fun unitFocused(): Boolean = pageTarget(bound(SteeringWheelStore.buttons.value), onSecond) == 1
+
+    /** The screen a page button moves, whichever screen it names: the focused one once a button switches the focus, else null (its own). */
+    fun pageTarget(bound: Boolean, onSecond: Boolean): Int? = if (!bound) null else if (onSecond) 2 else 1
+
     /** A dashboard button pressed: on the second screen while it has the focus. False when it is the unit's own to move. */
     fun step(step: Int): Boolean {
         if (!onSecond) return false
