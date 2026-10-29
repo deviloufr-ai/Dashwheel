@@ -612,6 +612,11 @@ private fun enableLocation(
                     if (l != null && still() && loc.distanceTo(l) < STILL_WANDER_M) return@collect
                     last = loc
                     runCatching { lc.forceLocationUpdate(loc) }
+                    // The first fix: tracking was turned on below with nowhere to fly to
+                    // yet, so the camera only followed from where the style left it (the
+                    // whole world). Now there is a car to close in on, however long the
+                    // GPS took to find it.
+                    if (l == null) followVehicle(lc, wallpaper, userZooms[map])
                 }
             }
             // The zoom the driver picks by hand is the one tracking comes back
@@ -647,21 +652,11 @@ private fun enableLocation(
         // Directional puck; the camera follows position AND heading (map rotates
         // with the car) at a close zoom with pitch for the driving-nav look.
         lc.renderMode = RenderMode.COMPASS
+        // With a fix already known (the permission granted later, the style
+        // swapped) the camera goes to it now; else the first fix above takes it
+        // there. Through the component either way: a plain animateCamera would
+        // count as a developer move and cancel tracking straight away.
         followVehicle(lc, wallpaper, userZooms[map])
-    }
-    // TRACKING_GPS only re-centres on a FRESH fix; with only a last-known
-    // location the camera stays at the default world view. Once any fix exists,
-    // fly to it *through* the component: a plain animateCamera here would
-    // count as a developer move and cancel tracking straight away.
-    scope.launch {
-        repeat(15) {
-            val loc = runCatching { lc.lastKnownLocation }.getOrNull()
-            if (loc != null) {
-                followVehicle(lc, wallpaper, userZooms[map])
-                return@launch
-            }
-            delay(800)
-        }
     }
 }
 
@@ -674,17 +669,31 @@ private const val STILL_WANDER_M = 3f
 /** Zoom last set by a pinch on each map; tracking resumes at it instead of the default. */
 private val userZooms = java.util.WeakHashMap<MapLibreMap, Double>()
 
-/** Follow position and heading with the driving-nav zoom and pitch, keeping tracking on. */
+/**
+ * Follow position and heading with the driving-nav zoom and pitch, keeping
+ * tracking on. A wallpaper looks further ahead: steeper, a little closer, and
+ * the car pushed down to the lower part of the screen, between the panels.
+ *
+ * Turning tracking on flies to the car only when the component knows where
+ * it is at that moment; asked for again once it does, setCameraMode returns
+ * at once (same mode) and the camera stayed where the style had left it, the
+ * world in view with the puck lost on it. Already following, the zoom and
+ * the tilt are set on the tracking camera instead.
+ */
 private fun followVehicle(lc: LocationComponent, wallpaper: MapView? = null, zoom: Double? = null) {
-    if (wallpaper == null) {
-        runCatching { lc.setCameraMode(CameraMode.TRACKING_GPS, 1000L, zoom ?: 16.5, null, 45.0, null) }
-        return
-    }
-    // A wallpaper looks further ahead: steeper, a little closer, and the car
-    // pushed down to the lower part of the screen, between the panels.
+    val close = zoom ?: if (wallpaper == null) 16.5 else 17.0
+    val tilt = if (wallpaper == null) 45.0 else 60.0
     runCatching {
-        lc.setCameraMode(CameraMode.TRACKING_GPS, 1000L, zoom ?: 17.0, null, 60.0, null)
-        lc.paddingWhileTracking(doubleArrayOf(0.0, wallpaper.height * 0.42, 0.0, 0.0))
+        if (lc.cameraMode == CameraMode.TRACKING_GPS) {
+            if (lc.lastKnownLocation != null) {
+                lc.zoomWhileTracking(close, 1000L)
+                lc.tiltWhileTracking(tilt, 1000L)
+            }
+        } else {
+            lc.setCameraMode(CameraMode.TRACKING_GPS, 1000L, close, null, tilt, null)
+        }
+        // Measured when called: at the first fix the view has its height, which at set-up it had not.
+        if (wallpaper != null) lc.paddingWhileTracking(doubleArrayOf(0.0, wallpaper.height * 0.42, 0.0, 0.0))
     }
 }
 
