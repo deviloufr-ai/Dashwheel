@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Cast
 import androidx.compose.material.icons.filled.CallEnd
+import androidx.compose.material.icons.filled.ConnectedTv
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Home
@@ -111,7 +112,8 @@ internal enum class SteeringWheelAction(
     GEMINI_LIVE(WheelActionGroup.CAR, R.string.ai_gemini_live, Icons.Filled.AutoAwesome),
     STOP_GUIDANCE(WheelActionGroup.NAVIGATION, R.string.wheel_action_stop_guidance, Icons.Filled.Close),
     LPG_FULL(WheelActionGroup.CAR, R.string.lpg_wheel_full, Icons.Filled.PropaneTank),
-    LPG_SWITCH(WheelActionGroup.CAR, R.string.lpg_wheel_switch, Icons.Filled.SwapHoriz);
+    LPG_SWITCH(WheelActionGroup.CAR, R.string.lpg_wheel_switch, Icons.Filled.SwapHoriz),
+    SCREEN_FOCUS(WheelActionGroup.SYSTEM, R.string.wheel_action_screen_focus, Icons.Filled.ConnectedTv);
 
     fun run(context: Context) {
         when (this) {
@@ -145,10 +147,11 @@ internal enum class SteeringWheelAction(
                 MainActivity.openAppsRequested.value = System.currentTimeMillis()
             }
             // Behind another app, the first press shows the dashboard as it was left.
-            NEXT_DASHBOARD -> if (!showDashboard(context)) MainActivity.dashboardStep.value = System.currentTimeMillis() to 1
-            PREVIOUS_DASHBOARD -> if (!showDashboard(context)) MainActivity.dashboardStep.value = System.currentTimeMillis() to -1
-            DASHBOARD_UP -> if (!showDashboard(context)) MainActivity.dashboardClimb.value = System.currentTimeMillis() to -1
-            DASHBOARD_DOWN -> if (!showDashboard(context)) MainActivity.dashboardClimb.value = System.currentTimeMillis() to 1
+            // With the focus on the second screen (ScreenFocus), its cluster pages turn instead, one row of them.
+            NEXT_DASHBOARD -> if (!ScreenFocus.step(1) && !showDashboard(context)) MainActivity.dashboardStep.value = System.currentTimeMillis() to 1
+            PREVIOUS_DASHBOARD -> if (!ScreenFocus.step(-1) && !showDashboard(context)) MainActivity.dashboardStep.value = System.currentTimeMillis() to -1
+            DASHBOARD_UP -> if (!ScreenFocus.step(-1) && !showDashboard(context)) MainActivity.dashboardClimb.value = System.currentTimeMillis() to -1
+            DASHBOARD_DOWN -> if (!ScreenFocus.step(1) && !showDashboard(context)) MainActivity.dashboardClimb.value = System.currentTimeMillis() to 1
             SECOND_SCREEN_NEXT -> SecondScreenController.turnPage(1)
             SECOND_SCREEN_PREVIOUS -> SecondScreenController.turnPage(-1)
             NOTIFICATIONS -> SplitAccessibilityService.globalAction(AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS)
@@ -168,6 +171,7 @@ internal enum class SteeringWheelAction(
             STOP_GUIDANCE -> stopGuidance(context)
             LPG_FULL -> LpgTank.fillUpHandsFree(context)
             LPG_SWITCH -> LpgTank.switchHandsFree(context)
+            SCREEN_FOCUS -> ScreenFocus.toggle(context)
         }
     }
 
