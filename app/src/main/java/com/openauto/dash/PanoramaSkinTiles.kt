@@ -685,7 +685,8 @@ private fun CardGear(size: Dp) {
 private fun CardRevScale(modifier: Modifier) {
     val gear by rememberGear()
     val lit = revSegments(gear.rpm, 12)
-    val warmFrom = remember { warmSegment(12) }
+    val profile by CarProfileStore.profile.collectAsState()
+    val warmFrom = remember(profile.redlineRpm) { warmSegment(12, profile.redlineRpm) }
     Column(modifier) {
         PanoLabel(stringResource(R.string.skin_panorama_revs))
         Spacer(Modifier.height(5.dp))
@@ -748,7 +749,8 @@ private fun TelemetryRevs(innerH: Dp, readSize: Float) {
     val gear by rememberGear()
     val rpm = gear.rpm
     val lit = revSegments(rpm, REV_SEGMENTS)
-    val warmFrom = remember { warmSegment(REV_SEGMENTS) }
+    val profile by CarProfileStore.profile.collectAsState()
+    val warmFrom = remember(profile.redlineRpm) { warmSegment(REV_SEGMENTS, profile.redlineRpm) }
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
             PanoLabel(stringResource(R.string.skin_panorama_revs), Modifier.weight(1f))
