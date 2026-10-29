@@ -52,6 +52,7 @@ internal fun familyName(family: UnitFamily): String = stringResource(
         UnitFamily.REGLINK -> R.string.unit_family_reglink
         UnitFamily.ALLWINNER -> R.string.unit_family_allwinner
         UnitFamily.NWD -> R.string.unit_family_nwd
+        UnitFamily.HCN -> R.string.unit_family_hcn
         UnitFamily.GENERIC, UnitFamily.UNKNOWN -> R.string.unit_family_generic
     }
 )

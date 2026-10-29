@@ -141,4 +141,13 @@ class UnitDetectorTest {
         assertEquals(null, UnitFamily.parse(null))
         assertEquals(null, UnitFamily.parse("tesla"))
     }
+
+    @Test
+    fun aJunsunWithTheCarInfoApp_isHcn() {
+        // The unit of issue #96: its CarInfo app and zlink, which alone had made it plain Android.
+        val p = MapProbe(packages = setOf("com.hcn.autocan", "com.zjinnova.zlink"), props = mapOf("persist.sys.hcnport" to "1"))
+        val d = UnitDetector.detect(p)
+        assertEquals(UnitFamily.HCN, d.family)
+        assertEquals(1, d.runnersUp[UnitFamily.TOPWAY])
+    }
 }
