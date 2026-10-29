@@ -31,6 +31,7 @@ After a crash, Dashwheel offers to send the error the next time it starts, once 
 
 - Every push to `main` that passes lint and tests is published as a **beta** pre-release. Drivers who turned on **Beta updates** get it.
 - A beta becomes **stable** only when a maintainer runs the **Promote to stable** workflow in the Actions tab. The stable release is what every other driver and the phone companion update to.
+- Promoting also runs **Prune old betas**, which deletes the betas older than the new stable and the branch pre-releases no one needs any more (only the newest of each live branch stays). It can be run by hand too, with a dry run.
 - The version code counts `main`'s history, so never rewrite `main`'s history.
 
 ## Code layout

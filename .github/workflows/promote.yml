@@ -70,3 +70,11 @@ jobs:
 
           gh release edit "$tag" --prerelease=false --latest --title "Dashwheel $tag" --notes-file "$RUNNER_TEMP/notes.md"
           echo "Promoted $tag to stable (was ${prev:-none})."
+
+  # The betas the new stable has overtaken can no longer be offered to anyone.
+  prune:
+    name: Prune old betas
+    needs: promote
+    uses: ./.github/workflows/prune-betas.yml
+    permissions:
+      contents: write
