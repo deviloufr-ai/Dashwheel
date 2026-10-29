@@ -93,6 +93,8 @@ class LeadTracker(var hfovDeg: Float = 66f, var aspect: Float = 0.75f) {
     private var kind: VehicleKind? = null
     private var id = 0
     private var seenAt = 0L
+    /** How far off the picture's middle the vehicle was when last judged beside the path; NaN when it wasn't. */
+    private var besideOff = Float.NaN
     private val samples = ArrayDeque<Sample>()
 
     /**
@@ -112,7 +114,10 @@ class LeadTracker(var hfovDeg: Float = 66f, var aspect: Float = 0.75f) {
         // vehicle read as another kind: its distance is scaled by that kind's width, and a car far ahead that
         // went from truck to car (2.5 to 1.8 m) read as closing at 26 m/s on the motorway (2026-10-27).
         val same = kind == ahead.kind && if (ahead.id != 0) ahead.id == id else before != null && before.iou(ahead.box) >= SAME_IOU
-        if (!same) samples.clear()
+        if (!same) {
+            samples.clear()
+            besideOff = Float.NaN
+        }
         box = ahead.box
         kind = ahead.kind
         id = ahead.id
@@ -127,6 +132,7 @@ class LeadTracker(var hfovDeg: Float = 66f, var aspect: Float = 0.75f) {
         box = null
         kind = null
         id = 0
+        besideOff = Float.NaN
         samples.clear()
     }
 
@@ -166,7 +172,13 @@ class LeadTracker(var hfovDeg: Float = 66f, var aspect: Float = 0.75f) {
         val middle = edges?.let { (it.first + it.second) / 2 }
         val inner = edges?.let { if (middle!! > 0f) it.second - ahead.kind.widthM else it.first + ahead.kind.widthM }
         // Wholly to one side of the car's path: driven past, not into.
-        val beside = inner != null && (middle!! > 0f && inner >= PATH_HALF_M || middle < 0f && inner <= -PATH_HALF_M)
+        val besideNow = inner != null && (middle!! > 0f && inner >= PATH_HALF_M || middle < 0f && inner <= -PATH_HALF_M)
+        val off = abs(ahead.box.centerX - 0.5f)
+        if (besideNow) besideOff = off
+        // Once judged beside, it stays so while it keeps sliding outward in the picture, well off the middle: in
+        // the last metres its flank fills the box and the sides read in the path (vans parked at the kerb,
+        // 2026-10-28). What cuts in comes back towards the middle.
+        val beside = besideNow || !besideOff.isNaN() && off >= besideOff && off >= BESIDE_OFF
         return Lead(ahead.box, ahead.kind, distance, closing, ttc.takeUnless { beside }, middle)
     }
 
@@ -230,6 +242,8 @@ class LeadTracker(var hfovDeg: Float = 66f, var aspect: Float = 0.75f) {
         const val MIN_GROWTH = 1.1f
         /** Half the car's own path: its half width and a little room. A vehicle wholly further aside is passed, not hit. */
         const val PATH_HALF_M = 1.1f
+        /** How far off the picture's middle (a share of its width) a vehicle judged beside must stay for that to hold: about a car's half width at 10 m. */
+        const val BESIDE_OFF = 0.1f
         /** How far below the bonnet's row a box's bottom may reach, a share of the height: a near car's box is a little loose. */
         const val BELOW_BONNET = 0.03f
         /** The most of the picture's height a vehicle ahead fills. */

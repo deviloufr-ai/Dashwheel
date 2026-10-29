@@ -113,6 +113,37 @@ class LeadTrackerTest {
     }
 
     @Test
+    fun aParkedCarStaysBesideWhileItSlidesOutward() {
+        // Parked 2.2 m aside and judged beside; in the last metres its flank fills the box, which stops sliding
+        // and only grows (its sides then read in the path), while its middle stays further out than when judged.
+        val t = LeadTracker()
+        var lead: Lead? = null
+        for (i in 0..10) lead = t.update(listOf(car(20f - i, dx = 2.2f)), noLane, band, 0.5f, i * 100L)
+        assertNull(lead!!.ttcS)
+        for (i in 11..14) {
+            val c = car(20f - i)
+            lead = t.update(listOf(Detection(Box(0.55f, c.box.top, 0.85f, c.box.bottom), c.kind, c.score)), noLane, band, 0.5f, i * 100L)
+        }
+        assertNotNull(lead!!.closingMps)
+        assertNull("judged beside and no nearer the middle since: passed", lead.ttcS)
+    }
+
+    @Test
+    fun aCarBesideThatCutsInGetsItsTimeToImpact() {
+        val t = LeadTracker()
+        var lead: Lead? = null
+        for (i in 0..10) lead = t.update(listOf(car(20f - i, dx = 2.2f)), noLane, band, 0.5f, i * 100L)
+        assertNull(lead!!.ttcS)
+        // Back near the middle of the picture, where it then closes in.
+        for (k in 1..11) {
+            val c = car(9.5f - 0.35f * k)
+            lead = t.update(listOf(Detection(Box(c.box.left + 0.07f, c.box.top, c.box.right + 0.07f, c.box.bottom), c.kind, c.score)), noLane, band, 0.5f, (10 + k) * 100L)
+        }
+        assertNotNull(lead!!.closingMps)
+        assertNotNull("in the path again", lead.ttcS)
+    }
+
+    @Test
     fun aStoppedCarInThePathStillHasItsTimeToImpact() {
         val t = LeadTracker()
         var lead: Lead? = null
