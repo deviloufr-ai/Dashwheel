@@ -37,6 +37,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -2214,9 +2215,15 @@ internal object EmbeddedApp {
 internal fun EmbeddedMapsCard(modifier: Modifier = Modifier) =
     EmbeddedAppCard(EmbeddedApp.MAPS_PACKAGE, "Google Maps", modifier)
 
-/** Any app ([packageName], called [label]) running inside the tile, see [EmbeddedApp]. */
+/**
+ * Any app ([packageName], called [label]) running inside the tile, see
+ * [EmbeddedApp]. Made afresh for another package: the picture's view hands
+ * its surface to the host it was made with, so a new app in the same card
+ * (another navigation app chosen under the Canvas dashboard) kept showing
+ * the old one.
+ */
 @Composable
-internal fun EmbeddedAppCard(packageName: String, label: String, modifier: Modifier = Modifier) {
+internal fun EmbeddedAppCard(packageName: String, label: String, modifier: Modifier = Modifier) = key(packageName) {
     val context = LocalContext.current
     val host = EmbeddedApp.host(context, packageName)
     val status by host.status.collectAsState()

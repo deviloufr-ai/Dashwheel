@@ -25,7 +25,7 @@
     <string name="canvas_tab_done">Concluído</string>
     <string name="canvas_tab_name">Nome</string>
     <string name="canvas_tab_when">Aparece sozinho</string>
-    <string name="canvas_tab_when_hint">Estacionado: ao arrancar, ou parado há 2 minutos. Toque de novo numa opção para a retirar.</string>
+    <string name="canvas_tab_when_hint">Estacionado: parado há 2 minutos depois de conduzir, nunca ao arrancar. Toque de novo numa opção para a retirar.</string>
     <string name="canvas_map_title">Sob o painel</string>
     <string name="canvas_map_builtin">Mapa próprio</string>
     <string name="canvas_map_builtin_hint">O mapa do Dashwheel, com painéis para deslizar.</string>

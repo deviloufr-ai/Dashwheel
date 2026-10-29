@@ -48,6 +48,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -73,17 +74,20 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -103,32 +107,44 @@ import java.util.Locale
  * translucent fill with a hairline rim, not frosted.
  */
 
-/** Room the rail takes at the side of the pages. */
+/** Room the rail takes at the side of the pages: its width and its margins. */
 internal val CANVAS_RAIL_SPACE = 104.dp
-private val RailWidth = 88.dp
+/** The rail itself (CanvasRail here, CanvasTabRail over an app), inside [CANVAS_RAIL_SPACE]. */
+internal val CANVAS_RAIL_WIDTH = 88.dp
+internal val CanvasRailShape = RoundedCornerShape(30.dp)
 private val GlassShape = RoundedCornerShape(28.dp)
-private val Tabular = TextStyle(fontFeatureSettings = "tnum")
+/** Digits of one width, so a changing number does not shuffle what stands beside it. */
+internal val Tabular = TextStyle(fontFeatureSettings = "tnum")
 
-/** Smoked glass: the theme's translucent card, a hairline rim and a catch of light along the top edge. */
+/**
+ * Smoked glass: the theme's translucent card, a hairline rim and a catch of
+ * light along the top edge. "Plain, for sunlight" (the effects setting)
+ * promises opaque cards, and gets them here too: a map showing through the
+ * glass is what it is there to switch off. Kept per palette and shape: the
+ * draw cache would otherwise be thrown away at every recomposition of a tile.
+ */
 @Composable
 internal fun canvasGlass(shape: Shape = GlassShape): Modifier {
-    val fill = DashColors.Card
+    val plain = DashColors.Effects == DashEffects.NONE
+    val fill = DashColors.Card.let { if (plain) it.copy(alpha = 1f) else it }
     val rim = DashColors.Line
     val catchAlpha = if (DashColors.Light) 0.9f else 0.16f
-    return Modifier
-        .clip(shape)
-        .background(fill, shape)
-        .border(1.dp, rim, shape)
-        .drawWithCache {
-            val catch = Brush.horizontalGradient(
-                listOf(Color.Transparent, Color.White.copy(alpha = catchAlpha), Color.Transparent),
-                startX = size.width * 0.12f, endX = size.width * 0.88f
-            )
-            onDrawWithContent {
-                drawContent()
-                drawLine(catch, Offset(size.width * 0.12f, 1f), Offset(size.width * 0.88f, 1f), 1.5f)
+    return remember(shape, fill, rim, catchAlpha) {
+        Modifier
+            .clip(shape)
+            .background(fill, shape)
+            .border(1.dp, rim, shape)
+            .drawWithCache {
+                val catch = Brush.horizontalGradient(
+                    listOf(Color.Transparent, Color.White.copy(alpha = catchAlpha), Color.Transparent),
+                    startX = size.width * 0.12f, endX = size.width * 0.88f
+                )
+                onDrawWithContent {
+                    drawContent()
+                    drawLine(catch, Offset(size.width * 0.12f, 1f), Offset(size.width * 0.88f, 1f), 1.5f)
+                }
             }
-        }
+    }
 }
 
 // --- The page: the map ---------------------------------------------------------------------------
@@ -193,8 +209,8 @@ internal fun CanvasRail(m: TopBarModel, onHome: () -> Unit, modifier: Modifier =
         modifier = modifier
             .fillMaxHeight()
             .padding(8.dp)
-            .width(RailWidth)
-            .then(canvasGlass(RoundedCornerShape(30.dp)))
+            .width(CANVAS_RAIL_WIDTH)
+            .then(canvasGlass(CanvasRailShape))
             .padding(vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -210,7 +226,8 @@ internal fun CanvasRail(m: TopBarModel, onHome: () -> Unit, modifier: Modifier =
             RailButton(Icons.Filled.Apps, stringResource(R.string.dash_all_apps), onClick = m.onApps)
             RailButton(Icons.Filled.MusicNote, stringResource(R.string.apps_kind_media)) { openMusic(context, m.onApps) }
             RailButton(Icons.Filled.Phone, stringResource(R.string.settings_section_phone)) {
-                context.launchSafely(Intent(Intent.ACTION_DIAL))
+                // A head unit without a dialler (its phone is a car app of its own) gets the drawer, not a dead button.
+                if (!context.launchSafely(Intent(Intent.ACTION_DIAL))) m.onApps()
             }
             RailButton(Icons.Filled.DirectionsCar, obdStatusLabel(m.obdConnection), dot = obdStatusColor(m.obdConnection), onClick = m.onConnectObd)
         }
@@ -280,11 +297,34 @@ internal fun CanvasTile(item: DashboardItem, env: SkinTileEnv) {
     }
 }
 
-/** A tile's number: tabular, semi-bold, never scaled by the system font size past its box. */
+/** A number is never drawn smaller than this (dp), whatever its room: past it, it clips. */
+private const val MIN_NUM_DP = 14f
+
+/**
+ * A tile's number: tabular, semi-bold, never scaled by the system font size
+ * past its box. Asked for at [sizeDp], and shrunk to the width it has when
+ * that is too narrow for it ("10:45 PM" at 56 in a two-column clock lost its
+ * "PM" to the clip). Measured on its digits as eights, so the size holds
+ * while the value ticks.
+ */
 @Composable
 private fun Num(text: String, sizeDp: Float, color: Color = DashColors.TextPrimary, modifier: Modifier = Modifier) {
-    Text(text, modifier = modifier, color = color, fontSize = fixedSp(sizeDp), fontWeight = FontWeight.SemiBold,
-        style = Tabular, maxLines = 1, overflow = TextOverflow.Clip)
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    val base = LocalTextStyle.current
+    val wantedSp = maxOf(sizeDp, MIN_TEXT_DP) / density.fontScale
+    BoxWithConstraints(modifier) {
+        val roomPx = if (constraints.hasBoundedWidth) constraints.maxWidth else Int.MAX_VALUE
+        val template = exTemplate(text)
+        val fontSize = remember(template, wantedSp, roomPx, base, density) {
+            val probe = measurer.measure(template, base.merge(Tabular).copy(fontSize = wantedSp.sp, fontWeight = FontWeight.SemiBold), softWrap = false, maxLines = 1)
+            val width = probe.size.width
+            if (width <= roomPx) wantedSp.sp
+            else maxOf(wantedSp * roomPx / width.coerceAtLeast(1), MIN_NUM_DP / density.fontScale).sp
+        }
+        Text(text, color = color, fontSize = fontSize, fontWeight = FontWeight.SemiBold,
+            style = Tabular, maxLines = 1, overflow = TextOverflow.Clip)
+    }
 }
 
 @Composable
@@ -385,12 +425,13 @@ private fun CanvasRange(env: SkinTileEnv) {
         }
         Row(verticalAlignment = Alignment.Bottom) {
             val units = LocalUnits.current
-            Num(units.distance(fuel.rangeKm).toString(), 48f, if (low) DashColors.Warning else DashColors.TextPrimary)
+            // The unit is measured first: the number takes what is left, shrinking before it clips.
+            Num(units.distance(fuel.rangeKm).toString(), 48f, if (low) DashColors.Warning else DashColors.TextPrimary, Modifier.weight(1f, fill = false))
             Spacer(Modifier.width(6.dp))
             Label(units.distanceUnit, 20f, modifier = Modifier.padding(bottom = 6.dp))
         }
         Box(Modifier.fillMaxWidth().height(8.dp).clip(CircleShape).background(DashColors.CardHi)) {
-            Box(Modifier.fillMaxWidth(fuel.percent / 100f).fillMaxHeight().clip(CircleShape).background(if (low) DashColors.Warning else DashColors.TextPrimary))
+            Box(Modifier.fillMaxWidth((fuel.percent / 100f).coerceIn(0f, 1f)).fillMaxHeight().clip(CircleShape).background(if (low) DashColors.Warning else DashColors.TextPrimary))
         }
         Label(String.format(Locale.getDefault(), "%s%d %% · %.1f L", if (fuel.percentEstimated) "≈ " else "", fuel.percent, fuel.liters))
     }
@@ -490,8 +531,11 @@ private fun CanvasClock() {
     val now = rememberNow(1_000L)
     val time = rememberTimeFormat()
     val date = rememberDateFormat("EEEEdMMMM", best = true)
+    val tap = rememberTapFeedback()
     Column(
-        modifier = Modifier.fillMaxSize().then(canvasGlass()).clickable { openClockApp(context) }.padding(20.dp),
+        modifier = Modifier.fillMaxSize().then(canvasGlass())
+            .clickable(role = Role.Button, onClickLabel = stringResource(R.string.horizon_open_clock)) { tap(); openClockApp(context) }
+            .padding(20.dp),
         verticalArrangement = Arrangement.Center
     ) {
         Num(time.format(now), 56f)
@@ -598,9 +642,11 @@ private fun CanvasJourney(env: SkinTileEnv) {
 
     val endStop = if (nav.active) {
         val spare = fuel?.takeIf { it.toGoKm != null }?.spareKm
-        Stop(end, if (arrival != null) hm(arrival) else nav.etaParts.lastOrNull().orEmpty(),
+        // The time left and the distance, without the clock time the title already shows.
+        val rest = nav.etaParts.filterNot { ARRIVAL_CLOCK.containsMatchIn(it) }
+        Stop(end, if (arrival != null) hm(arrival) else rest.firstOrNull() ?: nav.etaParts.firstOrNull().orEmpty(),
             spare?.let { stringResource(if (units.imperial) R.string.units_canvas_fuel_left_mi else R.string.canvas_fuel_left, units.distance(it)) }
-                ?: nav.etaParts.firstOrNull().orEmpty())
+                ?: (if (arrival != null) rest.firstOrNull() else rest.getOrNull(1)).orEmpty())
     } else null
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize().then(canvasGlass())) {
@@ -654,7 +700,7 @@ private fun NextTurn(nav: NavState, onOpen: () -> Unit) {
         Column {
             val (value, unit) = nav.distanceParts
             Row(verticalAlignment = Alignment.Bottom) {
-                Num(value.ifBlank { "–" }, 44f)
+                Num(value.ifBlank { "–" }, 44f, modifier = Modifier.weight(1f, fill = false))
                 if (unit.isNotEmpty()) {
                     Spacer(Modifier.width(4.dp))
                     Label(unit, 20f, modifier = Modifier.padding(bottom = 6.dp))
@@ -802,11 +848,11 @@ private fun rememberAgenda(context: Context, enabled: Boolean): List<AgendaEvent
     return phoneOrUnit(phone, events)
 }
 
-/** The navigation app that is guiding (or Google Maps), brought to the front. */
+/** The navigation app that is guiding (else the one the driver uses, [navAppToOpen]), brought to the front. */
 private fun openNavApp(context: Context, packageName: String?) {
     // The dashboard's own guidance runs on the map under this page: the tap offers to stop it.
     if (packageName == context.packageName) return InAppNav.askToStop()
-    val pkg = packageName?.takeIf { it.isNotBlank() } ?: "com.google.android.apps.maps"
+    val pkg = packageName?.takeIf { it.isNotBlank() } ?: navAppToOpen(context)
     context.packageManager.getLaunchIntentForPackage(pkg)?.let { context.launchSafely(it) }
 }
 
@@ -816,37 +862,64 @@ private fun openNavApp(context: Context, packageName: String?) {
 internal val ARRIVAL_CLOCK = Regex("""\b(\d{1,2})[:h.](\d{2})\s*([AaPp]\.?\s?[Mm]\.?)?""")
 private val HOURS = Regex("""(\d+)\s*(?:h|hr|hrs|hour|hours|std|u|godz)\b""", RegexOption.IGNORE_CASE)
 private val MINUTES = Regex("""(\d+)\s*(?:min|mins|minute|minutes|minuten|minuti|minutos|minutter)\b""", RegexOption.IGNORE_CASE)
+/** A duration written short, "1h05" (Waze, and Maps in French): hours, then two digits of minutes. */
+private val COMPACT_HOURS = Regex("""\b(\d{1,2})\s?h\s?(\d{2})\b""", RegexOption.IGNORE_CASE)
 
-/** Minutes left in an ETA line ("26 min", "1 h 5 min"); null when it gives none. */
+/** An ETA line's parts, as [NavState.etaParts] splits them: "26 min · 18 km · 14:58" gives three. */
+private fun etaSegments(eta: String): List<String> = eta.split('·', '•', '|').map { it.trim() }.filter { it.isNotEmpty() }
+
+/**
+ * The clock time [part] is, when it is one: a time that ends the part, with
+ * no other figure in it ("14:58", "Arrivée : 13:51", "ETA 1:51 PM"). "1h05
+ * min" is a duration, and was read as five past one in the morning: the
+ * line then ran to tomorrow, with the rain and sunset lost along it.
+ */
+private fun clockOf(part: String): MatchResult? {
+    val clock = ARRIVAL_CLOCK.find(part)?.takeIf { it.range.last == part.lastIndex } ?: return null
+    return clock.takeIf { part.removeRange(it.range).none(Char::isDigit) }
+}
+
+/** Minutes left in an ETA line ("26 min", "1 h 5 min", "1h05"); null when it gives none. */
 internal fun etaMinutes(eta: String): Int? {
-    val withoutClock = eta.replace(ARRIVAL_CLOCK, " ")
-    val h = HOURS.find(withoutClock)?.groupValues?.get(1)?.toIntOrNull()
-    val m = MINUTES.find(withoutClock)?.groupValues?.get(1)?.toIntOrNull()
+    val duration = etaSegments(eta).filter { clockOf(it) == null }.joinToString(" ")
+    COMPACT_HOURS.find(duration)?.let { return it.groupValues[1].toInt() * 60 + it.groupValues[2].toInt() }
+    val h = HOURS.find(duration)?.groupValues?.get(1)?.toIntOrNull()
+    val m = MINUTES.find(duration)?.groupValues?.get(1)?.toIntOrNull()
     if (h == null && m == null) return null
     return (h ?: 0) * 60 + (m ?: 0)
 }
 
 /**
- * When the car arrives, from an ETA line at [nowMs]: its clock time (the next
- * time that clock shows), else now plus the minutes left; null when neither.
+ * A clock time this far behind the wall clock is a notification not yet
+ * refreshed (Maps rounds its arrival and posts it late), not tomorrow's.
+ */
+private const val STALE_CLOCK_MS = 12 * 3_600_000L
+
+/**
+ * When the car arrives, from an ETA line at [nowMs]: its clock time (today,
+ * or tomorrow once past midnight), else now plus the minutes left; null when
+ * neither. A clock time a little past already means the car is about there:
+ * the minutes left if the line gives them, else now, never a day on.
  */
 internal fun arrivalMs(eta: String, nowMs: Long): Long? {
-    ARRIVAL_CLOCK.find(eta)?.let { m ->
-        var hour = m.groupValues[1].toInt()
-        val minute = m.groupValues[2].toInt()
-        val ampm = m.groupValues[3].lowercase(Locale.ROOT)
-        if (ampm.startsWith("p") && hour < 12) hour += 12
-        if (ampm.startsWith("a") && hour == 12) hour = 0
-        if (hour in 0..23 && minute in 0..59) {
-            val cal = Calendar.getInstance().apply {
-                timeInMillis = nowMs
-                set(Calendar.HOUR_OF_DAY, hour); set(Calendar.MINUTE, minute); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
-            }
-            if (cal.timeInMillis < nowMs - 60_000L) cal.add(Calendar.DAY_OF_MONTH, 1)
-            return cal.timeInMillis
-        }
+    val byMinutes = etaMinutes(eta)?.let { nowMs + it * 60_000L }
+    val m = etaSegments(eta).firstNotNullOfOrNull(::clockOf) ?: return byMinutes
+    var hour = m.groupValues[1].toInt()
+    val minute = m.groupValues[2].toInt()
+    val ampm = m.groupValues[3].lowercase(Locale.ROOT)
+    if (ampm.startsWith("p") && hour < 12) hour += 12
+    if (ampm.startsWith("a") && hour == 12) hour = 0
+    if (hour !in 0..23 || minute !in 0..59) return byMinutes
+    val cal = Calendar.getInstance().apply {
+        timeInMillis = nowMs
+        set(Calendar.HOUR_OF_DAY, hour); set(Calendar.MINUTE, minute); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
     }
-    return etaMinutes(eta)?.let { nowMs + it * 60_000L }
+    val at = cal.timeInMillis
+    return when {
+        at >= nowMs - 60_000L -> at
+        nowMs - at <= STALE_CLOCK_MS -> maxOf(byMinutes ?: nowMs, nowMs)
+        else -> cal.apply { add(Calendar.DAY_OF_MONTH, 1) }.timeInMillis
+    }
 }
 
 /** Sunset (the sun's centre 0.833° under the horizon) between [fromMs] and [toMs] at [lat], [lon], to five minutes; null if none. */

@@ -26,7 +26,7 @@
     <string name="canvas_tab_done">Kész</string>
     <string name="canvas_tab_name">Név</string>
     <string name="canvas_tab_when">Magától megjelenik, ha</string>
-    <string name="canvas_tab_when_hint">Parkolva: indításkor vagy 2 perc állás után. A kiválasztott elemre újra koppintva kikapcsolja.</string>
+    <string name="canvas_tab_when_hint">Parkolva: vezetés után 2 perc állás, indításkor soha. A kiválasztott elemre újra koppintva kikapcsolja.</string>
     <string name="canvas_map_title">A műszerfal alatt</string>
     <string name="canvas_map_builtin">Beépített térkép</string>
     <string name="canvas_map_builtin_hint">A Dashwheel saját térképe, lapozható műszerfalakkal.</string>

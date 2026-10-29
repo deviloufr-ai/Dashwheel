@@ -25,7 +25,7 @@
     <string name="canvas_tab_done">OK</string>
     <string name="canvas_tab_name">Nom</string>
     <string name="canvas_tab_when">S\'affiche tout seul</string>
-    <string name="canvas_tab_when_hint">À l\'arrêt : au démarrage, ou arrêté depuis 2 minutes. Touchez à nouveau un choix pour l\'enlever.</string>
+    <string name="canvas_tab_when_hint">À l\'arrêt : arrêté depuis 2 minutes après avoir roulé, jamais au démarrage. Touchez à nouveau un choix pour l\'enlever.</string>
     <string name="canvas_map_title">Sous le tableau de bord</string>
     <string name="canvas_map_builtin">Carte intégrée</string>
     <string name="canvas_map_builtin_hint">La carte de Dashwheel, avec des tableaux de bord à faire glisser.</string>
