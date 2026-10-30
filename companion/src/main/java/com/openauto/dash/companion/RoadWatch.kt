@@ -11,6 +11,7 @@ import android.media.AudioManager
 import android.media.ToneGenerator
 import android.os.Bundle
 import android.os.Looper
+import android.os.PowerManager
 import android.os.SystemClock
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
@@ -375,7 +376,7 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
             fps = frames
             frames = 0
             framesSince = now
-            RoadStats.update(fps, vehicles, took)
+            RoadStats.update(fps, vehicles, took) { app.getSystemService(PowerManager::class.java)?.currentThermalStatus ?: -1 }
         }
         _view.value = RoadView(
             frameW = uprightW, frameH = uprightH,
@@ -476,18 +477,21 @@ object RoadStats {
     @Volatile private var cpuMs = 0f
     /** The camera's zoom. */
     @Volatile var zoom = 1f
+    private val minutes = RoadMinutes()
 
     fun trial(gpuMs: Float, cpuMs: Float) {
         this.gpuMs = gpuMs
         this.cpuMs = cpuMs
     }
 
-    fun update(fps: Int, detector: RoadDetector?, took: FloatArray) {
+    /** [heat]: the phone's thermal status, read once a minute. */
+    fun update(fps: Int, detector: RoadDetector?, took: FloatArray, heat: () -> Int) {
         this.fps = fps
         runMs = detector?.runMs ?: 0f
         gpu = detector?.onGpu
         this.took = took.copyOf()
         at = System.currentTimeMillis()
+        minutes.add(at) { RoadMinute(at, fps, runMs, took[3], detector?.onGpu, heat()) }
     }
 
     fun json(): org.json.JSONObject = org.json.JSONObject()
@@ -504,4 +508,38 @@ object RoadStats {
         .put("trialCpuMs", cpuMs.toDouble())
         .put("zoom", zoom.toDouble())
         .put("at", at)
+        .put("minutes", org.json.JSONArray(minutes.all().map { m ->
+            org.json.JSONObject()
+                .put("at", m.at)
+                .put("fps", m.fps)
+                .put("modelMs", m.modelMs.toDouble())
+                .put("frameMs", m.frameMs.toDouble())
+                .put("gpu", m.gpu)
+                .put("heat", m.heat)
+        }))
+}
+
+/** One minute of Road watch: does the model slow down as the phone heats up? [heat]: PowerManager's thermal status, 0 none to 6 shutdown. */
+class RoadMinute(val at: Long, val fps: Int, val modelMs: Float, val frameMs: Float, val gpu: Boolean?, val heat: Int)
+
+/** At most one reading a minute, the latest [KEEP] (three hours). */
+class RoadMinutes {
+    private val kept = ArrayDeque<RoadMinute>()
+    private var lastAt = Long.MIN_VALUE
+
+    @Synchronized
+    fun add(now: Long, reading: () -> RoadMinute) {
+        if (lastAt != Long.MIN_VALUE && now - lastAt < EVERY_MS) return
+        lastAt = now
+        kept.addLast(reading())
+        if (kept.size > KEEP) kept.removeFirst()
+    }
+
+    @Synchronized
+    fun all(): List<RoadMinute> = kept.toList()
+
+    private companion object {
+        const val EVERY_MS = 60_000L
+        const val KEEP = 180
+    }
 }
