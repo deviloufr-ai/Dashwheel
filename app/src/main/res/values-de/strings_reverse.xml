@@ -3,7 +3,7 @@
     <string name="reverse_title">Rückfahransicht</string>
     <string name="reverse_settings_detail">Hilfslinien und Parkradar über der Rückfahrkamera</string>
     <string name="reverse_switch">Dashwheels Rückfahransicht</string>
-    <string name="reverse_switch_detail">Linien, die dem Lenkrad folgen, das Parkradar und dein Auto über der Rückfahrkamera.</string>
+    <string name="reverse_switch_detail">Linien, die dem Lenkrad folgen, das Parkradar und dein Auto über der Rückfahrkamera. Aus, zeigt das Auto seine Kamera wie zuvor.</string>
     <string name="reverse_needs_access">Schalte Dashwheels Bedienungshilfe ein: nur so kann über der Kamera gezeichnet werden.</string>
     <string name="reverse_layout_title">Anzeige</string>
     <string name="reverse_layout_both">Kamera und Radar</string>
@@ -14,7 +14,7 @@
     <string name="reverse_stock_keep">Behalten</string>
     <string name="reverse_stock_hide">Ausblenden</string>
     <string name="reverse_stock_hint_keep">Die Linien der Auto-App bleiben unter denen von Dashwheel. Die Lenklinien springen in Schritten von etwa 12°.</string>
-    <string name="reverse_stock_hint_hide">Nur Dashwheels Linien, flüssiger. Root nötig.</string>
+    <string name="reverse_stock_hint_hide">Experimentell: nur Dashwheels Linien, flüssiger. Root nötig.</string>
     <string name="reverse_stock_failed">Konnte sie nicht ändern. Dafür ist Root nötig.</string>
     <string name="reverse_lines_title">Ausrichten</string>
     <string name="reverse_lines_hint">Lege R ein und tippe auf dem Rückfahrbild auf Anpassen, um die Linien an die Straße anzupassen.</string>
@@ -34,9 +34,17 @@
     <string name="reverse_near_far">Etwas dahinter</string>
     <string name="reverse_picture_title">Kamerabild</string>
     <string name="reverse_picture_rom">Auto-App</string>
-    <string name="reverse_picture_own">Dashwheel</string>
+    <string name="reverse_picture_own">Dashwheel (experimentell)</string>
     <string name="reverse_picture_hint_rom">Die Auto-App zeigt die Kamera, Dashwheel zeichnet darüber.</string>
     <string name="reverse_picture_hint_own">Experimentell: Dashwheel zeigt die Kamera selbst. Kommt kein Bild, ist das der Auto-App nach Sekunden zurück.</string>
+    <string name="reverse_back">Kamera des Autos</string>
+    <string name="reverse_back_detail">Zurück dazu, wie das Auto seine Kamera gezeigt hat: sein Bild, seine Linien, keine Rückfahransicht.</string>
+    <string name="reverse_back_done">Zurück zur Kamera des Autos. Ab dem nächsten Rückwärtsgang zeigt es wieder sein Bild und seine Linien.</string>
+    <string name="reverse_back_lines">Zurück zur Kamera des Autos, aber seine Linien ließen sich nicht zurückholen: dafür ist Root nötig.</string>
+    <string name="reverse_voice_title">Stimme beim Rückwärtsfahren</string>
+    <string name="reverse_voice_quiet">Still beim Rückwärtsfahren</string>
+    <string name="reverse_voice_quiet_detail">Dashwheels Stimme wartet, damit du die Parksensoren hörst, und sagt nach dem Rückwärtsgang, was sie zu sagen hatte.</string>
+    <string name="reverse_voice_talk_detail">Dashwheels Stimme spricht im Rückwärtsgang weiter, über die Parksensoren hinweg.</string>
     <string name="reverse_picture_denied">Dashwheel braucht dafür die Kamera-Berechtigung.</string>
     <string name="reverse_picture_failed">Dashwheel bekam die Kamera nicht: Bild der Auto-App</string>
     <string name="reverse_side_left">Links: %1$d cm</string>

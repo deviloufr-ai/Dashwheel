@@ -4,7 +4,7 @@
     <string name="reverse_title">Atbulinės vaizdas</string>
     <string name="reverse_settings_detail">Kreipiamosios linijos ir parkavimo radaras ant galinio vaizdo kameros</string>
     <string name="reverse_switch">Dashwheel atbulinės vaizdas</string>
-    <string name="reverse_switch_detail">Vairą sekančios linijos, parkavimo radaras ir jūsų automobilis ant galinio vaizdo kameros.</string>
+    <string name="reverse_switch_detail">Vairą sekančios linijos, parkavimo radaras ir jūsų automobilis ant galinio vaizdo kameros. Išjungus automobilis rodo savo kamerą kaip anksčiau.</string>
     <string name="reverse_needs_access">Įjunkite Dashwheel pritaikymo neįgaliesiems paslaugą: tik taip galima piešti ant kameros vaizdo.</string>
     <string name="reverse_layout_title">Ekrane</string>
     <string name="reverse_layout_both">Kamera ir radaras</string>
@@ -15,7 +15,7 @@
     <string name="reverse_stock_keep">Palikti</string>
     <string name="reverse_stock_hide">Slėpti</string>
     <string name="reverse_stock_hint_keep">Automobilio programos linijos lieka po Dashwheel linijomis. Vairo linijos juda maždaug 12° žingsniais.</string>
-    <string name="reverse_stock_hint_hide">Tik Dashwheel linijos, sklandesnės. Reikia root.</string>
+    <string name="reverse_stock_hint_hide">Eksperimentinė: tik Dashwheel linijos, sklandesnės. Reikia root.</string>
     <string name="reverse_stock_failed">Nepavyko jų pakeisti. Tam reikia root.</string>
     <string name="reverse_lines_title">Sulygiuokite linijas</string>
     <string name="reverse_lines_hint">Įjunkite R, tada atbulinės ekrane palieskite Reguliuoti ir priderinkite linijas prie kelio.</string>
@@ -35,9 +35,17 @@
     <string name="reverse_near_far">Kažkas už jūsų</string>
     <string name="reverse_picture_title">Kameros vaizdas</string>
     <string name="reverse_picture_rom">Automobilio programa</string>
-    <string name="reverse_picture_own">Dashwheel</string>
+    <string name="reverse_picture_own">Dashwheel (eksperimentinė)</string>
     <string name="reverse_picture_hint_rom">Automobilio programa rodo kamerą, o Dashwheel piešia ant jos.</string>
     <string name="reverse_picture_hint_own">Eksperimentinė: Dashwheel pats rodo kamerą. Jei vaizdo nėra, per kelias sekundes grįžta automobilio programos vaizdas.</string>
+    <string name="reverse_back">Automobilio kamera</string>
+    <string name="reverse_back_detail">Grąžinti taip, kaip automobilis rodė savo kamerą: jo vaizdą, jo linijas, be atbulinės eigos rodinio.</string>
+    <string name="reverse_back_done">Grąžinta automobilio kamera. Nuo kitos atbulinės eigos jis vėl rodo savo vaizdą ir linijas.</string>
+    <string name="reverse_back_lines">Grąžinta automobilio kamera, bet jo linijų grąžinti nepavyko: tam reikia root.</string>
+    <string name="reverse_voice_title">Balsas važiuojant atbuline eiga</string>
+    <string name="reverse_voice_quiet">Tyla važiuojant atbuline eiga</string>
+    <string name="reverse_voice_quiet_detail">Dashwheel balsas laukia, kad girdėtumėte parkavimo jutiklius, ir pasako, ką turėjo pasakyti, kai atbulinė eiga baigiasi.</string>
+    <string name="reverse_voice_talk_detail">Dashwheel balsas toliau kalba važiuojant atbuline eiga, virš parkavimo jutiklių.</string>
     <string name="reverse_picture_denied">Tam Dashwheel reikia leidimo naudoti kamerą.</string>
     <string name="reverse_picture_failed">Dashwheel negavo kameros: tai automobilio programos vaizdas</string>
     <string name="reverse_side_left">Kairė pusė: %1$d cm</string>

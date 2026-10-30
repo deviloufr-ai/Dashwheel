@@ -3,7 +3,7 @@
     <string name="reverse_title">Vista de marcha atrás</string>
     <string name="reverse_settings_detail">Líneas guía y radar de aparcamiento sobre la cámara trasera</string>
     <string name="reverse_switch">Vista de marcha atrás de Dashwheel</string>
-    <string name="reverse_switch_detail">Líneas que siguen el volante, el radar de aparcamiento y tu coche, sobre la cámara trasera.</string>
+    <string name="reverse_switch_detail">Líneas que siguen el volante, el radar de aparcamiento y tu coche, sobre la cámara trasera. Apagado, el coche muestra su cámara como antes.</string>
     <string name="reverse_needs_access">Activa el servicio de accesibilidad de Dashwheel: es la única forma de dibujar sobre la cámara.</string>
     <string name="reverse_layout_title">En pantalla</string>
     <string name="reverse_layout_both">Cámara y radar</string>
@@ -14,7 +14,7 @@
     <string name="reverse_stock_keep">Mantener</string>
     <string name="reverse_stock_hide">Ocultar</string>
     <string name="reverse_stock_hint_keep">Las líneas de la app del coche quedan bajo las de Dashwheel. Las de dirección se mueven en pasos de unos 12°.</string>
-    <string name="reverse_stock_hint_hide">Solo las líneas de Dashwheel, más suaves. Necesita root.</string>
+    <string name="reverse_stock_hint_hide">Experimental: solo las líneas de Dashwheel, más suaves. Necesita root.</string>
     <string name="reverse_stock_failed">No se pudieron cambiar. Necesita root.</string>
     <string name="reverse_lines_title">Alinearlas</string>
     <string name="reverse_lines_hint">Mete la marcha atrás y toca Ajustar en la pantalla de marcha atrás para encajar las líneas con la calzada.</string>
@@ -34,9 +34,17 @@
     <string name="reverse_near_far">Algo detrás</string>
     <string name="reverse_picture_title">Imagen de la cámara</string>
     <string name="reverse_picture_rom">App del coche</string>
-    <string name="reverse_picture_own">Dashwheel</string>
+    <string name="reverse_picture_own">Dashwheel (experimental)</string>
     <string name="reverse_picture_hint_rom">La app del coche muestra la cámara y Dashwheel dibuja encima.</string>
     <string name="reverse_picture_hint_own">Experimental: Dashwheel muestra la cámara por sí mismo. Si no llega imagen, la de la app del coche vuelve en segundos.</string>
+    <string name="reverse_back">Cámara del coche</string>
+    <string name="reverse_back_detail">Volver a como el coche mostraba su cámara: su imagen, sus líneas, sin vista de marcha atrás.</string>
+    <string name="reverse_back_done">De vuelta a la cámara del coche. Desde la próxima marcha atrás vuelve a mostrar su imagen y sus líneas.</string>
+    <string name="reverse_back_lines">De vuelta a la cámara del coche, pero sus líneas no se pudieron recuperar: eso necesita root.</string>
+    <string name="reverse_voice_title">Voz en marcha atrás</string>
+    <string name="reverse_voice_quiet">Silencio en marcha atrás</string>
+    <string name="reverse_voice_quiet_detail">La voz de Dashwheel espera para que oigas los sensores de aparcamiento, y dice lo que tenía que decir cuando termina la marcha atrás.</string>
+    <string name="reverse_voice_talk_detail">La voz de Dashwheel sigue hablando en marcha atrás, por encima de los sensores de aparcamiento.</string>
     <string name="reverse_picture_denied">Dashwheel necesita el permiso de cámara para esto.</string>
     <string name="reverse_picture_failed">Dashwheel no pudo usar la cámara: imagen de la app del coche</string>
     <string name="reverse_side_left">Lado izquierdo: %1$d cm</string>
