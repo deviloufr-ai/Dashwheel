@@ -56,6 +56,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.openauto.dash.unit.fyt.FytKeys
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -200,6 +201,7 @@ private fun WheelMap(buttons: List<WheelButton>, onOpen: (String) -> Unit, onAdd
     val candidate by SteeringWheelStore.candidate.collectAsState()
     val waiting = buttons.firstOrNull { it.uid == listeningFor }
     MapStatus(waiting, candidate)
+    UnitKeysStatus()
     // The CAN stream is read through root: where there is none, there is
     // nothing to report about it (see PrivilegedShell).
     if (shellAccess().root) CanStatus()
@@ -274,6 +276,48 @@ private fun MapStatus(waiting: WheelButton?, candidate: WheelKey?) {
         if (waiting != null) {
             TextButton(onClick = { SteeringWheelStore.listenFor(null) }) { Text(stringResource(R.string.dash_cancel)) }
         }
+    }
+}
+
+/**
+ * On an FYT unit (Joying, Atoto...) the firmware keeps the wheel keys to
+ * itself until Dashwheel takes them (FytKeys): pressing them puts nothing on
+ * the map, so the map says so and takes them from here. Once asked for, what
+ * still stands in the way until the firmware hands them over: the taking
+ * needs a shell. Given a few seconds before saying so.
+ */
+@Composable
+private fun UnitKeysStatus() {
+    val keys = UnitPlatform.adapter.keys as? FytKeys ?: return
+    val taking by keys.taking.collectAsState()
+    val listening by keys.listening.collectAsState()
+    var waited by remember { mutableStateOf(false) }
+    LaunchedEffect(taking) {
+        waited = false
+        delay(4_000)
+        waited = true
+    }
+    when {
+        !taking -> Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(DashShape.Small)
+                .background(DashColors.Warning.copy(alpha = 0.12f))
+                .padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                stringResource(R.string.wheel_unit_keys_off),
+                color = DashColors.TextPrimary,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.weight(1f)
+            )
+            TextButton(onClick = { keys.setTaking(true) }) {
+                Text(stringResource(R.string.wheel_unit_keys_take), color = DashColors.Warning, fontWeight = FontWeight.Bold)
+            }
+        }
+        listening -> Text(stringResource(R.string.wheel_unit_keys_live), color = DashColors.Good, style = MaterialTheme.typography.bodySmall)
+        waited -> Text(stringResource(R.string.wheel_unit_keys_waiting), color = DashColors.Warning, style = MaterialTheme.typography.bodySmall)
     }
 }
 
@@ -417,11 +461,27 @@ private fun WheelButtonDetail(button: WheelButton, onPickAction: () -> Unit, onP
         ) { SteeringWheelStore.setUnitIgnores(button.uid, it) }
     }
     SettingsSection(stringResource(R.string.wheel_signal_section))
-    Text(
-        if (key != null) stringResource(R.string.wheel_signal, wheelKeyLabel(key)) else stringResource(R.string.wheel_silent_title),
-        color = if (key != null) DashColors.TextPrimary else DashColors.Warning,
-        style = MaterialTheme.typography.bodyMedium
-    )
+    if (key?.log != null) {
+        // Learned from a log line: the driver trims the text down to what names the button.
+        var match by remember(button.uid) { mutableStateOf(key.log) }
+        OutlinedTextField(
+            value = match,
+            onValueChange = {
+                match = it
+                SteeringWheelStore.setLogMatch(button.uid, it)
+            },
+            label = { Text(stringResource(R.string.wheel_log_match_label)) },
+            modifier = Modifier.fillMaxWidth(),
+            colors = fieldColors()
+        )
+        Text(stringResource(R.string.wheel_log_hint), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+    } else {
+        Text(
+            if (key != null) stringResource(R.string.wheel_signal, wheelKeyLabel(key)) else stringResource(R.string.wheel_silent_title),
+            color = if (key != null) DashColors.TextPrimary else DashColors.Warning,
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
     if (key == null) SilentTips()
     OutlinedButton(onClick = onListen, modifier = Modifier.fillMaxWidth()) {
         Icon(Icons.Filled.Hearing, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -471,6 +531,7 @@ private fun wheelKeyLabel(key: WheelKey): String = when {
     key.canKey != null -> stringResource(R.string.wheel_can_button, key.canHex.orEmpty())
     key.vendor == CarBoxKeys.VENDOR -> stringResource(R.string.wheel_can_button, wheelBoxLabel(key.vendorCode))
     key.input != null -> key.input
+    key.log != null -> key.log
     key.keyCode == KeyEvent.KEYCODE_UNKNOWN -> stringResource(R.string.wheel_raw_button, key.scanCode)
     // The head unit's own keys (HeadUnitKeys): by the name on the button.
     key.keyCode >= HeadUnitKeys.FIRST_VENDOR_KEY -> HeadUnitKeys.nameRes[key.keyCode]?.let { stringResource(it) }
@@ -656,6 +717,10 @@ private fun MonitorPanel() {
             color = DashColors.TextSecondary,
             style = MaterialTheme.typography.bodySmall
         )
+        // The raw input and the log are read through root: without it, two of the four sources stay dark.
+        if (Edition.full && !shellAccess().root) {
+            Text(stringResource(R.string.wheel_monitor_no_root), color = DashColors.Muted, style = MaterialTheme.typography.bodySmall)
+        }
         lines.forEach { line ->
             val learn = line.learn
             Row(

@@ -126,4 +126,11 @@
     <string name="wheel_reset_body">Kiekvienas mygtukas paliks žemėlapį ir praras savo veiksmą. Vairas vėl veiks taip, kaip numatyta magnetoloje.</string>
     <string name="wheel_reset_confirm">Atkurti</string>
     <string name="wheel_action_stop_guidance">Stabdyti navigaciją</string>
+    <string name="wheel_unit_keys_off">Šios magnetolos programinė įranga vairo mygtukus pasilieka sau. Leiskite Dashwheel juos perimti: jos pačios programos tuo metu juos praranda.</string>
+    <string name="wheel_unit_keys_take">Perimti</string>
+    <string name="wheel_unit_keys_waiting">Dashwheel paprašė programinės įrangos vairo mygtukų ir jų dar negavo. Tam reikia root, Shizuku arba magnetolos ADB.</string>
+    <string name="wheel_unit_keys_live">Klausomasi magnetolos vairo mygtukų</string>
+    <string name="wheel_monitor_no_root">Be root čia rodomi tik Android klavišai ir pačios magnetolos mygtukai. Neapdorotai įvesčiai ir žurnalui reikia root.</string>
+    <string name="wheel_log_match_label">Žurnalo eilutėje yra</string>
+    <string name="wheel_log_hint">Veikia kaskart, kai magnetolos žurnale pasirodo eilutė su šiuo tekstu. Sutrumpinkite jį iki dalies, kuri įvardija mygtuką.</string>
 </resources>

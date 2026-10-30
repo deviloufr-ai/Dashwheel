@@ -126,12 +126,12 @@ internal fun HeadUnitSheet(onDismiss: () -> Unit) {
             }
         }
 
-        // The FYT wheel keys are opt-in: the firmware's own apps lose them meanwhile.
-        if (family == UnitFamily.FYT && adapter.caps.has(Cap.UNIT_KEYS)) {
-            var take by remember { mutableStateOf(FytKeys.enabled(context)) }
+        // The FYT wheel keys are opt-in: the firmware's own apps lose them meanwhile. Taken or given back at once.
+        val fytKeys = adapter.keys as? FytKeys
+        if (family == UnitFamily.FYT && fytKeys != null) {
+            val take by fytKeys.taking.collectAsState()
             SettingsToggle(Icons.Filled.DirectionsCar, stringResource(R.string.unit_fyt_keys_title), stringResource(R.string.unit_fyt_keys_detail), take) {
-                take = it
-                FytKeys.setEnabled(context, it)
+                fytKeys.setTaking(it)
             }
         }
 

@@ -32,7 +32,11 @@ import java.util.UUID
  * - another firmware's own key code ([vendor] names the firmware, "fyt",
  *   [vendorCode] its number), from its [KeySource]: no Android key at all;
  * - the CAN box's own code for the button ([vendor] [CarBoxKeys.VENDOR]),
- *   which tells apart buttons the firmware gives the same key.
+ *   which tells apart buttons the firmware gives the same key;
+ * - a line of the unit's log ([log], the text a line must contain, read with
+ *   root `logcat` by [WheelMonitor]): a firmware that logs each wheel key and
+ *   hands it to no app. The driver taps the line on the map, then trims the
+ *   text down to the part that names the button.
  */
 internal data class WheelKey(
     val keyCode: Int,
@@ -41,16 +45,21 @@ internal data class WheelKey(
     val canHex: String? = null,
     val input: String? = null,
     val vendor: String? = null,
-    val vendorCode: Int = 0
+    val vendorCode: Int = 0,
+    val log: String? = null
 ) {
     val id: String
         get() = when {
             vendor != null -> "v:$vendor:$vendorCode"
             canKey != null -> "c:$canKey=$canHex"
             input != null -> "i:$input"
+            log != null -> "l:$log"
             keyCode != KeyEvent.KEYCODE_UNKNOWN -> "k$keyCode"
             else -> "s$scanCode"
         }
+
+    /** Whether the log line [line] ([WheelMonitor.logPattern]) is this button's: it holds the learned text. */
+    fun matchesLog(line: String): Boolean = log != null && log.isNotEmpty() && line.contains(log)
 
     /** A readable name: "Media Next", "Volume Up"... The map words the raw and CAN ones in the chosen language. */
     val label: String
@@ -59,6 +68,7 @@ internal data class WheelKey(
             if (vendor != null) return "${vendor.uppercase()} key $vendorCode"
             if (canKey != null) return "CAN $canKey: $canHex"
             if (input != null) return input
+            if (log != null) return log
             if (keyCode == KeyEvent.KEYCODE_UNKNOWN) return "Button #$scanCode"
             // The head unit's own keys ([HeadUnitKeys]) have no Android name: the map words them.
             if (keyCode >= HeadUnitKeys.FIRST_VENDOR_KEY) return "Key $keyCode"
@@ -72,10 +82,11 @@ internal data class WheelKey(
     /**
      * Which way to keep when one press shows up several ways at once: the one
      * that takes the least to hear afterwards. A key reaches Dashwheel by
-     * itself; an input event or a CAN frame needs a root reader running.
+     * itself; an input event, a CAN frame or a log line needs a root reader running.
      */
     val rank: Int
         get() = when {
+            log != null -> 4
             canKey != null -> 3
             input != null -> 2
             keyCode == KeyEvent.KEYCODE_UNKNOWN -> 1
@@ -86,6 +97,7 @@ internal data class WheelKey(
         fun can(key: String, hex: String) = WheelKey(KeyEvent.KEYCODE_UNKNOWN, 0, canKey = key, canHex = hex)
         fun input(name: String) = WheelKey(KeyEvent.KEYCODE_UNKNOWN, 0, input = name)
         fun vendor(vendor: String, code: Int) = WheelKey(KeyEvent.KEYCODE_UNKNOWN, 0, vendor = vendor, vendorCode = code)
+        fun log(text: String) = WheelKey(KeyEvent.KEYCODE_UNKNOWN, 0, log = text)
     }
 }
 
@@ -194,8 +206,8 @@ internal fun bestOf(keys: List<WheelKey>): WheelKey? = keys.minByOrNull { it.ran
  *
  * With the map closed, a press runs what its button is bound to, from
  * [MainActivity.dispatchKeyEvent] (or the accessibility service), the unit's
- * key service ([HeadUnitKeys]), the CAN stream ([McuReader.changes]) or the
- * input events ([WheelMonitor.inputPresses]).
+ * key service ([HeadUnitKeys]), the CAN stream ([McuReader.changes]), the
+ * input events ([WheelMonitor.inputPresses]) or the unit's log ([WheelMonitor.logLines]).
  */
 internal object SteeringWheelStore {
     private const val PREFS = "steering_wheel"
@@ -224,6 +236,8 @@ internal object SteeringWheelStore {
     private var holdsReader = false
     /** This store holds [WheelMonitor.holdInput]: while an input-event button does something. */
     private var holdsInput = false
+    /** This store holds [WheelMonitor.holdLog]: while a log-line button does something. */
+    private var holdsLog = false
 
     private val _buttons = MutableStateFlow<List<WheelButton>>(emptyList())
     val buttons: StateFlow<List<WheelButton>> = _buttons.asStateFlow()
@@ -265,6 +279,7 @@ internal object SteeringWheelStore {
         _buttons.value = load(appContext!!)
         scope.launch { McuReader.changes.collect { onCanChange(it) } }
         scope.launch { WheelMonitor.inputPresses.collect { onInputPress(it) } }
+        scope.launch { WheelMonitor.logLines.collect { onLogLine(it) } }
         updateReaders()
         syncSilenced(_buttons.value)
     }
@@ -310,6 +325,16 @@ internal object SteeringWheelStore {
     fun assignSecond(uid: String, assignment: WheelAssignment?) = update(uid) { it.copy(second = assignment) }
 
     fun setUnitIgnores(uid: String, ignores: Boolean) = update(uid) { it.copy(unitIgnores = ignores) }
+
+    /**
+     * The text a log line must contain for the button [uid], learned from a
+     * tapped line and trimmed by the driver down to what names the button
+     * (a process id or a count in it would change). Blank: left as it was.
+     */
+    fun setLogMatch(uid: String, text: String) {
+        val match = text.trim().ifEmpty { return }
+        update(uid) { if (it.key?.log != null) it.copy(key = WheelKey.log(match)) else it }
+    }
 
     /** Whether the unit can be told to ignore [key]: a CAN box code, on a rooted QF unit. */
     fun canSilence(key: WheelKey?): Boolean =
@@ -439,6 +464,11 @@ internal object SteeringWheelStore {
         if (input != holdsInput) {
             holdsInput = input
             WheelMonitor.holdInput(input)
+        }
+        val log = bound.any { it.log != null }
+        if (log != holdsLog) {
+            holdsLog = log
+            WheelMonitor.holdLog(log)
         }
     }
 
@@ -645,6 +675,20 @@ internal object SteeringWheelStore {
         run(appContext ?: return, key, bound(key) ?: return)
     }
 
+    /**
+     * A line of the unit's log ([WheelMonitor.logLines], tidied). On the map a
+     * button learned from such a line lights up; a new line is learned only by
+     * tapping it there ([learnFromMonitor]), since the log says much that is no
+     * button. Off the map, the button runs what it is bound to. A key the
+     * firmware logs on its way down and up runs once ([run]'s pacing).
+     */
+    private fun onLogLine(line: String) {
+        val button = _buttons.value.firstOrNull { it.key?.matchesLog(line) == true } ?: return
+        val key = button.key ?: return
+        if (_mapping.value) return count(key)
+        run(appContext ?: return, key, bound(key) ?: return)
+    }
+
     private fun onCanChange(change: McuReader.Change) {
         val e = change.entry
         val pressed = detector.onChange(e.key, change.previousHex, e.hex, e.changedAt)
@@ -819,6 +863,7 @@ private fun WheelButton.toJson(): JSONObject {
         if (k.canKey != null) obj.put("canKey", k.canKey).put("canHex", k.canHex)
         if (k.input != null) obj.put("input", k.input)
         if (k.vendor != null) obj.put("vendor", k.vendor).put("vendorCode", k.vendorCode)
+        if (k.log != null) obj.put("log", k.log)
     }
     assignment?.let { obj.putAssignment(it, "") }
     // Mode 2's action under the same names with a 2: a map saved before mode 2 reads as having none.
@@ -847,6 +892,7 @@ private fun JSONObject.toButton(): WheelButton {
         has("vendor") -> WheelKey.vendor(optString("vendor"), optInt("vendorCode", 0))
         canKey != null && canHex != null -> WheelKey.can(canKey, canHex)
         has("input") -> WheelKey.input(optString("input"))
+        has("log") -> WheelKey.log(optString("log"))
         has("keyCode") -> WheelKey(optInt("keyCode", KeyEvent.KEYCODE_UNKNOWN), optInt("scanCode", 0))
         else -> null
     }

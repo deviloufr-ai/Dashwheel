@@ -19,7 +19,7 @@
     <string name="unit_applied">Fait</string>
     <string name="unit_open_whitelist">Ouvrir l\'appli de liste blanche</string>
     <string name="unit_fyt_keys_title">Prendre les touches du volant</string>
-    <string name="unit_fyt_keys_detail">Après un redémarrage, le firmware confie ses touches du volant et de la façade à Dashwheel. Ses propres applis les perdent pendant ce temps.</string>
+    <string name="unit_fyt_keys_detail">Le firmware confie ses touches du volant et de la façade à Dashwheel. Ses propres applis les perdent pendant ce temps.</string>
     <string name="unit_needs_firmware">Demande le firmware %1$s</string>
     <string name="unit_family_qf">QF (Hizpo, ROCO K706)</string>
     <string name="unit_family_fyt">FYT (Joying, Atoto, Mekede)</string>
