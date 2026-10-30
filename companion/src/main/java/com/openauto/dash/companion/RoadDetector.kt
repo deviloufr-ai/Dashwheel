@@ -15,6 +15,7 @@ import android.os.SystemClock
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.gpu.CompatibilityList
 import org.tensorflow.lite.gpu.GpuDelegate
+import org.tensorflow.lite.gpu.GpuDelegateFactory
 import java.io.File
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -205,7 +206,10 @@ class RoadDetector private constructor(private val interpreter: Interpreter, pri
             if (!RoadModel.check(context)) return null
             val gpu = if (!onGpu) null else runCatching {
                 val phone = CompatibilityList()
-                if (phone.isDelegateSupportedOnThisDevice) GpuDelegate(phone.bestOptionsForThisDevice) else null
+                // The default is tuned for one quick answer; this model runs for the whole drive.
+                if (phone.isDelegateSupportedOnThisDevice) {
+                    GpuDelegate(phone.bestOptionsForThisDevice.setInferencePreference(GpuDelegateFactory.Options.INFERENCE_PREFERENCE_SUSTAINED_SPEED))
+                } else null
             }.getOrNull()
             if (gpu != null) {
                 runCatching { RoadDetector(Interpreter(RoadModel.file(context), Interpreter.Options().addDelegate(gpu)), gpu) }
