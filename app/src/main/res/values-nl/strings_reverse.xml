@@ -3,7 +3,7 @@
     <string name="reverse_title">Achteruitzicht</string>
     <string name="reverse_settings_detail">Hulplijnen en parkeerradar over de achteruitrijcamera</string>
     <string name="reverse_switch">Dashwheels achteruitzicht</string>
-    <string name="reverse_switch_detail">Lijnen die het stuur volgen, de parkeerradar en je auto, over de achteruitrijcamera.</string>
+    <string name="reverse_switch_detail">Lijnen die het stuur volgen, de parkeerradar en je auto, over de achteruitrijcamera. Uit, dan toont de auto zijn camera zoals voorheen.</string>
     <string name="reverse_needs_access">Zet de toegankelijkheidsdienst van Dashwheel aan: alleen zo kan er over de camera worden getekend.</string>
     <string name="reverse_layout_title">Op het scherm</string>
     <string name="reverse_layout_both">Camera en radar</string>
@@ -14,7 +14,7 @@
     <string name="reverse_stock_keep">Houden</string>
     <string name="reverse_stock_hide">Verbergen</string>
     <string name="reverse_stock_hint_keep">De lijnen van de auto-app blijven onder die van Dashwheel. De stuurlijnen verspringen in stappen van ongeveer 12°.</string>
-    <string name="reverse_stock_hint_hide">Alleen de lijnen van Dashwheel, vloeiender. Root nodig.</string>
+    <string name="reverse_stock_hint_hide">Experimenteel: alleen de lijnen van Dashwheel, vloeiender. Root nodig.</string>
     <string name="reverse_stock_failed">Kon ze niet wijzigen. Hiervoor is root nodig.</string>
     <string name="reverse_lines_title">Uitlijnen</string>
     <string name="reverse_lines_hint">Zet hem in R en tik op Afstellen op het achteruitrijscherm om de lijnen op de weg te leggen.</string>
@@ -34,9 +34,17 @@
     <string name="reverse_near_far">Iets erachter</string>
     <string name="reverse_picture_title">Camerabeeld</string>
     <string name="reverse_picture_rom">Auto-app</string>
-    <string name="reverse_picture_own">Dashwheel</string>
+    <string name="reverse_picture_own">Dashwheel (experimenteel)</string>
     <string name="reverse_picture_hint_rom">De auto-app toont de camera en Dashwheel tekent eroverheen.</string>
     <string name="reverse_picture_hint_own">Experimenteel: Dashwheel toont de camera zelf. Komt er geen beeld, dan is dat van de auto-app binnen enkele seconden terug.</string>
+    <string name="reverse_back">Camera van de auto</string>
+    <string name="reverse_back_detail">Terug naar hoe de auto zijn camera toonde: zijn beeld, zijn lijnen, zonder achteruitrijweergave.</string>
+    <string name="reverse_back_done">Terug naar de camera van de auto. Vanaf de volgende keer achteruit toont hij weer zijn beeld en lijnen.</string>
+    <string name="reverse_back_lines">Terug naar de camera van de auto, maar zijn lijnen konden niet terug: daar is root voor nodig.</string>
+    <string name="reverse_voice_title">De stem bij achteruitrijden</string>
+    <string name="reverse_voice_quiet">Stil bij achteruitrijden</string>
+    <string name="reverse_voice_quiet_detail">De stem van Dashwheel wacht zodat je de parkeersensoren hoort, en zegt wat ze te zeggen had zodra de achteruit eruit is.</string>
+    <string name="reverse_voice_talk_detail">De stem van Dashwheel blijft praten bij achteruitrijden, over de parkeersensoren heen.</string>
     <string name="reverse_picture_denied">Dashwheel heeft hiervoor cameratoegang nodig.</string>
     <string name="reverse_picture_failed">Dashwheel kreeg de camera niet: beeld van de auto-app</string>
     <string name="reverse_side_left">Links: %1$d cm</string>

@@ -36,7 +36,7 @@ Dashwheel is free, with no ads. If it makes your drives nicer, a coffee on Ko-fi
 - **AI mechanic** (free Google Gemini key): fault codes explained and spoken, a sensor watch that speaks up when the car drifts from its usual before a fault code shows, start-up briefing, car care and servicing reminders
 - **Navigation**: free built-in 3D map with turn-by-turn guidance, or Google Maps / Waze next turn on any tile
 - **Phone link** (Dashwheel Companion app): notifications, messages, calls, typing and a touchpad that turns the phone into the car screen's mouse, where's my car, drive log, a warning-light photo explained by the AI, and a Rescue card for a car screen you're locked out of
-- **Your own alerts and reverse view** instead of the head unit's pop-ups
+- **Your own alerts and reverse view** instead of the head unit's pop-ups ([reverse view](docs/reverse-view.md))
 - **Road watch** (experimental, Dashwheel Companion): the phone in a windscreen holder watches the road with its camera; the car warns of a car ahead coming up fast, a wheel on the lane's line, following too close, and traffic moving off. Its **road recorder** (experimental too) keeps a one-minute clip around a knock, a hard brake, a warning or the hazard lights, with the time, place and the car's own speed in the picture, on the phone only
 - **Hands-free**: spoken alerts, steering-wheel buttons, volume that follows speed
 - **Share and automate**: share a dashboard and its look as a QR code or a short code; Tasker and similar apps can drive Dashwheel and react to the car ([automation](docs/automation.md))

@@ -7,10 +7,12 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.CameraCaptureSession
+import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
 import android.os.Handler
 import android.os.HandlerThread
+import android.os.SystemClock
 import android.util.Log
 import android.view.Surface
 import android.view.TextureView
@@ -63,9 +65,9 @@ internal object ReverseCamera {
     private val ROM_APP: String get() = rom?.romApp ?: "com.qf.backcar"
     /** The car app's reversing camera on the K706 (camera 0 is the other input); the driver may pick another ([LearnedSignals.cameraId]). */
     private val CAMERA_ID: String get() = LearnedSignals.cameraId.value ?: rom?.defaultCameraId ?: "1"
-    /** The ROM app's 1080p stream (AHD_1080P25). */
-    private const val WIDTH = 1920
-    private const val HEIGHT = 1080
+    /** The ROM app's 1080p stream (AHD_1080P25), asked for when the camera offers it ([pictureSize]). */
+    internal const val WIDTH = 1920
+    internal const val HEIGHT = 1080
     /** The video chip's input switch: 2 is the reversing camera. */
     private const val INPUT_SWITCH = "/sys/class/tp9950_class/tp9950_class_dev/auxvideo_backcvbs_switch"
     /** The ROM app opens the camera about 0.5 s after the reverse key; past this, it's stopped anyway. */
@@ -204,6 +206,11 @@ internal object ReverseCamera {
 
     /** The ROM app was stopped this reverse: on a failure, it has to be started again. */
     private var romStopped = false
+    /** When this reverse's try at the picture began (uptime), for the debug log's account of it ([took]). */
+    private var startedAt = 0L
+    private var romHadAt = 0L
+    private var romLetGoAt = 0L
+    private var picture = WIDTH to HEIGHT
 
     fun hasPermission(context: Context) =
         context.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
@@ -222,14 +229,18 @@ internal object ReverseCamera {
         val app = context.applicationContext
         view.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
             override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
-                texture.setDefaultBufferSize(WIDTH, HEIGHT)
                 opening?.cancel()
                 opening = scope.launch {
                     _state.value = State.TAKING
+                    startedAt = SystemClock.elapsedRealtime()
+                    romHadAt = 0L
+                    romLetGoAt = 0L
                     // As soon as the ROM app has the camera, it's asked to let go of it.
                     withTimeoutOrNull(ROM_OPEN_WAIT_MS) { _cameraFree.first { !it } }
+                    if (!_cameraFree.value) romHadAt = SystemClock.elapsedRealtime()
                     if (!stopRomCamera(app)) return@launch fail(app, "the car app's camera could not be stopped")
                     withTimeoutOrNull(CLOSE_WAIT_MS) { _cameraFree.first { it } }
+                    if (_cameraFree.value) romLetGoAt = SystemClock.elapsedRealtime()
                     open(app, texture, retry = true)
                 }
             }
@@ -237,14 +248,16 @@ internal object ReverseCamera {
             override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) = Unit
 
             override fun onSurfaceTextureDestroyed(texture: SurfaceTexture): Boolean {
-                close()
-                return true
+                // Released by close itself, once the camera has let go of it.
+                close(texture)
+                return false
             }
 
             override fun onSurfaceTextureUpdated(texture: SurfaceTexture) {
                 if (_state.value == State.OPENING && device != null) {
                     _state.value = State.LIVE
                     watchdog?.cancel()
+                    DebugLog.note(app, "Reverse picture: ${took()}, first frame after ${sinceStart()} ms at ${picture.first}x${picture.second}")
                     sample(view)
                     liveView = view
                     startMirror(view)
@@ -267,8 +280,11 @@ internal object ReverseCamera {
     private suspend fun stopRomCamera(context: Context): Boolean = runCatching {
         val after = RomAfterReverse(systemProperty(RomAfterReverse.FRONT_TIME), systemProperty(RomAfterReverse.RIGHT_CAMERA))
         try {
-            DockShell.shell(context, (after.off + "setprop sys.qf.backcar_state false" + "am broadcast -a com.qf.action.BACKCAR_STOP -p $ROM_APP").joinToString("; "))
+            // Noted before the shell runs: a stop that went through but whose answer
+            // never came must still be undone on a failure ([fail]). A start the ROM
+            // app didn't need is harmless; its picture missing is not.
             romStopped = true
+            DockShell.shell(context, (after.off + "setprop sys.qf.backcar_state false" + "am broadcast -a com.qf.action.BACKCAR_STOP -p $ROM_APP").joinToString("; "))
             delay(300)
         } catch (e: Throwable) {
             // The driver's front camera setting is never left off.
@@ -292,6 +308,15 @@ internal object ReverseCamera {
         val manager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         val id = runCatching { manager.cameraIdList.let { ids -> if (CAMERA_ID in ids) CAMERA_ID else ids.lastOrNull() } }.getOrNull()
             ?: return fail(context, "no camera")
+        // The size the camera offers, not the 1080p the ROM app streamed on the K706: the
+        // driver may have set it to 720p in the car app, and a buffer of the wrong size
+        // leaves the session unconfigured, with no picture from anyone (#108).
+        val offered = runCatching {
+            manager.getCameraCharacteristics(id).get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+                ?.getOutputSizes(SurfaceTexture::class.java)?.map { it.width to it.height }
+        }.getOrNull().orEmpty()
+        picture = pictureSize(offered)
+        texture.setDefaultBufferSize(picture.first, picture.second)
         val t = thread ?: HandlerThread("ReverseCamera").also { it.start(); thread = it }
         val handler = Handler(t.looper)
         _state.value = State.OPENING
@@ -373,6 +398,7 @@ internal object ReverseCamera {
     private fun fail(context: Context, why: String) {
         if (_state.value == State.FAILED) return
         Log.w(TAG, "own picture given up: $why")
+        DebugLog.note(context, "Reverse picture given up after ${sinceStart()} ms ($why): ${took()}")
         close()
         // Given up for this reverse. Once reverse is over (it ended while the
         // camera was being taken) there is nothing to give up, and "failed"
@@ -418,7 +444,17 @@ internal object ReverseCamera {
         }
     }
 
-    private fun close() {
+    private fun sinceStart() = SystemClock.elapsedRealtime() - startedAt
+
+    /** How this reverse's take went so far, for the debug log. */
+    private fun took(): String {
+        val had = if (romHadAt == 0L) "car app never took the camera" else "car app took the camera after ${romHadAt - startedAt} ms"
+        val let = if (romLetGoAt == 0L) "never let go" else "let go after ${romLetGoAt - startedAt} ms"
+        return "$had, $let"
+    }
+
+    /** Ends this try at the picture; [texture], the view's surface when it is going, is released once the camera is closed. */
+    private fun close(texture: SurfaceTexture? = null) {
         attempt++
         stopMirror()
         liveView = null
@@ -428,13 +464,40 @@ internal object ReverseCamera {
         opening = null
         watchdog?.cancel()
         watchdog = null
-        runCatching { session?.close() }
+        val s = session
+        val d = device
+        val sf = surface
         session = null
-        runCatching { device?.close() }
         device = null
-        surface?.release()
         surface = null
+        if (s == null && d == null && sf == null) {
+            texture?.release()
+            return
+        }
+        // Closing the camera waits for its driver, a second or more on some units:
+        // on the camera's own thread, or the screen hangs on the last frame after
+        // reverse ends (#109).
+        val release = Runnable {
+            runCatching { s?.close() }
+            runCatching { d?.close() }
+            sf?.release()
+            texture?.release()
+        }
+        thread?.let { Handler(it.looper).post(release) } ?: release.run()
     }
+}
+
+/**
+ * The picture size asked of the camera: [wantW] x [wantH] (the ROM app's
+ * 1080p stream) when [offered]; else the largest offered that fits in it,
+ * the car app's resolution setting having put the stream at 720p or 480p;
+ * else the smallest offered. Nothing offered (an older driver that lists no
+ * sizes): what was wanted, as before.
+ */
+internal fun pictureSize(offered: List<Pair<Int, Int>>, wantW: Int = ReverseCamera.WIDTH, wantH: Int = ReverseCamera.HEIGHT): Pair<Int, Int> {
+    if (offered.isEmpty() || (wantW to wantH) in offered) return wantW to wantH
+    return offered.filter { it.first <= wantW && it.second <= wantH }.maxByOrNull { it.first * it.second }
+        ?: offered.minByOrNull { it.first * it.second }!!
 }
 
 /** The camera's picture, full screen under the lines, turned the way the car app turns it. */

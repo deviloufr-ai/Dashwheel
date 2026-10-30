@@ -3,7 +3,7 @@
     <string name="reverse_title">Vue de recul</string>
     <string name="reverse_settings_detail">Lignes de guidage et radar de recul sur la caméra</string>
     <string name="reverse_switch">Vue de recul Dashwheel</string>
-    <string name="reverse_switch_detail">Des lignes qui suivent le volant, le radar de recul et votre voiture, sur la caméra de recul.</string>
+    <string name="reverse_switch_detail">Des lignes qui suivent le volant, le radar de recul et votre voiture, sur la caméra de recul. Désactivé, la voiture affiche sa caméra comme avant.</string>
     <string name="reverse_needs_access">Activez le service d\'accessibilité de Dashwheel : c\'est le seul moyen de dessiner sur la caméra.</string>
     <string name="reverse_layout_title">À l\'écran</string>
     <string name="reverse_layout_both">Caméra et radar</string>
@@ -14,7 +14,7 @@
     <string name="reverse_stock_keep">Garder</string>
     <string name="reverse_stock_hide">Masquer</string>
     <string name="reverse_stock_hint_keep">Les lignes de l\'app voiture restent sous celles de Dashwheel. Les lignes de braquage bougent par pas d\'environ 12°.</string>
-    <string name="reverse_stock_hint_hide">Seulement les lignes de Dashwheel, plus fluides. Root nécessaire.</string>
+    <string name="reverse_stock_hint_hide">Expérimental : seulement les lignes de Dashwheel, plus fluides. Root nécessaire.</string>
     <string name="reverse_stock_failed">Impossible de les changer. Root nécessaire.</string>
     <string name="reverse_lines_title">Les aligner</string>
     <string name="reverse_lines_hint">Passez la marche arrière, puis touchez Régler sur l\'écran de recul pour caler les lignes sur la route.</string>
@@ -34,9 +34,17 @@
     <string name="reverse_near_far">Obstacle derrière</string>
     <string name="reverse_picture_title">Image de la caméra</string>
     <string name="reverse_picture_rom">App voiture</string>
-    <string name="reverse_picture_own">Dashwheel</string>
+    <string name="reverse_picture_own">Dashwheel (expérimental)</string>
     <string name="reverse_picture_hint_rom">L\'app voiture affiche la caméra et Dashwheel dessine par-dessus.</string>
     <string name="reverse_picture_hint_own">Expérimental : Dashwheel affiche lui-même la caméra. Sans image, celle de l\'app voiture revient en quelques secondes.</string>
+    <string name="reverse_back">Caméra de la voiture</string>
+    <string name="reverse_back_detail">Retour à la caméra telle que la voiture l\'affichait : son image, ses lignes, sans vue de recul.</string>
+    <string name="reverse_back_done">Retour à la caméra de la voiture. Elle affiche à nouveau son image et ses lignes dès la prochaine marche arrière.</string>
+    <string name="reverse_back_lines">Retour à la caméra de la voiture, mais ses lignes n\'ont pas pu être rétablies : root nécessaire.</string>
+    <string name="reverse_voice_title">La voix en marche arrière</string>
+    <string name="reverse_voice_quiet">Silence en marche arrière</string>
+    <string name="reverse_voice_quiet_detail">La voix de Dashwheel attend pour laisser entendre le radar de recul, et dit ce qu\'elle avait à dire une fois la marche arrière terminée.</string>
+    <string name="reverse_voice_talk_detail">La voix de Dashwheel continue de parler en marche arrière, par-dessus le radar de recul.</string>
     <string name="reverse_picture_denied">Dashwheel a besoin de l\'autorisation caméra pour cela.</string>
     <string name="reverse_picture_failed">Dashwheel n\'a pas pu prendre la caméra : image de l\'app voiture</string>
     <string name="reverse_side_left">Côté gauche : %1$d cm</string>

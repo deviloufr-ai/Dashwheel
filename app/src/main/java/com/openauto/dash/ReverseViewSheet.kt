@@ -8,11 +8,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material.icons.filled.LayersClear
 import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.Terrain
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.ViewQuilt
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -68,7 +70,10 @@ internal fun ReverseViewSheet(onDismiss: () -> Unit) {
     val layout by ReverseView.layout.collectAsState()
     val hideStock by ReverseView.hideStock.collectAsState()
     val ownCamera by ReverseView.ownCamera.collectAsState()
+    val voiceQuiet by ReverseView.voiceQuiet.collectAsState()
     val denied = stringResource(R.string.reverse_picture_denied)
+    val backDone = stringResource(R.string.reverse_back_done)
+    val backLines = stringResource(R.string.reverse_back_lines)
     val askCamera = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) ReverseView.setOwnCamera(context, true) else Toast.makeText(context, denied, Toast.LENGTH_LONG).show()
     }
@@ -93,6 +98,28 @@ internal fun ReverseViewSheet(onDismiss: () -> Unit) {
         ) { ReverseView.setOn(context, it) }
         if (on && !SplitAccessibilityService.isConnected) {
             Text(stringResource(R.string.reverse_needs_access), color = DashColors.Warning, style = MaterialTheme.typography.bodySmall)
+        }
+        // Anything taken from the car's own camera screen: one way back to it, named as such (#111).
+        if (on || ownCamera || hideStock) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                Icon(Icons.Filled.Undo, contentDescription = null, tint = DashColors.TextSecondary, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.size(10.dp))
+                Text(
+                    stringResource(R.string.reverse_back_detail),
+                    color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.weight(1f)
+                )
+                SheetButton(stringResource(R.string.reverse_back), primary = false) {
+                    if (!busy) {
+                        busy = true
+                        scope.launch {
+                            val lines = ReverseView.backToCar(context)
+                            Toast.makeText(context, if (lines) backDone else backLines, Toast.LENGTH_LONG).show()
+                            busy = false
+                        }
+                    }
+                }
+            }
         }
 
         SettingsSection(stringResource(R.string.reverse_layout_title))
@@ -198,6 +225,14 @@ internal fun ReverseViewSheet(onDismiss: () -> Unit) {
             )
             SwitchHint(stringResource(if (hideStock) R.string.reverse_stock_hint_hide else R.string.reverse_stock_hint_keep))
         }
+
+        // The voice's silence in reverse is Dashwheel's doing, whether or not the view is on: said here, where a driver looks for it (#110).
+        SettingsSection(stringResource(R.string.reverse_voice_title))
+        SwitchRow(
+            stringResource(R.string.reverse_voice_quiet),
+            stringResource(if (voiceQuiet) R.string.reverse_voice_quiet_detail else R.string.reverse_voice_talk_detail),
+            checked = voiceQuiet
+        ) { ReverseView.setVoiceQuiet(context, it) }
 
         SettingsSection(stringResource(R.string.reverse_boot_title))
         val tailgate by ReverseView.tailgate.collectAsState()
