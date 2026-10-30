@@ -45,8 +45,13 @@ object AlertVoice {
         started = true
         val app = context.applicationContext
         CarVoice.setContext(app)
-        // Quiet while reversing: the parking sensors come first; what waited is said after.
-        scope.launch { reversingFlow().collect { CarVoice.hold(it) } }
+        // Quiet while reversing, unless the driver chose otherwise (Settings, Reverse view):
+        // the parking sensors come first; what waited is said after.
+        scope.launch {
+            combine(reversingFlow(), ReverseView.voiceQuiet) { reversing, quiet -> reversing && quiet }
+                .distinctUntilChanged()
+                .collect { CarVoice.hold(it) }
+        }
         // Quiet during a call, through the companion or the unit's own Bluetooth, whoever shows it.
         scope.launch {
             combine(PhoneLink.call, UnitPhone.call) { link, unit -> talking(link) || talking(unit) }

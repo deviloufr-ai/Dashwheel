@@ -4,7 +4,7 @@
     <string name="reverse_title">Tolatási nézet</string>
     <string name="reverse_settings_detail">Segédvonalak és parkolóradar a tolatókamera képén</string>
     <string name="reverse_switch">A Dashwheel tolatási nézete</string>
-    <string name="reverse_switch_detail">A kormányt követő vonalak, a parkolóradar és az autója a tolatókamera képén.</string>
+    <string name="reverse_switch_detail">A kormányt követő vonalak, a parkolóradar és az autója a tolatókamera képén. Kikapcsolva az autó úgy mutatja a kameráját, mint korábban.</string>
     <string name="reverse_needs_access">Kapcsolja be a Dashwheel kisegítő szolgáltatását: csak így lehet a kamera képére rajzolni.</string>
     <string name="reverse_layout_title">A képernyőn</string>
     <string name="reverse_layout_both">Kamera és radar</string>
@@ -15,7 +15,7 @@
     <string name="reverse_stock_keep">Megtartás</string>
     <string name="reverse_stock_hide">Elrejtés</string>
     <string name="reverse_stock_hint_keep">Az autó alkalmazásának vonalai a Dashwheel vonalai alatt maradnak. A kormányvonalak kb. 12°-os lépésekben mozognak.</string>
-    <string name="reverse_stock_hint_hide">Csak a Dashwheel vonalai, simábban. Root szükséges.</string>
+    <string name="reverse_stock_hint_hide">Kísérleti: csak a Dashwheel vonalai, simábban. Root szükséges.</string>
     <string name="reverse_stock_failed">Nem sikerült módosítani őket. Ehhez root kell.</string>
     <string name="reverse_lines_title">Vonalak beigazítása</string>
     <string name="reverse_lines_hint">Kapcsoljon R-be, majd a tolatási képernyőn koppintson a Beállítás gombra, hogy a vonalakat az úthoz igazítsa.</string>
@@ -35,9 +35,17 @@
     <string name="reverse_near_far">Valami van mögötte</string>
     <string name="reverse_picture_title">Kamerakép</string>
     <string name="reverse_picture_rom">Autó alkalmazása</string>
-    <string name="reverse_picture_own">Dashwheel</string>
+    <string name="reverse_picture_own">Dashwheel (kísérleti)</string>
     <string name="reverse_picture_hint_rom">Az autó alkalmazása mutatja a kamerát, a Dashwheel pedig rárajzol.</string>
     <string name="reverse_picture_hint_own">Kísérleti: a Dashwheel maga mutatja a kamerát. Ha nem jön kép, másodperceken belül visszatér az autó alkalmazásának képe.</string>
+    <string name="reverse_back">Az autó saját kamerája</string>
+    <string name="reverse_back_detail">Vissza ahhoz, ahogy az autó korábban mutatta a kameráját: a saját képe, a saját vonalai, tolatónézet nélkül.</string>
+    <string name="reverse_back_done">Vissza az autó saját kamerájához. A következő tolatástól újra a saját képét és vonalait mutatja.</string>
+    <string name="reverse_back_lines">Vissza az autó saját kamerájához, de a vonalait nem sikerült visszahozni: ehhez root szükséges.</string>
+    <string name="reverse_voice_title">Hang tolatás közben</string>
+    <string name="reverse_voice_quiet">Csend tolatás közben</string>
+    <string name="reverse_voice_quiet_detail">A Dashwheel hangja vár, hogy hallja a parkolóérzékelőket, és a tolatás végén mondja el, amit mondani akart.</string>
+    <string name="reverse_voice_talk_detail">A Dashwheel hangja tolatás közben is beszél, a parkolóérzékelők fölött.</string>
     <string name="reverse_picture_denied">Ehhez a Dashwheelnek kameraengedély kell.</string>
     <string name="reverse_picture_failed">A Dashwheel nem érte el a kamerát: ez az autó alkalmazásának képe</string>
     <string name="reverse_side_left">Bal oldal: %1$d cm</string>

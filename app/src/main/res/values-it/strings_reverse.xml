@@ -3,7 +3,7 @@
     <string name="reverse_title">Vista retromarcia</string>
     <string name="reverse_settings_detail">Linee guida e radar di parcheggio sulla telecamera</string>
     <string name="reverse_switch">Vista retromarcia di Dashwheel</string>
-    <string name="reverse_switch_detail">Linee che seguono il volante, il radar di parcheggio e la tua auto, sulla telecamera posteriore.</string>
+    <string name="reverse_switch_detail">Linee che seguono il volante, il radar di parcheggio e la tua auto, sulla telecamera posteriore. Spento, l\'auto mostra la sua telecamera come prima.</string>
     <string name="reverse_needs_access">Attiva il servizio di accessibilità di Dashwheel: è l\'unico modo per disegnare sulla telecamera.</string>
     <string name="reverse_layout_title">Sullo schermo</string>
     <string name="reverse_layout_both">Telecamera e radar</string>
@@ -14,7 +14,7 @@
     <string name="reverse_stock_keep">Tieni</string>
     <string name="reverse_stock_hide">Nascondi</string>
     <string name="reverse_stock_hint_keep">Le linee dell\'app auto restano sotto quelle di Dashwheel. Le linee di sterzata si muovono a passi di circa 12°.</string>
-    <string name="reverse_stock_hint_hide">Solo le linee di Dashwheel, più fluide. Serve il root.</string>
+    <string name="reverse_stock_hint_hide">Sperimentale: solo le linee di Dashwheel, più fluide. Serve il root.</string>
     <string name="reverse_stock_failed">Impossibile cambiarle. Serve il root.</string>
     <string name="reverse_lines_title">Allineale</string>
     <string name="reverse_lines_hint">Inserisci la R, poi tocca Regola sulla schermata di retromarcia per far combaciare le linee con la strada.</string>
@@ -34,9 +34,17 @@
     <string name="reverse_near_far">Qualcosa dietro</string>
     <string name="reverse_picture_title">Immagine della telecamera</string>
     <string name="reverse_picture_rom">App auto</string>
-    <string name="reverse_picture_own">Dashwheel</string>
+    <string name="reverse_picture_own">Dashwheel (sperimentale)</string>
     <string name="reverse_picture_hint_rom">L\'app auto mostra la telecamera e Dashwheel disegna sopra.</string>
     <string name="reverse_picture_hint_own">Sperimentale: Dashwheel mostra direttamente la telecamera. Se non arriva l\'immagine, quella dell\'app auto torna in pochi secondi.</string>
+    <string name="reverse_back">Telecamera dell\'auto</string>
+    <string name="reverse_back_detail">Torna a come l\'auto mostrava la telecamera: la sua immagine, le sue linee, senza vista posteriore.</string>
+    <string name="reverse_back_done">Tornata la telecamera dell\'auto. Dalla prossima retromarcia mostra di nuovo la sua immagine e le sue linee.</string>
+    <string name="reverse_back_lines">Tornata la telecamera dell\'auto, ma le sue linee non si sono potute ripristinare: serve il root.</string>
+    <string name="reverse_voice_title">La voce in retromarcia</string>
+    <string name="reverse_voice_quiet">Silenzio in retromarcia</string>
+    <string name="reverse_voice_quiet_detail">La voce di Dashwheel aspetta per far sentire i sensori di parcheggio, e dice ciò che aveva da dire finita la retromarcia.</string>
+    <string name="reverse_voice_talk_detail">La voce di Dashwheel continua a parlare in retromarcia, sopra i sensori di parcheggio.</string>
     <string name="reverse_picture_denied">Dashwheel ha bisogno del permesso della fotocamera.</string>
     <string name="reverse_picture_failed">Dashwheel non ha potuto usare la telecamera: immagine dell\'app auto</string>
     <string name="reverse_side_left">Lato sinistro: %1$d cm</string>

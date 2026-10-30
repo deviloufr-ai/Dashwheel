@@ -4,7 +4,7 @@
     <string name="reverse_title">Reverse view</string>
     <string name="reverse_settings_detail">Guide lines and parking radar over the reversing camera</string>
     <string name="reverse_switch">Dashwheel\'s reverse view</string>
-    <string name="reverse_switch_detail">Lines that follow the steering wheel, the parking radar and your car, over the reversing camera.</string>
+    <string name="reverse_switch_detail">Lines that follow the steering wheel, the parking radar and your car, over the reversing camera. Off, the car shows its camera as before.</string>
     <string name="reverse_needs_access">Turn on Dashwheel\'s accessibility service: it is the only way to draw over the camera.</string>
     <string name="reverse_layout_title">On screen</string>
     <string name="reverse_layout_both">Camera and radar</string>
@@ -15,7 +15,7 @@
     <string name="reverse_stock_keep">Keep</string>
     <string name="reverse_stock_hide">Hide</string>
     <string name="reverse_stock_hint_keep">The car app\'s lines stay under Dashwheel\'s. The steering lines move in steps of about 12°.</string>
-    <string name="reverse_stock_hint_hide">Only Dashwheel\'s lines, smoother. Needs root.</string>
+    <string name="reverse_stock_hint_hide">Experimental: only Dashwheel\'s lines, smoother. Needs root.</string>
     <string name="reverse_stock_failed">Couldn\'t change them. This needs root.</string>
     <string name="reverse_lines_title">Line them up</string>
     <string name="reverse_lines_hint">Select R, then tap Adjust on the reverse screen to match the lines to the road.</string>
@@ -35,9 +35,17 @@
     <string name="reverse_near_far">Something behind</string>
     <string name="reverse_picture_title">Camera picture</string>
     <string name="reverse_picture_rom">Car app</string>
-    <string name="reverse_picture_own">Dashwheel</string>
+    <string name="reverse_picture_own">Dashwheel (experimental)</string>
     <string name="reverse_picture_hint_rom">The car app shows the camera and Dashwheel draws over it.</string>
     <string name="reverse_picture_hint_own">Experimental: Dashwheel shows the camera itself. If no picture comes, the car app\'s is back within seconds.</string>
+    <string name="reverse_back">Car\'s own camera</string>
+    <string name="reverse_back_detail">Back to how the car showed its camera before: its picture, its lines, no reverse view.</string>
+    <string name="reverse_back_done">Back to the car\'s own camera. It shows its picture and lines again from the next reverse.</string>
+    <string name="reverse_back_lines">Back to the car\'s own camera, but its lines couldn\'t be brought back: that needs root.</string>
+    <string name="reverse_voice_title">Voice while reversing</string>
+    <string name="reverse_voice_quiet">Quiet while reversing</string>
+    <string name="reverse_voice_quiet_detail">Dashwheel\'s voice waits so you hear the parking sensors, and says what it had to say once reverse ends.</string>
+    <string name="reverse_voice_talk_detail">Dashwheel\'s voice keeps talking in reverse, over the parking sensors.</string>
     <string name="reverse_picture_denied">Dashwheel needs the camera permission for this.</string>
     <string name="reverse_picture_failed">Dashwheel couldn\'t get the camera: this is the car app\'s picture</string>
     <string name="reverse_side_left">Left side: %1$d cm</string>

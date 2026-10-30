@@ -184,6 +184,15 @@ internal object ReverseView {
     /** Experimental: Dashwheel shows the camera's picture itself ([ReverseCamera]). */
     val ownCamera: StateFlow<Boolean> = _ownCamera.asStateFlow()
 
+    private val _voiceQuiet = MutableStateFlow(true)
+    /**
+     * The car's voice holds what it has to say while reversing, so the parking
+     * sensors are heard, and says it after ([AlertVoice], [CarVoice.hold]); off,
+     * it keeps talking. On by default, and set here, with the reverse view's
+     * settings, whether or not the view itself is on.
+     */
+    val voiceQuiet: StateFlow<Boolean> = _voiceQuiet.asStateFlow()
+
     private val _hideStock = MutableStateFlow(false)
     /** The car app's own lines are off: the angle is read from its log. */
     val hideStock: StateFlow<Boolean> = _hideStock.asStateFlow()
@@ -283,6 +292,7 @@ internal object ReverseView {
         _on.value = p.getBoolean("on", false)
         _layout.value = runCatching { ReverseLayout.valueOf(p.getString("layout", null) ?: "") }.getOrDefault(ReverseLayout.BOTH)
         _hideStock.value = p.getBoolean("hide_stock", false)
+        _voiceQuiet.value = p.getBoolean("voice_quiet", true)
         // The own picture takes the camera from the car app as root: never in the Play edition.
         _ownCamera.value = Edition.full && p.getBoolean("own_camera", false)
         _tailgate.value = p.getFloat("tailgate", DEFAULT_TAILGATE_M)
@@ -315,6 +325,23 @@ internal object ReverseView {
     fun setTailgate(context: Context, metres: Float) {
         _tailgate.value = metres
         prefs(context).edit().putFloat("tailgate", metres).apply()
+    }
+
+    fun setVoiceQuiet(context: Context, quiet: Boolean) {
+        _voiceQuiet.value = quiet
+        prefs(context).edit().putBoolean("voice_quiet", quiet).apply()
+    }
+
+    /**
+     * Back to the car as it was before Dashwheel: its own camera picture, its
+     * own lines, and no reverse view over them. False when the car app's lines
+     * stayed hidden (no root to bring them back); the rest is done either way.
+     */
+    suspend fun backToCar(context: Context): Boolean {
+        setOwnCamera(context, false)
+        val lines = !_hideStock.value || setHideStock(context, false)
+        setOn(context, false)
+        return lines
     }
 
     fun setOwnCamera(context: Context, own: Boolean) {
