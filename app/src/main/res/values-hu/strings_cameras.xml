@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Settings, Driving, Speed cameras on the unit: the cameras kept for when no map data server answers (SpeedCameraStore.kt). -->
+    <string name="cams_kept_title">Traffipaxok a fejegységen</string>
+    <string name="cams_kept_row_detail">Megtartva arra az időre, amikor a térképadat-szerverek nem válaszolnak</string>
+    <string name="cams_kept_explanation">Az utazásai során elhagyott traffipaxok a fejegységen maradnak, és egy egész ország is, ha itt kéri. Ha egyetlen térképadat-szerver sem válaszol, a csempe és a hangos figyelmeztetések ezekből dolgoznak tovább. Egy ország hetente újra beolvasásra kerül.</string>
+    <string name="cams_kept_country">Országkód</string>
+    <string name="cams_kept_download">Letöltés</string>
+    <string name="cams_kept_downloading">Letöltés folyamatban</string>
+    <string name="cams_kept_failed">Egyetlen térképadat-szerver sem válaszolt. Próbálja újra később.</string>
+    <string name="cams_kept_section">A fejegységen tárolva</string>
+    <string name="cams_kept_no_country">Még nincs ország</string>
+    <string name="cams_kept_remove">Eltávolítás</string>
+    <string name="cams_kept_driven">Az utazásaiból: %1$s</string>
+    <plurals name="cams_kept_count">
+        <item quantity="one">%d traffipax</item>
+        <item quantity="other">%d traffipax</item>
+    </plurals>
+</resources>

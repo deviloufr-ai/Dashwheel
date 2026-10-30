@@ -44,6 +44,8 @@ internal object Overpass {
      * heavy query to the next one, which is as slow for the same reason.
      */
     private val client by lazy { Http.client.newBuilder().readTimeout(35, TimeUnit.SECONDS).build() }
+    /** For a whole country's cameras ([SpeedCameraStore.download]): minutes of work, asked for once a week. */
+    private val patientClient by lazy { Http.client.newBuilder().readTimeout(170, TimeUnit.SECONDS).build() }
 
     private val _down = MutableStateFlow(false)
     /** The last query found no server answering: the tiles' blank is the server's, not the road's. */
@@ -52,13 +54,14 @@ internal object Overpass {
     /**
      * Runs [query] (Overpass QL) on the first server that answers and gives
      * back its JSON; throws when none does. Blocking: from an IO thread.
+     * A [patient] query is given minutes, not seconds, to be answered.
      */
-    fun query(query: String): JSONObject {
+    fun query(query: String, patient: Boolean = false): JSONObject {
         var last: Throwable? = null
         val servers = servers(MapServers.current.value.overpass)
         val failed = synchronized(failedAt) { HashMap(failedAt) }
         for (server in order(servers, preferred, failed, SystemClock.elapsedRealtime())) {
-            val result = runCatching { ask(server, query) }
+            val result = runCatching { ask(server, query, if (patient) patientClient else client) }
             result.onSuccess {
                 synchronized(failedAt) { failedAt.remove(server) }
                 if (preferred != server) Log.i(TAG, "answered by $server")
@@ -80,7 +83,7 @@ internal object Overpass {
         return if (custom.isEmpty() || custom in SERVERS) SERVERS else listOf(custom) + SERVERS
     }
 
-    private fun ask(server: String, query: String): JSONObject {
+    private fun ask(server: String, query: String, client: okhttp3.OkHttpClient): JSONObject {
         val request = Request.Builder().url(server)
             .header("User-Agent", OVERPASS_AGENT)
             .post(FormBody.Builder().add("data", query).build()).build()

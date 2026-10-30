@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Settings, Driving, Speed cameras on the unit: the cameras kept for when no map data server answers (SpeedCameraStore.kt). -->
+    <string name="cams_kept_title">Blitzer auf dem Gerät</string>
+    <string name="cams_kept_row_detail">Gespeichert für die Zeit, in der die Kartendaten-Server nicht antworten</string>
+    <string name="cams_kept_explanation">Die auf deinen Fahrten passierten Blitzer bleiben auf dem Gerät, und ein ganzes Land, wenn du es hier anforderst. Antwortet kein Kartendaten-Server, laufen die Kachel und die Sprachwarnungen damit weiter. Ein Land wird jede Woche neu gelesen.</string>
+    <string name="cams_kept_country">Ländercode</string>
+    <string name="cams_kept_download">Herunterladen</string>
+    <string name="cams_kept_downloading">Wird heruntergeladen</string>
+    <string name="cams_kept_failed">Kein Kartendaten-Server hat geantwortet. Versuche es später noch einmal.</string>
+    <string name="cams_kept_section">Auf dem Gerät gespeichert</string>
+    <string name="cams_kept_no_country">Noch kein Land</string>
+    <string name="cams_kept_remove">Entfernen</string>
+    <string name="cams_kept_driven">Von deinen Fahrten: %1$s</string>
+    <plurals name="cams_kept_count">
+        <item quantity="one">%d Blitzer</item>
+        <item quantity="other">%d Blitzer</item>
+    </plurals>
+</resources>

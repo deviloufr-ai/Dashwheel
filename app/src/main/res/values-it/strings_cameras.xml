@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Settings, Driving, Speed cameras on the unit: the cameras kept for when no map data server answers (SpeedCameraStore.kt). -->
+    <string name="cams_kept_title">Autovelox sull\'autoradio</string>
+    <string name="cams_kept_row_detail">Conservati per quando i server dei dati mappa non rispondono</string>
+    <string name="cams_kept_explanation">Gli autovelox incontrati nei tuoi viaggi restano sull\'autoradio, e anche un intero paese se lo chiedi qui. Quando nessun server dei dati mappa risponde, il riquadro e gli avvisi vocali continuano con questi. Un paese viene riletto ogni settimana.</string>
+    <string name="cams_kept_country">Codice del paese</string>
+    <string name="cams_kept_download">Scarica</string>
+    <string name="cams_kept_downloading">Scaricamento</string>
+    <string name="cams_kept_failed">Nessun server dei dati mappa ha risposto. Riprova più tardi.</string>
+    <string name="cams_kept_section">Conservati sull\'autoradio</string>
+    <string name="cams_kept_no_country">Nessun paese per ora</string>
+    <string name="cams_kept_remove">Rimuovi</string>
+    <string name="cams_kept_driven">Dai tuoi viaggi: %1$s</string>
+    <plurals name="cams_kept_count">
+        <item quantity="one">%d autovelox</item>
+        <item quantity="many">%d autovelox</item>
+        <item quantity="other">%d autovelox</item>
+    </plurals>
+</resources>

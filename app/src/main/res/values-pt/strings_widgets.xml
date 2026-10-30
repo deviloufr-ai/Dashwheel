@@ -30,6 +30,7 @@
     <string name="widgets_light_manual">%1$d %%</string>
     <string name="widgets_cam_none">Nenhum à frente</string>
     <string name="widgets_osm_down">O servidor de dados do mapa não responde</string>
+    <string name="widgets_cam_none_kept">Nenhum à frente, pelos radares no rádio</string>
     <string name="widgets_cam_speak">Avisos por voz</string>
     <string name="widgets_cam_speaking">Avisos por voz ligados</string>
     <string name="widgets_cam_silent">Proibido em alguns países, incluindo França</string>

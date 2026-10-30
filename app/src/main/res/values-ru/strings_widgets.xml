@@ -31,6 +31,7 @@
     <string name="widgets_light_manual">%1$d %%</string>
     <string name="widgets_cam_none">Впереди нет</string>
     <string name="widgets_osm_down">Сервер картографических данных не отвечает</string>
+    <string name="widgets_cam_none_kept">Впереди нет, по камерам на магнитоле</string>
     <string name="widgets_cam_speak">Голосовые оповещения</string>
     <string name="widgets_cam_speaking">Голосовые оповещения вкл.</string>
     <string name="widgets_cam_silent">Запрещено в некоторых странах, например во Франции</string>

@@ -30,6 +30,7 @@
     <string name="widgets_light_manual">%1$d %%</string>
     <string name="widgets_cam_none">Aucun devant</string>
     <string name="widgets_osm_down">Le serveur de données cartographiques ne répond pas</string>
+    <string name="widgets_cam_none_kept">Aucun devant, d\'après les radars sur l\'autoradio</string>
     <string name="widgets_cam_speak">Alertes vocales</string>
     <string name="widgets_cam_speaking">Alertes vocales activées</string>
     <string name="widgets_cam_silent">Interdit dans certains pays, dont la France</string>

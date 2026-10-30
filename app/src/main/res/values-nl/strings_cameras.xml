@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Settings, Driving, Speed cameras on the unit: the cameras kept for when no map data server answers (SpeedCameraStore.kt). -->
+    <string name="cams_kept_title">Flitsers op het toestel</string>
+    <string name="cams_kept_row_detail">Bewaard voor wanneer de kaartgegevensservers niet antwoorden</string>
+    <string name="cams_kept_explanation">De flitsers die je onderweg passeert worden op het toestel bewaard, en ook een heel land als je daar hier om vraagt. Antwoordt geen enkele kaartgegevensserver, dan gaan de tegel en de gesproken waarschuwingen daarmee verder. Een land wordt elke week opnieuw gelezen.</string>
+    <string name="cams_kept_country">Landcode</string>
+    <string name="cams_kept_download">Downloaden</string>
+    <string name="cams_kept_downloading">Bezig met downloaden</string>
+    <string name="cams_kept_failed">Geen enkele kaartgegevensserver antwoordde. Probeer het later opnieuw.</string>
+    <string name="cams_kept_section">Bewaard op het toestel</string>
+    <string name="cams_kept_no_country">Nog geen land</string>
+    <string name="cams_kept_remove">Verwijderen</string>
+    <string name="cams_kept_driven">Van je ritten: %1$s</string>
+    <plurals name="cams_kept_count">
+        <item quantity="one">%d flitser</item>
+        <item quantity="other">%d flitsers</item>
+    </plurals>
+</resources>

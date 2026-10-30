@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Settings, Driving, Speed cameras on the unit: the cameras kept for when no map data server answers (SpeedCameraStore.kt). -->
+    <string name="cams_kept_title">Speed cameras on the unit</string>
+    <string name="cams_kept_row_detail">Kept for when the map data servers are down</string>
+    <string name="cams_kept_explanation">The speed cameras passed on your drives are kept on the unit, and so is a whole country when you ask for it here. When no map data server answers, the tile and the spoken alerts go on from these. A country is read again every week.</string>
+    <string name="cams_kept_country">Country code</string>
+    <string name="cams_kept_download">Download</string>
+    <string name="cams_kept_downloading">Downloading</string>
+    <string name="cams_kept_failed">No map data server answered. Try again later.</string>
+    <string name="cams_kept_section">Kept on the unit</string>
+    <string name="cams_kept_no_country">No country yet</string>
+    <string name="cams_kept_remove">Remove</string>
+    <string name="cams_kept_driven">From your drives: %1$s</string>
+    <plurals name="cams_kept_count">
+        <item quantity="one">%d camera</item>
+        <item quantity="other">%d cameras</item>
+    </plurals>
+</resources>

@@ -31,6 +31,7 @@
     <string name="widgets_light_manual">%1$d %%</string>
     <string name="widgets_cam_none">None ahead</string>
     <string name="widgets_osm_down">Map data server not answering</string>
+    <string name="widgets_cam_none_kept">None ahead, from the cameras on the unit</string>
     <string name="widgets_cam_speak">Spoken alerts</string>
     <string name="widgets_cam_speaking">Spoken alerts on</string>
     <string name="widgets_cam_silent">Not allowed in some countries, France among them</string>

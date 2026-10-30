@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Settings, Driving, Speed cameras on the unit: the cameras kept for when no map data server answers (SpeedCameraStore.kt). -->
+    <string name="cams_kept_title">Greičio kameros magnetoloje</string>
+    <string name="cams_kept_row_detail">Saugomos tam laikui, kai žemėlapio duomenų serveriai neatsako</string>
+    <string name="cams_kept_explanation">Kelionėse pravažiuotos greičio kameros saugomos magnetoloje, taip pat ir visa šalis, jei jos čia paprašysite. Kai neatsako nė vienas žemėlapio duomenų serveris, plytelė ir balso įspėjimai veikia toliau pagal jas. Šalis iš naujo nuskaitoma kas savaitę.</string>
+    <string name="cams_kept_country">Šalies kodas</string>
+    <string name="cams_kept_download">Atsisiųsti</string>
+    <string name="cams_kept_downloading">Atsisiunčiama</string>
+    <string name="cams_kept_failed">Neatsakė nė vienas žemėlapio duomenų serveris. Bandykite vėliau.</string>
+    <string name="cams_kept_section">Saugoma magnetoloje</string>
+    <string name="cams_kept_no_country">Dar nėra šalies</string>
+    <string name="cams_kept_remove">Pašalinti</string>
+    <string name="cams_kept_driven">Iš jūsų kelionių: %1$s</string>
+    <plurals name="cams_kept_count">
+        <item quantity="one">%d kamera</item>
+        <item quantity="few">%d kameros</item>
+        <item quantity="many">%d kameros</item>
+        <item quantity="other">%d kamerų</item>
+    </plurals>
+</resources>

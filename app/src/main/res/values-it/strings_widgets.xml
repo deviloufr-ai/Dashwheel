@@ -30,6 +30,7 @@
     <string name="widgets_light_manual">%1$d %%</string>
     <string name="widgets_cam_none">Nessuno davanti</string>
     <string name="widgets_osm_down">Il server dei dati mappa non risponde</string>
+    <string name="widgets_cam_none_kept">Nessuno davanti, dagli autovelox sull\'autoradio</string>
     <string name="widgets_cam_speak">Avvisi vocali</string>
     <string name="widgets_cam_speaking">Avvisi vocali attivi</string>
     <string name="widgets_cam_silent">Vietato in alcuni paesi, tra cui la Francia</string>

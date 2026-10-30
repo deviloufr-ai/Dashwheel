@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Settings, Driving, Speed cameras on the unit: the cameras kept for when no map data server answers (SpeedCameraStore.kt). -->
+    <string name="cams_kept_title">Radares en el equipo</string>
+    <string name="cams_kept_row_detail">Guardados para cuando los servidores de datos del mapa no responden</string>
+    <string name="cams_kept_explanation">Los radares que pasas en tus viajes se guardan en el equipo, y también un país entero si lo pides aquí. Cuando ningún servidor de datos del mapa responde, el mosaico y los avisos hablados siguen con ellos. Un país se vuelve a leer cada semana.</string>
+    <string name="cams_kept_country">Código del país</string>
+    <string name="cams_kept_download">Descargar</string>
+    <string name="cams_kept_downloading">Descargando</string>
+    <string name="cams_kept_failed">Ningún servidor de datos del mapa respondió. Inténtalo más tarde.</string>
+    <string name="cams_kept_section">Guardados en el equipo</string>
+    <string name="cams_kept_no_country">Ningún país todavía</string>
+    <string name="cams_kept_remove">Quitar</string>
+    <string name="cams_kept_driven">De tus viajes: %1$s</string>
+    <plurals name="cams_kept_count">
+        <item quantity="one">%d radar</item>
+        <item quantity="many">%d radares</item>
+        <item quantity="other">%d radares</item>
+    </plurals>
+</resources>

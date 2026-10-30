@@ -13,7 +13,7 @@ This policy covers the Google Play editions of **Dashwheel** (the car launcher, 
 
 ## What the apps store on your devices
 
-Dashwheel keeps its settings, your dashboards, the car profile you fill in, readings from your OBD adapter, drive and fuel logs, and the optional API key you paste in. The Companion keeps the pairing secret, the list of paired cars, and its own settings. All of it lives in the apps' private storage. Uninstalling an app removes it. Nothing is backed up to a cloud by the apps themselves: the Companion opts out of Android backup; Dashwheel's data stays on the head unit.
+Dashwheel keeps its settings, your dashboards, the car profile you fill in, readings from your OBD adapter, drive and fuel logs, the speed cameras it keeps for when the map data servers are down, and the optional API key you paste in. The Companion keeps the pairing secret, the list of paired cars, and its own settings. All of it lives in the apps' private storage. Uninstalling an app removes it. Nothing is backed up to a cloud by the apps themselves: the Companion opts out of Android backup; Dashwheel's data stays on the head unit.
 
 ## Data that leaves the device, and to whom
 
@@ -26,7 +26,7 @@ Each item below is sent only when you use the feature, and only to the service n
 | Weather | Your position | Open-Meteo (`api.open-meteo.com`) |
 | Weather alerts | Your country, found from your position through Nominatim | MeteoAlarm (`feeds.meteoalarm.org`) |
 | Fuel prices (France) | The area around you | data.economie.gouv.fr (French open data) and Overpass (`overpass-api.de`) for station details |
-| Speed limits and speed cameras | The area around you | Overpass (`overpass-api.de`), OpenStreetMap data |
+| Speed limits and speed cameras | The area around you, or a country's code when you ask to keep its cameras on the unit | Overpass (`overpass-api.de`), OpenStreetMap data |
 | Car brand logo | The brand name of your car | GitHub raw content (`raw.githubusercontent.com`, the open car-logos dataset) |
 | AI mechanic, car questions, Gemini Live and the "my car" photo features | Only when you add your own Google Gemini API key: fault codes, car readings, the text of your question, pictures of your car you choose to send, and, in Gemini Live, your voice while the panel is open | Google Gemini API (`generativelanguage.googleapis.com`). Google's terms and privacy policy apply to this data. A connectivity probe to `www.gstatic.com` precedes these calls; it carries nothing |
 | Companion: "Open in Maps" | A destination, handed to the Google Maps app on your phone | Your phone's map app |

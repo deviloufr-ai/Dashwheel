@@ -30,6 +30,7 @@
     <string name="widgets_light_manual">%1$d %%</string>
     <string name="widgets_cam_none">Brak przed tobą</string>
     <string name="widgets_osm_down">Serwer danych mapy nie odpowiada</string>
+    <string name="widgets_cam_none_kept">Brak przed tobą, według fotoradarów na radiu</string>
     <string name="widgets_cam_speak">Alerty głosowe</string>
     <string name="widgets_cam_speaking">Alerty głosowe wł.</string>
     <string name="widgets_cam_silent">W niektórych krajach zakazane, m.in. we Francji</string>

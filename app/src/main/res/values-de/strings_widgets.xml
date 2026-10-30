@@ -30,6 +30,7 @@
     <string name="widgets_light_manual">%1$d %%</string>
     <string name="widgets_cam_none">Keiner voraus</string>
     <string name="widgets_osm_down">Kartendaten-Server antwortet nicht</string>
+    <string name="widgets_cam_none_kept">Keiner voraus, laut den Blitzern auf dem Gerät</string>
     <string name="widgets_cam_speak">Gesprochene Hinweise</string>
     <string name="widgets_cam_speaking">Gesprochene Hinweise an</string>
     <string name="widgets_cam_silent">In manchen Ländern verboten, auch in Frankreich</string>

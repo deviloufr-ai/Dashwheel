@@ -35,6 +35,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -50,11 +51,16 @@ internal data class CameraAhead(val camera: SpeedCamera, val distanceM: Int)
  * direction of travel is shown, and said out loud at [WARN_M] when the driver
  * turned warnings on ([SpokenEvent.SPEED_CAMERAS], off by default: warning of
  * fixed cameras is not allowed in some countries, France among them).
+ *
+ * Every answer is kept on the unit ([SpeedCameraStore]), with the whole set
+ * of a country when the driver asked for one in Settings: when no server
+ * answers, the cameras come from there ([fromStore]) and the drive goes on
+ * as before, on roads driven already or anywhere in that country.
  */
 internal object SpeedCameras {
     private const val TAG = "SpeedCameras"
-    private const val RADIUS_M = 15_000
-    private const val REFETCH_M = 8_000f
+    const val RADIUS_M = 15_000
+    const val REFETCH_M = 8_000f
     /** After a failed read, the wait before the next: the server is busy, and every GPS fix asked it again. */
     private const val RETRY_AFTER_MS = 60_000L
     private const val AHEAD_DEG = 35.0
@@ -68,10 +74,14 @@ internal object SpeedCameras {
     @Volatile private var fetchedAt: Location? = null
     @Volatile private var fetching = false
     @Volatile private var failedAt = 0L
+    @Volatile private var refreshedCountries = false
     private val warned = HashSet<SpeedCamera>()
 
     private val _ahead = MutableStateFlow<CameraAhead?>(null)
     val ahead: StateFlow<CameraAhead?> = _ahead
+    private val _fromStore = MutableStateFlow(false)
+    /** The cameras matched now are the unit's own, not a server's: the last read failed, or none was made yet. */
+    val fromStore: StateFlow<Boolean> = _fromStore
     private var appContext: Context? = null
 
     /** Follows the drive while a tile shows the cameras, or always once warnings are on ([MainActivity]). */
@@ -104,12 +114,25 @@ internal object SpeedCameras {
             // Beside the fixes, not in their way (see SpeedLimit): the cameras already
             // read keep being matched against the car while the servers are tried.
             scope.launch(Dispatchers.IO) {
+                // The unit's own cameras at once, for the first kilometres while the servers are tried.
+                if (last == null) fromStore(context, loc)
                 val found = runCatching { fetch(loc.latitude, loc.longitude) }
-                found.onSuccess { cameras = it; fetchedAt = loc; failedAt = 0L }.onFailure {
+                found.onSuccess {
+                    cameras = it; fetchedAt = loc; failedAt = 0L
+                    _fromStore.value = false
+                    // The demo's drive is made up, and promises to save nothing.
+                    if (!DemoMode.isOn) SpeedCameraStore.remember(context, loc.latitude, loc.longitude, it)
+                }.onFailure {
                     failedAt = android.os.SystemClock.elapsedRealtime()
-                    Log.w(TAG, "cameras unread: ${it.message}")
+                    Log.w(TAG, "cameras unread, the unit's own used: ${it.message}")
+                    fromStore(context, loc)
                 }
                 fetching = false
+                // A server answers: the countries kept for a week and more are read again, once a drive.
+                if (found.isSuccess && !refreshedCountries) {
+                    refreshedCountries = true
+                    SpeedCameraStore.refreshStale(context)
+                }
             }
         }
         val next = nearestAhead(loc, cameras)
@@ -123,14 +146,39 @@ internal object SpeedCameras {
         if (warned.size > 200) warned.clear()
     }
 
+    /** The kept cameras round [loc] stand in for the server's; with none kept there, the last answer stays. */
+    private fun fromStore(context: Context, loc: Location) {
+        val kept = SpeedCameraStore.near(context, loc.latitude, loc.longitude, RADIUS_M)
+        if (kept.isEmpty()) return
+        cameras = kept
+        _fromStore.value = true
+    }
+
     private fun fetch(lat: Double, lng: Double): List<SpeedCamera> {
         val query = "[out:json][timeout:20];node(around:$RADIUS_M,$lat,$lng)[highway=speed_camera];out;"
-        val elements = Overpass.query(query).optJSONArray("elements") ?: return emptyList()
+        return parse(Overpass.query(query))
+    }
+
+    /** The cameras in an Overpass answer: its speed_camera nodes, each with its limit when tagged. */
+    fun parse(json: JSONObject): List<SpeedCamera> {
+        val elements = json.optJSONArray("elements") ?: return emptyList()
         return (0 until elements.length()).mapNotNull { i ->
             val e = elements.optJSONObject(i) ?: return@mapNotNull null
+            if (!e.has("lat") || !e.has("lon")) return@mapNotNull null
             val limit = e.optJSONObject("tags")?.optString("maxspeed")?.takeWhile { it.isDigit() }?.toIntOrNull()
             SpeedCamera(e.optDouble("lat"), e.optDouble("lon"), limit)
         }
+    }
+
+    /**
+     * What a tile says with no camera ahead: that the server is [down], unless
+     * the unit's own cameras stand in ([kept]), which is worth knowing when the
+     * tile is quiet; else that there is none.
+     */
+    fun noneCaption(down: Boolean, kept: Boolean): Int = when {
+        kept && down -> R.string.widgets_cam_none_kept
+        down -> R.string.widgets_osm_down
+        else -> R.string.widgets_cam_none
     }
 
     /** The nearest of [cameras] in front of the car within [AHEAD_MAX_M], by its course; null standing still or with none. */
@@ -152,6 +200,7 @@ internal fun SpeedCamerasCard(modifier: Modifier = Modifier) {
     DisposableEffect(Unit) { SpeedCameras.start(context); onDispose { SpeedCameras.stop() } }
     val ahead by SpeedCameras.ahead.collectAsState()
     val down by Overpass.down.collectAsState()
+    val kept by SpeedCameras.fromStore.collectAsState()
     LaunchedEffect(Unit) { SpokenEvents.load(context) }
     val spoken by SpokenEvents.on.collectAsState()
     val speak = SpokenEvent.SPEED_CAMERAS in spoken
@@ -169,7 +218,7 @@ internal fun SpeedCamerasCard(modifier: Modifier = Modifier) {
             }
             val a = ahead
             if (a == null) {
-                Text(stringResource(if (down) R.string.widgets_osm_down else R.string.widgets_cam_none), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(SpeedCameras.noneCaption(down, kept)), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Filled.CameraAlt, contentDescription = null, tint = if (a.distanceM <= SpeedCameras.WARN_M) DashColors.Warning else DashColors.Accent)
@@ -197,13 +246,14 @@ internal fun speedCamerasFace(): WidgetFace {
     DisposableEffect(Unit) { SpeedCameras.start(context); onDispose { SpeedCameras.stop() } }
     val ahead by SpeedCameras.ahead.collectAsState()
     val down by Overpass.down.collectAsState()
+    val kept by SpeedCameras.fromStore.collectAsState()
     val units by Units.current.collectAsState()
     val a = ahead
     return WidgetFace(
         icon = Icons.Filled.CameraAlt,
         title = BuiltinKind.SPEED_CAMERAS.label,
         value = a?.let { units.shortDistance(it.distanceM.toDouble()) } ?: "",
-        caption = a?.camera?.limitKmh?.let { "${units.speed(it)} ${units.speedUnit}" } ?: stringResource(if (down) R.string.widgets_osm_down else R.string.widgets_cam_none),
+        caption = a?.camera?.limitKmh?.let { "${units.speed(it)} ${units.speedUnit}" } ?: stringResource(SpeedCameras.noneCaption(down, kept)),
         textValue = true,
         alert = a != null && a.distanceM <= SpeedCameras.WARN_M
     )

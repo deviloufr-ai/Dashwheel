@@ -462,6 +462,7 @@ private val SETTINGS_INDEX: List<SettingsEntry> by lazy {
         SettingsEntry(R.string.settings_drive_lock, SettingsTab.DRIVING, detail = R.string.settings_drive_lock_detail),
         SettingsEntry(R.string.reverse_title, SettingsTab.DRIVING, listOf(Deep.REVERSE), detail = R.string.reverse_settings_detail),
         SettingsEntry(R.string.places_title, SettingsTab.DRIVING, listOf(Deep.PLACES)),
+        SettingsEntry(R.string.cams_kept_title, SettingsTab.DRIVING, listOf(Deep.KEPT_CAMERAS), detail = R.string.cams_kept_row_detail),
         SettingsEntry(R.string.settings_waze_wake, SettingsTab.DRIVING, detail = R.string.settings_waze_wake_detail, offered = { Edition.full && WazeWake.present }),
         SettingsEntry(R.string.wheel_title, SettingsTab.DRIVING, listOf(Deep.WHEEL), offered = { SteeringWheelStore.AVAILABLE }),
         SettingsEntry(R.string.keys_section, SettingsTab.DRIVING, offered = { Edition.full && KeyTargets.available() }),
@@ -531,6 +532,7 @@ private fun Deep.titleRes(): Int = when (this) {
     Deep.HEAD_UNIT -> R.string.unit_card_title
     Deep.TPMS -> R.string.tpms_usb_title
     Deep.SENSOR_WATCH -> R.string.watch_title
+    Deep.KEPT_CAMERAS -> R.string.cams_kept_title
 }
 
 /** Lower case without accents, so "eco" finds "Éco" and "volumen" finds "Volumen". */

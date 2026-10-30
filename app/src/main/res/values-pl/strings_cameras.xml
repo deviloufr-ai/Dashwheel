@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Settings, Driving, Speed cameras on the unit: the cameras kept for when no map data server answers (SpeedCameraStore.kt). -->
+    <string name="cams_kept_title">Fotoradary na radiu</string>
+    <string name="cams_kept_row_detail">Zachowane na czas, gdy serwery danych mapy nie odpowiadają</string>
+    <string name="cams_kept_explanation">Fotoradary mijane w twoich podróżach są zachowywane na radiu, a także cały kraj, jeśli o to tutaj poprosisz. Gdy żaden serwer danych mapy nie odpowiada, kafelek i alerty głosowe działają dalej na ich podstawie. Kraj jest odczytywany ponownie co tydzień.</string>
+    <string name="cams_kept_country">Kod kraju</string>
+    <string name="cams_kept_download">Pobierz</string>
+    <string name="cams_kept_downloading">Pobieranie</string>
+    <string name="cams_kept_failed">Żaden serwer danych mapy nie odpowiedział. Spróbuj później.</string>
+    <string name="cams_kept_section">Zachowane na radiu</string>
+    <string name="cams_kept_no_country">Jeszcze żadnego kraju</string>
+    <string name="cams_kept_remove">Usuń</string>
+    <string name="cams_kept_driven">Z twoich podróży: %1$s</string>
+    <plurals name="cams_kept_count">
+        <item quantity="one">%d fotoradar</item>
+        <item quantity="few">%d fotoradary</item>
+        <item quantity="many">%d fotoradarów</item>
+        <item quantity="other">%d fotoradaru</item>
+    </plurals>
+</resources>

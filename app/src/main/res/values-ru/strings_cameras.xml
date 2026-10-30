@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Settings, Driving, Speed cameras on the unit: the cameras kept for when no map data server answers (SpeedCameraStore.kt). -->
+    <string name="cams_kept_title">Камеры на магнитоле</string>
+    <string name="cams_kept_row_detail">Хранятся на случай, когда серверы картографических данных не отвечают</string>
+    <string name="cams_kept_explanation">Камеры, которые вы проезжаете в поездках, сохраняются на магнитоле, а также вся страна, если вы запросите её здесь. Когда ни один сервер картографических данных не отвечает, плитка и голосовые предупреждения продолжают работать по ним. Страна перечитывается каждую неделю.</string>
+    <string name="cams_kept_country">Код страны</string>
+    <string name="cams_kept_download">Скачать</string>
+    <string name="cams_kept_downloading">Скачивание</string>
+    <string name="cams_kept_failed">Ни один сервер картографических данных не ответил. Попробуйте позже.</string>
+    <string name="cams_kept_section">Хранятся на магнитоле</string>
+    <string name="cams_kept_no_country">Пока ни одной страны</string>
+    <string name="cams_kept_remove">Убрать</string>
+    <string name="cams_kept_driven">Из ваших поездок: %1$s</string>
+    <plurals name="cams_kept_count">
+        <item quantity="one">%d камера</item>
+        <item quantity="few">%d камеры</item>
+        <item quantity="many">%d камер</item>
+        <item quantity="other">%d камеры</item>
+    </plurals>
+</resources>
