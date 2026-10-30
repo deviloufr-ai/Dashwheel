@@ -126,4 +126,11 @@
     <string name="wheel_reset_body">Każdy przycisk znika z mapy i traci swoją akcję. Kierownica wraca do tego, co radio robi samo.</string>
     <string name="wheel_reset_confirm">Resetuj</string>
     <string name="wheel_action_stop_guidance">Zakończ nawigację</string>
+    <string name="wheel_unit_keys_off">Firmware tego radia zatrzymuje przyciski kierownicy dla siebie. Pozwól Dashwheel je przejąć: własne aplikacje radia tracą je w tym czasie.</string>
+    <string name="wheel_unit_keys_take">Przejmij</string>
+    <string name="wheel_unit_keys_waiting">Dashwheel poprosił firmware o przyciski kierownicy i jeszcze ich nie dostał. Przejęcie wymaga roota, Shizuku lub ADB radia.</string>
+    <string name="wheel_unit_keys_live">Nasłuchuje przycisków kierownicy radia</string>
+    <string name="wheel_monitor_no_root">Bez roota pojawiają się tu tylko klawisze Androida i własne przyciski radia. Surowe wejście i dziennik wymagają roota.</string>
+    <string name="wheel_log_match_label">Wiersz dziennika zawiera</string>
+    <string name="wheel_log_hint">Działa za każdym razem, gdy dziennik radia pokaże wiersz z tym tekstem. Skróć go do części, która nazywa przycisk.</string>
 </resources>

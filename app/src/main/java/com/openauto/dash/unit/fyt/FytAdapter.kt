@@ -209,14 +209,19 @@ internal class FytCanbusSource(private val toolkit: FytToolkit) : VehicleBusSour
  * The wheel and panel keys through module MAIN, which the firmware only
  * hands to the app that took them (`sys.carlink.type` set to 2, as the
  * CarPlay app does). Opt-in, since the firmware's own apps lose those keys
- * meanwhile: Settings → Head unit, or the debug property on the emulator.
- * The previous value is put back when the keys are let go.
+ * meanwhile: Settings → Head unit or the wheel map ([setTaking], at once),
+ * or the debug property on the emulator. The previous value is put back
+ * when the keys are let go.
  */
 internal class FytKeys(private val app: Context, private val toolkit: FytToolkit) : KeySource {
     override val vendor = "fyt"
 
     private val _listening = MutableStateFlow(false)
     override val listening: StateFlow<Boolean> = _listening
+
+    private val _taking = MutableStateFlow(enabled(app))
+    /** Whether the driver chose to take the keys ([setTaking]); [listening] once the firmware handed them over. */
+    val taking: StateFlow<Boolean> = _taking
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var onKey: ((UnitKeyPress) -> Unit)? = null
@@ -236,22 +241,46 @@ internal class FytKeys(private val app: Context, private val toolkit: FytToolkit
         }
     }
 
+    /** Binds the toolkit whatever the driver chose, so the keys can be taken the moment they are asked for ([setTaking]). */
     override fun start(context: Context, onKey: (UnitKeyPress) -> Unit) {
-        if (this.onKey != null || !enabled(app)) return
+        if (this.onKey != null) return
         this.onKey = onKey
-        toolkit.onConnection { up -> if (up) subscribe() else { module = null; _listening.value = false } }
+        toolkit.onConnection { up -> if (up) { if (_taking.value) subscribe() } else { module = null; _listening.value = false } }
         toolkit.connect()
     }
 
     override fun stop() {
         onKey = null
+        toolkit.feed.post { release() }
+    }
+
+    /**
+     * The driver's choice, kept and acted on at once: the keys are taken from
+     * the firmware, or given back to it, without a restart. Nothing happens
+     * before [start], which then follows the choice.
+     */
+    fun setTaking(on: Boolean) {
+        setEnabled(app, on)
+        if (_taking.value == on) return
+        _taking.value = on
+        if (onKey == null) return
+        toolkit.feed.post { if (on) subscribe() else release() }
+    }
+
+    // On the feed thread.
+    private fun release() {
         module?.unregister(callback, FytMain.U_KEY)
         module = null
         _listening.value = false
-        previousType?.let { back -> scope.launch { runCatching { DockShell.shell(app, "setprop ${FytProtocol.PROP_CARLINK_TYPE} $back") } } }
+        previousType?.let { back ->
+            previousType = null
+            scope.launch { runCatching { DockShell.shell(app, "setprop ${FytProtocol.PROP_CARLINK_TYPE} $back") } }
+        }
     }
 
+    // On the feed thread.
     private fun subscribe() {
+        if (module != null) return
         val m = toolkit.module(FytModules.MAIN) ?: run { Log.w(TAG, "no MAIN module: no unit keys"); return }
         module = m
         registeredAt = SystemClock.elapsedRealtime()

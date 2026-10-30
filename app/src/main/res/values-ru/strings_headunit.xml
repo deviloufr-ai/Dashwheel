@@ -19,7 +19,7 @@
     <string name="unit_applied">Готово</string>
     <string name="unit_open_whitelist">Открыть приложение белого списка</string>
     <string name="unit_fyt_keys_title">Забрать кнопки руля</string>
-    <string name="unit_fyt_keys_detail">После перезапуска прошивка передаёт кнопки руля и панели Dashwheel. Её собственные приложения на это время их теряют.</string>
+    <string name="unit_fyt_keys_detail">Прошивка передаёт кнопки руля и панели Dashwheel. Её собственные приложения на это время их теряют.</string>
     <string name="unit_needs_firmware">Нужна прошивка %1$s</string>
     <string name="unit_family_qf">QF (Hizpo, ROCO K706)</string>
     <string name="unit_family_fyt">FYT (Joying, Atoto, Mekede)</string>

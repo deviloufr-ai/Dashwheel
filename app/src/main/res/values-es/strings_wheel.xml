@@ -122,4 +122,11 @@
     <string name="wheel_reset_body">Cada botón sale del mapa y pierde su acción. El volante vuelve a lo que hace la radio por sí sola.</string>
     <string name="wheel_reset_confirm">Restablecer</string>
     <string name="wheel_action_stop_guidance">Detener la navegación</string>
+    <string name="wheel_unit_keys_off">El firmware de esta radio se guarda las teclas del volante. Deja que Dashwheel las tome: sus propias apps las pierden mientras tanto.</string>
+    <string name="wheel_unit_keys_take">Tomarlas</string>
+    <string name="wheel_unit_keys_waiting">Dashwheel pidió las teclas del volante al firmware y aún no las tiene. Tomarlas necesita root, Shizuku o el ADB de la radio.</string>
+    <string name="wheel_unit_keys_live">Escuchando las teclas del volante de la radio</string>
+    <string name="wheel_monitor_no_root">Sin root aquí solo aparecen las teclas Android y las propias de la radio. La entrada en bruto y el registro necesitan root.</string>
+    <string name="wheel_log_match_label">La línea del registro contiene</string>
+    <string name="wheel_log_hint">Actúa cada vez que el registro de la radio muestra una línea con este texto. Acórtalo a la parte que nombra el botón.</string>
 </resources>

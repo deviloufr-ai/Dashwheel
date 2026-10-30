@@ -122,4 +122,11 @@
     <string name="wheel_reset_body">Minden gomb lekerül a térképről, és elveszti a műveletét. A kormány gombjai újra úgy működnek, ahogy a fejegység magától kezeli őket.</string>
     <string name="wheel_reset_confirm">Visszaállítás</string>
     <string name="wheel_action_stop_guidance">Navigáció leállítása</string>
+    <string name="wheel_unit_keys_off">Ennek a fejegységnek a firmware-e magának tartja meg a kormánygombokat. Engedje, hogy a Dashwheel átvegye őket: a fejegység saját alkalmazásai addig elveszítik őket.</string>
+    <string name="wheel_unit_keys_take">Átvétel</string>
+    <string name="wheel_unit_keys_waiting">A Dashwheel elkérte a kormánygombokat a firmware-től, de még nem kapta meg. Ehhez root, Shizuku vagy a fejegység ADB-je kell.</string>
+    <string name="wheel_unit_keys_live">Figyeli a fejegység kormánygombjait</string>
+    <string name="wheel_monitor_no_root">Root nélkül itt csak az Android-gombok és a fejegység saját gombjai jelennek meg. A nyers bemenethez és a naplóhoz root kell.</string>
+    <string name="wheel_log_match_label">A naplósor tartalmazza</string>
+    <string name="wheel_log_hint">Minden alkalommal fut, amikor a fejegység naplójában ilyen szövegű sor jelenik meg. Rövidítse arra a részre, amely a gombot nevezi meg.</string>
 </resources>

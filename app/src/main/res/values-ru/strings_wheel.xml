@@ -126,4 +126,11 @@
     <string name="wheel_reset_body">Все кнопки уберутся со схемы и потеряют свои действия. Руль снова будет работать так, как задано в магнитоле.</string>
     <string name="wheel_reset_confirm">Сбросить</string>
     <string name="wheel_action_stop_guidance">Остановить навигацию</string>
+    <string name="wheel_unit_keys_off">Прошивка этой магнитолы оставляет кнопки руля себе. Позвольте Dashwheel забрать их: её собственные приложения на это время их теряют.</string>
+    <string name="wheel_unit_keys_take">Забрать</string>
+    <string name="wheel_unit_keys_waiting">Dashwheel запросил кнопки руля у прошивки и пока их не получил. Для этого нужен root, Shizuku или ADB магнитолы.</string>
+    <string name="wheel_unit_keys_live">Слушает кнопки руля магнитолы</string>
+    <string name="wheel_monitor_no_root">Без root здесь видны только клавиши Android и собственные кнопки магнитолы. Сырой ввод и журнал требуют root.</string>
+    <string name="wheel_log_match_label">Строка журнала содержит</string>
+    <string name="wheel_log_hint">Срабатывает каждый раз, когда в журнале магнитолы появляется строка с этим текстом. Сократите его до части, которая называет кнопку.</string>
 </resources>
