@@ -1,0 +1,73 @@
+name: Prune old betas
+
+# Deletes pre-releases nobody can be offered any more, with their tags:
+#  - betas of main older than the current stable: the beta channel always
+#    takes the newest build, and stable has already moved past them;
+#  - branch pre-releases (build.yml) of branches that are gone, and all but
+#    the newest one of each branch that is still there.
+# Stable releases, betas newer than stable and the second screen card image
+# are never touched. Runs after every promotion, or by hand from the Actions tab.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Only list what would be deleted.'
+        type: boolean
+        default: false
+  workflow_call:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prune-betas
+  cancel-in-progress: false
+
+jobs:
+  prune:
+    name: Delete old pre-releases
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Prune
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          DRY_RUN: ${{ inputs.dry_run || false }}
+        run: |
+          # [.] rather than \. : jq rejects "\." inside its strings, grep -E reads both the same.
+          main_tag='^v[0-9]+[.][0-9]+[.][0-9]+$'
+          stable=$(gh release view --json tagName --jq .tagName 2>/dev/null || true)
+          if [ -z "$stable" ]; then echo "::error::No stable release; nothing is older than it."; exit 1; fi
+          echo "Current stable: $stable"
+
+          # Newest first, so the first pre-release seen of a branch is the one to keep.
+          gh release list --limit 1000 --json tagName,isPrerelease,isDraft,createdAt \
+            --jq '[.[] | select(.isPrerelease and (.isDraft | not))] | sort_by(.createdAt) | reverse | .[].tagName' \
+            > "$RUNNER_TEMP/pre.txt"
+          git ls-remote --heads "https://github.com/$GH_REPO.git" | sed 's|.*refs/heads/||' > "$RUNNER_TEMP/branches.txt"
+
+          seen=" "
+          : > "$RUNNER_TEMP/delete.txt"
+          while read -r tag; do
+            case "$tag" in second-screen-image) continue ;; esac
+            if echo "$tag" | grep -Eq "$main_tag"; then
+              [ "${tag##*.}" -lt "${stable##*.}" ] && echo "$tag" >> "$RUNNER_TEMP/delete.txt"
+              continue
+            fi
+            # A branch pre-release is tagged <branch>-v<version>.
+            branch="${tag%-v[0-9]*.[0-9]*.[0-9]*}"
+            if [ "$branch" = "$tag" ]; then echo "Skipping $tag: not a build tag."; continue; fi
+            if grep -Fxq "$branch" "$RUNNER_TEMP/branches.txt" && [ "${seen#* $branch }" = "$seen" ]; then
+              seen="$seen$branch "
+              continue
+            fi
+            echo "$tag" >> "$RUNNER_TEMP/delete.txt"
+          done < "$RUNNER_TEMP/pre.txt"
+
+          echo "$(wc -l < "$RUNNER_TEMP/delete.txt") pre-release(s) to delete:"
+          cat "$RUNNER_TEMP/delete.txt"
+          if [ "$DRY_RUN" = "true" ]; then echo "Dry run: nothing deleted."; exit 0; fi
+          while read -r tag; do
+            gh release delete "$tag" --yes --cleanup-tag
+          done < "$RUNNER_TEMP/delete.txt"
