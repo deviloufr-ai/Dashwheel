@@ -122,4 +122,11 @@
     <string name="wheel_reset_body">Ogni tasto lascia la mappa e perde la sua azione. Il volante torna a ciò che fa l\'autoradio da sola.</string>
     <string name="wheel_reset_confirm">Ripristina</string>
     <string name="wheel_action_stop_guidance">Ferma la navigazione</string>
+    <string name="wheel_unit_keys_off">Il firmware di questa autoradio tiene per sé i tasti al volante. Lascia che Dashwheel li prenda: le sue app li perdono intanto.</string>
+    <string name="wheel_unit_keys_take">Prendili</string>
+    <string name="wheel_unit_keys_waiting">Dashwheel ha chiesto i tasti al volante al firmware e non li ha ancora. Prenderli richiede root, Shizuku o l\'ADB dell\'autoradio.</string>
+    <string name="wheel_unit_keys_live">In ascolto dei tasti al volante dell\'autoradio</string>
+    <string name="wheel_monitor_no_root">Senza root qui compaiono solo i tasti Android e quelli dell\'autoradio. L\'input grezzo e il registro richiedono root.</string>
+    <string name="wheel_log_match_label">La riga del registro contiene</string>
+    <string name="wheel_log_hint">Agisce ogni volta che il registro dell\'autoradio mostra una riga con questo testo. Accorcialo alla parte che nomina il tasto.</string>
 </resources>

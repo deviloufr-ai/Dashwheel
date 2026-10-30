@@ -19,7 +19,7 @@
     <string name="unit_applied">Kész</string>
     <string name="unit_open_whitelist">Engedélylista-alkalmazás megnyitása</string>
     <string name="unit_fyt_keys_title">Kormánygombok átvétele</string>
-    <string name="unit_fyt_keys_detail">Újraindítás után a firmware a kormány- és panelgombokat a Dashwheelnek adja. Saját alkalmazásai addig elveszítik őket.</string>
+    <string name="unit_fyt_keys_detail">A firmware a kormány- és panelgombokat a Dashwheelnek adja. Saját alkalmazásai addig elveszítik őket.</string>
     <string name="unit_needs_firmware">%1$s firmware szükséges</string>
     <string name="unit_family_qf">QF (Hizpo, ROCO K706)</string>
     <string name="unit_family_fyt">FYT (Joying, Atoto, Mekede)</string>

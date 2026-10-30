@@ -19,7 +19,7 @@
     <string name="unit_applied">Gotowe</string>
     <string name="unit_open_whitelist">Otwórz aplikację białej listy</string>
     <string name="unit_fyt_keys_title">Przejmij przyciski kierownicy</string>
-    <string name="unit_fyt_keys_detail">Po ponownym uruchomieniu firmware przekazuje przyciski kierownicy i panelu do Dashwheel. Jego własne aplikacje tracą je w tym czasie.</string>
+    <string name="unit_fyt_keys_detail">Firmware przekazuje przyciski kierownicy i panelu do Dashwheel. Jego własne aplikacje tracą je w tym czasie.</string>
     <string name="unit_needs_firmware">Wymaga firmware %1$s</string>
     <string name="unit_family_qf">QF (Hizpo, ROCO K706)</string>
     <string name="unit_family_fyt">FYT (Joying, Atoto, Mekede)</string>

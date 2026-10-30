@@ -19,7 +19,7 @@
     <string name="unit_applied">Done</string>
     <string name="unit_open_whitelist">Open the whitelist app</string>
     <string name="unit_fyt_keys_title">Take the wheel keys</string>
-    <string name="unit_fyt_keys_detail">After a restart the firmware hands its wheel and panel keys to Dashwheel. Its own apps lose them meanwhile.</string>
+    <string name="unit_fyt_keys_detail">The firmware hands its wheel and panel keys to Dashwheel. Its own apps lose them meanwhile.</string>
     <string name="unit_needs_firmware">Needs the %1$s firmware</string>
     <string name="unit_family_qf">QF (Hizpo, ROCO K706)</string>
     <string name="unit_family_fyt">FYT (Joying, Atoto, Mekede)</string>

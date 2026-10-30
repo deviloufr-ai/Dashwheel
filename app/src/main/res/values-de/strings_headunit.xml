@@ -19,7 +19,7 @@
     <string name="unit_applied">Erledigt</string>
     <string name="unit_open_whitelist">Whitelist-App öffnen</string>
     <string name="unit_fyt_keys_title">Lenkradtasten übernehmen</string>
-    <string name="unit_fyt_keys_detail">Nach einem Neustart übergibt die Firmware ihre Lenkrad- und Bedientasten an Dashwheel. Ihre eigenen Apps verlieren sie derweil.</string>
+    <string name="unit_fyt_keys_detail">Die Firmware übergibt ihre Lenkrad- und Bedientasten an Dashwheel. Ihre eigenen Apps verlieren sie derweil.</string>
     <string name="unit_needs_firmware">Braucht die %1$s-Firmware</string>
     <string name="unit_family_qf">QF (Hizpo, ROCO K706)</string>
     <string name="unit_family_fyt">FYT (Joying, Atoto, Mekede)</string>

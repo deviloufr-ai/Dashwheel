@@ -122,4 +122,11 @@
     <string name="wheel_reset_body">Jede Taste verlässt die Karte und verliert ihre Aktion. Das Lenkrad tut wieder, was das Radio von selbst macht.</string>
     <string name="wheel_reset_confirm">Zurücksetzen</string>
     <string name="wheel_action_stop_guidance">Navigation beenden</string>
+    <string name="wheel_unit_keys_off">Die Firmware dieses Radios behält die Lenkradtasten für sich. Lass Dashwheel sie übernehmen: die eigenen Apps des Radios verlieren sie derweil.</string>
+    <string name="wheel_unit_keys_take">Übernehmen</string>
+    <string name="wheel_unit_keys_waiting">Dashwheel hat die Lenkradtasten bei der Firmware angefragt und noch nicht bekommen. Dafür braucht es Root, Shizuku oder das ADB des Radios.</string>
+    <string name="wheel_unit_keys_live">Hört auf die Lenkradtasten des Radios</string>
+    <string name="wheel_monitor_no_root">Ohne Root erscheinen hier nur Android-Tasten und die eigenen Tasten des Radios. Roheingabe und Protokoll brauchen Root.</string>
+    <string name="wheel_log_match_label">Protokollzeile enthält</string>
+    <string name="wheel_log_hint">Läuft jedes Mal, wenn das Protokoll des Radios eine Zeile mit diesem Text zeigt. Kürze ihn auf den Teil, der die Taste benennt.</string>
 </resources>

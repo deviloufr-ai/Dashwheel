@@ -122,4 +122,11 @@
     <string name="wheel_reset_body">Every button leaves the map and loses its action. The wheel goes back to what the unit does by itself.</string>
     <string name="wheel_reset_confirm">Reset</string>
     <string name="wheel_action_stop_guidance">Stop navigation</string>
+    <string name="wheel_unit_keys_off">This unit\'s firmware keeps the wheel keys to itself. Let Dashwheel take them: the unit\'s own apps lose them meanwhile.</string>
+    <string name="wheel_unit_keys_take">Take them</string>
+    <string name="wheel_unit_keys_waiting">Dashwheel asked the firmware for the wheel keys and has not got them yet. Taking them needs root, Shizuku or the unit\'s ADB.</string>
+    <string name="wheel_unit_keys_live">Listening to the unit\'s own wheel keys</string>
+    <string name="wheel_monitor_no_root">Without root only Android keys and the unit\'s own keys show here. The raw input and the log need root.</string>
+    <string name="wheel_log_match_label">Log line contains</string>
+    <string name="wheel_log_hint">Runs each time the unit\'s log shows a line with this text. Shorten it to the part that names the button.</string>
 </resources>

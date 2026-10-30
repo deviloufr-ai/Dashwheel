@@ -122,4 +122,11 @@
     <string name="wheel_reset_body">Elke knop verdwijnt van de kaart en verliest zijn actie. Het stuur doet weer wat de radio zelf doet.</string>
     <string name="wheel_reset_confirm">Terugzetten</string>
     <string name="wheel_action_stop_guidance">Navigatie stoppen</string>
+    <string name="wheel_unit_keys_off">De firmware van deze radio houdt de stuurwieltoetsen voor zichzelf. Laat Dashwheel ze overnemen: de eigen apps van de radio verliezen ze ondertussen.</string>
+    <string name="wheel_unit_keys_take">Overnemen</string>
+    <string name="wheel_unit_keys_waiting">Dashwheel heeft de stuurwieltoetsen aan de firmware gevraagd en heeft ze nog niet. Daarvoor is root, Shizuku of de ADB van de radio nodig.</string>
+    <string name="wheel_unit_keys_live">Luistert naar de stuurwieltoetsen van de radio</string>
+    <string name="wheel_monitor_no_root">Zonder root verschijnen hier alleen Android-toetsen en de eigen toetsen van de radio. Ruwe invoer en het logboek hebben root nodig.</string>
+    <string name="wheel_log_match_label">Logboekregel bevat</string>
+    <string name="wheel_log_hint">Werkt telkens als het logboek van de radio een regel met deze tekst toont. Kort hem in tot het deel dat de knop benoemt.</string>
 </resources>
