@@ -215,6 +215,8 @@ object RoadAlertOverlay {
      * lane), words for the rest when the driver has them said.
      */
     fun sound(context: Context, warning: RoadWarning, force: Boolean = false) {
+        // Gemini's conversation is quiet around it, the car ahead excepted: that can't wait.
+        if (GeminiLive.active.value && !force && warning != RoadWarning.COLLISION) return
         when (warning) {
             RoadWarning.COLLISION -> tone(ToneGenerator.TONE_CDMA_EMERGENCY_RINGBACK, 1_200)
             RoadWarning.LANE_LEFT, RoadWarning.LANE_RIGHT -> tone(ToneGenerator.TONE_PROP_BEEP2, 300)

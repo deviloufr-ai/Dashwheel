@@ -16,6 +16,7 @@ import android.view.WindowManager
 import android.widget.ImageView
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -48,6 +49,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -85,8 +87,8 @@ import kotlinx.coroutines.withTimeoutOrNull
  * display of its own (EmbeddedApp) drawn in the alert, so its captions and
  * buttons work there. While driving the bigger designs shrink to the pill
  * after a few seconds; reversing puts the alert aside and a phone call ends
- * the conversation. Dashwheel's own Gemini ends when reverse is engaged too,
- * and the car's voice waits while it talks ([CarVoice.holdForLive]). A second
+ * the conversation. Dashwheel's own Gemini ends when reverse is engaged too.
+ * The car's voice waits during either ([CarVoice.holdForLive]). A second
  * press, or the alert's close button, ends it.
  *
  * Live has no public way in: Gemini's home-screen widget opens it through an
@@ -219,6 +221,7 @@ internal object GeminiLive {
         val fresh = host.displayId == null
         if (fresh) host.startCommand = LIVE
         _active.value = true
+        CarVoice.holdForLive(true)
         bigSince = SystemClock.elapsedRealtime()
         // The unit shows each new app full screen for a moment before it reaches its display:
         // a picture of the dashboard hides that, until Gemini is in place.
@@ -299,6 +302,7 @@ internal object GeminiLive {
             CarVoice.holdForLive(false)
             return
         }
+        CarVoice.holdForLive(false)
         starting?.cancel()
         starting = null
         LaunchCurtain.lift()
@@ -610,7 +614,9 @@ private fun EndButton(onEnd: () -> Unit) {
 private fun Conversation(modifier: Modifier) {
     val lines by DashAssistant.lines.collectAsState()
     val phase by DashAssistant.phase.collectAsState()
-    Column(modifier.padding(horizontal = 20.dp, vertical = 12.dp), verticalArrangement = Arrangement.Bottom) {
+    Box(modifier) {
+    VoiceGlow(Modifier.fillMaxWidth().height(160.dp).align(Alignment.BottomCenter))
+    Column(Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 12.dp), verticalArrangement = Arrangement.Bottom) {
         lines.takeLast(4).forEach { line ->
             Text(
                 line.text,
@@ -636,6 +642,23 @@ private fun Conversation(modifier: Modifier) {
             Text(stringResource(status), color = DashColors.AccentInk, style = MaterialTheme.typography.labelLarge)
         }
     }
+    }
+}
+
+/** The glow at the bottom of the conversation, rising and falling with the voice heard or played, as in Gemini's app. */
+@Composable
+private fun VoiceGlow(modifier: Modifier) {
+    val level by DashAssistant.level.collectAsState()
+    val glow = animateFloatAsState((level * 6f).coerceAtMost(1f), tween(120), label = "voice")
+    Box(
+        modifier
+            .graphicsLayer {
+                transformOrigin = TransformOrigin(0.5f, 1f)
+                scaleY = 0.2f + 0.8f * glow.value
+                alpha = 0.3f + 0.7f * glow.value
+            }
+            .background(Brush.verticalGradient(listOf(Color.Transparent, Color(0x665AA9FF), Color(0xCC9B72CB))))
+    )
 }
 
 /** "Try it": Live's dark screen and its glow, no conversation. */
