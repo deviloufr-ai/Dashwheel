@@ -51,8 +51,9 @@ import java.util.concurrent.TimeUnit
  * set the parking timer, log a refuel ([AssistantActs]) and search the web.
  *
  * Shown by GeminiLive's alert, in its chosen design. The car's speakers are
- * next to its microphone: the microphone is not sent while Gemini speaks, so
- * it never hears itself; the driver speaks once it has finished (or ends it).
+ * next to its microphone: while Gemini speaks the microphone only goes up when
+ * it is clearly louder than Gemini's own echo ([BargeInGate]), so the driver
+ * can talk over it and it doesn't hear itself.
  */
 internal object DashAssistant {
     private const val TAG = "DashAssistant"
@@ -70,6 +71,10 @@ internal object DashAssistant {
     private const val ECHO_TAIL_MS = 400L
     private const val GUIDANCE_CHECK_MS = 250L
     private const val SETUP_WAIT_MS = 10_000L
+    /** Pause in the driver's voice that ends their turn, for Gemini and on the alert. */
+    private const val SILENCE_MS = 500
+    /** Microphone level (0..1) taken for a voice on the alert. */
+    private const val VOICE_RMS = 0.02f
 
     enum class Phase { CONNECTING, LISTENING, THINKING, SPEAKING, FAILED, CLOSED }
 
@@ -82,6 +87,13 @@ internal object DashAssistant {
     private val _lines = MutableStateFlow<List<Line>>(emptyList())
     /** The conversation so far, newest last (the last few). */
     val lines: StateFlow<List<Line>> = _lines
+
+    private val _level = MutableStateFlow(0f)
+    /** How loud the voice being heard or played is now, 0..1: what the alert's glow follows. */
+    val level: StateFlow<Float> = _level
+
+    /** The driver was heard and Gemini has not answered yet. */
+    @Volatile private var heard = false
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var session: Job? = null
@@ -237,6 +249,9 @@ internal object DashAssistant {
                     JSONObject().put(
                         "automaticActivityDetection",
                         JSONObject().put("startOfSpeechSensitivity", "START_SENSITIVITY_LOW")
+                            // The answer starts as soon as the driver stops talking.
+                            .put("endOfSpeechSensitivity", "END_SENSITIVITY_HIGH")
+                            .put("silenceDurationMs", SILENCE_MS)
                     )
                 )
                 .put("inputAudioTranscription", JSONObject())
@@ -254,11 +269,16 @@ internal object DashAssistant {
             }
             content.optJSONObject("inputTranscription")?.optString("text")?.takeIf { it.isNotBlank() }?.let {
                 hear(driver = true, it)
-                if (_phase.value == Phase.LISTENING) _phase.value = Phase.THINKING
+                heard = true
             }
             content.optJSONObject("outputTranscription")?.optString("text")?.takeIf { it.isNotBlank() }?.let { hear(driver = false, it) }
             if (content.optBoolean("interrupted")) hush()
-            if (content.optBoolean("turnComplete")) lineOpen = false
+            if (content.optBoolean("turnComplete")) {
+                lineOpen = false
+                heard = false
+                // A turn with no voice (a tool only) stayed on "thinking" for good.
+                if (_phase.value == Phase.THINKING) _phase.value = Phase.LISTENING
+            }
         }
         message.optJSONObject("toolCall")?.optJSONArray("functionCalls")?.let { calls ->
             val replies = JSONArray()
@@ -291,9 +311,10 @@ internal object DashAssistant {
     }
 
     /**
-     * Sends the microphone up, except while Gemini speaks and just after, and
-     * while a navigation app gives a turn. The source is the one for calls, so
-     * the unit cancels its own sound (music, guidance) out of what Gemini hears.
+     * Sends the microphone up, except while a navigation app gives a turn, and
+     * while Gemini speaks and just after unless the driver talks over it
+     * ([BargeInGate]). The source is the one for calls, so the unit cancels
+     * its own sound (music, guidance) out of what Gemini hears.
      */
     private suspend fun listen(ws: WebSocket) {
         val bytes = IN_RATE * 2 * CHUNK_MS / 1000
@@ -311,6 +332,10 @@ internal object DashAssistant {
         try {
             record.startRecording()
             val buffer = ByteArray(bytes)
+            val previous = ByteArray(bytes)
+            var previousSize = 0
+            val gate = BargeInGate()
+            var voiceAt = 0L
             // This coroutine's own job: the object's scope is never cancelled, so
             // the loop would have read and sent on after converse() cancelled it.
             while (currentCoroutineContext().isActive && session?.isActive == true) {
@@ -326,15 +351,31 @@ internal object DashAssistant {
                     continue
                 }
                 val now = SystemClock.elapsedRealtime()
-                if (now < speakingUntil + ECHO_TAIL_MS) continue
-                // Gemini is done talking: the music comes back up.
-                releaseFocus()
-                if (navigationTalking(now)) continue
+                val speaking = now < speakingUntil + ECHO_TAIL_MS
+                if (navigationTalking(now)) {
+                    gate.reset()
+                    continue
+                }
+                val loudness = rms(buffer, n)
+                if (speaking) {
+                    val going = gate.hear(loudness)
+                    // The chunk before holds the first syllable of what the gate just let through.
+                    if (going == 2) sendAudio(ws, previous, previousSize)
+                    if (going > 0) sendAudio(ws, buffer, n)
+                    buffer.copyInto(previous, endIndex = n)
+                    previousSize = n
+                    continue
+                }
+                gate.reset()
                 if (_phase.value == Phase.SPEAKING) _phase.value = Phase.LISTENING
-                val audio = JSONObject()
-                    .put("data", Base64.encodeToString(buffer, 0, n, Base64.NO_WRAP))
-                    .put("mimeType", "audio/pcm;rate=$IN_RATE")
-                ws.send(JSONObject().put("realtimeInput", JSONObject().put("audio", audio)).toString())
+                _level.value = loudness
+                if (loudness >= VOICE_RMS) {
+                    voiceAt = now
+                    if (_phase.value == Phase.THINKING) _phase.value = Phase.LISTENING
+                } else if (heard && _phase.value == Phase.LISTENING && now - voiceAt >= SILENCE_MS) {
+                    _phase.value = Phase.THINKING
+                }
+                sendAudio(ws, buffer, n)
             }
         } catch (e: IllegalStateException) {
             // CancellationException is one too: the conversation ending is not the recorder failing.
@@ -346,6 +387,13 @@ internal object DashAssistant {
             runCatching { record.stop() }
             record.release()
         }
+    }
+
+    private fun sendAudio(ws: WebSocket, pcm: ByteArray, size: Int) {
+        val audio = JSONObject()
+            .put("data", Base64.encodeToString(pcm, 0, size, Base64.NO_WRAP))
+            .put("mimeType", "audio/pcm;rate=$IN_RATE")
+        ws.send(JSONObject().put("realtimeInput", JSONObject().put("audio", audio)).toString())
     }
 
     /** A recorder on [source], or null when this unit's audio can't give one. */
@@ -384,12 +432,12 @@ internal object DashAssistant {
         return now < guidanceSeenAt + ECHO_TAIL_MS
     }
 
-    /** Gemini speaks: the other sounds go down for it, and nothing pauses. */
+    /** The conversation opens: the music pauses until it ends. */
     private fun takeFocus() = synchronized(focusLock) {
         if (focus != null) return@synchronized
         val am = audioManager ?: return@synchronized
         val attributes = voice ?: return@synchronized
-        val request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+        val request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
             .setAudioAttributes(attributes)
             .build()
         if (runCatching { am.requestAudioFocus(request) }.getOrNull() == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) focus = request
@@ -406,7 +454,7 @@ internal object DashAssistant {
         val ms = pcm.size * 1000L / (OUT_RATE * 2)
         val now = SystemClock.elapsedRealtime()
         speakingUntil = maxOf(speakingUntil, now) + ms
-        takeFocus()
+        heard = false
         _phase.value = Phase.SPEAKING
         playback.trySend(pcm)
     }
@@ -421,11 +469,16 @@ internal object DashAssistant {
                 it.play()
             }
         }
-        speakingUntil = SystemClock.elapsedRealtime()
+        // Its voice is gone at once, so no echo to wait for: the driver is mid-sentence.
+        speakingUntil = 0L
+        lineOpen = false
+        heard = false
+        _phase.value = Phase.LISTENING
     }
 
     private suspend fun play() {
         for (pcm in playback) {
+            _level.value = rms(pcm, pcm.size)
             track?.write(pcm, 0, pcm.size)
         }
     }
@@ -435,10 +488,9 @@ internal object DashAssistant {
             .setUsage(AudioAttributes.USAGE_ASSISTANT)
             .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
             .build()
-        // No focus while the driver talks: the music and the guidance carry on.
-        // Gemini only ducks them while it speaks (takeFocus).
         audioManager = context.getSystemService(AudioManager::class.java)
         voice = attributes
+        takeFocus()
         val min = AudioTrack.getMinBufferSize(OUT_RATE, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT)
         track = AudioTrack.Builder()
             .setAudioAttributes(attributes)
@@ -446,7 +498,8 @@ internal object DashAssistant {
                 AudioFormat.Builder().setSampleRate(OUT_RATE).setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
                     .setEncoding(AudioFormat.ENCODING_PCM_16BIT).build()
             )
-            .setBufferSizeInBytes(maxOf(min, OUT_RATE))
+            // 200 ms: half a second of queue came on top of every answer and every interruption.
+            .setBufferSizeInBytes(maxOf(min, OUT_RATE * 2 / 5))
             .setTransferMode(AudioTrack.MODE_STREAM)
             .build()
             .also { it.play() }
@@ -459,6 +512,8 @@ internal object DashAssistant {
         releaseFocus()
         speakingUntil = 0L
         guidanceSeenAt = 0L
+        heard = false
+        _level.value = 0f
     }
 
     /** Ends the conversation once Gemini has finished saying goodbye. */
@@ -468,6 +523,68 @@ internal object DashAssistant {
             while (SystemClock.elapsedRealtime() < speakingUntil + ECHO_TAIL_MS) delay(200)
             withContext(Dispatchers.Main) { GeminiLive.end(context) }
         }
+    }
+}
+
+/** How loud 16-bit little-endian [pcm] is, 0..1. */
+internal fun rms(pcm: ByteArray, size: Int): Float {
+    val samples = size / 2
+    if (samples == 0) return 0f
+    var sum = 0.0
+    for (i in 0 until samples) {
+        val sample = (pcm[i * 2].toInt() and 0xFF) or (pcm[i * 2 + 1].toInt() shl 8)
+        sum += sample.toDouble() * sample
+    }
+    return (kotlin.math.sqrt(sum / samples) / 32768.0).toFloat()
+}
+
+/**
+ * Lets the microphone through while Gemini speaks only when the driver talks
+ * over it. It learns how loud Gemini's echo is in the microphone, and a voice
+ * has to stay well above that for two chunks; Gemini's own voice detection
+ * then decides whether it is really an interruption, so a bump costs nothing.
+ */
+internal class BargeInGate {
+    private var floor = 0f
+    private var chunks = 0
+    private var loud = 0
+    private var open = 0
+
+    /** A chunk of [rms] loudness came in: how many of the latest chunks go up (2 = this and the one before). */
+    fun hear(rms: Float): Int {
+        if (open > 0) {
+            open--
+            return 1
+        }
+        if (chunks >= LEARN_CHUNKS && rms > maxOf(MIN_RMS, floor * ABOVE_ECHO)) {
+            if (++loud >= LOUD_CHUNKS) {
+                loud = 0
+                open = OPEN_CHUNKS
+                return 2
+            }
+            return 0
+        }
+        loud = 0
+        floor = if (chunks == 0) rms else floor + (rms - floor) * FLOOR_FOLLOW
+        chunks++
+        return 0
+    }
+
+    /** Gemini stopped speaking: the next time starts over. */
+    fun reset() {
+        floor = 0f
+        chunks = 0
+        loud = 0
+        open = 0
+    }
+
+    private companion object {
+        const val LEARN_CHUNKS = 3
+        const val LOUD_CHUNKS = 2
+        const val OPEN_CHUNKS = 15
+        const val MIN_RMS = 0.03f
+        const val ABOVE_ECHO = 2.5f
+        const val FLOOR_FOLLOW = 0.2f
     }
 }
 

@@ -73,8 +73,9 @@ object CarVoice {
     fun holdForCall(on: Boolean) = setHold { onCall = on }
 
     /**
-     * And while the driver talks with Dashwheel's own Gemini ([GeminiLive]):
-     * the car's voice would speak over it, and into its open microphone.
+     * And while the driver talks with Gemini ([GeminiLive]): the car's voice
+     * would speak over it, and into its open microphone. Turns too; only what
+     * can't wait is still said.
      */
     fun holdForLive(on: Boolean) = setHold { inLive = on }
 
@@ -155,7 +156,7 @@ object CarVoice {
     /**
      * A turn instruction, which is only true for a few seconds: said ahead of
      * what is being said or waiting (those waiting are said after it), and
-     * dropped rather than said late when a call or a reverse held it back.
+     * dropped rather than said late when a call, a conversation or a reverse held it back.
      */
     fun guide(text: String, locale: Locale) = ask(text, locale, urgent = false, guidance = true)
 
@@ -168,8 +169,7 @@ object CarVoice {
         }
         main.post {
             if (text.isBlank()) return@post
-            // A turn goes through a conversation with Gemini, which leaves it out of what it hears.
-            if (reversing || onCall && !urgent || inLive && !urgent && !guidance) {
+            if (reversing || (onCall || inLive) && !urgent) {
                 val at = SystemClock.elapsedRealtime()
                 // Stale lines would be dropped at release anyway: a hold stuck on (a call
                 // state that never cleared) no longer piles them up for days.
