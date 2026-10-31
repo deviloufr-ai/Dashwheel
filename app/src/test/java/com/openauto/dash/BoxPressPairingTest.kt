@@ -41,7 +41,9 @@ class BoxPressPairingTest {
         p.swallow(phoneKey)
         assertTrue(p.follows(phoneKey, release = false))
         assertFalse(p.follows(WheelKey(4, 0).id, release = false))
+        assertTrue(p.swallowing(phoneKey))
         assertTrue(p.follows(phoneKey, release = true))
+        assertFalse(p.swallowing(phoneKey))
         // Released: a later press of the same key is a new one.
         assertFalse(p.follows(phoneKey, release = false))
     }

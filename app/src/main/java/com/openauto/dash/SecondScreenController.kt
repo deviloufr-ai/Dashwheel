@@ -213,10 +213,14 @@ internal object SecondScreenController {
 
     /**
      * [onKey] ahead of the steering wheel's button map, which keeps every key
-     * while it is learning them (SteeringWheelStore.mapping).
+     * while it is learning them (SteeringWheelStore.mapping). A key standing
+     * for a bound CAN box button is that button's, unless a page key is being
+     * learned: "media keys turn pages" would skip the track on its release.
      */
     fun onWheelKey(event: KeyEvent): Boolean =
-        !SteeringWheelStore.mapping.value && runCatching { onKey(event) }.getOrDefault(false)
+        !SteeringWheelStore.mapping.value &&
+            (keys.learning != null || !SteeringWheelStore.belongsToBoxPress(event)) &&
+            runCatching { onKey(event) }.getOrDefault(false)
 
     /** A key from the dashboard or the accessibility service; true when it was the cluster's. */
     fun onKey(event: KeyEvent): Boolean {
