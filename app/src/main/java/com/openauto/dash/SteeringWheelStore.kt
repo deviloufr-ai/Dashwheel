@@ -470,6 +470,17 @@ internal object SteeringWheelStore {
         return true
     }
 
+    /**
+     * Whether [event] is the firmware's key for a CAN box press bound on the
+     * map: [onKeyEvent] takes it on that press's account, so nothing ahead of
+     * it may act on it as well.
+     */
+    fun belongsToBoxPress(event: KeyEvent): Boolean {
+        val press = event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0
+        return if (press) box.pending(SystemClock.uptimeMillis())?.let { bound(it) } != null
+        else box.swallowing(WheelKey(event.keyCode, event.scanCode).id)
+    }
+
     private fun WheelAssignment.isVolumeStep(): Boolean =
         this is WheelAssignment.Preset && (action == SteeringWheelAction.VOLUME_UP || action == SteeringWheelAction.VOLUME_DOWN)
 
@@ -756,6 +767,9 @@ internal class BoxPressPairing(
     fun swallow(id: String) {
         swallowed += id
     }
+
+    /** Whether the press of the firmware key [id] was taken ([swallow]) and it isn't let go yet. */
+    fun swallowing(id: String): Boolean = id in swallowed
 
     /** A repeat or the release of the firmware key [id]: true when its press was taken ([swallow]). */
     fun follows(id: String, release: Boolean): Boolean {
