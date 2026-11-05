@@ -786,6 +786,11 @@ private fun DrawScope.fadedGround(pose: Pose?, cx: Float, tailY: Float, noseY: F
             ),
             blendMode = BlendMode.DstIn
         )
+        // No wider than the half circle.
+        drawRect(
+            Brush.radialGradient(0f to Color.Black, 0.78f to Color.Black, 1f to Color.Transparent, center = Offset(cx, tailY), radius = FAN_M * m),
+            blendMode = BlendMode.DstIn
+        )
         drawIntoCanvas { it.restore() }
     }
     drawIntoCanvas { it.saveLayer(bounds, Paint()) }
