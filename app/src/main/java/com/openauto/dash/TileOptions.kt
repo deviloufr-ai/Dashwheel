@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -112,6 +113,9 @@ internal fun sidePanelWidth(pagesWidth: Dp, pagesHeight: Dp, hasDesigns: Boolean
         maxOf(PANEL_WIDTH, minOf(PANEL_WIDE_WIDTH, pagesWidth * PANEL_WIDE_SHARE))
     } else PANEL_WIDTH
 
+/** Below this height the panel's title, tabs and Close share one line. */
+internal val PANEL_CRAMPED_HEIGHT = 360.dp
+
 /** The upright sheet's tallest: it stays under half the pages, so the tile keeps room above or below it. */
 internal val PANEL_SHEET_MAX = 460.dp
 
@@ -173,8 +177,23 @@ internal fun TilePanel(
     val framed = item.canFrame(rememberInsideAllowed())
     var section by remember { mutableStateOf(PanelSection.TILE) }
     SolidCard(modifier = modifier.keepClearOfWindows()) {
-        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+      BoxWithConstraints(propagateMinConstraints = true) {
+        // A very short panel (a wide, low screen): the title, the tabs and Close
+        // share one line, so the designs and Remove keep the height.
+        val cramped = maxHeight < PANEL_CRAMPED_HEIGHT
+        val gap = if (cramped) 8.dp else 10.dp
+        Column(modifier = Modifier.padding(if (cramped) 10.dp else 14.dp), verticalArrangement = Arrangement.spacedBy(gap)) {
+            val tabs: @Composable (Modifier) -> Unit = { m ->
+                SegmentedSwitch(
+                    options = PanelSection.entries,
+                    chosen = section,
+                    icon = { it.icon },
+                    title = { stringResource(it.label) },
+                    modifier = m,
+                    onChoose = { section = it }
+                )
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(if (cramped) 8.dp else 0.dp)) {
                 Text(
                     title,
                     color = DashColors.TextPrimary,
@@ -182,19 +201,12 @@ internal fun TilePanel(
                     style = MaterialTheme.typography.titleMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(if (cramped && framed) 0.4f else 1f)
                 )
+                if (cramped && framed) tabs(Modifier.weight(1f))
                 SquareButton(Icons.Filled.Close, stringResource(R.string.dash_close), onClick = onClose)
             }
-            if (framed) {
-                SegmentedSwitch(
-                    options = PanelSection.entries,
-                    chosen = section,
-                    icon = { it.icon },
-                    title = { stringResource(it.label) },
-                    onChoose = { section = it }
-                )
-            }
+            if (framed && !cramped) tabs(Modifier)
             if (framed && section == PanelSection.LAYER) {
                 // Along the bottom, or the widened side panel: the layer beside the place.
                 LayerControls(item, twoColumns = upright || wide, onFrame, onOverlap, onLayer, onNudge, onResize, Modifier.weight(1f))
@@ -227,6 +239,7 @@ internal fun TilePanel(
                 Controls(item, stacked = false, onZoom, onRemove, barActions)
             }
         }
+      }
     }
 }
 

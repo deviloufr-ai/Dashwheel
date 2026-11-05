@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -120,7 +121,7 @@ internal fun DesignShelf(
     val atTheWheel = kind.category == WidgetCategory.DRIVING || kind.category == WidgetCategory.NAVIGATION
     val quick = if (atTheWheel) shown.filter { it.glanceable } else shown
     val parked = if (atTheWheel) shown.filter { !it.glanceable } else emptyList()
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    val chips: @Composable () -> Unit = {
         // Wrapped, not scrolled: a family cut at the panel's edge went unseen.
         FlowRow(
             modifier = Modifier.fillMaxWidth(),
@@ -131,42 +132,9 @@ internal fun DesignShelf(
                 CategoryChip(if (f == null) kind.label else stringResource(f.titleRes), shelf == f) { shelf = f }
             }
         }
-        LazyVerticalGrid(
-            columns = GridCells.Adaptive(DESIGN_THUMB_MIN_WIDTH),
-            modifier = Modifier.weight(1f),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            val thumbs: (List<WidgetDesign>) -> Unit = { list ->
-                items(list, key = { it.name }) { design ->
-                    DesignThumb(design, design == worn, aspect, onClick = { onPick(design) }) {
-                        when {
-                            design == WidgetDesign.STANDARD -> standardPreview()
-                            framed -> DesignFrame(design, kindIcon(kind), kind.label, Modifier.fillMaxSize()) { FramedPlaceholder(kind) }
-                            else -> DesignedFace(frozen.value ?: sample, design, Modifier.fillMaxSize())
-                        }
-                    }
-                }
-            }
-            thumbs(quick)
-            if (parked.isNotEmpty()) {
-                item(key = "parked", span = { GridItemSpan(maxLineSpan) }) {
-                    Column(modifier = Modifier.fillMaxWidth().padding(start = 2.dp, top = 6.dp)) {
-                        Text(
-                            stringResource(R.string.design_parked_looks).uppercase(),
-                            color = DashColors.Muted, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp,
-                            style = MaterialTheme.typography.labelMedium, maxLines = 1
-                        )
-                        Text(
-                            stringResource(R.string.design_parked_looks_note),
-                            color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-                thumbs(parked)
-            }
-        }
-        // The previews carry names only; the one in use says what it is.
+    }
+    // The previews carry names only; the one in use says what it is.
+    val inUse: @Composable () -> Unit = {
         Text(
             buildAnnotatedString {
                 withStyle(SpanStyle(color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold)) { append(worn.title) }
@@ -177,7 +145,62 @@ internal fun DesignShelf(
             maxLines = 2, overflow = TextOverflow.Ellipsis
         )
     }
+    BoxWithConstraints(modifier = modifier, propagateMinConstraints = true) {
+        // A low panel (a wide, short screen): the chips and the chips' wrap took
+        // all its height and left the previews none. There, everything scrolls
+        // as one, and the previews are smaller, two or more to a row.
+        val short = maxHeight < SHELF_SHORT_HEIGHT
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            if (!short) chips()
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(if (short) DESIGN_THUMB_SHORT_MIN_WIDTH else DESIGN_THUMB_MIN_WIDTH),
+                modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(if (short) 8.dp else 10.dp)
+            ) {
+                if (short) {
+                    item(key = "chips", span = { GridItemSpan(maxLineSpan) }) { chips() }
+                    item(key = "in-use", span = { GridItemSpan(maxLineSpan) }) { inUse() }
+                }
+                val thumbs: (List<WidgetDesign>) -> Unit = { list ->
+                    items(list, key = { it.name }) { design ->
+                        DesignThumb(design, design == worn, aspect, onClick = { onPick(design) }) {
+                            when {
+                                design == WidgetDesign.STANDARD -> standardPreview()
+                                framed -> DesignFrame(design, kindIcon(kind), kind.label, Modifier.fillMaxSize()) { FramedPlaceholder(kind) }
+                                else -> DesignedFace(frozen.value ?: sample, design, Modifier.fillMaxSize())
+                            }
+                        }
+                    }
+                }
+                thumbs(quick)
+                if (parked.isNotEmpty()) {
+                    item(key = "parked", span = { GridItemSpan(maxLineSpan) }) {
+                        Column(modifier = Modifier.fillMaxWidth().padding(start = 2.dp, top = 6.dp)) {
+                            Text(
+                                stringResource(R.string.design_parked_looks).uppercase(),
+                                color = DashColors.Muted, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp,
+                                style = MaterialTheme.typography.labelMedium, maxLines = 1
+                            )
+                            Text(
+                                stringResource(R.string.design_parked_looks_note),
+                                color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                    thumbs(parked)
+                }
+            }
+            if (!short) inUse()
+        }
+    }
 }
+
+/** Below this height the shelf scrolls as one: chips, the design in use, then the previews. */
+private val SHELF_SHORT_HEIGHT = 300.dp
+
+/** The short shelf's smaller previews, so more than one shows at once. */
+private val DESIGN_THUMB_SHORT_MIN_WIDTH = 130.dp
 
 /** Below this width the shelf gives up a column: two big ones to a row in the side panel. */
 private val DESIGN_THUMB_MIN_WIDTH = 190.dp
