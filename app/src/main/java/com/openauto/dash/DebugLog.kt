@@ -51,8 +51,13 @@ object DebugLog {
     /** Every setting and property naming a launcher or a home screen: where a unit keeps its own choice. */
     private const val LAUNCHER_SETTINGS = "getprop | grep -i -E 'launcher|home|freeform|persist.sys.maps'; for t in global system secure; do settings list \$t | grep -i -E 'launcher|home' | sed \"s/^/\$t: /\"; done"
 
-    /** The car's temperature as CAN apps leave it in the system settings (NWD's car_config_out_temp, issue #122). */
-    private const val TEMP_SETTINGS = "settings list system | grep -i -E 'temp' | head -n 20"
+    /**
+     * The car's temperature as CAN apps leave it (NWD's car_config_out_temp, issue #122): every setting
+     * table and system property naming a temperature or holding one ("16℃"). An NWD unit's status bar
+     * showed 16℃ offline with no such system setting, so it keeps it elsewhere, or is the weather kept.
+     */
+    private const val TEMP_SETTINGS = "for t in system global secure; do settings list \$t | grep -i -E 'temp|℃|℉|°' | sed \"s/^/\$t: /\"; done | head -n 40; " +
+        "getprop | grep -i -E 'temp|℃|℉|°' | grep -v -i -E 'thermal|battery|cpu|gpu|skin|tsens' | head -n 20"
 
     /**
      * The screens Android holds on each display, and which one it counts as
