@@ -701,7 +701,7 @@ private fun DrawScope.fromAbove(radar: Radar?, steeringDeg: Float?, look: CarVie
     /** A point of the car (metres right, metres ahead of the rear axle) on screen. */
     fun onScreen(c: Offset) = Offset(cx + c.x * m, axleY - c.y * m)
 
-    above.pose?.let { pose -> if (above.ground) fadedGround(pose, cx, axleY, tailY, noseY, m) }
+    if (above.ground) fadedGround(above.pose, cx, tailY, noseY, axleY, m)
     distanceRings(cx, tailY, m)
     sensorGlows(radar?.rear.orEmpty(), rear = true, ::onScreen, m)
     sensorGlows(radar?.front.orEmpty(), rear = false, ::onScreen, m)
@@ -763,22 +763,42 @@ private fun DrawScope.fromAbove(radar: Radar?, steeringDeg: Float?, look: CarVie
 }
 
 /**
- * The ground map, masked: whole in the half circle behind the bumper, fading
- * out at its edge, and dimmer beside the car (filmed earlier), fading out
- * towards the nose.
+ * The ground: behind the bumper, the half circle the camera sees right now
+ * ([GroundMemory.live]), whole, fading out at its edge; beside the car, dimmer,
+ * the ground it filmed earlier ([groundMap]), fading out towards the nose and
+ * gone behind the bumper, so a picture laid a little off by the car's
+ * measured movement never shows under the live one.
  */
-private fun DrawScope.fadedGround(pose: Pose, cx: Float, axleY: Float, tailY: Float, noseY: Float, m: Float) {
+private fun DrawScope.fadedGround(pose: Pose?, cx: Float, tailY: Float, noseY: Float, axleY: Float, m: Float) {
     val bounds = Rect(Offset.Zero, size)
+    if (pose != null) {
+        drawIntoCanvas { it.saveLayer(bounds, Paint()) }
+        groundMap(pose, cx, axleY, m)
+        // Beside the car: the remembered ground, dimmer, gone by the nose and just behind the bumper.
+        val fade = 0.4f * m
+        drawRect(
+            Brush.verticalGradient(
+                0f to Color.Transparent,
+                0.55f * (tailY - noseY) / (tailY + fade - noseY) to Color.Black.copy(alpha = 0.45f),
+                (tailY - noseY) / (tailY + fade - noseY) to Color.Black,
+                1f to Color.Transparent,
+                startY = noseY, endY = tailY + fade
+            ),
+            blendMode = BlendMode.DstIn
+        )
+        drawIntoCanvas { it.restore() }
+    }
     drawIntoCanvas { it.saveLayer(bounds, Paint()) }
-    groundMap(pose, cx, axleY, m)
+    val r = GroundMemory.LIVE_M * m
+    withTransform({
+        translate(cx - r, tailY)
+        scale(m * GroundMemory.RES, m * GroundMemory.RES, Offset.Zero)
+    }) {
+        drawImage(GroundMemory.live, alpha = 0.95f)
+    }
     // The half circle's edge.
     drawRect(
         Brush.radialGradient(0f to Color.Black, 0.78f to Color.Black, 1f to Color.Transparent, center = Offset(cx, tailY), radius = FAN_M * m),
-        blendMode = BlendMode.DstIn
-    )
-    // Beside the car: the remembered ground, dimmer, gone by the nose.
-    drawRect(
-        Brush.verticalGradient(0f to Color.Transparent, 0.55f to Color.Black.copy(alpha = 0.45f), 1f to Color.Black, startY = noseY, endY = tailY),
         blendMode = BlendMode.DstIn
     )
     drawIntoCanvas { it.restore() }

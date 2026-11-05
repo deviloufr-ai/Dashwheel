@@ -83,7 +83,7 @@ internal object ReverseCamera {
     /** The copy of the picture the ground map is read from. */
     private const val FRAME_W = 320
     private const val FRAME_H = 180
-    private const val SAMPLE_MS = 200L
+    private const val SAMPLE_MS = 100L
     /**
      * A picture that stays black this long after its first frame has no
      * signal behind it: the camera Dashwheel opened is not the one the video
@@ -453,7 +453,7 @@ internal object ReverseCamera {
     }
 
     /**
-     * A small copy of the picture five times a second while it's live, for
+     * A small copy of the picture ten times a second while it's live, for
      * the ground map and the camera's measure of how far the car moved
      * ([GroundMemory], [ParkingMotion]).
      */
@@ -463,7 +463,8 @@ internal object ReverseCamera {
             val pixels = IntArray(FRAME_W * FRAME_H)
             while (isActive && _state.value == State.LIVE) {
                 delay(SAMPLE_MS)
-                if (ParkingMotion.pose.value == null || view.width == 0) continue
+                // Sampled even before the manoeuvre's pose: the live ground behind the car needs no pose.
+                if (view.width == 0) continue
                 val b = frame ?: Bitmap.createBitmap(FRAME_W, FRAME_H, Bitmap.Config.ARGB_8888).also { frame = it }
                 if (runCatching { view.getBitmap(b) }.isFailure) continue
                 b.getPixels(pixels, 0, FRAME_W, 0, 0, FRAME_W, FRAME_H)

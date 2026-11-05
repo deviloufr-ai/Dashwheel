@@ -300,6 +300,18 @@ internal object GroundMemory {
         private set
     @Volatile var originY = SIZE * RES / 2f
         private set
+    /**
+     * What the camera sees right now, from above: the half circle behind the
+     * bumper, in the car's own frame (column 0 is [FAN_M] left of the bumper's
+     * middle, row 0 at the bumper, [RES] a pixel), redrawn whole from each
+     * picture. Unlike the map it never carries the drift of the car's
+     * measured movement, so the ground behind the car is always the live one.
+     */
+    private val livePixels = IntArray(FAN_COLS * FAN_ROWS)
+    private val liveBitmap: Bitmap = Bitmap.createBitmap(FAN_COLS, FAN_ROWS, Bitmap.Config.ARGB_8888)
+    val live: ImageBitmap = liveBitmap.asImageBitmap()
+    /** How far the live half circle reaches from the bumper's middle, in metres. */
+    const val LIVE_M = FAN_M
     private val _version = MutableStateFlow(0)
     val version: StateFlow<Int> = _version.asStateFlow()
     private val _filled = MutableStateFlow(false)
@@ -317,6 +329,8 @@ internal object GroundMemory {
     fun clear() {
         pixels.fill(0)
         bitmap.eraseColor(0)
+        livePixels.fill(0)
+        liveBitmap.eraseColor(0)
         previous = null
         originX = -SIZE * RES / 2f
         originY = SIZE * RES / 2f
@@ -334,7 +348,7 @@ internal object GroundMemory {
     @Synchronized
     fun onFrame(frame: IntArray, fw: Int, fh: Int, viewW: Float, viewH: Float, cal: ReverseCalibration, moved: (Float?) -> Pose?) {
         val map = lookupFor(fw, fh, viewW, viewH, cal)
-        // Two buffers, swapped: the last picture's is written over, not left to the collector five times a second.
+        // Two buffers, swapped: the last picture's is written over, not left to the collector ten times a second.
         val luma = spare?.takeIf { it.size == COLS * ROWS } ?: IntArray(COLS * ROWS)
         for (i in luma.indices) {
             val idx = map[i]
@@ -343,6 +357,18 @@ internal object GroundMemory {
         val step = previous?.let { shiftBetween(it, luma) }
         spare = previous
         previous = luma
+
+        // What the camera sees now, whole, whatever the car's measured movement.
+        fanLookup?.let { fan ->
+            for (i in livePixels.indices) {
+                val idx = fan[i]
+                livePixels[i] = if (idx < 0) 0 else frame[idx] or (0xFF shl 24)
+            }
+            liveBitmap.setPixels(livePixels, 0, FAN_COLS, 0, 0, FAN_COLS, FAN_ROWS)
+            _filled.value = true
+            _version.value++
+        }
+
         val pose = moved(step) ?: return
 
         // Laid onto the map where the car is now (re-centred when it nears the edge).
@@ -354,7 +380,7 @@ internal object GroundMemory {
         }
         val fan = fanLookup ?: return
         // The heading's cosine and sine once for the whole fan: 40 000 cells
-        // five times a second cost 800 000 trigonometric calls a second before.
+        // ten times a second cost 1 600 000 trigonometric calls a second before.
         val ch = cos(pose.heading)
         val sh = sin(pose.heading)
         for (r in 0 until FAN_ROWS) {
@@ -395,6 +421,11 @@ internal object GroundMemory {
                 if (x * x + z * z > FAN_M * FAN_M) continue
                 val w = pose.toWorld(x, -CarShape.REAR_OVERHANG - z)
                 val colour = madeUpGround(w.x, w.y)
+                for (dr in 0..1) for (dc in 0..1) {
+                    val rr = r + dr
+                    val cc = c + dc
+                    if (rr < FAN_ROWS && cc < FAN_COLS) livePixels[rr * FAN_COLS + cc] = if (z < 0.15f) 0 else colour
+                }
                 val u = ((w.x - originX) / RES).toInt()
                 val v = ((originY - w.y) / RES).toInt()
                 for (dv in 0..1) for (du in 0..1) {
@@ -405,6 +436,7 @@ internal object GroundMemory {
             }
         }
         bitmap.setPixels(pixels, 0, SIZE, 0, 0, SIZE, SIZE)
+        liveBitmap.setPixels(livePixels, 0, FAN_COLS, 0, 0, FAN_COLS, FAN_ROWS)
         _filled.value = true
         _version.value++
     }
