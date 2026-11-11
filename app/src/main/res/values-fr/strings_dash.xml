@@ -172,6 +172,8 @@
     <string name="dash_bar_auto_hide_detail">Se retire quand elle ne sert pas, pour laisser plus de place aux tableaux de bord</string>
     <string name="dash_bar_nav_keys">Retour et Apps récentes</string>
     <string name="dash_bar_nav_keys_detail">Deux boutons de plus aux bouts de la barre, pour un écran sans ces touches</string>
+    <string name="dash_bar_over_apps">Garder la barre sur les autres apps</string>
+    <string name="dash_bar_over_apps_detail">Retour, Accueil, l’heure et Apps récentes restent en bas de l’écran quand une autre app est ouverte</string>
     <string name="dash_bar_hide_after">Masquer après %1$d s</string>
     <string name="dash_bar_hide_now">Masquer tout de suite</string>
     <string name="dash_bar_swipe_up_detail">Une fois masquée, glissez vers le haut depuis le bord inférieur pour la faire réapparaître</string>
