@@ -117,6 +117,8 @@
     <string name="dash_bar_title">Apatinė juosta</string>
     <string name="dash_bar_auto_hide">Automatiškai slėpti juostą</string>
     <string name="dash_bar_auto_hide_detail">Pasislepia, kai nenaudojama, kad skydeliams liktų daugiau vietos</string>
+    <string name="dash_bar_nav_keys">Atgal ir Naujausios programos</string>
+    <string name="dash_bar_nav_keys_detail">Dar du mygtukai juostos galuose, jei ekrane tokių mygtukų nėra</string>
     <string name="dash_bar_hide_after">Slėpti po %1$d s</string>
     <string name="dash_bar_hide_now">Slėpti iškart</string>
     <string name="dash_bar_swipe_up_detail">Kai paslėpta, perbraukite aukštyn nuo apatinio krašto, kad ją grąžintumėte</string>

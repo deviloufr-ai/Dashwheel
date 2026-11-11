@@ -846,6 +846,7 @@ private fun DashboardPane(m: TopBarModel, theme: ThemeState) {
     // One "Bottom bar": its auto-hide, its size, then its readouts under the same heading.
     BarAutoHideSetting(theme)
     BarSizeSetting()
+    BarNavKeysSetting()
     BarItemsSetting()
     Spacer(Modifier.height(20.dp))
     NavigationSetting(theme)
@@ -900,6 +901,7 @@ internal fun BarSettingsSheet(theme: ThemeState, onDismiss: () -> Unit) {
         Column {
             BarAutoHideSetting(theme)
             BarSizeSetting()
+            BarNavKeysSetting()
             BarItemsSetting()
             Spacer(Modifier.height(20.dp))
             NavigationSetting(theme)

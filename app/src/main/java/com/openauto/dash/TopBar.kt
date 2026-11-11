@@ -185,6 +185,24 @@ internal data class TopBarModel(
 /** The bar from a model built by the caller (shared with the Settings screen). */
 @Composable
 internal fun TopBar(m: TopBarModel) {
+    BarNavKeys.load(LocalContext.current)
+    val navKeys by BarNavKeys.on.collectAsState()
+    if (!navKeys) return LookTopBar(m)
+    // Back and Recent apps around every look's bar (Settings, Look); without the
+    // accessibility service they open the setup that turns it on.
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        BarButton(onClick = { if (!BarNavKeys.back()) m.onSetup(false) }, description = stringResource(R.string.wheel_action_back)) {
+            Icon(SteeringWheelAction.SYSTEM_BACK.icon, contentDescription = null, tint = DashColors.TextPrimary, modifier = Modifier.size(28.dp))
+        }
+        Box(Modifier.weight(1f)) { LookTopBar(m) }
+        BarButton(onClick = { if (!BarNavKeys.recents()) m.onSetup(false) }, description = stringResource(R.string.wheel_action_recents)) {
+            Icon(SteeringWheelAction.RECENT_APPS.icon, contentDescription = null, tint = DashColors.TextPrimary, modifier = Modifier.size(28.dp))
+        }
+    }
+}
+
+@Composable
+private fun LookTopBar(m: TopBarModel) {
     if (DashColors.Skin == DashSkin.STANDARD) StandardTopBar(m) else SkinTopBar(m)
 }
 

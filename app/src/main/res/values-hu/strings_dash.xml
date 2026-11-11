@@ -117,6 +117,8 @@
     <string name="dash_bar_title">Alsó sáv</string>
     <string name="dash_bar_auto_hide">A sáv automatikus elrejtése</string>
     <string name="dash_bar_auto_hide_detail">Használaton kívül eltűnik, hogy több hely jusson a műszerfalaknak</string>
+    <string name="dash_bar_nav_keys">Vissza és Legutóbbi appok</string>
+    <string name="dash_bar_nav_keys_detail">Még két gomb a sáv két végén, ha a képernyőn nincsenek ilyen gombok</string>
     <string name="dash_bar_hide_after">Elrejtés %1$d mp után</string>
     <string name="dash_bar_hide_now">Azonnali elrejtés</string>
     <string name="dash_bar_swipe_up_detail">Ha rejtve van, az alsó széltől felfelé húzva hozhatja vissza</string>

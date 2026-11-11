@@ -169,6 +169,8 @@
     <string name="dash_bar_title">Onderste balk</string>
     <string name="dash_bar_auto_hide">Balk automatisch verbergen</string>
     <string name="dash_bar_auto_hide_detail">Schuift weg als hij niet wordt gebruikt, voor meer ruimte op de dashboards</string>
+    <string name="dash_bar_nav_keys">Terug en Recente apps</string>
+    <string name="dash_bar_nav_keys_detail">Twee extra knoppen aan de uiteinden van de balk, voor een scherm zonder die toetsen</string>
     <string name="dash_bar_hide_after">Verbergen na %1$d s</string>
     <string name="dash_bar_hide_now">Meteen verbergen</string>
     <string name="dash_bar_swipe_up_detail">Verborgen: veeg omhoog vanaf de onderrand om hem terug te halen</string>
