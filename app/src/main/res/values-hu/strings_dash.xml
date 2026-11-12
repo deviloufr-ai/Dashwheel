@@ -149,6 +149,8 @@
     <string name="dash_theme_floating_desc">Nincs csempeháttér: a widgetek és ikonok közvetlenül a háttéren ülnek</string>
     <string name="dash_theme_open">Nyitott</string>
     <string name="dash_theme_open_desc">Minden widget háttér és keret nélkül, közvetlenül a háttéren</string>
+    <string name="dash_theme_heads_up">Head-up</string>
+    <string name="dash_theme_heads_up_desc">A térkép kitölti a képernyőt, minden widget panel nélkül fekszik rajta, mint egy kijelző a szélvédőn. A zene lemezzé válik.</string>
     <string name="dash_theme_orbit">Orbit</string>
     <string name="dash_theme_orbit_desc">Minden kerek: forgó hanglemez, gyűrűs műszerek, buborékok</string>
     <string name="dash_theme_cockpit">Cockpit</string>

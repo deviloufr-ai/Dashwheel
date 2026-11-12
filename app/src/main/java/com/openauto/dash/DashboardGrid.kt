@@ -730,6 +730,11 @@ internal fun TileContent(
             obdConnection, { latestConnect.value() }, { latestPick.value() }, { latestLaunch.value(it) }, { latestEditBar.value() }
         )
     }
+    // Heads-up's one face of its own: the music as a disc (HeadsUpSkin.kt), in place of Open's.
+    if (item is DashboardItem.BuiltinWidget && item.kind == BuiltinKind.MEDIA && item.design == WidgetDesign.STANDARD && headsUpLook()) {
+        HeadsUpMedia(env)
+        return
+    }
     // A tile's own design beats the skin; its standard look is this same
     // routing with the design cleared (the skin's tile under a skin).
     // The Open look wears its design on every widget that has a face (framed ones and the bar have none, so no loop back here).

@@ -67,7 +67,9 @@ enum class DashThemeMode(@StringRes val titleRes: Int, @StringRes val descriptio
     CHROME(R.string.dash_theme_chrome, R.string.dash_theme_chrome_desc),
     SPATIAL(R.string.dash_theme_spatial, R.string.dash_theme_spatial_desc),
     PAPER(R.string.dash_theme_paper, R.string.dash_theme_paper_desc),
-    OPEN(R.string.dash_theme_open, R.string.dash_theme_open_desc)
+    OPEN(R.string.dash_theme_open, R.string.dash_theme_open_desc),
+    // Canvas's live map as the page, with Open's frameless widgets laid straight on it (HeadsUpSkin.kt).
+    HEADS_UP(R.string.dash_theme_heads_up, R.string.dash_theme_heads_up_desc)
 }
 
 /** Dark or light version of the theme; [AUTO] follows the car's day/night mode. */
@@ -507,6 +509,22 @@ private val CanvasLightPalette = DashPalette(
     Accent2 = Color(0xFF34A9DC), Line = Color(0x1A0E141B), Light = true, Skin = DashSkin.CANVAS
 )
 
+// Heads-up: Canvas's map as the page (so Skin stays CANVAS for the backdrop),
+// every widget frameless on it (Open), and the bar with no panel either. The
+// map's own fades keep the type readable (CanvasBackdrop). One accent: a
+// pale ice white for the route and progress, amber kept for warnings. Light
+// numerals, as a projection in the glass would be.
+private val HeadsUpPalette = CanvasPalette.copy(
+    Bar = Color.Transparent, Card = Color.Transparent, CardHi = Color(0x1FFFFFFF),
+    Accent = Color(0xFFE9F6FF), Accent2 = Color(0xFFB8D8EC), Line = Color(0x29FFFFFF),
+    HeroWeight = FontWeight.Light, Open = true
+)
+private val HeadsUpLightPalette = CanvasLightPalette.copy(
+    Bar = Color.Transparent, Card = Color.Transparent, CardHi = Color(0x140E141B),
+    Accent = Color(0xFF0E141B), Accent2 = Color(0xFF3A4652),
+    HeroWeight = FontWeight.Light, Open = true
+)
+
 /** How the screen is divided: pages only, or a permanent Google Maps dock beside them. */
 enum class DashLayout(
     @StringRes val titleRes: Int,
@@ -744,6 +762,7 @@ internal fun paletteFor(mode: DashThemeMode, light: Boolean): DashPalette = when
     DashThemeMode.PAPER -> if (light) PaperLightPalette else PaperPalette
     // Open: Floating's page, with every widget redrawn frameless (TileContent).
     DashThemeMode.OPEN -> (if (light) FloatingLightPalette else FloatingPalette).copy(Open = true)
+    DashThemeMode.HEADS_UP -> if (light) HeadsUpLightPalette else HeadsUpPalette
 }
 
 /**

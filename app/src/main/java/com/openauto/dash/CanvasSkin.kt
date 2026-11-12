@@ -163,6 +163,14 @@ internal fun CanvasBackdrop(modifier: Modifier) {
                 Brush.verticalGradient(0f to bg, 0.2f to bg.copy(alpha = 0.8f), 0.45f to bg.copy(alpha = 0f))
             )
         )
+        // Heads-up has no panels to read against: the foot of the map fades too, under the music and the bar.
+        if (headsUpLook()) {
+            Spacer(
+                Modifier.fillMaxSize().background(
+                    Brush.verticalGradient(0.55f to bg.copy(alpha = 0f), 0.8f to bg.copy(alpha = 0.7f), 1f to bg.copy(alpha = 0.92f))
+                )
+            )
+        }
     }
 }
 

@@ -149,6 +149,8 @@
     <string name="dash_theme_floating_desc">Плитки без фона: виджеты и значки прямо на фоне</string>
     <string name="dash_theme_open">Открытая</string>
     <string name="dash_theme_open_desc">Каждый виджет без фона и рамки, прямо на фоне</string>
+    <string name="dash_theme_heads_up">Проекция</string>
+    <string name="dash_theme_heads_up_desc">Карта на весь экран, виджеты лежат на ней без подложки, как проекция на лобовом стекле. Музыка становится диском.</string>
     <string name="dash_theme_orbit">Орбита</string>
     <string name="dash_theme_orbit_desc">Всё круглое: вращающаяся пластинка, кольцевые шкалы, пузыри</string>
     <string name="dash_theme_cockpit">Кокпит</string>

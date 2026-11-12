@@ -149,6 +149,8 @@
     <string name="dash_theme_floating_desc">Be plytelių fono: valdikliai ir piktogramos tiesiai ant fono</string>
     <string name="dash_theme_open">Atviras</string>
     <string name="dash_theme_open_desc">Kiekvienas valdiklis be fono ir rėmelio, tiesiai ant fono</string>
+    <string name="dash_theme_heads_up">Head-up</string>
+    <string name="dash_theme_heads_up_desc">Žemėlapis užpildo ekraną, o kiekvienas valdiklis guli ant jo be skydelio, kaip ekranas priekiniame stikle. Muzika tampa disku.</string>
     <string name="dash_theme_orbit">Orbit</string>
     <string name="dash_theme_orbit_desc">Viskas apvalu: besisukanti plokštelė, žiediniai prietaisai, burbulai</string>
     <string name="dash_theme_cockpit">Kabina</string>

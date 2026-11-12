@@ -86,7 +86,8 @@ internal val LookFamilies: Map<LookFamily, List<DashThemeMode>> = linkedMapOf(
         DashThemeMode.LIQUID, DashThemeMode.EXPRESSIVE, DashThemeMode.KINETIC,
         DashThemeMode.GLYPH, DashThemeMode.WINDSHIELD, DashThemeMode.TERRAIN,
         DashThemeMode.AMBIENT, DashThemeMode.BRUTAL, DashThemeMode.CLAY,
-        DashThemeMode.CHROME, DashThemeMode.SPATIAL, DashThemeMode.PAPER
+        DashThemeMode.CHROME, DashThemeMode.SPATIAL, DashThemeMode.PAPER,
+        DashThemeMode.HEADS_UP
     ),
     LookFamily.SCENES to listOf(
         DashThemeMode.MODERN, DashThemeMode.FUTURISTIC, DashThemeMode.RACING,
@@ -154,7 +155,7 @@ internal fun LookPicker(theme: ThemeState) {
                 // Switched on: the look in use arranges Home now, with Undo.
                 if (it) theme.onArrangeHome()
             }
-            if (theme.mode == DashThemeMode.CANVAS) {
+            if (theme.mode == DashThemeMode.CANVAS || theme.mode == DashThemeMode.HEADS_UP) {
                 Spacer(Modifier.height(16.dp))
                 CanvasMapSetting()
             }

@@ -125,6 +125,8 @@
     <string name="dash_theme_floating_desc">Sem fundo nos blocos: widgets e ícones sobre o fundo</string>
     <string name="dash_theme_open">Aberto</string>
     <string name="dash_theme_open_desc">Cada widget redesenhado sem fundo nem contorno, diretamente sobre o fundo</string>
+    <string name="dash_theme_heads_up">Head-up</string>
+    <string name="dash_theme_heads_up_desc">O mapa ocupa o ecrã e cada widget fica sobre ele sem painel, como um mostrador no para-brisas. A música torna-se um disco.</string>
     <string name="dash_theme_orbit">Órbita</string>
     <string name="dash_theme_orbit_desc">Tudo redondo: um disco a girar, indicadores em anel, bolhas</string>
     <string name="dash_theme_cockpit">Cockpit</string>

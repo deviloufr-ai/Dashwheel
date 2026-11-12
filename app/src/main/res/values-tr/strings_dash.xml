@@ -271,6 +271,8 @@
     <string name="dash_theme_paper_desc">E-kağıt gibi gri üstüne mürekkep: noktalı bir harita, düz bilgiler ve hareket eden hiçbir şey.</string>
     <string name="dash_theme_open">Açık</string>
     <string name="dash_theme_open_desc">Her widget arka planı ve çerçevesi olmadan, doğrudan zeminin üzerinde çizilir</string>
+    <string name="dash_theme_heads_up">Head-up</string>
+    <string name="dash_theme_heads_up_desc">Harita ekranı doldurur, her widget paneli olmadan üstünde durur, ön camdaki bir gösterge gibi. Müzik bir plağa dönüşür.</string>
     <string name="look_layout_applied">Ana ekran %1$s gibi düzenlendi</string>
     <string name="dash_bar_size">Çubuk boyutu</string>
     <string name="dash_bar_size_normal">Normal</string>
