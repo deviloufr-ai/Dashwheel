@@ -997,7 +997,7 @@ private fun SimpleClock(env: SkinTileEnv) {
     val units = LocalUnits.current
     val timeFmt = rememberDateFormat(units.digitsPattern())
     val dateFmt = rememberDateFormat(LONG_DATE, best = true)
-    val weather by WeatherRepo.weather.collectAsState()
+    val weather = withCarTemp(WeatherRepo.weather.collectAsState().value)
     val context = env.context
     BoxWithConstraints(
         modifier = Modifier

@@ -7,7 +7,6 @@ import android.media.session.MediaController
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
 import android.os.SystemClock
-import android.util.Log
 import android.view.KeyEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,7 +25,6 @@ import kotlinx.coroutines.launch
  * unit's business and left alone.
  */
 internal object MediaResume {
-    private const val TAG = "MediaResume"
     private const val PREFS = "media_resume"
     private const val KEY_ON = "on"
     private const val KEY_PACKAGE = "package"
@@ -88,13 +86,17 @@ internal object MediaResume {
             }?.packageName
             ?: playingPackage.takeIf { wasPlaying(playingAt, now) }
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_PACKAGE, pkg).apply()
+        DebugLog.note(context, "Resume music: at switch-off ${pkg ?: "nothing was playing"}")
     }
 
     /** The car starts: the app that was playing plays again, if the option is on and nothing else plays. */
     fun carStarted(context: Context) {
         load(context)
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val pkg = prefs.getString(KEY_PACKAGE, null) ?: return
+        val pkg = prefs.getString(KEY_PACKAGE, null)
+        // In the unit's log (#161): why nothing played, the option off being the usual answer.
+        DebugLog.note(context, "Resume music: option ${if (_on.value) "on" else "off"}, ${pkg ?: "nothing noted at the last switch-off"}")
+        if (pkg == null) return
         prefs.edit().remove(KEY_PACKAGE).apply()
         if (!_on.value) return
         val app = context.applicationContext
@@ -113,11 +115,14 @@ internal object MediaResume {
     private fun resume(context: Context, pkg: String) {
         val sessions = sessions(context)
         // Something plays already (the unit's radio, the driver was quicker): left alone.
-        if (sessions.any { it.playbackState?.state == PlaybackState.STATE_PLAYING }) return
+        if (sessions.any { it.playbackState?.state == PlaybackState.STATE_PLAYING }) {
+            DebugLog.note(context, "Resume music: something already plays, $pkg left alone")
+            return
+        }
         val session = sessions.firstOrNull { it.packageName == pkg }
         if (session != null) {
             runCatching { session.transportControls.play() }
-            Log.i(TAG, "resumed $pkg")
+            DebugLog.note(context, "Resume music: $pkg told to play")
             return
         }
         // Its session is gone (the app was stopped overnight): its media button, as a key on the wheel would.
@@ -126,7 +131,7 @@ internal object MediaResume {
                 .putExtra(Intent.EXTRA_KEY_EVENT, KeyEvent(action, KeyEvent.KEYCODE_MEDIA_PLAY))
             runCatching { context.sendBroadcast(intent) }
         }
-        Log.i(TAG, "asked $pkg to play")
+        DebugLog.note(context, "Resume music: $pkg has no session, sent the play key")
     }
 }
 

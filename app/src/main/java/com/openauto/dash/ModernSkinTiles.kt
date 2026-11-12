@@ -1018,7 +1018,7 @@ internal fun ModernClock(env: SkinTileEnv) {
     val units = LocalUnits.current
     val timeFmt = rememberDateFormat(units.digitsPattern())
     val dateFmt = rememberDateFormat("EEEEdMMMM", best = true)
-    val weather by WeatherRepo.weather.collectAsState()
+    val weather = withCarTemp(WeatherRepo.weather.collectAsState().value)
     val context = env.context
     ModernCard(env, onClick = { openClockApp(context) }, clickLabel = stringResource(R.string.skin_modern_open_clock)) { w, h ->
         val dateSize = (w.value / 18f).coerceIn(13f, 22f)

@@ -86,8 +86,10 @@ object RadarOverlay {
         combine(RomPopups.replaced, Vehicle.bus.value(K.RADAR), reversingFlow(), ReverseView.covering) { replaced, radar, reversing, reverseView ->
             // The reverse view has its own radar. Out of reverse, only for a car with
             // front or side sensors: rear ones alone have nothing ahead to show (#157).
+            // The car app's own reverse picture (QF) draws its radar in it: a second one beside it is one too many (#125).
+            val romPicture = reversing && UnitPlatform.adapter.camera != null
             radar.takeIf {
-                !reverseView && RomPopups.Kind.RADAR in replaced && it != null && it.present && (reversing || (it.active && it.seesAhead))
+                !reverseView && !romPicture && RomPopups.Kind.RADAR in replaced && it != null && it.present && (reversing || (it.active && it.seesAhead))
             }
         }.stateIn(scope, SharingStarted.Eagerly, null)
 

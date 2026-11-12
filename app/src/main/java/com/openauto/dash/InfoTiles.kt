@@ -298,7 +298,7 @@ internal fun WeatherCard(modifier: Modifier = Modifier) {
     UseLocationFeed()
     // The fetch is keyed on the position to 1/20 degree: the tile doesn't follow each fix.
     val location by rememberLocationCell(20)
-    val weather by WeatherRepo.weather.collectAsState()
+    val weather = withCarTemp(WeatherRepo.weather.collectAsState().value)
     val error by WeatherRepo.error.collectAsState()
     val now = rememberNow(60_000L)
     LaunchedEffect(location?.latitude?.let { (it * 20).roundToInt() }, location?.longitude?.let { (it * 20).roundToInt() }) {
