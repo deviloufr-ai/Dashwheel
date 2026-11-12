@@ -345,6 +345,7 @@
     <string name="report_crash_intro">Düzeltilebilmesi için hatayı gönderin. Rapor hatayı, ünitenin modelini ve donanım yazılımını içerir, kişisel bir şey içermez.</string>
     <string name="report_scan">Göndermek için telefonunuzla tarayın</string>
     <string name="report_open">Burada aç</string>
+    <string name="report_send_phone">Telefona gönder</string>
     <string name="report_delete">Sil</string>
     <string name="report_later">Şimdi değil</string>
     <string name="report_works">Çalışıyor</string>

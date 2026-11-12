@@ -345,6 +345,7 @@
     <string name="report_crash_intro">Envía el error para que se pueda corregir. El informe incluye el error, el modelo y el firmware, nada personal.</string>
     <string name="report_scan">Escanea con el móvil para enviarlo</string>
     <string name="report_open">Abrir aquí</string>
+    <string name="report_send_phone">Enviar al teléfono</string>
     <string name="report_delete">Eliminar</string>
     <string name="report_later">Ahora no</string>
     <string name="report_works">Funciona</string>

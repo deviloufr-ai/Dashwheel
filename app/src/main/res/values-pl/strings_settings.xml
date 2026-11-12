@@ -349,6 +349,7 @@
     <string name="report_crash_intro">Wyślij błąd, aby można go było naprawić. Raport zawiera błąd, model i oprogramowanie, nic osobistego.</string>
     <string name="report_scan">Zeskanuj telefonem, aby wysłać</string>
     <string name="report_open">Otwórz tutaj</string>
+    <string name="report_send_phone">Wyślij na telefon</string>
     <string name="report_delete">Usuń</string>
     <string name="report_later">Nie teraz</string>
     <string name="report_works">Działa</string>

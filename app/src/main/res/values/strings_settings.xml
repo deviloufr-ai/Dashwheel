@@ -345,6 +345,7 @@
     <string name="report_crash_intro">Send the error so it can be fixed. The report holds the error and the unit\'s model and firmware, nothing personal.</string>
     <string name="report_scan">Scan with your phone to send it</string>
     <string name="report_open">Open here</string>
+    <string name="report_send_phone">Send to phone</string>
     <string name="report_delete">Delete</string>
     <string name="report_later">Not now</string>
     <string name="report_works">Works</string>

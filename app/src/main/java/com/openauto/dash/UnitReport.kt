@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,17 +23,21 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.PrintWriter
@@ -284,10 +289,15 @@ internal fun CompatibilityReportSheet(onDismiss: () -> Unit) {
         BuildConfig.GITHUB_OWNER, BuildConfig.GITHUB_REPO, title,
         IssueLink.shortCompatibilityBody(facts, answers.toMap()), "compatibility", IssueLink.MAX_QR
     )
+    val linked = PhoneLink.state.collectAsState().value is PhoneLinkState.Connected
+    val scope = rememberCoroutineScope()
     SettingsSheet(
         title = stringResource(R.string.report_title),
         onDismiss = onDismiss,
         actions = {
+            if (linked) SheetButton(stringResource(R.string.report_send_phone), primary = false) {
+                sendToPhone(context, scope, title, IssueLink.compatibilityBody(facts, answers.toMap(), null)) {}
+            }
             SheetButton(stringResource(R.string.report_open), primary = false) {
                 context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             }
@@ -366,10 +376,16 @@ internal fun CrashOffer() {
         BuildConfig.GITHUB_OWNER, BuildConfig.GITHUB_REPO, "Crash: ${firstLine.take(60)}",
         IssueLink.shortCrashBody(facts, text), "crash", IssueLink.MAX_QR
     )
+    val linked = PhoneLink.state.collectAsState().value is PhoneLinkState.Connected
+    val scope = rememberCoroutineScope()
     SettingsSheet(
         title = stringResource(R.string.report_crash_title),
         onDismiss = ::done,
         actions = {
+            // With the phone linked, the report goes there whole: no code to scan, nothing cut.
+            if (linked) SheetButton(stringResource(R.string.report_send_phone)) {
+                sendToPhone(context, scope, "Crash: $firstLine", IssueLink.crashBody(facts, text), ::done)
+            }
             SheetButton(stringResource(R.string.report_delete), primary = false) {
                 CrashReports.deleteAll(context)
                 crash = null
@@ -378,7 +394,7 @@ internal fun CrashOffer() {
                 context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                 done()
             }
-            SheetButton(stringResource(R.string.report_later), onClick = ::done)
+            SheetButton(stringResource(R.string.report_later), primary = !linked, onClick = ::done)
         }
     ) {
         Row(verticalAlignment = Alignment.Top) {
@@ -389,5 +405,18 @@ internal fun CrashOffer() {
             Spacer(Modifier.width(16.dp))
             ScanToSend(qrUrl)
         }
+    }
+}
+
+/**
+ * Gives a report to the linked phone, whole, as the unit log goes ([PhoneLink.sendLog]):
+ * the companion saves it and posts a notification whose GitHub button opens the issue
+ * filled in. [onSent] runs once the phone has it.
+ */
+private fun sendToPhone(context: Context, scope: CoroutineScope, title: String, body: String, onSent: () -> Unit) {
+    scope.launch {
+        val ok = PhoneLink.sendLog(title, body) == true
+        Toast.makeText(context, if (ok) R.string.settings_log_sent else R.string.settings_log_failed, Toast.LENGTH_LONG).show()
+        if (ok) onSent()
     }
 }
