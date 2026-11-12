@@ -168,16 +168,50 @@ internal enum class ReportAnswer { UNTRIED, WORKS, FAILS }
 
 /** The issue's text and its address. Plain, so it is unit-tested. */
 internal object IssueLink {
-    /** QR codes past this many characters get too dense to scan off a car screen. */
+    /** The address opened on the unit itself: long enough for the whole report, short enough for any browser. */
     const val MAX_URL = 2_300
 
-    fun url(owner: String, repo: String, title: String, body: String, label: String): String {
+    /**
+     * The address a QR code carries. Past about 500 characters the code gets too dense to scan
+     * off a car screen (2 300 made a 140-module code, under 2 px a module on a 220 dp square),
+     * so the code carries a short version of the report, and "Open here" the whole of it.
+     */
+    const val MAX_QR = 500
+
+    fun url(owner: String, repo: String, title: String, body: String, label: String, max: Int = MAX_URL): String {
         fun enc(s: String) = URLEncoder.encode(s, "UTF-8")
         val head = "https://github.com/$owner/$repo/issues/new?labels=${enc(label)}&title=${enc(title)}&body="
         // The body is cut, never the address: GitHub opens it all the same.
         var b = body
-        while (b.isNotEmpty() && head.length + enc(b).length > MAX_URL) b = b.dropLast(maxOf(40, b.length / 10))
+        while (b.isNotEmpty() && head.length + enc(b + "\n…").length > max) b = b.dropLast(maxOf(20, b.length / 10))
         return head + enc(if (b.length < body.length) "$b\n…" else b)
+    }
+
+    /** The unit in one line for a short report: which app, which unit, which Android. */
+    private fun shortFacts(facts: List<Pair<String, String>>): String =
+        listOf("Dashwheel", "Device", "Android").mapNotNull { k -> facts.firstOrNull { it.first == k }?.let { "$k ${it.second}" } }.joinToString(" · ")
+
+    /** A compatibility report for a QR code: the unit in one line, then what was tried. */
+    fun shortCompatibilityBody(facts: List<Pair<String, String>>, answers: Map<ReportItem, ReportAnswer>): String = buildString {
+        fun names(a: ReportAnswer) = ReportItem.entries.filter { answers[it] == a }.joinToString(", ") { it.name.lowercase() }.ifEmpty { "-" }
+        appendLine(shortFacts(facts))
+        appendLine("works: ${names(ReportAnswer.WORKS)}")
+        appendLine("does NOT work: ${names(ReportAnswer.FAILS)}")
+    }
+
+    /**
+     * A crash for a QR code: the unit in one line, the exception, its deepest cause, and the
+     * app's own frames that led there. The whole trace is behind "Open here".
+     */
+    fun shortCrashBody(facts: List<Pair<String, String>>, crash: String): String = buildString {
+        val lines = crash.lineSequence().map { it.trim() }.filter { it.isNotBlank() }.toList()
+        val first = lines.firstOrNull { it.contains("Exception") || it.contains("Error") }
+        val cause = lines.lastOrNull { it.startsWith("Caused by:") }
+        val ours = lines.filter { it.startsWith("at com.openauto.") }.distinct().take(3)
+        appendLine(shortFacts(facts))
+        // Messages can run for hundreds of characters; the frames say more than their tail.
+        listOfNotNull(first, cause).forEach { appendLine(it.take(120)) }
+        ours.forEach { appendLine(it.removePrefix("at com.openauto.dash.")) }
     }
 
     fun compatibilityBody(facts: List<Pair<String, String>>, answers: Map<ReportItem, ReportAnswer>, note: String?): String = buildString {
@@ -246,6 +280,10 @@ internal fun CompatibilityReportSheet(onDismiss: () -> Unit) {
         BuildConfig.GITHUB_OWNER, BuildConfig.GITHUB_REPO, title,
         IssueLink.compatibilityBody(facts, answers.toMap(), null), "compatibility"
     )
+    val qrUrl = IssueLink.url(
+        BuildConfig.GITHUB_OWNER, BuildConfig.GITHUB_REPO, title,
+        IssueLink.shortCompatibilityBody(facts, answers.toMap()), "compatibility", IssueLink.MAX_QR
+    )
     SettingsSheet(
         title = stringResource(R.string.report_title),
         onDismiss = onDismiss,
@@ -264,7 +302,7 @@ internal fun CompatibilityReportSheet(onDismiss: () -> Unit) {
                 }
             }
             Spacer(Modifier.width(16.dp))
-            ScanToSend(url)
+            ScanToSend(qrUrl)
         }
     }
 }
@@ -324,6 +362,10 @@ internal fun CrashOffer() {
     val facts = remember { UnitFacts.collect(context) }
     val firstLine = text.lineSequence().firstOrNull { it.contains("Exception") || it.contains("Error") }?.trim()?.take(80) ?: "crash"
     val url = IssueLink.url(BuildConfig.GITHUB_OWNER, BuildConfig.GITHUB_REPO, "Crash: $firstLine", IssueLink.crashBody(facts, text), "crash")
+    val qrUrl = IssueLink.url(
+        BuildConfig.GITHUB_OWNER, BuildConfig.GITHUB_REPO, "Crash: ${firstLine.take(60)}",
+        IssueLink.shortCrashBody(facts, text), "crash", IssueLink.MAX_QR
+    )
     SettingsSheet(
         title = stringResource(R.string.report_crash_title),
         onDismiss = ::done,
@@ -345,7 +387,7 @@ internal fun CrashOffer() {
                 style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f)
             )
             Spacer(Modifier.width(16.dp))
-            ScanToSend(url)
+            ScanToSend(qrUrl)
         }
     }
 }
