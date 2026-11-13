@@ -1,5 +1,7 @@
 package com.openauto.dash.link
 
+import java.io.InputStream
+
 /**
  * Closes a link that went quiet. A TCP socket has a read timeout that ends a
  * blocked read; a Bluetooth socket has none, so a link that silently died
@@ -29,6 +31,23 @@ class IdleGuard(
     /** Something was heard from the other end. */
     fun kick() {
         lastHeard = now()
+    }
+
+    /**
+     * [input] with every byte read from it counted as hearing from the other
+     * end, the way a TCP read timeout does. Kicked only at each whole message,
+     * a big one (the phone's contacts with their photos, its notifications
+     * with their icons) that took longer than [timeoutMs] to cross a slow
+     * Bluetooth link ended the link in the middle of it, at every try (#118).
+     */
+    fun hearing(input: InputStream): InputStream = object : InputStream() {
+        override fun read(): Int = input.read().also { if (it >= 0) kick() }
+
+        override fun read(b: ByteArray, off: Int, len: Int): Int = input.read(b, off, len).also { if (it > 0) kick() }
+
+        override fun available(): Int = input.available()
+
+        override fun close() = input.close()
     }
 
     /** The link ended on its own: no more watching, [onIdle] never runs. */
