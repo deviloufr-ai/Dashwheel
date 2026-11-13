@@ -322,7 +322,8 @@ object LinkServer {
         val link = try {
             conn.setReadTimeout?.invoke(HANDSHAKE_TIMEOUT_MS)
             SecureChannel.server(
-                conn.input, conn.output,
+                // Every byte heard counts, not only whole messages: a long one over a slow Bluetooth link is not silence.
+                guard?.hearing(conn.input) ?: conn.input, conn.output,
                 secretFor = { PairedUnits.secretFor(context, it) },
                 onClose = { guard?.stop(); conn.close() }
             )

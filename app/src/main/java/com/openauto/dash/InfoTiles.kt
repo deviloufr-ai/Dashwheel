@@ -771,7 +771,19 @@ internal fun quickDialColumns(widthDp: Float, favourites: Int): Int =
  */
 internal fun dialNumber(context: Context, number: String) {
     val way = when {
-        !DemoMode.isOn && PhoneLink.dial(number) -> "the linked phone"
+        !DemoMode.isOn && PhoneLink.dial(number, onUnheard = {
+            // Asked, and no word back: the link is up but the phone isn't hearing the car. The unit's own ways, then.
+            DebugLog.note(context, "Call: the linked phone did not answer, through ${dialWithoutPhone(context, number)}")
+        }) -> "the linked phone"
+        else -> dialWithoutPhone(context, number)
+    }
+    // Which way a call went is what a tester's log needs when nothing rings (issue #118).
+    DebugLog.note(context, "Call: through $way")
+}
+
+/** [dialNumber] without the linked phone; says which way it went. */
+private fun dialWithoutPhone(context: Context, number: String): String =
+    when {
         // The unit's own Bluetooth, where its firmware takes a number to call (FYT).
         !DemoMode.isOn && UnitPhone.dial(number) -> "the unit's Bluetooth"
         context.launchSafely(Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", number, null))) -> "the unit's dialer"
@@ -779,9 +791,6 @@ internal fun dialNumber(context: Context, number: String) {
         UnitPhoneApp.open(context) -> "the unit's phone app, no number"
         else -> "nothing: no phone link, no dialer, no phone app"
     }
-    // Which way a call went is what a tester's log needs when nothing rings (issue #118).
-    DebugLog.note(context, "Call: through $way")
-}
 
 /**
  * Starred contacts as big tap-to-call targets, from the driver's phone when

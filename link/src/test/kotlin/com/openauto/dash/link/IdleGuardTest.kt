@@ -44,6 +44,29 @@ class IdleGuardTest {
     }
 
     @Test
+    fun bytesOfAMessageStillArrivingKeepItOpen() {
+        // One long message, read a piece at a time: no whole message for longer than the timeout.
+        val now = AtomicLong(1_000)
+        val reads = AtomicInteger()
+        val closed = CountDownLatch(1)
+        val guard = IdleGuard(timeoutMs = 120, onIdle = { closed.countDown() }, now = { reads.incrementAndGet(); now.get() }, tickMs = 5).start()
+        val input = guard.hearing(ByteArray(15 * 8).inputStream())
+        val piece = ByteArray(8)
+        repeat(15) {
+            now.addAndGet(30)
+            assertEquals(8, input.read(piece, 0, piece.size))
+            val seen = reads.get()
+            val until = System.currentTimeMillis() + 2_000
+            while (reads.get() == seen && System.currentTimeMillis() < until) Thread.sleep(1)
+        }
+        assertEquals(1L, closed.count)
+        // The end of the stream is not hearing from anyone.
+        now.addAndGet(121)
+        assertEquals(-1, input.read(piece, 0, piece.size))
+        assertTrue(closed.await(2, TimeUnit.SECONDS))
+    }
+
+    @Test
     fun stoppedGuardNeverCloses() {
         val closed = CountDownLatch(1)
         val guard = IdleGuard(timeoutMs = 40, onIdle = { closed.countDown() }, tickMs = 10).start()

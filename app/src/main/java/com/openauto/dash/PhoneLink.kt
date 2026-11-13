@@ -195,6 +195,18 @@ object PhoneLink {
     private const val PING_EVERY_MS = 15_000L
     /** A send stuck this long is in a socket the phone no longer reads (Wi-Fi power save, out of range): the link is closed. */
     private const val SEND_STALL_MS = 5_000L
+    /**
+     * Over Bluetooth a send waits its turn on one slow radio, behind the phone's own first messages
+     * (its contacts with their photos) and the calls and music the same radio carries: 5 s there is
+     * a busy link, not a dead one, and closing it started the same wait again at the next link (#118).
+     * Under the phone's 45 s of patience, pings included.
+     */
+    private const val BLUETOOTH_SEND_STALL_MS = 20_000L
+    /**
+     * How long the phone has to say it is placing the call the car asked for ([DialResult], or the
+     * call itself showing): it answers at once when it heard, so past this the unit calls its own way.
+     */
+    private const val DIAL_ANSWER_MS = 8_000L
     /** How often to look for the phone: quickly while a pairing code is on screen. */
     private const val RETRY_MS = 10_000L
     /**
@@ -367,8 +379,25 @@ object PhoneLink {
     fun dismiss(key: String) = send(Dismiss(NotificationFeed.phoneKey(key)))
     fun callCommand(action: CallCommand.Action) = send(CallCommand(action))
 
-    /** Has the phone call [number]; false when it can't be asked (no link, an older companion). */
-    fun dial(number: String): Boolean = phoneDials && send(CallCommand(CallCommand.Action.DIAL, number))
+    /** The call the phone was last asked to place, until it says it heard. */
+    @Volatile private var dialAsked: CompletableDeferred<Unit>? = null
+
+    /**
+     * Has the phone call [number]; false when it can't be asked (no link, an older companion).
+     * Asked is not heard: a link that is up but not carrying the car's messages took the call
+     * and nothing rang (#118). [onUnheard] runs, on the main thread, when the phone has not
+     * answered in [DIAL_ANSWER_MS]: the caller's other way to place the call.
+     */
+    fun dial(number: String, onUnheard: () -> Unit = {}): Boolean {
+        if (!phoneDials) return false
+        val heard = CompletableDeferred<Unit>()
+        dialAsked = heard
+        if (!send(CallCommand(CallCommand.Action.DIAL, number))) return false
+        scope.launch {
+            if (withTimeoutOrNull(DIAL_ANSWER_MS) { heard.await() } == null) main.post { onUnheard() }
+        }
+        return true
+    }
 
     private val _battery = MutableStateFlow<PhoneBattery?>(null)
     /** The linked phone's battery, exact and with its charging ([PhoneBattery]); null without a companion link. */
@@ -591,7 +620,7 @@ object PhoneLink {
             guard.timeoutMs = HANDSHAKE_TIMEOUT_MS.toLong()
             guard.kick()
             val link = SecureChannel.client(
-                socket.inputStream, socket.outputStream, phone.id, phone.secret,
+                guard.hearing(socket.inputStream), socket.outputStream, phone.id, phone.secret,
                 onClose = { guard.stop(); runCatching { socket.close() } }
             )
             // Bluetooth has no read timeout: from here the guard ends a link that went quiet.
@@ -643,6 +672,7 @@ object PhoneLink {
         // Each link's start and end go in the unit log, with why it ended: the drops testers see (issue #118)
         // left nothing there, the system log's lines of this class being filtered out of the report.
         val carried = if (gateway == null) "Bluetooth" else "Wi-Fi"
+        val stallMs = if (gateway == null) BLUETOOTH_SEND_STALL_MS else SEND_STALL_MS
         val upAt = SystemClock.elapsedRealtime()
         var lastHeardAt = upAt // the reader's own: written and read on this thread only
         val endedBy = AtomicReference<String?>(null)
@@ -659,9 +689,9 @@ object PhoneLink {
             while (isActive) {
                 delay(1_000)
                 val (stuckIn, since) = sending ?: continue
-                if (stuckIn === link && android.os.SystemClock.elapsedRealtime() - since > SEND_STALL_MS) {
-                    Log.i(TAG, "link stalled: a send took over ${SEND_STALL_MS / 1000} s")
-                    endedBy.compareAndSet(null, "a send to the phone stuck over ${SEND_STALL_MS / 1000} s")
+                if (stuckIn === link && android.os.SystemClock.elapsedRealtime() - since > stallMs) {
+                    Log.i(TAG, "link stalled: a send took over ${stallMs / 1000} s")
+                    endedBy.compareAndSet(null, "a send to the phone stuck over ${stallMs / 1000} s")
                     link.close()
                     break
                 }
@@ -783,7 +813,11 @@ object PhoneLink {
             is NotificationPosted -> NotificationFeed.phonePosted(message.notification)
             is NotificationRemoved -> NotificationFeed.phoneRemoved(message.key)
             is ActionResult -> _results.tryEmit(message)
-            is CallState -> _call.value = toPhoneCall(context, message)
+            is CallState -> {
+                // The call the car asked for, under way on the phone: it heard.
+                if (message.phase != CallState.Phase.IDLE) dialAsked?.complete(Unit)
+                _call.value = toPhoneCall(context, message)
+            }
             is TypeText -> PhoneKeyboard.type(context, message) { send(it) }
             EnableTyping -> PhoneKeyboard.enable(context) { send(it) }
             // The phone's touchpad: the pointer on the car's screen, and its taps.
@@ -798,9 +832,12 @@ object PhoneLink {
                 editLists { it.copy(agenda = events) }
             }
             // Not allowed on the phone: the unit's own dialer, with the number in, as before the link; and why.
-            is DialResult -> if (!message.placed) main.post {
-                context.launchSafely(Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", message.number, null)))
-                HandsFree.say(context, R.string.phone_dial_not_allowed)
+            is DialResult -> {
+                dialAsked?.complete(Unit)
+                if (!message.placed) main.post {
+                    context.launchSafely(Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", message.number, null)))
+                    HandsFree.say(context, R.string.phone_dial_not_allowed)
+                }
             }
             // Toasts and the voice want the main thread.
             is Destination -> main.post { NavHandoff.fromPhone(context, message) }
