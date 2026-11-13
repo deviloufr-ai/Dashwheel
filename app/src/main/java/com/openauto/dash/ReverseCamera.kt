@@ -74,6 +74,8 @@ internal object ReverseCamera {
     private const val ROM_OPEN_WAIT_MS = 2_500L
     /** The ROM app closes its camera within about 0.1 s. */
     private const val CLOSE_WAIT_MS = 1_500L
+    /** The longest the ROM app is given to take a stop before the reverse flag is put back. */
+    private const val ROM_STOP_MS = 300L
     /** Dashwheel's own close ([close]) waits for the camera's driver: a second or more on some units (#109). */
     private const val OWN_CLOSE_WAIT_MS = 3_000L
     /** The ROM app's picture shows about this long after it opened the camera (its signal check). */
@@ -221,6 +223,8 @@ internal object ReverseCamera {
 
     /** The ROM app was stopped this reverse: on a failure, it has to be started again. */
     private var romStopped = false
+    /** The reverse flag and the front camera settings being put back after a stop ([stopRomCamera]). */
+    private var restoring: Job? = null
     /** When this reverse's try at the picture began (uptime), for the debug log's account of it ([took]). */
     private var startedAt = 0L
     private var romHadAt = 0L
@@ -312,15 +316,23 @@ internal object ReverseCamera {
             // never came must still be undone on a failure ([fail]). A start the ROM
             // app didn't need is harmless; its picture missing is not.
             romStopped = true
+            // The last stop's settings are back before this one turns them off again.
+            restoring?.join()
+            val held = !_cameraFree.value
             DockShell.shell(context, (after.off + "setprop sys.qf.backcar_state false" + "am broadcast -a com.qf.action.BACKCAR_STOP -p $ROM_APP").joinToString("; "))
-            delay(300)
+            // Its camera let go, the ROM app has taken the stop: no need to sit out the rest (#109).
+            if (held) withTimeoutOrNull(ROM_STOP_MS) { _cameraFree.first { it } } else delay(ROM_STOP_MS)
         } catch (e: Throwable) {
             // The driver's front camera setting is never left off.
             withContext(NonCancellable) { if (after.back.isNotEmpty()) runCatching { DockShell.shell(context, after.back.joinToString("; ")) } }
             throw e
         }
         val still = reversingNow()
-        DockShell.shell(context, (after.back + if (still) listOf("setprop sys.qf.backcar_state true", "echo 2 > $INPUT_SWITCH") else listOf("true")).joinToString("; "))
+        // Put back alongside the camera's opening, not ahead of it: a root round trip the picture doesn't wait for (#109).
+        restoring = scope.launch {
+            runCatching { DockShell.shell(context, (after.back + if (still) listOf("setprop sys.qf.backcar_state true", "echo 2 > $INPUT_SWITCH") else listOf("true")).joinToString("; ")) }
+                .onFailure { Log.w(TAG, "could not put the car app's settings back", it) }
+        }
         still
     }.onFailure {
         // Reverse ended meanwhile: not a failure of this try.
@@ -446,6 +458,8 @@ internal object ReverseCamera {
         if (romStopped && reversingNow()) {
             romStopped = false
             scope.launch {
+                // After the reverse flag is back: the ROM app ignores a start without it.
+                restoring?.join()
                 runCatching { DockShell.shell(context, "am broadcast -a com.qf.action.BACKCAR_START -p $ROM_APP") }
                     .onFailure { Log.w(TAG, "could not restart the car app's camera", it) }
             }
