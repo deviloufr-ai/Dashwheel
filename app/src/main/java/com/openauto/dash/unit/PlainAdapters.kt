@@ -127,7 +127,8 @@ internal object KeyBroadcastSource : KeySource {
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            val extras = intent.extras?.let { b -> b.keySet().associateWith { @Suppress("DEPRECATION") b.get(it) } }.orEmpty()
+            // Guarded: a vendor's own Parcelable in the extras throws on unparcelling.
+            val extras = runCatching { intent.extras?.let { b -> b.keySet().associateWith { @Suppress("DEPRECATION") b.get(it) } } }.getOrNull().orEmpty()
             val key = KeyBroadcasts.decode(intent.action, extras) ?: return
             if (key.down) UnitPlatform.markUsed(Cap.UNIT_KEYS)
             Log.d(TAG, "${key.vendor} key ${key.code} ${if (key.down) "down" else "up"}")

@@ -112,7 +112,7 @@ internal object Car3D {
     private val letGo = Runnable { destroy() }
     private var inited = false
 
-    val supported: Boolean get() = !isEmulator
+    val supported: Boolean get() = gpuOk
 
     /** The model's box (glTF space: nose +x, up +y, the car's right +z). */
     var lo = FloatArray(3); private set

@@ -412,7 +412,7 @@ object PidProbe {
     /** Standard (SAE J1979) requests every car may support; tried before asking the AI. */
     val STANDARD: List<PidCandidate> = listOf(
         PidCandidate(ExtraReading.OIL_TEMP, null, "015C", "A-40", -30.0, 150.0, fromAi = false),
-        PidCandidate(ExtraReading.DPF_TEMP, null, "017C", "(A*256+B)/10-40", -30.0, 900.0, fromAi = false)
+        PidCandidate(ExtraReading.DPF_TEMP, null, "017C", "(B*256+C)/10-40", -30.0, 900.0, fromAi = false)
     )
 
     val SCHEMA: JSONObject

@@ -213,6 +213,11 @@ object CarPower {
         DebugLog.snapshot(context, "ignition off")
         EmbeddedApp.carStopped(context)
         MediaResume.carStopped(context)
+        // What the drive counted is written now: the unit may kill the app within seconds.
+        if (!DemoMode.isOn) {
+            Maintenance.carStopped()
+            SensorWatch.carStopped()
+        }
         // A conversation with Gemini doesn't go on, microphone open, while the car sleeps.
         scope.launch { GeminiLive.end(context) }
         // The fix's age by the time since start, not the clock: a unit clock a

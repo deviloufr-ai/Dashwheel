@@ -435,7 +435,8 @@ internal class AlertWindow(
 
     /** Shows [content] in [style]'s window (a new one when the design changed); false when it can't be added. */
     fun show(style: AlertStyle, content: @Composable () -> Unit): Boolean {
-        val host = if (aboveCamera()) SplitAccessibilityService.overlayHost() else null
+        // Without "display over other apps" (not granted, or a build that cannot grant it) the service's window is the only one there is.
+        val host = if (aboveCamera() || !android.provider.Settings.canDrawOverlays(context)) SplitAccessibilityService.overlayHost() else null
         if (view != null && this.style == style && above == (host != null)) {
             visible?.targetState = true
             return true
@@ -534,7 +535,7 @@ internal class AlertWindow(
 
     /** Whether [show] can put a window up at all: over other apps, or through the accessibility service. */
     fun canShow(): Boolean =
-        aboveCamera() && SplitAccessibilityService.overlayHost() != null || android.provider.Settings.canDrawOverlays(context)
+        android.provider.Settings.canDrawOverlays(context) || SplitAccessibilityService.overlayHost() != null
 
     /** The system status bar's height, from the framework's own dimension; 0 where it has none. */
     private fun statusBarHeight(): Int {

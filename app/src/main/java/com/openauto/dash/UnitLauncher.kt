@@ -88,7 +88,7 @@ internal object UnitLauncher {
             override fun onReceive(context: Context, intent: Intent) {
                 if (nwdNoted >= NWD_NOTES) return
                 nwdNoted++
-                val extras = intent.extras?.let { b -> b.keySet().joinToString { "$it=${b.get(it)}" } }.orEmpty()
+                val extras = runCatching { intent.extras?.let { b -> b.keySet().joinToString { "$it=${b.get(it)}" } } }.getOrNull().orEmpty()
                 val line = "nwd ${intent.action?.substringAfterLast('.')}: $extras"
                 Log.i(TAG, line)
                 DebugLog.note(context, line)

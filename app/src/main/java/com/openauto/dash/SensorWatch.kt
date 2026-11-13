@@ -391,6 +391,10 @@ internal object SensorWatch {
         }
     }
 
+    /** Ignition off: kept now, since many units kill the app seconds later, before [endDrives] comes round. */
+    @Synchronized
+    fun carStopped() = closeDrive()
+
     private fun closeDrive() {
         val s = sampler ?: return
         sampler = null

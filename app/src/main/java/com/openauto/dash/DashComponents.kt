@@ -355,6 +355,15 @@ internal val isEmulator: Boolean by lazy {
         hw.contains("goldfish") || hw.contains("ranchu") || hw.contains("cutf")
 }
 
+/** OpenGL ES 3.0 or later, from `ro.opengles.version` (major in the high 16 bits); a unit that does not say is taken to have it. */
+internal fun gles3(version: String?): Boolean = (version?.trim()?.toIntOrNull() ?: 0x30000) >= 0x30000
+
+/**
+ * Whether the map and the 3D car can be drawn: MapLibre and Filament need
+ * OpenGL ES 3.0 and abort natively without it, which nothing can catch.
+ */
+internal val gpuOk: Boolean by lazy { !isEmulator && gles3(SysProps.getOrNull("ro.opengles.version")) }
+
 /**
  * Grab bar between the Maps dock and the dashboard pages. Drags report pixel
  * deltas along the split; the caller converts them into the dock's share.

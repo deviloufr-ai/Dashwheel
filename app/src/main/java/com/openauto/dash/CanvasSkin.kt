@@ -157,7 +157,7 @@ internal fun canvasGlass(shape: Shape = GlassShape): Modifier {
 internal fun CanvasBackdrop(modifier: Modifier) {
     val bg = DashColors.Background
     Box(modifier = modifier.background(bg)) {
-        if (isEmulator) StreetGridStandIn(Modifier.fillMaxSize()) else MapLibrePanel(Modifier.fillMaxSize(), wallpaper = true)
+        if (!gpuOk) StreetGridStandIn(Modifier.fillMaxSize()) else MapLibrePanel(Modifier.fillMaxSize(), wallpaper = true)
         Spacer(
             Modifier.fillMaxSize().background(
                 Brush.verticalGradient(0f to bg, 0.2f to bg.copy(alpha = 0.8f), 0.45f to bg.copy(alpha = 0f))
