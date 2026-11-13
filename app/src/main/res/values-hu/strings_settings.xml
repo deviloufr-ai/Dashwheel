@@ -342,6 +342,7 @@
     <string name="report_crash_intro">Küldje el a hibát, hogy javítani lehessen. A jelentés a hibát és a fejegység típusát és firmware-ét tartalmazza, semmi személyeset.</string>
     <string name="report_scan">Olvassa be a telefonjával a küldéshez</string>
     <string name="report_open">Megnyitás itt</string>
+    <string name="report_send_phone">Küldés a telefonra</string>
     <string name="report_delete">Törlés</string>
     <string name="report_later">Most nem</string>
     <string name="report_works">Működik</string>

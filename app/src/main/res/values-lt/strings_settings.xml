@@ -351,6 +351,7 @@
     <string name="report_crash_intro">Nusiųskite klaidą, kad ją būtų galima ištaisyti. Ataskaitoje yra klaida ir magnetolos modelis bei programinė įranga, nieko asmeniško.</string>
     <string name="report_scan">Nuskenuokite telefonu ir nusiųskite</string>
     <string name="report_open">Atidaryti čia</string>
+    <string name="report_send_phone">Siųsti į telefoną</string>
     <string name="report_delete">Ištrinti</string>
     <string name="report_later">Ne dabar</string>
     <string name="report_works">Veikia</string>

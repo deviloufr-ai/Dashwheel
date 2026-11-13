@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,17 +23,21 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.PrintWriter
@@ -168,16 +173,50 @@ internal enum class ReportAnswer { UNTRIED, WORKS, FAILS }
 
 /** The issue's text and its address. Plain, so it is unit-tested. */
 internal object IssueLink {
-    /** QR codes past this many characters get too dense to scan off a car screen. */
+    /** The address opened on the unit itself: long enough for the whole report, short enough for any browser. */
     const val MAX_URL = 2_300
 
-    fun url(owner: String, repo: String, title: String, body: String, label: String): String {
+    /**
+     * The address a QR code carries. Past about 500 characters the code gets too dense to scan
+     * off a car screen (2 300 made a 140-module code, under 2 px a module on a 220 dp square),
+     * so the code carries a short version of the report, and "Open here" the whole of it.
+     */
+    const val MAX_QR = 500
+
+    fun url(owner: String, repo: String, title: String, body: String, label: String, max: Int = MAX_URL): String {
         fun enc(s: String) = URLEncoder.encode(s, "UTF-8")
         val head = "https://github.com/$owner/$repo/issues/new?labels=${enc(label)}&title=${enc(title)}&body="
         // The body is cut, never the address: GitHub opens it all the same.
         var b = body
-        while (b.isNotEmpty() && head.length + enc(b).length > MAX_URL) b = b.dropLast(maxOf(40, b.length / 10))
+        while (b.isNotEmpty() && head.length + enc(b + "\n…").length > max) b = b.dropLast(maxOf(20, b.length / 10))
         return head + enc(if (b.length < body.length) "$b\n…" else b)
+    }
+
+    /** The unit in one line for a short report: which app, which unit, which Android. */
+    private fun shortFacts(facts: List<Pair<String, String>>): String =
+        listOf("Dashwheel", "Device", "Android").mapNotNull { k -> facts.firstOrNull { it.first == k }?.let { "$k ${it.second}" } }.joinToString(" · ")
+
+    /** A compatibility report for a QR code: the unit in one line, then what was tried. */
+    fun shortCompatibilityBody(facts: List<Pair<String, String>>, answers: Map<ReportItem, ReportAnswer>): String = buildString {
+        fun names(a: ReportAnswer) = ReportItem.entries.filter { answers[it] == a }.joinToString(", ") { it.name.lowercase() }.ifEmpty { "-" }
+        appendLine(shortFacts(facts))
+        appendLine("works: ${names(ReportAnswer.WORKS)}")
+        appendLine("does NOT work: ${names(ReportAnswer.FAILS)}")
+    }
+
+    /**
+     * A crash for a QR code: the unit in one line, the exception, its deepest cause, and the
+     * app's own frames that led there. The whole trace is behind "Open here".
+     */
+    fun shortCrashBody(facts: List<Pair<String, String>>, crash: String): String = buildString {
+        val lines = crash.lineSequence().map { it.trim() }.filter { it.isNotBlank() }.toList()
+        val first = lines.firstOrNull { it.contains("Exception") || it.contains("Error") }
+        val cause = lines.lastOrNull { it.startsWith("Caused by:") }
+        val ours = lines.filter { it.startsWith("at com.openauto.") }.distinct().take(3)
+        appendLine(shortFacts(facts))
+        // Messages can run for hundreds of characters; the frames say more than their tail.
+        listOfNotNull(first, cause).forEach { appendLine(it.take(120)) }
+        ours.forEach { appendLine(it.removePrefix("at com.openauto.dash.")) }
     }
 
     fun compatibilityBody(facts: List<Pair<String, String>>, answers: Map<ReportItem, ReportAnswer>, note: String?): String = buildString {
@@ -246,10 +285,19 @@ internal fun CompatibilityReportSheet(onDismiss: () -> Unit) {
         BuildConfig.GITHUB_OWNER, BuildConfig.GITHUB_REPO, title,
         IssueLink.compatibilityBody(facts, answers.toMap(), null), "compatibility"
     )
+    val qrUrl = IssueLink.url(
+        BuildConfig.GITHUB_OWNER, BuildConfig.GITHUB_REPO, title,
+        IssueLink.shortCompatibilityBody(facts, answers.toMap()), "compatibility", IssueLink.MAX_QR
+    )
+    val linked = PhoneLink.state.collectAsState().value is PhoneLinkState.Connected
+    val scope = rememberCoroutineScope()
     SettingsSheet(
         title = stringResource(R.string.report_title),
         onDismiss = onDismiss,
         actions = {
+            if (linked) SheetButton(stringResource(R.string.report_send_phone), primary = false) {
+                sendToPhone(context, scope, title, IssueLink.compatibilityBody(facts, answers.toMap(), null)) {}
+            }
             SheetButton(stringResource(R.string.report_open), primary = false) {
                 context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             }
@@ -264,7 +312,7 @@ internal fun CompatibilityReportSheet(onDismiss: () -> Unit) {
                 }
             }
             Spacer(Modifier.width(16.dp))
-            ScanToSend(url)
+            ScanToSend(qrUrl)
         }
     }
 }
@@ -324,10 +372,20 @@ internal fun CrashOffer() {
     val facts = remember { UnitFacts.collect(context) }
     val firstLine = text.lineSequence().firstOrNull { it.contains("Exception") || it.contains("Error") }?.trim()?.take(80) ?: "crash"
     val url = IssueLink.url(BuildConfig.GITHUB_OWNER, BuildConfig.GITHUB_REPO, "Crash: $firstLine", IssueLink.crashBody(facts, text), "crash")
+    val qrUrl = IssueLink.url(
+        BuildConfig.GITHUB_OWNER, BuildConfig.GITHUB_REPO, "Crash: ${firstLine.take(60)}",
+        IssueLink.shortCrashBody(facts, text), "crash", IssueLink.MAX_QR
+    )
+    val linked = PhoneLink.state.collectAsState().value is PhoneLinkState.Connected
+    val scope = rememberCoroutineScope()
     SettingsSheet(
         title = stringResource(R.string.report_crash_title),
         onDismiss = ::done,
         actions = {
+            // With the phone linked, the report goes there whole: no code to scan, nothing cut.
+            if (linked) SheetButton(stringResource(R.string.report_send_phone)) {
+                sendToPhone(context, scope, "Crash: $firstLine", IssueLink.crashBody(facts, text), ::done)
+            }
             SheetButton(stringResource(R.string.report_delete), primary = false) {
                 CrashReports.deleteAll(context)
                 crash = null
@@ -336,7 +394,7 @@ internal fun CrashOffer() {
                 context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                 done()
             }
-            SheetButton(stringResource(R.string.report_later), onClick = ::done)
+            SheetButton(stringResource(R.string.report_later), primary = !linked, onClick = ::done)
         }
     ) {
         Row(verticalAlignment = Alignment.Top) {
@@ -345,7 +403,20 @@ internal fun CrashOffer() {
                 style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f)
             )
             Spacer(Modifier.width(16.dp))
-            ScanToSend(url)
+            ScanToSend(qrUrl)
         }
+    }
+}
+
+/**
+ * Gives a report to the linked phone, whole, as the unit log goes ([PhoneLink.sendLog]):
+ * the companion saves it and posts a notification whose GitHub button opens the issue
+ * filled in. [onSent] runs once the phone has it.
+ */
+private fun sendToPhone(context: Context, scope: CoroutineScope, title: String, body: String, onSent: () -> Unit) {
+    scope.launch {
+        val ok = PhoneLink.sendLog(title, body) == true
+        Toast.makeText(context, if (ok) R.string.settings_log_sent else R.string.settings_log_failed, Toast.LENGTH_LONG).show()
+        if (ok) onSent()
     }
 }

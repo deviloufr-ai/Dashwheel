@@ -57,6 +57,28 @@ object CarLogStore {
         }
     }
 
+    /** The longest body a new-issue address carries; GitHub refuses addresses past about 8 000 characters. */
+    private const val MAX_BODY = 6_000
+
+    /**
+     * The new-issue page for [log]. A report the unit wrote for an issue (a crash, a
+     * compatibility report) fits in the address and opens filled in, labelled by its title;
+     * a whole unit log doesn't, and opens with its title only, for the file to be attached.
+     */
+    private fun issueUrl(log: CarLog): String {
+        val label = when {
+            log.title.startsWith("Crash:") -> "crash"
+            log.title.startsWith("Compatibility:") -> "compatibility"
+            else -> null
+        }
+        // A long trace is cut at its end, where the frames matter least; the whole of it is the shared file.
+        var text = log.text
+        while (label != null && text.isNotEmpty() && Uri.encode(text).length > MAX_BODY) text = text.dropLast(text.length / 10 + 20)
+        val body = Uri.encode(text).takeIf { label != null && text.isNotEmpty() }
+        return NEW_ISSUE + "?title=" + Uri.encode(log.title) +
+            (label?.let { "&labels=$it" } ?: "") + (body?.let { "&body=$it" } ?: "")
+    }
+
     private fun post(context: Context, log: CarLog, file: File) {
         if (android.os.Build.VERSION.SDK_INT >= 33 &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
@@ -75,7 +97,7 @@ object CarLogStore {
         )
         val issue = PendingIntent.getActivity(
             context, 3,
-            Intent(Intent.ACTION_VIEW, Uri.parse(NEW_ISSUE + "?title=" + Uri.encode(log.title))),
+            Intent(Intent.ACTION_VIEW, Uri.parse(issueUrl(log))),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
         val n = Notification.Builder(context, CHANNEL)

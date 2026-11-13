@@ -341,6 +341,7 @@
     <string name="report_crash_intro">Stuur de fout op zodat die opgelost kan worden. Het rapport bevat de fout, het model en de firmware, niets persoonlijks.</string>
     <string name="report_scan">Scan met je telefoon om te versturen</string>
     <string name="report_open">Hier openen</string>
+    <string name="report_send_phone">Naar telefoon sturen</string>
     <string name="report_delete">Verwijderen</string>
     <string name="report_later">Niet nu</string>
     <string name="report_works">Werkt</string>

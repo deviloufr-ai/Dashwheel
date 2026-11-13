@@ -341,6 +341,7 @@
     <string name="report_crash_intro">Sende den Fehler, damit er behoben werden kann. Der Bericht enthält den Fehler, Modell und Firmware, nichts Persönliches.</string>
     <string name="report_scan">Mit dem Handy scannen, um zu senden</string>
     <string name="report_open">Hier öffnen</string>
+    <string name="report_send_phone">An das Handy senden</string>
     <string name="report_delete">Löschen</string>
     <string name="report_later">Nicht jetzt</string>
     <string name="report_works">Geht</string>

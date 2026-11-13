@@ -350,6 +350,7 @@
     <string name="report_crash_intro">Отправьте ошибку, чтобы её исправили. В отчёте ошибка, модель и прошивка, ничего личного.</string>
     <string name="report_scan">Отсканируйте телефоном, чтобы отправить</string>
     <string name="report_open">Открыть здесь</string>
+    <string name="report_send_phone">Отправить на телефон</string>
     <string name="report_delete">Удалить</string>
     <string name="report_later">Не сейчас</string>
     <string name="report_works">Работает</string>
