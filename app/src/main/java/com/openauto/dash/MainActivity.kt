@@ -298,7 +298,11 @@ open class MainActivity : ComponentActivity() {
         val main = window.decorView
         fun run(i: Int) {
             if (i >= starts.size || isDestroyed) return
-            starts[i]()
+            // One feature's start throwing (a vendor call on a unit never seen) must not take Home down with it.
+            runCatching { starts[i]() }.onFailure {
+                android.util.Log.e("MainActivity", "start step $i failed", it)
+                DebugLog.note(applicationContext, "start step $i failed: $it")
+            }
             main.post { run(i + 1) }
         }
         run(0)

@@ -795,9 +795,9 @@ internal fun TileContent(
         is DashboardItem.BuiltinWidget -> SkinFallback(item.kind) { when (item.kind) {
             BuiltinKind.NAVMAP -> if (editing) {
                 EditPlaceholder(icon = Icons.Filled.Navigation, label = BuiltinKind.NAVMAP.label)
-            } else if (isEmulator) {
+            } else if (!gpuOk) {
                 // MapLibre's native renderer segfaults on the emulator's software GL.
-                EditPlaceholder(icon = Icons.Filled.Navigation, label = stringResource(R.string.dash_map_needs_gpu), hint = stringResource(R.string.dash_not_on_emulator))
+                EditPlaceholder(icon = Icons.Filled.Navigation, label = stringResource(R.string.dash_map_needs_gpu), hint = if (isEmulator) stringResource(R.string.dash_not_on_emulator) else "")
             } else Box(
                 modifier = Modifier.fillMaxSize().background(DashColors.Card)
             ) {

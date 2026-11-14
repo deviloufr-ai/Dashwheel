@@ -155,7 +155,7 @@ internal object FuelLog {
         // Away from a station the feed knows, prices change too often for a fixed
         // figure: the last price paid stands in until the driver gives this one.
         val fill = FuelFill(
-            at = System.currentTimeMillis(),
+            at = UnitClock.now(app),
             liters = liters,
             pricePerL = station?.second ?: price(car),
             currency = if (station != null) FuelPrices.CURRENCY else car.currency,
@@ -173,7 +173,7 @@ internal object FuelLog {
         record(
             context.applicationContext,
             FuelFill(
-                at = System.currentTimeMillis(),
+                at = UnitClock.now(context),
                 liters = liters,
                 pricePerL = pricePerL,
                 currency = car.currency,

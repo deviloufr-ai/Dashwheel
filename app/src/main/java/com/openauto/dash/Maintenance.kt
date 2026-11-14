@@ -499,6 +499,17 @@ object Maintenance {
         }
     }
 
+    /** Ignition off: the part of a kilometre not saved yet is, before the unit kills the app. */
+    @Synchronized
+    fun carStopped() {
+        if (drivenUnsaved <= 0.0) return
+        val add = drivenUnpublished
+        _state.update { s -> s.odometer?.let { odo -> s.copy(odometer = odo.copy(drivenSince = odo.drivenSince + add)) } ?: s }
+        drivenUnpublished = 0.0
+        drivenUnsaved = 0.0
+        save()
+    }
+
     /** Kilometres driven since the state last published them. */
     private var drivenUnpublished = 0.0
 

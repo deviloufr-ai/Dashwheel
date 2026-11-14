@@ -20,6 +20,22 @@ class FormulaTest {
     }
 
     @Test
+    fun theStandardFilterTemperatureSkipsTheSupportByte() {
+        // 017C: A says which sensors exist, the inlet temperature is in B and C (J1979).
+        val formula = PidProbe.STANDARD.first { it.request == "017C" }.formula
+        assertEquals(0x1388 / 10.0 - 40, Formula.eval(formula, listOf(0x03, 0x13, 0x88, 0x00, 0x00))!!, 1e-9)
+    }
+
+    @Test
+    fun onlyAnOldGpuIsRefusedTheMap() {
+        assertTrue(gles3("196610"))   // 3.2
+        assertTrue(gles3("196608"))   // 3.0
+        assertTrue(!gles3("131072"))  // 2.0
+        assertTrue(gles3(null))       // a unit that does not say
+        assertTrue(gles3("unknown"))
+    }
+
+    @Test
     fun nonsenseIsRejected() {
         assertNull(Formula.eval("A+", bytes))
         assertNull(Formula.eval("(A", bytes))

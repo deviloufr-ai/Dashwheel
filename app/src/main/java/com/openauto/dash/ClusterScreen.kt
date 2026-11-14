@@ -146,7 +146,7 @@ internal fun ClusterPageBody(
         val slot = slots.getOrNull(index) ?: return
         Box(m) {
             when (slot.kind) {
-                BuiltinKind.NAVMAP -> if (preview || isEmulator) PictureStandIn(Icons.Filled.Navigation, stringResource(BuiltinKind.NAVMAP.labelRes)) else ClusterMap()
+                BuiltinKind.NAVMAP -> if (preview || !gpuOk) PictureStandIn(Icons.Filled.Navigation, stringResource(BuiltinKind.NAVMAP.labelRes)) else ClusterMap()
                 BuiltinKind.MAPS_INSIDE -> AppCopy(slot.app ?: ClusterLayouts.DEFAULT_APP)
                 else -> Face(slot.kind, slot.design, env, Modifier.fillMaxSize())
             }
