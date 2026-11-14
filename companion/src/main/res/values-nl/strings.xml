@@ -3,7 +3,7 @@
     <string name="app_name">Dashwheel Companion</string>
     <string name="service_channel">Verbinding met de auto</string>
     <string name="status_off">Delen staat uit</string>
-    <string name="status_waiting">Wachten op de auto via je hotspot</string>
+    <string name="status_waiting">Wachten op de auto</string>
     <string name="status_connected">Verbonden met %1$s</string>
     <string name="status_no_car">Nog geen auto gekoppeld</string>
     <string name="share_toggle">Delen met de auto</string>
@@ -16,8 +16,10 @@
     <string name="step_post_detail">Toont dat de verbinding met de auto actief is.</string>
     <string name="step_battery">Batterijoptimalisatie</string>
     <string name="step_battery_detail">Houdt de verbinding actief tijdens lange ritten.</string>
+    <string name="step_bluetooth">Apparaten in de buurt</string>
+    <string name="step_bluetooth_detail">Laat de auto via Bluetooth met deze telefoon verbinden, zonder hotspot.</string>
     <string name="step_hotspot">Wifi-hotspot</string>
-    <string name="step_hotspot_detail">Zet hem aan en verbind de autoradio ermee.</string>
+    <string name="step_hotspot_detail">Alleen als de auto deze telefoon niet via Bluetooth bereikt: zet hem aan en verbind de autoradio ermee.</string>
     <string name="step_open_settings">Openen</string>
     <string name="action_allow">Toestaan</string>
     <string name="done">Klaar</string>
@@ -26,7 +28,7 @@
     <string name="pair_hint">Open in Dashwheel Instellingen → Telefoon → Telefoon koppelen en scan de getoonde code.</string>
     <string name="remove">Verwijderen</string>
     <string name="confirm_title">%1$s toestaan?</string>
-    <string name="confirm_body">Deze auto toont je meldingen en berichten en kan namens jou antwoorden. Hij verbindt alleen via je hotspot.</string>
+    <string name="confirm_body">Deze auto toont je meldingen en berichten en kan namens jou antwoorden. Hij verbindt alleen via Bluetooth of je hotspot.</string>
     <string name="confirm_allow">Toestaan</string>
     <string name="cancel">Annuleren</string>
     <string name="remove_title">%1$s verwijderen?</string>
@@ -93,7 +95,7 @@
     <string name="status_unavailable">De verbinding kon niet starten</string>
     <string name="status_unavailable_detail">Zet delen uit en weer aan. Lukt het nog steeds niet, herstart dan de telefoon.</string>
     <string name="status_off_detail">De auto krijgt niets van deze telefoon tot je het weer aanzet.</string>
-    <string name="status_waiting_detail">Zet de hotspot van de telefoon aan en verbind de autoradio ermee.</string>
+    <string name="status_waiting_detail">Koppel deze telefoon via Bluetooth aan de auto, of zet de hotspot aan en verbind de autoradio ermee.</string>
     <string name="status_connected_detail">Meldingen, oproepen en je agenda staan op het scherm van de auto.</string>
     <string name="pair_another">Nog een auto koppelen</string>
     <string name="permission_in_settings">Android vraagt het niet meer: sta het toe in App-info → Rechten.</string>

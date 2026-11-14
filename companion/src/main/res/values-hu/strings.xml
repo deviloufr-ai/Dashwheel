@@ -3,7 +3,7 @@
     <string name="app_name">Dashwheel Companion</string>
     <string name="service_channel">Kapcsolat az autóval</string>
     <string name="status_off">A megosztás ki van kapcsolva</string>
-    <string name="status_waiting">Várakozás az autóra a hotspoton</string>
+    <string name="status_waiting">Várakozás az autóra</string>
     <string name="status_connected">Csatlakozva: %1$s</string>
     <string name="status_no_car">Még nincs párosított autó</string>
     <string name="share_toggle">Megosztás az autóval</string>
@@ -16,8 +16,10 @@
     <string name="step_post_detail">Jelzi, hogy az autóval való kapcsolat működik.</string>
     <string name="step_battery">Akkumulátoroptimalizálás</string>
     <string name="step_battery_detail">Hosszú utakon is életben tartja a kapcsolatot.</string>
+    <string name="step_bluetooth">Közeli eszközök</string>
+    <string name="step_bluetooth_detail">Az autó Bluetooth-on csatlakozhat ehhez a telefonhoz, hotspot nélkül.</string>
     <string name="step_hotspot">Wi-Fi-hotspot</string>
-    <string name="step_hotspot_detail">Kapcsolja be, és csatlakoztassa hozzá a fejegységet.</string>
+    <string name="step_hotspot_detail">Csak ha az autó Bluetooth-on nem éri el ezt a telefont: kapcsolja be, és csatlakoztassa hozzá a fejegységet.</string>
     <string name="step_open_settings">Megnyitás</string>
     <string name="action_allow">Engedélyezés</string>
     <string name="done">Kész</string>
@@ -26,7 +28,7 @@
     <string name="pair_hint">A Dashwheelben nyissa meg a Beállítások → Telefon → Telefon párosítása menüt, majd olvassa be a megjelenő kódot.</string>
     <string name="remove">Eltávolítás</string>
     <string name="confirm_title">Engedélyezi a(z) %1$s autót?</string>
-    <string name="confirm_body">Ez az autó megjeleníti az értesítéseit és üzeneteit, és válaszolhat is a nevében. Csak az Ön hotspotján keresztül csatlakozik.</string>
+    <string name="confirm_body">Ez az autó megjeleníti az értesítéseit és üzeneteit, és válaszolhat is a nevében. Csak Bluetooth-on vagy az Ön hotspotján keresztül csatlakozik.</string>
     <string name="confirm_allow">Engedélyezés</string>
     <string name="cancel">Mégse</string>
     <string name="remove_title">Eltávolítja a(z) %1$s autót?</string>
@@ -94,7 +96,7 @@
     <string name="status_unavailable">A kapcsolat nem tudott elindulni</string>
     <string name="status_unavailable_detail">Kapcsolja ki, majd be a megosztást. Ha továbbra sem megy, indítsa újra a telefont.</string>
     <string name="status_off_detail">Az autó semmit sem kap erről a telefonról, amíg vissza nem kapcsolja.</string>
-    <string name="status_waiting_detail">Kapcsolja be a telefon hotspotját, és csatlakoztassa hozzá a fejegységet.</string>
+    <string name="status_waiting_detail">Párosítsa ezt a telefont Bluetooth-on az autóval, vagy kapcsolja be a hotspotját, és csatlakoztassa hozzá a fejegységet.</string>
     <string name="status_connected_detail">Az értesítések, a hívások és a naptár megjelennek az autó képernyőjén.</string>
     <string name="pair_another">Másik autó párosítása</string>
     <string name="permission_in_settings">Az Android már nem kérdez rá: engedélyezze az Alkalmazásinformáció Engedélyek részében.</string>

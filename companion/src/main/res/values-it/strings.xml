@@ -3,7 +3,7 @@
     <string name="app_name">Dashwheel Companion</string>
     <string name="service_channel">Connessione con l\'auto</string>
     <string name="status_off">Condivisione disattivata</string>
-    <string name="status_waiting">In attesa dell\'auto sull\'hotspot</string>
+    <string name="status_waiting">In attesa dell\'auto</string>
     <string name="status_connected">Connesso a %1$s</string>
     <string name="status_no_car">Nessuna auto associata</string>
     <string name="share_toggle">Condividi con l\'auto</string>
@@ -16,8 +16,10 @@
     <string name="step_post_detail">Indica che la connessione con l\'auto è attiva.</string>
     <string name="step_battery">Ottimizzazione batteria</string>
     <string name="step_battery_detail">Mantiene attiva la connessione nei viaggi lunghi.</string>
+    <string name="step_bluetooth">Dispositivi nelle vicinanze</string>
+    <string name="step_bluetooth_detail">Permette all\'auto di collegarsi a questo telefono via Bluetooth, senza hotspot.</string>
     <string name="step_hotspot">Hotspot Wi-Fi</string>
-    <string name="step_hotspot_detail">Attivalo e collega l\'autoradio.</string>
+    <string name="step_hotspot_detail">Solo se l\'auto non raggiunge questo telefono via Bluetooth: attivalo e collega l\'autoradio.</string>
     <string name="step_open_settings">Apri</string>
     <string name="action_allow">Consenti</string>
     <string name="done">Fatto</string>
@@ -26,7 +28,7 @@
     <string name="pair_hint">In Dashwheel apri Impostazioni → Telefono → Associa un telefono, poi scansiona il codice mostrato.</string>
     <string name="remove">Rimuovi</string>
     <string name="confirm_title">Consentire %1$s?</string>
-    <string name="confirm_body">Quest\'auto mostrerà notifiche e messaggi e potrà rispondere a tuo nome. Si collega solo tramite il tuo hotspot.</string>
+    <string name="confirm_body">Quest\'auto mostrerà notifiche e messaggi e potrà rispondere a tuo nome. Si collega solo via Bluetooth o tramite il tuo hotspot.</string>
     <string name="confirm_allow">Consenti</string>
     <string name="cancel">Annulla</string>
     <string name="remove_title">Rimuovere %1$s?</string>
@@ -93,7 +95,7 @@
     <string name="status_unavailable">La connessione non è partita</string>
     <string name="status_unavailable_detail">Disattiva e riattiva la condivisione. Se non basta, riavvia il telefono.</string>
     <string name="status_off_detail">L\'auto non riceve nulla da questo telefono finché non la riattivi.</string>
-    <string name="status_waiting_detail">Attiva l\'hotspot del telefono e collega l\'autoradio.</string>
+    <string name="status_waiting_detail">Associa questo telefono all\'auto via Bluetooth, oppure attiva il suo hotspot e collega l\'autoradio.</string>
     <string name="status_connected_detail">Notifiche, chiamate e agenda appaiono sullo schermo dell\'auto.</string>
     <string name="pair_another">Associa un\'altra auto</string>
     <string name="permission_in_settings">Android non lo chiede più: consentilo in Info app → Autorizzazioni.</string>

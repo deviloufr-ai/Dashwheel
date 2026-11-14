@@ -3,7 +3,7 @@
     <string name="app_name">Dashwheel Companion</string>
     <string name="service_channel">Ryšys su automobiliu</string>
     <string name="status_off">Bendrinimas išjungtas</string>
-    <string name="status_waiting">Laukiama automobilio jūsų viešosios prieigos taške</string>
+    <string name="status_waiting">Laukiama automobilio</string>
     <string name="status_connected">Prisijungta prie %1$s</string>
     <string name="status_no_car">Dar nesusietas joks automobilis</string>
     <string name="share_toggle">Bendrinti su automobiliu</string>
@@ -16,8 +16,10 @@
     <string name="step_post_detail">Rodo, kad ryšys su automobiliu veikia.</string>
     <string name="step_battery">Akumuliatoriaus optimizavimas</string>
     <string name="step_battery_detail">Išlaiko ryšį per ilgas keliones.</string>
+    <string name="step_bluetooth">Įrenginiai netoliese</string>
+    <string name="step_bluetooth_detail">Leidžia automobiliui prisijungti prie šio telefono per Bluetooth, be prieigos taško.</string>
     <string name="step_hotspot">Wi-Fi viešosios prieigos taškas</string>
-    <string name="step_hotspot_detail">Įjunkite jį ir prijunkite prie jo magnetolą.</string>
+    <string name="step_hotspot_detail">Tik jei automobilis nepasiekia šio telefono per Bluetooth: įjunkite jį ir prijunkite prie jo magnetolą.</string>
     <string name="step_open_settings">Atidaryti</string>
     <string name="action_allow">Leisti</string>
     <string name="done">Atlikta</string>
@@ -26,7 +28,7 @@
     <string name="pair_hint">Dashwheel atidarykite Nustatymai → Telefonas → Susieti telefoną, tada nuskenuokite rodomą kodą.</string>
     <string name="remove">Pašalinti</string>
     <string name="confirm_title">Leisti %1$s?</string>
-    <string name="confirm_body">Šis automobilis rodys jūsų pranešimus ir žinutes ir galės atsakyti jūsų vardu. Jis jungiasi tik per jūsų viešosios prieigos tašką.</string>
+    <string name="confirm_body">Šis automobilis rodys jūsų pranešimus ir žinutes ir galės atsakyti jūsų vardu. Jis jungiasi tik per Bluetooth arba jūsų viešosios prieigos tašką.</string>
     <string name="confirm_allow">Leisti</string>
     <string name="cancel">Atšaukti</string>
     <string name="remove_title">Pašalinti %1$s?</string>
@@ -94,7 +96,7 @@
     <string name="status_unavailable">Nepavyko užmegzti ryšio</string>
     <string name="status_unavailable_detail">Išjunkite ir vėl įjunkite bendrinimą. Jei vis nepavyksta, paleiskite telefoną iš naujo.</string>
     <string name="status_off_detail">Automobilis negauna nieko iš šio telefono, kol vėl neįjungsite.</string>
-    <string name="status_waiting_detail">Įjunkite telefono viešosios prieigos tašką ir prijunkite prie jo magnetolą.</string>
+    <string name="status_waiting_detail">Susiekite šį telefoną su automobiliu per Bluetooth arba įjunkite viešosios prieigos tašką ir prijunkite prie jo magnetolą.</string>
     <string name="status_connected_detail">Pranešimai, skambučiai ir darbotvarkė rodomi automobilio ekrane.</string>
     <string name="pair_another">Susieti kitą automobilį</string>
     <string name="permission_in_settings">Android nebeklausia: leiskite tai programos informacijos skiltyje „Leidimai“.</string>

@@ -3,7 +3,7 @@
     <string name="app_name">Dashwheel Compagnon</string>
     <string name="service_channel">Connexion à la voiture</string>
     <string name="status_off">Partage désactivé</string>
-    <string name="status_waiting">En attente de la voiture sur votre partage de connexion</string>
+    <string name="status_waiting">En attente de la voiture</string>
     <string name="status_connected">Connecté à %1$s</string>
     <string name="status_no_car">Aucune voiture associée</string>
     <string name="share_toggle">Partager avec la voiture</string>
@@ -16,8 +16,10 @@
     <string name="step_post_detail">Indique que la connexion à la voiture est active.</string>
     <string name="step_battery">Optimisation de la batterie</string>
     <string name="step_battery_detail">Garde la connexion active pendant les longs trajets.</string>
+    <string name="step_bluetooth">Appareils à proximité</string>
+    <string name="step_bluetooth_detail">Permet à la voiture de se connecter à ce téléphone en Bluetooth, sans partage de connexion.</string>
     <string name="step_hotspot">Partage de connexion Wi-Fi</string>
-    <string name="step_hotspot_detail">Activez-le et connectez-y l\'autoradio.</string>
+    <string name="step_hotspot_detail">Seulement si la voiture n\'atteint pas ce téléphone en Bluetooth : activez-le et connectez-y l\'autoradio.</string>
     <string name="step_open_settings">Ouvrir</string>
     <string name="action_allow">Autoriser</string>
     <string name="done">Fait</string>
@@ -26,7 +28,7 @@
     <string name="pair_hint">Dans Dashwheel, ouvrez Réglages → Téléphone → Associer un téléphone, puis scannez le code affiché.</string>
     <string name="remove">Retirer</string>
     <string name="confirm_title">Autoriser %1$s ?</string>
-    <string name="confirm_body">Cette voiture affichera vos notifications et vos messages, et pourra répondre en votre nom. Elle ne se connecte que via votre partage de connexion.</string>
+    <string name="confirm_body">Cette voiture affichera vos notifications et vos messages, et pourra répondre en votre nom. Elle ne se connecte qu\'en Bluetooth ou via votre partage de connexion.</string>
     <string name="confirm_allow">Autoriser</string>
     <string name="cancel">Annuler</string>
     <string name="remove_title">Retirer %1$s ?</string>
@@ -93,7 +95,7 @@
     <string name="status_unavailable">La connexion n\'a pas pu démarrer</string>
     <string name="status_unavailable_detail">Désactivez puis réactivez le partage. Si cela continue, redémarrez le téléphone.</string>
     <string name="status_off_detail">La voiture ne reçoit rien de ce téléphone tant que le partage est coupé.</string>
-    <string name="status_waiting_detail">Activez le partage de connexion du téléphone et connectez-y l\'autoradio.</string>
+    <string name="status_waiting_detail">Associez ce téléphone à la voiture en Bluetooth, ou activez son partage de connexion et connectez-y l\'autoradio.</string>
     <string name="status_connected_detail">Notifications, appels et agenda s\'affichent sur l\'écran de la voiture.</string>
     <string name="pair_another">Associer une autre voiture</string>
     <string name="permission_in_settings">Android ne le demande plus : autorisez-le dans Infos de l\'appli → Autorisations.</string>

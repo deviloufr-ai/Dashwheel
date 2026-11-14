@@ -3,7 +3,7 @@
     <string name="app_name">Dashwheel Companion</string>
     <string name="service_channel">Car connection</string>
     <string name="status_off">Sharing is off</string>
-    <string name="status_waiting">Waiting for the car on your hotspot</string>
+    <string name="status_waiting">Waiting for the car</string>
     <string name="status_connected">Connected to %1$s</string>
     <string name="status_no_car">No car paired yet</string>
     <string name="share_toggle">Share with the car</string>
@@ -16,8 +16,10 @@
     <string name="step_post_detail">Shows that the connection to the car is running.</string>
     <string name="step_battery">Battery optimisation</string>
     <string name="step_battery_detail">Keeps the connection alive during long drives.</string>
+    <string name="step_bluetooth">Nearby devices</string>
+    <string name="step_bluetooth_detail">Lets the car connect to this phone over Bluetooth, with no hotspot needed.</string>
     <string name="step_hotspot">Wi-Fi hotspot</string>
-    <string name="step_hotspot_detail">Turn it on and connect the head unit to it.</string>
+    <string name="step_hotspot_detail">Only if the car can\'t reach this phone over Bluetooth: turn it on and connect the head unit to it.</string>
     <string name="step_open_settings">Open</string>
     <string name="action_allow">Allow</string>
     <string name="done">Done</string>
@@ -26,7 +28,7 @@
     <string name="pair_hint">In Dashwheel, open Settings → Phone → Pair a phone, then scan the code it shows.</string>
     <string name="remove">Remove</string>
     <string name="confirm_title">Allow %1$s?</string>
-    <string name="confirm_body">This car will show your notifications and messages, and can reply on your behalf. It only connects over your hotspot.</string>
+    <string name="confirm_body">This car will show your notifications and messages, and can reply on your behalf. It only connects over Bluetooth or your hotspot.</string>
     <string name="confirm_allow">Allow</string>
     <string name="cancel">Cancel</string>
     <string name="remove_title">Remove %1$s?</string>
@@ -94,7 +96,7 @@
     <string name="status_unavailable">The connection could not start</string>
     <string name="status_unavailable_detail">Turn sharing off and on again. If it keeps failing, restart the phone.</string>
     <string name="status_off_detail">The car gets nothing from this phone until you switch it back on.</string>
-    <string name="status_waiting_detail">Turn on the phone\'s hotspot and connect the head unit to it.</string>
+    <string name="status_waiting_detail">Pair this phone with the car over Bluetooth, or turn on its hotspot and connect the head unit to it.</string>
     <string name="status_connected_detail">Notifications, calls and your agenda show on the car\'s screen.</string>
     <string name="pair_another">Pair another car</string>
     <string name="permission_in_settings">Android no longer asks: allow it under Permissions in App info.</string>

@@ -1257,15 +1257,18 @@ private class SetupChecks(
     /** The phone's GPS for the car: location allowed all the time ([PhoneGpsShare]). */
     val location: Boolean,
     val battery: Boolean,
+    /** "Nearby devices", without which the car can't reach this phone over Bluetooth; null below Android 12. */
+    val bluetooth: Boolean?,
     /** "On my way" texts: optional, so not counted as left to do. */
     val texts: Boolean,
     val askPost: () -> Unit,
     val askCalls: () -> Unit,
     val askAgenda: () -> Unit,
     val askLocation: () -> Unit,
-    val askTexts: () -> Unit
+    val askTexts: () -> Unit,
+    val askBluetooth: () -> Unit
 ) {
-    private val checks: List<Boolean> get() = listOfNotNull(listener, post, calls, agenda, location, battery)
+    private val checks: List<Boolean> get() = listOfNotNull(bluetooth, listener, post, calls, agenda, location, battery)
 
     /** The steps that can be checked from here and are not done (the hotspot can't be). */
     val missing: Int get() = checks.count { !it }
@@ -1296,6 +1299,9 @@ private fun rememberSetupChecks(resumes: Int): SetupChecks {
         // The car learns it can now ask for "On my way" texts.
         LinkServer.send(LinkServer.abilities(context))
     }
+    var bluetoothGranted by remember(resumes) { mutableStateOf(CarBluetooth.hasPermission(context)) }
+    // Once given, the link starts listening over Bluetooth on its own (it looks again every 15 s).
+    val askBluetooth = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { bluetoothGranted = it }
     var agendaGranted by remember(resumes) { mutableStateOf(granted(context, Manifest.permission.READ_CALENDAR)) }
     val askAgenda = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
         agendaGranted = it
@@ -1319,7 +1325,9 @@ private fun rememberSetupChecks(resumes: Int): SetupChecks {
         agenda = agendaGranted,
         location = locationGranted,
         battery = battery,
+        bluetooth = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) bluetoothGranted else null,
         texts = textsGranted,
+        askBluetooth = { ask(context, arrayOf(Manifest.permission.BLUETOOTH_CONNECT)) { askBluetooth.launch(it.single()) } },
         askTexts = { ask(context, arrayOf(Manifest.permission.SEND_SMS)) { askTexts.launch(it.single()) } },
         askPost = { ask(context, arrayOf(Manifest.permission.POST_NOTIFICATIONS)) { askPost.launch(it.single()) } },
         askCalls = { ask(context, CALL_PERMISSIONS) { askCalls.launch(it) } },
@@ -1386,6 +1394,8 @@ private fun SetupPanel(setup: SetupChecks) {
                 drawStopIndicator = {}
             )
             val steps = buildList {
+                // The car reaches the phone over Bluetooth first; the hotspot is only the other way.
+                setup.bluetooth?.let { add(StepInfo(Icons.Filled.Bluetooth, R.string.step_bluetooth, R.string.step_bluetooth_detail, it, onFix = setup.askBluetooth)) }
                 add(StepInfo(Icons.Filled.Notifications, R.string.step_notifications, R.string.step_notifications_detail, setup.listener) {
                     open(context, Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
                 })
@@ -1396,7 +1406,7 @@ private fun SetupPanel(setup: SetupChecks) {
                 add(StepInfo(Icons.Filled.BatteryFull, R.string.step_battery, R.string.step_battery_detail, setup.battery) {
                     open(context, Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:${context.packageName}")))
                 })
-                add(StepInfo(Icons.Filled.Wifi, R.string.step_hotspot, R.string.step_hotspot_detail, null) {
+                add(StepInfo(Icons.Filled.Wifi, R.string.step_hotspot, R.string.step_hotspot_detail, null, optional = true) {
                     if (!open(context, Intent("android.settings.TETHER_SETTINGS"))) open(context, Intent(Settings.ACTION_WIRELESS_SETTINGS))
                 })
                 if (TextSender.hasMessaging(context)) {
