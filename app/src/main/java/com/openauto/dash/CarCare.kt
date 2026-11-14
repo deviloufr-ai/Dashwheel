@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONObject
 import java.time.LocalDate
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -228,7 +229,9 @@ internal object CareRules {
 
     internal fun restStep(r: RestTimer, d: ObdData, now: Long, events: MutableList<CareEvent>): RestTimer {
         // Long enough without readings (car parked, unit asleep) is a break.
-        var x = if (r.lastAt == 0L || now - r.lastAt >= BREAK_RESET_MS) RestTimer(lastAt = now) else r
+        // Either way: a clock far behind the saved time (2025 after a restart) is not set, and
+        // yesterday's two hours at the wheel asked for a break ten minutes into the morning.
+        var x = if (r.lastAt == 0L || abs(now - r.lastAt) >= BREAK_RESET_MS) RestTimer(lastAt = now) else r
         val dt = (now - x.lastAt).coerceIn(0, MAX_STEP_MS)
         x = if (d.speedKmh > MOVING_KMH) {
             x.copy(drivingMs = x.drivingMs + dt, stoppedSince = null, lastAt = now)

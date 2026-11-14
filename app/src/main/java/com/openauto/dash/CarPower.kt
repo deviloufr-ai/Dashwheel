@@ -98,7 +98,12 @@ object CarPower {
         // Read before [noteBoot] marks the ignition on.
         val wokeUp = acc != null && startedBySwitchOn(on, prefs.getLong(KEY_OFF_AT, 0L), prefs.getLong(KEY_ON_AT, 0L))
         noteBoot(app, acc)
-        val filter = IntentFilter().apply { src.actions.forEach(::addAction) }
+        readable = acc != null
+        val filter = IntentFilter().apply {
+            src.actions.forEach(::addAction)
+            // Nothing to read: the screen coming back on stands in for an "on" this firmware may never send.
+            if (!readable) addAction(Intent.ACTION_SCREEN_ON)
+        }
         ContextCompat.registerReceiver(app, receiver, filter, ContextCompat.RECEIVER_EXPORTED)
         // The unit kills the app while it sleeps (a new process at nearly every
         // wake-up in the logs), and the "on" broadcast goes out before the app
@@ -154,6 +159,7 @@ object CarPower {
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action == Intent.ACTION_SCREEN_ON) return wokeUp()
             when (source?.decode(intent)) {
                 IgnitionEvent.ON, IgnitionEvent.WAKE -> if (ignition != true) switchedOn(context.applicationContext)
                 // "Ready to sleep" comes after ACC off; either is the car switched off.
@@ -173,6 +179,22 @@ object CarPower {
         val on = source?.read() ?: return
         if (on == ignition) return
         if (on) switchedOn(context) else switchedOff(context)
+    }
+
+    /** Whether the source can be asked ([IgnitionSource.read]); false: broadcasts only. */
+    private var readable = true
+
+    /** When the car was last seen switched off (elapsedRealtime). */
+    private var switchedOffAt = 0L
+
+    /**
+     * The screen came back on, or the dashboard came back to the front: on a
+     * unit that only announces its ignition (some never say "on": MTC), that
+     * is the car switched on again, or the adapter would stay undialled.
+     */
+    fun wokeUp() {
+        val context = appContext ?: return
+        if (wakeIsSwitchOn(readable, ignition, SystemClock.elapsedRealtime() - switchedOffAt)) switchedOn(context)
     }
 
     private fun switchedOn(context: Context) {
@@ -204,6 +226,7 @@ object CarPower {
     private fun switchedOff(context: Context) {
         UnitPlatform.markUsed(Cap.IGNITION)
         setIgnition(false)
+        switchedOffAt = SystemClock.elapsedRealtime()
         val now = System.currentTimeMillis()
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putLong(KEY_OFF_AT, now).apply()
         Log.i(TAG, "ignition off")
@@ -269,6 +292,17 @@ internal fun briefOnIgnition(offAt: Long?, now: Long): Boolean =
  */
 internal fun startedBySwitchOn(ignitionOn: Boolean, offAt: Long, onAt: Long): Boolean =
     ignitionOn && offAt > 0 && offAt > onAt
+
+/** The firmware closes the app in front as the car goes off, and the dashboard comes back: not a wake-up this soon after. */
+internal const val OFF_SETTLE_MS = 15_000L
+
+/**
+ * Whether the screen or the dashboard coming back is the car switched on:
+ * only where the ignition can't be read ([readable] false), it reads off,
+ * and the switch-off is [sinceOffMs] old, more than [OFF_SETTLE_MS].
+ */
+internal fun wakeIsSwitchOn(readable: Boolean, ignition: Boolean?, sinceOffMs: Long): Boolean =
+    !readable && ignition == false && sinceOffMs >= OFF_SETTLE_MS
 
 /** How long after the switch-on, or the unit's start, the car counts as just powered up. */
 internal const val POWER_UP_MS = 3 * 60_000L

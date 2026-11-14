@@ -160,17 +160,33 @@ object PrivilegedShell {
      * socket is looked for, not a connection: the connection's authorisation
      * prompt is left to the first feature that uses it. An emulator counts as
      * having the socket, so what needs a shell can be tried there without root
-     * (`adb tcpip 5555` makes it answer). The Play edition is answered first,
-     * before anything is run.
+     * (`adb tcpip 5555` makes it answer); only one whose kernel says so
+     * ([qemuKernel]): a unit whose build merely looks like one is given no shell.
+     * The Play edition is answered first, before anything is run.
      */
     internal fun find(): Access = when {
         editionPlay -> Access.NONE
         SystemInstaller.isRootAvailable() -> Access.ROOT
         ShizukuShell.ready -> Access.SHIZUKU
         AdbInstaller.listeningPort() != null -> Access.ADB
-        isEmulator -> Access.ADB
+        isEmulator && qemuKernel(SysProps.getOrNull("ro.kernel.qemu"), SysProps.getOrNull("ro.boot.qemu")) -> Access.ADB
         else -> Access.NONE
     }
+}
+
+/** A real emulator by its kernel: `ro.kernel.qemu` or `ro.boot.qemu` is 1 (a head unit with "sdk" in its product name has neither). */
+internal fun qemuKernel(kernelQemu: String?, bootQemu: String?): Boolean = kernelQemu?.trim() == "1" || bootQemu?.trim() == "1"
+
+/**
+ * Whether a shell command may be run with nobody asking for it (at boot, at
+ * the ignition): root and Shizuku answer silently; the ADB socket only once
+ * a connection was accepted ([adbAccepted]), or it raises its "allow USB
+ * debugging" prompt at every start.
+ */
+internal fun shellWithoutPrompt(access: PrivilegedShell.Access, adbAccepted: Boolean): Boolean = when (access) {
+    PrivilegedShell.Access.ROOT, PrivilegedShell.Access.SHIZUKU -> true
+    PrivilegedShell.Access.ADB -> adbAccepted
+    else -> false
 }
 
 /**

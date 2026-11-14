@@ -8,6 +8,27 @@ import org.junit.Test
 
 /** Release tag -> build number, and which release asset is the launcher's own APK. */
 class UpdateManagerTest {
+    @Test
+    fun onlyAnApkSignedAsThisAppIsInstalled() {
+        val ours = setOf("a1")
+        assertTrue(UpdateManager.signedAsWeAre(setOf("a1"), ours, debug = false))
+        assertFalse(UpdateManager.signedAsWeAre(setOf("b2"), ours, debug = false))
+        assertFalse(UpdateManager.signedAsWeAre(setOf("a1", "b2"), ours, debug = false))
+        // Signers that could not be read are a refusal, not a pass.
+        assertFalse(UpdateManager.signedAsWeAre(emptySet(), ours, debug = false))
+        assertFalse(UpdateManager.signedAsWeAre(emptySet(), emptySet(), debug = false))
+        // A debug build updates to a release, signed with another key.
+        assertTrue(UpdateManager.signedAsWeAre(setOf("b2"), ours, debug = true))
+    }
+
+    @Test
+    fun theShellsCopyIsInstalledOnlyWithTheHashThatWasChecked() {
+        assertTrue(UpdateManager.sameHash("ab12  /data/local/tmp/x.apk\n", "ab12"))
+        assertFalse(UpdateManager.sameHash("cd34  /data/local/tmp/x.apk\n", "ab12"))
+        assertFalse(UpdateManager.sameHash("sha256sum: not found", "ab12"))
+        assertFalse(UpdateManager.sameHash("", ""))
+    }
+
 
     @Test
     fun theLauncherApkIsTheOneThatIsNeitherCompanionNorPlay() {

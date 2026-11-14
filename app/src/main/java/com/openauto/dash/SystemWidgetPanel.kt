@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProviderInfo
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -120,22 +121,25 @@ object WidgetHostHolder {
 }
 
 /**
+ * Android's widget service, or null where there is none to host with: a
+ * build without the app-widget feature (getInstance answers null there, and
+ * a layout holding a widget threw at every start), or safe mode ([SafeMode]).
+ */
+internal fun appWidgetManager(context: Context): AppWidgetManager? =
+    if (!widgetsHostable(SafeMode.on, context.packageManager.hasSystemFeature(PackageManager.FEATURE_APP_WIDGETS))) null
+    else runCatching { AppWidgetManager.getInstance(context) }.getOrNull()
+
+/** Whether Android widgets can be hosted at all: not in safe mode, and only with the system's app-widget feature. */
+internal fun widgetsHostable(safeMode: Boolean, hasFeature: Boolean): Boolean = !safeMode && hasFeature
+
+/**
  * Renders a bound Android app-widget by its [appWidgetId] inside the shared host.
  */
 @Composable
 fun HostedSystemWidget(appWidgetId: Int, modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    val host = remember { WidgetHostHolder.host(context) }
-    val manager = remember { AppWidgetManager.getInstance(context) }
-
-    // Listening is taken and given back by the effect, so a composition that is
-    // thrown away before it lands never leaves the count raised.
-    DisposableEffect(Unit) {
-        WidgetHostHolder.acquire(context)
-        onDispose { WidgetHostHolder.release() }
-    }
-
-    val info = remember(appWidgetId) { manager.getAppWidgetInfo(appWidgetId) }
+    val manager = remember { appWidgetManager(context) }
+    val info = remember(appWidgetId) { runCatching { manager?.getAppWidgetInfo(appWidgetId) }.getOrNull() }
     if (info == null) {
         Box(modifier = modifier, contentAlignment = Alignment.Center) {
             Text(
@@ -145,6 +149,14 @@ fun HostedSystemWidget(appWidgetId: Int, modifier: Modifier = Modifier) {
             )
         }
         return
+    }
+    val host = remember { WidgetHostHolder.host(context) }
+
+    // Listening is taken and given back by the effect, so a composition that is
+    // thrown away before it lands never leaves the count raised.
+    DisposableEffect(Unit) {
+        WidgetHostHolder.acquire(context)
+        onDispose { WidgetHostHolder.release() }
     }
 
     // A new id gets a new view: the factory only runs once per view.
@@ -178,7 +190,8 @@ class SystemWidgetAdder(
 fun rememberSystemWidgetAdder(onAdded: (Int) -> Unit): SystemWidgetAdder {
     val context = LocalContext.current
     val host = remember { WidgetHostHolder.host(context) }
-    val manager = remember { AppWidgetManager.getInstance(context) }
+    // Null without the system's widget service: the picker is empty and nothing is bound.
+    val manager = remember { appWidgetManager(context) }
 
     DisposableEffect(Unit) {
         WidgetHostHolder.acquire(context)
@@ -198,7 +211,7 @@ fun rememberSystemWidgetAdder(onAdded: (Int) -> Unit): SystemWidgetAdder {
     }
 
     fun finishBound(id: Int) {
-        val info = manager.getAppWidgetInfo(id)
+        val info = runCatching { manager?.getAppWidgetInfo(id) }.getOrNull()
         if (info?.configure != null) {
             pendingId = id
             val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE).apply {
@@ -222,6 +235,7 @@ fun rememberSystemWidgetAdder(onAdded: (Int) -> Unit): SystemWidgetAdder {
     }
 
     fun pick(info: AppWidgetProviderInfo) {
+        val manager = manager ?: return
         val id = host.allocateAppWidgetId()
         val allowed = runCatching { manager.bindAppWidgetIdIfAllowed(id, info.provider) }.getOrDefault(false)
         if (allowed) {
@@ -241,7 +255,7 @@ fun rememberSystemWidgetAdder(onAdded: (Int) -> Unit): SystemWidgetAdder {
         // opening the picker doesn't stall the UI thread.
         var providers by remember { mutableStateOf<List<PickerProvider>>(emptyList()) }
         LaunchedEffect(Unit) {
-            providers = withContext(Dispatchers.IO) { collectProviders(manager, context) }
+            providers = withContext(Dispatchers.IO) { manager?.let { runCatching { collectProviders(it, context) }.getOrNull() }.orEmpty() }
         }
         SystemWidgetPickerDialog(
             providers = providers,
@@ -251,7 +265,7 @@ fun rememberSystemWidgetAdder(onAdded: (Int) -> Unit): SystemWidgetAdder {
     }
 
     fun addPackage(pkg: String): Boolean {
-        val info = runCatching { manager.getInstalledProvidersForPackage(pkg, null) }
+        val info = runCatching { manager?.getInstalledProvidersForPackage(pkg, null) }
             .getOrNull()?.firstOrNull() ?: return false
         pick(info)
         return true

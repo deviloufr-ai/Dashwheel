@@ -180,6 +180,10 @@ object UnitPlatform {
                 "Vendor apps" to if (app == null) pkgs.joinToString(", ")
                 else pkgs.joinToString(", ") { if (hasPackage(app, it)) it else "$it (absent)" }
             },
+            // What decides the map, the 3D car and the pop-ups over other apps.
+            "Graphics" to "GLES ${SysProps.getOrNull("ro.opengles.version") ?: "unsaid"}, overlay " +
+                (appContext?.let { if (android.provider.Settings.canDrawOverlays(it)) "allowed" else "not allowed" } ?: "unknown") +
+                ", safe mode ${if (SafeMode.on) "on" else "off"}",
             // A firmware no family knows: its own apps (the car box's among them) are what names it (#96).
             appContext?.takeIf { family == UnitFamily.GENERIC }?.let { app ->
                 firmwareApps(app.packageManager).takeIf { it.isNotEmpty() }?.let { "Firmware apps" to it.joinToString(", ") }

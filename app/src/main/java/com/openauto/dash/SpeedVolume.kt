@@ -61,6 +61,7 @@ object SpeedVolume {
     private const val KEY_STEPS = "max_steps"
     /** Before the curve could be set: OFF, LOW, MEDIUM or HIGH. */
     private const val KEY_OLD_LEVEL = "level"
+    private const val KEY_APPLIED = "applied"
 
     /** A step comes off only once the speed is this far under where it came on, so cruising at a threshold doesn't pump. */
     const val HYSTERESIS_KMH = 8
@@ -87,14 +88,35 @@ object SpeedVolume {
         get() = appliedBy[source] ?: 0
         set(value) {
             if (value == 0) appliedBy.remove(source) else appliedBy[source] = value
+            keepApplied()
         }
     private val appliedBy = HashMap<String, Int>()
     private var source = ""
+    private var appContext: Context? = null
+
+    /**
+     * The steps added are kept: a unit that kills the app at speed starts a new one that
+     * knew of none and added its own on top, a little louder at every stop for fuel.
+     */
+    private fun keepApplied() {
+        appContext?.let { prefs(it).edit().putString(KEY_APPLIED, encodeApplied(appliedBy)).apply() }
+    }
+
+    internal fun encodeApplied(by: Map<String, Int>): String = by.entries.joinToString("\n") { "${it.value}\t${it.key}" }
+
+    internal fun decodeApplied(text: String?): Map<String, Int> =
+        text.orEmpty().split('\n').mapNotNull { line ->
+            val n = line.substringBefore('\t').toIntOrNull()?.takeIf { it > 0 && '\t' in line } ?: return@mapNotNull null
+            line.substringAfter('\t') to n
+        }.toMap()
 
     fun start(context: Context) {
         if (started) return
         started = true
         val app = context.applicationContext
+        appContext = app
+        // What the last process added and never gave back: [tick] takes it off at a standstill, or counts it as its own at speed.
+        appliedBy.putAll(decodeApplied(prefs(app).getString(KEY_APPLIED, null)))
         load(app)
         scope.launch {
             _on.collectLatest { on ->
@@ -174,7 +196,7 @@ object SpeedVolume {
     private fun tick(app: Context) {
         if (DemoMode.isOn || MediaVolume.unavailable.value) return
         // Standing still with nothing added: nothing to do, and the unit's state (a few binder calls) is not read.
-        if (boost == 0 && applied == 0 && target(speedKmh(), 0, _curve.value) == 0) return
+        if (boost == 0 && appliedBy.isEmpty() && target(speedKmh(), 0, _curve.value) == 0) return
         val audio = MediaVolume.audio(app)
         // In a call the keys would change the call's volume; muted, a raise would unmute.
         if (inCall(audio)) return
@@ -205,6 +227,7 @@ object SpeedVolume {
         // Muted meanwhile: a step down on the unit would set its level and unmute it ([tick] holds off the same way).
         if (!MediaVolume.byKeys.value && MediaVolume.isMuted(MediaVolume.audio(app))) {
             appliedBy.clear()
+            keepApplied()
             boost = 0
             return
         }
@@ -216,6 +239,7 @@ object SpeedVolume {
         }
         // The other sources keep what they got: their level can't be reached while they don't play.
         appliedBy.clear()
+        keepApplied()
         boost = 0
     }
 

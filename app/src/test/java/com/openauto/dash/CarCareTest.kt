@@ -168,6 +168,17 @@ class CareRulesTest {
     }
 
     @Test
+    fun aClockNotSetYetDoesNotCarryYesterdaysDrivingOn() {
+        // Saved in 2026 after nearly two hours at the wheel; the unit starts again with its clock at 2025.
+        val saved = RestTimer(drivingMs = 115 * 60_000L, lastAt = t0)
+        val events = mutableListOf<CareEvent>()
+        val next = CareRules.restStep(saved, cruising, t0 - 300 * 86_400_000L, events)
+        assertEquals(0L, next.drivingMs)
+        // A clock corrected by a few seconds, back or forth, is the same drive.
+        assertEquals(saved.drivingMs, CareRules.restStep(saved, cruising, t0 - 3_000L, events).drivingMs)
+    }
+
+    @Test
     fun theRemainingDistanceIsReadFromTheEtaLine() {
         assertEquals(6.4, CareRules.remainingKm("12 min · 6.4 km · 09:48")!!, 0.001)
         assertEquals(346.0, CareRules.remainingKm("3 h 10 · 346 km · 17:42")!!, 0.001)

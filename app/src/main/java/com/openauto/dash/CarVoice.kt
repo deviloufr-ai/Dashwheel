@@ -38,6 +38,8 @@ object CarVoice {
     private var ready = false
     // When the engine last failed to start (uptime), so the next try waits.
     private var failedAt = 0L
+    /** The engine was rebuilt after refusing a sentence, and has not said one since ([utter]). */
+    private var rebuilt = false
     private val queued = mutableListOf<Pair<String, Locale>>()
     private var focus: AudioFocusRequest? = null
     private var nextId = 0
@@ -220,10 +222,13 @@ object CarVoice {
         created = TextToSpeech(context) { status ->
             main.post {
                 if (tts !== created) return@post
+                // Taken out first: a sentence the engine refuses is queued again for the next one ([utter]).
+                val lines = queued.toList()
+                queued.clear()
                 if (status == TextToSpeech.SUCCESS) {
                     ready = true
                     failedAt = 0L
-                    queued.forEach { (t, l) -> say(created, t, l) }
+                    lines.forEach { (t, l) -> say(created, t, l) }
                 } else {
                     Log.w(TAG, "Text-to-speech failed to start ($status)")
                     // Shut down, or each failed try leaves its service connection behind.
@@ -231,7 +236,6 @@ object CarVoice {
                     tts = null
                     failedAt = SystemClock.elapsedRealtime()
                 }
-                queued.clear()
             }
         }
         created.setAudioAttributes(attributes)
@@ -281,7 +285,25 @@ object CarVoice {
         val voice = voiceFor(engine, line.locale) ?: return
         if (engine.setLanguage(voice) < TextToSpeech.LANG_AVAILABLE) return
         val id = "carvoice-${nextId++}"
-        if (engine.speak(line.text, mode, null, id) == TextToSpeech.SUCCESS) pending[id] = line
+        if (engine.speak(line.text, mode, null, id) == TextToSpeech.SUCCESS) {
+            pending[id] = line
+            rebuilt = false
+            return
+        }
+        // Refused: the engine's process died (the unit kills it while it sleeps) and this
+        // object never speaks again. A new one is made and the sentence goes to it, once:
+        // one that refuses too waits [RETRY_MS] like an engine that did not start.
+        if (tts !== engine) return
+        Log.w(TAG, "Text-to-speech refused a sentence; engine rebuilt")
+        engine.shutdown()
+        tts = null
+        ready = false
+        if (rebuilt) {
+            failedAt = SystemClock.elapsedRealtime()
+            return
+        }
+        rebuilt = true
+        speakNow(line.text, line.locale, line.urgent, line.guidance)
     }
 
     private fun inCall(): Boolean {

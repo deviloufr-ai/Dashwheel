@@ -130,12 +130,22 @@ object AutoLight {
 
 private const val MINUTES_A_DAY = 24 * 60
 
+/**
+ * The time each minute, by [UnitClock]: a unit that starts at 1 January 2025, midnight,
+ * was in the dark look on a summer afternoon until GPS set its clock.
+ */
+@Composable
+private fun rememberUnitClock(context: android.content.Context): Long {
+    val minute = rememberWallClock(60_000L).longValue
+    return remember(minute) { UnitClock.now(context) }
+}
+
 /** True while the sun is up here, re-read each minute. Never acquires the GPS itself. */
 @Composable
 internal fun rememberSunUp(): Boolean {
     val context = LocalContext.current
     AutoLight.start(context)
-    val now = rememberWallClock(60_000L).longValue
+    val now = rememberUnitClock(context)
     val place by AutoLight.place.collectAsState()
     return remember(now, place) { sunUp(now, place?.first, place?.second) }
 }
@@ -155,7 +165,7 @@ internal fun rememberAutoDay(): Boolean {
     val systemDark = isSystemInDarkTheme()
     val headlights = rememberHeadlights()
     val sun = rememberSunUp()
-    val now = rememberWallClock(60_000L).longValue
+    val now = rememberUnitClock(context)
     val byClock = remember(now, from, to) { dayByClock(now, from, to) }
     return when (by) {
         AutoLightBy.CAR -> !(systemDark && !UnitSignals.onQf) && !headlights && sun

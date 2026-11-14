@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Looper
+import android.os.SystemClock
 import android.util.Log
 import android.view.View
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -16,8 +17,11 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.maplibre.geojson.Point
 import org.maplibre.navigation.android.navigation.ui.v5.instruction.maneuver.ManeuverView
 import org.maplibre.navigation.core.location.Location
@@ -143,7 +147,66 @@ object InAppNav {
             stop()
             return false
         }
+        // Kept for [resume]: the unit kills the app at a fuel stop, and the route was lost with it.
+        if (!DemoMode.isOn) {
+            app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+                .putString(KEY_DEST, "${destination.longitude()},${destination.latitude()}")
+                .putString(KEY_DEST_NAME, name)
+                .putLong(KEY_DEST_AT, UnitClock.now(app))
+                .apply()
+            keptAt = SystemClock.elapsedRealtime()
+        }
         return true
+    }
+
+    private var resumed = false
+    /** When the saved guidance's time was last written (elapsedRealtime). */
+    private var keptAt = 0L
+
+    /**
+     * At the app's start: the guidance a kill cut short goes on, with a new route from where the car
+     * is, if it was running less than [GUIDANCE_KEPT_MS] ago (a fuel stop; not yesterday's). Main thread.
+     */
+    fun resume(context: Context) {
+        if (resumed) return
+        resumed = true
+        val app = context.applicationContext
+        appContext = app
+        val p = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val to = p.getString(KEY_DEST, null)?.split(',')?.mapNotNull { it.toDoubleOrNull() }?.takeIf { it.size == 2 } ?: return
+        if (active || DemoMode.isOn) return
+        if (!guidanceResumes(p.getLong(KEY_DEST_AT, 0L), UnitClock.now(app))) {
+            forget()
+            return
+        }
+        val destination = Point.fromLngLat(to[0], to[1])
+        val name = p.getString(KEY_DEST_NAME, null)
+        scope.launch {
+            if (!LocationFeed.acquire(app)) return@launch
+            try {
+                val here = withTimeoutOrNull(RESUME_WAIT_MS) { LocationFeed.location.filterNotNull().first() } ?: return@launch
+                // The hotspot may come up after the unit: a few tries.
+                repeat(RESUME_TRIES) {
+                    val route = withContext(Dispatchers.IO) {
+                        runCatching { valhallaRoute(Point.fromLngLat(here.longitude, here.latitude), destination, locale(app).language).routes.firstOrNull() }.getOrNull()
+                    }
+                    // Not over a guidance the driver started meanwhile, nor one they stopped.
+                    if (active || DemoMode.isOn || !p.contains(KEY_DEST)) return@launch
+                    if (route != null) {
+                        start(app, route, destination, name)
+                        return@launch
+                    }
+                    delay(REROUTE_GAP_MAX_MS)
+                }
+            } finally {
+                LocationFeed.release()
+            }
+        }
+    }
+
+    private fun forget() {
+        appContext?.getSharedPreferences(PREFS, Context.MODE_PRIVATE)?.edit()
+            ?.remove(KEY_DEST)?.remove(KEY_DEST_NAME)?.remove(KEY_DEST_AT)?.apply()
     }
 
     /** Ends the guidance; the turn banners go back to Google Maps' or Waze's, if they guide. */
@@ -164,6 +227,7 @@ object InAppNav {
         _guidance.value = null
         _askStop.value = false
         NavDirections.publishInApp(null)
+        forget()
     }
 
     fun setVoice(context: Context, on: Boolean) {
@@ -198,6 +262,12 @@ object InAppNav {
     private fun onProgress(progress: RouteProgress) {
         val g = _guidance.value ?: return
         val context = appContext ?: return
+        // The saved guidance's time follows the drive: [resume] counts the stop from the last of it.
+        val at = SystemClock.elapsedRealtime()
+        if (at - keptAt >= KEEP_EVERY_MS && !DemoMode.isOn) {
+            keptAt = at
+            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putLong(KEY_DEST_AT, UnitClock.now(context)).apply()
+        }
         val leg = progress.currentLegProgress
         val step = leg.currentStep
         val stepLeft = leg.currentStepProgress.distanceRemaining
@@ -248,8 +318,9 @@ object InAppNav {
         val g = _guidance.value ?: return
         val context = appContext ?: return
         if (g.arrived || reroute?.isActive == true) return
-        val now = System.currentTimeMillis()
-        if (now - lastReroute < Backoff.doubling(REROUTE_GAP_MS, REROUTE_GAP_MAX_MS, rerouteFailures)) return
+        // By the time since start: a clock set back mid-drive held every new route off.
+        val now = SystemClock.elapsedRealtime()
+        if (lastReroute != 0L && now - lastReroute < Backoff.doubling(REROUTE_GAP_MS, REROUTE_GAP_MAX_MS, rerouteFailures)) return
         lastReroute = now
         _guidance.value = g.copy(rerouting = true)
         reroute = scope.launch {
@@ -299,6 +370,13 @@ object InAppNav {
 
     private const val PREFS = "in_app_nav"
     private const val KEY_VOICE = "voice"
+    private const val KEY_DEST = "dest"
+    private const val KEY_DEST_NAME = "dest_name"
+    private const val KEY_DEST_AT = "dest_at"
+    private const val KEEP_EVERY_MS = 60_000L
+    /** How long [resume] waits for a first position, and how many times it asks for a route. */
+    private const val RESUME_WAIT_MS = 120_000L
+    private const val RESUME_TRIES = 6
     private const val ICON_PX = 128
     /** Metres from the destination that count as there. */
     private const val ARRIVED_M = 25.0
@@ -308,3 +386,7 @@ object InAppNav {
     /** The gap grows to this while the router cannot be reached (a tunnel, the hotspot gone). */
     private const val REROUTE_GAP_MAX_MS = 60_000L
 }
+
+/** Whether a guidance last seen running at [savedAt] goes on at [now]: a stop short enough ([GUIDANCE_KEPT_MS]), by a clock that is set. */
+internal fun guidanceResumes(savedAt: Long, now: Long): Boolean =
+    savedAt > 0 && now - savedAt in 0 until GUIDANCE_KEPT_MS

@@ -7,6 +7,7 @@
     <string name="dash_add">Aggiungi</string>
     <string name="dash_selected">Selezionato</string>
     <string name="dash_dismiss">Ignora</string>
+    <string name="dash_safe_mode">Modalità provvisoria. Mappe, auto 3D e widget Android disattivati dopo due avvii falliti.</string>
     <string name="dash_got_it">Ho capito</string>
 
     <!-- Top bar -->

@@ -46,7 +46,25 @@ internal class FytToolkit(context: Context) {
         if (toolkit != null) feed.post { observer(true) }
     }
 
-    /** Binds the service, once; a failed bind is tried again after [RETRY_MS]. */
+    /** The wait before the next try, growing while the service stays away ([fytRetryMs]). */
+    private var retryMs = RETRY_MS
+
+    /** The next bind, later each time: a unit named FYT that has no such service is not asked every 2 s for ever. */
+    private fun retryLater() {
+        val wait = retryMs
+        retryMs = fytRetryMs(wait)
+        main.postDelayed({ connect() }, wait)
+    }
+
+    /** Lets go of a bind that gave nothing, or died, so [connect] can make a new one. */
+    @Synchronized
+    private fun unbind() {
+        main.removeCallbacks(watchdog)
+        runCatching { app.unbindService(connection) }
+        binding = false
+    }
+
+    /** Binds the service, once; a failed bind is tried again after a growing wait ([retryLater]). */
     @Synchronized
     fun connect() {
         if (binding || toolkit != null) return
@@ -58,8 +76,8 @@ internal class FytToolkit(context: Context) {
         if (!ok) {
             binding = false
             runCatching { app.unbindService(connection) }
-            Log.w(TAG, "the FYT toolkit service is not there; trying again in ${RETRY_MS / 1000} s")
-            main.postDelayed({ connect() }, RETRY_MS)
+            Log.w(TAG, "the FYT toolkit service is not there; trying again in ${retryMs / 1000} s")
+            retryLater()
         } else {
             main.postDelayed(watchdog, BIND_WAIT_MS)
         }
@@ -84,6 +102,7 @@ internal class FytToolkit(context: Context) {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             if (service == null) { Log.w(TAG, "the FYT toolkit answered with no binder; the watchdog binds again"); return }
             main.removeCallbacks(watchdog)
+            retryMs = RETRY_MS
             toolkit = service
             runCatching { service.linkToDeath({ lost("died") }, 0) }
             _connected.value = true
@@ -93,8 +112,17 @@ internal class FytToolkit(context: Context) {
 
         override fun onServiceDisconnected(name: ComponentName?) = lost("disconnected")
 
+        // The system never binds a dead binding again by itself: let go of it and bind anew.
+        override fun onBindingDied(name: ComponentName?) {
+            lost("binding died")
+            unbind()
+            retryLater()
+        }
+
         override fun onNullBinding(name: ComponentName?) {
-            Log.w(TAG, "the FYT toolkit gave no binder; the watchdog binds again")
+            Log.w(TAG, "the FYT toolkit gave no binder; binding again in ${retryMs / 1000} s")
+            unbind()
+            retryLater()
         }
     }
 
@@ -195,7 +223,12 @@ internal class FytToolkit(context: Context) {
 
     companion object {
         private const val TAG = "FytToolkit"
-        private const val RETRY_MS = 2_000L
+        const val RETRY_MS = 2_000L
+        /** The longest wait between two tries. */
+        const val RETRY_MAX_MS = 5 * 60_000L
         private const val BIND_WAIT_MS = 10_000L
     }
 }
+
+/** The wait after one of [previous] ms: twice as long, up to [FytToolkit.RETRY_MAX_MS]. */
+internal fun fytRetryMs(previous: Long): Long = (previous * 2).coerceIn(FytToolkit.RETRY_MS, FytToolkit.RETRY_MAX_MS)

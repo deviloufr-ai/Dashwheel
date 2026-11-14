@@ -20,6 +20,14 @@ class DriveLogRulesTest {
     fun aTripIsOverAfterTenMinutesStandingStill() {
         assertFalse(DriveLogRules.isOver(trip, trip.updatedAt + DriveLogRules.STOP_MS - 1))
         assertTrue(DriveLogRules.isOver(trip, trip.updatedAt + DriveLogRules.STOP_MS))
+        // A clock behind the trip's last move (2025 on a cold boot): not set yet, the trip is not carried on.
+        assertTrue(DriveLogRules.isOver(trip, trip.updatedAt - 1))
+        // The clock set mid-drive jumps months ahead: the car stood a minute, by the time since start.
+        assertFalse(DriveLogRules.isOver(trip, trip.updatedAt + 300 * 86_400_000L, stoppedMs = 60_000L))
+        assertFalse(DriveLogRules.startsAfresh(trip, trip.updatedAt + 300 * 86_400_000L, stoppedMs = 60_000L))
+        assertTrue(DriveLogRules.startsAfresh(trip, trip.updatedAt - 1))
+        // An empty trip stamped before the jump begins at the real time.
+        assertTrue(DriveLogRules.startsAfresh(TripState(startedAt = t0, updatedAt = t0), t0 + 300 * 86_400_000L, stoppedMs = 60_000L))
     }
 
     @Test

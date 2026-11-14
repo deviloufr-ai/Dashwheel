@@ -10,7 +10,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Which of Dashwheel's two home screens is the one: [MainActivity], or on a
@@ -56,32 +58,42 @@ internal object FloatingHome {
      * is pointed at the new one through the privileged shell when there is
      * one; the firmware names Home by package, so it finds it by itself. The
      * floating home screen Android already made stays until the unit restarts.
+     * Without a shell nothing is switched: Android drops the driver's Home
+     * choice when its home screen is switched off, and only the shell can
+     * point it at the new one.
      */
     fun switchOn(activity: MainActivity) {
         if (activity is FullscreenHomeActivity || active(activity)) return
         val app = activity.applicationContext
         val target = fullscreen(app)
         val pm = app.packageManager
-        val enabled = runCatching {
-            pm.setComponentEnabledSetting(target, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP)
-        }.isSuccess
-        if (!enabled) {
-            DebugLog.note(app, "home is a floating window: the fullscreen home could not be switched on")
-            return
-        }
-        runCatching {
-            activity.startActivity(
-                Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).setComponent(target)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            )
-        }.onFailure { Log.w(TAG, "the fullscreen home did not start", it) }
         scope.launch {
+            // At start the shell's probe may not have answered yet.
+            val access = withTimeoutOrNull(PROBE_WAIT_MS) { PrivilegedShell.access.first { it != PrivilegedShell.Access.UNKNOWN } }
+            if (active(app)) return@launch
+            if (Edition.play || access?.shell != true) {
+                DebugLog.note(app, "home is a floating window: no shell to hand Home over, left as it is")
+                return@launch
+            }
+            val enabled = runCatching {
+                pm.setComponentEnabledSetting(target, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP)
+            }.isSuccess
+            if (!enabled) {
+                DebugLog.note(app, "home is a floating window: the fullscreen home could not be switched on")
+                return@launch
+            }
+            runCatching {
+                app.startActivity(
+                    Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).setComponent(target)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                )
+            }.onFailure { Log.w(TAG, "the fullscreen home did not start", it) }
             // Once the new one has closed this one ([MainActivity.onlyOne]).
             delay(HAND_OVER_MS)
             val off = runCatching {
                 pm.setComponentEnabledSetting(ComponentName(app, MainActivity::class.java), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP)
             }.isSuccess
-            val home = if (Edition.play || !PrivilegedShell.access.value.shell) "no shell" else runCatching {
+            val home = runCatching {
                 DockShell.shell(app, "cmd package set-home-activity ${target.flattenToString()}").trim()
             }.getOrElse { "failed: ${it.message}" }
             DebugLog.note(app, "home is a floating window: switched to the fullscreen home (old one off: $off, Home: $home), restart the unit once")
@@ -90,4 +102,7 @@ internal object FloatingHome {
 
     /** Time for the new home screen to come up and close the old one. */
     private const val HAND_OVER_MS = 3_000L
+
+    /** How long the shell's probe gets to answer before the switch is given up. */
+    private const val PROBE_WAIT_MS = 30_000L
 }

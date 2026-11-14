@@ -7,6 +7,7 @@
     <string name="dash_add">Добавить</string>
     <string name="dash_selected">Выбрано</string>
     <string name="dash_dismiss">Скрыть</string>
+    <string name="dash_safe_mode">Безопасный режим. Карты, 3D-автомобиль и виджеты Android отключены после двух неудачных запусков.</string>
     <string name="dash_got_it">Понятно</string>
 
     <!-- Top bar -->

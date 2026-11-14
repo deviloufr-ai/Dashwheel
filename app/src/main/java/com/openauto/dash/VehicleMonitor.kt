@@ -296,7 +296,8 @@ internal object VehicleMonitor {
                         // readings are in (it only speaks about codes it hasn't heard before).
                         launch {
                             delay(3000)
-                            if (!DeepObdSource.owns()) AiMechanic.autoScan()
+                            // Not at every redial of a link that keeps dropping: a scan holds the adapter for seconds.
+                            if (!DeepObdSource.owns() && scanDue(ObdBluetoothManager.lastScanAt, SystemClock.elapsedRealtime())) AiMechanic.autoScan()
                         }
                         // Ten times a second: the rules and the saves run off the main thread.
                         withContext(Dispatchers.Default) {
@@ -359,6 +360,12 @@ internal object VehicleMonitor {
  * On a unit that doesn't say ([ignition] null), only with the launcher [inFront].
  */
 internal fun redials(inFront: Boolean, ignition: Boolean?): Boolean = ignition ?: inFront
+
+/** A link that comes up again scans for fault codes only this long after the last scan that the car answered. */
+internal const val RESCAN_GAP_MS = 10 * 60_000L
+
+/** Whether the scan at the link coming up runs: none answered yet ([lastOkAt] 0), or [RESCAN_GAP_MS] ago (elapsed ms). */
+internal fun scanDue(lastOkAt: Long, now: Long): Boolean = lastOkAt == 0L || now - lastOkAt >= RESCAN_GAP_MS
 
 /** How long after CarPlay or Android Auto connects the adapter is left alone: the phone's link settles. */
 internal const val PROJECTION_SETTLE_MS = 45_000L

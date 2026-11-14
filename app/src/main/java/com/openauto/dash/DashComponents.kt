@@ -361,8 +361,11 @@ internal fun gles3(version: String?): Boolean = (version?.trim()?.toIntOrNull() 
 /**
  * Whether the map and the 3D car can be drawn: MapLibre and Filament need
  * OpenGL ES 3.0 and abort natively without it, which nothing can catch.
+ * Never in safe mode ([SafeMode]): one of them may be what took the last starts down.
  */
-internal val gpuOk: Boolean by lazy { !isEmulator && gles3(SysProps.getOrNull("ro.opengles.version")) }
+internal val gpuOk: Boolean get() = !SafeMode.on && gpuCapable
+
+private val gpuCapable: Boolean by lazy { !isEmulator && gles3(SysProps.getOrNull("ro.opengles.version")) }
 
 /**
  * Grab bar between the Maps dock and the dashboard pages. Drags report pixel
