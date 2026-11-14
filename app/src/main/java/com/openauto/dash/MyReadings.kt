@@ -313,11 +313,13 @@ object MyReadings {
         val linked = ObdBluetoothManager.connectionState.value == ObdConnectionState.CONNECTED
         val d = ObdBluetoothManager.readings()
         fun obd(v: Number) = if (linked) v.toDouble() else null
+        val answered = ObdBluetoothManager.answered()
         return mapOf(
             "speed" to obd(d.speedKmh),
             "rpm" to obd(d.rpm),
-            "coolant" to obd(d.coolantTempC).takeIf { it != 0.0 },
-            "intake" to obd(d.intakeTempC).takeIf { it != 0.0 },
+            // 0 is "not read" in the record, and also a winter morning: a reading once the adapter answered that PID.
+            "coolant" to obd(d.coolantTempC).takeIf { it != 0.0 || Pid.COOLANT in answered },
+            "intake" to obd(d.intakeTempC).takeIf { it != 0.0 || Pid.INTAKE in answered },
             "throttle" to obd(d.throttlePct),
             "load" to obd(d.engineLoadPct),
             "fuel" to obd(d.fuelLevelPct).takeIf { it != 0.0 },

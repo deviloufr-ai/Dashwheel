@@ -67,6 +67,26 @@ internal fun channelOrder(last: Int, count: Int): List<Int> {
     return listOf(first) + (0 until count).filter { it != first }
 }
 
+/**
+ * Whether an engine computer gone quiet means the car stands still: only when the last speed it gave
+ * on this link was 0. One that never answered (NO DATA to everything on a link that stays up) or went
+ * quiet at speed says nothing about it: the speed is then unknown here and the GPS's shows.
+ */
+internal fun stoppedSpeedKnown(lastSpeedKmh: Int?): Boolean = lastSpeedKmh == 0
+
+private val FAST_PIDS = listOf(Pid.SPEED to 0x0D, Pid.RPM to 0x0C, Pid.THROTTLE to 0x11, Pid.LOAD to 0x04)
+/** Data bytes of each PID that can go in a combined request. */
+internal val FAST_PID_BYTES = mapOf(0x0D to 1, 0x0C to 2, 0x11 to 1, 0x04 to 1)
+
+/**
+ * The fast readings of this poll's [plan] that go out as one request ("010D0C11") instead of a round
+ * trip each: only on CAN ([canBits] 11 or 29), and only those the car said it serves. Fewer than two: none.
+ */
+internal fun combinedPids(plan: Set<Pid>, supported: SupportedPids?, canBits: Int?): List<Int> {
+    if (supported == null || (canBits != 11 && canBits != 29)) return emptyList()
+    return FAST_PIDS.filter { (pid, code) -> pid in plan && supported.has(code) }.map { it.second }.takeIf { it.size >= 2 }.orEmpty()
+}
+
 /** Whether [listed] (addresses without colons, separated by commas) has the adapter at [address]. */
 internal fun unitListsAdapter(listed: String?, address: String): Boolean {
     val bare = address.replace(":", "")
@@ -104,6 +124,8 @@ object ObdBluetoothManager {
     private const val READ_TIMEOUT_MS = 2000L
     /** How long a late prompt from the last command is waited for before the next is sent. */
     private const val LATE_PROMPT_MS = 500L
+    /** The adapter's search for the car's protocol: up to ~10 s on the older (K-line) buses. */
+    private const val SEARCH_TIMEOUT_MS = 12_000L
 
     /** Fault-code requests are slower: several computers may answer, and clones take their time. */
     private const val DTC_TIMEOUT_MS = 6000L
@@ -178,6 +200,17 @@ object ObdBluetoothManager {
     private var lastAliveAt = 0L
     /** Per PID: polls in a row it went unanswered while the engine computer answered others. */
     private val misses = IntArray(256)
+    /** The car's bus ([ObdParser.canAddressBits]); null until the adapter said. */
+    private var canBits: Int? = null
+    /** The poll asked for [canBits] on this link (once: an adapter that doesn't say isn't asked every poll). */
+    private var busAsked = false
+    /** Combined requests ([combinedPids]) are still tried on this link. */
+    private var combineOk = true
+    /** The last speed the engine computer gave on this link, uncorrected; null when it never did. */
+    private var lastSpeed: Int? = null
+
+    /** [canBits], asked of the adapter until it says. */
+    private fun busBits(): Int? = canBits ?: sendCommand("ATDPN")?.let(ObdParser::canAddressBits)?.also { canBits = it }
 
     private val _data = MutableStateFlow(ObdData())
     /**
@@ -197,6 +230,9 @@ object ObdBluetoothManager {
      * (ELM327, Deep OBD, the phone relay, the demo) while linked; nothing once it is not.
      */
     private val gaugeOut = ObdGaugePublisher(Vehicle.bus.register(Source("obd", SourceKind.OBD, "OBD")))
+
+    /** The PIDs the adapter answered since the link came up: a 0 in [data] for one of them is a reading. */
+    internal fun answered(): Set<Pid> = gaugeOut.answered()
 
     init {
         // Every route ends in a connection state and in [data]; a link that is gone takes its readings off the bus.
@@ -517,6 +553,10 @@ object ObdBluetoothManager {
         silentPolls = 0
         lastAliveAt = SystemClock.elapsedRealtime()
         misses.fill(0)
+        canBits = null
+        busAsked = false
+        combineOk = true
+        lastSpeed = null
     }
 
     /**
@@ -793,18 +833,29 @@ object ObdBluetoothManager {
         // character it gets and drops it: a bare return, before ATZ.
         runCatching { outputStream?.run { write("\r".toByteArray()); flush() } }
         Thread.sleep(WAKE_MS)
+        val woke = runCatching { (inputStream?.available() ?: 0) > 0 }.getOrDefault(false)
         for (attempt in 1..INIT_TRIES) {
-            val replies = listOf(
-                // Reset; clone adapters need a moment after it.
-                sendCommand("ATZ", if (attempt == 1) READ_TIMEOUT_MS else RESET_TIMEOUT_MS).also { Thread.sleep(1000) },
-                sendCommand("ATE0"),  // echo off
-                sendCommand("ATL0"),  // line feeds off
-                sendCommand("ATSP0")  // automatic protocol selection
-            )
+            val reset = sendCommand("ATZ", if (attempt == 1) READ_TIMEOUT_MS else RESET_TIMEOUT_MS)
+            // Nothing to the wake nor to the reset: nobody on this channel, and the three other waits
+            // were 6 s more each try. The first try stops there; the last still asks once more (a
+            // clone mute on ATZ) before giving the channel up.
+            val dead = !woke && reset == null
+            val replies = if (dead && (attempt < INIT_TRIES || sendCommand("ATE0") == null)) emptyList() else {
+                // Clone adapters need a moment after the reset.
+                Thread.sleep(1000)
+                listOf(
+                    reset,
+                    sendCommand("ATE0"),  // echo off
+                    sendCommand("ATL0"),  // line feeds off
+                    sendCommand("ATSP0")  // automatic protocol selection
+                )
+            }
             if (outputStream == null) return false // the link dropped
             if (replies.any { it != null }) {
                 // Which PIDs the car serves (0100 also wakes the ECU link); unanswered, everything is polled.
-                supported = ObdParser.supportedPids { sendCommand(it) }
+                // The first request is the one the adapter searches the car's protocol on: cut short,
+                // the next command aborted the search and a K-line car never connected.
+                supported = ObdParser.supportedPids { sendCommand(it, if (it == "0100") SEARCH_TIMEOUT_MS else READ_TIMEOUT_MS) }
                 return outputStream != null
             }
             Log.w(TAG, "no reply to the setup commands (try $attempt of $INIT_TRIES)")
@@ -889,8 +940,22 @@ object ObdBluetoothManager {
         val cycle = pollCount++
         val first = cycle == 0
         val plan = obdPollPlan(Vehicle.bus.wanted.value, cycle).toSet()
-        val speed = sendCommand("010D")?.let { ObdParser.parseSpeed(it) }
-        val rpm = if (Pid.RPM in plan) sendCommand("010C")?.let { ObdParser.parseRpm(it) } else null
+        if (supported != null && !busAsked) {
+            busAsked = true
+            busBits()
+        }
+        // The fast readings in one round trip where the car takes that, while it answers.
+        val fast = if (combineOk && silentPolls == 0) combinedPids(plan, supported, canBits) else emptyList()
+        val combined = if (fast.isEmpty()) null else {
+            sendCommand("01" + fast.joinToString("") { PID_COMMANDS[it].drop(2) })?.let { ObdParser.parseMultiPid(it, FAST_PID_BYTES) }
+        }
+        // What the combined reply left out is asked alone, as before. Answered alone, this car (or
+        // this clone) doesn't do combined requests: not tried again on this link.
+        fun <T : Any> fastOr(pid: Int, of: (List<Int>) -> T, alone: () -> T?): T? =
+            combined?.get(pid)?.let(of) ?: alone().also { if (it != null && pid in fast) combineOk = false }
+        val speed = fastOr(0x0D, { it[0] }) { sendCommand("010D")?.let { ObdParser.parseSpeed(it) } }
+        val rpm = if (Pid.RPM in plan) fastOr(0x0C, { (it[0] * 256 + it[1]) / 4 }) { sendCommand("010C")?.let { ObdParser.parseRpm(it) } } else null
+        if (speed != null) lastSpeed = speed
         val alive = speed != null || rpm != null
         silentPolls = if (alive) 0 else silentPolls + 1
         if (alive) lastAliveAt = SystemClock.elapsedRealtime()
@@ -900,8 +965,8 @@ object ObdBluetoothManager {
             supported = ObdParser.supportedPids { sendCommand(it) }
         }
 
-        val throttle = if (Pid.THROTTLE in plan) read(0x11, alive, cycle) { ObdParser.percentFrom(it, "4111") } else null
-        val load = if (Pid.LOAD in plan) read(0x04, alive, cycle) { ObdParser.percentFrom(it, "4104") } else null
+        val throttle = if (Pid.THROTTLE in plan) fastOr(0x11, { it[0] * 100 / 255 }) { read(0x11, alive, cycle) { ObdParser.percentFrom(it, "4111") } } else null
+        val load = if (Pid.LOAD in plan) fastOr(0x04, { it[0] * 100 / 255 }) { read(0x04, alive, cycle) { ObdParser.percentFrom(it, "4104") } } else null
         // The fuel the engine asks for, only while something wants it (the LPG tank counting with it): the
         // engine's own fuel rate where it serves one, else worked out from the air flow.
         val wantFlow = Pid.FUEL_FLOW in plan
@@ -954,8 +1019,10 @@ object ObdBluetoothManager {
         // the temperatures, fuel and voltage keep their last value, as a gauge would.
         val silentFor = SystemClock.elapsedRealtime() - lastAliveAt
         if (silentPolls >= STALE_POLLS && silentFor >= STALE_MS) {
-            // The car really is stopped: speed, revs, throttle and load are 0 on the bus, not unknown.
-            setData(next.engineStopped(), fresh + setOf(Pid.SPEED, Pid.RPM, Pid.THROTTLE, Pid.LOAD))
+            // The engine really is stopped: revs, throttle and load are 0 on the bus, not unknown. The
+            // speed too when the car was standing ([stoppedSpeedKnown]); else it is left to the GPS.
+            val still = if (stoppedSpeedKnown(lastSpeed)) setOf(Pid.SPEED) else emptySet()
+            setData(next.engineStopped(), fresh + still + setOf(Pid.RPM, Pid.THROTTLE, Pid.LOAD))
         } else {
             setData(next, fresh, voltsFromEcu = next.voltageFromEcu)
         }
@@ -1010,12 +1077,14 @@ object ObdBluetoothManager {
             val stored = linkedSetOf<String>()
             val pending = linkedSetOf<String>()
             var answered = false
+            var can: Boolean? = null
             fun collect(reply: String?, mode: Int) {
-                val codes = reply?.let { ObdParser.parseDtcReply(it, mode) } ?: return
+                val codes = reply?.let { ObdParser.parseDtcReply(it, mode, can) } ?: return
                 if (mode == 0x43) answered = true
                 (if (mode == 0x43) stored else pending) += codes
             }
             var addressed = false
+            var headers = false
             try {
                 // Give slow computers time: adaptive timing can cut the wait short,
                 // and a busy running engine then reads as "NO DATA".
@@ -1024,11 +1093,21 @@ object ObdBluetoothManager {
                 // What the engine computer itself says: lamp on or off, so an
                 // empty read can be checked against it.
                 _lamp.value = ask("0101")?.let { ObdParser.parseEngineLamp(it) }
+                // The bus, asked once the car has been talked to (before, the adapter may not know it yet).
+                currentCoroutineContext().ensureActive()
+                val bits = busBits()
+                can = bits?.let { it != 0 }
+                // On CAN each line then names its sender: the long answers of two computers come
+                // interleaved, and without the address they were joined into one.
+                if (can == true) {
+                    headers = true
+                    ask("ATH1", READ_TIMEOUT_MS)
+                }
                 collect(ask("03"), 0x43)
                 collect(ask("07"), 0x47)
                 // On CAN, also ask the engine computer on its own address: with
                 // everyone answering at once, its reply can be the one lost.
-                if (ask("ATDPN", READ_TIMEOUT_MS)?.let(ObdParser::isCan11Bit) == true) {
+                if (bits == 11) {
                     addressed = true
                     if (ask("ATSH7E0", READ_TIMEOUT_MS)?.contains("OK") == true) {
                         collect(ask("03"), 0x43)
@@ -1038,14 +1117,20 @@ object ObdBluetoothManager {
             } finally {
                 // Put the address and timing back even when cancelled: the regular polls rely on them.
                 if (addressed) sendCommand("ATSH7DF", READ_TIMEOUT_MS)
+                if (headers) sendCommand("ATH0", READ_TIMEOUT_MS)
                 sendCommand("ATAT1", READ_TIMEOUT_MS)
                 sendCommand("ATST32", READ_TIMEOUT_MS)
             }
             if (!answered) return@withLock failure(R.string.vehicle_no_dtc_answer)
             _pending.value = pending - stored
+            lastScanAt = SystemClock.elapsedRealtime()
             Result.success((stored + pending).toList())
         }
     }
+
+    /** When the fault codes were last read from the car (elapsed ms); 0 before. */
+    @Volatile var lastScanAt = 0L
+        private set
 
     /**
      * One read request for the experimental reading finder: [request] bytes
@@ -1082,6 +1167,10 @@ object ObdBluetoothManager {
         if (DemoMode.isOn || DeepObdSource.owns() || _connectionState.value != ObdConnectionState.CONNECTED) return@withContext emptyList()
         commandMutex.withLock {
             if (_connectionState.value != ObdConnectionState.CONNECTED) return@withLock emptyList()
+            // A computer's own address exists on CAN only: on the older buses the request is not sent
+            // (as if unanswered), and what is put back afterwards is that bus's address for everyone.
+            val bits = if (header != null) busBits() else null
+            if (bits == 0) return@withLock requests.map { null }
             val ownAddresses = header != null && replyAddress != null
             val replies = ArrayList<String?>(requests.size)
             try {
@@ -1108,8 +1197,10 @@ object ObdBluetoothManager {
                 if (ownAddresses) {
                     sendCommand("ATFCSM0", READ_TIMEOUT_MS)
                     sendCommand("ATCRA", READ_TIMEOUT_MS)
+                    // Back to the adapter choosing whom to listen to; older ones need it said.
+                    sendCommand("ATAR", READ_TIMEOUT_MS)
                 }
-                if (header != null) sendCommand("ATSH7DF", READ_TIMEOUT_MS)
+                if (header != null) sendCommand(if (bits == 29) "ATSH18DB33F1" else "ATSH7DF", READ_TIMEOUT_MS)
             }
             replies
         }
@@ -1128,8 +1219,7 @@ object ObdBluetoothManager {
         commandMutex.withLock {
             val raw = sendCommand("04", DTC_TIMEOUT_MS)
                 ?: return@withLock failure(R.string.vehicle_no_response)
-            val r = raw.uppercase().trim()
-            if (r.contains("44") || r.contains("OK")) {
+            if (ObdParser.clearAccepted(raw)) {
                 // The lamp and the pending codes went with the stored ones; only a
                 // scan wrote them, so the tile kept "lamp on" until the next one.
                 _lamp.value = null
@@ -1191,13 +1281,20 @@ object ObdBluetoothManager {
             // On the clock that only goes forward: the unit's own is set by GPS
             // mid-drive, which cut a wait short or, set back, held every other
             // command up behind a silent adapter for the length of the jump.
-            val deadline = SystemClock.elapsedRealtime() + timeoutMs
+            var deadline = SystemClock.elapsedRealtime() + timeoutMs
+            var searching = false
             while (SystemClock.elapsedRealtime() < deadline) {
                 if (input.available() > 0) {
                     val read = input.read(buffer)
                     if (read <= 0) break
                     response.append(String(buffer, 0, read))
                     if (response.contains(">")) break
+                    // The adapter says it is looking for the car's protocol: it gets the time
+                    // that takes, or the next command would abort the search and start it over.
+                    if (!searching && response.contains("SEARCHING")) {
+                        searching = true
+                        deadline = maxOf(deadline, SystemClock.elapsedRealtime() + SEARCH_TIMEOUT_MS)
+                    }
                 } else {
                     // Only paces the wait for the reply; the loop still ends on the prompt.
                     Thread.sleep(5)

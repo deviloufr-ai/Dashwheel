@@ -115,6 +115,93 @@ class ObdParserTest {
         assertFalse(ObdParser.isCan11Bit("?"))
     }
 
+    @Test
+    fun theBusIsReadFromDescribeProtocolNumber() {
+        assertEquals(11, ObdParser.canAddressBits("A6"))
+        assertEquals(11, ObdParser.canAddressBits("8"))
+        assertEquals(29, ObdParser.canAddressBits("A7"))
+        assertEquals(29, ObdParser.canAddressBits("9\r"))
+        assertEquals(0, ObdParser.canAddressBits("A3"))
+        assertEquals(0, ObdParser.canAddressBits("5"))
+        // Still searching, J1939, a clone's "?" or anything longer: not known.
+        assertNull(ObdParser.canAddressBits("A0"))
+        assertNull(ObdParser.canAddressBits("A"))
+        assertNull(ObdParser.canAddressBits("?"))
+        assertNull(ObdParser.canAddressBits("12.3V"))
+    }
+
+    // Built by hand from ISO 15765-2: two computers answer mode 03 with more codes than one frame
+    // holds, and their first and following frames arrive interleaved.
+    @Test
+    fun twoComputersLongAnswersInterleavedAreReadPerSender() {
+        val expected = listOf("P0133", "P0201", "P0300", "P0420", "P0700", "P0715", "P0730")
+        val reply = "7E8 10 0A 43 04 01 33 02 01\r7E9 10 08 43 03 07 00 07 15\r" +
+            "7E8 21 03 00 04 20 AA AA AA\r7E9 21 07 30 55 55 55 55 55"
+        assertEquals(expected, ObdParser.parseDtcReply(reply, can = true))
+        assertEquals(expected, ObdParser.parseDtcReply(reply.replace(" ", ""), can = true))
+        assertEquals(expected, ObdParser.parseDtcReply(reply))
+    }
+
+    @Test
+    fun theBusDecidesTheLayoutWhenItIsKnown() {
+        // A clone that prints the CAN frame's padding: 7 bytes, which looks like the old layout.
+        val padded = "43 01 01 33 00 00 00"
+        assertEquals(listOf("P0133"), ObdParser.parseDtcReply(padded, can = true))
+        assertEquals(listOf("P0101", "P3300"), ObdParser.parseDtcReply(padded))
+        // An old bus whose line lost its last byte: 6 bytes, which looks like CAN.
+        val cut = "43 01 33 02 01 00"
+        assertEquals(listOf("P0133", "P0201"), ObdParser.parseDtcReply(cut, can = false))
+        assertEquals(listOf("P3302"), ObdParser.parseDtcReply(cut))
+        // A count that cannot be one (more codes than bytes): guessed as before.
+        assertEquals(listOf("P0433", "P0201"), ObdParser.parseDtcReply("43 04 33 02 01", can = true))
+    }
+
+    @Test
+    fun clearingNeedsAComputersYesAndNoRefusal() {
+        assertTrue(ObdParser.clearAccepted("44"))
+        assertTrue(ObdParser.clearAccepted("44\r44"))
+        assertTrue(ObdParser.clearAccepted("7E8 01 44 00 00 00 00 00 00"))
+        // "Wait" and then yes.
+        assertTrue(ObdParser.clearAccepted("7F 04 78\r44"))
+        // Conditions not correct (engine running), from the only computer or from one of two.
+        assertFalse(ObdParser.clearAccepted("7F 04 22"))
+        assertFalse(ObdParser.clearAccepted("44\r7F 04 22"))
+        // A 44 that is somebody's data byte, the adapter's own words.
+        assertFalse(ObdParser.clearAccepted("43 01 44 00"))
+        assertFalse(ObdParser.clearAccepted("OK"))
+        assertFalse(ObdParser.clearAccepted("NO DATA"))
+    }
+
+    @Test
+    fun severalPidsComeBackInOneReply() {
+        val lengths = mapOf(0x0D to 1, 0x0C to 2, 0x11 to 1, 0x04 to 1)
+        val two = mapOf(0x0D to listOf(0x32), 0x0C to listOf(0x1A, 0xF8))
+        assertEquals(two, ObdParser.parseMultiPid("41 0D 32 0C 1A F8", lengths))
+        assertEquals(two, ObdParser.parseMultiPid("410D320C1AF8\r\r", lengths))
+        assertEquals(two, ObdParser.parseMultiPid("7E8 06 41 0D 32 0C 1A F8 00", lengths))
+        // Ten bytes: a first and a following frame, the last one padded.
+        val four = two + mapOf(0x11 to listOf(0x80), 0x04 to listOf(0xFF))
+        assertEquals(four, ObdParser.parseMultiPid("00A\r0: 41 0D 32 0C 1A F8\r1: 11 80 04 FF 00 00 00", lengths))
+        assertEquals(four, ObdParser.parseMultiPid("00A\r0:410D320C1AF8\r1:118004FF000000", lengths))
+        assertEquals(four, ObdParser.parseMultiPid("7E8 10 0A 41 0D 32 0C 1A F8\r7E8 21 11 80 04 FF 00 00 00", lengths))
+        // The car answers only what it serves; a second computer adds its own.
+        assertEquals(mapOf(0x0D to listOf(0x32)), ObdParser.parseMultiPid("41 0D 32", lengths))
+        assertEquals(two, ObdParser.parseMultiPid("41 0D 32\r41 0C 1A F8 0D 00", lengths))
+    }
+
+    @Test
+    fun aCombinedReplyThatDoesNotReadCleanlyIsRefused() {
+        val lengths = mapOf(0x0D to 1, 0x0C to 2)
+        assertNull(ObdParser.parseMultiPid("NO DATA", lengths))
+        assertNull(ObdParser.parseMultiPid("?", lengths))
+        // Padding printed, a reply cut short, a PID that was not asked for.
+        assertNull(ObdParser.parseMultiPid("41 0D 32 0C 1A F8 00", lengths))
+        assertNull(ObdParser.parseMultiPid("41 0D 32 0C 1A", lengths))
+        assertNull(ObdParser.parseMultiPid("41 05 7B", lengths))
+        // Only the first PID answered, the way some clones do, with the request's second byte echoed.
+        assertNull(ObdParser.parseMultiPid("41 0D 32 AA", lengths))
+    }
+
     // Replies captured from the C4 Picasso (2011, 1.6 HDi) on 2026-09-23: the adapter
     // puts the sender's address and the frame length in front, without spaces.
     @Test

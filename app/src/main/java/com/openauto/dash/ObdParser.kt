@@ -87,8 +87,53 @@ object ObdParser {
     }
 
     /** Whether an `ATDPN` reply ("A6", "6") names an 11-bit CAN protocol, where the engine computer is 7E0. */
-    internal fun isCan11Bit(reply: String): Boolean =
-        reply.trim().uppercase().removePrefix("A").firstOrNull() in setOf('6', '8')
+    internal fun isCan11Bit(reply: String): Boolean = canAddressBits(reply) == 11
+
+    /**
+     * The car's bus from an `ATDPN` reply: 11 or 29 for CAN, by the length of its addresses, 0 for the
+     * older buses (no addresses to set), null when the adapter didn't say (still searching, its own
+     * user protocols, anything else).
+     */
+    internal fun canAddressBits(reply: String): Int? = when (reply.trim().uppercase().removePrefix("A").singleOrNull()) {
+        '6', '8' -> 11
+        '7', '9' -> 29
+        in '1'..'5' -> 0
+        else -> null
+    }
+
+    /**
+     * Whether a mode 04 (clear codes) [reply] says the codes went: a computer answered `44` and none
+     * refused (`7F 04 xx`; `78` only says "wait", the answer follows). Read per message: "44" inside
+     * another byte pair, or an adapter's "OK", is no answer from the car.
+     */
+    internal fun clearAccepted(reply: String): Boolean {
+        val messages = dtcMessages(reply)
+        val refused = messages.any { it.size >= 2 && it[0] == 0x7F && it[1] == 0x04 && it.getOrNull(2) != 0x78 }
+        return !refused && messages.any { it.firstOrNull() == 0x44 }
+    }
+
+    /**
+     * The reply to one request for several mode-01 PIDs ("010D0C" gives `41 0D 32 0C 1A F8`, long ones
+     * in several frames): each PID's data bytes, [lengths] saying how many each has. Null unless every
+     * answer reads cleanly to its last byte with only those PIDs in it: padding, a cut reply or two
+     * computers' frames mixed up are refused, and the caller asks one PID at a time instead.
+     * With several computers answering, the first to give a PID is kept.
+     */
+    internal fun parseMultiPid(response: String, lengths: Map<Int, Int>): Map<Int, List<Int>>? {
+        val found = LinkedHashMap<Int, List<Int>>()
+        for (bytes in dtcMessages(response)) {
+            if (bytes.firstOrNull() != 0x41) continue
+            var i = 1
+            while (i < bytes.size) {
+                val pid = bytes[i]
+                val length = lengths[pid] ?: return null
+                if (i + 1 + length > bytes.size) return null
+                if (pid !in found) found[pid] = bytes.subList(i + 1, i + 1 + length).toList()
+                i += 1 + length
+            }
+        }
+        return found.takeIf { it.isNotEmpty() }
+    }
 
     /**
      * Decodes a mode-03 reply into DTC strings like "P0133".
@@ -106,16 +151,19 @@ object ObdParser {
     /**
      * Codes from a mode 03 (stored) or, with [mode] 0x47, mode 07 (pending)
      * reply; null when no computer answered at all ("NO DATA"), which must
-     * not read as "no fault".
+     * not read as "no fault". [can] is the car's bus when the adapter said it
+     * (`ATDPN`): a clone that prints a CAN frame's padding makes the byte count
+     * odd, and read the old way the count byte and the padding became codes.
+     * Null, or a count that does not fit the message: guessed from the byte count.
      */
-    internal fun parseDtcReply(response: String, mode: Int = 0x43): List<String>? {
+    internal fun parseDtcReply(response: String, mode: Int = 0x43, can: Boolean? = null): List<String>? {
         val codes = mutableListOf<String>()
         var answered = false
         dtcMessages(response).forEach { bytes ->
             if (bytes.size < 2 || bytes[0] != mode) return@forEach
             answered = true
-            val can = bytes.size % 2 == 0
-            val payload = if (can) bytes.drop(2).take(bytes[1] * 2) else bytes.drop(1)
+            val counted = can?.takeIf { !it || bytes[1] * 2 <= bytes.size - 2 } ?: (bytes.size % 2 == 0)
+            val payload = if (counted) bytes.drop(2).take(bytes[1] * 2) else bytes.drop(1)
             payload.chunked(2).forEach { pair ->
                 if (pair.size == 2 && (pair[0] != 0 || pair[1] != 0)) codes.add(decodeDtc(pair[0], pair[1]))
             }

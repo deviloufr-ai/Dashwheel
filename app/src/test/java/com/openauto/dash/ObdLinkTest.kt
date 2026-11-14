@@ -48,4 +48,35 @@ class ObdLinkTest {
         assertFalse(unitListsAdapter("", "AA:BB:CC:DD:EE:FF"))
         assertFalse(unitListsAdapter(null, "AA:BB:CC:DD:EE:FF"))
     }
+
+    @Test
+    fun aQuietEngineComputerOnlyMeansStoppedAfterAStandstill() {
+        assertTrue(stoppedSpeedKnown(0))
+        // Never answered on this link, or went quiet at speed: left to the GPS.
+        assertFalse(stoppedSpeedKnown(null))
+        assertFalse(stoppedSpeedKnown(87))
+    }
+
+    @Test
+    fun fastReadingsShareARequestOnlyOnCanWithKnownPids() {
+        val car = SupportedPids(setOf(0x04, 0x0C, 0x0D, 0x11), knownUpTo = 0xFF)
+        val plan = setOf(Pid.SPEED, Pid.RPM, Pid.THROTTLE, Pid.COOLANT)
+        assertEquals(listOf(0x0D, 0x0C, 0x11), combinedPids(plan, car, 11))
+        assertEquals(listOf(0x0D, 0x0C), combinedPids(setOf(Pid.SPEED, Pid.RPM), car, 29))
+        // An older bus, a bus or a PID list that isn't known, a single fast reading: one request each, as before.
+        assertEquals(emptyList<Int>(), combinedPids(plan, car, 0))
+        assertEquals(emptyList<Int>(), combinedPids(plan, car, null))
+        assertEquals(emptyList<Int>(), combinedPids(plan, null, 11))
+        assertEquals(emptyList<Int>(), combinedPids(setOf(Pid.SPEED, Pid.COOLANT), car, 11))
+        // What the car does not serve stays out.
+        assertEquals(listOf(0x0D, 0x11), combinedPids(plan, SupportedPids(setOf(0x0D, 0x11), knownUpTo = 0xFF), 11))
+        assertTrue(FAST_PID_BYTES.keys.containsAll(combinedPids(Pid.entries.toSet(), car, 11)))
+    }
+
+    @Test
+    fun aLinkThatComesBackSoonIsNotScannedAgain() {
+        assertTrue(scanDue(lastOkAt = 0L, now = 5_000L))
+        assertFalse(scanDue(lastOkAt = 60_000L, now = 60_000L + RESCAN_GAP_MS - 1))
+        assertTrue(scanDue(lastOkAt = 60_000L, now = 60_000L + RESCAN_GAP_MS))
+    }
 }
