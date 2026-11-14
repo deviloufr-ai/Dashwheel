@@ -61,7 +61,8 @@ class ObdLinkTest {
     fun fastReadingsShareARequestOnlyOnCanWithKnownPids() {
         val car = SupportedPids(setOf(0x04, 0x0C, 0x0D, 0x11), knownUpTo = 0xFF)
         val plan = setOf(Pid.SPEED, Pid.RPM, Pid.THROTTLE, Pid.COOLANT)
-        assertEquals(listOf(0x0D, 0x0C, 0x11), combinedPids(plan, car, 11))
+        // Speed and revs fill one frame; the throttle would make the answer two, and is asked alone.
+        assertEquals(listOf(0x0D, 0x0C), combinedPids(plan, car, 11))
         assertEquals(listOf(0x0D, 0x0C), combinedPids(setOf(Pid.SPEED, Pid.RPM), car, 29))
         // An older bus, a bus or a PID list that isn't known, a single fast reading: one request each, as before.
         assertEquals(emptyList<Int>(), combinedPids(plan, car, 0))

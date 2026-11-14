@@ -81,10 +81,15 @@ internal val FAST_PID_BYTES = mapOf(0x0D to 1, 0x0C to 2, 0x11 to 1, 0x04 to 1)
 /**
  * The fast readings of this poll's [plan] that go out as one request ("010D0C11") instead of a round
  * trip each: only on CAN ([canBits] 11 or 29), and only those the car said it serves. Fewer than two: none.
+ * No more than answer in one frame (7 bytes, the mode's echo among them): a longer answer comes in
+ * two, and at the polls' short timing the adapter drops the second (seen on the C4 Picasso).
  */
 internal fun combinedPids(plan: Set<Pid>, supported: SupportedPids?, canBits: Int?): List<Int> {
     if (supported == null || (canBits != 11 && canBits != 29)) return emptyList()
-    return FAST_PIDS.filter { (pid, code) -> pid in plan && supported.has(code) }.map { it.second }.takeIf { it.size >= 2 }.orEmpty()
+    var bytes = 1
+    return FAST_PIDS.filter { (pid, code) -> pid in plan && supported.has(code) }.map { it.second }
+        .takeWhile { code -> (bytes + 1 + FAST_PID_BYTES.getValue(code)).also { bytes = it } <= 7 }
+        .takeIf { it.size >= 2 }.orEmpty()
 }
 
 /** Whether [listed] (addresses without colons, separated by commas) has the adapter at [address]. */
@@ -126,6 +131,7 @@ object ObdBluetoothManager {
     private const val LATE_PROMPT_MS = 500L
     /** The adapter's search for the car's protocol: up to ~10 s on the older (K-line) buses. */
     private const val SEARCH_TIMEOUT_MS = 12_000L
+    private const val COMBINE_MISSES = 3
 
     /** Fault-code requests are slower: several computers may answer, and clones take their time. */
     private const val DTC_TIMEOUT_MS = 6000L
@@ -206,6 +212,8 @@ object ObdBluetoothManager {
     private var busAsked = false
     /** Combined requests ([combinedPids]) are still tried on this link. */
     private var combineOk = true
+    /** Combined requests in a row that left out what the car then answered alone. */
+    private var combineMisses = 0
     /** The last speed the engine computer gave on this link, uncorrected; null when it never did. */
     private var lastSpeed: Int? = null
     /** The engine computer has answered on this link: the adapter's protocol search is over. */
@@ -558,6 +566,7 @@ object ObdBluetoothManager {
         canBits = null
         busAsked = false
         combineOk = true
+        combineMisses = 0
         lastSpeed = null
         ecuAnswered = false
     }
@@ -839,11 +848,10 @@ object ObdBluetoothManager {
         val woke = runCatching { (inputStream?.available() ?: 0) > 0 }.getOrDefault(false)
         for (attempt in 1..INIT_TRIES) {
             val reset = sendCommand("ATZ", if (attempt == 1) READ_TIMEOUT_MS else RESET_TIMEOUT_MS)
-            // Nothing to the wake nor to the reset: nobody on this channel, and the three other waits
-            // were 6 s more each try. The first try stops there; the last still asks once more (a
-            // clone mute on ATZ) before giving the channel up.
-            val dead = !woke && reset == null
-            val replies = if (dead && (attempt < INIT_TRIES || sendCommand("ATE0") == null)) emptyList() else {
+            // Nothing to the wake, to the reset nor to one more command: nobody on this channel, and the
+            // other waits were 4 s more each try. A clone slow on ATZ (most are) still answers ATE0.
+            val dead = !woke && reset == null && run { Thread.sleep(1000); sendCommand("ATE0") == null }
+            val replies = if (dead) emptyList() else {
                 // Clone adapters need a moment after the reset.
                 Thread.sleep(1000)
                 listOf(
@@ -952,10 +960,18 @@ object ObdBluetoothManager {
         val combined = if (fast.isEmpty()) null else {
             sendCommand("01" + fast.joinToString("") { PID_COMMANDS[it].drop(2) })?.let { ObdParser.parseMultiPid(it, FAST_PID_BYTES) }
         }
-        // What the combined reply left out is asked alone, as before. Answered alone, this car (or
-        // this clone) doesn't do combined requests: not tried again on this link.
+        if (combined != null && combined.keys.containsAll(fast)) combineMisses = 0
+        // What the combined reply left out is asked alone, as before. Answered alone [COMBINE_MISSES]
+        // times running, this car (or this clone) doesn't do combined requests: not tried again on
+        // this link. Once is not that: the C4 says NO DATA to one now and then.
+        var missed = false
         fun <T : Any> fastOr(pid: Int, of: (List<Int>) -> T, alone: () -> T?): T? =
-            combined?.get(pid)?.let(of) ?: alone().also { if (it != null && pid in fast) combineOk = false }
+            combined?.get(pid)?.let(of) ?: alone().also {
+                if (it != null && pid in fast && !missed) {
+                    missed = true
+                    if (++combineMisses >= COMBINE_MISSES) combineOk = false
+                }
+            }
         val speed = fastOr(0x0D, { it[0] }) { sendCommand("010D")?.let { ObdParser.parseSpeed(it) } }
         val rpm = if (Pid.RPM in plan) fastOr(0x0C, { (it[0] * 256 + it[1]) / 4 }) { sendCommand("010C")?.let { ObdParser.parseRpm(it) } } else null
         if (speed != null) lastSpeed = speed
