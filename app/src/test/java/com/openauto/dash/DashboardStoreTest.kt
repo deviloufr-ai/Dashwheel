@@ -362,7 +362,7 @@ class DashboardStoreTest {
 
     @Test
     fun widgetSpecificDesignsOnlyReachTheirWidgets() {
-        val framed = setOf(BuiltinKind.NAVMAP, BuiltinKind.PIP_ANCHOR, BuiltinKind.MAPS_INSIDE, BuiltinKind.MY_CAR)
+        val framed = setOf(BuiltinKind.NAVMAP, BuiltinKind.PIP_ANCHOR, BuiltinKind.MAPS_INSIDE, BuiltinKind.MY_CAR, BuiltinKind.CAR_3D)
         // Every redrawn widget gets at least two designs made for it; live views get none,
         // and the dashboard bar, all buttons, has no designs at all.
         // The speed keeps one: the road sign went, a number in a red ring reads as the limit.

@@ -428,7 +428,7 @@ private val MAP_KINDS = setOf(BuiltinKind.NAVMAP, BuiltinKind.MAPS_INSIDE, Built
 /** A tile a preview shows by its stand-in: it would open an app, host a widget or start a 3D view. */
 internal fun DashboardItem.standsIn(): Boolean = when (this) {
     is DashboardItem.AppWindow, is DashboardItem.SystemWidget -> true
-    is DashboardItem.BuiltinWidget -> kind == BuiltinKind.MY_CAR || kind in MAP_KINDS
+    is DashboardItem.BuiltinWidget -> kind == BuiltinKind.MY_CAR || kind == BuiltinKind.CAR_3D || kind in MAP_KINDS
     else -> false
 }
 

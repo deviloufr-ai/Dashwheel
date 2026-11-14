@@ -298,6 +298,9 @@
     <string name="car3d_whole_car">Toute la voiture</string>
     <string name="car3d_drag_hint">Glissez pour tourner la voiture</string>
     <string name="car3d_details">Détails</string>
+    <string name="car3d_kind">Voiture en 3D</string>
+    <string name="car3d_kind_blurb">Votre voiture en 3D avec ses problèmes dessus</string>
+    <string name="car3d_tile_no_model">Ajoutez un pack voiture avec un modèle 3D dans %1$s pour voir votre voiture ici.</string>
     <string name="mycar_view_back">arrière</string>
     <string name="mycar_view_front">avant</string>
     <string name="mycar_ends_hint">Photos de l\'arrière et de l\'avant, détourées : la tuile Problèmes de la voiture y montre une ampoule grillée</string>

@@ -298,6 +298,9 @@
     <string name="car3d_whole_car">Carro inteiro</string>
     <string name="car3d_drag_hint">Arraste para girar o carro</string>
     <string name="car3d_details">Detalhes</string>
+    <string name="car3d_kind">Carro em 3D</string>
+    <string name="car3d_kind_blurb">O seu carro em 3D com os seus problemas</string>
+    <string name="car3d_tile_no_model">Adicione um pacote de carro com modelo 3D em %1$s para ver o seu carro aqui.</string>
     <string name="mycar_view_back">traseira</string>
     <string name="mycar_view_front">frente</string>
     <string name="mycar_ends_hint">Fotos da traseira e da frente, recortadas: o mosaico Problemas do carro mostra nelas uma lâmpada fundida</string>

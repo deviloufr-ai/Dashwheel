@@ -109,7 +109,9 @@ enum class BuiltinKind(
     // The last drives the drive log kept, with this week's total (DriveHistoryTile.kt).
     DRIVE_HISTORY(R.string.widgets_history, WidgetCategory.DRIVING, R.string.widgets_history_blurb, 4, 3),
     // The one thing that matters right now, picked from the other feeds (NowCard.kt).
-    NOW(R.string.widgets_now, WidgetCategory.DRIVING, R.string.widgets_now_blurb, 5, 2);
+    NOW(R.string.widgets_now, WidgetCategory.DRIVING, R.string.widgets_now_blurb, 5, 2),
+    // The driver's car in 3D with the car's problems on it (Car3DStatusTile.kt).
+    CAR_3D(R.string.car3d_kind, WidgetCategory.VEHICLE, R.string.car3d_kind_blurb, 4, 3);
 
     /** The span a fresh tile gets, in the grid's cells. */
     val defaultW: Int get() = coarseW * GRID_SCALE
@@ -314,6 +316,8 @@ fun BuiltinKind.coarseMinSize(): Pair<Int, Int> = when (this) {
     BuiltinKind.BT_DEVICES, BuiltinKind.FUEL_LOG, BuiltinKind.RADIO_PRESETS, BuiltinKind.VOICE_NOTES, BuiltinKind.CAN_MON,
     BuiltinKind.SHARE_ETA, BuiltinKind.DRIVE_HISTORY -> 3 to 2
     BuiltinKind.NAVMAP, BuiltinKind.MAPS_INSIDE, BuiltinKind.PIP_ANCHOR -> 3 to 3
+    // The car in 3D: a smaller one is too small to turn or read.
+    BuiltinKind.CAR_3D -> 3 to 2
     BuiltinKind.DASH_BAR -> 1 to 3
     BuiltinKind.QUICK_SWITCHES -> 3 to 1
     // One card of words: a sentence needs the width.

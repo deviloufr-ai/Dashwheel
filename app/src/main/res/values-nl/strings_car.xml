@@ -296,6 +296,9 @@
     <string name="car3d_whole_car">Hele auto</string>
     <string name="car3d_drag_hint">Sleep om de auto te draaien</string>
     <string name="car3d_details">Details</string>
+    <string name="car3d_kind">Auto in 3D</string>
+    <string name="car3d_kind_blurb">Je auto in 3D met zijn problemen erop</string>
+    <string name="car3d_tile_no_model">Voeg bij %1$s een autopakket met 3D-model toe om je auto hier te zien.</string>
     <string name="mycar_view_back">achter</string>
     <string name="mycar_view_front">voor</string>
     <string name="mycar_ends_hint">Foto\'s van de achter- en voorkant, uitgesneden: de tegel Autoproblemen toont er een kapotte lamp op</string>

@@ -124,11 +124,7 @@ internal fun ObdDtcCard(
         (diagnosis?.codes?.firstOrNull { it.code == c }?.meaning?.ifBlank { null } ?: ObdCodes.describe(c).localizedTitle()) + " · " + c
     }
     val mapProblems = remember(carMessages, messageTexts, codes, diagnosis, codeNames) {
-        carMessages.mapIndexedNotNull { i, m ->
-            CarProblemMap.spotOf(m.code)?.let { spot -> MapProblem(spot, m.serious, messageTexts[i], number = i + 1) }
-        } + codes.orEmpty().mapIndexedNotNull { i, code ->
-            CarProblemMap.spotOfCode(code)?.let { spot -> MapProblem(spot, codeSerious, codeNames[i], number = carMessages.size + i + 1) }
-        }
+        numberedMapProblems(carMessages, messageTexts, codes.orEmpty(), codeNames, codeSerious)
     }
     val lamp by ObdBluetoothManager.lamp.collectAsState()
     val verdict = carVerdict(carMessages.map { it.level }, codes, diagnosis?.severity, lamp?.on == true)
@@ -505,12 +501,31 @@ internal fun carVerdict(levels: List<PsaWarnings.Level?>, codes: List<String>?, 
 }
 
 @Composable
-private fun CarVerdict.colour(): Color = when (this) {
+internal fun CarVerdict.colour(): Color = when (this) {
     CarVerdict.STOP -> DashColors.Critical
     CarVerdict.DRIVE -> DashColors.Warning
     CarVerdict.FINE -> DashColors.Good
     CarVerdict.UNREAD -> DashColors.TextSecondary
 }
+
+/**
+ * The problems that have a place on the car, numbered as the Car problems
+ * list numbers them: the car's own messages first, then the engine's codes.
+ * Shared by the tile and the 3D car widget (Car3DStatusTile.kt) so a number
+ * means the same problem on both.
+ */
+internal fun numberedMapProblems(
+    carMessages: List<CarMessage>,
+    messageTexts: List<String>,
+    codes: List<String>,
+    codeNames: List<String>,
+    codeSerious: Int
+): List<MapProblem> =
+    carMessages.mapIndexedNotNull { i, m ->
+        CarProblemMap.spotOf(m.code)?.let { spot -> MapProblem(spot, m.serious, messageTexts[i], number = i + 1) }
+    } + codes.mapIndexedNotNull { i, code ->
+        CarProblemMap.spotOfCode(code)?.let { spot -> MapProblem(spot, codeSerious, codeNames[i], number = carMessages.size + i + 1) }
+    }
 
 /** How serious one of the car's messages is, as the map and the list count it (2 stop, 1 garage, 0 good to know). */
 internal val CarMessage.serious: Int

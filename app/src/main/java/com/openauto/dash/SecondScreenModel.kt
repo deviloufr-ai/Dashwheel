@@ -139,7 +139,7 @@ object ClusterLayouts {
      * favourites or the screen light: they are things to touch, and the cluster can't be touched.
      */
     val KINDS: List<BuiltinKind> = BuiltinKind.entries - setOf(
-        BuiltinKind.PIP_ANCHOR, BuiltinKind.MY_CAR, BuiltinKind.DASH_BAR, BuiltinKind.QUICK_DIAL, BuiltinKind.SCREEN_LIGHT,
+        BuiltinKind.PIP_ANCHOR, BuiltinKind.MY_CAR, BuiltinKind.CAR_3D, BuiltinKind.DASH_BAR, BuiltinKind.QUICK_DIAL, BuiltinKind.SCREEN_LIGHT,
         BuiltinKind.RADIOS, BuiltinKind.UNIT_LIGHT, BuiltinKind.RADIO_PRESETS, BuiltinKind.HOME_WORK,
         BuiltinKind.SHARE_ETA, BuiltinKind.VOICE_NOTES, BuiltinKind.QUICK_SWITCHES,
         BuiltinKind.WIFI_NETWORKS, BuiltinKind.BT_DEVICES, BuiltinKind.PARKING_TIMER, BuiltinKind.FUEL_LOG

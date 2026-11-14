@@ -296,6 +296,9 @@
     <string name="car3d_whole_car">Egész autó</string>
     <string name="car3d_drag_hint">Húzza az autó forgatásához</string>
     <string name="car3d_details">Részletek</string>
+    <string name="car3d_kind">Autó 3D-ben</string>
+    <string name="car3d_kind_blurb">Az autód 3D-ben, rajta a hibáival</string>
+    <string name="car3d_tile_no_model">Adj hozzá 3D-modellt tartalmazó autócsomagot itt: %1$s, hogy itt lásd az autód.</string>
     <string name="mycar_view_back">hátulról</string>
     <string name="mycar_view_front">elölről</string>
     <string name="mycar_ends_hint">Kivágott fotók hátulról és elölről: az Autóproblémák csempe ezeken mutatja a kiégett lámpát</string>

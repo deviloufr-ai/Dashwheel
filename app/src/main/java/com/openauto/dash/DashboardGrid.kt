@@ -97,6 +97,7 @@ import androidx.compose.runtime.key
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.OpenInNew
+import androidx.compose.material.icons.filled.ViewInAr
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -888,6 +889,15 @@ internal fun TileContent(
             BuiltinKind.FUEL_PRICES -> FuelPricesCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.CAR_STATUS -> CarStatusCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.TYRES -> TyresCard(modifier = Modifier.fillMaxSize())
+            // The 3D view waits while the tiles are arranged, like the map.
+            BuiltinKind.CAR_3D -> if (editing) {
+                EditPlaceholder(icon = Icons.Filled.ViewInAr, label = BuiltinKind.CAR_3D.label)
+            } else Car3DStatusCard(
+                connection = obdConnection.value,
+                onConnect = onConnectObd,
+                onPickDevice = onPickDevice,
+                modifier = Modifier.fillMaxSize()
+            )
         } }
 
         is DashboardItem.SystemWidget -> if (editing) {

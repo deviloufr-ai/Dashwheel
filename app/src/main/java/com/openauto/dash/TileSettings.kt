@@ -54,7 +54,7 @@ internal fun tileSettings(kind: BuiltinKind): TileSettings? = when (kind) {
     BuiltinKind.FUEL_TO_DEST, BuiltinKind.FUEL_PRICES, BuiltinKind.FUEL_LOG, BuiltinKind.TYRES, BuiltinKind.ENGINE_TEMPS ->
         TileSettings(R.string.car_menu) { CarSettingsDialog(onDismiss = it) }
     // Tiles that draw the car.
-    BuiltinKind.CAR_STATUS, BuiltinKind.DOORS -> TileSettings(R.string.mycar_title) { MyCarLookSheet(onDismiss = it) }
+    BuiltinKind.CAR_STATUS, BuiltinKind.DOORS, BuiltinKind.CAR_3D -> TileSettings(R.string.mycar_title) { MyCarLookSheet(onDismiss = it) }
     BuiltinKind.OBD_DTC -> TileSettings(R.string.ai_title) { AiSettingsDialog(onDismiss = it) }
     BuiltinKind.TELEMETRY, BuiltinKind.SPEED_HUD -> TileSettings(R.string.vehicle_speed_fix) { SpeedCorrectionDialog(speedKmh = null, onDismiss = it) }
     BuiltinKind.QUICK_DIAL -> TileSettings(R.string.settings_section_phone) { PhoneSheet(onDismiss = it) }
