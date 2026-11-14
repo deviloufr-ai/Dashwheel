@@ -61,4 +61,31 @@
     <string name="mine_vw_oil">Температура масла</string>
     <string name="mine_vw_torque">Крутящий момент</string>
     <string name="mine_vw_power">Мощность</string>
+    <string name="mine_kind_can">С шины CAN</string>
+    <string name="mine_can_id">ID CAN</string>
+    <string name="mine_hint_can_id">ID кадра в hex: 3 цифры или 8 для 29-битного ID. Настройки, Автомобиль, USB CAN-адаптер показывает услышанные ID.</string>
+    <string name="mine_hint_can">Буквы A–H — байты данных кадра, например (C*256+D)/4. bit(A, 1) — бит 1 байта A.</string>
+    <string name="mine_can_not_receiving">CAN-адаптер пока ничего не слышит.</string>
+    <string name="mine_err_can_id">ID CAN: 3 hex-цифры до 7FF или 8 до 1FFFFFFF.</string>
+    <string name="mine_err_feed_taken">Другое значение уже показывается так.</string>
+    <string name="mine_feeds">Показывать как</string>
+    <string name="mine_feeds_detail">Приборы, состояние авто и предупреждения покажут его как значение самого авто</string>
+    <string name="mine_feeds_none">Ничего</string>
+    <string name="mine_feeds_on_off">Включено, когда значение не 0, например bit(A, 1) или A == 2.</string>
+    <string name="mine_feeds_units" formatted="false">Укажите в км/ч, об/мин, %, °C, км, В или л/100 км.</string>
+    <string name="mine_feed_speed">Скорость</string>
+    <string name="mine_feed_rpm">Обороты двигателя</string>
+    <string name="mine_feed_throttle">Педаль газа</string>
+    <string name="mine_feed_load">Нагрузка двигателя</string>
+    <string name="mine_feed_coolant">Температура охлаждающей жидкости</string>
+    <string name="mine_feed_intake">Температура впускного воздуха</string>
+    <string name="mine_feed_fuel">Уровень топлива</string>
+    <string name="mine_feed_range">Запас хода</string>
+    <string name="mine_feed_volts">Напряжение АКБ</string>
+    <string name="mine_feed_outside">Наружная температура</string>
+    <string name="mine_feed_consumption">Расход</string>
+    <string name="mine_feed_handbrake">Стояночный тормоз</string>
+    <string name="mine_feed_left">Левый поворотник</string>
+    <string name="mine_feed_right">Правый поворотник</string>
+    <string name="mine_feed_belt">Ремень водителя не пристёгнут</string>
 </resources>

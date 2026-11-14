@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="can_usb_title">USB CAN adapteris</string>
+    <string name="can_usb_detail">CANable ar kitas slcan adapteris automobilio CAN magistralėje</string>
+    <string name="can_usb_explanation">USB CAN adapteris su slcan programine įranga, pavyzdžiui CANable, prijungtas prie automobilio CAN-H, CAN-L ir masės. Dashwheel tik klausosi ir niekada nieko nesiunčia į automobilio magistralę. Pasirinkite jį žemiau, tada Mano rodmenyse pridėkite rodmenų Iš CAN magistralės.</string>
+    <string name="can_usb_bitrate">Magistralės greitis</string>
+    <string name="can_usb_bitrate_hint">500k daugumai automobilių nuo 2008 m. Jei nieko neateina, bandykite 125k arba 250k.</string>
+    <string name="can_usb_not_slcan_hint">Jis neatsakė į slcan komandas. CANable reikia slcan programinės įrangos: su candleLight jis nėra nuoseklusis prievadas.</string>
+    <string name="can_usb_no_listen_hint">Jo programinė įranga negali klausytis nesiųsdama, todėl Dashwheel jo neatidaro. Atnaujinkite jo slcan programinę įrangą.</string>
+    <string name="can_usb_quiet_hint">Nieko negirdėti: įjunkite degimą, patikrinkite laidus arba bandykite kitą magistralės greitį.</string>
+    <string name="can_usb_frames">Išgirsta kadrų: %1$d</string>
+    <string name="can_usb_frames_hint">Kiekviena eilutė yra ID ir paskutiniai jo baitai. Paspauskite pedalą ar atidarykite duris: besikeičianti eilutė ir yra ta.</string>
+    <string name="can_usb_clear">Išvalyti</string>
+    <string name="can_usb_state_unplugged">Adapteris neprijungtas</string>
+    <string name="can_usb_state_busy">Adapteris naudojamas kitur</string>
+    <string name="can_usb_state_not_slcan">Ne slcan adapteris</string>
+    <string name="can_usb_state_no_listen">Negali tik klausytis</string>
+    <string name="can_usb_state_listening">Atidarytas, magistralė tyli</string>
+    <string name="can_usb_state_receiving">Priimama CAN magistralė</string>
+</resources>

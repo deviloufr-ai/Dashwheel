@@ -61,4 +61,31 @@
     <string name="mine_vw_oil">Temperatura del aceite</string>
     <string name="mine_vw_torque">Par</string>
     <string name="mine_vw_power">Potencia</string>
+    <string name="mine_kind_can">Del bus CAN</string>
+    <string name="mine_can_id">ID CAN</string>
+    <string name="mine_hint_can_id">La ID de la trama en hexadecimal: 3 dígitos, u 8 para una ID de 29 bits. Ajustes, Coche, Adaptador CAN USB muestra las ID oídas.</string>
+    <string name="mine_hint_can">Las letras A a H son los bytes de datos de la trama, por ejemplo (C*256+D)/4. bit(A, 1) es el bit 1 de A.</string>
+    <string name="mine_can_not_receiving">El adaptador CAN aún no oye nada.</string>
+    <string name="mine_err_can_id">ID CAN: 3 dígitos hexadecimales hasta 7FF, u 8 hasta 1FFFFFFF.</string>
+    <string name="mine_err_feed_taken">Otra lectura ya se muestra así.</string>
+    <string name="mine_feeds">Se muestra como</string>
+    <string name="mine_feeds_detail">Los indicadores, el estado del coche y las alertas la muestran como la del coche</string>
+    <string name="mine_feeds_none">Nada</string>
+    <string name="mine_feeds_on_off">Encendido cuando el valor no es 0, por ejemplo bit(A, 1) o A == 2.</string>
+    <string name="mine_feeds_units" formatted="false">Dalo en km/h, rpm, %, °C, km, V o L/100 km.</string>
+    <string name="mine_feed_speed">Velocidad</string>
+    <string name="mine_feed_rpm">Régimen del motor</string>
+    <string name="mine_feed_throttle">Acelerador</string>
+    <string name="mine_feed_load">Carga del motor</string>
+    <string name="mine_feed_coolant">Temperatura del refrigerante</string>
+    <string name="mine_feed_intake">Temperatura del aire de admisión</string>
+    <string name="mine_feed_fuel">Nivel de combustible</string>
+    <string name="mine_feed_range">Autonomía</string>
+    <string name="mine_feed_volts">Tensión de la batería</string>
+    <string name="mine_feed_outside">Temperatura exterior</string>
+    <string name="mine_feed_consumption">Consumo</string>
+    <string name="mine_feed_handbrake">Freno de estacionamiento</string>
+    <string name="mine_feed_left">Intermitente izquierdo</string>
+    <string name="mine_feed_right">Intermitente derecho</string>
+    <string name="mine_feed_belt">Cinturón del conductor sin abrochar</string>
 </resources>

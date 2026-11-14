@@ -126,8 +126,8 @@ internal object UsbObd {
         chosen(context)?.let { return it }
         if (!anyDevice) return null
         val saved = savedKey(context)
-        // The tyre receiver chosen in Settings is on the same chip as OBD cables: not tried as one.
-        val all = attached(context).filter { it.key == saved || it.key != UsbTpms.device.value }
+        // The tyre receiver and the CAN adapter chosen in Settings are serial devices too: not tried as one.
+        val all = attached(context).filter { it.key == saved || (it.key != UsbTpms.device.value && it.key != UsbCan.device.value) }
         return all.firstOrNull { it.key == saved } ?: all.firstOrNull { permitted(context, it) } ?: all.firstOrNull()
     }
 

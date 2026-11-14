@@ -224,6 +224,8 @@ open class MainActivity : ComponentActivity() {
                     // The tyres from the TPMS sensors, and their warnings.
                     { Tyres.start(this) },
                     { TyreAlertOverlay.start(this) },
+                    // A USB CAN adapter of the driver's own (CANable), listened to for My readings.
+                    { UsbCan.start(this) },
                     // The seat belt reminder, and no system bars over docked app windows.
                     { BeltAlertOverlay.start(this) },
                     // Road watch's warnings, from the camera of the phone behind the windscreen.

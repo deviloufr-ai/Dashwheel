@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="can_usb_title">Adapter CAN USB</string>
+    <string name="can_usb_detail">CANable lub inny adapter slcan na magistrali CAN auta</string>
+    <string name="can_usb_explanation">Adapter CAN USB z firmware slcan, na przykład CANable, podłączony do CAN-H, CAN-L i masy auta. Dashwheel tylko słucha i nigdy nic nie wysyła na magistralę auta. Wybierz go poniżej, a potem dodaj odczyty Z magistrali CAN w Moich odczytach.</string>
+    <string name="can_usb_bitrate">Prędkość magistrali</string>
+    <string name="can_usb_bitrate_hint">500k w większości aut od 2008. Jeśli nic nie przychodzi, spróbuj 125k lub 250k.</string>
+    <string name="can_usb_not_slcan_hint">Nie odpowiedział na polecenia slcan. CANable potrzebuje firmware slcan: z candleLight nie jest portem szeregowym.</string>
+    <string name="can_usb_no_listen_hint">Jego firmware nie umie słuchać bez nadawania, więc Dashwheel go nie otwiera. Zaktualizuj jego firmware slcan.</string>
+    <string name="can_usb_quiet_hint">Nic nie słychać: włącz zapłon, sprawdź okablowanie albo spróbuj innej prędkości magistrali.</string>
+    <string name="can_usb_frames">Usłyszane ramki: %1$d</string>
+    <string name="can_usb_frames_hint">Każdy wiersz to ID i jego ostatnie bajty. Naciśnij pedał albo otwórz drzwi: wiersz, który się zmienia, to on.</string>
+    <string name="can_usb_clear">Wyczyść</string>
+    <string name="can_usb_state_unplugged">Adapter niepodłączony</string>
+    <string name="can_usb_state_busy">Adapter używany gdzie indziej</string>
+    <string name="can_usb_state_not_slcan">To nie adapter slcan</string>
+    <string name="can_usb_state_no_listen">Nie umie tylko słuchać</string>
+    <string name="can_usb_state_listening">Otwarty, magistrala milczy</string>
+    <string name="can_usb_state_receiving">Odbiór magistrali CAN</string>
+</resources>

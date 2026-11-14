@@ -61,4 +61,31 @@
     <string name="mine_vw_oil">Olajhőmérséklet</string>
     <string name="mine_vw_torque">Nyomaték</string>
     <string name="mine_vw_power">Teljesítmény</string>
+    <string name="mine_kind_can">A CAN-buszról</string>
+    <string name="mine_can_id">CAN-azonosító</string>
+    <string name="mine_hint_can_id">A keret azonosítója hexában: 3 számjegy, vagy 8 egy 29 bites azonosítónál. Beállítások, Autó, USB CAN-adapter listázza a hallottakat.</string>
+    <string name="mine_hint_can">Az A–H betűk a keret adatbájtjai, például (C*256+D)/4. A bit(A, 1) az A 1-es bitje.</string>
+    <string name="mine_can_not_receiving">A CAN-adapter még nem hall semmit.</string>
+    <string name="mine_err_can_id">CAN-azonosító: 3 hexa számjegy 7FF-ig, vagy 8 1FFFFFFF-ig.</string>
+    <string name="mine_err_feed_taken">Egy másik érték már így jelenik meg.</string>
+    <string name="mine_feeds">Megjelenik mint</string>
+    <string name="mine_feeds_detail">A műszerek, az autó állapota és a riasztások az autó sajátjaként mutatják</string>
+    <string name="mine_feeds_none">Semmi</string>
+    <string name="mine_feeds_on_off">Bekapcsolva, ha az érték nem 0, például bit(A, 1) vagy A == 2.</string>
+    <string name="mine_feeds_units" formatted="false">Add meg km/h, f/perc, %, °C, km, V vagy L/100 km egységben.</string>
+    <string name="mine_feed_speed">Sebesség</string>
+    <string name="mine_feed_rpm">Motorfordulatszám</string>
+    <string name="mine_feed_throttle">Gázpedál</string>
+    <string name="mine_feed_load">Motorterhelés</string>
+    <string name="mine_feed_coolant">Hűtőfolyadék-hőmérséklet</string>
+    <string name="mine_feed_intake">Szívott levegő hőmérséklete</string>
+    <string name="mine_feed_fuel">Üzemanyagszint</string>
+    <string name="mine_feed_range">Hatótáv</string>
+    <string name="mine_feed_volts">Akkumulátorfeszültség</string>
+    <string name="mine_feed_outside">Külső hőmérséklet</string>
+    <string name="mine_feed_consumption">Fogyasztás</string>
+    <string name="mine_feed_handbrake">Rögzítőfék</string>
+    <string name="mine_feed_left">Bal index</string>
+    <string name="mine_feed_right">Jobb index</string>
+    <string name="mine_feed_belt">Vezető öve nincs bekötve</string>
 </resources>

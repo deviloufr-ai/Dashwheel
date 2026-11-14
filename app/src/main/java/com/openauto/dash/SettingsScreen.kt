@@ -202,7 +202,7 @@ internal enum class SettingsTab(@StringRes val titleRes: Int, val icon: ImageVec
 /** The settings that open further into the pane; Lab's open over Lab. */
 internal enum class Deep {
     CAR, CAR_LOOK, REVERSE, SIGNALS, AI, UPKEEP, EXPLORER, WHEEL, PLACES, LANGUAGE, SECOND_SCREEN, LPG, MY_READINGS,
-    OBD, UNITS, ACCESS, ABOUT, LAB, UNIT_TOOLS, MAP_SERVERS, API_KEYS, HEAD_UNIT, TPMS, SENSOR_WATCH, KEPT_CAMERAS, KEPT_LIMITS
+    OBD, UNITS, ACCESS, ABOUT, LAB, UNIT_TOOLS, MAP_SERVERS, API_KEYS, HEAD_UNIT, TPMS, CAN, SENSOR_WATCH, KEPT_CAMERAS, KEPT_LIMITS
 }
 
 /** Under this width the categories go along the top: a rail would leave the settings half a screen. */
@@ -296,6 +296,7 @@ internal fun SettingsScreen(
                         Deep.API_KEYS -> ApiKeysSheet(onDismiss = back)
                         Deep.HEAD_UNIT -> HeadUnitSheet(onDismiss = back)
                         Deep.TPMS -> UsbTpmsSheet(onDismiss = back)
+                        Deep.CAN -> UsbCanSheet(onDismiss = back)
                         Deep.SENSOR_WATCH -> SensorWatchSheet(onDismiss = back)
                         Deep.KEPT_CAMERAS -> KeptCamerasSheet(onDismiss = back)
                         Deep.KEPT_LIMITS -> KeptLimitsSheet(onDismiss = back)
@@ -516,6 +517,7 @@ private fun CarPane(open: (Deep) -> Unit) {
     // Settings is parked-only; the Telemetry tile's tuning button opens the same row on the move.
     SpeedCorrectionRow(detail = stringResource(R.string.settings_speed_fix_detail))
     UsbTpmsRow { open(Deep.TPMS) }
+    UsbCanRow { open(Deep.CAN) }
     Spacer(Modifier.height(20.dp))
     SettingsSection(stringResource(R.string.settings_section_upkeep))
     SettingsRow(Icons.Filled.Handyman, stringResource(R.string.upkeep_dialog_title), stringResource(R.string.upkeep_settings_detail)) { open(Deep.UPKEEP) }

@@ -61,4 +61,31 @@
     <string name="mine_vw_oil">Olietemperatuur</string>
     <string name="mine_vw_torque">Koppel</string>
     <string name="mine_vw_power">Vermogen</string>
+    <string name="mine_kind_can">Van de CAN-bus</string>
+    <string name="mine_can_id">CAN-id</string>
+    <string name="mine_hint_can_id">Het id van het frame in hex: 3 cijfers, of 8 voor een 29-bit id. Instellingen, Auto, USB CAN-adapter toont de gehoorde id\'s.</string>
+    <string name="mine_hint_can">De letters A tot H zijn de databytes van het frame, bijvoorbeeld (C*256+D)/4. bit(A, 1) is bit 1 van A.</string>
+    <string name="mine_can_not_receiving">De CAN-adapter hoort nog niets.</string>
+    <string name="mine_err_can_id">CAN-id: 3 hexcijfers tot 7FF, of 8 tot 1FFFFFFF.</string>
+    <string name="mine_err_feed_taken">Een andere meting wordt al zo getoond.</string>
+    <string name="mine_feeds">Tonen als</string>
+    <string name="mine_feeds_detail">De meters, de autostatus en de meldingen tonen het als dat van de auto</string>
+    <string name="mine_feeds_none">Niets</string>
+    <string name="mine_feeds_on_off">Aan als de waarde niet 0 is, bijvoorbeeld bit(A, 1) of A == 2.</string>
+    <string name="mine_feeds_units" formatted="false">Geef het in km/u, tpm, %, °C, km, V of L/100 km.</string>
+    <string name="mine_feed_speed">Snelheid</string>
+    <string name="mine_feed_rpm">Toerental</string>
+    <string name="mine_feed_throttle">Gaspedaal</string>
+    <string name="mine_feed_load">Motorbelasting</string>
+    <string name="mine_feed_coolant">Koelvloeistoftemperatuur</string>
+    <string name="mine_feed_intake">Inlaatluchttemperatuur</string>
+    <string name="mine_feed_fuel">Brandstofniveau</string>
+    <string name="mine_feed_range">Actieradius</string>
+    <string name="mine_feed_volts">Accuspanning</string>
+    <string name="mine_feed_outside">Buitentemperatuur</string>
+    <string name="mine_feed_consumption">Verbruik</string>
+    <string name="mine_feed_handbrake">Parkeerrem</string>
+    <string name="mine_feed_left">Richtingaanwijzer links</string>
+    <string name="mine_feed_right">Richtingaanwijzer rechts</string>
+    <string name="mine_feed_belt">Gordel bestuurder los</string>
 </resources>

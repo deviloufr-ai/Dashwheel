@@ -61,4 +61,31 @@
     <string name="mine_vw_oil">Temperatura olio</string>
     <string name="mine_vw_torque">Coppia</string>
     <string name="mine_vw_power">Potenza</string>
+    <string name="mine_kind_can">Dal bus CAN</string>
+    <string name="mine_can_id">ID CAN</string>
+    <string name="mine_hint_can_id">L\'ID del frame in esadecimale: 3 cifre, o 8 per un ID a 29 bit. Impostazioni, Auto, Adattatore CAN USB elenca gli ID sentiti.</string>
+    <string name="mine_hint_can">Le lettere da A a H sono i byte di dati del frame, per esempio (C*256+D)/4. bit(A, 1) è il bit 1 di A.</string>
+    <string name="mine_can_not_receiving">L\'adattatore CAN non sente ancora nulla.</string>
+    <string name="mine_err_can_id">ID CAN: 3 cifre esadecimali fino a 7FF, o 8 fino a 1FFFFFFF.</string>
+    <string name="mine_err_feed_taken">Un\'altra lettura è già mostrata così.</string>
+    <string name="mine_feeds">Mostrata come</string>
+    <string name="mine_feeds_detail">Indicatori, stato dell\'auto e avvisi la mostrano come quella dell\'auto</string>
+    <string name="mine_feeds_none">Niente</string>
+    <string name="mine_feeds_on_off">Acceso quando il valore non è 0, per esempio bit(A, 1) o A == 2.</string>
+    <string name="mine_feeds_units" formatted="false">Indicala in km/h, giri/min, %, °C, km, V o L/100 km.</string>
+    <string name="mine_feed_speed">Velocità</string>
+    <string name="mine_feed_rpm">Regime motore</string>
+    <string name="mine_feed_throttle">Acceleratore</string>
+    <string name="mine_feed_load">Carico motore</string>
+    <string name="mine_feed_coolant">Temperatura del liquido di raffreddamento</string>
+    <string name="mine_feed_intake">Temperatura dell\'aria aspirata</string>
+    <string name="mine_feed_fuel">Livello carburante</string>
+    <string name="mine_feed_range">Autonomia</string>
+    <string name="mine_feed_volts">Tensione batteria</string>
+    <string name="mine_feed_outside">Temperatura esterna</string>
+    <string name="mine_feed_consumption">Consumo</string>
+    <string name="mine_feed_handbrake">Freno di stazionamento</string>
+    <string name="mine_feed_left">Freccia sinistra</string>
+    <string name="mine_feed_right">Freccia destra</string>
+    <string name="mine_feed_belt">Cintura del conducente slacciata</string>
 </resources>

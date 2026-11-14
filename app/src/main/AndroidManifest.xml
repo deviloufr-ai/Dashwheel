@@ -230,6 +230,24 @@
                 android:resource="@xml/tpms_receiver" />
         </activity>
 
+        <!-- A USB CAN adapter of the driver's own (UsbCan.kt): as for the tyre
+             receiver, enabled only once one is chosen in Settings. -->
+        <activity
+            android:name=".UsbCanAttachActivity"
+            android:enabled="false"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.OpenAutoDash.Transparent">
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/can_adapter" />
+        </activity>
+
         <!-- The Play edition's disclosure dialog before the accessibility or
              notification access page (AccessDisclosure.kt). -->
         <activity

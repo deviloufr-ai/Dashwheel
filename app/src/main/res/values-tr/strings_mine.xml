@@ -61,4 +61,31 @@
     <string name="mine_vw_oil">Yağ sıcaklığı</string>
     <string name="mine_vw_torque">Tork</string>
     <string name="mine_vw_power">Güç</string>
+    <string name="mine_kind_can">CAN hattından</string>
+    <string name="mine_can_id">CAN kimliği</string>
+    <string name="mine_hint_can_id">Çerçevenin kimliği hex olarak: 3 hane veya 29 bitlik kimlik için 8. Ayarlar, Araç, USB CAN adaptörü duyulan kimlikleri listeler.</string>
+    <string name="mine_hint_can">A ile H harfleri çerçevenin veri baytlarıdır, örneğin (C*256+D)/4. bit(A, 1), A\'nın 1. bitidir.</string>
+    <string name="mine_can_not_receiving">CAN adaptörü henüz bir şey duymuyor.</string>
+    <string name="mine_err_can_id">CAN kimliği: 7FF\'ye kadar 3 hex hane veya 1FFFFFFF\'ye kadar 8.</string>
+    <string name="mine_err_feed_taken">Başka bir okuma zaten böyle gösteriliyor.</string>
+    <string name="mine_feeds">Şöyle göster</string>
+    <string name="mine_feeds_detail">Göstergeler, araç durumu ve uyarılar onu aracın kendi değeri gibi gösterir</string>
+    <string name="mine_feeds_none">Hiçbir şey</string>
+    <string name="mine_feeds_on_off">Değer 0 değilken açık, örneğin bit(A, 1) veya A == 2.</string>
+    <string name="mine_feeds_units" formatted="false">km/h, d/dk, %, °C, km, V veya L/100 km olarak verin.</string>
+    <string name="mine_feed_speed">Hız</string>
+    <string name="mine_feed_rpm">Motor devri</string>
+    <string name="mine_feed_throttle">Gaz pedalı</string>
+    <string name="mine_feed_load">Motor yükü</string>
+    <string name="mine_feed_coolant">Soğutma suyu sıcaklığı</string>
+    <string name="mine_feed_intake">Emme havası sıcaklığı</string>
+    <string name="mine_feed_fuel">Yakıt seviyesi</string>
+    <string name="mine_feed_range">Menzil</string>
+    <string name="mine_feed_volts">Akü voltajı</string>
+    <string name="mine_feed_outside">Dış sıcaklık</string>
+    <string name="mine_feed_consumption">Tüketim</string>
+    <string name="mine_feed_handbrake">El freni</string>
+    <string name="mine_feed_left">Sol sinyal</string>
+    <string name="mine_feed_right">Sağ sinyal</string>
+    <string name="mine_feed_belt">Sürücü emniyet kemeri takılı değil</string>
 </resources>
