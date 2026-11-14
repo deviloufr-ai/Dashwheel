@@ -208,6 +208,8 @@ object ObdBluetoothManager {
     private var combineOk = true
     /** The last speed the engine computer gave on this link, uncorrected; null when it never did. */
     private var lastSpeed: Int? = null
+    /** The engine computer has answered on this link: the adapter's protocol search is over. */
+    private var ecuAnswered = false
 
     /** [canBits], asked of the adapter until it says. */
     private fun busBits(): Int? = canBits ?: sendCommand("ATDPN")?.let(ObdParser::canAddressBits)?.also { canBits = it }
@@ -557,6 +559,7 @@ object ObdBluetoothManager {
         busAsked = false
         combineOk = true
         lastSpeed = null
+        ecuAnswered = false
     }
 
     /**
@@ -958,7 +961,10 @@ object ObdBluetoothManager {
         if (speed != null) lastSpeed = speed
         val alive = speed != null || rpm != null
         silentPolls = if (alive) 0 else silentPolls + 1
-        if (alive) lastAliveAt = SystemClock.elapsedRealtime()
+        if (alive) {
+            lastAliveAt = SystemClock.elapsedRealtime()
+            ecuAnswered = true
+        }
         // Asleep at connect (ignition off), the engine computer never said which PIDs it serves: ask once it talks.
         if (alive && supported == null && (first || cycle - supportedAskedAt >= SUPPORTED_RETRY_POLLS)) {
             supportedAskedAt = cycle
@@ -1291,7 +1297,9 @@ object ObdBluetoothManager {
                     if (response.contains(">")) break
                     // The adapter says it is looking for the car's protocol: it gets the time
                     // that takes, or the next command would abort the search and start it over.
-                    if (!searching && response.contains("SEARCHING")) {
+                    // Only until the car has answered: a search after that is the engine switched
+                    // off, and waiting each one out held the gauges at their last values.
+                    if (!searching && !ecuAnswered && response.contains("SEARCHING")) {
                         searching = true
                         deadline = maxOf(deadline, SystemClock.elapsedRealtime() + SEARCH_TIMEOUT_MS)
                     }
