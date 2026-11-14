@@ -120,6 +120,8 @@
     <string name="dash_bar_auto_hide_detail">Уезжает, когда не используется, освобождая место для панелей</string>
     <string name="dash_bar_nav_keys">Назад и Недавние приложения</string>
     <string name="dash_bar_nav_keys_detail">Ещё две кнопки по краям панели, если на экране нет таких клавиш</string>
+    <string name="dash_bar_over_apps">Панель поверх других приложений</string>
+    <string name="dash_bar_over_apps_detail">Назад, Домой, часы и Недавние приложения остаются внизу экрана, пока открыто другое приложение</string>
     <string name="dash_bar_hide_after">Скрывать через %1$d с</string>
     <string name="dash_bar_hide_now">Скрывать сразу</string>
     <string name="dash_bar_swipe_up_detail">Когда она скрыта, проведите вверх от нижнего края, чтобы вернуть её</string>

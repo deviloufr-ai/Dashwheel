@@ -174,6 +174,8 @@
     <string name="dash_bar_auto_hide_detail">Verschwindet, wenn sie nicht gebraucht wird, für mehr Platz auf den Dashboards</string>
     <string name="dash_bar_nav_keys">Zurück und Letzte Apps</string>
     <string name="dash_bar_nav_keys_detail">Zwei Tasten mehr an den Enden der Leiste, für Geräte ohne solche Tasten</string>
+    <string name="dash_bar_over_apps">Leiste über anderen Apps</string>
+    <string name="dash_bar_over_apps_detail">Zurück, Home, Uhr und Letzte Apps bleiben unten auf dem Bildschirm, während eine andere App offen ist</string>
     <string name="dash_bar_hide_after">Nach %1$d s ausblenden</string>
     <string name="dash_bar_hide_now">Sofort ausblenden</string>
     <string name="dash_bar_swipe_up_detail">Ausgeblendet: vom unteren Rand nach oben wischen, um sie zurückzuholen</string>

@@ -120,6 +120,8 @@
     <string name="dash_bar_auto_hide_detail">Kullanılmadığında kayarak gizlenir, gösterge panellerine daha fazla yer</string>
     <string name="dash_bar_nav_keys">Geri ve Son uygulamalar</string>
     <string name="dash_bar_nav_keys_detail">Bu tuşları olmayan ekranlar için çubuğun iki ucunda iki düğme daha</string>
+    <string name="dash_bar_over_apps">Çubuk diğer uygulamaların üstünde</string>
+    <string name="dash_bar_over_apps_detail">Başka bir uygulama açıkken Geri, Ana ekran, saat ve Son uygulamalar ekranın altında kalır</string>
     <string name="dash_bar_hide_after">%1$d sn sonra gizle</string>
     <string name="dash_bar_hide_now">Hemen gizle</string>
     <string name="dash_bar_swipe_up_detail">Gizliyken geri getirmek için alt kenardan yukarı kaydırın</string>

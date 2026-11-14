@@ -231,6 +231,8 @@ open class MainActivity : ComponentActivity() {
                     { GeminiLive.start(this) },
                     { DockedNavBar.start(this) },
                     { FreeformBar.start(this) },
+                    // The bottom bar kept over other apps, when the driver asked for it.
+                    { BarOverApps.start(this) },
                     // What the driver taught Dashwheel with the Signal Finder, over the car's own data.
                     { LearnedSignals.start(this) },
                     // The screen light following the headlights, and spoken camera warnings, when the driver turned them on.

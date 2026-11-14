@@ -120,6 +120,8 @@
     <string name="dash_bar_auto_hide_detail">Slides away when unused, for more room on the dashboards</string>
     <string name="dash_bar_nav_keys">Back and Recent apps</string>
     <string name="dash_bar_nav_keys_detail">Two more buttons at the ends of the bar, for a screen with no such keys</string>
+    <string name="dash_bar_over_apps">Keep the bar over other apps</string>
+    <string name="dash_bar_over_apps_detail">Back, Home, the clock and Recent apps stay at the bottom of the screen while another app is open</string>
     <string name="dash_bar_hide_after">Hide after %1$d s</string>
     <string name="dash_bar_hide_now">Hide right away</string>
     <string name="dash_bar_swipe_up_detail">When it is hidden, swipe up from the bottom edge to bring it back</string>

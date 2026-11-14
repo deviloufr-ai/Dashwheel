@@ -175,6 +175,8 @@
     <string name="dash_bar_auto_hide_detail">Si ritira quando non serve, per lasciare più spazio ai cruscotti</string>
     <string name="dash_bar_nav_keys">Indietro e App recenti</string>
     <string name="dash_bar_nav_keys_detail">Due tasti in più ai lati della barra, per uno schermo senza questi tasti</string>
+    <string name="dash_bar_over_apps">Barra sopra le altre app</string>
+    <string name="dash_bar_over_apps_detail">Indietro, Home, l’ora e App recenti restano in basso sullo schermo mentre è aperta un’altra app</string>
     <string name="dash_bar_hide_after">Nascondi dopo %1$d s</string>
     <string name="dash_bar_hide_now">Nascondi subito</string>
     <string name="dash_bar_swipe_up_detail">Quando è nascosta, scorri verso l\'alto dal bordo inferiore per farla ricomparire</string>
