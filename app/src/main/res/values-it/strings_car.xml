@@ -298,7 +298,7 @@
     <string name="car3d_whole_car">Tutta l\'auto</string>
     <string name="car3d_drag_hint">Trascina per girare l\'auto</string>
     <string name="car3d_details">Dettagli</string>
-    <string name="car3d_kind">Auto in 3D</string>
+    <string name="car3d_kind">Stato auto 3D</string>
     <string name="car3d_kind_blurb">La tua auto in 3D con i suoi problemi</string>
     <string name="car3d_tile_no_model">Aggiungi un pacchetto auto con modello 3D in %1$s per vedere la tua auto qui.</string>
     <string name="mycar_view_back">posteriore</string>

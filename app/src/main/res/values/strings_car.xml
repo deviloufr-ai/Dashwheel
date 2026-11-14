@@ -296,7 +296,7 @@
     <string name="car3d_whole_car">Whole car</string>
     <string name="car3d_drag_hint">Drag to turn the car</string>
     <string name="car3d_details">Details</string>
-    <string name="car3d_kind">Car in 3D</string>
+    <string name="car3d_kind">3D Car status</string>
     <string name="car3d_kind_blurb">Your car in 3D with its problems on it</string>
     <string name="car3d_tile_no_model">Add a car pack with a 3D model in %1$s to see your car here.</string>
     <string name="mycar_view_back">rear</string>
