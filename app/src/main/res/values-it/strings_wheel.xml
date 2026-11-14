@@ -133,4 +133,10 @@
     <string name="wheel_log_hint">Agisce ogni volta che il registro dell\'autoradio mostra una riga con questo testo. Accorcialo alla parte che nomina il tasto.</string>
     <string name="wheel_unit_muted">Muto attivo</string>
     <string name="wheel_unit_unmuted">Muto disattivo</string>
+    <string name="wheel_action_stop_audio">Ferma musica / radio</string>
+    <string name="wheel_action_fast_forward">Avanti veloce</string>
+    <string name="wheel_action_rewind">Indietro veloce</string>
+    <string name="wheel_action_screen_off">Spegni schermo</string>
+    <string name="wheel_action_brightness_up">Schermo più luminoso</string>
+    <string name="wheel_action_brightness_down">Schermo più scuro</string>
 </resources>

@@ -137,4 +137,10 @@
     <string name="wheel_log_hint">Veikia kaskart, kai magnetolos žurnale pasirodo eilutė su šiuo tekstu. Sutrumpinkite jį iki dalies, kuri įvardija mygtuką.</string>
     <string name="wheel_unit_muted">Nutildyta</string>
     <string name="wheel_unit_unmuted">Garsas grąžintas</string>
+    <string name="wheel_action_stop_audio">Sustabdyti muziką / radiją</string>
+    <string name="wheel_action_fast_forward">Prasukti pirmyn</string>
+    <string name="wheel_action_rewind">Prasukti atgal</string>
+    <string name="wheel_action_screen_off">Išjungti ekraną</string>
+    <string name="wheel_action_brightness_up">Šviesesnis ekranas</string>
+    <string name="wheel_action_brightness_down">Tamsesnis ekranas</string>
 </resources>

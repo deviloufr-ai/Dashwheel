@@ -3,6 +3,9 @@ package com.openauto.dash
 import android.accessibilityservice.AccessibilityService
 import android.content.Context
 import android.content.Intent
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
+import android.media.AudioManager
 import android.speech.RecognizerIntent
 import android.view.KeyEvent
 import android.widget.Toast
@@ -23,6 +26,12 @@ import androidx.compose.material.icons.filled.CallEnd
 import androidx.compose.material.icons.filled.ConnectedTv
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.FastRewind
+import androidx.compose.material.icons.filled.FastForward
+import androidx.compose.material.icons.filled.DesktopAccessDisabled
+import androidx.compose.material.icons.filled.BrightnessLow
+import androidx.compose.material.icons.filled.BrightnessHigh
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -44,6 +53,9 @@ import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.ViewAgenda
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.ui.graphics.vector.ImageVector
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /** The sections of the action picker, in the order they're shown. */
 internal enum class WheelActionGroup(@StringRes val labelRes: Int) {
@@ -117,7 +129,14 @@ internal enum class SteeringWheelAction(
     SCREEN_FOCUS(WheelActionGroup.SYSTEM, R.string.wheel_action_screen_focus, Icons.Filled.ConnectedTv),
     // Play and pause on their own, for a pair of keys such as an FYT unit's mute on / mute off (#148).
     MEDIA_PLAY(WheelActionGroup.MEDIA, R.string.wheel_action_play, Icons.Filled.PlayArrow),
-    MEDIA_PAUSE(WheelActionGroup.MEDIA, R.string.wheel_action_pause, Icons.Filled.Pause);
+    MEDIA_PAUSE(WheelActionGroup.MEDIA, R.string.wheel_action_pause, Icons.Filled.Pause),
+    // The K706 firmware's own key functions (QFKeyConstants STUDY_*) that had no match here.
+    MEDIA_STOP(WheelActionGroup.MEDIA, R.string.wheel_action_stop_audio, Icons.Filled.Stop),
+    MEDIA_FAST_FORWARD(WheelActionGroup.MEDIA, R.string.wheel_action_fast_forward, Icons.Filled.FastForward),
+    MEDIA_REWIND(WheelActionGroup.MEDIA, R.string.wheel_action_rewind, Icons.Filled.FastRewind),
+    SCREEN_OFF(WheelActionGroup.SYSTEM, R.string.wheel_action_screen_off, Icons.Filled.DesktopAccessDisabled),
+    BRIGHTNESS_UP(WheelActionGroup.SYSTEM, R.string.wheel_action_brightness_up, Icons.Filled.BrightnessHigh),
+    BRIGHTNESS_DOWN(WheelActionGroup.SYSTEM, R.string.wheel_action_brightness_down, Icons.Filled.BrightnessLow);
 
     fun run(context: Context) {
         when (this) {
@@ -181,6 +200,12 @@ internal enum class SteeringWheelAction(
             LPG_FULL -> LpgTank.fillUpHandsFree(context)
             LPG_SWITCH -> LpgTank.switchHandsFree(context)
             SCREEN_FOCUS -> ScreenFocus.toggle(context)
+            MEDIA_STOP -> stopAudio(context)
+            MEDIA_FAST_FORWARD -> dispatchMediaKey(context, KeyEvent.KEYCODE_MEDIA_FAST_FORWARD)
+            MEDIA_REWIND -> dispatchMediaKey(context, KeyEvent.KEYCODE_MEDIA_REWIND)
+            SCREEN_OFF -> CoroutineScope(Dispatchers.IO).launch { screenOff(context.applicationContext) }
+            BRIGHTNESS_UP -> UnitLight.run { start(context); nudge(context, LIGHT_STEP) }
+            BRIGHTNESS_DOWN -> UnitLight.run { start(context); nudge(context, -LIGHT_STEP) }
         }
     }
 
@@ -242,6 +267,20 @@ internal enum class SteeringWheelAction(
     /** The shared media controller when it has a player to steer, else null (the media key then). */
     private fun player(context: Context): CarMediaController? =
         CarMediaController.shared(context).takeIf { it.steering }
+    /**
+     * Music and radio stop, not just pause: Stop to the player in front, then
+     * Dashwheel takes the sound for good, which every player (the unit's
+     * radio too, which has no media session) answers by stopping, and gives it back.
+     */
+    private fun stopAudio(context: Context) {
+        dispatchMediaKey(context, KeyEvent.KEYCODE_MEDIA_STOP)
+        val audio = MediaVolume.audio(context)
+        val focus = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+            .setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).build())
+            .setOnAudioFocusChangeListener { }
+            .build()
+        runCatching { if (audio.requestAudioFocus(focus) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) audio.abandonAudioFocusRequest(focus) }
+    }
 
     private fun dispatchMediaKey(context: Context, keyCode: Int) {
         val audio = MediaVolume.audio(context)

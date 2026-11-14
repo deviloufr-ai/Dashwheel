@@ -282,6 +282,8 @@ internal object SteeringWheelStore {
         scope.launch { WheelMonitor.logLines.collect { onLogLine(it) } }
         updateReaders()
         syncSilenced(_buttons.value)
+        // Root is known a little after start: the touch key file is read (and followed) from then on.
+        scope.launch { PrivilegedShell.access.collect { if (it == PrivilegedShell.Access.ROOT) { bezelWritten = null; syncBezel(_buttons.value) } } }
     }
 
     fun openMap() {
@@ -336,10 +338,12 @@ internal object SteeringWheelStore {
         update(uid) { if (it.key?.log != null) it.copy(key = WheelKey.log(match)) else it }
     }
 
-    /** Whether the unit can be told to ignore [key]: a CAN box code, on a rooted QF unit. */
-    fun canSilence(key: WheelKey?): Boolean =
-        key?.vendor == CarBoxKeys.VENDOR && Edition.full && PrivilegedShell.access.value == PrivilegedShell.Access.ROOT &&
-            appContext?.let { UnitPlatform.hasPackage(it, QfAdapter.VEHICLE_PACKAGE) } == true
+    /** Whether the unit can be told to ignore [key]: a CAN box code or a touch key beside the screen, on a rooted QF unit. */
+    fun canSilence(key: WheelKey?): Boolean {
+        if (key == null || !Edition.full || PrivilegedShell.access.value != PrivilegedShell.Access.ROOT) return false
+        if (key.vendor == null && key.canKey == null && key.input == null && key.log == null && key.keyCode in BezelTakeover.present) return true
+        return key.vendor == CarBoxKeys.VENDOR && appContext?.let { UnitPlatform.hasPackage(it, QfAdapter.VEHICLE_PACKAGE) } == true
+    }
 
     /** The box codes the unit is told to ignore, as last written; null before the first time. */
     private var silencedWritten: Set<Int>? = null
@@ -354,6 +358,19 @@ internal object SteeringWheelStore {
         if (silenced == silencedWritten || (silencedWritten == null && silenced.isEmpty())) return
         silencedWritten = silenced
         scope.launch(Dispatchers.IO) { FirmwareKeyTable.apply(silenced) }
+    }
+
+    /** The touch keys the unit is told to ignore, as last asked; null: to read the file again. */
+    private var bezelWritten: Set<Int>? = null
+
+    /** The touch key file follows the map's touch keys the unit must ignore ([BezelTakeover]). */
+    private fun syncBezel(buttons: List<WheelButton>) {
+        val context = appContext ?: return
+        val silenced = buttons.filter { it.unitIgnores && it.key?.let { k -> k.vendor == null && k.canKey == null && k.input == null && k.log == null } == true }
+            .mapNotNull { it.key?.keyCode }.toSet()
+        if (silenced == bezelWritten) return
+        bezelWritten = silenced
+        scope.launch(Dispatchers.IO) { BezelTakeover.apply(context, silenced) }
     }
 
     fun remove(uid: String) {
@@ -383,6 +400,7 @@ internal object SteeringWheelStore {
         appContext?.let { save(it, updated) }
         updateReaders()
         syncSilenced(updated)
+        syncBezel(updated)
     }
 
     private fun known(key: WheelKey): WheelButton? = _buttons.value.firstOrNull { it.key?.id == key.id }
@@ -538,7 +556,9 @@ internal object SteeringWheelStore {
     fun onUnitKey(context: Context, keyCode: Int, event: KeyEvent?) {
         // One press: its down (the event is left out by some senders: count that as the press).
         if (event != null && (event.action != KeyEvent.ACTION_DOWN || event.repeatCount != 0)) return
-        unitPress(context, WheelKey(keyCode, 0), keyCode)
+        // A touch key taken from the unit comes on a spare code: its own one on the map.
+        val own = BezelTakeover.original(keyCode)
+        unitPress(context, WheelKey(own, 0), own)
     }
 
     /**

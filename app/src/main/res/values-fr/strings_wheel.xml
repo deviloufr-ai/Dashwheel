@@ -133,4 +133,10 @@
     <string name="wheel_log_hint">Agit chaque fois que le journal de l\'unité montre une ligne avec ce texte. Raccourcissez-le à la partie qui nomme le bouton.</string>
     <string name="wheel_unit_muted">Muet activé</string>
     <string name="wheel_unit_unmuted">Muet désactivé</string>
+    <string name="wheel_action_stop_audio">Arrêter musique / radio</string>
+    <string name="wheel_action_fast_forward">Avance rapide</string>
+    <string name="wheel_action_rewind">Retour rapide</string>
+    <string name="wheel_action_screen_off">Éteindre l\'écran</string>
+    <string name="wheel_action_brightness_up">Écran plus lumineux</string>
+    <string name="wheel_action_brightness_down">Écran plus sombre</string>
 </resources>

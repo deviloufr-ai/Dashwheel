@@ -133,4 +133,10 @@
     <string name="wheel_log_hint">Cihazın günlüğünde bu metni içeren bir satır göründüğünde çalışır. Düğmeyi adlandıran kısma kadar kısaltın.</string>
     <string name="wheel_unit_muted">Sessiz açık</string>
     <string name="wheel_unit_unmuted">Sessiz kapalı</string>
+    <string name="wheel_action_stop_audio">Müziği / radyoyu durdur</string>
+    <string name="wheel_action_fast_forward">İleri sar</string>
+    <string name="wheel_action_rewind">Geri sar</string>
+    <string name="wheel_action_screen_off">Ekranı kapat</string>
+    <string name="wheel_action_brightness_up">Ekranı aydınlat</string>
+    <string name="wheel_action_brightness_down">Ekranı karart</string>
 </resources>

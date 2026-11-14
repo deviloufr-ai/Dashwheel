@@ -133,4 +133,10 @@
     <string name="wheel_log_hint">Actúa cada vez que el registro de la radio muestra una línea con este texto. Acórtalo a la parte que nombra el botón.</string>
     <string name="wheel_unit_muted">Silencio activado</string>
     <string name="wheel_unit_unmuted">Silencio desactivado</string>
+    <string name="wheel_action_stop_audio">Detener música / radio</string>
+    <string name="wheel_action_fast_forward">Avance rápido</string>
+    <string name="wheel_action_rewind">Retroceso rápido</string>
+    <string name="wheel_action_screen_off">Apagar pantalla</string>
+    <string name="wheel_action_brightness_up">Pantalla más brillante</string>
+    <string name="wheel_action_brightness_down">Pantalla más oscura</string>
 </resources>

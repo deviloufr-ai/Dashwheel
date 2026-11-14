@@ -137,4 +137,10 @@
     <string name="wheel_log_hint">Срабатывает каждый раз, когда в журнале магнитолы появляется строка с этим текстом. Сократите его до части, которая называет кнопку.</string>
     <string name="wheel_unit_muted">Без звука: вкл.</string>
     <string name="wheel_unit_unmuted">Без звука: выкл.</string>
+    <string name="wheel_action_stop_audio">Остановить музыку / радио</string>
+    <string name="wheel_action_fast_forward">Перемотка вперёд</string>
+    <string name="wheel_action_rewind">Перемотка назад</string>
+    <string name="wheel_action_screen_off">Выключить экран</string>
+    <string name="wheel_action_brightness_up">Ярче экран</string>
+    <string name="wheel_action_brightness_down">Темнее экран</string>
 </resources>

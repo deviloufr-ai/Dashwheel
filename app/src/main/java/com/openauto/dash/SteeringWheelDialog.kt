@@ -451,7 +451,7 @@ private fun WheelButtonDetail(button: WheelButton, onPickAction: () -> Unit, onP
         )
     }
     val key = button.key
-    if (key != null && key.keyCode >= HeadUnitKeys.FIRST_VENDOR_KEY) {
+    if (key != null && key.keyCode >= HeadUnitKeys.FIRST_VENDOR_KEY && !button.unitIgnores) {
         Text(stringResource(R.string.wheel_unit_also_acts), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
     }
     if (SteeringWheelStore.canSilence(key)) {

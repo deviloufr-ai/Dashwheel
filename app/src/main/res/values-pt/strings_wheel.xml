@@ -133,4 +133,10 @@
     <string name="wheel_log_hint">Age sempre que o registo do rádio mostra uma linha com este texto. Encurte-o à parte que nomeia o botão.</string>
     <string name="wheel_unit_muted">Silêncio ligado</string>
     <string name="wheel_unit_unmuted">Silêncio desligado</string>
+    <string name="wheel_action_stop_audio">Parar música / rádio</string>
+    <string name="wheel_action_fast_forward">Avançar</string>
+    <string name="wheel_action_rewind">Recuar</string>
+    <string name="wheel_action_screen_off">Desligar ecrã</string>
+    <string name="wheel_action_brightness_up">Ecrã mais claro</string>
+    <string name="wheel_action_brightness_down">Ecrã mais escuro</string>
 </resources>

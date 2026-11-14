@@ -137,4 +137,10 @@
     <string name="wheel_log_hint">Działa za każdym razem, gdy dziennik radia pokaże wiersz z tym tekstem. Skróć go do części, która nazywa przycisk.</string>
     <string name="wheel_unit_muted">Wyciszenie wł.</string>
     <string name="wheel_unit_unmuted">Wyciszenie wył.</string>
+    <string name="wheel_action_stop_audio">Zatrzymaj muzykę / radio</string>
+    <string name="wheel_action_fast_forward">Przewiń do przodu</string>
+    <string name="wheel_action_rewind">Przewiń do tyłu</string>
+    <string name="wheel_action_screen_off">Wyłącz ekran</string>
+    <string name="wheel_action_brightness_up">Jaśniejszy ekran</string>
+    <string name="wheel_action_brightness_down">Ciemniejszy ekran</string>
 </resources>

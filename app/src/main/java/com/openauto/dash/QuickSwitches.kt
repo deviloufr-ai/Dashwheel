@@ -130,7 +130,7 @@ private suspend fun setMobileData(context: Context, on: Boolean) {
 }
 
 /** The QF firmware's screen key: the screen goes dark as with the unit's own button. */
-private suspend fun screenOff(context: Context) {
+internal suspend fun screenOff(context: Context) {
     try {
         DockShell.shell(context, "input keyevent 315")
     } catch (e: Exception) {

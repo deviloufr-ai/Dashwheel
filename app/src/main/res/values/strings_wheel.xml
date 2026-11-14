@@ -133,4 +133,10 @@
     <string name="wheel_log_hint">Runs each time the unit\'s log shows a line with this text. Shorten it to the part that names the button.</string>
     <string name="wheel_unit_muted">Mute on</string>
     <string name="wheel_unit_unmuted">Mute off</string>
+    <string name="wheel_action_stop_audio">Stop music / radio</string>
+    <string name="wheel_action_fast_forward">Fast forward</string>
+    <string name="wheel_action_rewind">Rewind</string>
+    <string name="wheel_action_screen_off">Screen off</string>
+    <string name="wheel_action_brightness_up">Brighter screen</string>
+    <string name="wheel_action_brightness_down">Dimmer screen</string>
 </resources>

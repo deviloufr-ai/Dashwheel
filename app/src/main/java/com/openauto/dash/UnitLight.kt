@@ -195,7 +195,7 @@ internal fun UnitLightCard(modifier: Modifier = Modifier) {
                 }
             }
             Row(modifier = Modifier.weight(1f).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = { UnitLight.nudge(context, -STEP) }, modifier = Modifier.size(DashSize.Touch)) {
+                IconButton(onClick = { UnitLight.nudge(context, -LIGHT_STEP) }, modifier = Modifier.size(DashSize.Touch)) {
                     Icon(Icons.Filled.Remove, contentDescription = stringResource(R.string.widgets_light_down), tint = DashColors.TextPrimary, modifier = Modifier.size(24.dp))
                 }
                 Slider(
@@ -209,7 +209,7 @@ internal fun UnitLightCard(modifier: Modifier = Modifier) {
                     ),
                     modifier = Modifier.weight(1f)
                 )
-                IconButton(onClick = { UnitLight.nudge(context, STEP) }, modifier = Modifier.size(DashSize.Touch)) {
+                IconButton(onClick = { UnitLight.nudge(context, LIGHT_STEP) }, modifier = Modifier.size(DashSize.Touch)) {
                     Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.widgets_light_up), tint = DashColors.TextPrimary, modifier = Modifier.size(24.dp))
                 }
             }
@@ -238,13 +238,13 @@ internal fun unitLightFace(): WidgetFace {
         value = (level * 100 / UnitLight.MAX).toString(), unit = "%",
         fraction = level / UnitLight.MAX.toFloat(),
         actions = listOf(
-            FaceAction(Icons.Filled.Remove, stringResource(R.string.widgets_light_down), onClick = { UnitLight.nudge(context, -STEP) }),
-            FaceAction(Icons.Filled.Add, stringResource(R.string.widgets_light_up), onClick = { UnitLight.nudge(context, STEP) })
+            FaceAction(Icons.Filled.Remove, stringResource(R.string.widgets_light_down), onClick = { UnitLight.nudge(context, -LIGHT_STEP) }),
+            FaceAction(Icons.Filled.Add, stringResource(R.string.widgets_light_up), onClick = { UnitLight.nudge(context, LIGHT_STEP) })
         )
     )
 }
 
-private const val STEP = 20
+internal const val LIGHT_STEP = 20
 
 /** Whether the level [wrote] is what the unit holds after: [readBack] null (it can't be read) is not a no. */
 internal fun brightnessTook(wrote: Int, readBack: Int?): Boolean = readBack == null || readBack == wrote

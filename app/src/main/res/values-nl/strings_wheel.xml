@@ -133,4 +133,10 @@
     <string name="wheel_log_hint">Werkt telkens als het logboek van de radio een regel met deze tekst toont. Kort hem in tot het deel dat de knop benoemt.</string>
     <string name="wheel_unit_muted">Dempen aan</string>
     <string name="wheel_unit_unmuted">Dempen uit</string>
+    <string name="wheel_action_stop_audio">Muziek / radio stoppen</string>
+    <string name="wheel_action_fast_forward">Vooruitspoelen</string>
+    <string name="wheel_action_rewind">Terugspoelen</string>
+    <string name="wheel_action_screen_off">Scherm uit</string>
+    <string name="wheel_action_brightness_up">Scherm feller</string>
+    <string name="wheel_action_brightness_down">Scherm donkerder</string>
 </resources>

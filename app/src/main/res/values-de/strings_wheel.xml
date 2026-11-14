@@ -133,4 +133,10 @@
     <string name="wheel_log_hint">Läuft jedes Mal, wenn das Protokoll des Radios eine Zeile mit diesem Text zeigt. Kürze ihn auf den Teil, der die Taste benennt.</string>
     <string name="wheel_unit_muted">Stumm an</string>
     <string name="wheel_unit_unmuted">Stumm aus</string>
+    <string name="wheel_action_stop_audio">Musik / Radio stoppen</string>
+    <string name="wheel_action_fast_forward">Vorspulen</string>
+    <string name="wheel_action_rewind">Zurückspulen</string>
+    <string name="wheel_action_screen_off">Bildschirm aus</string>
+    <string name="wheel_action_brightness_up">Bildschirm heller</string>
+    <string name="wheel_action_brightness_down">Bildschirm dunkler</string>
 </resources>
