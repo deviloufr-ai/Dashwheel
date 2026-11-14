@@ -12,6 +12,16 @@ class SpeedVolumeTest {
     private val gentle = SpeedVolumeCurve.DEFAULT
 
     @Test
+    fun theStepsAddedAreKeptForTheNextStart() {
+        val by = mapOf("radio" to 2, "media" to 1)
+        assertEquals(by, SpeedVolume.decodeApplied(SpeedVolume.encodeApplied(by)))
+        assertEquals(emptyMap<String, Int>(), SpeedVolume.decodeApplied(null))
+        assertEquals(emptyMap<String, Int>(), SpeedVolume.decodeApplied(SpeedVolume.encodeApplied(emptyMap())))
+        // The unit's source may have no name; a line that is no count is left out.
+        assertEquals(mapOf("" to 3), SpeedVolume.decodeApplied("3\t\nnonsense\n0\tradio"))
+    }
+
+    @Test
     fun underTheStartSpeedNothingIsAdded() {
         assertEquals(0, SpeedVolume.boostFor(0, four))
         assertEquals(0, SpeedVolume.boostFor(39, four))

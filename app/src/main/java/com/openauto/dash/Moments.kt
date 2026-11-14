@@ -232,9 +232,10 @@ private fun MomentFeeds(active: androidx.compose.runtime.MutableState<Set<Moment
             if (moving) {
                 set(Moment.ENGINE_ON, false)
                 set(Moment.PARKED, false)
-                if (driveFrom == 0L) driveFrom = System.currentTimeMillis()
+                // By the time since start: the clock, set mid-drive, made the hour pass at once.
+                if (driveFrom == 0L) driveFrom = SystemClock.elapsedRealtime()
                 // Short stops keep the drive going: the hour counts from the first start.
-                delay((driveFrom + LONG_DRIVE_MS - System.currentTimeMillis()).coerceAtLeast(0L))
+                delay((driveFrom + LONG_DRIVE_MS - SystemClock.elapsedRealtime()).coerceAtLeast(0L))
                 set(Moment.LONG_DRIVE, true)
             } else if (driveFrom != 0L) {
                 // A stop after a drive must last; standing still at the start is no stop at all.

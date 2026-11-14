@@ -708,8 +708,7 @@ object PhoneLink {
         val fuel = scope.launch { FuelLog.report { send(it) } }
         val news = scope.launch { CarNews.report { send(it) } }
         // A parking still running: the phone may have missed it, or lost its reminders to a restart.
-        ParkingClock.load(context)
-        ParkingClock.resend()
+        ParkingClock.resend(context)
         try {
             while (true) {
                 val received = link.receive()

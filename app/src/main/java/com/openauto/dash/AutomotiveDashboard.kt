@@ -1039,6 +1039,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         CarCare.setContext(context)
         Maintenance.setContext(context)
         DriveLog.start(context)
+        InAppNav.resume(context)
         FuelLog.start(context)
         SinceFill.start(context)
         FuelUsed.start(context)

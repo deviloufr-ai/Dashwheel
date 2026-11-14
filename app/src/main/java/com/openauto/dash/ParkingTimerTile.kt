@@ -67,35 +67,53 @@ internal object ParkingClock {
     private var appContext: Context? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var reminder: Job? = null
+    /** The timer the reminder was said for: never twice for the same one. */
+    private var remindedFor = 0L
+    /** How often the reminder looks at the time. */
+    private const val LOOK_MS = 20_000L
 
-    /** Reads the saved one once; returns [endsAt]. */
+    /** Reads the saved one once; returns [endsAt]. Main thread. */
     fun load(context: Context): StateFlow<Long> {
-        appContext = appContext ?: context.applicationContext
+        val app = context.applicationContext
+        appContext = appContext ?: app
         if (loaded) return endsAt
         loaded = true
-        val ends = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getLong(KEY_ENDS, 0L)
-        _endsAt.value = if (ends > System.currentTimeMillis()) ends else 0L
+        val ends = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getLong(KEY_ENDS, 0L)
+        _endsAt.value = if (ends > UnitClock.now(app)) ends else 0L
         remindHere()
         return endsAt
     }
 
-    /** The phone is back ([PhoneLink]): the running timer goes to it, and the car's own reminder stands down. */
-    fun resend() {
-        val ends = _endsAt.value.takeIf { it > System.currentTimeMillis() } ?: return
-        _onPhone.value = PhoneLink.send(ParkingTimer(ends))
-        remindHere()
+    /**
+     * The phone is back ([PhoneLink], from the link's own thread): the running timer goes to it, and the car's
+     * own reminder stands down. Done on the main thread, where the tile sets the timer: the two used to race.
+     */
+    fun resend(context: Context) {
+        scope.launch {
+            load(context)
+            val app = appContext ?: return@launch
+            val ends = _endsAt.value.takeIf { it > UnitClock.now(app) } ?: return@launch
+            _onPhone.value = PhoneLink.send(ParkingTimer(ends))
+            remindHere()
+        }
     }
 
-    /** The car's own reminder, only while no phone holds the timer and the app is on. */
+    /** The car's own reminder, only while no phone holds the timer and the app is on. Main thread. */
     private fun remindHere() {
         reminder?.cancel()
         val ends = _endsAt.value
-        if (ends <= 0L || _onPhone.value) return
-        val at = ends - REMIND_BEFORE_MS
-        if (at <= System.currentTimeMillis()) return
+        val app = appContext ?: return
+        if (ends <= 0L || _onPhone.value || remindedFor == ends) return
+        if (ends - REMIND_BEFORE_MS <= UnitClock.now(app)) return
         reminder = scope.launch {
-            delay(at - System.currentTimeMillis())
-            val app = appContext ?: return@launch
+            // Looked at now and then, not slept through in one go: a clock set meanwhile (2025 at
+            // start-up, then the real time) left the one long wait hours off.
+            while (true) {
+                val wait = ends - REMIND_BEFORE_MS - UnitClock.now(app)
+                if (wait <= 0L) break
+                delay(minOf(wait, LOOK_MS))
+            }
+            remindedFor = ends
             CarVoice.setContext(app)
             CarVoice.announce(AppLanguage.wrap(app).getString(R.string.widgets_park_say_ten), InAppNav.locale(app))
         }
@@ -103,13 +121,13 @@ internal object ParkingClock {
 
     /** From now for [minutes], or [minutes] more on a running one. */
     fun add(context: Context, minutes: Int) {
-        val now = System.currentTimeMillis()
+        val now = UnitClock.now(context)
         val from = _endsAt.value.takeIf { it > now } ?: now
         set(context, from + minutes * 60_000L)
     }
 
     /** From now for [minutes], in place of a running one. */
-    fun startFor(context: Context, minutes: Int) = set(context, System.currentTimeMillis() + minutes * 60_000L)
+    fun startFor(context: Context, minutes: Int) = set(context, UnitClock.now(context) + minutes * 60_000L)
 
     fun stop(context: Context) = set(context, 0L)
 
@@ -133,9 +151,9 @@ internal fun ParkingTimerCard(modifier: Modifier = Modifier) {
     val endsAt by remember { ParkingClock.load(context) }.collectAsState()
     val onPhone by ParkingClock.onPhone.collectAsState()
     val units by Units.current.collectAsState()
-    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    var now by remember { mutableLongStateOf(UnitClock.now(context)) }
     // Ticks only while the timer runs: once it has passed, nothing is left to count down.
-    LaunchedEffect(endsAt) { while (endsAt > 0) { now = System.currentTimeMillis(); if (endsAt <= now) break; delay(15_000) } }
+    LaunchedEffect(endsAt) { while (endsAt > 0) { now = UnitClock.now(context); if (endsAt <= now) break; delay(15_000) } }
     val running = endsAt > now
     Card(modifier = modifier) {
         Column(modifier = Modifier.fillMaxSize().padding(DashSpace.Lg), verticalArrangement = Arrangement.SpaceBetween) {
@@ -191,9 +209,9 @@ internal fun parkingTimerFace(): WidgetFace {
     val context = LocalContext.current
     val endsAt by remember { ParkingClock.load(context) }.collectAsState()
     val units by Units.current.collectAsState()
-    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    var now by remember { mutableLongStateOf(UnitClock.now(context)) }
     // Ticks only while the timer runs: once it has passed, nothing is left to count down.
-    LaunchedEffect(endsAt) { while (endsAt > 0) { now = System.currentTimeMillis(); if (endsAt <= now) break; delay(15_000) } }
+    LaunchedEffect(endsAt) { while (endsAt > 0) { now = UnitClock.now(context); if (endsAt <= now) break; delay(15_000) } }
     val running = endsAt > now
     return WidgetFace(
         icon = Icons.Filled.LocalParking,

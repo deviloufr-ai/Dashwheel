@@ -220,7 +220,7 @@ internal fun UpkeepDialog(onDismiss: () -> Unit) {
     val u = LocalUnits.current
     var odoText by remember { mutableStateOf(state.odometer?.nowKm?.let { u.distance(it) }?.toString().orEmpty()) }
     var fetchResult by remember { mutableStateOf<Pair<Boolean, String>?>(null) }
-    val now = System.currentTimeMillis()
+    val now = remember { UnitClock.now(context) }
     // The items keep the order the sheet opened with: each digit typed changes an
     // item's stage, and a list re-sorted under the finger moved the field being
     // typed in onto another item (the air filter's mileage ended up in the oil's).

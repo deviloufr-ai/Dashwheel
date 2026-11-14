@@ -63,7 +63,7 @@ data class TripState(
     /** When distance was last added: the car last moved. */
     val updatedAt: Long = startedAt
 ) {
-    val elapsedMs: Long get() = System.currentTimeMillis() - startedAt
+    val elapsedMs: Long get() = (System.currentTimeMillis() - startedAt).coerceAtLeast(0L)
     val avgSpeedKmh: Double get() = if (movingMs > 0L) (distanceM / 1000.0) / (movingMs / 3_600_000.0) else 0.0
 }
 
@@ -103,6 +103,16 @@ object LocationFeed {
 
     private val _trip = MutableStateFlow(TripState())
     val trip: StateFlow<TripState> = _trip
+
+    /** When the trip last moved, or began (elapsedRealtime): the stop is timed by it, not by a clock that gets set mid-drive. */
+    private var movedAt = SystemClock.elapsedRealtime()
+    private var appContext: Context? = null
+
+    /** How long the car has stood still. */
+    internal fun stoppedMs(): Long = SystemClock.elapsedRealtime() - movedAt
+
+    /** Today's time for the trip's stamps ([UnitClock]). */
+    private fun clock(): Long = appContext?.let { UnitClock.now(it) } ?: System.currentTimeMillis()
 
     /**
      * Where the car points, from its GPS fixes ([HeadingTracker]): kept while
@@ -162,6 +172,7 @@ object LocationFeed {
         if (!hasLocationPermission(context)) return false
         val lm = context.applicationContext.getSystemService(Context.LOCATION_SERVICE) as? LocationManager
             ?: return false
+        appContext = context.applicationContext
         if (refs++ > 0) return true
         manager = lm
         restoreHeading(context)
@@ -188,12 +199,14 @@ object LocationFeed {
     }
 
     fun resetTrip() {
-        _trip.value = TripState()
+        _trip.value = TripState(startedAt = clock())
+        movedAt = SystemClock.elapsedRealtime()
     }
 
-    /** The trip saved when the unit was last switched off, carried on (see [DriveLog]). */
-    internal fun restoreTrip(trip: TripState) {
+    /** The trip saved when the unit was last switched off, [stoppedMs] ago, carried on (see [DriveLog]). */
+    internal fun restoreTrip(trip: TripState, stoppedMs: Long) {
         _trip.value = trip
+        movedAt = SystemClock.elapsedRealtime() - stoppedMs
     }
 
     /** The heading after the GPS fix [l] ([HeadingTracker]), saved now and then for the next start. */
@@ -304,7 +317,10 @@ object LocationFeed {
         if (prev != null && l.accuracy <= 30f) {
             val d = prev.distanceTo(l).toDouble()
             val dt = (l.time - prev.time).coerceIn(0L, 60_000L)
-            tripStep(_trip.value, d, dt, speedKmh, System.currentTimeMillis())?.let { _trip.value = it }
+            tripStep(_trip.value, d, dt, speedKmh, clock(), stoppedMs())?.let {
+                _trip.value = it
+                movedAt = SystemClock.elapsedRealtime()
+            }
         }
         lastFix = l
     }
@@ -316,9 +332,9 @@ object LocationFeed {
      * distance with no moving time (a 90 km/h average on a 6 km/h top speed)
      * and kept the trip from ever ending.
      */
-    internal fun tripStep(trip: TripState, d: Double, dt: Long, speedKmh: Float, now: Long): TripState? {
+    internal fun tripStep(trip: TripState, d: Double, dt: Long, speedKmh: Float, now: Long, stoppedMs: Long = now - trip.updatedAt): TripState? {
         if (d < 2.0 || speedKmh <= 3f) return null
-        val t = if (DriveLogRules.startsAfresh(trip, now)) TripState(startedAt = now) else trip
+        val t = if (DriveLogRules.startsAfresh(trip, now, stoppedMs)) TripState(startedAt = now) else trip
         return t.copy(
             distanceM = t.distanceM + d,
             movingMs = t.movingMs + dt,

@@ -33,14 +33,16 @@ internal fun vehicleAlerts(
     context: Context,
     coolantC: Int?,
     battery: BatteryState,
-    units: UnitSystem = Units.current.value
+    units: UnitSystem = Units.current.value,
+    /** The coolant's alert is up already ([coolantWarns]). */
+    coolantUp: Boolean = false
 ): List<VehicleAlert> {
     val alerts = ArrayList<VehicleAlert>(2)
     battery.level?.let { level ->
         alerts += VehicleAlert(KEY_BATTERY, level, Icons.Filled.BatteryAlert, context.getString(R.string.dash_alert_battery, battery.volts))
     }
     val hotC = CarProfileStore.current.hotC
-    if (coolantC != null && coolantC >= coolantWarningC(hotC)) {
+    if (coolantC != null && coolantWarns(coolantC, hotC, coolantUp)) {
         val temp = coolantC
         val level = if (temp >= coolantCriticalC(hotC)) AlertLevel.CRITICAL else AlertLevel.WARNING
         val text = context.getString(if (units.fahrenheit) R.string.units_alert_coolant_f else R.string.dash_alert_coolant, units.temp(temp))
@@ -167,6 +169,16 @@ internal data class AlertEvent(val at: Long, val level: AlertLevel, val text: St
 internal fun coolantWarningC(hotC: Int): Int = hotC + 15
 internal fun coolantCriticalC(hotC: Int): Int = Overheat.alarmC(hotC)
 
+/** Once up, the coolant warning goes only this far under its limit. */
+internal const val COOLANT_CLEAR_C = 3
+
+/**
+ * Whether [coolantC] calls for the coolant's alert, [up] already or not: a reading hovering
+ * at the limit made the chip flicker and filled the alert log with the same line.
+ */
+internal fun coolantWarns(coolantC: Int, hotC: Int, up: Boolean): Boolean =
+    coolantC >= coolantWarningC(hotC) - if (up) COOLANT_CLEAR_C else 0
+
 /** Critical alerts raised and not yet acknowledged; the bar draws these whatever the reading does next. */
 internal object AlertCenter {
     /** By key: the alert as it was when raised (the text keeps the reading that triggered it). */
@@ -177,6 +189,8 @@ internal object AlertCenter {
     val history = mutableStateListOf<AlertEvent>()
     private const val HISTORY_MAX = 20
     private val activeWarnings = HashSet<String>()
+    /** The coolant's alert was up at the last look ([coolantWarns]). */
+    private var coolantUp = false
 
     /**
      * Judges the readings now ([VehicleMonitor], for the whole process): with
@@ -185,7 +199,8 @@ internal object AlertCenter {
      * back. Main thread. No coolant reading ([coolantC] null) clears the warnings: no reading, no amber.
      */
     fun evaluate(context: Context, coolantC: Int?, battery: BatteryState) {
-        val live = vehicleAlerts(context, coolantC, battery)
+        val live = vehicleAlerts(context, coolantC, battery, coolantUp = coolantUp)
+        coolantUp = live.any { it.key == KEY_COOLANT }
         live.filter { it.level == AlertLevel.CRITICAL }.forEach { raise(it) }
         val amber = live.filter { it.level == AlertLevel.WARNING }
         noteWarnings(amber)

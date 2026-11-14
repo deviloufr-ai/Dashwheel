@@ -191,7 +191,12 @@ class UpdateManager(private val context: Context) {
         if (Edition.play) return
         if (!download(info, shared = true)) return
         val file = (_status.value as? UpdateStatus.Ready)?.file ?: return
-        if (!withContext(Dispatchers.IO) { isOurUpdate(file, older = true) }) {
+        // Checked on a copy of our own, and that copy's hash kept: the shared folder is any app's to write.
+        val hash = withContext(Dispatchers.IO) {
+            val own = ownCopy(file)
+            runCatching { own?.takeIf { isOurUpdate(it, older = true) }?.let(::sha256) }.getOrNull().also { own?.delete() }
+        }
+        if (hash == null) {
             Log.w(TAG, "the downloaded file is not this app: dropped")
             withContext(Dispatchers.IO) { runCatching { file.delete() } }
             _status.value = UpdateStatus.Error(R.string.sys_update_download_failed)
@@ -199,7 +204,13 @@ class UpdateManager(private val context: Context) {
         }
         if (!PrivilegedShell.access.value.shell) return
         _status.value = UpdateStatus.Installing
-        val out = runCatching { DockShell.shell(context, "pm install -r -d '${file.path}'") }.getOrElse { it.message.orEmpty() }
+        // A shell can't read our own folder: it copies the shared file to its own, where apps can't write, and
+        // installs that copy only if it is the file that was checked.
+        val out = runCatching {
+            val copied = DockShell.shell(context, "cp '${file.path}' $SHELL_APK && sha256sum $SHELL_APK")
+            if (sameHash(copied, hash)) DockShell.shell(context, "pm install -r -d $SHELL_APK; rm -f $SHELL_APK")
+            else "not the file checked: $copied".also { DockShell.shell(context, "rm -f $SHELL_APK") }
+        }.getOrElse { it.message.orEmpty() }
         // A success replaces the app and ends this process; still here, it was refused.
         if (out.contains("Success")) return
         Log.w(TAG, "going back to ${info.versionName} refused: $out")
@@ -282,14 +293,17 @@ class UpdateManager(private val context: Context) {
         }
         _status.value = UpdateStatus.Installing
         scope.launch {
-            if (!withContext(Dispatchers.IO) { isOurUpdate(file) }) {
+            // Checked and installed from a copy of our own: the download waits in a folder other apps
+            // can write to, and the file could be swapped between the check and the install.
+            val own = withContext(Dispatchers.IO) { ownCopy(file)?.takeIf { isOurUpdate(it) } }
+            if (own == null) {
                 Log.w(TAG, "the downloaded file is not this app's update: dropped")
                 withContext(Dispatchers.IO) { runCatching { file.delete() } }
                 prefs.edit().remove(KEY_DOWNLOADED).apply()
                 _status.value = UpdateStatus.Error(R.string.sys_update_download_failed)
                 return@launch
             }
-            if (!launchInstaller(file)) return@launch offerAgain()
+            if (!launchInstaller(own)) return@launch offerAgain()
             // An install that goes through replaces the app and ends this process.
             // Still here a while later: Android's own confirmation was cancelled, or
             // the install refused. "Installing" used to stay for good then (the unit
@@ -302,22 +316,42 @@ class UpdateManager(private val context: Context) {
     /**
      * Whether [apk] is this app, in a newer build, signed as this one is. The
      * system's installer checks the signature too, but not on a unit where
-     * PMPatch switched that check off, and the download waits in a folder
-     * other apps can write to. A debug build, signed with another key than
-     * the releases, is let through to update to one as before.
+     * PMPatch switched that check off. A debug build, signed with another key
+     * than the releases, is let through to update to one as before.
      */
-    @Suppress("DEPRECATION") // GET_SIGNATURES: the one flag Android 10 reads an APK file's signers with.
     private fun isOurUpdate(apk: File, older: Boolean = false): Boolean = runCatching {
         val pm = context.packageManager
-        val info = pm.getPackageArchiveInfo(apk.path, PackageManager.GET_SIGNATURES) ?: return false
+        val info = pm.getPackageArchiveInfo(apk.path, SIGNER_FLAGS) ?: return false
         if (info.packageName != context.packageName) return false
         if (!older && PackageInfoCompat.getLongVersionCode(info) <= currentVersionCode) return false
-        val theirs = info.signatures?.map { it.toCharsString() }?.toSet().orEmpty()
-        // Not read (a system that doesn't tell): left to the installer's own check.
-        if (BuildConfig.DEBUG || theirs.isEmpty()) return true
-        val ours = pm.getPackageInfo(context.packageName, PackageManager.GET_SIGNATURES).signatures?.map { it.toCharsString() }?.toSet().orEmpty()
-        theirs == ours
+        signedAsWeAre(signers(info), signers(pm.getPackageInfo(context.packageName, SIGNER_FLAGS)), BuildConfig.DEBUG)
     }.getOrDefault(false)
+
+    /** The certificates [info] is signed with, by whichever of the two ways this Android reads them. */
+    @Suppress("DEPRECATION") // signatures: the one Android 10 fills for an APK file.
+    private fun signers(info: android.content.pm.PackageInfo): Set<String> =
+        info.signatures?.map { it.toCharsString() }?.toSet().orEmpty().ifEmpty {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) emptySet()
+            else info.signingInfo?.apkContentsSigners?.map { it.toCharsString() }?.toSet().orEmpty()
+        }
+
+    /** [apk] copied into the app's own cache, where no other app can write; null when it could not be. */
+    private fun ownCopy(apk: File): File? = runCatching {
+        File(context.cacheDir, OWN_DIR).apply { mkdirs() }.resolve(APK_NAME).also { apk.copyTo(it, overwrite = true) }
+    }.getOrNull()
+
+    private fun sha256(file: File): String {
+        val digest = java.security.MessageDigest.getInstance("SHA-256")
+        file.inputStream().use { input ->
+            val buffer = ByteArray(1 shl 16)
+            while (true) {
+                val n = input.read(buffer)
+                if (n < 0) break
+                digest.update(buffer, 0, n)
+            }
+        }
+        return digest.digest().joinToString("") { "%02x".format(it) }
+    }
 
     /**
      * Downloads [info]'s APK into the app's own downloads folder; [status]
@@ -547,6 +581,25 @@ class UpdateManager(private val context: Context) {
                 !name.contains("-play", ignoreCase = true)
 
         private const val APK_NAME = "openauto-dash-update.apk"
+        /** Under the cache folder: the copy that is checked and installed (file_paths.xml shares it with the installer). */
+        private const val OWN_DIR = "update"
+        /** The shell's own copy of an older build ([installPrevious]). */
+        private const val SHELL_APK = "/data/local/tmp/$APK_NAME"
+        @Suppress("DEPRECATION") // GET_SIGNATURES: the one flag Android 10 reads an APK file's signers with.
+        private val SIGNER_FLAGS = PackageManager.GET_SIGNATURES or
+            (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) PackageManager.GET_SIGNING_CERTIFICATES else 0)
+
+        /**
+         * Whether an APK signed by [theirs] may replace this app, signed by [ours]. Signers that
+         * could not be read are a refusal: left to the installer, they passed where PMPatch
+         * switched its check off. A debug build takes any, to update to a release.
+         */
+        internal fun signedAsWeAre(theirs: Set<String>, ours: Set<String>, debug: Boolean): Boolean =
+            debug || (theirs.isNotEmpty() && theirs == ours)
+
+        /** Whether `sha256sum`'s [output] ("hash  file") is [hash]. */
+        internal fun sameHash(output: String, hash: String): Boolean =
+            hash.isNotEmpty() && output.trim().substringBefore(' ').equals(hash, ignoreCase = true)
         /** The whole download, however slowly it still moves. */
         private const val DOWNLOAD_TIMEOUT_MS = 30 * 60_000L
         /**

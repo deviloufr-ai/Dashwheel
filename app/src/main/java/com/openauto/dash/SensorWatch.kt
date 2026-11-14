@@ -1,6 +1,7 @@
 package com.openauto.dash
 
 import android.content.Context
+import android.os.SystemClock
 import com.openauto.dash.vehicle.K
 import com.openauto.dash.vehicle.Vehicle
 import androidx.annotation.StringRes
@@ -364,8 +365,10 @@ internal object SensorWatch {
     fun watch(d: ObdData) {
         if (DemoMode.isOn) return
         val now = System.currentTimeMillis()
-        if (lastFeed > 0 && now - lastFeed > DriveSampler.GAP_MS * 12) closeDrive()
-        lastFeed = now
+        // The gap by the time since start: the clock, set mid-drive, cut the drive in two.
+        val at = SystemClock.elapsedRealtime()
+        if (lastFeed > 0 && at - lastFeed > DriveSampler.GAP_MS * 12) closeDrive()
+        lastFeed = at
         val s = sampler ?: DriveSampler(CarProfileStore.current.hotC).also { sampler = it }
         s.feed(d, now, Vehicle.bus.now(K.OUTSIDE_TEMP) ?: WeatherRepo.weather.value?.tempC)
         followFilter(now)
@@ -386,7 +389,7 @@ internal object SensorWatch {
         while (true) {
             delay(END_AFTER_MS / 2)
             synchronized(this) {
-                if (lastFeed > 0 && System.currentTimeMillis() - lastFeed >= END_AFTER_MS) closeDrive()
+                if (lastFeed > 0 && SystemClock.elapsedRealtime() - lastFeed >= END_AFTER_MS) closeDrive()
             }
         }
     }

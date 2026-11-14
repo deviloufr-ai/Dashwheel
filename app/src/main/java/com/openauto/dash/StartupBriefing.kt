@@ -285,7 +285,8 @@ object StartupBriefing {
             weather = weather.await(),
             fuel = fuel.await(),
             event = withContext(Dispatchers.IO) { nextEvent(context, locale) },
-            upkeep = Maintenance.dueForBriefing(startedAt),
+            // By today's date as far as it is known: a clock still at 2025 said nothing was due.
+            upkeep = Maintenance.dueForBriefing(UnitClock.now(context)),
             units = Units.current.value
         )
     }

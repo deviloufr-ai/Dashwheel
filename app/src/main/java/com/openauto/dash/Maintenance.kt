@@ -200,11 +200,13 @@ object UpkeepRules {
     /**
      * The kilometres the GPS trip moved from [before] to [after], or 0 while the
      * OBD drive is counting them ([obdLastAt] fresh) or the step is no real driving.
+     * Another trip ([TripState.startedAt] changed) is no step: a short trip restored
+     * at start-up was counted a second time, and a fresh one begins with a few metres.
      */
     fun gpsStepKm(before: TripState?, after: TripState, obdLastAt: Long?, now: Long): Double {
         if (before == null || (obdLastAt != null && now - obdLastAt < OBD_FRESH_MS)) return 0.0
-        val m = if (after.startedAt == before.startedAt) after.distanceM - before.distanceM else after.distanceM
-        return (m / 1000).takeIf { it > 0 && it <= MAX_GPS_STEP_KM } ?: 0.0
+        if (after.startedAt != before.startedAt) return 0.0
+        return ((after.distanceM - before.distanceM) / 1000).takeIf { it > 0 && it <= MAX_GPS_STEP_KM } ?: 0.0
     }
 
     /** A rough "how soon" for sorting: days, with 50 km counting as a day. */
@@ -477,7 +479,8 @@ object Maintenance {
      */
     fun inspectionDueBy(deadline: Long) {
         val every = _state.value.plan.firstOrNull { it.kind == UpkeepKind.INSPECTION }?.everyMonths ?: INSPECTION_MONTHS
-        val done = UpkeepRules.inspectionBefore(deadline, every, _state.value.done[UpkeepKind.INSPECTION], System.currentTimeMillis()) ?: return
+        val now = appContext?.let { UnitClock.now(it) } ?: System.currentTimeMillis()
+        val done = UpkeepRules.inspectionBefore(deadline, every, _state.value.done[UpkeepKind.INSPECTION], now) ?: return
         setDone(UpkeepKind.INSPECTION, done)
     }
 

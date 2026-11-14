@@ -33,6 +33,24 @@ class FuelLogRulesTest {
     }
 
     @Test
+    fun aLevelFromAnotherSourceIsNoRefuel() {
+        // 30 % worked back from the range, then the adapter connects and reads 55 %.
+        var g = FuelLogRules.Gauge(baseline = 30, source = "range")
+        val rises = ArrayList<FuelLogRules.Rise>()
+        repeat(5) { i ->
+            val (next, rise) = FuelLogRules.step(g, 55, i * 10_000L, "OBD")
+            g = next
+            rise?.let(rises::add)
+        }
+        assertEquals(emptyList<FuelLogRules.Rise>(), rises)
+        assertEquals(55, g.baseline)
+        assertEquals("OBD", g.source)
+        // The same source filling up is still a refuel; a baseline saved before sources were kept takes the first one.
+        val (_, rise) = FuelLogRules.step(FuelLogRules.Gauge(baseline = 20, candidate = 85, since = 0, reads = 2), 85, 30_000L, "OBD")
+        assertEquals(FuelLogRules.Rise(20, 85), rise)
+    }
+
+    @Test
     fun theGaugeWobblingOnASlopeIsNoRefuel() {
         val (g, rises) = feed(listOf(40, 44, 38, 45, 41, 40, 40, 40, 40), start = FuelLogRules.Gauge(baseline = 40))
         assertEquals(emptyList<FuelLogRules.Rise>(), rises)
