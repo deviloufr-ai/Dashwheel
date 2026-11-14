@@ -58,6 +58,30 @@ class UnitDetectorTest {
         val classOnly = MapProbe(classes = setOf("android.microntek.CarManager"))
         assertEquals(UnitFamily.GENERIC, UnitDetector.detect(classOnly).family)
         assertEquals(UnitFamily.MTC, UnitDetector.detect(classOnly.copy(props = mapOf("ro.board.platform" to "px30"))).family)
+        // Its class on some other board is still one weak clue; a Rockchip board alone names nothing.
+        assertEquals(UnitFamily.GENERIC, UnitDetector.detect(classOnly.copy(props = mapOf("ro.board.platform" to "ums512"))).family)
+        assertEquals(UnitFamily.GENERIC, UnitDetector.detect(MapProbe(props = mapOf("ro.board.platform" to "px30"))).family)
+    }
+
+    @Test
+    fun weakCluesAlone_nameNoFamily() {
+        // A plain MediaTek tablet with DuraSpeed: two of Reglink's weak clues, nothing of its own.
+        val mediatek = MapProbe(props = mapOf("ro.board.platform" to "mt6765", "persist.duraspeed.support" to "1"))
+        val d = UnitDetector.detect(mediatek)
+        assertEquals(UnitFamily.GENERIC, d.family)
+        assertEquals(2, d.runnersUp[UnitFamily.REGLINK])
+        // FYT's two weak clues without any of its properties or its server app.
+        val carlink = MapProbe(props = mapOf("sys.carlink.type" to "0"), files = setOf("/oem/app"))
+        assertEquals(UnitFamily.GENERIC, UnitDetector.detect(carlink).family)
+    }
+
+    @Test
+    fun anNwdUnitWithFytsWeakClues_isNwd_notFytByListOrder() {
+        // Two weak FYT clues tied NWD's one strong property, and FYT is listed first.
+        val p = MapProbe(props = mapOf("persist.nwd.launcher.default" to "com.nwd.launcher", "sys.carlink.type" to "0"), files = setOf("/oem/app"))
+        val d = UnitDetector.detect(p)
+        assertEquals(UnitFamily.NWD, d.family)
+        assertEquals(2, d.runnersUp[UnitFamily.FYT])
     }
 
     @Test
@@ -75,8 +99,8 @@ class UnitDetectorTest {
     fun aReglinkUnit_isReglink() {
         val p = MapProbe(packages = setOf("com.reglink.services", "com.reglink.launcher4"), props = mapOf("ro.board.platform" to "mt6580"))
         assertEquals(UnitFamily.REGLINK, UnitDetector.detect(p).family)
-        // The MediaTek board with DuraSpeed, no Reglink package seen (package visibility): two weak clues.
-        val hidden = MapProbe(props = mapOf("ro.board.platform" to "mt6765", "persist.duraspeed.support" to "1"))
+        // Its packages hidden (package visibility), its whitelist file still names it.
+        val hidden = MapProbe(files = setOf("/system/etc/reglink_autorun_whitelist.txt"), props = mapOf("ro.board.platform" to "mt6765"))
         assertEquals(UnitFamily.REGLINK, UnitDetector.detect(hidden).family)
     }
 
@@ -93,7 +117,7 @@ class UnitDetectorTest {
     }
 
     @Test
-    fun anAllwinnerT8_isAllwinner_onTwoWeakClues() {
+    fun anAllwinnerT8_isAllwinner_byItsBoard() {
         val p = MapProbe(props = mapOf("ro.board.platform" to "sun50iw1p1", "ro.hardware" to "sun50iw1p1"))
         assertEquals(UnitFamily.ALLWINNER, UnitDetector.detect(p).family)
         assertEquals(UnitFamily.GENERIC, UnitDetector.detect(MapProbe(props = mapOf("ro.hardware" to "sun8iw11p1"))).family)

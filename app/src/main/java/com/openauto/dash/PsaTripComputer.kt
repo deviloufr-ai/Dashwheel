@@ -1,5 +1,6 @@
 package com.openauto.dash
 
+import com.openauto.unitproto.UnitFamily
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -221,6 +222,8 @@ object PsaTripComputer {
     @Synchronized
     fun start(context: Context) {
         if (started) return
+        // The car app asked and the root log read are the QF firmware's: nothing to ask on another unit.
+        if (UnitPlatform.family.value != UnitFamily.QF) return
         started = true
         PsaWarnings.setContext(context)
         val app = context.applicationContext

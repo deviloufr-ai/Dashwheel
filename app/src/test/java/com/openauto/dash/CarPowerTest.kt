@@ -62,4 +62,17 @@ class CarPowerTest {
         assertFalse(poweredUpRecently(now = 600 * min, switchedOnAt = 540 * min))
         assertFalse(poweredUpRecently(now = 600 * min, switchedOnAt = 0))
     }
+
+    @Test
+    fun theScreenBackOnIsTheCarBackOn_onlyWhereTheIgnitionCantBeReadAndReadsOff() {
+        // MTC: "power off" was announced, nothing says "on" again.
+        assertTrue(wakeIsSwitchOn(readable = false, ignition = false, sinceOffMs = 5 * min))
+        // The firmware closing the app in front right at the switch-off brings the dashboard back: not a wake-up.
+        assertFalse(wakeIsSwitchOn(readable = false, ignition = false, sinceOffMs = 3_000))
+        // Already on, or never told: nothing to do.
+        assertFalse(wakeIsSwitchOn(readable = false, ignition = true, sinceOffMs = 5 * min))
+        assertFalse(wakeIsSwitchOn(readable = false, ignition = null, sinceOffMs = 5 * min))
+        // A unit that can be asked is asked instead (CarPower.refresh).
+        assertFalse(wakeIsSwitchOn(readable = true, ignition = false, sinceOffMs = 5 * min))
+    }
 }

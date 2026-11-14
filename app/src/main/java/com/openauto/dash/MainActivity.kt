@@ -26,6 +26,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import androidx.core.view.doOnPreDraw
@@ -148,6 +149,8 @@ open class MainActivity : ComponentActivity() {
         // A unit that floated the dashboard has the not-resizable one as its home screen.
         if (FloatingHome.redirect(this)) return
         if (!onlyOne()) return
+        // Counted until it has held a while: two starts that did not are safe mode at the third.
+        SafeMode.dashboardStarting(this)
         MainScreenCover.attach(this)
         StartSplash.load(this)
         // The tile displays' owner (the system user, through root): started first,
@@ -283,6 +286,7 @@ open class MainActivity : ComponentActivity() {
                     // and its edit limits on a full screen. Only a pane that really is narrow counts.
                     Box(Modifier.fillMaxSize()) {
                         AutomotiveDashboard(inSplitMode = inMultiWindow.value && isNarrowPane(config.screenWidthDp, config.screenHeightDp))
+                        SafeModeBanner(Modifier.align(Alignment.TopCenter))
                         // The steering wheel's dashboard buttons move this screen, with a second one to switch to.
                         ScreenFocusMark(screen = 1)
                     }
@@ -369,6 +373,8 @@ open class MainActivity : ComponentActivity() {
         inMultiWindow.value = isInMultiWindowMode
         ZoneWatch.check()
         StuckSplit.check(this)
+        // A unit that never says "ignition on": the dashboard back in front is the car back on.
+        CarPower.wokeUp()
         FreeformBar.dashboardInFront = true
         MainScreenCover.onResumed(true)
         // Dashwheel's first start: the driver's start-up animation while everything is built.
@@ -399,6 +405,8 @@ open class MainActivity : ComponentActivity() {
         if (EmbeddedApp.dashboardActivity().let { it == null || it === this }) {
             EmbeddedApp.dashboardShown(null)
             started.value = false
+            // Left the screen in one piece: a kill that follows (the unit's sleep) is not a crash.
+            SafeMode.dashboardStopped(this)
         }
         super.onStop()
     }

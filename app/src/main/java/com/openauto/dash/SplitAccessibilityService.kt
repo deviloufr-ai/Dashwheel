@@ -575,8 +575,8 @@ class SplitAccessibilityService : AccessibilityService() {
             autoStarted = true
             val app = context.applicationContext
             scope.launch {
-                val access = PrivilegedShell.access.first { it != PrivilegedShell.Access.UNKNOWN }
-                if (access.shell && !isConnected) turnOn(app)
+                // Only through a shell that opens without asking: the unit's ADB prompt must not come up at every start.
+                if (DockShell.unattended(app) && !isConnected) turnOn(app)
             }
         }
 

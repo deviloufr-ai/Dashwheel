@@ -7,6 +7,7 @@
     <string name="dash_add">Adicionar</string>
     <string name="dash_selected">Selecionado</string>
     <string name="dash_dismiss">Ignorar</string>
+    <string name="dash_safe_mode">Modo de segurança. Mapas, carro 3D e widgets Android desligados após dois arranques falhados.</string>
     <string name="dash_got_it">Entendido</string>
 
     <!-- Top bar -->

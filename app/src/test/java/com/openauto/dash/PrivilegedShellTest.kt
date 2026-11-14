@@ -83,4 +83,24 @@ class PrivilegedShellTest {
         assertEquals(Access.UNKNOWN, PrivilegedShell.access.value)
         assertFalse(PrivilegedShell.access.value.shell)
     }
+
+    @Test
+    fun onlyAKernelThatSaysQemuIsAnEmulatorForTheShell() {
+        assertTrue(qemuKernel("1", null))
+        assertTrue(qemuKernel(null, "1"))
+        // A head unit whose product name holds "sdk": neither property.
+        assertFalse(qemuKernel(null, null))
+        assertFalse(qemuKernel("0", ""))
+    }
+
+    @Test
+    fun unaskedCommandsRunOnlyThroughAShellThatRaisesNoPrompt() {
+        assertTrue(shellWithoutPrompt(Access.ROOT, adbAccepted = false))
+        assertTrue(shellWithoutPrompt(Access.SHIZUKU, adbAccepted = false))
+        // The unit's ADB asks "allow USB debugging?" until a connection was accepted once.
+        assertFalse(shellWithoutPrompt(Access.ADB, adbAccepted = false))
+        assertTrue(shellWithoutPrompt(Access.ADB, adbAccepted = true))
+        assertFalse(shellWithoutPrompt(Access.NONE, adbAccepted = true))
+        assertFalse(shellWithoutPrompt(Access.UNKNOWN, adbAccepted = true))
+    }
 }

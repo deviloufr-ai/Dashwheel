@@ -110,6 +110,8 @@ object DebugLog {
         // The system log comes through the shell: the Play edition keeps its event log only.
         if (Edition.play) return
         scope.launch {
+            // Nobody asked for this one: no shell that would raise the unit's ADB prompt at every start.
+            if (!DockShell.unattended(app)) return@launch
             runCatching {
                 val log = DockShell.shell(app, LOGCAT)
                 if (log.isBlank()) return@runCatching

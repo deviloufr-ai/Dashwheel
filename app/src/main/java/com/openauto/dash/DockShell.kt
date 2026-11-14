@@ -4,9 +4,11 @@ import android.content.Context
 import android.util.Log
 import java.io.Closeable
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * The privileged shell the docking system talks to the window manager with:
@@ -240,14 +242,42 @@ object DockShell {
     }
 
     private fun adbShell(context: Context, cmd: String): String {
-        val conn = adb ?: AdbInstaller.openShell(context, AdbInstaller.announcedPort(), ADB_TIMEOUT_MS).also { adb = it }
         try {
-            return conn.run(cmd)
+            val conn = adb ?: AdbInstaller.openShell(context, AdbInstaller.announcedPort(), ADB_TIMEOUT_MS).also { adb = it }
+            return conn.run(cmd).also { noteAdb(context, true) }
         } catch (e: Exception) {
             closeConnection()
+            noteAdb(context, false)
             throw e
         }
     }
+
+    private const val PREFS = "dock_shell"
+    private const val KEY_ADB_ACCEPTED = "adb_accepted"
+    @Volatile private var adbAccepted: Boolean? = null
+
+    /** Whether the unit's ADB last let Dashwheel in: its "always allow" was ticked, so the next connection raises no prompt. */
+    private fun adbAccepted(context: Context): Boolean = adbAccepted
+        ?: context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_ADB_ACCEPTED, false).also { adbAccepted = it }
+
+    private fun noteAdb(context: Context, accepted: Boolean) {
+        if (adbAccepted(context) == accepted) return
+        adbAccepted = accepted
+        context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_ADB_ACCEPTED, accepted).apply()
+    }
+
+    /**
+     * Whether a command may be run with nobody asking for it (at boot, at the
+     * ignition) without the unit's "allow USB debugging" prompt coming up
+     * ([shellWithoutPrompt]). Waits a while for the probe's answer at start.
+     */
+    suspend fun unattended(context: Context): Boolean {
+        if (Edition.play) return false
+        val access = withTimeoutOrNull(PROBE_WAIT_MS) { PrivilegedShell.access.first { it != PrivilegedShell.Access.UNKNOWN } } ?: return false
+        return shellWithoutPrompt(access, adbAccepted(context))
+    }
+
+    private const val PROBE_WAIT_MS = 30_000L
 
     /** A hung adbd must not hold the shell lock forever. */
     private const val ADB_TIMEOUT_MS = 5_000

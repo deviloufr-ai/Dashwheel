@@ -60,6 +60,8 @@ class DashApp : Application() {
     override fun onCreate() {
         super.onCreate()
         CrashReports.install(this)
+        // Before anything draws: whether the last starts held ([gpuOk] reads it).
+        SafeMode.init(this)
         // Android reads a preferences file on a thread of its own at its first use, and the first
         // read waits for it. Dozens are read on the way to the first frame, one after the other on
         // the main thread: asked for now, they all load at once, and are ready by then.
@@ -76,7 +78,7 @@ class DashApp : Application() {
         "ai_diagnoses", "ai_mechanic", "ai_prefs", "alert_styles", "api_keys", "app_drawer", "app_language",
         "app_usage", "auto_light", "automation", "bar_hints", "bar_items", "canvas_tabs", "car_box", "car_care",
         "car_paint", "car_power", "car_profile", "car_signals", "crash_reports", "dash_bar", "dashboard_layout",
-        "dashboard_layout_prefs", "dashboard_theme", "display_link", "dock_support", "docked_nav_bar", "drive_log",
+        "dashboard_layout_prefs", "dashboard_theme", "display_link", "dock_shell", "dock_support", "docked_nav_bar", "drive_log",
         "embedded_app", "feedback", "floating_home", "freeform_bar", "fuel_log", "gear_ratios", "head_unit_phone",
         "home_hand_back", "in_app_nav", "location_feed", "lpg_tank", "map_servers", "mcu_prefs", "media_prefs",
         "media_resume", "media_volume", "moments", "my_car_look", "my_readings", "obd_prefs", "on_my_way",

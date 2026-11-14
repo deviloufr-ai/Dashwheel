@@ -33,6 +33,7 @@ import com.openauto.dash.UnitKeyPress
 import com.openauto.dash.UnitPlatform
 import com.openauto.dash.VehicleBusSource
 import com.openauto.dash.VolumeControl
+import com.openauto.unitproto.AccBroadcasts
 import com.openauto.unitproto.UnitFamily
 import com.openauto.unitproto.mtc.MtcIrKeys
 import com.openauto.unitproto.mtc.MtcProtocol
@@ -82,11 +83,16 @@ internal class MtcAdapter(context: Context) : UnitAdapter {
 /** Power-off as the unit announces it; a wake broadcast on some ROMs. Nothing to read in between. */
 internal object MtcIgnition : IgnitionSource {
     override fun read(): Boolean? = null
-    override val actions: Set<String> = setOf(MtcProtocol.ACTION_BOOTCHECK, MtcProtocol.ACTION_START_APP)
+    override val actions: Set<String> = setOf(MtcProtocol.ACTION_BOOTCHECK, MtcProtocol.ACTION_START_APP) + AccBroadcasts.ALL
     override fun decode(intent: Intent): IgnitionEvent? = when (intent.action) {
         MtcProtocol.ACTION_BOOTCHECK -> if (intent.getStringExtra(MtcProtocol.EXTRA_CLASS) == MtcProtocol.CLASS_POWEROFF) IgnitionEvent.OFF else null
         MtcProtocol.ACTION_START_APP -> IgnitionEvent.WAKE
-        else -> null
+        // The wake-ups and ACC words the smaller firmwares share: some MTC ROMs send them too.
+        else -> when (AccBroadcasts.decode(intent.action)) {
+            true -> IgnitionEvent.ON
+            false -> IgnitionEvent.OFF
+            null -> null
+        }
     }
 }
 

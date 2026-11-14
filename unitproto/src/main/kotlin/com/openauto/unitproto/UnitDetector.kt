@@ -62,9 +62,12 @@ data class Detection(
 
 /**
  * Names the firmware family a unit runs. Each family has rules: a strong one
- * (worth [STRONG] points) decides alone, weak ones ([WEAK]) need two of a
- * kind. The highest score wins, ties going to the family listed first; a
- * unit that reaches [NEEDED] for no family is [UnitFamily.GENERIC].
+ * (worth [STRONG] points) decides alone, weak ones ([WEAK]) only add to it:
+ * a family wins on at least one strong rule, never on weak ones alone (a
+ * chipset and a property half the market has named plain devices). Where two
+ * clues that are weak apart are the firmware's own together, the pair is a
+ * strong rule. The highest score wins, ties going to the family listed
+ * first; a unit with a strong rule for no family is [UnitFamily.GENERIC].
  *
  * The rules come from the community's reverse engineering of each firmware
  * (docs/unit-platforms.md), so a unit may well match none of them: that is
@@ -90,6 +93,7 @@ object UnitDetector {
 
     private val TS_BUILD = Regex("^TS\\d+\\.")
     private val SUN = Regex("^sun(8i|50i|\\d)", RegexOption.IGNORE_CASE)
+    private val MTC_BOARDS = setOf("rk3188", "rk3368", "rk3399", "px30", "px3", "px5", "px6")
 
     /** The families in the order ties are broken, each with its rules. */
     private val RULES: List<Pair<UnitFamily, List<Rule>>> = listOf(
@@ -121,9 +125,13 @@ object UnitDetector {
             },
             file("/system/priv-app/MTCManager", strong = true),
             file("/system/priv-app/HCTManagerService", strong = true),
-            propIn("ro.board.platform", setOf("rk3188", "rk3368", "rk3399", "px30", "px3", "px5", "px6"), strong = false),
+            propIn("ro.board.platform", MTC_BOARDS, strong = false),
             Rule("class", "android.microntek.CarManager", strong = false) { p ->
                 if (p.hasClass("android.microntek.CarManager")) "present" else null
+            },
+            // Microntek's class in the framework of one of its boards: the firmware's own pair.
+            Rule("class", "android.microntek.CarManager+board", strong = true) { p ->
+                p.prop("ro.board.platform")?.takeIf { b -> p.hasClass("android.microntek.CarManager") && MTC_BOARDS.any { it.equals(b, true) } }
             }
         ),
         UnitFamily.HCN to listOf(
@@ -141,6 +149,10 @@ object UnitDetector {
             pkg("com.tw.carinfoservice", strong = true),
             Rule("build", "model", strong = false) { p -> p.model.takeIf { it.equals("ums512_1h10_Natv", true) } },
             Rule("build", "display", strong = false) { p -> p.display.takeIf { TS_BUILD.containsMatchIn(it) } },
+            // The TS build string on Topway's own board name: the pair names it where its packages are hidden.
+            Rule("build", "model+display", strong = true) { p ->
+                p.display.takeIf { TS_BUILD.containsMatchIn(it) && p.model.equals("ums512_1h10_Natv", true) }
+            },
             pkg("com.zjinnova.zlink", strong = false)
         ),
         UnitFamily.REGLINK to listOf(
@@ -155,7 +167,8 @@ object UnitDetector {
             prop("ro.nwd.start.launcher.by.fw", strong = true)
         ),
         UnitFamily.ALLWINNER to listOf(
-            propLike("ro.board.platform", SUN, strong = false),
+            // The family is the chipset: its board name is its strong rule.
+            propLike("ro.board.platform", SUN, strong = true),
             propLike("ro.hardware", SUN, strong = false),
             propLike("ro.product.board", Regex("allwinner", RegexOption.IGNORE_CASE), strong = false)
         )
@@ -171,8 +184,10 @@ object UnitDetector {
         }
         val found = RULES.map { (family, rules) -> family to evidence(rules, p) }
         val scores = found.associate { (family, ev) -> family to score(ev) }
-        val top = scores.values.maxOrNull() ?: 0
-        val best = if (top >= NEEDED) found.first { (family, _) -> scores.getValue(family) == top } else null
+        // Only a family holding a strong rule can win: two weak clues of one family no longer outvote, or tie, another's strong one.
+        val able = found.filter { (family, ev) -> scores.getValue(family) >= NEEDED && ev.any { it.strong } }
+        val top = able.maxOfOrNull { scores.getValue(it.first) } ?: 0
+        val best = able.firstOrNull { scores.getValue(it.first) == top }
         val others = scores.filter { it.value > 0 && it.key != best?.first }
         return if (best == null) Detection(UnitFamily.GENERIC, 0, found.flatMap { it.second }, others)
         else Detection(best.first, top, best.second, others)

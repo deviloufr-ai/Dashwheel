@@ -7,6 +7,7 @@
     <string name="dash_add">Dodaj</string>
     <string name="dash_selected">Wybrano</string>
     <string name="dash_dismiss">Odrzuć</string>
+    <string name="dash_safe_mode">Tryb awaryjny. Mapy, auto 3D i widżety Androida wyłączone po dwóch nieudanych startach.</string>
     <string name="dash_got_it">Rozumiem</string>
 
     <!-- Top bar -->

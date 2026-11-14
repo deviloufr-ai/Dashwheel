@@ -7,6 +7,7 @@
     <string name="dash_add">Ajouter</string>
     <string name="dash_selected">Sélectionné</string>
     <string name="dash_dismiss">Ignorer</string>
+    <string name="dash_safe_mode">Mode sans échec. Cartes, voiture 3D et widgets Android coupés après deux démarrages ratés.</string>
     <string name="dash_got_it">Compris</string>
 
     <!-- Top bar -->

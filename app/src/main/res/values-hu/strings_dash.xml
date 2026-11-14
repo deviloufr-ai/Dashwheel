@@ -7,6 +7,7 @@
     <string name="dash_add">Hozzáadás</string>
     <string name="dash_selected">Kiválasztva</string>
     <string name="dash_dismiss">Elvetés</string>
+    <string name="dash_safe_mode">Csökkentett mód. A térképek, a 3D autó és az Android widgetek két sikertelen indítás után kikapcsolva.</string>
     <string name="dash_got_it">Értem</string>
 
     <!-- Top bar -->

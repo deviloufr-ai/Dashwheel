@@ -491,9 +491,10 @@ internal class FytPhone(private val toolkit: FytToolkit) : PhoneBridge {
         Log.d(TAG, "phone state $state")
     }
 
-    override fun accept() { module?.cmd(FytBt.C_PICKUP) }
-    override fun decline() { module?.cmd(FytBt.C_HANG) }
-    override fun hangUp() { module?.cmd(FytBt.C_HANG) }
+    // Tapped on the main thread: the binder call waits for the firmware, so it is made on the feed thread.
+    override fun accept() { toolkit.feed.post { module?.cmd(FytBt.C_PICKUP) } }
+    override fun decline() { toolkit.feed.post { module?.cmd(FytBt.C_HANG) } }
+    override fun hangUp() { toolkit.feed.post { module?.cmd(FytBt.C_HANG) } }
 
     /** The number as strs[0] of [FytBt.C_DIAL], the way fyt-dialer places a call. */
     override fun dial(number: String): Boolean {
