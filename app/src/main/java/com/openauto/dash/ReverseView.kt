@@ -62,6 +62,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.graphicsLayer
@@ -681,8 +682,8 @@ private const val FAN_M = 3.5f
 
 /**
  * The car from above, nose up, in its surroundings: behind it a half circle
- * of ground (3.5 m) as the camera films it, fading out at its edge; beside
- * it, dimmer, the ground it has already passed. On the ground: the distances
+ * of ground (3.5 m) as the camera films it, fading out at its edge; all around
+ * it, the ground it has already passed. On the ground: the distances
  * from the bumper (0.5, 1.5 and 3 m), each sensor's reading as a glow where
  * it sees something, what the sensors saw earlier, where the rear corners go
  * with the wheel as it is, and the tailgate's room.
@@ -701,7 +702,7 @@ private fun DrawScope.fromAbove(radar: Radar?, steeringDeg: Float?, look: CarVie
     /** A point of the car (metres right, metres ahead of the rear axle) on screen. */
     fun onScreen(c: Offset) = Offset(cx + c.x * m, axleY - c.y * m)
 
-    if (above.ground) fadedGround(above.pose, cx, tailY, noseY, axleY, m)
+    if (above.ground) fadedGround(above.pose, cx, tailY, axleY, m)
     distanceRings(cx, tailY, m)
     sensorGlows(radar?.rear.orEmpty(), rear = true, ::onScreen, m)
     sensorGlows(radar?.front.orEmpty(), rear = false, ::onScreen, m)
@@ -763,36 +764,17 @@ private fun DrawScope.fromAbove(radar: Radar?, steeringDeg: Float?, look: CarVie
 }
 
 /**
- * The ground: behind the bumper, the half circle the camera sees right now
- * ([GroundMemory.live]), whole, fading out at its edge; beside the car, dimmer,
- * the ground it filmed earlier ([groundMap]), fading out towards the nose and
- * gone behind the bumper, so a picture laid a little off by the car's
- * measured movement never shows under the live one.
+ * The ground: everywhere the car has filmed it on the way back, the remembered
+ * ground ([groundMap]) across the whole view, around and under the car, so the
+ * picture builds up as the car reverses; over it, behind the bumper, the half
+ * circle the camera sees right now ([GroundMemory.live]), fading out at its
+ * edge into the remembered ground. Ground never filmed (ahead of where the
+ * manoeuvre began) stays dark.
  */
-private fun DrawScope.fadedGround(pose: Pose?, cx: Float, tailY: Float, noseY: Float, axleY: Float, m: Float) {
+private fun DrawScope.fadedGround(pose: Pose?, cx: Float, tailY: Float, axleY: Float, m: Float) {
     val bounds = Rect(Offset.Zero, size)
-    if (pose != null) {
-        drawIntoCanvas { it.saveLayer(bounds, Paint()) }
-        groundMap(pose, cx, axleY, m)
-        // Beside the car: the remembered ground, dimmer, gone by the nose and just behind the bumper.
-        val fade = 0.4f * m
-        drawRect(
-            Brush.verticalGradient(
-                0f to Color.Transparent,
-                0.55f * (tailY - noseY) / (tailY + fade - noseY) to Color.Black.copy(alpha = 0.45f),
-                (tailY - noseY) / (tailY + fade - noseY) to Color.Black,
-                1f to Color.Transparent,
-                startY = noseY, endY = tailY + fade
-            ),
-            blendMode = BlendMode.DstIn
-        )
-        // No wider than the half circle.
-        drawRect(
-            Brush.radialGradient(0f to Color.Black, 0.78f to Color.Black, 1f to Color.Transparent, center = Offset(cx, tailY), radius = FAN_M * m),
-            blendMode = BlendMode.DstIn
-        )
-        drawIntoCanvas { it.restore() }
-    }
+    // Only on the radar's panel: the map reaches 8 m around the car.
+    if (pose != null) clipRect { groundMap(pose, cx, axleY, m) }
     drawIntoCanvas { it.saveLayer(bounds, Paint()) }
     val r = GroundMemory.LIVE_M * m
     withTransform({
@@ -876,7 +858,7 @@ private fun DrawScope.groundMap(pose: Pose, cx: Float, axleY: Float, m: Float) {
         rotate(-Math.toDegrees(pose.heading.toDouble()).toFloat(), Offset.Zero)
         scale(m * GroundMemory.RES, m * GroundMemory.RES, Offset.Zero)
     }) {
-        drawImage(GroundMemory.image, alpha = 0.9f)
+        drawImage(GroundMemory.image)
     }
 }
 

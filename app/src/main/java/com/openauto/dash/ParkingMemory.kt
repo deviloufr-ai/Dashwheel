@@ -269,16 +269,31 @@ internal object ObstacleMemory {
     }.minOrNull()
 }
 
+/** [from] (a [GroundMemory.SIZE] square) moved [du] pixels left and [dv] up into [to]: what falls off is gone, what comes in is empty. */
+internal fun shifted(from: IntArray, to: IntArray, du: Int, dv: Int, size: Int = GroundMemory.SIZE) {
+    to.fill(0)
+    for (v in 0 until size) {
+        val sv = v + dv
+        if (sv !in 0 until size) continue
+        val u0 = maxOf(0, -du)
+        val u1 = minOf(size, size - du)
+        if (u1 > u0) System.arraycopy(from, sv * size + u0 + du, to, v * size + u0, u1 - u0)
+    }
+}
+
 /**
  * The ground the camera has filmed, from above: each picture's ground is
- * laid onto a map of the manoeuvre (2.5 cm a pixel, 10 m a side), so what the
+ * laid onto a map of the manoeuvre (2.5 cm a pixel, 16 m a side), so what the
  * car has rolled over stays visible around it. The same ground, compared
  * between pictures, says how far the car moved: finer than the car's speed
  * at walking pace.
  */
 internal object GroundMemory {
     const val RES = 0.025f
-    const val SIZE = 480
+    /** 16 m a side: the whole view from above (about 7.5 x 9.7 m), whichever way the car has turned, while it moves [FOLLOW_M]. */
+    const val SIZE = 640
+    /** How far the car's surroundings may drift from the map's middle before the map follows it. */
+    private const val FOLLOW_M = 1.5f
     /** The ground laid on the map from each picture: a half circle of 3.6 m behind the bumper. */
     private const val FAN_M = 3.6f
     private const val FAN_COLS = (2 * FAN_M / RES).toInt()
@@ -293,6 +308,8 @@ internal object GroundMemory {
     private const val SHIFT_MAX = 18
 
     private val pixels = IntArray(SIZE * SIZE)
+    /** The map while it is moved under the car ([follow]). */
+    private val moving = IntArray(SIZE * SIZE)
     private val bitmap: Bitmap = Bitmap.createBitmap(SIZE, SIZE, Bitmap.Config.ARGB_8888)
     val image: ImageBitmap = bitmap.asImageBitmap()
     /** The world point of the map's top left pixel; x grows right, y up the map. */
@@ -371,13 +388,8 @@ internal object GroundMemory {
 
         val pose = moved(step) ?: return
 
-        // Laid onto the map where the car is now (re-centred when it nears the edge).
-        val centre = pose.toWorld(0f, -CarShape.REAR_OVERHANG - 1.5f)
-        if (abs(centre.x - (originX + SIZE * RES / 2f)) > 3f || abs(centre.y - (originY - SIZE * RES / 2f)) > 3f) {
-            pixels.fill(0)
-            originX = centre.x - SIZE * RES / 2f
-            originY = centre.y + SIZE * RES / 2f
-        }
+        // Laid onto the map where the car is now (the map follows the car, keeping what it holds).
+        follow(pose)
         val fan = fanLookup ?: return
         // The heading's cosine and sine once for the whole fan: 40 000 cells
         // ten times a second cost 1 600 000 trigonometric calls a second before.
@@ -408,12 +420,7 @@ internal object GroundMemory {
      */
     @Synchronized
     fun previewPaint(pose: Pose) {
-        val centre = pose.toWorld(0f, -CarShape.REAR_OVERHANG - 1.5f)
-        if (abs(centre.x - (originX + SIZE * RES / 2f)) > 3f || abs(centre.y - (originY - SIZE * RES / 2f)) > 3f) {
-            pixels.fill(0)
-            originX = centre.x - SIZE * RES / 2f
-            originY = centre.y + SIZE * RES / 2f
-        }
+        follow(pose)
         for (r in 0 until FAN_ROWS step 2) {
             val z = r * RES
             for (c in 0 until FAN_COLS step 2) {
@@ -439,6 +446,23 @@ internal object GroundMemory {
         liveBitmap.setPixels(livePixels, 0, FAN_COLS, 0, 0, FAN_COLS, FAN_ROWS)
         _filled.value = true
         _version.value++
+    }
+
+    /**
+     * Keeps the car's surroundings (around its rear axle) in the middle of the
+     * map: once they drift [FOLLOW_M] from it, the map moves under the car by
+     * whole pixels, the ground already on it kept, so the ground filmed at
+     * the start of a manoeuvre is still beside the car at its end. Before, the
+     * map was wiped instead, every 3 m.
+     */
+    private fun follow(pose: Pose) {
+        val du = Math.round((pose.x - (originX + SIZE * RES / 2f)) / RES)
+        val dv = Math.round(((originY - SIZE * RES / 2f) - pose.y) / RES)
+        if (abs(du) * RES <= FOLLOW_M && abs(dv) * RES <= FOLLOW_M) return
+        shifted(pixels, moving, du, dv)
+        System.arraycopy(moving, 0, pixels, 0, pixels.size)
+        originX += du * RES
+        originY -= dv * RES
     }
 
     private fun madeUpGround(x: Float, y: Float): Int {
