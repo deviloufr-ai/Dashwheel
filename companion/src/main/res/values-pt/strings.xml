@@ -3,7 +3,7 @@
     <string name="app_name">Dashwheel Companheiro</string>
     <string name="service_channel">Ligação ao carro</string>
     <string name="status_off">Partilha desativada</string>
-    <string name="status_waiting">À espera do carro no seu hotspot</string>
+    <string name="status_waiting">À espera do carro</string>
     <string name="status_connected">Ligado a %1$s</string>
     <string name="status_no_car">Nenhum carro associado</string>
     <string name="share_toggle">Partilhar com o carro</string>
@@ -16,8 +16,10 @@
     <string name="step_post_detail">Indica que a ligação ao carro está ativa.</string>
     <string name="step_battery">Otimização da bateria</string>
     <string name="step_battery_detail">Mantém a ligação ativa em viagens longas.</string>
+    <string name="step_bluetooth">Dispositivos próximos</string>
+    <string name="step_bluetooth_detail">Permite que o carro se ligue a este telefone por Bluetooth, sem hotspot.</string>
     <string name="step_hotspot">Hotspot Wi-Fi</string>
-    <string name="step_hotspot_detail">Ative-o e ligue o autorrádio.</string>
+    <string name="step_hotspot_detail">Só se o carro não chegar a este telefone por Bluetooth: ative-o e ligue o autorrádio.</string>
     <string name="step_open_settings">Abrir</string>
     <string name="action_allow">Permitir</string>
     <string name="done">Feito</string>
@@ -26,7 +28,7 @@
     <string name="pair_hint">No Dashwheel, abra Definições → Telefone → Associar um telefone e leia o código apresentado.</string>
     <string name="remove">Remover</string>
     <string name="confirm_title">Permitir %1$s?</string>
-    <string name="confirm_body">Este carro vai mostrar as suas notificações e mensagens e pode responder em seu nome. Só se liga através do seu hotspot.</string>
+    <string name="confirm_body">Este carro vai mostrar as suas notificações e mensagens e pode responder em seu nome. Só se liga por Bluetooth ou através do seu hotspot.</string>
     <string name="confirm_allow">Permitir</string>
     <string name="cancel">Cancelar</string>
     <string name="remove_title">Remover %1$s?</string>
@@ -93,7 +95,7 @@
     <string name="status_unavailable">Não foi possível iniciar a ligação</string>
     <string name="status_unavailable_detail">Desative e volte a ativar a partilha. Se continuar a falhar, reinicie o telemóvel.</string>
     <string name="status_off_detail">O carro não recebe nada deste telemóvel até voltar a ativar.</string>
-    <string name="status_waiting_detail">Ative o hotspot do telemóvel e ligue o autorrádio a ele.</string>
+    <string name="status_waiting_detail">Emparelhe este telefone com o carro por Bluetooth, ou ative o hotspot e ligue o autorrádio.</string>
     <string name="status_connected_detail">Notificações, chamadas e agenda aparecem no ecrã do carro.</string>
     <string name="pair_another">Associar outro carro</string>
     <string name="permission_in_settings">O Android já não pergunta: permita em Info da app → Autorizações.</string>

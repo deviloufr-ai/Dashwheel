@@ -1,16 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Phone link: the driver's phone over its hotspot, with the Dashwheel Companion app. -->
+    <!-- Phone link: the driver's phone over Bluetooth or its hotspot, with the Dashwheel Companion app. -->
     <string name="settings_section_phone">Phone</string>
     <string name="phone_from_phone">From your phone</string>
     <string name="phone_status_connected">Connected to %1$s</string>
     <string name="phone_status_connected_detail">Its notifications and messages show in the Notifications widget.</string>
-    <string name="phone_status_searching">Looking for your phone on Wi-Fi</string>
-    <string name="phone_status_searching_detail">Turn on the phone\'s hotspot and connect this head unit to it; Dashwheel Companion does the rest.</string>
+    <string name="phone_status_searching">Looking for your phone</string>
+    <string name="phone_status_searching_detail">Pair the phone with this head unit over Bluetooth, or connect this head unit to its hotspot; Dashwheel Companion does the rest.</string>
+    <string name="phone_status_searching_bluetooth_detail">Pair the phone with this head unit over Bluetooth; Dashwheel Companion does the rest.</string>
+    <string name="phone_status_searching_wifi_detail">Turn on the phone\'s hotspot and connect this head unit to it; Dashwheel Companion does the rest.</string>
     <string name="phone_status_unpaired">No phone paired</string>
     <string name="phone_status_unpaired_detail">Pair your phone to see its messages here and answer them.</string>
     <string name="phone_pair">Pair a phone</string>
     <string name="phone_pair_detail">Shows the code to scan with Dashwheel Companion</string>
+    <string name="phone_carrier">Connect over</string>
+    <string name="phone_carrier_auto">Automatic</string>
+    <string name="phone_carrier_bluetooth">Bluetooth</string>
+    <string name="phone_carrier_wifi">Hotspot</string>
+    <string name="phone_carrier_auto_detail">Bluetooth first, the phone\'s hotspot if Bluetooth finds nobody</string>
+    <string name="phone_carrier_bluetooth_detail">No hotspot needed, but big sends like the car picture are slower</string>
+    <string name="phone_carrier_wifi_detail">Faster, but the phone\'s hotspot must be on</string>
     <string name="phone_gps">Use the phone\'s GPS</string>
     <string name="phone_gps_detail">When the phone is linked, its GPS stands in for this unit\'s: more satellites, a position in seconds</string>
     <string name="phone_unit_notifs">Unit notifications</string>
@@ -26,7 +35,9 @@
     <string name="phone_forget_body">Its messages and calls stop showing here. Pairing again needs a new code.</string>
     <string name="phone_pair_title">Pair a phone</string>
     <string name="phone_pair_step1">1. Install Dashwheel Companion on the phone: scan this code with its camera.</string>
-    <string name="phone_pair_step2">2. Turn on the phone\'s Wi-Fi hotspot and connect this head unit to it.</string>
+    <string name="phone_pair_step2">2. Pair the phone with this head unit over Bluetooth, or connect this head unit to the phone\'s Wi-Fi hotspot.</string>
+    <string name="phone_pair_step2_bluetooth">2. Pair the phone with this head unit over Bluetooth.</string>
+    <string name="phone_pair_step2_wifi">2. Turn on the phone\'s Wi-Fi hotspot and connect this head unit to it.</string>
     <string name="phone_pair_step3">3. In the app, tap Pair a car and scan this code.</string>
     <string name="phone_pair_waiting">Waiting for the phone…</string>
     <string name="phone_pair_done">Paired with %1$s</string>

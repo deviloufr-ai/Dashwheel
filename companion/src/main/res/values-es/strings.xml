@@ -3,7 +3,7 @@
     <string name="app_name">Dashwheel Compañero</string>
     <string name="service_channel">Conexión con el coche</string>
     <string name="status_off">Compartir está desactivado</string>
-    <string name="status_waiting">Esperando al coche en tu punto de acceso</string>
+    <string name="status_waiting">Esperando al coche</string>
     <string name="status_connected">Conectado a %1$s</string>
     <string name="status_no_car">Aún no hay ningún coche vinculado</string>
     <string name="share_toggle">Compartir con el coche</string>
@@ -16,8 +16,10 @@
     <string name="step_post_detail">Indica que la conexión con el coche está activa.</string>
     <string name="step_battery">Optimización de batería</string>
     <string name="step_battery_detail">Mantiene la conexión activa en viajes largos.</string>
+    <string name="step_bluetooth">Dispositivos cercanos</string>
+    <string name="step_bluetooth_detail">Permite que el coche se conecte a este teléfono por Bluetooth, sin punto de acceso.</string>
     <string name="step_hotspot">Punto de acceso Wi-Fi</string>
-    <string name="step_hotspot_detail">Actívalo y conecta la radio del coche.</string>
+    <string name="step_hotspot_detail">Solo si el coche no llega a este teléfono por Bluetooth: actívalo y conecta la radio del coche.</string>
     <string name="step_open_settings">Abrir</string>
     <string name="action_allow">Permitir</string>
     <string name="done">Hecho</string>
@@ -26,7 +28,7 @@
     <string name="pair_hint">En Dashwheel, abre Ajustes → Teléfono → Vincular un teléfono y escanea el código que aparece.</string>
     <string name="remove">Quitar</string>
     <string name="confirm_title">¿Permitir %1$s?</string>
-    <string name="confirm_body">Este coche mostrará tus notificaciones y mensajes, y podrá responder en tu nombre. Solo se conecta a través de tu punto de acceso.</string>
+    <string name="confirm_body">Este coche mostrará tus notificaciones y mensajes, y podrá responder en tu nombre. Solo se conecta por Bluetooth o a través de tu punto de acceso.</string>
     <string name="confirm_allow">Permitir</string>
     <string name="cancel">Cancelar</string>
     <string name="remove_title">¿Quitar %1$s?</string>
@@ -93,7 +95,7 @@
     <string name="status_unavailable">No se pudo iniciar la conexión</string>
     <string name="status_unavailable_detail">Desactiva y vuelve a activar el uso compartido. Si sigue fallando, reinicia el teléfono.</string>
     <string name="status_off_detail">El coche no recibe nada de este teléfono hasta que lo vuelvas a activar.</string>
-    <string name="status_waiting_detail">Activa el punto de acceso del teléfono y conecta la radio a él.</string>
+    <string name="status_waiting_detail">Vincula este teléfono con el coche por Bluetooth, o activa su punto de acceso y conecta la radio a él.</string>
     <string name="status_connected_detail">Notificaciones, llamadas y agenda se ven en la pantalla del coche.</string>
     <string name="pair_another">Vincular otro coche</string>
     <string name="permission_in_settings">Android ya no lo pide: permítelo en Info de la app → Permisos.</string>

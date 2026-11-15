@@ -3,7 +3,7 @@
     <string name="app_name">Dashwheel Companion</string>
     <string name="service_channel">Połączenie z autem</string>
     <string name="status_off">Udostępnianie wyłączone</string>
-    <string name="status_waiting">Czekam na auto w hotspocie</string>
+    <string name="status_waiting">Czekam na auto</string>
     <string name="status_connected">Połączono z %1$s</string>
     <string name="status_no_car">Brak sparowanego auta</string>
     <string name="share_toggle">Udostępniaj autu</string>
@@ -16,8 +16,10 @@
     <string name="step_post_detail">Pokazuje, że połączenie z autem działa.</string>
     <string name="step_battery">Optymalizacja baterii</string>
     <string name="step_battery_detail">Utrzymuje połączenie podczas długiej jazdy.</string>
+    <string name="step_bluetooth">Urządzenia w pobliżu</string>
+    <string name="step_bluetooth_detail">Pozwala autu łączyć się z tym telefonem przez Bluetooth, bez hotspotu.</string>
     <string name="step_hotspot">Hotspot Wi-Fi</string>
-    <string name="step_hotspot_detail">Włącz go i połącz z nim radio samochodowe.</string>
+    <string name="step_hotspot_detail">Tylko gdy auto nie łączy się z tym telefonem przez Bluetooth: włącz go i połącz z nim radio samochodowe.</string>
     <string name="step_open_settings">Otwórz</string>
     <string name="action_allow">Zezwól</string>
     <string name="done">Gotowe</string>
@@ -26,7 +28,7 @@
     <string name="pair_hint">W Dashwheel otwórz Ustawienia → Telefon → Sparuj telefon, a potem zeskanuj wyświetlony kod.</string>
     <string name="remove">Usuń</string>
     <string name="confirm_title">Zezwolić na %1$s?</string>
-    <string name="confirm_body">To auto będzie pokazywać powiadomienia i wiadomości oraz może odpowiadać w Twoim imieniu. Łączy się tylko przez Twój hotspot.</string>
+    <string name="confirm_body">To auto będzie pokazywać powiadomienia i wiadomości oraz może odpowiadać w Twoim imieniu. Łączy się tylko przez Bluetooth lub Twój hotspot.</string>
     <string name="confirm_allow">Zezwól</string>
     <string name="cancel">Anuluj</string>
     <string name="remove_title">Usunąć %1$s?</string>
@@ -93,7 +95,7 @@
     <string name="status_unavailable">Nie udało się uruchomić połączenia</string>
     <string name="status_unavailable_detail">Wyłącz i włącz udostępnianie. Jeśli dalej nie działa, uruchom telefon ponownie.</string>
     <string name="status_off_detail">Auto nie dostaje nic z tego telefonu, dopóki go nie włączysz.</string>
-    <string name="status_waiting_detail">Włącz hotspot w telefonie i połącz z nim radio.</string>
+    <string name="status_waiting_detail">Sparuj ten telefon z autem przez Bluetooth albo włącz hotspot i połącz z nim radio.</string>
     <string name="status_connected_detail">Powiadomienia, połączenia i kalendarz widać na ekranie auta.</string>
     <string name="pair_another">Sparuj kolejne auto</string>
     <string name="permission_in_settings">Android już nie pyta: zezwól w Informacjach o aplikacji → Uprawnienia.</string>

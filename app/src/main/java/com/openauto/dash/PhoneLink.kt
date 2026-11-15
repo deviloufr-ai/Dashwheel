@@ -116,11 +116,30 @@ import java.util.concurrent.atomic.AtomicReference
  * ([PhoneLists]), calls a favourite through the phone, and starts guidance to
  * a place shared on the phone ([Destination]).
  *
- * With no hotspot (the unit has its own SIM), the same link runs over
- * Bluetooth: the phone offers the link as an RFCOMM service, and this side dials
- * the phones the unit is Bluetooth-paired with. The channel, the pairing secret
- * and everything on top are the same; only the carrier differs.
+ * The same link also runs over Bluetooth: the phone offers the link as an
+ * RFCOMM service, and this side dials the phones the unit is Bluetooth-paired
+ * with. The channel, the pairing secret and everything on top are the same;
+ * only the carrier differs. Which one is looked for, and in which order, is the
+ * driver's choice ([LinkCarrier]): by default Bluetooth first, so no hotspot
+ * is needed, and the hotspot when Bluetooth finds nobody.
  */
+
+/** Which way the link reaches the phone (Settings, Phone, Connect over). */
+enum class LinkCarrier {
+    /** Bluetooth first; the phone's hotspot when Bluetooth finds nobody. */
+    AUTO,
+    BLUETOOTH,
+    /** The phone's Wi-Fi hotspot only. */
+    WIFI;
+
+    /** The carriers to look for the phone on, in order, [AUTO] spelt out. */
+    internal fun tries(): List<LinkCarrier> = if (this == AUTO) listOf(BLUETOOTH, WIFI) else listOf(this)
+
+    companion object {
+        /** A stored name back; an unknown or missing one is [AUTO]. */
+        internal fun parse(name: String?): LinkCarrier = entries.firstOrNull { it.name == name } ?: AUTO
+    }
+}
 
 /** A phone the driver paired by scanning the QR code with the companion app. */
 data class PairedPhone(
@@ -171,7 +190,7 @@ internal data class PhoneLists(
 sealed interface PhoneLinkState {
     /** No phone paired. */
     data object Unpaired : PhoneLinkState
-    /** Paired, waiting for the phone's hotspot and companion app. */
+    /** Paired, waiting for the phone (over Bluetooth or its hotspot) and its companion app. */
     data object Searching : PhoneLinkState
     data class Connected(val phoneName: String) : PhoneLinkState
 }
@@ -180,6 +199,7 @@ object PhoneLink {
     private const val TAG = "PhoneLink"
     private const val PREFS = "phone_link"
     private const val KEY_PHONES = "phones"
+    private const val KEY_CARRIER = "carrier"
     private const val CONNECT_TIMEOUT_MS = 3_000
     /** Bluetooth's connect() has no timeout of its own: a phone that is off or far away would hold it for ~20 s. */
     private const val BLUETOOTH_CONNECT_TIMEOUT_MS = 8_000L
@@ -237,6 +257,13 @@ object PhoneLink {
 
     private val _phones = MutableStateFlow<List<PairedPhone>>(emptyList())
     val phones: StateFlow<List<PairedPhone>> = _phones
+
+    private val _carrier = MutableStateFlow(LinkCarrier.AUTO)
+    /** Which way the phone is looked for ([LinkCarrier]). */
+    val carrier: StateFlow<LinkCarrier> = _carrier
+
+    /** The open link runs over Bluetooth (rather than the hotspot). */
+    @Volatile private var sessionOverBluetooth = false
 
     /** The pairing whose QR code is on screen, until a phone uses it. */
     private val _pending = MutableStateFlow<PairingOffer?>(null)
@@ -305,6 +332,7 @@ object PhoneLink {
             started = true
         }
         _phones.value = readPhones(app)
+        _carrier.value = LinkCarrier.parse(app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_CARRIER, null))
         refreshIdleState()
         app.getSystemService(ConnectivityManager::class.java)?.registerDefaultNetworkCallback(
             object : ConnectivityManager.NetworkCallback() {
@@ -351,6 +379,19 @@ object PhoneLink {
         _pending.value = offer
         wake.update { it + 1 }
         return offer
+    }
+
+    /**
+     * Looks for the phone over [carrier] from now on. A link up over a carrier no
+     * longer allowed ends, and the phone is looked for again the new way at once.
+     */
+    fun setCarrier(context: Context, carrier: LinkCarrier) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_CARRIER, carrier.name).apply()
+        _carrier.value = carrier
+        val current = session
+        val carriedBy = if (sessionOverBluetooth) LinkCarrier.BLUETOOTH else LinkCarrier.WIFI
+        if (current != null && carriedBy !in carrier.tries()) current.close()
+        wake.update { it + 1 }
     }
 
     fun cancelPairing() {
@@ -480,14 +521,21 @@ object PhoneLink {
             // phone on three trips (its companion never saw this car), and the
             // pairing was then dropped for good while its own phone still held it.
             val candidates = listOfNotNull(pending?.let { PairedPhone(it.id, it.secret, "", 0) }) + _phones.value
-            val gateway = if (candidates.isEmpty()) null else hotspotGateway(context)
-            var answered = gateway != null && dial(context, gateway, candidates, pending?.id)
-            if (gateway == null && candidates.isNotEmpty()) note("no Wi-Fi gateway: not on a phone hotspot")
-            // No hotspot, or nobody on it: the phone may be reachable over Bluetooth.
+            var gateway: InetAddress? = null
             var bluetooth = Reach.UNAVAILABLE
-            if (!answered && candidates.isNotEmpty()) {
-                bluetooth = dialBluetooth(context, candidates, pending?.id)
-                answered = bluetooth == Reach.ANSWERED
+            var answered = false
+            // Each carrier the driver allows, in order, until a phone answers on one.
+            if (candidates.isNotEmpty()) for (way in _carrier.value.tries()) {
+                if (answered) break
+                if (way == LinkCarrier.BLUETOOTH) {
+                    bluetooth = dialBluetooth(context, candidates, pending?.id)
+                    answered = bluetooth == Reach.ANSWERED
+                } else {
+                    gateway = hotspotGateway(context)
+                    if (gateway != null) answered = dial(context, gateway, candidates, pending?.id)
+                    // After a Bluetooth try, its own line says more than this one: kept on screen.
+                    else if (bluetooth == Reach.UNAVAILABLE) note("no Wi-Fi gateway: not on a phone hotspot")
+                }
             }
             // Tries that cost nothing (no Wi-Fi gateway, Bluetooth off) stay quick; ones that reached out for nobody back off.
             val free = gateway == null && bluetooth == Reach.UNAVAILABLE
@@ -667,6 +715,7 @@ object PhoneLink {
         context: Context, gateway: InetAddress?, link: LinkSession, phone: PairedPhone, isPending: Boolean, idle: IdleGuard? = null
     ) {
         if (!link.sendOrClose(Hello(unitName(context), BuildConfig.VERSION_NAME))) return
+        sessionOverBluetooth = gateway == null
         session = link
         linksOpened.incrementAndGet()
         // Each link's start and end go in the unit log, with why it ended: the drops testers see (issue #118)
@@ -697,9 +746,9 @@ object PhoneLink {
                 }
             }
         }
-        // While a pairing code is on screen, keep asking the phone whether it now knows it.
-        // (Over Bluetooth there is no second link to try the code on: a new phone waits for this one to end.)
-        val prober = if (isPending || gateway == null) null else scope.launch { probePending(gateway, link) }
+        // While a pairing code is on screen, keep asking the phone whether it now knows it. Over
+        // Bluetooth that is on the hotspot, when there is one; otherwise a new phone waits for this link to end.
+        val prober = if (isPending) null else scope.launch { probePending(context, gateway, link) }
         // Where the car stops, for the phone's "where's my car".
         val whereabouts = scope.launch { CarWhereabouts.report(context) { send(it) } }
         // The drives it logged, and the one under way, for the phone's drive journal.
@@ -762,10 +811,16 @@ object PhoneLink {
      * Once the phone accepts the pending pairing, its link takes over from
      * [current] (the phone keeps one link at a time anyway).
      */
-    private suspend fun probePending(gateway: InetAddress, current: LinkSession) {
+    private suspend fun probePending(context: Context, knownGateway: InetAddress?, current: LinkSession) {
         while (true) {
             val offer = _pending.filterNotNull().first()
             val phone = PairedPhone(offer.id, offer.secret, "", 0)
+            // A link over Bluetooth has no second link to try the code on: the new phone may be on the hotspot.
+            val gateway = knownGateway ?: hotspotGateway(context)?.takeIf { LinkCarrier.WIFI in _carrier.value.tries() }
+            if (gateway == null) {
+                delay(RETRY_PAIRING_MS)
+                continue
+            }
             val link = try {
                 connect(gateway, phone)
             } catch (e: IOException) {

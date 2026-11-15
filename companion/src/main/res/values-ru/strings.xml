@@ -3,7 +3,7 @@
     <string name="app_name">Dashwheel Companion</string>
     <string name="service_channel">Связь с автомобилем</string>
     <string name="status_off">Передача выключена</string>
-    <string name="status_waiting">Ожидание автомобиля в вашей точке доступа</string>
+    <string name="status_waiting">Ожидание автомобиля</string>
     <string name="status_connected">Подключено к %1$s</string>
     <string name="status_no_car">Нет сопряжённых автомобилей</string>
     <string name="share_toggle">Передавать в автомобиль</string>
@@ -16,8 +16,10 @@
     <string name="step_post_detail">Показывает, что связь с автомобилем работает.</string>
     <string name="step_battery">Оптимизация батареи</string>
     <string name="step_battery_detail">Сохраняет связь в долгих поездках.</string>
+    <string name="step_bluetooth">Устройства поблизости</string>
+    <string name="step_bluetooth_detail">Позволяет автомобилю подключаться к этому телефону по Bluetooth, без точки доступа.</string>
     <string name="step_hotspot">Точка доступа Wi-Fi</string>
-    <string name="step_hotspot_detail">Включите её и подключите к ней магнитолу.</string>
+    <string name="step_hotspot_detail">Только если автомобиль не находит этот телефон по Bluetooth: включите её и подключите к ней магнитолу.</string>
     <string name="step_open_settings">Открыть</string>
     <string name="action_allow">Разрешить</string>
     <string name="done">Готово</string>
@@ -26,7 +28,7 @@
     <string name="pair_hint">В Dashwheel откройте Настройки → Телефон → Сопрячь телефон, затем отсканируйте показанный код.</string>
     <string name="remove">Удалить</string>
     <string name="confirm_title">Разрешить %1$s?</string>
-    <string name="confirm_body">Этот автомобиль будет показывать ваши уведомления и сообщения и сможет отвечать от вашего имени. Он подключается только через вашу точку доступа.</string>
+    <string name="confirm_body">Этот автомобиль будет показывать ваши уведомления и сообщения и сможет отвечать от вашего имени. Он подключается только по Bluetooth или через вашу точку доступа.</string>
     <string name="confirm_allow">Разрешить</string>
     <string name="cancel">Отмена</string>
     <string name="remove_title">Удалить %1$s?</string>
@@ -94,7 +96,7 @@
     <string name="status_unavailable">Не удалось установить связь</string>
     <string name="status_unavailable_detail">Выключите и снова включите передачу. Если не помогает, перезапустите телефон.</string>
     <string name="status_off_detail">Автомобиль ничего не получает с этого телефона, пока передача выключена.</string>
-    <string name="status_waiting_detail">Включите точку доступа на телефоне и подключите к ней магнитолу.</string>
+    <string name="status_waiting_detail">Сопрягите этот телефон с автомобилем по Bluetooth или включите точку доступа и подключите к ней магнитолу.</string>
     <string name="status_connected_detail">Уведомления, звонки и календарь отображаются на экране автомобиля.</string>
     <string name="pair_another">Сопрячь другой автомобиль</string>
     <string name="permission_in_settings">Android больше не спрашивает: разрешите это в О приложении → Разрешения.</string>

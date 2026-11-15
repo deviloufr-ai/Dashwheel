@@ -3,7 +3,7 @@
     <string name="app_name">Dashwheel Companion</string>
     <string name="service_channel">Araç bağlantısı</string>
     <string name="status_off">Paylaşım kapalı</string>
-    <string name="status_waiting">Erişim noktanızda araç bekleniyor</string>
+    <string name="status_waiting">Araç bekleniyor</string>
     <string name="status_connected">Bağlı: %1$s</string>
     <string name="status_no_car">Henüz eşleştirilmiş araç yok</string>
     <string name="share_toggle">Araçla paylaş</string>
@@ -16,8 +16,10 @@
     <string name="step_post_detail">Araçla bağlantının çalıştığını gösterir.</string>
     <string name="step_battery">Pil optimizasyonu</string>
     <string name="step_battery_detail">Uzun sürüşlerde bağlantıyı canlı tutar.</string>
+    <string name="step_bluetooth">Yakındaki cihazlar</string>
+    <string name="step_bluetooth_detail">Aracın bu telefona erişim noktası olmadan Bluetooth ile bağlanmasını sağlar.</string>
     <string name="step_hotspot">Wi-Fi erişim noktası</string>
-    <string name="step_hotspot_detail">Açın ve ana üniteyi ona bağlayın.</string>
+    <string name="step_hotspot_detail">Yalnızca araç bu telefona Bluetooth ile ulaşamıyorsa: açın ve ana üniteyi ona bağlayın.</string>
     <string name="step_open_settings">Aç</string>
     <string name="action_allow">İzin ver</string>
     <string name="done">Tamam</string>
@@ -26,7 +28,7 @@
     <string name="pair_hint">Dashwheel\'de Ayarlar → Telefon → Telefon eşleştir\'i açın, sonra gösterdiği kodu tarayın.</string>
     <string name="remove">Kaldır</string>
     <string name="confirm_title">%1$s için izin verilsin mi?</string>
-    <string name="confirm_body">Bu araç bildirimlerinizi ve mesajlarınızı gösterecek ve sizin adınıza yanıt verebilecek. Yalnızca erişim noktanız üzerinden bağlanır.</string>
+    <string name="confirm_body">Bu araç bildirimlerinizi ve mesajlarınızı gösterecek ve sizin adınıza yanıt verebilecek. Yalnızca Bluetooth veya erişim noktanız üzerinden bağlanır.</string>
     <string name="confirm_allow">İzin ver</string>
     <string name="cancel">İptal</string>
     <string name="remove_title">%1$s kaldırılsın mı?</string>
@@ -94,7 +96,7 @@
     <string name="status_unavailable">Bağlantı başlatılamadı</string>
     <string name="status_unavailable_detail">Paylaşımı kapatıp yeniden açın. Sürekli başarısız olursa telefonu yeniden başlatın.</string>
     <string name="status_off_detail">Yeniden açana kadar araç bu telefondan hiçbir şey almaz.</string>
-    <string name="status_waiting_detail">Telefonun erişim noktasını açın ve ana üniteyi ona bağlayın.</string>
+    <string name="status_waiting_detail">Bu telefonu Bluetooth ile araçla eşleştirin veya erişim noktasını açıp ana üniteyi ona bağlayın.</string>
     <string name="status_connected_detail">Bildirimler, aramalar ve ajandanız araç ekranında gösterilir.</string>
     <string name="pair_another">Başka bir araç eşleştir</string>
     <string name="permission_in_settings">Android artık sormuyor: Uygulama bilgileri\'nde İzinler altından izin verin.</string>
