@@ -61,4 +61,31 @@
     <string name="mine_vw_oil">Temperatura do óleo</string>
     <string name="mine_vw_torque">Binário</string>
     <string name="mine_vw_power">Potência</string>
+    <string name="mine_kind_can">Do barramento CAN</string>
+    <string name="mine_can_id">ID CAN</string>
+    <string name="mine_hint_can_id">O ID da trama em hexadecimal: 3 dígitos, ou 8 para um ID de 29 bits. Definições, Carro, Adaptador CAN USB lista os ID ouvidos.</string>
+    <string name="mine_hint_can">As letras A a H são os bytes de dados da trama, por exemplo (C*256+D)/4. bit(A, 1) é o bit 1 de A.</string>
+    <string name="mine_can_not_receiving">O adaptador CAN ainda não ouve nada.</string>
+    <string name="mine_err_can_id">ID CAN: 3 dígitos hexadecimais até 7FF, ou 8 até 1FFFFFFF.</string>
+    <string name="mine_err_feed_taken">Outra leitura já aparece assim.</string>
+    <string name="mine_feeds">Aparece como</string>
+    <string name="mine_feeds_detail">Os mostradores, o estado do carro e os alertas mostram-na como a do carro</string>
+    <string name="mine_feeds_none">Nada</string>
+    <string name="mine_feeds_on_off">Ligado quando o valor não é 0, por exemplo bit(A, 1) ou A == 2.</string>
+    <string name="mine_feeds_units" formatted="false">Indique-a em km/h, rpm, %, °C, km, V ou L/100 km.</string>
+    <string name="mine_feed_speed">Velocidade</string>
+    <string name="mine_feed_rpm">Rotação do motor</string>
+    <string name="mine_feed_throttle">Acelerador</string>
+    <string name="mine_feed_load">Carga do motor</string>
+    <string name="mine_feed_coolant">Temperatura do líquido de arrefecimento</string>
+    <string name="mine_feed_intake">Temperatura do ar de admissão</string>
+    <string name="mine_feed_fuel">Nível de combustível</string>
+    <string name="mine_feed_range">Autonomia</string>
+    <string name="mine_feed_volts">Tensão da bateria</string>
+    <string name="mine_feed_outside">Temperatura exterior</string>
+    <string name="mine_feed_consumption">Consumo</string>
+    <string name="mine_feed_handbrake">Travão de estacionamento</string>
+    <string name="mine_feed_left">Pisca esquerdo</string>
+    <string name="mine_feed_right">Pisca direito</string>
+    <string name="mine_feed_belt">Cinto do condutor desapertado</string>
 </resources>

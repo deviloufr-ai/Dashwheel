@@ -14,6 +14,9 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.util.Locale
 import kotlinx.coroutines.flow.first
+import com.openauto.dash.vehicle.Source
+import com.openauto.dash.vehicle.SourceKind
+import com.openauto.dash.vehicle.Vehicle
 
 /*
  * The driver's own readings: any OBD request typed in with the formula that
@@ -24,8 +27,8 @@ import kotlinx.coroutines.flow.first
  * numbers and want to put them on the screen themselves.
  */
 
-/** A request to the car, a formula over the other readings, or a formula added up over time. */
-enum class MyReadingKind { PID, FORMULA, TOTAL }
+/** A request to the car, a formula over the other readings, a formula added up over time, or a frame heard on the CAN bus. */
+enum class MyReadingKind { PID, FORMULA, TOTAL, CAN }
 
 /**
  * One reading. [key] is its name in formulas ("lpg_lh"). For [MyReadingKind.PID]
@@ -33,7 +36,10 @@ enum class MyReadingKind { PID, FORMULA, TOTAL }
  * as the regular OBD polls) and [formula] reads the answer's bytes A, B, C...;
  * [replyAddress] and [session] work as in the advanced readings (PidCandidate).
  * For FORMULA, [formula] works over the other names; for TOTAL, the same, its
- * value per hour added up (L/h becomes litres, km/h kilometres).
+ * value per hour added up (L/h becomes litres, km/h kilometres). For CAN,
+ * [request] is the frame's id ("408", 8 digits for a 29-bit one), heard
+ * through the USB CAN adapter ([UsbCan]), and [formula] reads its data bytes.
+ * [feeds]: the car element its value stands for on the vehicle bus.
  */
 data class MyReading(
     val key: String,
@@ -46,11 +52,30 @@ data class MyReading(
     val replyAddress: String? = null,
     val session: String? = null,
     val decimals: Int = 1,
-    val onTile: Boolean = true
+    val onTile: Boolean = true,
+    val feeds: ReadingFeed? = null
 ) {
     fun toJson(): JSONObject = JSONObject().put("key", key).put("name", name).put("unit", unit).put("kind", kind.name)
         .put("formula", formula).put("request", request).putOpt("header", header).putOpt("reply", replyAddress)
-        .putOpt("session", session).put("decimals", decimals).put("tile", onTile)
+        .putOpt("session", session).put("decimals", decimals).put("tile", onTile).putOpt("feeds", feeds?.name)
+
+    /** The CAN frame id it reads, null when it isn't a CAN reading or the id can't be one. */
+    val canId: Int?
+        get() {
+            if (kind != MyReadingKind.CAN) return null
+            val id = request.toLongOrNull(16) ?: return null
+            return when (request.length) {
+                3 -> id.takeIf { it <= 0x7FF }?.toInt()
+                8 -> id.takeIf { it <= 0x1FFFFFFF }?.toInt()
+                else -> null
+            }
+        }
+
+    /** Its formula reads bytes A..H: a request's answer or a frame's data. */
+    val readsBytes: Boolean get() = kind == MyReadingKind.PID || kind == MyReadingKind.CAN
+
+    /** A 29-bit id: typed with 8 digits. */
+    val canExtended: Boolean get() = request.length == 8
 
     /** The request as built for [PidCandidate], so the replies are read the way the advanced readings read theirs. */
     val replyHeader: String
@@ -66,7 +91,8 @@ data class MyReading(
             return MyReading(
                 key, o.optString("name", key), o.optString("unit"), kind, o.optString("formula"), o.optString("request"),
                 o.optString("header").takeIf { it.isNotBlank() }, o.optString("reply").takeIf { it.isNotBlank() },
-                o.optString("session").takeIf { it.isNotBlank() }, o.optInt("decimals", 1).coerceIn(0, 3), o.optBoolean("tile", true)
+                o.optString("session").takeIf { it.isNotBlank() }, o.optInt("decimals", 1).coerceIn(0, 3), o.optBoolean("tile", true),
+                ReadingFeed.of(o.optString("feeds").takeIf { it.isNotBlank() })
             )
         }
     }
@@ -81,7 +107,9 @@ enum class MyReadingProblem(@StringRes val text: Int) {
     BAD_ADDRESS(R.string.mine_err_address),
     BAD_SESSION(R.string.mine_err_session),
     BAD_FORMULA(R.string.mine_err_syntax),
-    NO_BYTES(R.string.mine_err_no_bytes)
+    NO_BYTES(R.string.mine_err_no_bytes),
+    BAD_CAN_ID(R.string.mine_err_can_id),
+    FEED_TAKEN(R.string.mine_err_feed_taken)
 }
 
 /** The checks and names, without Android. Pure, unit-tested. */
@@ -129,10 +157,20 @@ object MyReadingRules {
             // Programming sessions (02, 85) can stop a running engine: the advanced readings' safe list only.
             if (r.session != null && (r.session !in PidProbe.SAFE_SESSIONS || r.header == null)) return MyReadingProblem.BAD_SESSION
         }
+        if (r.kind == MyReadingKind.CAN && r.canId == null) return MyReadingProblem.BAD_CAN_ID
         if (Formula.names(r.formula) == null) return MyReadingProblem.BAD_FORMULA
-        if (r.kind != MyReadingKind.PID && Formula.usesBytes(r.formula)) return MyReadingProblem.NO_BYTES
+        if (!r.readsBytes && Formula.usesBytes(r.formula)) return MyReadingProblem.NO_BYTES
+        // Two readings feeding one element would take turns on the screen.
+        if (r.feeds != null && others.any { it.feeds == r.feeds }) return MyReadingProblem.FEED_TAKEN
         return null
     }
+
+    /** What each fed element is now: the value of the reading that feeds it, where it has one. */
+    fun feeds(readings: List<MyReading>, values: Map<String, Double>): Map<ReadingFeed, Double> =
+        readings.mapNotNull { r -> r.feeds?.let { f -> values[r.key]?.let { f to it } } }.toMap()
+
+    /** [frame] read by [r] (a CAN reading of that id): its value, or why there is none. */
+    fun read(r: MyReading, frame: CanFrame): Formula.Result = Formula.evaluate(r.formula, frame.bytes, NO_NAMES)
 
     /** The names [formula] reads that are neither built in nor one of [readings]. */
     fun unknownNames(formula: String, readings: List<MyReading>): List<String> {
@@ -155,7 +193,7 @@ object MyReadingRules {
             val r = byKey[key] ?: return builtIn[key]
             if (!busy.add(key)) return null
             val v = when (r.kind) {
-                MyReadingKind.PID -> pids[key]
+                MyReadingKind.PID, MyReadingKind.CAN -> pids[key]
                 MyReadingKind.TOTAL -> totals[key] ?: 0.0
                 MyReadingKind.FORMULA -> Formula.evaluate(r.formula, null, names).value
             }
@@ -246,6 +284,8 @@ object MyReadings {
     private const val TIMEOUT_MS = 1_500L
     /** A car answer older than this is no longer shown. */
     private const val STALE_MS = 15_000L
+    /** A CAN frame older than this: the bus went quiet (most frames come several times a second). */
+    private const val CAN_STALE_MS = 5_000L
     /** A gap longer than this between two ticks (the unit asleep) adds nothing to the totals. */
     private const val MAX_GAP_MS = 10_000L
     private const val SAVE_TOTALS_MS = 30_000L
@@ -260,8 +300,22 @@ object MyReadings {
     /** Each reading's value now, by key; a reading with none is left out. */
     val values: StateFlow<Map<String, Double>> = _values.asStateFlow()
 
-    /** The car's last answer to a request; [demo]: made up by the demo, never counted once it ends. */
-    private class Answer(val value: Double, val at: Long, val demo: Boolean = false)
+    /** The car's last answer to a request or the last frame's value; [demo]: made up by the demo, never counted once it ends. */
+    private class Answer(val value: Double, val at: Long, val demo: Boolean = false, val can: Boolean = false)
+
+    /**
+     * The readings that feed a car element, on the vehicle bus: the driver's
+     * own, so they outrank the car's built-in decoding (LEARNED), as taught
+     * signals do.
+     */
+    private val feedPublisher = ReadingFeedPublisher(
+        Vehicle.bus.register(Source("mine", SourceKind.LEARNED, "My readings")),
+        ReadingFeedPublisher::corrected
+    )
+
+    /** The CAN readings by the frame id they read, rebuilt when the list changes. */
+    @Volatile
+    private var canIndex: Pair<List<MyReading>, Map<Long, List<MyReading>>> = emptyList<MyReading>() to emptyMap()
     private val pids = HashMap<String, Answer>()
     private val totals = HashMap<String, Double>()
     /** While the demo runs, the totals it counts: the real ones as they were, its made-up drive added, dropped when it ends. */
@@ -285,6 +339,8 @@ object MyReadings {
             synchronized(pids) { pids.remove(replacing) }
         }
         persist()
+        // A feed set or taken off shows at once.
+        tick(System.currentTimeMillis(), 0L)
     }
 
     fun delete(key: String) {
@@ -292,7 +348,33 @@ object MyReadings {
         synchronized(totals) { totals.remove(key) }
         synchronized(pids) { pids.remove(key) }
         persist()
+        // The last reading gone, the loop sleeps: what it fed is withdrawn here.
+        tick(System.currentTimeMillis(), 0L)
     }
+
+    /**
+     * A frame heard by the CAN adapter ([UsbCan]): the readings of its id take
+     * its value, and one that feeds a car element puts it on the bus at once,
+     * so a door or an indicator shows without waiting for the next second.
+     */
+    fun canFrame(frame: CanFrame) {
+        val list = _list.value
+        var index = canIndex
+        if (index.first !== list) {
+            index = list to list.filter { it.canId != null }.groupBy { canSlot(it.canId!!, it.canExtended) }
+            canIndex = index
+        }
+        val readings = index.second[canSlot(frame.id, frame.extended)] ?: return
+        if (DemoMode.isOn) return
+        val now = System.currentTimeMillis()
+        for (r in readings) {
+            val v = MyReadingRules.read(r, frame).value ?: continue
+            synchronized(pids) { pids[r.key] = Answer(v, now, can = true) }
+            r.feeds?.let { feedPublisher.set(it, v) }
+        }
+    }
+
+    private fun canSlot(id: Int, extended: Boolean): Long = id.toLong() or (if (extended) 1L shl 32 else 0L)
 
     fun addAll(readings: List<MyReading>) {
         _list.value = _list.value + readings
@@ -351,11 +433,12 @@ object MyReadings {
         val list = _list.value
         if (list.isEmpty()) {
             if (_values.value.isNotEmpty()) _values.value = emptyMap()
+            feedPublisher.clear()
             return
         }
         val builtIn = builtIn()
         val answers = synchronized(pids) {
-            pids.entries.removeAll { now - it.value.at > STALE_MS || it.value.demo != DemoMode.isOn }
+            pids.entries.removeAll { now - it.value.at > (if (it.value.can) CAN_STALE_MS else STALE_MS) || it.value.demo != DemoMode.isOn }
             pids.mapValues { it.value.value }
         }
         // The demo's made-up drive counts in a copy of its own: the driver's real totals never see it.
@@ -366,6 +449,8 @@ object MyReadings {
         }
         val values = MyReadingRules.values(list, builtIn, answers, counted)
         _values.value = values
+        // The demo is the bus's only source of made-up values: nothing of the driver's is fed while it runs.
+        if (demo) feedPublisher.clear() else feedPublisher.setAll(MyReadingRules.feeds(list, values))
         if (gapMs in 1..MAX_GAP_MS) {
             val rates = MyReadingRules.rates(list, builtIn, values)
             if (rates.isNotEmpty()) {
@@ -427,6 +512,11 @@ object MyReadings {
     data class Test(val reply: String?, val result: Formula.Result)
 
     suspend fun test(r: MyReading, all: List<MyReading>): Test {
+        if (r.kind == MyReadingKind.CAN) {
+            val id = r.canId ?: return Test(null, Formula.Result(null, Formula.Problem.NO_VALUE))
+            val frame = UsbCan.last(id, r.canExtended) ?: return Test(null, Formula.Result(null, Formula.Problem.NO_VALUE))
+            return Test("${frame.idText}: ${frame.dataText}", MyReadingRules.read(r, frame))
+        }
         if (r.kind == MyReadingKind.PID) {
             val reply = ObdBluetoothManager.query(r.header, r.request, TIMEOUT_MS * 2, r.replyAddress, r.session)
             return Test(reply, MyReadingRules.read(r, reply))

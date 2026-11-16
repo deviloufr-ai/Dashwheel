@@ -61,4 +61,31 @@
     <string name="mine_vw_oil">Öltemperatur</string>
     <string name="mine_vw_torque">Drehmoment</string>
     <string name="mine_vw_power">Leistung</string>
+    <string name="mine_kind_can">Vom CAN-Bus</string>
+    <string name="mine_can_id">CAN-ID</string>
+    <string name="mine_hint_can_id">Die ID des Frames in Hex: 3 Ziffern, oder 8 für eine 29-Bit-ID. Einstellungen, Auto, USB-CAN-Adapter zeigt die gehörten IDs.</string>
+    <string name="mine_hint_can">Die Buchstaben A bis H sind die Datenbytes des Frames, zum Beispiel (C*256+D)/4. bit(A, 1) ist Bit 1 von A.</string>
+    <string name="mine_can_not_receiving">Der CAN-Adapter hört noch nichts.</string>
+    <string name="mine_err_can_id">CAN-ID: 3 Hex-Ziffern bis 7FF, oder 8 bis 1FFFFFFF.</string>
+    <string name="mine_err_feed_taken">Ein anderer Wert wird schon so angezeigt.</string>
+    <string name="mine_feeds">Anzeigen als</string>
+    <string name="mine_feeds_detail">Anzeigen, Fahrzeugstatus und Warnungen zeigen ihn wie den des Autos</string>
+    <string name="mine_feeds_none">Nichts</string>
+    <string name="mine_feeds_on_off">An, wenn der Wert nicht 0 ist, zum Beispiel bit(A, 1) oder A == 2.</string>
+    <string name="mine_feeds_units" formatted="false">In km/h, U/min, %, °C, km, V oder L/100 km angeben.</string>
+    <string name="mine_feed_speed">Geschwindigkeit</string>
+    <string name="mine_feed_rpm">Drehzahl</string>
+    <string name="mine_feed_throttle">Gaspedal</string>
+    <string name="mine_feed_load">Motorlast</string>
+    <string name="mine_feed_coolant">Kühlmitteltemperatur</string>
+    <string name="mine_feed_intake">Ansauglufttemperatur</string>
+    <string name="mine_feed_fuel">Tankfüllung</string>
+    <string name="mine_feed_range">Reichweite</string>
+    <string name="mine_feed_volts">Batteriespannung</string>
+    <string name="mine_feed_outside">Außentemperatur</string>
+    <string name="mine_feed_consumption">Verbrauch</string>
+    <string name="mine_feed_handbrake">Feststellbremse</string>
+    <string name="mine_feed_left">Blinker links</string>
+    <string name="mine_feed_right">Blinker rechts</string>
+    <string name="mine_feed_belt">Fahrergurt nicht angelegt</string>
 </resources>

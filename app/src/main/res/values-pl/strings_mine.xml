@@ -61,4 +61,31 @@
     <string name="mine_vw_oil">Temperatura oleju</string>
     <string name="mine_vw_torque">Moment obrotowy</string>
     <string name="mine_vw_power">Moc</string>
+    <string name="mine_kind_can">Z magistrali CAN</string>
+    <string name="mine_can_id">ID CAN</string>
+    <string name="mine_hint_can_id">ID ramki szesnastkowo: 3 cyfry albo 8 dla ID 29-bitowego. Ustawienia, Samochód, Adapter CAN USB pokazuje usłyszane ID.</string>
+    <string name="mine_hint_can">Litery A do H to bajty danych ramki, na przykład (C*256+D)/4. bit(A, 1) to bit 1 z A.</string>
+    <string name="mine_can_not_receiving">Adapter CAN jeszcze nic nie słyszy.</string>
+    <string name="mine_err_can_id">ID CAN: 3 cyfry szesnastkowe do 7FF albo 8 do 1FFFFFFF.</string>
+    <string name="mine_err_feed_taken">Inny odczyt już jest tak pokazywany.</string>
+    <string name="mine_feeds">Pokazuj jako</string>
+    <string name="mine_feeds_detail">Wskaźniki, stan auta i alerty pokazują go jak własny odczyt auta</string>
+    <string name="mine_feeds_none">Nic</string>
+    <string name="mine_feeds_on_off">Włączone, gdy wartość nie jest 0, na przykład bit(A, 1) albo A == 2.</string>
+    <string name="mine_feeds_units" formatted="false">Podaj w km/h, obr/min, %, °C, km, V lub L/100 km.</string>
+    <string name="mine_feed_speed">Prędkość</string>
+    <string name="mine_feed_rpm">Obroty silnika</string>
+    <string name="mine_feed_throttle">Pedał gazu</string>
+    <string name="mine_feed_load">Obciążenie silnika</string>
+    <string name="mine_feed_coolant">Temperatura płynu chłodzącego</string>
+    <string name="mine_feed_intake">Temperatura powietrza dolotowego</string>
+    <string name="mine_feed_fuel">Poziom paliwa</string>
+    <string name="mine_feed_range">Zasięg</string>
+    <string name="mine_feed_volts">Napięcie akumulatora</string>
+    <string name="mine_feed_outside">Temperatura zewnętrzna</string>
+    <string name="mine_feed_consumption">Spalanie</string>
+    <string name="mine_feed_handbrake">Hamulec postojowy</string>
+    <string name="mine_feed_left">Lewy kierunkowskaz</string>
+    <string name="mine_feed_right">Prawy kierunkowskaz</string>
+    <string name="mine_feed_belt">Pas kierowcy niezapięty</string>
 </resources>

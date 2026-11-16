@@ -61,4 +61,31 @@
     <string name="mine_vw_oil">Température d\'huile</string>
     <string name="mine_vw_torque">Couple</string>
     <string name="mine_vw_power">Puissance</string>
+    <string name="mine_kind_can">Du bus CAN</string>
+    <string name="mine_can_id">Identifiant CAN</string>
+    <string name="mine_hint_can_id">L\'identifiant de la trame en hexadécimal : 3 chiffres, ou 8 pour un identifiant 29 bits. Réglages, Voiture, Adaptateur CAN USB liste ceux entendus.</string>
+    <string name="mine_hint_can">Les lettres A à H sont les octets de données de la trame, par exemple (C*256+D)/4. bit(A, 1) est le bit 1 de A.</string>
+    <string name="mine_can_not_receiving">L\'adaptateur CAN n\'entend encore rien.</string>
+    <string name="mine_err_can_id">Identifiant CAN : 3 chiffres hexadécimaux jusqu\'à 7FF, ou 8 jusqu\'à 1FFFFFFF.</string>
+    <string name="mine_err_feed_taken">Une autre lecture s\'affiche déjà ainsi.</string>
+    <string name="mine_feeds">S\'affiche comme</string>
+    <string name="mine_feeds_detail">Les jauges, l\'état de la voiture et les alertes l\'affichent comme celle de la voiture</string>
+    <string name="mine_feeds_none">Rien</string>
+    <string name="mine_feeds_on_off">Allumé quand la valeur n\'est pas 0, par exemple bit(A, 1) ou A == 2.</string>
+    <string name="mine_feeds_units" formatted="false">Donnez-la en km/h, tr/min, %, °C, km, V ou L/100 km.</string>
+    <string name="mine_feed_speed">Vitesse</string>
+    <string name="mine_feed_rpm">Régime moteur</string>
+    <string name="mine_feed_throttle">Accélérateur</string>
+    <string name="mine_feed_load">Charge moteur</string>
+    <string name="mine_feed_coolant">Température du liquide de refroidissement</string>
+    <string name="mine_feed_intake">Température de l\'air d\'admission</string>
+    <string name="mine_feed_fuel">Niveau de carburant</string>
+    <string name="mine_feed_range">Autonomie</string>
+    <string name="mine_feed_volts">Tension batterie</string>
+    <string name="mine_feed_outside">Température extérieure</string>
+    <string name="mine_feed_consumption">Consommation</string>
+    <string name="mine_feed_handbrake">Frein de stationnement</string>
+    <string name="mine_feed_left">Clignotant gauche</string>
+    <string name="mine_feed_right">Clignotant droit</string>
+    <string name="mine_feed_belt">Ceinture du conducteur détachée</string>
 </resources>

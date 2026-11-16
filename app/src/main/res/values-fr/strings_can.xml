@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="can_usb_title">Adaptateur CAN USB</string>
+    <string name="can_usb_detail">Un CANable ou autre adaptateur slcan sur le bus CAN de la voiture</string>
+    <string name="can_usb_explanation">Un adaptateur CAN USB avec le firmware slcan, comme un CANable, branché sur le CAN-H, le CAN-L et la masse de la voiture. Dashwheel écoute seulement et n\'envoie jamais rien sur le bus de la voiture. Choisissez-le ci-dessous, puis ajoutez des lectures Du bus CAN dans Mes lectures.</string>
+    <string name="can_usb_bitrate">Vitesse du bus</string>
+    <string name="can_usb_bitrate_hint">500k pour la plupart des voitures depuis 2008. Si rien ne vient, essayez 125k ou 250k.</string>
+    <string name="can_usb_not_slcan_hint">Il n\'a pas répondu aux commandes slcan. Un CANable a besoin de son firmware slcan : avec candleLight, ce n\'est pas un port série.</string>
+    <string name="can_usb_no_listen_hint">Son firmware ne sait pas écouter sans émettre, donc Dashwheel le laisse fermé. Mettez à jour son firmware slcan.</string>
+    <string name="can_usb_quiet_hint">Rien entendu : mettez le contact, vérifiez le câblage, ou essayez une autre vitesse de bus.</string>
+    <string name="can_usb_frames">Trames entendues : %1$d</string>
+    <string name="can_usb_frames_hint">Chaque ligne est un identifiant et ses derniers octets. Appuyez sur une pédale ou ouvrez une porte : la ligne qui change la porte.</string>
+    <string name="can_usb_clear">Effacer</string>
+    <string name="can_usb_state_unplugged">Adaptateur non branché</string>
+    <string name="can_usb_state_busy">Adaptateur utilisé ailleurs</string>
+    <string name="can_usb_state_not_slcan">Pas un adaptateur slcan</string>
+    <string name="can_usb_state_no_listen">Écoute seule impossible</string>
+    <string name="can_usb_state_listening">Ouvert, le bus est silencieux</string>
+    <string name="can_usb_state_receiving">Réception du bus CAN</string>
+</resources>

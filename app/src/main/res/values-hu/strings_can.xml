@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="can_usb_title">USB CAN-adapter</string>
+    <string name="can_usb_detail">CANable vagy más slcan-adapter az autó CAN-buszán</string>
+    <string name="can_usb_explanation">USB CAN-adapter slcan firmware-rel, például CANable, az autó CAN-H, CAN-L és test vezetékére kötve. A Dashwheel csak hallgat, és soha nem küld semmit az autó buszára. Válaszd ki lent, majd adj hozzá A CAN-buszról értékeket a Saját értékeimben.</string>
+    <string name="can_usb_bitrate">Buszsebesség</string>
+    <string name="can_usb_bitrate_hint">A legtöbb autónál 2008 óta 500k. Ha semmi sem jön, próbáld a 125k vagy 250k értéket.</string>
+    <string name="can_usb_not_slcan_hint">Nem válaszolt az slcan parancsokra. A CANable-nek slcan firmware kell: candleLighttal nem soros port.</string>
+    <string name="can_usb_no_listen_hint">A firmware-je nem tud adás nélkül hallgatni, ezért a Dashwheel zárva hagyja. Frissítsd az slcan firmware-t.</string>
+    <string name="can_usb_quiet_hint">Semmi sem hallatszik: kapcsold rá a gyújtást, ellenőrizd a bekötést, vagy próbálj másik buszsebességet.</string>
+    <string name="can_usb_frames">Hallott keretek: %1$d</string>
+    <string name="can_usb_frames_hint">Minden sor egy azonosító és az utolsó bájtjai. Nyomd le a pedált vagy nyiss ajtót: a változó sor hordozza.</string>
+    <string name="can_usb_clear">Törlés</string>
+    <string name="can_usb_state_unplugged">Az adapter nincs csatlakoztatva</string>
+    <string name="can_usb_state_busy">Az adaptert más használja</string>
+    <string name="can_usb_state_not_slcan">Nem slcan-adapter</string>
+    <string name="can_usb_state_no_listen">Nem tud csak hallgatni</string>
+    <string name="can_usb_state_listening">Nyitva, a busz csendes</string>
+    <string name="can_usb_state_receiving">CAN-busz vétele</string>
+</resources>

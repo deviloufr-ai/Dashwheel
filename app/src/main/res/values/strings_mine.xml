@@ -61,4 +61,32 @@
     <string name="mine_vw_oil">Oil temperature</string>
     <string name="mine_vw_torque">Torque</string>
     <string name="mine_vw_power">Power</string>
+    <!-- CAN readings and what a reading shows as in the car (ReadingFeeds.kt) -->
+    <string name="mine_kind_can">From the CAN bus</string>
+    <string name="mine_can_id">CAN id</string>
+    <string name="mine_hint_can_id">The frame\'s id in hex: 3 digits, or 8 for a 29-bit id. Settings, Car, USB CAN adapter lists the ids heard.</string>
+    <string name="mine_hint_can">The letters A to H are the frame\'s data bytes, for example (C*256+D)/4. bit(A, 1) is bit 1 of A.</string>
+    <string name="mine_can_not_receiving">The CAN adapter hears nothing yet.</string>
+    <string name="mine_err_can_id">CAN id: 3 hex digits up to 7FF, or 8 up to 1FFFFFFF.</string>
+    <string name="mine_err_feed_taken">Another reading already shows as that.</string>
+    <string name="mine_feeds">Shows as</string>
+    <string name="mine_feeds_detail">The gauges, the car status and the alerts show it as the car\'s own</string>
+    <string name="mine_feeds_none">Nothing</string>
+    <string name="mine_feeds_on_off">On when the value is not 0, for example bit(A, 1) or A == 2.</string>
+    <string name="mine_feeds_units" formatted="false">Give it in km/h, rpm, %, °C, km, V or L/100 km.</string>
+    <string name="mine_feed_speed">Speed</string>
+    <string name="mine_feed_rpm">Engine speed</string>
+    <string name="mine_feed_throttle">Throttle</string>
+    <string name="mine_feed_load">Engine load</string>
+    <string name="mine_feed_coolant">Coolant temperature</string>
+    <string name="mine_feed_intake">Intake air temperature</string>
+    <string name="mine_feed_fuel">Fuel level</string>
+    <string name="mine_feed_range">Range</string>
+    <string name="mine_feed_volts">Battery voltage</string>
+    <string name="mine_feed_outside">Outside temperature</string>
+    <string name="mine_feed_consumption">Fuel consumption</string>
+    <string name="mine_feed_handbrake">Parking brake</string>
+    <string name="mine_feed_left">Left indicator</string>
+    <string name="mine_feed_right">Right indicator</string>
+    <string name="mine_feed_belt">Driver\'s belt unfastened</string>
 </resources>

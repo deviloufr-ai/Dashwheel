@@ -61,4 +61,31 @@
     <string name="mine_vw_oil">Alyvos temperatūra</string>
     <string name="mine_vw_torque">Sukimo momentas</string>
     <string name="mine_vw_power">Galia</string>
+    <string name="mine_kind_can">Iš CAN magistralės</string>
+    <string name="mine_can_id">CAN ID</string>
+    <string name="mine_hint_can_id">Kadro ID šešioliktainiu: 3 skaitmenys arba 8 29 bitų ID. Nustatymai, Automobilis, USB CAN adapteris rodo išgirstus ID.</string>
+    <string name="mine_hint_can">Raidės A–H yra kadro duomenų baitai, pavyzdžiui (C*256+D)/4. bit(A, 1) yra A 1-asis bitas.</string>
+    <string name="mine_can_not_receiving">CAN adapteris dar nieko negirdi.</string>
+    <string name="mine_err_can_id">CAN ID: 3 šešioliktainiai skaitmenys iki 7FF arba 8 iki 1FFFFFFF.</string>
+    <string name="mine_err_feed_taken">Kita reikšmė jau rodoma taip.</string>
+    <string name="mine_feeds">Rodoma kaip</string>
+    <string name="mine_feeds_detail">Prietaisai, automobilio būsena ir įspėjimai rodo ją kaip paties automobilio</string>
+    <string name="mine_feeds_none">Nieko</string>
+    <string name="mine_feeds_on_off">Įjungta, kai reikšmė ne 0, pavyzdžiui bit(A, 1) arba A == 2.</string>
+    <string name="mine_feeds_units" formatted="false">Nurodykite km/h, aps./min, %, °C, km, V arba L/100 km.</string>
+    <string name="mine_feed_speed">Greitis</string>
+    <string name="mine_feed_rpm">Variklio sūkiai</string>
+    <string name="mine_feed_throttle">Akseleratorius</string>
+    <string name="mine_feed_load">Variklio apkrova</string>
+    <string name="mine_feed_coolant">Aušinimo skysčio temperatūra</string>
+    <string name="mine_feed_intake">Įsiurbiamo oro temperatūra</string>
+    <string name="mine_feed_fuel">Degalų lygis</string>
+    <string name="mine_feed_range">Nuvažiuojamas atstumas</string>
+    <string name="mine_feed_volts">Akumuliatoriaus įtampa</string>
+    <string name="mine_feed_outside">Lauko temperatūra</string>
+    <string name="mine_feed_consumption">Sąnaudos</string>
+    <string name="mine_feed_handbrake">Stovėjimo stabdys</string>
+    <string name="mine_feed_left">Kairysis posūkis</string>
+    <string name="mine_feed_right">Dešinysis posūkis</string>
+    <string name="mine_feed_belt">Vairuotojo diržas neprisegtas</string>
 </resources>

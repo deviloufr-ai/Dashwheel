@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="can_usb_title">USB CAN-адаптер</string>
+    <string name="can_usb_detail">CANable или другой slcan-адаптер на шине CAN автомобиля</string>
+    <string name="can_usb_explanation">USB CAN-адаптер с прошивкой slcan, например CANable, подключённый к CAN-H, CAN-L и массе автомобиля. Dashwheel только слушает и никогда ничего не отправляет в шину. Выберите его ниже, затем добавьте значения С шины CAN в Моих показаниях.</string>
+    <string name="can_usb_bitrate">Скорость шины</string>
+    <string name="can_usb_bitrate_hint">500k для большинства авто с 2008 года. Если ничего не приходит, попробуйте 125k или 250k.</string>
+    <string name="can_usb_not_slcan_hint">Он не ответил на команды slcan. CANable нужна прошивка slcan: с candleLight это не последовательный порт.</string>
+    <string name="can_usb_no_listen_hint">Его прошивка не умеет слушать без передачи, поэтому Dashwheel его не открывает. Обновите прошивку slcan.</string>
+    <string name="can_usb_quiet_hint">Ничего не слышно: включите зажигание, проверьте проводку или попробуйте другую скорость шины.</string>
+    <string name="can_usb_frames">Услышано кадров: %1$d</string>
+    <string name="can_usb_frames_hint">Каждая строка — ID и его последние байты. Нажмите педаль или откройте дверь: меняющаяся строка и есть нужная.</string>
+    <string name="can_usb_clear">Очистить</string>
+    <string name="can_usb_state_unplugged">Адаптер не подключён</string>
+    <string name="can_usb_state_busy">Адаптер занят</string>
+    <string name="can_usb_state_not_slcan">Не slcan-адаптер</string>
+    <string name="can_usb_state_no_listen">Не умеет только слушать</string>
+    <string name="can_usb_state_listening">Открыт, шина молчит</string>
+    <string name="can_usb_state_receiving">Приём шины CAN</string>
+</resources>

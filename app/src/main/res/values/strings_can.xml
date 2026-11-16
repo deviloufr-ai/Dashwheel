@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- A USB CAN adapter of the driver's own on slcan firmware (UsbCan.kt, UsbCanSheet.kt). -->
+    <string name="can_usb_title">USB CAN adapter</string>
+    <string name="can_usb_detail">A CANable or other slcan adapter on the car\'s CAN bus</string>
+    <string name="can_usb_explanation">A USB CAN adapter on slcan firmware, such as a CANable, wired to the car\'s CAN-H, CAN-L and ground. Dashwheel only listens and never sends on the car\'s bus. Pick it below, then add readings From the CAN bus in My readings.</string>
+    <string name="can_usb_bitrate">Bus speed</string>
+    <string name="can_usb_bitrate_hint">500k for most cars since 2008. If nothing comes, try 125k or 250k.</string>
+    <string name="can_usb_not_slcan_hint">It did not answer slcan commands. A CANable needs its slcan firmware: with candleLight it is not a serial port.</string>
+    <string name="can_usb_no_listen_hint">Its firmware can\'t listen without sending, so Dashwheel leaves it closed. Update its slcan firmware.</string>
+    <string name="can_usb_quiet_hint">Nothing heard: switch the ignition on, check the wiring, or try another bus speed.</string>
+    <string name="can_usb_frames">Frames heard: %1$d</string>
+    <string name="can_usb_frames_hint">Each line is an id and its last bytes. Press a pedal or open a door: the line that changes carries it.</string>
+    <string name="can_usb_clear">Clear</string>
+    <string name="can_usb_state_unplugged">Adapter not plugged in</string>
+    <string name="can_usb_state_busy">Adapter in use elsewhere</string>
+    <string name="can_usb_state_not_slcan">Not an slcan adapter</string>
+    <string name="can_usb_state_no_listen">Can\'t listen only</string>
+    <string name="can_usb_state_listening">Open, the bus is quiet</string>
+    <string name="can_usb_state_receiving">Receiving the CAN bus</string>
+    <string name="can_usb_changes" translatable="false">%1$d×</string>
+</resources>

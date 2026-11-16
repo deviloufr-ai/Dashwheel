@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="can_usb_title">USB CAN adaptörü</string>
+    <string name="can_usb_detail">Aracın CAN hattında bir CANable veya başka slcan adaptörü</string>
+    <string name="can_usb_explanation">Aracın CAN-H, CAN-L ve şasesine bağlı, slcan yazılımlı bir USB CAN adaptörü, örneğin CANable. Dashwheel yalnızca dinler ve aracın hattına asla bir şey göndermez. Aşağıdan seçin, ardından Okumalarım\'a CAN hattından okumalar ekleyin.</string>
+    <string name="can_usb_bitrate">Hat hızı</string>
+    <string name="can_usb_bitrate_hint">2008\'den beri çoğu araçta 500k. Hiçbir şey gelmezse 125k veya 250k deneyin.</string>
+    <string name="can_usb_not_slcan_hint">slcan komutlarına yanıt vermedi. Bir CANable slcan yazılımına ihtiyaç duyar: candleLight ile seri port değildir.</string>
+    <string name="can_usb_no_listen_hint">Yazılımı göndermeden dinleyemiyor, bu yüzden Dashwheel onu kapalı bırakıyor. slcan yazılımını güncelleyin.</string>
+    <string name="can_usb_quiet_hint">Hiçbir şey duyulmuyor: kontağı açın, kabloları kontrol edin veya başka bir hat hızı deneyin.</string>
+    <string name="can_usb_frames">Duyulan çerçeveler: %1$d</string>
+    <string name="can_usb_frames_hint">Her satır bir kimlik ve son baytlarıdır. Bir pedala basın veya bir kapı açın: değişen satır onu taşır.</string>
+    <string name="can_usb_clear">Temizle</string>
+    <string name="can_usb_state_unplugged">Adaptör takılı değil</string>
+    <string name="can_usb_state_busy">Adaptör başka yerde kullanılıyor</string>
+    <string name="can_usb_state_not_slcan">slcan adaptörü değil</string>
+    <string name="can_usb_state_no_listen">Yalnızca dinleyemiyor</string>
+    <string name="can_usb_state_listening">Açık, hat sessiz</string>
+    <string name="can_usb_state_receiving">CAN hattı alınıyor</string>
+</resources>

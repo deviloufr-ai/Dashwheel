@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="can_usb_title">USB CAN-adapter</string>
+    <string name="can_usb_detail">Een CANable of andere slcan-adapter op de CAN-bus van de auto</string>
+    <string name="can_usb_explanation">Een USB CAN-adapter met slcan-firmware, zoals een CANable, aangesloten op CAN-H, CAN-L en massa van de auto. Dashwheel luistert alleen en stuurt nooit iets op de bus van de auto. Kies hem hieronder en voeg dan metingen Van de CAN-bus toe in Mijn metingen.</string>
+    <string name="can_usb_bitrate">Bussnelheid</string>
+    <string name="can_usb_bitrate_hint">500k voor de meeste auto\'s sinds 2008. Komt er niets, probeer 125k of 250k.</string>
+    <string name="can_usb_not_slcan_hint">Hij gaf geen antwoord op slcan-opdrachten. Een CANable heeft zijn slcan-firmware nodig: met candleLight is hij geen seriële poort.</string>
+    <string name="can_usb_no_listen_hint">Zijn firmware kan niet luisteren zonder te zenden, dus Dashwheel laat hem dicht. Werk zijn slcan-firmware bij.</string>
+    <string name="can_usb_quiet_hint">Niets gehoord: zet het contact aan, controleer de bedrading of probeer een andere bussnelheid.</string>
+    <string name="can_usb_frames">Gehoorde frames: %1$d</string>
+    <string name="can_usb_frames_hint">Elke regel is een id met zijn laatste bytes. Trap een pedaal in of open een deur: de regel die verandert, draagt het.</string>
+    <string name="can_usb_clear">Wissen</string>
+    <string name="can_usb_state_unplugged">Adapter niet aangesloten</string>
+    <string name="can_usb_state_busy">Adapter elders in gebruik</string>
+    <string name="can_usb_state_not_slcan">Geen slcan-adapter</string>
+    <string name="can_usb_state_no_listen">Kan niet alleen luisteren</string>
+    <string name="can_usb_state_listening">Open, de bus is stil</string>
+    <string name="can_usb_state_receiving">Ontvangt de CAN-bus</string>
+</resources>

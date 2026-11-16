@@ -109,23 +109,31 @@ private data class Draft(
     val reply: String = "",
     val session: String = "",
     val decimals: Int = 1,
-    val onTile: Boolean = true
+    val onTile: Boolean = true,
+    val canId: String = "",
+    val feeds: ReadingFeed? = null
 ) {
     fun reading(taken: Set<String>): MyReading = MyReading(
         key = if (keyTyped) key.trim().lowercase(Locale.ROOT) else MyReadingRules.keyFor(name, taken),
         name = name.trim(), unit = unit.trim(), kind = kind, formula = formula.trim(),
-        request = if (kind == MyReadingKind.PID) MyReadingRules.cleanHex(request) else "",
+        request = when (kind) {
+            MyReadingKind.PID -> MyReadingRules.cleanHex(request)
+            MyReadingKind.CAN -> MyReadingRules.cleanHex(canId)
+            else -> ""
+        },
         header = MyReadingRules.cleanHex(header).takeIf { kind == MyReadingKind.PID && it.isNotEmpty() },
         replyAddress = MyReadingRules.cleanHex(reply).takeIf { kind == MyReadingKind.PID && it.isNotEmpty() },
         session = MyReadingRules.cleanHex(session).takeIf { kind == MyReadingKind.PID && it.isNotEmpty() },
-        decimals = decimals, onTile = onTile
+        decimals = decimals, onTile = onTile, feeds = feeds
     )
 
     companion object {
         fun of(r: MyReading) = Draft(
-            r.kind, r.name, r.unit, r.key, keyTyped = true, formula = r.formula, request = r.request,
+            r.kind, r.name, r.unit, r.key, keyTyped = true, formula = r.formula,
+            request = if (r.kind == MyReadingKind.PID) r.request else "",
             header = r.header.orEmpty(), reply = r.replyAddress.orEmpty(), session = r.session.orEmpty(),
-            decimals = r.decimals, onTile = r.onTile
+            decimals = r.decimals, onTile = r.onTile,
+            canId = if (r.kind == MyReadingKind.CAN) r.request else "", feeds = r.feeds
         )
     }
 }
@@ -159,8 +167,14 @@ internal fun MyReadingsSheet(onDismiss: () -> Unit) {
                 Column(Modifier.weight(1f)) {
                     Text(r.name, color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(
-                        listOf(r.key, if (r.kind == MyReadingKind.PID) listOfNotNull(r.header, r.request).joinToString(" ") + ": " + r.formula else r.formula)
-                            .joinToString(" = "),
+                        listOf(
+                            r.key,
+                            when (r.kind) {
+                                MyReadingKind.PID -> listOfNotNull(r.header, r.request).joinToString(" ") + ": " + r.formula
+                                MyReadingKind.CAN -> "CAN ${r.request}: ${r.formula}"
+                                else -> r.formula
+                            }
+                        ).joinToString(" = ") + (r.feeds?.let { " → " + context.getString(it.label) }.orEmpty()),
                         color = DashColors.Muted, style = MaterialTheme.typography.labelSmall, fontFamily = FontFamily.Monospace,
                         maxLines = 1, overflow = TextOverflow.Ellipsis
                     )
@@ -205,6 +219,7 @@ private fun kindLabel(context: android.content.Context, kind: MyReadingKind): St
         MyReadingKind.PID -> R.string.mine_kind_pid
         MyReadingKind.FORMULA -> R.string.mine_kind_formula
         MyReadingKind.TOTAL -> R.string.mine_kind_total
+        MyReadingKind.CAN -> R.string.mine_kind_can
     }
 )
 
@@ -214,7 +229,9 @@ private fun ReadingEditor(start: Draft, original: String?, list: List<MyReading>
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val connection by ObdBluetoothManager.connectionState.collectAsState()
+    val can by UsbCan.state.collectAsState()
     var d by remember { mutableStateOf(start) }
+    var feedsOpen by remember { mutableStateOf(false) }
     var problem by remember { mutableStateOf<String?>(null) }
     var testing by remember { mutableStateOf(false) }
     var tested by remember { mutableStateOf<MyReadings.Test?>(null) }
@@ -223,7 +240,7 @@ private fun ReadingEditor(start: Draft, original: String?, list: List<MyReading>
 
     fun check(): Boolean {
         val p = MyReadingRules.problem(reading, others)
-        val unknown = if (reading.kind == MyReadingKind.PID) emptyList() else MyReadingRules.unknownNames(reading.formula, others)
+        val unknown = if (reading.readsBytes) emptyList() else MyReadingRules.unknownNames(reading.formula, others)
         problem = p?.let { context.getString(it.text) } ?: unknown.firstOrNull()?.let { context.getString(R.string.mine_err_unknown, it) }
         return problem == null
     }
@@ -266,6 +283,10 @@ private fun ReadingEditor(start: Draft, original: String?, list: List<MyReading>
             }
             Text(stringResource(R.string.mine_hint_address), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
         }
+        if (d.kind == MyReadingKind.CAN) {
+            Field(stringResource(R.string.mine_can_id), d.canId, Modifier.fillMaxWidth(), code = true) { d = d.copy(canId = it) }
+            Text(stringResource(R.string.mine_hint_can_id), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+        }
         Field(stringResource(R.string.mine_formula), d.formula, Modifier.fillMaxWidth(), code = true) { d = d.copy(formula = it) }
         Text(
             stringResource(
@@ -273,11 +294,12 @@ private fun ReadingEditor(start: Draft, original: String?, list: List<MyReading>
                     MyReadingKind.PID -> R.string.mine_hint_pid
                     MyReadingKind.FORMULA -> R.string.mine_hint_formula
                     MyReadingKind.TOTAL -> R.string.mine_hint_total
+                    MyReadingKind.CAN -> R.string.mine_hint_can
                 }
             ),
             color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall
         )
-        if (d.kind != MyReadingKind.PID) {
+        if (d.kind == MyReadingKind.FORMULA || d.kind == MyReadingKind.TOTAL) {
             Text(
                 stringResource(R.string.mine_names, (MyReadingRules.BUILT_IN + others.map { it.key }).joinToString(", ")),
                 color = DashColors.Muted, style = MaterialTheme.typography.labelSmall, fontFamily = FontFamily.Monospace
@@ -288,9 +310,35 @@ private fun ReadingEditor(start: Draft, original: String?, list: List<MyReading>
         ChoiceRow(listOf(0, 1, 2, 3), d.decimals, { it.toString() }) { d = d.copy(decimals = it) }
         SwitchRow(stringResource(R.string.mine_on_tile), stringResource(R.string.mine_on_tile_detail), d.onTile) { d = d.copy(onTile = it) }
 
+        // What it stands for in the car: shown by the gauges, the car status and the alerts as the car's own.
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { feedsOpen = !feedsOpen },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.mine_feeds), color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.mine_feeds_detail), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+            }
+            Spacer(Modifier.width(8.dp))
+            Text(d.feeds?.let { stringResource(it.label) } ?: stringResource(R.string.mine_feeds_none), color = DashColors.AccentInk, fontWeight = FontWeight.SemiBold)
+        }
+        if (feedsOpen) {
+            ChoiceRow(listOf<ReadingFeed?>(null) + ReadingFeed.entries, d.feeds, { f -> f?.let { context.getString(it.label) } ?: context.getString(R.string.mine_feeds_none) }, perRow = 2) {
+                d = d.copy(feeds = it)
+                feedsOpen = false
+            }
+        }
+        d.feeds?.let { f ->
+            Text(
+                stringResource(if (f.onOff) R.string.mine_feeds_on_off else R.string.mine_feeds_units),
+                color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall
+            )
+        }
+
         Row(verticalAlignment = Alignment.CenterVertically) {
             Button(
-                enabled = !testing && (d.kind != MyReadingKind.PID || connection == ObdConnectionState.CONNECTED),
+                enabled = !testing && (d.kind != MyReadingKind.PID || connection == ObdConnectionState.CONNECTED) &&
+                    (d.kind != MyReadingKind.CAN || can == UsbCanState.RECEIVING),
                 colors = buttonColors(),
                 onClick = {
                     tested = null
@@ -307,11 +355,13 @@ private fun ReadingEditor(start: Draft, original: String?, list: List<MyReading>
                 testing -> CircularProgressIndicator(color = DashColors.Accent, modifier = Modifier.size(22.dp))
                 d.kind == MyReadingKind.PID && connection != ObdConnectionState.CONNECTED ->
                     Text(stringResource(R.string.vehicle_obd_not_connected), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+                d.kind == MyReadingKind.CAN && can != UsbCanState.RECEIVING ->
+                    Text(stringResource(R.string.mine_can_not_receiving), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
             }
         }
         problem?.let { Text(it, color = DashColors.Warning, style = MaterialTheme.typography.bodySmall) }
         tested?.let { t ->
-            if (reading.kind == MyReadingKind.PID) {
+            if (reading.readsBytes) {
                 Text(
                     stringResource(R.string.mine_answer, t.reply?.replace(Regex("\\s+"), " ")?.trim()?.ifEmpty { null } ?: stringResource(R.string.mine_no_answer)),
                     color = DashColors.TextSecondary, style = MaterialTheme.typography.labelSmall, fontFamily = FontFamily.Monospace
