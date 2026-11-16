@@ -1421,7 +1421,9 @@ internal fun EditBar(
                     )
                 }
             }
-            Box(Modifier.tourTarget(TourTarget.ADD)) { EditAction(Icons.Filled.Add, stringResource(R.string.dash_add), iconsOnly, onClick = onAdd) }
+            Box(Modifier.tourTarget(TourTarget.ADD)) { // The way to add a tile, the edit mode's main action: a tinted, outlined pill that
+            // keeps its name wherever the bar has the room for one, unlike the other actions.
+            EditAction(Icons.Filled.Add, stringResource(R.string.dash_add), narrow, emphasized = true, onClick = onAdd) }
             EditAction(Icons.Filled.Undo, stringResource(R.string.dash_undo), iconsOnly, enabled = canUndo, onClick = onUndo)
             EditAction(Icons.Filled.Dashboard, stringResource(R.string.templates_button), iconsOnly, onClick = onTemplates)
             PageZoomButton(pageZoom, iconsOnly, onPageZoom)
@@ -1459,25 +1461,43 @@ private fun EditAction(
     compact: Boolean,
     enabled: Boolean = true,
     ink: Color = DashColors.TextPrimary,
+    emphasized: Boolean = false,
     onClick: () -> Unit
 ) {
     val tap = rememberTapFeedback()
-    val tint = if (enabled) ink else DashColors.Muted
+    val tint = if (enabled) (if (emphasized) DashColors.AccentInk else ink) else DashColors.Muted
     Row(
         modifier = Modifier
             .heightIn(min = DashSize.TouchPrimary)
             .widthIn(min = DashSize.TouchPrimary)
             .clip(DashShape.Small)
+            .then(
+                if (emphasized && enabled) Modifier
+                    .background(DashColors.Accent.copy(alpha = 0.22f))
+                    .border(1.5.dp, DashColors.Accent, DashShape.Small)
+                else Modifier
+            )
             .clickable(enabled = enabled, role = Role.Button, onClickLabel = label) { tap(); onClick() }
             .semantics(mergeDescendants = true) { contentDescription = label }
             .padding(horizontal = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-        Icon(icon, contentDescription = null, tint = if (enabled && ink == DashColors.TextPrimary) DashColors.Accent else tint, modifier = Modifier.size(22.dp))
+        Icon(
+            icon,
+            contentDescription = null,
+            tint = if (enabled && !emphasized && ink == DashColors.TextPrimary) DashColors.Accent else tint,
+            modifier = Modifier.size(if (emphasized) 26.dp else 22.dp)
+        )
         if (!compact) {
             Spacer(Modifier.width(6.dp))
-            Text(label, color = tint, maxLines = 1, style = MaterialTheme.typography.labelLarge)
+            Text(
+                label,
+                color = tint,
+                maxLines = 1,
+                fontWeight = if (emphasized) FontWeight.SemiBold else null,
+                style = MaterialTheme.typography.labelLarge
+            )
         }
     }
 }
