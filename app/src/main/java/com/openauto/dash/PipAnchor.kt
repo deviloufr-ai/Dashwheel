@@ -147,6 +147,9 @@ object PipAnchor {
 
     private fun activePackages(): Set<String> = tileCounts.keys.toSet()
 
+    /** [packageName] has a window tile on screen right now: its window is the tile's. */
+    fun inTileOnScreen(packageName: String): Boolean = tileCounts.containsKey(packageName)
+
     private fun managedPackages(context: Context): Set<String> = managed + autoOpenPackages(context)
 
     /**

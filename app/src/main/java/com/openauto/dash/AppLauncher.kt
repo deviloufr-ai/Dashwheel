@@ -9,6 +9,7 @@ import android.graphics.drawable.Drawable
 import android.os.UserHandle
 import androidx.compose.runtime.Immutable
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.json.JSONObject
@@ -124,8 +125,88 @@ object AppLauncher {
         runCatching { HiddenApi.invoke(ActivityOptions::class.java, options, "setLaunchWindowingMode", WINDOWING_MODE_FULLSCREEN) }
         val launched = runCatching { context.startActivity(launchIntent, options.toBundle()); true }
             .recoverCatching { context.startActivity(launchIntent); true }.getOrDefault(false)
-        if (launched) AppUsage.opened(context, packageName)
+        if (launched) {
+            AppUsage.opened(context, packageName)
+            FullScreenLaunch.ensure(context, packageOf(packageName))
+        }
         return launched
+    }
+}
+
+/**
+ * An app opened from Dashwheel shows full screen even where the system floats
+ * it anyway. The QF firmware opens its navigation app (`persist.sys.maps`,
+ * Google Maps by default) as a floating map window whatever the launch asks,
+ * and Android brings an app back in the freeform window it last had: Maps
+ * opened from the app drawer came up as a window over half the dashboard.
+ * A moment after the launch, a freeform window of the app on the screen is
+ * moved into the fullscreen stack (still running, as for a split), or sized
+ * to the whole screen when the system refuses the move. A window a tile
+ * shows, or one lent to a split, the second screen or a tile's inside, is
+ * left alone. Needs the privileged shell ([DockShell]); nothing is tried on a
+ * unit that floats no app.
+ */
+internal object FullScreenLaunch {
+    private const val TAG = "FullScreenLaunch"
+
+    /** The launch takes a moment to show up in the listing: looked at a few times. */
+    private const val CHECKS = 4
+    private const val CHECK_MS = 500L
+
+    private val scope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO + kotlinx.coroutines.SupervisorJob())
+
+    fun ensure(context: Context, packageName: String) {
+        if (Edition.play || !DockSupport.systemFloats(context)) return
+        val app = context.applicationContext
+        scope.launch {
+            repeat(CHECKS) {
+                kotlinx.coroutines.delay(CHECK_MS)
+                if (leftAlone(packageName)) return@launch
+                DockShell.forgetListing()
+                val listing = runCatching { DockShell.listStacks(app) }.getOrElse {
+                    android.util.Log.w(TAG, "no stack listing for $packageName: ${it.message}")
+                    return@launch
+                }
+                val win = WindowListing.parseFloatingWindow(listing, app.packageName, packageName)
+                if (WindowListing.fullscreenInFront(listing, packageName, app.packageName) != null) return@launch
+                if (!needsFullScreen(win)) return@repeat
+                makeFullScreen(app, win!!, listing)
+                return@launch
+            }
+        }
+    }
+
+    /** Windows that belong to a tile, a split, a tile's inside or the second screen. */
+    private fun leftAlone(packageName: String): Boolean =
+        PipAnchor.isLent(packageName) || PipAnchor.inTileOnScreen(packageName)
+
+    /** A freeform window on the screen: what the launch was not meant to give. Pure, for the tests. */
+    internal fun needsFullScreen(win: FloatingWindow?): Boolean =
+        win != null && win.mode == "freeform" && !win.offDisplay && win.displayId == 0
+
+    @Suppress("DEPRECATION") // Display.getRealSize: the whole screen, bars included, on every Android this runs on.
+    private suspend fun makeFullScreen(context: Context, win: FloatingWindow, listing: String) {
+        val stack = WindowListing.fullscreenStackId(listing, context.packageName)
+        val moved = stack != null && runCatching { DockShell.moveTask(context, win, stack, toTop = true) }
+            .onSuccess { android.util.Log.i(TAG, "${win.packageName} opened in a window, made full screen: $it") }
+            .onFailure { android.util.Log.w(TAG, "${win.packageName} could not leave its window: ${it.message}") }
+            .isSuccess
+        if (moved && !stillFloats(context, win.packageName)) return
+        // The move was refused, or the ROM floated it again: the window covers the whole screen instead.
+        val size = android.graphics.Point()
+        val display = context.getSystemService(android.hardware.display.DisplayManager::class.java)
+            ?.getDisplay(android.view.Display.DEFAULT_DISPLAY)
+        display?.getRealSize(size)
+        if (size.x <= 0 || size.y <= 0) return
+        runCatching { DockShell.resize(context, win, ScreenRect(0, 0, size.x, size.y)) }
+            .onSuccess { android.util.Log.i(TAG, "${win.packageName} window sized to the whole screen: $it") }
+            .onFailure { android.util.Log.w(TAG, "${win.packageName} window could not be sized to the screen: ${it.message}") }
+    }
+
+    private suspend fun stillFloats(context: Context, packageName: String): Boolean {
+        DockShell.forgetListing()
+        val listing = runCatching { DockShell.listStacks(context) }.getOrNull() ?: return false
+        return needsFullScreen(WindowListing.parseFloatingWindow(listing, context.packageName, packageName))
     }
 }
 
