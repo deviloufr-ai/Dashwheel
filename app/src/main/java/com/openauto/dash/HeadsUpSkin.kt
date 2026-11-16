@@ -55,15 +55,24 @@ import androidx.compose.ui.unit.min
  * the map, Open for the faces (DashTheme.kt). Its one face of its own is the
  * music, a disc: the cover cut round, the track's progress as a ring around
  * it, the title beside it and bare keys. Without panels, legibility comes
- * from the map's fades at the top and foot and a dark halo under the type.
+ * from a veil over the map, its fades at the top and foot, full-contrast inks
+ * and a halo of the page's colour under the type (dark at night, white by day).
  */
 
 /** True while the Heads-up look is on: Canvas's page with Open's faces. */
 internal fun headsUpLook(): Boolean = DashColors.Skin == DashSkin.CANVAS && DashColors.Open
 
-/** A soft dark halo under type laid on the map; none by day, where the type is dark on a light map. */
-internal fun headsUpHalo(): Shadow? =
-    if (DashColors.Light) null else Shadow(Color.Black.copy(alpha = 0.85f), Offset(0f, 1f), blurRadius = 8f)
+/**
+ * The halo under type laid on the map, in the page's own colour: dark at
+ * night under light type, white by day under dark type (the day map is light
+ * grey and its buildings ran straight through the readings). It is what reads
+ * in place of a panel, so it stays on whatever the effects setting says.
+ */
+internal fun headsUpHalo(sizeSp: Float = 24f): Shadow {
+    val blur = (sizeSp * 0.45f).coerceIn(8f, 28f)
+    return if (DashColors.Light) Shadow(Color.White, Offset.Zero, blur)
+    else Shadow(Color.Black, Offset(0f, 1f), blur)
+}
 
 /** The disc's widest: past it the title and keys get the room. */
 private val DISC_MAX = 184.dp
@@ -79,6 +88,7 @@ internal fun HeadsUpMedia(env: SkinTileEnv) {
     val hasTrack = ms.hasMedia && ms.title.isNotBlank()
     val fraction = if (access && ms.durationMs > 0L) rememberMediaFraction(ms, env.mediaController) else 0f
     val halo = headsUpHalo()
+    val small = headsUpHalo(18f)
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
@@ -105,7 +115,7 @@ internal fun HeadsUpMedia(env: SkinTileEnv) {
                     Spacer(Modifier.height(4.dp))
                     Text(
                         sub, color = if (!access) DashColors.AccentInk else DashColors.TextSecondary, fontSize = fixedSp(18f),
-                        maxLines = 1, overflow = TextOverflow.Ellipsis, style = TextStyle(shadow = halo)
+                        maxLines = 1, overflow = TextOverflow.Ellipsis, style = TextStyle(shadow = small)
                     )
                 }
                 if (access) {

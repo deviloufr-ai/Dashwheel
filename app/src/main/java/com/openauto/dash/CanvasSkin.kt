@@ -163,11 +163,19 @@ internal fun CanvasBackdrop(modifier: Modifier) {
                 Brush.verticalGradient(0f to bg, 0.2f to bg.copy(alpha = 0.8f), 0.45f to bg.copy(alpha = 0f))
             )
         )
-        // Heads-up has no panels to read against: the foot of the map fades too, under the music and the bar.
+        // Heads-up has no panels to read against: the map sits under a veil of the page's colour so
+        // its streets and buildings recede behind the readings, and the foot fades further, under the
+        // music and the bar. Plain, for sunlight, thickens the veil.
         if (headsUpLook()) {
+            val veil = when {
+                DashColors.Effects == DashEffects.NONE -> 0.72f
+                DashColors.Light -> 0.55f
+                else -> 0.45f
+            }
+            Spacer(Modifier.fillMaxSize().background(bg.copy(alpha = veil)))
             Spacer(
                 Modifier.fillMaxSize().background(
-                    Brush.verticalGradient(0.55f to bg.copy(alpha = 0f), 0.8f to bg.copy(alpha = 0.7f), 1f to bg.copy(alpha = 0.92f))
+                    Brush.verticalGradient(0.5f to bg.copy(alpha = 0f), 0.78f to bg.copy(alpha = 0.75f), 1f to bg.copy(alpha = 0.95f))
                 )
             )
         }

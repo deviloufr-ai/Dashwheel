@@ -510,19 +510,26 @@ private val CanvasLightPalette = DashPalette(
 )
 
 // Heads-up: Canvas's map as the page (so Skin stays CANVAS for the backdrop),
-// every widget frameless on it (Open), and the bar with no panel either. The
-// map's own fades keep the type readable (CanvasBackdrop). One accent: a
-// pale ice white for the route and progress, amber kept for warnings. Light
-// numerals, as a projection in the glass would be.
+// every widget frameless on it (Open), and the bar with no panel either. With
+// no panel to read against, legibility is carried by the type itself: the map
+// sits under a veil (CanvasBackdrop), every reading wears a halo of the page's
+// colour (headsUpHalo), and the inks run at full contrast, the secondary lines
+// included. One accent: a pale ice white (ink-black by day) for the route and
+// progress, amber kept for warnings.
+// The "no panel" colours keep the page's hue at alpha 0, not Color.Transparent
+// (black): the sheets that need a solid surface (Settings, dialogs) take Card at
+// full alpha, which made them black under the day look's near-black text.
 private val HeadsUpPalette = CanvasPalette.copy(
-    Bar = Color.Transparent, Card = Color.Transparent, CardHi = Color(0x1FFFFFFF),
-    Accent = Color(0xFFE9F6FF), Accent2 = Color(0xFFB8D8EC), Line = Color(0x29FFFFFF),
-    HeroWeight = FontWeight.Light, Open = true
+    Bar = Color(0x000C0F14), Card = Color(0x000C0F14), CardHi = Color(0x24FFFFFF),
+    Accent = Color(0xFFE9F6FF), Accent2 = Color(0xFFB8D8EC), Line = Color(0x33FFFFFF),
+    TextPrimary = Color.White, TextSecondary = Color(0xFFDDE2E7), Muted = Color(0xFFB4BBC3),
+    HeroWeight = FontWeight.Medium, Open = true
 )
 private val HeadsUpLightPalette = CanvasLightPalette.copy(
-    Bar = Color.Transparent, Card = Color.Transparent, CardHi = Color(0x140E141B),
-    Accent = Color(0xFF0E141B), Accent2 = Color(0xFF3A4652),
-    HeroWeight = FontWeight.Light, Open = true
+    Bar = Color(0x00FFFFFF), Card = Color(0x00FFFFFF), CardHi = Color(0x1A0E141B),
+    Accent = Color(0xFF0E141B), Accent2 = Color(0xFF2E3A46), Line = Color(0x2E0E141B),
+    TextPrimary = Color(0xFF05080C), TextSecondary = Color(0xFF1F262E), Muted = Color(0xFF3A424B),
+    HeroWeight = FontWeight.Medium, Open = true
 )
 
 /** How the screen is divided: pages only, or a permanent Google Maps dock beside them. */

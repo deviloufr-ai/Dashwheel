@@ -332,8 +332,12 @@ internal fun FaceText(
         overflow = if (shrinking) TextOverflow.Clip else TextOverflow.Ellipsis,
         textAlign = align,
         // Through softTextShadow: a blurred glow redone at every reading is what "effects reduced" is there to spare.
-        style = (if (glow && halo != null) softTextShadow(halo, blurRadius = size.value * 0.6f) else null)
-            ?.let { TextStyle(shadow = it) } ?: TextStyle.Default,
+        style = when {
+            // Heads-up's frameless faces have no panel under them: every line reads through its halo.
+            look.kind == FaceLookKind.OPEN && headsUpLook() -> TextStyle(shadow = headsUpHalo(size.value))
+            else -> (if (glow && halo != null) softTextShadow(halo, blurRadius = size.value * 0.6f) else null)
+                ?.let { TextStyle(shadow = it) } ?: TextStyle.Default
+        },
         onTextLayout = { if (shrinking && it.hasVisualOverflow) scale = (scale - 0.08f).coerceAtLeast(max(MIN_FIT_SCALE, floor)) }
     )
 }
