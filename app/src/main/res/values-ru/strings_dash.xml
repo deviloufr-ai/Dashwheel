@@ -115,6 +115,8 @@
     <string name="dash_effects_none_hint">Непрозрачные карточки, простые цифры, без свечения: читается на ярком солнце</string>
     <string name="dash_effects_reduced_hint">Мягкое свечение, стекло сохранено</string>
     <string name="dash_effects_full_hint">Все темы со всем свечением и стеклом</string>
+    <string name="dash_motion_driving">Анимация в движении</string>
+    <string name="dash_motion_driving_detail">Анимации оформления продолжаются во время движения; иначе они замирают</string>
     <string name="dash_bar_title">Нижняя панель</string>
     <string name="dash_bar_auto_hide">Автоскрытие панели</string>
     <string name="dash_bar_auto_hide_detail">Уезжает, когда не используется, освобождая место для панелей</string>

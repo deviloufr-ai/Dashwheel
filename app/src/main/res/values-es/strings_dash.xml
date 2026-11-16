@@ -169,6 +169,8 @@
     <string name="dash_effects_none_hint">Tarjetas opacas, números sencillos, sin brillo: se lee a pleno sol</string>
     <string name="dash_effects_reduced_hint">Halos suavizados, cristal conservado</string>
     <string name="dash_effects_full_hint">Cada tema con todos sus halos y su cristal</string>
+    <string name="dash_motion_driving">Animaciones al conducir</string>
+    <string name="dash_motion_driving_detail">Las animaciones del aspecto siguen cuando el coche se mueve; si no, se detienen</string>
     <string name="dash_bar_title">Barra inferior</string>
     <string name="dash_bar_auto_hide">Ocultar la barra automáticamente</string>
     <string name="dash_bar_auto_hide_detail">Se retira cuando no se usa, para dejar más espacio a los paneles</string>

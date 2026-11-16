@@ -579,6 +579,7 @@ object DashThemeStore {
     private const val KEY_EFFECTS = "effects"
     private const val KEY_FONT = "font"
     private const val KEY_BAR_AUTO_HIDE = "bar_auto_hide"
+    private const val KEY_MOTION_DRIVING = "motion_while_driving"
     private const val KEY_BAR_HIDE_SECONDS = "bar_hide_seconds"
     private const val KEY_RAIL = "side_rail"
     private const val KEY_LOOK_LAYOUT = "look_layout"
@@ -655,6 +656,14 @@ object DashThemeStore {
     }
 
     /** Whether the bottom bar hides itself when unused (BarAutoHide.kt); off by default. */
+    /** Whether the looks' background motion keeps going while the car moves (LocalCarMoving); off by default. */
+    fun loadMotionWhileDriving(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_MOTION_DRIVING, false)
+
+    fun saveMotionWhileDriving(context: Context, on: Boolean) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_MOTION_DRIVING, on).apply()
+    }
+
     fun loadBarAutoHide(context: Context): Boolean =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_BAR_AUTO_HIDE, false)
 

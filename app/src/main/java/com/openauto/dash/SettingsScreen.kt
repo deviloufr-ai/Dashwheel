@@ -216,6 +216,9 @@ internal data class ThemeState(
     val onMode: (DashThemeMode) -> Unit,
     val onAppearance: (DashAppearance) -> Unit,
     val onEffects: (DashEffects) -> Unit,
+    /** The looks' background motion keeps going while driving instead of holding still. */
+    val motionWhileDriving: Boolean = false,
+    val onMotionWhileDriving: (Boolean) -> Unit = {},
     /** The bottom bar hides itself when unused, after [barHideSeconds] (BarAutoHide.kt). */
     val barAutoHide: Boolean,
     val barHideSeconds: Int,

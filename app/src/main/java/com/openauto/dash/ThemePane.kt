@@ -201,6 +201,14 @@ internal fun EffectsSetting(theme: ThemeState) {
         onChoose = theme.onEffects
     )
     SwitchHint(stringResource(theme.effects.hintRes))
+    if (theme.effects == DashEffects.NONE) return
+    SettingsToggle(
+        icon = Icons.Filled.DirectionsCar,
+        title = stringResource(R.string.dash_motion_driving),
+        detail = stringResource(R.string.dash_motion_driving_detail),
+        checked = theme.motionWhileDriving,
+        onChange = theme.onMotionWhileDriving
+    )
 }
 
 /**

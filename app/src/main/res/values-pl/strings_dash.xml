@@ -169,6 +169,8 @@
     <string name="dash_effects_none_hint">Kryjące karty, proste cyfry, bez poświaty: czytelny w pełnym słońcu</string>
     <string name="dash_effects_reduced_hint">Łagodniejsza poświata, szkło zostaje</string>
     <string name="dash_effects_full_hint">Każdy motyw z pełną poświatą i szkłem</string>
+    <string name="dash_motion_driving">Animacje podczas jazdy</string>
+    <string name="dash_motion_driving_detail">Animacje wyglądu działają także w czasie jazdy; inaczej się zatrzymują</string>
     <string name="dash_bar_title">Dolny pasek</string>
     <string name="dash_bar_auto_hide">Automatycznie ukrywaj pasek</string>
     <string name="dash_bar_auto_hide_detail">Chowa się, gdy nie jest używany, zostawiając pulpitom więcej miejsca</string>

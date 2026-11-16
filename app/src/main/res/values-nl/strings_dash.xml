@@ -169,6 +169,8 @@
     <string name="dash_effects_none_hint">Dekkende kaarten, sobere cijfers, geen gloed: leesbaar in volle zon</string>
     <string name="dash_effects_reduced_hint">Zachtere gloed, glas blijft</string>
     <string name="dash_effects_full_hint">Elk thema met al zijn gloed en glas</string>
+    <string name="dash_motion_driving">Animaties tijdens het rijden</string>
+    <string name="dash_motion_driving_detail">De animaties van het uiterlijk lopen door als de auto rijdt; anders staan ze stil</string>
     <string name="dash_bar_title">Onderste balk</string>
     <string name="dash_bar_auto_hide">Balk automatisch verbergen</string>
     <string name="dash_bar_auto_hide_detail">Schuift weg als hij niet wordt gebruikt, voor meer ruimte op de dashboards</string>

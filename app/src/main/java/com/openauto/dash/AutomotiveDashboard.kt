@@ -152,6 +152,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     LaunchedEffect(Unit) { DashThemeStore.modeAsked.collect { themeMode = it } }
     var effects by remember { mutableStateOf(DashThemeStore.loadEffects(context)) }
     var barAutoHide by remember { mutableStateOf(DashThemeStore.loadBarAutoHide(context)) }
+    var motionWhileDriving by remember { mutableStateOf(DashThemeStore.loadMotionWhileDriving(context)) }
     var barHideSeconds by remember { mutableIntStateOf(DashThemeStore.loadBarHideSeconds(context)) }
     // Navigation (Settings, Display): the side rail in the bar's place, and tabs in it instead of swiping.
     var railChoice by remember { mutableStateOf(DashThemeStore.loadRail(context)) }
@@ -171,6 +172,8 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
         onArrangeHome = { if (skinLayout(themeMode) != null) lookLayoutAsk = themeMode },
         onAppearance = { appearance = it; DashThemeStore.saveAppearance(context, it) },
         onEffects = { effects = it; DashThemeStore.saveEffects(context, it) },
+        motionWhileDriving = motionWhileDriving,
+        onMotionWhileDriving = { motionWhileDriving = it; DashThemeStore.saveMotionWhileDriving(context, it) },
         barAutoHide = barAutoHide, barHideSeconds = barHideSeconds,
         onBarAutoHide = { barAutoHide = it; DashThemeStore.saveBarAutoHide(context, it) },
         onBarHideSeconds = { barHideSeconds = it; DashThemeStore.saveBarHideSeconds(context, it) },
@@ -1436,7 +1439,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     CompositionLocalProvider(
         LocalViewConfiguration provides carTouch,
         LocalDriveLock provides driveLock,
-        LocalCarMoving provides carMoving,
+        LocalCarMoving provides (carMoving && !motionWhileDriving),
         LocalDashboards provides Dashboards(barTabs, tabbed = tabsShown),
         LocalDashBar provides barModel
     ) {

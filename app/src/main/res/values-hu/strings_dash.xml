@@ -115,6 +115,8 @@
     <string name="dash_effects_none_hint">Átlátszatlan kártyák, egyszerű számok, ragyogás nélkül: tűző napon is olvasható</string>
     <string name="dash_effects_reduced_hint">Lágyabb ragyogás, az üveg marad</string>
     <string name="dash_effects_full_hint">Minden téma teljes ragyogással és üveggel</string>
+    <string name="dash_motion_driving">Animációk vezetés közben</string>
+    <string name="dash_motion_driving_detail">A téma animációi menet közben is futnak; különben megállnak</string>
     <string name="dash_bar_title">Alsó sáv</string>
     <string name="dash_bar_auto_hide">A sáv automatikus elrejtése</string>
     <string name="dash_bar_auto_hide_detail">Használaton kívül eltűnik, hogy több hely jusson a műszerfalaknak</string>

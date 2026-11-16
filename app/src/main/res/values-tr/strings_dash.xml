@@ -115,6 +115,8 @@
     <string name="dash_effects_none_hint">Mat kartlar, düz rakamlar, parıltı yok: tam güneşte okunur</string>
     <string name="dash_effects_reduced_hint">Daha yumuşak parıltı, cam korunur</string>
     <string name="dash_effects_full_hint">Her tema tüm parıltısı ve camıyla</string>
+    <string name="dash_motion_driving">Sürüş sırasında animasyon</string>
+    <string name="dash_motion_driving_detail">Görünümün animasyonları araç hareket ederken de sürer; aksi halde durur</string>
     <string name="dash_bar_title">Alt çubuk</string>
     <string name="dash_bar_auto_hide">Çubuğu otomatik gizle</string>
     <string name="dash_bar_auto_hide_detail">Kullanılmadığında kayarak gizlenir, gösterge panellerine daha fazla yer</string>

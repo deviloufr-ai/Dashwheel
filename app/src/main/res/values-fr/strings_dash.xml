@@ -170,6 +170,8 @@
     <string name="dash_effects_none_hint">Cartes opaques, chiffres sobres, sans lueur : lisible en plein soleil</string>
     <string name="dash_effects_reduced_hint">Halos atténués, verre conservé</string>
     <string name="dash_effects_full_hint">Chaque thème avec tous ses halos et son verre</string>
+    <string name="dash_motion_driving">Animations en roulant</string>
+    <string name="dash_motion_driving_detail">Les animations du thème continuent quand la voiture roule ; sinon elles se figent</string>
     <string name="dash_bar_title">Barre du bas</string>
     <string name="dash_bar_auto_hide">Masquer la barre automatiquement</string>
     <string name="dash_bar_auto_hide_detail">Se retire quand elle ne sert pas, pour laisser plus de place aux tableaux de bord</string>

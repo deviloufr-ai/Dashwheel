@@ -115,6 +115,8 @@
     <string name="dash_effects_none_hint">Opaque cards, plain numerals, no glow: reads in full sun</string>
     <string name="dash_effects_reduced_hint">Softer glow, glass kept</string>
     <string name="dash_effects_full_hint">Every theme with all its glow and glass</string>
+    <string name="dash_motion_driving">Motion while driving</string>
+    <string name="dash_motion_driving_detail">Keeps the look animated while the car moves, instead of holding it still</string>
     <string name="dash_bar_title">Bottom bar</string>
     <string name="dash_bar_auto_hide">Auto-hide the bar</string>
     <string name="dash_bar_auto_hide_detail">Slides away when unused, for more room on the dashboards</string>

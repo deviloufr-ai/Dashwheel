@@ -169,6 +169,8 @@
     <string name="dash_effects_none_hint">Cartões opacos, algarismos simples, sem brilho: lê-se em pleno sol</string>
     <string name="dash_effects_reduced_hint">Brilho suavizado, vidro mantido</string>
     <string name="dash_effects_full_hint">Cada tema com todo o seu brilho e vidro</string>
+    <string name="dash_motion_driving">Animações a conduzir</string>
+    <string name="dash_motion_driving_detail">As animações do visual continuam com o carro em movimento; caso contrário param</string>
     <string name="dash_bar_title">Barra inferior</string>
     <string name="dash_bar_auto_hide">Ocultar a barra automaticamente</string>
     <string name="dash_bar_auto_hide_detail">Recolhe-se quando não está em uso, para dar mais espaço aos painéis</string>
