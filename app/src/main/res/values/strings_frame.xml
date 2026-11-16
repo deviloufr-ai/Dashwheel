@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- A tile's layer, on the tile panel's Layer tab while arranging (TileOptions.kt): over the other tiles, opacity, border, place and size by the cell -->
+    <!-- A tile's layer, on the tile panel's Layer tab while arranging (TileOptions.kt): over the other tiles, background, opacity, border, place and size by the cell -->
     <string name="frame_tab_tile">Tile</string>
     <string name="frame_tab_layer">Layer</string>
     <string name="frame_overlap">Over other tiles</string>
@@ -8,6 +8,9 @@
     <string name="frame_overlap_off">In the grid with the others, never on another tile.</string>
     <string name="frame_to_front">To the front</string>
     <string name="frame_to_back">To the back</string>
+    <string name="frame_bare">No background</string>
+    <string name="frame_bare_on">See-through: only the words and dials show, over what lies behind.</string>
+    <string name="frame_bare_off">On its card or panel, as the look draws it.</string>
     <string name="frame_opacity">Opacity</string>
     <string name="frame_fainter">Fainter</string>
     <string name="frame_more_solid">More solid</string>

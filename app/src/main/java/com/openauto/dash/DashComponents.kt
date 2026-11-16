@@ -17,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.runtime.DisposableEffect
@@ -189,14 +190,22 @@ internal fun GradientRoundButton(
 }
 
 /**
+ * True inside a tile the driver set to show without its background
+ * ([TileFrame.bare]): its card, its design's material and the skin's panel
+ * are left out, so its content sits straight on what lies behind it.
+ */
+internal val LocalTileBare = staticCompositionLocalOf { false }
+
+/**
  * Rounded elevated card. Solid themes use a flat surface matching the Android
  * Auto content cards; glass themes use a translucent gradient panel that lets
- * the aurora background show through; bare themes draw no panel at all.
+ * the aurora background show through; bare themes, and a tile without its
+ * background ([LocalTileBare]), draw no panel at all.
  */
 @Composable
 internal fun Card(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     val shape = DashShape.Large
-    if (DashColors.Bare) {
+    if (DashColors.Bare || LocalTileBare.current) {
         // Unclipped: with no panel edge to hide it, a clip would cut glows off in a hard line.
         Box(modifier = modifier) { content() }
     } else if (DashColors.Glass) {

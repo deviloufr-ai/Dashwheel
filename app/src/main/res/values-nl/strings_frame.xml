@@ -7,6 +7,9 @@
     <string name="frame_overlap_off">In het raster met de rest, nooit op een andere tegel.</string>
     <string name="frame_to_front">Naar voren</string>
     <string name="frame_to_back">Naar achteren</string>
+    <string name="frame_bare">Zonder achtergrond</string>
+    <string name="frame_bare_on">Doorzichtig: alleen teksten en meters blijven, over wat erachter ligt.</string>
+    <string name="frame_bare_off">Op zijn kaart of paneel, zoals de stijl het tekent.</string>
     <string name="frame_opacity">Dekking</string>
     <string name="frame_fainter">Doorzichtiger</string>
     <string name="frame_more_solid">Dekkender</string>

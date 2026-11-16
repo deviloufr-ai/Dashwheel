@@ -7,6 +7,9 @@
     <string name="frame_overlap_off">Im Raster mit den anderen, nie auf einer anderen Kachel.</string>
     <string name="frame_to_front">Nach vorne</string>
     <string name="frame_to_back">Nach hinten</string>
+    <string name="frame_bare">Ohne Hintergrund</string>
+    <string name="frame_bare_on">Durchsichtig: nur Texte und Anzeigen bleiben, über dem, was dahinter liegt.</string>
+    <string name="frame_bare_off">Auf ihrer Karte oder Fläche, wie das Design sie zeichnet.</string>
     <string name="frame_opacity">Deckkraft</string>
     <string name="frame_fainter">Durchsichtiger</string>
     <string name="frame_more_solid">Deckender</string>

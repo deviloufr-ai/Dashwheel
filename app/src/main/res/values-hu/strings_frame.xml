@@ -7,6 +7,9 @@
     <string name="frame_overlap_off">A rácsban a többivel, soha nem egy másik csempén.</string>
     <string name="frame_to_front">Előre</string>
     <string name="frame_to_back">Hátra</string>
+    <string name="frame_bare">Háttér nélkül</string>
+    <string name="frame_bare_on">Átlátszó: csak a feliratok és mérők maradnak, a mögötte lévő fölött.</string>
+    <string name="frame_bare_off">A saját kártyáján vagy paneljén, ahogy a stílus rajzolja.</string>
     <string name="frame_opacity">Átlátszatlanság</string>
     <string name="frame_fainter">Átlátszóbb</string>
     <string name="frame_more_solid">Tömörebb</string>

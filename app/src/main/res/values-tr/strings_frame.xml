@@ -7,6 +7,9 @@
     <string name="frame_overlap_off">Izgarada diğerleriyle birlikte, asla başka bir kutucuğun üstünde değil.</string>
     <string name="frame_to_front">En öne</string>
     <string name="frame_to_back">En arkaya</string>
+    <string name="frame_bare">Arka plan yok</string>
+    <string name="frame_bare_on">Saydam: yalnızca yazılar ve göstergeler kalır, arkadakinin üstünde.</string>
+    <string name="frame_bare_off">Temanın çizdiği gibi kendi kartının veya panelinin üstünde.</string>
     <string name="frame_opacity">Opaklık</string>
     <string name="frame_fainter">Daha saydam</string>
     <string name="frame_more_solid">Daha dolgun</string>

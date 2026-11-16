@@ -7,6 +7,9 @@
     <string name="frame_overlap_off">Dans la grille avec les autres, jamais sur une autre tuile.</string>
     <string name="frame_to_front">Au premier plan</string>
     <string name="frame_to_back">À l\'arrière-plan</string>
+    <string name="frame_bare">Sans fond</string>
+    <string name="frame_bare_on">Transparente : seuls les textes et cadrans restent, sur ce qui est derrière.</string>
+    <string name="frame_bare_off">Sur sa carte ou son panneau, comme le dessine le style.</string>
     <string name="frame_opacity">Opacité</string>
     <string name="frame_fainter">Plus transparente</string>
     <string name="frame_more_solid">Plus opaque</string>

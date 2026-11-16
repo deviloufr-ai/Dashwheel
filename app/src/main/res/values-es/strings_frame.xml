@@ -7,6 +7,9 @@
     <string name="frame_overlap_off">En la cuadrícula con las demás, nunca sobre otra tarjeta.</string>
     <string name="frame_to_front">Al frente</string>
     <string name="frame_to_back">Al fondo</string>
+    <string name="frame_bare">Sin fondo</string>
+    <string name="frame_bare_on">Transparente: solo quedan los textos y los indicadores, sobre lo que hay detrás.</string>
+    <string name="frame_bare_off">Sobre su tarjeta o panel, como lo dibuja el estilo.</string>
     <string name="frame_opacity">Opacidad</string>
     <string name="frame_fainter">Más transparente</string>
     <string name="frame_more_solid">Más opaca</string>

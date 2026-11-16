@@ -153,6 +153,11 @@ internal fun DesignedFace(face: WidgetFace, design: WidgetDesign, modifier: Modi
 @Composable
 internal fun FaceSurface(look: FaceLook, modifier: Modifier, content: @Composable () -> Unit) {
     val bg = look.background
+    // A tile without its background keeps the design's words and dials, not its material.
+    if (LocalTileBare.current) {
+        Box(modifier = modifier) { content() }
+        return
+    }
     if (bg == null) {
         Card(modifier = modifier) { content() }
         return

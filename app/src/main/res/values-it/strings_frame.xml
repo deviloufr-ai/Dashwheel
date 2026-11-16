@@ -7,6 +7,9 @@
     <string name="frame_overlap_off">Nella griglia con gli altri, mai su un altro riquadro.</string>
     <string name="frame_to_front">In primo piano</string>
     <string name="frame_to_back">In fondo</string>
+    <string name="frame_bare">Senza sfondo</string>
+    <string name="frame_bare_on">Trasparente: restano solo testi e quadranti, sopra ciò che sta dietro.</string>
+    <string name="frame_bare_off">Sulla sua scheda o pannello, come lo disegna lo stile.</string>
     <string name="frame_opacity">Opacità</string>
     <string name="frame_fainter">Più trasparente</string>
     <string name="frame_more_solid">Più opaco</string>

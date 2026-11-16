@@ -224,14 +224,17 @@ sealed interface DashboardItem {
  * grid's tiles (the later of two in the page's order on top), never pushes
  * one aside and never blocks a cell for a new tile. [opacity] is how solid
  * the whole tile is drawn, [OPACITY_MIN]..1; [border] its edge's width in dp,
- * 0 for none, up to [BORDER_MAX], in [borderColor]. Persisted; the defaults
- * write nothing, so a plain tile's layout reads as before.
+ * 0 for none, up to [BORDER_MAX], in [borderColor]. A [bare] tile drops its
+ * card, panel or material: its content sits straight on what lies behind it,
+ * as on a bare theme (LocalTileBare). Persisted; the defaults write nothing,
+ * so a plain tile's layout reads as before.
  */
 data class TileFrame(
     val overlap: Boolean = false,
     val opacity: Float = 1f,
     val border: Int = 0,
-    val borderColor: TileBorderColor = TileBorderColor.ACCENT
+    val borderColor: TileBorderColor = TileBorderColor.ACCENT,
+    val bare: Boolean = false
 ) {
     companion object {
         val NONE = TileFrame()
@@ -519,7 +522,8 @@ object DashboardStore {
      *     design, so older builds simply ignore it.
      *  2: a tile may carry its frame ([TileFrame]): `"ov"` true for one over
      *     the other tiles, `"op"` its opacity, `"bw"` its border's width and
-     *     `"bc"` the border's colour name; each absent at its default. An
+     *     `"bc"` the border's colour name, `"nb"` true for one without its
+     *     background (added later, optional, no new version); each absent at its default. An
      *     older build ignores them, and lays the tiles over the others back
      *     into the grid on load (its [repairOverlaps] knows no overlap).
      *  3: the cells are the finer grid's ([GRID_SCALE] to a coarse cell each
@@ -1126,6 +1130,7 @@ object DashboardStore {
             o.put("bw", frame.border)
             if (frame.borderColor != TileBorderColor.ACCENT) o.put("bc", frame.borderColor.name)
         }
+        if (frame.bare) o.put("nb", true)
         return o.put("gx", x).put("gy", y).put("gw", w).put("gh", h)
     }
 
@@ -1160,7 +1165,8 @@ object DashboardStore {
             overlap = optBoolean("ov"),
             opacity = optDouble("op", 1.0).toFloat(),
             border = optInt("bw", 0),
-            borderColor = TileBorderColor.fromName(optString("bc"))
+            borderColor = TileBorderColor.fromName(optString("bc")),
+            bare = optBoolean("nb")
         ).clamped()
         fun place(item: DashboardItem): DashboardItem =
             (if (gx >= 0 && gy >= 0 && gw > 0 && gh > 0) item.withCell(gx, gy, gw, gh)

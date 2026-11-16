@@ -7,6 +7,9 @@
     <string name="frame_overlap_off">В сетке с остальными, никогда поверх другой плитки.</string>
     <string name="frame_to_front">На передний план</string>
     <string name="frame_to_back">На задний план</string>
+    <string name="frame_bare">Без фона</string>
+    <string name="frame_bare_on">Прозрачная: остаются только надписи и шкалы, поверх того, что позади.</string>
+    <string name="frame_bare_off">На своей карточке или панели, как её рисует стиль.</string>
     <string name="frame_opacity">Непрозрачность</string>
     <string name="frame_fainter">Прозрачнее</string>
     <string name="frame_more_solid">Плотнее</string>

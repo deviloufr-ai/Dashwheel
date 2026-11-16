@@ -480,6 +480,19 @@ class DashboardStoreTest {
     }
 
     @Test
+    fun aTileWithoutItsBackgroundRoundTrips() {
+        val bare = widget(BuiltinKind.CLOCK, 0, 0, 3, 2).withFrame(TileFrame(bare = true))
+        val plain = widget(BuiltinKind.SPEED_HUD, 3, 0, 2, 2)
+        val pages = listOf(listOf(bare, plain), emptyList(), emptyList())
+        val saved = DashboardStore.serializePages(pages)
+        assertEquals(pages, DashboardStore.parsePages(saved))
+        val tiles = JSONObject(saved).getJSONArray("pages").getJSONArray(0)
+        assertTrue(tiles.getJSONObject(0).getBoolean("nb"))
+        // With its background, the default, it writes nothing.
+        assertFalse(tiles.getJSONObject(1).has("nb"))
+    }
+
+    @Test
     fun opacityStepsOnTenthsAndStopsAtTheEnds() {
         assertEquals(0.9f, opacityStep(1f, -1), 0.0001f)
         assertEquals(0.5f, opacityStep(0.6f, -1), 0.0001f)

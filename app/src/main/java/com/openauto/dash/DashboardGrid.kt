@@ -505,7 +505,7 @@ internal fun GridTile(
                         selected -> Modifier
                             .onGloballyPositioned { onSelectedBounds(it.boundsInRoot()) }
                             .border(2.dp, DashColors.Accent, frameShape)
-                        editing && DashColors.Bare -> Modifier.border(1.dp, DashColors.TextSecondary.copy(alpha = 0.35f), DashShape.Large)
+                        editing && (DashColors.Bare || item.frame.bare) -> Modifier.border(1.dp, DashColors.TextSecondary.copy(alpha = 0.35f), DashShape.Large)
                         else -> Modifier
                     }
                 )
@@ -514,7 +514,10 @@ internal fun GridTile(
                 // Dimmed while arranging: the tile is the thing being moved, not
                 // read. Not the one whose panel is open: its new design shows as is.
                 .graphicsLayer { alpha = if (editing && !selected) 0.7f else 1f }
-        ) { content() }
+        ) {
+            // Without its background (TileFrame.bare): the cards and panels inside leave theirs out.
+            CompositionLocalProvider(LocalTileBare provides item.frame.bare) { content() }
+        }
 
         if (editing) {
             // Transparent scrim over the content captures the long-press drag so
@@ -917,7 +920,7 @@ internal fun TileContent(
  */
 @Composable
 private fun SkinFallback(kind: BuiltinKind, content: @Composable () -> Unit) {
-    if (DashColors.Skin == DashSkin.STANDARD || !DashColors.Bare || kind in FRAMED_KINDS || kind == BuiltinKind.DASH_BAR || kind in SKINNED_KINDS) {
+    if (LocalTileBare.current || DashColors.Skin == DashSkin.STANDARD || !DashColors.Bare || kind in FRAMED_KINDS || kind == BuiltinKind.DASH_BAR || kind in SKINNED_KINDS) {
         content()
         return
     }

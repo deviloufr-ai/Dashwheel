@@ -7,6 +7,9 @@
     <string name="frame_overlap_off">Na grelha com os outros, nunca sobre outro bloco.</string>
     <string name="frame_to_front">Para a frente</string>
     <string name="frame_to_back">Para trás</string>
+    <string name="frame_bare">Sem fundo</string>
+    <string name="frame_bare_on">Transparente: só ficam os textos e mostradores, sobre o que está por trás.</string>
+    <string name="frame_bare_off">No seu cartão ou painel, como o estilo o desenha.</string>
     <string name="frame_opacity">Opacidade</string>
     <string name="frame_fainter">Mais transparente</string>
     <string name="frame_more_solid">Mais opaco</string>

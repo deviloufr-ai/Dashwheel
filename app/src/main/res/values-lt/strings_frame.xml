@@ -7,6 +7,9 @@
     <string name="frame_overlap_off">Tinklelyje su kitomis, niekada ant kitos plytelės.</string>
     <string name="frame_to_front">Į priekį</string>
     <string name="frame_to_back">Į galą</string>
+    <string name="frame_bare">Be fono</string>
+    <string name="frame_bare_on">Permatoma: lieka tik užrašai ir skalės, virš to, kas už jos.</string>
+    <string name="frame_bare_off">Ant savo kortelės ar skydelio, kaip ją piešia stilius.</string>
     <string name="frame_opacity">Nepermatomumas</string>
     <string name="frame_fainter">Permatomesnė</string>
     <string name="frame_more_solid">Sodresnė</string>

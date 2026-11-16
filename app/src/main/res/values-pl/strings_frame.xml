@@ -7,6 +7,9 @@
     <string name="frame_overlap_off">W siatce z innymi, nigdy na innym kafelku.</string>
     <string name="frame_to_front">Na wierzch</string>
     <string name="frame_to_back">Na spód</string>
+    <string name="frame_bare">Bez tła</string>
+    <string name="frame_bare_on">Przezroczysty: zostają tylko teksty i wskaźniki, na tym, co pod spodem.</string>
+    <string name="frame_bare_off">Na swojej karcie lub panelu, tak jak rysuje go styl.</string>
     <string name="frame_opacity">Krycie</string>
     <string name="frame_fainter">Bardziej przezroczysty</string>
     <string name="frame_more_solid">Bardziej kryjący</string>

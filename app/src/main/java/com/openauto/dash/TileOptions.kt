@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.FormatColorReset
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Remove
@@ -75,8 +76,8 @@ import kotlin.math.roundToInt
  * corner, and the edit bar's Undo takes back any of it.
  *
  * Its Layer tab is the tile's frame (TileFrame): over the other tiles or in
- * the grid with them, on top of or under the other tiles over the grid, its
- * opacity, its border and the border's colour, and the tile's place and size
+ * the grid with them, on top of or under the other tiles over the grid, with
+ * its background or see-through, its opacity, its border and the border's colour, and the tile's place and size
  * a cell at a time, for setting one tile over another exactly.
  */
 
@@ -309,6 +310,7 @@ private fun LayerControls(
                 PanelButton(Icons.Filled.FlipToBack, stringResource(R.string.frame_to_back), Modifier.weight(1f)) { onLayer(false) }
             }
         }
+        BareSwitch(frame.bare) { onFrame(frame.copy(bare = it)) }
         LabelledStepper(
             label = stringResource(R.string.frame_opacity),
             value = stringResource(R.string.zoom_percent, (frame.opacity * 100).roundToInt()),
@@ -366,29 +368,49 @@ private fun LayerControls(
 
 /** Over the other tiles, or in the grid with them: the switch, with a line on what it means. */
 @Composable
-private fun OverlapSwitch(over: Boolean, onOverlap: (Boolean) -> Unit) {
+private fun OverlapSwitch(over: Boolean, onOverlap: (Boolean) -> Unit) = FrameSwitch(
+    icon = Icons.Filled.Layers,
+    title = stringResource(R.string.frame_overlap),
+    detail = stringResource(if (over) R.string.frame_overlap_on else R.string.frame_overlap_off),
+    on = over,
+    onChange = onOverlap
+)
+
+/** With its background or without, see-through ([TileFrame.bare]): the switch, with a line on what it means. */
+@Composable
+private fun BareSwitch(bare: Boolean, onBare: (Boolean) -> Unit) = FrameSwitch(
+    icon = Icons.Filled.FormatColorReset,
+    title = stringResource(R.string.frame_bare),
+    detail = stringResource(if (bare) R.string.frame_bare_on else R.string.frame_bare_off),
+    on = bare,
+    onChange = onBare
+)
+
+/** One of the Layer tab's switches: its icon, its name and a line on what it means, then the switch. */
+@Composable
+private fun FrameSwitch(icon: ImageVector, title: String, detail: String, on: Boolean, onChange: (Boolean) -> Unit) {
     val tap = rememberTapFeedback()
     Row(
         modifier = Modifier
             .heightIn(min = DashSize.Touch)
             .clip(DashShape.Small)
-            .border(1.dp, if (over) DashColors.Accent else DashColors.Line, DashShape.Small)
-            .clickable(role = Role.Switch) { tap(); onOverlap(!over) }
+            .border(1.dp, if (on) DashColors.Accent else DashColors.Line, DashShape.Small)
+            .clickable(role = Role.Switch) { tap(); onChange(!on) }
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Filled.Layers, contentDescription = null, tint = if (over) DashColors.Accent else DashColors.TextSecondary, modifier = Modifier.size(22.dp))
+        Icon(icon, contentDescription = null, tint = if (on) DashColors.Accent else DashColors.TextSecondary, modifier = Modifier.size(22.dp))
         Spacer(Modifier.width(10.dp))
         Column(Modifier.weight(1f)) {
-            Text(stringResource(R.string.frame_overlap), color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(title, color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(
-                stringResource(if (over) R.string.frame_overlap_on else R.string.frame_overlap_off),
+                detail,
                 color = DashColors.TextSecondary, style = MaterialTheme.typography.labelSmall, maxLines = 2, overflow = TextOverflow.Ellipsis
             )
         }
         Spacer(Modifier.width(10.dp))
         Switch(
-            checked = over,
+            checked = on,
             onCheckedChange = null,
             colors = SwitchDefaults.colors(
                 checkedThumbColor = DashColors.OnAccent,
