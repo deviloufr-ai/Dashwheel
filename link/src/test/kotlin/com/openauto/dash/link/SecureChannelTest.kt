@@ -212,4 +212,16 @@ class SecureChannelTest {
         assertTrue(sender.sendOrClose(Ping))
         assertEquals(Ping, wire(out.toByteArray()).receive())
     }
+
+    @Test
+    fun piecesKeepEveryByteInOrder() {
+        val writes = mutableListOf<Int>()
+        val sink = object : java.io.ByteArrayOutputStream() {
+            override fun write(b: ByteArray, off: Int, len: Int) { writes += len; super.write(b, off, len) }
+        }
+        val bytes = ByteArray(1_300) { it.toByte() }
+        inPieces(sink, 512).write(bytes, 0, bytes.size)
+        assertEquals(listOf(512, 512, 276), writes)
+        assertTrue(bytes.contentEquals(sink.toByteArray()))
+    }
 }

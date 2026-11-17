@@ -314,3 +314,21 @@ internal fun readFrame(input: DataInputStream, max: Int): ByteArray {
     if (size < 0 || size > max) throw IOException("frame of $size bytes refused")
     return ByteArray(size).also(input::readFully)
 }
+
+/**
+ * [output] written [size] bytes at a time. One write of a whole message (tens of kB)
+ * to a head unit's RFCOMM socket left the phone hearing nothing after the handshake,
+ * whose frames are small, while Wi-Fi carried the same bytes (#118). Pieces under
+ * the usual RFCOMM packet size go the way the handshake did.
+ * shortcut: a fix by reading, not seen on the unit; drop it if the unit log shows pongs before the drop.
+ */
+fun inPieces(output: OutputStream, size: Int = 512): OutputStream = object : java.io.FilterOutputStream(output) {
+    override fun write(b: ByteArray, off: Int, len: Int) {
+        var at = off
+        while (at < off + len) {
+            val n = minOf(size, off + len - at)
+            out.write(b, at, n)
+            at += n
+        }
+    }
+}

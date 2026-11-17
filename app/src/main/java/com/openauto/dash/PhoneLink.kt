@@ -80,6 +80,7 @@ import com.openauto.dash.link.TypeText
 import com.openauto.dash.link.PhonePointer
 import com.openauto.dash.link.UnknownPairingException
 import com.openauto.dash.link.RoadScene
+import com.openauto.dash.link.inPieces
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -668,7 +669,7 @@ object PhoneLink {
             guard.timeoutMs = HANDSHAKE_TIMEOUT_MS.toLong()
             guard.kick()
             val link = SecureChannel.client(
-                guard.hearing(socket.inputStream), socket.outputStream, phone.id, phone.secret,
+                guard.hearing(socket.inputStream), inPieces(socket.outputStream), phone.id, phone.secret,
                 onClose = { guard.stop(); runCatching { socket.close() } }
             )
             // Bluetooth has no read timeout: from here the guard ends a link that went quiet.
@@ -724,6 +725,9 @@ object PhoneLink {
         val stallMs = if (gateway == null) BLUETOOTH_SEND_STALL_MS else SEND_STALL_MS
         val upAt = SystemClock.elapsedRealtime()
         var lastHeardAt = upAt // the reader's own: written and read on this thread only
+        // Pongs answer the unit's pings: none at all means the phone never heard the car (#118, one-way Bluetooth).
+        var pongs = 0
+        var companion = "?"
         val endedBy = AtomicReference<String?>(null)
         DebugLog.note(context, "Phone link up over $carried")
         val pinger = scope.launch {
@@ -764,6 +768,7 @@ object PhoneLink {
                 idle?.kick()
                 lastHeardAt = SystemClock.elapsedRealtime()
                 val message = received ?: continue
+                if (message === Pong) pongs++ else if (message is Hello) companion = message.appVersion
                 // One message this build can't make sense of is skipped: thrown out of
                 // here, it ended the launcher (nothing above catches it).
                 try {
@@ -779,7 +784,7 @@ object PhoneLink {
             endedBy.compareAndSet(null, if (quiet) "nothing heard from the phone for ${READ_TIMEOUT_MS / 1000} s"
                 else "${e.javaClass.simpleName} ${e.message.orEmpty()}".trim())
         } finally {
-            DebugLog.note(context, "Phone link over $carried down after ${(SystemClock.elapsedRealtime() - upAt) / 1000} s: ${endedBy.get() ?: "closed here"}")
+            DebugLog.note(context, "Phone link over $carried down after ${(SystemClock.elapsedRealtime() - upAt) / 1000} s: ${endedBy.get() ?: "closed here"} (companion $companion, $pongs pongs)")
             idle?.stop()
             pinger.cancel()
             watchdog.cancel()
