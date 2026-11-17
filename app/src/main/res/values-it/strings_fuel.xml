@@ -5,7 +5,7 @@
     <string name="fuel_kind_blurb">Distributori più economici vicino, tocca per andarci</string>
     <string name="fuel_title">CARBURANTE VICINO</string>
     <string name="fuel_loading">Ricerca dei distributori…</string>
-    <string name="fuel_none">Nessuna stazione con questo carburante entro %1$d km. I prezzi coprono la Francia e, con una chiave Tankerkönig, la Germania.</string>
+    <string name="fuel_none">Nessuna stazione con questo carburante entro %1$d km. I prezzi coprono la Francia, la Spagna e, con una chiave Tankerkönig, la Germania.</string>
     <string name="fuel_error">Prezzi non disponibili al momento</string>
     <string name="fuel_cheapest">%1$s più economico</string>
     <string name="fuel_navigate">tocca per andarci</string>

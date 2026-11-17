@@ -5,7 +5,7 @@
     <string name="fuel_kind_blurb">Goedkoopste stations in de buurt, tik om te navigeren</string>
     <string name="fuel_title">BRANDSTOF DICHTBIJ</string>
     <string name="fuel_loading">Stations zoeken…</string>
-    <string name="fuel_none">Geen station met deze brandstof binnen %1$d km. Prijzen dekken Frankrijk en, met een Tankerkönig-sleutel, Duitsland.</string>
+    <string name="fuel_none">Geen station met deze brandstof binnen %1$d km. Prijzen dekken Frankrijk, Spanje en, met een Tankerkönig-sleutel, Duitsland.</string>
     <string name="fuel_error">Prijzen nu niet beschikbaar</string>
     <string name="fuel_cheapest">Goedkoopste %1$s</string>
     <string name="fuel_navigate">tik om te navigeren</string>

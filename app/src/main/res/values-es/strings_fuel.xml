@@ -5,7 +5,7 @@
     <string name="fuel_kind_blurb">Gasolineras más baratas cerca, toca para ir</string>
     <string name="fuel_title">COMBUSTIBLE CERCA</string>
     <string name="fuel_loading">Buscando gasolineras…</string>
-    <string name="fuel_none">Ninguna gasolinera con este combustible a menos de %1$d km. Los precios cubren Francia y, con una clave de Tankerkönig, Alemania.</string>
+    <string name="fuel_none">Ninguna gasolinera con este combustible a menos de %1$d km. Los precios cubren Francia, España y, con una clave de Tankerkönig, Alemania.</string>
     <string name="fuel_error">Precios no disponibles ahora</string>
     <string name="fuel_cheapest">%1$s más barato</string>
     <string name="fuel_navigate">toca para ir</string>

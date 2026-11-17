@@ -5,7 +5,7 @@
     <string name="fuel_kind_blurb">Cheapest stations nearby, tap to navigate</string>
     <string name="fuel_title">FUEL NEARBY</string>
     <string name="fuel_loading">Looking for stations…</string>
-    <string name="fuel_none">No station selling this fuel within %1$d km. Prices cover France, and Germany with a Tankerkönig key.</string>
+    <string name="fuel_none">No station selling this fuel within %1$d km. Prices cover France, Spain, and Germany with a Tankerkönig key.</string>
     <string name="fuel_error">Prices unavailable right now</string>
     <string name="fuel_cheapest">Cheapest %1$s</string>
     <string name="fuel_navigate">tap to navigate</string>

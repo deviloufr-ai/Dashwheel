@@ -5,7 +5,7 @@
     <string name="fuel_kind_blurb">Pigiausios degalinės netoliese, palieskite ir važiuokite</string>
     <string name="fuel_title">DEGALAI NETOLIESE</string>
     <string name="fuel_loading">Ieškoma degalinių…</string>
-    <string name="fuel_none">Per %1$d km nėra degalinės su šiais degalais. Kainos rodomos Prancūzijoje, o su Tankerkönig raktu ir Vokietijoje.</string>
+    <string name="fuel_none">Per %1$d km nėra degalinės su šiais degalais. Kainos rodomos Prancūzijoje ir Ispanijoje, o su Tankerkönig raktu ir Vokietijoje.</string>
     <string name="fuel_error">Kainos šiuo metu nepasiekiamos</string>
     <string name="fuel_cheapest">Pigiausi: %1$s</string>
     <string name="fuel_navigate">palieskite ir važiuokite</string>

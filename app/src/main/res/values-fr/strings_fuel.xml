@@ -5,7 +5,7 @@
     <string name="fuel_kind_blurb">Stations les moins chères à proximité, touchez pour y aller</string>
     <string name="fuel_title">CARBURANT À PROXIMITÉ</string>
     <string name="fuel_loading">Recherche des stations…</string>
-    <string name="fuel_none">Aucune station vendant ce carburant à moins de %1$d km. Les prix couvrent la France, et l\'Allemagne avec une clé Tankerkönig.</string>
+    <string name="fuel_none">Aucune station vendant ce carburant à moins de %1$d km. Les prix couvrent la France, l\'Espagne, et l\'Allemagne avec une clé Tankerkönig.</string>
     <string name="fuel_error">Prix indisponibles pour le moment</string>
     <string name="fuel_cheapest">%1$s le moins cher</string>
     <string name="fuel_navigate">touchez pour y aller</string>

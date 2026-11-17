@@ -5,7 +5,7 @@
     <string name="fuel_kind_blurb">Самые дешёвые заправки рядом, нажмите для маршрута</string>
     <string name="fuel_title">ТОПЛИВО РЯДОМ</string>
     <string name="fuel_loading">Поиск заправок…</string>
-    <string name="fuel_none">Нет заправки с этим топливом в радиусе %1$d км. Цены есть для Франции и, с ключом Tankerkönig, для Германии.</string>
+    <string name="fuel_none">Нет заправки с этим топливом в радиусе %1$d км. Цены есть для Франции, Испании и, с ключом Tankerkönig, для Германии.</string>
     <string name="fuel_error">Цены сейчас недоступны</string>
     <string name="fuel_cheapest">Дешевле всего: %1$s</string>
     <string name="fuel_navigate">нажмите для маршрута</string>

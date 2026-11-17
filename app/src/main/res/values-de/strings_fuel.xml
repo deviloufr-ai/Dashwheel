@@ -5,7 +5,7 @@
     <string name="fuel_kind_blurb">Günstigste Tankstellen in der Nähe, tippen zum Navigieren</string>
     <string name="fuel_title">TANKEN IN DER NÄHE</string>
     <string name="fuel_loading">Tankstellen werden gesucht…</string>
-    <string name="fuel_none">Keine Tankstelle mit diesem Kraftstoff im Umkreis von %1$d km. Preise gibt es für Frankreich und, mit einem Tankerkönig-Schlüssel, für Deutschland.</string>
+    <string name="fuel_none">Keine Tankstelle mit diesem Kraftstoff im Umkreis von %1$d km. Preise gibt es für Frankreich, Spanien und, mit einem Tankerkönig-Schlüssel, für Deutschland.</string>
     <string name="fuel_error">Preise gerade nicht verfügbar</string>
     <string name="fuel_cheapest">Günstigstes %1$s</string>
     <string name="fuel_navigate">tippen zum Navigieren</string>

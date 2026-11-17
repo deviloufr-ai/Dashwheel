@@ -5,7 +5,7 @@
     <string name="fuel_kind_blurb">Yakındaki en ucuz istasyonlar, yol tarifi için dokunun</string>
     <string name="fuel_title">YAKINDAKİ YAKIT</string>
     <string name="fuel_loading">İstasyonlar aranıyor…</string>
-    <string name="fuel_none">%1$d km içinde bu yakıtı satan istasyon yok. Fiyatlar Fransa\'yı, Tankerkönig anahtarıyla Almanya\'yı kapsar.</string>
+    <string name="fuel_none">%1$d km içinde bu yakıtı satan istasyon yok. Fiyatlar Fransa\'yı, İspanya\'yı ve Tankerkönig anahtarıyla Almanya\'yı kapsar.</string>
     <string name="fuel_error">Fiyatlar şu an alınamıyor</string>
     <string name="fuel_cheapest">En ucuz %1$s</string>
     <string name="fuel_navigate">yol tarifi için dokunun</string>

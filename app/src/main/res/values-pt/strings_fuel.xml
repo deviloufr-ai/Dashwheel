@@ -5,7 +5,7 @@
     <string name="fuel_kind_blurb">Postos mais baratos por perto, toque para navegar</string>
     <string name="fuel_title">COMBUSTÍVEL PERTO</string>
     <string name="fuel_loading">A procurar postos…</string>
-    <string name="fuel_none">Nenhuma estação com este combustível a menos de %1$d km. Os preços cobrem a França e, com uma chave Tankerkönig, a Alemanha.</string>
+    <string name="fuel_none">Nenhuma estação com este combustível a menos de %1$d km. Os preços cobrem a França, a Espanha e, com uma chave Tankerkönig, a Alemanha.</string>
     <string name="fuel_error">Preços indisponíveis de momento</string>
     <string name="fuel_cheapest">%1$s mais barato</string>
     <string name="fuel_navigate">toque para navegar</string>

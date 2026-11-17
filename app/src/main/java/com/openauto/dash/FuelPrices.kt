@@ -20,19 +20,22 @@ import kotlin.math.sqrt
  * Fuel prices at the stations around the car, from the French government's
  * open data (prix-carburants.gouv.fr, free, no key), which every station in
  * France must feed; and in Germany from Tankerkönig ([Tankerkoenig]) once
- * the driver has pasted a key of their own. Elsewhere the list is simply
+ * the driver has pasted a key of their own; in Spain from the ministry's
+ * feed ([SpainFuel]). Elsewhere the list is simply
  * empty. The French data has no station names: those come from
  * OpenStreetMap (Overpass API, free, no key), where French stations carry
  * the government's id. Tankerkönig names its stations itself.
  */
 
 /** Where the stations shown came from, for the tile's credit line. */
-enum class FuelSource { FRANCE, TANKERKOENIG }
+enum class FuelSource { FRANCE, TANKERKOENIG, SPAIN }
 
 /** What to ask for the stations around the car, by the country it is in. */
 enum class FuelPlan {
     /** The French government's feed. */
     FRANCE,
+    /** The Spanish ministry's feed, for the car's province. */
+    SPAIN,
     /** Tankerkönig, with the driver's key. */
     TANKERKOENIG,
     /** Tankerkönig when it knows a station there, else the French feed: for a country not known, or none. */
@@ -95,6 +98,7 @@ object FuelPrices {
      */
     fun plan(country: String?, hasTankerkoenigKey: Boolean): FuelPlan = when (country) {
         "fr" -> FuelPlan.FRANCE
+        "es" -> FuelPlan.SPAIN
         "de" -> if (hasTankerkoenigKey) FuelPlan.TANKERKOENIG else FuelPlan.NEEDS_TANKERKOENIG_KEY
         else -> if (hasTankerkoenigKey) FuelPlan.TANKERKOENIG_THEN_FRANCE else FuelPlan.FRANCE
     }
@@ -337,12 +341,13 @@ object FuelPriceRepo {
         withContext(Dispatchers.IO) {
             runCatching {
                 // The feed of the country the car is in (FuelPrices.plan): France's, or
-                // Tankerkönig's with the driver's key. A refused key is an error the tile shows.
+                // Spain's, or Tankerkönig's with the driver's key. A refused key is an error the tile shows.
                 val key = ApiKeys.current(ApiService.TANKERKOENIG)
                 val plan = FuelPrices.plan(CountryLookup.code(lat, lng), key.isNotBlank())
                 _needsKey.value = if (plan == FuelPlan.NEEDS_TANKERKOENIG_KEY) ApiService.TANKERKOENIG else null
                 when (plan) {
                     FuelPlan.FRANCE -> france(lat, lng, grade)
+                    FuelPlan.SPAIN -> spain(lat, lng)
                     FuelPlan.TANKERKOENIG -> germany(lat, lng, key)
                     FuelPlan.TANKERKOENIG_THEN_FRANCE -> germany(lat, lng, key).ifEmpty { france(lat, lng, grade) }
                     FuelPlan.NEEDS_TANKERKOENIG_KEY -> emptyList()
@@ -367,6 +372,13 @@ object FuelPriceRepo {
     private fun france(lat: Double, lng: Double, grade: FuelGrade): List<FuelStation> {
         _source.value = FuelSource.FRANCE
         return read(FuelPrices.url(lat, lng, grade), FuelPrices::parse)
+    }
+
+    // shortcut: only the car's own province is asked, so stations just over a province line are missed; ask the neighbours too if drivers notice.
+    private fun spain(lat: Double, lng: Double): List<FuelStation> {
+        _source.value = FuelSource.SPAIN
+        val province = SpainFuel.provinceId(CountryLookup.region(lat, lng)) ?: return emptyList()
+        return read(SpainFuel.url(province)) { SpainFuel.parse(it, lat, lng) }
     }
 
     private fun germany(lat: Double, lng: Double, key: String): List<FuelStation> {

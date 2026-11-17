@@ -5,7 +5,7 @@
     <string name="fuel_kind_blurb">A legolcsóbb kutak a közelben, koppintson a navigáláshoz</string>
     <string name="fuel_title">KUTAK A KÖZELBEN</string>
     <string name="fuel_loading">Kutak keresése…</string>
-    <string name="fuel_none">Nincs ilyen üzemanyagot árusító töltőállomás %1$d km-en belül. Az árak Franciaországra, Tankerkönig-kulccsal pedig Németországra is vonatkoznak.</string>
+    <string name="fuel_none">Nincs ilyen üzemanyagot árusító töltőállomás %1$d km-en belül. Az árak Franciaországra és Spanyolországra, Tankerkönig-kulccsal pedig Németországra is vonatkoznak.</string>
     <string name="fuel_error">Az árak most nem érhetők el</string>
     <string name="fuel_cheapest">Legolcsóbb %1$s</string>
     <string name="fuel_navigate">koppintson a navigáláshoz</string>

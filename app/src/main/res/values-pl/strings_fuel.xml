@@ -5,7 +5,7 @@
     <string name="fuel_kind_blurb">Najtańsze stacje w pobliżu, dotknij, aby nawigować</string>
     <string name="fuel_title">PALIWO W POBLIŻU</string>
     <string name="fuel_loading">Szukanie stacji…</string>
-    <string name="fuel_none">Brak stacji z tym paliwem w promieniu %1$d km. Ceny obejmują Francję oraz, z kluczem Tankerkönig, Niemcy.</string>
+    <string name="fuel_none">Brak stacji z tym paliwem w promieniu %1$d km. Ceny obejmują Francję, Hiszpanię oraz, z kluczem Tankerkönig, Niemcy.</string>
     <string name="fuel_error">Ceny obecnie niedostępne</string>
     <string name="fuel_cheapest">Najtańsze %1$s</string>
     <string name="fuel_navigate">dotknij, aby nawigować</string>
