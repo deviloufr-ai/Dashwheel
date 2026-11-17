@@ -38,7 +38,6 @@ object McuFeed {
     private const val RETRY_MAX_MS = 60_000L
 
     // Commands from the MCU (QF_Framework's McuConstant).
-    internal const val CMD_HEADLIGHT = 34
     internal const val CMD_HANDBRAKE = 35
     internal const val CMD_BATTERY = 41
     internal const val CMD_CAN = 65
@@ -131,8 +130,7 @@ object McuFeed {
                 PsaTripComputer.feed(m, 1)
                 CarBoxKeys.feed(m, 1)
             }
-            // 0 is the lights on: the framework's own polarity.
-            CMD_HEADLIGHT -> if (m.size > 1) UnitSignals.mcuHeadlights(m[1].toInt() == 0)
+            // Not cmd 34 (headlights): the firmware's headlight broadcast already tells it (UnitSignals); a second writer flipped the Auto look each second.
             CMD_HANDBRAKE -> if (m.size > 1) UnitSignals.mcuHandbrake(m[1].toInt() == 1)
             CMD_BATTERY -> if (m.size > 1) UnitSignals.mcuVolts((m[1].toInt() and 0xFF) / 10.0)
             CMD_TUNER_PRESETS -> if (m.size > 4) {

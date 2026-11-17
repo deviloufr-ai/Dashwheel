@@ -68,18 +68,13 @@ object UnitSignals {
     /** The phone as the unit's Bluetooth knows it: [battery] 0..5, or null when not reported. */
     data class UnitPhone(val name: String, val battery: Int?)
 
-    /** The headlights from the MCU's own message ([McuFeed]), the same wire the broadcast tells of. */
-    internal fun mcuHeadlights(on: Boolean) {
-        busPublisher.put(K.HEADLIGHTS, on)
-    }
-
     /** The handbrake wire as the MCU reads it (many installs leave it unwired, and then it says nothing). */
     internal fun mcuHandbrake(on: Boolean) {
         busPublisher.put(K.HANDBRAKE, on)
     }
 
     /**
-     * The MCU on the vehicle bus: the supply voltage its power board measures ([mcuVolts]), the headlight wire and
+     * The MCU on the vehicle bus: the supply voltage its power board measures ([mcuVolts]) and
      * the handbrake wire. A MCU source: its volts outrank the OBD adapter's whenever it has one. It lives and goes quiet
      * with the MCU's stream ([McuReader.mcuLive]); the firmware's copy of the volts (read while somebody wants them
      * and the MCU has not said) is put as a broadcast, [broadcastPublisher], which has no silence of its own.
