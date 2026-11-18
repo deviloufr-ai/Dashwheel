@@ -44,6 +44,15 @@ class FuelPricesTest {
     }
 
     @Test
+    fun nearestFirstOrdersByDistance() {
+        val near = FuelStation(1, "", "", 40.0, -3.0, mapOf(FuelGrade.GAZOLE to 1.50))
+        val far = FuelStation(2, "", "", 40.06, -3.0, mapOf(FuelGrade.GAZOLE to 1.40))
+        val list = listOf(far, near)
+        assertEquals(listOf(2L, 1L), FuelPrices.rank(list, FuelGrade.GAZOLE, 40.0, -3.0).map { it.station.id })
+        assertEquals(listOf(1L, 2L), FuelPrices.rank(list, FuelGrade.GAZOLE, 40.0, -3.0, nearestFirst = true).map { it.station.id })
+    }
+
+    @Test
     fun theCarDecidesTheGrade() {
         assertEquals(listOf(FuelGrade.GAZOLE), FuelPrices.gradesFor(CarProfile.PRESET))
         assertEquals(FuelGrade.E10, FuelPrices.gradesFor(CarProfile(name = "x", fuel = FuelType.PETROL)).first())

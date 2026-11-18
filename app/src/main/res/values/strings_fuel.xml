@@ -14,4 +14,6 @@
         <item quantity="one">%1$d station within %2$d km</item>
         <item quantity="other">%1$d stations within %2$d km</item>
     </plurals>
+    <string name="fuel_nearest_first">Fuel stations nearest first</string>
+    <string name="fuel_nearest_first_detail">The fuel prices tile lists the stations by distance instead of by price</string>
 </resources>

@@ -15,4 +15,6 @@
         <item quantity="many">%1$d stations à moins de %2$d km</item>
         <item quantity="other">%1$d stations à moins de %2$d km</item>
     </plurals>
+    <string name="fuel_nearest_first">Stations les plus proches d\'abord</string>
+    <string name="fuel_nearest_first_detail">La tuile des prix classe les stations par distance plutôt que par prix</string>
 </resources>

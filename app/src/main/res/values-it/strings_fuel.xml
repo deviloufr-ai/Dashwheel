@@ -15,4 +15,6 @@
         <item quantity="many">%1$d distributori entro %2$d km</item>
         <item quantity="other">%1$d distributori entro %2$d km</item>
     </plurals>
+    <string name="fuel_nearest_first">Distributori più vicini prima</string>
+    <string name="fuel_nearest_first_detail">Il riquadro prezzi ordina i distributori per distanza invece che per prezzo</string>
 </resources>

@@ -752,7 +752,7 @@ private const val RING_START = 110f
 @Composable
 private fun ModernFuelSuggestion(fuel: FuelInfo, env: SkinTileEnv) {
     val nearby = rememberFuelNearby()
-    val best = nearby?.ranked?.firstOrNull()
+    val best = nearby?.ranked?.minByOrNull { it.price }
     val pending = rememberPendingAction()
     val context = env.context
     val units = LocalUnits.current

@@ -14,4 +14,6 @@
         <item quantity="one">%2$d km içinde %1$d istasyon</item>
         <item quantity="other">%2$d km içinde %1$d istasyon</item>
     </plurals>
+    <string name="fuel_nearest_first">Önce en yakın istasyonlar</string>
+    <string name="fuel_nearest_first_detail">Yakıt fiyatları kutucuğu istasyonları fiyata göre değil mesafeye göre sıralar</string>
 </resources>

@@ -14,4 +14,6 @@
         <item quantity="one">%1$d Tankstelle im Umkreis von %2$d km</item>
         <item quantity="other">%1$d Tankstellen im Umkreis von %2$d km</item>
     </plurals>
+    <string name="fuel_nearest_first">Tankstellen nach Entfernung</string>
+    <string name="fuel_nearest_first_detail">Die Spritpreis-Kachel ordnet die Tankstellen nach Entfernung statt nach Preis</string>
 </resources>

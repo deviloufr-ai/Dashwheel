@@ -15,4 +15,6 @@
         <item quantity="many">%1$d gasolineras a menos de %2$d km</item>
         <item quantity="other">%1$d gasolineras a menos de %2$d km</item>
     </plurals>
+    <string name="fuel_nearest_first">Gasolineras más cercanas primero</string>
+    <string name="fuel_nearest_first_detail">El panel de precios ordena las gasolineras por distancia en lugar de por precio</string>
 </resources>

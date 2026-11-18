@@ -59,6 +59,9 @@ internal fun rememberFuelNearby(): FuelNearby? {
     val location by rememberLocationCell(100, 1000)
     val car by CarProfileStore.profile.collectAsState()
     val stations by FuelPriceRepo.stations.collectAsState()
+    val nearestFirst by FuelPriceRepo.nearestFirst.collectAsState()
+    val context = androidx.compose.ui.platform.LocalContext.current
+    LaunchedEffect(Unit) { FuelPriceRepo.loadOrder(context) }
     val grades = remember(car) { FuelPrices.gradesFor(car) }
     val here = location ?: return null
     // Asked again once the car has moved about a kilometre (or the grade changed),
@@ -73,12 +76,12 @@ internal fun rememberFuelNearby(): FuelNearby? {
     val list = stations ?: return null
     // Ranked again when the list, the grade or the position (to ~100 m) changes,
     // not on every recomposition.
-    return remember(list, grades, (here.latitude * 1000).roundToInt(), (here.longitude * 1000).roundToInt()) {
+    return remember(list, grades, nearestFirst, (here.latitude * 1000).roundToInt(), (here.longitude * 1000).roundToInt()) {
         // Ranked from the latest fix, not the one that entered the cell.
         val at = LocationFeed.location.value ?: here
         // A petrol car falls back to SP95/98 where no E10 is sold.
         val grade = grades.firstOrNull { g -> list.any { it.prices.containsKey(g) } } ?: grades.first()
-        FuelNearby(grade, at.latitude, at.longitude, FuelPrices.rank(list, grade, at.latitude, at.longitude))
+        FuelNearby(grade, at.latitude, at.longitude, FuelPrices.rank(list, grade, at.latitude, at.longitude, nearestFirst))
     }
 }
 
@@ -131,10 +134,11 @@ internal fun FuelPricesCard(modifier: Modifier = Modifier) {
                                 " · " + stringResource(R.string.fuel_navigate),
                             color = DashColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.labelSmall
                         )
-                        // As many whole stations as the tile holds, cheapest first: no half row, nothing to scroll.
+                        // As many whole stations as the tile holds, in the driver's order: no half row, nothing to scroll.
+                        val best = nearby.ranked.minOf { it.price }
                         WholeRows(modifier = Modifier.fillMaxWidth().weight(1f), gap = 6.dp) {
-                            nearby.ranked.forEachIndexed { i, r ->
-                                StationRow(r, cheapest = i == 0) {
+                            nearby.ranked.forEach { r ->
+                                StationRow(r, cheapest = r.price == best) {
                                     pending.arm(context.getString(R.string.phone_guidance_to, r.station.name.ifBlank { r.station.town })) {
                                         navigateTo(context, r.station.lat, r.station.lng, r.station.label)
                                     }

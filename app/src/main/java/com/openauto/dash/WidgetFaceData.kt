@@ -1197,7 +1197,7 @@ private fun fuelPricesFace(): WidgetFace {
             }
         ), "€/L")
     if (nearby.ranked.isEmpty()) return idleFace(icon, title, fuelNoneText(), "€/L")
-    val best = nearby.ranked.first()
+    val best = nearby.ranked.minBy { it.price }
     // A new route only after the held step, as on the standard card: "Guidance to X", Cancel, three seconds.
     val pending = LocalPendingAction.current
     fun goTo(station: FuelStation) = pending.arm(context.getString(R.string.phone_guidance_to, station.name.ifBlank { station.town })) {

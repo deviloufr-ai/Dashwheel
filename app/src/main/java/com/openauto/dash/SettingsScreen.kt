@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.LocalGasStation
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Swipe
 import androidx.compose.material.icons.filled.TouchApp
@@ -1090,6 +1091,7 @@ private fun DrivingPane(m: TopBarModel, open: (Deep) -> Unit) {
     PlacesRow { open(Deep.PLACES) }
     KeptCamerasRow { open(Deep.KEPT_CAMERAS) }
     KeptLimitsRow { open(Deep.KEPT_LIMITS) }
+    FuelOrderSetting()
     WazeWakeSetting()
     // Every physical button together: what the wheel's do, then what the unit's own keys open.
     val keys = remember { Edition.full && KeyTargets.available() }
@@ -1112,6 +1114,18 @@ private fun DrivingPane(m: TopBarModel, open: (Deep) -> Unit) {
     ) { open(Deep.WHEEL) }
     KeyTargetRows()
     if (keysLocked) RootLockCard(listOf(stringResource(R.string.keys_section)), shellEnough = true)
+}
+
+/** The fuel prices tile's order: nearest stations first, or cheapest first (the default). */
+@Composable
+private fun FuelOrderSetting() {
+    val context = LocalContext.current
+    LaunchedEffect(Unit) { FuelPriceRepo.loadOrder(context) }
+    val nearest by FuelPriceRepo.nearestFirst.collectAsState()
+    SettingsToggle(
+        Icons.Filled.LocalGasStation, stringResource(R.string.fuel_nearest_first),
+        stringResource(R.string.fuel_nearest_first_detail), nearest
+    ) { FuelPriceRepo.setNearestFirst(context, it) }
 }
 
 /**

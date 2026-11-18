@@ -1,5 +1,6 @@
 package com.openauto.dash
 
+import android.content.Context
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -150,10 +151,13 @@ object FuelPrices {
         return out.toString().trimEnd().replace(" ,", ",")
     }
 
-    /** The stations selling [grade], cheapest first (nearest among equals), with their distance from the car. */
-    fun rank(stations: List<FuelStation>, grade: FuelGrade, lat: Double, lng: Double): List<RankedStation> =
+    /**
+     * The stations selling [grade] with their distance from the car: cheapest
+     * first (nearest among equals), or nearest first when [nearestFirst].
+     */
+    fun rank(stations: List<FuelStation>, grade: FuelGrade, lat: Double, lng: Double, nearestFirst: Boolean = false): List<RankedStation> =
         stations.mapNotNull { s -> s.prices[grade]?.let { RankedStation(s, it, s.distanceKm(lat, lng)) } }
-            .sortedWith(compareBy({ it.price }, { it.distanceKm }))
+            .sortedWith(if (nearestFirst) compareBy({ it.distanceKm }, { it.price }) else compareBy({ it.price }, { it.distanceKm }))
 
     fun formatPrice(price: Double): String = String.format(Locale.getDefault(), "%.3f", price)
 
@@ -233,6 +237,22 @@ object FuelPriceRepo {
     private val _source = MutableStateFlow(FuelSource.FRANCE)
     /** Which feed the list shown came from. */
     val source: StateFlow<FuelSource> = _source.asStateFlow()
+
+    private val _nearestFirst = MutableStateFlow(false)
+    /** The tile lists the stations nearest first instead of cheapest first (Settings → Driving); off by default. */
+    val nearestFirst: StateFlow<Boolean> = _nearestFirst.asStateFlow()
+
+    fun loadOrder(context: Context) {
+        _nearestFirst.value = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_NEAREST, false)
+    }
+
+    fun setNearestFirst(context: Context, on: Boolean) {
+        _nearestFirst.value = on
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_NEAREST, on).apply()
+    }
+
+    private const val PREFS = "fuel_prices"
+    private const val KEY_NEAREST = "nearest_first"
 
     private val _needsKey = MutableStateFlow<ApiService?>(null)
     /** The key the car's country needs and the driver has not set ([FuelPlan.NEEDS_TANKERKOENIG_KEY]); null otherwise. */

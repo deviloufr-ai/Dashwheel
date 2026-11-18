@@ -465,6 +465,7 @@ private val SETTINGS_INDEX: List<SettingsEntry> by lazy {
         SettingsEntry(R.string.places_title, SettingsTab.DRIVING, listOf(Deep.PLACES)),
         SettingsEntry(R.string.cams_kept_title, SettingsTab.DRIVING, listOf(Deep.KEPT_CAMERAS), detail = R.string.cams_kept_row_detail),
         SettingsEntry(R.string.limits_kept_title, SettingsTab.DRIVING, listOf(Deep.KEPT_LIMITS), detail = R.string.limits_kept_row_detail),
+        SettingsEntry(R.string.fuel_nearest_first, SettingsTab.DRIVING, detail = R.string.fuel_nearest_first_detail),
         SettingsEntry(R.string.settings_waze_wake, SettingsTab.DRIVING, detail = R.string.settings_waze_wake_detail, offered = { Edition.full && WazeWake.present }),
         SettingsEntry(R.string.wheel_title, SettingsTab.DRIVING, listOf(Deep.WHEEL), offered = { SteeringWheelStore.AVAILABLE }),
         SettingsEntry(R.string.keys_section, SettingsTab.DRIVING, offered = { Edition.full && KeyTargets.available() }),

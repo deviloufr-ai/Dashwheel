@@ -14,4 +14,6 @@
         <item quantity="one">%1$d kút %2$d km-en belül</item>
         <item quantity="other">%1$d kút %2$d km-en belül</item>
     </plurals>
+    <string name="fuel_nearest_first">Legközelebbi kutak elöl</string>
+    <string name="fuel_nearest_first_detail">Az üzemanyagár-csempe távolság szerint rendezi a kutakat, nem ár szerint</string>
 </resources>

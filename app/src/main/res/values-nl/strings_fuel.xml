@@ -14,4 +14,6 @@
         <item quantity="one">%1$d station binnen %2$d km</item>
         <item quantity="other">%1$d stations binnen %2$d km</item>
     </plurals>
+    <string name="fuel_nearest_first">Dichtstbijzijnde tankstations eerst</string>
+    <string name="fuel_nearest_first_detail">De brandstofprijzentegel sorteert de stations op afstand in plaats van op prijs</string>
 </resources>

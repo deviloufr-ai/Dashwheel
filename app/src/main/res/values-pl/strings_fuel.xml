@@ -16,4 +16,6 @@
         <item quantity="many">%1$d stacji w promieniu %2$d km</item>
         <item quantity="other">%1$d stacji w promieniu %2$d km</item>
     </plurals>
+    <string name="fuel_nearest_first">Najbliższe stacje najpierw</string>
+    <string name="fuel_nearest_first_detail">Kafelek cen paliw układa stacje według odległości zamiast ceny</string>
 </resources>

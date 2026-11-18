@@ -785,7 +785,7 @@ private fun rememberThirdReading(telemetry: Boolean, fuel: FuelInfo?, voltage: D
         ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
     }
     val nearby = if (located) rememberFuelNearby() else null
-    val best = nearby?.ranked?.firstOrNull()
+    val best = nearby?.ranked?.minByOrNull { it.price }
     if (best != null) return BrReading("${nearby.grade.label} ${FuelPrices.CURRENCY}", FuelPrices.formatPrice(best.price))
     val outside = rememberOutsideTempC()
     if (outside != null) return BrReading(stringResource(R.string.brutal_outside), "${units.temp(outside)}°")

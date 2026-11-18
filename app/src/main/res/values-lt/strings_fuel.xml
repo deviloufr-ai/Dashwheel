@@ -16,4 +16,6 @@
         <item quantity="many">%1$d degalinės per %2$d km</item>
         <item quantity="other">%1$d degalinių per %2$d km</item>
     </plurals>
+    <string name="fuel_nearest_first">Artimiausios degalinės pirmiau</string>
+    <string name="fuel_nearest_first_detail">Degalų kainų plytelė rikiuoja degalines pagal atstumą, o ne pagal kainą</string>
 </resources>

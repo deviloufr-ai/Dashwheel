@@ -16,4 +16,6 @@
         <item quantity="many">%1$d заправок в радиусе %2$d км</item>
         <item quantity="other">%1$d заправки в радиусе %2$d км</item>
     </plurals>
+    <string name="fuel_nearest_first">Сначала ближайшие АЗС</string>
+    <string name="fuel_nearest_first_detail">Плитка цен на топливо сортирует АЗС по расстоянию, а не по цене</string>
 </resources>

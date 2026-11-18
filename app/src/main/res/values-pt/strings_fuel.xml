@@ -15,4 +15,6 @@
         <item quantity="many">%1$d postos num raio de %2$d km</item>
         <item quantity="other">%1$d postos num raio de %2$d km</item>
     </plurals>
+    <string name="fuel_nearest_first">Postos mais próximos primeiro</string>
+    <string name="fuel_nearest_first_detail">O mosaico de preços ordena os postos pela distância em vez do preço</string>
 </resources>
