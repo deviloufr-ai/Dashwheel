@@ -27,6 +27,7 @@ import com.openauto.dash.link.IdleGuard
 import com.openauto.dash.link.LINK_BLUETOOTH_NAME
 import com.openauto.dash.link.LINK_BLUETOOTH_UUID
 import com.openauto.dash.link.LINK_PORT
+import com.openauto.dash.link.LinkHeard
 import com.openauto.dash.link.LinkMessage
 import com.openauto.dash.link.LinkSession
 import com.openauto.dash.link.MarkRead
@@ -86,6 +87,8 @@ object LinkServer {
     private const val HANDSHAKE_TIMEOUT_MS = 10_000
     /** The head unit pings every 15 s; three missed pings and the link is dropped. */
     private const val IDLE_TIMEOUT_MS = 45_000
+    /** How often the car is told what this side heard of it ([LinkHeard]). */
+    private const val HEARD_EVERY_MS = 10_000L
     /** Connections still proving their pairing at once; more are turned away. */
     private const val MAX_HANDSHAKES = 4
     /** Bluetooth off, or not allowed yet: looked at again this often, so switching it on is enough. */
@@ -319,11 +322,20 @@ object LinkServer {
     private fun serve(context: Context, conn: Conn) {
         // Bluetooth has no read timeout: a guard closes a link that went quiet instead.
         val guard = if (conn.setReadTimeout == null) IdleGuard(HANDSHAKE_TIMEOUT_MS.toLong(), conn.close).start() else null
+        // Every byte read from the car, for the car's own log ([LinkHeard]).
+        val heardBytes = java.util.concurrent.atomic.AtomicLong()
+        val counted = object : InputStream() {
+            override fun read(): Int = conn.input.read().also { if (it >= 0) heardBytes.incrementAndGet() }
+            override fun read(b: ByteArray, off: Int, len: Int): Int =
+                conn.input.read(b, off, len).also { if (it > 0) heardBytes.addAndGet(it.toLong()) }
+            override fun available(): Int = conn.input.available()
+            override fun close() = conn.input.close()
+        }
         val link = try {
             conn.setReadTimeout?.invoke(HANDSHAKE_TIMEOUT_MS)
             SecureChannel.server(
                 // Every byte heard counts, not only whole messages: a long one over a slow Bluetooth link is not silence.
-                guard?.hearing(conn.input) ?: conn.input, conn.output,
+                guard?.hearing(counted) ?: counted, conn.output,
                 secretFor = { PairedUnits.secretFor(context, it) },
                 onClose = { guard?.stop(); conn.close() }
             )
@@ -370,28 +382,55 @@ object LinkServer {
         PhoneBatteryWatch.current(context)?.let(::send)
         val linkedAt = System.currentTimeMillis()
         var ended = "replaced or closed here"
+        // What this side heard of the car, told to the car every few seconds: its pings went
+        // unanswered over Bluetooth on one unit (#118), and only this end knows whether they arrived.
+        val handshakeBytes = heardBytes.get()
+        val messages = java.util.concurrent.atomic.AtomicInteger()
+        val pings = java.util.concurrent.atomic.AtomicInteger()
+        val busyWith = java.util.concurrent.atomic.AtomicReference<Pair<String, Long>?>(null)
+        val reporter = Thread({
+            try {
+                while (session === link) {
+                    Thread.sleep(HEARD_EVERY_MS)
+                    if (session !== link) break
+                    val busy = busyWith.get()?.let { (what, since) ->
+                        val s = (System.currentTimeMillis() - since) / 1000
+                        if (s >= 1) "$what ${s}s" else null
+                    }
+                    send(LinkHeard(heardBytes.get() - handshakeBytes, messages.get(), pings.get(), busy))
+                }
+            } catch (_: InterruptedException) {
+            }
+        }, "link-heard").apply { isDaemon = true; start() }
         try {
             while (true) {
                 val received = link.receive()
                 guard?.kick()
+                messages.incrementAndGet()
                 val message = received ?: continue
+                if (message === Ping) pings.incrementAndGet()
+                busyWith.set((message::class.simpleName ?: "?") to System.currentTimeMillis())
                 // One message that can't be handled is skipped, rather than ending the app.
                 try {
                     handle(context, link, message)
                 } catch (e: RuntimeException) {
                     Log.w(TAG, "message not handled: ${message::class.simpleName}", e)
+                } finally {
+                    busyWith.set(null)
                 }
             }
         } catch (e: IOException) {
             // Link gone: the head unit left the hotspot, stopped, or went quiet.
             ended = "${e.javaClass.simpleName} ${e.message.orEmpty()}".trim()
         } finally {
+            reporter.interrupt()
             guard?.stop()
             link.close()
             synchronized(this) {
                 if (session === link) {
                     // Shown under the status: why the car went, for a link that keeps dropping (issue #118).
-                    note("${conn.label}: link ended after ${(System.currentTimeMillis() - linkedAt) / 1000} s: $ended")
+                    note("${conn.label}: link ended after ${(System.currentTimeMillis() - linkedAt) / 1000} s: $ended " +
+                        "(heard ${heardBytes.get() - handshakeBytes} bytes, ${messages.get()} messages, ${pings.get()} pings)")
                     session = null
                     if (running) _state.value = LinkState.Waiting
                     // No head unit to relay to: the OBD adapter is let go for the next start.

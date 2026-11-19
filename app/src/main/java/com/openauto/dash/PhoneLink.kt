@@ -69,6 +69,7 @@ import com.openauto.dash.link.PairingOffer
 import com.openauto.dash.link.PairingStorage
 import com.openauto.dash.link.PhoneContacts
 import com.openauto.dash.link.PhotoQuestion
+import com.openauto.dash.link.LinkHeard
 import com.openauto.dash.link.Ping
 import com.openauto.dash.link.Pong
 import com.openauto.dash.link.RecentCall
@@ -683,6 +684,12 @@ object PhoneLink {
         }
     }
 
+    /** The phone's last [LinkHeard], for the unit log: none from a companion too old to send it. */
+    private fun heardLine(heard: LinkHeard?): String =
+        if (heard == null) "phone said nothing of what it heard"
+        else "phone heard ${heard.bytes} bytes, ${heard.messages} messages, ${heard.pings} pings" +
+            (heard.handling?.let { ", busy with $it" } ?: "")
+
     private fun note(line: String) {
         val time = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.ROOT).format(java.util.Date())
         _lastAttempt.value = "$time  ${line.trim().take(140)}"
@@ -728,6 +735,8 @@ object PhoneLink {
         // Pongs answer the unit's pings: none at all means the phone never heard the car (#118, one-way Bluetooth).
         var pongs = 0
         var companion = "?"
+        // What the phone says it heard of the car: where the car's words stop when no pong comes back.
+        var phoneHeard: LinkHeard? = null
         val endedBy = AtomicReference<String?>(null)
         DebugLog.note(context, "Phone link up over $carried")
         val pinger = scope.launch {
@@ -768,7 +777,11 @@ object PhoneLink {
                 idle?.kick()
                 lastHeardAt = SystemClock.elapsedRealtime()
                 val message = received ?: continue
-                if (message === Pong) pongs++ else if (message is Hello) companion = message.appVersion
+                when {
+                    message === Pong -> pongs++
+                    message is Hello -> companion = message.appVersion
+                    message is LinkHeard -> phoneHeard = message
+                }
                 // One message this build can't make sense of is skipped: thrown out of
                 // here, it ended the launcher (nothing above catches it).
                 try {
@@ -784,7 +797,7 @@ object PhoneLink {
             endedBy.compareAndSet(null, if (quiet) "nothing heard from the phone for ${READ_TIMEOUT_MS / 1000} s"
                 else "${e.javaClass.simpleName} ${e.message.orEmpty()}".trim())
         } finally {
-            DebugLog.note(context, "Phone link over $carried down after ${(SystemClock.elapsedRealtime() - upAt) / 1000} s: ${endedBy.get() ?: "closed here"} (companion $companion, $pongs pongs)")
+            DebugLog.note(context, "Phone link over $carried down after ${(SystemClock.elapsedRealtime() - upAt) / 1000} s: ${endedBy.get() ?: "closed here"} (companion $companion, $pongs pongs, ${heardLine(phoneHeard)})")
             idle?.stop()
             pinger.cancel()
             watchdog.cancel()

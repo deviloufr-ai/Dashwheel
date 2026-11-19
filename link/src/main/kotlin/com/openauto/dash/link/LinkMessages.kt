@@ -48,6 +48,24 @@ data object Ping : LinkMessage
 data object Pong : LinkMessage
 
 /**
+ * Phone → head unit, every few seconds: what the phone has heard of the car on
+ * this link so far. A link whose pings all go unanswered (#118, Bluetooth on a
+ * Junsun/HCN unit) tells by this where the car's words stop: never reaching the
+ * phone ([bytes] stuck at the handshake's), reaching it but never making a whole
+ * message ([messages] still 0), or heard and answered with pongs that never
+ * reach the car ([pings] counting). [handling] names a message the phone has
+ * been busy with for over a second, with its seconds, if any.
+ */
+@Serializable
+@SerialName("link_heard")
+data class LinkHeard(
+    val bytes: Long,
+    val messages: Int,
+    val pings: Int,
+    val handling: String? = null
+) : LinkMessage
+
+/**
  * Head unit → phone: where the car is, so the companion app can lead back to
  * it. Sent when the car comes to a stop (the last stop before it is switched
  * off is where it was parked), when the spot is saved on the dashboard's
