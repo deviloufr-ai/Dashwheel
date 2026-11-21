@@ -286,4 +286,7 @@
     <string name="rescue_done">Сделано в машине</string>
     <string name="rescue_failed">Машина не смогла это сделать</string>
     <string name="rescue_no_answer">Нет ответа: обновите Dashwheel в машине.</string>
+    <string name="pair_type">Ввести код вручную</string>
+    <string name="pair_type_title">Введите код автомобиля</string>
+    <string name="pair_type_hint">Код под QR на экране автомобиля</string>
 </resources>

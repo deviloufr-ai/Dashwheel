@@ -90,4 +90,5 @@
     <string name="phone_keypad_call">Call</string>
     <string name="phone_keypad_delete">Delete the last digit</string>
     <string name="phone_unit_app">Unit\'s phone app</string>
+    <string name="phone_pair_typed">No camera? Type this code in the app</string>
 </resources>

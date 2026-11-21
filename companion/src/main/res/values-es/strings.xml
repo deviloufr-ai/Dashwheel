@@ -283,4 +283,7 @@
     <string name="rescue_done">Hecho en el coche</string>
     <string name="rescue_failed">El coche no pudo hacerlo</string>
     <string name="rescue_no_answer">Sin respuesta: actualiza Dashwheel en el coche.</string>
+    <string name="pair_type">Escribir el código</string>
+    <string name="pair_type_title">Escribe el código del coche</string>
+    <string name="pair_type_hint">El código bajo el QR en la pantalla del coche</string>
 </resources>

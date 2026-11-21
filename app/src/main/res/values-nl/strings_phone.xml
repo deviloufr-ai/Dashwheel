@@ -87,4 +87,5 @@
     <string name="phone_keypad_call">Bellen</string>
     <string name="phone_keypad_delete">Laatste cijfer wissen</string>
     <string name="phone_unit_app">Telefoon-app van het toestel</string>
+    <string name="phone_pair_typed">Geen camera? Typ deze code in de app</string>
 </resources>

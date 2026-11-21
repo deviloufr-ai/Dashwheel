@@ -90,4 +90,5 @@
     <string name="phone_keypad_call">Ara</string>
     <string name="phone_keypad_delete">Son rakamı sil</string>
     <string name="phone_unit_app">Ünitenin telefon uygulaması</string>
+    <string name="phone_pair_typed">Kamera yok mu? Bu kodu uygulamaya yazın</string>
 </resources>

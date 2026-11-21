@@ -13,6 +13,7 @@ import android.os.Looper
 import android.util.Log
 import android.view.KeyEvent
 import com.openauto.dash.link.NowPlaying
+import com.openauto.dash.link.PhoneMediaKey
 import com.openauto.dash.unit.TopwayRadio
 import com.openauto.unitproto.topway.TopwayProtocol
 import androidx.core.content.ContextCompat
@@ -106,6 +107,10 @@ object HeadUnitMedia {
         main.post { tell() }
     }
 
+    private fun phoneKey(key: PhoneMediaKey.Key) {
+        PhoneLink.send(PhoneMediaKey(key))
+    }
+
     /** The phone link is gone: so is what it said. */
     fun phoneGone() {
         if (phone == null) return
@@ -142,6 +147,12 @@ object HeadUnitMedia {
     fun removeListener(listener: () -> Unit) = listeners.remove(listener)
 
     fun isStock(pkg: String?): Boolean = pkg == BT_PACKAGE || pkg?.startsWith("com.android.fmradio") == true || pkg == TOPWAY_RADIO
+
+    /**
+     * Not a package: the linked phone's own player (Spotify over Bluetooth), shown from its
+     * [NowPlaying] when the unit's Bluetooth app tells nothing, its buttons sent back as [PhoneMediaKey].
+     */
+    const val PHONE = "phone"
 
     /** Topway's radio, which has no media session: shown from [TopwayRadio] while it is the unit's source. */
     const val TOPWAY_RADIO = TopwayProtocol.RADIO_PACKAGE
@@ -194,6 +205,16 @@ object HeadUnitMedia {
                 artwork = p?.art
             )
         }
+        // No position comes from the phone: no length either, so no progress bar stuck at 0.
+        pkg == PHONE -> phone?.let { p ->
+            MediaState(
+                title = p.title,
+                artist = listOf(p.artist, p.album).filter { it.isNotEmpty() }.joinToString(" · "),
+                isPlaying = p.playing,
+                hasMedia = true,
+                artwork = p.art
+            )
+        }
         pkg == TOPWAY_RADIO -> TopwayRadio.station.value?.let { s ->
             // The station's RDS name, else its preset's: tuned other than by its preset, the name may not come.
             val name = s.name ?: TopwayRadio.presetName(s.freq)
@@ -224,6 +245,7 @@ object HeadUnitMedia {
 
     fun playPause(context: Context, pkg: String) {
         if (pkg == BT_PACKAGE) return btCommand(context, BT_TOGGLE)
+        if (pkg == PHONE) return phoneKey(PhoneMediaKey.Key.PLAY_PAUSE)
         if (pkg == TOPWAY_RADIO) return TopwayRadio.playPause(context)
         // The radio has no pause: closing its screen stops it, opening it plays.
         if (radioAlive()) context.sendBroadcast(Intent(RADIO_CLOSE)) else openRadio(context)
@@ -232,12 +254,14 @@ object HeadUnitMedia {
     /** [session]: the radio's own media session when one is listed, for [stepRadio]'s media key. */
     fun next(context: Context, pkg: String, session: MediaController? = null) {
         if (pkg == BT_PACKAGE) return btCommand(context, BT_NEXT)
+        if (pkg == PHONE) return phoneKey(PhoneMediaKey.Key.NEXT)
         if (pkg == TOPWAY_RADIO) return TopwayRadio.next(context)
         if (radioAlive()) stepRadio(context, RADIO_NEXT, KeyEvent.KEYCODE_MEDIA_NEXT, session) else openRadio(context)
     }
 
     fun previous(context: Context, pkg: String, session: MediaController? = null) {
         if (pkg == BT_PACKAGE) return btCommand(context, BT_PREVIOUS)
+        if (pkg == PHONE) return phoneKey(PhoneMediaKey.Key.PREVIOUS)
         if (pkg == TOPWAY_RADIO) return TopwayRadio.previous(context)
         if (radioAlive()) stepRadio(context, RADIO_PREVIOUS, KeyEvent.KEYCODE_MEDIA_PREVIOUS, session) else openRadio(context)
     }

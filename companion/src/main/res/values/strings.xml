@@ -284,4 +284,7 @@
     <string name="rescue_done">Done on the car</string>
     <string name="rescue_failed">The car could not do it</string>
     <string name="rescue_no_answer">No answer: update Dashwheel on the car.</string>
+    <string name="pair_type">Type the code instead</string>
+    <string name="pair_type_title">Type the car\'s code</string>
+    <string name="pair_type_hint">The code under the QR on the car\'s screen</string>
 </resources>

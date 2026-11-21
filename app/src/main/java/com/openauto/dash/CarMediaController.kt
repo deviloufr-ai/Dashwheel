@@ -388,7 +388,7 @@ class CarMediaController(private val context: Context) {
     }
 
     private fun publishStock(controller: MediaController?): Boolean {
-        val pkg = when {
+        val unit = when {
             // A Topway unit's radio has no session: it shows while it is the unit's source and no app plays.
             // Its Bluetooth app's sessions say they play for hours: with the radio the source, they don't.
             TopwayRadio.isSource.value && (controller?.playbackState?.state != PlaybackState.STATE_PLAYING ||
@@ -398,7 +398,10 @@ class CarMediaController(private val context: Context) {
             }
             else -> HeadUnitMedia.source()?.takeIf(HeadUnitMedia::isStock)
         }
-        val state = pkg?.let(HeadUnitMedia::state)
+        val unitState = unit?.let(HeadUnitMedia::state)
+        // The unit's own player says nothing: the linked phone's (Spotify over a Bluetooth app we can't read).
+        val pkg = if (unitState != null) unit else HeadUnitMedia.PHONE.takeIf { phoneShown(controller) }
+        val state = unitState ?: pkg?.let(HeadUnitMedia::state)
         val was = stockShown
         stockShown = if (state != null) pkg else null
         if (stockShown != null && was == null) main.postDelayed(stockTick, STOCK_TICK_MS)
@@ -410,6 +413,19 @@ class CarMediaController(private val context: Context) {
         main.removeCallbacks(emptyRecheck)
         _mediaState.value = state!!
         return true
+    }
+
+    /**
+     * The phone's track wins while it plays over a session that doesn't (or names nothing,
+     * like most units' Bluetooth app), and when nothing else plays; an untitled factory player
+     * playing keeps the tile.
+     */
+    private fun phoneShown(controller: MediaController?): Boolean {
+        val p = HeadUnitMedia.phone ?: return false
+        if (controller == null) return true
+        val titled = !controller.metadata?.getString(MediaMetadata.METADATA_KEY_TITLE).isNullOrBlank()
+        val playing = controller.playbackState?.state == PlaybackState.STATE_PLAYING
+        return if (p.playing) !titled || !playing else !titled && !playing
     }
 
     /** The package whose name is saved as the last media app, so it's written only when it changes. */
@@ -535,7 +551,7 @@ class CarMediaController(private val context: Context) {
      */
     fun openPlayer(): Boolean {
         if (DemoMode.isOn) return false
-        val pkg = (stockShown ?: activeController?.packageName ?: getLastMediaPackage(context))?.takeIf { it != context.packageName }
+        val pkg = (stockShown?.takeIf { it != HeadUnitMedia.PHONE } ?: activeController?.packageName ?: getLastMediaPackage(context))?.takeIf { it != context.packageName }
         if (pkg != null && AppLauncher.launch(context, pkg)) return true
         return context.launchSafely(Intent.makeMainSelectorActivity(Intent.ACTION_MAIN, Intent.CATEGORY_APP_MUSIC))
     }

@@ -284,4 +284,7 @@
     <string name="rescue_done">Kész az autón</string>
     <string name="rescue_failed">Az autó nem tudta megtenni</string>
     <string name="rescue_no_answer">Nincs válasz: frissítse a Dashwheelt az autón.</string>
+    <string name="pair_type">Inkább beírom a kódot</string>
+    <string name="pair_type_title">Írja be az autó kódját</string>
+    <string name="pair_type_hint">A kód a QR alatt az autó képernyőjén</string>
 </resources>

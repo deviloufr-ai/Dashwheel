@@ -572,6 +572,16 @@ data class NowPlaying(
     val artJpeg: String? = null
 ) : LinkMessage
 
+/**
+ * Head unit → phone: a button of the car's media tile for the player the phone
+ * reported in [NowPlaying] (Spotify heard over Bluetooth, on any unit).
+ */
+@Serializable
+@SerialName("phone_media_key")
+data class PhoneMediaKey(val key: Key) : LinkMessage {
+    enum class Key { PLAY_PAUSE, NEXT, PREVIOUS }
+}
+
 /** Phone → head unit, on link up and at each change: the phone's battery, exact, and whether it charges. */
 @Serializable
 @SerialName("battery")

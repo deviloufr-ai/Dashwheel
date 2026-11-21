@@ -87,4 +87,5 @@
     <string name="phone_keypad_call">Zadzwoń</string>
     <string name="phone_keypad_delete">Usuń ostatnią cyfrę</string>
     <string name="phone_unit_app">Aplikacja telefonu urządzenia</string>
+    <string name="phone_pair_typed">Brak aparatu? Wpisz ten kod w aplikacji</string>
 </resources>

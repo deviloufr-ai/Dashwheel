@@ -90,4 +90,5 @@
     <string name="phone_keypad_call">Hívás</string>
     <string name="phone_keypad_delete">Az utolsó számjegy törlése</string>
     <string name="phone_unit_app">A készülék telefon alkalmazása</string>
+    <string name="phone_pair_typed">Nincs kamera? Írja be ezt a kódot az alkalmazásban</string>
 </resources>

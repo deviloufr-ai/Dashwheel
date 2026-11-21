@@ -90,4 +90,5 @@
     <string name="phone_keypad_call">Skambinti</string>
     <string name="phone_keypad_delete">Ištrinti paskutinį skaitmenį</string>
     <string name="phone_unit_app">Įrenginio telefono programa</string>
+    <string name="phone_pair_typed">Nėra kameros? Įveskite šį kodą programoje</string>
 </resources>

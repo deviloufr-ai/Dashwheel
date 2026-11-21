@@ -11,6 +11,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Base64
 import com.openauto.dash.link.NowPlaying
+import com.openauto.dash.link.PhoneMediaKey
 import java.io.ByteArrayOutputStream
 
 /**
@@ -78,6 +79,20 @@ object PhoneMedia {
         sentArt = 0
         last = null
         changed()
+    }
+
+    /** The car's media tile pressed a button: it goes to the player the car shows. */
+    fun key(key: PhoneMediaKey.Key) = main.post {
+        val c = controller ?: return@post
+        val controls = c.transportControls
+        runCatching {
+            when (key) {
+                PhoneMediaKey.Key.PLAY_PAUSE ->
+                    if (c.playbackState?.state == PlaybackState.STATE_PLAYING) controls.pause() else controls.play()
+                PhoneMediaKey.Key.NEXT -> controls.skipToNext()
+                PhoneMediaKey.Key.PREVIOUS -> controls.skipToPrevious()
+            }
+        }
     }
 
     /** Follows the session that is playing, else the first one. */

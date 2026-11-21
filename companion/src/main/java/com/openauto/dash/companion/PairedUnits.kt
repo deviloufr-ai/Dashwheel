@@ -42,6 +42,14 @@ object PairedUnits {
         write(context, load(context).filter { it.id != offer.id } + unit)
     }
 
+    /** [name] for the car [id] while it still has the stand-in a typed code gave it. */
+    @Synchronized
+    fun nameTyped(context: Context, id: String, name: String) {
+        val units = load(context)
+        if (name.isBlank() || units.none { it.id == id && it.name == PairingOffer.TYPED_NAME }) return
+        write(context, units.map { if (it.id == id) it.copy(name = name.trim().take(64)) else it })
+    }
+
     @Synchronized
     fun remove(context: Context, id: String) {
         write(context, load(context).filter { it.id != id })

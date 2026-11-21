@@ -87,4 +87,5 @@
     <string name="phone_keypad_call">Anrufen</string>
     <string name="phone_keypad_delete">Letzte Ziffer löschen</string>
     <string name="phone_unit_app">Telefon-App des Geräts</string>
+    <string name="phone_pair_typed">Keine Kamera? Diesen Code in der App eingeben</string>
 </resources>

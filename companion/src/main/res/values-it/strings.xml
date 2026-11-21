@@ -283,4 +283,7 @@
     <string name="rescue_done">Fatto sull\'auto</string>
     <string name="rescue_failed">L\'auto non è riuscita</string>
     <string name="rescue_no_answer">Nessuna risposta: aggiorna Dashwheel sull\'auto.</string>
+    <string name="pair_type">Digita il codice</string>
+    <string name="pair_type_title">Digita il codice dell\'auto</string>
+    <string name="pair_type_hint">Il codice sotto il QR sullo schermo dell\'auto</string>
 </resources>

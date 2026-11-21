@@ -51,4 +51,23 @@ class PairingOfferTest {
         assertEquals(PairingOffer.Kind.HEAD_UNIT, PairingOffer.parse(PairingOffer.create("Unit").toUri())!!.kind)
         assertNull(PairingOffer.parse(offer.toUri().replace("://display?", "://screen?")))
     }
+
+    @Test
+    fun aTypedCodeGivesTheSameOffer() {
+        repeat(50) {
+            val offer = PairingOffer.create("Unit")
+            val code = offer.code!!
+            assertTrue(code, Regex("([0-9A-HJKMNP-TV-Z]{4}-){5}[0-9A-HJKMNP-TV-Z]{4}").matches(code))
+            // Typed in lower case, without dashes, with an O for a 0 and an l for a 1.
+            val typed = code.lowercase().replace("-", " ").replace('0', 'o').replace('1', 'l')
+            val back = PairingOffer.parse(typed)!!
+            assertEquals(offer.id, back.id)
+            assertArrayEquals(offer.secret, back.secret)
+            assertEquals(PairingOffer.TYPED_NAME, back.unitName)
+            // The QR of the same offer still reads as before.
+            assertEquals(offer.id, PairingOffer.parse(offer.toUri())!!.id)
+        }
+        assertNull(PairingOffer.parse("ABCD-EFGH"))
+        assertNull(PairingOffer.parse("UUUU-UUUU-UUUU-UUUU-UUUU-UUUU"))
+    }
 }

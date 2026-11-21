@@ -87,4 +87,5 @@
     <string name="phone_keypad_call">Appeler</string>
     <string name="phone_keypad_delete">Effacer le dernier chiffre</string>
     <string name="phone_unit_app">Appli téléphone de l\'autoradio</string>
+    <string name="phone_pair_typed">Pas de caméra ? Tapez ce code dans l\'appli</string>
 </resources>

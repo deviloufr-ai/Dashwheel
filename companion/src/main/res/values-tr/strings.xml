@@ -284,4 +284,7 @@
     <string name="rescue_done">Araçta yapıldı</string>
     <string name="rescue_failed">Araç bunu yapamadı</string>
     <string name="rescue_no_answer">Yanıt yok: araçta Dashwheel\'i güncelleyin.</string>
+    <string name="pair_type">Kodu yazın</string>
+    <string name="pair_type_title">Arabanın kodunu yazın</string>
+    <string name="pair_type_hint">Araba ekranındaki QR\'ın altındaki kod</string>
 </resources>

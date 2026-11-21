@@ -132,6 +132,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -267,6 +268,9 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
                 .setOrientationLocked(false)
         )
     }
+    // The car's pairing code typed by hand, for a phone whose camera can't read the QR.
+    var typingCode by rememberSaveable { mutableStateOf(false) }
+    if (typingCode) TypeCodeDialog(onDone = { code -> typingCode = false; code?.let(onScanned) })
     val setup = rememberSetupChecks(resumes)
     val paired = units.isNotEmpty()
     val connected = state is LinkState.Connected
@@ -385,6 +389,11 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
                                 Text(stringResource(R.string.pair_another))
                             }
                         }
+                        item {
+                            TextButton(onClick = { typingCode = true }, modifier = Modifier.fillMaxWidth()) {
+                                Text(stringResource(R.string.pair_type))
+                            }
+                        }
                     }
                     item { SectionTitle(stringResource(R.string.update_section)) }
                     item { AppVersionCard(update) }
@@ -406,7 +415,8 @@ private fun CompanionScreen(resumes: Int, offer: PairingOffer?, onScanned: (Stri
                             enabled = enabled,
                             canToggle = paired,
                             onToggle = onToggle,
-                            onPair = startScan
+                            onPair = startScan,
+                            onType = { typingCode = true }
                         )
                     }
                     updateCard(context, update)
@@ -811,7 +821,8 @@ private fun HeroCard(
     enabled: Boolean,
     canToggle: Boolean,
     onToggle: (Boolean) -> Unit,
-    onPair: () -> Unit
+    onPair: () -> Unit,
+    onType: () -> Unit
 ) {
     // The link's last event, for when the car does not connect (not translated: technical).
     val lastEvent = LinkServer.lastEvent.collectAsState().value
@@ -886,9 +897,35 @@ private fun HeroCard(
                     Spacer(Modifier.width(8.dp))
                     Text(stringResource(R.string.pair_car))
                 }
+                TextButton(onClick = onType, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.pair_type))
+                }
             }
         }
     }
+}
+
+/** The code shown under the car's pairing QR, typed; [onDone] gets it, or null when cancelled. */
+@Composable
+private fun TypeCodeDialog(onDone: (String?) -> Unit) {
+    var code by rememberSaveable { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = { onDone(null) },
+        title = { Text(stringResource(R.string.pair_type_title)) },
+        text = {
+            OutlinedTextField(
+                value = code,
+                onValueChange = { code = it.take(40) },
+                label = { Text(stringResource(R.string.pair_type_hint)) },
+                singleLine = true,
+                textStyle = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace),
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters, autoCorrectEnabled = false, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { if (code.isNotBlank()) onDone(code) })
+            )
+        },
+        confirmButton = { TextButton(onClick = { onDone(code) }, enabled = code.isNotBlank()) { Text(stringResource(R.string.pair_car)) } },
+        dismissButton = { TextButton(onClick = { onDone(null) }) { Text(stringResource(R.string.cancel)) } }
+    )
 }
 
 /**

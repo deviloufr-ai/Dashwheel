@@ -87,4 +87,5 @@
     <string name="phone_keypad_call">Llamar</string>
     <string name="phone_keypad_delete">Borrar la última cifra</string>
     <string name="phone_unit_app">App de teléfono de la unidad</string>
+    <string name="phone_pair_typed">¿Sin cámara? Escribe este código en la app</string>
 </resources>

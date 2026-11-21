@@ -34,6 +34,7 @@ import com.openauto.dash.link.CarNotices
 import com.openauto.dash.link.FuelReport
 import com.openauto.dash.link.FuelSync
 import com.openauto.dash.link.PhoneAbilities
+import com.openauto.dash.link.PhoneMediaKey
 import com.openauto.dash.link.SendText
 import com.openauto.dash.link.TextSent
 import com.openauto.dash.link.ObdClose
@@ -446,6 +447,9 @@ object LinkServer {
             // The car's own speed and indicators, for the road recorder's picture and notes; and its word to keep a clip.
             is CarTelemetry -> RoadTelemetry.update(message)
             is KeepClip -> RoadRecorder.active?.keep(message.reason)
+            is PhoneMediaKey -> PhoneMedia.key(message.key)
+            // A car paired by typing its code came without a name: its own, once it says it.
+            is Hello -> PairedUnits.nameTyped(context, link.pairingId, message.deviceName)
             else -> Unit
         }
     }

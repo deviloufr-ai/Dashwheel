@@ -61,6 +61,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -458,6 +459,15 @@ internal fun PhonePairingDialog(onDismiss: () -> Unit) {
                         Text(stringResource(R.string.phone_pair_step3), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
                         QrCode(current.toUri(), Modifier.fillMaxWidth())
                         QrCaption(stringResource(R.string.phone_pair_qr_pair), primary = true)
+                        // For a phone whose camera can't read the QR (issue: water-damaged camera).
+                        current.code?.let { code ->
+                            QrCaption(stringResource(R.string.phone_pair_typed), primary = false)
+                            Text(
+                                code, color = DashColors.TextPrimary, fontFamily = FontFamily.Monospace,
+                                style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             CircularProgressIndicator(color = DashColors.Accent, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(10.dp))

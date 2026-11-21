@@ -286,4 +286,7 @@
     <string name="rescue_done">Atlikta automobilyje</string>
     <string name="rescue_failed">Automobiliui nepavyko</string>
     <string name="rescue_no_answer">Nėra atsakymo: atnaujinkite Dashwheel automobilyje.</string>
+    <string name="pair_type">Įvesti kodą</string>
+    <string name="pair_type_title">Įveskite automobilio kodą</string>
+    <string name="pair_type_hint">Kodas po QR automobilio ekrane</string>
 </resources>

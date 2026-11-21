@@ -90,4 +90,5 @@
     <string name="phone_keypad_call">Позвонить</string>
     <string name="phone_keypad_delete">Удалить последнюю цифру</string>
     <string name="phone_unit_app">Приложение телефона устройства</string>
+    <string name="phone_pair_typed">Нет камеры? Введите этот код в приложении</string>
 </resources>
