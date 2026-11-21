@@ -169,6 +169,7 @@
     <!-- Spoken by CarCare, in the mechanic's language -->
     <string name="car_say_cold_revs">A motor még hideg. Még néhány percig tartsa a fordulatszámot %1$d alatt.</string>
     <string name="car_say_clutch_hold">Az autót a fékkel tartsa, ne a gázpedállal. Ez koptatja ennek a váltónak a kuplungját.</string>
+    <string name="car_say_lights_on">A világítás még be van kapcsolva.</string>
     <string name="car_say_filter">Az utolsó %1$d útja rövid volt. Amikor teheti, vezessen 15–20 percet 60 kilométer per óra felett, hogy a részecskeszűrő ki tudja tisztítani magát.</string>
     <string name="car_say_filter_regen">A részecskeszűrő most tisztítja magát. Ha teheti, vezessen még körülbelül 10 percet egyenletes tempóban.</string>
     <string name="car_say_filter_regen_standing">A részecskeszűrő tisztítása még tart. Ha teheti, vezessen még néhány percet, mielőtt leállítja a motort.</string>

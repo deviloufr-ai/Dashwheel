@@ -169,6 +169,7 @@
     <!-- Spoken by CarCare, in the mechanic's language -->
     <string name="car_say_cold_revs">El motor aún está frío. Mantenlo por debajo de %1$d revoluciones unos minutos más.</string>
     <string name="car_say_clutch_hold">Sujeta el coche con el freno, no con el acelerador. Desgasta el embrague de este cambio.</string>
+    <string name="car_say_lights_on">Las luces siguen encendidas.</string>
     <string name="car_say_filter">Tus últimos %1$d trayectos han sido cortos. Cuando puedas, conduce de 15 a 20 minutos a más de 60 kilómetros por hora para que el filtro de partículas se limpie.</string>
     <string name="car_say_filter_regen">El filtro de partículas se está limpiando. Si puedes, sigue conduciendo unos 10 minutos más a velocidad constante.</string>
     <string name="car_say_filter_regen_standing">El filtro de partículas todavía se está limpiando. Si puedes, conduce unos minutos más antes de apagar el motor.</string>

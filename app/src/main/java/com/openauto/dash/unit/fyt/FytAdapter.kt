@@ -49,6 +49,7 @@ import com.openauto.unitproto.fyt.FytSound
 import com.openauto.unitproto.fyt.FytVw
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -303,6 +304,9 @@ internal class FytKeys(private val app: Context, private val toolkit: FytToolkit
     private var registeredAt = 0L
     /** Written by the take-over coroutine (IO), read by [release] on the feed thread. */
     @Volatile private var previousType: String? = null
+    @Volatile private var takeJob: Job? = null
+    /** When the last take gave up (uptime): a unit with no shell isn't asked again every few seconds. */
+    @Volatile private var failedAt = 0L
 
     private val callback by lazy {
         FytToolkit.FytCallback(toolkit.feed) { code, ints, _, _ ->
@@ -348,6 +352,7 @@ internal class FytKeys(private val app: Context, private val toolkit: FytToolkit
             }
         }
         toolkit.connect()
+        watch()
     }
 
     override fun stop() {
@@ -386,7 +391,13 @@ internal class FytKeys(private val app: Context, private val toolkit: FytToolkit
         module = m
         registeredAt = SystemClock.elapsedRealtime()
         if (!m.register(callback, FytMain.U_KEY)) { module = null; Log.w(TAG, "MAIN module refused the key registration: no unit keys"); return }
-        scope.launch {
+        take()
+    }
+
+    /** Sets `sys.carlink.type` to ours, a few tries; one at a time. */
+    private fun take() {
+        if (takeJob?.isActive == true) return
+        takeJob = scope.launch {
             val was = SysProps.get(FytProtocol.PROP_CARLINK_TYPE).orEmpty()
             if (was == FytProtocol.CARLINK_TAKE_KEYS) { _listening.value = true; Log.i(TAG, "the unit's keys were already ours"); return@launch }
             // sys.* is gone after every reboot, and the root shell may not be up yet at boot: a few tries.
@@ -396,11 +407,13 @@ internal class FytKeys(private val app: Context, private val toolkit: FytToolkit
                 val ok = SysProps.get(FytProtocol.PROP_CARLINK_TYPE) == FytProtocol.CARLINK_TAKE_KEYS
                 // Turned off while the shell was busy: [release] has already run with nothing to put back, so it is done here.
                 if (!_taking.value) {
-                    if (ok) runCatching { DockShell.shell(app, "setprop ${FytProtocol.PROP_CARLINK_TYPE} ${was.ifEmpty { "0" }}") }
+                    if (ok) runCatching { DockShell.shell(app, "setprop ${FytProtocol.PROP_CARLINK_TYPE} ${(previousType ?: was).ifEmpty { "0" }}") }
+                    previousType = null
                     return@launch
                 }
                 if (ok) {
-                    previousType = was.ifEmpty { "0" }
+                    // Taken back from another app: the value to put back is still the one from before the first take.
+                    if (previousType == null) previousType = was.ifEmpty { "0" }
                     _listening.value = true
                     Log.i(TAG, "took the unit's keys (${FytProtocol.PROP_CARLINK_TYPE} was \"$was\")")
                     return@launch
@@ -408,7 +421,31 @@ internal class FytKeys(private val app: Context, private val toolkit: FytToolkit
                 Log.w(TAG, "could not take the unit's keys (try ${attempt + 1}): ${out.trim().ifEmpty { "no answer" }}")
                 delay(TAKE_RETRY_MS)
             }
+            failedAt = SystemClock.elapsedRealtime()
             _listening.value = false
+        }
+    }
+
+    /**
+     * The firmware's own apps set `sys.carlink.type` back when they open (the
+     * Bluetooth app to 0, Bluetooth music to 1), and a take at boot can miss
+     * the toolkit (#152): while the driver wants the keys, they are looked at
+     * every [WATCH_MS] and taken again.
+     */
+    private fun watch() = scope.launch {
+        while (onKey != null) {
+            delay(WATCH_MS)
+            if (!_taking.value || takeJob?.isActive == true) continue
+            if (failedAt != 0L && SystemClock.elapsedRealtime() - failedAt < FAILED_WAIT_MS) continue
+            if (module == null) {
+                if (toolkit.connected.value) toolkit.feed.post { if (_taking.value) subscribe() }
+                continue
+            }
+            val now = SysProps.get(FytProtocol.PROP_CARLINK_TYPE).orEmpty()
+            if (now == FytProtocol.CARLINK_TAKE_KEYS) continue
+            Log.w(TAG, "lost the unit's keys (${FytProtocol.PROP_CARLINK_TYPE} is now \"$now\"); taking them back")
+            _listening.value = false
+            toolkit.feed.post { if (_taking.value && module != null) take() }
         }
     }
 
@@ -428,6 +465,8 @@ internal class FytKeys(private val app: Context, private val toolkit: FytToolkit
         private const val REPLAY_MS = 800L
         private const val TAKE_TRIES = 4
         private const val TAKE_RETRY_MS = 10_000L
+        private const val WATCH_MS = 5_000L
+        private const val FAILED_WAIT_MS = 120_000L
 
         fun enabled(context: Context): Boolean =
             context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_TAKE, false) ||

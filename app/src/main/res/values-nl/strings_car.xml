@@ -169,6 +169,7 @@
     <!-- Spoken by CarCare, in the mechanic's language -->
     <string name="car_say_cold_revs">De motor is nog koud. Blijf nog een paar minuten onder de %1$d toeren.</string>
     <string name="car_say_clutch_hold">Houd de auto vast met de rem, niet met het gaspedaal. Dat slijt de koppeling van deze versnellingsbak.</string>
+    <string name="car_say_lights_on">De lichten staan nog aan.</string>
     <string name="car_say_filter">Je laatste %1$d ritten waren kort. Rij als het kan 15 tot 20 minuten boven de 60 kilometer per uur, zodat het roetfilter zichzelf kan reinigen.</string>
     <string name="car_say_filter_regen">Het roetfilter reinigt zichzelf. Rij als het kan nog zo\'n 10 minuten door met een constante snelheid.</string>
     <string name="car_say_filter_regen_standing">Het roetfilter is nog aan het reinigen. Rij als het kan nog een paar minuten voordat je de motor uitzet.</string>

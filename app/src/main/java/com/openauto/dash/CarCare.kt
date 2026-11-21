@@ -1,6 +1,7 @@
 package com.openauto.dash
 
 import android.content.Context
+import android.widget.Toast
 import com.openauto.dash.vehicle.K
 import com.openauto.dash.vehicle.Vehicle
 import com.openauto.dash.vehicle.fuelInfoFlow
@@ -322,7 +323,28 @@ object CarCare {
         _filterWatch.value = FilterWatch(sootSaidDay = p.getLong(KEY_SOOT_DAY, -1), additiveSaidAt = p.getLong(KEY_ADDITIVE_AT, 0))
         scope.launch { watchFuel() }
         scope.launch { watchRestWithoutObd() }
+        scope.launch { watchLightsLeftOn() }
     }
+
+    /**
+     * The lights left on as the driver gets out (#178): a front door opens
+     * with the lights on and the engine stopped. Said, and shown, once each
+     * time; nothing on a unit that doesn't report the lights.
+     */
+    private suspend fun watchLightsLeftOn() {
+        combine(Vehicle.bus.value(K.HEADLIGHTS), Vehicle.bus.value(K.DOORS), Vehicle.bus.value(K.ENGINE_RUNNING), ::lightsLeftOn)
+            .distinctUntilChanged()
+            .collect { left ->
+                if (!left || DemoMode.isOn) return@collect
+                val context = appContext ?: return@collect
+                Toast.makeText(context, AppLanguage.wrap(context).getString(R.string.car_say_lights_on), Toast.LENGTH_LONG).show()
+                say(SpokenLine(R.string.car_say_lights_on, emptyList()))
+            }
+    }
+
+    /** Lights on, a front door open, and the engine not known to run. */
+    internal fun lightsLeftOn(lights: Boolean?, doors: McuReader.DoorState?, running: Boolean?): Boolean =
+        lights == true && running != true && doors != null && (doors.frontLeft || doors.frontRight)
 
     /** How often driving time is counted without the adapter's readings. */
     private const val REST_TICK_MS = 1_000L

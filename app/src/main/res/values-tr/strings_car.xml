@@ -169,6 +169,7 @@
     <!-- Spoken by CarCare, in the mechanic's language -->
     <string name="car_say_cold_revs">Motor hâlâ soğuk. Birkaç dakika daha %1$d devrin altında tutun.</string>
     <string name="car_say_clutch_hold">Aracı gazla değil frenle tutun. Bu şanzımanın debriyajını aşındırır.</string>
+    <string name="car_say_lights_on">Farlar hâlâ açık.</string>
     <string name="car_say_filter">Son %1$d sürüşünüz kısaydı. Fırsat bulunca, partikül filtresi kendini temizleyebilsin diye saatte 60 kilometrenin üzerinde 15 ila 20 dakika sürün.</string>
     <string name="car_say_filter_regen">Partikül filtresi kendini temizliyor. Mümkünse yaklaşık 10 dakika daha sabit hızda sürmeye devam edin.</string>
     <string name="car_say_filter_regen_standing">Partikül filtresi hâlâ temizleniyor. Mümkünse motoru kapatmadan önce birkaç dakika daha sürün.</string>

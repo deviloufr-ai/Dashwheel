@@ -169,6 +169,7 @@
     <!-- Spoken by CarCare, in the mechanic's language -->
     <string name="car_say_cold_revs">Der Motor ist noch kalt. Bitte noch ein paar Minuten unter %1$d Umdrehungen bleiben.</string>
     <string name="car_say_clutch_hold">Das Auto mit der Bremse halten, nicht mit dem Gaspedal. Das verschleißt die Kupplung dieses Getriebes.</string>
+    <string name="car_say_lights_on">Das Licht ist noch an.</string>
     <string name="car_say_filter">Die letzten %1$d Fahrten waren kurz. Wenn möglich 15 bis 20 Minuten über 60 Kilometer pro Stunde fahren, damit sich der Partikelfilter reinigen kann.</string>
     <string name="car_say_filter_regen">Der Partikelfilter reinigt sich gerade. Wenn möglich noch etwa 10 Minuten gleichmäßig weiterfahren.</string>
     <string name="car_say_filter_regen_standing">Der Partikelfilter reinigt sich noch. Wenn möglich noch ein paar Minuten fahren, bevor der Motor abgestellt wird.</string>

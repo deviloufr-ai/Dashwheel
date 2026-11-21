@@ -633,7 +633,8 @@ object PhoneLink {
             return Reach.UNAVAILABLE
         }
         if (phones.isEmpty()) {
-            note("Bluetooth: no paired phone")
+            // Many units pair phones on the firmware's own Bluetooth chip, which Android doesn't list (#178).
+            note("Bluetooth: no phone paired in Android's Bluetooth settings. Pairing in the car's phone app isn't enough")
             return Reach.UNAVAILABLE
         }
         // A search under way makes every connection slow.

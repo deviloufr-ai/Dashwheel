@@ -169,6 +169,7 @@
     <!-- Spoken by CarCare, in the mechanic's language -->
     <string name="car_say_cold_revs">Il motore è ancora freddo. Resta sotto i %1$d giri ancora per qualche minuto.</string>
     <string name="car_say_clutch_hold">Tieni ferma l\'auto con il freno, non con l\'acceleratore. Consuma la frizione di questo cambio.</string>
+    <string name="car_say_lights_on">Le luci sono ancora accese.</string>
     <string name="car_say_filter">Gli ultimi %1$d viaggi sono stati brevi. Appena puoi, guida da 15 a 20 minuti sopra i 60 chilometri orari, così il filtro antiparticolato si pulisce.</string>
     <string name="car_say_filter_regen">Il filtro antiparticolato si sta pulendo. Se puoi, continua a guidare per altri 10 minuti circa a velocità costante.</string>
     <string name="car_say_filter_regen_standing">Il filtro antiparticolato si sta ancora pulendo. Se puoi, guida ancora qualche minuto prima di spegnere il motore.</string>

@@ -171,6 +171,7 @@
     <!-- Spoken by CarCare, in the mechanic's language -->
     <string name="car_say_cold_revs">Двигатель ещё холодный. Ещё несколько минут не поднимайте обороты выше %1$d.</string>
     <string name="car_say_clutch_hold">Удерживайте автомобиль тормозом, а не педалью газа. Так изнашивается сцепление этой коробки.</string>
+    <string name="car_say_lights_on">Фары всё ещё включены.</string>
     <string name="car_say_filter">Коротких поездок подряд: %1$d. Когда будет возможность, проедьте 15–20 минут со скоростью выше 60 км/ч, чтобы сажевый фильтр очистился.</string>
     <string name="car_say_filter_regen">Сажевый фильтр очищается. Если можете, проедьте ещё около 10 минут с постоянной скоростью.</string>
     <string name="car_say_filter_regen_standing">Сажевый фильтр ещё очищается. Если можете, проедьте ещё несколько минут, прежде чем глушить двигатель.</string>

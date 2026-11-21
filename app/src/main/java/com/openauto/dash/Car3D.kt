@@ -703,7 +703,8 @@ private class Stage(context: Context) : Choreographer.FrameCallback {
 
     fun drag(dx: Float, dy: Float) {
         val p = pose ?: return
-        val moved = p.copy(yaw = p.yaw - dx * 0.3f, pitch = (p.pitch + dy * 0.2f).coerceIn(-5f, 80f))
+        // The car follows the finger: the camera goes the other way round it (#178).
+        val moved = p.copy(yaw = p.yaw + dx * 0.3f, pitch = (p.pitch + dy * 0.2f).coerceIn(-5f, 80f))
         pose = moved; from = moved; to = moved; moveStart = 0
         wake()
     }

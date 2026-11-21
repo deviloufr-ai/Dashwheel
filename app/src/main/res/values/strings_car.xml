@@ -169,6 +169,7 @@
     <!-- Spoken by CarCare, in the mechanic's language -->
     <string name="car_say_cold_revs">The engine is still cold. Keep it under %1$d revs for a few more minutes.</string>
     <string name="car_say_clutch_hold">Hold the car with the brake, not the accelerator. It wears the clutch of this gearbox.</string>
+    <string name="car_say_lights_on">The lights are still on.</string>
     <string name="car_say_filter">Your last %1$d drives were short. When you can, drive 15 to 20 minutes above 60 kilometres an hour so the particle filter can clean itself.</string>
     <string name="car_say_filter_regen">The particle filter is cleaning itself. If you can, keep driving for about 10 more minutes at a steady speed.</string>
     <string name="car_say_filter_regen_standing">The particle filter is still cleaning. If you can, drive a few more minutes before switching off.</string>

@@ -171,6 +171,7 @@
     <!-- Spoken by CarCare, in the mechanic's language -->
     <string name="car_say_cold_revs">Variklis dar šaltas. Dar kelias minutes neviršykite %1$d sūkių.</string>
     <string name="car_say_clutch_hold">Automobilį laikykite stabdžiu, ne akseleratoriumi. Taip dyla šios pavarų dėžės sankaba.</string>
+    <string name="car_say_lights_on">Žibintai vis dar įjungti.</string>
     <string name="car_say_filter">Paskutiniai %1$d važiavimai buvo trumpi. Kai galėsite, 15–20 minučių pavažiuokite greičiau nei 60 kilometrų per valandą, kad kietųjų dalelių filtras išsivalytų.</string>
     <string name="car_say_filter_regen">Kietųjų dalelių filtras valosi. Jei galite, dar apie 10 minučių važiuokite pastoviu greičiu.</string>
     <string name="car_say_filter_regen_standing">Kietųjų dalelių filtras dar valosi. Jei galite, prieš išjungdami variklį dar kelias minutes pavažiuokite.</string>

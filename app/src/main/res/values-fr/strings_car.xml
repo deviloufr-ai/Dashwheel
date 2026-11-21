@@ -169,6 +169,7 @@
     <!-- Spoken by CarCare, in the mechanic's language -->
     <string name="car_say_cold_revs">Le moteur est encore froid. Restez sous les %1$d tours pendant encore quelques minutes.</string>
     <string name="car_say_clutch_hold">Retenez la voiture avec le frein, pas avec l\'accélérateur. Cela use l\'embrayage de cette boîte.</string>
+    <string name="car_say_lights_on">Les feux sont encore allumés.</string>
     <string name="car_say_filter">Vos %1$d derniers trajets étaient courts. Dès que possible, roulez 15 à 20 minutes au-dessus de 60 kilomètres-heure pour que le filtre à particules se nettoie.</string>
     <string name="car_say_filter_regen">Le filtre à particules se nettoie. Si possible, continuez à rouler une dizaine de minutes à vitesse régulière.</string>
     <string name="car_say_filter_regen_standing">Le filtre à particules est encore en nettoyage. Si possible, roulez encore quelques minutes avant de couper le moteur.</string>

@@ -171,6 +171,7 @@
     <!-- Spoken by CarCare, in the mechanic's language -->
     <string name="car_say_cold_revs">Silnik jest jeszcze zimny. Przez kilka minut nie przekraczaj %1$d obrotów.</string>
     <string name="car_say_clutch_hold">Trzymaj auto hamulcem, nie gazem. To zużywa sprzęgło tej skrzyni biegów.</string>
+    <string name="car_say_lights_on">Światła są nadal włączone.</string>
     <string name="car_say_filter">Twoje ostatnie trasy były krótkie, już %1$d z rzędu. Gdy będzie okazja, jedź od 15 do 20 minut powyżej 60 kilometrów na godzinę, żeby filtr cząstek stałych mógł się oczyścić.</string>
     <string name="car_say_filter_regen">Filtr cząstek stałych się oczyszcza. Jeśli możesz, jedź jeszcze około 10 minut ze stałą prędkością.</string>
     <string name="car_say_filter_regen_standing">Filtr cząstek stałych nadal się oczyszcza. Jeśli możesz, jedź jeszcze kilka minut, zanim wyłączysz silnik.</string>

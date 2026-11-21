@@ -169,6 +169,7 @@
     <!-- Spoken by CarCare, in the mechanic's language -->
     <string name="car_say_cold_revs">O motor ainda está frio. Mantenha-o abaixo das %1$d rotações durante mais alguns minutos.</string>
     <string name="car_say_clutch_hold">Segure o carro com o travão, não com o acelerador. Isso gasta a embraiagem desta caixa.</string>
+    <string name="car_say_lights_on">As luzes ainda estão ligadas.</string>
     <string name="car_say_filter">As suas últimas %1$d viagens foram curtas. Quando puder, conduza 15 a 20 minutos acima de 60 quilómetros por hora para o filtro de partículas se limpar.</string>
     <string name="car_say_filter_regen">O filtro de partículas está a limpar-se. Se puder, continue a conduzir mais uns 10 minutos a velocidade constante.</string>
     <string name="car_say_filter_regen_standing">O filtro de partículas ainda está a limpar-se. Se puder, conduza mais alguns minutos antes de desligar o motor.</string>
