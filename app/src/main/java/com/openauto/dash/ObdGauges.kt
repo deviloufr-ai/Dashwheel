@@ -22,7 +22,9 @@ internal enum class Pid(val key: Key<Double>) {
     /** The battery: the engine computer's control-module voltage, else the adapter's own pin. */
     VOLTS(K.BATTERY_VOLTS),
     /** The engine's fuel rate, or the air flow worked out into one. */
-    FUEL_FLOW(K.FUEL_FLOW)
+    FUEL_FLOW(K.FUEL_FLOW),
+    /** The car's outside air sensor: the bar's temperature on units that get none from the car (Topway). */
+    AMBIENT(K.OUTSIDE_TEMP)
 }
 
 /** The slow readings share this many polls, one each. */
@@ -50,6 +52,8 @@ internal fun obdPollPlan(wanted: Set<Key<*>>, tick: Int): List<Pid> {
         if (K.INTAKE_TEMP in wanted && (first || slot == 1)) add(Pid.INTAKE)
         if (K.FUEL_LEVEL in wanted && (first || slot == 2)) add(Pid.FUEL_LEVEL)
         if (K.BATTERY_VOLTS in wanted && (first || slot == 3)) add(Pid.VOLTS)
+        // Slow to change: once every 4 x SLOW_SLOTS polls.
+        if (K.OUTSIDE_TEMP in wanted && (first || tick % (SLOW_SLOTS * 4) == 1)) add(Pid.AMBIENT)
     }
 }
 
@@ -92,6 +96,7 @@ internal class ObdGaugePublisher(private val out: Publisher) {
                 Pid.FUEL_LEVEL -> d.fuelLevelPct.toDouble()
                 Pid.VOLTS -> d.voltage
                 Pid.FUEL_FLOW -> d.fuelFlowLh ?: continue
+                Pid.AMBIENT -> d.ambientTempC?.toDouble() ?: continue
             }
             val quality = if (pid == Pid.VOLTS && !voltsFromEcu) Quality.DEGRADED else Quality.GOOD
             val ttl = listOfNotNull(ROTATED_TTL_MS.takeIf { pid in ROTATED }, minTtlMs.takeIf { it > 0 }).maxOrNull()

@@ -22,7 +22,7 @@ import org.junit.Test
 class ObdGaugesTest {
     private fun plan(wanted: Set<Key<*>>, tick: Int) = obdPollPlan(wanted, tick)
     private val everything: Set<Key<*>> = setOf(
-        K.VEHICLE_SPEED, K.RPM, K.THROTTLE, K.ENGINE_LOAD, K.COOLANT_TEMP, K.INTAKE_TEMP, K.FUEL_LEVEL, K.BATTERY_VOLTS, K.FUEL_FLOW
+        K.VEHICLE_SPEED, K.RPM, K.THROTTLE, K.ENGINE_LOAD, K.COOLANT_TEMP, K.INTAKE_TEMP, K.FUEL_LEVEL, K.BATTERY_VOLTS, K.FUEL_FLOW, K.OUTSIDE_TEMP
     )
 
     // --- obdPollPlan --------------------------------------------------------------
@@ -47,6 +47,13 @@ class ObdGaugesTest {
             assertEquals("load at $tick", tick % 4 == 2, Pid.LOAD in p)
             assertEquals("flow at $tick", tick % 2 == 1, Pid.FUEL_FLOW in p)
         }
+    }
+
+    @Test
+    fun theOutsideTemperatureIsAskedOnceEverySixteenPolls() {
+        val asked = (1..40).filter { Pid.AMBIENT in plan(everything, it) }
+        assertEquals(listOf(1, 17, 33), asked)
+        assertTrue(Pid.AMBIENT !in plan(everything - K.OUTSIDE_TEMP, 0))
     }
 
     @Test

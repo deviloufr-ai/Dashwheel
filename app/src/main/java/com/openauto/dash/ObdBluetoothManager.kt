@@ -52,7 +52,9 @@ data class ObdData(
      */
     val voltageFromEcu: Boolean = false,
     /** Petrol the engine computer asks for, litres an hour; null when not read (read only while something wants the fuel flow key, see [obdPollPlan]). */
-    val fuelFlowLh: Double? = null
+    val fuelFlowLh: Double? = null,
+    /** The car's outside air sensor (PID 0146), °C; null until the engine computer answered it. */
+    val ambientTempC: Int? = null
 )
 
 /** The readings once the engine computer has gone quiet (engine off): nothing turns, nothing moves. */
@@ -998,6 +1000,7 @@ object ObdBluetoothManager {
         val coolant = if (Pid.COOLANT in plan) read(0x05, alive, cycle) { ObdParser.parseCoolant(it) } else null
         val intake = if (Pid.INTAKE in plan) read(0x0F, alive, cycle) { ObdParser.tempFrom(it, "410F") } else null
         val fuel = if (Pid.FUEL_LEVEL in plan) read(0x2F, alive, cycle) { ObdParser.percentFrom(it, "412F") } else null
+        val ambient = if (Pid.AMBIENT in plan) read(0x46, alive, cycle) { ObdParser.tempFrom(it, "4146") } else null
         var ecuVolt: Double? = null
         var volt: Double? = null
         if (Pid.VOLTS in plan) {
@@ -1022,7 +1025,8 @@ object ObdBluetoothManager {
             fuelLevelPct = fuel ?: d.fuelLevelPct,
             voltage = volt ?: d.voltage,
             voltageFromEcu = if (volt != null) ecuVolt != null else d.voltageFromEcu,
-            fuelFlowLh = if (wantFlow) flow ?: d.fuelFlowLh else null
+            fuelFlowLh = if (wantFlow) flow ?: d.fuelFlowLh else null,
+            ambientTempC = ambient ?: d.ambientTempC
         )
         val fresh = buildSet {
             if (speed != null) add(Pid.SPEED)
@@ -1034,6 +1038,7 @@ object ObdBluetoothManager {
             if (fuel != null) add(Pid.FUEL_LEVEL)
             if (volt != null) add(Pid.VOLTS)
             if (flow != null) add(Pid.FUEL_FLOW)
+            if (ambient != null) add(Pid.AMBIENT)
         }
         // Engine off with the key in accessory: every PID says NO DATA while the
         // adapter stays linked. The last revs and speed would otherwise stay up
