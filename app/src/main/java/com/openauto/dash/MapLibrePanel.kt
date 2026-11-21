@@ -654,7 +654,9 @@ private fun enableLocation(
         lc.isLocationComponentEnabled = true
         // Directional puck; the camera follows position AND heading (map rotates
         // with the car) at a close zoom with pitch for the driving-nav look.
-        lc.renderMode = RenderMode.COMPASS
+        // The arrow takes the GPS heading: a head unit's compass is missing or
+        // sits in a metal dash, and pointed the arrow sideways (Topway TS18).
+        lc.renderMode = RenderMode.GPS
         // With a fix already known (the permission granted later, the style
         // swapped) the camera goes to it now; else the first fix above takes it
         // there. Through the component either way: a plain animateCamera would
