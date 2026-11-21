@@ -34,6 +34,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -182,6 +183,8 @@ internal fun RadioSwitchesCard(modifier: Modifier = Modifier) {
     }
     val wifi by RadioSwitches.wifi.collectAsState()
     val bt by RadioSwitches.bluetooth.collectAsState()
+    LaunchedEffect(Unit) { Radios.start(context) }
+    val signal by Radios.wifi.collectAsState()
     Card(modifier = modifier) {
         Row(
             modifier = Modifier.fillMaxSize().padding(DashSpace.Md),
@@ -191,7 +194,8 @@ internal fun RadioSwitchesCard(modifier: Modifier = Modifier) {
                 icon = if (wifi.on) Icons.Filled.Wifi else Icons.Filled.WifiOff,
                 name = stringResource(R.string.apps_radio_wifi),
                 state = wifi,
-                modifier = Modifier.weight(1f).fillMaxHeight()
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                bars = signal.bars.takeIf { wifi.on && signal.connected }
             ) { RadioSwitches.toggleWifi(context) }
             RadioButton(
                 icon = if (bt.on) Icons.Filled.Bluetooth else Icons.Filled.BluetoothDisabled,
@@ -204,7 +208,7 @@ internal fun RadioSwitchesCard(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun RadioButton(icon: ImageVector, name: String, state: RadioSwitches.State, modifier: Modifier, onClick: () -> Unit) {
+private fun RadioButton(icon: ImageVector, name: String, state: RadioSwitches.State, modifier: Modifier, bars: Int? = null, onClick: () -> Unit) {
     val tap = rememberTapFeedback()
     val line = when {
         state.busy -> stringResource(R.string.apps_radio_switching)
@@ -221,7 +225,9 @@ private fun RadioButton(icon: ImageVector, name: String, state: RadioSwitches.St
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(icon, contentDescription = null, tint = if (state.on) DashColors.Accent else DashColors.Muted, modifier = Modifier.size(34.dp))
+            // The Wi-Fi's strength, as a phone shows it, in place of the plain icon.
+            if (bars != null) WifiStrength(wifiLit(bars), DashColors.Accent, Modifier.size(34.dp))
+            else Icon(icon, contentDescription = null, tint = if (state.on) DashColors.Accent else DashColors.Muted, modifier = Modifier.size(34.dp))
             Spacer(Modifier.height(6.dp))
             Text(name, color = DashColors.TextPrimary, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall, maxLines = 1)
             Text(line, color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)

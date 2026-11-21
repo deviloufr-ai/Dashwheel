@@ -14,6 +14,9 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.wifi.WifiManager
+import android.telephony.PhoneStateListener
+import android.telephony.SignalStrength
+import android.telephony.TelephonyManager
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -66,6 +69,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.Canvas
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
@@ -203,6 +207,9 @@ internal object Radios {
     val wifi: StateFlow<Wifi> = _wifi.asStateFlow()
     private val _bluetoothOn = MutableStateFlow(false)
     val bluetoothOn: StateFlow<Boolean> = _bluetoothOn.asStateFlow()
+    private val _cellBars = MutableStateFlow<Int?>(null)
+    /** The SIM's signal, 0..4; null until the network was heard (no SIM: never). */
+    val cellBars: StateFlow<Int?> = _cellBars.asStateFlow()
     private var started = false
 
     @SuppressLint("MissingPermission")
@@ -227,6 +234,16 @@ internal object Radios {
                 _bluetoothOn.value = i.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR) == BluetoothAdapter.STATE_ON
             }
         }, IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED))
+        // Signal strengths need no permission; the listener's callbacks come on this (main) thread.
+        runCatching {
+            @Suppress("DEPRECATION")
+            app.getSystemService(TelephonyManager::class.java)?.listen(object : PhoneStateListener() {
+                @Deprecated("Deprecated in Java")
+                override fun onSignalStrengthsChanged(signal: SignalStrength) {
+                    _cellBars.value = signal.level.coerceIn(0, 4)
+                }
+            }, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS)
+        }
     }
 
     @Suppress("DEPRECATION")
@@ -487,7 +504,7 @@ internal fun wifiLit(bars: Int): Int = bars.coerceIn(1, 4)
  * them, from the dot out; the rest stays dim, so the shape still reads.
  */
 @Composable
-private fun WifiStrength(lit: Int, color: Color, modifier: Modifier = Modifier) {
+internal fun WifiStrength(lit: Int, color: Color, modifier: Modifier = Modifier) {
     val dim = DashColors.CardHi
     Canvas(modifier) {
         val s = size.minDimension
@@ -500,6 +517,22 @@ private fun WifiStrength(lit: Int, color: Color, modifier: Modifier = Modifier) 
                 if (lit >= i + 2) color else dim, 225f, 90f, useCenter = false,
                 topLeft = Offset(centre.x - r, centre.y - r), size = Size(2 * r, 2 * r),
                 style = Stroke(width = s * 0.11f, cap = StrokeCap.Round)
+            )
+        }
+    }
+}
+
+/** A phone's signal bars: four rising bars lit in [color] up to [bars] of them, the rest dim. */
+@Composable
+internal fun CellStrength(bars: Int, color: Color, modifier: Modifier = Modifier) {
+    val dim = DashColors.CardHi
+    Canvas(modifier) {
+        val w = size.width / 4f
+        for (i in 0..3) {
+            val h = size.height * (0.25f + 0.25f * i)
+            drawRoundRect(
+                if (bars > i) color else dim, Offset(i * w + w * 0.15f, size.height - h), Size(w * 0.7f, h),
+                CornerRadius(w * 0.15f)
             )
         }
     }

@@ -175,6 +175,9 @@ internal fun QuickSwitchesCard(modifier: Modifier = Modifier) {
     LaunchedEffect(Unit) { DashThemeStore.appearanceAsked.collect { look = it } }
     var dnd by remember { mutableStateOf(doNotDisturbOn(context)) }
     val data = rememberMobileData(context, QuickSwitch.MOBILE_DATA in shown)
+    LaunchedEffect(Unit) { Radios.start(context) }
+    val wifiSignal by Radios.wifi.collectAsState()
+    val cellBars by Radios.cellBars.collectAsState()
     // Each state in a word under the name, as the Wi-Fi and Bluetooth tile does: tint alone said nothing.
     val onWord = stringResource(R.string.apps_radio_on)
     val offWord = stringResource(R.string.apps_radio_off)
@@ -213,13 +216,15 @@ internal fun QuickSwitchesCard(modifier: Modifier = Modifier) {
                         dnd = doNotDisturbOn(context)
                     }
                 }
-                QuickSwitch.WIFI -> Switch(if (wifi.on) Icons.Filled.Wifi else Icons.Filled.WifiOff, stringResource(s.label), on = wifi.on, line = radioLine(wifi), modifier = each) {
+                QuickSwitch.WIFI -> Switch(if (wifi.on) Icons.Filled.Wifi else Icons.Filled.WifiOff, stringResource(s.label), on = wifi.on, line = radioLine(wifi), modifier = each,
+                    strength = if (wifi.on && wifiSignal.connected) { m -> WifiStrength(wifiLit(wifiSignal.bars), DashColors.Accent, m) } else null) {
                     RadioSwitches.toggleWifi(context)
                 }
                 QuickSwitch.BLUETOOTH -> Switch(if (bt.on) Icons.Filled.Bluetooth else Icons.Filled.BluetoothDisabled, stringResource(s.label), on = bt.on, line = radioLine(bt), modifier = each) {
                     RadioSwitches.toggleBluetooth(context)
                 }
-                QuickSwitch.MOBILE_DATA -> Switch(dataIcon(data), stringResource(s.label), on = data, line = word(data), modifier = each) {
+                QuickSwitch.MOBILE_DATA -> Switch(dataIcon(data), stringResource(s.label), on = data, line = word(data), modifier = each,
+                    strength = if (data && cellBars != null) { m -> CellStrength(cellBars ?: 0, DashColors.Accent, m) } else null) {
                     scope.launch { setMobileData(context, !data) }
                 }
                 // One tap and the screen is dark: there is no state to show under it.
@@ -241,7 +246,10 @@ private fun dataIcon(on: Boolean): ImageVector = if (on) Icons.Filled.SignalCell
 
 /** One switch: icon, name and, under it, its state in a word ([line], or nothing where the state isn't known). */
 @Composable
-private fun Switch(icon: ImageVector, name: String, on: Boolean, line: String?, modifier: Modifier, onClick: () -> Unit) {
+private fun Switch(
+    icon: ImageVector, name: String, on: Boolean, line: String?, modifier: Modifier,
+    strength: (@Composable (Modifier) -> Unit)? = null, onClick: () -> Unit
+) {
     val tap = rememberTapFeedback()
     Box(
         modifier = modifier.clip(DashShape.Medium)
@@ -251,7 +259,9 @@ private fun Switch(icon: ImageVector, name: String, on: Boolean, line: String?, 
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(icon, contentDescription = null, tint = if (on) DashColors.Accent else DashColors.TextPrimary, modifier = Modifier.size(28.dp))
+            // The signal, as a phone shows it, in place of the icon when there is one.
+            if (strength != null) strength(Modifier.size(28.dp))
+            else Icon(icon, contentDescription = null, tint = if (on) DashColors.Accent else DashColors.TextPrimary, modifier = Modifier.size(28.dp))
             Spacer(Modifier.height(4.dp))
             Text(name, color = DashColors.TextPrimary, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
             if (line != null) {
