@@ -535,7 +535,11 @@ object PhoneLink {
                     gateway = hotspotGateway(context)
                     if (gateway != null) answered = dial(context, gateway, candidates, pending?.id)
                     // After a Bluetooth try, its own line says more than this one: kept on screen.
-                    else if (bluetooth == Reach.UNAVAILABLE) note("no Wi-Fi gateway: not on a phone hotspot")
+                    else if (bluetooth == Reach.UNAVAILABLE) note(
+                        // The phone joined the unit's hotspot (wireless CarPlay/AA turns one on): the unit can't dial it there.
+                        if (ownHotspotOn(context)) "the unit's own hotspot is on: turn it off and join the phone's hotspot"
+                        else "no Wi-Fi gateway: not on a phone hotspot"
+                    )
                 }
             }
             // Tries that cost nothing (no Wi-Fi gateway, Bluetooth off) stay quick; ones that reached out for nobody back off.
@@ -596,7 +600,10 @@ object PhoneLink {
             note("$what: phone does not know this code")
             return Attempt.REFUSED
         } catch (e: IOException) {
-            note("$what: ${e.javaClass.simpleName} ${e.message.orEmpty()}")
+            // Refused: the phone is there but nothing listens on the port, so the companion is not sharing.
+            if (e is java.net.ConnectException && e.message.orEmpty().contains("ECONNREFUSED")) {
+                note("$what: phone found, but Dashwheel is not sharing on it: open the companion")
+            } else note("$what: ${e.javaClass.simpleName} ${e.message.orEmpty()}")
             return Attempt.UNREACHABLE
         } catch (e: Exception) {
             // A crypto provider missing an algorithm on this unit, say: say so rather than retry blind.
@@ -781,8 +788,13 @@ object PhoneLink {
             Log.i(TAG, "link ended: ${e.message}")
             // A read timeout (Wi-Fi) or the idle guard (Bluetooth) both end the link after this long without a word.
             val quiet = SystemClock.elapsedRealtime() - lastHeardAt >= READ_TIMEOUT_MS - 1_000
-            endedBy.compareAndSet(null, if (quiet) "nothing heard from the phone for ${READ_TIMEOUT_MS / 1000} s"
-                else "${e.javaClass.simpleName} ${e.message.orEmpty()}".trim())
+            endedBy.compareAndSet(null, when {
+                quiet -> "nothing heard from the phone for ${READ_TIMEOUT_MS / 1000} s"
+                // "Software caused connection abort" is the unit's Wi-Fi going away under the socket: say so.
+                gateway != null && wifiGone(context) ->
+                    "the unit left the phone's Wi-Fi${if (ownHotspotOn(context)) ", its own hotspot is on" else ""}"
+                else -> "${e.javaClass.simpleName} ${e.message.orEmpty()}".trim()
+            })
         } finally {
             DebugLog.note(context, "Phone link over $carried down after ${(SystemClock.elapsedRealtime() - upAt) / 1000} s: ${endedBy.get() ?: "closed here"} (companion $companion, $pongs pongs)")
             idle?.stop()
@@ -1017,6 +1029,21 @@ object PhoneLink {
 
     /** The Wi-Fi network [hotspotGateway] last found the phone on. */
     @Volatile private var hotspotNetwork: android.net.Network? = null
+
+    /** Whether the network the link went out on is gone (the unit dropped or switched Wi-Fi). */
+    private fun wifiGone(context: Context): Boolean {
+        val network = hotspotNetwork ?: return false
+        return context.getSystemService(ConnectivityManager::class.java)?.getNetworkCapabilities(network) == null
+    }
+
+    /**
+     * Whether the unit runs its own Wi-Fi hotspot.
+     * shortcut: hidden WifiManager API by reflection, false where it is blocked; read the hotspot's interface if units need it.
+     */
+    private fun ownHotspotOn(context: Context): Boolean = runCatching {
+        val wifi = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as android.net.wifi.WifiManager
+        wifi.javaClass.getMethod("isWifiApEnabled").invoke(wifi) as Boolean
+    }.getOrDefault(false)
 
     /** This head unit's name, as the phone and a display show it. */
     internal fun unitName(context: Context): String =
