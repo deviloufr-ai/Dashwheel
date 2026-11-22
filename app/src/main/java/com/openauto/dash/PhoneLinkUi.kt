@@ -446,7 +446,8 @@ internal fun PhonePairingDialog(onDismiss: () -> Unit) {
                         color = DashColors.TextPrimary, style = MaterialTheme.typography.titleMedium)
                 }
             } else {
-                Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                // Scrolls: on a short or upright screen the code and the waiting line fell off the bottom.
+                Row(Modifier.verticalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                     // The download code is only for a first install: smaller, and labelled so it
                     // isn't taken for the pairing code (the companion app says so if it is).
                     Column(Modifier.weight(0.8f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -457,9 +458,8 @@ internal fun PhonePairingDialog(onDismiss: () -> Unit) {
                     Column(Modifier.weight(1.2f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(stringResource(pairStep2(carrier)), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
                         Text(stringResource(R.string.phone_pair_step3), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
-                        QrCode(current.toUri(), Modifier.fillMaxWidth())
-                        QrCaption(stringResource(R.string.phone_pair_qr_pair), primary = true)
                         // For a phone whose camera can't read the QR (issue: water-damaged camera).
+                        // Above the QR so it stays on screen when the dialog is short.
                         current.code?.let { code ->
                             QrCaption(stringResource(R.string.phone_pair_typed), primary = false)
                             Text(
@@ -468,6 +468,8 @@ internal fun PhonePairingDialog(onDismiss: () -> Unit) {
                                 modifier = Modifier.fillMaxWidth()
                             )
                         }
+                        QrCode(current.toUri(), Modifier.fillMaxWidth())
+                        QrCaption(stringResource(R.string.phone_pair_qr_pair), primary = true)
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             CircularProgressIndicator(color = DashColors.Accent, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(10.dp))
