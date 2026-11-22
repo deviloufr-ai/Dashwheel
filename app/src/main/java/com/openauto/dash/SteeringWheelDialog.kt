@@ -60,6 +60,7 @@ import com.openauto.dash.unit.fyt.FytKeys
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.openauto.unitproto.UnitFamily
 
 /*
  * The steering wheel button map (SteeringWheelStore.kt), from Settings,
@@ -204,7 +205,8 @@ private fun WheelMap(buttons: List<WheelButton>, onOpen: (String) -> Unit, onAdd
     UnitKeysStatus()
     // The CAN stream is read through root: where there is none, there is
     // nothing to report about it (see PrivilegedShell).
-    if (shellAccess().root) CanStatus()
+    // The MCU stream CanStatus watches only exists on QF units.
+    if (shellAccess().root && UnitPlatform.adapter.family == UnitFamily.QF) CanStatus()
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
         ZoneCard(WheelZone.LEFT, buttons, onOpen, Modifier.weight(1f))
         ZoneCard(WheelZone.RIGHT, buttons, onOpen, Modifier.weight(1f))
