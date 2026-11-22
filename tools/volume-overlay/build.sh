@@ -1,6 +1,6 @@
 #!/bin/sh
 # Builds the overlay that hides the firmware volume pop-up and puts it where the
-# app ships it (app/src/main/assets/volume_overlay.apk). Run again only when this
+# app ships it (app/src/github/assets/volume_overlay.apk). Run again only when this
 # folder changes; the APK is committed so the app build needs no extra step.
 #
 # The ids are pinned to the firmware's own (stable-ids.txt, read from
@@ -23,6 +23,6 @@ rm -rf "$OUT" && mkdir -p "$OUT"
 # Any key will do: Android trusts an overlay for being on /system, not for its signature.
 KS=${KEYSTORE:-$HOME/.android/debug.keystore}
 "$APKSIGNER" sign --ks "$KS" --ks-pass pass:android --key-pass pass:android --ks-key-alias androiddebugkey \
-  --v4-signing-enabled false --out "$HERE/../../app/src/main/assets/volume_overlay.apk" "$OUT/aligned.apk"
+  --v4-signing-enabled false --out "$HERE/../../app/src/github/assets/volume_overlay.apk" "$OUT/aligned.apk"
 rm -rf "$OUT"
-echo "app/src/main/assets/volume_overlay.apk"
+echo "app/src/github/assets/volume_overlay.apk"
