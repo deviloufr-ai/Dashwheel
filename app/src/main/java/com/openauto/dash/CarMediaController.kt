@@ -506,6 +506,7 @@ class CarMediaController(private val context: Context) {
         stockShown?.let { return HeadUnitMedia.playPause(context, it) }
         if (topway(if (_mediaState.value.isPlaying) TopwayMedia.Command.PAUSE else TopwayMedia.Command.PLAY)) return
         val controls = activeController?.transportControls ?: return startLastPlayer()
+        if (pressKey(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)) return
         if (_mediaState.value.isPlaying) controls.pause() else controls.play()
     }
 
@@ -540,6 +541,7 @@ class CarMediaController(private val context: Context) {
         }
         if (topway(if (play) TopwayMedia.Command.PLAY else TopwayMedia.Command.PAUSE)) return
         val controls = activeController?.transportControls ?: return
+        if (pressKey(if (play) KeyEvent.KEYCODE_MEDIA_PLAY else KeyEvent.KEYCODE_MEDIA_PAUSE)) return
         runCatching { if (play) controls.play() else controls.pause() }
     }
 
@@ -554,6 +556,18 @@ class CarMediaController(private val context: Context) {
         val pkg = (stockShown?.takeIf { it != HeadUnitMedia.PHONE } ?: activeController?.packageName ?: getLastMediaPackage(context))?.takeIf { it != context.packageName }
         if (pkg != null && AppLauncher.launch(context, pkg)) return true
         return context.launchSafely(Intent.makeMainSelectorActivity(Intent.ACTION_MAIN, Intent.CATEGORY_APP_MUSIC))
+    }
+
+    /**
+     * The K706's own music player (com.qf.musicplayer) publishes a session that
+     * only answers media keys, on key up: play(), pause() and the skips are
+     * dropped. True when [keyCode] went to it instead.
+     */
+    private fun pressKey(keyCode: Int): Boolean {
+        val player = activeController?.takeIf { it.packageName == QF_MUSIC_PACKAGE } ?: return false
+        player.dispatchMediaButtonEvent(KeyEvent(KeyEvent.ACTION_DOWN, keyCode))
+        player.dispatchMediaButtonEvent(KeyEvent(KeyEvent.ACTION_UP, keyCode))
+        return true
     }
 
     private fun startLastPlayer() {
@@ -583,6 +597,7 @@ class CarMediaController(private val context: Context) {
         if (DemoMode.isOn) return DemoMode.next()
         stockShown?.let { return HeadUnitMedia.next(context, it, activeController) }
         if (topway(TopwayMedia.Command.NEXT)) return
+        if (pressKey(KeyEvent.KEYCODE_MEDIA_NEXT)) return
         activeController?.transportControls?.skipToNext()
     }
 
@@ -590,10 +605,12 @@ class CarMediaController(private val context: Context) {
         if (DemoMode.isOn) return DemoMode.previous()
         stockShown?.let { return HeadUnitMedia.previous(context, it, activeController) }
         if (topway(TopwayMedia.Command.PREVIOUS)) return
+        if (pressKey(KeyEvent.KEYCODE_MEDIA_PREVIOUS)) return
         activeController?.transportControls?.skipToPrevious()
     }
 
     companion object {
+        private const val QF_MUSIC_PACKAGE = "com.qf.musicplayer"
         @Volatile private var sharedInstance: CarMediaController? = null
 
         /**
