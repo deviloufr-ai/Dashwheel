@@ -1137,20 +1137,28 @@ private fun FullScreen(
  * the radar on the left, on the driver's side, the camera on the right. The
  * picture keeps the full screen's shape as much as it can: the panel
  * squeezes it a little and crops a little off each side, the lines drawn in
- * the same box so they stay on the road.
+ * the same box so they stay on the road. On an upright screen the camera
+ * sits on top and the radar under it, the picture filling its panel.
  */
 private class SplitPanels(width: Dp, height: Dp) {
-    private val panelHeight = height - SPLIT_MARGIN * 2
-    private val radarWidth = width * SPLIT_RADAR
-    private val cameraLeft = SPLIT_MARGIN * 2 + radarWidth
-    private val cameraWidth = width - cameraLeft - SPLIT_MARGIN
-    private val pictureWidth = (cameraWidth + panelHeight * (width / height)) / 2f
+    private val stacked = height > width
+    private val cameraWidth = if (stacked) width - SPLIT_MARGIN * 2 else width - SPLIT_MARGIN * 3 - width * SPLIT_RADAR
+    private val cameraHeight = if (stacked) height * SPLIT_CAMERA_UPRIGHT else height - SPLIT_MARGIN * 2
+    private val radarWidth = if (stacked) cameraWidth else width * SPLIT_RADAR
+    private val radarHeight = if (stacked) height - SPLIT_MARGIN * 3 - cameraHeight else cameraHeight
+    private val pictureWidth = if (stacked) cameraWidth else (cameraWidth + cameraHeight * (width / height)) / 2f
 
-    val radar: Modifier get() = Modifier.offset(SPLIT_MARGIN, SPLIT_MARGIN).size(radarWidth, panelHeight).clip(RoundedCornerShape(22.dp))
-    val camera: Modifier get() = Modifier.offset(cameraLeft, SPLIT_MARGIN).size(cameraWidth, panelHeight).clip(RoundedCornerShape(22.dp))
+    val radar: Modifier get() = Modifier
+        .offset(SPLIT_MARGIN, if (stacked) SPLIT_MARGIN * 2 + cameraHeight else SPLIT_MARGIN)
+        .size(radarWidth, radarHeight).clip(RoundedCornerShape(22.dp))
+    val camera: Modifier get() = Modifier
+        .offset(if (stacked) SPLIT_MARGIN else SPLIT_MARGIN * 2 + radarWidth, SPLIT_MARGIN)
+        .size(cameraWidth, cameraHeight).clip(RoundedCornerShape(22.dp))
     /** The picture's box in the camera panel, centred. */
-    val picture: Modifier get() = Modifier.requiredSize(pictureWidth, panelHeight)
+    val picture: Modifier get() = Modifier.requiredSize(pictureWidth, cameraHeight)
 }
+
+private const val SPLIT_CAMERA_UPRIGHT = 0.55f
 
 private val SPLIT_MARGIN = 16.dp
 
