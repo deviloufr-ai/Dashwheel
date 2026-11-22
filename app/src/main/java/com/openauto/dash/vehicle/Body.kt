@@ -8,6 +8,7 @@ import com.openauto.dash.McuReader
 import com.openauto.dash.Tyre
 import com.openauto.dash.TyrePos
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
@@ -17,11 +18,17 @@ import kotlinx.coroutines.flow.map
  * Boolean says which way unknown falls (no reverse, no lights) in one place.
  */
 
-/** Reverse gear engaged; unknown reads as not reversing. */
-fun reversingNow(): Boolean = Vehicle.bus.now(K.REVERSE) == true
+/**
+ * Reverse gear engaged; unknown reads as not reversing. The ignition off ends it: with the key off the car stops
+ * sending, so its last "reverse" would hold the reverse screen up until the unit sleeps (a tester's Mondeo, 2026-11-22).
+ */
+internal fun reversing(reverse: Boolean?, ignition: Boolean?): Boolean = reverse == true && ignition != false
+
+fun reversingNow(): Boolean = reversing(Vehicle.bus.now(K.REVERSE), Vehicle.bus.now(K.IGNITION))
 
 /** [reversingNow] as it changes. */
-fun reversingFlow(): Flow<Boolean> = Vehicle.bus.value(K.REVERSE).map { it == true }.distinctUntilChanged()
+fun reversingFlow(): Flow<Boolean> =
+    combine(Vehicle.bus.value(K.REVERSE), Vehicle.bus.value(K.IGNITION), ::reversing).distinctUntilChanged()
 
 @Composable
 fun rememberReversing(): Boolean {
