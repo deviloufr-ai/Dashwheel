@@ -17,9 +17,11 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.core.content.ContextCompat
 import com.openauto.dash.link.RoadScene
+import com.openauto.dash.roadwatch.DrawnRoad
 import com.openauto.dash.roadwatch.HorizonLearner
 import com.openauto.dash.roadwatch.LaneFinder
 import com.openauto.dash.roadwatch.Mount
+import com.openauto.dash.roadwatch.PlacedVehicle
 import com.openauto.dash.roadwatch.LaneState
 import com.openauto.dash.roadwatch.LaneTracker
 import com.openauto.dash.roadwatch.Lead
@@ -70,7 +72,9 @@ data class RoadView(
     val dashboardTop: Float? = null,
     val pillar: Float? = null,
     /** The road is dark (night): the camera is told to expose a little less, so oncoming lights don't wash out the car ahead's. */
-    val dark: Boolean = false
+    val dark: Boolean = false,
+    /** Every vehicle found, placed on the road for the drawn view ([DrawnRoad]). */
+    val placed: List<PlacedVehicle> = emptyList()
 )
 
 class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
@@ -387,7 +391,8 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
             vfovDeg = if (tall) hfovWide else hfovTall,
             dashboardTop = dashboardTop,
             pillar = pillar,
-            dark = dark
+            dark = dark,
+            placed = DrawnRoad.place(found.orEmpty(), lead, band, lanes.carX, hfov)
         )
     }
 

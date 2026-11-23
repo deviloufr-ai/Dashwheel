@@ -271,6 +271,8 @@
     <string name="settings_section_more_tools">Más herramientas</string>
     <string name="settings_lab">Laboratorio</string>
     <string name="settings_lab_detail">Herramientas en pruebas y el registro de la unidad</string>
+    <string name="lab_experimental_title">Funciones experimentales</string>
+    <string name="lab_experimental_detail">Luces y puertas abiertas en el coche 3D, una ciudad al anochecer en el mapa 3D, una carretera dibujada en Road watch en el teléfono</string>
     <string name="dead_strip_title">Franja táctil muerta</string>
     <string name="dead_strip_detail">Para una pantalla que no detecta toques en una franja vertical: los Ajustes se abren a su derecha</string>
     <string name="dead_strip_found">Sin toques de %1$d a %2$d px: los Ajustes se abren a su derecha</string>

@@ -23,6 +23,8 @@
     <string name="road_warn_close">Troppo vicino</string>
     <string name="road_warn_moved_off">Il traffico riparte</string>
     <string name="road_dim">Scurisci</string>
+    <string name="road_view_drawn">Disegno</string>
+    <string name="road_view_camera">Fotocamera</string>
     <string name="road_bright">Schiarisci</string>
     <string name="road_stop">Ferma</string>
     <string name="road_place_title">Posiziona il telefono</string>

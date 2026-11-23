@@ -271,6 +271,8 @@
     <string name="settings_section_more_tools">Więcej narzędzi</string>
     <string name="settings_lab">Laboratorium</string>
     <string name="settings_lab_detail">Narzędzia w testach i dziennik urządzenia</string>
+    <string name="lab_experimental_title">Funkcje eksperymentalne</string>
+    <string name="lab_experimental_detail">Światła i otwarte drzwi na aucie 3D, miasto o zmierzchu na mapie 3D, rysowana droga w Road watch na telefonie</string>
     <string name="dead_strip_title">Martwy pas dotyku</string>
     <string name="dead_strip_detail">Dla ekranu, który nie wyczuwa dotyku w jednym pionowym pasie: Ustawienia otwierają się na prawo od niego</string>
     <string name="dead_strip_found">Brak dotyku od %1$d do %2$d px: Ustawienia otwierają się na prawo od niego</string>

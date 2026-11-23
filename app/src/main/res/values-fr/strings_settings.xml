@@ -271,6 +271,8 @@
     <string name="settings_section_more_tools">Autres outils</string>
     <string name="settings_lab">Labo</string>
     <string name="settings_lab_detail">Outils encore à l\'essai, et le journal de l\'unité</string>
+    <string name="lab_experimental_title">Fonctions expérimentales</string>
+    <string name="lab_experimental_detail">Feux et portes ouvertes sur la voiture 3D, une ville au crépuscule sur la carte 3D, une route dessinée dans Road watch sur le téléphone</string>
     <string name="dead_strip_title">Bande tactile morte</string>
     <string name="dead_strip_detail">Pour un écran qui ne sent pas les touches dans une bande verticale : les Réglages s\'ouvrent à sa droite</string>
     <string name="dead_strip_found">Aucun toucher de %1$d à %2$d px : les Réglages s\'ouvrent à sa droite</string>

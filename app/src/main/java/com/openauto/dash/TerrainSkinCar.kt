@@ -201,7 +201,7 @@ private fun Hero3D(model: java.io.File, problems: List<MapProblem>, modifier: Mo
     }
     Box(modifier) {
         ContactShadow(Modifier.fillMaxSize(), centreY = 0.5f, wide = true)
-        Car3DProblems(model, in3d, selected, interactive = false, onPick = { picked = it ?: 0 }, modifier = Modifier.fillMaxSize(), chips = in3d.isNotEmpty())
+        Car3DProblems(model, in3d, selected, interactive = false, onPick = { picked = it ?: 0 }, modifier = Modifier.fillMaxSize(), chips = in3d.isNotEmpty(), live = rememberCarLive())
     }
 }
 

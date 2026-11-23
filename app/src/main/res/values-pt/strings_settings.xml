@@ -271,6 +271,8 @@
     <string name="settings_section_more_tools">Mais ferramentas</string>
     <string name="settings_lab">Laboratório</string>
     <string name="settings_lab_detail">Ferramentas em teste e o registo da unidade</string>
+    <string name="lab_experimental_title">Funções experimentais</string>
+    <string name="lab_experimental_detail">Luzes e portas abertas no carro 3D, uma cidade ao anoitecer no mapa 3D, uma estrada desenhada no Road watch no telemóvel</string>
     <string name="dead_strip_title">Faixa de toque morta</string>
     <string name="dead_strip_detail">Para um ecrã que não sente toques numa faixa vertical: as Definições abrem à direita dela</string>
     <string name="dead_strip_found">Sem toque de %1$d a %2$d px: as Definições abrem à direita dela</string>

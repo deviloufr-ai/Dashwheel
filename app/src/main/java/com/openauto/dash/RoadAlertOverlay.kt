@@ -96,6 +96,7 @@ object RoadWatch {
     fun start(context: Context) {
         if (started) return
         started = true
+        Experiments.load(context.applicationContext)
         val p = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         _lanes.value = p.getBoolean(KEY_LANES, true)
         _movedOff.value = p.getBoolean(KEY_MOVED_OFF, true)
@@ -145,7 +146,8 @@ object RoadWatch {
                         turnLeft = turn?.left == true,
                         turnRight = turn?.right == true,
                         hazard = CarLight.HAZARD in lights,
-                        lights = CarLight.DIPPED in lights || CarLight.MAIN_BEAM in lights
+                        lights = CarLight.DIPPED in lights || CarLight.MAIN_BEAM in lights,
+                        experimental = Experiments.on.value
                     )
                 )
             }

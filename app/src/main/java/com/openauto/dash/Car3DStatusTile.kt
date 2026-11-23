@@ -100,7 +100,8 @@ internal fun Car3DStatusCard(
                         interactive = !moving,
                         onPick = { picked = it ?: 0 },
                         modifier = Modifier.fillMaxSize(),
-                        chips = roomy && in3d.isNotEmpty()
+                        chips = roomy && in3d.isNotEmpty(),
+                        live = rememberCarLive()
                     )
                 }
                 problems.isNotEmpty() -> CarProblemsMap(

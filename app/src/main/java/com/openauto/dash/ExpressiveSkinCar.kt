@@ -89,7 +89,7 @@ private fun ExCarBadge(env: SkinTileEnv, fuel: FuelInfo?, w: Dp, h: Dp) {
             if (model != null) {
                 Box(Modifier.fillMaxSize().clipToBounds(), contentAlignment = Alignment.Center) {
                     ExGroundShadow(Modifier.requiredSize(w, stageH))
-                    Car3DProblems(model, emptyList(), null, false, {}, Modifier.requiredSize(w, stageH), chips = false)
+                    Car3DProblems(model, emptyList(), null, false, {}, Modifier.requiredSize(w, stageH), chips = false, live = rememberCarLive())
                 }
             } else {
                 ExCarPicture(open, Modifier.fillMaxSize())

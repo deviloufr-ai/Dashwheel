@@ -272,6 +272,8 @@
     <string name="settings_section_more_tools">Daugiau įrankių</string>
     <string name="settings_lab">Laboratorija</string>
     <string name="settings_lab_detail">Dar bandomi įrankiai ir magnetolos žurnalas</string>
+    <string name="lab_experimental_title">Eksperimentinės funkcijos</string>
+    <string name="lab_experimental_detail">Žibintai ir atviros durys 3D automobilyje, miestas prieblandoje 3D žemėlapyje, nupieštas kelias telefono Road watch</string>
     <!-- Lab: a touchscreen that misses touches in one upright strip (DeadTouchStrip.kt) -->
     <string name="dead_strip_title">Neveikianti lietimo juosta</string>
     <string name="dead_strip_detail">Ekranui, kuris nejaučia lietimo vienoje stačioje juostoje: Nustatymai atsidaro į dešinę nuo jos</string>

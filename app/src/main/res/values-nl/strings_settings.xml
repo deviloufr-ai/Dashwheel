@@ -271,6 +271,8 @@
     <string name="settings_section_more_tools">Meer hulpmiddelen</string>
     <string name="settings_lab">Lab</string>
     <string name="settings_lab_detail">Hulpmiddelen in test en het logboek van het toestel</string>
+    <string name="lab_experimental_title">Experimentele functies</string>
+    <string name="lab_experimental_detail">Lichten en open deuren op de 3D-auto, een stad in de schemering op de 3D-kaart, een getekende weg in Road watch op de telefoon</string>
     <string name="dead_strip_title">Dode aanraakstrook</string>
     <string name="dead_strip_detail">Voor een scherm dat in één verticale strook geen aanraking voelt: Instellingen opent rechts ervan</string>
     <string name="dead_strip_found">Geen aanraking van %1$d tot %2$d px: Instellingen opent rechts ervan</string>

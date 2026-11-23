@@ -334,6 +334,9 @@ private fun RoadWatchScreen(
     var dimmed by remember { mutableStateOf(false) }
     val link by LinkServer.state.collectAsState()
     val linked = link is LinkState.Connected
+    // Experimental, and only once the car says its Experimental features are on: the road drawn instead of filmed.
+    val experimental by RoadTelemetry.experimental.collectAsState()
+    var drawn by remember { mutableStateOf(true) }
     val setDimmed: (Boolean) -> Unit = { on -> dimmed = on; onDim(on) }
     LaunchedEffect(linked, dimmed) {
         if (linked && !dimmed && !ROAD_WATCH_EXPERIMENTAL) {
@@ -376,7 +379,8 @@ private fun RoadWatchScreen(
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         if (granted) {
             CameraBinder(onCamera)
-            RoadDrawing(watch, onTap = { if (dimmed) setDimmed(false) })
+            // Placing the phone needs the camera's picture.
+            RoadDrawing(watch, drawn = experimental && drawn && !placing, onTap = { if (dimmed) setDimmed(false) })
             if (placing) {
                 PlacementGuide(
                     watch, up, moved,
@@ -391,7 +395,10 @@ private fun RoadWatchScreen(
                 Button(onClick = { ask.launch(Manifest.permission.CAMERA) }) { Text(stringResource(R.string.road_allow_camera)) }
             }
         }
-        RoadControls(watch, recorder, dimmed, setDimmed, battery, onModel, onClose, onPlace = { moved = false; placing = true })
+        RoadControls(
+            watch, recorder, dimmed, setDimmed, battery, onModel, onClose, onPlace = { moved = false; placing = true },
+            drawn = drawn.takeIf { experimental }, onDrawn = { drawn = it }
+        )
     }
 }
 
@@ -569,7 +576,7 @@ private fun frameRect(w: Float, h: Float, frameW: Int, frameH: Int): Rect {
 }
 
 @Composable
-private fun RoadDrawing(watch: RoadWatch, onTap: () -> Unit) {
+private fun RoadDrawing(watch: RoadWatch, drawn: Boolean, onTap: () -> Unit) {
     val view by watch.view.collectAsState()
     // The learned horizon, or where the driver is dragging it.
     var dragged by remember { mutableStateOf<Float?>(null) }
@@ -581,7 +588,8 @@ private fun RoadDrawing(watch: RoadWatch, onTap: () -> Unit) {
         val frame = frameRect(w, h, view.frameW, view.frameH)
         fun at(x: Float, y: Float) = Offset(frame.left + x * frame.width, frame.top + y * frame.height)
         val warn = view.warning
-        Canvas(
+        if (drawn) RoadDrawn(view, Modifier.fillMaxSize().pointerInput(Unit) { detectTapGestures { onTap() } })
+        else Canvas(
             Modifier.fillMaxSize()
                 .pointerInput(Unit) { detectTapGestures { onTap() } }
                 .pointerInput(frame) {
@@ -618,7 +626,7 @@ private fun RoadDrawing(watch: RoadWatch, onTap: () -> Unit) {
             }
             if (warn == RoadWarning.COLLISION) drawRect(CompanionColors.Red.copy(alpha = 0.28f), frame.topLeft, frame.size)
         }
-        view.lead?.let { lead ->
+        if (!drawn) view.lead?.let { lead ->
             val p = at(lead.box.left, lead.box.bottom)
             Surface(
                 color = Color.Black.copy(alpha = 0.6f), shape = RoundedCornerShape(8.dp),
@@ -692,7 +700,10 @@ private fun RoadControls(
     battery: Pair<Int, Boolean>?,
     onModel: () -> Unit,
     onClose: () -> Unit,
-    onPlace: () -> Unit
+    onPlace: () -> Unit,
+    /** The road is drawn (true) or filmed (false); null while the drawn road isn't offered. */
+    drawn: Boolean?,
+    onDrawn: (Boolean) -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -754,6 +765,11 @@ private fun RoadControls(
                     Spacer(Modifier.width(8.dp))
                     Text(stringResource(if (m == RoadModel.State.Failed) R.string.road_model_retry else R.string.road_model_get))
                 }
+            }
+            if (drawn != null) FilledTonalButton(onClick = { onDrawn(!drawn) }) {
+                Icon(if (drawn) Icons.Filled.Videocam else Icons.Filled.DirectionsCar, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(if (drawn) R.string.road_view_camera else R.string.road_view_drawn))
             }
             FilledTonalButton(onClick = onPlace) {
                 Icon(Icons.Filled.Straighten, contentDescription = null, modifier = Modifier.size(18.dp))

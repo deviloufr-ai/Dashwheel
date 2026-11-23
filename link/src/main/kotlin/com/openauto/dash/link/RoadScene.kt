@@ -63,7 +63,9 @@ data class CarTelemetry(
     val turnRight: Boolean = false,
     val hazard: Boolean = false,
     /** The headlights (dipped or main beam) are on. */
-    val lights: Boolean = false
+    val lights: Boolean = false,
+    /** Experimental features are switched on in the car's Settings: the phone may offer its drawn road. */
+    val experimental: Boolean = false
 ) : LinkMessage
 
 /**

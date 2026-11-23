@@ -57,6 +57,9 @@ import com.google.android.filament.Camera
 import com.google.android.filament.Engine
 import com.google.android.filament.EntityManager
 import com.google.android.filament.IndirectLight
+import com.openauto.dash.vehicle.K
+import com.openauto.dash.vehicle.Vehicle
+import com.openauto.dash.vehicle.rememberHeadlights
 import com.google.android.filament.LightManager
 import com.google.android.filament.Renderer
 import com.google.android.filament.Scene
@@ -324,6 +327,25 @@ internal fun rememberCar3DModel(): File? {
 /** One problem the 3D car turns to: where, its number and words, and how serious (2 stop, 1 garage, 0 good to know). */
 internal data class Problem3D(val number: Int, val spot: Spot3D, val label: String, val serious: Int)
 
+/** The car as it is now, for the 3D car to show: what is open (fl, fr, rl, rr, tailgate, bonnet) and whether its lamps are on. */
+internal data class CarLive(val open: Set<String>, val lamps: Boolean) {
+    companion object { val None = CarLive(emptySet(), false) }
+}
+
+/**
+ * Experimental (Settings, Lab): the car's open doors and its lights, for the
+ * 3D car to show them. [CarLive.None] with the switch off, and for whatever
+ * the car doesn't tell.
+ */
+@Composable
+internal fun rememberCarLive(): CarLive {
+    if (!Experiments.active()) return CarLive.None
+    val doors by remember { Vehicle.bus.value(K.DOORS) }.collectAsState(Vehicle.bus.now(K.DOORS))
+    val lamps = rememberHeadlights()
+    val open = doors?.openNames().orEmpty()
+    return remember(open, lamps) { CarLive(open, lamps) }
+}
+
 /** Where the camera is: the point it looks at, around which it turns. */
 private data class CamPose(val tx: Float, val ty: Float, val tz: Float, val yaw: Float, val pitch: Float, val dist: Float)
 
@@ -343,7 +365,9 @@ internal fun Car3DProblems(
     onPick: (Int?) -> Unit,
     modifier: Modifier = Modifier,
     /** The problem chips and Whole car down the side; off where a look shows the car as scenery. */
-    chips: Boolean = true
+    chips: Boolean = true,
+    /** Experimental: the car as it is now, its open doors open and its lamps lit ([rememberCarLive]). */
+    live: CarLive = CarLive.None
 ) {
     val staged = rememberStage(model)
     val stage = staged.stage
@@ -352,6 +376,7 @@ internal fun Car3DProblems(
     var pin by remember { mutableStateOf<Offset?>(null) }
     stage.onPin = { pin = it }
     LaunchedEffect(selected, ready) { if (ready) stage.show(selected) }
+    LaunchedEffect(live, ready) { if (ready) stage.live(live) }
 
     val tone = when (selected?.serious) { 2 -> DashColors.Critical; 1 -> DashColors.Warning; else -> DashColors.Accent }
     val pick by rememberUpdatedState(onPick)
@@ -550,6 +575,9 @@ private class Stage(context: Context) : Choreographer.FrameCallback {
     private val hingeTo = HashMap<String, Float>()
     private var hingeStart = 0L
     private val hingeMs = 1100L
+    /** The hinges the problem shown wants open, and the car as it is now ([live]). */
+    private var wanted: Set<String> = emptySet()
+    private var live = CarLive.None
 
     private var owed = true
 
@@ -652,12 +680,8 @@ private class Stage(context: Context) : Choreographer.FrameCallback {
         // Lights out on the last part, open parts close unless the new one needs them.
         Car3D.setGlow(glowing, 0f, 0f, 0f)
         glowing = emptyList()
-        val wanted = p?.spot?.open.orEmpty().flatMap { h -> Car3D.hinges.keys.filter { it == h || (h.endsWith("_") && it.startsWith(h)) } }.toSet()
-        for (h in Car3D.hinges.keys) {
-            hingeFrom[h] = hingeNow(h, now)
-            hingeTo[h] = if (h in wanted) 1f else 0f
-        }
-        hingeStart = now
+        wanted = hingesOf(p?.spot?.open.orEmpty())
+        swing(now)
         from = pose
         if (p == null) {
             target = null
@@ -694,6 +718,28 @@ private class Stage(context: Context) : Choreographer.FrameCallback {
         wake()
     }
 
+    /** The model's hinges [names] stand for: a whole name, or every one beginning with a name ending in "_". */
+    private fun hingesOf(names: List<String>): Set<String> =
+        names.flatMap { h -> Car3D.hinges.keys.filter { it == h || (h.endsWith("_") && it.startsWith(h)) } }.toSet()
+
+    /** Every hinge sets off from where it is to where it now belongs: open for the problem shown or because it is open on the car. */
+    private fun swing(now: Long) {
+        val open = wanted + hingesOf(if (live.open.isEmpty()) emptyList() else Car3DSpots.opened(live.open).open)
+        for (h in Car3D.hinges.keys) {
+            hingeFrom[h] = hingeNow(h, now)
+            hingeTo[h] = if (h in open) 1f else 0f
+        }
+        hingeStart = now
+    }
+
+    /** The car as it is now: what is open swings open, the lamps light. */
+    fun live(now: CarLive) {
+        if (now == live || renderer == null) return
+        live = now
+        swing(SystemClock.uptimeMillis())
+        wake()
+    }
+
     private fun hingeNow(h: String, now: Long): Float {
         val k = smooth(((now - hingeStart).toFloat() / hingeMs).coerceIn(0f, 1f))
         val a = hingeFrom[h] ?: 0f
@@ -717,6 +763,7 @@ private class Stage(context: Context) : Choreographer.FrameCallback {
         unpost()
         // What this card lit goes dark with it.
         Car3D.setGlow(glowing, 0f, 0f, 0f)
+        if (live.lamps) Car3D.setGlow(Car3D.named.keys.filter { it.startsWith("Lamp_") }, 0f, 0f, 0f)
         glowing = emptyList()
         ui.detach()
         val e = Car3D.engine() ?: return
@@ -771,6 +818,10 @@ private class Stage(context: Context) : Choreographer.FrameCallback {
             else -> 1f
         } * glowStrength
         Car3D.setGlowOnly(glowing, glowColour[0] * k, glowColour[1] * k, glowColour[2] * k)
+        if (live.lamps) {
+            Car3D.setGlow(Car3D.named.keys.filter { it.startsWith("Lamp_head") }, 0.7f, 0.62f, 0.45f)
+            Car3D.setGlow(Car3D.named.keys.filter { it.startsWith("Lamp_tail") }, 0.75f, 0.05f, 0.03f)
+        }
         if (draw(frameTimeNanos)) {
             lastDraw = frameTimeNanos
             owed = false

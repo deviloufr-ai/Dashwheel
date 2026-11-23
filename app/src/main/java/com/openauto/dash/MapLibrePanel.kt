@@ -100,7 +100,10 @@ import org.maplibre.android.maps.MapLibreMapOptions
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
 import org.maplibre.android.style.expressions.Expression
+import org.maplibre.android.style.layers.BackgroundLayer
 import org.maplibre.android.style.layers.FillExtrusionLayer
+import org.maplibre.android.style.layers.FillLayer
+import org.maplibre.android.style.layers.LineLayer
 import org.maplibre.android.style.layers.PropertyFactory
 import org.maplibre.android.style.sources.VectorSource
 import org.maplibre.geojson.Point
@@ -353,10 +356,13 @@ fun MapLibrePanel(modifier: Modifier = Modifier, wallpaper: Boolean = false) {
     MapServers.load(context)
     val servers by MapServers.current.collectAsState()
     val styleUrl = if (lightMap) servers.styleLight else servers.styleDark
-    LaunchedEffect(mapRef, styleUrl) {
+    // Experimental (Settings, Lab): the dark map as a city at dusk.
+    val dusk = Experiments.active() && !lightMap
+    LaunchedEffect(mapRef, styleUrl, dusk) {
         val map = mapRef ?: return@LaunchedEffect
         map.setStyle(Style.Builder().fromUri(styleUrl)) { style ->
             add3dBuildings(style, lightMap)
+            if (dusk) duskCity(style)
             if (navRoute == null) {
                 navRoute = NavigationMapRoute(mapView, map)
                 // A destination is set by a long press, not a tap: a tap while
@@ -736,6 +742,54 @@ private fun add3dBuildings(style: Style, light: Boolean) {
         }
         style.addLayer(layer)
     }
+}
+
+/**
+ * Experimental (issue 177): the dark map as a city at dusk. Deep blue ground
+ * and water, the big roads in sodium light, the buildings blue and paler the
+ * taller they stand, shaded down their sides. Only colours of layers the
+ * style already has (OpenMapTiles' source layers), so a style of the
+ * driver's own with other layers is left as it is.
+ */
+private fun duskCity(style: Style) {
+    fun c(hex: String) = Expression.color(android.graphics.Color.parseColor(hex))
+    runCatching {
+        for (layer in style.layers) when (layer) {
+            is BackgroundLayer -> layer.setProperties(PropertyFactory.backgroundColor(c("#070B16")))
+            is FillLayer -> when (layer.sourceLayer) {
+                "water" -> layer.setProperties(PropertyFactory.fillColor(c("#0B2A4D")))
+                "park", "landcover", "landuse" -> layer.setProperties(PropertyFactory.fillColor(c("#0B1A20")))
+            }
+            is LineLayer -> when (layer.sourceLayer) {
+                "waterway" -> layer.setProperties(PropertyFactory.lineColor(c("#0B2A4D")))
+                "transportation" -> {
+                    layer.setProperties(
+                        PropertyFactory.lineColor(
+                            Expression.match(
+                                Expression.get("class"), c("#33405E"),
+                                Expression.stop("motorway", c("#E0A35A")),
+                                Expression.stop("trunk", c("#D49A5A")),
+                                Expression.stop("primary", c("#B58A5E")),
+                                Expression.stop("secondary", c("#6F7FA6"))
+                            )
+                        )
+                    )
+                    // A tunnel shows as the road under the ground: fainter than the road in the open.
+                    if ("tunnel" in layer.id) layer.setProperties(PropertyFactory.lineOpacity(0.45f))
+                }
+            }
+            is FillExtrusionLayer -> if (layer.id == "3d-buildings") layer.setProperties(
+                PropertyFactory.fillExtrusionColor(
+                    Expression.interpolate(
+                        Expression.linear(), Expression.toNumber(Expression.coalesce(Expression.get("render_height"), Expression.literal(0))),
+                        Expression.stop(0, c("#1B2540")), Expression.stop(40, c("#2E3F6E")), Expression.stop(150, c("#5A6FB5"))
+                    )
+                ),
+                PropertyFactory.fillExtrusionVerticalGradient(true),
+                PropertyFactory.fillExtrusionOpacity(0.95f)
+            )
+        }
+    }.onFailure { Log.w("MapLibrePanel", "dusk look not applied: ${it.message}") }
 }
 
 private fun hasLocationPerm(context: Context): Boolean =

@@ -23,6 +23,8 @@
     <string name="road_warn_close">Zu dicht</string>
     <string name="road_warn_moved_off">Es geht weiter</string>
     <string name="road_dim">Abdunkeln</string>
+    <string name="road_view_drawn">Gezeichnet</string>
+    <string name="road_view_camera">Kamera</string>
     <string name="road_bright">Aufhellen</string>
     <string name="road_stop">Beenden</string>
     <string name="road_place_title">Handy ausrichten</string>

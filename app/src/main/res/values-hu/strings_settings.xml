@@ -272,6 +272,8 @@
     <string name="settings_section_more_tools">További eszközök</string>
     <string name="settings_lab">Labor</string>
     <string name="settings_lab_detail">Még tesztelés alatt álló eszközök és a fejegység naplója</string>
+    <string name="lab_experimental_title">Kísérleti funkciók</string>
+    <string name="lab_experimental_detail">Lámpák és nyitott ajtók a 3D autón, alkonyati város a 3D térképen, rajzolt út a telefonos Road watchban</string>
     <string name="dead_strip_title">Halott érintősáv</string>
     <string name="dead_strip_detail">Olyan képernyőhöz, amely egy függőleges sávban nem érzékeli az érintést: a Beállítások tőle jobbra nyílnak meg</string>
     <string name="dead_strip_found">Nincs érintés %1$d és %2$d px között: a Beállítások tőle jobbra nyílnak meg</string>

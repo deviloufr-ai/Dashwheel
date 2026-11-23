@@ -271,6 +271,8 @@
     <string name="settings_section_more_tools">Altri strumenti</string>
     <string name="settings_lab">Laboratorio</string>
     <string name="settings_lab_detail">Strumenti in prova e il registro dell\'unità</string>
+    <string name="lab_experimental_title">Funzioni sperimentali</string>
+    <string name="lab_experimental_detail">Luci e porte aperte sull\'auto 3D, una città al crepuscolo sulla mappa 3D, una strada disegnata in Road watch sul telefono</string>
     <string name="dead_strip_title">Striscia touch morta</string>
     <string name="dead_strip_detail">Per uno schermo che non sente i tocchi in una striscia verticale: le Impostazioni si aprono alla sua destra</string>
     <string name="dead_strip_found">Nessun tocco da %1$d a %2$d px: le Impostazioni si aprono alla sua destra</string>

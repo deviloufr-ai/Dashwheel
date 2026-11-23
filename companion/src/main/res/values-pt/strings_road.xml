@@ -23,6 +23,8 @@
     <string name="road_warn_close">Demasiado perto</string>
     <string name="road_warn_moved_off">O trânsito avança</string>
     <string name="road_dim">Escurecer</string>
+    <string name="road_view_drawn">Desenho</string>
+    <string name="road_view_camera">Câmara</string>
     <string name="road_bright">Clarear</string>
     <string name="road_stop">Parar</string>
     <string name="road_place_title">Posicionar o telemóvel</string>

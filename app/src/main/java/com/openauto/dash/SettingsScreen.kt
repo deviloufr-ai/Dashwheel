@@ -1398,6 +1398,8 @@ private fun LabSheet(open: (Deep) -> Unit, onDismiss: () -> Unit) {
         Column {
             SettingsRow(Icons.Filled.Science, stringResource(R.string.explore_title), stringResource(R.string.explore_settings_detail)) { open(Deep.EXPLORER) }
             DeadStripRows()
+            val experiments = Experiments.active()
+            SettingsToggle(Icons.Filled.Science, stringResource(R.string.lab_experimental_title), stringResource(R.string.lab_experimental_detail), experiments) { Experiments.setOn(context, it) }
             Spacer(Modifier.height(20.dp))
             SettingsSection(stringResource(R.string.settings_section_diagnostics))
             if (CarPower.available) {

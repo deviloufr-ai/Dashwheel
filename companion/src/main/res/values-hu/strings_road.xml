@@ -23,6 +23,8 @@
     <string name="road_warn_close">Túl közel</string>
     <string name="road_warn_moved_off">Indul a forgalom</string>
     <string name="road_dim">Sötétítés</string>
+    <string name="road_view_drawn">Rajz</string>
+    <string name="road_view_camera">Kamera</string>
     <string name="road_bright">Világosítás</string>
     <string name="road_stop">Leállítás</string>
     <string name="road_place_title">Telefon elhelyezése</string>

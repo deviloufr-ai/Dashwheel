@@ -81,7 +81,7 @@ internal fun LqHero(env: SkinTileEnv, fuel: FuelInfo?, modifier: Modifier) {
             if (live3d && model != null) {
                 FloorShadow3D(Modifier.fillMaxSize())
                 Box(Modifier.fillMaxSize().clipToBounds(), contentAlignment = Alignment.Center) {
-                    Car3DProblems(model, emptyList(), null, false, {}, Modifier.fillMaxSize(), chips = false)
+                    Car3DProblems(model, emptyList(), null, false, {}, Modifier.fillMaxSize(), chips = false, live = rememberCarLive())
                 }
             } else {
                 LqCarPicture(view, open, Modifier.fillMaxSize())

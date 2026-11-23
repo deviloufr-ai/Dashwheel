@@ -274,6 +274,8 @@
     <string name="settings_section_more_tools">Daha fazla araç</string>
     <string name="settings_lab">Deneysel</string>
     <string name="settings_lab_detail">Hâlâ denenen araçlar ve ünitenin günlüğü</string>
+    <string name="lab_experimental_title">Deneysel özellikler</string>
+    <string name="lab_experimental_detail">3D araçta farlar ve açık kapılar, 3D haritada alacakaranlık şehir, telefondaki Road watch\'ta çizilmiş yol</string>
     <!-- Lab: a touchscreen that misses touches in one upright strip (DeadTouchStrip.kt) -->
     <string name="dead_strip_title">Ölü dokunma şeridi</string>
     <string name="dead_strip_detail">Dikey bir şeritte dokunmaları kaçıran bir ekran için: Ayarlar onun sağında açılır</string>

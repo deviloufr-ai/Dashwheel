@@ -78,7 +78,7 @@ internal fun CarProblemsMap(
         val in3d = remember(problems, car.driverOnRight) {
             problems.filter { it.number > 0 }.map { Problem3D(it.number, Car3DSpots.of(it.spot, car.driverOnRight), it.label, it.serious) }
         }
-        Car3DProblems(model, in3d, in3d.firstOrNull { it.number == selected }, interactive, { onSelect(it ?: 0) }, modifier)
+        Car3DProblems(model, in3d, in3d.firstOrNull { it.number == selected }, interactive, { onSelect(it ?: 0) }, modifier, live = rememberCarLive())
         return
     }
     val top = mine?.top

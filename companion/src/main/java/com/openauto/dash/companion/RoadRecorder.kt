@@ -73,8 +73,12 @@ object RoadTelemetry {
     @Volatile var at = 0L
         private set
 
+    /** The car has Experimental features switched on (Settings, Lab): the drawn road may be offered. */
+    val experimental = MutableStateFlow(false)
+
     fun update(message: CarTelemetry) {
         latest = message
+        experimental.value = message.experimental
         at = SystemClock.elapsedRealtime()
     }
 

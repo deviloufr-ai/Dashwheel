@@ -23,6 +23,8 @@
     <string name="road_warn_close">Per arti</string>
     <string name="road_warn_moved_off">Eismas pajudėjo</string>
     <string name="road_dim">Pritemdyti</string>
+    <string name="road_view_drawn">Piešinys</string>
+    <string name="road_view_camera">Kamera</string>
     <string name="road_bright">Pašviesinti</string>
     <string name="road_stop">Stabdyti</string>
     <string name="road_place_title">Pastatykite telefoną</string>

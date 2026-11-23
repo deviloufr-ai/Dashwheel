@@ -23,6 +23,8 @@
     <string name="road_warn_close">Слишком близко</string>
     <string name="road_warn_moved_off">Поток тронулся</string>
     <string name="road_dim">Затемнить</string>
+    <string name="road_view_drawn">Рисунок</string>
+    <string name="road_view_camera">Камера</string>
     <string name="road_bright">Ярче</string>
     <string name="road_stop">Стоп</string>
     <string name="road_place_title">Установите телефон</string>

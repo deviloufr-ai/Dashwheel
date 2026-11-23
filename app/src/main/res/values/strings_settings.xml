@@ -274,6 +274,8 @@
     <string name="settings_section_more_tools">More tools</string>
     <string name="settings_lab">Lab</string>
     <string name="settings_lab_detail">Tools still being tried, and the unit\'s log</string>
+    <string name="lab_experimental_title">Experimental features</string>
+    <string name="lab_experimental_detail">Lights and open doors on the 3D car, a dusk city on the 3D map, a drawn road in Road watch on the phone</string>
     <!-- Lab: a touchscreen that misses touches in one upright strip (DeadTouchStrip.kt) -->
     <string name="dead_strip_title">Dead touch strip</string>
     <string name="dead_strip_detail">For a screen that misses touches in one upright strip: Settings opens to the right of it</string>

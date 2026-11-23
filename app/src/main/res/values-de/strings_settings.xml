@@ -271,6 +271,8 @@
     <string name="settings_section_more_tools">Weitere Werkzeuge</string>
     <string name="settings_lab">Labor</string>
     <string name="settings_lab_detail">Werkzeuge im Test und das Protokoll des Geräts</string>
+    <string name="lab_experimental_title">Experimentelle Funktionen</string>
+    <string name="lab_experimental_detail">Lichter und offene Türen am 3D-Auto, eine Stadt in der Dämmerung auf der 3D-Karte, eine gezeichnete Straße in Road watch auf dem Handy</string>
     <string name="dead_strip_title">Toter Touch-Streifen</string>
     <string name="dead_strip_detail">Für einen Bildschirm, der in einem senkrechten Streifen keine Berührung erkennt: Die Einstellungen öffnen sich rechts davon</string>
     <string name="dead_strip_found">Keine Berührung von %1$d bis %2$d px: Die Einstellungen öffnen sich rechts davon</string>

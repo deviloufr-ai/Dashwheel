@@ -272,6 +272,8 @@
     <string name="settings_section_more_tools">Другие инструменты</string>
     <string name="settings_lab">Лаборатория</string>
     <string name="settings_lab_detail">Инструменты в испытании и журнал устройства</string>
+    <string name="lab_experimental_title">Экспериментальные функции</string>
+    <string name="lab_experimental_detail">Фары и открытые двери на 3D-машине, город в сумерках на 3D-карте, нарисованная дорога в Road watch на телефоне</string>
     <string name="dead_strip_title">Мёртвая полоса касаний</string>
     <string name="dead_strip_detail">Для экрана, который не чувствует касаний в одной вертикальной полосе: Настройки открываются справа от неё</string>
     <string name="dead_strip_found">Нет касаний от %1$d до %2$d пикс.: Настройки открываются справа от неё</string>
