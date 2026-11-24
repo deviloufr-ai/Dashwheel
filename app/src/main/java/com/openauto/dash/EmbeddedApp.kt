@@ -397,6 +397,9 @@ internal object EmbeddedApp {
      */
     private const val KEYBOARD_GRACE_MS = 4_000L
 
+    /** How long after a tap in a tile its keyboard is first looked for ([declineKeysWhileTyping]). */
+    private const val TYPING_LOOK_MS = 700L
+
     /** A key's second chance, once the main screen is back in front. */
     private const val KEY_AGAIN_MS = 150L
 
@@ -471,6 +474,9 @@ internal object EmbeddedApp {
 
     /** [activity] shows (onStart), or null once it no longer does (onStop). */
     fun dashboardShown(activity: Activity?) {
+        // Coming or going, the dashboard's window takes the keys as any window does.
+        givingBack?.cancel()
+        (activity ?: dashboard?.get())?.let { DashboardFocus.decline(it, DashboardFocus.Reason.TILE_TYPING, false) }
         dashboard = activity?.let { WeakReference(it) }
         dashboardTask = activity?.taskId
         if (activity == null) {
@@ -757,6 +763,8 @@ internal object EmbeddedApp {
      * thread; null when there was nothing to do.
      */
     fun giveKeysBack(force: Boolean = false): Job? {
+        // Before anything else: a window that declines the keys can't be given them.
+        dashboard?.get()?.let { DashboardFocus.decline(it, DashboardFocus.Reason.TILE_TYPING, false) }
         if (!keysAway && !force) return null
         val activity = dashboard?.get() ?: return null
         keysAway = false
@@ -947,15 +955,30 @@ internal object EmbeddedApp {
         keysAway = true
         givingBack?.cancel()
         givingBack = mainScope.launch {
+            // The app is typing: its pop-up lists (Waze's addresses) closed the moment a finger
+            // landed on the dashboard, which took the keys before the tap reached the app.
+            delay(TYPING_LOOK_MS)
+            declineKeysWhileTyping()
             repeat(GIVE_BACK_TRIES) { look ->
-                delay(if (look == 0) KEYBOARD_GRACE_MS else GIVE_BACK_MS)
+                delay(if (look == 0) KEYBOARD_GRACE_MS - TYPING_LOOK_MS else GIVE_BACK_MS)
                 val activity = dashboard?.get() ?: return@launch
                 if (!keyboardUp(activity)) {
                     giveKeysBack()
                     return@launch
                 }
+                declineKeysWhileTyping()
             }
+            // Given up looking: the dashboard takes the keys at its next touch, as before.
+            dashboard?.get()?.let { DashboardFocus.decline(it, DashboardFocus.Reason.TILE_TYPING, false) }
         }
+    }
+
+    /** The keyboard is up for a tile's app that has the keys: the dashboard's window leaves them there. Main thread. */
+    private fun declineKeysWhileTyping() {
+        val activity = dashboard?.get() ?: return
+        if (keysAway && !dashboardFocused && keyboardUp(activity) &&
+            DashboardFocus.decline(activity, DashboardFocus.Reason.TILE_TYPING, true)
+        ) Log.i(TAG, "dashboard declines the keys while a tile's app is typing")
     }
 
     /** Whether the on-screen keyboard shows (for an app inside a tile, typing a search). */

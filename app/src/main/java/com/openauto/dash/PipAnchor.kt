@@ -796,8 +796,7 @@ object PipAnchor {
             if (focusable != focusDeclined) return@withContext false
             focusDeclined = !focusable
             declinedOn = if (focusable) null else java.lang.ref.WeakReference(activity)
-            val flag = android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-            if (focusable) activity.window.clearFlags(flag) else activity.window.addFlags(flag)
+            DashboardFocus.decline(activity, DashboardFocus.Reason.DOCKED_WINDOW, !focusable)
             true
         }
         if (changed) Log.i(TAG, if (focusable) "dashboard takes focus again" else "dashboard declines focus while Maps is docked")
