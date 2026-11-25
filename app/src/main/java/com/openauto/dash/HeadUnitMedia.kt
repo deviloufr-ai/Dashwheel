@@ -41,6 +41,8 @@ object HeadUnitMedia {
     private const val BT_PREVIOUS = 1
     private const val BT_NEXT = 2
     private const val BT_TOGGLE = 3
+    /** Play, which also makes the Bluetooth app take the unit's sound: without it the phone's music stays silent. */
+    private const val BT_PLAY = 4
 
     private const val ACTION_RADIO = "com.qf.radio.update_action"
     private const val RADIO_NEXT = "/customize/radio/next"
@@ -105,6 +107,24 @@ object HeadUnitMedia {
             PhoneTrack(it, message.artist, message.album, message.playing, message.durationMs, message.artKey, art)
         }
         main.post { tell() }
+        // The unit's Bluetooth takes a moment to report the phone as playing.
+        if (message.playing) main.postDelayed(::soundForPhone, UNIT_HEARS_PHONE_MS)
+    }
+
+    private const val UNIT_HEARS_PHONE_MS = 2_000L
+    private var app: Context? = null
+
+    /**
+     * The phone started its music by itself (or by its own buttons): the QF Bluetooth app
+     * receives it but plays it only once told to play, so it is told.
+     */
+    private fun soundForPhone() {
+        val context = app ?: return
+        if (!UnitPlatform.hasPackage(context, BT_PACKAGE)) return
+        if (unitSilentForPhone(phone?.playing == true, systemProperty("sys.qf.bt.music.state"), systemProperty("sys.qf.last_audio_src"))) {
+            Log.i(TAG, "the phone plays over Bluetooth and no source has the sound: Bluetooth music told to play")
+            btCommand(context, BT_PLAY)
+        }
     }
 
     private fun phoneKey(key: PhoneMediaKey.Key) {
@@ -126,6 +146,7 @@ object HeadUnitMedia {
     fun start(context: Context) {
         if (started) return
         val app = context.applicationContext
+        this.app = app
         // A Topway unit's radio: its station from the MCU (TopwayRadio), told on like the QF radio's broadcast.
         if (TopwayRadio.present(app)) {
             started = true
@@ -353,3 +374,11 @@ internal fun bandLabel(band: Int): String? = when (band) {
 /** Whether a step reached the tuner: another frequency or band than before it. */
 internal fun stepHeard(before: HeadUnitMedia.RadioStation?, now: HeadUnitMedia.RadioStation?): Boolean =
     before?.freq != now?.freq || before?.band != now?.band
+
+/**
+ * Whether the phone's music reaches the unit's Bluetooth ([btMusicState] "1") while no
+ * source has the unit's sound ([audioSource] as the firmware records it): heard by nobody.
+ * Another source (the radio) keeps the sound: the driver chose it.
+ */
+internal fun unitSilentForPhone(phonePlaying: Boolean, btMusicState: String?, audioSource: String?): Boolean =
+    phonePlaying && btMusicState == "1" && (audioSource.isNullOrBlank() || audioSource == "nothing")
