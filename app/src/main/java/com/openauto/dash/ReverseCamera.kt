@@ -455,6 +455,12 @@ internal object ReverseCamera {
         // camera was being taken) there is nothing to give up, and "failed"
         // would only be met by the next reverse, which then didn't even try.
         _state.value = if (reversingNow()) State.FAILED else State.OFF
+        if (rom == null && reversingNow()) {
+            // A firmware whose camera app Dashwheel can't stop or restart (FYT, Topway...): a try that
+            // failed left the driver without a picture for seconds, so it isn't made again until asked for.
+            ReverseView.setOwnCamera(context, false)
+            android.widget.Toast.makeText(context, R.string.reverse_picture_failed, android.widget.Toast.LENGTH_LONG).show()
+        }
         if (romStopped && reversingNow()) {
             romStopped = false
             scope.launch {

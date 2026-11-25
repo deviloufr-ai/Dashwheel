@@ -37,7 +37,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.openauto.dash.vehicle.headlightsFlow
 import com.openauto.dash.vehicle.headlightsNow
-import com.openauto.dash.vehicle.rememberHeadlights
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -73,8 +72,16 @@ object UnitLight {
     /** The level follows the headlights; off: the unit's own setting stands. */
     val follow: StateFlow<Boolean> = _follow
 
-    /** Night by the headlights. */
-    val isNight: Boolean get() = headlightsNow()
+    private val _dark = MutableStateFlow(false)
+    /**
+     * Night for the screen light: the headlights on, or dark outside by the Auto
+     * look's clock ([lightDark]). A unit that hears nothing of the headlights never dimmed.
+     */
+    val dark: StateFlow<Boolean> = _dark
+    val isNight: Boolean get() = _dark.value
+
+    private fun darkNow(context: Context): Boolean =
+        lightDark(headlightsNow(), AutoLight.by.value, UnitClock.now(context), AutoLight.from.value, AutoLight.to.value, AutoLight.place.value)
 
     fun start(context: Context) {
         if (started) return
@@ -84,8 +91,23 @@ object UnitLight {
         _day.value = p.getInt(KEY_DAY, 200)
         _night.value = p.getInt(KEY_NIGHT, 60)
         _follow.value = p.getBoolean(KEY_FOLLOW, false)
+        AutoLight.start(app)
+        _dark.value = darkNow(app)
         scope.launch {
-            headlightsFlow().collect { if (_follow.value) apply(app) }
+            headlightsFlow().collect {
+                _dark.value = darkNow(app)
+                if (_follow.value) apply(app)
+            }
+        }
+        // Dusk and dawn: looked at each minute, written only when night comes or goes.
+        scope.launch {
+            while (true) {
+                delay(60_000L)
+                val now = darkNow(app)
+                if (now == _dark.value) continue
+                _dark.value = now
+                if (_follow.value) apply(app)
+            }
         }
     }
 
@@ -180,7 +202,7 @@ internal fun UnitLightCard(modifier: Modifier = Modifier) {
     val day by UnitLight.day.collectAsState()
     val night by UnitLight.night.collectAsState()
     val follow by UnitLight.follow.collectAsState()
-    val isNight = rememberHeadlights()
+    val isNight by UnitLight.dark.collectAsState()
     val level = if (isNight) night else day
     var dragged by remember(level) { mutableFloatStateOf(level.toFloat()) }
     Card(modifier = modifier) {
@@ -230,7 +252,7 @@ internal fun unitLightFace(): WidgetFace {
     DisposableEffect(Unit) { UnitLight.start(context); onDispose { } }
     val day by UnitLight.day.collectAsState()
     val night by UnitLight.night.collectAsState()
-    val isNight = rememberHeadlights()
+    val isNight by UnitLight.dark.collectAsState()
     val level = if (isNight) night else day
     return WidgetFace(
         icon = if (isNight) Icons.Filled.DarkMode else Icons.Filled.LightMode,
@@ -248,3 +270,11 @@ internal const val LIGHT_STEP = 20
 
 /** Whether the level [wrote] is what the unit holds after: [readBack] null (it can't be read) is not a no. */
 internal fun brightnessTook(wrote: Int, readBack: Int?): Boolean = readBack == null || readBack == wrote
+
+/**
+ * Night for the screen light: the headlights on, or dark outside. Outside is the
+ * driver's set times when the Auto look goes by them, else the sun at [place]
+ * (7:00 to 20:00 with no place yet).
+ */
+internal fun lightDark(headlights: Boolean, by: AutoLightBy, timeMs: Long, fromMin: Int, toMin: Int, place: Pair<Double, Double>?): Boolean =
+    headlights || if (by == AutoLightBy.TIMES) !dayByClock(timeMs, fromMin, toMin) else !sunUp(timeMs, place?.first, place?.second)

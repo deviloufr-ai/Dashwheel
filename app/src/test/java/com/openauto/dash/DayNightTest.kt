@@ -87,4 +87,15 @@ class DayNightTest {
         assertFalse(sunUp(at(2025, 1, 10, 22), null, null, utc))
         assertFalse(sunUp(at(2025, 1, 10, 6, 30), null, null, utc))
     }
+
+    @Test
+    fun screenLightIsNightAfterSunsetEvenWithoutHeadlights() {
+        val noon = at(2025, 12, 21, 12)
+        val evening = at(2025, 12, 21, 19)
+        // A unit that hears nothing of the headlights still dims once the sun is down.
+        assertTrue(lightDark(false, AutoLightBy.SUN, evening, 0, 0, paris))
+        assertFalse(lightDark(false, AutoLightBy.SUN, noon, 0, 0, paris))
+        // Headlights on by day (a tunnel) still dim.
+        assertTrue(lightDark(true, AutoLightBy.SUN, noon, 0, 0, paris))
+    }
 }

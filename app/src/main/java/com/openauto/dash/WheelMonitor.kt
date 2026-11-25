@@ -65,6 +65,12 @@ internal object WheelMonitor {
     private var logJob: Job? = null
     private var logProcess: RootShell.Stream? = null
 
+    init {
+        // Root is known a little after start, or later still (granted in Magisk meanwhile): a button
+        // bound to an input event or a log line asked for its reader before that and got none.
+        scope.launch { PrivilegedShell.access.collect { synchronized(this@WheelMonitor) { updateInputLocked(); updateLogLocked() } } }
+    }
+
     fun add(source: Source, text: String, learn: WheelKey? = null) {
         _lines.update { listOf(Line(nextLineId(), source, text.take(160), learn)) + it.take(MAX_LINES - 1) }
     }
@@ -79,6 +85,8 @@ internal object WheelMonitor {
         // Keys and CAN lines are added by SteeringWheelStore whatever the
         // device; the raw input and the log are read through su, which is not
         // asked for where root was not found (PrivilegedShell), nor in the Play edition.
+        // Asked once more as the map opens: a su that was slow at boot left a unit with ADB without root for good.
+        if (Edition.full && !canReadRoot) PrivilegedShell.recheck()
         updateInputLocked()
         updateLogLocked()
     }
