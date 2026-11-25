@@ -349,7 +349,8 @@ internal fun SettingsScreen(
                     },
                     onClose = close
                 )
-                maxWidth < NARROW_SETTINGS -> Column(modifier = Modifier.fillMaxSize()) {
+                // Tabs across the top only on an upright card: on a small wide screen they leave the pane one line.
+                maxWidth < NARROW_SETTINGS && maxHeight > maxWidth -> Column(modifier = Modifier.fillMaxSize()) {
                     SettingsTabs(tab, choose, close)
                     pane(Modifier.weight(1f).fillMaxWidth())
                 }
