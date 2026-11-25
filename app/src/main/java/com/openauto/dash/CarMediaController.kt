@@ -503,11 +503,19 @@ class CarMediaController(private val context: Context) {
      */
     fun playPause() {
         if (DemoMode.isOn) return DemoMode.playPause()
-        stockShown?.let { return HeadUnitMedia.playPause(context, it) }
+        (stockShown ?: phoneRelayed())?.let { return HeadUnitMedia.playPause(context, it) }
         if (topway(if (_mediaState.value.isPlaying) TopwayMedia.Command.PAUSE else TopwayMedia.Command.PLAY)) return
         val controls = activeController?.transportControls ?: return startLastPlayer()
         if (pressKey(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)) return
         if (_mediaState.value.isPlaying) controls.pause() else controls.play()
+    }
+
+    /**
+     * The session shown is the linked phone's own track, relayed by the unit's Bluetooth app.
+     * Such apps often ignore a session's commands; the phone itself never does.
+     */
+    private fun phoneRelayed(): String? = HeadUnitMedia.PHONE.takeIf {
+        sameTrack(HeadUnitMedia.phone?.title, activeController?.metadata?.getString(MediaMetadata.METADATA_KEY_TITLE))
     }
 
     /**
@@ -535,7 +543,7 @@ class CarMediaController(private val context: Context) {
             if (_mediaState.value.isPlaying != play) DemoMode.playPause()
             return
         }
-        stockShown?.let {
+        (stockShown ?: phoneRelayed())?.let {
             if (_mediaState.value.isPlaying != play) HeadUnitMedia.playPause(context, it)
             return
         }
@@ -595,7 +603,7 @@ class CarMediaController(private val context: Context) {
 
     fun next() {
         if (DemoMode.isOn) return DemoMode.next()
-        stockShown?.let { return HeadUnitMedia.next(context, it, activeController) }
+        (stockShown ?: phoneRelayed())?.let { return HeadUnitMedia.next(context, it, activeController) }
         if (topway(TopwayMedia.Command.NEXT)) return
         if (pressKey(KeyEvent.KEYCODE_MEDIA_NEXT)) return
         activeController?.transportControls?.skipToNext()
@@ -603,7 +611,7 @@ class CarMediaController(private val context: Context) {
 
     fun previous() {
         if (DemoMode.isOn) return DemoMode.previous()
-        stockShown?.let { return HeadUnitMedia.previous(context, it, activeController) }
+        (stockShown ?: phoneRelayed())?.let { return HeadUnitMedia.previous(context, it, activeController) }
         if (topway(TopwayMedia.Command.PREVIOUS)) return
         if (pressKey(KeyEvent.KEYCODE_MEDIA_PREVIOUS)) return
         activeController?.transportControls?.skipToPrevious()
@@ -685,6 +693,10 @@ class CarMediaController(private val context: Context) {
  * The artist line of a tile that gives the station its own line above the song: without the
  * station again. On a radio's own text the artist field is the station, and the line stays empty.
  */
+/** Whether the unit's session names the track the linked phone plays. */
+internal fun sameTrack(phoneTitle: String?, sessionTitle: String?): Boolean =
+    !phoneTitle.isNullOrBlank() && phoneTitle.trim().equals(sessionTitle?.trim(), ignoreCase = true)
+
 internal fun artistBesideStation(state: MediaState): String =
     state.artist.removeSuffix(" · " + state.station).takeUnless { it == state.station }.orEmpty()
 
