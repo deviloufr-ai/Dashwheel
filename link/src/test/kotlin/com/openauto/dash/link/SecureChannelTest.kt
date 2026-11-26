@@ -224,4 +224,17 @@ class SecureChannelTest {
         assertEquals(listOf(512, 512, 276), writes)
         assertTrue(bytes.contentEquals(sink.toByteArray()))
     }
+
+    @Test
+    fun pacedPiecesTakeTheirTimeAndCountWhatLeft() {
+        val sink = java.io.ByteArrayOutputStream()
+        var counted = 0
+        val bytes = ByteArray(1_280) { it.toByte() }
+        val started = System.nanoTime()
+        inPieces(sink, 512, pauseMs = 40) { counted += it }.write(bytes, 0, bytes.size)
+        // 2.5 pieces at 40 ms each: 100 ms.
+        assertTrue((System.nanoTime() - started) / 1_000_000 >= 90)
+        assertEquals(bytes.size, counted)
+        assertTrue(bytes.contentEquals(sink.toByteArray()))
+    }
 }

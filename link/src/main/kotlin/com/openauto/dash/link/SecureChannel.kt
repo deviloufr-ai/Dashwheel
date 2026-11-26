@@ -320,15 +320,32 @@ internal fun readFrame(input: DataInputStream, max: Int): ByteArray {
  * to a head unit's RFCOMM socket left the phone hearing nothing after the handshake,
  * whose frames are small, while Wi-Fi carried the same bytes (#118). Pieces under
  * the usual RFCOMM packet size go the way the handshake did.
- * shortcut: a fix by reading, not seen on the unit; drop it if the unit log shows pongs before the drop.
+ * Pieces alone were not enough: the phone then heard the first ~10 kB of the car's
+ * opening messages and lost bytes after them (a later frame failed authentication),
+ * so the unit's Bluetooth drops what is written faster than the radio sends.
+ * [pauseMs] after each full piece keeps the writer under that; [written] counts what left.
+ * shortcut: 512 bytes per 40 ms (12.8 kB/s) is a guess at the unit's rate, not measured;
+ * if the unit log still shows sent > heard, slow it down.
  */
-fun inPieces(output: OutputStream, size: Int = 512): OutputStream = object : java.io.FilterOutputStream(output) {
-    override fun write(b: ByteArray, off: Int, len: Int) {
-        var at = off
-        while (at < off + len) {
-            val n = minOf(size, off + len - at)
-            out.write(b, at, n)
-            at += n
+fun inPieces(output: OutputStream, size: Int = 512, pauseMs: Long = 0, written: (Int) -> Unit = {}): OutputStream =
+    object : java.io.FilterOutputStream(output) {
+        override fun write(b: ByteArray, off: Int, len: Int) {
+            var at = off
+            while (at < off + len) {
+                val n = minOf(size, off + len - at)
+                out.write(b, at, n)
+                // Flushed so the pause is spent with the piece on its way, not sitting in a buffer.
+                out.flush()
+                written(n)
+                at += n
+                // In proportion, so a run of short messages is held to the same rate as one long one.
+                val pause = pauseMs * n / size
+                if (pause > 0) try {
+                    Thread.sleep(pause)
+                } catch (e: InterruptedException) {
+                    Thread.currentThread().interrupt()
+                    throw java.io.InterruptedIOException("interrupted between pieces")
+                }
+            }
         }
     }
-}

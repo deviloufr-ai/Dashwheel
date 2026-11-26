@@ -223,6 +223,8 @@ object PhoneLink {
      * Under the phone's 45 s of patience, pings included.
      */
     private const val BLUETOOTH_SEND_STALL_MS = 20_000L
+    /** Per 512 bytes written: 12.8 kB/s, see [inPieces]. */
+    private const val BLUETOOTH_PIECE_PAUSE_MS = 40L
     /**
      * How long the phone has to say it is placing the call the car asked for ([DialResult], or the
      * call itself showing): it answers at once when it heard, so past this the unit calls its own way.
@@ -265,6 +267,8 @@ object PhoneLink {
 
     /** The open link runs over Bluetooth (rather than the hotspot). */
     @Volatile private var sessionOverBluetooth = false
+    /** Bytes written to the phone over Bluetooth since the handshake: next to what the phone says it heard, a link losing some shows (#118). */
+    private val bluetoothSent = java.util.concurrent.atomic.AtomicLong()
 
     /** The pairing whose QR code is on screen, until a phone uses it. */
     private val _pending = MutableStateFlow<PairingOffer?>(null)
@@ -677,10 +681,13 @@ object PhoneLink {
             guard.timeoutMs = HANDSHAKE_TIMEOUT_MS.toLong()
             guard.kick()
             val link = SecureChannel.client(
-                guard.hearing(socket.inputStream), inPieces(socket.outputStream), phone.id, phone.secret,
+                guard.hearing(socket.inputStream),
+                inPieces(socket.outputStream, pauseMs = BLUETOOTH_PIECE_PAUSE_MS) { bluetoothSent.addAndGet(it.toLong()) },
+                phone.id, phone.secret,
                 onClose = { guard.stop(); runCatching { socket.close() } }
             )
             // Bluetooth has no read timeout: from here the guard ends a link that went quiet.
+            bluetoothSent.set(0)
             guard.timeoutMs = READ_TIMEOUT_MS.toLong()
             guard.kick()
             return Opened(link, guard)
@@ -800,7 +807,7 @@ object PhoneLink {
                 else -> "${e.javaClass.simpleName} ${e.message.orEmpty()}".trim()
             })
         } finally {
-            DebugLog.note(context, "Phone link over $carried down after ${(SystemClock.elapsedRealtime() - upAt) / 1000} s: ${endedBy.get() ?: "closed here"} (companion $companion, $pongs pongs)")
+            DebugLog.note(context, "Phone link over $carried down after ${(SystemClock.elapsedRealtime() - upAt) / 1000} s: ${endedBy.get() ?: "closed here"} (companion $companion, $pongs pongs${if (gateway == null) ", sent ${bluetoothSent.get()} bytes" else ""})")
             idle?.stop()
             pinger.cancel()
             watchdog.cancel()
