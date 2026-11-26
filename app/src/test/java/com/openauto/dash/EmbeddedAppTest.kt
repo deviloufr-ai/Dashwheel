@@ -67,6 +67,14 @@ class EmbeddedAppTest {
     }
 
     @Test
+    fun aSecondScreenRightAfterAnIntentIsTheIntentsOwn() {
+        assertTrue(EmbeddedApp.justHanded(handedAt = 10_000, now = 10_170))
+        assertFalse(EmbeddedApp.justHanded(handedAt = 10_000, now = 20_000))
+        // Never handed anything: the unit's power-up copy is still closed.
+        assertFalse(EmbeddedApp.justHanded(handedAt = 0, now = 170))
+    }
+
+    @Test
     fun oneCopyAnywhereIsNotRunningTwice() {
         assertFalse(EmbeddedApp.runsTwice(listOf(WindowListing.AppStack(12, 7, "fullscreen")), 7))
         // Full screen on the main screen only: simply moved onto the tile.

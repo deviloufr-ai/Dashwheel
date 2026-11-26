@@ -1166,6 +1166,9 @@ internal object EmbeddedApp {
             ?: current?.takeIf { it in ready }
             ?: ready.lastOrNull()
 
+    /** Whether the app was handed an intent on its tile ([Host.open]) moments before [now]: a second screen then is the intent's own. */
+    fun justHanded(handedAt: Long, now: Long): Boolean = handedAt != 0L && now - handedAt < LEARN_MS
+
     /**
      * True when an app's [stacks] show it running twice, as the unit makes it
      * at power-up: once on its tile's display [tileDisplay] and once more full
@@ -1206,6 +1209,9 @@ internal object EmbeddedApp {
 
         /** When a screen was last asked for on the tile's display (elapsedRealtime): a start, an intent, a player. */
         @Volatile private var openedAt = 0L
+
+        /** When the app was last handed an intent or a screen of its own on the tile ([open]), 0 if never. */
+        @Volatile private var handedAt = 0L
 
         /**
          * The app whose windows show this one: [packageName] itself, or the
@@ -1493,6 +1499,7 @@ internal object EmbeddedApp {
             val options = ActivityOptions.makeBasic().setLaunchDisplayId(vd.displayId)
             runCatching { HiddenApi.invoke(ActivityOptions::class.java, options, "setLaunchWindowingMode", WINDOWING_MODE_FULLSCREEN) }
             openedAt = SystemClock.elapsedRealtime()
+            handedAt = openedAt
             val ok = runCatching { context.startActivity(intent, options.toBundle()) }
                 .onFailure { Log.w(TAG, "$packageName refused the intent on display ${vd.displayId}", it) }
                 .isSuccess
@@ -1515,6 +1522,7 @@ internal object EmbeddedApp {
             @Suppress("DEPRECATION")
             if (Build.VERSION.SDK_INT >= 34) options.setPendingIntentBackgroundActivityStartMode(ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED)
             openedAt = SystemClock.elapsedRealtime()
+            handedAt = openedAt
             val ok = runCatching { screen.send(context, 0, null, null, null, null, options.toBundle()) }
                 .onFailure { Log.w(TAG, "$packageName refused its screen on display ${vd.displayId}", it) }
                 .isSuccess
@@ -1929,7 +1937,9 @@ internal object EmbeddedApp {
          * opens a second screen of its own on purpose is not closed over and over.
          */
         private fun runningTwice(found: List<WindowListing.AppStack>, id: Int): Boolean =
-            runsTwice(found, id) && (restartedAt == 0L || SystemClock.elapsedRealtime() - restartedAt > RESTART_COOLDOWN_MS)
+            // Waze takes a destination on a passing screen that this unit opens on the main
+            // screen: closed for "running twice" there, it lost the destination and its picture.
+            !justHanded(handedAt, SystemClock.elapsedRealtime()) && runsTwice(found, id) && (restartedAt == 0L || SystemClock.elapsedRealtime() - restartedAt > RESTART_COOLDOWN_MS)
 
         private suspend fun shell(cmd: String, what: String) {
             val out = runGuarded { DockShell.shell(context, cmd) }.getOrElse { "failed: ${it.message}" }

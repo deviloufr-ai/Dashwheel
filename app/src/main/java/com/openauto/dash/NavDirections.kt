@@ -163,14 +163,28 @@ object NavDirections {
     @Volatile
     private var inApp: NavState? = null
 
+    /** The next turn on the route worked out to the navigation app's destination ([ShadowRoute]), when there is one. */
+    @Volatile
+    private var shadow: NavState? = null
+
+    /** What shows: the dashboard's own guidance, else the navigation app's turn, else the shadow route's when the app's can't be read. */
+    private fun shown(): NavState = inApp ?: real.takeIf { it.active && it.instruction.isNotBlank() } ?: shadow ?: real
+
     /** The demo is over: the real route back, as it is now (a route ended meanwhile stays ended). */
     internal fun endDemo() {
-        _state.value = inApp ?: real
+        _state.value = shown()
     }
 
     private fun publish(state: NavState) {
         real = state
-        if (!DemoMode.isOn && inApp == null) _state.value = state
+        if (!DemoMode.isOn) _state.value = shown()
+    }
+
+    /** [ShadowRoute]'s next turn; null when it has no route. */
+    internal fun publishShadow(state: NavState?) {
+        if (shadow == state) return
+        shadow = state
+        if (!DemoMode.isOn) _state.value = shown()
     }
 
     /** The route last published came from Waze's screen ([WazeScreen]), not a notification. */
@@ -195,7 +209,7 @@ object NavDirections {
     /** [InAppNav]'s next turn; null when its guidance ends and the navigation app's turns come back. */
     internal fun publishInApp(state: NavState?) {
         inApp = state
-        if (!DemoMode.isOn) _state.value = state ?: real
+        if (!DemoMode.isOn) _state.value = shown()
     }
 
     fun onPosted(context: Context, sbn: StatusBarNotification) {

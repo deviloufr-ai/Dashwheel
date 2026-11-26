@@ -32,8 +32,9 @@ import kotlin.math.sqrt
  * follows the road the navigation app actually took. The next turn on that
  * route stands in when the navigation app's own turn can't be read.
  *
- * Only while the navigation app runs, only while a second screen is linked,
- * and never while the in-app navigation guides (it has the real route). A
+ * Only while the navigation app runs, only while a second screen is linked
+ * or the map lies under the dashboard ([mapsShown]), and never while the
+ * in-app navigation guides (it has the real route). A
  * destination typed into Maps is read off its route preview ([MapsScreen]);
  * one typed into Waze is read from Waze's own files with root
  * ([WazeDestination]), else off its preview like Maps.
@@ -59,7 +60,14 @@ internal object ShadowRoute {
     private val _turn = MutableStateFlow<NavState?>(null)
     val turn: StateFlow<NavState?> = _turn
 
-    internal class Plan(val progress: RouteProgress, val steps: List<Step>, val durationS: Double)
+    /** The same route as the router gave it, for the map under the dashboard to draw as it draws the in-app one. */
+    private val _drawn = MutableStateFlow<DirectionsRoute?>(null)
+    val drawn: StateFlow<DirectionsRoute?> = _drawn
+
+    /** How many maps under a dashboard are up (MapLibrePanel as a wallpaper): they draw [drawn]. */
+    val mapsShown = MutableStateFlow(0)
+
+    internal class Plan(val progress: RouteProgress, val steps: List<Step>, val durationS: Double, val route: DirectionsRoute)
 
     /** One manoeuvre of the route: where it is along the route (metres from its start), and its words. */
     internal data class Step(val atM: Double, val instruction: String, val type: String?, val modifier: String?)
@@ -70,9 +78,9 @@ internal object ShadowRoute {
         val app = context.applicationContext
         // Off the main thread: the car is matched to the whole route at every fix.
         scope.launch(Dispatchers.Default) {
-            combine(DisplayLink.state, NavHandoff.handedOff, NavDirections.running, InAppNav.guidance) { link, target, running, guidance ->
+            combine(DisplayLink.state, NavHandoff.handedOff, NavDirections.running, InAppNav.guidance, mapsShown) { link, target, running, guidance, maps ->
                 activeTarget = armed(activeTarget, target, running != null, System.currentTimeMillis())
-                val wanted = link is DisplayLinkState.Connected && guidance == null && running != null
+                val wanted = (link is DisplayLinkState.Connected || maps > 0) && guidance == null && running != null
                 if (wanted) activeTarget else null
             }
                 .distinctUntilChanged()
@@ -117,6 +125,7 @@ internal object ShadowRoute {
                     plan = fresh
                     offSince = 0L
                     _route.value = fresh.progress.points
+                    _drawn.value = fresh.route
                 }
             }
             val current = plan
@@ -138,6 +147,7 @@ internal object ShadowRoute {
                 return@collect
             }
             _turn.value = turnAt(context, p, at)
+            NavDirections.publishShadow(_turn.value)
         }
     }
 
@@ -167,7 +177,7 @@ internal object ShadowRoute {
             steps += Step(along, step.maneuver.instruction.orEmpty(), step.maneuver.type?.text, step.maneuver.modifier?.text)
             along += step.distance
         }
-        return Plan(progress, steps, route.duration)
+        return Plan(progress, steps, route.duration, route)
     }
 
     /** The next manoeuvre ahead of [at], as the Directions widget would show it. */
@@ -193,7 +203,9 @@ internal object ShadowRoute {
 
     private fun clear() {
         _route.value = emptyList()
+        _drawn.value = null
         _turn.value = null
+        NavDirections.publishShadow(null)
     }
 }
 
@@ -216,6 +228,41 @@ internal class RouteProgress(val points: List<Pair<Double, Double>>) {
 
     val lengthM: Double get() = cum.lastOrNull() ?: 0.0
 
+    /** A place on the route's line, and the road's heading there (degrees from north, clockwise). */
+    data class Snapped(val lat: Double, val lon: Double, val headingDeg: Float)
+
+    /**
+     * The car held on the route while it follows it, as the second screen's
+     * map holds it (RouteSnap): the nearest place on the line within
+     * [SNAP_OFF_M] whose road goes within [SNAP_TURN_DEG] of [headingDeg]
+     * (any way when null); null when the car is not on the route.
+     */
+    fun snap(lat: Double, lon: Double, headingDeg: Float?): Snapped? {
+        val px = lon * kLon
+        val py = lat * kLat
+        var best: Snapped? = null
+        var bestOff = SNAP_OFF_M
+        for (i in 1 until points.size) {
+            val ax = xs[i - 1]
+            val ay = ys[i - 1]
+            val dx = xs[i] - ax
+            val dy = ys[i] - ay
+            val len2 = dx * dx + dy * dy
+            if (len2 == 0.0) continue
+            val road = Math.toDegrees(Math.atan2(dx, dy)).toFloat().mod(360f)
+            if (headingDeg != null && Math.abs((road - headingDeg + 540f).mod(360f) - 180f) > SNAP_TURN_DEG) continue
+            val t = (((px - ax) * dx + (py - ay) * dy) / len2).coerceIn(0.0, 1.0)
+            val cx = ax + t * dx
+            val cy = ay + t * dy
+            val off = Math.hypot(px - cx, py - cy)
+            if (off <= bestOff) {
+                bestOff = off
+                best = Snapped(cy / kLat, cx / kLon, road)
+            }
+        }
+        return best
+    }
+
     fun locate(lat: Double, lon: Double): Fix {
         val px = lon * kLon
         val py = lat * kLat
@@ -237,5 +284,12 @@ internal class RouteProgress(val points: List<Pair<Double, Double>>) {
             }
         }
         return Fix(bestAlong, if (bestOff == Double.MAX_VALUE) 0.0 else bestOff)
+    }
+
+    companion object {
+        /** A fix this far from the route at most is still on it: a GPS's error, a wide road. */
+        const val SNAP_OFF_M = 30.0
+        /** Going this far from the route's way, the car is on another road. */
+        const val SNAP_TURN_DEG = 60f
     }
 }

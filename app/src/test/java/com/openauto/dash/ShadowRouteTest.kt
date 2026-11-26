@@ -44,4 +44,18 @@ class ShadowRouteTest {
         val work = NavHandoff.Target("Work", null, null, "Work street", t0 + 7_200_000)
         assertSame(work, ShadowRoute.armed(home, work, running = true, nowMs = t0 + 7_200_500))
     }
+
+    @Test
+    fun theCarIsHeldOnTheRouteWhileItFollowsIt() {
+        // A road going north, about 1.1 km long.
+        val road = RouteProgress(listOf(49.0 to 2.0, 49.01 to 2.0))
+        // 15 m east of it, driving north: on the line, facing north.
+        val on = road.snap(49.005, 2.0002, 5f)!!
+        assertEquals(2.0, on.lon, 1e-6)
+        assertEquals(49.005, on.lat, 1e-6)
+        assertEquals(0f, on.headingDeg, 0.5f)
+        // Driving east across it, or 150 m away: another road.
+        assertNull(road.snap(49.005, 2.0002, 90f))
+        assertNull(road.snap(49.005, 2.002, 5f))
+    }
 }

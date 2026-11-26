@@ -79,6 +79,7 @@ import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -384,7 +385,17 @@ fun MapLibrePanel(modifier: Modifier = Modifier, wallpaper: Boolean = false) {
     // when it starts or changes (a new route after leaving it), with its
     // travelled part and the next turn's arrow; gone when it ends.
     val guidance by InAppNav.guidance.collectAsState()
-    val guidedRoute = guidance?.route
+    // Under the dashboard, Maps' or Waze's guidance shows too: the route worked out
+    // to its destination ([ShadowRoute]). Not on the map tile, where a route is being picked.
+    val shadow by ShadowRoute.drawn.collectAsState()
+    if (wallpaper) DisposableEffect(Unit) {
+        ShadowRoute.mapsShown.update { it + 1 }
+        onDispose { ShadowRoute.mapsShown.update { it - 1 } }
+    }
+    val guidedRoute = guidance?.route ?: shadow.takeIf { wallpaper }
+    // The same line for the car's arrow to stay on ([shownFix]).
+    val guidedLine = remember(guidedRoute) { guidedRoute?.geometry?.let { g -> runCatching { RouteProgress(Polyline.decode(g, 6)) }.getOrNull() } }
+    val guidedLineNow = rememberUpdatedState(guidedLine)
     val navigation by InAppNav.navigation.collectAsState()
     var wasGuiding by remember { mutableStateOf(false) }
     LaunchedEffect(navRoute, guidedRoute) {
@@ -411,7 +422,7 @@ fun MapLibrePanel(modifier: Modifier = Modifier, wallpaper: Boolean = false) {
     LaunchedEffect(hasLocation, styleReady) {
         if (!hasLocation || !styleReady) return@LaunchedEffect
         val map = mapRef ?: return@LaunchedEffect
-        map.getStyle { style -> enableLocation(map, style, context, scope, if (wallpaper) mapView else null) { stillNow } }
+        map.getStyle { style -> enableLocation(map, style, context, scope, if (wallpaper) mapView else null, { guidedLineNow.value }) { stillNow } }
     }
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -590,6 +601,8 @@ private fun enableLocation(
     scope: kotlinx.coroutines.CoroutineScope,
     /** Set when the map is a wallpaper: the camera sits lower and the car low on it. */
     wallpaper: MapView? = null,
+    /** The route being followed, if any: the arrow stays on its line. */
+    route: () -> RouteProgress? = { null },
     /** Whether the car stands still: a fix that only wanders a few metres then is not worth a camera move. */
     still: () -> Boolean = { false }
 ) {
@@ -620,7 +633,7 @@ private fun enableLocation(
                     val l = last
                     if (l != null && still() && loc.distanceTo(l) < STILL_WANDER_M) return@collect
                     last = loc
-                    runCatching { lc.forceLocationUpdate(loc) }
+                    runCatching { lc.forceLocationUpdate(shownFix(loc, route(), LocationFeed.headingDeg.value)) }
                     // The first fix: tracking was turned on below with nowhere to fly to
                     // yet, so the camera only followed from where the style left it (the
                     // whole world). Now there is a car to close in on, however long the
@@ -668,6 +681,22 @@ private fun enableLocation(
         // there. Through the component either way: a plain animateCamera would
         // count as a developer move and cancel tracking straight away.
         followVehicle(lc, wallpaper, userZooms[map])
+    }
+}
+
+/**
+ * Where the arrow is drawn for [loc], as on the second screen's map: on the
+ * [route]'s line with the road's heading while the car follows it (a fix
+ * wanders 5 to 20 m off the road); else where the GPS says, facing the way
+ * the car last drove ([parkedHeading]) when it is too slow for the GPS to tell.
+ */
+private fun shownFix(loc: android.location.Location, route: RouteProgress?, parkedHeading: Float?): android.location.Location {
+    val driving = loc.hasBearing() && loc.speed > 1f
+    val on = route?.snap(loc.latitude, loc.longitude, loc.bearing.takeIf { driving })
+    if (on == null && (driving || parkedHeading == null)) return loc
+    return android.location.Location(loc).apply {
+        if (on != null) { latitude = on.lat; longitude = on.lon }
+        bearing = on?.headingDeg ?: parkedHeading!!
     }
 }
 
