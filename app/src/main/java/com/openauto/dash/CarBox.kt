@@ -14,6 +14,7 @@ import com.openauto.dash.vehicle.FUEL_HOLD_MS
 import com.openauto.dash.vehicle.Indicators
 import com.openauto.dash.vehicle.K
 import com.openauto.dash.vehicle.Key
+import com.openauto.dash.vehicle.Quality
 import com.openauto.dash.vehicle.Source
 import com.openauto.dash.vehicle.SourceKind
 import com.openauto.dash.vehicle.SourceLiveness
@@ -239,12 +240,12 @@ object CarBox {
     }
 
     /** Puts a state when it changed since the body last said it: the newest change among equals is the one that stands. */
-    private fun <T : Any> putState(key: Key<T>, value: T) {
+    private fun <T : Any> putState(key: Key<T>, value: T, quality: Quality = Quality.GOOD) {
         synchronized(stated) {
             if (stated[key] == value) return
             stated[key] = value
         }
-        busPublisher.put(key, value)
+        busPublisher.put(key, value, quality)
     }
 
     /** What the body says, on the bus. */
@@ -252,7 +253,9 @@ object CarBox {
         busPublisher.put(K.VEHICLE_SPEED, speedProof.believe(b.speedKmh)?.let(SpeedCorrection::corrected)?.toDouble(), ttlMs = FRESH_MS)
         busPublisher.put(K.RPM, rpmProof.believe(b.rpm)?.toDouble(), ttlMs = FRESH_MS)
         // The lights count as on from the side lights up: the unit's own headlight signal is the illumination wire.
-        putState(K.HEADLIGHTS, b.highBeam || b.dippedBeam || b.sidelights)
+        // ESTIMATED: the firmware's headlight broadcast (UnitSignals, same rank) always wins while it has a word. As equals
+        // the newest stood, and a body that disagreed with the wire flipped the Auto look light and dark while driving.
+        putState(K.HEADLIGHTS, b.highBeam || b.dippedBeam || b.sidelights, Quality.ESTIMATED)
         putState(K.LIGHTS, lightsOn(b))
         putState(K.INDICATORS, Indicators(b.turnLeft, b.turnRight))
         putState(K.DRIVER_BELT, b.driverBeltUnfastened)
