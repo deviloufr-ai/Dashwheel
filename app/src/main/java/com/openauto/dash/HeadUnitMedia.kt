@@ -64,9 +64,12 @@ object HeadUnitMedia {
 
     /** [status] 17 toggles play and pause (there is no pause alone), 18 steps by [step]. */
     private fun musicCommand(context: Context, status: Int, step: Int) {
-        context.sendBroadcast(
-            Intent(ACTION_MUSIC_CONTROL).putExtra("music_player_status_key", status).putExtra("music_player_switch_key", step)
-        )
+        // Some firmwares protect the player's broadcasts: sending one throws for an app that is not the system's.
+        runCatching {
+            context.sendBroadcast(
+                Intent(ACTION_MUSIC_CONTROL).putExtra("music_player_status_key", status).putExtra("music_player_switch_key", step)
+            )
+        }
     }
 
     data class BtTrack(val title: String, val artist: String, val album: String)
@@ -185,7 +188,8 @@ object HeadUnitMedia {
         }
         ContextCompat.registerReceiver(app, receiver, filter, ContextCompat.RECEIVER_EXPORTED)
         // The player only tells its track when it changes: ask for the one already playing.
-        if (hasMusic) app.sendBroadcast(Intent(ACTION_MUSIC_ASK))
+        // Protected on some firmwares (SecurityException at start, a crash loop): the track then comes at the next change.
+        if (hasMusic) runCatching { app.sendBroadcast(Intent(ACTION_MUSIC_ASK)) }
     }
 
     /** Told (main thread) whenever a track or station changes. */
