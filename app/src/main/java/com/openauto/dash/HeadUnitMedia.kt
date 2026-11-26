@@ -16,6 +16,7 @@ import com.openauto.dash.link.NowPlaying
 import com.openauto.dash.link.PhoneMediaKey
 import com.openauto.dash.unit.TopwayRadio
 import com.openauto.unitproto.topway.TopwayProtocol
+import com.qf.musicplayer.bean.MusicInfoData
 import androidx.core.content.ContextCompat
 import java.util.concurrent.CopyOnWriteArraySet
 
@@ -48,6 +49,25 @@ object HeadUnitMedia {
     private const val RADIO_NEXT = "/customize/radio/next"
     private const val RADIO_PREVIOUS = "/customize/radio/pre"
     private const val RADIO_CLOSE = "/customize/radio/close"
+
+    /** The firmware's own music player (USB, SD). Its session tells no track and drops every command: broadcasts do both (#178). */
+    const val MUSIC_PACKAGE = "com.qf.musicplayer"
+    private const val ACTION_MUSIC_INFO = "com.qf.musicplayer.action.UPDATE_ACTION"
+    private const val ACTION_MUSIC_PROGRESS = "com.qf.action.UPDATE_SEEKBAR_ACTION"
+    private const val ACTION_MUSIC_ASK = "com.qf.musicplayer.action.LAUNCHER_INIT_ACTION"
+    private const val ACTION_MUSIC_CONTROL = "com.qf.action.CONTROL_ACTION"
+    private const val MUSIC_TOGGLE = 17
+    private const val MUSIC_STEP = 18
+
+    @Volatile private var music: MusicInfoData? = null
+    @Volatile private var musicAtMs = 0L
+
+    /** [status] 17 toggles play and pause (there is no pause alone), 18 steps by [step]. */
+    private fun musicCommand(context: Context, status: Int, step: Int) {
+        context.sendBroadcast(
+            Intent(ACTION_MUSIC_CONTROL).putExtra("music_player_status_key", status).putExtra("music_player_switch_key", step)
+        )
+    }
 
     data class BtTrack(val title: String, val artist: String, val album: String)
 
@@ -154,20 +174,25 @@ object HeadUnitMedia {
             TopwayRadio.start(app)
             return
         }
-        if (!UnitPlatform.hasPackage(app, BT_PACKAGE) && !UnitPlatform.hasPackage(app, RADIO_PACKAGE)) return
+        val hasMusic = UnitPlatform.hasPackage(app, MUSIC_PACKAGE)
+        if (!UnitPlatform.hasPackage(app, BT_PACKAGE) && !UnitPlatform.hasPackage(app, RADIO_PACKAGE) && !hasMusic) return
         started = true
         val filter = IntentFilter().apply {
             addAction(ACTION_BT_INFO)
             addAction(ACTION_RADIO)
+            addAction(ACTION_MUSIC_INFO)
+            addAction(ACTION_MUSIC_PROGRESS)
         }
         ContextCompat.registerReceiver(app, receiver, filter, ContextCompat.RECEIVER_EXPORTED)
+        // The player only tells its track when it changes: ask for the one already playing.
+        if (hasMusic) app.sendBroadcast(Intent(ACTION_MUSIC_ASK))
     }
 
     /** Told (main thread) whenever a track or station changes. */
     fun addListener(listener: () -> Unit) = listeners.add(listener)
     fun removeListener(listener: () -> Unit) = listeners.remove(listener)
 
-    fun isStock(pkg: String?): Boolean = pkg == BT_PACKAGE || pkg?.startsWith("com.android.fmradio") == true || pkg == TOPWAY_RADIO
+    fun isStock(pkg: String?): Boolean = pkg == BT_PACKAGE || pkg == MUSIC_PACKAGE || pkg?.startsWith("com.android.fmradio") == true || pkg == TOPWAY_RADIO
 
     /**
      * Not a package: the linked phone's own player (Spotify over Bluetooth), shown from its
@@ -199,6 +224,13 @@ object HeadUnitMedia {
                         band = intent.getIntExtra("${ACTION_RADIO}_band_key", 0),
                         name = intent.getStringExtra("${ACTION_RADIO}_name_key")?.trim()?.takeIf { it.isNotEmpty() }
                     )
+                }
+                ACTION_MUSIC_INFO ->
+                    music = runCatching { intent.getParcelableExtra<MusicInfoData>("${ACTION_MUSIC_INFO}_musicinfo") }.getOrNull() ?: return
+                // Every second while it plays: kept for the progress bar, not told on.
+                ACTION_MUSIC_PROGRESS -> {
+                    musicAtMs = intent.getIntExtra("playtime", 0).toLong()
+                    return
                 }
                 else -> return
             }
@@ -248,6 +280,15 @@ object HeadUnitMedia {
                 hasMedia = true
             )
         }
+        pkg == MUSIC_PACKAGE -> music?.takeIf { !it.name.isNullOrBlank() }?.let { m ->
+            MediaState(
+                title = m.name.orEmpty().trim(),
+                artist = listOfNotNull(m.artist, m.album).map { it.trim() }.filter { it.isNotEmpty() }.joinToString(" · "),
+                isPlaying = m.curPlayStatus == MusicInfoData.PLAYING,
+                hasMedia = true,
+                durationMs = m.totalTime.toLong().coerceAtLeast(0)
+            )
+        }
         isStock(pkg) -> radio?.let { r ->
             val frequency = radioLabel(r)
             val name = r.name ?: rdsName
@@ -262,10 +303,15 @@ object HeadUnitMedia {
     }
 
     /** Bluetooth music's position in ms, when it reports one. */
-    fun positionMs(pkg: String): Long? = if (pkg == BT_PACKAGE) btProgress()?.first?.toLong() else null
+    fun positionMs(pkg: String): Long? = when (pkg) {
+        BT_PACKAGE -> btProgress()?.first?.toLong()
+        MUSIC_PACKAGE -> musicAtMs
+        else -> null
+    }
 
     fun playPause(context: Context, pkg: String) {
         if (pkg == BT_PACKAGE) return btCommand(context, BT_TOGGLE)
+        if (pkg == MUSIC_PACKAGE) return musicCommand(context, MUSIC_TOGGLE, 0)
         if (pkg == PHONE) return phoneKey(PhoneMediaKey.Key.PLAY_PAUSE)
         if (pkg == TOPWAY_RADIO) return TopwayRadio.playPause(context)
         // The radio has no pause: closing its screen stops it, opening it plays.
@@ -275,6 +321,7 @@ object HeadUnitMedia {
     /** [session]: the radio's own media session when one is listed, for [stepRadio]'s media key. */
     fun next(context: Context, pkg: String, session: MediaController? = null) {
         if (pkg == BT_PACKAGE) return btCommand(context, BT_NEXT)
+        if (pkg == MUSIC_PACKAGE) return musicCommand(context, MUSIC_STEP, 1)
         if (pkg == PHONE) return phoneKey(PhoneMediaKey.Key.NEXT)
         if (pkg == TOPWAY_RADIO) return TopwayRadio.next(context)
         if (radioAlive()) stepRadio(context, RADIO_NEXT, KeyEvent.KEYCODE_MEDIA_NEXT, session) else openRadio(context)
@@ -282,6 +329,7 @@ object HeadUnitMedia {
 
     fun previous(context: Context, pkg: String, session: MediaController? = null) {
         if (pkg == BT_PACKAGE) return btCommand(context, BT_PREVIOUS)
+        if (pkg == MUSIC_PACKAGE) return musicCommand(context, MUSIC_STEP, -1)
         if (pkg == PHONE) return phoneKey(PhoneMediaKey.Key.PREVIOUS)
         if (pkg == TOPWAY_RADIO) return TopwayRadio.previous(context)
         if (radioAlive()) stepRadio(context, RADIO_PREVIOUS, KeyEvent.KEYCODE_MEDIA_PREVIOUS, session) else openRadio(context)

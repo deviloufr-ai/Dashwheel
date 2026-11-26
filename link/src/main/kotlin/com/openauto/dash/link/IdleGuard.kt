@@ -19,6 +19,10 @@ class IdleGuard(
     @Volatile var timeoutMs: Long = timeoutMs
 
     @Volatile private var lastHeard = now()
+
+    /** Bytes read through [hearing], by its one reader thread. */
+    @Volatile var bytesHeard = 0L
+        private set
     @Volatile private var stopped = false
     private val thread = Thread(::watch, "link-idle-guard").apply { isDaemon = true }
 
@@ -41,9 +45,14 @@ class IdleGuard(
      * Bluetooth link ended the link in the middle of it, at every try (#118).
      */
     fun hearing(input: InputStream): InputStream = object : InputStream() {
-        override fun read(): Int = input.read().also { if (it >= 0) kick() }
+        override fun read(): Int = input.read().also { if (it >= 0) heard(1) }
 
-        override fun read(b: ByteArray, off: Int, len: Int): Int = input.read(b, off, len).also { if (it > 0) kick() }
+        override fun read(b: ByteArray, off: Int, len: Int): Int = input.read(b, off, len).also { if (it > 0) heard(it) }
+
+        private fun heard(bytes: Int) {
+            bytesHeard += bytes
+            kick()
+        }
 
         override fun available(): Int = input.available()
 

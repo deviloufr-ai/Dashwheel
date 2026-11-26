@@ -35,7 +35,9 @@ sealed interface LinkMessage
 data class Hello(
     val deviceName: String,
     val appVersion: String,
-    val protocol: Int = PROTOCOL_VERSION
+    val protocol: Int = PROTOCOL_VERSION,
+    /** How the phone saw its previous link end, for the unit log: a link only one side can hear (#118). */
+    val lastLink: String? = null
 ) : LinkMessage
 
 /** Keep-alive; answered with [Pong]. A silent link is dropped and redialled. */

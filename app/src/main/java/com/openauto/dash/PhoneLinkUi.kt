@@ -148,6 +148,10 @@ internal fun PhoneMessageSheet(item: NotifItem, onDismiss: () -> Unit) {
             .takeIf { it.resolveActivity(context.packageManager) != null }
     }
     val lines = item.messages.ifEmpty { listOf(ConversationLine("", item.text, item.postedAt)) }
+    // What was dictated and its Send button come last, under the fold on a 720-pixel screen: after
+    // Google's listening screen closed, nothing seemed to have happened (#178). Brought into view.
+    val scroll = rememberScrollState()
+    LaunchedEffect(draft, scroll.maxValue) { if (draft != null) scroll.animateScrollTo(scroll.maxValue) }
     val spoken = spokenMessage(item)
 
     AlertDialog(
@@ -168,7 +172,7 @@ internal fun PhoneMessageSheet(item: NotifItem, onDismiss: () -> Unit) {
         },
         text = {
             Column(
-                modifier = Modifier.heightIn(max = 470.dp).verticalScroll(rememberScrollState()),
+                modifier = Modifier.heightIn(max = 470.dp).verticalScroll(scroll),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 lines.forEach { l ->

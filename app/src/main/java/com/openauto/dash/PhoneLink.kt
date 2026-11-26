@@ -776,7 +776,10 @@ object PhoneLink {
                 idle?.kick()
                 lastHeardAt = SystemClock.elapsedRealtime()
                 val message = received ?: continue
-                if (message === Pong) pongs++ else if (message is Hello) companion = message.appVersion
+                if (message === Pong) pongs++ else if (message is Hello) {
+                    companion = message.appVersion
+                    message.lastLink?.let { DebugLog.note(context, "Phone link before this one, seen from the phone: $it") }
+                }
                 // One message this build can't make sense of is skipped: thrown out of
                 // here, it ended the launcher (nothing above catches it).
                 try {

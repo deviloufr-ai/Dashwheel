@@ -317,6 +317,9 @@ object LinkServer {
         serve(context, conn)
     }
 
+    /** The last link's end as [note]d, told to the car at the next link: its log is the one testers send. */
+    @Volatile private var lastEnd: String? = null
+
     private fun serve(context: Context, conn: Conn) {
         // Bluetooth has no read timeout: a guard closes a link that went quiet instead.
         val guard = if (conn.setReadTimeout == null) IdleGuard(HANDSHAKE_TIMEOUT_MS.toLong(), conn.close).start() else null
@@ -359,7 +362,7 @@ object LinkServer {
         }
         replaced?.close()
 
-        send(Hello(deviceName(context), appVersion(context)))
+        send(Hello(deviceName(context), appVersion(context), lastLink = lastEnd))
         // A listener Android let go of meanwhile is asked back; its sync follows once it is (onListenerConnected).
         PhoneNotificationListener.rebind(context)
         send(PhoneNotificationListener.syncMessage())
@@ -371,10 +374,14 @@ object LinkServer {
         PhoneBatteryWatch.current(context)?.let(::send)
         val linkedAt = System.currentTimeMillis()
         var ended = "replaced or closed here"
+        // What got through from the car: bytes without whole messages is a link losing some on the way (#118).
+        var heard = 0
+        val bytesAtLink = guard?.bytesHeard
         try {
             while (true) {
                 val received = link.receive()
                 guard?.kick()
+                heard++
                 val message = received ?: continue
                 // One message that can't be handled is skipped, rather than ending the app.
                 try {
@@ -392,7 +399,9 @@ object LinkServer {
             synchronized(this) {
                 if (session === link) {
                     // Shown under the status: why the car went, for a link that keeps dropping (issue #118).
-                    note("${conn.label}: link ended after ${(System.currentTimeMillis() - linkedAt) / 1000} s: $ended")
+                    val bytes = if (guard != null && bytesAtLink != null) ", ${guard.bytesHeard - bytesAtLink} bytes" else ""
+                    lastEnd = "${conn.label}: link ended after ${(System.currentTimeMillis() - linkedAt) / 1000} s: $ended, heard $heard messages$bytes"
+                    note(lastEnd.orEmpty())
                     session = null
                     if (running) _state.value = LinkState.Waiting
                     // No head unit to relay to: the OBD adapter is let go for the next start.
