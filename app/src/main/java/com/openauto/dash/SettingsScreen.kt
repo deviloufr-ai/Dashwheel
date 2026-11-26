@@ -99,6 +99,7 @@ import androidx.compose.material.icons.filled.SensorDoor
 import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.SettingsRemote
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StayCurrentLandscape
 import androidx.compose.material.icons.filled.StayCurrentPortrait
 import androidx.compose.material.icons.filled.SystemUpdate
@@ -179,7 +180,7 @@ import kotlinx.coroutines.launch
  */
 
 internal enum class SettingsTab(@StringRes val titleRes: Int, val icon: ImageVector) {
-    OVERVIEW(R.string.settings_overview, Icons.Filled.Dashboard),
+    OVERVIEW(R.string.settings_overview, Icons.Filled.Star),
     // Every day: what the car says and shows, how it sounds and looks.
     ALERTS(R.string.settings_section_alerts, Icons.Filled.NotificationsActive),
     SOUND(R.string.settings_section_sound, Icons.Filled.VolumeUp),
@@ -187,12 +188,12 @@ internal enum class SettingsTab(@StringRes val titleRes: Int, val icon: ImageVec
     DASHBOARD(R.string.settings_section_dashboard, Icons.Filled.DashboardCustomize),
     // The car: who it is, reading it, driving it.
     CAR(R.string.settings_section_car, Icons.Filled.DirectionsCar),
-    DIAGNOSTICS(R.string.settings_section_diagnostics, Icons.Filled.MonitorHeart),
+    DIAGNOSTICS(R.string.settings_group_car_data, Icons.Filled.MonitorHeart),
     DRIVING(R.string.settings_section_driving, Icons.Filled.Speed),
-    // Set once: what talks to the unit, the unit itself, the app, and the tools for the few.
+    // Set once: what talks to the unit, the unit itself, and the app.
     DEVICES(R.string.settings_section_devices, Icons.Filled.Devices),
     HEAD_UNIT(R.string.unit_card_title, Icons.Filled.DeveloperBoard),
-    GENERAL(R.string.settings_section_general, Icons.Filled.Tune);
+    GENERAL(R.string.app_name, Icons.Filled.Tune);
 
     companion object {
         /** The groups, without the overview that leads to them. */
@@ -200,10 +201,10 @@ internal enum class SettingsTab(@StringRes val titleRes: Int, val icon: ImageVec
     }
 }
 
-/** The settings that open further into the pane; Lab's open over Lab. */
+/** The settings that open further into the pane. */
 internal enum class Deep {
     CAR, CAR_LOOK, REVERSE, SIGNALS, AI, UPKEEP, EXPLORER, WHEEL, PLACES, LANGUAGE, SECOND_SCREEN, LPG, MY_READINGS,
-    OBD, UNITS, ACCESS, ABOUT, LAB, UNIT_TOOLS, MAP_SERVERS, API_KEYS, HEAD_UNIT, TPMS, CAN, SENSOR_WATCH, KEPT_CAMERAS, KEPT_LIMITS
+    OBD, UNITS, ACCESS, ABOUT, UNIT_TOOLS, MAP_SERVERS, API_KEYS, HEAD_UNIT, TPMS, CAN, SENSOR_WATCH, KEPT_CAMERAS, KEPT_LIMITS
 }
 
 /** Under this width the categories go along the top: a rail would leave the settings half a screen. */
@@ -252,12 +253,15 @@ internal fun SettingsScreen(
     var bootLogo by remember { mutableStateOf(false) }
     // The setting a search was for: its row is scrolled to in the pane it opens.
     var target by remember { mutableStateOf<String?>(null) }
+    // What is typed in the side bar's search: while there is some, the pane lists what it finds.
+    var query by remember { mutableStateOf("") }
     // Another category, or closing: the open sheet leaves first, as by its back arrow.
     val go: (SettingsTab, List<Deep>) -> Unit = { t, path ->
         OpenSheet.dismiss()
         stack = path
         tab = t
         target = null
+        query = ""
     }
     val choose: (SettingsTab) -> Unit = { go(it, emptyList()) }
     val close = {
@@ -294,7 +298,6 @@ internal fun SettingsScreen(
                         Deep.UNITS -> UnitsSheet(onDismiss = back)
                         Deep.ACCESS -> AccessSheet(onPickObd = onPickObd, onDismiss = back)
                         Deep.ABOUT -> AboutSheet(m, onDismiss = back)
-                        Deep.LAB -> LabSheet(open = open, onDismiss = back)
                         Deep.UNIT_TOOLS -> UnitToolsSheet(m, onBootLogo = { bootLogo = true }, onDismiss = back)
                         Deep.MAP_SERVERS -> MapServersSheet(onDismiss = back)
                         Deep.API_KEYS -> ApiKeysSheet(onDismiss = back)
@@ -337,26 +340,28 @@ internal fun SettingsScreen(
 
     SolidCard(modifier = modifier) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val upright = maxWidth < NARROW_SETTINGS && maxHeight > maxWidth
+            val found: (SettingsTab, List<Deep>, Int?) -> Unit = { t, path, searched ->
+                go(t, path)
+                target = searched?.let(context::getString)
+            }
             when {
-                // The overview has the whole card: its tiles are the categories.
-                tab == SettingsTab.OVERVIEW -> SettingsOverview(
-                    m = m,
-                    theme = theme,
-                    narrow = maxWidth < NARROW_SETTINGS,
-                    onGo = { t, path, searched ->
-                        go(t, path)
-                        target = searched?.let(context::getString)
-                    },
-                    onClose = close
-                )
+                // An upright card: the first page has it whole, its tiles are the categories.
+                upright && tab == SettingsTab.OVERVIEW -> SettingsOverview(m = m, theme = theme, narrow = true, onGo = found, onClose = close)
                 // Tabs across the top only on an upright card: on a small wide screen they leave the pane one line.
-                maxWidth < NARROW_SETTINGS && maxHeight > maxWidth -> Column(modifier = Modifier.fillMaxSize()) {
+                upright -> Column(modifier = Modifier.fillMaxSize()) {
                     SettingsTabs(tab, choose, close)
                     pane(Modifier.weight(1f).fillMaxWidth())
                 }
+                // Wide: the categories and the search stay down the left on every page, the first included.
                 else -> Row(modifier = Modifier.fillMaxSize()) {
-                    SettingsRail(tab, choose, close)
-                    pane(Modifier.weight(1f).fillMaxHeight())
+                    SettingsRail(tab, query, { query = it }, choose, close)
+                    val paneModifier = Modifier.weight(1f).fillMaxHeight()
+                    when {
+                        query.isNotBlank() -> SettingsSearchPane(query.trim(), found, paneModifier)
+                        tab == SettingsTab.OVERVIEW && deep == null -> ForYou(m, found, paneModifier)
+                        else -> pane(paneModifier)
+                    }
                 }
             }
         }
@@ -399,7 +404,7 @@ private val RAIL_MAX_WIDTH = 520.dp
 
 /** Wide screens: close, the title and the categories down the left. */
 @Composable
-private fun SettingsRail(tab: SettingsTab, onChoose: (SettingsTab) -> Unit, onClose: () -> Unit) {
+private fun SettingsRail(tab: SettingsTab, query: String, onQuery: (String) -> Unit, onChoose: (SettingsTab) -> Unit, onClose: () -> Unit) {
     val tap = rememberTapFeedback()
     // A screen dead in one upright strip (Lab): the side bar grows past it, so the
     // pane's back arrow and rows start where touches are felt.
@@ -428,8 +433,10 @@ private fun SettingsRail(tab: SettingsTab, onChoose: (SettingsTab) -> Unit, onCl
     ) {
         SettingsHeader(onClose)
         Spacer(Modifier.height(8.dp))
+        SettingsSearchField(query, onQuery, Modifier.fillMaxWidth())
+        Spacer(Modifier.height(8.dp))
         SettingsTab.entries.forEach { t ->
-            val chosen = t == tab
+            val chosen = t == tab && query.isBlank()
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -519,10 +526,6 @@ private fun CarPane(open: (Deep) -> Unit) {
     SettingsSection(stringResource(R.string.settings_section_car))
     SettingsRow(Icons.Filled.DirectionsCar, stringResource(R.string.car_menu), car.displayName(LocalContext.current)) { open(Deep.CAR) }
     SettingsRow(Icons.Filled.Image, stringResource(R.string.mycar_title), stringResource(R.string.mycar_settings_detail)) { open(Deep.CAR_LOOK) }
-    // Settings is parked-only; the Telemetry tile's tuning button opens the same row on the move.
-    SpeedCorrectionRow(detail = stringResource(R.string.settings_speed_fix_detail))
-    UsbTpmsRow { open(Deep.TPMS) }
-    UsbCanRow { open(Deep.CAN) }
     Spacer(Modifier.height(20.dp))
     SettingsSection(stringResource(R.string.settings_section_upkeep))
     SettingsRow(Icons.Filled.Handyman, stringResource(R.string.upkeep_dialog_title), stringResource(R.string.upkeep_settings_detail)) { open(Deep.UPKEEP) }
@@ -532,12 +535,21 @@ private fun CarPane(open: (Deep) -> Unit) {
 /** Reading the car: the adapter, what the AI makes of it, the driver's own readings, the signals learned. */
 @Composable
 private fun DiagnosticsPane(open: (Deep) -> Unit) {
-    SettingsSection(stringResource(R.string.settings_section_diagnostics))
+    SettingsSection(stringResource(R.string.settings_group_car_data))
     SettingsRow(Icons.Filled.Bluetooth, stringResource(R.string.settings_obd_title), obdSummary()) { open(Deep.OBD) }
+    UsbTpmsRow { open(Deep.TPMS) }
+    UsbCanRow { open(Deep.CAN) }
+    SettingsRow(Icons.Filled.SettingsInputAntenna, stringResource(R.string.signals_title), stringResource(R.string.signals_settings_detail)) { open(Deep.SIGNALS) }
+    // Settings is parked-only; the Telemetry tile's tuning button opens the same row on the move.
+    SpeedCorrectionRow(detail = stringResource(R.string.settings_speed_fix_detail))
+    Spacer(Modifier.height(20.dp))
+    SettingsSection(stringResource(R.string.settings_section_diagnostics))
     SettingsRow(Icons.Filled.AutoAwesome, stringResource(R.string.ai_title), stringResource(R.string.settings_ai_detail)) { open(Deep.AI) }
     SettingsRow(Icons.Filled.Insights, stringResource(R.string.watch_title), sensorWatchSummary()) { open(Deep.SENSOR_WATCH) }
+    Spacer(Modifier.height(20.dp))
+    SettingsSection(stringResource(R.string.settings_section_expert))
     SettingsRow(Icons.Filled.Calculate, stringResource(R.string.mine_title), stringResource(R.string.mine_settings_detail)) { open(Deep.MY_READINGS) }
-    SettingsRow(Icons.Filled.SettingsInputAntenna, stringResource(R.string.signals_title), stringResource(R.string.signals_settings_detail)) { open(Deep.SIGNALS) }
+    SettingsRow(Icons.Filled.Science, stringResource(R.string.explore_title), stringResource(R.string.explore_settings_detail)) { open(Deep.EXPLORER) }
 }
 
 /** The sensor watch in one line: what drifted, or that it is still learning. */
@@ -565,6 +577,13 @@ private fun DevicesPane(open: (Deep) -> Unit) {
     SettingsToggle(Icons.Filled.SmartToy, stringResource(R.string.automation_title), stringResource(R.string.automation_detail), automation) {
         Automation.setOn(context, it)
     }
+    // The keys the driver brings for the services asked on their behalf (ApiKeys.kt).
+    val keysVersion by ApiKeys.version.collectAsState()
+    val keysSet = remember(keysVersion) { ApiKeys.countSet(context) }
+    SettingsRow(
+        Icons.Filled.Key, stringResource(R.string.api_keys_title),
+        if (keysSet == 0) stringResource(R.string.api_keys_none) else pluralStringResource(R.plurals.api_keys_set_count, keysSet, keysSet)
+    ) { open(Deep.API_KEYS) }
 }
 
 /** Where the readings come from now, in one line: the Deep OBD app, or the adapter and whether it is linked. */
@@ -845,6 +864,14 @@ private fun LookPane(theme: ThemeState) {
     LookLightAndEffects(theme)
     Spacer(Modifier.height(20.dp))
     StartAnimationSetting()
+    Spacer(Modifier.height(20.dp))
+    ScreenOrientationSetting()
+    DeadStripRows()
+    // The unit's bar is moved through the shell: not in the Play edition.
+    if (FreeformBar.supported && Edition.full) {
+        Spacer(Modifier.height(20.dp))
+        UnitBarSetting()
+    }
 }
 
 /** The dashboard around the tiles: the bottom bar, its readouts, the side rail and tabs, Moments. */
@@ -859,6 +886,7 @@ private fun DashboardPane(m: TopBarModel, theme: ThemeState) {
     NavigationSetting(theme)
     Spacer(Modifier.height(12.dp))
     MomentsRow(m.onMoments)
+    SettingsRow(Icons.Filled.Dashboard, stringResource(R.string.templates_button), null, m.onTemplates)
 }
 
 /** Every sound it makes that is not an alert: the volume, the tap sound, the music after a call. */
@@ -1094,6 +1122,11 @@ private fun DrivingPane(m: TopBarModel, open: (Deep) -> Unit) {
     KeptLimitsRow { open(Deep.KEPT_LIMITS) }
     FuelOrderSetting()
     WazeWakeSetting()
+    val servers by MapServers.current.collectAsState()
+    SettingsRow(
+        Icons.Filled.Dns, stringResource(R.string.map_servers_title),
+        stringResource(if (servers.isDefault) R.string.map_servers_default else R.string.map_servers_custom)
+    ) { open(Deep.MAP_SERVERS) }
     // Every physical button together: what the wheel's do, then what the unit's own keys open.
     val keys = remember { Edition.full && KeyTargets.available() }
     val keysLocked = keys && !shellAccess().shell
@@ -1249,13 +1282,6 @@ private fun SpeedVolumeSetting() {
 @Composable
 private fun HeadUnitPane(open: (Deep) -> Unit) {
     val context = LocalContext.current
-    ScreenOrientationSetting()
-    // The unit's bar is moved through the shell: not in the Play edition.
-    if (FreeformBar.supported && Edition.full) {
-        Spacer(Modifier.height(20.dp))
-        UnitBarSetting()
-    }
-    Spacer(Modifier.height(20.dp))
     SettingsSection(stringResource(R.string.settings_section_access))
     // Which head unit firmware this is, and what it lets Dashwheel do (HeadUnitCard.kt).
     HeadUnitRow { open(Deep.HEAD_UNIT) }
@@ -1285,6 +1311,17 @@ private fun HeadUnitPane(open: (Deep) -> Unit) {
         ShizukuRow()
     }
     if (locked.isNotEmpty()) RootLockCard(locked)
+    if (CarPower.available) {
+        val lost = remember { CarPower.sleepLost(context) }
+        var expanded by remember { mutableStateOf(false) }
+        ExpandRow(
+            Icons.Filled.DirectionsCar, stringResource(R.string.settings_sleep_title),
+            if (lost.isEmpty()) stringResource(R.string.settings_sleep_none)
+            else stringResource(R.string.settings_sleep_lost, lost.size, if (expanded) lost.joinToString("\n") else lost.first()),
+            open = expanded,
+            canOpen = lost.size > 1
+        ) { expanded = !expanded }
+    }
 }
 
 /**
@@ -1318,6 +1355,8 @@ private fun HomeScreenToggle() {
 private fun GeneralPane(m: TopBarModel, open: (Deep) -> Unit) {
     val context = LocalContext.current
     val units by Units.current.collectAsState()
+    AppCard(m)
+    Spacer(Modifier.height(20.dp))
     SettingsSection(stringResource(R.string.settings_section_region))
     SettingsRow(Icons.Filled.Language, stringResource(R.string.language_title), languageName(AppLanguage.current(context))) { open(Deep.LANGUAGE) }
     SettingsRow(Icons.Filled.Straighten, stringResource(R.string.units_title), unitsSummary(units)) { open(Deep.UNITS) }
@@ -1334,28 +1373,12 @@ private fun GeneralPane(m: TopBarModel, open: (Deep) -> Unit) {
     // Updates are in About only, beside the version (the overview's card shows one waiting).
     SettingsRow(Icons.Filled.Info, stringResource(R.string.settings_section_about), stringResource(R.string.settings_about_detail)) { open(Deep.ABOUT) }
     Spacer(Modifier.height(20.dp))
-    ExpertRows(open)
+    SettingsSection(stringResource(R.string.settings_section_expert))
+    val experiments = Experiments.active()
+    SettingsToggle(Icons.Filled.Science, stringResource(R.string.lab_experimental_title), stringResource(R.string.lab_experimental_detail), experiments) { Experiments.setOn(context, it) }
 }
 
 /** For those who dig, at the end of General: Lab, the driver's own API keys, the map and route servers. */
-@Composable
-private fun ExpertRows(open: (Deep) -> Unit) {
-    val context = LocalContext.current
-    SettingsSection(stringResource(R.string.settings_section_expert))
-    SettingsRow(Icons.Filled.Science, stringResource(R.string.settings_lab), stringResource(R.string.settings_lab_detail)) { open(Deep.LAB) }
-    // The keys the driver brings for the services asked on their behalf (ApiKeys.kt).
-    val keysVersion by ApiKeys.version.collectAsState()
-    val keysSet = remember(keysVersion) { ApiKeys.countSet(context) }
-    SettingsRow(
-        Icons.Filled.Key, stringResource(R.string.api_keys_title),
-        if (keysSet == 0) stringResource(R.string.api_keys_none) else pluralStringResource(R.plurals.api_keys_set_count, keysSet, keysSet)
-    ) { open(Deep.API_KEYS) }
-    val servers by MapServers.current.collectAsState()
-    SettingsRow(
-        Icons.Filled.Dns, stringResource(R.string.map_servers_title),
-        stringResource(if (servers.isDefault) R.string.map_servers_default else R.string.map_servers_custom)
-    ) { open(Deep.MAP_SERVERS) }
-}
 
 /**
  * What root writes to the unit: the boot logo, Google Maps inside a tile and
@@ -1392,33 +1415,6 @@ private fun UnitToolsSheet(m: TopBarModel, onBootLogo: () -> Unit, onDismiss: ()
  * Tools still being tried, and what is for a bug report rather than a
  * setting: the readings found by AI, deep sleep and the log.
  */
-@Composable
-private fun LabSheet(open: (Deep) -> Unit, onDismiss: () -> Unit) {
-    val context = LocalContext.current
-    SettingsSheet(title = stringResource(R.string.settings_lab), onDismiss = onDismiss, actions = {}) {
-        Column {
-            SettingsRow(Icons.Filled.Science, stringResource(R.string.explore_title), stringResource(R.string.explore_settings_detail)) { open(Deep.EXPLORER) }
-            DeadStripRows()
-            val experiments = Experiments.active()
-            SettingsToggle(Icons.Filled.Science, stringResource(R.string.lab_experimental_title), stringResource(R.string.lab_experimental_detail), experiments) { Experiments.setOn(context, it) }
-            Spacer(Modifier.height(20.dp))
-            SettingsSection(stringResource(R.string.settings_section_diagnostics))
-            if (CarPower.available) {
-                val lost = remember { CarPower.sleepLost(context) }
-                var expanded by remember { mutableStateOf(false) }
-                ExpandRow(
-                    Icons.Filled.DirectionsCar, stringResource(R.string.settings_sleep_title),
-                    if (lost.isEmpty()) stringResource(R.string.settings_sleep_none)
-                    else stringResource(R.string.settings_sleep_lost, lost.size, if (expanded) lost.joinToString("\n") else lost.first()),
-                    open = expanded,
-                    canOpen = lost.size > 1
-                ) { expanded = !expanded }
-            }
-            SendLogRow()
-            SaveLogRow()
-        }
-    }
-}
 
 /**
  * A touchscreen dead in one upright strip ([DeadTouchStrip]): the switch, and
@@ -1500,15 +1496,12 @@ private const val TELEGRAM_URL = "https://t.me/Dashwheel"
 internal const val PLAY_LISTING = "https://play.google.com/store/apps/details?id="
 
 /** Who made the app, what it is, the update check, a Ko-fi link with its QR code, the tour, help and the project. */
+/**
+ * The app at the top of its own group: the logo and version, then the way to
+ * support it (Ko-fi with its QR code; Play's own tips on Play).
+ */
 @Composable
-private fun AboutSheet(m: TopBarModel, onDismiss: () -> Unit) {
-    SettingsSheet(title = stringResource(R.string.settings_section_about), onDismiss = onDismiss, actions = {}) {
-        Column { AboutBody(m) }
-    }
-}
-
-@Composable
-private fun AboutBody(m: TopBarModel) {
+private fun AppCard(m: TopBarModel) {
     val context = LocalContext.current
     val tap = rememberTapFeedback()
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp)) {
@@ -1523,18 +1516,6 @@ private fun AboutBody(m: TopBarModel) {
         }
     }
     Spacer(Modifier.height(12.dp))
-    Text(
-        stringResource(R.string.about_description),
-        color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium,
-        modifier = Modifier.padding(horizontal = 12.dp)
-    )
-    Spacer(Modifier.height(20.dp))
-    SettingsSection(stringResource(R.string.about_author_section))
-    Column(modifier = Modifier.padding(horizontal = 12.dp)) {
-        Text(stringResource(R.string.about_author_name), color = DashColors.TextPrimary, style = MaterialTheme.typography.titleMedium)
-        Text(stringResource(R.string.about_author_role), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
-    }
-    Spacer(Modifier.height(20.dp))
     // Google Play allows no donation link in the app: tips go through Play's own billing there.
     if (Edition.play) {
         TipJar(Modifier.padding(horizontal = 12.dp))
@@ -1547,9 +1528,12 @@ private fun AboutBody(m: TopBarModel) {
             Column(Modifier.weight(1f)) {
                 Text(stringResource(R.string.about_support_text), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium)
                 Spacer(Modifier.height(12.dp))
-                SheetButton(stringResource(R.string.about_kofi)) {
-                    tap()
-                    context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(KOFI_URL)))
+                // A filled button, as in a sheet: in the pane itself it would be a bare line of text.
+                CompositionLocalProvider(LocalSheetInPane provides true) {
+                    SheetButton(stringResource(R.string.about_kofi)) {
+                        tap()
+                        context.launchSafely(Intent(Intent.ACTION_VIEW, Uri.parse(KOFI_URL)))
+                    }
                 }
             }
             Spacer(Modifier.width(16.dp))
@@ -1559,9 +1543,31 @@ private fun AboutBody(m: TopBarModel) {
             }
         }
     }
+}
+
+@Composable
+private fun AboutSheet(m: TopBarModel, onDismiss: () -> Unit) {
+    SettingsSheet(title = stringResource(R.string.settings_section_about), onDismiss = onDismiss, actions = {}) {
+        Column { AboutBody(m) }
+    }
+}
+
+@Composable
+private fun AboutBody(m: TopBarModel) {
+    val context = LocalContext.current
+    Text(
+        stringResource(R.string.about_description),
+        color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyMedium,
+        modifier = Modifier.padding(horizontal = 12.dp)
+    )
+    Spacer(Modifier.height(20.dp))
+    SettingsSection(stringResource(R.string.about_author_section))
+    Column(modifier = Modifier.padding(horizontal = 12.dp)) {
+        Text(stringResource(R.string.about_author_name), color = DashColors.TextPrimary, style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.about_author_role), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall)
+    }
     Spacer(Modifier.height(20.dp))
     SettingsSection(stringResource(R.string.settings_section_about))
-    // Here too, where the version is read: "Update" belongs beside it.
     UpdateRow(m)
     var report by remember { mutableStateOf(false) }
     SettingsRow(Icons.Filled.BugReport, stringResource(R.string.report_title), stringResource(R.string.report_row_detail)) { report = true }

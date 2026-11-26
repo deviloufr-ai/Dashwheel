@@ -4,7 +4,7 @@
     <string name="settings_menu">Настройки</string>
     <string name="settings_title">Настройки</string>
     <string name="settings_section_car">Автомобиль</string>
-    <string name="settings_section_look">Вид</string>
+    <string name="settings_section_look">Экран и вид</string>
     <string name="settings_section_advanced">Дополнительно</string>
     <string name="settings_ai_detail">Объясняет коды ошибок и озвучивает оповещения</string>
     <string name="settings_system_detail">Виджеты Android добавляются без запроса каждый раз. Нужен root.</string>
@@ -16,6 +16,7 @@
     <string name="settings_section_sound">Звук</string>
     <string name="settings_section_buttons">Кнопки</string>
     <string name="settings_section_diagnostics">Диагностика</string>
+    <string name="settings_group_car_data">Данные автомобиля</string>
     <string name="settings_section_apps_in_tiles">Приложения в плитках</string>
     <!-- Volume follows speed (SpeedVolume.kt), Settings → Driving -->
     <string name="speed_volume_title">Громкость по скорости</string>
@@ -266,12 +267,13 @@
     <string name="settings_deepobd_field_none">Не используется</string>
     <string name="settings_deepobd_field_ignored">Пропущено</string>
     <!-- Settings rework: groups, overview, search (SettingsScreen.kt, SettingsOverview.kt) -->
-    <string name="settings_overview">Обзор</string>
+    <string name="settings_overview">Для вас</string>
+    <string name="settings_needs_you">Требует внимания</string>
+    <string name="settings_needs_nothing">Всё готово</string>
+    <string name="settings_quick_switches">Быстрые переключатели</string>
     <string name="settings_section_volume">Громкость</string>
     <string name="settings_section_taps_music">Нажатия и музыка</string>
     <string name="settings_section_more_tools">Другие инструменты</string>
-    <string name="settings_lab">Лаборатория</string>
-    <string name="settings_lab_detail">Инструменты в испытании и журнал устройства</string>
     <string name="lab_experimental_title">Экспериментальные функции</string>
     <string name="lab_experimental_detail">Фары и открытые двери на 3D-машине, город в сумерках на 3D-карте, нарисованная дорога в Road watch на телефоне</string>
     <string name="dead_strip_title">Мёртвая полоса касаний</string>
@@ -385,7 +387,6 @@
     <string name="settings_section_alerts">Оповещения</string>
     <string name="settings_section_dashboard">Панель</string>
     <string name="settings_section_devices">Телефон и экраны</string>
-    <string name="settings_section_general">Общие</string>
     <string name="settings_section_expert">Для опытных</string>
     <string name="settings_section_upkeep">Обслуживание и топливо</string>
     <string name="settings_section_screens_apps">Экраны и приложения</string>

@@ -46,6 +46,7 @@ import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.FormatSize
 import androidx.compose.material.icons.filled.LibraryAdd
 import androidx.compose.material.icons.filled.Share
@@ -963,41 +964,37 @@ internal fun MorePicker(m: TopBarModel, geminiInBar: Boolean = false, anchor: @C
             UpdateDotHint()
         }
         DashMenu(open, onDismiss = { open = false }, prominent = true) {
+            // A panel, not a list: the switches flipped most, the things done often, then Settings (QuickPanel.kt).
             if (m.moving) DriveLockRow()
             val parked = !m.moving
             UpdateMenuRow(m.update, parked, onUpdate = pick(m.onUpdate))
-            DashMenuItem(
-                text = stringResource(if (m.editing) R.string.dash_menu_done_editing else R.string.dash_menu_edit_dashboards),
-                leading = { MenuChip(if (m.editing) Icons.Filled.Done else Icons.Filled.Edit, DashColors.Accent, parked) },
-                enabled = parked || m.editing,
-                onClick = pick(m.onToggleEdit)
-            )
-            DashMenuItem(stringResource(R.string.templates_button), leading = { MenuChip(Icons.Filled.Dashboard, DashColors.Accent, parked) }, enabled = parked, onClick = pick(m.onTemplates))
-            // Splitting the screen with an app is in the bar's Layout menu, with Google Maps' dock.
-            // Spoken, so offered while driving too; here only when the look's bar has no button for it.
-            if (!geminiInBar && GeminiLive.available(context)) {
-                DashMenuItem(stringResource(R.string.ai_gemini_live), leading = { MenuChip(Icons.Filled.AutoAwesome, DashColors.Accent2) }, onClick = pick { GeminiLive.toggle(context) })
-            }
-            // What the car says by itself, off for this drive and back: the same switch as the wheel's Quiet.
-            val quiet by CarVoice.quietState.collectAsState()
-            DashMenuItem(
-                text = stringResource(if (quiet) R.string.voice_menu_back else R.string.voice_menu_quiet),
-                leading = { MenuChip(if (quiet) Icons.Filled.VolumeUp else Icons.Filled.VolumeOff, DashColors.Secondary) },
-                onClick = pick {
-                    CarVoice.quiet = !quiet
-                    if (quiet) HandsFree.say(context, R.string.voice_quiet_off)
+            Column(
+                modifier = Modifier.width(QUICK_PANEL_WIDTH).padding(horizontal = 12.dp, vertical = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                QuickSliders(Modifier.fillMaxWidth())
+                QuickSwitches(columns = 3)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    QuickTile(
+                        if (m.editing) Icons.Filled.Done else Icons.Filled.Edit,
+                        stringResource(if (m.editing) R.string.dash_menu_done_editing else R.string.dash_menu_edit_dashboards),
+                        on = null, modifier = Modifier.weight(1f), enabled = parked || m.editing, onClick = pick(m.onToggleEdit)
+                    )
+                    QuickTile(Icons.Filled.Dashboard, stringResource(R.string.templates_button), on = null, modifier = Modifier.weight(1f), enabled = parked, onClick = pick(m.onTemplates))
                 }
-            )
-            // Settings, set once, stands apart from the things done often.
-            HorizontalDivider(color = DashColors.Line, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
-            DashMenuItem(stringResource(R.string.settings_menu), leading = { MenuChip(Icons.Filled.Settings, DashColors.TextPrimary, parked) }, enabled = parked, onClick = pick(m.onSettings))
-            if (m.demo) {
-                HorizontalDivider(color = DashColors.Line, modifier = Modifier.padding(vertical = 4.dp))
-                DashMenuItem(
-                    text = stringResource(R.string.demo_menu_stop),
-                    leading = { MenuChip(Icons.Filled.Stop, DashColors.Critical) },
-                    onClick = pick(m.onDemo)
-                )
+                // Splitting the screen with an app is in the bar's Layout menu, with Google Maps' dock.
+                // Spoken, so offered while driving too; here only when the look's bar has no button for it.
+                if (!geminiInBar && GeminiLive.available(context)) {
+                    QuickTile(Icons.Filled.AutoAwesome, stringResource(R.string.ai_gemini_live), on = null, modifier = Modifier.fillMaxWidth(), onClick = pick { GeminiLive.toggle(context) })
+                }
+                // What Dashwheel may not use yet: Settings' first page says how to allow it.
+                val missing = missingAccess()
+                if (missing.isNotEmpty()) {
+                    val names = missing.map { stringResource(it.titleRes) }.joinToString(", ")
+                    QuickTile(Icons.Filled.ErrorOutline, stringResource(R.string.settings_ov_not_allowed, names), on = null, modifier = Modifier.fillMaxWidth(), enabled = parked, onClick = pick(m.onSettings))
+                }
+                // Settings, set once, stands apart from the things done often.
+                QuickTile(Icons.Filled.Settings, stringResource(R.string.settings_menu), on = null, modifier = Modifier.fillMaxWidth(), enabled = parked, primary = true, onClick = pick(m.onSettings))
             }
         }
     }

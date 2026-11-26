@@ -4,7 +4,7 @@
     <string name="settings_menu">Ayarlar</string>
     <string name="settings_title">Ayarlar</string>
     <string name="settings_section_car">Araç</string>
-    <string name="settings_section_look">Tema</string>
+    <string name="settings_section_look">Ekran ve tema</string>
     <string name="settings_section_advanced">Gelişmiş</string>
     <string name="settings_ai_detail">Arıza kodlarını açıklar ve uyarıları söyler</string>
     <string name="settings_system_detail">Android widget\'ları her seferinde sorulmadan eklenebilir. Root gerekir.</string>
@@ -17,6 +17,7 @@
     <string name="settings_section_sound">Ses</string>
     <string name="settings_section_buttons">Tuşlar</string>
     <string name="settings_section_diagnostics">Teşhis</string>
+    <string name="settings_group_car_data">Araç verileri</string>
     <string name="settings_section_apps_in_tiles">Kutucuklarda uygulamalar</string>
     <!-- Volume follows speed (SpeedVolume.kt), Settings → Driving -->
     <string name="speed_volume_title">Hıza göre ses</string>
@@ -268,12 +269,13 @@
     <string name="settings_deepobd_field_none">Kullanılmıyor</string>
     <string name="settings_deepobd_field_ignored">Yok sayıldı</string>
     <!-- Settings rework: groups, overview, search (SettingsScreen.kt, SettingsOverview.kt) -->
-    <string name="settings_overview">Genel bakış</string>
+    <string name="settings_overview">Sizin için</string>
+    <string name="settings_needs_you">Yapılacaklar</string>
+    <string name="settings_needs_nothing">Her şey hazır</string>
+    <string name="settings_quick_switches">Hızlı ayarlar</string>
     <string name="settings_section_volume">Ses</string>
     <string name="settings_section_taps_music">Dokunmalar ve müzik</string>
     <string name="settings_section_more_tools">Daha fazla araç</string>
-    <string name="settings_lab">Deneysel</string>
-    <string name="settings_lab_detail">Hâlâ denenen araçlar ve ünitenin günlüğü</string>
     <string name="lab_experimental_title">Deneysel özellikler</string>
     <string name="lab_experimental_detail">3D araçta farlar ve açık kapılar, 3D haritada alacakaranlık şehir, telefondaki Road watch\'ta çizilmiş yol</string>
     <!-- Lab: a touchscreen that misses touches in one upright strip (DeadTouchStrip.kt) -->
@@ -380,7 +382,6 @@
     <string name="settings_section_alerts">Uyarılar</string>
     <string name="settings_section_dashboard">Gösterge paneli</string>
     <string name="settings_section_devices">Telefon ve ekranlar</string>
-    <string name="settings_section_general">Genel</string>
     <string name="settings_section_expert">Uzman</string>
     <string name="settings_section_upkeep">Servis ve yakıt</string>
     <string name="settings_section_screens_apps">Ekranlar ve uygulamalar</string>

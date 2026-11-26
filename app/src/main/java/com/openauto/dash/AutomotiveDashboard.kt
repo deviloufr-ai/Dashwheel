@@ -214,7 +214,7 @@ fun AutomotiveDashboard(inSplitMode: Boolean = false) {
     // DashboardUiState.kt. Read through local delegates of the same names.
     val ui = remember {
         DashboardUiState(
-            settingsTab = if (ScreenShape.settingsWanted()) SettingsTab.HEAD_UNIT else null,
+            settingsTab = if (ScreenShape.settingsWanted()) SettingsTab.LOOK else null,
             setupDone = SetupStore.isDone(context),
             setupPillOff = SetupStore.pillOff(context),
         )

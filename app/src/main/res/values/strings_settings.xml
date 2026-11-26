@@ -4,7 +4,7 @@
     <string name="settings_menu">Settings</string>
     <string name="settings_title">Settings</string>
     <string name="settings_section_car">Car</string>
-    <string name="settings_section_look">Look</string>
+    <string name="settings_section_look">Display and look</string>
     <string name="settings_section_advanced">Advanced</string>
     <string name="settings_ai_detail">Explains fault codes and speaks alerts</string>
     <string name="settings_system_detail">Android widgets can be added without being asked each time. Needs root.</string>
@@ -17,6 +17,7 @@
     <string name="settings_section_sound">Sound</string>
     <string name="settings_section_buttons">Buttons</string>
     <string name="settings_section_diagnostics">Diagnostics</string>
+    <string name="settings_group_car_data">Car data</string>
     <string name="settings_section_apps_in_tiles">Apps in tiles</string>
     <!-- Volume follows speed (SpeedVolume.kt), Settings → Driving -->
     <string name="speed_volume_title">Volume follows speed</string>
@@ -268,12 +269,13 @@
     <string name="settings_deepobd_field_none">Unused</string>
     <string name="settings_deepobd_field_ignored">Ignored</string>
     <!-- Settings rework: groups, overview, search (SettingsScreen.kt, SettingsOverview.kt) -->
-    <string name="settings_overview">Overview</string>
+    <string name="settings_overview">For you</string>
+    <string name="settings_needs_you">Needs you</string>
+    <string name="settings_needs_nothing">All set</string>
+    <string name="settings_quick_switches">Quick switches</string>
     <string name="settings_section_volume">Volume</string>
     <string name="settings_section_taps_music">Taps and music</string>
     <string name="settings_section_more_tools">More tools</string>
-    <string name="settings_lab">Lab</string>
-    <string name="settings_lab_detail">Tools still being tried, and the unit\'s log</string>
     <string name="lab_experimental_title">Experimental features</string>
     <string name="lab_experimental_detail">Lights and open doors on the 3D car, a dusk city on the 3D map, a drawn road in Road watch on the phone</string>
     <!-- Lab: a touchscreen that misses touches in one upright strip (DeadTouchStrip.kt) -->
@@ -380,7 +382,6 @@
     <string name="settings_section_alerts">Alerts</string>
     <string name="settings_section_dashboard">Dashboard</string>
     <string name="settings_section_devices">Phone and screens</string>
-    <string name="settings_section_general">General</string>
     <string name="settings_section_expert">Expert</string>
     <string name="settings_section_upkeep">Servicing and fuel</string>
     <string name="settings_section_screens_apps">Screens and apps</string>

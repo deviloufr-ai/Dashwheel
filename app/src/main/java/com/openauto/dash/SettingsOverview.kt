@@ -33,11 +33,13 @@ import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.BluetoothConnected
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Handyman
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SystemUpdate
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -130,6 +132,9 @@ private fun OverviewBody(m: TopBarModel, theme: ThemeState, narrow: Boolean, onG
         Spacer(Modifier.height(12.dp))
         NotAllowedStrip(missing.map { stringResource(it.titleRes) }) { onGo(SettingsTab.HEAD_UNIT, listOf(Deep.ACCESS), null) }
     }
+    Spacer(Modifier.height(12.dp))
+    // The same switches as the bar's quick panel (QuickPanel.kt).
+    QuickSwitches(columns = if (narrow) 2 else 3)
     Spacer(Modifier.height(20.dp))
     val tiles: List<@Composable (Modifier) -> Unit> = SettingsTab.groups.map { group ->
         { modifier -> GroupTile(group, groupSummary(group, m, theme), modifier) { onGo(group, emptyList(), null) } }
@@ -166,6 +171,23 @@ private fun CardTone.color(): Color = when (this) {
 private fun StatusCard(icon: ImageVector, label: String, value: String, detail: String?, tone: CardTone, modifier: Modifier, onClick: () -> Unit) {
     val tap = rememberTapFeedback()
     val shape = DashShape.Medium
+    if (LocalStatusChips.current) {
+        // In the hero: what it is and how it stands, nothing more.
+        Column(
+            modifier = modifier
+                .clip(shape)
+                .background(DashColors.Card.copy(alpha = 0.85f))
+                .border(1.dp, if (tone == CardTone.WARN || tone == CardTone.BAD) tone.color().copy(alpha = 0.6f) else DashColors.Line, shape)
+                .clickable(role = Role.Button) { tap(); onClick() }
+                .heightIn(min = DashSize.MenuRow)
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(label, color = tone.color(), style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(value, color = DashColors.TextPrimary, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+        return
+    }
     Column(
         modifier = modifier
             .clip(shape)
@@ -390,6 +412,184 @@ private fun groupSummary(group: SettingsTab, m: TopBarModel, theme: ThemeState):
     }
 }
 
+/* ---------- The first page beside the rail ---------- */
+
+/** The status cards drawn as the hero's small chips. */
+private val LocalStatusChips = androidx.compose.runtime.compositionLocalOf { false }
+
+/** Under this the hero and the two cards stack. */
+private val FOR_YOU_WIDE = 640.dp
+
+/**
+ * Settings' first page on a wide screen: the car and how things stand, what
+ * needs the driver, and the switches flipped most. The groups are in the rail.
+ */
+@Composable
+internal fun ForYou(m: TopBarModel, onGo: (SettingsTab, List<Deep>, Int?) -> Unit, modifier: Modifier = Modifier) {
+    val scroll = rememberScrollState()
+    androidx.compose.foundation.layout.BoxWithConstraints(modifier) {
+        val wide = maxWidth >= FOR_YOU_WIDE
+        Column(
+            modifier = Modifier.fillMaxSize().verticalScroll(scroll).padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            CarHero(m, wide, onGo)
+            val needs: @Composable (Modifier) -> Unit = { NeedsYouCard(m, onGo, it) }
+            // Which switches: the card opens the same choice as the Quick switches tile's settings.
+            var choosing by remember { mutableStateOf(false) }
+            val switches: @Composable (Modifier) -> Unit = {
+                OverviewCard(stringResource(R.string.settings_quick_switches), DashColors.TextSecondary, it, onEdit = { choosing = true }) { QuickSwitches(columns = 3) }
+            }
+            if (choosing) QuickSwitchesSheet(onDismiss = { choosing = false })
+            if (wide) {
+                Row(horizontalArrangement = Arrangement.spacedBy(14.dp), modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+                    needs(Modifier.weight(1f).fillMaxHeight())
+                    switches(Modifier.weight(1.2f).fillMaxHeight())
+                }
+            } else {
+                needs(Modifier.fillMaxWidth())
+                switches(Modifier.fillMaxWidth())
+            }
+        }
+        MoreBelow(scroll, Modifier.align(Alignment.BottomCenter))
+    }
+}
+
+/** What a search in the rail finds, in the pane. */
+@Composable
+internal fun SettingsSearchPane(query: String, onGo: (SettingsTab, List<Deep>, Int?) -> Unit, modifier: Modifier = Modifier) {
+    val scroll = rememberScrollState()
+    Box(modifier) {
+        Column(modifier = Modifier.fillMaxSize().imePadding().verticalScroll(scroll).padding(horizontal = 20.dp, vertical = 16.dp)) {
+            SearchResults(query, onGo)
+        }
+        MoreBelow(scroll, Modifier.align(Alignment.BottomCenter))
+    }
+}
+
+/** The driver's car, its own picture when there is one (MyCarLook.kt), over the four things that say how Dashwheel stands. */
+@Composable
+private fun CarHero(m: TopBarModel, wide: Boolean, onGo: (SettingsTab, List<Deep>, Int?) -> Unit) {
+    val context = LocalContext.current
+    val tap = rememberTapFeedback()
+    val car by CarProfileStore.profile.collectAsState()
+    val mine by MyCarLook.shown.collectAsState()
+    val style by MyCarLook.style.collectAsState()
+    val picture = mine?.portrait
+    val ink = DashColors.Accent
+    val warn = DashColors.Warning
+    val shape = DashShape.Large
+    val base = DashColors.CardHi.copy(alpha = 1f)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(androidx.compose.ui.graphics.Brush.horizontalGradient(listOf(base, androidx.compose.ui.graphics.lerp(base, DashColors.Accent, 0.28f))))
+            .border(1.dp, DashColors.Line, shape)
+            .padding(18.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().height(if (wide) 150.dp else 96.dp)) {
+            Column(
+                modifier = Modifier.weight(1f).clip(DashShape.Medium).clickable(role = Role.Button) { tap(); onGo(SettingsTab.CAR, listOf(Deep.CAR), null) }.padding(6.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(stringResource(R.string.settings_overview), color = DashColors.TextSecondary, style = MaterialTheme.typography.labelLarge)
+                Text(
+                    car.displayName(context), color = DashColors.TextPrimary, fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.headlineMedium, maxLines = 2, overflow = TextOverflow.Ellipsis
+                )
+                car.engine.takeIf { it.isNotBlank() }?.let {
+                    Text(it, color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+            }
+            if (wide) {
+                if (picture != null) {
+                    androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxHeight().fillMaxWidth(0.42f)) {
+                        drawCarView(picture, style, fitCar(picture, androidx.compose.ui.geometry.Rect(androidx.compose.ui.geometry.Offset.Zero, size)), ink, warn)
+                    }
+                } else {
+                    Icon(Icons.Filled.DirectionsCar, contentDescription = null, tint = DashColors.Accent.copy(alpha = 0.35f), modifier = Modifier.padding(end = 24.dp).size(132.dp))
+                }
+            }
+        }
+        val cards: List<@Composable (Modifier) -> Unit> = listOf(
+            { ObdCard(it) { onGo(SettingsTab.DIAGNOSTICS, listOf(Deep.OBD), null) } },
+            { PhoneCard(it) { onGo(SettingsTab.DEVICES, emptyList(), null) } },
+            { UpdateCard(m, it) },
+            { UpkeepCard(it) { onGo(SettingsTab.CAR, listOf(Deep.UPKEEP), null) } }
+        )
+        CompositionLocalProvider(LocalStatusChips provides true) { Grid(cards, columns = if (wide) 4 else 2) }
+    }
+}
+
+/** A titled card of the first page. */
+@Composable
+private fun OverviewCard(title: String, titleColor: Color, modifier: Modifier, onEdit: (() -> Unit)? = null, content: @Composable () -> Unit) {
+    val tap = rememberTapFeedback()
+    Column(
+        modifier = modifier
+            .clip(DashShape.Medium)
+            .background(DashColors.CardHi.copy(alpha = DashColors.CardHi.alpha * 0.6f))
+            .padding(horizontal = 14.dp, vertical = 12.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.heightIn(min = if (onEdit != null) DashSize.Touch else 0.dp)) {
+            Text(title, color = titleColor, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f))
+            if (onEdit != null) {
+                Box(
+                    modifier = Modifier.size(DashSize.Touch).clip(DashShape.Medium).clickable(role = Role.Button, onClickLabel = title) { tap(); onEdit() },
+                    contentAlignment = Alignment.Center
+                ) { Icon(Icons.Filled.Tune, contentDescription = title, tint = DashColors.TextSecondary, modifier = Modifier.size(22.dp)) }
+            }
+        }
+        Spacer(Modifier.height(if (onEdit != null) 2.dp else 10.dp))
+        content()
+    }
+}
+
+/** What waits on the driver: an access not given, an update, a service due. Each row opens where it is dealt with. */
+@Composable
+private fun NeedsYouCard(m: TopBarModel, onGo: (SettingsTab, List<Deep>, Int?) -> Unit, modifier: Modifier) {
+    val missing = missingAccess()
+    val update = !Edition.play && m.update.updateInfo != null
+    val state by Maintenance.state.collectAsState()
+    val due = remember(state) {
+        state.statuses(System.currentTimeMillis()).firstOrNull { it.stage == UpkeepStage.DUE || it.stage == UpkeepStage.SOON }
+    }
+    val nothing = missing.isEmpty() && !update && due == null
+    OverviewCard(stringResource(R.string.settings_needs_you), if (nothing) DashColors.TextSecondary else DashColors.Warning, modifier) {
+        if (nothing) Text(stringResource(R.string.settings_needs_nothing), color = DashColors.TextSecondary, style = MaterialTheme.typography.bodyLarge)
+        if (missing.isNotEmpty()) {
+            NeedRow(
+                stringResource(R.string.settings_ov_not_allowed, missing.map { stringResource(it.titleRes) }.joinToString(", ")),
+                stringResource(R.string.settings_ov_not_allowed_detail)
+            ) { onGo(SettingsTab.HEAD_UNIT, listOf(Deep.ACCESS), null) }
+        }
+        if (update) NeedRow(updateTitle(m), updateDetail(m)) { updateTap(m) }
+        if (due != null) NeedRow(stringResource(R.string.upkeep_dialog_title), upkeepLine(due)) { onGo(SettingsTab.CAR, listOf(Deep.UPKEEP), null) }
+    }
+}
+
+@Composable
+private fun NeedRow(title: String, detail: String, onClick: () -> Unit) {
+    val tap = rememberTapFeedback()
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(DashShape.Small)
+            .clickable(role = Role.Button) { tap(); onClick() }
+            .heightIn(min = DashSize.MenuRow)
+            .padding(vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(title, color = DashColors.TextPrimary, fontWeight = FontWeight.Medium, style = MaterialTheme.typography.bodyLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text(detail, color = DashColors.TextSecondary, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        }
+        Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = DashColors.TextSecondary, modifier = Modifier.size(24.dp))
+    }
+}
+
 /* ---------- Search ---------- */
 
 /**
@@ -448,9 +648,9 @@ private val SETTINGS_INDEX: List<SettingsEntry> by lazy {
 
         SettingsEntry(R.string.car_menu, SettingsTab.CAR, listOf(Deep.CAR)),
         SettingsEntry(R.string.mycar_title, SettingsTab.CAR, listOf(Deep.CAR_LOOK), detail = R.string.mycar_settings_detail),
-        SettingsEntry(R.string.vehicle_speed_fix, SettingsTab.CAR, detail = R.string.settings_speed_fix_detail),
-        SettingsEntry(R.string.tpms_usb_title, SettingsTab.CAR, listOf(Deep.TPMS), detail = R.string.tpms_usb_detail),
-        SettingsEntry(R.string.can_usb_title, SettingsTab.CAR, listOf(Deep.CAN), detail = R.string.can_usb_detail),
+        SettingsEntry(R.string.vehicle_speed_fix, SettingsTab.DIAGNOSTICS, detail = R.string.settings_speed_fix_detail),
+        SettingsEntry(R.string.tpms_usb_title, SettingsTab.DIAGNOSTICS, listOf(Deep.TPMS), detail = R.string.tpms_usb_detail),
+        SettingsEntry(R.string.can_usb_title, SettingsTab.DIAGNOSTICS, listOf(Deep.CAN), detail = R.string.can_usb_detail),
         SettingsEntry(R.string.upkeep_dialog_title, SettingsTab.CAR, listOf(Deep.UPKEEP), detail = R.string.upkeep_settings_detail),
         SettingsEntry(R.string.lpg_title, SettingsTab.CAR, listOf(Deep.LPG)),
 
@@ -476,8 +676,8 @@ private val SETTINGS_INDEX: List<SettingsEntry> by lazy {
         SettingsEntry(R.string.settings_section_second_screen, SettingsTab.DEVICES, listOf(Deep.SECOND_SCREEN)),
         SettingsEntry(R.string.automation_title, SettingsTab.DEVICES, detail = R.string.automation_detail),
 
-        SettingsEntry(R.string.settings_screen_title, SettingsTab.HEAD_UNIT),
-        SettingsEntry(R.string.settings_unit_bar_title, SettingsTab.HEAD_UNIT, offered = { FreeformBar.supported && Edition.full }),
+        SettingsEntry(R.string.settings_screen_title, SettingsTab.LOOK),
+        SettingsEntry(R.string.settings_unit_bar_title, SettingsTab.LOOK, offered = { FreeformBar.supported && Edition.full }),
         SettingsEntry(R.string.unit_card_title, SettingsTab.HEAD_UNIT, listOf(Deep.HEAD_UNIT), detail = R.string.unit_caps_section),
         SettingsEntry(R.string.setup_access_title, SettingsTab.HEAD_UNIT, listOf(Deep.ACCESS)),
         SettingsEntry(R.string.home_hand_back_title, SettingsTab.HEAD_UNIT, detail = R.string.home_hand_back_detail),
@@ -498,13 +698,14 @@ private val SETTINGS_INDEX: List<SettingsEntry> by lazy {
         SettingsEntry(R.string.help_title, SettingsTab.GENERAL, listOf(Deep.ABOUT)),
         SettingsEntry(R.string.tour_settings_row, SettingsTab.GENERAL, listOf(Deep.ABOUT)),
 
-        SettingsEntry(R.string.settings_lab, SettingsTab.GENERAL, listOf(Deep.LAB)),
-        SettingsEntry(R.string.api_keys_title, SettingsTab.GENERAL, listOf(Deep.API_KEYS), detail = R.string.api_keys_search_detail),
-        SettingsEntry(R.string.map_servers_title, SettingsTab.GENERAL, listOf(Deep.MAP_SERVERS)),
-        SettingsEntry(R.string.explore_title, SettingsTab.GENERAL, listOf(Deep.LAB, Deep.EXPLORER), detail = R.string.explore_settings_detail),
-        SettingsEntry(R.string.dead_strip_title, SettingsTab.GENERAL, listOf(Deep.LAB), detail = R.string.dead_strip_detail),
-        SettingsEntry(R.string.settings_sleep_title, SettingsTab.GENERAL, listOf(Deep.LAB), offered = { CarPower.available }),
-        SettingsEntry(R.string.settings_log_title, SettingsTab.GENERAL, listOf(Deep.LAB)),
+        SettingsEntry(R.string.lab_experimental_title, SettingsTab.GENERAL, detail = R.string.lab_experimental_detail),
+        SettingsEntry(R.string.templates_button, SettingsTab.DASHBOARD),
+        SettingsEntry(R.string.api_keys_title, SettingsTab.DEVICES, listOf(Deep.API_KEYS), detail = R.string.api_keys_search_detail),
+        SettingsEntry(R.string.map_servers_title, SettingsTab.DRIVING, listOf(Deep.MAP_SERVERS)),
+        SettingsEntry(R.string.explore_title, SettingsTab.DIAGNOSTICS, listOf(Deep.EXPLORER), detail = R.string.explore_settings_detail),
+        SettingsEntry(R.string.dead_strip_title, SettingsTab.LOOK, detail = R.string.dead_strip_detail),
+        SettingsEntry(R.string.settings_sleep_title, SettingsTab.HEAD_UNIT, offered = { CarPower.available }),
+        SettingsEntry(R.string.settings_log_title, SettingsTab.GENERAL, listOf(Deep.ABOUT)),
 
         // Rows the search missed (usability reviews 10-29 and 11-09): the OBD sheet's switches, the About sheet's rows.
         SettingsEntry(R.string.settings_obd_auto, SettingsTab.DIAGNOSTICS, listOf(Deep.OBD), detail = R.string.settings_obd_auto_off),
@@ -516,7 +717,7 @@ private val SETTINGS_INDEX: List<SettingsEntry> by lazy {
         SettingsEntry(R.string.update_previous, SettingsTab.GENERAL, listOf(Deep.ABOUT), detail = R.string.update_previous_detail, offered = full),
         SettingsEntry(R.string.about_project, SettingsTab.GENERAL, listOf(Deep.ABOUT), detail = R.string.about_project_detail),
         SettingsEntry(R.string.about_telegram, SettingsTab.GENERAL, listOf(Deep.ABOUT), detail = R.string.about_telegram_detail),
-        SettingsEntry(R.string.about_kofi, SettingsTab.GENERAL, listOf(Deep.ABOUT))
+        SettingsEntry(R.string.about_kofi, SettingsTab.GENERAL)
     )
 }
 
@@ -540,7 +741,6 @@ private fun Deep.titleRes(): Int = when (this) {
     Deep.UNITS -> R.string.units_title
     Deep.ACCESS -> R.string.setup_access_title
     Deep.ABOUT -> R.string.settings_section_about
-    Deep.LAB -> R.string.settings_lab
     Deep.UNIT_TOOLS -> R.string.settings_unit_tools
     Deep.MAP_SERVERS -> R.string.map_servers_title
     Deep.API_KEYS -> R.string.api_keys_title
@@ -617,7 +817,7 @@ private fun SearchResults(query: String, onGo: (SettingsTab, List<Deep>, Int?) -
 
 /** The search over every setting's name: a field a thumb hits, with a way to clear it. */
 @Composable
-private fun SettingsSearchField(query: String, onChange: (String) -> Unit, modifier: Modifier = Modifier) {
+internal fun SettingsSearchField(query: String, onChange: (String) -> Unit, modifier: Modifier = Modifier) {
     val keyboard = LocalSoftwareKeyboardController.current
     val tap = rememberTapFeedback()
     BasicTextField(

@@ -11,7 +11,7 @@ class QuickSwitchStoreTest {
     @Test
     fun nothingSavedIsTheFiveItAlwaysShowed() {
         assertEquals(
-            setOf(QuickSwitch.MUTE, QuickSwitch.LOOK, QuickSwitch.DND, QuickSwitch.WIFI, QuickSwitch.BLUETOOTH),
+            setOf(QuickSwitch.QUIET, QuickSwitch.MUTE, QuickSwitch.LOOK, QuickSwitch.DND, QuickSwitch.WIFI, QuickSwitch.BLUETOOTH),
             QuickSwitchStore.parse(null)
         )
     }

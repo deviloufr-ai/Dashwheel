@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.BrightnessAuto
 import androidx.compose.material.icons.filled.DesktopAccessDisabled
 import androidx.compose.material.icons.filled.DoNotDisturbOn
 import androidx.compose.material.icons.filled.SignalCellularAlt
+import androidx.compose.material.icons.filled.VoiceOverOff
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -17,8 +18,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-/** One switch the Quick switches tile can show, in the order the tile draws them. */
+/** One switch the Quick switches tile and the bar's quick panel can show, in the order they draw them. */
 internal enum class QuickSwitch(val key: String, val icon: ImageVector, @StringRes val label: Int, @StringRes val detail: Int) {
+    // What the car says by itself, off for this drive: the same switch as the wheel's Quiet.
+    QUIET("quiet", Icons.Filled.VoiceOverOff, R.string.voice_menu_quiet, R.string.voice_quiet_on),
     MUTE("mute", Icons.Filled.VolumeOff, R.string.widgets_switch_mute, R.string.widgets_switch_mute_detail),
     LOOK("look", Icons.Filled.BrightnessAuto, R.string.widgets_switch_look, R.string.widgets_switch_look_detail),
     DND("dnd", Icons.Filled.DoNotDisturbOn, R.string.widgets_switch_dnd, R.string.widgets_switch_dnd_detail),
@@ -37,8 +40,8 @@ internal object QuickSwitchStore {
     private const val PREFS = "quick_switches"
     private const val KEY_CHOSEN = "chosen"
 
-    /** What the tile always showed before it could be chosen. */
-    val DEFAULT: Set<QuickSwitch> = setOf(QuickSwitch.MUTE, QuickSwitch.LOOK, QuickSwitch.DND, QuickSwitch.WIFI, QuickSwitch.BLUETOOTH)
+    /** What the tile always showed before it could be chosen, and Quiet, which the bar's menu always had. */
+    val DEFAULT: Set<QuickSwitch> = setOf(QuickSwitch.QUIET, QuickSwitch.MUTE, QuickSwitch.LOOK, QuickSwitch.DND, QuickSwitch.WIFI, QuickSwitch.BLUETOOTH)
 
     private val _chosen = MutableStateFlow(DEFAULT)
     val chosen: StateFlow<Set<QuickSwitch>> = _chosen.asStateFlow()

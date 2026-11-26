@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.SignalCellularAlt
 import androidx.compose.material.icons.filled.SignalCellularOff
+import androidx.compose.material.icons.filled.VoiceOverOff
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.WifiOff
@@ -162,10 +163,17 @@ private fun FollowRadios(shown: List<QuickSwitch>) {
     }
 }
 
-/** The switches the driver picked, from Mute to Screen off ([QuickSwitch]): one tap each. */
+/** One switch as it stands now: what to draw and what a tap does. [line] is its state in a word, null where it isn't known. */
+internal class QuickSwitchUi(
+    val icon: ImageVector, val name: String, val on: Boolean, val line: String?,
+    val strength: (@Composable (Modifier) -> Unit)? = null, val onClick: () -> Unit
+)
+
+/** The switches the driver picked, from Quiet to Screen off ([QuickSwitch]), for the tile and the bar's quick panel (QuickPanel.kt). */
 @Composable
-internal fun QuickSwitchesCard(modifier: Modifier = Modifier) {
+internal fun quickSwitchUis(): List<QuickSwitchUi> {
     val context = LocalContext.current
+    val quiet by CarVoice.quietState.collectAsState()
     val scope = rememberCoroutineScope()
     val shown = rememberShownSwitches()
     FollowRadios(shown)
@@ -194,21 +202,23 @@ internal fun QuickSwitchesCard(modifier: Modifier = Modifier) {
     val volume by rememberMusicVolume(audio)
     val byKeys by MediaVolume.byKeys.collectAsState()
     val muted = !byKeys && volume == 0
-    Card(modifier = modifier) {
-        Row(modifier = Modifier.fillMaxSize().padding(DashSpace.Md), horizontalArrangement = Arrangement.spacedBy(DashSpace.Sm)) {
-            val each = Modifier.weight(1f).fillMaxHeight()
-            for (s in shown) when (s) {
-                QuickSwitch.MUTE -> Switch(Icons.Filled.VolumeOff, stringResource(s.label), on = muted, line = if (byKeys) null else word(muted), modifier = each) {
+    return shown.map { s ->
+        when (s) {
+                QuickSwitch.QUIET -> QuickSwitchUi(Icons.Filled.VoiceOverOff, stringResource(s.label), on = quiet, line = word(quiet)) {
+                    CarVoice.quiet = !quiet
+                    if (quiet) HandsFree.say(context, R.string.voice_quiet_off)
+                }
+                QuickSwitch.MUTE -> QuickSwitchUi(Icons.Filled.VolumeOff, stringResource(s.label), on = muted, line = if (byKeys) null else word(muted)) {
                     MediaVolume.toggleMute(context)
                 }
-                QuickSwitch.LOOK -> Switch(lookIcon(look), stringResource(s.label), on = look != DashAppearance.AUTO, line = stringResource(look.titleRes), modifier = each) {
+                QuickSwitch.LOOK -> QuickSwitchUi(lookIcon(look), stringResource(s.label), on = look != DashAppearance.AUTO, line = stringResource(look.titleRes)) {
                     val next = DashAppearance.entries[(look.ordinal + 1) % DashAppearance.entries.size]
                     look = next
                     DashThemeStore.askAppearance(context, next)
                 }
-                QuickSwitch.DND -> Switch(
+                QuickSwitch.DND -> QuickSwitchUi(
                     if (dnd) Icons.Filled.DoNotDisturbOn else Icons.Filled.NotificationsActive,
-                    stringResource(s.label), on = dnd, line = word(dnd), modifier = each
+                    stringResource(s.label), on = dnd, line = word(dnd), 
                 ) {
                     scope.launch {
                         setDoNotDisturb(context, !dnd)
@@ -216,22 +226,32 @@ internal fun QuickSwitchesCard(modifier: Modifier = Modifier) {
                         dnd = doNotDisturbOn(context)
                     }
                 }
-                QuickSwitch.WIFI -> Switch(if (wifi.on) Icons.Filled.Wifi else Icons.Filled.WifiOff, stringResource(s.label), on = wifi.on, line = radioLine(wifi), modifier = each,
+                QuickSwitch.WIFI -> QuickSwitchUi(if (wifi.on) Icons.Filled.Wifi else Icons.Filled.WifiOff, stringResource(s.label), on = wifi.on, line = radioLine(wifi),
                     strength = if (wifi.on && wifiSignal.connected) { m -> WifiStrength(wifiLit(wifiSignal.bars), DashColors.Accent, m) } else null) {
                     RadioSwitches.toggleWifi(context)
                 }
-                QuickSwitch.BLUETOOTH -> Switch(if (bt.on) Icons.Filled.Bluetooth else Icons.Filled.BluetoothDisabled, stringResource(s.label), on = bt.on, line = radioLine(bt), modifier = each) {
+                QuickSwitch.BLUETOOTH -> QuickSwitchUi(if (bt.on) Icons.Filled.Bluetooth else Icons.Filled.BluetoothDisabled, stringResource(s.label), on = bt.on, line = radioLine(bt)) {
                     RadioSwitches.toggleBluetooth(context)
                 }
-                QuickSwitch.MOBILE_DATA -> Switch(dataIcon(data), stringResource(s.label), on = data, line = word(data), modifier = each,
+                QuickSwitch.MOBILE_DATA -> QuickSwitchUi(dataIcon(data), stringResource(s.label), on = data, line = word(data),
                     strength = if (data && cellBars != null) { m -> CellStrength(cellBars ?: 0, DashColors.Accent, m) } else null) {
                     scope.launch { setMobileData(context, !data) }
                 }
                 // One tap and the screen is dark: there is no state to show under it.
-                QuickSwitch.SCREEN_OFF -> Switch(Icons.Filled.DesktopAccessDisabled, stringResource(s.label), on = false, line = null, modifier = each) {
+                QuickSwitch.SCREEN_OFF -> QuickSwitchUi(Icons.Filled.DesktopAccessDisabled, stringResource(s.label), on = false, line = null) {
                     scope.launch { screenOff(context) }
                 }
-            }
+        }
+    }
+}
+
+/** The tile: the picked switches in a row, one tap each. */
+@Composable
+internal fun QuickSwitchesCard(modifier: Modifier = Modifier) {
+    val switches = quickSwitchUis()
+    Card(modifier = modifier) {
+        Row(modifier = Modifier.fillMaxSize().padding(DashSpace.Md), horizontalArrangement = Arrangement.spacedBy(DashSpace.Sm)) {
+            for (u in switches) Switch(u.icon, u.name, on = u.on, line = u.line, modifier = Modifier.weight(1f).fillMaxHeight(), strength = u.strength, onClick = u.onClick)
         }
     }
 }
@@ -276,7 +296,7 @@ private fun Switch(
  * three): the radios before the look and Do Not Disturb, as it always drew.
  */
 private val FACE_ORDER = listOf(
-    QuickSwitch.MUTE, QuickSwitch.WIFI, QuickSwitch.BLUETOOTH, QuickSwitch.MOBILE_DATA, QuickSwitch.SCREEN_OFF, QuickSwitch.DND, QuickSwitch.LOOK
+    QuickSwitch.QUIET, QuickSwitch.MUTE, QuickSwitch.WIFI, QuickSwitch.BLUETOOTH, QuickSwitch.MOBILE_DATA, QuickSwitch.SCREEN_OFF, QuickSwitch.DND, QuickSwitch.LOOK
 )
 
 @Composable
@@ -304,6 +324,7 @@ internal fun quickSwitchesFace(): WidgetFace {
     val actions = FACE_ORDER.filter { it in shown }.map { s ->
         val label = name.getValue(s)
         when (s) {
+            QuickSwitch.QUIET -> FaceAction(Icons.Filled.VoiceOverOff, label, onClick = { CarVoice.quiet = !CarVoice.quiet }, primary = CarVoice.quiet)
             QuickSwitch.MUTE -> FaceAction(Icons.Filled.VolumeOff, label, onClick = { MediaVolume.toggleMute(context) })
             QuickSwitch.WIFI -> FaceAction(if (wifi.on) Icons.Filled.Wifi else Icons.Filled.WifiOff, label, onClick = { RadioSwitches.toggleWifi(context) }, primary = wifi.on)
             QuickSwitch.BLUETOOTH -> FaceAction(if (bt.on) Icons.Filled.Bluetooth else Icons.Filled.BluetoothDisabled, label, onClick = { RadioSwitches.toggleBluetooth(context) }, primary = bt.on)

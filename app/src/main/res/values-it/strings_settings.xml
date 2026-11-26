@@ -4,7 +4,7 @@
     <string name="settings_menu">Impostazioni</string>
     <string name="settings_title">Impostazioni</string>
     <string name="settings_section_car">Auto</string>
-    <string name="settings_section_look">Aspetto</string>
+    <string name="settings_section_look">Schermo e aspetto</string>
     <string name="settings_section_advanced">Avanzate</string>
     <string name="settings_ai_detail">Spiega i codici di errore e legge gli avvisi</string>
     <string name="settings_system_detail">I widget Android si aggiungono senza chiedere ogni volta. Serve il root.</string>
@@ -16,6 +16,7 @@
     <string name="settings_section_sound">Audio</string>
     <string name="settings_section_buttons">Pulsanti</string>
     <string name="settings_section_diagnostics">Diagnostica</string>
+    <string name="settings_group_car_data">Dati dell\'auto</string>
     <string name="settings_section_apps_in_tiles">App nei riquadri</string>
     <!-- Volume follows speed (SpeedVolume.kt), Settings → Driving -->
     <string name="speed_volume_title">Volume in base alla velocità</string>
@@ -265,12 +266,13 @@
     <string name="settings_deepobd_field_none">Non usata</string>
     <string name="settings_deepobd_field_ignored">Ignorata</string>
     <!-- Settings rework: groups, overview, search (SettingsScreen.kt, SettingsOverview.kt) -->
-    <string name="settings_overview">Panoramica</string>
+    <string name="settings_overview">Per te</string>
+    <string name="settings_needs_you">Da fare</string>
+    <string name="settings_needs_nothing">Tutto a posto</string>
+    <string name="settings_quick_switches">Interruttori rapidi</string>
     <string name="settings_section_volume">Volume</string>
     <string name="settings_section_taps_music">Tocchi e musica</string>
     <string name="settings_section_more_tools">Altri strumenti</string>
-    <string name="settings_lab">Laboratorio</string>
-    <string name="settings_lab_detail">Strumenti in prova e il registro dell\'unità</string>
     <string name="lab_experimental_title">Funzioni sperimentali</string>
     <string name="lab_experimental_detail">Luci e porte aperte sull\'auto 3D, una città al crepuscolo sulla mappa 3D, una strada disegnata in Road watch sul telefono</string>
     <string name="dead_strip_title">Striscia touch morta</string>
@@ -380,7 +382,6 @@
     <string name="settings_section_alerts">Avvisi</string>
     <string name="settings_section_dashboard">Cruscotto</string>
     <string name="settings_section_devices">Telefono e schermi</string>
-    <string name="settings_section_general">Generali</string>
     <string name="settings_section_expert">Esperto</string>
     <string name="settings_section_upkeep">Manutenzione e carburante</string>
     <string name="settings_section_screens_apps">Schermi e app</string>

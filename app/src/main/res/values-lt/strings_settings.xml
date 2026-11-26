@@ -4,7 +4,7 @@
     <string name="settings_menu">Nustatymai</string>
     <string name="settings_title">Nustatymai</string>
     <string name="settings_section_car">Automobilis</string>
-    <string name="settings_section_look">Išvaizda</string>
+    <string name="settings_section_look">Ekranas ir išvaizda</string>
     <string name="settings_section_advanced">Išplėstiniai</string>
     <string name="settings_ai_detail">Paaiškina gedimų kodus ir įgarsina įspėjimus</string>
     <string name="settings_system_detail">Android valdiklius galima pridėti be klausimo kiekvieną kartą. Reikia root.</string>
@@ -16,6 +16,7 @@
     <string name="settings_section_sound">Garsas</string>
     <string name="settings_section_buttons">Mygtukai</string>
     <string name="settings_section_diagnostics">Diagnostika</string>
+    <string name="settings_group_car_data">Automobilio duomenys</string>
     <string name="settings_section_apps_in_tiles">Programos plytelėse</string>
     <!-- Volume follows speed (SpeedVolume.kt), Settings → Driving -->
     <string name="speed_volume_title">Garsas pagal greitį</string>
@@ -266,12 +267,13 @@
     <string name="settings_deepobd_field_none">Nenaudojama</string>
     <string name="settings_deepobd_field_ignored">Ignoruojama</string>
     <!-- Settings rework: groups, overview, search (SettingsScreen.kt, SettingsOverview.kt) -->
-    <string name="settings_overview">Apžvalga</string>
+    <string name="settings_overview">Jums</string>
+    <string name="settings_needs_you">Reikia jūsų</string>
+    <string name="settings_needs_nothing">Viskas paruošta</string>
+    <string name="settings_quick_switches">Greitieji jungikliai</string>
     <string name="settings_section_volume">Garsumas</string>
     <string name="settings_section_taps_music">Palietimai ir muzika</string>
     <string name="settings_section_more_tools">Daugiau įrankių</string>
-    <string name="settings_lab">Laboratorija</string>
-    <string name="settings_lab_detail">Dar bandomi įrankiai ir magnetolos žurnalas</string>
     <string name="lab_experimental_title">Eksperimentinės funkcijos</string>
     <string name="lab_experimental_detail">Žibintai ir atviros durys 3D automobilyje, miestas prieblandoje 3D žemėlapyje, nupieštas kelias telefono Road watch</string>
     <!-- Lab: a touchscreen that misses touches in one upright strip (DeadTouchStrip.kt) -->
@@ -386,7 +388,6 @@
     <string name="settings_section_alerts">Įspėjimai</string>
     <string name="settings_section_dashboard">Skydelis</string>
     <string name="settings_section_devices">Telefonas ir ekranai</string>
-    <string name="settings_section_general">Bendra</string>
     <string name="settings_section_expert">Pažangūs</string>
     <string name="settings_section_upkeep">Aptarnavimas ir kuras</string>
     <string name="settings_section_screens_apps">Ekranai ir programos</string>

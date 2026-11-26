@@ -4,7 +4,7 @@
     <string name="settings_menu">Instellingen</string>
     <string name="settings_title">Instellingen</string>
     <string name="settings_section_car">Auto</string>
-    <string name="settings_section_look">Uiterlijk</string>
+    <string name="settings_section_look">Scherm en uiterlijk</string>
     <string name="settings_section_advanced">Geavanceerd</string>
     <string name="settings_ai_detail">Legt foutcodes uit en spreekt waarschuwingen uit</string>
     <string name="settings_system_detail">Android-widgets toevoegen zonder elke keer toestemming. Vereist root.</string>
@@ -12,6 +12,7 @@
     <string name="settings_section_sound">Geluid</string>
     <string name="settings_section_buttons">Knoppen</string>
     <string name="settings_section_diagnostics">Diagnose</string>
+    <string name="settings_group_car_data">Autogegevens</string>
     <string name="settings_section_apps_in_tiles">Apps in tegels</string>
     <string name="settings_drive_lock">Wijzigen alleen bij stilstand</string>
     <string name="settings_drive_lock_detail">Bewerken, instellingen en het app-raster wachten tot de auto stilstaat</string>
@@ -265,12 +266,13 @@
     <string name="settings_deepobd_field_none">Ongebruikt</string>
     <string name="settings_deepobd_field_ignored">Genegeerd</string>
     <!-- Settings rework: groups, overview, search (SettingsScreen.kt, SettingsOverview.kt) -->
-    <string name="settings_overview">Overzicht</string>
+    <string name="settings_overview">Voor jou</string>
+    <string name="settings_needs_you">Vraagt aandacht</string>
+    <string name="settings_needs_nothing">Alles in orde</string>
+    <string name="settings_quick_switches">Snelle schakelaars</string>
     <string name="settings_section_volume">Volume</string>
     <string name="settings_section_taps_music">Tikken en muziek</string>
     <string name="settings_section_more_tools">Meer hulpmiddelen</string>
-    <string name="settings_lab">Lab</string>
-    <string name="settings_lab_detail">Hulpmiddelen in test en het logboek van het toestel</string>
     <string name="lab_experimental_title">Experimentele functies</string>
     <string name="lab_experimental_detail">Lichten en open deuren op de 3D-auto, een stad in de schemering op de 3D-kaart, een getekende weg in Road watch op de telefoon</string>
     <string name="dead_strip_title">Dode aanraakstrook</string>
@@ -376,7 +378,6 @@
     <string name="settings_section_alerts">Meldingen</string>
     <string name="settings_section_dashboard">Dashboard</string>
     <string name="settings_section_devices">Telefoon en schermen</string>
-    <string name="settings_section_general">Algemeen</string>
     <string name="settings_section_expert">Expert</string>
     <string name="settings_section_upkeep">Onderhoud en brandstof</string>
     <string name="settings_section_screens_apps">Schermen en apps</string>

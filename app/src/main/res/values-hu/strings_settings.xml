@@ -4,7 +4,7 @@
     <string name="settings_menu">Beállítások</string>
     <string name="settings_title">Beállítások</string>
     <string name="settings_section_car">Autó</string>
-    <string name="settings_section_look">Megjelenés</string>
+    <string name="settings_section_look">Kijelző és megjelenés</string>
     <string name="settings_section_advanced">Speciális</string>
     <string name="settings_ai_detail">Elmagyarázza a hibakódokat és felolvassa a riasztásokat</string>
     <string name="settings_system_detail">Android widgetek külön kérdés nélkül hozzáadhatók. Root szükséges.</string>
@@ -16,6 +16,7 @@
     <string name="settings_section_sound">Hang</string>
     <string name="settings_section_buttons">Gombok</string>
     <string name="settings_section_diagnostics">Diagnosztika</string>
+    <string name="settings_group_car_data">Autóadatok</string>
     <string name="settings_section_apps_in_tiles">Alkalmazások csempében</string>
     <!-- Volume follows speed (SpeedVolume.kt), Settings → Driving -->
     <string name="speed_volume_title">Sebességfüggő hangerő</string>
@@ -266,12 +267,13 @@
     <string name="settings_deepobd_field_none">Nem használt</string>
     <string name="settings_deepobd_field_ignored">Figyelmen kívül</string>
     <!-- Settings rework: groups, overview, search (SettingsScreen.kt, SettingsOverview.kt) -->
-    <string name="settings_overview">Áttekintés</string>
+    <string name="settings_overview">Neked</string>
+    <string name="settings_needs_you">Teendők</string>
+    <string name="settings_needs_nothing">Minden rendben</string>
+    <string name="settings_quick_switches">Gyorskapcsolók</string>
     <string name="settings_section_volume">Hangerő</string>
     <string name="settings_section_taps_music">Érintés és zene</string>
     <string name="settings_section_more_tools">További eszközök</string>
-    <string name="settings_lab">Labor</string>
-    <string name="settings_lab_detail">Még tesztelés alatt álló eszközök és a fejegység naplója</string>
     <string name="lab_experimental_title">Kísérleti funkciók</string>
     <string name="lab_experimental_detail">Lámpák és nyitott ajtók a 3D autón, alkonyati város a 3D térképen, rajzolt út a telefonos Road watchban</string>
     <string name="dead_strip_title">Halott érintősáv</string>
@@ -377,7 +379,6 @@
     <string name="settings_section_alerts">Figyelmeztetések</string>
     <string name="settings_section_dashboard">Műszerfal</string>
     <string name="settings_section_devices">Telefon és kijelzők</string>
-    <string name="settings_section_general">Általános</string>
     <string name="settings_section_expert">Haladó</string>
     <string name="settings_section_upkeep">Szerviz és üzemanyag</string>
     <string name="settings_section_screens_apps">Kijelzők és alkalmazások</string>

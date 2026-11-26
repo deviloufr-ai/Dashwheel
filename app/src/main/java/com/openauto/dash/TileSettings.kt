@@ -84,9 +84,9 @@ private fun SpokenEventSheet(event: SpokenEvent, onDismiss: () -> Unit) {
     }
 }
 
-/** Which switches the Quick switches tile shows: one row per switch this unit can work. */
+/** Which switches the Quick switches tile and the bar's quick panel show: one row per switch this unit can work. */
 @Composable
-private fun QuickSwitchesSheet(onDismiss: () -> Unit) {
+internal fun QuickSwitchesSheet(onDismiss: () -> Unit) {
     val context = LocalContext.current
     // Once per process: the store keeps what it read.
     QuickSwitchStore.load(context)
