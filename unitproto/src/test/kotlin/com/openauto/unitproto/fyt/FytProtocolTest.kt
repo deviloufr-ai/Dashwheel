@@ -89,6 +89,8 @@ class FytProtocolTest {
         assertEquals("bt", FytModules.name(FytModules.BT))
         assertEquals("module42", FytModules.name(42))
         assertTrue(FytCanbus.U_CUR_SPEED in FytCanbus.SNIFF_RANGE)
+        // Issue 181: reverse in module MAIN, taught as "fyt:0:12#0".
+        assertTrue(FytKey.parse("fyt:0:12#0")!!.let { it.module == FytModules.MAIN && it.code in FytMain.SNIFF_RANGE })
         assertTrue(FytCanbus.GENERIC.contains(FytCanbus.U_CANBUS_ID))
     }
 

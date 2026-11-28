@@ -142,6 +142,8 @@ internal class FytCanbusSource(private val toolkit: FytToolkit) : VehicleBusSour
     private var mainModule: FytToolkit.FytModule? = null
     private val watched = LinkedHashSet<Int>()
     private val registered = HashSet<Int>()
+    private val mainWatched = LinkedHashSet<Int>()
+    private val mainRegistered = HashSet<Int>()
     private var sniffing = false
     @Volatile private var canbusId: Int? = null
 
@@ -170,7 +172,10 @@ internal class FytCanbusSource(private val toolkit: FytToolkit) : VehicleBusSour
         module = m
         registered.clear()
         register(m, FytCanbus.GENERIC.toList() + FytVw.CODES.toList() + watched + if (sniffing) FytCanbus.SNIFF_RANGE.toList() else emptyList())
-        mainModule = toolkit.module(FytModules.MAIN)?.also { it.register(mainCallback, FytMain.U_ILL) }
+        mainRegistered.clear()
+        mainModule = toolkit.module(FytModules.MAIN)?.also {
+            registerMain(it, listOf(FytMain.U_ILL) + mainWatched + if (sniffing) FytMain.SNIFF_RANGE.toList() else emptyList())
+        }
         _listening.value = true
     }
 
@@ -178,6 +183,7 @@ internal class FytCanbusSource(private val toolkit: FytToolkit) : VehicleBusSour
         module = null
         mainModule = null
         registered.clear()
+        mainRegistered.clear()
         _listening.value = false
     }
 
@@ -185,20 +191,37 @@ internal class FytCanbusSource(private val toolkit: FytToolkit) : VehicleBusSour
         for (code in codes) if (registered.add(code)) m.register(callback, code)
     }
 
-    /** The finder's learned keys: the CANBUS codes among them are followed for good. */
+    private fun registerMain(m: FytToolkit.FytModule, codes: Collection<Int>) {
+        for (code in codes) if (mainRegistered.add(code)) m.register(mainCallback, code)
+    }
+
+    /**
+     * The finder's learned keys: the CANBUS and MAIN codes among them are followed for good. MAIN because some
+     * CAN decoders (Hiworld's Ford Focus, issue 181) say reverse there ("fyt:0:12#0") and nothing in CANBUS.
+     */
     override fun watch(keys: Set<String>) {
-        val codes = keys.mapNotNull { FytKey.parse(it) }.filter { it.module == FytModules.CANBUS }.map { it.code }
+        val parsed = keys.mapNotNull { FytKey.parse(it) }
+        val codes = parsed.filter { it.module == FytModules.CANBUS }.map { it.code }
+        val mainCodes = parsed.filter { it.module == FytModules.MAIN }.map { it.code }
         toolkit.feed.post {
             val new = codes.filter { watched.add(it) }
             module?.let { register(it, new) }
+            val newMain = mainCodes.filter { mainWatched.add(it) }
+            mainModule?.let { registerMain(it, newMain) }
         }
     }
 
-    /** The sniffer is open: every code of the range is listened to, so what the car sends shows up. */
+    /** The sniffer is open: every code of each module's range is listened to, so what the car sends shows up. */
     override fun sniff(on: Boolean) {
         toolkit.feed.post {
             if (sniffing == on) return@post
             sniffing = on
+            mainModule?.let { mm ->
+                if (on) registerMain(mm, FytMain.SNIFF_RANGE.toList())
+                else for (code in FytMain.SNIFF_RANGE) if (code != FytMain.U_ILL && code !in mainWatched) {
+                    if (mainRegistered.remove(code)) mm.unregister(mainCallback, code)
+                }
+            }
             val m = module ?: return@post
             if (on) register(m, FytCanbus.SNIFF_RANGE.toList())
             else for (code in FytCanbus.SNIFF_RANGE) if (code !in watched && code !in FytCanbus.GENERIC && code !in FytVw.CODES) {

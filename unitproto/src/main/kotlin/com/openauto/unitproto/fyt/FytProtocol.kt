@@ -105,6 +105,13 @@ object FytMain {
     /** A steering wheel or panel key: ints[0] is the key code (open-headunit); 576 is the voice key there. */
     const val U_KEY = 133
     const val KEY_VOICE = 576
+
+    /**
+     * The range the Signal Finder's sniffer subscribes to while it is open. Seen on a Hiworld Ford Focus
+     * (issue 181): 12 reverse, 18..21 rear parking sensors, 151 doors.
+     * shortcut: the top of the range is a guess, raise it when a report shows a main code above it.
+     */
+    val SNIFF_RANGE = 0..255
 }
 
 /**
