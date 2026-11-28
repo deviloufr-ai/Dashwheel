@@ -175,4 +175,7 @@
     <string name="widgets_switch_screen_off_detail">Kikapcsolja a képernyőt, mint a fejegység gombja</string>
     <string name="widgets_consumption">Fogyasztás</string>
     <string name="widgets_consumption_blurb">Mennyit fogyaszt az autó most, az utolsó tankolás óta és átlagosan</string>
+    <string name="widgets_drawn">Rajzolt út</string>
+    <string name="widgets_drawn_blurb">Az előtte lévő út, ahogy a telefon Útfigyelője látja: járművek, emberek, lámpák, épületek. Kísérleti</string>
+    <string name="widgets_drawn_idle">Indítsa el az Útfigyelőt a telefonon, hogy itt lássa az utat</string>
 </resources>

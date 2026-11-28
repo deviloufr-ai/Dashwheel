@@ -179,4 +179,7 @@
     <string name="widgets_switch_screen_off_detail">Išjungia ekraną kaip įrenginio mygtukas</string>
     <string name="widgets_consumption">Sąnaudos</string>
     <string name="widgets_consumption_blurb">Kiek automobilis naudoja dabar, nuo paskutinio pylimo ir vidutiniškai</string>
+    <string name="widgets_drawn">Nupieštas kelias</string>
+    <string name="widgets_drawn_blurb">Kelias priekyje, kaip jį mato telefono Kelio sargas: transporto priemonės, žmonės, šviesoforai, pastatai. Eksperimentinis</string>
+    <string name="widgets_drawn_idle">Paleiskite Kelio sargą telefone, kad čia matytumėte kelią</string>
 </resources>

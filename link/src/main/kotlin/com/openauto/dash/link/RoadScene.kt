@@ -1,5 +1,6 @@
 package com.openauto.dash.link
 
+import com.openauto.dash.roadwatch.RoadPicture
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -76,3 +77,13 @@ data class CarTelemetry(
 @Serializable
 @SerialName("keep_clip")
 data class KeepClip(val reason: String) : LinkMessage
+
+/**
+ * Phone → head unit, a few times a second while Road watch runs and the
+ * car's Experimental features are on: the road ahead as a drawing (issue
+ * 179), for the head unit's Drawn road tile to paint with RoadPainter as the
+ * phone's 3D road does. A car too old to know it skips it.
+ */
+@Serializable
+@SerialName("road_sketch")
+data class RoadSketch(val picture: RoadPicture) : LinkMessage

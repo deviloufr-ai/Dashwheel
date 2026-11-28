@@ -80,6 +80,7 @@ import com.openauto.dash.link.TypeText
 import com.openauto.dash.link.PhonePointer
 import com.openauto.dash.link.UnknownPairingException
 import com.openauto.dash.link.RoadScene
+import com.openauto.dash.link.RoadSketch
 import com.openauto.dash.link.inPieces
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -947,6 +948,7 @@ object PhoneLink {
             is PhoneFix -> PhoneGps.feed(message)
             // What the phone's camera reads of the road ahead, while Road watch runs on it.
             is RoadScene -> RoadWatch.feed(message)
+            is RoadSketch -> RoadWatch.feed(message)
             // The phone scanned a second-screen display's code for this car.
             is DisplayPair -> DisplayLink.pair(context, message.uri)
             // A way out for a driver locked out of the screen: only from a phone paired here, never one being shown the code.

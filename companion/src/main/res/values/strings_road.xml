@@ -25,6 +25,7 @@
     <string name="road_warn_moved_off">Traffic is moving</string>
     <string name="road_dim">Dim</string>
     <string name="road_view_drawn">Drawn</string>
+    <string name="road_view_scene">3D road</string>
     <string name="road_view_camera">Camera</string>
     <string name="road_bright">Brighten</string>
     <string name="road_stop">Stop</string>

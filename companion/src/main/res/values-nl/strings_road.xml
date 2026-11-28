@@ -24,6 +24,7 @@
     <string name="road_warn_moved_off">Het verkeer rijdt</string>
     <string name="road_dim">Dimmen</string>
     <string name="road_view_drawn">Tekening</string>
+    <string name="road_view_scene">3D-weg</string>
     <string name="road_view_camera">Camera</string>
     <string name="road_bright">Helderder</string>
     <string name="road_stop">Stoppen</string>

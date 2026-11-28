@@ -24,6 +24,7 @@
     <string name="road_warn_moved_off">O trânsito avança</string>
     <string name="road_dim">Escurecer</string>
     <string name="road_view_drawn">Desenho</string>
+    <string name="road_view_scene">Estrada 3D</string>
     <string name="road_view_camera">Câmara</string>
     <string name="road_bright">Clarear</string>
     <string name="road_stop">Parar</string>

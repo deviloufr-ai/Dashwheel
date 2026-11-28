@@ -174,4 +174,7 @@
     <string name="widgets_switch_screen_off_detail">Spegne lo schermo come il tasto dell\'unità</string>
     <string name="widgets_consumption">Consumo</string>
     <string name="widgets_consumption_blurb">Quanto consuma l\'auto adesso, dall\'ultimo rifornimento e in media</string>
+    <string name="widgets_drawn">Strada disegnata</string>
+    <string name="widgets_drawn_blurb">La strada davanti come la vede Vedetta strada sul telefono: veicoli, persone, semafori, edifici. Sperimentale</string>
+    <string name="widgets_drawn_idle">Avvia Vedetta strada sul telefono per vedere qui la strada</string>
 </resources>

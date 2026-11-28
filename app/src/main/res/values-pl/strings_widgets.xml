@@ -178,4 +178,7 @@
     <string name="widgets_switch_screen_off_detail">Wyłącza ekran jak przycisk radia</string>
     <string name="widgets_consumption">Spalanie</string>
     <string name="widgets_consumption_blurb">Ile auto pali teraz, od ostatniego tankowania i średnio</string>
+    <string name="widgets_drawn">Rysowana droga</string>
+    <string name="widgets_drawn_blurb">Droga przed tobą tak, jak widzi ją Strażnik drogi w telefonie: pojazdy, ludzie, światła, budynki. Eksperymentalne</string>
+    <string name="widgets_drawn_idle">Uruchom Strażnika drogi w telefonie, aby zobaczyć tu drogę</string>
 </resources>

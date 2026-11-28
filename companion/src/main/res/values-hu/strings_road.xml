@@ -24,6 +24,7 @@
     <string name="road_warn_moved_off">Indul a forgalom</string>
     <string name="road_dim">Sötétítés</string>
     <string name="road_view_drawn">Rajz</string>
+    <string name="road_view_scene">3D út</string>
     <string name="road_view_camera">Kamera</string>
     <string name="road_bright">Világosítás</string>
     <string name="road_stop">Leállítás</string>

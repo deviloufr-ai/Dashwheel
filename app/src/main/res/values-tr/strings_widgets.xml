@@ -175,4 +175,7 @@
     <string name="widgets_switch_screen_off_detail">Ekranı ünitenin kendi tuşu gibi kapatır</string>
     <string name="widgets_consumption">Tüketim</string>
     <string name="widgets_consumption_blurb">Aracın şu an, son yakıt alımından beri ve ortalama tükettiği yakıt</string>
+    <string name="widgets_drawn">Çizilmiş yol</string>
+    <string name="widgets_drawn_blurb">Telefondaki Yol izleme önünüzdeki yolu nasıl görüyorsa: araçlar, insanlar, ışıklar, binalar. Deneysel</string>
+    <string name="widgets_drawn_idle">Yolu burada görmek için telefonda Yol izleme uygulamasını başlatın</string>
 </resources>

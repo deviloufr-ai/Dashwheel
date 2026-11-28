@@ -4,6 +4,8 @@ import android.content.Context
 import android.util.Log
 import com.openauto.dash.roadwatch.Box
 import com.openauto.dash.roadwatch.Detection
+import com.openauto.dash.roadwatch.Seen
+import com.openauto.dash.roadwatch.ThingKind
 import com.openauto.dash.roadwatch.Upright
 import com.openauto.dash.roadwatch.VehicleKind
 import com.openauto.dash.roadwatch.VehicleTracker
@@ -140,9 +142,14 @@ class RoadDetector private constructor(private val interpreter: Interpreter, pri
      * The vehicles in the RGBA frame [rgba] (see [Upright.index] for the
      * other arguments). [centreY]: where the road ahead is, a fraction of the
      * upright frame's height, for a tall frame to be looked at there rather
-     * than in its middle.
+     * than in its middle. [roadside], when given, takes what the frame holds
+     * beside the vehicles (people, traffic lights, stop signs), for the 3D
+     * road; the warnings don't use them.
      */
-    fun detect(rgba: ByteBuffer, width: Int, height: Int, rowStride: Int, rotation: Int, centreY: Float = 0.5f, horizonY: Float? = null): List<Detection> {
+    fun detect(
+        rgba: ByteBuffer, width: Int, height: Int, rowStride: Int, rotation: Int, centreY: Float = 0.5f, horizonY: Float? = null,
+        roadside: MutableList<Seen>? = null
+    ): List<Detection> {
         val uw = Upright.width(width, height, rotation)
         val uh = Upright.height(width, height, rotation)
         // With [horizonY], the middle of the square around the horizon at twice the detail: far vehicles.
@@ -169,17 +176,18 @@ class RoadDetector private constructor(private val interpreter: Interpreter, pri
         for (k in 0 until n) {
             val score = scores[0][k]
             if (score < MIN_SCORE) continue
-            val kind = VehicleKind.ofCoco(classes[0][k].toInt()) ?: continue
+            val id = classes[0][k].toInt()
+            val kind = VehicleKind.ofCoco(id)
+            val beside = if (kind != null || roadside == null) null else ThingKind.roadsideOfCoco(id)
+            if (kind == null && beside == null) continue
             val (ymin, xmin, ymax, xmax) = boxes[0][k]
             // Cut off by the horizon look's edges: a near vehicle, whose width would read wrong; the square has it whole.
             if (horizonY != null && (xmin < EDGE || ymin < EDGE || xmax > 1 - EDGE || ymax > 1 - EDGE)) continue
-            found += Detection(
-                Box(
-                    (left + xmin * side) / uw, (top + ymin * side) / uh,
-                    (left + xmax * side) / uw, (top + ymax * side) / uh
-                ),
-                kind, score
+            val box = Box(
+                (left + xmin * side) / uw, (top + ymin * side) / uh,
+                (left + xmax * side) / uw, (top + ymax * side) / uh
             )
+            if (kind != null) found += Detection(box, kind, score) else if (beside != null) roadside?.add(Seen(box, beside))
         }
         return found
     }

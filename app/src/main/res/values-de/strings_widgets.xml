@@ -174,4 +174,7 @@
     <string name="widgets_switch_screen_off_detail">Schaltet den Bildschirm aus wie die Taste des Geräts</string>
     <string name="widgets_consumption">Verbrauch</string>
     <string name="widgets_consumption_blurb">Was das Auto jetzt, seit dem letzten Tanken und im Schnitt verbraucht</string>
+    <string name="widgets_drawn">Gezeichnete Straße</string>
+    <string name="widgets_drawn_blurb">Die Straße voraus, wie der Straßenwächter des Telefons sie sieht: Fahrzeuge, Menschen, Ampeln, Gebäude. Experimentell</string>
+    <string name="widgets_drawn_idle">Starten Sie den Straßenwächter auf dem Telefon, um die Straße hier zu sehen</string>
 </resources>

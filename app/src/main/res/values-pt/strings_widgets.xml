@@ -174,4 +174,7 @@
     <string name="widgets_switch_screen_off_detail">Desliga o ecrã como a tecla do aparelho</string>
     <string name="widgets_consumption">Consumo</string>
     <string name="widgets_consumption_blurb">O que o carro gasta agora, desde o último abastecimento e em média</string>
+    <string name="widgets_drawn">Estrada desenhada</string>
+    <string name="widgets_drawn_blurb">A estrada à frente como a vê a Vigia da estrada no telemóvel: veículos, pessoas, semáforos, edifícios. Experimental</string>
+    <string name="widgets_drawn_idle">Inicie a Vigia da estrada no telemóvel para ver a estrada aqui</string>
 </resources>

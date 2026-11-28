@@ -24,6 +24,7 @@
     <string name="road_warn_moved_off">Поток тронулся</string>
     <string name="road_dim">Затемнить</string>
     <string name="road_view_drawn">Рисунок</string>
+    <string name="road_view_scene">Дорога 3D</string>
     <string name="road_view_camera">Камера</string>
     <string name="road_bright">Ярче</string>
     <string name="road_stop">Стоп</string>

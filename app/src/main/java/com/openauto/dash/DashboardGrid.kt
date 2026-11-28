@@ -879,6 +879,7 @@ internal fun TileContent(
             BuiltinKind.COMMUTE -> CommuteCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.DRIVE_HISTORY -> DriveHistoryCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.NOW -> NowCard(modifier = Modifier.fillMaxSize())
+            BuiltinKind.DRAWN_ROAD -> DrawnRoadTile(modifier = Modifier.fillMaxSize())
             BuiltinKind.LPG_TANK -> LpgTankCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.MY_READINGS -> MyReadingsCard(modifier = Modifier.fillMaxSize())
             BuiltinKind.FILTER_CARE -> FilterCareCard(modifier = Modifier.fillMaxSize())

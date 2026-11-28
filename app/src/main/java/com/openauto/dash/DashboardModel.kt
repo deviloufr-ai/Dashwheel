@@ -111,7 +111,9 @@ enum class BuiltinKind(
     // The one thing that matters right now, picked from the other feeds (NowCard.kt).
     NOW(R.string.widgets_now, WidgetCategory.DRIVING, R.string.widgets_now_blurb, 5, 2),
     // The driver's car in 3D with the car's problems on it (Car3DStatusTile.kt).
-    CAR_3D(R.string.car3d_kind, WidgetCategory.VEHICLE, R.string.car3d_kind_blurb, 4, 3);
+    CAR_3D(R.string.car3d_kind, WidgetCategory.VEHICLE, R.string.car3d_kind_blurb, 4, 3),
+    // The road ahead as the phone's Road watch draws its 3D road, experimental (DrawnRoadTile.kt, issue 179).
+    DRAWN_ROAD(R.string.widgets_drawn, WidgetCategory.DRIVING, R.string.widgets_drawn_blurb, 6, 4);
 
     /** The span a fresh tile gets, in the grid's cells. */
     val defaultW: Int get() = coarseW * GRID_SCALE
@@ -127,11 +129,15 @@ enum class BuiltinKind(
  * anyway). Tiles already on a dashboard keep working.
  */
 private val LEFT_OUT_OF_CATALOG = setOf(
-    BuiltinKind.OBD_ALL, BuiltinKind.PIP_ANCHOR, BuiltinKind.MAPS_INSIDE, BuiltinKind.MY_CAR, BuiltinKind.PARKING
+    BuiltinKind.OBD_ALL, BuiltinKind.PIP_ANCHOR, BuiltinKind.MAPS_INSIDE, BuiltinKind.MY_CAR, BuiltinKind.PARKING, BuiltinKind.DRAWN_ROAD
 )
 
-/** Whether the add sheet offers this kind (see [LEFT_OUT_OF_CATALOG]); My car comes back once it has the driver's own car to show (MyCarLook.kt). */
-internal val BuiltinKind.offered: Boolean get() = this !in LEFT_OUT_OF_CATALOG || (this == BuiltinKind.MY_CAR && MyCarLook.hasLook)
+/**
+ * Whether the add sheet offers this kind (see [LEFT_OUT_OF_CATALOG]); My car comes back once it has the driver's own car to show
+ * (MyCarLook.kt), and the drawn road is offered while Experimental features are on (Experiments.kt): the phone sends it only then.
+ */
+internal val BuiltinKind.offered: Boolean
+    get() = this !in LEFT_OUT_OF_CATALOG || (this == BuiltinKind.MY_CAR && MyCarLook.hasLook) || (this == BuiltinKind.DRAWN_ROAD && Experiments.on.value)
 
 /**
  * One tile on a dashboard page, placed freely on a [GRID_COLS] x [GRID_ROWS]
@@ -318,7 +324,7 @@ fun BuiltinKind.coarseMinSize(): Pair<Int, Int> = when (this) {
     BuiltinKind.CALENDAR, BuiltinKind.NOTIFICATIONS, BuiltinKind.QUICK_DIAL, BuiltinKind.FUEL_PRICES, BuiltinKind.WIFI_NETWORKS,
     BuiltinKind.BT_DEVICES, BuiltinKind.FUEL_LOG, BuiltinKind.RADIO_PRESETS, BuiltinKind.VOICE_NOTES, BuiltinKind.CAN_MON,
     BuiltinKind.SHARE_ETA, BuiltinKind.DRIVE_HISTORY -> 3 to 2
-    BuiltinKind.NAVMAP, BuiltinKind.MAPS_INSIDE, BuiltinKind.PIP_ANCHOR -> 3 to 3
+    BuiltinKind.NAVMAP, BuiltinKind.MAPS_INSIDE, BuiltinKind.PIP_ANCHOR, BuiltinKind.DRAWN_ROAD -> 3 to 3
     // The car in 3D: a smaller one is too small to turn or read.
     BuiltinKind.CAR_3D -> 3 to 2
     BuiltinKind.DASH_BAR -> 1 to 3

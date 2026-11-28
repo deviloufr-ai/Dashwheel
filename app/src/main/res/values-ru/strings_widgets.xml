@@ -179,4 +179,7 @@
     <string name="widgets_switch_screen_off_detail">Гасит экран, как кнопка магнитолы</string>
     <string name="widgets_consumption">Расход</string>
     <string name="widgets_consumption_blurb">Сколько машина расходует сейчас, с последней заправки и в среднем</string>
+    <string name="widgets_drawn">Нарисованная дорога</string>
+    <string name="widgets_drawn_blurb">Дорога впереди, как её видит Дозор дороги на телефоне: машины, люди, светофоры, здания. Эксперимент</string>
+    <string name="widgets_drawn_idle">Запустите Дозор дороги на телефоне, чтобы видеть дорогу здесь</string>
 </resources>

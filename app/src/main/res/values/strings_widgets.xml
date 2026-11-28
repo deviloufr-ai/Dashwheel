@@ -175,4 +175,7 @@
     <string name="widgets_switch_screen_off_detail">Turns the screen off like the unit\'s own key</string>
     <string name="widgets_consumption">Consumption</string>
     <string name="widgets_consumption_blurb">What the car burns now, since the last fill-up and on average</string>
+    <string name="widgets_drawn">Drawn road</string>
+    <string name="widgets_drawn_blurb">The road ahead as the phone’s Road watch sees it: vehicles, people, lights, buildings. Experimental</string>
+    <string name="widgets_drawn_idle">Start Road watch on the phone to see the road here</string>
 </resources>

@@ -174,4 +174,7 @@
     <string name="widgets_switch_screen_off_detail">Apaga la pantalla como la tecla del equipo</string>
     <string name="widgets_consumption">Consumo</string>
     <string name="widgets_consumption_blurb">Lo que gasta el coche ahora, desde el último repostaje y de media</string>
+    <string name="widgets_drawn">Carretera dibujada</string>
+    <string name="widgets_drawn_blurb">La carretera por delante tal como la ve Vigía de carretera en el teléfono: vehículos, personas, semáforos, edificios. Experimental</string>
+    <string name="widgets_drawn_idle">Inicie Vigía de carretera en el teléfono para ver la carretera aquí</string>
 </resources>

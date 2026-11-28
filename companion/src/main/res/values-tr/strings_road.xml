@@ -24,6 +24,7 @@
     <string name="road_warn_moved_off">Trafik ilerliyor</string>
     <string name="road_dim">Karart</string>
     <string name="road_view_drawn">Çizim</string>
+    <string name="road_view_scene">3B yol</string>
     <string name="road_view_camera">Kamera</string>
     <string name="road_bright">Aydınlat</string>
     <string name="road_stop">Durdur</string>

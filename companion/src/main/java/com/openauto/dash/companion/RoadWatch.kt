@@ -17,7 +17,17 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.core.content.ContextCompat
 import com.openauto.dash.link.RoadScene
+import com.openauto.dash.link.RoadSketch
 import com.openauto.dash.roadwatch.DrawnRoad
+import com.openauto.dash.roadwatch.GroundPlace
+import com.openauto.dash.roadwatch.LightColour
+import com.openauto.dash.roadwatch.RoadPicture
+import com.openauto.dash.roadwatch.Seen
+import com.openauto.dash.roadwatch.Surroundings
+import com.openauto.dash.roadwatch.Thing
+import com.openauto.dash.roadwatch.ThingKind
+import com.openauto.dash.roadwatch.ThingTracker
+import com.openauto.dash.roadwatch.VehicleKind
 import com.openauto.dash.roadwatch.HorizonLearner
 import com.openauto.dash.roadwatch.LaneFinder
 import com.openauto.dash.roadwatch.Mount
@@ -74,7 +84,9 @@ data class RoadView(
     /** The road is dark (night): the camera is told to expose a little less, so oncoming lights don't wash out the car ahead's. */
     val dark: Boolean = false,
     /** Every vehicle found, placed on the road for the drawn view ([DrawnRoad]). */
-    val placed: List<PlacedVehicle> = emptyList()
+    val placed: List<PlacedVehicle> = emptyList(),
+    /** The road as the 3D road draws it ([DrawnScene]), while the car's Experimental features are on. */
+    val picture: RoadPicture = RoadPicture()
 )
 
 class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
@@ -146,11 +158,23 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
 
     @Volatile private var speedKmh: Float? = null
     @Volatile private var speedAt = 0L
+    /** Where the GPS last put the car, for the map under the 3D road, and the way it was last heading. */
+    @Volatile private var fix: Location? = null
+    @Volatile private var bearing: Float? = null
+    /** What the detector saw beside the vehicles in the last frame, and those things followed from frame to frame. */
+    private val beside = ArrayList<Seen>()
+    private val things = ThingTracker()
+    private var travelledM = 0f
+    private var frameAt = 0L
+    private var sketchAt = 0L
     private var locations: LocationManager? = null
     private val listener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
             speedKmh = if (location.hasSpeed()) location.speed * 3.6f else null
             speedAt = SystemClock.elapsedRealtime()
+            // The heading only while the car moves: standing still, the GPS's is noise.
+            if (location.hasBearing() && location.speed > MOVING_MPS) bearing = location.bearing
+            fix = location
             recorder?.location(location)
         }
         @Deprecated("Deprecated in Java")
@@ -222,6 +246,7 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         lanes.reset()
         tracks.forget()
         leads.forget()
+        things.reset()
         beeper?.release()
         beeper = null
         shownWarning = null
@@ -297,7 +322,7 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         val vehicles = detector
         val beforeVehicles = SystemClock.elapsedRealtimeNanos()
         // The vehicles first: the lane is looked for around them, not on them.
-        val found = vehicles?.detect(buffer, w, h, plane.rowStride, rotation, (band.horizonY + band.bonnetY) / 2, band.horizonY.takeIf { horizonLook })
+        val found = vehicles?.detect(buffer, w, h, plane.rowStride, rotation, (band.horizonY + band.bonnetY) / 2, band.horizonY.takeIf { horizonLook }, beside.also { it.clear() }.takeIf { RoadTelemetry.experimental.value })
             ?.let { tracks.update(it, now) }
         horizonLook = horizonLookAt(frameCount + 1)
         if (vehicles != null && trial != Trial.DONE && ++trialFrames >= TRIAL_FRAMES) {
@@ -372,6 +397,39 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         val warning = if (held) null else rules.update(scene, null, false, now)
         warnHere(warning)
 
+        // The 3D road, while the car's Experimental features are on: the vehicles where the drawn road puts them, what stands
+        // beside them put on the road in metres, a traffic light's lit lamp read off the frame, and the map under it all.
+        travelledM = (travelledM + (speed ?: 0f) / 3.6f * ((now - frameAt).coerceIn(0L, 500L) / 1000f)) % 9_000f
+        frameAt = now
+        val placed = DrawnRoad.place(found.orEmpty(), lead, band, lanes.carX, hfov)
+        val picture = if (!RoadTelemetry.experimental.value) RoadPicture() else {
+            val riders = found.orEmpty().filter { it.kind == VehicleKind.MOTORCYCLE || it.kind == VehicleKind.BICYCLE }
+            val seen = beside.mapNotNull { s ->
+                when (s.kind) {
+                    // A rider is drawn with the bike, not as someone standing on the road.
+                    ThingKind.PERSON -> s.takeIf { riders.none { r -> s.box.centerX in r.box.left..r.box.right && s.box.bottom > r.box.top } }
+                    ThingKind.TRAFFIC_LIGHT -> s.copy(light = LightColour.of { fx, fy ->
+                        val u = ((s.box.left + fx * s.box.width) * uprightW).toInt().coerceIn(0, uprightW - 1)
+                        val v = ((s.box.top + fy * s.box.height) * uprightH).toInt().coerceIn(0, uprightH - 1)
+                        val i = Upright.index(u, v, w, h, plane.rowStride, rotation)
+                        ((buffer.get(i).toInt() and 255) shl 16) or ((buffer.get(i + 1).toInt() and 255) shl 8) or (buffer.get(i + 2).toInt() and 255)
+                    })
+                    else -> s
+                }
+            }
+            val aspect = uprightH.toFloat() / uprightW
+            RoadPicture(
+                placed.map { Thing(ThingKind.of(it.kind), it.sideM, it.aheadM, lead = it.lead) } +
+                    things.update(seen.map { it to GroundPlace.of(it.box, it.kind, band, lane, lanes.carX, hfov, aspect) }, null, now),
+                lane.offset, lane.left != null, lane.right != null, warning, travelledM, around = mapAround(speed, now)
+            )
+        }
+        // To the linked car's Drawn road tile, a few times a second.
+        if (RoadTelemetry.experimental.value && now - sketchAt >= SKETCH_EVERY_MS && LinkServer.state.value is LinkState.Connected) {
+            sketchAt = now
+            LinkServer.send(RoadSketch(picture))
+        }
+
         val done = SystemClock.elapsedRealtimeNanos()
         val parts = floatArrayOf((beforeSigns - beforeVehicles) / 1e6f, (beforeLane - beforeSigns) / 1e6f, (done - beforeLane) / 1e6f, (done - started) / 1e6f)
         for (k in took.indices) took[k] = if (took[k] == 0f) parts[k] else took[k] * 0.9f + parts[k] * 0.1f
@@ -392,7 +450,8 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
             dashboardTop = dashboardTop,
             pillar = pillar,
             dark = dark,
-            placed = DrawnRoad.place(found.orEmpty(), lead, band, lanes.carX, hfov)
+            placed = placed,
+            picture = picture
         )
     }
 
@@ -407,6 +466,27 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         lightSince = if (mean > LIGHT_LUMA) (if (lightSince < 0) now else lightSince) else -1L
         if (!dark && darkSince >= 0 && now - darkSince >= NIGHT_FOR_MS) dark = true
         if (dark && lightSince >= 0 && now - lightSince >= NIGHT_FOR_MS) dark = false
+    }
+
+    /**
+     * The map about the car, in its frame. The GPS says where once a second:
+     * between two fixes the car is carried on along its heading at its speed,
+     * so the buildings pass smoothly.
+     */
+    private fun mapAround(speedKmh: Float?, now: Long): Surroundings? {
+        val at = fix ?: return null
+        val age = now - speedAt
+        if (age > FIX_FRESH_MS) return null
+        var lat = at.latitude
+        var lon = at.longitude
+        val heading = bearing
+        if (heading != null && speedKmh != null) {
+            val moved = speedKmh / 3.6 * (age.coerceAtMost(2_000L) / 1000.0)
+            val rad = Math.toRadians(heading.toDouble())
+            lat += moved * Math.cos(rad) / 110_574.0
+            lon += moved * Math.sin(rad) / (111_320.0 * Math.cos(Math.toRadians(lat)))
+        }
+        return RoadTiles.around(app, lat, lon)?.around(lat, lon, heading)
     }
 
     /** No car linked: the phone beeps for itself as a warning comes up. A linked car sounds its own. */
@@ -447,6 +527,11 @@ class RoadWatch(context: Context) : ImageAnalysis.Analyzer {
         const val LUMA_WIDTH = 160
         const val SEND_EVERY_MS = 100L
         const val SPEED_FRESH_MS = 3_000L
+        /** A place older than this is no place to draw a map around. */
+        const val FIX_FRESH_MS = 5_000L
+        const val MOVING_MPS = 2f
+        /** The drawing goes to the car this often: enough to look alive, light on the link. */
+        const val SKETCH_EVERY_MS = 200L
         /** Driving steadily on: where the car is in its lane is where the driver keeps it. */
         const val LEARN_KMH = 50f
         /** Signs are looked for on every this many frames: a sign stays in view for a second or more. */

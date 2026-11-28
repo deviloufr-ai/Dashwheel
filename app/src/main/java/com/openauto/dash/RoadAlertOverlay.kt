@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import com.openauto.dash.link.CarTelemetry
 import com.openauto.dash.link.KeepClip
 import com.openauto.dash.link.RoadScene
+import com.openauto.dash.link.RoadSketch
+import com.openauto.dash.roadwatch.RoadPicture
 import com.openauto.dash.roadwatch.RoadRules
 import com.openauto.dash.roadwatch.RoadWarning
 import com.openauto.dash.vehicle.K
@@ -79,6 +81,9 @@ object RoadWatch {
     private var carKmh: Int? = null
 
     private val _live = MutableStateFlow(false)
+    private val _sketch = MutableStateFlow<RoadPicture?>(null)
+    /** The road as the phone draws it, for the Drawn road tile; null while the phone doesn't watch. */
+    val sketch: StateFlow<RoadPicture?> = _sketch
     /** The phone is watching the road and sending what it sees. */
     val live: StateFlow<Boolean> = _live
 
@@ -117,11 +122,17 @@ object RoadWatch {
                     if (SystemClock.elapsedRealtime() - sceneAt > STALE_MS) {
                         rules.clear()
                         _warning.value = null
+                        _sketch.value = null
                         _live.value = false
                     }
                 }
             }
         }
+    }
+
+    /** The phone's drawing of the road; its scenes, which come with it, say when it stops. */
+    fun feed(sketch: RoadSketch) {
+        _sketch.value = sketch.picture
     }
 
     /** A scene from the phone, on the link's thread. */

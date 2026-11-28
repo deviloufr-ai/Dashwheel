@@ -174,4 +174,7 @@
     <string name="widgets_switch_screen_off_detail">Éteint l\'écran comme la touche du poste</string>
     <string name="widgets_consumption">Consommation</string>
     <string name="widgets_consumption_blurb">Ce que la voiture consomme maintenant, depuis le dernier plein et en moyenne</string>
+    <string name="widgets_drawn">Route dessinée</string>
+    <string name="widgets_drawn_blurb">La route devant vous telle que la voit Vigie route sur le téléphone : véhicules, piétons, feux, bâtiments. Expérimental</string>
+    <string name="widgets_drawn_idle">Lancez Vigie route sur le téléphone pour voir la route ici</string>
 </resources>

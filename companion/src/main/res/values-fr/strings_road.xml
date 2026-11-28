@@ -24,6 +24,7 @@
     <string name="road_warn_moved_off">Ça avance</string>
     <string name="road_dim">Assombrir</string>
     <string name="road_view_drawn">Dessin</string>
+    <string name="road_view_scene">Route 3D</string>
     <string name="road_view_camera">Caméra</string>
     <string name="road_bright">Éclaircir</string>
     <string name="road_stop">Arrêter</string>

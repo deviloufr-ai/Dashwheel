@@ -24,6 +24,7 @@
     <string name="road_warn_moved_off">Es geht weiter</string>
     <string name="road_dim">Abdunkeln</string>
     <string name="road_view_drawn">Gezeichnet</string>
+    <string name="road_view_scene">3D-Straße</string>
     <string name="road_view_camera">Kamera</string>
     <string name="road_bright">Aufhellen</string>
     <string name="road_stop">Beenden</string>

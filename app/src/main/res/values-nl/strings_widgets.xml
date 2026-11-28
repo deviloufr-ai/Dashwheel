@@ -174,4 +174,7 @@
     <string name="widgets_switch_screen_off_detail">Zet het scherm uit zoals de knop van het toestel</string>
     <string name="widgets_consumption">Verbruik</string>
     <string name="widgets_consumption_blurb">Wat de auto nu verbruikt, sinds de laatste tankbeurt en gemiddeld</string>
+    <string name="widgets_drawn">Getekende weg</string>
+    <string name="widgets_drawn_blurb">De weg vooruit zoals de Wegwachter op de telefoon hem ziet: voertuigen, mensen, verkeerslichten, gebouwen. Experimenteel</string>
+    <string name="widgets_drawn_idle">Start de Wegwachter op de telefoon om de weg hier te zien</string>
 </resources>

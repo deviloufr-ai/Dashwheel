@@ -24,6 +24,7 @@
     <string name="road_warn_moved_off">Ruch rusza</string>
     <string name="road_dim">Przyciemnij</string>
     <string name="road_view_drawn">Rysunek</string>
+    <string name="road_view_scene">Droga 3D</string>
     <string name="road_view_camera">Kamera</string>
     <string name="road_bright">Rozjaśnij</string>
     <string name="road_stop">Zatrzymaj</string>

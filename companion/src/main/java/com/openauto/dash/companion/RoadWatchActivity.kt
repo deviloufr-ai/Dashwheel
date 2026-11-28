@@ -336,7 +336,8 @@ private fun RoadWatchScreen(
     val linked = link is LinkState.Connected
     // Experimental, and only once the car says its Experimental features are on: the road drawn instead of filmed.
     val experimental by RoadTelemetry.experimental.collectAsState()
-    var drawn by remember { mutableStateOf(true) }
+    val choice by RoadViewChoice.kind.collectAsState()
+    LaunchedEffect(Unit) { RoadViewChoice.load(context) }
     val setDimmed: (Boolean) -> Unit = { on -> dimmed = on; onDim(on) }
     LaunchedEffect(linked, dimmed) {
         if (linked && !dimmed && !ROAD_WATCH_EXPERIMENTAL) {
@@ -380,7 +381,7 @@ private fun RoadWatchScreen(
         if (granted) {
             CameraBinder(onCamera)
             // Placing the phone needs the camera's picture.
-            RoadDrawing(watch, drawn = experimental && drawn && !placing, onTap = { if (dimmed) setDimmed(false) })
+            RoadDrawing(watch, shown = if (experimental && !placing) choice else RoadViewKind.CAMERA, onTap = { if (dimmed) setDimmed(false) })
             if (placing) {
                 PlacementGuide(
                     watch, up, moved,
@@ -397,7 +398,7 @@ private fun RoadWatchScreen(
         }
         RoadControls(
             watch, recorder, dimmed, setDimmed, battery, onModel, onClose, onPlace = { moved = false; placing = true },
-            drawn = drawn.takeIf { experimental }, onDrawn = { drawn = it }
+            shown = choice.takeIf { experimental }, onShown = { RoadViewChoice.set(context, it) }
         )
     }
 }
@@ -576,7 +577,8 @@ private fun frameRect(w: Float, h: Float, frameW: Int, frameH: Int): Rect {
 }
 
 @Composable
-private fun RoadDrawing(watch: RoadWatch, drawn: Boolean, onTap: () -> Unit) {
+private fun RoadDrawing(watch: RoadWatch, shown: RoadViewKind, onTap: () -> Unit) {
+    val drawn = shown != RoadViewKind.CAMERA
     val view by watch.view.collectAsState()
     // The learned horizon, or where the driver is dragging it.
     var dragged by remember { mutableStateOf<Float?>(null) }
@@ -588,7 +590,8 @@ private fun RoadDrawing(watch: RoadWatch, drawn: Boolean, onTap: () -> Unit) {
         val frame = frameRect(w, h, view.frameW, view.frameH)
         fun at(x: Float, y: Float) = Offset(frame.left + x * frame.width, frame.top + y * frame.height)
         val warn = view.warning
-        if (drawn) RoadDrawn(view, Modifier.fillMaxSize().pointerInput(Unit) { detectTapGestures { onTap() } })
+        if (shown == RoadViewKind.SCENE) DrawnScene(view, Modifier.fillMaxSize().pointerInput(Unit) { detectTapGestures { onTap() } })
+        else if (drawn) RoadDrawn(view, Modifier.fillMaxSize().pointerInput(Unit) { detectTapGestures { onTap() } })
         else Canvas(
             Modifier.fillMaxSize()
                 .pointerInput(Unit) { detectTapGestures { onTap() } }
@@ -701,9 +704,9 @@ private fun RoadControls(
     onModel: () -> Unit,
     onClose: () -> Unit,
     onPlace: () -> Unit,
-    /** The road is drawn (true) or filmed (false); null while the drawn road isn't offered. */
-    drawn: Boolean?,
-    onDrawn: (Boolean) -> Unit
+    /** The view shown; null while the drawn views aren't offered. */
+    shown: RoadViewKind?,
+    onShown: (RoadViewKind) -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -766,10 +769,22 @@ private fun RoadControls(
                     Text(stringResource(if (m == RoadModel.State.Failed) R.string.road_model_retry else R.string.road_model_get))
                 }
             }
-            if (drawn != null) FilledTonalButton(onClick = { onDrawn(!drawn) }) {
-                Icon(if (drawn) Icons.Filled.Videocam else Icons.Filled.DirectionsCar, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(if (drawn) R.string.road_view_camera else R.string.road_view_drawn))
+            if (shown != null) {
+                // Names the view a tap brings: the camera's picture, the drawn road, the 3D road, and round again.
+                val next = RoadViewKind.entries[(shown.ordinal + 1) % RoadViewKind.entries.size]
+                FilledTonalButton(onClick = { onShown(next) }) {
+                    Icon(if (next == RoadViewKind.CAMERA) Icons.Filled.Videocam else Icons.Filled.DirectionsCar, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        stringResource(
+                            when (next) {
+                                RoadViewKind.CAMERA -> R.string.road_view_camera
+                                RoadViewKind.DRAWN -> R.string.road_view_drawn
+                                RoadViewKind.SCENE -> R.string.road_view_scene
+                            }
+                        )
+                    )
+                }
             }
             FilledTonalButton(onClick = onPlace) {
                 Icon(Icons.Filled.Straighten, contentDescription = null, modifier = Modifier.size(18.dp))
